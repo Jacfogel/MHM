@@ -115,7 +115,7 @@ def validate_schedule_periods__validate_time_format(time_str: str) -> bool:
 
 @handle_errors("validating string length", default_return=False)
 def is_valid_string_length(
-    text: Optional[str],
+    text: str | None,
     max_length: int,
     field_name: str = "string",
     allow_none: bool = False,
@@ -152,7 +152,7 @@ def is_valid_string_length(
 
 @handle_errors("validating category name", default_return=False)
 def is_valid_category_name(
-    name: Optional[str],
+    name: str | None,
     max_length: int = 50,
     field_name: str = "category",
     allow_none: bool = True,
@@ -311,13 +311,13 @@ def _shared__title_case(text: str) -> str:
 
 @handle_errors("validating user update", default_return=(False, ["Validation failed"]))
 def validate_user_update(
-    user_id: str, data_type: str, updates: Dict[str, Any]
-) -> Tuple[bool, List[str]]:
+    user_id: str, data_type: str, updates: dict[str, Any]
+) -> tuple[bool, list[str]]:
     """Validate partial updates to an existing user's data."""
     logger.debug(
         f"Validating user update for user {user_id}, data_type: {data_type}, fields: {list(updates.keys())}"
     )
-    errors: List[str] = []
+    errors: list[str] = []
     if not user_id:
         errors.append("user_id is required")
     if not updates:
@@ -469,8 +469,8 @@ def validate_user_update(
     "validating schedule periods", default_return=(False, ["Validation failed"])
 )
 def validate_schedule_periods(
-    periods: Dict[str, Dict[str, Any]], category: str = "unknown"
-) -> Tuple[bool, List[str]]:
+    periods: dict[str, dict[str, Any]], category: str = "unknown"
+) -> tuple[bool, list[str]]:
     """Validate schedule periods and return (is_valid, error_messages).
 
     Args:
@@ -480,7 +480,7 @@ def validate_schedule_periods(
     Returns:
         Tuple of (is_valid, list_of_error_messages)
     """
-    errors: List[str] = []
+    errors: list[str] = []
 
     if not periods:
         return False, [f"At least one time period is required for {category}."]
@@ -579,10 +579,10 @@ def validate_schedule_periods(
     "validating new user data", default_return=(False, ["Validation failed"])
 )
 def validate_new_user_data(
-    user_id: str, data_updates: Dict[str, Dict[str, Any]]
-) -> Tuple[bool, List[str]]:
+    user_id: str, data_updates: dict[str, dict[str, Any]]
+) -> tuple[bool, list[str]]:
     """Validate complete dataset required for a brand-new user."""
-    errors: List[str] = []
+    errors: list[str] = []
     if not user_id:
         errors.append("user_id is required")
     if not data_updates:
@@ -648,14 +648,14 @@ def validate_new_user_data(
 @handle_errors(
     "validating personalization data", default_return=(False, ["Validation failed"])
 )
-def validate_personalization_data(data: Dict[str, Any]) -> Tuple[bool, List[str]]:
+def validate_personalization_data(data: dict[str, Any]) -> tuple[bool, list[str]]:
     """Validate *context/personalization* structure.
 
     No field is required; we only type-check fields that are present.
     This logic previously lived in the legacy user management utilities.
     """
 
-    errors: List[str] = []
+    errors: list[str] = []
 
     # Optional string fields
     for field in ("date_of_birth", "timezone"):

@@ -305,7 +305,7 @@ class CreateAccountButton(discord.ui.Button):
 async def start_account_creation_flow(
     interaction: discord.Interaction,
     discord_user_id: str,
-    discord_username: Optional[str] = None,
+    discord_username: str | None = None,
 ):
     """
     Start the account creation flow via Discord modal.

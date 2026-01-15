@@ -10,7 +10,7 @@ logger = factory_logger
 class ChannelFactory:
     """Factory for creating communication channels using config-based discovery"""
     
-    _channel_registry: Dict[str, Type[BaseChannel]] = {}
+    _channel_registry: dict[str, type[BaseChannel]] = {}
     _initialized = False
     
     @classmethod
@@ -48,7 +48,7 @@ class ChannelFactory:
     
     @classmethod
     @handle_errors("creating channel", default_return=None)
-    def create_channel(cls, name: str, config: ChannelConfig) -> Optional[BaseChannel]:
+    def create_channel(cls, name: str, config: ChannelConfig) -> BaseChannel | None:
         """Create a channel instance"""
         # Ensure registry is initialized
         cls._initialize_registry()

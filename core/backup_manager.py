@@ -57,8 +57,8 @@ class BackupManager:
 
     @handle_errors("setting up backup parameters", default_return=("", ""))
     def _create_backup__setup_backup(
-        self, backup_name: Optional[str]
-    ) -> Tuple[str, str]:
+        self, backup_name: str | None
+    ) -> tuple[str, str]:
         """Setup backup name and path parameters."""
         if not backup_name:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -115,12 +115,12 @@ class BackupManager:
     @handle_errors("creating backup", default_return=None)
     def create_backup(
         self,
-        backup_name: Optional[str] = None,
+        backup_name: str | None = None,
         include_users: bool = True,
         include_config: bool = True,
         include_logs: bool = False,
         include_code: bool = False,
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Create a comprehensive backup with validation.
 
@@ -444,7 +444,7 @@ class BackupManager:
             logger.warning(f"Backup cleanup encountered an error: {e}")
 
     @handle_errors("listing available backups", default_return=[])
-    def list_backups(self) -> List[Dict]:
+    def list_backups(self) -> list[dict]:
         """List all available backups with metadata."""
         backups = []
 
@@ -474,7 +474,7 @@ class BackupManager:
         return backups
 
     @handle_errors("getting backup info", default_return={})
-    def _get_backup_info(self, backup_path: str) -> Dict:
+    def _get_backup_info(self, backup_path: str) -> dict:
         """Get information about a specific backup."""
         try:
             with zipfile.ZipFile(backup_path, "r") as zipf:
@@ -631,7 +631,7 @@ class BackupManager:
 
     @handle_errors("checking backup file exists", default_return=False)
     def _validate_backup__check_file_exists(
-        self, backup_path: str, errors: List[str]
+        self, backup_path: str, errors: list[str]
     ) -> bool:
         """Check if the backup file exists and add error if not."""
         if not os.path.exists(backup_path):
@@ -640,7 +640,7 @@ class BackupManager:
         return True
 
     @handle_errors("validating zip file contents", default_return=[])
-    def _validate_backup__validate_zip_file(self, backup_path: str) -> List[str]:
+    def _validate_backup__validate_zip_file(self, backup_path: str) -> list[str]:
         """Validate zip file integrity and contents."""
         errors = []
 
@@ -662,7 +662,7 @@ class BackupManager:
 
     @handle_errors("checking file integrity", default_return=None)
     def _validate_backup__check_file_integrity(
-        self, zipf: zipfile.ZipFile, errors: List[str]
+        self, zipf: zipfile.ZipFile, errors: list[str]
     ) -> None:
         """Check if the zip file is not corrupted."""
         try:
@@ -672,7 +672,7 @@ class BackupManager:
 
     @handle_errors("validating manifest", default_return=None)
     def _validate_backup__validate_manifest(
-        self, zipf: zipfile.ZipFile, errors: List[str]
+        self, zipf: zipfile.ZipFile, errors: list[str]
     ) -> None:
         """Validate the backup manifest file."""
         if "manifest.json" not in zipf.namelist():
@@ -695,7 +695,7 @@ class BackupManager:
 
     @handle_errors("validating content requirements", default_return=None)
     def _validate_backup__validate_content_requirements(
-        self, zipf: zipfile.ZipFile, errors: List[str]
+        self, zipf: zipfile.ZipFile, errors: list[str]
     ) -> None:
         """Validate that backup contains required content."""
         # Check for required user data
@@ -717,7 +717,7 @@ class BackupManager:
             pass
 
     @handle_errors("validating backup", default_return=(False, ["Validation failed"]))
-    def validate_backup(self, backup_path: str) -> Tuple[bool, List[str]]:
+    def validate_backup(self, backup_path: str) -> tuple[bool, list[str]]:
         """
         Validate a backup file for integrity and completeness.
 
@@ -746,7 +746,7 @@ backup_manager = BackupManager()
 
 # Convenience functions for easy access
 @handle_errors("creating automatic backup", default_return=None)
-def create_automatic_backup(operation_name: str = "automatic") -> Optional[str]:
+def create_automatic_backup(operation_name: str = "automatic") -> str | None:
     """
     Create an automatic backup before major operations.
 
@@ -771,7 +771,7 @@ def _validate_system_state__validate_user_index() -> bool:
     if not user_index_path.exists():
         return True  # Missing index is not an error, just means no users yet
 
-    with open(user_index_path, "r") as f:
+    with open(user_index_path) as f:
         user_index = json.load(f)
 
     # Validate user index structure

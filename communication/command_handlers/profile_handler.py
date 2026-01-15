@@ -166,7 +166,7 @@ class ProfileHandler(InteractionHandler):
 
     @handle_errors("handling profile update")
     def _handle_update_profile(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle comprehensive profile updates"""
         if not entities:
@@ -356,9 +356,9 @@ class ProfileHandler(InteractionHandler):
     @handle_errors("formatting profile text")
     def _format_profile_text(
         self,
-        account_data: Dict[str, Any],
-        context_data: Dict[str, Any],
-        preferences_data: Dict[str, Any],
+        account_data: dict[str, Any],
+        context_data: dict[str, Any],
+        preferences_data: dict[str, Any],
     ) -> str:
         """Create a clean, readable profile string for channels like Discord."""
         try:
@@ -509,7 +509,7 @@ class ProfileHandler(InteractionHandler):
             return "Profile management help unavailable."
 
     @handle_errors("getting profile handler examples")
-    def get_examples(self) -> List[str]:
+    def get_examples(self) -> list[str]:
         """Get example commands for profile management."""
         try:
             return [

@@ -22,7 +22,7 @@ CLEANUP_TRACKER_FILENAME = ".last_cache_cleanup"
 try:
     from core.config import (
         BASE_DATA_DIR,
-    )  # noqa: WPS433 (import within module for fallback handling)
+    )
 except Exception:  # pragma: no cover - fallback for early import failures
     BASE_DATA_DIR = None
 
@@ -41,7 +41,7 @@ DEFAULT_CLEANUP_INTERVAL_DAYS = 30
 def get_last_cleanup_timestamp():
     """Get the timestamp of the last cleanup from tracker file."""
     if os.path.exists(CLEANUP_TRACKER_FILE):
-        with open(CLEANUP_TRACKER_FILE, "r") as f:
+        with open(CLEANUP_TRACKER_FILE) as f:
             data = json.load(f)
             return data.get("last_cleanup_timestamp", 0)
     logger.debug("No valid cleanup tracker file found")
@@ -92,7 +92,7 @@ def should_run_cleanup(interval_days=DEFAULT_CLEANUP_INTERVAL_DAYS):
 def find_pycache_dirs(root_path):
     """Find all __pycache__ directories recursively."""
     pycache_dirs = []
-    for root, dirs, files in os.walk(root_path):
+    for root, dirs, _files in os.walk(root_path):
         if "__pycache__" in dirs:
             pycache_path = Path(root) / "__pycache__"
             pycache_dirs.append(str(pycache_path))
@@ -103,7 +103,7 @@ def find_pycache_dirs(root_path):
 def find_pyc_files(root_path):
     """Find all .pyc files recursively."""
     pyc_files = []
-    for root, dirs, files in os.walk(root_path):
+    for root, _dirs, files in os.walk(root_path):
         for file in files:
             if file.endswith(".pyc") or file.endswith(".pyo"):
                 pyc_files.append(str(Path(root) / file))
@@ -118,7 +118,7 @@ def _calculate_cache_size__calculate_pycache_directories_size(pycache_dirs):
     for pycache_dir in pycache_dirs:
         try:
             if os.path.exists(pycache_dir):
-                for root, dirs, files in os.walk(pycache_dir):
+                for root, _dirs, files in os.walk(pycache_dir):
                     for file in files:
                         filepath = str(Path(root) / file)
                         if os.path.exists(filepath):

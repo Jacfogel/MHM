@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-15 - Ruff rollout and report-generator diagnostics **IN PROGRESS**
+- Added Ruff to the workspace tooling and inspected `ruff check . --statistics` (5,842 findings total; top offenses include `F401`, `UP025`, `UP006`, `E402`; 3,777 of the issues are fixable) so we can triage the remaining style debt.
+- Applied targeted `ruff check --fix` for a small set of safe rules, then reverted the mass changes after the `development_tools` audit phase crashed with an `unsupported operand type(s) for |` when writing AI status/priorities/consolidated reports.
+- Status reports currently log the TypeError and emit placeholder text; once that guard is in place we will reapply the selective fixes and rerun `python development_tools/run_development_tools.py audit --full`.
+
 ### 2026-01-15 - Test Flags Isolation and Coverage Cache Mapping Refresh **COMPLETED**
 - Routed shutdown/test flags through `get_flags_dir()` and set `MHM_FLAGS_DIR` to `tests/data/flags` in `tests/conftest.py` to prevent tests from stopping live services
 - Aligned `TEST_VERBOSE_LOGS` docs in `logs/LOGGING_GUIDE.md` with actual test logging levels

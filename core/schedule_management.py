@@ -688,7 +688,7 @@ def set_schedule_days(user_id, category, days):
 
 
 @handle_errors("getting user info for schedule management", default_return=None)
-def get_user_info_for_schedule_management(user_id: str) -> Optional[Dict[str, Any]]:
+def get_user_info_for_schedule_management(user_id: str) -> dict[str, Any] | None:
     """Get user info for schedule management operations."""
     try:
         from core.user_data_handlers import get_user_data

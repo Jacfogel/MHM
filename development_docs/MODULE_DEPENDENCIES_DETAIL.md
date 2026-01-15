@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-15 00:39:55
+> **Last Generated**: 2026-01-15 06:33:49
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 109
-- **Total Imports Found**: 1476
+- **Total Imports Found**: 1474
 - **Dependencies Documented**: 109 (100% coverage)
-- **Standard Library Imports**: 439 (29.7%)
+- **Standard Library Imports**: 437 (29.6%)
 - **Third-Party Imports**: 232 (15.7%)
-- **Local Imports**: 805 (54.5%)
+- **Local Imports**: 805 (54.6%)
 - **Last Updated**: 2026-01-15
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 439 imports (29.7%)
+- **Standard Library**: 437 imports (29.6%)
 - **Third-Party**: 232 imports (15.7%)
-- **Local**: 805 imports (54.5%)
+- **Local**: 805 imports (54.6%)
 
 ## Module Dependencies by Directory
 
@@ -1532,7 +1532,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
-    - `contextlib (contextmanager)`
+    - `contextlib (contextmanager, suppress)`
     - `fcntl`
     - `json`
     - `os`
@@ -1541,7 +1541,6 @@
     - `sys`
     - `tempfile`
     - `time`
-    - `typing (Optional)`
 - **Used by**: 
   - `core/user_data_handlers.py`
   - `core/user_data_manager.py`
@@ -1748,7 +1747,6 @@
     - `core.message_management (get_recent_messages)` (NEW)
   - **Standard Library**:
     - `collections (defaultdict)`
-    - `typing (Dict, Optional)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
@@ -1807,7 +1805,7 @@
     - `core.user_data_handlers (get_user_data)` (NEW)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
-    - `typing (Any, Dict)`
+    - `typing (Any)`
 - **Used by**: 
   - `ai/chatbot.py`
   - `ai/context_builder.py`
@@ -2029,7 +2027,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_auditor, core.logger
-- Removed: communication/core/channel_orchestrator.py, core/error_handling.py, core/headless_service.py, core/schedule_management.py, core/scheduler.py, ui/dialogs/process_watcher_dialog.py
+- Removed: communication/core/channel_orchestrator.py, core/error_handling.py, core/headless_service.py, core/schedule_management.py, core/scheduler.py, core/service.py, ui/dialogs/process_watcher_dialog.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Utility functions for service operations
@@ -2048,7 +2046,7 @@
     - `json`
     - `pathlib (Path)`
     - `re`
-    - `typing (Any, Dict, List, Optional, Tuple)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/command_handlers/notebook_handler.py`
   - `communication/message_processing/command_parser.py`

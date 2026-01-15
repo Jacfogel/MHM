@@ -85,7 +85,7 @@ class AIChatBotSingleton:
         self._initialized = True
 
     @handle_errors("making cache key inputs", default_return=("", "", ""))
-    def _make_cache_key_inputs(self, mode: str, user_prompt: str, user_id: Optional[str]):
+    def _make_cache_key_inputs(self, mode: str, user_prompt: str, user_id: str | None):
         """
         Create consistent cache key inputs with validation.
         
@@ -165,7 +165,7 @@ class AIChatBotSingleton:
             self.lm_studio_available = False
 
     @handle_errors("calling LM Studio API", default_return=None)
-    def _call_lm_studio_api(self, messages: list, max_tokens: int = 100, temperature: float = 0.2, timeout: int = None) -> Optional[str]:
+    def _call_lm_studio_api(self, messages: list, max_tokens: int = 100, temperature: float = 0.2, timeout: int = None) -> str | None:
         """Make an API call to LM Studio using OpenAI-compatible format."""
         if timeout is None:
             timeout = AI_API_CALL_TIMEOUT
@@ -204,7 +204,7 @@ class AIChatBotSingleton:
             return None
 
     @handle_errors("getting contextual fallback", default_return="I'd like to help with that! How can I assist you today?")
-    def _get_contextual_fallback(self, user_prompt: str, user_id: Optional[str] = None) -> str:
+    def _get_contextual_fallback(self, user_prompt: str, user_id: str | None = None) -> str:
         """
         Provide contextually aware fallback responses based on user data and prompt analysis.
         Now actually analyzes user's check-in data for meaningful responses.
@@ -440,7 +440,7 @@ class AIChatBotSingleton:
                f"and celebrate the small wins along the way.")
 
     @handle_errors("optimizing prompt", default_return=[{"role": "system", "content": "You are a supportive wellness assistant. Keep responses helpful, encouraging, and conversational."}, {"role": "user", "content": "Hello"}])
-    def _optimize_prompt(self, user_prompt: str, context: Optional[str] = None) -> list:
+    def _optimize_prompt(self, user_prompt: str, context: str | None = None) -> list:
         """Create optimized messages array for LM Studio API."""
         system_message = {
             "role": "system",
@@ -994,9 +994,9 @@ Additional Instructions:
     def generate_response(
         self,
         user_prompt: str,
-        timeout: Optional[int] = None,
-        user_id: Optional[str] = None,
-        mode: Optional[str] = None,
+        timeout: int | None = None,
+        user_id: str | None = None,
+        mode: str | None = None,
     ) -> str:
         """
         Generate a basic AI response from user_prompt, using LM Studio API.
@@ -1154,7 +1154,7 @@ Additional Instructions:
                 lock.release()
 
     @handle_errors("generating async AI response")
-    async def async_generate_response(self, user_prompt: str, user_id: Optional[str] = None) -> str:
+    async def async_generate_response(self, user_prompt: str, user_id: str | None = None) -> str:
         """
         Async variant if you need to integrate with an async context.
         """
@@ -1228,7 +1228,7 @@ Additional Instructions:
         }
 
     @handle_errors("generating personalized message", default_return="Wishing you a wonderful day! Remember that every small step toward your wellbeing matters.")
-    def generate_personalized_message(self, user_id: str, timeout: Optional[int] = None) -> str:
+    def generate_personalized_message(self, user_id: str, timeout: int | None = None) -> str:
         """
         Generate a personalized message by examining the user's recent responses
         (check-in data). Uses longer timeout since this is not real-time.
@@ -1274,7 +1274,7 @@ Additional Instructions:
         return response
 
     @handle_errors("generating quick response", default_return="I'm having trouble responding right now. Please try again in a moment.")
-    def generate_quick_response(self, user_prompt: str, user_id: Optional[str] = None) -> str:
+    def generate_quick_response(self, user_prompt: str, user_id: str | None = None) -> str:
         """
         Generate a quick response for real-time chat (Discord, etc.).
         Uses shorter timeout optimized for responsiveness.
@@ -1283,7 +1283,7 @@ Additional Instructions:
         return self.generate_response(user_prompt, timeout=AI_QUICK_RESPONSE_TIMEOUT, user_id=user_id)
 
     @handle_errors("generating contextual response", default_return="I'm having trouble generating a contextual response right now. Please try again in a moment.")
-    def generate_contextual_response(self, user_id: str, user_prompt: str, timeout: Optional[int] = None) -> str:
+    def generate_contextual_response(self, user_id: str, user_prompt: str, timeout: int | None = None) -> str:
         """
         Generate a context-aware response using comprehensive user data.
         Integrates with existing UserContext and UserPreferences systems.

@@ -56,7 +56,7 @@ except Exception:
 
 
 @handle_errors("splitting environment list", default_return=[])
-def _split_env_list(value: Optional[str]) -> List[str]:
+def _split_env_list(value: str | None) -> list[str]:
     if not value:
         return []
     return [item.strip() for item in value.split(",") if item.strip()]
@@ -139,7 +139,7 @@ def stop_auditor():
 
 
 @handle_errors("recording file creation", default_return=None)
-def record_created(path: str, reason: str = "api", extra: Optional[Dict] = None):
+def record_created(path: str, reason: str = "api", extra: dict | None = None):
     """Programmatically record a file creation event.
 
     Safe to call even if auditor disabled. Includes optional stack if FILE_AUDIT_STACK=1.

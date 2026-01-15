@@ -415,7 +415,7 @@ class TestAccountCreationDialogRealBehavior:
             with patch.object(dialog.channel_widget, 'get_selected_channel', return_value=('Email', 'test@example.com')):
                 # Mock the validate_and_accept method to actually create the user
                 # Use a closure to capture the user_id for verification
-                created_user_id: list[Optional[str]] = [None]  # Use list to allow modification in nested function
+                created_user_id: list[str | None] = [None]  # Use list to allow modification in nested function
                 
                 with patch.object(dialog, 'validate_and_accept') as mock_accept:
                     def mock_accept_impl():

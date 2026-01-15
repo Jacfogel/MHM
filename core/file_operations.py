@@ -149,7 +149,7 @@ def load_json_data(file_path):
     context = {"file_path": file_path}
 
     try:
-        with open(file_path, "r", encoding="utf-8") as file:
+        with open(file_path, encoding="utf-8") as file:
             return json.load(file)
     except FileNotFoundError as e:
         # Use specialized file error handler for better recovery
@@ -185,7 +185,7 @@ def load_json_data(file_path):
                 logger.info(f"Auto-created missing user files for user_id {user_id}")
                 # Try loading again
                 try:
-                    with open(file_path, "r", encoding="utf-8") as file:
+                    with open(file_path, encoding="utf-8") as file:
                         return json.load(file)
                 except Exception as e2:
                     logger.error(f"Failed to load file after auto-creation: {e2}")
@@ -193,7 +193,7 @@ def load_json_data(file_path):
         if handle_file_error(e, file_path, "loading JSON data"):
             # Recovery was successful, try loading again
             try:
-                with open(file_path, "r", encoding="utf-8") as file:
+                with open(file_path, encoding="utf-8") as file:
                     return json.load(file)
             except Exception as e2:
                 logger.error(f"Failed to load file after recovery: {e2}")
@@ -205,7 +205,7 @@ def load_json_data(file_path):
         if handle_file_error(e, file_path, "decoding JSON data"):
             # Recovery was successful, try loading again
             try:
-                with open(file_path, "r", encoding="utf-8") as file:
+                with open(file_path, encoding="utf-8") as file:
                     return json.load(file)
             except Exception as e2:
                 logger.error(f"Failed to load file after JSON recovery: {e2}")

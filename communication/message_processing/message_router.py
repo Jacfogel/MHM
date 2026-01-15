@@ -24,8 +24,8 @@ class MessageType(Enum):
 class RoutingResult:
     """Result of message routing"""
     message_type: MessageType
-    command_name: Optional[str] = None
-    mapped_message: Optional[str] = None
+    command_name: str | None = None
+    mapped_message: str | None = None
     should_continue_parsing: bool = True
     flow_command: bool = False
 
@@ -194,7 +194,7 @@ class MessageRouter:
         )
     
     @handle_errors("getting command definitions", default_return=[])
-    def get_command_definitions(self) -> List[Dict[str, str]]:
+    def get_command_definitions(self) -> list[dict[str, str]]:
         """
         Get command definitions with validation.
         
@@ -208,7 +208,7 @@ class MessageRouter:
         ]
     
     @handle_errors("getting slash command map", default_return={})
-    def get_slash_command_map(self) -> Dict[str, str]:
+    def get_slash_command_map(self) -> dict[str, str]:
         """
         Get slash command map with validation.
         
@@ -219,7 +219,7 @@ class MessageRouter:
         return {c['name']: c['mapped_message'] for c in self._command_definitions}
     
     @handle_errors("getting bang command map", default_return={})
-    def get_bang_command_map(self) -> Dict[str, str]:
+    def get_bang_command_map(self) -> dict[str, str]:
         """
         Get bang command map with validation.
         
@@ -250,7 +250,7 @@ class MessageRouter:
         return cmd_def['is_flow'] if cmd_def else False
     
     @handle_errors("getting command mapping", default_return=None)
-    def get_command_mapping(self, command_name: str) -> Optional[str]:
+    def get_command_mapping(self, command_name: str) -> str | None:
         """
         Get command mapping with validation.
         

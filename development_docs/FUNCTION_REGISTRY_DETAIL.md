@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-15 00:39:54
+> **Last Generated**: 2026-01-15 06:33:47
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -519,7 +519,7 @@ Args:
 Args:
     checkin_type: Type of check-in (daily, weekly, etc.)
     user_context: User context information
-    
+
 Returns:
     Check-in specific prompt
 - [OK] `create_contextual_prompt(self, base_prompt, context, user_input)` - Create a contextual prompt by combining base prompt, context, and user input
@@ -528,7 +528,7 @@ Args:
     base_prompt: Base system prompt
     context: Contextual information
     user_input: User's input
-    
+
 Returns:
     Combined contextual prompt
 - [OK] `create_task_prompt(self, task_description, user_context)` - Create a task-specific prompt
@@ -536,7 +536,7 @@ Returns:
 Args:
     task_description: Description of the task
     user_context: User context information
-    
+
 Returns:
     Task-specific prompt
 - [OK] `custom_prompt_length(self)` - Get the length of the custom prompt.
@@ -549,7 +549,7 @@ Returns:
 
 Args:
     prompt_type: Type of prompt ('wellness', 'command', 'neurodivergent_support', etc.)
-    
+
 Returns:
     The prompt string
 - [OK] `get_prompt_manager()` - Get the global prompt manager instance
@@ -557,7 +557,7 @@ Returns:
 
 Args:
     prompt_type: Type of prompt
-    
+
 Returns:
     PromptTemplate object or None if not found
 - [OK] `has_custom_prompt(self)` - Check if a custom prompt is loaded.
@@ -566,7 +566,7 @@ Returns:
 
 Args:
     prompt_type: Name of the template to remove
-    
+
 Returns:
     True if template was removed, False if not found
 **Classes:**
@@ -582,7 +582,7 @@ Args:
 Args:
     checkin_type: Type of check-in (daily, weekly, etc.)
     user_context: User context information
-    
+
 Returns:
     Check-in specific prompt
   - [OK] `PromptManager.create_contextual_prompt(self, base_prompt, context, user_input)` - Create a contextual prompt by combining base prompt, context, and user input
@@ -591,7 +591,7 @@ Args:
     base_prompt: Base system prompt
     context: Contextual information
     user_input: User's input
-    
+
 Returns:
     Combined contextual prompt
   - [OK] `PromptManager.create_task_prompt(self, task_description, user_context)` - Create a task-specific prompt
@@ -599,7 +599,7 @@ Returns:
 Args:
     task_description: Description of the task
     user_context: User context information
-    
+
 Returns:
     Task-specific prompt
   - [OK] `PromptManager.custom_prompt_length(self)` - Get the length of the custom prompt.
@@ -612,14 +612,14 @@ Returns:
 
 Args:
     prompt_type: Type of prompt ('wellness', 'command', 'neurodivergent_support', etc.)
-    
+
 Returns:
     The prompt string
   - [OK] `PromptManager.get_prompt_template(self, prompt_type)` - Get the full prompt template for the given type
 
 Args:
     prompt_type: Type of prompt
-    
+
 Returns:
     PromptTemplate object or None if not found
   - [OK] `PromptManager.has_custom_prompt(self)` - Check if a custom prompt is loaded.
@@ -628,7 +628,7 @@ Returns:
 
 Args:
     prompt_type: Name of the template to remove
-    
+
 Returns:
     True if template was removed, False if not found
 - [OK] `PromptTemplate` - Template for AI prompts
@@ -995,7 +995,7 @@ Shared method to eliminate code duplication. Used by complete, delete, and updat
 Args:
     tasks: List of task dictionaries to search
     identifier: Task identifier (number, name, or task_id)
-    
+
 Returns:
     Task dictionary if found, None otherwise
 - [OK] `_get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
@@ -1034,7 +1034,7 @@ Shared method to eliminate code duplication. Used by complete, delete, and updat
 Args:
     tasks: List of task dictionaries to search
     identifier: Task identifier (number, name, or task_id)
-    
+
 Returns:
     Task dictionary if found, None otherwise
   - [OK] `TaskManagementHandler._get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
@@ -2486,14 +2486,14 @@ This class provides analytics and insights from check-in data.
 
 Args:
     score_100: Score on 0-100 scale
-    
+
 Returns:
     Score on 1-5 scale, rounded to 1 decimal place
 - [OK] `convert_score_5_to_100(score_5)` - Convert a score from 1-5 scale to 0-100 scale for calculations.
 
 Args:
     score_5: Score on 1-5 scale
-    
+
 Returns:
     Score on 0-100 scale
 - [OK] `get_available_data_types(self, user_id, days)` - Detect what types of data are available for analytics
@@ -2537,14 +2537,14 @@ This class provides analytics and insights from check-in data.
 
 Args:
     score_100: Score on 0-100 scale
-    
+
 Returns:
     Score on 1-5 scale, rounded to 1 decimal place
   - [OK] `CheckinAnalytics.convert_score_5_to_100(score_5)` - Convert a score from 1-5 scale to 0-100 scale for calculations.
 
 Args:
     score_5: Score on 1-5 scale
-    
+
 Returns:
     Score on 0-100 scale
   - [OK] `CheckinAnalytics.get_available_data_types(self, user_id, days)` - Detect what types of data are available for analytics
@@ -2763,28 +2763,28 @@ Args:
 
 Args:
     error: The exception to check
-    
+
 Returns:
     True if this strategy can handle FileNotFoundError or file operation errors containing "not found"
 - [OK] `can_handle(self, error)` - Check if this strategy can handle the given error.
 
 Args:
     error: The exception to check
-    
+
 Returns:
     True if this strategy can handle JSON decode errors or JSON-related file operation errors
 - [OK] `can_handle(self, error)` - Check if this strategy can handle the given error.
 
 Args:
     error: The exception to check
-    
+
 Returns:
     True if this strategy can handle network-related errors
 - [OK] `can_handle(self, error)` - Check if this strategy can handle the given error.
 
 Args:
     error: The exception to check
-    
+
 Returns:
     True if this strategy can handle configuration-related errors
 - [MISSING] `decorator(func)` - No description
@@ -2798,7 +2798,7 @@ Args:
     context: Additional context about the error
     operation: Description of the operation that failed
     user_friendly: Whether to show user-friendly error messages
-    
+
 Returns:
     True if error was recovered from, False otherwise
 - [OK] `handle_errors(operation, context, user_friendly, default_return)` - Decorator to automatically handle errors in functions.
@@ -2817,7 +2817,7 @@ Args:
 Args:
     error: The exception that occurred
     context: Additional context containing file_path and other relevant information
-    
+
 Returns:
     True if recovery was successful, False otherwise
 - [OK] `recover(self, error, context)` - Attempt to recover from the error by recreating corrupted JSON files.
@@ -2825,7 +2825,7 @@ Returns:
 Args:
     error: The exception that occurred
     context: Additional context containing file_path and other relevant information
-    
+
 Returns:
     True if recovery was successful, False otherwise
 - [OK] `recover(self, error, context)` - Attempt to recover from network errors by waiting and retrying.
@@ -2833,7 +2833,7 @@ Returns:
 Args:
     error: The exception that occurred
     context: Additional context containing operation details
-    
+
 Returns:
     True if recovery was successful, False otherwise
 - [OK] `recover(self, error, context)` - Attempt to recover from configuration errors by using default values.
@@ -2841,7 +2841,7 @@ Returns:
 Args:
     error: The exception that occurred
     context: Additional context containing configuration details
-    
+
 Returns:
     True if recovery was successful, False otherwise
 - [OK] `safe_file_operation(file_path, operation, user_id, category)` - Context manager for safe file operations with automatic error handling.
@@ -2860,7 +2860,7 @@ Usage:
 
 Args:
     error: The exception to check
-    
+
 Returns:
     True if this strategy can handle configuration-related errors
   - [OK] `ConfigurationRecovery.recover(self, error, context)` - Attempt to recover from configuration errors by using default values.
@@ -2868,7 +2868,7 @@ Returns:
 Args:
     error: The exception that occurred
     context: Additional context containing configuration details
-    
+
 Returns:
     True if recovery was successful, False otherwise
 - [OK] `DataError` - Raised when there are issues with data files or data integrity.
@@ -2886,7 +2886,7 @@ Args:
     context: Additional context about the error
     operation: Description of the operation that failed
     user_friendly: Whether to show user-friendly error messages
-    
+
 Returns:
     True if error was recovered from, False otherwise
 - [OK] `ErrorRecoveryStrategy` - Base class for error recovery strategies.
@@ -2904,7 +2904,7 @@ Args:
 
 Args:
     error: The exception to check
-    
+
 Returns:
     True if this strategy can handle FileNotFoundError or file operation errors containing "not found"
   - [OK] `FileNotFoundRecovery.recover(self, error, context)` - Attempt to recover from the error by creating missing files with default data.
@@ -2912,7 +2912,7 @@ Returns:
 Args:
     error: The exception that occurred
     context: Additional context containing file_path and other relevant information
-    
+
 Returns:
     True if recovery was successful, False otherwise
 - [OK] `FileOperationError` - Raised when file operations fail.
@@ -2923,7 +2923,7 @@ Returns:
 
 Args:
     error: The exception to check
-    
+
 Returns:
     True if this strategy can handle JSON decode errors or JSON-related file operation errors
   - [OK] `JSONDecodeRecovery.recover(self, error, context)` - Attempt to recover from the error by recreating corrupted JSON files.
@@ -2931,7 +2931,7 @@ Returns:
 Args:
     error: The exception that occurred
     context: Additional context containing file_path and other relevant information
-    
+
 Returns:
     True if recovery was successful, False otherwise
 - [OK] `MHMError` - Base exception for all MHM-specific errors.
@@ -2947,7 +2947,7 @@ Args:
 
 Args:
     error: The exception to check
-    
+
 Returns:
     True if this strategy can handle network-related errors
   - [OK] `NetworkRecovery.recover(self, error, context)` - Attempt to recover from network errors by waiting and retrying.
@@ -2955,7 +2955,7 @@ Returns:
 Args:
     error: The exception that occurred
     context: Additional context containing operation details
-    
+
 Returns:
     True if recovery was successful, False otherwise
 - [OK] `RecoveryError` - Raised when error recovery fails.
@@ -3023,10 +3023,10 @@ Args:
     file_path: Path to the file to lock
     timeout: Maximum time to wait for lock (seconds)
     retry_interval: Time between lock attempts (seconds)
-    
+
 Yields:
     File handle (opened in 'r+b' mode)
-    
+
 Raises:
     TimeoutError: If lock cannot be acquired within timeout
     OSError: If file operations fail
@@ -3039,10 +3039,10 @@ Args:
     file_path: Path to the file to lock
     timeout: Maximum time to wait for lock (seconds)
     retry_interval: Time between lock attempts (seconds)
-    
+
 Yields:
     File handle (opened in 'r+b' mode for locking)
-    
+
 Raises:
     TimeoutError: If lock cannot be acquired within timeout
     OSError: If file operations fail
@@ -3051,7 +3051,7 @@ Raises:
 Args:
     file_path: Path to JSON file
     default: Default value to return if file doesn't exist or is invalid
-    
+
 Returns:
     dict: Parsed JSON data or default value
 - [OK] `safe_json_write(file_path, data, indent)` - Safely write JSON file with file locking and atomic write.
@@ -3063,7 +3063,7 @@ Args:
     file_path: Path to JSON file
     data: Data to write (must be JSON-serializable)
     indent: JSON indentation level
-    
+
 Returns:
     bool: True if write succeeded, False otherwise
 
@@ -3076,7 +3076,7 @@ Returns:
 
 Args:
     user_prefs: User preferences dictionary
-    
+
 Returns:
     tuple: (tasks_enabled, checkins_enabled)
 - [OK] `_create_user_files__log_files(user_id)` - Initialize empty log files if they don't exist.
@@ -3093,7 +3093,7 @@ Args:
     user_id: The user ID
     categories: List of message categories the user is opted into
     user_preferences: Optional user preferences dict to determine which files to create
-    
+
 Returns:
     bool: True if successful, False if failed
 - [OK] `determine_file_path(file_type, identifier)` - Determine file path based on file type and identifier.
@@ -3102,17 +3102,17 @@ Updated to support new organized structure.
 Args:
     file_type: Type of file ('users', 'messages', 'schedules', 'sent_messages', 'default_messages', 'tasks')
     identifier: Identifier for the file (format depends on file_type)
-    
+
 Returns:
     str: Full file path, empty string if invalid
-    
+
 Raises:
     FileOperationError: If file_type is unknown or identifier format is invalid
 - [OK] `load_json_data(file_path)` - Load data from a JSON file with comprehensive error handling and auto-create user files if missing.
 
 Args:
     file_path: Path to the JSON file to load
-    
+
 Returns:
     dict/list: Loaded JSON data, or empty dict if loading failed
 - [OK] `save_json_data(data, file_path)` - Save data to a JSON file with comprehensive error handling.
@@ -3120,20 +3120,20 @@ Returns:
 Args:
     data: Data to save (must be JSON serializable)
     file_path: Path where to save the file
-    
+
 Returns:
     bool: True if successful, False if failed
-    
+
 Raises:
     FileOperationError: If saving fails
 - [OK] `verify_file_access(paths)` - Verify that files exist and are accessible.
 
 Args:
     paths: List of file paths to verify
-    
+
 Returns:
     bool: True if all files exist and are accessible, False otherwise
-    
+
 Raises:
     FileOperationError: If any file is not found or inaccessible
 
@@ -3445,7 +3445,7 @@ This class provides analytics and insights from sent message data.
 Args:
     user_id: The user ID to analyze
     days: Number of days to analyze (default: 30)
-    
+
 Returns:
     Dict containing delivery statistics
 - [OK] `get_message_frequency(self, user_id, days, category)` - Analyze message send frequency by category and time period.
@@ -3454,7 +3454,7 @@ Args:
     user_id: The user ID to analyze
     days: Number of days to analyze (default: 30)
     category: Optional category filter (None = all categories)
-    
+
 Returns:
     Dict containing frequency statistics
 - [OK] `get_message_summary(self, user_id, days)` - Get a comprehensive summary of message activity.
@@ -3462,7 +3462,7 @@ Returns:
 Args:
     user_id: The user ID to analyze
     days: Number of days to analyze (default: 30)
-    
+
 Returns:
     Dict containing summary statistics
 **Classes:**
@@ -3475,7 +3475,7 @@ This class provides analytics and insights from sent message data.
 Args:
     user_id: The user ID to analyze
     days: Number of days to analyze (default: 30)
-    
+
 Returns:
     Dict containing delivery statistics
   - [OK] `MessageAnalytics.get_message_frequency(self, user_id, days, category)` - Analyze message send frequency by category and time period.
@@ -3484,7 +3484,7 @@ Args:
     user_id: The user ID to analyze
     days: Number of days to analyze (default: 30)
     category: Optional category filter (None = all categories)
-    
+
 Returns:
     Dict containing frequency statistics
   - [OK] `MessageAnalytics.get_message_summary(self, user_id, days)` - Get a comprehensive summary of message activity.
@@ -3492,7 +3492,7 @@ Returns:
 Args:
     user_id: The user ID to analyze
     days: Number of days to analyze (default: 30)
-    
+
 Returns:
     Dict containing summary statistics
 
@@ -3504,7 +3504,7 @@ Handles multiple timestamp formats for backward compatibility.
 
 Args:
     timestamp_str: Timestamp string to parse
-    
+
 Returns:
     datetime: Parsed datetime object
 - [OK] `add_message(user_id, category, message_data, index)` - Add a new message to a user's category.
@@ -3522,7 +3522,7 @@ keeping the active sent_messages.json file manageable in size.
 Args:
     user_id: The user ID
     days_to_keep: Number of days to keep in active file
-    
+
 Returns:
     bool: True if archiving successful
 - [OK] `create_message_file_from_defaults(user_id, category)` - Create a user's message file for a specific category from default messages.
@@ -3531,7 +3531,7 @@ This is the actual worker function that creates the file.
 Args:
     user_id: The user ID
     category: The specific category to create a message file for
-    
+
 Returns:
     bool: True if file was created successfully
 - [OK] `delete_message(user_id, category, message_id)` - Delete a specific message from a user's category.
@@ -3540,7 +3540,7 @@ Args:
     user_id: The user ID
     category: The message category
     message_id: The ID of the message to delete
-    
+
 Raises:
     ValidationError: If the message ID is not found or the category is invalid
 - [OK] `edit_message(user_id, category, message_id, updated_data)` - Edit an existing message in a user's category.
@@ -3550,7 +3550,7 @@ Args:
     category: The message category
     message_id: The ID of the message to edit
     updated_data: Dictionary containing updated message data
-    
+
 Raises:
     ValidationError: If message ID is not found or category is invalid
 - [OK] `ensure_user_message_files(user_id, categories)` - Ensure user has message files for specified categories.
@@ -3559,7 +3559,7 @@ Creates messages directory if missing, checks which files are missing, and creat
 Args:
     user_id: The user ID
     categories: List of categories to check/create message files for (can be subset of user's categories)
-    
+
 Returns:
     dict: Summary of the operation with keys:
         - success: bool - True if all files were created/validated successfully
@@ -3582,14 +3582,14 @@ Args:
     category: Optional category filter (None = all categories)
     limit: Maximum number of messages to return
     days_back: Only include messages from last N days
-    
+
 Returns:
     List[dict]: List of recent messages, sorted by timestamp descending
 - [OK] `get_timestamp_for_sorting(item)` - Convert timestamp to float for consistent sorting.
 
 Args:
     item: Dictionary containing a timestamp field or other data type
-    
+
 Returns:
     float: Timestamp as float for sorting, or 0.0 for invalid items
 - [OK] `load_default_messages(category)` - Load default messages for a specific category.
@@ -3598,7 +3598,7 @@ Returns:
 Args:
     user_id: The user ID
     category: The message category
-    
+
 Returns:
     List[dict]: List of message templates for the category
 - [OK] `store_sent_message(user_id, category, message_id, message, delivery_status, time_period)` - Store sent message in chronological order.
@@ -3613,7 +3613,7 @@ Args:
     message: The message content
     delivery_status: Delivery status (default: "sent")
     time_period: The time period when the message was sent (e.g., "morning", "evening")
-    
+
 Returns:
     bool: True if message stored successfully
 - [OK] `update_message(user_id, category, message_id, new_message_data)` - Update a message by its message_id.
@@ -3623,7 +3623,7 @@ Args:
     category: The message category
     message_id: The ID of the message to update
     new_message_data: Complete new message data to replace the existing message
-    
+
 Raises:
     ValidationError: If message ID is not found or category is invalid
 
@@ -3661,14 +3661,14 @@ Args:
     hour_12 (int): Hour in 12-hour format (1-12)
     minute (int): Minute (0-59)
     is_pm (bool): True if PM, False if AM
-    
+
 Returns:
     str: Time in 24-hour format (HH:MM)
 - [OK] `get_period_data__time_24h_to_12h_display(time_24h)` - Convert 24-hour time string (HH:MM) to 12-hour display format.
 
 Args:
     time_24h (str): Time in 24-hour format (e.g., "14:30")
-    
+
 Returns:
     tuple: (hour_12, minute, is_pm) where:
         - hour_12 (int): Hour in 12-hour format (1-12)
@@ -3678,10 +3678,10 @@ Returns:
 
 Args:
     time_str: Time string to validate and format
-    
+
 Returns:
     str: Formatted time string in HH:MM format
-    
+
 Raises:
     ValueError: If the time format is invalid
 - [OK] `get_schedule_days(user_id, category)` - Get the schedule days for a user and category.
@@ -3689,7 +3689,7 @@ Raises:
 Args:
     user_id: The user ID
     category: The schedule category
-    
+
 Returns:
     list: List of days for the schedule, defaults to all days of the week
 - [OK] `get_schedule_time_periods(user_id, category)` - Get schedule time periods for a specific user and category (new format).
@@ -3700,7 +3700,7 @@ Args:
     user_id: The user ID
     category: The schedule category
     period_name: The name of the period to check
-    
+
 Returns:
     bool: True if the period is active, False otherwise (defaults to True if field is missing)
 - [OK] `set_schedule_days(user_id, category, days)` - Set the schedule days for a user and category.
@@ -3716,7 +3716,7 @@ Args:
     category: The schedule category
     period_name: The name of the period to modify
     active: Whether the period should be active (default: True)
-    
+
 Returns:
     bool: True if the period was found and updated, False otherwise
 - [OK] `set_schedule_periods(user_id, category, periods_dict)` - Replace all schedule periods for a category with the given dict (period_name: {active, days, start_time, end_time}).
@@ -3735,7 +3735,7 @@ Returns:
 
 Args:
     schedules: Dictionary containing schedule periods
-    
+
 Returns:
     list: List of active schedule period names
 - [OK] `get_current_active_schedules(schedules, current_time)` - Get list of schedule periods that are currently active based on time and day.
@@ -3743,7 +3743,7 @@ Returns:
 Args:
     schedules: Dictionary containing all schedule periods
     current_time: Current time to check against (defaults to now)
-    
+
 Returns:
     list: List of currently active schedule period names
 - [OK] `is_schedule_active(schedule_data, current_time)` - Check if a schedule period is currently active based on time and day.
@@ -3751,7 +3751,7 @@ Returns:
 Args:
     schedule_data: Dictionary containing schedule period data
     current_time: Current time to check against (defaults to now)
-    
+
 Returns:
     bool: True if the schedule is active, False otherwise
 
@@ -3970,7 +3970,7 @@ input list is empty or None.
 
 Args:
     v: List of day strings (may be empty)
-    
+
 Returns:
     List[str]: Normalized days list, defaults to ["ALL"] if empty
 - [OK] `_normalize_discord_username(cls, v)` - Normalize Discord username while tolerating empty or legacy values.
@@ -3981,7 +3981,7 @@ Converts various input formats (boolean, string variants) to the standard
 
 Args:
     v: Input value (bool, str, or other) to normalize
-    
+
 Returns:
     Literal["enabled", "disabled"]: Normalized flag value
 - [OK] `_normalize_periods(cls, v)` - Normalize time periods list for message scheduling.
@@ -3991,7 +3991,7 @@ input list is empty or None.
 
 Args:
     v: List of time period strings (may be empty)
-    
+
 Returns:
     List[str]: Normalized time periods list, defaults to ["ALL"] if empty
 - [MISSING] `_valid_days(cls, v)` - No description
@@ -4039,7 +4039,7 @@ Converts various input formats (boolean, string variants) to the standard
 
 Args:
     v: Input value (bool, str, or other) to normalize
-    
+
 Returns:
     Literal["enabled", "disabled"]: Normalized flag value
 - [MISSING] `MessageModel` - No description
@@ -4050,7 +4050,7 @@ input list is empty or None.
 
 Args:
     v: List of day strings (may be empty)
-    
+
 Returns:
     List[str]: Normalized days list, defaults to ["ALL"] if empty
   - [OK] `MessageModel._normalize_periods(cls, v)` - Normalize time periods list for message scheduling.
@@ -4060,7 +4060,7 @@ input list is empty or None.
 
 Args:
     v: List of time period strings (may be empty)
-    
+
 Returns:
     List[str]: Normalized time periods list, defaults to ["ALL"] if empty
 - [MISSING] `MessagesFileModel` - No description
@@ -4208,7 +4208,7 @@ Args:
 Args:
     user_id: The user ID
     category: The category to reschedule
-    
+
 Returns:
     bool: True if request was created successfully
 - [OK] `get_flags_dir()` - Get the directory for service flag files.
@@ -4221,10 +4221,10 @@ Returns:
 Args:
     datetime_str: Datetime string in format "YYYY-MM-DD HH:MM"
     timezone_str: Timezone string (default: 'America/Regina')
-    
+
 Returns:
     datetime: Timezone-aware datetime object
-    
+
 Raises:
     InvalidTimeFormatError: If datetime_str format is invalid
 - [OK] `should_run(self)` - Check if enough time has passed since the last run to allow another execution.
@@ -4253,7 +4253,7 @@ Returns:
 Args:
     user_id: User ID
     tag: Tag to add
-    
+
 Returns:
     True if successful, False otherwise
 - [OK] `ensure_tags_initialized(user_id)` - Ensure tags.json is initialized for a user (lazy creation).
@@ -4267,14 +4267,14 @@ Tags are stored as tags.json in the root user directory, like checkins.json and 
 
 Args:
     user_id: User ID
-    
+
 Returns:
     Path to user directory, or None if failed
 - [OK] `get_user_tags(user_id)` - Get list of user's tags (lazy initialization).
 
 Args:
     user_id: User ID
-    
+
 Returns:
     List of normalized tag strings
 - [OK] `load_user_tags(user_id)` - Load user tags data from tags.json (lazy initialization).
@@ -4282,7 +4282,7 @@ Creates directory and file with default tags if they don't exist.
 
 Args:
     user_id: User ID
-    
+
 Returns:
     Dictionary with tags data: {'tags': [...], 'metadata': {...}}
 - [OK] `normalize_tag(tag)` - Normalizes a single tag by stripping whitespace, lowercasing, and optionally removing a leading '#'.
@@ -4293,7 +4293,7 @@ Returns:
 Args:
     user_id: User ID
     tag: Tag to remove
-    
+
 Returns:
     True if successful, False otherwise
 - [OK] `save_user_tags(user_id, tags_data)` - Save user tags data to tags.json (lazy initialization).
@@ -4303,7 +4303,7 @@ directly or through save_user_data().
 Args:
     user_id: User ID
     tags_data: Dictionary with tags data
-    
+
 Returns:
     True if successful, False otherwise
 - [OK] `validate_tag(tag)` - Validates a single normalized tag for length and allowed characters.
@@ -4513,7 +4513,7 @@ Sets up backup directory and index file path for user data management operations
 
 Args:
     user_id: The user's ID
-    
+
 Returns:
     str: ISO format timestamp of last interaction, or default if none found
 - [OK] `_get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
@@ -4566,7 +4566,7 @@ Returns:
 
 Args:
     user_id: The user's ID
-    
+
 Returns:
     Dict containing analytics summary information
 - [OK] `get_user_data_summary(user_id)` - Get comprehensive summary of user data with validation.
@@ -4624,7 +4624,7 @@ Sets up backup directory and index file path for user data management operations
 
 Args:
     user_id: The user's ID
-    
+
 Returns:
     str: ISO format timestamp of last interaction, or default if none found
   - [OK] `UserDataManager._get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
@@ -4689,7 +4689,7 @@ Args:
     max_length: Maximum allowed length (default: 50)
     field_name: Name of the field being validated (for error messages)
     allow_none: Whether None values are allowed (default: True)
-    
+
 Returns:
     True if category name is valid, False otherwise
 - [OK] `is_valid_discord_id(discord_id)` - Validate Discord user ID format.
@@ -4699,7 +4699,7 @@ Empty strings are allowed (Discord ID is optional).
 
 Args:
     discord_id: The Discord user ID to validate
-    
+
 Returns:
     bool: True if valid Discord ID format or empty, False otherwise
 - [MISSING] `is_valid_email(email)` - No description
@@ -4711,7 +4711,7 @@ Args:
     max_length: Maximum allowed length
     field_name: Name of the field being validated (for error messages)
     allow_none: Whether None values are allowed
-    
+
 Returns:
     True if string length is valid, False otherwise
 - [OK] `validate_new_user_data(user_id, data_updates)` - Validate complete dataset required for a brand-new user.
@@ -4754,7 +4754,7 @@ and project imports work correctly.
 
 Args:
     script_dir (str): The project directory path
-    
+
 Returns:
     dict: Environment dictionary with PATH and PYTHONPATH configured
 - [OK] `resolve_python_interpreter(script_dir)` - Return the preferred Python executable for the given project directory.
@@ -4763,7 +4763,7 @@ Checks for virtual environment Python first, then falls back to system Python.
 
 Args:
     script_dir (str): The project directory path
-    
+
 Returns:
     str: Path to Python executable
 
@@ -5365,7 +5365,7 @@ Args:
 
 Args:
     group_box: Group box containing custom fields
-    
+
 Returns:
     list: List of selected values from checkboxes and custom entries
 - [OK] `collect_loved_ones_data(self)` - Collect data from loved ones widgets.
@@ -5401,7 +5401,7 @@ Args:
     user_id: User ID for the personalization data
     on_save: Optional callback function to call when saving
     existing_data: Optional existing personalization data
-    
+
 Returns:
     QDialog.DialogCode: Dialog result code
 - [OK] `remove_custom_field(self, field_frame)` - Remove a custom field from the layout.
@@ -5415,7 +5415,7 @@ Args:
 
 Args:
     s: String to convert to title case
-    
+
 Returns:
     str: String converted to title case
 **Classes:**
@@ -5433,7 +5433,7 @@ Args:
 
 Args:
     group_box: Group box containing custom fields
-    
+
 Returns:
     list: List of selected values from checkboxes and custom entries
   - [OK] `UserProfileDialog.collect_loved_ones_data(self)` - Collect data from loved ones widgets.
@@ -5478,7 +5478,7 @@ Args:
 Args:
     ui_file_path: Path to the .ui file
     output_path: Path for the generated Python file
-    
+
 Returns:
     bool: True if successful, False otherwise
 - [OK] `main()` - Main function.
@@ -6212,7 +6212,7 @@ Sets up conversation history storage for tracking user interactions.
 
 Args:
     user_id: The user's ID (can be None for anonymous context)
-    
+
 Returns:
     dict: Minimal context with basic information
 - [OK] `_get_mood_trends(self, user_id)` - Analyze recent mood and energy trends.
@@ -6229,7 +6229,7 @@ Args:
 
 Args:
     context: User context dictionary
-    
+
 Returns:
     str: Formatted context string for AI consumption
 - [OK] `get_ai_context(self, user_id, include_conversation_history)` - Get comprehensive user context for AI conversation.
@@ -6237,14 +6237,14 @@ Returns:
 Args:
     user_id: The user's ID
     include_conversation_history: Whether to include recent conversation history
-    
+
 Returns:
     Dict containing all relevant user context for AI processing
 - [OK] `get_current_user_context(self, include_conversation_history)` - Get context for the currently logged-in user using the existing UserContext singleton.
 
 Args:
     include_conversation_history: Whether to include recent conversation history
-    
+
 Returns:
     Dict containing all relevant user context for current user
 **Classes:**
@@ -6258,7 +6258,7 @@ Sets up conversation history storage for tracking user interactions.
 
 Args:
     user_id: The user's ID (can be None for anonymous context)
-    
+
 Returns:
     dict: Minimal context with basic information
   - [OK] `UserContextManager._get_mood_trends(self, user_id)` - Analyze recent mood and energy trends.
@@ -6275,7 +6275,7 @@ Args:
 
 Args:
     context: User context dictionary
-    
+
 Returns:
     str: Formatted context string for AI consumption
   - [OK] `UserContextManager.get_ai_context(self, user_id, include_conversation_history)` - Get comprehensive user context for AI conversation.
@@ -6283,14 +6283,14 @@ Returns:
 Args:
     user_id: The user's ID
     include_conversation_history: Whether to include recent conversation history
-    
+
 Returns:
     Dict containing all relevant user context for AI processing
   - [OK] `UserContextManager.get_current_user_context(self, include_conversation_history)` - Get context for the currently logged-in user using the existing UserContext singleton.
 
 Args:
     include_conversation_history: Whether to include recent conversation history
-    
+
 Returns:
     Dict containing all relevant user context for current user
 

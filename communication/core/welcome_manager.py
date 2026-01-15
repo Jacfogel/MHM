@@ -18,7 +18,7 @@ WELCOME_TRACKING_FILE = Path(BASE_DATA_DIR) / "welcome_tracking.json"
 
 
 @handle_errors("loading welcome tracking data", default_return={})
-def _load_welcome_tracking() -> Dict[str, Dict[str, Any]]:
+def _load_welcome_tracking() -> dict[str, dict[str, Any]]:
     """Load the welcome tracking data."""
     if not WELCOME_TRACKING_FILE.exists():
         return {}
@@ -28,7 +28,7 @@ def _load_welcome_tracking() -> Dict[str, Dict[str, Any]]:
 
 
 @handle_errors("saving welcome tracking data", default_return=False)
-def _save_welcome_tracking(tracking_data: Dict[str, Dict[str, Any]]) -> bool:
+def _save_welcome_tracking(tracking_data: dict[str, dict[str, Any]]) -> bool:
     """Save the welcome tracking data."""
     WELCOME_TRACKING_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(WELCOME_TRACKING_FILE, 'w', encoding='utf-8') as f:
@@ -100,7 +100,7 @@ def clear_welcomed_status(channel_identifier: str, channel_type: str = 'discord'
 def get_welcome_message(
     channel_identifier: str,
     channel_type: str = 'discord',
-    username: Optional[str] = None,
+    username: str | None = None,
     is_authorization: bool = False
 ) -> str:
     """

@@ -45,7 +45,7 @@ class DiscordConnectionStatus(enum.Enum):
 
 class DiscordBot(BaseChannel):
     @handle_errors("initializing Discord bot", default_return=None)
-    def __init__(self, config: Optional[ChannelConfig] = None):
+    def __init__(self, config: ChannelConfig | None = None):
         # Initialize BaseChannel
         """Initialize the object."""
         if config is None:
@@ -390,7 +390,7 @@ class DiscordBot(BaseChannel):
         return True
 
     @handle_errors("getting detailed connection status", default_return={})
-    def _get_detailed_connection_status(self) -> Dict[str, Any]:
+    def _get_detailed_connection_status(self) -> dict[str, Any]:
         """Get detailed connection status information"""
         status_info = {
             'connection_status': self._connection_status.value,
@@ -417,7 +417,7 @@ class DiscordBot(BaseChannel):
         return status_info
 
     @handle_errors("updating connection status", default_return=None)
-    def _shared__update_connection_status(self, status: DiscordConnectionStatus, error_info: Optional[Dict[str, Any]] = None):
+    def _shared__update_connection_status(self, status: DiscordConnectionStatus, error_info: dict[str, Any] | None = None):
         """Update connection status with detailed error information"""
         # Only log if status actually changed
         if self._connection_status != status:
@@ -1498,7 +1498,7 @@ class DiscordBot(BaseChannel):
         return True
 
     @handle_errors("sending message to Discord channel", user_friendly=False, default_return=False)
-    async def _send_to_channel(self, channel, message: str, rich_data: Optional[Dict[str, Any]] = None, suggestions: Optional[List[str]] = None) -> bool:
+    async def _send_to_channel(self, channel, message: str, rich_data: dict[str, Any] | None = None, suggestions: list[str] | None = None) -> bool:
         """Send message directly to a Discord channel (for regular message responses)"""
         rich_data = rich_data or {}
         suggestions = suggestions or []
@@ -1532,7 +1532,7 @@ class DiscordBot(BaseChannel):
         return True
 
     @handle_errors("sending Discord message internally", default_return=False)
-    async def _send_message_internal(self, recipient: str, message: str, rich_data: Optional[Dict[str, Any]] = None, suggestions: Optional[List[str]] = None, custom_view: Optional[Any] = None) -> bool:
+    async def _send_message_internal(self, recipient: str, message: str, rich_data: dict[str, Any] | None = None, suggestions: list[str] | None = None, custom_view: Any | None = None) -> bool:
         """
         Send Discord message internally with validation.
         
@@ -1611,7 +1611,7 @@ class DiscordBot(BaseChannel):
                         user = await bot.fetch_user(user_id_int)
                     
                     if user:
-                        send_kwargs: Dict[str, Any] = {"content": message}
+                        send_kwargs: dict[str, Any] = {"content": message}
                         if embed:
                             send_kwargs["embed"] = embed
                         if view:
@@ -1641,7 +1641,7 @@ class DiscordBot(BaseChannel):
                     user = await bot.fetch_user(user_id_int)
                 
                 if user:
-                    send_kwargs: Dict[str, Any] = {"content": message}
+                    send_kwargs: dict[str, Any] = {"content": message}
                     if embed:
                         send_kwargs["embed"] = embed
                     if view:
@@ -1661,7 +1661,7 @@ class DiscordBot(BaseChannel):
             channel_id = int(recipient)
             channel = bot.get_channel(channel_id)
             if channel:
-                send_kwargs: Dict[str, Any] = {"content": message}
+                send_kwargs: dict[str, Any] = {"content": message}
                 if embed:
                     send_kwargs["embed"] = embed
                 if view:
@@ -1693,7 +1693,7 @@ class DiscordBot(BaseChannel):
         return False
     
     @handle_errors("creating Discord embed", default_return=None)
-    def _create_discord_embed(self, message: str, rich_data: Dict[str, Any]) -> discord.Embed:
+    def _create_discord_embed(self, message: str, rich_data: dict[str, Any]) -> discord.Embed:
         """
         Create Discord embed with validation.
         
@@ -1766,7 +1766,7 @@ class DiscordBot(BaseChannel):
         return embed
     
     @handle_errors("creating Discord action row", default_return=None)
-    def _create_action_row(self, suggestions: List[str]) -> discord.ui.View:
+    def _create_action_row(self, suggestions: list[str]) -> discord.ui.View:
         """
         Create Discord action row with validation.
         
@@ -1798,7 +1798,7 @@ class DiscordBot(BaseChannel):
         return view
 
     @handle_errors("receiving Discord messages", default_return=[])
-    async def receive_messages(self) -> List[Dict[str, Any]]:
+    async def receive_messages(self) -> list[dict[str, Any]]:
         """Receive messages from Discord"""
         # Discord messages are handled via events, not polling
         # Return empty list as messages are processed via event handlers
@@ -1864,7 +1864,7 @@ class DiscordBot(BaseChannel):
         return True
 
     @handle_errors("getting Discord health status", default_return={})
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get comprehensive health status information"""
         return self._get_detailed_connection_status()
 

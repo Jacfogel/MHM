@@ -41,7 +41,7 @@ class EmailBot(BaseChannel):
     _timeout_log_interval = 3600  # 1 hour in seconds
 
     @handle_errors("initializing email bot", default_return=None)
-    def __init__(self, config: Optional[ChannelConfig] = None):
+    def __init__(self, config: ChannelConfig | None = None):
         """
         Initialize the EmailBot with configuration.
 
@@ -168,7 +168,7 @@ class EmailBot(BaseChannel):
             server.sendmail(smtp_user, recipient, msg.as_string())
 
     @handle_errors("receiving email messages", default_return=[])
-    async def receive_messages(self) -> List[Dict[str, Any]]:
+    async def receive_messages(self) -> list[dict[str, Any]]:
         """Receive messages from email"""
         if not self.is_ready():
             logger.error("EmailBot is not ready to receive messages.")
@@ -189,7 +189,7 @@ class EmailBot(BaseChannel):
         return messages
 
     @handle_errors("receiving emails synchronously", default_return=[])
-    def _receive_emails_sync(self) -> List[Dict[str, Any]]:
+    def _receive_emails_sync(self) -> list[dict[str, Any]]:
         """Receive emails synchronously - only fetches UNSEEN emails for efficiency"""
         import socket
 
@@ -309,7 +309,7 @@ class EmailBot(BaseChannel):
         return messages
 
     @handle_errors("loading email configuration", default_return=None)
-    def _get_email_config(self) -> Optional[Tuple[str, str, str, str]]:
+    def _get_email_config(self) -> tuple[str, str, str, str] | None:
         if not all(
             [
                 EMAIL_SMTP_SERVER,

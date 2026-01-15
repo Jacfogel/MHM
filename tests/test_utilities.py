@@ -28,7 +28,7 @@ class TestUserFactory:
     """Factory for creating test users with different configurations"""
     
     # Cache for pre-created user data structures to avoid recreating identical data
-    _user_data_cache: Dict[str, Dict[str, Any]] = {}
+    _user_data_cache: dict[str, dict[str, Any]] = {}
     
     @staticmethod
     def _get_cache_key(enable_checkins: bool = None, enable_tasks: bool = None, user_type: str = "basic", **kwargs) -> str:
@@ -40,12 +40,12 @@ class TestUserFactory:
         return f"{user_type}:checkins={enable_checkins}:tasks={enable_tasks}"
     
     @staticmethod
-    def _get_cached_user_data(cache_key: str) -> Optional[Dict[str, Any]]:
+    def _get_cached_user_data(cache_key: str) -> dict[str, Any] | None:
         """Get cached user data structure if available."""
         return TestUserFactory._user_data_cache.get(cache_key)
     
     @staticmethod
-    def _cache_user_data(cache_key: str, user_data: Dict[str, Any]):
+    def _cache_user_data(cache_key: str, user_data: dict[str, Any]):
         """Cache a user data structure for reuse."""
         # Use deepcopy to ensure the cached template is independent
         TestUserFactory._user_data_cache[cache_key] = copy.deepcopy(user_data)
@@ -250,7 +250,7 @@ class TestUserFactory:
         safe_json_write(user_index_file, user_index, indent=2)
     
     @staticmethod
-    def _create_user_files_directly(user_id: str, user_data: Dict[str, Any], test_data_dir: str) -> str:
+    def _create_user_files_directly(user_id: str, user_data: dict[str, Any], test_data_dir: str) -> str:
         """Helper function to create user files directly in test directory"""
         # Create user directory structure
         actual_user_id, user_dir = TestUserFactory._create_user_files_directly__directory_structure(test_data_dir, user_id)
@@ -771,7 +771,7 @@ class TestUserFactory:
             return None
     
     @staticmethod
-    def create_user_with_custom_fields(user_id: str, custom_fields: Dict[str, Any] = None, test_data_dir: str = None) -> bool:
+    def create_user_with_custom_fields(user_id: str, custom_fields: dict[str, Any] = None, test_data_dir: str = None) -> bool:
         """
         Create a test user with custom fields for testing custom field functionality
         
@@ -806,7 +806,7 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def create_user_with_custom_fields__impl(user_id: str, custom_fields: Dict[str, Any] = None) -> bool:
+    def create_user_with_custom_fields__impl(user_id: str, custom_fields: dict[str, Any] = None) -> bool:
         """Internal implementation of custom fields user creation"""
         try:
             if custom_fields is None:
@@ -884,7 +884,7 @@ class TestUserFactory:
 
     
     @staticmethod
-    def create_user_with_schedules(user_id: str, schedule_config: Dict[str, Any] = None, test_data_dir: str = None) -> bool:
+    def create_user_with_schedules(user_id: str, schedule_config: dict[str, Any] = None, test_data_dir: str = None) -> bool:
         """
         Create a test user with comprehensive schedule configuration
         
@@ -919,7 +919,7 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def create_user_with_schedules__impl(user_id: str, schedule_config: Dict[str, Any] = None) -> bool:
+    def create_user_with_schedules__impl(user_id: str, schedule_config: dict[str, Any] = None) -> bool:
         """Internal implementation of schedules user creation"""
         try:
             if schedule_config is None:
@@ -2262,7 +2262,7 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def get_test_user_data(user_id: str, test_data_dir: str) -> Dict[str, Any]:
+    def get_test_user_data(user_id: str, test_data_dir: str) -> dict[str, Any]:
         """Get user data from test directory"""
         try:
             # First try to find the user by internal username in the user index
@@ -2311,7 +2311,7 @@ class TestUserFactory:
             return {}
     
     @staticmethod
-    def get_test_user_id_by_internal_username(internal_username: str, test_data_dir: str) -> Optional[str]:
+    def get_test_user_id_by_internal_username(internal_username: str, test_data_dir: str) -> str | None:
         """Get user ID by internal username from test directory"""
         try:
             user_index_file = os.path.join(test_data_dir, "user_index.json")
@@ -2477,7 +2477,7 @@ class TestUserDataFactory:
     """Factory for creating specific test user data structures"""
     
     @staticmethod
-    def create_account_data(user_id: str, **overrides) -> Dict[str, Any]:
+    def create_account_data(user_id: str, **overrides) -> dict[str, Any]:
         """
         Create standard account data structure with optional overrides
         
@@ -2502,7 +2502,7 @@ class TestUserDataFactory:
         return base_data
     
     @staticmethod
-    def create_preferences_data(user_id: str, **overrides) -> Dict[str, Any]:
+    def create_preferences_data(user_id: str, **overrides) -> dict[str, Any]:
         """
         Create standard preferences data structure with optional overrides
         
@@ -2526,7 +2526,7 @@ class TestUserDataFactory:
         return base_data
     
     @staticmethod
-    def create_schedules_data(**overrides) -> Dict[str, Any]:
+    def create_schedules_data(**overrides) -> dict[str, Any]:
         """
         Create standard schedules data structure with optional overrides
         
@@ -2552,7 +2552,7 @@ class TestUserDataFactory:
         return base_data
     
     @staticmethod
-    def create_context_data(**overrides) -> Dict[str, Any]:
+    def create_context_data(**overrides) -> dict[str, Any]:
         """
         Create standard context data structure with optional overrides
         
@@ -2731,7 +2731,7 @@ class TestDataFactory:
             return False
     
     @staticmethod
-    def create_test_schedule_data(categories: List[str] = None) -> Dict[str, Any]:
+    def create_test_schedule_data(categories: list[str] = None) -> dict[str, Any]:
         """
         Create test schedule data for testing schedule management
         
@@ -2760,7 +2760,7 @@ class TestDataFactory:
         return schedule_data
     
     @staticmethod
-    def create_test_task_data(task_count: int = 3) -> List[Dict[str, Any]]:
+    def create_test_task_data(task_count: int = 3) -> list[dict[str, Any]]:
         """
         Create test task data for testing task management
         
@@ -2790,7 +2790,7 @@ class TestDataFactory:
         return tasks
     
     @staticmethod
-    def create_test_message_data(category: str = "motivational", message_count: int = 5) -> List[Dict[str, Any]]:
+    def create_test_message_data(category: str = "motivational", message_count: int = 5) -> list[dict[str, Any]]:
         """
         Create test message data for testing message management
         
@@ -2823,7 +2823,7 @@ class TestLogPathMocks:
     """Helper class for creating complete log path mocks for tests"""
     
     @staticmethod
-    def create_complete_log_paths_mock(base_dir: str) -> Dict[str, str]:
+    def create_complete_log_paths_mock(base_dir: str) -> dict[str, str]:
         """
         Create a complete mock dictionary for _get_log_paths_for_environment()
         that includes all required keys including ai_dev_tools_file.

@@ -492,7 +492,7 @@ class ConversationManager:
         return (question_text, False)
 
     @handle_errors("getting question text", default_return="Please answer this question:")
-    def _get_question_text(self, question_key: str, previous_data: dict, user_id: Optional[str] = None) -> str:
+    def _get_question_text(self, question_key: str, previous_data: dict, user_id: str | None = None) -> str:
         """Get appropriate question text based on question type and previous responses"""
         # Import the dynamic checkin manager
         from core.checkin_dynamic_manager import dynamic_checkin_manager
@@ -620,7 +620,7 @@ class ConversationManager:
         return self._get_next_question(user_id, user_state)
 
     @handle_errors("validating response", default_return={'valid': False, 'value': None, 'message': "I didn't understand that response. Please try again."})
-    def _validate_response(self, question_key: str, response: str, user_id: Optional[str] = None) -> dict:
+    def _validate_response(self, question_key: str, response: str, user_id: str | None = None) -> dict:
         """Validate user response based on question type using dynamic manager"""
         # Import the dynamic checkin manager
         from core.checkin_dynamic_manager import dynamic_checkin_manager
@@ -1466,7 +1466,7 @@ class ConversationManager:
             return ("❌ Failed to update task with due date. The task was created successfully. You can add a due date later by updating the task.", True)
 
     @handle_errors("parsing date and time from text", default_return=(None, None))
-    def _parse_date_time_from_text(self, text: str) -> tuple[Optional[str], Optional[str]]:
+    def _parse_date_time_from_text(self, text: str) -> tuple[str | None, str | None]:
         """
         Parse date and time from natural language text.
         
@@ -1540,7 +1540,7 @@ class ConversationManager:
         return (None, None)
 
     @handle_errors("parsing time from text", default_return=None)
-    def _parse_time_from_text(self, text: str) -> Optional[str]:
+    def _parse_time_from_text(self, text: str) -> str | None:
         """
         Parse time from natural language text.
         

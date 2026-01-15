@@ -450,7 +450,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 if file_age_seconds < MIN_FILE_AGE_SECONDS:
                     return False
                     
-            except (OSError, IOError):
+            except OSError:
                 # If we can't check file stats, proceed with normal rollover checks
                 # This is safer than blocking rollover on stat errors
                 pass
@@ -465,7 +465,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 try:
                     if self.stream.tell() >= self.maxBytes:
                         return True
-                except (OSError, IOError):
+                except OSError:
                     pass
         return False
     
@@ -521,7 +521,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                         pass
                     return
                     
-            except (OSError, IOError) as check_error:
+            except OSError as check_error:
                 # If we can't check file stats, proceed with rollover anyway
                 # This is safer than blocking rollover on stat errors
                 pass
@@ -571,7 +571,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                     file_size = 0
                     try:
                         file_size = os.path.getsize(self.baseFilename)
-                    except (OSError, IOError):
+                    except OSError:
                         pass
                     
                     # Only copy if file has meaningful content

@@ -93,8 +93,8 @@ def register_data_loader(
     data_type: str,
     loader_func,
     file_type: str,
-    default_fields: Optional[List[str]] = None,
-    metadata_fields: Optional[List[str]] = None,
+    default_fields: list[str] | None = None,
+    metadata_fields: list[str] | None = None,
     description: str = "",
     *,
     force: bool = False,
@@ -189,13 +189,13 @@ def _ensure_default_loaders_once() -> None:
 
 
 @handle_errors("getting available data types", default_return=[])
-def get_available_data_types() -> List[str]:
+def get_available_data_types() -> list[str]:
     """Get list of available data types."""
     return list(USER_DATA_LOADERS.keys())
 
 
 @handle_errors("getting data type info", default_return=None)
-def get_data_type_info(data_type: str) -> Optional[Dict[str, Any]]:
+def get_data_type_info(data_type: str) -> dict[str, Any] | None:
     """Get information about a specific data type."""
     return USER_DATA_LOADERS.get(data_type)
 
@@ -203,7 +203,7 @@ def get_data_type_info(data_type: str) -> Optional[Dict[str, Any]]:
 @handle_errors("loading user account data", default_return=None)
 def _get_user_data__load_account(
     user_id: str, auto_create: bool = True
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Load user account data from account.json."""
     if not user_id:
         logger.error("_get_user_data__load_account called with None user_id")
@@ -289,7 +289,7 @@ def _get_user_data__load_account(
 
 
 @handle_errors("saving user account data")
-def _save_user_data__save_account(user_id: str, account_data: Dict[str, Any]) -> bool:
+def _save_user_data__save_account(user_id: str, account_data: dict[str, Any]) -> bool:
     """Save user account data to account.json."""
     if not user_id:
         logger.error("_save_user_data__save_account called with None user_id")
@@ -329,7 +329,7 @@ def _save_user_data__save_account(user_id: str, account_data: Dict[str, Any]) ->
 @handle_errors("loading user preferences data", default_return=None)
 def _get_user_data__load_preferences(
     user_id: str, auto_create: bool = True
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Load user preferences data from preferences.json."""
     if not user_id:
         logger.error("_get_user_data__load_preferences called with None user_id")
@@ -406,7 +406,7 @@ def _get_user_data__load_preferences(
 
 @handle_errors("saving user preferences data")
 def _save_user_data__save_preferences(
-    user_id: str, preferences_data: Dict[str, Any]
+    user_id: str, preferences_data: dict[str, Any]
 ) -> bool:
     """Save user preferences data to preferences.json."""
     if not user_id:
@@ -444,7 +444,7 @@ def _save_user_data__save_preferences(
 @handle_errors("loading user context data", default_return=None)
 def _get_user_data__load_context(
     user_id: str, auto_create: bool = True
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Load user context data from user_context.json."""
     if not user_id:
         logger.error("_get_user_data__load_context called with None user_id")
@@ -525,7 +525,7 @@ def _get_user_data__load_context(
 
 
 @handle_errors("saving user context data")
-def _save_user_data__save_context(user_id: str, context_data: Dict[str, Any]) -> bool:
+def _save_user_data__save_context(user_id: str, context_data: dict[str, Any]) -> bool:
     """Save user context data to user_context.json."""
     if not user_id:
         logger.error("_save_user_data__save_context called with None user_id")
@@ -560,7 +560,7 @@ def _save_user_data__save_context(user_id: str, context_data: Dict[str, Any]) ->
 @handle_errors("loading user schedules data", default_return=None)
 def _get_user_data__load_schedules(
     user_id: str, auto_create: bool = True
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Load user schedules data from schedules.json."""
     if not user_id:
         logger.error("_get_user_data__load_schedules called with None user_id")
@@ -619,7 +619,7 @@ def _get_user_data__load_schedules(
 
 @handle_errors("saving user schedules data")
 def _save_user_data__save_schedules(
-    user_id: str, schedules_data: Dict[str, Any]
+    user_id: str, schedules_data: dict[str, Any]
 ) -> bool:
     """Save user schedules data to schedules.json."""
     if not user_id:
@@ -650,7 +650,7 @@ def _save_user_data__save_schedules(
 @handle_errors("loading user tags data", default_return=None)
 def _get_user_data__load_tags(
     user_id: str, auto_create: bool = True
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Load user tags data from tags.json."""
     if not user_id:
         logger.error("_get_user_data__load_tags called with None user_id")
@@ -675,7 +675,7 @@ def _get_user_data__load_tags(
 
 
 @handle_errors("saving user tags data")
-def _save_user_data__save_tags(user_id: str, tags_data: Dict[str, Any]) -> bool:
+def _save_user_data__save_tags(user_id: str, tags_data: dict[str, Any]) -> bool:
     """Save user tags data to tags.json."""
     if not user_id:
         logger.error("_save_user_data__save_tags called with None user_id")
@@ -691,7 +691,7 @@ def _save_user_data__save_tags(user_id: str, tags_data: Dict[str, Any]) -> bool:
 
 
 @handle_errors("creating default schedule periods", default_return={})
-def create_default_schedule_periods(category: Optional[str] = None) -> Dict[str, Any]:
+def create_default_schedule_periods(category: str | None = None) -> dict[str, Any]:
     """Create default schedule periods for a new category."""
     if category:
         # Use category-specific naming
@@ -728,8 +728,8 @@ def create_default_schedule_periods(category: Optional[str] = None) -> Dict[str,
 
 @handle_errors("migrating legacy schedules structure", default_return={})
 def migrate_legacy_schedules_structure(
-    schedules_data: Dict[str, Any],
-) -> Dict[str, Any]:
+    schedules_data: dict[str, Any],
+) -> dict[str, Any]:
     """Migrate legacy schedules structure to new format."""
     migrated_data = {}
 
@@ -877,7 +877,7 @@ def ensure_all_categories_have_schedules(
 
 
 @handle_errors("clearing user caches")
-def clear_user_caches(user_id: Optional[str] = None):
+def clear_user_caches(user_id: str | None = None):
     """Clear user data caches."""
     global _user_account_cache, _user_preferences_cache, _user_context_cache, _user_schedules_cache
 
@@ -949,12 +949,12 @@ def load_and_ensure_ids(user_id):
 @handle_errors("getting user data", default_return={})
 def get_user_data(
     user_id: str,
-    data_types: Union[str, List[str]] = "all",
-    fields: Optional[Union[str, List[str], Dict[str, Union[str, List[str]]]]] = None,
+    data_types: str | list[str] = "all",
+    fields: str | list[str] | dict[str, str | list[str]] | None = None,
     auto_create: bool = True,
     include_metadata: bool = False,
     normalize_on_read: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get user data with comprehensive validation.
 
@@ -1072,7 +1072,7 @@ def get_user_data(
         )
         return {}
 
-    result: Dict[str, Any] = {}
+    result: dict[str, Any] = {}
 
     for data_type in data_types:
         loader_info = USER_DATA_LOADERS.get(data_type)
@@ -1356,7 +1356,7 @@ def get_user_data(
                 # If we cannot determine, fall back to per-type filtering below
                 pass
             # Include only types whose files exist
-            filtered: Dict[str, Any] = {}
+            filtered: dict[str, Any] = {}
             for dt_key, dt_val in result.items():
                 try:
                     loader_info = USER_DATA_LOADERS.get(dt_key, {})
@@ -1377,8 +1377,8 @@ def get_user_data(
 
 @handle_errors("validating input parameters", default_return=(False, {}, []))
 def _save_user_data__validate_input(
-    user_id: str, data_updates: Dict[str, Dict[str, Any]]
-) -> tuple[bool, Dict[str, bool], List[str]]:
+    user_id: str, data_updates: dict[str, dict[str, Any]]
+) -> tuple[bool, dict[str, bool], list[str]]:
     """
     Validate input parameters with enhanced validation.
 
@@ -1405,7 +1405,7 @@ def _save_user_data__validate_input(
         return False, {}, []
 
     # Every requested data_type gets an entry that defaults to False
-    result: Dict[str, bool] = {dt: False for dt in data_updates}
+    result: dict[str, bool] = {dt: False for dt in data_updates}
 
     # Validate data types
     available_types = get_available_data_types()
@@ -1420,7 +1420,7 @@ def _save_user_data__validate_input(
 
 @handle_errors("creating user data backup", default_return=False)
 def _save_user_data__create_backup(
-    user_id: str, valid_types: List[str], create_backup: bool
+    user_id: str, valid_types: list[str], create_backup: bool
 ) -> bool:
     """
     Create backup with validation.
@@ -1450,11 +1450,11 @@ def _save_user_data__create_backup(
 @handle_errors("validating user data", default_return=([], {}))
 def _save_user_data__validate_data(
     user_id: str,
-    data_updates: Dict[str, Dict[str, Any]],
-    valid_types: List[str],
+    data_updates: dict[str, dict[str, Any]],
+    valid_types: list[str],
     validate_data: bool,
     is_new_user: bool,
-) -> tuple[List[str], Dict[str, bool]]:
+) -> tuple[list[str], dict[str, bool]]:
     """
     Validate user data with enhanced validation.
 
@@ -1468,7 +1468,7 @@ def _save_user_data__validate_data(
     if not isinstance(data_updates, dict):
         return [f"Invalid data_updates: {type(data_updates)}"], {}
     """Validate data for new and existing users."""
-    result: Dict[str, bool] = {dt: False for dt in data_updates}
+    result: dict[str, bool] = {dt: False for dt in data_updates}
     invalid_types = []
 
     if not validate_data:
@@ -1531,7 +1531,7 @@ def _save_user_data__validate_data(
 
 @handle_errors("preserving preference settings", default_return=False)
 def _save_user_data__preserve_preference_settings(
-    updated: Dict[str, Any], updates: Dict[str, Any], user_id: str
+    updated: dict[str, Any], updates: dict[str, Any], user_id: str
 ) -> bool:
     """
     Preserve preference settings blocks when saving preferences.
@@ -1561,7 +1561,7 @@ def _save_user_data__preserve_preference_settings(
 
 
 @handle_errors("normalizing user data", default_return=False)
-def _save_user_data__normalize_data(dt: str, updated: Dict[str, Any]) -> bool:
+def _save_user_data__normalize_data(dt: str, updated: dict[str, Any]) -> bool:
     """
     Normalize user data with validation.
 
@@ -1617,8 +1617,8 @@ def _save_user_data__normalize_data(dt: str, updated: Dict[str, Any]) -> bool:
 
 @handle_errors("merging data type updates", default_return=None)
 def _save_user_data__merge_single_type(
-    user_id: str, dt: str, updates: Dict[str, Any], auto_create: bool
-) -> Optional[Dict[str, Any]]:
+    user_id: str, dt: str, updates: dict[str, Any], auto_create: bool
+) -> dict[str, Any] | None:
     """
     Merge updates for a single data type with current data (in-memory only, no disk write).
 
@@ -1732,7 +1732,7 @@ def _save_user_data__merge_single_type(
 
 @handle_errors("saving single data type", default_return=False)
 def _save_user_data__save_single_type(
-    user_id: str, dt: str, updates: Dict[str, Any], auto_create: bool
+    user_id: str, dt: str, updates: dict[str, Any], auto_create: bool
 ) -> bool:
     """
     Save single data type with enhanced validation.
@@ -1782,7 +1782,7 @@ def _save_user_data__save_single_type(
 
 @handle_errors("updating user index", default_return=False)
 def _save_user_data__update_index(
-    user_id: str, result: Dict[str, bool], update_index: bool
+    user_id: str, result: dict[str, bool], update_index: bool
 ) -> bool:
     """
     Update user index with validation.
@@ -1832,8 +1832,8 @@ _DATA_TYPE_PROCESSING_ORDER = [
 
 @handle_errors("checking cross-file invariants", default_return=None)
 def _save_user_data__check_cross_file_invariants(
-    user_id: str, merged_data: Dict[str, Dict[str, Any]], valid_types: List[str]
-) -> Optional[Dict[str, Dict[str, Any]]]:
+    user_id: str, merged_data: dict[str, dict[str, Any]], valid_types: list[str]
+) -> dict[str, dict[str, Any]] | None:
     """
     Check and enforce cross-file invariants using in-memory merged data.
 
@@ -1922,10 +1922,10 @@ def _save_user_data__check_cross_file_invariants(
 @handle_errors("merging all data types in-memory", default_return=None)
 def _save_user_data__merge_all_types(
     user_id: str,
-    data_updates: Dict[str, Dict[str, Any]],
-    valid_types: List[str],
+    data_updates: dict[str, dict[str, Any]],
+    valid_types: list[str],
     auto_create: bool,
-) -> Optional[Dict[str, Dict[str, Any]]]:
+) -> dict[str, dict[str, Any]] | None:
     """
     Phase 1: Merge all data types in-memory.
 
@@ -1947,8 +1947,8 @@ def _save_user_data__merge_all_types(
 
 @handle_errors("writing all data types to disk", default_return={})
 def _save_user_data__write_all_types(
-    user_id: str, merged_data: Dict[str, Dict[str, Any]], valid_types: List[str]
-) -> Dict[str, bool]:
+    user_id: str, merged_data: dict[str, dict[str, Any]], valid_types: list[str]
+) -> dict[str, bool]:
     """
     Phase 2: Write all merged data types to disk atomically.
 
@@ -1985,12 +1985,12 @@ def _save_user_data__write_all_types(
 @handle_errors("saving user data", default_return={})
 def save_user_data(
     user_id: str,
-    data_updates: Dict[str, Dict[str, Any]],
+    data_updates: dict[str, dict[str, Any]],
     auto_create: bool = True,
     update_index: bool = True,
     create_backup: bool = True,
     validate_data: bool = True,
-) -> Dict[str, bool]:
+) -> dict[str, bool]:
     """
     Save user data with two-phase approach: merge/validate in Phase 1, write in Phase 2.
 
@@ -2163,7 +2163,7 @@ def save_user_data(
 
 @handle_errors("saving user data with transaction", default_return=False)
 def save_user_data_transaction(
-    user_id: str, data_updates: Dict[str, Dict[str, Any]], auto_create: bool = True
+    user_id: str, data_updates: dict[str, dict[str, Any]], auto_create: bool = True
 ) -> bool:
     """Atomic wrapper for user data updates."""
     if not user_id or not data_updates:
@@ -2205,7 +2205,7 @@ def save_user_data_transaction(
 
 
 @handle_errors("getting all user ids", default_return=[])
-def get_all_user_ids() -> List[str]:
+def get_all_user_ids() -> list[str]:
     """Get all user IDs from the system."""
     from core.config import USER_INFO_DIR_PATH
 
@@ -2227,7 +2227,7 @@ def get_all_user_ids() -> List[str]:
 
 
 @handle_errors("creating new user", default_return=None)
-def create_new_user(user_data: Dict[str, Any]) -> Optional[str]:
+def create_new_user(user_data: dict[str, Any]) -> str | None:
     """Create a new user with the new data structure."""
     user_id = str(uuid.uuid4())
 
@@ -2352,7 +2352,7 @@ def create_new_user(user_data: Dict[str, Any]) -> Optional[str]:
 
 
 @handle_errors("getting user categories", default_return=[])
-def get_user_categories(user_id: str) -> List[str]:
+def get_user_categories(user_id: str) -> list[str]:
     """Get user's message categories using centralized data access."""
     user_data = get_user_data(user_id, "preferences")
     if isinstance(user_data, dict):
@@ -2368,8 +2368,8 @@ def get_user_categories(user_id: str) -> List[str]:
 
 @handle_errors("getting user data with metadata", default_return={})
 def get_user_data_with_metadata(
-    user_id: str, data_types: Union[str, List[str]] = "all"
-) -> Dict[str, Any]:
+    user_id: str, data_types: str | list[str] = "all"
+) -> dict[str, Any]:
     """Get user data with file metadata using centralized system."""
     return get_user_data(user_id, data_types, include_metadata=True)
 
@@ -2523,11 +2523,11 @@ TIMEZONE_OPTIONS = [
     "UTC",
 ]
 
-_PRESETS_CACHE: Dict[str, List[str]] | None = None
+_PRESETS_CACHE: dict[str, list[str]] | None = None
 
 
 @handle_errors("loading presets JSON", default_return=PREDEFINED_OPTIONS)
-def _load_presets_json() -> Dict[str, List[str]]:
+def _load_presets_json() -> dict[str, list[str]]:
     """Load presets from resources/presets.json (cached)."""
     global _PRESETS_CACHE
     if _PRESETS_CACHE is not None:
@@ -2537,7 +2537,7 @@ def _load_presets_json() -> Dict[str, List[str]]:
 
     presets_path = Path(__file__).parent.parent / "resources" / "presets.json"
     try:
-        with open(presets_path, "r", encoding="utf-8") as f:
+        with open(presets_path, encoding="utf-8") as f:
             _PRESETS_CACHE = json.load(f)
     except FileNotFoundError:
         logger.warning("presets.json not found - falling back to hard-coded options")
@@ -2546,14 +2546,14 @@ def _load_presets_json() -> Dict[str, List[str]]:
 
 
 @handle_errors("getting predefined options", default_return=[])
-def get_predefined_options(field: str) -> List[str]:
+def get_predefined_options(field: str) -> list[str]:
     """Return predefined options for a personalization field."""
     presets = _load_presets_json()
     return presets.get(field, [])
 
 
 @handle_errors("getting timezone options", default_return=[])
-def get_timezone_options() -> List[str]:
+def get_timezone_options() -> list[str]:
     """Get timezone options."""
     try:
         import pytz
@@ -2566,7 +2566,7 @@ def get_timezone_options() -> List[str]:
 @handle_errors("getting user id by internal username", default_return=None)
 def _get_user_id_by_identifier__by_internal_username(
     internal_username: str,
-) -> Optional[str]:
+) -> str | None:
     """Helper function: Get user ID by internal username using the user index for fast lookup."""
     if not internal_username:
         return None
@@ -2597,7 +2597,7 @@ def _get_user_id_by_identifier__by_internal_username(
 
 
 @handle_errors("getting user id by email", default_return=None)
-def _get_user_id_by_identifier__by_email(email: str) -> Optional[str]:
+def _get_user_id_by_identifier__by_email(email: str) -> str | None:
     """Helper function: Get user ID by email using the user index for fast lookup."""
     if not email:
         return None
@@ -2625,7 +2625,7 @@ def _get_user_id_by_identifier__by_email(email: str) -> Optional[str]:
 
 
 @handle_errors("getting user id by phone", default_return=None)
-def _get_user_id_by_identifier__by_phone(phone: str) -> Optional[str]:
+def _get_user_id_by_identifier__by_phone(phone: str) -> str | None:
     """Helper function: Get user ID by phone using the user index for fast lookup."""
     if not phone:
         return None
@@ -2653,7 +2653,7 @@ def _get_user_id_by_identifier__by_phone(phone: str) -> Optional[str]:
 
 
 @handle_errors("getting user id by chat id", default_return=None)
-def _get_user_id_by_identifier__by_chat_id(chat_id: str) -> Optional[str]:
+def _get_user_id_by_identifier__by_chat_id(chat_id: str) -> str | None:
     """Helper function: Get user ID by chat ID."""
     if not chat_id:
         return None
@@ -2670,7 +2670,7 @@ def _get_user_id_by_identifier__by_chat_id(chat_id: str) -> Optional[str]:
 @handle_errors("getting user id by discord user id", default_return=None)
 def _get_user_id_by_identifier__by_discord_user_id(
     discord_user_id: str,
-) -> Optional[str]:
+) -> str | None:
     """Helper function: Get user ID by Discord user ID using the user index for fast lookup."""
     if not discord_user_id:
         return None
@@ -2704,7 +2704,7 @@ def _get_user_id_by_identifier__by_discord_user_id(
 
 
 @handle_errors("getting user id by identifier", default_return=None)
-def get_user_id_by_identifier(identifier: str) -> Optional[str]:
+def get_user_id_by_identifier(identifier: str) -> str | None:
     """
     Get user ID by any identifier (internal_username, email, discord_user_id, phone).
     """
@@ -2764,7 +2764,7 @@ def get_user_id_by_identifier(identifier: str) -> Optional[str]:
 
 
 @handle_errors("updating user schedules (centralised)", default_return=False)
-def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
+def update_user_schedules(user_id: str, schedules_data: dict[str, Any]) -> bool:
     """
     Update user schedules with validation.
 
@@ -2795,7 +2795,7 @@ def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
 
 @handle_errors("updating user account (centralised)", default_return=False)
 def update_user_account(
-    user_id: str, updates: Dict[str, Any], *, auto_create: bool = True
+    user_id: str, updates: dict[str, Any], *, auto_create: bool = True
 ) -> bool:
     """
     Update user account with validation.
@@ -2830,7 +2830,7 @@ def update_user_account(
 
 @handle_errors("updating user preferences (centralised)", default_return=False)
 def update_user_preferences(
-    user_id: str, updates: Dict[str, Any], *, auto_create: bool = True
+    user_id: str, updates: dict[str, Any], *, auto_create: bool = True
 ) -> bool:
     """
     Update user preferences with validation.
@@ -2966,7 +2966,7 @@ def update_user_preferences(
 
 @handle_errors("updating user context (centralised)", default_return=False)
 def update_user_context(
-    user_id: str, updates: Dict[str, Any], *, auto_create: bool = True
+    user_id: str, updates: dict[str, Any], *, auto_create: bool = True
 ) -> bool:
     """
     Update user context with validation.
@@ -2997,7 +2997,7 @@ def update_user_context(
 
 @handle_errors("updating channel preferences (centralised)", default_return=False)
 def update_channel_preferences(
-    user_id: str, updates: Dict[str, Any], *, auto_create: bool = True
+    user_id: str, updates: dict[str, Any], *, auto_create: bool = True
 ) -> bool:
     """
     Update channel preferences with validation.

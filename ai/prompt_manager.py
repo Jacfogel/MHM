@@ -20,7 +20,7 @@ class PromptTemplate:
     name: str
     content: str
     description: str
-    max_tokens: Optional[int] = None
+    max_tokens: int | None = None
     temperature: float = 0.7
 
 
@@ -31,7 +31,7 @@ class PromptManager:
     def __init__(self):
         """Initialize the prompt manager"""
         self._custom_prompt = None
-        self._prompt_templates: Dict[str, PromptTemplate] = {}
+        self._prompt_templates: dict[str, PromptTemplate] = {}
         self._fallback_prompts = {
             "wellness": PromptTemplate(
                 name="wellness",
@@ -232,7 +232,7 @@ class PromptManager:
         return self._fallback_prompts["wellness"].content
 
     @handle_errors("getting prompt template", default_return=None)
-    def get_prompt_template(self, prompt_type: str) -> Optional[PromptTemplate]:
+    def get_prompt_template(self, prompt_type: str) -> PromptTemplate | None:
         """
         Get the full prompt template for the given type
 
@@ -305,7 +305,7 @@ class PromptManager:
         )
 
     @handle_errors("getting available prompts", default_return={})
-    def get_available_prompts(self) -> Dict[str, str]:
+    def get_available_prompts(self) -> dict[str, str]:
         """
         Get all available prompt types and their descriptions
 

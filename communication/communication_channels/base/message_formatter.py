@@ -17,20 +17,20 @@ class MessageFormatter(ABC):
     @abstractmethod
     @handle_errors("formatting message", default_return="")
     def format_message(
-        self, message: str, rich_data: Optional[Dict[str, Any]] = None
+        self, message: str, rich_data: dict[str, Any] | None = None
     ) -> str:
         """Format a message with optional rich data"""
         pass
 
     @abstractmethod
     @handle_errors("creating rich content", default_return=None)
-    def create_rich_content(self, message: str, rich_data: Dict[str, Any]) -> Any:
+    def create_rich_content(self, message: str, rich_data: dict[str, Any]) -> Any:
         """Create rich content (embed, card, etc.) from rich data"""
         pass
 
     @abstractmethod
     @handle_errors("creating interactive elements", default_return=None)
-    def create_interactive_elements(self, suggestions: List[str]) -> Any:
+    def create_interactive_elements(self, suggestions: list[str]) -> Any:
         """Create interactive elements (buttons, menus, etc.) from suggestions"""
         pass
 
@@ -40,7 +40,7 @@ class TextMessageFormatter(MessageFormatter):
 
     @handle_errors("formatting text message", default_return="")
     def format_message(
-        self, message: str, rich_data: Optional[Dict[str, Any]] = None
+        self, message: str, rich_data: dict[str, Any] | None = None
     ) -> str:
         """Format a message as plain text"""
         if not message:
@@ -77,7 +77,7 @@ class TextMessageFormatter(MessageFormatter):
             raise DataError(f"Invalid rich data format: {e}") from e
 
     @handle_errors("creating rich text content", default_return="")
-    def create_rich_content(self, message: str, rich_data: Dict[str, Any]) -> str:
+    def create_rich_content(self, message: str, rich_data: dict[str, Any]) -> str:
         """Create rich text content"""
         if not message:
             logger.warning("Empty message provided for rich content creation")
@@ -90,7 +90,7 @@ class TextMessageFormatter(MessageFormatter):
         return self.format_message(message, rich_data)
 
     @handle_errors("creating interactive elements", default_return="")
-    def create_interactive_elements(self, suggestions: List[str]) -> str:
+    def create_interactive_elements(self, suggestions: list[str]) -> str:
         """Create text-based interactive elements"""
         if not suggestions:
             return ""
@@ -113,7 +113,7 @@ class EmailMessageFormatter(MessageFormatter):
 
     @handle_errors("formatting email message", default_return="")
     def format_message(
-        self, message: str, rich_data: Optional[Dict[str, Any]] = None
+        self, message: str, rich_data: dict[str, Any] | None = None
     ) -> str:
         """Format a message for email"""
         if not message:
@@ -150,7 +150,7 @@ class EmailMessageFormatter(MessageFormatter):
             raise DataError(f"Invalid rich data format for email: {e}") from e
 
     @handle_errors("creating rich email content", default_return="")
-    def create_rich_content(self, message: str, rich_data: Dict[str, Any]) -> str:
+    def create_rich_content(self, message: str, rich_data: dict[str, Any]) -> str:
         """Create rich email content"""
         if not message:
             logger.warning("Empty message provided for email rich content creation")
@@ -163,7 +163,7 @@ class EmailMessageFormatter(MessageFormatter):
         return self.format_message(message, rich_data)
 
     @handle_errors("creating email interactive elements", default_return="")
-    def create_interactive_elements(self, suggestions: List[str]) -> str:
+    def create_interactive_elements(self, suggestions: list[str]) -> str:
         """Create email-friendly interactive elements"""
         if not suggestions:
             return ""

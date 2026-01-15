@@ -40,7 +40,7 @@ class SchedulerManager:
         self.running = False
         self._stop_event = threading.Event()  # Add stop event for proper thread management
         # Track reminder selection state to provide smooth weighted scheduling across calls
-        self._reminder_selection_state: Dict[str, float] = {}
+        self._reminder_selection_state: dict[str, float] = {}
         logger.info("SchedulerManager ready")
 
     @handle_errors("running daily scheduler")
@@ -1084,7 +1084,7 @@ class SchedulerManager:
         return task_weights
 
     @handle_errors("building task key for reminder selection", default_return="")
-    def _select_task_for_reminder__task_key(self, task: Dict[str, Any], index: int) -> str:
+    def _select_task_for_reminder__task_key(self, task: dict[str, Any], index: int) -> str:
         """Build a stable key for tracking reminder selection state."""
         candidate_keys = [
             str(task.get('id') or '').strip(),
@@ -1135,7 +1135,7 @@ class SchedulerManager:
         return task_weights[-1][0] if task_weights else random.choice(incomplete_tasks)
 
     @handle_errors("selecting task for reminder", default_return=None)
-    def select_task_for_reminder(self, incomplete_tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def select_task_for_reminder(self, incomplete_tasks: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Select a task for reminder using priority-based and due date proximity weighting.
         

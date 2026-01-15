@@ -44,7 +44,7 @@ def _get_notebook_file_path(user_id: str) -> Path:
 
 
 @handle_errors("loading notebook entries", default_return=[])
-def load_entries(user_id: str) -> List[Entry]:
+def load_entries(user_id: str) -> list[Entry]:
     """
     Loads all notebook entries for a user from entries.json.
     Creates directory and file if they don't exist (lazy initialization).
@@ -81,7 +81,7 @@ def load_entries(user_id: str) -> List[Entry]:
         return []
 
     entries_data = raw_data.get("entries", [])
-    loaded_entries: List[Entry] = []
+    loaded_entries: list[Entry] = []
     for entry_data in entries_data:
         try:
             entry = Entry.model_validate(entry_data)
@@ -96,7 +96,7 @@ def load_entries(user_id: str) -> List[Entry]:
 
 
 @handle_errors("saving notebook entries")
-def save_entries(user_id: str, entries: List[Entry]) -> None:
+def save_entries(user_id: str, entries: list[Entry]) -> None:
     """
     Saves all notebook entries for a user to entries.json with atomic write.
     Creates directory and file if they don't exist.

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-15 00:44:19
+> **Last Generated**: 2026-01-15 06:37:20
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 35
 **Legacy Compatibility Markers Detected**: 64
@@ -21,7 +21,7 @@
 ### communication\command_handlers\account_handler.py
 **Issues Found**: 1
 
-- **Line 82**: `backward compatibility`
+- **Line 98**: `backward compatibility`
   ```
   # Extract feature selection (default to True for backward compatibility)
   ```
@@ -45,12 +45,12 @@
 ### core\__init__.py
 **Issues Found**: 2
 
-- **Line 515**: `Legacy module`
+- **Line 519**: `Legacy module`
   ```
   # Legacy module names (for backward compatibility)
   ```
 
-- **Line 515**: `backward compatibility`
+- **Line 519**: `backward compatibility`
   ```
   # Legacy module names (for backward compatibility)
   ```
@@ -66,7 +66,7 @@
 ### core\message_management.py
 **Issues Found**: 1
 
-- **Line 563**: `backward compatibility`
+- **Line 650**: `backward compatibility`
   ```
   Handles multiple timestamp formats for backward compatibility.
   ```
@@ -82,7 +82,7 @@
 ### core\schemas.py
 **Issues Found**: 1
 
-- **Line 207**: `backward compatibility`
+- **Line 242**: `backward compatibility`
   ```
   # If invalid, keep as-is for backward compatibility (tests may set placeholders)
   ```
@@ -90,12 +90,12 @@
 ### core\user_data_handlers.py
 **Issues Found**: 2
 
-- **Line 1584**: `backward compatibility`
+- **Line 1763**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but should primarily be used
   ```
 
-- **Line 2005**: `backward compatibility`
+- **Line 2246**: `backward compatibility`
   ```
   # Check for explicit messages_enabled flag first, then fall back to categories check (for backward compatibility)
   ```
@@ -103,22 +103,22 @@
 ### core\user_data_validation.py
 **Issues Found**: 4
 
-- **Line 237**: `backward compatibility`
+- **Line 329**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
   ```
 
-- **Line 240**: `backward compatibility`
+- **Line 333**: `backward compatibility`
   ```
   # This maintains backward compatibility with the old validation approach
   ```
 
-- **Line 276**: `backward compatibility`
+- **Line 375**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
   ```
 
-- **Line 320**: `backward compatibility`
+- **Line 433**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
   ```
@@ -126,7 +126,7 @@
 ### development_tools\ai_work\analyze_ai_work.py
 **Issues Found**: 1
 
-- **Line 422**: `backward compatibility`
+- **Line 466**: `backward compatibility`
   ```
   # Print text output for backward compatibility
   ```
@@ -142,12 +142,12 @@
 ### development_tools\config\config.py
 **Issues Found**: 2
 
-- **Line 43**: `backward compatibility`
+- **Line 49**: `backward compatibility`
   ```
   # Fallback to project root for backward compatibility
   ```
 
-- **Line 684**: `backward compatibility`
+- **Line 808**: `backward compatibility`
   ```
   # Default paths include development_tools/ for backward compatibility
   ```
@@ -155,7 +155,7 @@
 ### development_tools\docs\analyze_documentation_sync.py
 **Issues Found**: 1
 
-- **Line 183**: `backward compatibility`
+- **Line 203**: `backward compatibility`
   ```
   # The --check flag is maintained for backward compatibility but has no effect
   ```
@@ -163,7 +163,7 @@
 ### development_tools\imports\analyze_dependency_patterns.py
 **Issues Found**: 1
 
-- **Line 448**: `backward compatibility`
+- **Line 532**: `backward compatibility`
   ```
   # Convenience functions for backward compatibility
   ```
@@ -171,7 +171,7 @@
 ### development_tools\imports\analyze_module_imports.py
 **Issues Found**: 1
 
-- **Line 420**: `backward compatibility`
+- **Line 464**: `backward compatibility`
   ```
   # Convenience functions for backward compatibility
   ```
@@ -179,7 +179,7 @@
 ### development_tools\reports\analyze_system_signals.py
 **Issues Found**: 1
 
-- **Line 649**: `backward compatibility`
+- **Line 788**: `backward compatibility`
   ```
   # Legacy warnings/errors (for backward compatibility)
   ```
@@ -187,7 +187,7 @@
 ### development_tools\shared\constants.py
 **Issues Found**: 1
 
-- **Line 265**: `backward compatibility`
+- **Line 369**: `backward compatibility`
   ```
   # If it's a real list, use it (for backward compatibility)
   ```
@@ -195,7 +195,7 @@
 ### development_tools\shared\mtime_cache.py
 **Issues Found**: 1
 
-- **Line 218**: `legacy path`
+- **Line 246**: `legacy path`
   ```
   # This ensures we fix standardized storage issues rather than silently using legacy paths
   ```
@@ -273,7 +273,7 @@
 ### development_tools\shared\standard_exclusions.py
 **Issues Found**: 1
 
-- **Line 315**: `backward compatibility`
+- **Line 331**: `backward compatibility`
   ```
   # For backward compatibility: ALL_GENERATED_FILES contains only exact paths
   ```
@@ -281,7 +281,7 @@
 ### development_tools\tests\analyze_test_markers.py
 **Issues Found**: 1
 
-- **Line 134**: `backward compatibility`
+- **Line 142**: `backward compatibility`
   ```
   Note: This method is kept here for backward compatibility but the fixing
   ```
@@ -289,7 +289,7 @@
 ### development_tools\tests\generate_test_coverage_report.py
 **Issues Found**: 1
 
-- **Line 72**: `backward compatibility`
+- **Line 78**: `backward compatibility`
   ```
   # Fall back to root location for backward compatibility
   ```
@@ -297,22 +297,22 @@
 ### development_tools\tests\run_test_coverage.py
 **Issues Found**: 4
 
-- **Line 156**: `backward compatibility`
+- **Line 170**: `backward compatibility`
   ```
   # Fall back to root location for backward compatibility
   ```
 
-- **Line 206**: `backward compatibility`
+- **Line 235**: `backward compatibility`
   ```
   self.use_domain_cache = use_domain_cache  # Keep name for backward compatibility
   ```
 
-- **Line 873**: `backward compatibility`
+- **Line 1056**: `backward compatibility`
   ```
-  self.pytest_stdout_log = stdout_log_path  # Keep variable name for backward compatibility
+  stdout_log_path  # Keep variable name for backward compatibility
   ```
 
-- **Line 2703**: `backward compatibility`
+- **Line 3711**: `backward compatibility`
   ```
   # Keeping for backward compatibility but it shouldn't be called
   ```
@@ -433,12 +433,12 @@
 ### user\user_context.py
 **Issues Found**: 2
 
-- **Line 44**: `legacy conversion`
+- **Line 45**: `legacy conversion`
   ```
   # Store data in the new format directly - no legacy conversion needed
   ```
 
-- **Line 74**: `legacy extraction`
+- **Line 75**: `legacy extraction`
   ```
   # Extract data and update using new functions directly - no legacy extraction needed
   ```

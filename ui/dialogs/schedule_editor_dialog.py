@@ -36,7 +36,7 @@ class ScheduleEditorDialog(QDialog):
         parent=None,
         user_id=None,
         category=None,
-        on_save: Optional[Callable] = None,
+        on_save: Callable | None = None,
     ):
         """Initialize the object."""
         try:
@@ -298,7 +298,7 @@ class ScheduleEditorDialog(QDialog):
             raise
 
     @handle_errors("collecting period data", default_return={})
-    def collect_period_data(self) -> Dict[str, Any]:
+    def collect_period_data(self) -> dict[str, Any]:
         """Collect period data using the new reusable function."""
         try:
             return collect_period_data_from_widgets(self.period_widgets, self.category)
@@ -473,7 +473,7 @@ class ScheduleEditorDialog(QDialog):
 
 @handle_errors("opening schedule editor", default_return=None)
 def open_schedule_editor(
-    parent, user_id: str, category: str, on_save: Optional[Callable] = None
+    parent, user_id: str, category: str, on_save: Callable | None = None
 ):
     """Open the schedule editor dialog."""
     dialog = ScheduleEditorDialog(parent, user_id, category, on_save)

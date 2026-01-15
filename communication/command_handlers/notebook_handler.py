@@ -160,7 +160,7 @@ class NotebookHandler(InteractionHandler):
     # Create handlers
     @handle_errors("handling create note")
     def _handle_create_note(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle note creation."""
         from communication.message_processing.conversation_flow_manager import (
@@ -242,7 +242,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling create quick note")
     def _handle_create_quick_note(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle quick note creation - no body text required, automatically grouped as 'Quick Notes'."""
         from datetime import datetime
@@ -279,7 +279,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling create list")
     def _handle_create_list(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle list creation."""
         from communication.message_processing.conversation_flow_manager import (
@@ -335,7 +335,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling create journal")
     def _handle_create_journal(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle journal entry creation."""
         title = entities.get("title")
@@ -361,7 +361,7 @@ class NotebookHandler(InteractionHandler):
     # Read handlers
     @handle_errors("handling list recent")
     def _handle_list_recent(
-        self, user_id: str, entities: Dict[str, Any], notes_only: bool = False
+        self, user_id: str, entities: dict[str, Any], notes_only: bool = False
     ) -> InteractionResponse:
         """Handle listing recent entries."""
         n = entities.get("limit", 5)
@@ -402,7 +402,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling show entry")
     def _handle_show_entry(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle showing an entry."""
         entry_ref = entities.get("entry_ref")
@@ -422,7 +422,7 @@ class NotebookHandler(InteractionHandler):
     # Update handlers
     @handle_errors("handling append to entry")
     def _handle_append_to_entry(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle appending to entry body."""
         entry_ref = entities.get("entry_ref")
@@ -449,7 +449,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling set entry body")
     def _handle_set_entry_body(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle setting entry body."""
         entry_ref = entities.get("entry_ref")
@@ -474,7 +474,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling add tags")
     def _handle_add_tags(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle adding tags to entry."""
         entry_ref = entities.get("entry_ref")
@@ -498,7 +498,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling remove tags")
     def _handle_remove_tags(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle removing tags from entry."""
         entry_ref = entities.get("entry_ref")
@@ -523,7 +523,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling search entries")
     def _handle_search_entries(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle searching entries."""
         query = entities.get("query")
@@ -568,7 +568,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling pin entry")
     def _handle_pin_entry(
-        self, user_id: str, entities: Dict[str, Any], pinned: bool
+        self, user_id: str, entities: dict[str, Any], pinned: bool
     ) -> InteractionResponse:
         """Handle pinning/unpinning entry."""
         entry_ref = entities.get("entry_ref")
@@ -594,7 +594,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling archive entry")
     def _handle_archive_entry(
-        self, user_id: str, entities: Dict[str, Any], archived: bool
+        self, user_id: str, entities: dict[str, Any], archived: bool
     ) -> InteractionResponse:
         """Handle archiving/unarchiving entry."""
         entry_ref = entities.get("entry_ref")
@@ -621,7 +621,7 @@ class NotebookHandler(InteractionHandler):
     # List item handlers
     @handle_errors("handling add list item")
     def _handle_add_list_item(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle adding item to list."""
         entry_ref = entities.get("entry_ref")
@@ -646,7 +646,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling toggle list item done")
     def _handle_toggle_list_item_done(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle toggling list item done status."""
         entry_ref = entities.get("entry_ref")
@@ -679,7 +679,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling remove list item")
     def _handle_remove_list_item(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle removing item from list."""
         entry_ref = entities.get("entry_ref")
@@ -711,7 +711,7 @@ class NotebookHandler(InteractionHandler):
     # Organization handlers
     @handle_errors("handling set group")
     def _handle_set_group(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle setting entry group."""
         entry_ref = entities.get("entry_ref")
@@ -737,7 +737,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling list by group")
     def _handle_list_by_group(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle listing entries by group."""
         group = entities.get("group")
@@ -780,7 +780,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling list pinned")
     def _handle_list_pinned(
-        self, user_id: str, entities: Optional[Dict[str, Any]] = None
+        self, user_id: str, entities: dict[str, Any] | None = None
     ) -> InteractionResponse:
         """Handle listing pinned entries."""
         if entities is None:
@@ -819,7 +819,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling list inbox")
     def _handle_list_inbox(
-        self, user_id: str, entities: Optional[Dict[str, Any]] = None
+        self, user_id: str, entities: dict[str, Any] | None = None
     ) -> InteractionResponse:
         """Handle listing inbox entries."""
         if entities is None:
@@ -858,7 +858,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling list by tag")
     def _handle_list_by_tag(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle listing entries by tag."""
         tag = entities.get("tag")
@@ -901,7 +901,7 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling list archived")
     def _handle_list_archived(
-        self, user_id: str, entities: Optional[Dict[str, Any]] = None
+        self, user_id: str, entities: dict[str, Any] | None = None
     ) -> InteractionResponse:
         """Handle listing archived entries."""
         if entities is None:
@@ -993,7 +993,7 @@ class NotebookHandler(InteractionHandler):
         return "Manage your personal notes, lists, and journal entries. Use `!n` to create notes, `!l` for lists, `!recent` to see recent entries, and `!s` to search."
 
     @handle_errors("getting notebook examples", default_return=[])
-    def get_examples(self) -> List[str]:
+    def get_examples(self) -> list[str]:
         """Get example commands for notebook."""
         return [
             "!n My quick thought",

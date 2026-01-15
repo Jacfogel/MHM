@@ -57,8 +57,8 @@ class DynamicCheckinManager:
 
     @handle_errors("getting question definition", default_return=None)
     def get_question_definition(
-        self, question_key: str, user_id: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+        self, question_key: str, user_id: str | None = None
+    ) -> dict[str, Any] | None:
         """Get the definition for a specific question.
 
         Checks custom questions first (if user_id provided), then predefined questions.
@@ -77,8 +77,8 @@ class DynamicCheckinManager:
 
     @handle_errors("getting all questions", default_return={})
     def get_all_questions(
-        self, user_id: Optional[str] = None
-    ) -> Dict[str, Dict[str, Any]]:
+        self, user_id: str | None = None
+    ) -> dict[str, dict[str, Any]]:
         """Get all question definitions, merging predefined and custom questions.
 
         Custom questions take precedence over predefined questions with the same key.
@@ -98,7 +98,7 @@ class DynamicCheckinManager:
 
     @handle_errors("getting question text", default_return="")
     def get_question_text(
-        self, question_key: str, user_id: Optional[str] = None
+        self, question_key: str, user_id: str | None = None
     ) -> str:
         """Get the question text for a specific question."""
         question_def = self.get_question_definition(question_key, user_id)
@@ -117,7 +117,7 @@ class DynamicCheckinManager:
         return "unknown"
 
     @handle_errors("getting question validation", default_return={})
-    def get_question_validation(self, question_key: str) -> Dict[str, Any]:
+    def get_question_validation(self, question_key: str) -> dict[str, Any]:
         """Get validation rules for a specific question."""
         question_def = self.get_question_definition(question_key)
         if question_def:
@@ -127,7 +127,7 @@ class DynamicCheckinManager:
     @handle_errors("getting response statement", default_return=None)
     def get_response_statement(
         self, question_key: str, answer_value: Any
-    ) -> Optional[str]:
+    ) -> str | None:
         """Get a random response statement for a question answer."""
         if not self.responses_data:
             return None
@@ -186,8 +186,8 @@ class DynamicCheckinManager:
         "validating answer", default_return=(False, None, "Validation failed")
     )
     def validate_answer(
-        self, question_key: str, answer: str, user_id: Optional[str] = None
-    ) -> Tuple[bool, Any, Optional[str]]:
+        self, question_key: str, answer: str, user_id: str | None = None
+    ) -> tuple[bool, Any, str | None]:
         """Validate an answer for a specific question."""
         question_def = self.get_question_definition(question_key, user_id)
         if not question_def:
@@ -298,7 +298,7 @@ class DynamicCheckinManager:
             return False, None, f"Unknown question type: {question_type}"
 
     @handle_errors("parsing numerical response", default_return=None)
-    def _parse_numerical_response(self, answer: str) -> Optional[float]:
+    def _parse_numerical_response(self, answer: str) -> float | None:
         """Parse numerical responses including written numbers, decimals, and mixed formats."""
         answer = answer.strip().lower()
 
@@ -410,7 +410,7 @@ class DynamicCheckinManager:
         return None
 
     @handle_errors("parsing time pair response", default_return=None)
-    def _parse_time_pair_response(self, answer: str) -> Optional[Tuple[str, str]]:
+    def _parse_time_pair_response(self, answer: str) -> tuple[str, str] | None:
         """Parse sleep time and wake time from user response.
 
         Supports formats like:
@@ -464,7 +464,7 @@ class DynamicCheckinManager:
         return None
 
     @handle_errors("normalizing time format", default_return=None)
-    def _normalize_time(self, time_str: str) -> Optional[str]:
+    def _normalize_time(self, time_str: str) -> str | None:
         """Normalize time string to HH:MM format (24-hour).
 
         Supports formats like:
@@ -506,8 +506,8 @@ class DynamicCheckinManager:
 
     @handle_errors("getting enabled questions for UI", default_return={})
     def get_enabled_questions_for_ui(
-        self, user_id: Optional[str] = None
-    ) -> Dict[str, Dict[str, Any]]:
+        self, user_id: str | None = None
+    ) -> dict[str, dict[str, Any]]:
         """Get questions formatted for UI display with enabled_by_default status.
 
         Includes both predefined and custom questions if user_id is provided.
@@ -535,7 +535,7 @@ class DynamicCheckinManager:
         return ui_questions
 
     @handle_errors("getting categories", default_return={})
-    def get_categories(self) -> Dict[str, Dict[str, str]]:
+    def get_categories(self) -> dict[str, dict[str, str]]:
         """Get all question categories."""
         if not self.questions_data:
             return {}
@@ -543,7 +543,7 @@ class DynamicCheckinManager:
         return self.questions_data.get("categories", {})
 
     @handle_errors("getting custom questions", default_return={})
-    def get_custom_questions(self, user_id: str) -> Dict[str, Dict[str, Any]]:
+    def get_custom_questions(self, user_id: str) -> dict[str, dict[str, Any]]:
         """Get custom questions for a specific user from preferences."""
         try:
             from core.user_data_handlers import get_user_data
@@ -559,7 +559,7 @@ class DynamicCheckinManager:
 
     @handle_errors("saving custom question", default_return=False)
     def save_custom_question(
-        self, user_id: str, question_key: str, question_def: Dict[str, Any]
+        self, user_id: str, question_key: str, question_def: dict[str, Any]
     ) -> bool:
         """Save a custom question to user preferences."""
         try:
@@ -622,7 +622,7 @@ class DynamicCheckinManager:
             return False
 
     @handle_errors("getting question templates", default_return={})
-    def get_question_templates(self) -> Dict[str, Dict[str, Any]]:
+    def get_question_templates(self) -> dict[str, dict[str, Any]]:
         """Get available question templates for creating custom questions."""
         try:
             templates_file = (

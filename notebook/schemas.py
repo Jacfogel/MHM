@@ -52,11 +52,11 @@ class Entry(BaseModel):
 
     id: UUID = Field(default_factory=uuid4)
     kind: EntryKind
-    title: Optional[str] = None
-    body: Optional[str] = None
-    items: Optional[List[ListItem]] = None
-    tags: List[str] = Field(default_factory=list)
-    group: Optional[str] = None
+    title: str | None = None
+    body: str | None = None
+    items: list[ListItem] | None = None
+    tags: list[str] = Field(default_factory=list)
+    group: str | None = None
     pinned: bool = False
     archived: bool = False
     created_at: str = Field(
@@ -68,7 +68,7 @@ class Entry(BaseModel):
 
     @field_validator("title", "body", "group", mode="before")
     @classmethod
-    def strip_optional_strings(cls, v: Optional[str]) -> Optional[str]:
+    def strip_optional_strings(cls, v: str | None) -> str | None:
         if v is not None:
             stripped_v = v.strip()
             return stripped_v if stripped_v else None
@@ -76,7 +76,7 @@ class Entry(BaseModel):
 
     @field_validator("tags", mode="before")
     @classmethod
-    def normalize_and_validate_tags(cls, v: List[str]) -> List[str]:
+    def normalize_and_validate_tags(cls, v: list[str]) -> list[str]:
         """Normalize and validate tags."""
         normalized = normalize_tags(v)
         for tag in normalized:
@@ -89,8 +89,8 @@ class Entry(BaseModel):
     @field_validator("items", mode="after")
     @classmethod
     def validate_list_items(
-        cls, v: Optional[List[ListItem]], info
-    ) -> Optional[List[ListItem]]:
+        cls, v: list[ListItem] | None, info
+    ) -> list[ListItem] | None:
         """Validate list items and ensure order consistency."""
         if info.data.get("kind") == "list":
             if not v or len(v) == 0:
@@ -106,7 +106,7 @@ class Entry(BaseModel):
 
     @field_validator("body", mode="after")
     @classmethod
-    def validate_body_for_list(cls, v: Optional[str], info) -> Optional[str]:
+    def validate_body_for_list(cls, v: str | None, info) -> str | None:
         """For lists, body is optional and can be empty."""
         if info.data.get("kind") == "list" and v is not None:
             stripped_v = v.strip()

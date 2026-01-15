@@ -15,7 +15,7 @@ logger = get_component_logger("scheduler")
 
 
 @handle_errors("getting active schedules", default_return=[])
-def get_active_schedules(schedules: Dict) -> List[str]:
+def get_active_schedules(schedules: dict) -> list[str]:
     """
     Get list of currently active schedule periods.
 
@@ -48,7 +48,7 @@ def get_active_schedules(schedules: Dict) -> List[str]:
 
 @handle_errors("checking if schedule is active", default_return=False)
 def is_schedule_active(
-    schedule_data: Dict, current_time: Optional[datetime] = None
+    schedule_data: dict, current_time: datetime | None = None
 ) -> bool:
     """
     Check if a schedule period is currently active based on time and day.
@@ -104,8 +104,8 @@ def is_schedule_active(
 
 @handle_errors("getting current active schedules", default_return=[])
 def get_current_active_schedules(
-    schedules: Dict, current_time: Optional[datetime] = None
-) -> List[str]:
+    schedules: dict, current_time: datetime | None = None
+) -> list[str]:
     """
     Get list of schedule periods that are currently active based on time and day.
 

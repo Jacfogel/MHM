@@ -35,7 +35,7 @@ class PeriodRowWidget(QWidget):
         self,
         parent=None,
         period_name: str = "",
-        period_data: Optional[Dict[str, Any]] = None,
+        period_data: dict[str, Any] | None = None,
     ):
         """Initialize the object."""
         super().__init__(parent)
@@ -185,7 +185,7 @@ class PeriodRowWidget(QWidget):
         self.load_days(days)
 
     @handle_errors("loading days", default_return=None)
-    def load_days(self, days: List[str]):
+    def load_days(self, days: list[str]):
         """Load day selections."""
         # Clear all checkboxes first
         self.ui.checkBox_select_all_days.setChecked(False)
@@ -255,7 +255,7 @@ class PeriodRowWidget(QWidget):
             self.ui.checkBox_select_all_days.blockSignals(False)
 
     @handle_errors("getting period data from widget")
-    def get_period_data(self) -> Dict[str, Any]:
+    def get_period_data(self) -> dict[str, Any]:
         """Get the current period data from the widget."""
 
         # Get period name
@@ -295,7 +295,7 @@ class PeriodRowWidget(QWidget):
         }
 
     @handle_errors("getting selected days from widget")
-    def get_selected_days(self) -> List[str]:
+    def get_selected_days(self) -> list[str]:
         """Get the currently selected days."""
         if self.ui.checkBox_select_all_days.isChecked():
             return ["ALL"]

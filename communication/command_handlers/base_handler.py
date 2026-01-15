@@ -80,7 +80,7 @@ class InteractionHandler(ABC):
 
     @abstractmethod
     @handle_errors("getting examples", default_return=[])
-    def get_examples(self) -> List[str]:
+    def get_examples(self) -> list[str]:
         """
         Get example commands for this handler with validation.
 
@@ -151,8 +151,8 @@ class InteractionHandler(ABC):
 
     @handle_errors("creating error response", default_return=None)
     def _create_error_response(
-        self, error_message: str, user_id: Optional[str] = None
-    ) -> Optional[InteractionResponse]:
+        self, error_message: str, user_id: str | None = None
+    ) -> InteractionResponse | None:
         """
         Create a standardized error response with validation.
 

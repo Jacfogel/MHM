@@ -276,7 +276,7 @@ class CommunicationManager:
         logger.info("Email polling loop stopped")
 
     @handle_errors("processing incoming email", default_return=None)
-    def _process_incoming_email(self, email_msg: Dict[str, Any]):
+    def _process_incoming_email(self, email_msg: dict[str, Any]):
         """Process an incoming email message and send response"""
         try:
             email_from = email_msg.get('from', '')
@@ -352,7 +352,7 @@ class CommunicationManager:
             logger.error(f"Error sending email response to {recipient_email}: {e}")
 
     @handle_errors("initializing channels from config", default_return=False)
-    def initialize_channels_from_config(self, channel_configs: Optional[Dict[str, ChannelConfig]] = None):
+    def initialize_channels_from_config(self, channel_configs: dict[str, ChannelConfig] | None = None):
         """
         Initialize channels from configuration with validation.
         
@@ -462,7 +462,7 @@ class CommunicationManager:
         return False
 
     @handle_errors("getting default channel configs", default_return={})
-    def _get_default_channel_configs(self) -> Dict[str, ChannelConfig]:
+    def _get_default_channel_configs(self) -> dict[str, ChannelConfig]:
         """Get default channel configurations"""
         configs = {}
         
@@ -879,7 +879,7 @@ class CommunicationManager:
             return False
 
     @handle_errors("broadcasting message", default_return={})
-    async def broadcast_message(self, recipients: Dict[str, str], message: str) -> Dict[str, bool]:
+    async def broadcast_message(self, recipients: dict[str, str], message: str) -> dict[str, bool]:
         """Send message to multiple channels"""
         logger.debug(f"Broadcasting message to {len(recipients)} channels")
         results = {}
@@ -909,7 +909,7 @@ class CommunicationManager:
         return results
 
     @handle_errors("getting channel status", user_friendly=False, default_return=None)
-    async def get_channel_status(self, channel_name: str) -> Optional[ChannelStatus]:
+    async def get_channel_status(self, channel_name: str) -> ChannelStatus | None:
         """Get status of a specific channel"""
         channel = self._channels_dict.get(channel_name)
         if channel:
@@ -917,7 +917,7 @@ class CommunicationManager:
         return None
 
     @handle_errors("getting all channel statuses", default_return={})
-    async def get_all_statuses(self) -> Dict[str, ChannelStatus]:
+    async def get_all_statuses(self) -> dict[str, ChannelStatus]:
         """Get status of all channels"""
         statuses = {}
         for name, channel in self._channels_dict.items():
@@ -926,7 +926,7 @@ class CommunicationManager:
         return statuses
 
     @handle_errors("performing health check on all channels", user_friendly=False, default_return={})
-    async def health_check_all(self) -> Dict[str, Any]:
+    async def health_check_all(self) -> dict[str, Any]:
         """Perform health check on all channels"""
         health_results = {}
         
@@ -944,7 +944,7 @@ class CommunicationManager:
         return health_results
 
     @handle_errors("getting Discord connectivity status", default_return=None)
-    def get_discord_connectivity_status(self) -> Optional[Dict[str, Any]]:
+    def get_discord_connectivity_status(self) -> dict[str, Any] | None:
         """Get detailed Discord connectivity status if available"""
         if 'discord' in self._channels_dict:
             discord_channel = self._channels_dict['discord']
@@ -1056,7 +1056,7 @@ class CommunicationManager:
         logger.info("CommunicationManager shutdown complete")
 
     @handle_errors("receiving messages", default_return=[])
-    async def receive_messages(self) -> List[Dict[str, Any]]:
+    async def receive_messages(self) -> list[dict[str, Any]]:
         """Receive messages from all communication channels"""
         logger.debug("Receiving messages from all communication channels.")
         all_messages = []
@@ -1155,7 +1155,7 @@ class CommunicationManager:
             logger.debug(f"Skipping check-in flow expiration for scheduled {category} message to user {user_id}")
 
     @handle_errors("getting recipient for service", default_return=None)
-    def _get_recipient_for_service(self, user_id: str, messaging_service: str, preferences: dict) -> Optional[str]:
+    def _get_recipient_for_service(self, user_id: str, messaging_service: str, preferences: dict) -> str | None:
         """
         Get recipient for service with validation.
         
@@ -1485,7 +1485,7 @@ class CommunicationManager:
 
     # NEW METHODS: More specific channel management methods
     @handle_errors("getting active channels", default_return=[])
-    def get_active_channels(self) -> List[str]:
+    def get_active_channels(self) -> list[str]:
         """
         Get active channels with validation.
         
@@ -1496,7 +1496,7 @@ class CommunicationManager:
         return list(self._channels_dict.keys())
     
     @handle_errors("getting configured channels", default_return=[])
-    def get_configured_channels(self) -> List[str]:
+    def get_configured_channels(self) -> list[str]:
         """
         Get configured channels with validation.
         
@@ -1508,7 +1508,7 @@ class CommunicationManager:
         return get_available_channels()
     
     @handle_errors("getting registered channels", default_return=[])
-    def get_registered_channels(self) -> List[str]:
+    def get_registered_channels(self) -> list[str]:
         """
         Get registered channels with validation.
         
@@ -1628,7 +1628,7 @@ class CommunicationManager:
             logger.error(f"Failed to send task reminder for user {user_id}, task {task_id}")
 
     @handle_errors("getting last task reminder", default_return=None)
-    def get_last_task_reminder(self, user_id: str) -> Optional[str]:
+    def get_last_task_reminder(self, user_id: str) -> str | None:
         """
         Get last task reminder with validation.
         

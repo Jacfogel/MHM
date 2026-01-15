@@ -19,8 +19,8 @@ class CommandDefinition:
     name: str
     description: str
     handler: Callable
-    aliases: Optional[List[str]] = None
-    permissions: Optional[List[str]] = None
+    aliases: list[str] | None = None
+    permissions: list[str] | None = None
     cooldown: float = 0.0
     enabled: bool = True
 
@@ -39,8 +39,8 @@ class CommandRegistry(ABC):
     @handle_errors("initializing command registry", default_return=None)
     def __init__(self):
         """Initialize the command registry"""
-        self._commands: Dict[str, CommandDefinition] = {}
-        self._aliases: Dict[str, str] = {}
+        self._commands: dict[str, CommandDefinition] = {}
+        self._aliases: dict[str, str] = {}
 
     @handle_errors("registering command", default_return=False)
     def register_command(self, command_def: CommandDefinition) -> bool:
@@ -94,7 +94,7 @@ class CommandRegistry(ABC):
             return False
 
     @handle_errors("getting command")
-    def get_command(self, command_name: str) -> Optional[CommandDefinition]:
+    def get_command(self, command_name: str) -> CommandDefinition | None:
         """Get a command by name or alias"""
         # Check main commands first
         if command_name in self._commands:
@@ -107,12 +107,12 @@ class CommandRegistry(ABC):
         return None
 
     @handle_errors("getting all commands")
-    def get_all_commands(self) -> List[CommandDefinition]:
+    def get_all_commands(self) -> list[CommandDefinition]:
         """Get all registered commands"""
         return list(self._commands.values())
 
     @handle_errors("getting enabled commands")
-    def get_enabled_commands(self) -> List[CommandDefinition]:
+    def get_enabled_commands(self) -> list[CommandDefinition]:
         """Get all enabled commands"""
         return [cmd for cmd in self._commands.values() if cmd.enabled]
 

@@ -24,8 +24,8 @@ class UserProfileSettingsWidget(QWidget):
     def __init__(
         self,
         parent=None,
-        user_id: Optional[str] = None,
-        existing_data: Optional[Dict[str, Any]] = None,
+        user_id: str | None = None,
+        existing_data: dict[str, Any] | None = None,
     ):
         """Initialize the object."""
         try:
@@ -316,7 +316,7 @@ class UserProfileSettingsWidget(QWidget):
             logger.error(f"Error setting checkbox group {group_name}: {e}")
 
     @handle_errors("getting personalization data", default_return={})
-    def get_personalization_data(self) -> Dict[str, Any]:
+    def get_personalization_data(self) -> dict[str, Any]:
         """Get all personalization data from the form, preserving existing data structure."""
         try:
             # Start with existing data to preserve fields we don't handle yet
@@ -340,7 +340,7 @@ class UserProfileSettingsWidget(QWidget):
         "extracting basic fields from personalization data", default_return=None
     )
     def _get_personalization_data__extract_basic_fields(
-        self, data: Dict[str, Any]
+        self, data: dict[str, Any]
     ) -> None:
         """Extract basic text fields from the UI."""
         try:
@@ -353,7 +353,7 @@ class UserProfileSettingsWidget(QWidget):
 
     @handle_errors("extracting gender identity from personalization data")
     def _get_personalization_data__extract_gender_identity(
-        self, data: Dict[str, Any]
+        self, data: dict[str, Any]
     ) -> None:
         """Extract gender identity from checkboxes and custom input."""
         try:
@@ -390,7 +390,7 @@ class UserProfileSettingsWidget(QWidget):
 
     @handle_errors("extracting date of birth from personalization data")
     def _get_personalization_data__extract_date_of_birth(
-        self, data: Dict[str, Any]
+        self, data: dict[str, Any]
     ) -> None:
         """Extract date of birth from calendar widget with proper validation."""
         try:
@@ -423,7 +423,7 @@ class UserProfileSettingsWidget(QWidget):
 
     @handle_errors("extracting dynamic containers from personalization data")
     def _get_personalization_data__extract_dynamic_containers(
-        self, data: Dict[str, Any]
+        self, data: dict[str, Any]
     ) -> None:
         """Extract data from all dynamic list containers."""
         try:
@@ -457,7 +457,7 @@ class UserProfileSettingsWidget(QWidget):
 
     @handle_errors("extracting loved ones from personalization data")
     def _get_personalization_data__extract_loved_ones(
-        self, data: Dict[str, Any]
+        self, data: dict[str, Any]
     ) -> None:
         """Extract loved ones data from text field with structured parsing."""
         try:
@@ -493,7 +493,7 @@ class UserProfileSettingsWidget(QWidget):
             raise
 
     @handle_errors("extracting notes from personalization data")
-    def _get_personalization_data__extract_notes(self, data: Dict[str, Any]) -> None:
+    def _get_personalization_data__extract_notes(self, data: dict[str, Any]) -> None:
         """Extract notes for AI from text field."""
         try:
             notes_text = (
@@ -509,7 +509,7 @@ class UserProfileSettingsWidget(QWidget):
 
     @handle_errors("ensuring required fields in personalization data")
     def _get_personalization_data__ensure_required_fields(
-        self, data: Dict[str, Any]
+        self, data: dict[str, Any]
     ) -> None:
         """Ensure all required fields exist in the data structure."""
         try:

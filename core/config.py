@@ -17,7 +17,7 @@ from core.error_handling import (
 class ConfigValidationError(Exception):
     """Custom exception for configuration validation errors with detailed information."""
     @handle_errors("initializing config error", default_return=None)
-    def __init__(self, message: str, missing_configs: Optional[List[str]] = None, warnings: Optional[List[str]] = None):
+    def __init__(self, message: str, missing_configs: list[str] | None = None, warnings: list[str] | None = None):
         """Initialize the object."""
         super().__init__(message)
         self.missing_configs = missing_configs or []
@@ -194,7 +194,7 @@ if not DISCORD_BOT_TOKEN:
     logger.warning("DISCORD_BOT_TOKEN not found - Discord channel will be disabled")
 
 @handle_errors("getting available channels", default_return=[])
-def get_available_channels() -> List[str]:
+def get_available_channels() -> list[str]:
     """
     Get list of available communication channels based on configuration.
     
@@ -218,7 +218,7 @@ def get_available_channels() -> List[str]:
         return []
 
 @handle_errors("getting channel class mapping", default_return={})
-def get_channel_class_mapping() -> Dict[str, str]:
+def get_channel_class_mapping() -> dict[str, str]:
     """
     Get mapping of channel names to their class names for dynamic imports.
     
@@ -240,7 +240,7 @@ SCHEDULER_INTERVAL = int(os.getenv('SCHEDULER_INTERVAL', '60'))
 
 # Configuration Validation Functions
 @handle_errors("validating core paths", user_friendly=False)
-def validate_core_paths() -> Tuple[bool, List[str], List[str]]:
+def validate_core_paths() -> tuple[bool, list[str], list[str]]:
     """Validate that all core paths are accessible and can be created if needed."""
     errors = []
     warnings = []
@@ -279,7 +279,7 @@ def validate_core_paths() -> Tuple[bool, List[str], List[str]]:
     return len(errors) == 0, errors, warnings
 
 @handle_errors("validating AI configuration", default_return=(False, ["Validation failed"], []))
-def validate_ai_configuration() -> Tuple[bool, List[str], List[str]]:
+def validate_ai_configuration() -> tuple[bool, list[str], list[str]]:
     """Validate AI-related configuration settings."""
     try:
         errors = []
@@ -327,7 +327,7 @@ def validate_ai_configuration() -> Tuple[bool, List[str], List[str]]:
         return False, [f"AI configuration validation failed: {e}"], []
 
 @handle_errors("validating communication channels", default_return=(False, ["Validation failed"], []))
-def validate_communication_channels() -> Tuple[bool, List[str], List[str]]:
+def validate_communication_channels() -> tuple[bool, list[str], list[str]]:
     """Validate communication channel configurations."""
     try:
         errors = []
@@ -372,7 +372,7 @@ def validate_communication_channels() -> Tuple[bool, List[str], List[str]]:
         return False, [f"Communication channels validation failed: {e}"], []
 
 @handle_errors("validating logging configuration", default_return=(False, ["Validation failed"], []))
-def validate_logging_configuration() -> Tuple[bool, List[str], List[str]]:
+def validate_logging_configuration() -> tuple[bool, list[str], list[str]]:
     """Validate logging configuration."""
     try:
         errors = []
@@ -420,7 +420,7 @@ def validate_logging_configuration() -> Tuple[bool, List[str], List[str]]:
         return False, [f"Logging configuration validation failed: {e}"], []
 
 @handle_errors("validating scheduler configuration", default_return=(False, ["Validation failed"], []))
-def validate_scheduler_configuration() -> Tuple[bool, List[str], List[str]]:
+def validate_scheduler_configuration() -> tuple[bool, list[str], list[str]]:
     """Validate scheduler configuration."""
     try:
         errors = []
@@ -439,7 +439,7 @@ def validate_scheduler_configuration() -> Tuple[bool, List[str], List[str]]:
         return False, [f"Scheduler configuration validation failed: {e}"], []
 
 @handle_errors("validating file organization settings", default_return=(False, ["Validation failed"], []))
-def validate_file_organization_settings() -> Tuple[bool, List[str], List[str]]:
+def validate_file_organization_settings() -> tuple[bool, list[str], list[str]]:
     """Validate file organization settings."""
     try:
         errors = []
@@ -458,7 +458,7 @@ def validate_file_organization_settings() -> Tuple[bool, List[str], List[str]]:
         return False, [f"File organization settings validation failed: {e}"], []
 
 @handle_errors("validating environment variables", default_return=(False, ["Validation failed"], []))
-def validate_environment_variables() -> Tuple[bool, List[str], List[str]]:
+def validate_environment_variables() -> tuple[bool, list[str], list[str]]:
     """Check for common environment variable issues."""
     try:
         errors = []
@@ -484,7 +484,7 @@ def validate_environment_variables() -> Tuple[bool, List[str], List[str]]:
         return False, [f"Environment variables validation failed: {e}"], []
 
 @handle_errors("validating all configuration", default_return={'valid': False, 'errors': ['Validation failed'], 'warnings': [], 'available_channels': [], 'summary': 'Configuration validation failed'})
-def validate_all_configuration() -> Dict[str, any]:
+def validate_all_configuration() -> dict[str, any]:
     """Comprehensive configuration validation that checks all aspects of the configuration.
     
     Returns:
@@ -557,7 +557,7 @@ def validate_all_configuration() -> Dict[str, any]:
 
 # ERROR_HANDLING_EXCLUDE: This function intentionally raises ConfigValidationError exceptions
 # that should propagate to callers for proper error handling, not be caught by decorator
-def validate_and_raise_if_invalid() -> List[str]:
+def validate_and_raise_if_invalid() -> list[str]:
     """Validate configuration and raise ConfigValidationError if invalid.
     
     Note: This function intentionally does not use @handle_errors decorator

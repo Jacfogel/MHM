@@ -43,7 +43,7 @@ def clear_welcomed_status(discord_user_id: str) -> bool:
 @handle_errors("getting Discord welcome message", default_return="")
 def get_welcome_message(
     discord_user_id: str,
-    discord_username: Optional[str] = None,
+    discord_username: str | None = None,
     is_authorization: bool = False,
 ) -> str:
     """

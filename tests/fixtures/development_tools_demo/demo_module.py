@@ -62,7 +62,7 @@ class HandlerClass:
         """Check if this handler can handle the intent."""
         return intent == "demo"
     
-    def handle(self, user_id: str, command: Dict) -> str:
+    def handle(self, user_id: str, command: dict) -> str:
         """Handle a command."""
         return "handled"
 

@@ -86,7 +86,7 @@ class AnalyticsHandler(InteractionHandler):
         ),
     )
     def _handle_show_analytics(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show comprehensive analytics overview"""
         days = entities.get("days", 30)
@@ -158,7 +158,7 @@ class AnalyticsHandler(InteractionHandler):
         ),
     )
     def _handle_mood_trends(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show mood trends analysis"""
         days = entities.get("days", 30)
@@ -212,7 +212,7 @@ class AnalyticsHandler(InteractionHandler):
         ),
     )
     def _handle_energy_trends(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show energy trends analysis"""
         days = entities.get("days", 30)
@@ -268,7 +268,7 @@ class AnalyticsHandler(InteractionHandler):
         ),
     )
     def _handle_quant_summary(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show per-field quantitative summaries for opted-in fields."""
         days = entities.get("days", 30)
@@ -328,7 +328,7 @@ class AnalyticsHandler(InteractionHandler):
         ),
     )
     def _handle_habit_analysis(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show habit analysis"""
         days = entities.get("days", 30)
@@ -388,7 +388,7 @@ class AnalyticsHandler(InteractionHandler):
         ),
     )
     def _handle_sleep_analysis(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show sleep analysis"""
         days = entities.get("days", 30)
@@ -446,7 +446,7 @@ class AnalyticsHandler(InteractionHandler):
         ),
     )
     def _handle_wellness_score(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show wellness score"""
         days = entities.get("days", 30)
@@ -514,7 +514,7 @@ class AnalyticsHandler(InteractionHandler):
         ),
     )
     def _handle_checkin_history(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show check-in history"""
         days = entities.get("days", 30)
@@ -571,7 +571,7 @@ class AnalyticsHandler(InteractionHandler):
         ),
     )
     def _handle_checkin_analysis(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show comprehensive check-in response analysis"""
         days = entities.get("days", 30)
@@ -671,7 +671,7 @@ class AnalyticsHandler(InteractionHandler):
         ),
     )
     def _handle_completion_rate(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show completion rate"""
         days = entities.get("days", 30)
@@ -716,7 +716,7 @@ class AnalyticsHandler(InteractionHandler):
         ),
     )
     def _handle_task_analytics(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show comprehensive task analytics and insights"""
         days = entities.get("days", 30)
@@ -814,7 +814,7 @@ class AnalyticsHandler(InteractionHandler):
         ),
     )
     def _handle_task_stats(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show detailed task statistics"""
         days = entities.get("days", 30)
@@ -898,7 +898,7 @@ class AnalyticsHandler(InteractionHandler):
         return "Help with analytics - view analytics and insights about your wellness patterns"
 
     @handle_errors("getting analytics examples", default_return=[])
-    def get_examples(self) -> List[str]:
+    def get_examples(self) -> list[str]:
         """Get example commands for analytics."""
         return [
             "show analytics",

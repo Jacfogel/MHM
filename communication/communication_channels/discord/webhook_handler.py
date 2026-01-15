@@ -56,7 +56,7 @@ def verify_webhook_signature(
 
 
 @handle_errors("parsing webhook event", default_return=None)
-def parse_webhook_event(body: str) -> Optional[Dict[str, Any]]:
+def parse_webhook_event(body: str) -> dict[str, Any] | None:
     """
     Parse Discord webhook event from request body.
 
@@ -75,7 +75,7 @@ def parse_webhook_event(body: str) -> Optional[Dict[str, Any]]:
 
 @handle_errors("handling APPLICATION_AUTHORIZED event", default_return=None)
 def handle_application_authorized(
-    event_data: Dict[str, Any], bot_instance=None
+    event_data: dict[str, Any], bot_instance=None
 ) -> bool:
     """
     Handle APPLICATION_AUTHORIZED webhook event.
@@ -317,7 +317,7 @@ def handle_application_authorized(
 
 @handle_errors("handling webhook event", default_return=None)
 def handle_webhook_event(
-    event_type: str, event_data: Dict[str, Any], bot_instance=None
+    event_type: str, event_data: dict[str, Any], bot_instance=None
 ) -> bool:
     """
     Route webhook events to appropriate handlers.

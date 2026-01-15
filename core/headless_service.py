@@ -29,7 +29,7 @@ class HeadlessServiceManager:
     # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self):
         """Initialize the headless service manager."""
-        self.service_process: Optional[subprocess.Popen] = None
+        self.service_process: subprocess.Popen | None = None
         self.running = False
 
     @handle_errors("checking headless service status", default_return=(False, None))

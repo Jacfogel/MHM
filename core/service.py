@@ -156,7 +156,7 @@ class MHMService:
         """Read the last 1000 characters from the log file to check for recent activity."""
         from core.config import LOG_MAIN_FILE
         
-        with open(LOG_MAIN_FILE, 'r', encoding='utf-8') as f:
+        with open(LOG_MAIN_FILE, encoding='utf-8') as f:
             # Read last 1000 characters to check for recent activity
             f.seek(0, 2)  # Go to end
             file_size = f.tell()
@@ -400,7 +400,7 @@ class MHMService:
                             # This is a new shutdown request
                             logger.info("Shutdown request file detected - initiating graceful shutdown")
                             try:
-                                with open(shutdown_file, 'r') as f:
+                                with open(shutdown_file) as f:
                                     content = f.read().strip()
                                 
                                 # Parse shutdown request type for better logging
@@ -554,7 +554,7 @@ class MHMService:
         """Parse and validate a test message request file."""
         import json
         
-        with open(request_file, 'r') as f:
+        with open(request_file) as f:
             request_data = json.load(f)
         
         user_id = request_data.get('user_id')
@@ -741,7 +741,7 @@ class MHMService:
                 filename = os.path.basename(file_path)
                 try:
                     import json
-                    with open(file_path, 'r') as f:
+                    with open(file_path) as f:
                         request_data = json.load(f)
                     
                     user_id = request_data.get('user_id')
@@ -831,7 +831,7 @@ class MHMService:
                 filename = os.path.basename(file_path)
                 try:
                     import json
-                    with open(file_path, 'r') as f:
+                    with open(file_path) as f:
                         request_data = json.load(f)
                     
                     user_id = request_data.get('user_id')
@@ -897,7 +897,7 @@ class MHMService:
         """Parse and validate a reschedule request file."""
         import json
         
-        with open(request_file, 'r') as f:
+        with open(request_file) as f:
             request_data = json.load(f)
         
         user_id = request_data.get('user_id')

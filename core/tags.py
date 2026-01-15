@@ -9,7 +9,7 @@ Tags are stored in data/users/<user_id>/tags.json and created lazily on first us
 import re
 import json
 from pathlib import Path
-from typing import List, Tuple, Optional, Dict, Any
+from typing import Any
 from datetime import datetime
 
 from core.logger import get_component_logger
@@ -32,7 +32,7 @@ def normalize_tag(tag: str) -> str:
 
 
 @handle_errors("normalizing tags list", default_return=[])
-def normalize_tags(tags: List[str]) -> List[str]:
+def normalize_tags(tags: list[str]) -> list[str]:
     """
     Normalizes a list of tags and removes duplicates.
     """
@@ -66,7 +66,7 @@ def validate_tag(tag: str) -> None:
 
 
 @handle_errors("parsing tags from text", default_return=("", []))
-def parse_tags_from_text(text: str) -> Tuple[str, List[str]]:
+def parse_tags_from_text(text: str) -> tuple[str, list[str]]:
     """
     Extracts tags (e.g., #tag, key:value) from a text string and returns the cleaned text and normalized tags.
     """
@@ -106,7 +106,7 @@ def parse_tags_from_text(text: str) -> Tuple[str, List[str]]:
 
 
 @handle_errors("ensuring user directory for tags", default_return=None)
-def ensure_user_dir_for_tags(user_id: str) -> Optional[Path]:
+def ensure_user_dir_for_tags(user_id: str) -> Path | None:
     """
     Ensure user directory exists for tags (lazy creation).
     Tags are stored as tags.json in the root user directory, like checkins.json and schedules.json.
@@ -135,7 +135,7 @@ def ensure_user_dir_for_tags(user_id: str) -> Optional[Path]:
 
 
 @handle_errors("loading default tags from resources", default_return=[])
-def _load_default_tags_from_resources() -> List[str]:
+def _load_default_tags_from_resources() -> list[str]:
     """
     Load default tags from resources/default_tags.json.
 
@@ -150,7 +150,7 @@ def _load_default_tags_from_resources() -> List[str]:
             logger.warning(f"Default tags file not found: {default_tags_file}")
             return []
 
-        with open(default_tags_file, "r", encoding="utf-8") as f:
+        with open(default_tags_file, encoding="utf-8") as f:
             data = json.load(f)
 
         if isinstance(data, dict) and "tags" in data:
@@ -166,7 +166,7 @@ def _load_default_tags_from_resources() -> List[str]:
 
 
 @handle_errors("loading user tags", default_return={})
-def load_user_tags(user_id: str) -> Dict[str, Any]:
+def load_user_tags(user_id: str) -> dict[str, Any]:
     """
     Load user tags data from tags.json (lazy initialization).
     Creates directory and file with default tags if they don't exist.
@@ -255,7 +255,7 @@ def load_user_tags(user_id: str) -> Dict[str, Any]:
 
 
 @handle_errors("saving user tags", default_return=False)
-def save_user_tags(user_id: str, tags_data: Dict[str, Any]) -> bool:
+def save_user_tags(user_id: str, tags_data: dict[str, Any]) -> bool:
     """
     Save user tags data to tags.json (lazy initialization).
     Tags are now registered in USER_DATA_LOADERS, so this function can be called
@@ -310,7 +310,7 @@ def save_user_tags(user_id: str, tags_data: Dict[str, Any]) -> bool:
 
 
 @handle_errors("getting user tag list", default_return=[])
-def get_user_tags(user_id: str) -> List[str]:
+def get_user_tags(user_id: str) -> list[str]:
     """
     Get list of user's tags (lazy initialization).
 

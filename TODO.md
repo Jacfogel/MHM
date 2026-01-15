@@ -311,3 +311,13 @@ When adding new tasks, follow this format:
 **headless service not working**
 - Investigate and fix
 
+**exclude .ruff_cache and mhm.egg-info frommost if not all  development tools**
+- also exclude scripts where appropriate
+- also exclude tests\ai\results where appropriate
+- also exclude tests\coverage_html where appropriate
+
+
+**investigate unused imports boom**
+- after recent changes, including running some automate ruff fixes these categories which were showing 0 now show
+  - *Obvious Unused*: 132 imports
+  - *Type Hints Only*: 30 imports

@@ -499,7 +499,7 @@ class EnhancedCommandParser:
     @handle_errors("parsing command", default_return=ParsingResult(
         ParsedCommand("unknown", {}, 0.0, ""), 0.0, "fallback"
     ))
-    def parse(self, message: str, user_id: Optional[str] = None) -> ParsingResult:
+    def parse(self, message: str, user_id: str | None = None) -> ParsingResult:
         """
         Parse a user message into a structured command.
         
@@ -758,7 +758,7 @@ class EnhancedCommandParser:
         )
     
     @handle_errors("parsing with AI enhancement")
-    def _ai_enhanced_parse(self, message: str, user_id: Optional[str] = None) -> ParsingResult:
+    def _ai_enhanced_parse(self, message: str, user_id: str | None = None) -> ParsingResult:
         """Parse using AI chatbot capabilities"""
         try:
             # Use existing AI chatbot command parsing
@@ -893,7 +893,7 @@ class EnhancedCommandParser:
         return (intent, entities)
     
     @handle_errors("extracting entities from rule-based patterns")
-    def _extract_entities_rule_based(self, intent: str, match: re.Match, message: str) -> Dict[str, Any]:
+    def _extract_entities_rule_based(self, intent: str, match: re.Match, message: str) -> dict[str, Any]:
         """Extract entities using rule-based patterns"""
         entities = {}
         
@@ -1228,7 +1228,7 @@ class EnhancedCommandParser:
         return entities
     
     @handle_errors("extracting task entities")
-    def _extract_task_entities(self, title: str) -> Dict[str, Any]:
+    def _extract_task_entities(self, title: str) -> dict[str, Any]:
         """Extract task-related entities from title"""
         try:
             entities = {}
@@ -1290,7 +1290,7 @@ class EnhancedCommandParser:
             return {}
 
     @handle_errors("extracting task name from context")
-    def _extract_task_name_from_context(self, message: str) -> Optional[str]:
+    def _extract_task_name_from_context(self, message: str) -> str | None:
         """Extract task name from natural language context"""
         try:
             # Look for patterns like "I brushed my teeth" -> extract "teeth" or "brush teeth"
@@ -1310,7 +1310,7 @@ class EnhancedCommandParser:
             return None
 
     @handle_errors("extracting update entities")
-    def _extract_update_entities(self, update_text: str) -> Dict[str, Any]:
+    def _extract_update_entities(self, update_text: str) -> dict[str, Any]:
         """Extract update entities from update text"""
         try:
             entities = {}
@@ -1339,7 +1339,7 @@ class EnhancedCommandParser:
             return {}
 
     @handle_errors("extracting intent from AI response")
-    def _extract_intent_from_ai_response(self, ai_response: str) -> Optional[str]:
+    def _extract_intent_from_ai_response(self, ai_response: str) -> str | None:
         """Extract intent from AI response text"""
         try:
             # Map common AI response patterns to intents
@@ -1371,7 +1371,7 @@ class EnhancedCommandParser:
             return None
 
     @handle_errors("extracting entities from AI response")
-    def _extract_entities_from_ai_response(self, ai_response: str) -> Dict[str, Any]:
+    def _extract_entities_from_ai_response(self, ai_response: str) -> dict[str, Any]:
         """Extract entities from AI response text"""
         try:
             entities = {}
@@ -1436,7 +1436,7 @@ class EnhancedCommandParser:
             return False
     
     @handle_errors("getting command suggestions")
-    def get_suggestions(self, partial_message: str) -> List[str]:
+    def get_suggestions(self, partial_message: str) -> list[str]:
         """Get command suggestions based on partial input"""
         try:
             suggestions = []

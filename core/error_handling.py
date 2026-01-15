@@ -41,7 +41,7 @@ class MHMError(Exception):
     def __init__(
         self,
         message: str,
-        details: Optional[Dict[str, Any]] = None,
+        details: dict[str, Any] | None = None,
         recoverable: bool = True,
     ):
         """
@@ -139,7 +139,7 @@ class ErrorRecoveryStrategy:
         raise NotImplementedError
 
     # ERROR_HANDLING_EXCLUDE: Abstract method in error handling infrastructure
-    def recover(self, error: Exception, context: Dict[str, Any]) -> bool:
+    def recover(self, error: Exception, context: dict[str, Any]) -> bool:
         """Attempt to recover from the error. Returns True if successful."""
         raise NotImplementedError
 
@@ -169,7 +169,7 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
             isinstance(error, FileOperationError) and "not found" in str(error).lower()
         )
 
-    def recover(self, error: Exception, context: Dict[str, Any]) -> bool:
+    def recover(self, error: Exception, context: dict[str, Any]) -> bool:
         """
         Attempt to recover from the error by creating missing files with default data.
 
@@ -217,8 +217,8 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
 
     # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
     def _get_default_data(
-        self, file_path: str, context: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, file_path: str, context: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Get appropriate default data based on file type."""
         if "user_info" in file_path:
             return {
@@ -276,7 +276,7 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
             isinstance(error, FileOperationError) and "json" in str(error).lower()
         )
 
-    def recover(self, error: Exception, context: Dict[str, Any]) -> bool:
+    def recover(self, error: Exception, context: dict[str, Any]) -> bool:
         """
         Attempt to recover from the error by recreating corrupted JSON files.
 
@@ -328,8 +328,8 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
 
     # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
     def _get_default_data(
-        self, file_path: str, context: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, file_path: str, context: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Get appropriate default data based on file type."""
         if "user_info" in file_path:
             return {
@@ -391,7 +391,7 @@ class NetworkRecovery(ErrorRecoveryStrategy):
         # Don't handle file system errors, permission errors, etc.
         return False
 
-    def recover(self, error: Exception, context: Dict[str, Any]) -> bool:
+    def recover(self, error: Exception, context: dict[str, Any]) -> bool:
         """
         Attempt to recover from network errors by waiting and retrying.
 
@@ -452,7 +452,7 @@ class ConfigurationRecovery(ErrorRecoveryStrategy):
             isinstance(error, KeyError) and "config" in str(error).lower()
         )
 
-    def recover(self, error: Exception, context: Dict[str, Any]) -> bool:
+    def recover(self, error: Exception, context: dict[str, Any]) -> bool:
         """
         Attempt to recover from configuration errors by using default values.
 
@@ -496,19 +496,19 @@ class ErrorHandler:
 
         Sets up recovery strategies for common error types like missing files and corrupted JSON.
         """
-        self.recovery_strategies: List[ErrorRecoveryStrategy] = [
+        self.recovery_strategies: list[ErrorRecoveryStrategy] = [
             FileNotFoundRecovery(),
             JSONDecodeRecovery(),
             NetworkRecovery(),
             ConfigurationRecovery(),
         ]
-        self.error_count: Dict[str, int] = {}
+        self.error_count: dict[str, int] = {}
         self.max_retries = 3
 
     def handle_error(
         self,
         error: Exception,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
         operation: str = "unknown",
         user_friendly: bool = True,
     ) -> bool:
@@ -610,7 +610,7 @@ class ErrorHandler:
 
         return False
 
-    def _log_error(self, error: Exception, context: Dict[str, Any]):
+    def _log_error(self, error: Exception, context: dict[str, Any]):
         """Log error with context."""
         # Prevent recursion: if we're already logging an error, just use safe logger
         if hasattr(_logging_lock, "logging_error"):
@@ -671,8 +671,8 @@ class ErrorHandler:
     def _show_user_error(
         self,
         error: Exception,
-        context: Dict[str, Any],
-        custom_message: Optional[str] = None,
+        context: dict[str, Any],
+        custom_message: str | None = None,
     ):
         """Show user-friendly error message."""
         # This will be implemented to show UI messages when appropriate
@@ -695,7 +695,7 @@ class ErrorHandler:
 
     # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
     def _get_user_friendly_message(
-        self, error: Exception, context: Dict[str, Any]
+        self, error: Exception, context: dict[str, Any]
     ) -> str:
         """Convert technical error to user-friendly message."""
         operation = context.get("operation", "operation")
@@ -730,8 +730,8 @@ class ErrorHandler:
 
 
 def handle_errors(
-    operation: Optional[str] = None,
-    context: Optional[Dict[str, Any]] = None,
+    operation: str | None = None,
+    context: dict[str, Any] | None = None,
     user_friendly: bool = True,
     default_return=None,
 ):
@@ -835,8 +835,8 @@ def handle_errors(
 def safe_file_operation(
     file_path: str,
     operation: str = "file operation",
-    user_id: Optional[str] = None,
-    category: Optional[str] = None,
+    user_id: str | None = None,
+    category: str | None = None,
 ):
     """
     Context manager for safe file operations with automatic error handling.
@@ -916,8 +916,8 @@ def handle_file_error(
     error: Exception,
     file_path: str,
     operation: str,
-    user_id: Optional[str] = None,
-    category: Optional[str] = None,
+    user_id: str | None = None,
+    category: str | None = None,
 ) -> bool:
     """Convenience function for handling file-related errors."""
     context = {"file_path": file_path, "user_id": user_id, "category": category}
@@ -926,7 +926,7 @@ def handle_file_error(
 
 @handle_errors("handling communication error", default_return=False)
 def handle_communication_error(
-    error: Exception, channel: str, operation: str, user_id: Optional[str] = None
+    error: Exception, channel: str, operation: str, user_id: str | None = None
 ) -> bool:
     """Convenience function for handling communication errors."""
     context = {"channel": channel, "user_id": user_id}
@@ -942,7 +942,7 @@ def handle_configuration_error(error: Exception, setting: str, operation: str) -
 
 @handle_errors("handling network error", default_return=False)
 def handle_network_error(
-    error: Exception, operation: str, user_id: Optional[str] = None
+    error: Exception, operation: str, user_id: str | None = None
 ) -> bool:
     """Convenience function for handling network errors."""
     context = {"user_id": user_id, "network_operation": operation}
@@ -951,7 +951,7 @@ def handle_network_error(
 
 @handle_errors("handling validation error", default_return=False)
 def handle_validation_error(
-    error: Exception, field: str, operation: str, user_id: Optional[str] = None
+    error: Exception, field: str, operation: str, user_id: str | None = None
 ) -> bool:
     """Convenience function for handling validation errors."""
     context = {"field": field, "user_id": user_id}
@@ -960,7 +960,7 @@ def handle_validation_error(
 
 @handle_errors("handling AI error", default_return=False)
 def handle_ai_error(
-    error: Exception, operation: str, user_id: Optional[str] = None
+    error: Exception, operation: str, user_id: str | None = None
 ) -> bool:
     """Convenience function for handling AI-related errors."""
     context = {"user_id": user_id, "ai_operation": operation}

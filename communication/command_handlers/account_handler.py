@@ -55,7 +55,7 @@ class AccountManagementHandler(InteractionHandler):
 
     @handle_errors("handling account creation")
     def _handle_create_account(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """
         Handle account creation request.
@@ -158,7 +158,7 @@ class AccountManagementHandler(InteractionHandler):
 
     @handle_errors("handling account linking")
     def _handle_link_account(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """
         Handle account linking request.
@@ -383,7 +383,7 @@ class AccountManagementHandler(InteractionHandler):
         return False
 
     @handle_errors("getting user ID by username", default_return=None)
-    def _get_user_id_by_username(self, username: str) -> Optional[str]:
+    def _get_user_id_by_username(self, username: str) -> str | None:
         """Get user ID by username"""
         user_ids = get_all_user_ids()
         for user_id in user_ids:
@@ -399,7 +399,7 @@ class AccountManagementHandler(InteractionHandler):
         return "Account management - create or link your MHM account"
 
     @handle_errors("getting account handler examples")
-    def get_examples(self) -> List[str]:
+    def get_examples(self) -> list[str]:
         """Get example commands for account management."""
         return ["create account", "link account", "check account status"]
 
@@ -410,7 +410,7 @@ import string
 
 # Store pending account operations (confirmation codes, etc.)
 # Format: {channel_identifier: {operation_type: str, username: str, user_id: str, confirmation_code: str, timestamp: float}}
-_pending_link_operations: Dict[str, Dict[str, Any]] = {}
+_pending_link_operations: dict[str, dict[str, Any]] = {}
 
 
 @handle_errors("generating confirmation code", default_return="000000")
@@ -425,7 +425,7 @@ def _send_confirmation_code(
     user_id: str,
     confirmation_code: str,
     channel_type: str,
-    channel_identifier: Optional[str] = None,
+    channel_identifier: str | None = None,
 ) -> bool:
     """
     Send confirmation code via email (for account linking security).

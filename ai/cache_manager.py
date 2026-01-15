@@ -22,8 +22,8 @@ class CacheEntry:
     response: str
     timestamp: float
     prompt_type: str
-    user_id: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    user_id: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class ResponseCache:
@@ -32,15 +32,15 @@ class ResponseCache:
     @handle_errors("initializing response cache", default_return=None)
     def __init__(self, max_size: int = 100, ttl: int = 300):
         """Initialize the response cache"""
-        self.cache: Dict[str, CacheEntry] = {}
+        self.cache: dict[str, CacheEntry] = {}
         self.max_size = max_size
         self.ttl = ttl
-        self.access_times: Dict[str, float] = {}
+        self.access_times: dict[str, float] = {}
         self._lock = threading.Lock()
 
     @handle_errors("generating cache key")
     def _generate_key(
-        self, prompt: str, user_id: Optional[str] = None, prompt_type: str = "default"
+        self, prompt: str, user_id: str | None = None, prompt_type: str = "default"
     ) -> str:
         """Generate cache key from prompt, user context, and prompt type"""
         base_string = f"{user_id or 'anonymous'}:{prompt_type}:{prompt}"  # Hash the full prompt to avoid collisions
@@ -48,8 +48,8 @@ class ResponseCache:
 
     @handle_errors("getting cached response", default_return=None)
     def get(
-        self, prompt: str, user_id: Optional[str] = None, prompt_type: str = "default"
-    ) -> Optional[str]:
+        self, prompt: str, user_id: str | None = None, prompt_type: str = "default"
+    ) -> str | None:
         """Get cached response if available and not expired"""
         if not AI_CACHE_RESPONSES:
             return None
@@ -77,9 +77,9 @@ class ResponseCache:
         self,
         prompt: str,
         response: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         prompt_type: str = "default",
-        metadata: Dict[str, Any] = None,
+        metadata: dict[str, Any] = None,
     ):
         """Cache a response"""
         if not AI_CACHE_RESPONSES:
@@ -156,7 +156,7 @@ class ResponseCache:
             logger.info(f"Cleared {len(expired_keys)} expired cache entries")
 
     @handle_errors("getting cache statistics")
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics"""
         with self._lock:
             current_time = time.time()
@@ -186,7 +186,7 @@ class ResponseCache:
             }
 
     @handle_errors("getting cache entries by type")
-    def get_entries_by_type(self, prompt_type: str) -> Dict[str, CacheEntry]:
+    def get_entries_by_type(self, prompt_type: str) -> dict[str, CacheEntry]:
         """Get all cache entries for a specific prompt type"""
         with self._lock:
             return {
@@ -236,12 +236,12 @@ class ContextCache:
     @handle_errors("initializing context cache", default_return=None)
     def __init__(self, ttl: int = None):
         """Initialize the context cache"""
-        self.cache: Dict[str, Tuple[Dict[str, Any], float]] = {}
+        self.cache: dict[str, tuple[dict[str, Any], float]] = {}
         self.ttl = ttl or CONTEXT_CACHE_TTL
         self._lock = threading.Lock()
 
     @handle_errors("getting cached context", default_return=None)
-    def get(self, user_id: str) -> Optional[Dict[str, Any]]:
+    def get(self, user_id: str) -> dict[str, Any] | None:
         """Get cached context for a user"""
         current_time = time.time()
 
@@ -257,7 +257,7 @@ class ContextCache:
         return None
 
     @handle_errors("setting cached context")
-    def set(self, user_id: str, context: Dict[str, Any]):
+    def set(self, user_id: str, context: dict[str, Any]):
         """Cache context for a user"""
         current_time = time.time()
 

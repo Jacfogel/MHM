@@ -448,7 +448,7 @@ except (ImportError, ModuleNotFoundError):
         def __init__(self, fmt=None, datefmt=None):
             super().__init__(fmt=fmt, datefmt=datefmt)
 
-    PytestContextLogFormatter: Type[logging.Formatter] = _FallbackPytestContextLogFormatter
+    PytestContextLogFormatter: type[logging.Formatter] = _FallbackPytestContextLogFormatter
 
 # Global flag to prevent multiple test logging setups
 _test_logging_setup_done = False
@@ -1068,7 +1068,7 @@ def setup_consolidated_test_logging():
             # Use threading to ensure rotation doesn't block test execution
             import threading
             rotation_complete = threading.Event()
-            rotation_error: List[Optional[Exception]] = [None]
+            rotation_error: list[Exception | None] = [None]
             rotation_success = [False]
             
             def do_rotation():
@@ -3626,7 +3626,7 @@ def cleanup_communication_manager():
     import time
     
     cleanup_complete = threading.Event()
-    cleanup_error: List[Optional[Exception]] = [None]
+    cleanup_error: list[Exception | None] = [None]
     
     def do_cleanup():
         try:
@@ -3639,7 +3639,7 @@ def cleanup_communication_manager():
                 
                 # On Windows, use threading timeout instead of signal
                 stop_complete = threading.Event()
-                stop_error: List[Optional[Exception]] = [None]
+                stop_error: list[Exception | None] = [None]
                 
                 def stop_worker():
                     try:

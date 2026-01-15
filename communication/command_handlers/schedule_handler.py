@@ -66,7 +66,7 @@ class ScheduleManagementHandler(InteractionHandler):
         ),
     )
     def _handle_show_schedule(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show schedule for a specific category or all categories"""
         category = entities.get("category", "all")
@@ -203,7 +203,7 @@ class ScheduleManagementHandler(InteractionHandler):
         ),
     )
     def _handle_update_schedule(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Update schedule settings"""
         category = entities.get("category")
@@ -262,7 +262,7 @@ class ScheduleManagementHandler(InteractionHandler):
         ),
     )
     def _handle_schedule_status(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show status of schedules"""
         try:
@@ -306,7 +306,7 @@ class ScheduleManagementHandler(InteractionHandler):
         ),
     )
     def _handle_add_schedule_period(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Add a new schedule period with enhanced options"""
         category = entities.get("category")
@@ -479,7 +479,7 @@ class ScheduleManagementHandler(InteractionHandler):
         ),
     )
     def _handle_edit_schedule_period(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Edit an existing schedule period with enhanced options"""
         category = entities.get("category")
@@ -618,7 +618,7 @@ class ScheduleManagementHandler(InteractionHandler):
         return "Help with schedule management - manage your message, task, and check-in schedules"
 
     @handle_errors("getting schedule examples", default_return=[])
-    def get_examples(self) -> List[str]:
+    def get_examples(self) -> list[str]:
         """Get example commands for schedule management."""
         return [
             "show schedule",

@@ -147,7 +147,7 @@ class UserDataManager:
         return True
 
     @handle_errors("getting user message files", default_return={})
-    def get_user_message_files(self, user_id: str) -> Dict[str, str]:
+    def get_user_message_files(self, user_id: str) -> dict[str, str]:
         """Get all message file paths for a user"""
         # Validate user_id
         if not user_id or not isinstance(user_id, str):
@@ -261,7 +261,7 @@ class UserDataManager:
     @handle_errors("exporting user data", default_return={})
     def export_user_data(
         self, user_id: str, export_format: str = "json"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Export all user data to a structured format with validation.
 
@@ -394,7 +394,7 @@ class UserDataManager:
     @handle_errors(
         "getting user data summary", default_return={"error": "Failed to get summary"}
     )
-    def get_user_data_summary(self, user_id: str) -> Dict[str, Any]:
+    def get_user_data_summary(self, user_id: str) -> dict[str, Any]:
         """
         Get comprehensive summary of user data with validation.
 
@@ -436,7 +436,7 @@ class UserDataManager:
     @handle_errors("initializing user data summary")
     def _get_user_data_summary__initialize_summary(
         self, user_id: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Initialize the summary structure with default values."""
         try:
             return {
@@ -462,7 +462,7 @@ class UserDataManager:
 
     @handle_errors("processing core files for user data summary")
     def _get_user_data_summary__process_core_files(
-        self, user_id: str, summary: Dict[str, Any]
+        self, user_id: str, summary: dict[str, Any]
     ) -> None:
         """Process core user data files (profile, preferences, schedules, etc.)."""
         try:
@@ -485,7 +485,7 @@ class UserDataManager:
 
     @handle_errors("adding file info to user data summary")
     def _get_user_data_summary__add_file_info(
-        self, file_path: str, file_type: str, summary: Dict[str, Any]
+        self, file_path: str, file_type: str, summary: dict[str, Any]
     ) -> None:
         """Add basic file information to the summary."""
         try:
@@ -500,7 +500,7 @@ class UserDataManager:
 
     @handle_errors("adding special file details to user data summary")
     def _get_user_data_summary__add_special_file_details(
-        self, file_path: str, file_type: str, summary: Dict[str, Any]
+        self, file_path: str, file_type: str, summary: dict[str, Any]
     ) -> None:
         """Add special details for specific file types (schedules, sent_messages)."""
         try:
@@ -515,7 +515,7 @@ class UserDataManager:
 
     @handle_errors("adding schedule details to user data summary")
     def _get_user_data_summary__add_schedule_details(
-        self, file_path: str, summary: Dict[str, Any]
+        self, file_path: str, summary: dict[str, Any]
     ) -> None:
         """Add schedule-specific details to the summary."""
         try:
@@ -530,7 +530,7 @@ class UserDataManager:
 
     @handle_errors("adding sent messages details to user data summary")
     def _get_user_data_summary__add_sent_messages_details(
-        self, file_path: str, summary: Dict[str, Any]
+        self, file_path: str, summary: dict[str, Any]
     ) -> None:
         """Add sent messages count to the summary."""
         try:
@@ -547,7 +547,7 @@ class UserDataManager:
 
     @handle_errors("processing message files for user data summary")
     def _get_user_data_summary__process_message_files(
-        self, user_id: str, summary: Dict[str, Any]
+        self, user_id: str, summary: dict[str, Any]
     ) -> None:
         """Process message files for all user categories."""
         try:
@@ -573,7 +573,7 @@ class UserDataManager:
 
     @handle_errors("ensuring message files for user data summary")
     def _get_user_data_summary__ensure_message_files(
-        self, user_id: str, categories: List[str]
+        self, user_id: str, categories: list[str]
     ) -> None:
         """Ensure message files exist for all user categories."""
         try:
@@ -598,7 +598,7 @@ class UserDataManager:
 
     @handle_errors("processing enabled message files for user data summary")
     def _get_user_data_summary__process_enabled_message_files(
-        self, user_id: str, categories: List[str], summary: Dict[str, Any]
+        self, user_id: str, categories: list[str], summary: dict[str, Any]
     ) -> None:
         """Process message files for enabled categories."""
         try:
@@ -624,9 +624,9 @@ class UserDataManager:
     def _get_user_data_summary__process_orphaned_message_files(
         self,
         user_id: str,
-        categories: List[str],
-        message_files: Dict[str, str],
-        summary: Dict[str, Any],
+        categories: list[str],
+        message_files: dict[str, str],
+        summary: dict[str, Any],
     ) -> None:
         """Process orphaned message files (categories not enabled but files exist)."""
         try:
@@ -645,7 +645,7 @@ class UserDataManager:
         self,
         file_path: str,
         category: str,
-        summary: Dict[str, Any],
+        summary: dict[str, Any],
         orphaned: bool = False,
     ) -> None:
         """Add message file information to the summary."""
@@ -674,7 +674,7 @@ class UserDataManager:
 
     @handle_errors("adding missing message file info to user data summary")
     def _get_user_data_summary__add_missing_message_file_info(
-        self, file_path: str, category: str, summary: Dict[str, Any], user_id: str
+        self, file_path: str, category: str, summary: dict[str, Any], user_id: str
     ) -> None:
         """Add information for missing message files."""
         try:
@@ -695,7 +695,7 @@ class UserDataManager:
 
     @handle_errors("processing log files for user data summary")
     def _get_user_data_summary__process_log_files(
-        self, user_id: str, summary: Dict[str, Any]
+        self, user_id: str, summary: dict[str, Any]
     ) -> None:
         """Process log files (checkins, chat_interactions)."""
         try:
@@ -711,7 +711,7 @@ class UserDataManager:
 
     @handle_errors("adding log file info to user data summary")
     def _get_user_data_summary__add_log_file_info(
-        self, log_file: str, log_type: str, summary: Dict[str, Any]
+        self, log_file: str, log_type: str, summary: dict[str, Any]
     ) -> None:
         """Add log file information to the summary."""
         try:
@@ -1117,8 +1117,8 @@ class UserDataManager:
 
     @handle_errors("searching users", default_return=[])
     def search_users(
-        self, query: str, search_fields: Optional[List[str]] = None
-    ) -> List[Dict[str, Any]]:
+        self, query: str, search_fields: list[str] | None = None
+    ) -> list[dict[str, Any]]:
         """
         Search users with validation.
 
@@ -1263,7 +1263,7 @@ def backup_user_data(user_id: str, include_messages: bool = True) -> str:
 
 
 @handle_errors("exporting user data", default_return={})
-def export_user_data(user_id: str, export_format: str = "json") -> Dict[str, Any]:
+def export_user_data(user_id: str, export_format: str = "json") -> dict[str, Any]:
     """
     Export all user data to a structured format with validation.
 
@@ -1347,7 +1347,7 @@ def delete_user_completely(user_id: str, create_backup: bool = True) -> bool:
 @handle_errors(
     "getting user data summary", default_return={"error": "Failed to get summary"}
 )
-def get_user_data_summary(user_id: str) -> Dict[str, Any]:
+def get_user_data_summary(user_id: str) -> dict[str, Any]:
     """
     Get comprehensive summary of user data with validation.
 
@@ -1425,7 +1425,7 @@ def rebuild_user_index() -> bool:
 
 
 @handle_errors("getting user info for data manager", default_return=None)
-def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
+def get_user_info_for_data_manager(user_id: str) -> dict[str, Any] | None:
     """
     Get user info using the new centralized data structure with validation.
 
@@ -1502,7 +1502,7 @@ from core.user_data_handlers import get_user_categories
 
 
 @handle_errors("building user index", default_return={})
-def build_user_index() -> Dict[str, Any]:
+def build_user_index() -> dict[str, Any]:
     """
     Build an index of all users and their message data with validation.
 
@@ -1533,7 +1533,7 @@ def build_user_index() -> Dict[str, Any]:
                     )
                     if os.path.exists(category_path):
                         try:
-                            with open(category_path, "r", encoding="utf-8") as f:
+                            with open(category_path, encoding="utf-8") as f:
                                 data = json.load(f)
                                 normalized, errors = validate_messages_file_dict(data)
 
@@ -1568,7 +1568,7 @@ def build_user_index() -> Dict[str, Any]:
 
 
 @handle_errors("getting user summary", default_return={})
-def get_user_summary(user_id: str) -> Dict[str, Any]:
+def get_user_summary(user_id: str) -> dict[str, Any]:
     """
     Get a summary of user data and message statistics with validation.
 
@@ -1603,7 +1603,7 @@ def get_user_summary(user_id: str) -> Dict[str, Any]:
             )
             if os.path.exists(category_path):
                 try:
-                    with open(category_path, "r", encoding="utf-8") as f:
+                    with open(category_path, encoding="utf-8") as f:
                         data = json.load(f)
                         normalized, errors = validate_messages_file_dict(data)
 
@@ -1641,7 +1641,7 @@ def get_user_summary(user_id: str) -> Dict[str, Any]:
 
 
 @handle_errors("getting all user summaries", default_return=[])
-def get_all_user_summaries() -> List[Dict[str, Any]]:
+def get_all_user_summaries() -> list[dict[str, Any]]:
     """
     Get summaries for all users with validation.
 
@@ -1673,7 +1673,7 @@ def get_all_user_summaries() -> List[Dict[str, Any]]:
     "getting user analytics summary",
     default_return={"error": "Failed to get analytics summary"},
 )
-def get_user_analytics_summary(user_id: str) -> Dict[str, Any]:
+def get_user_analytics_summary(user_id: str) -> dict[str, Any]:
     """
     Get an analytics summary for a user including interaction patterns and data usage.
 

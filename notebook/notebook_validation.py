@@ -109,7 +109,7 @@ def is_valid_entry_reference(ref: str) -> bool:
 
 
 @handle_errors("parsing short ID", default_return=None)
-def parse_short_id(ref: str) -> Optional[Tuple[str, str]]:
+def parse_short_id(ref: str) -> tuple[str, str] | None:
     """
     Parse a short ID reference into (prefix, fragment) tuple.
 
@@ -140,7 +140,7 @@ def parse_short_id(ref: str) -> Optional[Tuple[str, str]]:
 
 
 @handle_errors("formatting short ID", default_return=None)
-def format_short_id(entry_id: UUID, kind: EntryKind) -> Optional[str]:
+def format_short_id(entry_id: UUID, kind: EntryKind) -> str | None:
     """
     Format a UUID into a short ID with prefix.
 
@@ -167,7 +167,7 @@ def format_short_id(entry_id: UUID, kind: EntryKind) -> Optional[str]:
 
 
 @handle_errors("validating entry title", default_return=False)
-def is_valid_entry_title(title: Optional[str]) -> bool:
+def is_valid_entry_title(title: str | None) -> bool:
     """
     Validate that a notebook entry title is valid.
 
@@ -185,7 +185,7 @@ def is_valid_entry_title(title: Optional[str]) -> bool:
 
 
 @handle_errors("validating entry body", default_return=False)
-def is_valid_entry_body(body: Optional[str], kind: EntryKind = "note") -> bool:
+def is_valid_entry_body(body: str | None, kind: EntryKind = "note") -> bool:
     """
     Validate that a notebook entry body is valid.
 
@@ -209,7 +209,7 @@ def is_valid_entry_body(body: Optional[str], kind: EntryKind = "note") -> bool:
 
 
 @handle_errors("validating entry group", default_return=False)
-def is_valid_entry_group(group: Optional[str]) -> bool:
+def is_valid_entry_group(group: str | None) -> bool:
     """
     Validate that a notebook entry group name is valid.
 
@@ -287,7 +287,7 @@ def is_valid_list_item_index(index: int, list_length: int) -> bool:
 
 
 @handle_errors("normalizing list item index", default_return=None)
-def normalize_list_item_index(index: int, list_length: int) -> Optional[int]:
+def normalize_list_item_index(index: int, list_length: int) -> int | None:
     """
     Normalize a list item index to 0-based.
 
@@ -320,8 +320,8 @@ def normalize_list_item_index(index: int, list_length: int) -> Optional[int]:
 
 @handle_errors("validating entry content", default_return=False)
 def validate_entry_content(
-    title: Optional[str] = None, body: Optional[str] = None, kind: EntryKind = "note"
-) -> Tuple[bool, Optional[str]]:
+    title: str | None = None, body: str | None = None, kind: EntryKind = "note"
+) -> tuple[bool, str | None]:
     """
     Comprehensive validation of entry content.
 

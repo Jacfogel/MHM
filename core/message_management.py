@@ -132,7 +132,7 @@ def load_default_messages(category):
         logger.info(f"Absolute path: {default_messages_file.absolute()}")
 
         try:
-            with open(default_messages_file, "r", encoding="utf-8") as f:
+            with open(default_messages_file, encoding="utf-8") as f:
                 data = json.load(f)
                 messages = data.get("messages", [])
                 logger.info(
@@ -367,10 +367,10 @@ def delete_message(user_id, category, message_id):
 @handle_errors("getting recent messages", default_return=[])
 def get_recent_messages(
     user_id: str,
-    category: Optional[str] = None,
+    category: str | None = None,
     limit: int = 10,
-    days_back: Optional[int] = None,
-) -> List[Dict[str, Any]]:
+    days_back: int | None = None,
+) -> list[dict[str, Any]]:
     """
     Get recent messages with flexible filtering.
 
@@ -474,7 +474,7 @@ def store_sent_message(
     message_id: str,
     message: str,
     delivery_status: str = "sent",
-    time_period: Optional[str] = None,
+    time_period: str | None = None,
 ) -> bool:
     """
     Store sent message in chronological order.
@@ -757,7 +757,7 @@ def create_message_file_from_defaults(user_id: str, category: str) -> bool:
 
 
 @handle_errors("ensuring user message files exist")
-def ensure_user_message_files(user_id: str, categories: List[str]) -> dict:
+def ensure_user_message_files(user_id: str, categories: list[str]) -> dict:
     """
     Ensure user has message files for specified categories.
     Creates messages directory if missing, checks which files are missing, and creates them.

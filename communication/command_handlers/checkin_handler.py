@@ -110,7 +110,7 @@ class CheckinHandler(InteractionHandler):
         ),
     )
     def _handle_continue_checkin(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle continuing a check-in"""
         # This would integrate with the existing conversation manager
@@ -168,6 +168,6 @@ class CheckinHandler(InteractionHandler):
         return "Help with check-ins - start check-ins and view your status"
 
     @handle_errors("getting check-in examples", default_return=[])
-    def get_examples(self) -> List[str]:
+    def get_examples(self) -> list[str]:
         """Get example commands for check-ins."""
         return ["start checkin", "checkin status", "checkin"]

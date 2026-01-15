@@ -4,7 +4,7 @@ Contains functions for storing and retrieving user responses, check-ins, and int
 """
 
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any
 from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
 from core.file_operations import load_json_data, save_json_data, get_user_file_path
@@ -161,7 +161,7 @@ def is_user_checkins_enabled(user_id: str) -> bool:
 
 
 @handle_errors("getting user info for tracking", default_return={})
-def get_user_info_for_tracking(user_id: str) -> Dict[str, Any]:
+def get_user_info_for_tracking(user_id: str) -> dict[str, Any]:
     """Get user information for response tracking."""
     try:
         user_data_result = get_user_data(user_id, "account")
@@ -197,7 +197,7 @@ def get_user_info_for_tracking(user_id: str) -> Dict[str, Any]:
 
 
 @handle_errors("tracking user response", default_return=None)
-def track_user_response(user_id: str, category: str, response_data: Dict[str, Any]):
+def track_user_response(user_id: str, category: str, response_data: dict[str, Any]):
     """Track a user's response to a message."""
     try:
         user_data_result = get_user_data(user_id, "account")

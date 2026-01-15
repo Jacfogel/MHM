@@ -35,8 +35,17 @@ When adding new changes, follow this format:
 - Maintain **chronological order** (most recent first)
 
 ------------------------------------------------------------------------------------------
-
 ## Recent Changes (Most Recent First)
+
+### 2026-01-15 - Ruff rollout, selective fixes, and report generator diagnostics **IN PROGRESS**
+- **Feature**: Brought Ruff into the workspace, exercised `ruff check . --fix` on a subset of safe rules, and documented the current failure mode inside the report generation step.
+- **Changes**:
+  1. **New formatting tool**: Added Ruff to the repository tooling suite and captured the current `ruff check . --statistics` result so we can prioritize the remaining offenses (see AI changelog entry for the full count summary).
+  2. **Selective fixes**: Applied `ruff check . --fix --select` for the safe non-pep585/PEP604 annotations and sanitized suppressible-exception handling; but the large `development_tools` folder triggered a TypeError in the status generator, so we rolled back those fixes and now run the audit without touching that folder until we guard the offending `|` usage.
+  3. **Audit health**: Tier 3 audits still finish, but the AI_STATUS/AI_PRIORITIES/consolidated reports currently log “unsupported operand type(s) for |…” and drop placeholder content until the report generator is fixed.
+  4. **Current Ruff state**: `ruff check . --statistics` reports 5,842 findings (1,259 `F401`, 938 `UP025`, 779 `UP006`, 347 `E402`, etc.) with 3,777 fixable. We’ll keep the remaining work tracked and revisit once the report generator stops crashing.
+- **Impact**: Ruff is now in place and partially applied; the remaining lint backlog is known, and the Tier 3-generated documents remain blocked by the report-generation TypeError until that expression is defended.
+- **Testing**: `ruff check . --statistics` (see counts below); Tier 3 audit now runs without the Ruff-induced break.
 
 ### 2026-01-15 - Test Flags Isolation, Logging Doc Fix, and Domain Mapping Refresh
 - **Feature**: Routed shutdown/test flag files through `core.service_utilities.get_flags_dir()` (used by `core/service.py`, `core/headless_service.py`, and `ui/ui_app_qt.py`) and set `MHM_FLAGS_DIR` to `tests/data/flags` in `tests/conftest.py` to prevent test runs from touching live service flags. Added a small behavior test for flag routing. Aligned `TEST_VERBOSE_LOGS` documentation in `logs/LOGGING_GUIDE.md` with actual test logging levels. Added path-based domain inference and development-tools mapping for test-file coverage caching and regenerated the cache.

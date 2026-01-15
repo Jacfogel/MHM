@@ -34,12 +34,12 @@ class EventContext:
     """Context for Discord events"""
 
     event_type: EventType
-    user_id: Optional[str] = None
-    channel_id: Optional[str] = None
-    guild_id: Optional[str] = None
-    message_id: Optional[str] = None
-    timestamp: Optional[float] = None
-    data: Optional[Dict[str, Any]] = None
+    user_id: str | None = None
+    channel_id: str | None = None
+    guild_id: str | None = None
+    message_id: str | None = None
+    timestamp: float | None = None
+    data: dict[str, Any] | None = None
 
     @handle_errors("post-initializing Discord event handler", default_return=None)
     def __post_init__(self):
@@ -54,14 +54,14 @@ class DiscordEventHandler:
     """Handles Discord events and routes them to appropriate handlers"""
 
     @handle_errors("initializing Discord event handler", default_return=None)
-    def __init__(self, bot: Optional[discord.Client] = None):
+    def __init__(self, bot: discord.Client | None = None):
         """Initialize the Discord event handler"""
         self.bot = bot
-        self._event_handlers: Dict[EventType, List[Callable]] = {}
-        self._message_handlers: List[Callable] = []
-        self._ready_handlers: List[Callable] = []
-        self._disconnect_handlers: List[Callable] = []
-        self._error_handlers: List[Callable] = []
+        self._event_handlers: dict[EventType, list[Callable]] = {}
+        self._message_handlers: list[Callable] = []
+        self._ready_handlers: list[Callable] = []
+        self._disconnect_handlers: list[Callable] = []
+        self._error_handlers: list[Callable] = []
 
         # Register default handlers
         self._register_default_handlers()
@@ -346,7 +346,7 @@ class DiscordEventHandler:
 # Factory function to get Discord event handler
 @handle_errors("getting Discord event handler")
 def get_discord_event_handler(
-    bot: Optional[discord.Client] = None,
+    bot: discord.Client | None = None,
 ) -> DiscordEventHandler:
     """Get a Discord event handler instance"""
     return DiscordEventHandler(bot)

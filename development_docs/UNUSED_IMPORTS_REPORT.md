@@ -2,19 +2,19 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-15 00:43:10
+> **Last Generated**: 2026-01-15 06:37:12
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 413
-- **Files with Unused Imports**: 124
-- **Total Unused Imports**: 358
+- **Files with Unused Imports**: 181
+- **Total Unused Imports**: 520
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 0 imports
-- **Type Hints Only**: 0 imports
+- **Obvious Unused**: 132 imports
+- **Type Hints Only**: 30 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
@@ -23,6 +23,581 @@
 - **Test Infrastructure**: 152 imports
 - **Production Test Mocking**: 4 imports
 - **Ui Imports**: 1 imports
+
+## Obvious Unused
+
+**Recommendation**: These imports can likely be safely removed.
+
+### `ai/cache_manager.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 6**: Unused Dict imported from typing
+- **Line 6**: Unused Optional imported from typing
+- **Line 6**: Unused Tuple imported from typing
+
+### `ai/chatbot.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 16**: Unused Optional imported from typing
+
+### `ai/context_builder.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused List imported from typing
+
+### `ai/conversation_history.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused List imported from typing
+
+### `ai/prompt_manager.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 4**: Unused Dict imported from typing
+- **Line 4**: Unused Optional imported from typing
+
+### `communication/command_handlers/account_handler.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 7**: Unused Dict imported from typing
+- **Line 7**: Unused List imported from typing
+- **Line 7**: Unused Optional imported from typing
+
+### `communication/command_handlers/analytics_handler.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused List imported from typing
+
+### `communication/command_handlers/base_handler.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 11**: Unused List imported from typing
+
+### `communication/command_handlers/checkin_handler.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused List imported from typing
+
+### `communication/command_handlers/interaction_handlers.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 11**: Unused Dict imported from typing
+- **Line 11**: Unused List imported from typing
+- **Line 11**: Unused Optional imported from typing
+
+### `communication/command_handlers/notebook_handler.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 10**: Unused Dict imported from typing
+- **Line 10**: Unused List imported from typing
+- **Line 10**: Unused Optional imported from typing
+
+### `communication/command_handlers/profile_handler.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused List imported from typing
+
+### `communication/command_handlers/schedule_handler.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused List imported from typing
+
+### `communication/command_handlers/shared_types.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused List imported from typing
+- **Line 3**: Unused Optional imported from typing
+
+### `communication/command_handlers/task_handler.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 10**: Unused Dict imported from typing
+- **Line 10**: Unused Optional imported from typing
+
+### `communication/communication_channels/base/base_channel.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 3**: Unused Optional imported from typing
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused List imported from typing
+
+### `communication/communication_channels/base/command_registry.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused List imported from typing
+- **Line 3**: Unused Optional imported from typing
+
+### `communication/communication_channels/base/message_formatter.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused List imported from typing
+- **Line 3**: Unused Optional imported from typing
+
+### `communication/communication_channels/base/rich_formatter.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused List imported from typing
+
+### `communication/communication_channels/discord/api_client.py`
+
+**Count**: 4 unused import(s)
+
+- **Line 6**: Unused Dict imported from typing
+- **Line 6**: Unused List imported from typing
+- **Line 6**: Unused Optional imported from typing
+- **Line 6**: Unused Union imported from typing
+
+### `communication/communication_channels/discord/bot.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 8**: Unused List imported from typing
+- **Line 8**: Unused Dict imported from typing
+- **Line 8**: Unused Optional imported from typing
+
+### `communication/communication_channels/discord/event_handler.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 5**: Unused Dict imported from typing
+- **Line 5**: Unused List imported from typing
+- **Line 5**: Unused Optional imported from typing
+
+### `communication/communication_channels/discord/webhook_handler.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 9**: Unused Dict imported from typing
+- **Line 9**: Unused Optional imported from typing
+
+### `communication/communication_channels/discord/welcome_handler.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 8**: Unused Optional imported from typing
+
+### `communication/communication_channels/email/bot.py`
+
+**Count**: 4 unused import(s)
+
+- **Line 10**: Unused List imported from typing
+- **Line 10**: Unused Dict imported from typing
+- **Line 10**: Unused Optional imported from typing
+- **Line 10**: Unused Tuple imported from typing
+
+### `communication/core/channel_monitor.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 5**: Unused Dict imported from typing
+- **Line 5**: Unused Optional imported from typing
+
+### `communication/core/channel_orchestrator.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 8**: Unused Dict imported from typing
+- **Line 8**: Unused Optional imported from typing
+
+### `communication/core/factory.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 1**: Unused Dict imported from typing
+- **Line 1**: Unused Type imported from typing
+- **Line 1**: Unused Optional imported from typing
+
+### `communication/core/welcome_manager.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 9**: Unused Dict imported from typing
+
+### `communication/message_processing/command_parser.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 14**: Unused Dict imported from typing
+- **Line 14**: Unused List imported from typing
+- **Line 14**: Unused Optional imported from typing
+
+### `communication/message_processing/conversation_flow_manager.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 23**: Unused Optional imported from typing
+
+### `communication/message_processing/interaction_manager.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 13**: Unused Optional imported from typing
+- **Line 13**: Unused Dict imported from typing
+- **Line 13**: Unused List imported from typing
+
+### `communication/message_processing/message_router.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 3**: Unused Optional imported from typing
+- **Line 3**: Unused List imported from typing
+
+### `core/checkin_analytics.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 12**: Unused Dict imported from typing
+- **Line 12**: Unused List imported from typing
+- **Line 12**: Unused Optional imported from typing
+
+### `core/checkin_dynamic_manager.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 7**: Unused Dict imported from typing
+- **Line 7**: Unused Optional imported from typing
+- **Line 7**: Unused Tuple imported from typing
+
+### `core/config.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 9**: Unused Dict imported from typing
+- **Line 9**: Unused Tuple imported from typing
+- **Line 9**: Unused Optional imported from typing
+
+### `core/error_handling.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 14**: Unused Dict imported from typing
+- **Line 14**: Unused List imported from typing
+
+### `core/file_auditor.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 24**: Unused Dict imported from typing
+- **Line 24**: Unused Optional imported from typing
+- **Line 24**: Unused List imported from typing
+
+### `core/headless_service.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 13**: Unused Optional imported from typing
+
+### `core/schedule_management.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 10**: Unused Dict imported from typing
+
+### `core/schedule_utilities.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 9**: Unused Optional imported from typing
+
+### `core/scheduler.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 11**: Unused Dict imported from typing
+
+### `core/schemas.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 12**: Unused Dict imported from typing
+- **Line 12**: Unused Optional imported from typing
+
+### `core/user_data_handlers.py`
+
+**Count**: 4 unused import(s)
+
+- **Line 14**: Unused Dict imported from typing
+- **Line 14**: Unused List imported from typing
+- **Line 14**: Unused Union imported from typing
+- **Line 14**: Unused Optional imported from typing
+
+### `core/user_data_manager.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 12**: Unused Optional imported from typing
+
+### `core/user_data_validation.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 9**: Unused Tuple imported from typing
+- **Line 9**: Unused List imported from typing
+- **Line 9**: Unused Optional imported from typing
+
+### `notebook/notebook_data_handlers.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 8**: Unused List imported from typing
+
+### `notebook/notebook_data_manager.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 9**: Unused List imported from typing
+- **Line 9**: Unused Optional imported from typing
+- **Line 9**: Unused Dict imported from typing
+
+### `notebook/notebook_validation.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 10**: Unused Optional imported from typing
+- **Line 10**: Unused Tuple imported from typing
+
+### `notebook/schemas.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 8**: Unused List imported from typing
+- **Line 8**: Unused Optional imported from typing
+
+### `run_tests.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 21**: Unused Dict imported from typing
+- **Line 21**: Unused List imported from typing
+
+### `tasks/task_management.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 10**: Unused Optional imported from typing
+
+### `tests/ai/ai_response_validator.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 9**: Unused Dict imported from typing
+- **Line 9**: Unused Tuple imported from typing
+
+### `tests/conftest.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 24**: Unused List imported from typing
+- **Line 24**: Unused Optional imported from typing
+- **Line 24**: Unused Type imported from typing
+
+### `tests/ui/test_account_creation_ui.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 21**: Unused Optional imported from typing
+
+### `tests/unit/test_cleanup.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 18**: Unused Dict imported from typing
+- **Line 18**: Unused Optional imported from typing
+
+### `ui/widgets/period_row_widget.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused List imported from typing
+- **Line 3**: Unused Optional imported from typing
+
+### `ui/widgets/user_profile_settings_widget.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+- **Line 3**: Unused Optional imported from typing
+
+### `user/context_manager.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 14**: Unused Dict imported from typing
+- **Line 14**: Unused List imported from typing
+
+## Type Hints Only
+
+**Recommendation**: Consider using `TYPE_CHECKING` guard for these imports.
+
+### `ai/context_builder.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 3**: Unused Optional imported from typing
+
+### `ai/conversation_history.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 3**: Unused Optional imported from typing
+
+### `communication/command_handlers/base_handler.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 11**: Unused Optional imported from typing
+
+### `communication/command_handlers/task_handler.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 10**: Unused List imported from typing
+
+### `communication/communication_channels/discord/account_flow_handler.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 9**: Unused Optional imported from typing
+
+### `communication/core/channel_orchestrator.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 8**: Unused List imported from typing
+
+### `communication/core/welcome_manager.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 9**: Unused Optional imported from typing
+
+### `communication/message_processing/message_router.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 3**: Unused Dict imported from typing
+
+### `core/config.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 9**: Unused List imported from typing
+
+### `core/error_handling.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 14**: Unused Optional imported from typing
+
+### `core/message_management.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 17**: Unused List imported from typing
+- **Line 17**: Unused Dict imported from typing
+- **Line 17**: Unused Optional imported from typing
+
+### `core/schedule_management.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 10**: Unused Optional imported from typing
+
+### `core/schedule_utilities.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 9**: Unused Dict imported from typing
+- **Line 9**: Unused List imported from typing
+
+### `core/scheduler.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 11**: Unused List imported from typing
+
+### `core/schemas.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 12**: Unused List imported from typing
+
+### `core/user_data_manager.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 12**: Unused Dict imported from typing
+- **Line 12**: Unused List imported from typing
+
+### `core/user_data_validation.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 9**: Unused Dict imported from typing
+
+### `run_tests.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 21**: Unused Optional imported from typing
+
+### `tasks/task_management.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 10**: Unused Dict imported from typing
+- **Line 10**: Unused List imported from typing
+
+### `tests/ai/ai_response_validator.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 9**: Unused List imported from typing
+- **Line 9**: Unused Optional imported from typing
+
+### `tests/test_utilities.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 14**: Unused Dict imported from typing
+- **Line 14**: Unused Optional imported from typing
+- **Line 14**: Unused List imported from typing
+
+### `tests/unit/test_cleanup.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 18**: Unused List imported from typing
 
 ## Conditional Imports
 

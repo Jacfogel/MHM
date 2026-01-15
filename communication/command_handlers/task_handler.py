@@ -29,7 +29,7 @@ logger = get_component_logger("communication_manager")
 handlers_logger = logger
 
 # Pending confirmations (simple in-memory store)
-PENDING_DELETIONS: Dict[str, str] = {}
+PENDING_DELETIONS: dict[str, str] = {}
 
 
 class TaskManagementHandler(InteractionHandler):
@@ -88,7 +88,7 @@ class TaskManagementHandler(InteractionHandler):
         ),
     )
     def _handle_create_task(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle task creation"""
         title = entities.get("title")
@@ -296,7 +296,7 @@ class TaskManagementHandler(InteractionHandler):
             )
 
     @handle_errors("parsing time string", default_return=None)
-    def _parse_time_string(self, time_str: str) -> Optional[str]:
+    def _parse_time_string(self, time_str: str) -> str | None:
         """Parse time string to HH:MM format"""
         import re
 
@@ -451,7 +451,7 @@ class TaskManagementHandler(InteractionHandler):
 
     @handle_errors("handling task listing")
     def _handle_list_tasks(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle task listing with enhanced filtering and details"""
         tasks = load_active_tasks(user_id)
@@ -752,7 +752,7 @@ class TaskManagementHandler(InteractionHandler):
 
     @handle_errors("handling task completion")
     def _handle_complete_task(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle task completion"""
         task_identifier = entities.get("task_identifier")
@@ -825,7 +825,7 @@ class TaskManagementHandler(InteractionHandler):
 
     @handle_errors("handling task deletion")
     def _handle_delete_task(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle task deletion"""
         task_identifier = entities.get("task_identifier")
@@ -889,7 +889,7 @@ class TaskManagementHandler(InteractionHandler):
 
     @handle_errors("handling task update")
     def _handle_update_task(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle task updates"""
         task_identifier = entities.get("task_identifier")
@@ -956,7 +956,7 @@ class TaskManagementHandler(InteractionHandler):
 
     @handle_errors("handling task statistics")
     def _handle_task_stats(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle task statistics with dynamic time periods"""
         # Get time period information
@@ -1027,8 +1027,8 @@ class TaskManagementHandler(InteractionHandler):
 
     @handle_errors("finding task by identifier")
     def _find_task_by_identifier(
-        self, tasks: List[Dict], identifier: str
-    ) -> Optional[Dict]:
+        self, tasks: list[dict], identifier: str
+    ) -> dict | None:
         """
         Find a task by number, name, or task_id.
 
@@ -1107,29 +1107,29 @@ class TaskManagementHandler(InteractionHandler):
 
     @handle_errors("finding task by identifier for completion")
     def _handle_complete_task__find_task_by_identifier(
-        self, tasks: List[Dict], identifier: str
-    ) -> Optional[Dict]:
+        self, tasks: list[dict], identifier: str
+    ) -> dict | None:
         """Find a task by number, name, or task_id - delegates to shared method."""
         return self._find_task_by_identifier(tasks, identifier)
 
     @handle_errors("finding task by identifier for deletion")
     def _handle_delete_task__find_task_by_identifier(
-        self, tasks: List[Dict], identifier: str
-    ) -> Optional[Dict]:
+        self, tasks: list[dict], identifier: str
+    ) -> dict | None:
         """Find a task by number, name, or task_id - delegates to shared method."""
         return self._find_task_by_identifier(tasks, identifier)
 
     @handle_errors("finding task by identifier for update")
     def _handle_update_task__find_task_by_identifier(
-        self, tasks: List[Dict], identifier: str
-    ) -> Optional[Dict]:
+        self, tasks: list[dict], identifier: str
+    ) -> dict | None:
         """Find a task by number, name, or task_id - delegates to shared method."""
         return self._find_task_by_identifier(tasks, identifier)
 
     @handle_errors("getting task candidates", default_return=[])
-    def _get_task_candidates(self, tasks: List[Dict], identifier: str) -> List[Dict]:
+    def _get_task_candidates(self, tasks: list[dict], identifier: str) -> list[dict]:
         """Return candidate tasks matching identifier by id, number, or name."""
-        matches: List[Dict] = []
+        matches: list[dict] = []
         # Exact id
         for t in tasks:
             if identifier == t.get("task_id") or identifier == t.get("id"):
@@ -1168,8 +1168,8 @@ class TaskManagementHandler(InteractionHandler):
 
     @handle_errors("finding most urgent task", default_return=None)
     def _handle_complete_task__find_most_urgent_task(
-        self, tasks: List[Dict]
-    ) -> Optional[Dict]:
+        self, tasks: list[dict]
+    ) -> dict | None:
         """Find the most urgent task based on priority and due date"""
         if not tasks:
             return None
@@ -1221,7 +1221,7 @@ class TaskManagementHandler(InteractionHandler):
         return "Help with task management - create, list, complete, delete, and update tasks"
 
     @handle_errors("getting examples")
-    def get_examples(self) -> List[str]:
+    def get_examples(self) -> list[str]:
         """Get example commands for task management."""
         return [
             "create task 'Call mom tomorrow'",

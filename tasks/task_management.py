@@ -67,7 +67,7 @@ def ensure_task_directory(user_id: str) -> bool:
 
 
 @handle_errors("loading active tasks", default_return=[])
-def load_active_tasks(user_id: str) -> List[Dict[str, Any]]:
+def load_active_tasks(user_id: str) -> list[dict[str, Any]]:
     """
     Load active tasks for a user with validation.
 
@@ -108,7 +108,7 @@ def load_active_tasks(user_id: str) -> List[Dict[str, Any]]:
 
 
 @handle_errors("saving active tasks")
-def save_active_tasks(user_id: str, tasks: List[Dict[str, Any]]) -> bool:
+def save_active_tasks(user_id: str, tasks: list[dict[str, Any]]) -> bool:
     """Save active tasks for a user."""
     try:
         if not user_id:
@@ -135,7 +135,7 @@ def save_active_tasks(user_id: str, tasks: List[Dict[str, Any]]) -> bool:
 
 
 @handle_errors("loading completed tasks", default_return=[])
-def load_completed_tasks(user_id: str) -> List[Dict[str, Any]]:
+def load_completed_tasks(user_id: str) -> list[dict[str, Any]]:
     """Load completed tasks for a user."""
     try:
         if not user_id:
@@ -162,7 +162,7 @@ def load_completed_tasks(user_id: str) -> List[Dict[str, Any]]:
 
 
 @handle_errors("saving completed tasks", default_return=False)
-def save_completed_tasks(user_id: str, tasks: List[Dict[str, Any]]) -> bool:
+def save_completed_tasks(user_id: str, tasks: list[dict[str, Any]]) -> bool:
     """Save completed tasks for a user."""
     try:
         if not user_id:
@@ -196,13 +196,13 @@ def create_task(
     due_date: str = None,
     due_time: str = None,
     priority: str = "medium",
-    reminder_periods: Optional[list] = None,
-    tags: Optional[list] = None,
-    quick_reminders: Optional[list] = None,
+    reminder_periods: list | None = None,
+    tags: list | None = None,
+    quick_reminders: list | None = None,
     recurrence_pattern: str = None,
     recurrence_interval: int = 1,
     repeat_after_completion: bool = True,
-) -> Optional[str]:
+) -> str | None:
     """Create a new task for a user."""
     try:
         if not user_id or not isinstance(user_id, str):
@@ -315,7 +315,7 @@ def create_task(
 
 
 @handle_errors("updating task", default_return=False)
-def update_task(user_id: str, task_id: str, updates: Dict[str, Any]) -> bool:
+def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
     """Update an existing task."""
     if not user_id or not task_id:
         logger.error("User ID and task ID are required for task update")
@@ -418,7 +418,7 @@ def update_task(user_id: str, task_id: str, updates: Dict[str, Any]) -> bool:
 
 @handle_errors("completing task", default_return=False)
 def complete_task(
-    user_id: str, task_id: str, completion_data: Optional[Dict[str, Any]] = None
+    user_id: str, task_id: str, completion_data: dict[str, Any] | None = None
 ) -> bool:
     """Mark a task as completed."""
     try:
@@ -613,7 +613,7 @@ def delete_task(user_id: str, task_id: str) -> bool:
 
 
 @handle_errors("getting task by ID", default_return=None)
-def get_task_by_id(user_id: str, task_id: str) -> Optional[Dict[str, Any]]:
+def get_task_by_id(user_id: str, task_id: str) -> dict[str, Any] | None:
     """Get a specific task by ID."""
     try:
         if not user_id or not task_id:
@@ -641,7 +641,7 @@ def get_task_by_id(user_id: str, task_id: str) -> Optional[Dict[str, Any]]:
 
 
 @handle_errors("getting tasks due soon", default_return=[])
-def get_tasks_due_soon(user_id: str, days_ahead: int = 7) -> List[Dict[str, Any]]:
+def get_tasks_due_soon(user_id: str, days_ahead: int = 7) -> list[dict[str, Any]]:
     """Get tasks due within the specified number of days."""
     try:
         if not user_id:
@@ -704,7 +704,7 @@ def are_tasks_enabled(user_id: str) -> bool:
 
 @handle_errors("scheduling task-specific reminders", default_return=False)
 def schedule_task_reminders(
-    user_id: str, task_id: str, reminder_periods: List[Dict[str, Any]]
+    user_id: str, task_id: str, reminder_periods: list[dict[str, Any]]
 ) -> bool:
     """Schedule reminders for a specific task based on its reminder periods."""
     try:
@@ -878,7 +878,7 @@ def remove_user_task_tag(user_id: str, tag: str) -> bool:
 
 
 @handle_errors("getting user task statistics", default_return={})
-def get_user_task_stats(user_id: str) -> Dict[str, int]:
+def get_user_task_stats(user_id: str) -> dict[str, int]:
     """Get task statistics for a user."""
     try:
         if not user_id:
@@ -906,7 +906,7 @@ def get_user_task_stats(user_id: str) -> Dict[str, int]:
 
 @handle_errors("creating next recurring task instance", default_return=False)
 def _create_next_recurring_task_instance(
-    user_id: str, completed_task: Dict[str, Any]
+    user_id: str, completed_task: dict[str, Any]
 ) -> bool:
     """Create the next instance of a recurring task when the current one is completed."""
     try:
@@ -1005,7 +1005,7 @@ def _calculate_next_due_date(
     recurrence_pattern: str,
     recurrence_interval: int,
     repeat_after_completion: bool,
-) -> Optional[datetime]:
+) -> datetime | None:
     """Calculate the next due date for a recurring task."""
     try:
         if repeat_after_completion:

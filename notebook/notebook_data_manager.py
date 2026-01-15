@@ -30,7 +30,7 @@ logger = get_component_logger("notebook_data_manager")
 
 # Helper to save changes to an entry and persist
 @handle_errors("saving updated entry")
-def _save_updated_entry(user_id: str, entry: Entry, all_entries: List[Entry]) -> Entry:
+def _save_updated_entry(user_id: str, entry: Entry, all_entries: list[Entry]) -> Entry:
     """Updates the entry's updated_at timestamp and saves all entries."""
     from notebook.schemas import TIMESTAMP_FORMAT
 
@@ -41,7 +41,7 @@ def _save_updated_entry(user_id: str, entry: Entry, all_entries: List[Entry]) ->
 
 # Helper to find an entry by various references
 @handle_errors("finding entry by reference", default_return=None)
-def _find_entry_by_ref(entries: List[Entry], ref: str) -> Optional[Entry]:
+def _find_entry_by_ref(entries: list[Entry], ref: str) -> Entry | None:
     """Finds an entry by full UUID, short ID fragment, or title."""
     # Validate reference format
     if not is_valid_entry_reference(ref):
@@ -95,12 +95,12 @@ def _find_entry_by_ref(entries: List[Entry], ref: str) -> Optional[Entry]:
 def create_entry(
     user_id: str,
     kind: EntryKind,
-    title: Optional[str] = None,
-    body: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    group: Optional[str] = None,
-    items: Optional[List[Dict[str, Any]]] = None,  # For list items
-) -> Optional[Entry]:
+    title: str | None = None,
+    body: str | None = None,
+    tags: list[str] | None = None,
+    group: str | None = None,
+    items: list[dict[str, Any]] | None = None,  # For list items
+) -> Entry | None:
     """
     Creates a new notebook entry of a specified kind.
     """
@@ -175,11 +175,11 @@ def create_entry(
 @handle_errors("creating note")
 def create_note(
     user_id: str,
-    title: Optional[str] = None,
-    body: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    group: Optional[str] = None,
-) -> Optional[Entry]:
+    title: str | None = None,
+    body: str | None = None,
+    tags: list[str] | None = None,
+    group: str | None = None,
+) -> Entry | None:
     """Creates a note entry."""
     return create_entry(user_id, "note", title=title, body=body, tags=tags, group=group)
 
@@ -188,10 +188,10 @@ def create_note(
 def create_list(
     user_id: str,
     title: str,
-    tags: Optional[List[str]] = None,
-    group: Optional[str] = None,
-    items: Optional[List[str]] = None,
-) -> Optional[Entry]:
+    tags: list[str] | None = None,
+    group: str | None = None,
+    items: list[str] | None = None,
+) -> Entry | None:
     """Creates a list entry with initial items."""
     if not items:
         # List must have at least one item - use a default placeholder
@@ -214,11 +214,11 @@ def create_list(
 @handle_errors("creating journal")
 def create_journal(
     user_id: str,
-    title: Optional[str] = None,
-    body: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    group: Optional[str] = None,
-) -> Optional[Entry]:
+    title: str | None = None,
+    body: str | None = None,
+    tags: list[str] | None = None,
+    group: str | None = None,
+) -> Entry | None:
     """Creates a journal entry."""
     return create_entry(
         user_id, "journal", title=title, body=body, tags=tags, group=group
@@ -227,7 +227,7 @@ def create_journal(
 
 # Read operations
 @handle_errors("getting entry", default_return=None)
-def get_entry(user_id: str, ref: str) -> Optional[Entry]:
+def get_entry(user_id: str, ref: str) -> Entry | None:
     """Gets an entry by reference (UUID, short ID, or title)."""
     entries = load_entries(user_id)
     return _find_entry_by_ref(entries, ref)
@@ -236,7 +236,7 @@ def get_entry(user_id: str, ref: str) -> Optional[Entry]:
 @handle_errors("listing recent entries", default_return=[])
 def list_recent(
     user_id: str, n: int = 5, include_archived: bool = False
-) -> List[Entry]:
+) -> list[Entry]:
     """Lists the N most recently updated entries."""
     entries = load_entries(user_id)
 
@@ -259,7 +259,7 @@ def list_recent(
 
 # Update operations
 @handle_errors("appending to entry body")
-def append_to_entry_body(user_id: str, ref: str, text: str) -> Optional[Entry]:
+def append_to_entry_body(user_id: str, ref: str, text: str) -> Entry | None:
     """Appends text to an entry's body."""
     if not user_id:
         logger.error("User ID is required to append to entry body.")
@@ -303,7 +303,7 @@ def append_to_entry_body(user_id: str, ref: str, text: str) -> Optional[Entry]:
 
 
 @handle_errors("setting entry body")
-def set_entry_body(user_id: str, ref: str, text: str) -> Optional[Entry]:
+def set_entry_body(user_id: str, ref: str, text: str) -> Entry | None:
     """Sets (replaces) an entry's body."""
     if not user_id:
         logger.error("User ID is required to set entry body.")
@@ -336,7 +336,7 @@ def set_entry_body(user_id: str, ref: str, text: str) -> Optional[Entry]:
 
 
 @handle_errors("adding tags to entry")
-def add_tags(user_id: str, ref: str, tags: List[str]) -> Optional[Entry]:
+def add_tags(user_id: str, ref: str, tags: list[str]) -> Entry | None:
     """Adds tags to an entry."""
     entries = load_entries(user_id)
     entry = _find_entry_by_ref(entries, ref)
@@ -354,7 +354,7 @@ def add_tags(user_id: str, ref: str, tags: List[str]) -> Optional[Entry]:
 
 
 @handle_errors("removing tags from entry")
-def remove_tags(user_id: str, ref: str, tags: List[str]) -> Optional[Entry]:
+def remove_tags(user_id: str, ref: str, tags: list[str]) -> Entry | None:
     """Removes tags from an entry."""
     entries = load_entries(user_id)
     entry = _find_entry_by_ref(entries, ref)
@@ -370,7 +370,7 @@ def remove_tags(user_id: str, ref: str, tags: List[str]) -> Optional[Entry]:
 
 
 @handle_errors("pinning entry")
-def pin_entry(user_id: str, ref: str, pinned: bool = True) -> Optional[Entry]:
+def pin_entry(user_id: str, ref: str, pinned: bool = True) -> Entry | None:
     """Pins or unpins an entry."""
     entries = load_entries(user_id)
     entry = _find_entry_by_ref(entries, ref)
@@ -384,7 +384,7 @@ def pin_entry(user_id: str, ref: str, pinned: bool = True) -> Optional[Entry]:
 
 
 @handle_errors("archiving entry")
-def archive_entry(user_id: str, ref: str, archived: bool = True) -> Optional[Entry]:
+def archive_entry(user_id: str, ref: str, archived: bool = True) -> Entry | None:
     """Archives or unarchives an entry."""
     entries = load_entries(user_id)
     entry = _find_entry_by_ref(entries, ref)
@@ -398,7 +398,7 @@ def archive_entry(user_id: str, ref: str, archived: bool = True) -> Optional[Ent
 
 
 @handle_errors("setting entry group")
-def set_group(user_id: str, ref: str, group: Optional[str]) -> Optional[Entry]:
+def set_group(user_id: str, ref: str, group: str | None) -> Entry | None:
     """Sets the group for an entry."""
     # Validate group if provided
     if group is not None and not is_valid_entry_group(group):
@@ -418,7 +418,7 @@ def set_group(user_id: str, ref: str, group: Optional[str]) -> Optional[Entry]:
 
 # Search operations
 @handle_errors("searching entries", default_return=[])
-def search_entries(user_id: str, query: str, limit: int = 100) -> List[Entry]:
+def search_entries(user_id: str, query: str, limit: int = 100) -> list[Entry]:
     """
     Searches entries by case-insensitive substring across title, body, and list item texts.
     Returns up to limit entries (pagination handled in handler).
@@ -434,7 +434,7 @@ def search_entries(user_id: str, query: str, limit: int = 100) -> List[Entry]:
     entries = load_entries(user_id)
     query_lower = query.lower().strip()
 
-    matching_entries: List[Entry] = []
+    matching_entries: list[Entry] = []
     for entry in entries:
         # Skip archived entries from search
         if entry.archived:
@@ -482,7 +482,7 @@ def search_entries(user_id: str, query: str, limit: int = 100) -> List[Entry]:
 
 # List operations (for lists)
 @handle_errors("adding list item")
-def add_list_item(user_id: str, ref: str, text: str) -> Optional[Entry]:
+def add_list_item(user_id: str, ref: str, text: str) -> Entry | None:
     """Adds an item to a list entry."""
     if not user_id:
         logger.error("User ID is required to add list item.")
@@ -516,7 +516,7 @@ def add_list_item(user_id: str, ref: str, text: str) -> Optional[Entry]:
 @handle_errors("toggling list item done")
 def toggle_list_item_done(
     user_id: str, ref: str, item_index: int, done: bool = True
-) -> Optional[Entry]:
+) -> Entry | None:
     """Marks a list item as done or undone."""
     entries = load_entries(user_id)
     entry = _find_entry_by_ref(entries, ref)
@@ -542,7 +542,7 @@ def toggle_list_item_done(
 
 
 @handle_errors("removing list item")
-def remove_list_item(user_id: str, ref: str, item_index: int) -> Optional[Entry]:
+def remove_list_item(user_id: str, ref: str, item_index: int) -> Entry | None:
     """Removes an item from a list entry."""
     entries = load_entries(user_id)
     entry = _find_entry_by_ref(entries, ref)
@@ -572,7 +572,7 @@ def remove_list_item(user_id: str, ref: str, item_index: int) -> Optional[Entry]
 
 # Organization operations
 @handle_errors("listing entries by group", default_return=[])
-def list_by_group(user_id: str, group: str, limit: int = 100) -> List[Entry]:
+def list_by_group(user_id: str, group: str, limit: int = 100) -> list[Entry]:
     """Lists entries in a specific group - up to limit (pagination handled in handler)."""
     entries = load_entries(user_id)
     matching = [e for e in entries if e.group and e.group.lower() == group.lower()]
@@ -588,7 +588,7 @@ def list_by_group(user_id: str, group: str, limit: int = 100) -> List[Entry]:
 
 
 @handle_errors("listing pinned entries", default_return=[])
-def list_pinned(user_id: str, limit: int = 100) -> List[Entry]:
+def list_pinned(user_id: str, limit: int = 100) -> list[Entry]:
     """Lists pinned entries (up to limit - pagination handled in handler)."""
     entries = load_entries(user_id)
     pinned = [e for e in entries if e.pinned and not e.archived]
@@ -604,7 +604,7 @@ def list_pinned(user_id: str, limit: int = 100) -> List[Entry]:
 
 
 @handle_errors("listing inbox entries", default_return=[])
-def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> List[Entry]:
+def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> list[Entry]:
     """Lists inbox entries (untagged, unarchived, recent) - up to limit (pagination handled in handler)."""
     entries = load_entries(user_id)
     cutoff = datetime.now().timestamp() - (days * 24 * 60 * 60)
@@ -638,7 +638,7 @@ def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> List[Entry]:
 
 
 @handle_errors("listing archived entries", default_return=[])
-def list_archived(user_id: str, limit: int = 100) -> List[Entry]:
+def list_archived(user_id: str, limit: int = 100) -> list[Entry]:
     """Lists archived entries - up to limit (pagination handled in handler)."""
     entries = load_entries(user_id)
     archived = [e for e in entries if e.archived]
@@ -654,7 +654,7 @@ def list_archived(user_id: str, limit: int = 100) -> List[Entry]:
 
 
 @handle_errors("listing entries by tag", default_return=[])
-def list_by_tag(user_id: str, tag: str, limit: int = 100) -> List[Entry]:
+def list_by_tag(user_id: str, tag: str, limit: int = 100) -> list[Entry]:
     """Lists entries with a specific tag - up to limit (pagination handled in handler)."""
     from core.tags import normalize_tag
 

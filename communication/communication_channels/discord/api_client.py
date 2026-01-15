@@ -23,27 +23,27 @@ class MessageData:
     user_id: str
     message_id: str
     timestamp: float
-    attachments: Optional[List[str]] = None
-    embeds: Optional[List[Dict[str, Any]]] = None
+    attachments: list[str] | None = None
+    embeds: list[dict[str, Any]] | None = None
 
 
 @dataclass
 class SendMessageOptions:
     """Options for sending messages"""
 
-    rich_data: Optional[Dict[str, Any]] = None
-    suggestions: Optional[List[str]] = None
-    embed: Optional[discord.Embed] = None
-    view: Optional[discord.ui.View] = None
+    rich_data: dict[str, Any] | None = None
+    suggestions: list[str] | None = None
+    embed: discord.Embed | None = None
+    view: discord.ui.View | None = None
     tts: bool = False
-    delete_after: Optional[float] = None
+    delete_after: float | None = None
 
 
 class DiscordAPIClient:
     """Discord API client for handling Discord-specific operations"""
 
     @handle_errors("initializing Discord API client", default_return=None)
-    def __init__(self, bot: Optional[discord.Client] = None):
+    def __init__(self, bot: discord.Client | None = None):
         """Initialize the Discord API client"""
         self.bot = bot
         self._rate_limit_info = {}
@@ -52,7 +52,7 @@ class DiscordAPIClient:
 
     @handle_errors("sending Discord message", default_return=False)
     async def send_message(
-        self, recipient: str, message: str, options: Optional[SendMessageOptions] = None
+        self, recipient: str, message: str, options: SendMessageOptions | None = None
     ) -> bool:
         """
         Send a message to a Discord channel or user
@@ -84,7 +84,7 @@ class DiscordAPIClient:
                 return False
 
             # Prepare send kwargs
-            send_kwargs: Dict[str, Any] = {"content": message}
+            send_kwargs: dict[str, Any] = {"content": message}
 
             if options.embed:
                 send_kwargs["embed"] = options.embed
@@ -112,7 +112,7 @@ class DiscordAPIClient:
 
     @handle_errors("sending Discord DM", default_return=False)
     async def send_dm(
-        self, user_id: str, message: str, options: Optional[SendMessageOptions] = None
+        self, user_id: str, message: str, options: SendMessageOptions | None = None
     ) -> bool:
         """
         Send a direct message to a Discord user
@@ -144,7 +144,7 @@ class DiscordAPIClient:
                 dm_channel = await user.create_dm()
 
             # Send the message
-            send_kwargs: Dict[str, Any] = {"content": message}
+            send_kwargs: dict[str, Any] = {"content": message}
             if options and options.embed:
                 send_kwargs["embed"] = options.embed
             if options and options.view:
@@ -164,7 +164,7 @@ class DiscordAPIClient:
     @handle_errors("getting Discord channel or user", default_return=None)
     async def _get_channel_or_user(
         self, recipient: str
-    ) -> Optional[Union[discord.TextChannel, discord.User]]:
+    ) -> discord.TextChannel | discord.User | None:
         """Get a Discord channel or user by ID"""
         if not self.bot:
             return None
@@ -201,7 +201,7 @@ class DiscordAPIClient:
         self._last_request_time = time.time()
 
     @handle_errors("getting Discord guilds", default_return=[])
-    async def get_guilds(self) -> List[discord.Guild]:
+    async def get_guilds(self) -> list[discord.Guild]:
         """Get all guilds the bot is in"""
         if not self.bot:
             return []
@@ -210,8 +210,8 @@ class DiscordAPIClient:
 
     @handle_errors("getting Discord channels", default_return=[])
     async def get_channels(
-        self, guild_id: Optional[str] = None
-    ) -> List[discord.TextChannel]:
+        self, guild_id: str | None = None
+    ) -> list[discord.TextChannel]:
         """Get text channels from a guild or all guilds"""
         if not self.bot:
             return []
@@ -229,7 +229,7 @@ class DiscordAPIClient:
         return channels
 
     @handle_errors("getting Discord users", default_return=[])
-    async def get_users(self, guild_id: Optional[str] = None) -> List[discord.Member]:
+    async def get_users(self, guild_id: str | None = None) -> list[discord.Member]:
         """Get users from a guild or all guilds"""
         if not self.bot:
             return []
@@ -248,8 +248,8 @@ class DiscordAPIClient:
 
     @handle_errors("checking bot permissions", default_return=False)
     async def check_permissions(
-        self, channel_id: str, permissions: List[str]
-    ) -> Dict[str, bool]:
+        self, channel_id: str, permissions: list[str]
+    ) -> dict[str, bool]:
         """Check bot permissions in a channel"""
         if not self.bot:
             return {perm: False for perm in permissions}
@@ -293,6 +293,6 @@ class DiscordAPIClient:
 
 # Factory function to get Discord API client
 @handle_errors("getting Discord API client", default_return=None)
-def get_discord_api_client(bot: Optional[discord.Client] = None) -> DiscordAPIClient:
+def get_discord_api_client(bot: discord.Client | None = None) -> DiscordAPIClient:
     """Get a Discord API client instance"""
     return DiscordAPIClient(bot)

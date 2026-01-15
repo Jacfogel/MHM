@@ -29,7 +29,7 @@ interaction_logger = logger
 class CommandDefinition:
     name: str
     description: str
-    mapped_message: Optional[str] = None
+    mapped_message: str | None = None
     is_flow: bool = False
     
     @handle_errors("getting mapped message", default_return="!unknown")
@@ -56,7 +56,7 @@ class InteractionManager:
             
             # Channel-agnostic command definitions for discoverability across channels
             # All commands work with both /command and !command prefixes
-            self._command_definitions: List[CommandDefinition] = [
+            self._command_definitions: list[CommandDefinition] = [
                 # Core system commands
                 CommandDefinition("start", "start", "Get started with MHM", is_flow=False),
                 CommandDefinition("help", "help", "Show help and examples", is_flow=False),
@@ -516,7 +516,7 @@ class InteractionManager:
             return {}
 
     @handle_errors("getting command definitions")
-    def get_command_definitions(self) -> List[Dict[str, str]]:
+    def get_command_definitions(self) -> list[dict[str, str]]:
         """Return canonical command definitions: name, mapped_message, description."""
         try:
             return [
@@ -716,7 +716,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
         ]
         sorted_defs = sorted(defs, key=lambda d: preferred.index(d['name']) if d['name'] in preferred else 999)
 
-        lines: List[str] = ["**Available Commands**"]
+        lines: list[str] = ["**Available Commands**"]
         lines.append("Slash commands (type in Discord):")
         for d in sorted_defs:
             slash = f"/{d['name']}"
@@ -728,7 +728,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
         return InteractionResponse(text, True)
     
     @handle_errors("getting available commands", default_return={})
-    def get_available_commands(self, user_id: str) -> Dict[str, Any]:
+    def get_available_commands(self, user_id: str) -> dict[str, Any]:
         """Get list of available commands for the user"""
         commands = {}
         
@@ -866,7 +866,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
             return False
     
     @handle_errors("parsing AI command response")
-    def _parse_ai_command_response(self, ai_response: str, original_message: str) -> Optional[ParsedCommand]:
+    def _parse_ai_command_response(self, ai_response: str, original_message: str) -> ParsedCommand | None:
         """Parse AI command response into ParsedCommand"""
         try:
             import json
@@ -915,7 +915,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
             return False
     
     @handle_errors("extracting intent from text")
-    def _extract_intent_from_text(self, text: str) -> Optional[str]:
+    def _extract_intent_from_text(self, text: str) -> str | None:
         """Extract intent from AI text response"""
         try:
             # Map common AI response patterns to intents
@@ -962,7 +962,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
         return False
 
     @handle_errors("trying AI command parsing")
-    def _try_ai_command_parsing(self, user_id: str, message: str, channel_type: str) -> Optional[InteractionResponse]:
+    def _try_ai_command_parsing(self, user_id: str, message: str, channel_type: str) -> InteractionResponse | None:
         """Attempt to parse ambiguous messages using AI command parsing."""
         try:
             # First try regular command parsing
@@ -1010,7 +1010,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
         if response.completed:
             return response
         msg = (response.message or "").lower()
-        suggestions: List[str] = []
+        suggestions: list[str] = []
         if "multiple matching tasks" in msg:
             suggestions = ["list tasks", "cancel"]
         elif "confirm delete" in msg:

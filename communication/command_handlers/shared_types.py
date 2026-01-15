@@ -10,9 +10,9 @@ class InteractionResponse:
 
     message: str
     completed: bool = True
-    rich_data: Optional[Dict[str, Any]] = None
-    suggestions: Optional[List[str]] = None
-    error: Optional[str] = None
+    rich_data: dict[str, Any] | None = None
+    suggestions: list[str] | None = None
+    error: str | None = None
 
 
 @dataclass
@@ -20,6 +20,6 @@ class ParsedCommand:
     """Parsed command with intent and entities"""
 
     intent: str
-    entities: Dict[str, Any]
+    entities: dict[str, Any]
     confidence: float
     original_message: str

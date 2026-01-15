@@ -7,7 +7,6 @@ Provides insights and analysis from sent message data to help users
 understand message frequency, patterns, and delivery effectiveness.
 """
 
-from typing import Dict, Optional
 from collections import defaultdict
 from core.logger import get_component_logger
 from core.message_management import get_recent_messages
@@ -31,8 +30,8 @@ class MessageAnalytics:
         "analyzing message frequency", default_return={"error": "Analysis failed"}
     )
     def get_message_frequency(
-        self, user_id: str, days: int = 30, category: Optional[str] = None
-    ) -> Dict:
+        self, user_id: str, days: int = 30, category: str | None = None
+    ) -> dict:
         """
         Analyze message send frequency by category and time period.
 
@@ -123,7 +122,7 @@ class MessageAnalytics:
         "analyzing message delivery success",
         default_return={"error": "Analysis failed"},
     )
-    def get_delivery_success_rate(self, user_id: str, days: int = 30) -> Dict:
+    def get_delivery_success_rate(self, user_id: str, days: int = 30) -> dict:
         """
         Analyze message delivery success rates.
 
@@ -170,7 +169,7 @@ class MessageAnalytics:
     @handle_errors(
         "getting message summary", default_return={"error": "Summary failed"}
     )
-    def get_message_summary(self, user_id: str, days: int = 30) -> Dict:
+    def get_message_summary(self, user_id: str, days: int = 30) -> dict:
         """
         Get a comprehensive summary of message activity.
 

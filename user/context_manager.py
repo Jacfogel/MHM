@@ -36,12 +36,12 @@ class UserContextManager:
         Sets up conversation history storage for tracking user interactions.
         """
         # Store conversation history per user
-        self.conversation_history: Dict[str, List[Dict]] = {}
+        self.conversation_history: dict[str, list[dict]] = {}
 
     @handle_errors("getting current user context", default_return=None)
     def get_current_user_context(
         self, include_conversation_history: bool = True
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get context for the currently logged-in user using the existing UserContext singleton.
 
@@ -63,7 +63,7 @@ class UserContextManager:
     @handle_errors("getting AI context", default_return=None)
     def get_ai_context(
         self, user_id: str, include_conversation_history: bool = True
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get comprehensive user context for AI conversation.
 
@@ -91,7 +91,7 @@ class UserContextManager:
         return context
 
     @handle_errors("getting user profile", default_return={})
-    def _get_user_profile(self, user_id: str) -> Dict[str, Any]:
+    def _get_user_profile(self, user_id: str) -> dict[str, Any]:
         """Get basic user profile information using existing user infrastructure."""
         # Use existing UserContext and UserPreferences classes
         user_context = UserContext()
@@ -125,7 +125,7 @@ class UserContextManager:
         }
 
     @handle_errors("getting recent activity", default_return={})
-    def _get_recent_activity(self, user_id: str) -> Dict[str, Any]:
+    def _get_recent_activity(self, user_id: str) -> dict[str, Any]:
         """Get recent user activity and responses."""
         recent_responses = get_recent_checkins(user_id, limit=7)
 
@@ -179,7 +179,7 @@ class UserContextManager:
         return activity_summary
 
     @handle_errors("getting conversation insights", default_return={})
-    def _get_conversation_insights(self, user_id: str) -> Dict[str, Any]:
+    def _get_conversation_insights(self, user_id: str) -> dict[str, Any]:
         """Get insights from recent chat interactions."""
         recent_chats = get_recent_chat_interactions(user_id, limit=5)
 
@@ -231,7 +231,7 @@ class UserContextManager:
         }
 
     @handle_errors("getting user preferences", default_return={})
-    def _get_user_preferences(self, user_id: str) -> Dict[str, Any]:
+    def _get_user_preferences(self, user_id: str) -> dict[str, Any]:
         """Get user preferences using new structure."""
         try:
             prefs_result = get_user_data(user_id, "preferences")
@@ -242,7 +242,7 @@ class UserContextManager:
             return {}
 
     @handle_errors("getting mood trends", default_return={})
-    def _get_mood_trends(self, user_id: str) -> Dict[str, Any]:
+    def _get_mood_trends(self, user_id: str) -> dict[str, Any]:
         """Analyze recent mood and energy trends."""
         recent_responses = get_recent_checkins(user_id, limit=5)
 
@@ -273,7 +273,7 @@ class UserContextManager:
         return mood_trend
 
     @handle_errors("getting conversation history", default_return=[])
-    def _get_conversation_history(self, user_id: str) -> List[Dict[str, str]]:
+    def _get_conversation_history(self, user_id: str) -> list[dict[str, str]]:
         """Get recent conversation history with this user."""
         return self.conversation_history.get(user_id, [])[-5:]  # Last 5 exchanges
 
@@ -311,7 +311,7 @@ class UserContextManager:
         logger.debug(f"Added conversation exchange for user {user_id}")
 
     @handle_errors("getting minimal context", default_return={})
-    def _get_minimal_context(self, user_id: str) -> Dict[str, Any]:
+    def _get_minimal_context(self, user_id: str) -> dict[str, Any]:
         """
         Fallback minimal context if full context generation fails.
 
@@ -348,7 +348,7 @@ class UserContextManager:
     @handle_errors(
         "formatting context for AI", default_return="User context unavailable"
     )
-    def format_context_for_ai(self, context: Dict[str, Any]) -> str:
+    def format_context_for_ai(self, context: dict[str, Any]) -> str:
         """
         Format user context into a concise string for AI prompt.
 

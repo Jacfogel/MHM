@@ -912,7 +912,7 @@ class AccountCreatorDialog(QDialog):
         self.close_dialog()
 
     @handle_errors("creating account", default_return=False)
-    def create_account(self, account_data: Dict[str, Any]) -> bool:
+    def create_account(self, account_data: dict[str, Any]) -> bool:
         """Create the user account."""
         try:
             user_id = str(uuid.uuid4())
@@ -974,8 +974,8 @@ class AccountCreatorDialog(QDialog):
 
     @handle_errors("building user preferences")
     def _validate_and_accept__build_user_preferences(
-        self, account_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, account_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """Build user preferences data structure."""
         contact_info = account_data["contact_info"]
         features_enabled = account_data.get("features_enabled", {})
@@ -1029,7 +1029,7 @@ class AccountCreatorDialog(QDialog):
         return ""
 
     @handle_errors("building features dictionary")
-    def _build_features_dict(self, features_enabled: Dict[str, bool]) -> Dict[str, str]:
+    def _build_features_dict(self, features_enabled: dict[str, bool]) -> dict[str, str]:
         """Build features dictionary in the correct format."""
         return {
             "automated_messages": (
@@ -1046,9 +1046,9 @@ class AccountCreatorDialog(QDialog):
     @handle_errors("adding feature settings")
     def _validate_and_accept__add_feature_settings(
         self,
-        user_preferences: Dict[str, Any],
-        account_data: Dict[str, Any],
-        features_enabled: Dict[str, bool],
+        user_preferences: dict[str, Any],
+        account_data: dict[str, Any],
+        features_enabled: dict[str, bool],
     ):
         """Add feature-specific settings to user preferences."""
         # Add task settings if tasks are enabled
@@ -1067,7 +1067,7 @@ class AccountCreatorDialog(QDialog):
 
     @handle_errors("setting up task tags")
     def _validate_and_accept__setup_task_tags(
-        self, user_id: str, account_data: Dict[str, Any]
+        self, user_id: str, account_data: dict[str, Any]
     ):
         """Set up task tags for the new user."""
         features_enabled = account_data.get("features_enabled", {})

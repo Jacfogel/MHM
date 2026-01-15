@@ -30,14 +30,14 @@ project_root = Path(__file__).parent.parent.parent
 class CleanupManager:
     """Manages test data cleanup and isolation."""
     
-    def __init__(self, test_data_dir: Optional[str] = None):
+    def __init__(self, test_data_dir: str | None = None):
         """Initialize the cleanup manager."""
         self.test_data_dir = test_data_dir or BASE_DATA_DIR
         self.user_dir = USER_INFO_DIR_PATH
         self.backup_dir = Path(project_root) / "tests" / "logs" / "backups"
         self.backup_dir.mkdir(parents=True, exist_ok=True)
         
-    def cleanup_test_users(self, user_ids: Optional[List[str]] = None) -> bool:
+    def cleanup_test_users(self, user_ids: list[str] | None = None) -> bool:
         """Clean up test user data.
         
         Args:
@@ -71,7 +71,7 @@ class CleanupManager:
             logger.error(f"Error during test user cleanup: {e}")
             return False
     
-    def _find_test_users(self) -> List[str]:
+    def _find_test_users(self) -> list[str]:
         """Find all test users in the user directory."""
         test_users = []
         
@@ -190,7 +190,7 @@ class CleanupManager:
         except Exception as e:
             logger.warning(f"Error cleaning up temp files: {e}")
     
-    def validate_test_data_integrity(self) -> Dict[str, Any]:
+    def validate_test_data_integrity(self) -> dict[str, Any]:
         """Validate the integrity of test data."""
         results = {
             "valid": True,
@@ -247,7 +247,7 @@ class CleanupManager:
             logger.error(f"Error validating user {user_id}: {e}")
             return False
     
-    def _find_orphaned_files(self) -> List[str]:
+    def _find_orphaned_files(self) -> list[str]:
         """Find orphaned files in the user directory."""
         orphaned = []
         

@@ -225,7 +225,7 @@ class ChannelModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     type: Literal["email", "discord"]
-    contact: Optional[str] = None
+    contact: str | None = None
 
     @model_validator(mode="after")
     def _normalize_contact(self):
@@ -255,16 +255,16 @@ class PreferencesModel(BaseModel):
     # Allow unknown top-level fields so tests expecting passthrough extras succeed
     model_config = ConfigDict(extra="allow")
 
-    categories: List[str] = Field(default_factory=list)
+    categories: list[str] = Field(default_factory=list)
     channel: ChannelModel = Field(
         default_factory=lambda: ChannelModel(type="email", contact=None)
     )
-    checkin_settings: Dict[str, Any] | None = None
-    task_settings: Dict[str, Any] | None = None
+    checkin_settings: dict[str, Any] | None = None
+    task_settings: dict[str, Any] | None = None
 
     @field_validator("categories")
     @classmethod
-    def _validate_categories(cls, v: List[str]) -> List[str]:
+    def _validate_categories(cls, v: list[str]) -> list[str]:
         """Validate that all categories are in the allowed list."""
         if not v:
             return v
@@ -331,7 +331,7 @@ class PeriodModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     active: bool = True
-    days: List[str] = Field(default_factory=lambda: ["ALL"])
+    days: list[str] = Field(default_factory=lambda: ["ALL"])
     start_time: str = "00:00"
     end_time: str = "23:59"
 
@@ -354,7 +354,7 @@ class PeriodModel(BaseModel):
 
     @field_validator("days")
     @classmethod
-    def _valid_days(cls, v: List[str]) -> List[str]:
+    def _valid_days(cls, v: list[str]) -> list[str]:
         # NOTE: Pydantic validators should not have try-except blocks.
         # Pydantic handles exceptions internally and will raise ValidationError if needed.
         # This validator performs simple list filtering which cannot raise exceptions.
@@ -376,7 +376,7 @@ class PeriodModel(BaseModel):
 class CategoryScheduleModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
-    periods: Dict[str, PeriodModel]
+    periods: dict[str, PeriodModel]
 
     @model_validator(mode="before")
     @classmethod
@@ -402,12 +402,12 @@ class CategoryScheduleModel(BaseModel):
         return data
 
 
-class SchedulesModel(RootModel[Dict[str, CategoryScheduleModel]]):
+class SchedulesModel(RootModel[dict[str, CategoryScheduleModel]]):
     # RootModel does not support extra config; rely on inner models' tolerance
     pass
 
     @handle_errors("converting to dictionary")
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         try:
             return {k: v.model_dump() for k, v in self.root.items()}
         except Exception as e:
@@ -423,13 +423,13 @@ class MessageModel(BaseModel):
 
     message_id: str
     message: str
-    days: List[str] = Field(default_factory=lambda: ["ALL"])
-    time_periods: List[str] = Field(default_factory=lambda: ["ALL"])
-    timestamp: Optional[str] = None
+    days: list[str] = Field(default_factory=lambda: ["ALL"])
+    time_periods: list[str] = Field(default_factory=lambda: ["ALL"])
+    timestamp: str | None = None
 
     @field_validator("days")
     @classmethod
-    def _normalize_days(cls, v: List[str]) -> List[str]:
+    def _normalize_days(cls, v: list[str]) -> list[str]:
         """
         Normalize days list for message scheduling.
 
@@ -451,7 +451,7 @@ class MessageModel(BaseModel):
 
     @field_validator("time_periods")
     @classmethod
-    def _normalize_periods(cls, v: List[str]) -> List[str]:
+    def _normalize_periods(cls, v: list[str]) -> list[str]:
         """
         Normalize time periods list for message scheduling.
 
@@ -475,7 +475,7 @@ class MessageModel(BaseModel):
 class MessagesFileModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
-    messages: List[MessageModel] = Field(default_factory=list)
+    messages: list[MessageModel] = Field(default_factory=list)
 
 
 # ------------------------------ Helper functions -----------------------------
@@ -484,9 +484,9 @@ class MessagesFileModel(BaseModel):
 @handle_errors(
     "validating account dictionary", default_return=({}, ["Validation failed"])
 )
-def validate_account_dict(data: Dict[str, Any]) -> tuple[Dict[str, Any], List[str]]:
+def validate_account_dict(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
     try:
-        errors: List[str] = []
+        errors: list[str] = []
         try:
             model = AccountModel.model_validate(data)
             return model.model_dump(), errors
@@ -506,9 +506,9 @@ def validate_account_dict(data: Dict[str, Any]) -> tuple[Dict[str, Any], List[st
 
 
 @handle_errors("validating preferences dictionary")
-def validate_preferences_dict(data: Dict[str, Any]) -> tuple[Dict[str, Any], List[str]]:
+def validate_preferences_dict(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
     try:
-        errors: List[str] = []
+        errors: list[str] = []
         try:
             model = PreferencesModel.model_validate(data)
             # Exclude None so optional blocks like task_settings/checkin_settings vanish when absent
@@ -523,9 +523,9 @@ def validate_preferences_dict(data: Dict[str, Any]) -> tuple[Dict[str, Any], Lis
 
 
 @handle_errors("validating schedules dictionary")
-def validate_schedules_dict(data: Dict[str, Any]) -> tuple[Dict[str, Any], List[str]]:
+def validate_schedules_dict(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
     try:
-        errors: List[str] = []
+        errors: list[str] = []
         try:
             model = SchedulesModel.model_validate(data)
             return model.to_dict(), errors
@@ -539,10 +539,10 @@ def validate_schedules_dict(data: Dict[str, Any]) -> tuple[Dict[str, Any], List[
 
 @handle_errors("validating messages file dictionary")
 def validate_messages_file_dict(
-    data: Dict[str, Any],
-) -> tuple[Dict[str, Any], List[str]]:
+    data: dict[str, Any],
+) -> tuple[dict[str, Any], list[str]]:
     try:
-        errors: List[str] = []
+        errors: list[str] = []
         try:
             model = MessagesFileModel.model_validate(data)
             return model.model_dump(), errors
@@ -551,7 +551,7 @@ def validate_messages_file_dict(
             # Try to coerce to messages list
             msgs = data.get("messages")
             if isinstance(msgs, list):
-                normalized: List[Dict[str, Any]] = []
+                normalized: list[dict[str, Any]] = []
                 for item in msgs:
                     try:
                         mi = MessageModel.model_validate(item)

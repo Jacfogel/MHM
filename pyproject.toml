@@ -14,6 +14,23 @@ dependencies = []
 [project.optional-dependencies]
 ui = ["PySide6"]
 
+[tool.ruff]
+line-length = 88
+exclude = [
+    ".venv",
+    "node_modules",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "UP", "SIM"]
+ignore = ["E501"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["core*", "communication*", "ui*", "tasks*", "ai*", "notebook*", "tests*", "development_tools*", "scripts*", "user*"]

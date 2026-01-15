@@ -17,11 +17,11 @@ logger = context_logger
 @dataclass
 class ContextData:
     """Structured context data for AI interactions"""
-    user_profile: Optional[Dict[str, Any]] = None
-    user_context: Optional[Dict[str, Any]] = None
-    recent_checkins: Optional[List[Dict[str, Any]]] = None
-    conversation_history: Optional[List[Dict[str, Any]]] = None
-    current_time: Optional[datetime] = None
+    user_profile: dict[str, Any] | None = None
+    user_context: dict[str, Any] | None = None
+    recent_checkins: list[dict[str, Any]] | None = None
+    conversation_history: list[dict[str, Any]] | None = None
+    current_time: datetime | None = None
     
     @handle_errors("post-initializing context data", default_return=None)
     def __post_init__(self):
@@ -41,13 +41,13 @@ class ContextData:
 class ContextAnalysis:
     """Analysis results from context data"""
     breakfast_rate: float = 0.0
-    avg_mood: Optional[float] = None
-    avg_energy: Optional[float] = None
+    avg_mood: float | None = None
+    avg_energy: float | None = None
     teeth_brushing_rate: float = 0.0
     mood_trend: str = "stable"
     energy_trend: str = "stable"
     overall_wellness_score: float = 0.0
-    insights: Optional[List[str]] = None
+    insights: list[str] | None = None
     
     @handle_errors("post-initializing context analysis", default_return=None)
     def __post_init__(self):
@@ -182,7 +182,7 @@ class ContextBuilder:
             return ContextAnalysis()
     
     @handle_errors("determining trend", default_return="stable")
-    def _determine_trend(self, values: List[float]) -> str:
+    def _determine_trend(self, values: list[float]) -> str:
         """Determine trend from a list of values"""
         try:
             if len(values) < 3:
@@ -207,8 +207,8 @@ class ContextBuilder:
             return "stable"
     
     @handle_errors("calculating wellness score", default_return=0.0)
-    def _calculate_wellness_score(self, breakfast_rate: float, avg_mood: Optional[float], 
-                                 avg_energy: Optional[float], teeth_brushing_rate: float) -> float:
+    def _calculate_wellness_score(self, breakfast_rate: float, avg_mood: float | None, 
+                                 avg_energy: float | None, teeth_brushing_rate: float) -> float:
         """Calculate overall wellness score (0-100)"""
         try:
             score = 0.0
@@ -240,9 +240,9 @@ class ContextBuilder:
             return 0.0
     
     @handle_errors("generating insights", default_return=[])
-    def _generate_insights(self, breakfast_rate: float, avg_mood: Optional[float], 
-                          avg_energy: Optional[float], teeth_brushing_rate: float,
-                          mood_trend: str, energy_trend: str) -> List[str]:
+    def _generate_insights(self, breakfast_rate: float, avg_mood: float | None, 
+                          avg_energy: float | None, teeth_brushing_rate: float,
+                          mood_trend: str, energy_trend: str) -> list[str]:
         """Generate insights from analyzed data"""
         try:
             insights = []

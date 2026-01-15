@@ -16,13 +16,13 @@ class RichFormatter(ABC):
 
     @abstractmethod
     @handle_errors("creating embed", default_return=None)
-    def create_embed(self, message: str, rich_data: Dict[str, Any]) -> Any:
+    def create_embed(self, message: str, rich_data: dict[str, Any]) -> Any:
         """Create a rich embed/card from rich data"""
         pass
 
     @abstractmethod
     @handle_errors("creating interactive view", default_return=None)
-    def create_interactive_view(self, suggestions: List[str]) -> Any:
+    def create_interactive_view(self, suggestions: list[str]) -> Any:
         """Create interactive view with buttons/menus from suggestions"""
         pass
 
@@ -53,7 +53,7 @@ class DiscordRichFormatter(RichFormatter):
             self.discord = None
 
     @handle_errors("creating Discord embed", default_return=None)
-    def create_embed(self, message: str, rich_data: Dict[str, Any]):
+    def create_embed(self, message: str, rich_data: dict[str, Any]):
         """Create a Discord embed from rich data"""
         if not self.discord:
             return None
@@ -99,7 +99,7 @@ class DiscordRichFormatter(RichFormatter):
         return embed
 
     @handle_errors("creating Discord interactive view", default_return=None)
-    def create_interactive_view(self, suggestions: List[str]):
+    def create_interactive_view(self, suggestions: list[str]):
         """Create a Discord view with buttons from suggestions"""
         if not self.discord:
             return None
@@ -149,7 +149,7 @@ class EmailRichFormatter(RichFormatter):
     """Email-specific rich formatting utilities"""
 
     @handle_errors("creating email embed")
-    def create_embed(self, message: str, rich_data: Dict[str, Any]) -> str:
+    def create_embed(self, message: str, rich_data: dict[str, Any]) -> str:
         """Create rich HTML content for email"""
         html = ""
 
@@ -175,7 +175,7 @@ class EmailRichFormatter(RichFormatter):
         return html
 
     @handle_errors("creating email interactive view", default_return="")
-    def create_interactive_view(self, suggestions: List[str]) -> str:
+    def create_interactive_view(self, suggestions: list[str]) -> str:
         """Create HTML buttons for email"""
         try:
             if not suggestions:

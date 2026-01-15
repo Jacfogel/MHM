@@ -17,7 +17,7 @@ class ConversationMessage:
     role: str  # "user" or "assistant"
     content: str
     timestamp: datetime
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
     
     @handle_errors("post-initializing conversation message", default_return=None)
     def __post_init__(self):
@@ -31,9 +31,9 @@ class ConversationSession:
     session_id: str
     user_id: str
     start_time: datetime
-    end_time: Optional[datetime] = None
-    messages: Optional[List[ConversationMessage]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    end_time: datetime | None = None
+    messages: list[ConversationMessage] | None = None
+    metadata: dict[str, Any] | None = None
     
     @handle_errors("post-initializing conversation session", default_return=None)
     def __post_init__(self):
@@ -51,11 +51,11 @@ class ConversationHistory:
         """Initialize the conversation history manager"""
         self.max_sessions_per_user = max_sessions_per_user
         self.max_messages_per_session = max_messages_per_session
-        self._sessions: Dict[str, List[ConversationSession]] = {}  # user_id -> sessions
-        self._active_sessions: Dict[str, ConversationSession] = {}  # user_id -> active session
+        self._sessions: dict[str, list[ConversationSession]] = {}  # user_id -> sessions
+        self._active_sessions: dict[str, ConversationSession] = {}  # user_id -> active session
     
     @handle_errors("starting conversation session", default_return=None)
-    def start_session(self, user_id: str, session_id: Optional[str] = None) -> str:
+    def start_session(self, user_id: str, session_id: str | None = None) -> str:
         """
         Start a new conversation session
         
@@ -123,7 +123,7 @@ class ConversationHistory:
             return False
     
     @handle_errors("adding message to conversation", default_return=False)
-    def add_message(self, user_id: str, role: str, content: str, metadata: Dict[str, Any] = None) -> bool:
+    def add_message(self, user_id: str, role: str, content: str, metadata: dict[str, Any] = None) -> bool:
         """
         Add a message to the active conversation session
         
@@ -172,8 +172,8 @@ class ConversationHistory:
             return False
     
     @handle_errors("getting conversation history", default_return=[])
-    def get_history(self, user_id: str, limit: Optional[int] = None, 
-                   include_metadata: bool = False) -> List[Dict[str, Any]]:
+    def get_history(self, user_id: str, limit: int | None = None, 
+                   include_metadata: bool = False) -> list[dict[str, Any]]:
         """
         Get conversation history for a user
         
@@ -222,7 +222,7 @@ class ConversationHistory:
             return []
     
     @handle_errors("getting recent messages", default_return=[])
-    def get_recent_messages(self, user_id: str, count: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_messages(self, user_id: str, count: int = 10) -> list[dict[str, Any]]:
         """
         Get recent conversation messages for a user
         
@@ -236,7 +236,7 @@ class ConversationHistory:
         return self.get_history(user_id, limit=count)
     
     @handle_errors("getting active session", default_return=None)
-    def get_active_session(self, user_id: str) -> Optional[ConversationSession]:
+    def get_active_session(self, user_id: str) -> ConversationSession | None:
         """
         Get the active conversation session for a user
         
@@ -249,7 +249,7 @@ class ConversationHistory:
         return self._active_sessions.get(user_id)
     
     @handle_errors("getting session messages", default_return=[])
-    def get_session_messages(self, user_id: str, session_id: str) -> List[ConversationMessage]:
+    def get_session_messages(self, user_id: str, session_id: str) -> list[ConversationMessage]:
         """
         Get all messages from a specific session
         
@@ -335,7 +335,7 @@ class ConversationHistory:
             return False
     
     @handle_errors("getting conversation summary", default_return="")
-    def get_conversation_summary(self, user_id: str, session_id: Optional[str] = None) -> str:
+    def get_conversation_summary(self, user_id: str, session_id: str | None = None) -> str:
         """
         Get a summary of conversation history
         
@@ -396,7 +396,7 @@ class ConversationHistory:
             logger.debug(f"Cleaned up {sessions_to_remove} old sessions for user {user_id}")
     
     @handle_errors("getting conversation statistics", default_return={})
-    def get_statistics(self, user_id: str) -> Dict[str, Any]:
+    def get_statistics(self, user_id: str) -> dict[str, Any]:
         """
         Get conversation statistics for a user
         

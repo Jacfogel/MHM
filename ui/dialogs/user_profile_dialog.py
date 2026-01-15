@@ -52,8 +52,8 @@ class UserProfileDialog(QDialog):
         self,
         parent,
         user_id: str,
-        on_save: Optional[Callable] = None,
-        existing_data: Optional[Dict[str, Any]] = None,
+        on_save: Callable | None = None,
+        existing_data: dict[str, Any] | None = None,
     ):
         """Initialize the object."""
         super().__init__(parent)
@@ -556,8 +556,8 @@ class UserProfileDialog(QDialog):
 def open_personalization_dialog(
     parent,
     user_id: str,
-    on_save: Optional[Callable] = None,
-    existing_data: Optional[Dict[str, Any]] = None,
+    on_save: Callable | None = None,
+    existing_data: dict[str, Any] | None = None,
 ):
     """
     Open the personalization dialog.

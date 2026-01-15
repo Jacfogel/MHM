@@ -341,7 +341,7 @@ def monitor_resources():
 
 
 @handle_errors("checking resource warnings", user_friendly=False, default_return=False)
-def check_resource_warnings(resources: Dict) -> bool:
+def check_resource_warnings(resources: dict) -> bool:
     """Check if resources exceed warning thresholds."""
     if not resources or not _resource_warnings_enabled:
         return False
@@ -393,7 +393,7 @@ def check_resource_warnings(resources: Dict) -> bool:
 @handle_errors(
     "checking critical resource limits", user_friendly=False, default_return=False
 )
-def check_critical_resources(resources: Dict) -> bool:
+def check_critical_resources(resources: dict) -> bool:
     """Check if resources exceed critical thresholds requiring termination."""
     global _critical_memory_limit, _auto_terminate_enabled
 
@@ -421,7 +421,7 @@ def check_critical_resources(resources: Dict) -> bool:
         "deselected": 0,
     },
 )
-def extract_results_from_output(output_text: str) -> Dict[str, int]:
+def extract_results_from_output(output_text: str) -> dict[str, int]:
     """Extract test results from pytest output text when JUnit XML is unavailable."""
     results = {
         "passed": 0,
@@ -473,7 +473,7 @@ def extract_results_from_output(output_text: str) -> Dict[str, int]:
 
 
 @handle_errors("extracting pytest session info", user_friendly=False, default_return={})
-def extract_pytest_session_info(output_text: str) -> Dict:
+def extract_pytest_session_info(output_text: str) -> dict:
     """Extract pytest session information from output text."""
     session_info = {}
     if not output_text:
@@ -523,7 +523,7 @@ def save_partial_results(
     junit_xml_path: str,
     interrupted: bool = False,
     output_text: str = None,
-    test_context: Dict = None,
+    test_context: dict = None,
 ):
     """Save partial test results from JUnit XML, falling back to output text parsing."""
     global _captured_output_lines
@@ -654,7 +654,7 @@ def detect_stuck_process(
 @handle_errors(
     "extracting failure details from JUnit XML", user_friendly=False, default_return=[]
 )
-def extract_failures_from_junit_xml(xml_path: str) -> List[Dict[str, str]]:
+def extract_failures_from_junit_xml(xml_path: str) -> list[dict[str, str]]:
     """
     Extract detailed failure information from JUnit XML.
 
@@ -719,7 +719,7 @@ def extract_failures_from_junit_xml(xml_path: str) -> List[Dict[str, str]]:
         "deselected": 0,
     },
 )
-def parse_junit_xml(xml_path: str) -> Dict[str, int]:
+def parse_junit_xml(xml_path: str) -> dict[str, int]:
     """
     Parse JUnit XML report to extract test statistics.
 
@@ -795,7 +795,7 @@ def run_command(
     description,
     progress_interval: int = 30,
     capture_output: bool = True,
-    test_context: Dict = None,
+    test_context: dict = None,
 ):
     """
     Run a command and return results with periodic progress logs.
@@ -1384,8 +1384,8 @@ def setup_test_logger():
 
 @handle_errors("printing combined test summary", default_return=None)
 def print_combined_summary(
-    parallel_results: Optional[Dict],
-    no_parallel_results: Optional[Dict],
+    parallel_results: dict | None,
+    no_parallel_results: dict | None,
     description: str,
 ):
     """

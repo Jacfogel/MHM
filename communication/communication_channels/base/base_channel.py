@@ -31,7 +31,7 @@ class ChannelConfig:
     retry_delay: float = 1.0
     backoff_multiplier: float = 2.0
     timeout: float = 30.0
-    custom_settings: Optional[Dict[str, Any]] = None
+    custom_settings: dict[str, Any] | None = None
 
     @handle_errors("post-initializing channel config")
     def __post_init__(self):
@@ -56,7 +56,7 @@ class BaseChannel(ABC):
         try:
             self.config = config
             self.status = ChannelStatus.UNINITIALIZED
-            self.error_message: Optional[str] = None
+            self.error_message: str | None = None
             # Standardize: route channel instance logs to the component logger named by config.name
             try:
                 self.logger = get_component_logger(self.config.name)
@@ -96,7 +96,7 @@ class BaseChannel(ABC):
 
     @abstractmethod
     @handle_errors("receiving messages", default_return=[])
-    async def receive_messages(self) -> List[Dict[str, Any]]:
+    async def receive_messages(self) -> list[dict[str, Any]]:
         """Receive messages. Returns list of message dictionaries."""
         pass
 
@@ -117,12 +117,12 @@ class BaseChannel(ABC):
         return self.status
 
     @handle_errors("getting channel error", default_return=None)
-    def get_error(self) -> Optional[str]:
+    def get_error(self) -> str | None:
         """Get last error message"""
         return self.error_message
 
     @handle_errors("setting channel status")
-    def _set_status(self, status: ChannelStatus, error_message: Optional[str] = None):
+    def _set_status(self, status: ChannelStatus, error_message: str | None = None):
         """Internal method to update status"""
         self.status = status
         self.error_message = error_message

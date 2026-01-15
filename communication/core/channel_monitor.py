@@ -28,7 +28,7 @@ class ChannelMonitor:
         self._channels_dict = {}  # Reference to channels for monitoring
         
     @handle_errors("setting channels for monitoring", default_return=None)
-    def set_channels(self, channels_dict: Dict[str, BaseChannel]):
+    def set_channels(self, channels_dict: dict[str, BaseChannel]):
         """Set the channels dictionary for monitoring"""
         try:
             self._channels_dict = channels_dict
@@ -158,7 +158,7 @@ class ChannelMonitor:
             raise
 
     @handle_errors("getting channel health status", user_friendly=False, default_return={})
-    def get_channel_health_status(self) -> Dict[str, Any]:
+    def get_channel_health_status(self) -> dict[str, Any]:
         """Get health status for all monitored channels"""
         status = {}
         for channel_name, channel in self._channels_dict.items():
@@ -191,7 +191,7 @@ class ChannelMonitor:
         return status
 
     @handle_errors("resetting channel failures", default_return=None)
-    def reset_channel_failures(self, channel_name: Optional[str] = None):
+    def reset_channel_failures(self, channel_name: str | None = None):
         """Reset failure counts for a specific channel or all channels"""
         try:
             if channel_name:

@@ -50,7 +50,7 @@ class AIResponseValidator:
     ]
     
     @classmethod
-    def validate_response(cls, response: str, prompt: str = "", test_type: str = "", context_info: Optional[Dict] = None) -> Dict[str, any]:
+    def validate_response(cls, response: str, prompt: str = "", test_type: str = "", context_info: dict | None = None) -> dict[str, any]:
         """
         Validate an AI response for quality issues.
         
@@ -168,7 +168,7 @@ class AIResponseValidator:
         }
     
     @classmethod
-    def _check_meta_text(cls, response: str) -> List[str]:
+    def _check_meta_text(cls, response: str) -> list[str]:
         """Check for meta-text patterns in response"""
         issues = []
         
@@ -179,7 +179,7 @@ class AIResponseValidator:
         return issues
     
     @classmethod
-    def _check_code_fragments(cls, response: str) -> List[str]:
+    def _check_code_fragments(cls, response: str) -> list[str]:
         """Check for code fragments in response (for chat/contextual modes)"""
         issues = []
         
@@ -190,7 +190,7 @@ class AIResponseValidator:
         return issues
     
     @classmethod
-    def _check_code_fragments_in_command(cls, response: str) -> List[str]:
+    def _check_code_fragments_in_command(cls, response: str) -> list[str]:
         """Check for code fragments in command mode responses (should be clean JSON)"""
         issues = []
         
@@ -212,7 +212,7 @@ class AIResponseValidator:
         return issues
     
     @classmethod
-    def _check_suspicious_patterns(cls, response: str) -> List[str]:
+    def _check_suspicious_patterns(cls, response: str) -> list[str]:
         """Check for suspicious patterns that might indicate issues"""
         warnings = []
         
@@ -231,7 +231,7 @@ class AIResponseValidator:
         return False
     
     @classmethod
-    def _check_truncation(cls, response: str, prompt: str) -> List[str]:
+    def _check_truncation(cls, response: str, prompt: str) -> list[str]:
         """Check if response appears to be unexpectedly truncated"""
         issues = []
         
@@ -260,7 +260,7 @@ class AIResponseValidator:
         return issues
     
     @classmethod
-    def _check_inappropriate_assumptions(cls, response: str, prompt: str, test_type: str) -> List[str]:
+    def _check_inappropriate_assumptions(cls, response: str, prompt: str, test_type: str) -> list[str]:
         """Check if response makes inappropriate assumptions about check-ins, tasks, etc."""
         issues = []
         
@@ -280,7 +280,7 @@ class AIResponseValidator:
         return issues
     
     @classmethod
-    def _check_past_dates(cls, response: str) -> List[str]:
+    def _check_past_dates(cls, response: str) -> list[str]:
         """Check for past dates in task creation responses"""
         issues = []
         
@@ -328,7 +328,7 @@ class AIResponseValidator:
         return issues
     
     @classmethod
-    def _check_response_appropriateness(cls, response: str, prompt: str, test_type: str) -> List[str]:
+    def _check_response_appropriateness(cls, response: str, prompt: str, test_type: str) -> list[str]:
         """Check if response is appropriate in length and topic - also validates prompt-response matching"""
         issues = []
         
@@ -452,7 +452,7 @@ class AIResponseValidator:
         return issues
     
     @classmethod
-    def _check_missing_context_handling(cls, response: str, prompt: str) -> List[str]:
+    def _check_missing_context_handling(cls, response: str, prompt: str) -> list[str]:
         """Check quality of responses when context is missing"""
         issues = []
         
@@ -483,7 +483,7 @@ class AIResponseValidator:
         return issues
     
     @classmethod
-    def _check_role_reversal(cls, response: str, prompt: str) -> List[str]:
+    def _check_role_reversal(cls, response: str, prompt: str) -> list[str]:
         """Check if AI responded as though the user was the AI (role reversal)"""
         issues = []
         
@@ -512,7 +512,7 @@ class AIResponseValidator:
         return issues
     
     @classmethod
-    def _check_fabricated_checkin_data(cls, response: str, prompt: str, context_info: Optional[Dict] = None) -> List[str]:
+    def _check_fabricated_checkin_data(cls, response: str, prompt: str, context_info: dict | None = None) -> list[str]:
         """Check for fabricated check-in data (statistics/details when no check-in data exists)"""
         issues = []
         
@@ -557,7 +557,7 @@ class AIResponseValidator:
         return issues
     
     @classmethod
-    def _check_self_contradictions(cls, response: str, prompt: str) -> List[str]:
+    def _check_self_contradictions(cls, response: str, prompt: str) -> list[str]:
         """Check for self-contradictions (claims X but provides data showing NOT X)"""
         issues = []
         
@@ -627,7 +627,7 @@ class AIResponseValidator:
         return issues
     
     @classmethod
-    def review_response(cls, response: str, prompt: str, test_name: str, test_type: str = "", context_info: Optional[Dict] = None) -> Tuple[str, List[str], List[str]]:
+    def review_response(cls, response: str, prompt: str, test_name: str, test_type: str = "", context_info: dict | None = None) -> tuple[str, list[str], list[str]]:
         """
         Review a response and return status, issues, and warnings.
         

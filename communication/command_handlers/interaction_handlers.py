@@ -11,7 +11,7 @@ all communication channels (Discord, email, etc.).
 from typing import Dict, List, Optional, Any
 
 # Pending confirmations (simple in-memory store)
-PENDING_DELETIONS: Dict[str, str] = {}
+PENDING_DELETIONS: dict[str, str] = {}
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
@@ -69,7 +69,7 @@ class HelpHandler(InteractionHandler):
         default_return=InteractionResponse("Error providing help", False),
     )
     def _handle_general_help(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle general help request"""
         topic = entities.get("topic", "general")
@@ -219,7 +219,7 @@ class HelpHandler(InteractionHandler):
         default_return=InteractionResponse("Error providing examples", False),
     )
     def _handle_examples(
-        self, user_id: str, entities: Dict[str, Any]
+        self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle examples request"""
         category = entities.get("category", "general")
@@ -426,7 +426,7 @@ class HelpHandler(InteractionHandler):
         return "Get help and see available commands"
 
     @handle_errors("getting help examples", default_return=[])
-    def get_examples(self) -> List[str]:
+    def get_examples(self) -> list[str]:
         """Get example commands for help."""
         return [
             "help",
@@ -452,7 +452,7 @@ INTERACTION_HANDLERS = {
 
 
 @handle_errors("getting interaction handler", default_return=None)
-def get_interaction_handler(intent: str) -> Optional[InteractionHandler]:
+def get_interaction_handler(intent: str) -> InteractionHandler | None:
     """Get the appropriate handler for an intent"""
     # Lazy import handlers to avoid circular imports
     if INTERACTION_HANDLERS["TaskManagementHandler"] is None:
@@ -536,7 +536,7 @@ def get_interaction_handler(intent: str) -> Optional[InteractionHandler]:
 
 
 @handle_errors("getting all handlers", default_return={})
-def get_all_handlers() -> Dict[str, InteractionHandler]:
+def get_all_handlers() -> dict[str, InteractionHandler]:
     """Get all registered handlers"""
     # Ensure handlers are loaded
     if INTERACTION_HANDLERS["TaskManagementHandler"] is None:

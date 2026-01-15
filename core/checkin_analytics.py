@@ -29,7 +29,7 @@ class CheckinAnalytics:
         pass
 
     @handle_errors("analyzing mood trends", default_return={"error": "Analysis failed"})
-    def get_mood_trends(self, user_id: str, days: int = 30) -> Dict:
+    def get_mood_trends(self, user_id: str, days: int = 30) -> dict:
         """Analyze mood trends over the specified period"""
         checkins = get_checkins_by_days(user_id, days)
         if not checkins:
@@ -104,7 +104,7 @@ class CheckinAnalytics:
     @handle_errors(
         "analyzing energy trends", default_return={"error": "Analysis failed"}
     )
-    def get_energy_trends(self, user_id: str, days: int = 30) -> Dict:
+    def get_energy_trends(self, user_id: str, days: int = 30) -> dict:
         """Analyze energy trends over the specified period"""
         checkins = get_checkins_by_days(user_id, days)
         if not checkins:
@@ -177,7 +177,7 @@ class CheckinAnalytics:
         }
 
     @handle_errors("analyzing habits", default_return={"error": "Analysis failed"})
-    def get_habit_analysis(self, user_id: str, days: int = 30) -> Dict:
+    def get_habit_analysis(self, user_id: str, days: int = 30) -> dict:
         """Analyze habit patterns from check-in data"""
         checkins = get_checkins_by_days(user_id, days)
         if not checkins:
@@ -222,7 +222,7 @@ class CheckinAnalytics:
         }
 
     @handle_errors("analyzing sleep", default_return={"error": "Analysis failed"})
-    def get_sleep_analysis(self, user_id: str, days: int = 30) -> Dict:
+    def get_sleep_analysis(self, user_id: str, days: int = 30) -> dict:
         """Analyze sleep patterns from check-in data"""
         checkins = get_checkins_by_days(user_id, days)
         if not checkins:
@@ -315,7 +315,7 @@ class CheckinAnalytics:
     @handle_errors(
         "calculating wellness score", default_return={"error": "Calculation failed"}
     )
-    def get_wellness_score(self, user_id: str, days: int = 7) -> Dict:
+    def get_wellness_score(self, user_id: str, days: int = 7) -> dict:
         """Calculate overall wellness score from check-in data"""
         checkins = get_checkins_by_days(user_id, days)
         if not checkins:
@@ -364,7 +364,7 @@ class CheckinAnalytics:
     @handle_errors(
         "getting check-in history", default_return={"error": "History retrieval failed"}
     )
-    def get_checkin_history(self, user_id: str, days: int = 30) -> List[Dict]:
+    def get_checkin_history(self, user_id: str, days: int = 30) -> list[dict]:
         """Get check-in history with proper date formatting"""
         checkins = get_checkins_by_days(user_id, days)
         if not checkins:
@@ -408,7 +408,7 @@ class CheckinAnalytics:
     @handle_errors(
         "detecting available data types", default_return={"error": "Detection failed"}
     )
-    def get_available_data_types(self, user_id: str, days: int = 30) -> Dict:
+    def get_available_data_types(self, user_id: str, days: int = 30) -> dict:
         """Detect what types of data are available for analytics"""
         checkins = get_checkins_by_days(user_id, days)
         if not checkins:
@@ -466,8 +466,8 @@ class CheckinAnalytics:
         "computing quantitative summaries", default_return={"error": "Analysis failed"}
     )
     def get_quantitative_summaries(
-        self, user_id: str, days: int = 30, enabled_fields: Optional[List[str]] = None
-    ) -> Dict[str, Dict[str, float]]:
+        self, user_id: str, days: int = 30, enabled_fields: list[str] | None = None
+    ) -> dict[str, dict[str, float]]:
         """Compute per-field averages and ranges for opted-in quantitative fields.
 
         Parameters:
@@ -555,9 +555,9 @@ class CheckinAnalytics:
         else:
             fields = candidate_fields
 
-        summaries: Dict[str, Dict[str, float]] = {}
+        summaries: dict[str, dict[str, float]] = {}
         for field in fields:
-            values: List[float] = []
+            values: list[float] = []
             for c in checkins:
                 if field in c:
                     try:
@@ -705,7 +705,7 @@ class CheckinAnalytics:
     @handle_errors(
         "calculating completion rate", default_return={"error": "Calculation failed"}
     )
-    def get_completion_rate(self, user_id: str, days: int = 30) -> Dict:
+    def get_completion_rate(self, user_id: str, days: int = 30) -> dict:
         """Calculate overall completion rate for check-ins"""
         checkins = get_checkins_by_days(user_id, days)
         if not checkins:
@@ -730,7 +730,7 @@ class CheckinAnalytics:
     @handle_errors(
         "calculating task weekly stats", default_return={"error": "Calculation failed"}
     )
-    def get_task_weekly_stats(self, user_id: str, days: int = 7) -> Dict:
+    def get_task_weekly_stats(self, user_id: str, days: int = 7) -> dict:
         """Calculate weekly statistics for tasks"""
         checkins = get_checkins_by_days(user_id, days)
         if not checkins:
@@ -768,7 +768,7 @@ class CheckinAnalytics:
     @handle_errors(
         "calculating mood distribution", default_return={1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
     )
-    def _get_mood_distribution(self, moods: List[int]) -> Dict:
+    def _get_mood_distribution(self, moods: list[int]) -> dict:
         """Calculate distribution of mood scores"""
         distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         for mood in moods:
@@ -779,7 +779,7 @@ class CheckinAnalytics:
     @handle_errors(
         "calculating energy distribution", default_return={1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
     )
-    def _get_energy_distribution(self, energies: List[int]) -> Dict:
+    def _get_energy_distribution(self, energies: list[int]) -> dict:
         """Calculate distribution of energy scores"""
         distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         for energy in energies:
@@ -788,7 +788,7 @@ class CheckinAnalytics:
         return distribution
 
     @handle_errors("calculating habit streak", default_return={"current": 0, "best": 0})
-    def _calculate_streak(self, checkins: List[Dict], habit_key: str) -> Dict:
+    def _calculate_streak(self, checkins: list[dict], habit_key: str) -> dict:
         """Calculate current and best streaks for a habit"""
         current_streak = 0
         best_streak = 0
@@ -823,7 +823,7 @@ class CheckinAnalytics:
             return "Needs Improvement"
 
     @handle_errors("calculating overall completion", default_return=0.0)
-    def _calculate_overall_completion(self, habit_stats: Dict) -> float:
+    def _calculate_overall_completion(self, habit_stats: dict) -> float:
         """Calculate overall habit completion rate"""
         if not habit_stats:
             return 0
@@ -832,7 +832,7 @@ class CheckinAnalytics:
         return round(total_rate / len(habit_stats), 1)
 
     @handle_errors("calculating sleep consistency", default_return=0.0)
-    def _calculate_sleep_consistency(self, hours: List[float]) -> float:
+    def _calculate_sleep_consistency(self, hours: list[float]) -> float:
         """Calculate sleep consistency (lower variance = more consistent)"""
         if len(hours) < 2:
             return 100
@@ -845,7 +845,7 @@ class CheckinAnalytics:
     @handle_errors("generating sleep recommendations", default_return=[])
     def _get_sleep_recommendations(
         self, avg_hours: float, avg_quality: float, poor_days: int
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate sleep recommendations"""
         recommendations = []
 
@@ -907,7 +907,7 @@ class CheckinAnalytics:
         return (score_5 - 1) * 25
 
     @handle_errors("calculating mood score", default_return=50.0)
-    def _calculate_mood_score(self, checkins: List[Dict]) -> float:
+    def _calculate_mood_score(self, checkins: list[dict]) -> float:
         """Calculate mood score (0-100)"""
         moods = [c.get("mood", 3) for c in checkins if "mood" in c]
         if not moods:
@@ -918,7 +918,7 @@ class CheckinAnalytics:
         return self.convert_score_5_to_100(avg_mood)
 
     @handle_errors("calculating energy score", default_return=50.0)
-    def _calculate_energy_score(self, checkins: List[Dict]) -> float:
+    def _calculate_energy_score(self, checkins: list[dict]) -> float:
         """Calculate energy score (0-100)"""
         energies = [c.get("energy", 3) for c in checkins if "energy" in c]
         if not energies:
@@ -929,7 +929,7 @@ class CheckinAnalytics:
         return self.convert_score_5_to_100(avg_energy)
 
     @handle_errors("calculating habit score", default_return=50.0)
-    def _calculate_habit_score(self, checkins: List[Dict]) -> float:
+    def _calculate_habit_score(self, checkins: list[dict]) -> float:
         """Calculate habit score (0-100)"""
         habits = [
             "ate_breakfast",
@@ -956,7 +956,7 @@ class CheckinAnalytics:
     @handle_errors("calculating sleep duration", default_return=None)
     def _calculate_sleep_duration(
         self, sleep_time: str, wake_time: str
-    ) -> Optional[float]:
+    ) -> float | None:
         """Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format)."""
         try:
             from datetime import datetime, timedelta
@@ -979,7 +979,7 @@ class CheckinAnalytics:
             return None
 
     @handle_errors("calculating sleep score", default_return=50.0)
-    def _calculate_sleep_score(self, checkins: List[Dict]) -> float:
+    def _calculate_sleep_score(self, checkins: list[dict]) -> float:
         """Calculate sleep score (0-100)"""
         sleep_records = []
         for checkin in checkins:
@@ -1042,7 +1042,7 @@ class CheckinAnalytics:
         energy_score: float,
         habit_score: float,
         sleep_score: float,
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate wellness recommendations based on component scores"""
         recommendations = []
 
