@@ -4,23 +4,20 @@ from typing import Dict, Any, Optional, Callable
 from pathlib import Path
 
 # PySide6 imports
-from PySide6.QtWidgets import (
-    QDialog, QMessageBox
-)
+from PySide6.QtWidgets import QDialog, QMessageBox
 
 # Set up logging
 from core.logger import setup_logging, get_component_logger
+
 setup_logging()
-logger = get_component_logger('ui')
+logger = get_component_logger("ui")
 dialog_logger = logger
 
 # Import core functionality
-from core.schedule_management import (
-    clear_schedule_periods_cache,
-    set_schedule_periods
-)
+from core.schedule_management import clear_schedule_periods_cache, set_schedule_periods
 from core.ui_management import (
-    load_period_widgets_for_category, collect_period_data_from_widgets
+    load_period_widgets_for_category,
+    collect_period_data_from_widgets,
 )
 from core.error_handling import handle_errors
 from core.user_data_validation import _shared__title_case, validate_schedule_periods
@@ -32,21 +29,27 @@ from ui.generated.schedule_editor_dialog_pyqt import Ui_Dialog_edit_schedule
 
 class ScheduleEditorDialog(QDialog):
     """Dialog for editing schedules."""
-    
+
     @handle_errors("initializing schedule editor dialog")
-    def __init__(self, parent=None, user_id=None, category=None, on_save: Optional[Callable] = None):
+    def __init__(
+        self,
+        parent=None,
+        user_id=None,
+        category=None,
+        on_save: Optional[Callable] = None,
+    ):
         """Initialize the object."""
         try:
             super().__init__(parent)
             self.user_id = user_id
             self.category = category
             self.on_save = on_save
-            
+
             # Initialize data structures
             self.period_widgets = []  # Keep list of widgets like other dialogs
             self.deleted_periods = []  # For undo functionality
             self.creation_counter = 0  # Track creation order for sorting
-            
+
             # Setup window
             self.setWindowTitle(f"Edit Schedule - {category.title()}")
             self.setMinimumHeight(400)
@@ -56,22 +59,22 @@ class ScheduleEditorDialog(QDialog):
             # Set up UI using generated class
             self.ui = Ui_Dialog_edit_schedule()
             self.ui.setupUi(self)
-            
+
             # Get the layout for period rows inside the scroll area
             self.periods_layout = self.ui.verticalLayout_3
-            
+
             # Setup functionality
             self.setup_functionality()
-            
+
             # Load existing data
             self.load_existing_data()
-            
+
             # Center the dialog
             self.center_dialog()
         except Exception as e:
             logger.error(f"Error initializing schedule editor dialog: {e}")
             raise
-    
+
     @handle_errors("centering dialog", default_return=None)
     def center_dialog(self):
         """Center the dialog on the parent window."""
@@ -80,24 +83,28 @@ class ScheduleEditorDialog(QDialog):
             x = parent_geometry.x() + (parent_geometry.width() - self.width()) // 2
             y = parent_geometry.y() + (parent_geometry.height() - self.height()) // 2
             self.move(x, y)
-    
+
     @handle_errors("setting up functionality", default_return=None)
     def setup_functionality(self):
         """Setup the functionality and connect signals."""
         # Connect buttons
         self.ui.pushButton_add_new_period.clicked.connect(lambda: self.add_new_period())
-        self.ui.pushButton_undo_last__time_period_delete.clicked.connect(self.undo_last_delete)
-        
+        self.ui.pushButton_undo_last__time_period_delete.clicked.connect(
+            self.undo_last_delete
+        )
+
         # Connect dialog buttons
         self.ui.buttonBox_save_cancel.accepted.connect(self.handle_save)
         self.ui.buttonBox_save_cancel.rejected.connect(self.cancel)
-        
+
         # Update title
-        self.ui.label_EditSchedule.setText(f"Edit Schedule - {_shared__title_case(self.category)}")
-        
+        self.ui.label_EditSchedule.setText(
+            f"Edit Schedule - {_shared__title_case(self.category)}"
+        )
+
         # Update group box title
         self.ui.groupBox_time_periods.setTitle("Time Periods")
-    
+
     @handle_errors("loading existing data", default_return=None)
     def load_existing_data(self):
         """Load existing schedule data using the new reusable function."""
@@ -109,24 +116,26 @@ class ScheduleEditorDialog(QDialog):
                 category=self.category,
                 parent_widget=self,
                 widget_list=self.period_widgets,
-                delete_callback=self.remove_period_row
+                delete_callback=self.remove_period_row,
             )
-            
+
             # Assign creation order to existing widgets (older first)
             for i, widget in enumerate(self.period_widgets):
                 widget.creation_order = i
             self.creation_counter = len(self.period_widgets)
-            
+
         except Exception as e:
-            logger.error(f"Error loading schedule data for user {self.user_id}, category {self.category}: {e}")
-    
+            logger.error(
+                f"Error loading schedule data for user {self.user_id}, category {self.category}: {e}"
+            )
+
     @handle_errors("adding new period", default_return=None)
     def add_new_period(self, period_name=None, period_data=None):
         """Add a new period row using the PeriodRowWidget."""
         if period_name is None:
             # Use descriptive name for default periods (title case for consistency)
             # Replace underscores with spaces before applying title case
-            category_display = self.category.replace('_', ' ').title()
+            category_display = self.category.replace("_", " ").title()
             if len(self.period_widgets) == 0:
                 period_name = f"{category_display} Message Default"
             else:
@@ -134,24 +143,29 @@ class ScheduleEditorDialog(QDialog):
                 next_number = self.find_lowest_available_period_number()
                 period_name = f"{category_display} Message {next_number}"
         if period_data is None:
-            period_data = {'start_time': '18:00', 'end_time': '20:00', 'active': True, 'days': ['ALL']}
-        
+            period_data = {
+                "start_time": "18:00",
+                "end_time": "20:00",
+                "active": True,
+                "days": ["ALL"],
+            }
+
         # Create the period row widget
         period_widget = PeriodRowWidget(self, period_name, period_data)
-        
+
         # Connect the delete signal
         period_widget.delete_requested.connect(self.remove_period_row)
-        
+
         # Assign creation order for sorting
         period_widget.creation_order = self.creation_counter
         self.creation_counter += 1
-        
+
         # Store reference first
         self.period_widgets.append(period_widget)
-        
+
         # Re-sort the layout to maintain proper order (ALL at bottom)
         self.resort_period_widgets()
-        
+
         return period_widget
 
     @handle_errors("resorting period widgets", default_return=None)
@@ -162,16 +176,16 @@ class ScheduleEditorDialog(QDialog):
             item = self.periods_layout.takeAt(0)
             if item.widget():
                 item.widget().setParent(None)
-        
+
         # Sort widgets: ALL periods at bottom, others by creation order (newest at end, before ALL)
         # ERROR_HANDLING_EXCLUDE: Simple nested helper function for sorting
         def sort_key(widget):
             """
             Generate a sort key for period widgets.
-            
+
             Args:
                 widget: PeriodRowWidget instance to generate sort key for
-            
+
             Returns:
                 Tuple of (priority, sort_value) where priority determines position
                 (ALL periods get highest priority to appear last)
@@ -181,11 +195,14 @@ class ScheduleEditorDialog(QDialog):
                 return (999999, period_name)  # Put ALL at the end
             else:
                 # For non-ALL periods, use creation order (newer periods at end, before ALL)
-                creation_order = getattr(widget, 'creation_order', 0)
-                return (0, creation_order)  # Positive so newer (higher numbers) come last
-        
+                creation_order = getattr(widget, "creation_order", 0)
+                return (
+                    0,
+                    creation_order,
+                )  # Positive so newer (higher numbers) come last
+
         sorted_widgets = sorted(self.period_widgets, key=sort_key)
-        
+
         # Add widgets back to layout in sorted order
         for widget in sorted_widgets:
             self.periods_layout.addWidget(widget)
@@ -199,10 +216,11 @@ class ScheduleEditorDialog(QDialog):
                 period_name = widget.get_period_name()
                 # Extract number from period name (e.g., "Category Message 2" -> 2)
                 import re
-                match = re.search(r'Message\s+(\d+)$', period_name)
+
+                match = re.search(r"Message\s+(\d+)$", period_name)
                 if match:
                     used_numbers.add(int(match.group(1)))
-            
+
             # Find the lowest available number starting from 2
             number = 2
             while number in used_numbers:
@@ -219,37 +237,41 @@ class ScheduleEditorDialog(QDialog):
             # Prevent deletion of "ALL" periods for category messages
             if isinstance(row_widget, PeriodRowWidget):
                 period_name = row_widget.get_period_name()
-                if period_name.upper() == "ALL" and self.category not in ("tasks", "checkin"):
+                if period_name.upper() == "ALL" and self.category not in (
+                    "tasks",
+                    "checkin",
+                ):
                     from PySide6.QtWidgets import QMessageBox
+
                     QMessageBox.information(
                         self,
                         "Cannot Delete ALL Period",
-                        "The 'ALL' period cannot be deleted as it is a system-managed period that ensures messages can always be sent."
+                        "The 'ALL' period cannot be deleted as it is a system-managed period that ensures messages can always be sent.",
                     )
                     return
-            
+
             # Store the deleted period data for undo
             if isinstance(row_widget, PeriodRowWidget):
                 period_data = row_widget.get_period_data()
                 deleted_data = {
-                    'period_name': period_data['name'],
-                    'start_time': period_data['start_time'],
-                    'end_time': period_data['end_time'],
-                    'active': period_data['active'],
-                    'days': period_data['days']
+                    "period_name": period_data["name"],
+                    "start_time": period_data["start_time"],
+                    "end_time": period_data["end_time"],
+                    "active": period_data["active"],
+                    "days": period_data["days"],
                 }
                 self.deleted_periods.append(deleted_data)
-            
+
             self.periods_layout.removeWidget(row_widget)
             row_widget.setParent(None)
             row_widget.deleteLater()
-            
+
             if row_widget in self.period_widgets:
                 self.period_widgets.remove(row_widget)
         except Exception as e:
             logger.error(f"Error removing period row: {e}")
             raise
-    
+
     @handle_errors("undoing last delete")
     def undo_last_delete(self):
         """Undo the last deletion."""
@@ -257,24 +279,24 @@ class ScheduleEditorDialog(QDialog):
             if not self.deleted_periods:
                 QMessageBox.information(self, "No Deletions", "No deletions to undo.")
                 return
-            
+
             # Get the last deleted period
             deleted_data = self.deleted_periods.pop()
-            
+
             # Recreate the period
             period_data = {
-                'start_time': deleted_data['start_time'],
-                'end_time': deleted_data['end_time'],
-                'active': deleted_data['active'],
-                'days': deleted_data.get('days', ['ALL'])
+                "start_time": deleted_data["start_time"],
+                "end_time": deleted_data["end_time"],
+                "active": deleted_data["active"],
+                "days": deleted_data.get("days", ["ALL"]),
             }
-            
+
             # Add it back to the grid
-            self.add_new_period(deleted_data['period_name'], period_data)
+            self.add_new_period(deleted_data["period_name"], period_data)
         except Exception as e:
             logger.error(f"Error undoing last delete: {e}")
             raise
-    
+
     @handle_errors("collecting period data", default_return={})
     def collect_period_data(self) -> Dict[str, Any]:
         """Collect period data using the new reusable function."""
@@ -283,7 +305,7 @@ class ScheduleEditorDialog(QDialog):
         except Exception as e:
             logger.error(f"Error collecting period data: {e}")
             return {}
-    
+
     @handle_errors("handling save")
     def handle_save(self):
         """Handle save button click - prevents dialog closure on validation errors."""
@@ -294,14 +316,14 @@ class ScheduleEditorDialog(QDialog):
         except Exception as e:
             logger.error(f"Error handling save: {e}")
             raise
-    
+
     @handle_errors("saving schedule", default_return=False)
     def save_schedule(self):
         """Save the schedule data."""
         try:
             # Collect data from UI
             periods = self.collect_period_data()
-            
+
             # Validate periods using centralized validation
             is_valid, errors = validate_schedule_periods(periods, self.category)
             if not is_valid:
@@ -310,29 +332,31 @@ class ScheduleEditorDialog(QDialog):
                     self,
                     "Schedule Validation",
                     f"Please fix the following issue before saving:\n\n{errors[0]}\n\n"
-                    "The dialog will remain open so you can make corrections."
+                    "The dialog will remain open so you can make corrections.",
                 )
                 # Ensure dialog stays active
                 self.raise_()
                 self.activateWindow()
                 return False
-            
+
             # Save the schedule
             set_schedule_periods(self.user_id, self.category, periods)
-            
+
             # Clear cache
             clear_schedule_periods_cache(self.user_id, self.category)
-            
+
             # Trigger rescheduling for this user and category
             self._trigger_rescheduling()
-            
+
             # Call on_save callback if provided
             if self.on_save:
                 self.on_save()
-            
-            logger.info(f"Schedule saved for user {self.user_id}, category {self.category}")
+
+            logger.info(
+                f"Schedule saved for user {self.user_id}, category {self.category}"
+            )
             return True
-            
+
         except Exception as e:
             logger.error(f"Error saving schedule: {e}")
             QMessageBox.critical(
@@ -343,10 +367,10 @@ class ScheduleEditorDialog(QDialog):
                 "• All required fields are filled in\n"
                 "• Your user data files are accessible\n"
                 "• You have permission to modify files\n\n"
-                "If the problem persists, try closing and reopening the dialog."
+                "If the problem persists, try closing and reopening the dialog.",
             )
             return False
-    
+
     @handle_errors("triggering rescheduling")
     def _trigger_rescheduling(self):
         """Trigger rescheduling for this user and category when schedule changes."""
@@ -354,53 +378,59 @@ class ScheduleEditorDialog(QDialog):
             import json
             import os
             from datetime import datetime
-            
+
             # Create a reschedule request file that the service will pick up
             request_data = {
-                'user_id': self.user_id,
-                'category': self.category,
-                'timestamp': datetime.now().isoformat(),
-                'source': 'schedule_editor'
+                "user_id": self.user_id,
+                "category": self.category,
+                "timestamp": datetime.now().isoformat(),
+                "source": "schedule_editor",
             }
-            
+
             # Create the requests directory if it doesn't exist
             # Use test data directory if in test environment, otherwise use production directory
             import core.config
-            if hasattr(core.config, 'BASE_DATA_DIR') and core.config.BASE_DATA_DIR != 'data':
+
+            if (
+                hasattr(core.config, "BASE_DATA_DIR")
+                and core.config.BASE_DATA_DIR != "data"
+            ):
                 # We're in a test environment (BASE_DATA_DIR is patched to tests/data), use test data directory
-                requests_dir = Path(core.config.BASE_DATA_DIR) / 'requests'
+                requests_dir = Path(core.config.BASE_DATA_DIR) / "requests"
             else:
                 # Production environment, use standard data directory
-                requests_dir = Path('data') / 'requests'
+                requests_dir = Path("data") / "requests"
             requests_dir.mkdir(parents=True, exist_ok=True)
-            
+
             # Create a unique filename
-            timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+            timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
             filename = f"reschedule_{self.user_id}_{self.category}_{timestamp_str}.json"
             request_file = requests_dir / filename
-            
+
             # Write the request file
-            with open(request_file, 'w') as f:
+            with open(request_file, "w") as f:
                 json.dump(request_data, f, indent=2)
-            
-            logger.info(f"Created reschedule request for user {self.user_id}, category {self.category}")
-            
+
+            logger.info(
+                f"Created reschedule request for user {self.user_id}, category {self.category}"
+            )
+
         except Exception as e:
             logger.error(f"Error creating reschedule request: {e}")
             # Don't fail the save operation if rescheduling fails
-    
+
     @handle_errors("accepting dialog")
     def accept(self):
         """Override accept to prevent automatic dialog closing."""
         # Don't call super().accept() - this prevents the dialog from closing
         # The dialog will only close when we explicitly call self.close_dialog() after successful validation
         pass
-    
+
     @handle_errors("closing dialog")
     def close_dialog(self):
         """Close the dialog properly after successful save."""
         super().accept()
-    
+
     @handle_errors("canceling dialog")
     def cancel(self):
         """Cancel the dialog."""
@@ -409,7 +439,7 @@ class ScheduleEditorDialog(QDialog):
         except Exception as e:
             logger.error(f"Error canceling dialog: {e}")
             raise
-    
+
     @handle_errors("getting schedule data", default_return={})
     def get_schedule_data(self):
         """Get the current schedule data."""
@@ -418,21 +448,21 @@ class ScheduleEditorDialog(QDialog):
         except Exception as e:
             logger.error(f"Error getting schedule data: {e}")
             return {}
-    
+
     @handle_errors("setting schedule data")
     def set_schedule_data(self, data):
         """Set the schedule data."""
         try:
             if not data:
                 return
-            
+
             # Clear existing period widgets
             for widget in self.period_widgets:
                 self.periods_layout.removeWidget(widget)
                 widget.setParent(None)
                 widget.deleteLater()
             self.period_widgets.clear()
-            
+
             # Add periods
             for period_name, period_data in data.items():
                 self.add_new_period(period_name, period_data)
@@ -442,7 +472,9 @@ class ScheduleEditorDialog(QDialog):
 
 
 @handle_errors("opening schedule editor", default_return=None)
-def open_schedule_editor(parent, user_id: str, category: str, on_save: Optional[Callable] = None):
+def open_schedule_editor(
+    parent, user_id: str, category: str, on_save: Optional[Callable] = None
+):
     """Open the schedule editor dialog."""
     dialog = ScheduleEditorDialog(parent, user_id, category, on_save)
-    return dialog.exec() 
+    return dialog.exec()

@@ -11,11 +11,10 @@ from .user_preferences import UserPreferences
 
 __all__ = [
     # Context management
-    'UserContextManager',
-    'user_context_manager',
+    "UserContextManager",
+    "user_context_manager",
     # User context
-    'UserContext',
+    "UserContext",
     # User preferences
-    'UserPreferences',
+    "UserPreferences",
 ]
-

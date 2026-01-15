@@ -22,12 +22,16 @@ try:
 except ImportError:
     import sys
     from pathlib import Path
+
     # Add project root to path
     project_root = Path(__file__).parent.parent.parent
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
-    from development_tools.functions.analyze_functions import scan_all_functions, categorize_functions
+    from development_tools.functions.analyze_functions import (
+        scan_all_functions,
+        categorize_functions,
+    )
 
 from core.logger import get_component_logger
 
@@ -38,55 +42,61 @@ logger = get_component_logger("development_tools")
 
 # Load config values using the new configurable functions
 FUNCTION_DISCOVERY_CONFIG = config.get_analyze_functions_config()
-MODERATE_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('moderate_complexity_threshold', 50)
-HIGH_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('high_complexity_threshold', 100)
-CRITICAL_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('critical_complexity_threshold', 200)
-HANDLER_KEYWORDS = FUNCTION_DISCOVERY_CONFIG.get('handler_keywords', ['handle', 'process', 'validate'])
+MODERATE_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get("moderate_complexity_threshold", 50)
+HIGH_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get("high_complexity_threshold", 100)
+CRITICAL_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get(
+    "critical_complexity_threshold", 200
+)
+HANDLER_KEYWORDS = FUNCTION_DISCOVERY_CONFIG.get(
+    "handler_keywords", ["handle", "process", "validate"]
+)
 
 
 def find_complexity_functions(functions):
     """Find functions by complexity level.
-    
+
     Uses the same categorization logic as analyze_functions for consistency.
     Excludes test functions from complexity counts.
     Test functions are tracked separately and should not inflate complexity metrics.
-    
+
     Note: This function now uses categorize_functions() from analyze_functions to ensure
     consistent counting across both tools.
     """
     # Use the same categorization logic as analyze_functions for consistency
     categories = categorize_functions(functions)
-    
+
     # Extract complexity categories (these already exclude tests)
-    moderate = categories.get('moderate_complex', [])
-    high = categories.get('high_complex', [])
-    critical = categories.get('critical_complex', [])
-    
+    moderate = categories.get("moderate_complex", [])
+    high = categories.get("high_complex", [])
+    critical = categories.get("critical_complex", [])
+
     return moderate, high, critical
 
+
 def find_undocumented_handlers(functions):
-    return [f for f in functions if f['is_handler'] and not f['docstring'].strip()]
+    return [f for f in functions if f["is_handler"] and not f["docstring"].strip()]
+
 
 def find_duplicate_names(functions):
     name_map = {}
     for f in functions:
-        name_map.setdefault(f['name'], []).append(f['file'])
+        name_map.setdefault(f["name"], []).append(f["file"])
     return {name: files for name, files in name_map.items() if len(files) > 1}
 
 
 def print_dashboard(functions):
     # Print dashboard to stdout so it's visible when run directly
     print("=== AI DECISION SUPPORT DASHBOARD ===")
-    
+
     # Use the same categorization logic as analyze_functions for consistency
     categories = categorize_functions(functions)
-    moderate_complex = categories.get('moderate_complex', [])
-    high_complex = categories.get('high_complex', [])
-    critical_complex = categories.get('critical_complex', [])
-    
+    moderate_complex = categories.get("moderate_complex", [])
+    high_complex = categories.get("high_complex", [])
+    critical_complex = categories.get("critical_complex", [])
+
     undocumented_handlers = find_undocumented_handlers(functions)
     duplicates = find_duplicate_names(functions)
-    
+
     # Output parseable metrics for extraction by operations.py
     # Use print() to ensure output is captured by subprocess (print goes to stdout)
     # These lines must appear in stdout for _extract_decision_insights to parse them
@@ -103,23 +113,35 @@ def print_dashboard(functions):
     if total_complex > 0:
         print(f"[COMPLEXITY] Functions needing attention: {total_complex}")
         if critical_complex:
-            print(f"  [CRITICAL] Critical Complexity (>{CRITICAL_COMPLEXITY-1} nodes): {len(critical_complex)}")
+            print(
+                f"  [CRITICAL] Critical Complexity (>{CRITICAL_COMPLEXITY-1} nodes): {len(critical_complex)}"
+            )
             for f in critical_complex[:5]:
-                print(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
+                print(
+                    f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})"
+                )
             if len(critical_complex) > 5:
                 print(f"    ...and {len(critical_complex)-5} more.")
-        
+
         if high_complex:
-            print(f"  [HIGH] High Complexity ({HIGH_COMPLEXITY}-{CRITICAL_COMPLEXITY-1} nodes): {len(high_complex)}")
+            print(
+                f"  [HIGH] High Complexity ({HIGH_COMPLEXITY}-{CRITICAL_COMPLEXITY-1} nodes): {len(high_complex)}"
+            )
             for f in high_complex[:5]:
-                print(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
+                print(
+                    f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})"
+                )
             if len(high_complex) > 5:
                 print(f"    ...and {len(high_complex)-5} more.")
-        
+
         if moderate_complex:
-            print(f"  [MODERATE] Moderate Complexity ({MODERATE_COMPLEXITY}-{HIGH_COMPLEXITY-1} nodes): {len(moderate_complex)}")
+            print(
+                f"  [MODERATE] Moderate Complexity ({MODERATE_COMPLEXITY}-{HIGH_COMPLEXITY-1} nodes): {len(moderate_complex)}"
+            )
             for f in moderate_complex[:3]:
-                print(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
+                print(
+                    f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})"
+                )
             if len(moderate_complex) > 3:
                 print(f"    ...and {len(moderate_complex)-3} more.")
 
@@ -147,29 +169,41 @@ def print_dashboard(functions):
     if undocumented_handlers:
         print("- Add docstrings to undocumented handler/utility functions.")
     if duplicates:
-        print("- Review duplicate function names for possible consolidation or renaming.")
+        print(
+            "- Review duplicate function names for possible consolidation or renaming."
+        )
     if not (total_complex or undocumented_handlers or duplicates):
         print("- Codebase is in excellent shape! Proceed with confidence.")
-    print("Tip: Use this dashboard before major refactoring, documentation, or architectural changes.")
+    print(
+        "Tip: Use this dashboard before major refactoring, documentation, or architectural changes."
+    )
 
 
 def main():
     import argparse
-    
-    parser = argparse.ArgumentParser(description='Generate decision support insights for AI collaboration')
-    parser.add_argument('--include-tests', action='store_true', help='Include test files in analysis')
-    parser.add_argument('--include-dev-tools', action='store_true', help='Include development_tools in analysis')
+
+    parser = argparse.ArgumentParser(
+        description="Generate decision support insights for AI collaboration"
+    )
+    parser.add_argument(
+        "--include-tests", action="store_true", help="Include test files in analysis"
+    )
+    parser.add_argument(
+        "--include-dev-tools",
+        action="store_true",
+        help="Include development_tools in analysis",
+    )
     args = parser.parse_args()
-    
+
     logger.info("[SCAN] Gathering actionable insights for AI decision-making...")
     functions = scan_all_functions(
-        include_tests=args.include_tests,
-        include_dev_tools=args.include_dev_tools
+        include_tests=args.include_tests, include_dev_tools=args.include_dev_tools
     )
     print_dashboard(functions)
-    
+
     # Return success status
     return 0
 
+
 if __name__ == "__main__":
-    main() 
+    main()

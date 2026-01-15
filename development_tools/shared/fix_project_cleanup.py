@@ -48,66 +48,70 @@ logger = get_component_logger("development_tools")
 
 class ProjectCleanup:
     """Clean up project cache files, temporary directories, and artifacts."""
-    
+
     def __init__(self, project_root: Optional[Path] = None):
         self.project_root = project_root or Path(config.get_project_root())
-    
+
     def find_directories(self, pattern: str) -> List[Path]:
         """Find all directories matching a pattern."""
         directories = []
         for root, dirs, files in os.walk(self.project_root):
             # Skip certain directories from being searched
-            dirs[:] = [d for d in dirs if d not in ['.git', 'venv', '.venv', 'node_modules']]
-            
+            dirs[:] = [
+                d for d in dirs if d not in [".git", "venv", ".venv", "node_modules"]
+            ]
+
             for dir_name in dirs:
                 if pattern in dir_name:
                     dir_path = Path(root) / dir_name
                     directories.append(dir_path)
-        
+
         return directories
-    
+
     def find_files(self, pattern: str) -> List[Path]:
         """Find all files matching a pattern."""
         files = []
         for root, dirs, filenames in os.walk(self.project_root):
             # Skip certain directories from being searched
-            dirs[:] = [d for d in dirs if d not in ['.git', 'venv', '.venv', 'node_modules']]
-            
+            dirs[:] = [
+                d for d in dirs if d not in [".git", "venv", ".venv", "node_modules"]
+            ]
+
             for filename in filenames:
                 if pattern in filename:
                     file_path = Path(root) / filename
                     files.append(file_path)
-        
+
         return files
-    
+
     def get_size(self, path: Path) -> str:
         """Get human-readable size of file or directory."""
         try:
             if path.is_file():
                 size = path.stat().st_size
             elif path.is_dir():
-                size = sum(f.stat().st_size for f in path.rglob('*') if f.is_file())
+                size = sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
             else:
                 return "0 B"
-            
-            for unit in ['B', 'KB', 'MB', 'GB']:
+
+            for unit in ["B", "KB", "MB", "GB"]:
                 if size < 1024.0:
                     return f"{size:.1f} {unit}"
                 size /= 1024.0
             return f"{size:.1f} TB"
         except Exception:
             return "unknown size"
-    
+
     def remove_path(self, path: Path, dry_run: bool = False) -> Tuple[bool, str]:
         """Remove a file or directory."""
         try:
             if not path.exists():
                 return False, f"Does not exist: {path}"
-            
+
             if dry_run:
                 size = self.get_size(path)
                 return True, f"Would remove: {path} ({size})"
-            
+
             if path.is_file():
                 path.unlink()
                 return True, f"Removed file: {path}"
@@ -120,11 +124,13 @@ class ProjectCleanup:
             return False, f"Permission denied: {path} - {e}"
         except Exception as e:
             return False, f"Error removing {path}: {e}"
-    
-    def cleanup_cache_directories(self, dry_run: bool = False, include_tool_caches: bool = False) -> Tuple[int, int]:
+
+    def cleanup_cache_directories(
+        self, dry_run: bool = False, include_tool_caches: bool = False
+    ) -> Tuple[int, int]:
         """
         Remove __pycache__ directories.
-        
+
         Args:
             dry_run: If True, show what would be removed without actually removing
             include_tool_caches: If True, also clean standardized storage cache files
@@ -132,7 +138,7 @@ class ProjectCleanup:
         directories = self.find_directories("__pycache__")
         removed = 0
         failed = 0
-        
+
         for dir_path in directories:
             success, message = self.remove_path(dir_path, dry_run)
             if success:
@@ -143,7 +149,7 @@ class ProjectCleanup:
                 failed += 1
                 if not dry_run:
                     logger.warning(f"  {message}")
-        
+
         # Only clean standardized storage cache files if explicitly requested (--full)
         if include_tool_caches:
             dev_tools_dir = self.project_root / "development_tools"
@@ -162,15 +168,15 @@ class ProjectCleanup:
                                     failed += 1
                                     if not dry_run:
                                         logger.warning(f"  {message}")
-        
+
         return removed, failed
-    
+
     def cleanup_pytest_cache(self, dry_run: bool = False) -> Tuple[int, int]:
         """Remove .pytest_cache directories."""
         directories = self.find_directories(".pytest_cache")
         removed = 0
         failed = 0
-        
+
         for dir_path in directories:
             success, message = self.remove_path(dir_path, dry_run)
             if success:
@@ -181,15 +187,15 @@ class ProjectCleanup:
                 failed += 1
                 if not dry_run:
                     logger.warning(f"  {message}")
-        
+
         return removed, failed
-    
+
     def cleanup_coverage_files(self, dry_run: bool = False) -> Tuple[int, int]:
         """Remove .coverage files and coverage cache files."""
         files = self.find_files(".coverage")
         removed = 0
         failed = 0
-        
+
         for file_path in files:
             success, message = self.remove_path(file_path, dry_run)
             if success:
@@ -200,7 +206,7 @@ class ProjectCleanup:
                 failed += 1
                 if not dry_run:
                     logger.warning(f"  {message}")
-        
+
         # Clean up test-file-based coverage cache (now in jsons/ directory)
         jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
         if jsons_dir.exists():
@@ -216,7 +222,7 @@ class ProjectCleanup:
                     failed += 1
                     if not dry_run:
                         logger.warning(f"  {message}")
-            
+
             # Dev tools coverage cache
             dev_tools_cache_file = jsons_dir / "dev_tools_coverage_cache.json"
             if dev_tools_cache_file.exists():
@@ -229,21 +235,27 @@ class ProjectCleanup:
                     failed += 1
                     if not dry_run:
                         logger.warning(f"  {message}")
-        
+
         return removed, failed
-    
+
     def cleanup_coverage_logs(self, dry_run: bool = False) -> Tuple[int, int]:
         """Remove old coverage regeneration log files, keeping only the 2 most recent per type."""
-        coverage_logs_dir = self.project_root / "development_tools" / "logs" / "coverage_regeneration"
+        coverage_logs_dir = (
+            self.project_root / "development_tools" / "logs" / "coverage_regeneration"
+        )
         removed = 0
         failed = 0
-        
+
         if not coverage_logs_dir.exists():
             return removed, failed
-        
+
         # Get all log files (excluding .latest.log files which should always be kept)
-        log_files = [f for f in coverage_logs_dir.glob("*.log") if not f.name.endswith(".latest.log")]
-        
+        log_files = [
+            f
+            for f in coverage_logs_dir.glob("*.log")
+            if not f.name.endswith(".latest.log")
+        ]
+
         # Group by base name (e.g., pytest_stdout, coverage_html)
         log_groups = {}
         for log_file in log_files:
@@ -264,20 +276,20 @@ class ProjectCleanup:
                 parts = base_name.rsplit("-", 2)
                 if len(parts) >= 2 and len(parts[-1]) == 6 and len(parts[-2]) == 8:
                     base_name = parts[0]
-            
+
             if base_name not in log_groups:
                 log_groups[base_name] = []
             log_groups[base_name].append(log_file)
-        
+
         for base_name, files in log_groups.items():
             if len(files) <= 2:
                 continue  # Keep all if we have 2 or fewer
-            
+
             # Sort by modification time (newest first)
             files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
             # Keep only the 2 most recent, remove the rest
             files_to_remove = files[2:]
-            
+
             for file_path in files_to_remove:
                 success, message = self.remove_path(file_path, dry_run)
                 if success:
@@ -288,18 +300,18 @@ class ProjectCleanup:
                     failed += 1
                     if not dry_run:
                         logger.warning(f"  {message}")
-        
+
         return removed, failed
-    
+
     def cleanup_test_temp_dirs(self, dry_run: bool = False) -> Tuple[int, int]:
         """Remove temporary test directories."""
         test_data_dir = self.project_root / "tests" / "data"
         removed = 0
         failed = 0
-        
+
         if not test_data_dir.exists():
             return removed, failed
-        
+
         # Remove pytest-of-* directories (created by pytest's tmpdir plugin)
         pytest_of_dirs = list(test_data_dir.glob("pytest-of-*"))
         for dir_path in pytest_of_dirs:
@@ -312,7 +324,7 @@ class ProjectCleanup:
                 failed += 1
                 if not dry_run:
                     logger.warning(f"  {message}")
-        
+
         # Remove pytest-tmp-* directories (created during parallel test execution)
         pytest_tmp_dirs = list(test_data_dir.glob("pytest-tmp-*"))
         for dir_path in pytest_tmp_dirs:
@@ -325,7 +337,7 @@ class ProjectCleanup:
                 failed += 1
                 if not dry_run:
                     logger.warning(f"  {message}")
-        
+
         # Remove tmp subdirectories (but keep the tmp directory itself)
         tmp_dir = test_data_dir / "tmp"
         if tmp_dir.exists():
@@ -340,7 +352,7 @@ class ProjectCleanup:
                         failed += 1
                         if not dry_run:
                             logger.warning(f"  {message}")
-        
+
         # Remove conversation_states.json
         conversation_states = test_data_dir / "conversation_states.json"
         if conversation_states.exists():
@@ -353,7 +365,7 @@ class ProjectCleanup:
                 failed += 1
                 if not dry_run:
                     logger.warning(f"  {message}")
-        
+
         # Clean up flags, requests, backups directories (contents only)
         for subdir_name in ["flags", "requests", "backups"]:
             subdir = test_data_dir / subdir_name
@@ -368,21 +380,23 @@ class ProjectCleanup:
                         failed += 1
                         if not dry_run:
                             logger.warning(f"  {message}")
-        
+
         return removed, failed
-    
+
     def cleanup_test_user_data(self, dry_run: bool = False) -> Tuple[int, int]:
         """Remove test user data directories."""
         users_dir = self.project_root / "data" / "users"
         removed = 0
         failed = 0
-        
+
         if not users_dir.exists():
             return removed, failed
-        
+
         # Remove test_* user directories
-        test_user_dirs = [d for d in users_dir.iterdir() if d.is_dir() and d.name.startswith("test_")]
-        
+        test_user_dirs = [
+            d for d in users_dir.iterdir() if d.is_dir() and d.name.startswith("test_")
+        ]
+
         for dir_path in test_user_dirs:
             success, message = self.remove_path(dir_path, dry_run)
             if success:
@@ -393,16 +407,22 @@ class ProjectCleanup:
                 failed += 1
                 if not dry_run:
                     logger.warning(f"  {message}")
-        
+
         return removed, failed
-    
-    def cleanup_all(self, dry_run: bool = False, 
-                    cache: bool = True, test_data: bool = True, 
-                    coverage: bool = True, keep_vscode: bool = False, 
-                    keep_cursor: bool = False, include_tool_caches: bool = False) -> Dict:
+
+    def cleanup_all(
+        self,
+        dry_run: bool = False,
+        cache: bool = True,
+        test_data: bool = True,
+        coverage: bool = True,
+        keep_vscode: bool = False,
+        keep_cursor: bool = False,
+        include_tool_caches: bool = False,
+    ) -> Dict:
         """
         Run all cleanup operations.
-        
+
         Args:
             dry_run: If True, show what would be removed without actually removing
             cache: Clean cache directories (__pycache__, .pytest_cache)
@@ -411,100 +431,120 @@ class ProjectCleanup:
             keep_vscode: Keep VSCode cache directories (not implemented)
             keep_cursor: Keep Cursor cache directories (not implemented)
             include_tool_caches: If True, also clean standardized storage cache files (only with --full)
-        
+
         Returns:
             Dictionary with cleanup results for each category
         """
         results = {
-            'cache': {'removed': 0, 'failed': 0},
-            'pytest_cache': {'removed': 0, 'failed': 0},
-            'coverage': {'removed': 0, 'failed': 0},
-            'coverage_logs': {'removed': 0, 'failed': 0},
-            'test_data': {'removed': 0, 'failed': 0},
-            'test_user_data': {'removed': 0, 'failed': 0},
-            'total_removed': 0,
-            'total_failed': 0
+            "cache": {"removed": 0, "failed": 0},
+            "pytest_cache": {"removed": 0, "failed": 0},
+            "coverage": {"removed": 0, "failed": 0},
+            "coverage_logs": {"removed": 0, "failed": 0},
+            "test_data": {"removed": 0, "failed": 0},
+            "test_user_data": {"removed": 0, "failed": 0},
+            "total_removed": 0,
+            "total_failed": 0,
         }
-        
+
         if cache:
-            removed, failed = self.cleanup_cache_directories(dry_run, include_tool_caches=include_tool_caches)
-            results['cache'] = {'removed': removed, 'failed': failed}
-            results['total_removed'] += removed
-            results['total_failed'] += failed
-            
+            removed, failed = self.cleanup_cache_directories(
+                dry_run, include_tool_caches=include_tool_caches
+            )
+            results["cache"] = {"removed": removed, "failed": failed}
+            results["total_removed"] += removed
+            results["total_failed"] += failed
+
             removed, failed = self.cleanup_pytest_cache(dry_run)
-            results['pytest_cache'] = {'removed': removed, 'failed': failed}
-            results['total_removed'] += removed
-            results['total_failed'] += failed
-        
+            results["pytest_cache"] = {"removed": removed, "failed": failed}
+            results["total_removed"] += removed
+            results["total_failed"] += failed
+
         if coverage:
             removed, failed = self.cleanup_coverage_files(dry_run)
-            results['coverage'] = {'removed': removed, 'failed': failed}
-            results['total_removed'] += removed
-            results['total_failed'] += failed
-            
+            results["coverage"] = {"removed": removed, "failed": failed}
+            results["total_removed"] += removed
+            results["total_failed"] += failed
+
             removed, failed = self.cleanup_coverage_logs(dry_run)
-            results['coverage_logs'] = {'removed': removed, 'failed': failed}
-            results['total_removed'] += removed
-            results['total_failed'] += failed
-        
+            results["coverage_logs"] = {"removed": removed, "failed": failed}
+            results["total_removed"] += removed
+            results["total_failed"] += failed
+
         if test_data:
             removed, failed = self.cleanup_test_temp_dirs(dry_run)
-            results['test_data'] = {'removed': removed, 'failed': failed}
-            results['total_removed'] += removed
-            results['total_failed'] += failed
-            
+            results["test_data"] = {"removed": removed, "failed": failed}
+            results["total_removed"] += removed
+            results["total_failed"] += failed
+
             removed, failed = self.cleanup_test_user_data(dry_run)
-            results['test_user_data'] = {'removed': removed, 'failed': failed}
-            results['total_removed'] += removed
-            results['total_failed'] += failed
-        
+            results["test_user_data"] = {"removed": removed, "failed": failed}
+            results["total_removed"] += removed
+            results["total_failed"] += failed
+
         return results
 
 
 def main():
     import argparse
-    
-    parser = argparse.ArgumentParser(description="Clean up project cache and temporary files")
-    parser.add_argument("--dry-run", action="store_true", help="Show what would be removed without actually removing")
-    parser.add_argument("--cache", action="store_true", help="Clean cache directories (__pycache__, .pytest_cache)")
-    parser.add_argument("--test-data", action="store_true", help="Clean test data directories")
-    parser.add_argument("--coverage", action="store_true", help="Clean coverage files and logs")
-    parser.add_argument("--all", action="store_true", help="Clean all categories (default if no specific category specified)")
+
+    parser = argparse.ArgumentParser(
+        description="Clean up project cache and temporary files"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be removed without actually removing",
+    )
+    parser.add_argument(
+        "--cache",
+        action="store_true",
+        help="Clean cache directories (__pycache__, .pytest_cache)",
+    )
+    parser.add_argument(
+        "--test-data", action="store_true", help="Clean test data directories"
+    )
+    parser.add_argument(
+        "--coverage", action="store_true", help="Clean coverage files and logs"
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Clean all categories (default if no specific category specified)",
+    )
     parser.add_argument("--json", action="store_true", help="Output results as JSON")
-    
+
     args = parser.parse_args()
-    
+
     # If no specific category is specified, default to --all
     if not (args.cache or args.test_data or args.coverage):
         args.all = True
-    
+
     cleanup = ProjectCleanup()
-    
+
     if args.all:
         results = cleanup.cleanup_all(
-            dry_run=args.dry_run,
-            cache=True,
-            test_data=True,
-            coverage=True
+            dry_run=args.dry_run, cache=True, test_data=True, coverage=True
         )
     else:
         results = cleanup.cleanup_all(
             dry_run=args.dry_run,
             cache=args.cache,
             test_data=args.test_data,
-            coverage=args.coverage
+            coverage=args.coverage,
         )
-    
+
     if args.json:
         import json
+
         print(json.dumps(results, indent=2))
     else:
         if args.dry_run:
             logger.info("DRY RUN MODE - No files were actually removed")
-        logger.info(f"Summary: {results['total_removed']} items removed, {results['total_failed']} failed")
-    
-    return 0 if results['total_failed'] == 0 else 1
+        logger.info(
+            f"Summary: {results['total_removed']} items removed, {results['total_failed']} failed"
+        )
+
+    return 0 if results["total_failed"] == 0 else 1
 
 
 if __name__ == "__main__":

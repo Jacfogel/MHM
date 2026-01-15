@@ -25,285 +25,321 @@ from core.logger import get_component_logger
 
 logger = get_component_logger("development_tools")
 
+
 class QuickStatus:
     """Quick status checker for AI collaboration."""
-    
-    def __init__(self, project_root: Optional[Path] = None, config_path: Optional[str] = None):
+
+    def __init__(
+        self, project_root: Optional[Path] = None, config_path: Optional[str] = None
+    ):
         if project_root:
             self.project_root = Path(project_root).resolve()
         else:
             # Script is at: development_tools/reports/quick_status.py
             # So we need to go up 2 levels to get to project root
             self.project_root = Path(__file__).parent.parent.parent
-        
+
         # Load config if provided
         # Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
-        if __name__ != '__main__' and __package__ and '.' in __package__:
+        if __name__ != "__main__" and __package__ and "." in __package__:
             from . import config
         else:
             from development_tools import config
-        
+
         self.config = config  # Store reference for reuse
-        
+
         if config_path:
             config.load_external_config(config_path)
         else:
             config.load_external_config()
-        
+
         self.quick_status_config = config.get_quick_status_config()
-    
+
     def get_quick_status(self) -> Dict:
         """Get quick status overview"""
         status = {
-            'timestamp': datetime.now().isoformat(),
-            'system_health': self._check_system_health(),
-            'documentation_status': self._check_documentation_status(),
-            'critical_issues': self._identify_critical_issues(),
-            'action_items': self._generate_action_items(),
-            'recent_activity': self._get_recent_activity()
+            "timestamp": datetime.now().isoformat(),
+            "system_health": self._check_system_health(),
+            "documentation_status": self._check_documentation_status(),
+            "critical_issues": self._identify_critical_issues(),
+            "action_items": self._generate_action_items(),
+            "recent_activity": self._get_recent_activity(),
         }
         return status
-    
+
     def _check_system_health(self) -> Dict:
         """Check basic system health"""
-        health = {
-            'core_files': {},
-            'key_directories': {},
-            'overall_status': 'OK'
-        }
-        
+        health = {"core_files": {}, "key_directories": {}, "overall_status": "OK"}
+
         # Check core files - use config or project.key_files, fallback to generic defaults
-        core_files = self.quick_status_config.get('core_files', [])
+        core_files = self.quick_status_config.get("core_files", [])
         if not core_files:
             # Try to get from project.key_files in config
-            core_files = self.config.get_project_key_files(['requirements.txt'])
-        
+            core_files = self.config.get_project_key_files(["requirements.txt"])
+
         for file_path in core_files:
             full_path = self.project_root / file_path
-            health['core_files'][file_path] = 'OK' if full_path.exists() else 'MISSING'
-        
+            health["core_files"][file_path] = "OK" if full_path.exists() else "MISSING"
+
         # Check key directories - use config or paths.scan_directories, fallback to generic defaults
-        key_dirs = self.quick_status_config.get('key_directories', [])
+        key_dirs = self.quick_status_config.get("key_directories", [])
         if not key_dirs:
             # Try to get from paths.scan_directories in config
-            key_dirs = self.config.get_scan_directories() or ['core', 'tests']
-        
+            key_dirs = self.config.get_scan_directories() or ["core", "tests"]
+
         for dir_path in key_dirs:
             full_path = self.project_root / dir_path
-            health['key_directories'][dir_path] = 'OK' if full_path.exists() else 'MISSING'
-        
+            health["key_directories"][dir_path] = (
+                "OK" if full_path.exists() else "MISSING"
+            )
+
         # Overall status
-        missing_files = sum(1 for status in health['core_files'].values() if status == 'MISSING')
-        missing_dirs = sum(1 for status in health['key_directories'].values() if status == 'MISSING')
-        
+        missing_files = sum(
+            1 for status in health["core_files"].values() if status == "MISSING"
+        )
+        missing_dirs = sum(
+            1 for status in health["key_directories"].values() if status == "MISSING"
+        )
+
         if missing_files > 0 or missing_dirs > 0:
-            health['overall_status'] = 'ISSUES'
-        
+            health["overall_status"] = "ISSUES"
+
         return health
-    
+
     def _check_documentation_status(self) -> Dict:
         """Check documentation status"""
-        docs = {
-            'coverage': 'Unknown',
-            'recent_audit': None,
-            'key_files': {}
-        }
-        
+        docs = {"coverage": "Unknown", "recent_audit": None, "key_files": {}}
+
         # Check for recent audit results
         # File is in development_tools/reports/, not development_tools/reports/quick_status.py's parent
-        audit_file = self.project_root / 'development_tools' / 'reports' / 'analysis_detailed_results.json'
+        audit_file = (
+            self.project_root
+            / "development_tools"
+            / "reports"
+            / "analysis_detailed_results.json"
+        )
         if audit_file.exists():
             try:
-                with open(audit_file, 'r') as f:
+                with open(audit_file, "r") as f:
                     audit_data = json.load(f)
-                    docs['recent_audit'] = audit_data.get('timestamp')
-                    
+                    docs["recent_audit"] = audit_data.get("timestamp")
+
                     # Extract coverage info if available
-                    if 'results' in audit_data:
-                        for script_name, result in audit_data['results'].items():
-                            if script_name == 'analyze_function_registry' and result.get('success'):
+                    if "results" in audit_data:
+                        for script_name, result in audit_data["results"].items():
+                            if (
+                                script_name == "analyze_function_registry"
+                                and result.get("success")
+                            ):
                                 # Try to extract coverage from output
-                                output = result.get('output', '')
-                                if 'coverage:' in output.lower():
-                                    for line in output.split('\n'):
-                                        if 'coverage:' in line.lower():
-                                            docs['coverage'] = line.split(':')[-1].strip()
+                                output = result.get("output", "")
+                                if "coverage:" in output.lower():
+                                    for line in output.split("\n"):
+                                        if "coverage:" in line.lower():
+                                            docs["coverage"] = line.split(":")[
+                                                -1
+                                            ].strip()
                                             break
             except:
                 pass
-        
+
         # Check key documentation files
         key_docs = [
-            'README.md', 'ai_development_docs/AI_CHANGELOG.md', 'development_docs/CHANGELOG_DETAIL.md', 
-            'TODO.md', 'development_docs/FUNCTION_REGISTRY_DETAIL.md', 'development_docs/MODULE_DEPENDENCIES_DETAIL.md'
+            "README.md",
+            "ai_development_docs/AI_CHANGELOG.md",
+            "development_docs/CHANGELOG_DETAIL.md",
+            "TODO.md",
+            "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+            "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
         ]
         for doc_file in key_docs:
             full_path = self.project_root / doc_file
-            docs['key_files'][doc_file] = 'OK' if full_path.exists() else 'MISSING'
-        
+            docs["key_files"][doc_file] = "OK" if full_path.exists() else "MISSING"
+
         return docs
-    
+
     def _identify_critical_issues(self) -> List[str]:
         """Identify critical issues that need immediate attention"""
         issues = []
-        
+
         # Check system health
         health = self._check_system_health()
-        if health['overall_status'] == 'ISSUES':
-            missing_files = [f for f, status in health['core_files'].items() if status == 'MISSING']
+        if health["overall_status"] == "ISSUES":
+            missing_files = [
+                f for f, status in health["core_files"].items() if status == "MISSING"
+            ]
             if missing_files:
                 issues.append(f"Missing core files: {', '.join(missing_files)}")
-        
+
         # Check documentation coverage
         docs = self._check_documentation_status()
-        if docs['coverage'] != 'Unknown':
+        if docs["coverage"] != "Unknown":
             try:
-                coverage = float(docs['coverage'].replace('%', ''))
+                coverage = float(docs["coverage"].replace("%", ""))
                 if coverage < 90:
                     issues.append(f"Low documentation coverage: {coverage}%")
             except:
                 pass
-        
+
         # Check for missing documentation files
-        missing_docs = [f for f, status in docs['key_files'].items() if status == 'MISSING']
+        missing_docs = [
+            f for f, status in docs["key_files"].items() if status == "MISSING"
+        ]
         if missing_docs:
             issues.append(f"Missing documentation files: {', '.join(missing_docs[:3])}")
-        
+
         return issues
-    
+
     def _generate_action_items(self) -> List[str]:
         """Generate actionable items for improvement"""
         actions = []
-        
+
         # Documentation improvements
         docs = self._check_documentation_status()
-        if docs['coverage'] != 'Unknown':
+        if docs["coverage"] != "Unknown":
             try:
-                coverage = float(docs['coverage'].replace('%', ''))
+                coverage = float(docs["coverage"].replace("%", ""))
                 if coverage < 95:
-                    actions.append(f"Improve documentation coverage (currently {coverage}%)")
+                    actions.append(
+                        f"Improve documentation coverage (currently {coverage}%)"
+                    )
             except:
                 pass
-        
+
         # System improvements
         health = self._check_system_health()
-        missing_files = [f for f, status in health['core_files'].items() if status == 'MISSING']
+        missing_files = [
+            f for f, status in health["core_files"].items() if status == "MISSING"
+        ]
         if missing_files:
             actions.append(f"Restore missing core files: {', '.join(missing_files)}")
-        
+
         # Add general maintenance items
-        if not docs['recent_audit']:
+        if not docs["recent_audit"]:
             actions.append("Run comprehensive audit to assess current state")
-        
+
         return actions
-    
+
     def _get_recent_activity(self) -> Dict:
         """Get information about recent activity using shared utilities."""
         # Handle both relative and absolute imports
         # Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
-        if __name__ != '__main__' and __package__ and '.' in __package__:
+        if __name__ != "__main__" and __package__ and "." in __package__:
             from ..shared.common import should_exclude_file
         else:
             from development_tools.shared.common import should_exclude_file
-        
+
         activity = {
-            'last_audit': None,
-            'recent_changes': set()  # Use set to avoid duplicates
+            "last_audit": None,
+            "recent_changes": set(),  # Use set to avoid duplicates
         }
-        
+
         # Check for recent audit
         # File is in development_tools/reports/, not development_tools/reports/quick_status.py's parent
-        audit_file = self.project_root / 'development_tools' / 'reports' / 'analysis_detailed_results.json'
+        audit_file = (
+            self.project_root
+            / "development_tools"
+            / "reports"
+            / "analysis_detailed_results.json"
+        )
         if audit_file.exists():
             try:
-                with open(audit_file, 'r') as f:
+                with open(audit_file, "r") as f:
                     audit_data = json.load(f)
-                    activity['last_audit'] = audit_data.get('timestamp')
+                    activity["last_audit"] = audit_data.get("timestamp")
             except:
                 pass
-        
+
         # Get git-based "recent" threshold (24 hours before last commit)
         recent_threshold = self._get_git_recent_threshold()
-        
+
         # Check for recent changes in key directories
         # Import constants from services
         from development_tools.shared.constants import PROJECT_DIRECTORIES
         from development_tools.shared.standard_exclusions import (
-            ALL_GENERATED_FILES, 
-            STANDARD_EXCLUSION_PATTERNS
+            ALL_GENERATED_FILES,
+            STANDARD_EXCLUSION_PATTERNS,
         )
-        
+
         key_directories = list(PROJECT_DIRECTORIES)
-        
+
         # Additional files to exclude (beyond standard exclusions)
         additional_excluded_files = set(ALL_GENERATED_FILES)
-        
+
         # Additional patterns to exclude (beyond standard exclusions)
         additional_excluded_patterns = set(STANDARD_EXCLUSION_PATTERNS)
-        
+
         # Limit the number of directories and files checked to avoid timeout
         # Only check a subset of key directories for performance
         max_dirs_to_check = 5
         max_files_per_dir = 100
-        
+
         for dir_path in key_directories[:max_dirs_to_check]:
             full_dir_path = self.project_root / dir_path
             if full_dir_path.exists() and full_dir_path.is_dir():
                 try:
                     # Walk through files in the directory with a limit
                     file_count = 0
-                    for file_path in full_dir_path.rglob('*'):
+                    for file_path in full_dir_path.rglob("*"):
                         if file_count >= max_files_per_dir:
                             break
                         if file_path.is_file():
                             file_count += 1
                             # Convert to relative path for exclusion checking
                             rel_path = file_path.relative_to(self.project_root)
-                            rel_path_str = str(rel_path).replace('\\', '/')
-                            
+                            rel_path_str = str(rel_path).replace("\\", "/")
+
                             # Skip if file should be excluded by standard exclusions
                             if should_exclude_file(rel_path_str):
                                 continue
-                                
+
                             # Skip if file is in additional excluded files list
                             if rel_path_str in additional_excluded_files:
                                 continue
-                                
+
                             # Skip if file matches additional excluded patterns
-                            if any(rel_path_str.startswith(pattern.rstrip('*')) or 
-                                   rel_path_str.endswith(pattern.lstrip('*')) or
-                                   pattern in rel_path_str for pattern in additional_excluded_patterns):
+                            if any(
+                                rel_path_str.startswith(pattern.rstrip("*"))
+                                or rel_path_str.endswith(pattern.lstrip("*"))
+                                or pattern in rel_path_str
+                                for pattern in additional_excluded_patterns
+                            ):
                                 continue
-                                
+
                             # Check if modified since git threshold
                             try:
                                 mtime = file_path.stat().st_mtime
                                 mtime_dt = datetime.fromtimestamp(mtime)
                                 if mtime_dt >= recent_threshold:
-                                    activity['recent_changes'].add(rel_path_str)
+                                    activity["recent_changes"].add(rel_path_str)
                             except:
                                 pass
                 except:
                     pass
-        
+
         # Convert set to sorted list and limit to reasonable number
-        activity['recent_changes'] = sorted(list(activity['recent_changes']), reverse=True)[:15]
-        
+        activity["recent_changes"] = sorted(
+            list(activity["recent_changes"]), reverse=True
+        )[:15]
+
         return activity
-    
+
     def _get_git_recent_threshold(self) -> datetime:
         """Get git-based threshold for 'recent' changes (24 hours before last commit)."""
         try:
             import subprocess
+
             # Get the last commit date
             result = subprocess.run(
-                ['git', 'log', '-1', '--format=%ci'],
-                capture_output=True, text=True, cwd=self.project_root
+                ["git", "log", "-1", "--format=%ci"],
+                capture_output=True,
+                text=True,
+                cwd=self.project_root,
             )
             if result.returncode == 0 and result.stdout.strip():
                 last_commit_str = result.stdout.strip()
                 # Parse the commit date and make it timezone-aware
-                last_commit = datetime.fromisoformat(last_commit_str.replace(' ', 'T'))
+                last_commit = datetime.fromisoformat(last_commit_str.replace(" ", "T"))
                 # Make it timezone-naive for comparison with file timestamps
                 if last_commit.tzinfo is not None:
                     last_commit = last_commit.replace(tzinfo=None)
@@ -311,84 +347,91 @@ class QuickStatus:
                 return last_commit - timedelta(hours=24)
         except Exception:
             pass
-        
+
         # Fallback to 7 days ago if git fails
         return datetime.now() - timedelta(days=7)
-    
+
     def print_concise_status(self):
         """Print comprehensive status for AI consumption"""
         status = self.get_quick_status()
-        
+
         logger.info(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         # User-facing output stays as print() for immediate visibility
         print(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print()
-        
+
         # System Health
-        health = status['system_health']
+        health = status["system_health"]
         logger.info(f"[SYSTEM] Status: {health['overall_status']}")
         print(f"[SYSTEM] Status: {health['overall_status']}")
-        if health['overall_status'] == 'ISSUES':
-            missing_files = [f for f, s in health['core_files'].items() if s == 'MISSING']
+        if health["overall_status"] == "ISSUES":
+            missing_files = [
+                f for f, s in health["core_files"].items() if s == "MISSING"
+            ]
             if missing_files:
                 logger.warning(f"Missing core files: {', '.join(missing_files)}")
                 print(f"  Missing: {', '.join(missing_files)}")
         print()
-        
+
         # Documentation Status
-        docs = status['documentation_status']
+        docs = status["documentation_status"]
         logger.info(f"[DOCS] Coverage: {docs['coverage']}")
         print(f"[DOCS] Coverage: {docs['coverage']}")
-        if docs['recent_audit']:
+        if docs["recent_audit"]:
             logger.info(f"Last audit: {docs['recent_audit'][:19]}")
             print(f"  Last audit: {docs['recent_audit'][:19]}")
-        
+
         # Check for missing documentation files
-        missing_docs = [f for f, s in docs['key_files'].items() if s == 'MISSING']
+        missing_docs = [f for f, s in docs["key_files"].items() if s == "MISSING"]
         if missing_docs:
-            logger.warning(f"Missing documentation files: {', '.join(missing_docs[:3])}")
+            logger.warning(
+                f"Missing documentation files: {', '.join(missing_docs[:3])}"
+            )
             print(f"  Missing docs: {', '.join(missing_docs[:3])}")
         print()
-        
+
         # Critical Issues
-        if status['critical_issues']:
+        if status["critical_issues"]:
             logger.warning(f"Critical issues found: {len(status['critical_issues'])}")
             print("[CRITICAL ISSUES]")
-            for issue in status['critical_issues']:
+            for issue in status["critical_issues"]:
                 logger.warning(f"  {issue}")
                 print(f"  {issue}")
             print()
-        
+
         # Action Items
-        if status['action_items']:
+        if status["action_items"]:
             logger.info(f"Action items: {len(status['action_items'])}")
             print("[PRIORITY ACTIONS]")
-            for i, action in enumerate(status['action_items'][:3], 1):  # Top 3 with numbering
+            for i, action in enumerate(
+                status["action_items"][:3], 1
+            ):  # Top 3 with numbering
                 logger.info(f"  {i}. {action}")
                 print(f"  {i}. {action}")
             print()
-        
+
         # Recent Activity
-        activity = status['recent_activity']
-        if activity['recent_changes']:
+        activity = status["recent_activity"]
+        if activity["recent_changes"]:
             logger.info(f"Recent changes: {len(activity['recent_changes'])} files")
             print("[RECENT ACTIVITY]")
-            for change in activity['recent_changes']:
+            for change in activity["recent_changes"]:
                 print(f"  {change}")
             print()
-        
+
         # Quick Recommendations
         print("[QUICK COMMANDS]")
         print("  Status: python development_tools/run_development_tools.py status")
         print("  Full audit: python development_tools/run_development_tools.py audit")
         print("  Quick check: python development_tools/quick_status.py concise")
-    
+
     def print_json_status(self):
         """Print status as JSON for programmatic consumption"""
         status = self.get_quick_status()
         logger.info("Running quick status...")
         # JSON output stays as print() for programmatic consumption
         print(json.dumps(status, indent=2))
+
 
 def main():
     """Main entry point"""
@@ -398,13 +441,13 @@ def main():
         print("  concise - Print concise status for AI consumption")
         print("  json    - Print status as JSON")
         sys.exit(1)
-    
+
     command = sys.argv[1].lower()
     status_checker = QuickStatus()
-    
-    if command == 'concise':
+
+    if command == "concise":
         status_checker.print_concise_status()
-    elif command == 'json':
+    elif command == "json":
         status_checker.print_json_status()
     else:
         logger.error(f"Unknown command: {command}")
@@ -413,5 +456,6 @@ def main():
         print("Use 'concise' or 'json'")
         sys.exit(1)
 
-if __name__ == '__main__':
-    main() 
+
+if __name__ == "__main__":
+    main()

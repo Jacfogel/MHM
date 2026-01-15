@@ -4,6 +4,7 @@ from ui.widgets.dynamic_list_field import DynamicListField
 from core.user_data_handlers import get_predefined_options
 from core.error_handling import handle_errors
 
+
 class DynamicListContainer(QWidget):
     """Manages a vertical list of DynamicListField rows."""
 
@@ -53,7 +54,9 @@ class DynamicListContainer(QWidget):
         row_idx = 0
         col_idx = 0
         for option in presets:
-            row = DynamicListField(self, preset_label=option, editable=False, checked=False)
+            row = DynamicListField(
+                self, preset_label=option, editable=False, checked=False
+            )
             row.value_changed.connect(lambda r=row: self._on_preset_toggled(r))
             self.grid_layout.addWidget(row, row_idx, col_idx)
             self.rows.append(row)
@@ -65,14 +68,14 @@ class DynamicListContainer(QWidget):
 
         # Add one blank custom row
         self._add_blank_row()
-        
-
 
     # ------------------------------------------------------------------
     @handle_errors("adding blank row to dynamic list container")
     def _add_blank_row(self):
         try:
-            blank = DynamicListField(self, preset_label="", editable=True, checked=False)
+            blank = DynamicListField(
+                self, preset_label="", editable=True, checked=False
+            )
             blank.value_changed.connect(lambda: self._on_row_edited(blank))
             blank.delete_requested.connect(self._on_row_deleted)
             self.custom_layout.addWidget(blank)
@@ -82,7 +85,8 @@ class DynamicListContainer(QWidget):
             blank.ui.pushButton_delete_DynamicListField.hide()
         except Exception as e:
             from core.logger import get_component_logger
-            logger = get_component_logger('ui')
+
+            logger = get_component_logger("ui")
             logger.error(f"Error adding blank row to dynamic list container: {e}")
             raise
 
@@ -94,12 +98,15 @@ class DynamicListContainer(QWidget):
                 self._add_blank_row()
 
             # Skip warning during programmatic changes
-            self._deduplicate_values(trigger_row=row, skip_warning=DynamicListContainer._programmatic_change)
+            self._deduplicate_values(
+                trigger_row=row, skip_warning=DynamicListContainer._programmatic_change
+            )
             self._ensure_single_blank_row(current_blank=row if row.is_blank() else None)
             self.values_changed.emit()
         except Exception as e:
             from core.logger import get_component_logger
-            logger = get_component_logger('ui')
+
+            logger = get_component_logger("ui")
             logger.error(f"Error handling row edit in dynamic list container: {e}")
             raise
 
@@ -115,7 +122,8 @@ class DynamicListContainer(QWidget):
                 self.values_changed.emit()
         except Exception as e:
             from core.logger import get_component_logger
-            logger = get_component_logger('ui')
+
+            logger = get_component_logger("ui")
             logger.error(f"Error handling row deletion in dynamic list container: {e}")
             raise
 
@@ -136,25 +144,30 @@ class DynamicListContainer(QWidget):
                     b.deleteLater()
         except Exception as e:
             from core.logger import get_component_logger
-            logger = get_component_logger('ui')
-            logger.error(f"Error ensuring single blank row in dynamic list container: {e}")
+
+            logger = get_component_logger("ui")
+            logger.error(
+                f"Error ensuring single blank row in dynamic list container: {e}"
+            )
             raise
 
     @handle_errors("deduplicating values in dynamic list container")
-    def _deduplicate_values(self, trigger_row: DynamicListField | None = None, skip_warning: bool = False):
+    def _deduplicate_values(
+        self, trigger_row: DynamicListField | None = None, skip_warning: bool = False
+    ):
         try:
             # Skip if we're already handling duplicates or if this is a programmatic change
             if DynamicListContainer._handling_duplicate or skip_warning:
                 return
-                
+
             DynamicListContainer._handling_duplicate = True
             DynamicListContainer._programmatic_change = True
-            
+
             try:
                 # Skip if no trigger row provided
                 if not trigger_row:
                     return
-                    
+
                 # Find all currently checked rows (excluding the trigger row)
                 existing_checked: dict[str, DynamicListField] = {}
                 for r in self.rows:
@@ -168,35 +181,48 @@ class DynamicListContainer(QWidget):
                 # Only do this if the trigger row is actually checked
                 if not trigger_row.is_checked():
                     return
-                    
+
                 trigger_text = trigger_row.get_text().strip().lower()
                 if trigger_text and trigger_text in existing_checked:
                     # Temporarily disconnect the trigger row's signal to prevent recursion
                     trigger_row.value_changed.disconnect()
-                    
+
                     trigger_row.set_checked(False)
-                    
+
                     # Show warning once, only when user finishes editing/ toggling duplicate row
                     if (
-                        not (trigger_row.editable and trigger_row.ui.lineEdit_dynamic_list_field.hasFocus()) and
-                        not DynamicListContainer._showing_dup_alert
+                        not (
+                            trigger_row.editable
+                            and trigger_row.ui.lineEdit_dynamic_list_field.hasFocus()
+                        )
+                        and not DynamicListContainer._showing_dup_alert
                     ):
                         from PySide6.QtWidgets import QMessageBox
+
                         DynamicListContainer._showing_dup_alert = True
-                        QMessageBox.warning(self, "Duplicate Interest", f"'{trigger_row.get_text()}' is already selected.")
+                        QMessageBox.warning(
+                            self,
+                            "Duplicate Interest",
+                            f"'{trigger_row.get_text()}' is already selected.",
+                        )
                         DynamicListContainer._showing_dup_alert = False
 
                     # Reconnect the signal
                     if trigger_row.editable:
-                        trigger_row.value_changed.connect(lambda: self._on_row_edited(trigger_row))
+                        trigger_row.value_changed.connect(
+                            lambda: self._on_row_edited(trigger_row)
+                        )
                     else:
-                        trigger_row.value_changed.connect(lambda: self._on_preset_toggled(trigger_row))
+                        trigger_row.value_changed.connect(
+                            lambda: self._on_preset_toggled(trigger_row)
+                        )
             finally:
                 DynamicListContainer._handling_duplicate = False
                 DynamicListContainer._programmatic_change = False
         except Exception as e:
             from core.logger import get_component_logger
-            logger = get_component_logger('ui')
+
+            logger = get_component_logger("ui")
             logger.error(f"Error deduplicating values in dynamic list container: {e}")
             raise
 
@@ -206,7 +232,7 @@ class DynamicListContainer(QWidget):
         predefined_options = get_predefined_options(self.field_key)
         preset_vals: list[str] = []
         custom_vals: list[str] = []
-        
+
         # Collect all checked items
         for r in self.rows:
             if not r.is_checked():
@@ -224,7 +250,7 @@ class DynamicListContainer(QWidget):
                 else:
                     # Custom item - keep original case
                     custom_vals.append(text)
-        
+
         # Return presets in predefined order, followed by custom items
         return preset_vals + custom_vals
 
@@ -241,7 +267,9 @@ class DynamicListContainer(QWidget):
         for r in self.rows:
             r.set_checked(r.get_text().lower() in selected_lower)
         # Add custom rows for remaining (case-insensitive matching)
-        predefined_options = [opt.lower() for opt in get_predefined_options(self.field_key)]
+        predefined_options = [
+            opt.lower() for opt in get_predefined_options(self.field_key)
+        ]
         remaining = [t for t in selected if t.lower() not in predefined_options]
         for item in remaining:
             row = DynamicListField(self, preset_label=item, editable=True, checked=True)
@@ -264,22 +292,26 @@ class DynamicListContainer(QWidget):
             return len(self.rows)
         except Exception as e:
             from core.logger import get_component_logger
-            logger = get_component_logger('ui')
-            logger.error(f"Error finding first blank index in dynamic list container: {e}")
+
+            logger = get_component_logger("ui")
+            logger.error(
+                f"Error finding first blank index in dynamic list container: {e}"
+            )
             return len(self.rows)
-
-
 
     # Handle preset toggle to include duplicate validation
     @handle_errors("handling preset toggle in dynamic list container")
     def _on_preset_toggled(self, row: DynamicListField):
         try:
             # Skip warning during programmatic changes
-            self._deduplicate_values(trigger_row=row, skip_warning=DynamicListContainer._programmatic_change)
+            self._deduplicate_values(
+                trigger_row=row, skip_warning=DynamicListContainer._programmatic_change
+            )
             self.values_changed.emit()
         except Exception as e:
             from core.logger import get_component_logger
-            logger = get_component_logger('ui')
+
+            logger = get_component_logger("ui")
             logger.error(f"Error handling preset toggle in dynamic list container: {e}")
             raise
 

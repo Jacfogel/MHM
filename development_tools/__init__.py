@@ -22,10 +22,10 @@ from .shared import (
 
 __all__ = [
     # Configuration
-    'config',
+    "config",
     # Shared (re-exported from shared subpackage)
-    'should_exclude_file',
-    'get_exclusions',
-    'is_local_module',
-    'is_standard_library_module',
+    "should_exclude_file",
+    "get_exclusions",
+    "is_local_module",
+    "is_standard_library_module",
 ]

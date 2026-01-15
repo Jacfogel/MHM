@@ -36,11 +36,11 @@ logger = get_component_logger("development_tools")
 def add_markers(dry_run: bool = False, project_root: Optional[Path] = None) -> Dict:
     """
     Add missing markers to test files based on directory structure.
-    
+
     Args:
         dry_run: If True, show what would be changed without making changes
         project_root: Optional project root path
-        
+
     Returns:
         Dictionary with 'updated', 'skipped', and 'dry_run' keys
     """
@@ -50,30 +50,38 @@ def add_markers(dry_run: bool = False, project_root: Optional[Path] = None) -> D
 
 def main():
     import argparse
-    
-    parser = argparse.ArgumentParser(description='Add missing pytest category markers to test files')
-    parser.add_argument('--dry-run', action='store_true', help='Show what would be changed without making changes')
-    parser.add_argument('--json', action='store_true', help='Output results as JSON')
-    
+
+    parser = argparse.ArgumentParser(
+        description="Add missing pytest category markers to test files"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be changed without making changes",
+    )
+    parser.add_argument("--json", action="store_true", help="Output results as JSON")
+
     args = parser.parse_args()
-    
+
     result = add_markers(dry_run=args.dry_run)
-    
+
     if args.json:
         import json
+
         print(json.dumps(result, indent=2))
     else:
         if args.dry_run:
             print(f"Would update {len(result['updated'])} files:")
         else:
             print(f"Updated {len(result['updated'])} files:")
-        for f, marker in result['updated']:
+        for f, marker in result["updated"]:
             print(f"  {marker}: {f}")
-        print(f"\nSkipped {len(result['skipped'])} files (already have markers or not in standard directories)")
-    
+        print(
+            f"\nSkipped {len(result['skipped'])} files (already have markers or not in standard directories)"
+        )
+
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
-

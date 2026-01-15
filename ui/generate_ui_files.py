@@ -14,30 +14,34 @@ from datetime import datetime
 
 from core.error_handling import handle_errors
 
+
 @handle_errors("generating UI file", default_return=False)
 def generate_ui_file(ui_file_path: str, output_path: str) -> bool:
     """
     Generate a UI Python file from a .ui file with proper headers.
-    
+
     Args:
         ui_file_path: Path to the .ui file
         output_path: Path for the generated Python file
-        
+
     Returns:
         bool: True if successful, False otherwise
     """
     try:
         # Run pyside6-uic
-        result = subprocess.run([
-            'pyside6-uic', ui_file_path, '-o', output_path
-        ], capture_output=True, text=True, check=True)
-        
+        result = subprocess.run(
+            ["pyside6-uic", ui_file_path, "-o", output_path],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
         # Read the generated file
-        with open(output_path, 'r', encoding='utf-8') as f:
+        with open(output_path, "r", encoding="utf-8") as f:
             content = f.read()
-        
+
         # Add our standard headers at the top
-        headers = f'''# -*- coding: utf-8 -*-
+        headers = f"""# -*- coding: utf-8 -*-
 
 ################################################################################
 ## Form generated from reading UI file '{Path(ui_file_path).name}'
@@ -55,15 +59,15 @@ def generate_ui_file(ui_file_path: str, output_path: str) -> bool:
 # Source: pyside6-uic {ui_file_path} -o {output_path}
 # Note: This file is auto-generated. Do not edit manually.
 
-'''
-        
+"""
+
         # Write the file with headers
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(headers + content)
-        
+
         print(f"Generated: {output_path}")
         return True
-        
+
     except subprocess.CalledProcessError as e:
         print(f"Error generating {output_path}: {e}")
         print(f"   stderr: {e.stderr}")
@@ -72,39 +76,41 @@ def generate_ui_file(ui_file_path: str, output_path: str) -> bool:
         print(f"Unexpected error: {e}")
         return False
 
+
 @handle_errors("generating all UI files", default_return=False)
 def generate_all_ui_files():
     """Generate all UI files in the project."""
     project_root = Path(__file__).parent.parent
     ui_designs_dir = Path(__file__).parent / "designs"
     ui_generated_dir = Path(__file__).parent / "generated"
-    
+
     if not ui_designs_dir.exists():
         print(f"UI designs directory not found: {ui_designs_dir}")
         return False
-    
+
     # Ensure generated directory exists
     ui_generated_dir.mkdir(exist_ok=True)
-    
+
     # Find all .ui files
     ui_files = list(ui_designs_dir.glob("*.ui"))
-    
+
     if not ui_files:
         print(f"No .ui files found in {ui_designs_dir}")
         return False
-    
+
     print(f"Found {len(ui_files)} UI files to generate...")
-    
+
     success_count = 0
     for ui_file in ui_files:
         # Generate output filename
         output_file = ui_generated_dir / f"{ui_file.stem}_pyqt.py"
-        
+
         if generate_ui_file(str(ui_file), str(output_file)):
             success_count += 1
-    
+
     print(f"\nResults: {success_count}/{len(ui_files)} files generated successfully")
     return success_count == len(ui_files)
+
 
 @handle_errors("running UI file generator", default_return=1)
 def main():
@@ -112,18 +118,18 @@ def main():
     if len(sys.argv) > 1:
         # Generate specific file
         ui_file = sys.argv[1]
-        if not ui_file.endswith('.ui'):
+        if not ui_file.endswith(".ui"):
             print("Input file must be a .ui file")
             sys.exit(1)
-        
+
         if not os.path.exists(ui_file):
             print(f"UI file not found: {ui_file}")
             sys.exit(1)
-        
+
         # Generate output filename
         ui_path = Path(ui_file)
         output_file = ui_path.parent / "generated" / f"{ui_path.stem}_pyqt.py"
-        
+
         if generate_ui_file(ui_file, str(output_file)):
             print("UI file generated successfully")
         else:
@@ -134,6 +140,7 @@ def main():
             print("All UI files generated successfully")
         else:
             sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

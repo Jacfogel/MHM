@@ -16,18 +16,18 @@ from .user_analytics_dialog import UserAnalyticsDialog
 
 __all__ = [
     # Account management
-    'AccountCreatorDialog',
+    "AccountCreatorDialog",
     # User profile
-    'UserProfileDialog',
+    "UserProfileDialog",
     # Task management
-    'TaskManagementDialog',
+    "TaskManagementDialog",
     # Check-in management
-    'CheckinManagementDialog',
+    "CheckinManagementDialog",
     # Schedule editing
-    'ScheduleEditorDialog',
+    "ScheduleEditorDialog",
     # Message editing
-    'MessageEditorDialog',
-    'MessageEditDialog',
+    "MessageEditorDialog",
+    "MessageEditDialog",
     # Analytics
-    'UserAnalyticsDialog',
+    "UserAnalyticsDialog",
 ]

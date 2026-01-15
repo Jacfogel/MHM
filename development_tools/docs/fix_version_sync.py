@@ -36,33 +36,46 @@ logger = get_component_logger("development_tools")
 
 # Configuration - File Categories from config
 VERSION_SYNC_CONFIG = config.get_fix_version_sync_config()
-AI_DOCS = VERSION_SYNC_CONFIG['ai_docs']
+AI_DOCS = VERSION_SYNC_CONFIG["ai_docs"]
 
 # Use consolidated generated files from exclusions section
 from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
+
 # Extract .md files from ALL_GENERATED_FILES for generated docs
 # (exclude .txt, .json files which are also in the list)
 # AI docs: files in ai_development_docs/ or development_tools/ directories
-GENERATED_AI_DOCS = [f for f in ALL_GENERATED_FILES if f.endswith('.md') and ('ai_development_docs/' in f or 'development_tools/' in f)]
+GENERATED_AI_DOCS = [
+    f
+    for f in ALL_GENERATED_FILES
+    if f.endswith(".md") and ("ai_development_docs/" in f or "development_tools/" in f)
+]
 # Doc files: files in development_docs/ directory (exclude ai_development_docs/)
-GENERATED_DOCS = [f for f in ALL_GENERATED_FILES if f.endswith('.md') and 'development_docs/' in f and 'ai_development_docs/' not in f]
+GENERATED_DOCS = [
+    f
+    for f in ALL_GENERATED_FILES
+    if f.endswith(".md")
+    and "development_docs/" in f
+    and "ai_development_docs/" not in f
+]
 
-CURSOR_RULES = VERSION_SYNC_CONFIG['cursor_rules']
+CURSOR_RULES = VERSION_SYNC_CONFIG["cursor_rules"]
 # cursor_commands removed (file doesn't exist)
 CURSOR_COMMANDS = []
-COMMUNICATION_DOCS = VERSION_SYNC_CONFIG.get('communication_docs', [])
-CORE_DOCS = VERSION_SYNC_CONFIG.get('core_docs', [])
-LOGS_DOCS = VERSION_SYNC_CONFIG.get('logs_docs', [])
-SCRIPTS_DOCS = VERSION_SYNC_CONFIG.get('scripts_docs', [])
-TESTS_DOCS = VERSION_SYNC_CONFIG.get('tests_docs', [])
+COMMUNICATION_DOCS = VERSION_SYNC_CONFIG.get("communication_docs", [])
+CORE_DOCS = VERSION_SYNC_CONFIG.get("core_docs", [])
+LOGS_DOCS = VERSION_SYNC_CONFIG.get("logs_docs", [])
+SCRIPTS_DOCS = VERSION_SYNC_CONFIG.get("scripts_docs", [])
+TESTS_DOCS = VERSION_SYNC_CONFIG.get("tests_docs", [])
 # Use consolidated core_system_files from project.core_system_files
 CORE_SYSTEM_FILES = config.get_project_core_system_files()
-DOCUMENTATION_PATTERNS = VERSION_SYNC_CONFIG['documentation_patterns']
-EXCLUDE_PATTERNS = VERSION_SYNC_CONFIG['exclude_patterns']
+DOCUMENTATION_PATTERNS = VERSION_SYNC_CONFIG["documentation_patterns"]
+EXCLUDE_PATTERNS = VERSION_SYNC_CONFIG["exclude_patterns"]
+
 
 def get_current_date():
     """Get current date in consistent format"""
     return datetime.now().strftime("%Y-%m-%d")
+
 
 def get_file_modification_date(file_path):
     """Get the modification date of a file"""
@@ -71,6 +84,7 @@ def get_file_modification_date(file_path):
         return datetime.fromtimestamp(mtime).strftime("%Y-%m-%d")
     except Exception:
         return get_current_date()
+
 
 def is_recently_modified(file_path, days_back=1):
     """Check if file was modified within the last N days"""
@@ -81,21 +95,25 @@ def is_recently_modified(file_path, days_back=1):
 
         # Check if file was modified today or yesterday (or within specified days)
         for i in range(days_back + 1):
-            check_date = current_date.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=i)
+            check_date = current_date.replace(
+                hour=0, minute=0, second=0, microsecond=0
+            ) - timedelta(days=i)
             if file_date.date() == check_date.date():
                 return True
         return False
     except Exception:
         return True  # If we can't determine, assume it's recent
 
+
 def is_generated_file(file_path):
     """Check if a file is generated (should be treated differently)"""
     file_path_str = str(file_path)
     # Normalize path separators and remove leading ./
-    normalized_path = file_path_str.replace('\\', '/').replace('./', '')
+    normalized_path = file_path_str.replace("\\", "/").replace("./", "")
     generated_files = GENERATED_AI_DOCS + GENERATED_DOCS
     # Also check the original path in case normalization doesn't work
     return normalized_path in generated_files or file_path_str in generated_files
+
 
 def should_track_file(file_path, scope="ai_docs"):
     """Determine if a file should be tracked for versioning"""
@@ -107,7 +125,10 @@ def should_track_file(file_path, scope="ai_docs"):
             return False
 
     # Exclude virtual environment and cache directories more thoroughly
-    if any(excluded in file_path_str for excluded in [".venv", ".pytest_cache", "__pycache__", ".git"]):
+    if any(
+        excluded in file_path_str
+        for excluded in [".venv", ".pytest_cache", "__pycache__", ".git"]
+    ):
         return False
 
     if scope == "ai_docs":
@@ -120,16 +141,26 @@ def should_track_file(file_path, scope="ai_docs"):
 
     elif scope == "docs":
         # All documentation files including new categories (exclude generated)
-        all_docs = (AI_DOCS + CURSOR_RULES + CURSOR_COMMANDS +
-                   COMMUNICATION_DOCS + CORE_DOCS + LOGS_DOCS +
-                   SCRIPTS_DOCS + TESTS_DOCS + VERSION_SYNC_CONFIG.get('docs', []))
+        all_docs = (
+            AI_DOCS
+            + CURSOR_RULES
+            + CURSOR_COMMANDS
+            + COMMUNICATION_DOCS
+            + CORE_DOCS
+            + LOGS_DOCS
+            + SCRIPTS_DOCS
+            + TESTS_DOCS
+            + VERSION_SYNC_CONFIG.get("docs", [])
+        )
         # Exclude generated files from docs scope
         if file_path_str in GENERATED_AI_DOCS + GENERATED_DOCS:
             return False
-        return (file_path_str in all_docs or
-                file_path_str.endswith('.md') or
-                file_path_str.endswith('.txt') or
-                file_path_str.endswith('.mdc'))
+        return (
+            file_path_str in all_docs
+            or file_path_str.endswith(".md")
+            or file_path_str.endswith(".txt")
+            or file_path_str.endswith(".mdc")
+        )
 
     elif scope == "core":
         # Core system files
@@ -140,6 +171,7 @@ def should_track_file(file_path, scope="ai_docs"):
         return True
 
     return False
+
 
 def find_trackable_files(scope="ai_docs"):
     """Find all files that should be tracked for versioning"""
@@ -154,7 +186,7 @@ def find_trackable_files(scope="ai_docs"):
                 expanded_files.append(file_path)
         for pattern in CURSOR_RULES:
             # Check if it's a glob pattern
-            if '*' in pattern or '?' in pattern:
+            if "*" in pattern or "?" in pattern:
                 # Expand glob pattern
                 matches = glob.glob(pattern, recursive=True)
                 expanded_files.extend(matches)
@@ -174,7 +206,13 @@ def find_trackable_files(scope="ai_docs"):
         # Walk through directory and find files
         for root, dirs, files in os.walk("."):
             # Skip excluded directories
-            dirs[:] = [d for d in dirs if not any(pattern.replace("/*", "") in d for pattern in EXCLUDE_PATTERNS)]
+            dirs[:] = [
+                d
+                for d in dirs
+                if not any(
+                    pattern.replace("/*", "") in d for pattern in EXCLUDE_PATTERNS
+                )
+            ]
 
             for file in files:
                 file_path = Path(root) / file
@@ -183,52 +221,64 @@ def find_trackable_files(scope="ai_docs"):
 
     return trackable_files
 
+
 def extract_version_info(content):
     """Extract current version and date from file content"""
-    version_match = re.search(r'version["\s]*[:=]["\s]*([^"\s]+)', content, re.IGNORECASE)
-    date_match = re.search(r'last.*updated["\s]*[:=]["\s]*([^"\s]+)', content, re.IGNORECASE)
+    version_match = re.search(
+        r'version["\s]*[:=]["\s]*([^"\s]+)', content, re.IGNORECASE
+    )
+    date_match = re.search(
+        r'last.*updated["\s]*[:=]["\s]*([^"\s]+)', content, re.IGNORECASE
+    )
 
     current_version = version_match.group(1) if version_match else "1.0.0"
     current_date = date_match.group(1) if date_match else get_current_date()
 
     return current_version, current_date
 
+
 def update_version_info(content, new_version, new_date):
     """Update version and date information in file content"""
     # Update version
     content = re.sub(
         r'(version["\s]*[:=]["\s]*)[^"\s]+',
-        rf'\g<1>{new_version}',
+        rf"\g<1>{new_version}",
         content,
-        flags=re.IGNORECASE
+        flags=re.IGNORECASE,
     )
 
     # Update date
     content = re.sub(
         r'(last.*updated["\s]*[:=]["\s]*)[^"\s]+',
-        rf'\g<1>{new_date}',
+        rf"\g<1>{new_date}",
         content,
-        flags=re.IGNORECASE
+        flags=re.IGNORECASE,
     )
 
     # Add version/date if not present (for markdown files)
     if "> **Version**:" not in content and content.startswith("#"):
         # Find the header section
-        lines = content.split('\n')
+        lines = content.split("\n")
         for i, line in enumerate(lines):
-            if line.startswith('> **Status**:'):
-                lines.insert(i + 1, f'> **Version**: {new_version} - AI Collaboration System Active')
-                lines.insert(i + 2, f'> **Last Updated**: {new_date}')
+            if line.startswith("> **Status**:"):
+                lines.insert(
+                    i + 1,
+                    f"> **Version**: {new_version} - AI Collaboration System Active",
+                )
+                lines.insert(i + 2, f"> **Last Updated**: {new_date}")
                 break
-        content = '\n'.join(lines)
+        content = "\n".join(lines)
 
     return content
+
 
 def get_key_directories():
     """Get single source of truth for key directories in the project."""
     # Import constants from shared.constants
     from development_tools.shared.constants import VERSION_SYNC_DIRECTORIES
+
     return VERSION_SYNC_DIRECTORIES
+
 
 def validate_referenced_paths():
     """Validate that all referenced paths in documentation exist."""
@@ -242,24 +292,25 @@ def validate_referenced_paths():
 
         if total_issues == 0:
             return {
-                'status': 'ok',
-                'message': 'All referenced paths are valid',
-                'issues_found': 0
+                "status": "ok",
+                "message": "All referenced paths are valid",
+                "issues_found": 0,
             }
         else:
             return {
-                'status': 'fail',
-                'message': f'Found {total_issues} path validation issues',
-                'issues_found': total_issues,
-                'details': path_issues
+                "status": "fail",
+                "message": f"Found {total_issues} path validation issues",
+                "issues_found": total_issues,
+                "details": path_issues,
             }
 
     except Exception as e:
         return {
-            'status': 'error',
-            'message': f'Path validation failed: {e}',
-            'issues_found': 0
+            "status": "error",
+            "message": f"Path validation failed: {e}",
+            "issues_found": 0,
         }
+
 
 def sync_todo_with_changelog():
     """Check for completed entries in TODO.md that should be reviewed for changelog documentation."""
@@ -267,31 +318,37 @@ def sync_todo_with_changelog():
     changelog_path = "ai_development_docs/AI_CHANGELOG.md"
 
     if not os.path.exists(todo_path) or not os.path.exists(changelog_path):
-        return {'status': 'ok', 'message': 'TODO.md or AI_CHANGELOG.md not found', 'completed_entries': 0}
+        return {
+            "status": "ok",
+            "message": "TODO.md or AI_CHANGELOG.md not found",
+            "completed_entries": 0,
+        }
 
     try:
         # Read TODO.md
-        with open(todo_path, 'r', encoding='utf-8') as f:
+        with open(todo_path, "r", encoding="utf-8") as f:
             todo_content = f.read()
 
         # Find completed entries in TODO.md
         # Skip first 33 lines (header/metadata section)
         completed_entries = []
-        lines = todo_content.split('\n')
-        
+        lines = todo_content.split("\n")
+
         for i, line in enumerate(lines):
             # Skip first 33 lines (0-indexed, so lines 0-32)
             if i < 33:
                 continue
-            
+
             # Check if this line is a header line (starts with **, ##, ###, or is preceded by newline/empty line)
             is_header_line = False
             if i > 0:
-                prev_line = lines[i-1].strip() if i > 0 else ""
+                prev_line = lines[i - 1].strip() if i > 0 else ""
                 # Header if: starts with markdown heading, starts with **, or preceded by empty line
-                if line.strip().startswith(('##', '###', '**')) or (prev_line == "" and line.strip()):
+                if line.strip().startswith(("##", "###", "**")) or (
+                    prev_line == "" and line.strip()
+                ):
                     is_header_line = True
-            
+
             # Only flag entries where completion marker is in the header line
             if is_header_line:
                 # Look for lines with completion markers AFTER the task title:
@@ -299,53 +356,76 @@ def sync_todo_with_changelog():
                 # - **COMPLETE** or **COMPLETED** (in bold after task title)
                 # - COMPLETE/COMPLETED/DONE after closing ** of task title (to avoid matching "Complete" in title)
                 # Pattern: **Task Title** [optional dash/space] COMPLETE/COMPLETED/DONE
-                if re.search(r'✅\s*(COMPLETE|COMPLETED|DONE)', line, re.IGNORECASE) or \
-                   re.search(r'\*\*.*\*\*.*\*\*(COMPLETE|COMPLETED|DONE)\*\*', line, re.IGNORECASE) or \
-                   (line.strip().startswith('**') and re.search(r'\*\*[^*]+\*\*.*\b(COMPLETE|COMPLETED|DONE)\b', line, re.IGNORECASE)) or \
-                   (line.strip().startswith(('##', '###')) and re.search(r'\b(COMPLETE|COMPLETED|DONE)\b', line, re.IGNORECASE)):
-                    
+                if (
+                    re.search(r"✅\s*(COMPLETE|COMPLETED|DONE)", line, re.IGNORECASE)
+                    or re.search(
+                        r"\*\*.*\*\*.*\*\*(COMPLETE|COMPLETED|DONE)\*\*",
+                        line,
+                        re.IGNORECASE,
+                    )
+                    or (
+                        line.strip().startswith("**")
+                        and re.search(
+                            r"\*\*[^*]+\*\*.*\b(COMPLETE|COMPLETED|DONE)\b",
+                            line,
+                            re.IGNORECASE,
+                        )
+                    )
+                    or (
+                        line.strip().startswith(("##", "###"))
+                        and re.search(
+                            r"\b(COMPLETE|COMPLETED|DONE)\b", line, re.IGNORECASE
+                        )
+                    )
+                ):
+
                     # Extract the task title and context
                     task_title = line.strip()
-                    completed_entries.append({
-                        'line_number': i + 1,
-                        'title': task_title,
-                        'context': lines[max(0, i-2):i+3]  # Include 2 lines before and after for context
-                    })
+                    completed_entries.append(
+                        {
+                            "line_number": i + 1,
+                            "title": task_title,
+                            "context": lines[
+                                max(0, i - 2) : i + 3
+                            ],  # Include 2 lines before and after for context
+                        }
+                    )
 
         if completed_entries:
             return {
-                'status': 'ok',
-                'message': f'Found {len(completed_entries)} completed entries in TODO.md that need review',
-                'completed_entries': len(completed_entries),
-                'entries': completed_entries
+                "status": "ok",
+                "message": f"Found {len(completed_entries)} completed entries in TODO.md that need review",
+                "completed_entries": len(completed_entries),
+                "entries": completed_entries,
             }
         else:
             return {
-                'status': 'ok',
-                'message': 'No completed entries found in TODO.md',
-                'completed_entries': 0
+                "status": "ok",
+                "message": "No completed entries found in TODO.md",
+                "completed_entries": 0,
             }
 
     except Exception as e:
         return {
-            'status': 'error',
-            'message': f'Error checking TODO entries: {str(e)}',
-            'completed_entries': 0
+            "status": "error",
+            "message": f"Error checking TODO entries: {str(e)}",
+            "completed_entries": 0,
         }
+
 
 def check_changelog_entry_count(max_entries=15):
     """Check if AI_CHANGELOG.md has too many entries and should be trimmed."""
     changelog_path = "ai_development_docs/AI_CHANGELOG.md"
 
     if not os.path.exists(changelog_path):
-        return {'status': 'ok', 'count': 0, 'message': 'Changelog not found'}
+        return {"status": "ok", "count": 0, "message": "Changelog not found"}
 
     try:
-        with open(changelog_path, 'r', encoding='utf-8') as f:
+        with open(changelog_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Find the "Recent Changes" section
-        lines = content.split('\n')
+        lines = content.split("\n")
         recent_section_start = None
         for i, line in enumerate(lines):
             if "## Recent Changes (Most Recent First)" in line:
@@ -353,7 +433,11 @@ def check_changelog_entry_count(max_entries=15):
                 break
 
         if recent_section_start is None:
-            return {'status': 'ok', 'count': 0, 'message': 'No recent changes section found'}
+            return {
+                "status": "ok",
+                "count": 0,
+                "message": "No recent changes section found",
+            }
 
         # Count entries (everything after the header until the next major section or end)
         entry_count = 0
@@ -362,30 +446,35 @@ def check_changelog_entry_count(max_entries=15):
             line = lines[i]
 
             # Check if we hit the next major section (starts with ##)
-            if line.startswith('##') and not line.startswith('###'):
+            if line.startswith("##") and not line.startswith("###"):
                 break
 
             # Count entries (starts with ###)
-            if line.startswith('### '):
+            if line.startswith("### "):
                 entry_count += 1
 
         if entry_count > max_entries:
             return {
-                'status': 'fail',
-                'count': entry_count,
-                'max_allowed': max_entries,
-                'message': f'Changelog has {entry_count} entries, exceeds limit of {max_entries}. Run trim command to fix.'
+                "status": "fail",
+                "count": entry_count,
+                "max_allowed": max_entries,
+                "message": f"Changelog has {entry_count} entries, exceeds limit of {max_entries}. Run trim command to fix.",
             }
         else:
             return {
-                'status': 'ok',
-                'count': entry_count,
-                'max_allowed': max_entries,
-                'message': f'Changelog has {entry_count} entries, within limit of {max_entries}'
+                "status": "ok",
+                "count": entry_count,
+                "max_allowed": max_entries,
+                "message": f"Changelog has {entry_count} entries, within limit of {max_entries}",
             }
 
     except Exception as e:
-        return {'status': 'error', 'count': 0, 'message': f'Error reading changelog: {e}'}
+        return {
+            "status": "error",
+            "count": 0,
+            "message": f"Error reading changelog: {e}",
+        }
+
 
 def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
     """Trim AI_CHANGELOG.md entries older than N days and limit total entries."""
@@ -401,11 +490,11 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
         archive_dir = os.path.dirname(archive_path)
         os.makedirs(archive_dir, exist_ok=True)
 
-        with open(changelog_path, 'r', encoding='utf-8') as f:
+        with open(changelog_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Find the "Recent Changes" section
-        lines = content.split('\n')
+        lines = content.split("\n")
         recent_section_start = None
         for i, line in enumerate(lines):
             if "## Recent Changes (Most Recent First)" in line:
@@ -424,13 +513,13 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
             line = lines[i]
 
             # Check if we hit the next major section (starts with ##)
-            if line.startswith('##') and not line.startswith('###'):
+            if line.startswith("##") and not line.startswith("###"):
                 break
 
             # Check if this is a new entry (starts with ###)
-            if line.startswith('### '):
+            if line.startswith("### "):
                 if current_entry and in_entry:
-                    entries.append('\n'.join(current_entry))
+                    entries.append("\n".join(current_entry))
                 current_entry = [line]
                 in_entry = True
             elif in_entry:
@@ -438,7 +527,7 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
 
         # Add the last entry if we were in one
         if current_entry and in_entry:
-            entries.append('\n'.join(current_entry))
+            entries.append("\n".join(current_entry))
 
         # Filter entries by date and limit count
         cutoff_date = datetime.now() - timedelta(days=days_to_keep)
@@ -447,9 +536,9 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
 
         for entry in entries:
             # Extract date from entry (format: ### YYYY-MM-DD - Title)
-            date_match = re.search(r'### (\d{4}-\d{2}-\d{2})', entry)
+            date_match = re.search(r"### (\d{4}-\d{2}-\d{2})", entry)
             if date_match:
-                entry_date = datetime.strptime(date_match.group(1), '%Y-%m-%d')
+                entry_date = datetime.strptime(date_match.group(1), "%Y-%m-%d")
                 if entry_date >= cutoff_date:
                     filtered_entries.append(entry)
                 else:
@@ -467,31 +556,32 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
         # If we have entries to archive, create/update archive file
 
         if archived_entries:
+
             def _parse_archive_entries(content: str) -> list[str]:
-                lines = content.split('\n')
+                lines = content.split("\n")
                 entries: list[str] = []
                 current: list[str] = []
 
                 for line in lines:
-                    if line.startswith('### '):
+                    if line.startswith("### "):
                         if current:
-                            entries.append('\n'.join(current).strip())
+                            entries.append("\n".join(current).strip())
                         current = [line]
                     elif current:
                         current.append(line)
 
                 if current:
-                    entries.append('\n'.join(current).strip())
+                    entries.append("\n".join(current).strip())
 
                 return [entry for entry in entries if entry]
 
             def _normalize_heading(entry: str) -> str:
-                heading = entry.split('\n', 1)[0].strip()
-                return ' '.join(heading.split())
+                heading = entry.split("\n", 1)[0].strip()
+                return " ".join(heading.split())
 
             existing_entries: list[str] = []
             if os.path.exists(archive_path):
-                with open(archive_path, 'r', encoding='utf-8') as f:
+                with open(archive_path, "r", encoding="utf-8") as f:
                     existing_content = f.read()
                 existing_entries = _parse_archive_entries(existing_content)
 
@@ -517,15 +607,15 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
                 "> **Generated**: Auto-archived by fix_version_sync.py",
                 "",
                 "## Archived Entries",
-                ""
+                "",
             ]
             archive_content.extend(combined_entries)
 
-            with open(archive_path, 'w', encoding='utf-8') as f:
-                f.write('\n'.join(archive_content) + '\n')
+            with open(archive_path, "w", encoding="utf-8") as f:
+                f.write("\n".join(archive_content) + "\n")
 
         # Rebuild the changelog with filtered entries
-        new_content = lines[:recent_section_start + 1]
+        new_content = lines[: recent_section_start + 1]
         new_content.append("")
         new_content.extend(filtered_entries)
 
@@ -533,7 +623,7 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
         # (find where the recent changes section ends)
         section_end = recent_section_start + 1
         for i in range(recent_section_start + 1, len(lines)):
-            if lines[i].startswith('##') and not lines[i].startswith('###'):
+            if lines[i].startswith("##") and not lines[i].startswith("###"):
                 section_end = i
                 break
         else:
@@ -544,17 +634,18 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
             new_content.extend(lines[section_end:])
 
         # Write the updated changelog
-        with open(changelog_path, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(new_content))
+        with open(changelog_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(new_content))
 
         return {
-            'trimmed_entries': len(archived_entries),
-            'kept_entries': len(filtered_entries),
-            'archive_created': len(archived_entries) > 0
+            "trimmed_entries": len(archived_entries),
+            "kept_entries": len(filtered_entries),
+            "archive_created": len(archived_entries) > 0,
         }
 
     except Exception as e:
-        return {'error': str(e)}
+        return {"error": str(e)}
+
 
 def sync_versions(target_version=None, force_date_update=False, scope="ai_docs"):
     """Synchronize versions across files based on scope"""
@@ -573,7 +664,7 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
         # Expand glob patterns in CURSOR_RULES
         files_to_process = list(AI_DOCS)
         for pattern in CURSOR_RULES:
-            if '*' in pattern or '?' in pattern:
+            if "*" in pattern or "?" in pattern:
                 # Expand glob pattern
                 matches = glob.glob(pattern, recursive=True)
                 files_to_process.extend(matches)
@@ -589,7 +680,7 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
     for file_path in files_to_process:
         if os.path.exists(file_path):
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 old_version, old_date = extract_version_info(content)
@@ -604,12 +695,18 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
                     # or skip version updates entirely since they're auto-generated
                     if scope == "generated":
                         # Only update date for generated files, not version
-                        new_content = update_version_info(content, old_version, new_date)
+                        new_content = update_version_info(
+                            content, old_version, new_date
+                        )
                     else:
-                        new_content = update_version_info(content, target_version, new_date)
+                        new_content = update_version_info(
+                            content, target_version, new_date
+                        )
                 else:
                     # Regular file handling
-                    if force_date_update or is_recently_modified(file_path, days_back=1):
+                    if force_date_update or is_recently_modified(
+                        file_path, days_back=1
+                    ):
                         # File was modified recently (today/yesterday) or force update requested
                         new_date = current_date
                         if force_date_update:
@@ -626,11 +723,15 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
                     new_content = update_version_info(content, target_version, new_date)
 
                 if new_content != content:
-                    with open(file_path, 'w', encoding='utf-8') as f:
+                    with open(file_path, "w", encoding="utf-8") as f:
                         f.write(new_content)
-                    updated_files.append(f"{file_path} (v{old_version}->{target_version}, {date_reason})")
+                    updated_files.append(
+                        f"{file_path} (v{old_version}->{target_version}, {date_reason})"
+                    )
                 else:
-                    updated_files.append(f"{file_path} (already v{target_version}, {date_reason})")
+                    updated_files.append(
+                        f"{file_path} (already v{target_version}, {date_reason})"
+                    )
 
             except Exception as e:
                 updated_files.append(f"{file_path} (error: {e})")
@@ -644,9 +745,12 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
 
     logger.info(f"Synchronization complete!")
     logger.info(f"   Files processed: {len(files_to_process)}")
-    logger.info(f"   Files updated: {len([f for f in updated_files if 'UPDATED' in f])}")
+    logger.info(
+        f"   Files updated: {len([f for f in updated_files if 'UPDATED' in f])}"
+    )
 
     return updated_files
+
 
 def show_current_versions(scope="ai_docs"):
     """Show current versions of files based on scope"""
@@ -656,7 +760,7 @@ def show_current_versions(scope="ai_docs"):
         # Expand glob patterns in CURSOR_RULES
         files_to_show = list(AI_DOCS)
         for pattern in CURSOR_RULES:
-            if '*' in pattern or '?' in pattern:
+            if "*" in pattern or "?" in pattern:
                 matches = glob.glob(pattern, recursive=True)
                 files_to_show.extend(matches)
             else:
@@ -667,7 +771,7 @@ def show_current_versions(scope="ai_docs"):
     for file_path in files_to_show:
         if os.path.exists(file_path):
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 version, date = extract_version_info(content)
@@ -687,6 +791,7 @@ def show_current_versions(scope="ai_docs"):
         else:
             logger.warning(f"   {file_path}:  File not found")
 
+
 def show_modification_status(scope="ai_docs"):
     """Show which files were modified recently"""
     logger.info(f"File Modification Status (scope: {scope}):")
@@ -695,7 +800,7 @@ def show_modification_status(scope="ai_docs"):
         # Expand glob patterns in CURSOR_RULES
         files_to_check = list(AI_DOCS)
         for pattern in CURSOR_RULES:
-            if '*' in pattern or '?' in pattern:
+            if "*" in pattern or "?" in pattern:
                 matches = glob.glob(pattern, recursive=True)
                 files_to_check.extend(matches)
             else:
@@ -713,7 +818,9 @@ def show_modification_status(scope="ai_docs"):
             file_mod_date = get_file_modification_date(file_path)
             if file_mod_date == current_date:
                 modified_today.append(file_path)
-            elif file_mod_date == (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"):
+            elif file_mod_date == (datetime.now() - timedelta(days=1)).strftime(
+                "%Y-%m-%d"
+            ):
                 modified_yesterday.append(file_path)
             else:
                 unchanged.append(file_path)
@@ -734,6 +841,7 @@ def show_modification_status(scope="ai_docs"):
         logger.info("Unchanged:")
         for file_path in unchanged:
             logger.info(f"{file_path}")
+
 
 if __name__ == "__main__":
     import sys
@@ -764,12 +872,16 @@ if __name__ == "__main__":
                 elif arg.startswith("--max="):
                     max_entries = int(arg.split("=")[1])
             result = trim_ai_changelog_entries(days_to_keep, max_entries)
-            if 'error' in result:
+            if "error" in result:
                 logger.error(f"Error trimming changelog: {result['error']}")
             else:
-                logger.info(f"Changelog trimmed: {result['trimmed_entries']} entries archived, {result['kept_entries']} entries kept")
-                if result['archive_created']:
-                    logger.info(f"Archive created: development_tools/reports/archive/AI_CHANGELOG_ARCHIVE.md")
+                logger.info(
+                    f"Changelog trimmed: {result['trimmed_entries']} entries archived, {result['kept_entries']} entries kept"
+                )
+                if result["archive_created"]:
+                    logger.info(
+                        f"Archive created: development_tools/reports/archive/AI_CHANGELOG_ARCHIVE.md"
+                    )
         elif command == "check":
             max_entries = 15
             for arg in sys.argv:
@@ -777,46 +889,84 @@ if __name__ == "__main__":
                     max_entries = int(arg.split("=")[1])
             result = check_changelog_entry_count(max_entries)
             logger.info(f"Changelog check: {result['message']}")
-            if result['status'] == 'fail':
+            if result["status"] == "fail":
                 sys.exit(1)  # Exit with error code to fail audit
         elif command == "validate":
             result = validate_referenced_paths()
             logger.info(f"Path validation: {result['message']}")
-            if result['status'] == 'fail':
+            if result["status"] == "fail":
                 logger.warning(f"Found {result['issues_found']} path issues")
                 sys.exit(1)  # Exit with error code to fail audit
-            elif result['status'] == 'error':
+            elif result["status"] == "error":
                 logger.error(f"Path validation error: {result['message']}")
                 sys.exit(1)  # Exit with error code to fail audit
         elif command == "sync-todo":
             result = sync_todo_with_changelog()
             logger.info(f"TODO sync: {result['message']}")
-            if result.get('completed_entries', 0) > 0:
-                logger.warning(f"Found {result['completed_entries']} completed entries that need manual review:")
-                for entry in result.get('entries', []):
+            if result.get("completed_entries", 0) > 0:
+                logger.warning(
+                    f"Found {result['completed_entries']} completed entries that need manual review:"
+                )
+                for entry in result.get("entries", []):
                     logger.warning(f"  Line {entry['line_number']}: {entry['title']}")
-                logger.warning("  -> Please check if these are documented in AI_CHANGELOG.md")
+                logger.warning(
+                    "  -> Please check if these are documented in AI_CHANGELOG.md"
+                )
                 logger.warning("  -> If documented, remove them from TODO.md")
-                logger.warning("  -> If not documented, add them to AI_CHANGELOG.md first")
+                logger.warning(
+                    "  -> If not documented, add them to AI_CHANGELOG.md first"
+                )
         else:
             # Usage messages go to stdout for user visibility
             print("Usage:")
-            print("  python development_tools/docs/fix_version_sync.py show                    # Show AI doc versions")
-            print("  python development_tools/docs/fix_version_sync.py show docs               # Show all doc versions")
-            print("  python development_tools/docs/fix_version_sync.py show core               # Show core system versions")
-            print("  python development_tools/docs/fix_version_sync.py status                  # Show AI doc status")
-            print("  python development_tools/docs/fix_version_sync.py status docs             # Show all doc status")
-            print("  python development_tools/docs/fix_version_sync.py sync                    # Sync AI docs (smart dates)")
-            print("  python development_tools/docs/fix_version_sync.py sync --scope=docs       # Sync all documentation")
-            print("  python development_tools/docs/fix_version_sync.py sync --scope=core       # Sync core system files")
-            print("  python development_tools/docs/fix_version_sync.py sync 1.1.0              # Sync to specific version")
-            print("  python development_tools/docs/fix_version_sync.py sync --force            # Force update all dates")
-            print("  python development_tools/docs/fix_version_sync.py trim                     # Trim AI_CHANGELOG entries (30 days, max 15)")
-            print("  python development_tools/docs/fix_version_sync.py trim --days=60 --max=20 # Custom trim settings")
-            print("  python development_tools/docs/fix_version_sync.py check                   # Check if changelog exceeds entry limit")
-            print("  python development_tools/docs/fix_version_sync.py check --max=20          # Check with custom limit")
-            print("  python development_tools/docs/fix_version_sync.py validate                 # Validate all referenced paths exist")
-            print("  python development_tools/docs/fix_version_sync.py sync-todo                # Sync TODO.md with AI_CHANGELOG.md")
+            print(
+                "  python development_tools/docs/fix_version_sync.py show                    # Show AI doc versions"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py show docs               # Show all doc versions"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py show core               # Show core system versions"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py status                  # Show AI doc status"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py status docs             # Show all doc status"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py sync                    # Sync AI docs (smart dates)"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py sync --scope=docs       # Sync all documentation"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py sync --scope=core       # Sync core system files"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py sync 1.1.0              # Sync to specific version"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py sync --force            # Force update all dates"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py trim                     # Trim AI_CHANGELOG entries (30 days, max 15)"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py trim --days=60 --max=20 # Custom trim settings"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py check                   # Check if changelog exceeds entry limit"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py check --max=20          # Check with custom limit"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py validate                 # Validate all referenced paths exist"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py sync-todo                # Sync TODO.md with AI_CHANGELOG.md"
+            )
     else:
         # Default: show current versions
         show_current_versions()
@@ -829,6 +979,10 @@ if __name__ == "__main__":
         print("Available scopes:")
         print("   ai_docs     - AI documentation and cursor rules (default)")
         print("   docs        - All documentation files (*.md, *.txt, *.mdc)")
-        print("   generated   - Generated files (function registry, module dependencies, etc.)")
-        print("   core        - Core system files (main entry points, core modules, etc.)")
+        print(
+            "   generated   - Generated files (function registry, module dependencies, etc.)"
+        )
+        print(
+            "   core        - Core system files (main entry points, core modules, etc.)"
+        )
         print("   all         - All files (use with caution)")

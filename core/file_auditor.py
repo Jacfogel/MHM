@@ -27,25 +27,31 @@ try:
     # Avoid heavy imports during tests; logger provides component loggers
     from core.logger import get_component_logger
     from core.error_handling import handle_errors
-    _logger = get_component_logger('file_ops')
+
+    _logger = get_component_logger("file_ops")
 except Exception:
     # Fallback to a no-op logger to satisfy static logging checks
     class _DummyLogger:
         def info(self, *args, **kwargs):
             """No-op info logging for fallback logger."""
             pass
+
         def warning(self, *args, **kwargs):
             """No-op warning logging for fallback logger."""
             pass
+
         def debug(self, *args, **kwargs):
             """No-op debug logging for fallback logger."""
             pass
+
         def error(self, *args, **kwargs):
             """No-op error logging for fallback logger."""
             pass
+
         def critical(self, *args, **kwargs):
             """No-op critical logging for fallback logger."""
             pass
+
     _logger = _DummyLogger()
 
 
@@ -53,28 +59,28 @@ except Exception:
 def _split_env_list(value: Optional[str]) -> List[str]:
     if not value:
         return []
-    return [item.strip() for item in value.split(',') if item.strip()]
+    return [item.strip() for item in value.split(",") if item.strip()]
 
 
 @handle_errors("classifying file path", default_return="other")
 def _classify_path(path: str) -> str:
-    lower = path.replace('\\', '/').lower()
-    if '/tests/' in lower or lower.startswith('tests/'):
-        return 'tests'
-    if '/logs/' in lower or lower.endswith('.log'):
-        return 'logs'
-    if '/flags/' in lower or lower.endswith('.flag'):
-        return 'flags'
-    if '/data/users/' in lower or lower.startswith('data/users'):
-        return 'user_data'
-    return 'other'
+    lower = path.replace("\\", "/").lower()
+    if "/tests/" in lower or lower.startswith("tests/"):
+        return "tests"
+    if "/logs/" in lower or lower.endswith(".log"):
+        return "logs"
+    if "/flags/" in lower or lower.endswith(".flag"):
+        return "flags"
+    if "/data/users/" in lower or lower.startswith("data/users"):
+        return "user_data"
+    return "other"
 
 
 class FileAuditor:
     """
     Auditor for tracking file creation and modification patterns.
     """
-    
+
     @handle_errors("initializing file auditor")
     def __init__(self):
         try:
@@ -86,32 +92,32 @@ class FileAuditor:
         except Exception as e:
             _logger.error(f"Error initializing file auditor: {e}")
             raise
-        
+
     @handle_errors("getting audit directories", default_return=[])
     def _get_audit_directories(self):
         """Get configurable audit directories from environment or use defaults."""
         try:
-            env_dirs = os.getenv('FILE_AUDIT_DIRS')
+            env_dirs = os.getenv("FILE_AUDIT_DIRS")
             if env_dirs:
-                return [d.strip() for d in env_dirs.split(',')]
+                return [d.strip() for d in env_dirs.split(",")]
             else:
                 # Default directories - use configurable paths where possible
-                default_dirs = ['logs', 'data']
-                
+                default_dirs = ["logs", "data"]
+
                 # Add test directories if in testing environment
-                if os.getenv('MHM_TESTING') == '1':
-                    default_dirs.extend(['tests/data', 'tests/logs'])
-                    
+                if os.getenv("MHM_TESTING") == "1":
+                    default_dirs.extend(["tests/data", "tests/logs"])
+
                 return default_dirs
         except Exception as e:
             _logger.error(f"Error getting audit directories: {e}")
-            return ['logs', 'data']  # Fallback to basic directories
-    
+            return ["logs", "data"]  # Fallback to basic directories
+
     @handle_errors("starting file auditor", default_return=None)
     def start(self):
         """Start the file auditor (no-op for now)."""
         return True
-    
+
     @handle_errors("stopping file auditor", default_return=None)
     def stop(self):
         """Stop the file auditor (no-op for now)."""
@@ -144,18 +150,16 @@ def record_created(path: str, reason: str = "api", extra: Optional[Dict] = None)
         size = -1
     classification = _classify_path(path)
     payload = {
-        'path': os.path.abspath(path),
-        'bytes': size,
-        'classification': classification,
-        'detected_by': reason,
+        "path": os.path.abspath(path),
+        "bytes": size,
+        "classification": classification,
+        "detected_by": reason,
     }
     if extra:
         payload.update(extra)
-    if os.getenv('FILE_AUDIT_STACK') == '1':
+    if os.getenv("FILE_AUDIT_STACK") == "1":
         try:
-            payload['stack'] = ''.join(traceback.format_stack(limit=10))
+            payload["stack"] = "".join(traceback.format_stack(limit=10))
         except Exception:
             pass
     _logger.info("File created (programmatic)", **payload)
-
-

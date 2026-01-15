@@ -15,17 +15,17 @@ from .period_row_widget import PeriodRowWidget
 
 __all__ = [
     # Task settings
-    'TaskSettingsWidget',
+    "TaskSettingsWidget",
     # Check-in settings
-    'CheckinSettingsWidget',
+    "CheckinSettingsWidget",
     # User profile settings
-    'UserProfileSettingsWidget',
+    "UserProfileSettingsWidget",
     # Channel selection
-    'ChannelSelectionWidget',
+    "ChannelSelectionWidget",
     # Category selection
-    'CategorySelectionWidget',
+    "CategorySelectionWidget",
     # Tag management
-    'TagWidget',
+    "TagWidget",
     # Period row
-    'PeriodRowWidget',
+    "PeriodRowWidget",
 ]

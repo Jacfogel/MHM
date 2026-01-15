@@ -24,16 +24,16 @@ from .constants import (
 
 __all__ = [
     # File exclusion
-    'should_exclude_file',
-    'get_exclusions',
-    'get_coverage_exclusions',
-    'get_analysis_exclusions',
-    'get_documentation_exclusions',
+    "should_exclude_file",
+    "get_exclusions",
+    "get_coverage_exclusions",
+    "get_analysis_exclusions",
+    "get_documentation_exclusions",
     # Function/code exclusion utilities
-    'is_auto_generated_code',
-    'is_special_python_method',
-    'is_test_function',
+    "is_auto_generated_code",
+    "is_special_python_method",
+    "is_test_function",
     # Module classification
-    'is_local_module',
-    'is_standard_library_module',
+    "is_local_module",
+    "is_standard_library_module",
 ]

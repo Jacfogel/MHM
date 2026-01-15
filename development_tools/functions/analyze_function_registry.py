@@ -26,12 +26,18 @@ try:
 except ImportError:
     import sys
     from pathlib import Path
+
     # Add project root to path
     project_root = Path(__file__).parent.parent.parent
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
-    from development_tools.shared.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli
+    from development_tools.shared.common import (
+        ProjectPaths,
+        ensure_ascii,
+        iter_python_sources,
+        run_cli,
+    )
 
 # Import component logger
 from core.logger import get_component_logger
@@ -43,26 +49,30 @@ config.load_external_config()
 AUDIT_REGISTRY_CONFIG = config.get_analyze_function_registry_config()
 
 # Set up logging
-logger = get_component_logger('development_tools')
+logger = get_component_logger("development_tools")
 
 PATHS = ProjectPaths()
 # Get registry path from config (default: development_docs/FUNCTION_REGISTRY_DETAIL.md)
-_registry_path_str = AUDIT_REGISTRY_CONFIG.get('registry_path', 'development_docs/FUNCTION_REGISTRY_DETAIL.md')
+_registry_path_str = AUDIT_REGISTRY_CONFIG.get(
+    "registry_path", "development_docs/FUNCTION_REGISTRY_DETAIL.md"
+)
 REGISTRY_PATH = PATHS.root / _registry_path_str
 CURRENT_DIR = Path(__file__).parent
 
 FUNCTION_CFG = config.get_analyze_functions_config()
-HANDLER_KEYWORDS = tuple(keyword.lower() for keyword in FUNCTION_CFG.get("handler_keywords", []))
+HANDLER_KEYWORDS = tuple(
+    keyword.lower() for keyword in FUNCTION_CFG.get("handler_keywords", [])
+)
 
 # Load thresholds and limits from config
-HIGH_COMPLEXITY_MIN = AUDIT_REGISTRY_CONFIG.get('high_complexity_min', 50)
-TOP_COMPLEXITY = AUDIT_REGISTRY_CONFIG.get('top_complexity', 10)
-TOP_UNDOCUMENTED = AUDIT_REGISTRY_CONFIG.get('top_undocumented', 5)
-TOP_DUPLICATES = AUDIT_REGISTRY_CONFIG.get('top_duplicates', 5)
-ERROR_SAMPLE_LIMIT = AUDIT_REGISTRY_CONFIG.get('error_sample_limit', 5)
-MAX_COMPLEXITY_JSON = AUDIT_REGISTRY_CONFIG.get('max_complexity_json', 200)
-MAX_UNDOCUMENTED_JSON = AUDIT_REGISTRY_CONFIG.get('max_undocumented_json', 200)
-MAX_DUPLICATES_JSON = AUDIT_REGISTRY_CONFIG.get('max_duplicates_json', 200)
+HIGH_COMPLEXITY_MIN = AUDIT_REGISTRY_CONFIG.get("high_complexity_min", 50)
+TOP_COMPLEXITY = AUDIT_REGISTRY_CONFIG.get("top_complexity", 10)
+TOP_UNDOCUMENTED = AUDIT_REGISTRY_CONFIG.get("top_undocumented", 5)
+TOP_DUPLICATES = AUDIT_REGISTRY_CONFIG.get("top_duplicates", 5)
+ERROR_SAMPLE_LIMIT = AUDIT_REGISTRY_CONFIG.get("error_sample_limit", 5)
+MAX_COMPLEXITY_JSON = AUDIT_REGISTRY_CONFIG.get("max_complexity_json", 200)
+MAX_UNDOCUMENTED_JSON = AUDIT_REGISTRY_CONFIG.get("max_undocumented_json", 200)
+MAX_DUPLICATES_JSON = AUDIT_REGISTRY_CONFIG.get("max_duplicates_json", 200)
 
 
 @dataclass(frozen=True)
@@ -129,7 +139,9 @@ def node_complexity(node: ast.AST) -> int:
     return sum(1 for _ in ast.walk(node))
 
 
-def extract_functions_and_classes(path: Path, errors: List[str]) -> Tuple[List[FunctionRecord], List[ClassRecord]]:
+def extract_functions_and_classes(
+    path: Path, errors: List[str]
+) -> Tuple[List[FunctionRecord], List[ClassRecord]]:
     try:
         source = path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError) as exc:
@@ -157,7 +169,9 @@ def extract_functions_and_classes(path: Path, errors: List[str]) -> Tuple[List[F
                     docstring=docstring,
                     is_test=name.startswith("test_") or "test" in name.lower(),
                     is_main=name in {"main", "__main__"},
-                    is_handler=any(keyword in name.lower() for keyword in HANDLER_KEYWORDS),
+                    is_handler=any(
+                        keyword in name.lower() for keyword in HANDLER_KEYWORDS
+                    ),
                     has_docstring=bool(docstring.strip()),
                     complexity=node_complexity(node),
                 )
@@ -182,7 +196,9 @@ def collect_project_inventory(errors: List[str]) -> Dict[str, InventoryEntry]:
     inventory: Dict[str, InventoryEntry] = {}
     seen: Set[Path] = set()
 
-    for source_path in iter_python_sources(config.get_scan_directories(), context="production"):
+    for source_path in iter_python_sources(
+        config.get_scan_directories(), context="production"
+    ):
         resolved = source_path.resolve()
         seen.add(resolved)
         try:
@@ -200,7 +216,9 @@ def collect_project_inventory(errors: List[str]) -> Dict[str, InventoryEntry]:
 
     for source_path in PATHS.root.glob("*.py"):
         resolved = source_path.resolve()
-        if resolved in seen or resolved == (CURRENT_DIR / "analyze_function_registry.py"):
+        if resolved in seen or resolved == (
+            CURRENT_DIR / "analyze_function_registry.py"
+        ):
             continue
         functions, classes = extract_functions_and_classes(resolved, errors)
         inventory[source_path.name] = {
@@ -257,7 +275,9 @@ def parse_registry_document(path: Path = REGISTRY_PATH) -> Dict[str, Set[str]]:
     return mapping
 
 
-def build_metrics(inventory: Dict[str, InventoryEntry], registry: Dict[str, Set[str]]) -> Dict[str, Any]:
+def build_metrics(
+    inventory: Dict[str, InventoryEntry], registry: Dict[str, Set[str]]
+) -> Dict[str, Any]:
     missing_by_file: Dict[str, List[str]] = {}
     missing_files: List[str] = []
     missing_count = 0
@@ -275,7 +295,9 @@ def build_metrics(inventory: Dict[str, InventoryEntry], registry: Dict[str, Set[
     extra_by_file: Dict[str, List[str]] = {}
     extra_count = 0
     for file_path, documented in registry.items():
-        actual = {record.name for record in inventory.get(file_path, {}).get("functions", [])}
+        actual = {
+            record.name for record in inventory.get(file_path, {}).get("functions", [])
+        }
         extras = sorted(name for name in documented if name not in actual)
         if extras:
             extra_by_file[file_path] = extras
@@ -327,7 +349,9 @@ def build_analysis(inventory: Dict[str, InventoryEntry]) -> Dict[str, Any]:
                     }
                 )
             if not record.has_docstring and not record.is_test and not record.is_main:
-                target = undocumented_handlers if record.is_handler else undocumented_other
+                target = (
+                    undocumented_handlers if record.is_handler else undocumented_other
+                )
                 target.append({"file": file_path, "name": record.name})
 
     high_complexity.sort(key=lambda item: item["complexity"], reverse=True)
@@ -347,14 +371,11 @@ def build_analysis(inventory: Dict[str, InventoryEntry]) -> Dict[str, Any]:
         undocumented_other = undocumented_other[:MAX_UNDOCUMENTED_JSON]
 
     duplicates = {
-        name: sorted(files)
-        for name, files in occurrences.items()
-        if len(files) > 1
+        name: sorted(files) for name, files in occurrences.items() if len(files) > 1
     }
     duplicate_count = len(duplicates)
     duplicates_limited = {
-        name: duplicates[name]
-        for name in sorted(duplicates)[:MAX_DUPLICATES_JSON]
+        name: duplicates[name] for name in sorted(duplicates)[:MAX_DUPLICATES_JSON]
     }
 
     duplicate_sample = [
@@ -375,7 +396,9 @@ def build_analysis(inventory: Dict[str, InventoryEntry]) -> Dict[str, Any]:
     }
 
 
-def build_registry_sections(inventory: Dict[str, InventoryEntry], metrics: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+def build_registry_sections(
+    inventory: Dict[str, InventoryEntry], metrics: Dict[str, Any]
+) -> Dict[str, Dict[str, Any]]:
     sections: Dict[str, Dict[str, Any]] = {}
 
     missing_by_file = metrics.get("missing_by_file", {})
@@ -453,14 +476,14 @@ def summarise_audit(
             "files_scanned": 0,
             "functions_found": 0,
             "classes_found": 0,
-            "functions_documented": 0
+            "functions_documented": 0,
         }
     lines.append("[STATS] OVERALL STATISTICS:")
     lines.append(f"   Files scanned: {totals.get('files_scanned', 0)}")
     lines.append(f"   Functions found: {totals.get('functions_found', 0)}")
     lines.append(f"   Classes found: {totals.get('classes_found', 0)}")
     lines.append(f"   Functions documented: {totals.get('functions_documented', 0)}")
-    coverage = metrics.get('coverage', 0.0)
+    coverage = metrics.get("coverage", 0.0)
     lines.append(f"   Coverage: {coverage:.1f}%")
     lines.append(f"coverage: {coverage:.1f}%")
     lines.append("")
@@ -512,7 +535,9 @@ def summarise_audit(
         lines.append("   [WARN] HIGH COMPLEXITY FUNCTIONS (may need refactoring):")
         for item in high_complexity[:TOP_COMPLEXITY]:
             status = "[DOC]" if item["has_docstring"] else "[NO DOC]"
-            lines.append(f"      {status} {item['file']}::{item['name']} (complexity: {item['complexity']})")
+            lines.append(
+                f"      {status} {item['file']}::{item['name']} (complexity: {item['complexity']})"
+            )
         leftover = max(high_total - TOP_COMPLEXITY, 0)
         if leftover > 0:
             lines.append(f"      ... +{leftover} more")
@@ -556,7 +581,9 @@ def summarise_audit(
     dir_stats: Dict[str, Dict[str, int]] = {}
     for file_path, data in inventory.items():
         dir_name = file_path.rsplit("/", 1)[0] if "/" in file_path else "root"
-        stats = dir_stats.setdefault(dir_name, {"files": 0, "functions": 0, "classes": 0})
+        stats = dir_stats.setdefault(
+            dir_name, {"files": 0, "functions": 0, "classes": 0}
+        )
         stats["files"] += 1
         stats["functions"] += data["total_functions"]
         stats["classes"] += data["total_classes"]
@@ -564,7 +591,9 @@ def summarise_audit(
     lines.append("[DIR] BREAKDOWN BY DIRECTORY:")
     for dir_name in sorted(dir_stats):
         stats = dir_stats[dir_name]
-        lines.append(f"   {dir_name}/: {stats['files']} files, {stats['functions']} functions, {stats['classes']} classes")
+        lines.append(
+            f"   {dir_name}/: {stats['files']} files, {stats['functions']} functions, {stats['classes']} classes"
+        )
 
     if errors:
         lines.append("")
@@ -576,36 +605,46 @@ def summarise_audit(
 
     if missing_count:
         lines.append("")
-        lines.append("[GEN] Missing registry sections available via --json (registry_sections).")
+        lines.append(
+            "[GEN] Missing registry sections available via --json (registry_sections)."
+        )
 
     return "\n".join(lines)
 
 
-def execute(args: argparse.Namespace, project_root: Optional[Path] = None, config_path: Optional[str] = None):
+def execute(
+    args: argparse.Namespace,
+    project_root: Optional[Path] = None,
+    config_path: Optional[str] = None,
+):
     """Execute audit with optional project_root and config_path."""
     try:
         # Declare globals at the top
         global PATHS, AUDIT_REGISTRY_CONFIG, REGISTRY_PATH, HIGH_COMPLEXITY_MIN, TOP_COMPLEXITY, TOP_UNDOCUMENTED, TOP_DUPLICATES, ERROR_SAMPLE_LIMIT, MAX_COMPLEXITY_JSON, MAX_UNDOCUMENTED_JSON, MAX_DUPLICATES_JSON
-        
+
         # Use provided project_root or default
         if project_root:
             PATHS = ProjectPaths(root=project_root)
-        
+
         # Load config if path provided
         if config_path:
             config.load_external_config(config_path)
             # Reload config after loading external config
             AUDIT_REGISTRY_CONFIG = config.get_analyze_function_registry_config()
-            _registry_path_str = AUDIT_REGISTRY_CONFIG.get('registry_path', 'development_docs/FUNCTION_REGISTRY_DETAIL.md')
+            _registry_path_str = AUDIT_REGISTRY_CONFIG.get(
+                "registry_path", "development_docs/FUNCTION_REGISTRY_DETAIL.md"
+            )
             REGISTRY_PATH = PATHS.root / _registry_path_str
-            HIGH_COMPLEXITY_MIN = AUDIT_REGISTRY_CONFIG.get('high_complexity_min', 50)
-            TOP_COMPLEXITY = AUDIT_REGISTRY_CONFIG.get('top_complexity', 10)
-            TOP_UNDOCUMENTED = AUDIT_REGISTRY_CONFIG.get('top_undocumented', 5)
-            TOP_DUPLICATES = AUDIT_REGISTRY_CONFIG.get('top_duplicates', 5)
-            ERROR_SAMPLE_LIMIT = AUDIT_REGISTRY_CONFIG.get('error_sample_limit', 5)
-            MAX_COMPLEXITY_JSON = AUDIT_REGISTRY_CONFIG.get('max_complexity_json', 200)
-            MAX_UNDOCUMENTED_JSON = AUDIT_REGISTRY_CONFIG.get('max_undocumented_json', 200)
-            MAX_DUPLICATES_JSON = AUDIT_REGISTRY_CONFIG.get('max_duplicates_json', 200)
+            HIGH_COMPLEXITY_MIN = AUDIT_REGISTRY_CONFIG.get("high_complexity_min", 50)
+            TOP_COMPLEXITY = AUDIT_REGISTRY_CONFIG.get("top_complexity", 10)
+            TOP_UNDOCUMENTED = AUDIT_REGISTRY_CONFIG.get("top_undocumented", 5)
+            TOP_DUPLICATES = AUDIT_REGISTRY_CONFIG.get("top_duplicates", 5)
+            ERROR_SAMPLE_LIMIT = AUDIT_REGISTRY_CONFIG.get("error_sample_limit", 5)
+            MAX_COMPLEXITY_JSON = AUDIT_REGISTRY_CONFIG.get("max_complexity_json", 200)
+            MAX_UNDOCUMENTED_JSON = AUDIT_REGISTRY_CONFIG.get(
+                "max_undocumented_json", 200
+            )
+            MAX_DUPLICATES_JSON = AUDIT_REGISTRY_CONFIG.get("max_duplicates_json", 200)
         errors: List[str] = []
         inventory = collect_project_inventory(errors)
         registry = parse_registry_document()
@@ -626,12 +665,12 @@ def execute(args: argparse.Namespace, project_root: Optional[Path] = None, confi
         missing_count = metrics.get("missing_count", 0)
         extra_count = metrics.get("extra_count", 0)
         total_issues = missing_count + extra_count
-        
+
         # Return standard format
         payload = {
             "summary": {
                 "total_issues": total_issues,
-                "files_affected": 0  # Not file-based
+                "files_affected": 0,  # Not file-based
             },
             "details": {
                 "totals": totals_for_payload,
@@ -649,7 +688,9 @@ def execute(args: argparse.Namespace, project_root: Optional[Path] = None, confi
                     "high_complexity": analysis["high_complexity"],
                     "high_complexity_total": analysis["high_complexity_total"],
                     "undocumented_handlers": analysis["undocumented_handlers"],
-                    "undocumented_handlers_total": analysis["undocumented_handlers_total"],
+                    "undocumented_handlers_total": analysis[
+                        "undocumented_handlers_total"
+                    ],
                     "undocumented_other": analysis["undocumented_other"],
                     "undocumented_other_total": analysis["undocumented_other_total"],
                     "duplicates": analysis["duplicates"],
@@ -658,7 +699,7 @@ def execute(args: argparse.Namespace, project_root: Optional[Path] = None, confi
                 },
                 "registry_sections": sections,
                 "errors": errors,
-            }
+            },
         }
         exit_code = 0
         if metrics.get("missing_count", 0) or metrics.get("extra_count", 0) or errors:

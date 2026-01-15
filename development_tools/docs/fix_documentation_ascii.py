@@ -41,99 +41,99 @@ logger = get_component_logger("development_tools")
 
 class DocumentationASCIIFixer:
     """Fixes non-ASCII characters in documentation files."""
-    
+
     def __init__(self, project_root: Optional[str] = None):
         """Initialize the documentation ASCII fixer."""
         if project_root:
             self.project_root = Path(project_root).resolve()
         else:
             self.project_root = Path(config.get_project_root()).resolve()
-    
+
     def fix_ascii(self, dry_run: bool = False) -> Dict[str, Any]:
         """Fix non-ASCII characters in documentation files.
-        
+
         Handles common typographic characters that should be replaced with ASCII equivalents.
         """
         REPLACEMENTS = {
             # Smart quotes (single)
-            '\u2018': "'",  # Left single quotation mark
-            '\u2019': "'",  # Right single quotation mark
-            '\u201A': "'",  # Single low-9 quotation mark
-            '\u201B': "'",  # Single high-reversed-9 quotation mark
+            "\u2018": "'",  # Left single quotation mark
+            "\u2019": "'",  # Right single quotation mark
+            "\u201a": "'",  # Single low-9 quotation mark
+            "\u201b": "'",  # Single high-reversed-9 quotation mark
             # Smart quotes (double)
-            '\u201C': '"',  # Left double quotation mark
-            '\u201D': '"',  # Right double quotation mark
-            '\u201E': '"',  # Double low-9 quotation mark
-            '\u201F': '"',  # Double high-reversed-9 quotation mark
+            "\u201c": '"',  # Left double quotation mark
+            "\u201d": '"',  # Right double quotation mark
+            "\u201e": '"',  # Double low-9 quotation mark
+            "\u201f": '"',  # Double high-reversed-9 quotation mark
             # Dashes and hyphens
-            '\u2011': '-',  # Non-breaking hyphen
-            '\u2013': '-',  # En dash
-            '\u2014': '-',  # Em dash
-            '\u2015': '--',  # Horizontal bar
+            "\u2011": "-",  # Non-breaking hyphen
+            "\u2013": "-",  # En dash
+            "\u2014": "-",  # Em dash
+            "\u2015": "--",  # Horizontal bar
             # Arrows
-            '\u2192': '->',  # Right arrow
-            '\u2190': '<-',  # Left arrow
-            '\u2191': '^',  # Up arrow
-            '\u2193': 'v',  # Down arrow
+            "\u2192": "->",  # Right arrow
+            "\u2190": "<-",  # Left arrow
+            "\u2191": "^",  # Up arrow
+            "\u2193": "v",  # Down arrow
             # Ellipsis
-            '\u2026': '...',  # Horizontal ellipsis
+            "\u2026": "...",  # Horizontal ellipsis
             # Mathematical symbols
-            '\u00D7': 'x',  # Multiplication sign (×)
-            '\u00B0': 'deg',  # Degree symbol (°)
-            '\u00B1': '+/-',  # Plus-minus sign (±)
-            '\u00F7': '/',  # Division sign (÷)
+            "\u00d7": "x",  # Multiplication sign (×)
+            "\u00b0": "deg",  # Degree symbol (°)
+            "\u00b1": "+/-",  # Plus-minus sign (±)
+            "\u00f7": "/",  # Division sign (÷)
             # Typographic symbols
-            '\u2022': '*',  # Bullet (•)
-            '\u2122': '(TM)',  # Trademark symbol (™)
-            '\u00AE': '(R)',  # Registered trademark symbol (®)
-            '\u00A9': '(C)',  # Copyright symbol (©)
+            "\u2022": "*",  # Bullet (•)
+            "\u2122": "(TM)",  # Trademark symbol (™)
+            "\u00ae": "(R)",  # Registered trademark symbol (®)
+            "\u00a9": "(C)",  # Copyright symbol (©)
             # Common emojis (standard replacements for documentation)
-            '\u2705': '[OK]',  # Check mark button
-            '\u274C': '[FAIL]',  # Cross mark
-            '\u26A0': '[WARNING]',  # Warning sign
-            '\U0001F41B': '[BUG]',  # Bug emoji
-            '\U0001F4A1': '[IDEA]',  # Light bulb
-            '\U0001F4DD': '[NOTE]',  # Memo
+            "\u2705": "[OK]",  # Check mark button
+            "\u274c": "[FAIL]",  # Cross mark
+            "\u26a0": "[WARNING]",  # Warning sign
+            "\U0001f41b": "[BUG]",  # Bug emoji
+            "\U0001f4a1": "[IDEA]",  # Light bulb
+            "\U0001f4dd": "[NOTE]",  # Memo
             # Spaces (various Unicode spaces -> regular space)
-            '\u202F': ' ',  # Narrow no-break space
-            '\u00A0': ' ',  # Non-breaking space
-            '\u2009': ' ',  # Thin space
-            '\u2008': ' ',  # Punctuation space
-            '\u2007': ' ',  # Figure space
-            '\u2006': ' ',  # Six-per-em space
-            '\u2005': ' ',  # Four-per-em space
-            '\u2004': ' ',  # Three-per-em space
-            '\u2003': ' ',  # Em space
-            '\u2002': ' ',  # En space
-            '\u2001': ' ',  # Em quad
-            '\u2000': ' ',  # En quad
+            "\u202f": " ",  # Narrow no-break space
+            "\u00a0": " ",  # Non-breaking space
+            "\u2009": " ",  # Thin space
+            "\u2008": " ",  # Punctuation space
+            "\u2007": " ",  # Figure space
+            "\u2006": " ",  # Six-per-em space
+            "\u2005": " ",  # Four-per-em space
+            "\u2004": " ",  # Three-per-em space
+            "\u2003": " ",  # Em space
+            "\u2002": " ",  # En space
+            "\u2001": " ",  # Em quad
+            "\u2000": " ",  # En quad
         }
-        
+
         files_updated = 0
         replacements_made = 0
         errors = 0
-        
+
         for file_path_str in ASCII_COMPLIANCE_FILES:
             file_path = self.project_root / file_path_str
             if not file_path.exists():
                 continue
-            
+
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     content = f.read()
-                
+
                 original_content = content
                 file_replacements = 0
-                
+
                 for non_ascii, ascii_replacement in REPLACEMENTS.items():
                     if non_ascii in content:
                         count = content.count(non_ascii)
                         content = content.replace(non_ascii, ascii_replacement)
                         file_replacements += count
-                
+
                 if content != original_content:
                     if not dry_run:
-                        with open(file_path, 'w', encoding='utf-8') as f:
+                        with open(file_path, "w", encoding="utf-8") as f:
                             f.write(content)
                         files_updated += 1
                     else:
@@ -144,27 +144,38 @@ class DocumentationASCIIFixer:
                 errors += 1
                 if logger:
                     logger.error(f"Error processing {file_path_str}: {e}")
-        
-        return {'files_updated': files_updated, 'replacements_made': replacements_made, 'errors': errors}
+
+        return {
+            "files_updated": files_updated,
+            "replacements_made": replacements_made,
+            "errors": errors,
+        }
 
 
 def main():
     """Main entry point."""
     import argparse
-    
-    parser = argparse.ArgumentParser(description='Fix non-ASCII characters in documentation')
-    parser.add_argument('--dry-run', action='store_true', help='Show what would be changed without making changes')
-    
+
+    parser = argparse.ArgumentParser(
+        description="Fix non-ASCII characters in documentation"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be changed without making changes",
+    )
+
     args = parser.parse_args()
-    
+
     fixer = DocumentationASCIIFixer()
     result = fixer.fix_ascii(dry_run=args.dry_run)
-    
-    print(f"\nFix ASCII: Updated {result['files_updated']} files, Made {result['replacements_made']} replacements, Errors {result['errors']}")
-    
-    return 0 if result['errors'] == 0 else 1
+
+    print(
+        f"\nFix ASCII: Updated {result['files_updated']} files, Made {result['replacements_made']} replacements, Errors {result['errors']}"
+    )
+
+    return 0 if result["errors"] == 0 else 1
 
 
 if __name__ == "__main__":
     sys.exit(main())
-

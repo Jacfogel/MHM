@@ -21,6 +21,5 @@ if str(project_root) not in sys.path:
 # Import and run the main function from run_development_tools
 from development_tools.run_development_tools import main
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
-

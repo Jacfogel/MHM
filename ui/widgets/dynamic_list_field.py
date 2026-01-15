@@ -1,13 +1,16 @@
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Signal
-from ui.generated.dynamic_list_field_template_pyqt import Ui_Form_dynamic_list_field_template
+from ui.generated.dynamic_list_field_template_pyqt import (
+    Ui_Form_dynamic_list_field_template,
+)
 from PySide6.QtWidgets import QSizePolicy
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
 # Route widget logs to UI component
-widget_logger = get_component_logger('ui_widgets')
+widget_logger = get_component_logger("ui_widgets")
 logger = widget_logger
+
 
 class DynamicListField(QWidget):
     """Single row consisting of checkbox + editable text + delete button."""
@@ -16,7 +19,13 @@ class DynamicListField(QWidget):
     delete_requested = Signal(QWidget)
 
     @handle_errors("initializing dynamic list field")
-    def __init__(self, parent=None, preset_label: str = "", editable: bool = True, checked: bool = False):
+    def __init__(
+        self,
+        parent=None,
+        preset_label: str = "",
+        editable: bool = True,
+        checked: bool = False,
+    ):
         """Initialize the object."""
         try:
             super().__init__(parent)
@@ -26,19 +35,21 @@ class DynamicListField(QWidget):
 
             # Keep a public flag so containers can query row type
             self.editable: bool = editable
-            logger.debug(f"Dynamic list field initialized: editable={editable}, checked={checked}")
+            logger.debug(
+                f"Dynamic list field initialized: editable={editable}, checked={checked}"
+            )
         except Exception as e:
             logger.error(f"Error initializing dynamic list field: {e}")
             raise
 
         # --- Tighten layout spacing ---
         # Remove extra top/bottom gap between rows
-        if hasattr(self.ui, 'verticalLayout'):
+        if hasattr(self.ui, "verticalLayout"):
             self.ui.verticalLayout.setContentsMargins(0, 0, 0, 0)
             self.ui.verticalLayout.setSpacing(0)
 
         # Reduce side padding inside row
-        if hasattr(self.ui, 'horizontalLayout_4'):
+        if hasattr(self.ui, "horizontalLayout_4"):
             self.ui.horizontalLayout_4.setContentsMargins(0, 0, 4, 0)
 
         # Configure initial state
@@ -53,7 +64,9 @@ class DynamicListField(QWidget):
             self.ui.pushButton_delete_DynamicListField.show()
             # Optional placeholder to cue user
             if not preset_label:
-                self.ui.lineEdit_dynamic_list_field.setPlaceholderText("Add custom item…")
+                self.ui.lineEdit_dynamic_list_field.setPlaceholderText(
+                    "Add custom item…"
+                )
         else:
             # Preset (non-editable) row – show label on checkbox, hide the line edit
             self.ui.checkBox__dynamic_list_field.setText(preset_label)
@@ -62,9 +75,11 @@ class DynamicListField(QWidget):
             # Remove the delete button for preset rows
             self.ui.pushButton_delete_DynamicListField.hide()
             # Make the checkbox occupy remaining space so the label is fully visible
-            self.ui.checkBox__dynamic_list_field.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            self.ui.checkBox__dynamic_list_field.setSizePolicy(
+                QSizePolicy.Expanding, QSizePolicy.Fixed
+            )
             # Stretch checkbox across the row
-            if hasattr(self.ui, 'horizontalLayout_4'):
+            if hasattr(self.ui, "horizontalLayout_4"):
                 self.ui.horizontalLayout_4.setStretch(0, 1)
 
         # connections
@@ -73,15 +88,15 @@ class DynamicListField(QWidget):
         self.ui.pushButton_delete_DynamicListField.clicked.connect(self._on_delete)
 
         # When finished editing text, notify container for duplicate validation
-        self.ui.lineEdit_dynamic_list_field.editingFinished.connect(self.on_editing_finished)
-        
-
+        self.ui.lineEdit_dynamic_list_field.editingFinished.connect(
+            self.on_editing_finished
+        )
 
     # ------------------------------------------------------------------
     @handle_errors("handling text change in dynamic list field")
     def on_text_changed(self, text=""):
         """Called when user types in the text field.
-        
+
         Args:
             text: The new text from the textEdited signal (ignored, we read from widget)
         """
@@ -93,11 +108,17 @@ class DynamicListField(QWidget):
 
                 # Auto-check when user types non-blank text (but not during programmatic changes)
                 from ui.widgets.dynamic_list_container import DynamicListContainer
-                if not is_blank and not self.is_checked() and not DynamicListContainer._programmatic_change:
+
+                if (
+                    not is_blank
+                    and not self.is_checked()
+                    and not DynamicListContainer._programmatic_change
+                ):
                     self.set_checked(True)
-            
+
             # Emit value changed signal
             from ui.widgets.dynamic_list_container import DynamicListContainer
+
             if not DynamicListContainer._handling_duplicate:
                 self.value_changed.emit()
         except Exception as e:
@@ -107,13 +128,14 @@ class DynamicListField(QWidget):
     @handle_errors("handling checkbox toggle in dynamic list field")
     def on_checkbox_toggled(self, checked=False):
         """Called when user clicks the checkbox.
-        
+
         Args:
             checked: The new checked state from the toggled signal (ignored, we read from widget)
         """
         try:
             # Only emit if we're not in the middle of duplicate handling
             from ui.widgets.dynamic_list_container import DynamicListContainer
+
             if not DynamicListContainer._handling_duplicate:
                 self.value_changed.emit()
         except Exception as e:
@@ -180,9 +202,9 @@ class DynamicListField(QWidget):
             if not isinstance(text, str):
                 logger.warning(f"Text must be string, got {type(text)}")
                 text = str(text) if text is not None else ""
-            
+
             self.ui.lineEdit_dynamic_list_field.setText(text)
             self.value_changed.emit()
         except Exception as e:
             logger.error(f"Error setting text in dynamic list field: {e}")
-            # Don't re-raise to avoid breaking UI interaction 
+            # Don't re-raise to avoid breaking UI interaction

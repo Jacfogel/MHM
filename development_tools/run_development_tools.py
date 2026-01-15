@@ -64,7 +64,9 @@ def _clear_all_caches(project_root: Path) -> int:
                             cache_files_cleared += 1
                             logger.debug(f"Cleared cache file: {cache_file}")
                         except Exception as e:
-                            logger.warning(f"Failed to clear cache file {cache_file}: {e}")
+                            logger.warning(
+                                f"Failed to clear cache file {cache_file}: {e}"
+                            )
 
     # Clear test-file-based coverage cache (now in jsons/ directory)
     jsons_dir = dev_tools_dir / "tests" / "jsons"
@@ -75,9 +77,13 @@ def _clear_all_caches(project_root: Path) -> int:
             try:
                 test_file_cache_file.unlink()
                 cache_files_cleared += 1
-                logger.debug(f"Cleared test-file-based coverage cache: {test_file_cache_file}")
+                logger.debug(
+                    f"Cleared test-file-based coverage cache: {test_file_cache_file}"
+                )
             except Exception as e:
-                logger.warning(f"Failed to clear test-file-based coverage cache {test_file_cache_file}: {e}")
+                logger.warning(
+                    f"Failed to clear test-file-based coverage cache {test_file_cache_file}: {e}"
+                )
 
         # Dev tools coverage cache
         dev_tools_cache_file = jsons_dir / "dev_tools_coverage_cache.json"
@@ -85,9 +91,13 @@ def _clear_all_caches(project_root: Path) -> int:
             try:
                 dev_tools_cache_file.unlink()
                 cache_files_cleared += 1
-                logger.debug(f"Cleared dev tools coverage cache: {dev_tools_cache_file}")
+                logger.debug(
+                    f"Cleared dev tools coverage cache: {dev_tools_cache_file}"
+                )
             except Exception as e:
-                logger.warning(f"Failed to clear dev tools coverage cache {dev_tools_cache_file}: {e}")
+                logger.warning(
+                    f"Failed to clear dev tools coverage cache {dev_tools_cache_file}: {e}"
+                )
 
     return cache_files_cleared
 
@@ -97,24 +107,26 @@ def _build_parser() -> argparse.ArgumentParser:
         description="Development tools command-line interface. Shorthand: use run_dev_tools.py instead of run_development_tools.py",
         add_help=True,
     )
-    parser.add_argument('command', nargs='?', help='Command to execute')
-    parser.add_argument('args', nargs=argparse.REMAINDER, help='Arguments passed to the command')
+    parser.add_argument("command", nargs="?", help="Command to execute")
     parser.add_argument(
-        '--project-root',
-        type=str,
-        default=None,
-        help='Project root directory (default: auto-detect from script location)'
+        "args", nargs=argparse.REMAINDER, help="Arguments passed to the command"
     )
     parser.add_argument(
-        '--config-path',
+        "--project-root",
         type=str,
         default=None,
-        help='Path to config file (default: use built-in config)'
+        help="Project root directory (default: auto-detect from script location)",
     )
     parser.add_argument(
-        '--clear-cache',
-        action='store_true',
-        help='Clear all development tools cache files before running the command'
+        "--config-path",
+        type=str,
+        default=None,
+        help="Path to config file (default: use built-in config)",
+    )
+    parser.add_argument(
+        "--clear-cache",
+        action="store_true",
+        help="Clear all development tools cache files before running the command",
     )
     return parser
 
@@ -133,30 +145,37 @@ def _print_available_commands() -> None:
                 cmd = COMMAND_REGISTRY[cmd_name]
                 print(f"    {cmd.name:<16} {cmd.help}")
         if metadata.get("tier") == "experimental":
-            print("    WARNING: Experimental commands may change or fail; run only with approval.")
+            print(
+                "    WARNING: Experimental commands may change or fail; run only with approval."
+            )
         print()
-    
-    print("Use `python development_tools/run_development_tools.py <command> --help` for command-specific options.")
-    print("Use `python development_tools/run_development_tools.py help` for comprehensive help.")
-    print()
-    print("Note: You can use the shorter alias `run_dev_tools.py` instead of `run_development_tools.py`")
 
+    print(
+        "Use `python development_tools/run_development_tools.py <command> --help` for command-specific options."
+    )
+    print(
+        "Use `python development_tools/run_development_tools.py help` for comprehensive help."
+    )
+    print()
+    print(
+        "Note: You can use the shorter alias `run_dev_tools.py` instead of `run_development_tools.py`"
+    )
 
 
 def main(argv=None) -> int:
     # Parse known args first to extract global flags
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument('--project-root', type=str, default=None)
-    parser.add_argument('--config-path', type=str, default=None)
-    parser.add_argument('--clear-cache', action='store_true')
-    parser.add_argument('command', nargs='?')
-    
+    parser.add_argument("--project-root", type=str, default=None)
+    parser.add_argument("--config-path", type=str, default=None)
+    parser.add_argument("--clear-cache", action="store_true")
+    parser.add_argument("command", nargs="?")
+
     # Use parse_known_args to separate global args from command args
     if argv is None:
         argv = sys.argv[1:]
-    
+
     known_args, remaining_args = parser.parse_known_args(argv)
-    
+
     project_root = known_args.project_root
     config_path = known_args.config_path
     clear_cache = known_args.clear_cache
@@ -208,5 +227,5 @@ def main(argv=None) -> int:
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

@@ -25,9 +25,16 @@ from .dialogs.process_watcher_dialog import ProcessWatcherDialog
 from .dialogs.task_completion_dialog import TaskCompletionDialog
 from .dialogs.task_crud_dialog import TaskCrudDialog
 from .dialogs.admin_panel import AdminPanelDialog
-from .dialogs.message_editor_dialog import MessageEditDialog, MessageEditorDialog, open_message_editor_dialog
+from .dialogs.message_editor_dialog import (
+    MessageEditDialog,
+    MessageEditorDialog,
+    open_message_editor_dialog,
+)
 from .dialogs.schedule_editor_dialog import ScheduleEditorDialog, open_schedule_editor
-from .dialogs.user_analytics_dialog import UserAnalyticsDialog, open_user_analytics_dialog
+from .dialogs.user_analytics_dialog import (
+    UserAnalyticsDialog,
+    open_user_analytics_dialog,
+)
 from .dialogs.user_profile_dialog import open_personalization_dialog
 from .dialogs.account_creator_dialog import create_account_dialog
 
@@ -57,46 +64,46 @@ from .ui_app_qt import main
 
 __all__ = [
     # Main UI application
-    'MHMManagerUI',
-    'ServiceManager',
+    "MHMManagerUI",
+    "ServiceManager",
     # Dialogs (commonly used)
-    'AccountCreatorDialog',
-    'UserProfileDialog',
-    'TaskManagementDialog',
-    'CheckinManagementDialog',
+    "AccountCreatorDialog",
+    "UserProfileDialog",
+    "TaskManagementDialog",
+    "CheckinManagementDialog",
     # Dialogs (medium usage)
-    'TaskEditDialog',
+    "TaskEditDialog",
     # Dialogs (low usage)
-    'CategoryManagementDialog',
-    'ChannelManagementDialog',
-    'ProcessWatcherDialog',
-    'TaskCompletionDialog',
-    'TaskCrudDialog',
-    'AdminPanelDialog',
-    'MessageEditDialog',
-    'MessageEditorDialog',
-    'ScheduleEditorDialog',
-    'UserAnalyticsDialog',
+    "CategoryManagementDialog",
+    "ChannelManagementDialog",
+    "ProcessWatcherDialog",
+    "TaskCompletionDialog",
+    "TaskCrudDialog",
+    "AdminPanelDialog",
+    "MessageEditDialog",
+    "MessageEditorDialog",
+    "ScheduleEditorDialog",
+    "UserAnalyticsDialog",
     # Widgets (high usage)
-    'DynamicListContainer',
-    'PeriodRowWidget',
+    "DynamicListContainer",
+    "PeriodRowWidget",
     # Widgets (medium usage)
-    'CategorySelectionWidget',
-    'ChannelSelectionWidget',
-    'TaskSettingsWidget',
-    'CheckinSettingsWidget',
-    'TagWidget',
+    "CategorySelectionWidget",
+    "ChannelSelectionWidget",
+    "TaskSettingsWidget",
+    "CheckinSettingsWidget",
+    "TagWidget",
     # Widgets (low usage)
-    'DynamicListField',
-    'UserProfileSettingsWidget',
+    "DynamicListField",
+    "UserProfileSettingsWidget",
     # Dialog helper functions (low usage)
-    'open_message_editor_dialog',
-    'open_schedule_editor',
-    'open_user_analytics_dialog',
-    'open_personalization_dialog',
-    'create_account_dialog',
+    "open_message_editor_dialog",
+    "open_schedule_editor",
+    "open_user_analytics_dialog",
+    "open_personalization_dialog",
+    "create_account_dialog",
     # UI utility functions (low usage)
-    'generate_ui_file',
-    'generate_all_ui_files',
-    'main',
+    "generate_ui_file",
+    "generate_all_ui_files",
+    "main",
 ]

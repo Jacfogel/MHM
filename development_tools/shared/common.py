@@ -23,15 +23,17 @@ except ImportError:
     # Fallback for when run as standalone script
     import sys
     from pathlib import Path
+
     sys.path.insert(0, str(Path(__file__).parent.parent.parent))
     from development_tools import config
 
 # Load external config on module import (if not already loaded)
 try:
-    if hasattr(config, 'load_external_config'):
+    if hasattr(config, "load_external_config"):
         config.load_external_config()
 except (AttributeError, ImportError):
     pass
+
 
 # Get project root from config (config-driven, portable)
 def _get_project_root() -> Path:
@@ -42,6 +44,7 @@ def _get_project_root() -> Path:
         # Fallback to path calculation if config not available
         return Path(__file__).resolve().parents[2]
 
+
 PROJECT_ROOT = _get_project_root()
 
 # Command tier grouping for `help`
@@ -50,13 +53,13 @@ COMMAND_TIERS = COMMAND_GROUPS
 
 class ProjectPaths:
     """Convenience accessor for common project directories.
-    
+
     Paths are loaded from config for portability. Falls back to defaults if config not available.
     """
-    
+
     def __init__(self, root: Optional[Path] = None):
         """Initialize ProjectPaths with config-driven paths.
-        
+
         Args:
             root: Optional project root path. If None, uses config.get_project_root()
         """
@@ -69,14 +72,18 @@ class ProjectPaths:
             except (AttributeError, ImportError, TypeError):
                 # Fallback to path calculation if config not available
                 project_root = Path(__file__).resolve().parents[2]
-        
+
         # Get paths from config
         try:
             paths_config = config.get_paths_config()
             self.root = project_root
-            self.docs = project_root / paths_config.get('ai_docs_dir', 'ai_development_docs')
-            self.dev_docs = project_root / paths_config.get('development_docs_dir', 'development_docs')
-            self.data = project_root / paths_config.get('data_dir', 'data')
+            self.docs = project_root / paths_config.get(
+                "ai_docs_dir", "ai_development_docs"
+            )
+            self.dev_docs = project_root / paths_config.get(
+                "development_docs_dir", "development_docs"
+            )
+            self.data = project_root / paths_config.get("data_dir", "data")
             # Note: tests_dir not in paths_config, use default
             self.tests = project_root / "tests"
         except (AttributeError, ImportError, TypeError, KeyError):
@@ -111,9 +118,15 @@ def load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
-def iter_python_sources(directories: Sequence[Path | str], *, tool_type: str = "analysis", context: str = "development", project_root: Optional[Path] = None) -> Iterator[Path]:
+def iter_python_sources(
+    directories: Sequence[Path | str],
+    *,
+    tool_type: str = "analysis",
+    context: str = "development",
+    project_root: Optional[Path] = None,
+) -> Iterator[Path]:
     """Yield Python source files from the provided directories using standard exclusions.
-    
+
     Args:
         directories: Directories to search (Path objects or strings relative to project_root)
         tool_type: Type of tool for exclusion filtering
@@ -126,10 +139,12 @@ def iter_python_sources(directories: Sequence[Path | str], *, tool_type: str = "
             project_root = Path(config.get_project_root())
         except (AttributeError, ImportError, TypeError):
             project_root = PROJECT_ROOT
-    
+
     base_exclusions = get_exclusions(tool_type, context)
     for directory in directories:
-        base_path = project_root / directory if isinstance(directory, str) else directory
+        base_path = (
+            project_root / directory if isinstance(directory, str) else directory
+        )
         if not base_path.exists():
             continue
         for path in base_path.rglob("*.py"):
@@ -138,9 +153,16 @@ def iter_python_sources(directories: Sequence[Path | str], *, tool_type: str = "
             yield path
 
 
-def run_cli(execute: Callable[[argparse.Namespace], Tuple[int, str, Dict[str, Any]]], *, description: str, arguments: Sequence[Tuple[Sequence[str], Dict[str, Any]]] | None = None) -> int:
+def run_cli(
+    execute: Callable[[argparse.Namespace], Tuple[int, str, Dict[str, Any]]],
+    *,
+    description: str,
+    arguments: Sequence[Tuple[Sequence[str], Dict[str, Any]]] | None = None,
+) -> int:
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    parser.add_argument(
+        "--json", action="store_true", help="Emit machine-readable JSON"
+    )
     if arguments:
         for args, kwargs in arguments:
             parser.add_argument(*args, **kwargs)
@@ -150,6 +172,7 @@ def run_cli(execute: Callable[[argparse.Namespace], Tuple[int, str, Dict[str, An
     except Exception as e:
         print(f"ERROR in execute: {type(e).__name__}: {e}", file=sys.stderr)
         import traceback
+
         traceback.print_exc(file=sys.stderr)
         raise
     if namespace.json:
@@ -158,6 +181,7 @@ def run_cli(execute: Callable[[argparse.Namespace], Tuple[int, str, Dict[str, An
         except Exception as e:
             print(f"ERROR in json.dumps: {type(e).__name__}: {e}", file=sys.stderr)
             import traceback
+
             traceback.print_exc(file=sys.stderr)
             raise
     elif text_output:
@@ -165,11 +189,9 @@ def run_cli(execute: Callable[[argparse.Namespace], Tuple[int, str, Dict[str, An
     return exit_code
 
 
-
 def summary_block(title: str, lines: Iterable[str]) -> str:
-    body = '\n'.join(lines)
-    underline = '-' * len(title)
+    body = "\n".join(lines)
+    underline = "-" * len(title)
     if body:
         return f"{title}\n{underline}\n{body}\n"
     return f"{title}\n{underline}\n"
-
