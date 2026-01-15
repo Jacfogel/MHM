@@ -2,10 +2,10 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-14 05:20:22
+> **Last Generated**: 2026-01-14 21:15:20
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 36
-**Legacy Compatibility Markers Detected**: 67
+**Total Files with Issues**: 35
+**Legacy Compatibility Markers Detected**: 64
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
@@ -16,7 +16,7 @@
 3. Track the cleanup effort and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.
 
 ## Legacy Inventory Tracking
-**Files Affected**: 36
+**Files Affected**: 35
 
 ### communication\command_handlers\account_handler.py
 **Issues Found**: 1
@@ -45,12 +45,12 @@
 ### core\__init__.py
 **Issues Found**: 2
 
-- **Line 519**: `Legacy module`
+- **Line 515**: `Legacy module`
   ```
   # Legacy module names (for backward compatibility)
   ```
 
-- **Line 519**: `backward compatibility`
+- **Line 515**: `backward compatibility`
   ```
   # Legacy module names (for backward compatibility)
   ```
@@ -88,26 +88,16 @@
   ```
 
 ### core\user_data_handlers.py
-**Issues Found**: 4
+**Issues Found**: 2
 
-- **Line 36**: `legacy module`
-  ```
-  # directly.  When we fully retire the legacy module we can move the real
-  ```
-
-- **Line 794**: `backward compatibility`
+- **Line 1584**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but should primarily be used
   ```
 
-- **Line 1513**: `legacy path`
+- **Line 2005**: `backward compatibility`
   ```
-  outside modules decoupled from the legacy path.
-  ```
-
-- **Line 1525**: `legacy versions`
-  ```
-  # have switched over we can remove the legacy versions (see TODO.md).
+  # Check for explicit messages_enabled flag first, then fall back to categories check (for backward compatibility)
   ```
 
 ### core\user_data_validation.py
@@ -131,14 +121,6 @@
 - **Line 320**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
-  ```
-
-### core\user_management.py
-**Issues Found**: 1
-
-- **Line 829**: `backward compatibility`
-  ```
-  # Check for explicit messages_enabled flag first, then fall back to categories check (for backward compatibility)
   ```
 
 ### development_tools\ai_work\analyze_ai_work.py
@@ -283,7 +265,7 @@
 ### development_tools\shared\service\tool_wrappers.py
 **Issues Found**: 1
 
-- **Line 1311**: `backward compatibility`
+- **Line 1312**: `backward compatibility`
   ```
   logger.debug("analyze_path_drift: Using legacy format (backward compatibility)")
   ```
@@ -354,7 +336,7 @@
 ### tests\conftest.py
 **Issues Found**: 1
 
-- **Line 1445**: `backward compatibility`
+- **Line 1444**: `backward compatibility`
   ```
   This function is kept for backward compatibility but does nothing.
   ```

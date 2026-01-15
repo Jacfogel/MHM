@@ -251,7 +251,7 @@ class TestUserContextLoadSave:
         user_id = "test_context_load"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -280,7 +280,7 @@ class TestUserContextLoadSave:
         user_id = "test_context_save"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -322,7 +322,7 @@ class TestUserContextGetInstanceContext:
         user_id = "test_context_instance"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -345,7 +345,7 @@ class TestUserContextGetInstanceContext:
         user_id = "test_context_status"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -365,7 +365,7 @@ class TestUserContextGetInstanceContext:
         user_id = "test_context_name"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id

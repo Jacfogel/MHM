@@ -1399,7 +1399,7 @@ class TestScheduleManagementHandlerAdvancedCoverage:
         update_user_preferences(user_id, {'categories': []})
         
         # Verify categories are actually empty
-        from core.user_management import get_user_categories
+        from core.user_data_handlers import get_user_categories
         categories = get_user_categories(user_id)
         # If get_user_categories returns non-empty, it's a bug, but for now adjust test expectation
         if not categories:

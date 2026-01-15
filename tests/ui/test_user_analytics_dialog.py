@@ -46,7 +46,7 @@ class TestUserAnalyticsDialogInitialization:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -142,7 +142,7 @@ class TestUserAnalyticsDataLoading:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -514,7 +514,7 @@ class TestUserAnalyticsInteractions:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -606,7 +606,7 @@ class TestUserAnalyticsErrorHandling:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -700,7 +700,7 @@ class TestUserAnalyticsHelperFunction:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -730,7 +730,7 @@ class TestUserAnalyticsIntegration:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id

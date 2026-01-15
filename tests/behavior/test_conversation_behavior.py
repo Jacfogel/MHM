@@ -547,7 +547,7 @@ class TestConversationManagerIntegration:
         assert success, "Test user should be created successfully"
         
         # Get the UUID for the user
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(test_user_id)
         assert actual_user_id is not None, f"Should be able to get UUID for user {test_user_id}"
         

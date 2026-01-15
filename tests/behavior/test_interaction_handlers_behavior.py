@@ -222,7 +222,7 @@ class TestInteractionHandlersBehavior:
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Get the actual UUID for the created user
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
         
         # Rebuild index to ensure user is discoverable (modifies user_index.json)
@@ -291,7 +291,7 @@ class TestInteractionHandlersBehavior:
         
         # Create test user using centralized utilities
         from tests.test_utilities import TestUserFactory
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Failed to create test user"
@@ -303,7 +303,7 @@ class TestInteractionHandlersBehavior:
         assert actual_user_id is not None, "Should be able to get UUID for created user"
         
         # Update user context with profile-specific data
-        from core.user_management import update_user_context
+        from core.user_data_handlers import update_user_context
         update_success = update_user_context(actual_user_id, {
             'preferred_name': 'Test User',
             'gender_identity': ['they/them']

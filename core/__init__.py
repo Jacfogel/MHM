@@ -111,8 +111,8 @@ from .ui_management import (
     load_period_widgets_for_category,
 )
 
-# User management additional exports (medium usage)
-from .user_management import (
+# User data handlers additional exports (medium usage)
+from .user_data_handlers import (
     ensure_all_categories_have_schedules,
     get_user_id_by_identifier,
 )
@@ -274,11 +274,8 @@ from .user_data_manager import (
     get_user_analytics_summary,
 )
 
-# User management exports (high usage)
-# Note: user_management may have circular dependencies
-# Attempting direct import - if this causes circular import errors, this will be
-# documented as lazy import in comments
-from .user_management import (
+# User data handlers exports (high usage)
+from .user_data_handlers import (
     get_user_categories,
     clear_user_caches,
     register_default_loaders,
@@ -294,11 +291,10 @@ from .user_management import (
 # Functions available: get_scheduler_manager (medium usage), MHMService, InitializationError
 # Use: from core.service import get_scheduler_manager
 
-# User management exports - lazy import to avoid circular dependencies
-# Note: Some user_management functions have circular dependencies
+# User data handlers exports - lazy import to avoid circular dependencies
 # Functions available via direct import: get_user_categories (high usage), 
 # ensure_all_categories_have_schedules, get_user_id_by_identifier (medium usage)
-# Other functions: clear_user_caches (use: from core.user_management import clear_user_caches)
+# Other functions: clear_user_caches (use: from core.user_data_handlers import clear_user_caches)
 
 # User data manager exports - lazy import to avoid circular dependencies  
 # Note: user_data_manager may have circular dependencies
@@ -537,5 +533,4 @@ __all__ = [
     'user_data_handlers',
     'user_data_manager',
     'user_data_validation',
-    'user_management',
 ]

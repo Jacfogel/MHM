@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-14 04:48:07
+> **Last Generated**: 2026-01-14 23:28:56
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
-- **Files Scanned**: 110
-- **Functions Found**: 1532
+- **Files Scanned**: 109
+- **Functions Found**: 1515
 - **Methods Found**: 1135
 - **Classes Found**: 154
-- **Total Items**: 2667
-- **Functions Documented**: 1466
+- **Total Items**: 2650
+- **Functions Documented**: 1449
 - **Methods Documented**: 1095
 - **Classes Documented**: 119
-- **Total Documented**: 2561
+- **Total Documented**: 2544
 - **Template-Generated**: 4
 - **Last Updated**: 2026-01-14
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (552)
+### **Core System Functions** (535)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (399)
@@ -4370,6 +4370,18 @@ Returns:
 
 #### `core/user_data_handlers.py`
 **Functions:**
+- [MISSING] `_ensure_default_loaders_once()` - No description
+- [OK] `_get_user_data__load_account(user_id, auto_create)` - Load user account data from account.json.
+- [OK] `_get_user_data__load_context(user_id, auto_create)` - Load user context data from user_context.json.
+- [OK] `_get_user_data__load_preferences(user_id, auto_create)` - Load user preferences data from preferences.json.
+- [OK] `_get_user_data__load_schedules(user_id, auto_create)` - Load user schedules data from schedules.json.
+- [OK] `_get_user_data__load_tags(user_id, auto_create)` - Load user tags data from tags.json.
+- [OK] `_get_user_id_by_identifier__by_chat_id(chat_id)` - Helper function: Get user ID by chat ID.
+- [OK] `_get_user_id_by_identifier__by_discord_user_id(discord_user_id)` - Helper function: Get user ID by Discord user ID using the user index for fast lookup.
+- [OK] `_get_user_id_by_identifier__by_email(email)` - Helper function: Get user ID by email using the user index for fast lookup.
+- [OK] `_get_user_id_by_identifier__by_internal_username(internal_username)` - Helper function: Get user ID by internal username using the user index for fast lookup.
+- [OK] `_get_user_id_by_identifier__by_phone(phone)` - Helper function: Get user ID by phone using the user index for fast lookup.
+- [OK] `_load_presets_json()` - Load presets from resources/presets.json (cached).
 - [OK] `_save_user_data__check_cross_file_invariants(user_id, merged_data, valid_types)` - Check and enforce cross-file invariants using in-memory merged data.
 
 Updates merged_data in-place to maintain invariants without nested saves.
@@ -4403,10 +4415,15 @@ so this function primarily serves as a placeholder for any future preference-spe
 
 Returns:
     bool: True if successful, False if failed
+- [OK] `_save_user_data__save_account(user_id, account_data)` - Save user account data to account.json.
+- [OK] `_save_user_data__save_context(user_id, context_data)` - Save user context data to user_context.json.
+- [OK] `_save_user_data__save_preferences(user_id, preferences_data)` - Save user preferences data to preferences.json.
+- [OK] `_save_user_data__save_schedules(user_id, schedules_data)` - Save user schedules data to schedules.json.
 - [OK] `_save_user_data__save_single_type(user_id, dt, updates, auto_create)` - Save single data type with enhanced validation.
 
 Returns:
     bool: True if successful, False if failed
+- [OK] `_save_user_data__save_tags(user_id, tags_data)` - Save user tags data to tags.json.
 - [OK] `_save_user_data__update_index(user_id, result, update_index)` - Update user index with validation.
 
 Returns:
@@ -4423,23 +4440,39 @@ Returns:
 
 Returns:
     Dict mapping data type to success status
-- [OK] `create_new_user(user_data)` - Create a new user via the legacy implementation.
-- [OK] `get_all_user_ids()` - Get all user IDs with enhanced error handling.
-
-Returns:
-    List[str]: List of user IDs, empty list if failed
-- [OK] `get_predefined_options(field)` - Return predefined options via the legacy implementation.
-- [OK] `get_timezone_options()` - Return timezone options via the legacy implementation.
-- [OK] `get_user_categories(user_id)` - Return the user's category list via the legacy implementation.
+- [OK] `clear_user_caches(user_id)` - Clear user data caches.
+- [OK] `create_default_schedule_periods(category)` - Create default schedule periods for a new category.
+- [OK] `create_new_user(user_data)` - Create a new user with the new data structure.
+- [OK] `ensure_all_categories_have_schedules(user_id, suppress_logging)` - Ensure all categories in user preferences have corresponding schedules.
+- [OK] `ensure_category_has_default_schedule(user_id, category)` - Ensure a category has default schedule periods if it doesn't exist.
+- [OK] `ensure_unique_ids(data)` - Ensure all messages have unique IDs.
+- [OK] `get_all_user_ids()` - Get all user IDs from the system.
+- [OK] `get_available_data_types()` - Get list of available data types.
+- [OK] `get_data_type_info(data_type)` - Get information about a specific data type.
+- [OK] `get_predefined_options(field)` - Return predefined options for a personalization field.
+- [OK] `get_timezone_options()` - Get timezone options.
+- [OK] `get_user_categories(user_id)` - Get user's message categories using centralized data access.
 - [OK] `get_user_data(user_id, data_types, fields, auto_create, include_metadata, normalize_on_read)` - Get user data with comprehensive validation.
 
 Returns:
     Dict[str, Any]: User data dictionary, empty dict if failed
-- [OK] `get_user_id_by_identifier(identifier)` - Resolve a user ID using the legacy user management helpers.
-- [OK] `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Register a data loader with validation.
+- [OK] `get_user_data_with_metadata(user_id, data_types)` - Get user data with file metadata using centralized system.
+- [OK] `get_user_id_by_identifier(identifier)` - Get user ID by any identifier (internal_username, email, discord_user_id, phone).
+- [OK] `load_and_ensure_ids(user_id)` - Load messages for all categories and ensure IDs are unique for a user.
+- [OK] `migrate_legacy_schedules_structure(schedules_data)` - Migrate legacy schedules structure to new format.
+- [OK] `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Register a new data loader for the centralized system.
 
-Returns:
-    bool: True if successful, False if failed
+Args:
+    data_type: Unique identifier for the data type
+    loader_func: Function that loads the data
+    file_type: File type identifier
+    default_fields: Commonly accessed fields
+    metadata_fields: Fields that contain metadata
+    description: Human-readable description
+- [OK] `register_default_loaders()` - Ensure required loaders are registered (idempotent).
+
+Mutates the shared USER_DATA_LOADERS in-place, setting any missing/None
+loader entries for: account, preferences, context, schedules, tags.
 - [OK] `save_user_data(user_id, data_updates, auto_create, update_index, create_backup, validate_data)` - Save user data with two-phase approach: merge/validate in Phase 1, write in Phase 2.
 
 Implements:
@@ -4448,7 +4481,7 @@ Implements:
 - Explicit processing order
 - Atomic operations (all succeed or all fail)
 - No nested saves
-- [OK] `save_user_data_transaction(user_id, data_updates, auto_create)` - Atomic wrapper copied from user_management.
+- [OK] `save_user_data_transaction(user_id, data_updates, auto_create)` - Atomic wrapper for user data updates.
 - [OK] `update_channel_preferences(user_id, updates)` - Update channel preferences with validation.
 
 Returns:
@@ -4684,7 +4717,7 @@ Returns:
 - [OK] `validate_personalization_data(data)` - Validate *context/personalization* structure.
 
 No field is required; we only type-check fields that are present.
-This logic previously lived in ``core.user_management``.
+This logic previously lived in the legacy user management utilities.
 - [OK] `validate_schedule_periods(periods, category)` - Validate schedule periods and return (is_valid, error_messages).
 
 Args:
@@ -4695,73 +4728,6 @@ Returns:
     Tuple of (is_valid, list_of_error_messages)
 - [MISSING] `validate_schedule_periods__validate_time_format(time_str)` - No description
 - [OK] `validate_user_update(user_id, data_type, updates)` - Validate partial updates to an existing user's data.
-
-#### `core/user_management.py`
-**Functions:**
-- [MISSING] `_ensure_default_loaders_once()` - No description
-- [OK] `_get_user_data__load_account(user_id, auto_create)` - Load user account data from account.json.
-- [OK] `_get_user_data__load_context(user_id, auto_create)` - Load user context data from user_context.json.
-- [OK] `_get_user_data__load_preferences(user_id, auto_create)` - Load user preferences data from preferences.json.
-- [OK] `_get_user_data__load_schedules(user_id, auto_create)` - Load user schedules data from schedules.json.
-- [OK] `_get_user_data__load_tags(user_id, auto_create)` - Load user tags data from tags.json.
-- [OK] `_get_user_id_by_identifier__by_chat_id(chat_id)` - Helper function: Get user ID by chat ID.
-- [OK] `_get_user_id_by_identifier__by_discord_user_id(discord_user_id)` - Helper function: Get user ID by Discord user ID using the user index for fast lookup.
-- [OK] `_get_user_id_by_identifier__by_email(email)` - Helper function: Get user ID by email using the user index for fast lookup.
-- [OK] `_get_user_id_by_identifier__by_internal_username(internal_username)` - Helper function: Get user ID by internal username using the user index for fast lookup.
-- [OK] `_get_user_id_by_identifier__by_phone(phone)` - Helper function: Get user ID by phone using the user index for fast lookup.
-- [OK] `_load_presets_json()` - Load presets from resources/presets.json (cached).
-- [OK] `_save_user_data__save_account(user_id, account_data)` - Save user account data to account.json.
-- [OK] `_save_user_data__save_context(user_id, context_data)` - Save user context data to user_context.json.
-- [OK] `_save_user_data__save_preferences(user_id, preferences_data)` - Save user preferences data to preferences.json.
-- [OK] `_save_user_data__save_schedules(user_id, schedules_data)` - Save user schedules data to schedules.json.
-- [OK] `_save_user_data__save_tags(user_id, tags_data)` - Save user tags data to tags.json.
-- [OK] `add_personalization_item(user_id, field, item)` - Add an item to a list field in personalization data using centralized system.
-- [OK] `clear_personalization_cache(user_id)` - Clear the personalization cache for a specific user or all users.
-- [OK] `clear_user_caches(user_id)` - Clear user data caches.
-- [OK] `create_default_personalization_data()` - Create default personalization data structure.
-- [OK] `create_default_schedule_periods(category)` - Create default schedule periods for a new category.
-- [OK] `create_new_user(user_data)` - Create a new user with the new data structure.
-- [OK] `ensure_all_categories_have_schedules(user_id, suppress_logging)` - Ensure all categories in user preferences have corresponding schedules.
-- [OK] `ensure_category_has_default_schedule(user_id, category)` - Ensure a category has default schedule periods if it doesn't exist.
-- [OK] `ensure_unique_ids(data)` - Ensure all messages have unique IDs.
-- [OK] `get_all_user_ids()` - Get all user IDs from the system.
-- [OK] `get_available_data_types()` - Get list of available data types.
-- [OK] `get_data_type_info(data_type)` - Get information about a specific data type.
-- [OK] `get_personalization_field(user_id, field)` - Get a specific field from personalization data using centralized system.
-- [OK] `get_predefined_options(field)` - Return predefined options for a personalization field.
-- [OK] `get_timezone_options()` - Get timezone options.
-- [OK] `get_user_categories(user_id)` - Get user's message categories using centralized system.
-- [OK] `get_user_data_with_metadata(user_id, data_types)` - Get user data with file metadata using centralized system.
-- [OK] `get_user_id_by_identifier(identifier)` - Get user ID by any identifier (internal_username, email, discord_user_id, phone).
-
-Automatically detects the identifier type and uses the appropriate lookup method.
-
-Args:
-    identifier: The identifier to look up (can be any supported type)
-    
-Returns:
-    Optional[str]: User ID if found, None otherwise
-- [OK] `load_and_ensure_ids(user_id)` - Load messages for all categories and ensure IDs are unique for a user.
-- [OK] `migrate_legacy_schedules_structure(schedules_data)` - Migrate legacy schedules structure to new format.
-- [OK] `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Register a new data loader for the centralized system.
-
-Args:
-    data_type: Unique identifier for the data type
-    loader_func: Function that loads the data
-    file_type: File type identifier
-    default_fields: Commonly accessed fields
-    metadata_fields: Fields that contain metadata
-    description: Human-readable description
-- [OK] `register_default_loaders()` - Ensure required loaders are registered (idempotent).
-
-Mutates the shared USER_DATA_LOADERS in-place, setting any missing/None
-loader entries for: account, preferences, context, schedules, tags.
-- [OK] `remove_personalization_item(user_id, field, item)` - Remove an item from a list field in personalization data using centralized system.
-- [OK] `update_channel_preferences(user_id, updates, auto_create)` - Update channel preferences without triggering category schedule creation.
-- [OK] `update_personalization_field(user_id, field, value)` - Update a specific field in personalization data using centralized system.
-- [OK] `update_user_account(user_id, updates, auto_create)` - Update user account information.
-- [OK] `update_user_context(user_id, updates, auto_create)` - Update user context information.
-- [OK] `update_user_schedules(user_id, schedules_data)` - Update user schedules data.
 
 ### `root/` - Root Files
 

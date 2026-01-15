@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from tests.ai.ai_test_base import AITestBase
 from tests.test_utilities import TestUserFactory
-from core.user_management import get_user_id_by_identifier
+from core.user_data_handlers import get_user_id_by_identifier
 
 
 class TestAIAdvanced(AITestBase):

@@ -477,7 +477,7 @@ def validate_personalization_data(data: Dict[str, Any]) -> Tuple[bool, List[str]
     """Validate *context/personalization* structure.
 
     No field is required; we only type-check fields that are present.
-    This logic previously lived in ``core.user_management``.
+    This logic previously lived in the legacy user management utilities.
     """
 
     errors: List[str] = []

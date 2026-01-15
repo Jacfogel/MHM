@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-14 04:48:07
+> **Last Generated**: 2026-01-14 23:28:56
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 96.0% [OK] EXCELLENT**
-- **Total Functions**: 1532
+- **Total Functions**: 1515
 - **Total Methods**: 1135
-- **Documented**: 2561/2667
-- **Files Scanned**: 110
+- **Documented**: 2544/2650
+- **Files Scanned**: 109
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -22,14 +22,14 @@
 ```
 User Data Operations Decision Tree:
 +-- Core Data Access
-|   +-- `core/user_data_handlers.py` - Primary data access (26 functions)
+|   +-- `core/user_data_handlers.py` - Primary data access (53/54 functions)
 |   +-- `core/user_data_manager.py` - Data management (64 functions)
 |   `-- `core/user_data_validation.py` - Validation (8/11 functions)
 +-- User Context
 |   +-- `user/user_context.py` - User context management (20 functions)
 |   `-- `user/user_preferences.py` - User preferences (20 functions)
-`-- User Management
-    `-- `core/user_management.py` - Account operations (44/45 functions)
+`-- User Data Access
+    `-- `core/user_data_handlers.py` - Account operations (53/54 functions)
 ```
 
 ### **[AI] Need AI/Chatbot Functionality?**
@@ -176,7 +176,7 @@ Core System Decision Tree:
 - [OK] `core/config.py::__init__()` - Initialization
 
 ### **Data Access Patterns**
-- **User Data**: `core/user_data_handlers.py` - User data operations (26 functions)
+- **User Data**: `core/user_data_handlers.py` - User data operations (53/54 functions)
 - **Validation**: `core/user_data_validation.py` - Data validation (8/11 functions)
 - **File Operations**: `core/file_operations.py` - File I/O (16 functions)
 
@@ -231,7 +231,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (27 files, 816 functions)
+- `core/` - System utilities and data management (26 files, 799 functions)
 - `communication/` - Communication channels and message processing (38 files, 760 functions)
 - `ai/` - AI chatbot functionality (7 files, 189 functions)
 - `ui/` - User interface components (28 files, 793 functions)
@@ -239,4 +239,4 @@ Most complex functions (may need refactoring):
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2026-01-14 04:48:07
+> **Last Updated**: 2026-01-14 23:28:56

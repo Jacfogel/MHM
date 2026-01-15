@@ -345,8 +345,8 @@ def generate_ai_function_registry_content(actual_functions: Dict[str, Dict]) -> 
 +-- User Context
 |   +-- {format_file_entry('user/user_context.py', 'User context management', actual_functions)}
 |   `-- {format_file_entry('user/user_preferences.py', 'User preferences', actual_functions)}
-`-- User Management
-    `-- {format_file_entry('core/user_management.py', 'Account operations', actual_functions)}
+`-- User Data Access
+    `-- {format_file_entry('core/user_data_handlers.py', 'Account operations', actual_functions)}
 """
     
     ai_tree = f"""AI Operations Decision Tree:

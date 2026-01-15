@@ -6,12 +6,16 @@ across all data types (account, preferences, context, schedules, etc.).
 """
 
 import os
+import time
 import traceback
+import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Union, Optional
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.config import get_user_file_path
+from core.config import ensure_user_directory, get_user_file_path
+from core.file_operations import load_json_data, save_json_data, determine_file_path
 from core.user_data_validation import (
     validate_new_user_data,
     validate_user_update,
@@ -21,25 +25,66 @@ from core.schemas import (
     validate_preferences_dict,
     validate_schedules_dict,
 )
-# Registry functions - these should stay in user_management for now
-from core.user_management import (
-    USER_DATA_LOADERS,
-    get_available_data_types,
-)
+logger = get_component_logger('main')
+handlers_logger = get_component_logger('user_activity')
+logger = get_component_logger('main')
+handlers_logger = get_component_logger('user_activity')
+# Cache configuration
+_cache_timeout = 300  # 5 minutes
+_user_account_cache = {}
+_user_preferences_cache = {}
+_user_context_cache = {}
+_user_schedules_cache = {}
 
 # ---------------------------------------------------------------------------
-# DATA LOADER REGISTRY (re-exported from core.user_management)
+# DATA LOADER REGISTRY (centralized here)
 # ---------------------------------------------------------------------------
 
-# We keep the single source of truth in *core.user_management* for now, but
-# re-export everything so that future modules never need to import that file
-# directly.  When we fully retire the legacy module we can move the real
-# implementation here without changing import paths again.
+# Single source of truth for user data loaders now lives here.
 
-from core.user_management import (
-    USER_DATA_LOADERS as USER_DATA_LOADERS,  # shared dict – same object
-    register_data_loader as _register_data_loader,
-)
+_DEFAULT_USER_DATA_LOADERS = {
+    'account': {
+        'loader': None,  # Will be set after function definition
+        'file_type': 'account',
+        'default_fields': ['user_id', 'internal_username', 'account_status'],
+        'metadata_fields': ['created_at', 'updated_at'],
+        'description': 'User account information and settings'
+    },
+    'preferences': {
+        'loader': None,  # Will be set after function definition
+        'file_type': 'preferences',
+        'default_fields': ['categories', 'channel'],
+        'metadata_fields': ['last_updated'],
+        'description': 'User preferences and configuration'
+    },
+    'context': {
+        'loader': None,  # Will be set after function definition
+        'file_type': 'user_context',
+        'default_fields': ['preferred_name', 'gender_identity'],
+        'metadata_fields': ['created_at', 'last_updated'],
+        'description': 'User context and personal information'
+    },
+    'schedules': {
+        'loader': None,  # Will be set after function definition
+        'file_type': 'schedules',
+        'default_fields': [],
+        'metadata_fields': ['last_updated'],
+        'description': 'User schedule and timing preferences'
+    },
+    'tags': {
+        'loader': None,  # Will be set after function definition
+        'file_type': 'tags',
+        'default_fields': ['tags'],
+        'metadata_fields': ['created_at', 'updated_at'],
+        'description': 'User tags for tasks and notebook entries'
+    }
+}
+
+if 'USER_DATA_LOADERS' not in globals():
+    USER_DATA_LOADERS = {}
+
+if not USER_DATA_LOADERS:
+    USER_DATA_LOADERS.update(_DEFAULT_USER_DATA_LOADERS)
 
 
 @handle_errors("registering data loader", default_return=False)
@@ -47,49 +92,798 @@ def register_data_loader(
     data_type: str,
     loader_func,
     file_type: str,
-    default_fields: List[str] | None = None,
-    metadata_fields: List[str] | None = None,
+    default_fields: Optional[List[str]] = None,
+    metadata_fields: Optional[List[str]] = None,
     description: str = "",
-):
+    *,
+    force: bool = False,
+): 
     """
-    Register a data loader with validation.
+    Register a new data loader for the centralized system.
     
-    Returns:
-        bool: True if successful, False if failed
+    Args:
+        data_type: Unique identifier for the data type
+        loader_func: Function that loads the data
+        file_type: File type identifier
+        default_fields: Commonly accessed fields
+        metadata_fields: Fields that contain metadata
+        description: Human-readable description
     """
     # Validate inputs
     if not data_type or not isinstance(data_type, str):
         logger.error(f"Invalid data_type: {data_type}")
         return False
-        
+
     if not file_type or not isinstance(file_type, str):
         logger.error(f"Invalid file_type: {file_type}")
         return False
-        
+
     if not callable(loader_func):
         logger.error(f"Invalid loader_func: {loader_func}")
         return False
-    """Proxy to the original *register_data_loader*.
 
-    Imported here so callers can simply do::
+    # Idempotent behavior: if an entry exists with a non-None loader and not forcing, do not overwrite
+    existing = USER_DATA_LOADERS.get(data_type)
+    if existing is not None and existing.get('loader') is not None and not force:
+        logger.debug(
+            f"register_data_loader no-op for '{data_type}' (loader already set and force=False)"
+        )
+        return False
 
-        from core.user_data_handlers import register_data_loader
+    USER_DATA_LOADERS[data_type] = {
+        'loader': loader_func,
+        'file_type': file_type,
+        'default_fields': default_fields or [],
+        'metadata_fields': metadata_fields or [],
+        'description': description
+    }
+    logger.info(f"Registered data loader for type: {data_type}")
+    return True
 
-    …and forget about *core.user_management*.
+_DEFAULT_LOADERS_REGISTERED = False
+
+
+@handle_errors("registering default data loaders", default_return=None)
+def register_default_loaders() -> None:
+    """Ensure required loaders are registered (idempotent).
+
+    Mutates the shared USER_DATA_LOADERS in-place, setting any missing/None
+    loader entries for: account, preferences, context, schedules, tags.
     """
+    required = [
+        ('account', _get_user_data__load_account, 'account'),
+        ('preferences', _get_user_data__load_preferences, 'preferences'),
+        ('context', _get_user_data__load_context, 'user_context'),
+        ('schedules', _get_user_data__load_schedules, 'schedules'),
+        ('tags', _get_user_data__load_tags, 'tags'),
+    ]
+    
+    registered_loaders = []
+    
+    for key, func, ftype in required:
+        entry = USER_DATA_LOADERS.get(key)
+        if entry is None or entry.get('loader') is None:
+            USER_DATA_LOADERS[key] = {
+                'loader': func,
+                'file_type': ftype,
+                'default_fields': [],
+                'metadata_fields': [],
+                'description': f"Default {key} data loader"
+            }
+            registered_loaders.append(key)
+    
+    if registered_loaders:
+        logger.info(f"Registered data loaders: {', '.join(registered_loaders)} ({len(registered_loaders)} total)")
 
-    return _register_data_loader(
-        data_type,
-        loader_func,
-        file_type,
-        default_fields=default_fields,
-        metadata_fields=metadata_fields,
-        description=description,
-    )
 
-logger = get_component_logger('main')
-handlers_logger = get_component_logger('user_activity')
+@handle_errors("ensuring default loaders are registered once", default_return=None)
+def _ensure_default_loaders_once() -> None:
+    global _DEFAULT_LOADERS_REGISTERED
+    if not _DEFAULT_LOADERS_REGISTERED:
+        register_default_loaders()
+        _DEFAULT_LOADERS_REGISTERED = True
 
+
+@handle_errors("getting available data types", default_return=[])
+def get_available_data_types() -> List[str]:
+    """Get list of available data types."""
+    return list(USER_DATA_LOADERS.keys())
+
+
+@handle_errors("getting data type info", default_return=None)
+def get_data_type_info(data_type: str) -> Optional[Dict[str, Any]]:
+    """Get information about a specific data type."""
+    return USER_DATA_LOADERS.get(data_type)
+
+@handle_errors("loading user account data", default_return=None)
+def _get_user_data__load_account(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
+    """Load user account data from account.json."""
+    if not user_id:
+        logger.error("_get_user_data__load_account called with None user_id")
+        return None
+
+    # Check cache first
+    current_time = time.time()
+    cache_key = f"account_{user_id}"
+
+    if cache_key in _user_account_cache:
+        cached_data, cache_time = _user_account_cache[cache_key]
+        if current_time - cache_time < _cache_timeout:
+            return cached_data
+
+    # Check if user directory exists (indicates user was created before)
+    user_dir = os.path.dirname(get_user_file_path(user_id, 'account'))
+    user_dir_exists = os.path.exists(user_dir)
+
+    # Check if file exists before loading
+    account_file = get_user_file_path(user_id, 'account')
+    if not os.path.exists(account_file):
+        if not auto_create:
+            if not user_dir_exists:
+                return None
+            else:
+                return None
+
+        # Only auto-create if user directory exists (user was created before)
+        if not user_dir_exists:
+            logger.debug(f"User directory doesn't exist for {user_id}, not auto-creating account file")
+            return None
+
+        # Auto-create the file with default data
+        logger.info(f"Auto-creating missing account file for user {user_id} (user directory exists)")
+        ensure_user_directory(user_id)
+        # Create default account data
+        current_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        default_account = {
+            "user_id": user_id,
+            "internal_username": "",
+            "account_status": "active",
+            "chat_id": "",
+            "phone": "",
+            "email": "",
+            "discord_user_id": "",
+            "discord_username": "",
+            "created_at": current_time_str,
+            "updated_at": current_time_str,
+            "features": {
+                "automated_messages": "disabled",
+                "checkins": "disabled",
+                "task_management": "disabled"
+            }
+        }
+        save_json_data(default_account, account_file)
+        account_data = default_account
+    else:
+        # Load from file
+        ensure_user_directory(user_id)
+        account_data = load_json_data(account_file)
+        try:
+            if isinstance(account_data, dict) and not account_data.get('timezone'):
+                account_data['timezone'] = 'UTC'
+        except Exception:
+            pass
+
+    if isinstance(account_data, dict):
+        normalized_account, errors = validate_account_dict(account_data)
+        if errors:
+            logger.warning(
+                f"Validation issues in account data for user {user_id}: {'; '.join(errors)}"
+            )
+        account_data = normalized_account or account_data
+
+    # Cache the data
+    _user_account_cache[cache_key] = (account_data, current_time)
+
+    return account_data
+
+
+@handle_errors("saving user account data")
+def _save_user_data__save_account(user_id: str, account_data: Dict[str, Any]) -> bool:
+    """Save user account data to account.json."""
+    if not user_id:
+        logger.error("_save_user_data__save_account called with None user_id")
+        return False
+
+    ensure_user_directory(user_id)
+    account_file = get_user_file_path(user_id, 'account')
+
+    # Add metadata
+    account_data['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    # Validate/normalize via Pydantic schema (non-blocking)
+    try:
+        account_data, _errs = validate_account_dict(account_data)
+    except Exception:
+        pass
+    save_json_data(account_data, account_file)
+
+    # Update cache
+    cache_key = f"account_{user_id}"
+    _user_account_cache[cache_key] = (account_data, time.time())
+
+    # Update user index
+    try:
+        from core.user_data_manager import update_user_index
+        update_user_index(user_id)
+    except Exception as e:
+        logger.warning(f"Failed to update user index after account update for user {user_id}: {e}")
+
+    logger.debug(f"Account data saved for user {user_id}")
+    return True
+
+
+@handle_errors("loading user preferences data", default_return=None)
+def _get_user_data__load_preferences(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
+    """Load user preferences data from preferences.json."""
+    if not user_id:
+        logger.error("_get_user_data__load_preferences called with None user_id")
+        return None
+
+    # Check cache first
+    current_time = time.time()
+    cache_key = f"preferences_{user_id}"
+
+    if cache_key in _user_preferences_cache:
+        cached_data, cache_time = _user_preferences_cache[cache_key]
+        if current_time - cache_time < _cache_timeout:
+            return cached_data
+
+    # Check if user directory exists (indicates user was created before)
+    user_dir = os.path.dirname(get_user_file_path(user_id, 'preferences'))
+    user_dir_exists = os.path.exists(user_dir)
+
+    # Check if file exists before loading
+    preferences_file = get_user_file_path(user_id, 'preferences')
+    if not os.path.exists(preferences_file):
+        if not auto_create:
+            if not user_dir_exists:
+                return None
+            else:
+                return None
+
+        # Only auto-create if user directory exists (user was created before)
+        if not user_dir_exists:
+            logger.debug(f"User directory doesn't exist for {user_id}, not auto-creating preferences file")
+            return None
+
+        # Auto-create the file with default data
+        logger.info(f"Auto-creating missing preferences file for user {user_id} (user directory exists)")
+        ensure_user_directory(user_id)
+        # Create default preferences data
+        default_preferences = {
+            "categories": [],
+            "channel": {
+                "type": "email"
+            },
+            "checkin_settings": {
+                "enabled": False
+            },
+            "task_settings": {
+                "enabled": False
+            }
+        }
+        save_json_data(default_preferences, preferences_file)
+        preferences_data = default_preferences
+    else:
+        # Load from file
+        ensure_user_directory(user_id)
+        preferences_data = load_json_data(preferences_file)
+
+        # If load_json_data returned None (corrupted file) and auto_create is False, return None
+        if preferences_data is None and not auto_create:
+            return None
+
+        # Use empty dict as fallback only when auto_create is True
+        preferences_data = preferences_data or {}
+
+    if isinstance(preferences_data, dict):
+        normalized_preferences, errors = validate_preferences_dict(preferences_data)
+        if errors:
+            logger.warning(
+                f"Validation issues in preferences for user {user_id}: {'; '.join(errors)}"
+            )
+        preferences_data = normalized_preferences or preferences_data
+
+    # Cache the data
+    _user_preferences_cache[cache_key] = (preferences_data, current_time)
+
+    return preferences_data
+
+
+@handle_errors("saving user preferences data")
+def _save_user_data__save_preferences(user_id: str, preferences_data: Dict[str, Any]) -> bool:
+    """Save user preferences data to preferences.json."""
+    if not user_id:
+        logger.error("_save_user_data__save_preferences called with None user_id")
+        return False
+
+    ensure_user_directory(user_id)
+    preferences_file = get_user_file_path(user_id, 'preferences')
+
+    # Validate/normalize via Pydantic schema (non-blocking)
+    try:
+        preferences_data, _perrs = validate_preferences_dict(preferences_data)
+    except Exception:
+        pass
+    save_json_data(preferences_data, preferences_file)
+
+    # Update cache
+    cache_key = f"preferences_{user_id}"
+    _user_preferences_cache[cache_key] = (preferences_data, time.time())
+
+    # Update user index
+    try:
+        from core.user_data_manager import update_user_index
+        update_user_index(user_id)
+    except Exception as e:
+        logger.warning(f"Failed to update user index after preferences update for user {user_id}: {e}")
+
+    logger.debug(f"Preferences data saved for user {user_id}")
+    return True
+
+
+@handle_errors("loading user context data", default_return=None)
+def _get_user_data__load_context(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
+    """Load user context data from user_context.json."""
+    if not user_id:
+        logger.error("_get_user_data__load_context called with None user_id")
+        return None
+
+    # Check cache first
+    current_time = time.time()
+    cache_key = f"context_{user_id}"
+
+    if cache_key in _user_context_cache:
+        cached_data, cache_time = _user_context_cache[cache_key]
+        if current_time - cache_time < _cache_timeout:
+            return cached_data
+
+    # Check if user directory exists (indicates user was created before)
+    user_dir = os.path.dirname(get_user_file_path(user_id, 'context'))
+    user_dir_exists = os.path.exists(user_dir)
+
+    # Check if file exists before loading
+    context_file = get_user_file_path(user_id, 'context')
+    if not os.path.exists(context_file):
+        if not auto_create:
+            if not user_dir_exists:
+                return None
+            else:
+                return None
+
+        # Only auto-create if user directory exists (user was created before)
+        if not user_dir_exists:
+            logger.debug(f"User directory doesn't exist for {user_id}, not auto-creating user context file")
+            return None
+
+        # Auto-create the file with default data
+        logger.info(f"Auto-creating missing user context file for user {user_id} (user directory exists)")
+        ensure_user_directory(user_id)
+        # Create default context data
+        current_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        default_context = {
+            "preferred_name": "",
+            "gender_identity": [],
+            "date_of_birth": "",
+            "custom_fields": {
+                "reminders_needed": [],
+                "health_conditions": [],
+                "medications_treatments": [],
+                "allergies_sensitivities": []
+            },
+            "interests": [],
+            "goals": [],
+            "loved_ones": [],
+            "activities_for_encouragement": [],
+            "notes_for_ai": [],
+            "created_at": current_time_str,
+            "last_updated": current_time_str
+        }
+        save_json_data(default_context, context_file)
+        context_data = default_context
+    else:
+        # Load from file
+        ensure_user_directory(user_id)
+        context_data = load_json_data(context_file)
+
+        # If load_json_data returned None (corrupted file) and auto_create is False, return None
+        if context_data is None and not auto_create:
+            return None
+
+        # Use empty dict as fallback only when auto_create is True
+        context_data = context_data or {}
+
+    # Cache the data
+    _user_context_cache[cache_key] = (context_data, current_time)
+
+    return context_data
+
+
+@handle_errors("saving user context data")
+def _save_user_data__save_context(user_id: str, context_data: Dict[str, Any]) -> bool:
+    """Save user context data to user_context.json."""
+    if not user_id:
+        logger.error("_save_user_data__save_context called with None user_id")
+        return False
+
+    ensure_user_directory(user_id)
+    context_file = get_user_file_path(user_id, 'context')
+
+    # Add metadata
+    context_data['last_updated'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    save_json_data(context_data, context_file)
+
+    # Update cache
+    cache_key = f"context_{user_id}"
+    _user_context_cache[cache_key] = (context_data, time.time())
+
+    # Update user index
+    try:
+        from core.user_data_manager import update_user_index
+        update_user_index(user_id)
+    except Exception as e:
+        logger.warning(f"Failed to update user index after context update for user {user_id}: {e}")
+
+    logger.debug(f"User context data saved for user {user_id}")
+    return True
+
+
+@handle_errors("loading user schedules data", default_return=None)
+def _get_user_data__load_schedules(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
+    """Load user schedules data from schedules.json."""
+    if not user_id:
+        logger.error("_get_user_data__load_schedules called with None user_id")
+        return None
+
+    # Check cache first
+    current_time = time.time()
+    cache_key = f"schedules_{user_id}"
+
+    if cache_key in _user_schedules_cache:
+        cached_data, cache_time = _user_schedules_cache[cache_key]
+        if current_time - cache_time < _cache_timeout:
+            return cached_data
+
+    user_dir = os.path.dirname(get_user_file_path(user_id, 'schedules'))
+    user_dir_exists = os.path.exists(user_dir)
+    schedules_file = get_user_file_path(user_id, 'schedules')
+    if not os.path.exists(schedules_file):
+        if not auto_create:
+            if not user_dir_exists:
+                return None
+            else:
+                return None
+        if not user_dir_exists:
+            logger.debug(f"User directory doesn't exist for {user_id}, not auto-creating schedules file")
+            return None
+        # Auto-create the file with default data
+        logger.info(f"Auto-creating missing schedules file for user {user_id} (user directory exists)")
+        ensure_user_directory(user_id)
+        default_schedules = {}
+        save_json_data(default_schedules, schedules_file)
+        schedules_data = default_schedules
+    else:
+        ensure_user_directory(user_id)
+        schedules_data = load_json_data(schedules_file)
+        if schedules_data is None and not auto_create:
+            return None
+        schedules_data = schedules_data or {}
+    if isinstance(schedules_data, dict):
+        normalized_schedules, errors = validate_schedules_dict(schedules_data)
+        if errors:
+            logger.warning(
+                f"Validation issues in schedules for user {user_id}: {'; '.join(errors)}"
+            )
+        schedules_data = normalized_schedules or schedules_data
+
+    # Cache the data
+    _user_schedules_cache[cache_key] = (schedules_data, current_time)
+
+    return schedules_data
+
+
+@handle_errors("saving user schedules data")
+def _save_user_data__save_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
+    """Save user schedules data to schedules.json."""
+    if not user_id:
+        logger.error("_save_user_data__save_schedules called with None user_id")
+        return False
+
+    ensure_user_directory(user_id)
+    schedules_file = get_user_file_path(user_id, 'schedules')
+
+    # Normalize using tolerant Pydantic schema to keep on-disk data consistent
+    normalized, errors = validate_schedules_dict(schedules_data)
+    if errors:
+        logger.warning(
+            f"Schedules validation reported {len(errors)} issue(s); saving normalized data"
+        )
+    schedules_data = normalized or {}
+
+    save_json_data(schedules_data, schedules_file)
+
+    # Update cache
+    cache_key = f"schedules_{user_id}"
+    _user_schedules_cache[cache_key] = (schedules_data, time.time())
+
+    logger.debug(f"Schedules data saved for user {user_id}")
+    return True
+
+
+@handle_errors("loading user tags data", default_return=None)
+def _get_user_data__load_tags(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
+    """Load user tags data from tags.json."""
+    if not user_id:
+        logger.error("_get_user_data__load_tags called with None user_id")
+        return None
+
+    try:
+        from core.tags import load_user_tags
+        tags_data = load_user_tags(user_id)
+        # load_user_tags returns {} on error or for new users (lazy init creates file)
+        # Return empty dict with default structure if file doesn't exist yet (for auto_create=True)
+        # Return None only if there was an actual error
+        if not tags_data and not auto_create:
+            return None
+        # Ensure we always return a dict with at least the expected structure
+        if not tags_data:
+            return {'tags': []}
+        return tags_data
+    except Exception as e:
+        logger.error(f"Error loading tags for user {user_id}: {e}")
+        return None
+
+
+@handle_errors("saving user tags data")
+def _save_user_data__save_tags(user_id: str, tags_data: Dict[str, Any]) -> bool:
+    """Save user tags data to tags.json."""
+    if not user_id:
+        logger.error("_save_user_data__save_tags called with None user_id")
+        return False
+
+    try:
+        from core.tags import save_user_tags
+        return save_user_tags(user_id, tags_data)
+    except Exception as e:
+        logger.error(f"Error saving tags for user {user_id}: {e}")
+        return False
+
+
+@handle_errors("creating default schedule periods", default_return={})
+def create_default_schedule_periods(category: Optional[str] = None) -> Dict[str, Any]:
+    """Create default schedule periods for a new category."""
+    if category:
+        # Use category-specific naming
+        if category in ("tasks", "checkin"):
+            # For tasks and check-ins, use the descriptive naming with title case
+            if category == "tasks":
+                default_period_name = "Task Reminder Default"
+            else:  # checkin
+                default_period_name = "Check-in Reminder Default"
+        else:
+            # For message categories, use category-specific naming
+            # Replace underscores with spaces for better readability and use title case
+            category_display = category.replace('_', ' ').title()
+            default_period_name = f"{category_display} Message Default"
+    else:
+        # Fallback to generic naming
+        default_period_name = "Default"
+
+    return {
+        "ALL": {
+            "active": True,
+            "days": ["ALL"],
+            "start_time": "00:00",
+            "end_time": "23:59"
+        },
+        default_period_name: {
+            "active": True,
+            "days": ["ALL"],
+            "start_time": "18:00",
+            "end_time": "20:00"
+        }
+    }
+
+
+@handle_errors("migrating legacy schedules structure", default_return={})
+def migrate_legacy_schedules_structure(schedules_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Migrate legacy schedules structure to new format."""
+    migrated_data = {}
+
+    for category, category_data in schedules_data.items():
+        if isinstance(category_data, dict):
+            # Check if this is already in new format
+            if 'periods' in category_data:
+                migrated_data[category] = category_data
+            else:
+                # This is legacy format - convert to new format
+                legacy_periods = {}
+                for period_name, period_data in category_data.items():
+                    if isinstance(period_data, dict) and ('start_time' in period_data or 'start' in period_data):
+                        legacy_periods[period_name] = period_data
+
+                # Add default periods if none exist
+                if not legacy_periods:
+                    legacy_periods = create_default_schedule_periods(category)
+
+                # Convert legacy periods to include days
+                for period_name, period_data in legacy_periods.items():
+                    if 'days' not in period_data:
+                        period_data['days'] = ["ALL"]
+
+                # All categories use the periods wrapper for consistency
+                migrated_data[category] = {
+                    "periods": legacy_periods
+                }
+        else:
+            # Invalid data, create default structure
+            migrated_data[category] = {
+                "periods": create_default_schedule_periods(category)
+            }
+
+    return migrated_data
+
+
+@handle_errors("ensuring category has default schedule", default_return=False)
+def ensure_category_has_default_schedule(user_id: str, category: str) -> bool:
+    """Ensure a category has default schedule periods if it doesn't exist."""
+    if not user_id or not category:
+        logger.warning(f"Invalid user_id or category: {user_id}, {category}")
+        return False
+
+    try:
+        # Load current schedules data
+        schedules_data = _get_user_data__load_schedules(user_id) or {}
+        logger.debug(f"Current schedules data for user {user_id}: {schedules_data}")
+
+        # Migrate legacy structure if needed
+        if schedules_data and any(isinstance(v, dict) and 'periods' not in v for v in schedules_data.values()):
+            logger.info(f"Migrating legacy schedules structure for user {user_id}")
+            schedules_data = migrate_legacy_schedules_structure(schedules_data)
+            _save_user_data__save_schedules(user_id, schedules_data)
+
+        # Check if category exists and has periods
+        category_exists = category in schedules_data
+        has_periods = schedules_data.get(category, {}).get('periods') if category_exists else False
+
+        logger.debug(f"Category '{category}' exists: {category_exists}, has periods: {has_periods}")
+
+        if not category_exists or not has_periods:
+            # Create default periods for this category
+            default_periods = create_default_schedule_periods(category)
+            logger.debug(f"Creating default periods for category '{category}': {default_periods}")
+
+            if not category_exists:
+                # All categories use the periods wrapper for consistency
+                schedules_data[category] = {
+                    "periods": default_periods
+                }
+            else:
+                # Category exists but has no periods
+                schedules_data[category]['periods'] = default_periods
+
+            # Save the updated schedules
+            _save_user_data__save_schedules(user_id, schedules_data)
+            logger.info(f"Created default schedule periods for category '{category}' for user {user_id}")
+            return True
+
+        logger.debug(f"Category '{category}' already has periods, skipping default creation")
+        return True
+    except Exception as e:
+        logger.error(f"Error ensuring default schedule for category '{category}' for user {user_id}: {e}")
+        return False
+
+
+@handle_errors("ensuring all categories have schedules", default_return=False)
+def ensure_all_categories_have_schedules(user_id: str, suppress_logging: bool = False) -> bool:
+    """Ensure all categories in user preferences have corresponding schedules."""
+    if not user_id:
+        logger.warning(f"Invalid user_id: {user_id}")
+        return False
+
+    try:
+        user_data = get_user_data(user_id, 'preferences')
+        if not user_data or 'preferences' not in user_data:
+            logger.warning(f"User preferences not found for user_id: {user_id}")
+            return False
+
+        preferences_data = user_data['preferences']
+        categories = preferences_data.get('categories', [])
+
+        if not categories:
+            logger.debug(f"No categories found for user {user_id}")
+            return True
+
+        # Track which schedules are actually created (not just verified)
+        created_schedules = []
+
+        # Ensure each category has a default schedule
+        for category in categories:
+            if ensure_category_has_default_schedule(user_id, category):
+                created_schedules.append(category)
+
+        # Only log when schedules are actually created, not when they already exist
+        # Suppress logging for internal calls to avoid duplicate messages
+        if created_schedules and not suppress_logging:
+            logger.info(f"Created schedules for user {user_id}: {created_schedules}")
+        elif not suppress_logging:
+            logger.debug(f"Verified schedules exist for user {user_id}: {categories}")
+
+        return True
+    except Exception as e:
+        logger.error(f"Error ensuring all categories have schedules for user {user_id}: {e}")
+        return False
+
+
+@handle_errors("clearing user caches")
+def clear_user_caches(user_id: Optional[str] = None):
+    """Clear user data caches."""
+    global _user_account_cache, _user_preferences_cache, _user_context_cache, _user_schedules_cache
+
+    if user_id:
+        # Clear specific user's cache
+        account_key = f"account_{user_id}"
+        preferences_key = f"preferences_{user_id}"
+        context_key = f"context_{user_id}"
+        schedules_key = f"schedules_{user_id}"
+
+        if account_key in _user_account_cache:
+            del _user_account_cache[account_key]
+        if preferences_key in _user_preferences_cache:
+            del _user_preferences_cache[preferences_key]
+        if context_key in _user_context_cache:
+            del _user_context_cache[context_key]
+        if schedules_key in _user_schedules_cache:
+            del _user_schedules_cache[schedules_key]
+
+        logger.debug(f"Cleared cache for user {user_id}")
+    else:
+        # Clear all caches
+        _user_account_cache.clear()
+        _user_preferences_cache.clear()
+        _user_context_cache.clear()
+        _user_schedules_cache.clear()
+        logger.debug("Cleared all user caches")
+
+
+@handle_errors("ensuring unique ids", default_return=None)
+def ensure_unique_ids(data):
+    """Ensure all messages have unique IDs."""
+    if not data or 'messages' not in data:
+        return data
+
+    existing_ids = set()
+    for message in data['messages']:
+        if 'message_id' not in message or message['message_id'] in existing_ids:
+            message['message_id'] = str(uuid.uuid4())
+        existing_ids.add(message['message_id'])
+
+    return data
+
+
+@handle_errors("loading and ensuring ids", default_return=None)
+def load_and_ensure_ids(user_id):
+    """Load messages for all categories and ensure IDs are unique for a user."""
+    user_data = get_user_data(user_id, 'preferences')
+    if not user_data or 'preferences' not in user_data:
+        logger.warning(f"User preferences not found for user_id: {user_id}")
+        return
+
+    preferences = user_data['preferences']
+    categories = preferences.get('categories', [])
+    if not categories:
+        logger.debug(f"No categories found for user {user_id}")
+        return
+
+    for category in categories:
+        file_path = determine_file_path('messages', f'{category}/{user_id}')
+        data = load_json_data(file_path)
+        if data:
+            data = ensure_unique_ids(data)
+            save_json_data(data, file_path)
+
+    logger.debug(f"Ensured message ids are unique for user '{user_id}'")
 @handle_errors("getting user data", default_return={})
 def get_user_data(
     user_id: str,
@@ -117,10 +911,9 @@ def get_user_data(
     logger.debug(f"get_user_data called: user_id={user_id}, data_types={data_types}")
     # Ensure default loaders are registered (idempotent). Under certain import
     # orders in the test environment, callers may invoke this function before
-    # core.user_management's import-time registration runs. This guard safely
-    # fills any missing loader entries without overwriting existing ones.
+    # default registration runs. This guard safely fills any missing loader
+    # entries without overwriting existing ones.
     try:
-        from core.user_management import register_default_loaders
         # Only invoke if any loader is missing to avoid unnecessary work
         if any((not info.get('loader')) for info in USER_DATA_LOADERS.values()):
             register_default_loaders()
@@ -317,7 +1110,6 @@ def get_user_data(
                             prefs = get_user_data(user_id, 'preferences').get('preferences', {})
                             categories = prefs.get('categories', []) if isinstance(prefs, dict) else []
                             if categories:
-                                from core.user_management import ensure_all_categories_have_schedules
                                 ensure_all_categories_have_schedules(user_id, suppress_logging=True)
                                 # reload after potential creation
                                 normalized_after, _e2 = validate_schedules_dict(get_user_data(user_id, 'schedules').get('schedules', {}))
@@ -379,23 +1171,21 @@ def get_user_data(
                 needs_key = (not result.get(key)) and ((not requested_types) or (key in requested_types))
                 if needs_key:
                     try:
-                        # Prefer calling the loader directly via user_management
-                        from core import user_management as _um
-                        entry = _um.USER_DATA_LOADERS.get(key)
+                        entry = USER_DATA_LOADERS.get(key)
                         loader = entry.get('loader') if isinstance(entry, dict) else None
                         if loader is None:
                             # Attempt self-heal registration
                             healing = {
-                                'account': (_um._get_user_data__load_account, 'account'),
-                                'preferences': (_um._get_user_data__load_preferences, 'preferences'),
-                                'context': (_um._get_user_data__load_context, 'user_context'),
-                                'schedules': (_um._get_user_data__load_schedules, 'schedules'),
+                                'account': (_get_user_data__load_account, 'account'),
+                                'preferences': (_get_user_data__load_preferences, 'preferences'),
+                                'context': (_get_user_data__load_context, 'user_context'),
+                                'schedules': (_get_user_data__load_schedules, 'schedules'),
                             }.get(key)
                             if healing is not None:
                                 func, ftype = healing
                                 try:
-                                    _um.register_data_loader(key, func, ftype)
-                                    entry = _um.USER_DATA_LOADERS.get(key)
+                                    register_data_loader(key, func, ftype)
+                                    entry = USER_DATA_LOADERS.get(key)
                                     loader = entry.get('loader') if isinstance(entry, dict) else func
                                 except Exception:
                                     loader = func
@@ -839,7 +1629,6 @@ def _save_user_data__update_index(user_id: str, result: Dict[str, bool], update_
     # Clear cache if any saves succeeded
     if any(result.values()):
         try:
-            from core.user_management import clear_user_caches
             clear_user_caches(user_id)
             logger.debug(f"Cleared cache for user {user_id} after data save")
         except Exception as e:
@@ -915,7 +1704,6 @@ def _save_user_data__check_cross_file_invariants(
                 
                 # Ensure schedules exist for all categories
                 try:
-                    from core.user_management import ensure_all_categories_have_schedules
                     ensure_all_categories_have_schedules(user_id, suppress_logging=True)
                 except Exception:
                     pass
@@ -1140,7 +1928,7 @@ def save_user_data_transaction(
     data_updates: Dict[str, Dict[str, Any]],
     auto_create: bool = True
 ) -> bool:
-    """Atomic wrapper copied from user_management."""
+    """Atomic wrapper for user data updates."""
     if not user_id or not data_updates:
         return False
     try:
@@ -1172,34 +1960,121 @@ def save_user_data_transaction(
     return success 
 
 # ---------------------------------------------------------------------------
-# CORE UTILITY WRAPPERS (TEMPORARY)
+# CORE USER MANAGEMENT FUNCTIONS (migrated)
 # ---------------------------------------------------------------------------
 
-# These wrappers expose commonly-used utilities from *user_management* so that
-# external modules can depend on ``core.user_data_handlers`` only.  They simply
-# delegate to the original implementations while we migrate call-sites.  Once
-# every caller is updated, the real implementation can be moved here and the
-# legacy exports removed.
 
-
-@handle_errors("getting all user IDs (centralised)", default_return=[])
+@handle_errors("getting all user ids", default_return=[])
 def get_all_user_ids() -> List[str]:
-    """
-    Get all user IDs with enhanced error handling.
-    
-    Returns:
-        List[str]: List of user IDs, empty list if failed
-    """
-    """Return a list of *all* user IDs known to the system."""
-    from core.user_management import get_all_user_ids as management_get_all_user_ids
-    return management_get_all_user_ids()
+    """Get all user IDs from the system."""
+    from core.config import USER_INFO_DIR_PATH
+    users_dir = Path(USER_INFO_DIR_PATH)
+    if not users_dir.exists():
+        return []
+
+    user_ids = []
+    for item in users_dir.iterdir():
+        # item from iterdir() is already a Path object relative to users_dir
+        # Use it directly instead of combining with users_dir to avoid double paths
+        if item.is_dir():
+            # Check if this directory has the new structure
+            account_file = item / 'account.json'
+            if account_file.exists():
+                user_ids.append(item.name)
+
+    return user_ids
 
 
-@handle_errors("creating new user (centralised)", default_return=None)
+@handle_errors("creating new user", default_return=None)
 def create_new_user(user_data: Dict[str, Any]) -> Optional[str]:
-    """Create a new user via the legacy implementation."""
-    from core.user_management import create_new_user as management_create_user
-    return management_create_user(user_data)
+    """Create a new user with the new data structure."""
+    user_id = str(uuid.uuid4())
+
+    # Create account data
+    account_data = {
+        "user_id": user_id,
+        "internal_username": user_data.get('internal_username', ''),
+        "account_status": "active",
+        "chat_id": user_data.get('chat_id', ''),
+        "phone": user_data.get('phone', ''),
+        "email": user_data.get('email', ''),
+        "discord_user_id": user_data.get('discord_user_id', ''),
+        "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "features": {
+            # Check for explicit messages_enabled flag first, then fall back to categories check (for backward compatibility)
+            "automated_messages": "enabled" if (
+                user_data.get('messages_enabled', False) or 
+                (user_data.get('categories') and len(user_data.get('categories', [])) > 0)
+            ) else "disabled",
+            "checkins": "enabled" if user_data.get('checkin_settings', {}).get('enabled', False) else "disabled",
+            "task_management": "enabled" if user_data.get('task_settings', {}).get('enabled', False) else "disabled"
+        },
+        "timezone": user_data.get("timezone", "")
+    }
+
+    # Create preferences data
+    preferences_data = {
+        "categories": user_data.get('categories', []),
+        "channel": {
+            "type": user_data.get('channel', {}).get('type', 'email')
+        },
+        "checkin_settings": user_data.get('checkin_settings', {}),
+        "task_settings": user_data.get('task_settings', {})
+    }
+
+    # Remove redundant enabled flags from preferences since they're in account.json features
+    if 'checkin_settings' in preferences_data and 'enabled' in preferences_data['checkin_settings']:
+        del preferences_data['checkin_settings']['enabled']
+    if 'task_settings' in preferences_data and 'enabled' in preferences_data['task_settings']:
+        del preferences_data['task_settings']['enabled']
+
+    # Create user context data
+    context_data = {
+        "preferred_name": user_data.get('preferred_name', ''),
+        "gender_identity": user_data.get('gender_identity', []),
+        "date_of_birth": user_data.get('date_of_birth', ''),
+        "custom_fields": {
+            "reminders_needed": user_data.get('reminders_needed', []),
+            "health_conditions": user_data.get('custom_fields', {}).get('health_conditions', []),
+            "medications_treatments": user_data.get('custom_fields', {}).get('medications_treatments', []),
+            "allergies_sensitivities": user_data.get('custom_fields', {}).get('allergies_sensitivities', [])
+        },
+        "interests": user_data.get('interests', []),
+        "goals": user_data.get('goals', []),
+        "loved_ones": user_data.get('loved_ones', []),
+        "activities_for_encouragement": user_data.get('activities_for_encouragement', []),
+        "notes_for_ai": user_data.get('notes_for_ai', []),
+        "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+
+    # Save all data using centralized save_user_data
+    save_result = save_user_data(user_id, {
+        'account': account_data,
+        'preferences': preferences_data,
+        'context': context_data
+    })
+
+    # Check if save was successful
+    if not all(save_result.values()):
+        logger.error(f"Failed to save user data for {user_id}: {save_result}")
+        return None
+
+    # Create default schedule periods for initial categories
+    categories = user_data.get('categories', [])
+    for category in categories:
+        ensure_category_has_default_schedule(user_id, category)
+
+    # Update user index
+    try:
+        from core.user_data_manager import update_user_index
+        update_user_index(user_id)
+    except Exception as e:
+        logger.warning(f"Failed to update user index for new user {user_id}: {e}")
+
+    logger.info(f"Created new user: {user_id} ({user_data.get('internal_username', '')})")
+    return user_id
 
 
 @handle_errors("getting user categories", default_return=[])
@@ -1215,6 +2090,12 @@ def get_user_categories(user_id: str) -> List[str]:
     elif isinstance(user_data, list):
         return user_data
     return []
+
+
+@handle_errors("getting user data with metadata", default_return={})
+def get_user_data_with_metadata(user_id: str, data_types: Union[str, List[str]] = 'all') -> Dict[str, Any]:
+    """Get user data with file metadata using centralized system."""
+    return get_user_data(user_id, data_types, include_metadata=True)
 
 
 PREDEFINED_OPTIONS = {
@@ -1507,22 +2388,13 @@ def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
     if not isinstance(schedules_data, dict):
         logger.error(f"Invalid schedules_data: {type(schedules_data)}")
         return False
-    """Persist a complete schedules dict for *user_id*.
-
-    Wrapper around the original helper in **core.user_management** – keeps
-    outside modules decoupled from the legacy path.
-    """
-    from core.user_management import update_user_schedules as management_update_user_schedules
-    return management_update_user_schedules(user_id, schedules_data)
+    """Persist a complete schedules dict for *user_id*."""
+    result = save_user_data(user_id, {"schedules": schedules_data})
+    return result.get("schedules", False)
 
 # ---------------------------------------------------------------------------
-# HIGH-LEVEL UPDATE HELPERS (migrated from core.user_management)
+# HIGH-LEVEL UPDATE HELPERS
 # ---------------------------------------------------------------------------
-
-# NOTE:  These helper functions intentionally *duplicate* the public update
-# API provided by ``core.user_management`` so that other modules can migrate
-# to importing directly from ``core.user_data_handlers``.  Once all callers
-# have switched over we can remove the legacy versions (see TODO.md).
 
 
 @handle_errors("updating user account (centralised)", default_return=False)
@@ -1580,8 +2452,8 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], *, auto_creat
         return False
     """Update *preferences.json*.
 
-    Includes the extra bookkeeping originally implemented in
-    ``core.user_management.update_user_preferences`` (default schedule creation
+    Includes the extra bookkeeping originally implemented in the legacy
+    user management module (default schedule creation
     for new categories, message-file creation, etc.) so behaviour remains
     unchanged.
     """
@@ -1603,10 +2475,6 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], *, auto_creat
     # -------------------------------------------------------------------
     if "categories" in updates:
         try:
-            from core.user_management import (
-                ensure_category_has_default_schedule,
-                ensure_all_categories_have_schedules,
-            )
             from core.message_management import ensure_user_message_files
 
             preferences_data = get_user_data(user_id, "preferences")

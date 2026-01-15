@@ -389,6 +389,24 @@ def get_all_tool_results(project_root: Optional[Path] = None) -> Dict[str, Dict[
     domains = ['functions', 'docs', 'error_handling', 'tests', 'imports', 'legacy', 
                'config', 'ai_work', 'reports', 'shared']
     
+    def _parse_timestamp(result_data: Dict[str, Any], result_file: Path) -> datetime:
+        """Return a comparable timestamp for a tool result entry."""
+        raw_ts = None
+        if isinstance(result_data, dict):
+            raw_ts = result_data.get('timestamp') or result_data.get('last_generated')
+        if isinstance(raw_ts, str):
+            try:
+                return datetime.fromisoformat(raw_ts)
+            except ValueError:
+                try:
+                    return datetime.strptime(raw_ts, '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    pass
+        try:
+            return datetime.fromtimestamp(result_file.stat().st_mtime)
+        except OSError:
+            return datetime.min
+
     for domain in domains:
         jsons_dir = dev_tools_dir / domain / "jsons"
         if not jsons_dir.exists():
@@ -411,7 +429,14 @@ def get_all_tool_results(project_root: Optional[Path] = None) -> Dict[str, Dict[
                 
                 with open(result_file, 'r', encoding='utf-8') as f:
                     result_data = json.load(f)
-                all_results[tool_name] = result_data
+                if tool_name in all_results:
+                    existing = all_results[tool_name]
+                    existing_ts = _parse_timestamp(existing, result_file)
+                    candidate_ts = _parse_timestamp(result_data, result_file)
+                    if candidate_ts > existing_ts:
+                        all_results[tool_name] = result_data
+                else:
+                    all_results[tool_name] = result_data
             except FileNotFoundError:
                 # File was deleted between existence check and open - skip gracefully
                 logger.debug(f"Result file disappeared: {result_file}")

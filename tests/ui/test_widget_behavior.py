@@ -326,7 +326,7 @@ class TestCheckinSettingsWidgetBehavior:
         assert success, f"Failed to create test user {user_id}"
         
         # Get the actual user ID (UUID) from the test data - retry in case of race conditions
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
         import time
         actual_user_id = None

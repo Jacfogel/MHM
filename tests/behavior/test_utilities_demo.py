@@ -146,7 +146,7 @@ class TestUtilitiesDemo:
         assert TestUserFactory.create_minimal_user("multi_minimal", test_data_dir=test_data_dir), "Minimal user should be created"
         
         # Verify all users were created by checking they can be found by internal username
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         for user_id in ["multi_basic", "multi_discord", "multi_full", "multi_minimal"]:
             actual_user_id = get_user_id_by_identifier(user_id)
             if actual_user_id is None:
@@ -170,7 +170,7 @@ class TestUtilitiesDemo:
         assert success, "Email user should be created successfully"
         
         # Verify user was created by checking internal username
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
@@ -212,7 +212,7 @@ class TestUtilitiesDemo:
         assert success, "Custom fields user should be created successfully"
         
         # Verify user was created by checking internal username
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
@@ -264,7 +264,7 @@ class TestUtilitiesDemo:
         assert success, "Scheduled user should be created successfully"
         
         # Verify user was created by checking internal username
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
@@ -374,7 +374,7 @@ class TestUtilitiesDemo:
         """Test scenarios that mirror real user data patterns."""
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         
         # Scenario 1: User with phone but no email (like real user c59410b9...)
         success1 = TestUserFactory.create_user_with_inconsistent_data("phone_only_user", test_data_dir=test_data_dir)
@@ -493,7 +493,7 @@ class TestUtilitiesDemo:
         """Test edge cases and boundary conditions for user creation."""
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         
         # Edge case 1: User with very long user_id
         long_user_id = "a" * 50  # 50 character user ID (more reasonable)
@@ -558,7 +558,7 @@ class TestUtilitiesDemo:
         """Test that all user types produce consistent data structures."""
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         
         # Test multiple user types and verify consistent structure
         test_users = [

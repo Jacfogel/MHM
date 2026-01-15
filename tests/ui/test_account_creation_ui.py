@@ -619,7 +619,7 @@ class TestAccountManagementRealBehavior:
         assert actual_user_id is not None, f"Could not determine actual user ID for {user_id}"
         
         # Update user context with profile-specific data
-        from core.user_management import update_user_context
+        from core.user_data_handlers import update_user_context
         update_success = update_user_context(actual_user_id, {
             'preferred_name': 'Profile User',
             'gender_identity': ['they/them']
@@ -1047,7 +1047,7 @@ class TestAccountCreationIntegration:
         assert save_result.get('account'), "Feature modification should succeed"
         
         # Clear user caches to ensure fresh data is loaded
-        from core.user_management import clear_user_caches
+        from core.user_data_handlers import clear_user_caches
         clear_user_caches()
         
         updated_data = get_user_data(user_id)
@@ -1486,7 +1486,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: User ID should be found by username
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         import time
         time.sleep(0.1)  # Brief delay for index update
         user_id = get_user_id_by_identifier(unique_username)
@@ -1531,7 +1531,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Categories should be persisted
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         import time
         time.sleep(0.1)  # Brief delay for index update
         user_id = get_user_id_by_identifier(unique_username)
@@ -1570,7 +1570,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Channel info should be persisted
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         import time
         time.sleep(0.1)  # Brief delay for index update
         user_id = get_user_id_by_identifier(unique_username)
@@ -1617,7 +1617,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Task settings should be persisted
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         import time
         time.sleep(0.1)  # Brief delay for index update
         user_id = get_user_id_by_identifier(unique_username)
@@ -1668,7 +1668,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Check-in settings should be persisted
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         import time
         time.sleep(0.1)  # Brief delay for index update
         user_id = get_user_id_by_identifier(unique_username)
@@ -1712,7 +1712,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: User should be in index
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         import time
         time.sleep(0.1)  # Brief delay for index update
         user_id = get_user_id_by_identifier(unique_username)
@@ -1753,7 +1753,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
 
         # Assert: Default tags should be set up (tags are now stored in tags.json, not preferences)
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         from core.tags import get_user_tags
         import time
         time.sleep(0.1)  # Brief delay for index update
@@ -1796,7 +1796,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Custom tags should be saved
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         import time
         time.sleep(0.1)  # Brief delay for index update
         user_id = get_user_id_by_identifier(unique_username)
@@ -1838,7 +1838,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Feature flags should be persisted
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         import time
         time.sleep(0.1)  # Brief delay for index update
         user_id = get_user_id_by_identifier(unique_username)

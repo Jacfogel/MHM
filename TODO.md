@@ -267,20 +267,6 @@ When adding new tasks, follow this format:
 - *Why it helps*: Reduces confusion and improves the reliability of AI-assisted development
 - *Estimated effort*: Medium
 
-**Complete core.user_management Retirement**
-- *What it means*: Fully retire `core.user_management` by moving the remaining registry + loader implementation into `core.user_data_handlers` and updating all imports. Today `core.user_data_handlers` re-exports and delegates to `core.user_management`, and many modules/tests still import the legacy path directly.
-- *Why it helps*: Simplifies codebase structure, removes legacy module, consolidates user data handling in one place
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [x] Inventory remaining direct imports of `core.user_management` (core, communication, tests, docs)
-  - [x] Update production imports (communication/core/ui) to prefer `core.user_data_handlers`
-  - [x] Port helper implementations for identifiers/categories/presets/timezones into `core.user_data_handlers`
-  - [ ] Move the USER_DATA_LOADERS registry and loader registration into `core.user_data_handlers`
-  - [ ] Port remaining helpers still implemented only in `core.user_management` (or delete if unused)
-  - [ ] Update `core/__init__.py` exports to prefer `core.user_data_handlers` and remove legacy notes
-  - [ ] Update remaining test imports and shims (including `tests/conftest.py`) to stop using `core.user_management`
-  - [ ] Remove `core.user_management` and clean up any compatibility wrappers
-  - [ ] Update comments in `core.user_data_handlers` that reference the retirement
 
 **Review Communication Module Architecture**
 - *What it means*: Review all modules in `communication/` directory to ensure they follow channel-agnostic architecture principles

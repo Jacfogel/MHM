@@ -160,7 +160,7 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
         logger.debug(f"Testing with user: {test_user}")
 
         # Resolve UUID if test_user is an internal username (mock_user_data creates users with internal usernames)
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         from tests.test_utilities import TestUserFactory as TUF
         actual_user_id = get_user_id_by_identifier(test_user) or TUF.get_test_user_id_by_internal_username(test_user, test_data_dir) or test_user
         

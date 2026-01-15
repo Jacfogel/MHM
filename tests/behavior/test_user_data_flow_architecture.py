@@ -160,7 +160,7 @@ class TestCrossFileInvariants:
         # when preferences with categories were saved. However, during parallel execution,
         # file writes may not be immediately visible, so we need to retry with cache clearing.
         import time
-        from core.user_management import clear_user_caches
+        from core.user_data_handlers import clear_user_caches
         
         # Wait a moment for file writes to complete and clear cache
         time.sleep(0.2)  # Allow file system to sync

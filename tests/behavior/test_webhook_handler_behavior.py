@@ -10,7 +10,7 @@ import json
 import asyncio
 from unittest.mock import patch, MagicMock, AsyncMock
 from tests.test_utilities import TestUserFactory
-from core.user_management import get_user_id_by_identifier
+from core.user_data_handlers import get_user_id_by_identifier
 
 
 class TestWebhookHandlerBehavior:
@@ -647,7 +647,7 @@ class TestWebhookHandlerBehavior:
         # Ensure user doesn't exist and hasn't been welcomed (to avoid early returns)
         # The function returns True early if user exists (line 111) or already welcomed (line 122)
         # We need to ensure we reach the asyncio.run_coroutine_threadsafe call to test the exception path
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         import uuid
         
         # Use a unique Discord ID to avoid conflicts with other tests

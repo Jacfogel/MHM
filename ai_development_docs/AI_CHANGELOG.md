@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-14 - User Management Retirement Finalized **COMPLETED**
+- Removed the `core/user_management.py` shim and finished the migration cleanup in core user data modules
+- Updated dev tools generators and audit aggregation to stop surfacing legacy `core/user_management` references
+- Regenerated AI function registry and full audit outputs; removed the completed retirement task from `TODO.md`
+
 ### 2026-01-14 - Legacy Cleanup and Test Fixes **COMPLETED**
 - Moved user identifier/category/preset/timezone helpers into `core/user_data_handlers.py` and delegated legacy accessors in `core/user_management.py`
 - Updated production imports to use `core.user_data_handlers` and removed legacy logger aliases

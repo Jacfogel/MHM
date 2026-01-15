@@ -38,6 +38,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-14 - User Management Retirement Finalized and Dev Tools Cache Cleanup
+- **Feature**: Removed the `core/user_management.py` shim and finalized the user data handler migration by cleaning legacy references in `core/user_data_handlers.py`, `core/user_data_validation.py`, `core/user_data_manager.py`, and `core/__init__.py`. Updated development tools generators to stop emitting `core/user_management` in AI function registries and module dependency summaries, and improved dev tools audit aggregation to prefer the newest tool result when duplicate JSONs exist. Cleared a stale `development_tools/reports/jsons/analyze_package_exports_results.json` and regenerated the AI function registry and consolidated audit outputs. Removed the completed retirement task from `TODO.md`.
+- **Impact**: Fully retires the legacy user management module, keeps generated docs clean, and prevents stale dev tool results from reintroducing removed file references.
+- **Testing**: `python development_tools/run_development_tools.py docs`, `python development_tools/run_development_tools.py audit --full`
+
 ### 2026-01-14 - Legacy Cleanup Progress, Doc Tooling Fix, and Test Repairs
 - **Feature**: Continued legacy retirement by moving identifier/category/preset/timezone helpers into `core/user_data_handlers.py`, delegating legacy accessors in `core/user_management.py`, and updating production imports (communication/core/ui) to use the centralized handlers. Removed legacy logger aliases in `core/service.py` and `core/message_management.py`. Fixed development tools reporting guidance to remove the invalid `doc-sync --fix` instruction in `development_tools/shared/service/report_generation.py`. Updated `tests/behavior/test_schedule_handler_behavior.py` mocks to patch `core.user_data_handlers.get_user_categories` after the import migration and refreshed the `core.user_management` retirement task status in `TODO.md`.
 - **Impact**: Reduced reliance on legacy user management paths, clarified documentation tool guidance, and restored test stability for schedule handler behavior.

@@ -9,7 +9,7 @@ import os
 from core.checkin_analytics import CheckinAnalytics
 from core.user_data_handlers import get_user_data, save_user_data
 from core.config import get_user_file_path
-from core.user_management import get_user_id_by_identifier
+from core.user_data_handlers import get_user_id_by_identifier
 from tests.test_utilities import TestUserFactory
 
 

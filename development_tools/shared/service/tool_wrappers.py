@@ -444,6 +444,7 @@ class ToolWrappersMixin:
                     'packages': all_reports
                 }
             }
+            self.results_cache['analyze_package_exports'] = result_data
             save_tool_result('analyze_package_exports', 'functions', result_data, project_root=self.project_root)
             return {
                 'success': True,

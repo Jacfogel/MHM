@@ -25,7 +25,7 @@ def test_account_management_imports():
     
     modules_to_test = [
         ("Account Creator Dialog", "ui.dialogs.account_creator_dialog", "AccountCreatorDialog"),
-        ("User Management", "core.user_management", "update_user_account"),
+        ("User Management", "core.user_data_handlers", "update_user_account"),
         ("User Data Manager", "core.user_data_manager", "UserDataManager"),
         ("User Context", "user.user_context", "UserContext"),
     ]
@@ -138,7 +138,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
         assert success, "Failed to create test user"
         
         # Get the actual UUID for the user
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         test_user = get_user_id_by_identifier(test_user_id)
         assert test_user is not None, "Should be able to get UUID for test user"
         

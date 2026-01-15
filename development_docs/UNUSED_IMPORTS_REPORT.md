@@ -2,12 +2,12 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-14 05:20:12
+> **Last Generated**: 2026-01-14 21:15:13
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 414
+- **Total Files Scanned**: 413
 - **Files with Unused Imports**: 124
 - **Total Unused Imports**: 358
 
@@ -114,7 +114,7 @@
 **Count**: 2 unused import(s)
 
 - **Line 14**: Unused get_user_data imported from core.user_data_handlers
-- **Line 21**: Unused get_user_categories imported from core.user_management
+- **Line 21**: Unused get_user_categories imported from core.user_data_handlers
 
 ### `tests/behavior/test_task_handler_behavior.py`
 
@@ -282,7 +282,7 @@
 
 **Count**: 3 unused import(s)
 
-- **Line 19**: Unused create_new_user imported from core.user_management
+- **Line 19**: Unused create_new_user imported from core.user_data_handlers
 - **Line 20**: Unused save_user_data imported from core.user_data_handlers
 - **Line 21**: Unused ensure_user_directory imported from core.file_operations
 

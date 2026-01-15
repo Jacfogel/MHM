@@ -119,7 +119,7 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
     
     try:
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         
         # Get the UUID for the basic user (serial execution ensures index is updated)
         from tests.test_utilities import TestUserFactory
@@ -240,7 +240,7 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
 
     try:
         from core.user_data_handlers import save_user_data, get_user_data
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         
         # Get the UUID for the basic user (serial execution ensures index is updated)
         from tests.test_utilities import TestUserFactory
@@ -454,7 +454,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
     
     try:
             from core.user_data_handlers import save_user_data, get_user_data
-            from core.user_management import get_user_id_by_identifier
+            from core.user_data_handlers import get_user_id_by_identifier
             from tests.test_utilities import TestUserFactory
             from tests.conftest import materialize_user_minimal_via_public_apis
             
@@ -580,7 +580,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
 
     try:
             from core.user_data_handlers import save_user_data, get_user_data
-            from core.user_management import get_user_id_by_identifier
+            from core.user_data_handlers import get_user_id_by_identifier
 
             # Get the UUID for the basic user (serial execution ensures index is updated)
             from core.user_data_manager import rebuild_user_index
@@ -712,7 +712,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
 
             # Ensure task directory is created when tasks are enabled
             from tasks.task_management import ensure_task_directory
-            from core.user_management import get_user_id_by_identifier
+            from core.user_data_handlers import get_user_id_by_identifier
             actual_user_id = get_user_id_by_identifier(f"test-user-full-{test_id}")
             if actual_user_id:
                 ensure_task_directory(actual_user_id)
@@ -805,7 +805,7 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
         user_index_file = os.path.join(test_data_dir, "user_index.json")
         
         # Perform multiple operations
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         basic_uuid = get_user_id_by_identifier(f"test-user-basic-{test_id}") or f"test-user-basic-{test_id}"
         import time
         materialize_user_minimal_via_public_apis(basic_uuid)

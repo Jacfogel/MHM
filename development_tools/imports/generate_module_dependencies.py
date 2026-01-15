@@ -174,7 +174,7 @@ def get_module_purpose(file_path: str) -> str:
         'core/error_handling.py': 'Comprehensive error handling system - provides centralized error handling, custom exceptions, and recovery strategies',
         'core/logger.py': 'Centralized logging system for the application',
         'core/file_operations.py': 'File operations utilities - contains functions for file I/O, path determination, and file management',
-        'core/user_management.py': 'User management utilities - contains functions for managing user accounts, preferences, context, and schedules',
+        'core/user_data_handlers.py': 'User data handlers - provides centralized access to user accounts, preferences, context, and schedules',
         'core/message_management.py': 'Message management system - handles message categories, content, and delivery',
         'core/schedule_management.py': 'Schedule management system - handles user schedules, periods, and timing',
         'core/user_data_handlers.py': 'User data handlers - provides centralized access to user data with caching and validation',

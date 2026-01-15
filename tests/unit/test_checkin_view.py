@@ -98,7 +98,7 @@ class TestCheckinView:
     async def test_cancel_checkin_button_handler_with_valid_user(self, test_data_dir, mock_interaction_factory):
         """Test cancel check-in button handler with valid user."""
         from tests.test_utilities import TestUserFactory
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         from unittest.mock import patch
         import core.config
         import os
@@ -174,7 +174,7 @@ class TestCheckinView:
     async def test_skip_question_button_handler_with_valid_user(self, test_data_dir, mock_interaction_factory):
         """Test skip question button handler with valid user."""
         from tests.test_utilities import TestUserFactory
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         from unittest.mock import patch
         import core.config
         import os

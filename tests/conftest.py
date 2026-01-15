@@ -205,17 +205,17 @@ except (ImportError, NameError):
 @pytest.fixture(scope="session", autouse=True)
 def verify_user_data_loader_registry():
     import importlib
-    import core.user_management as um
+    import core.user_data_handlers as um
     import core.user_data_handlers as udh
 
     # Align module state early to avoid split registries from import order
     um = importlib.reload(um)
     udh = importlib.reload(udh)
 
-    # Identity check: both should reference the same registry object
+    # Identity check: both reloads should reference the same registry object
     if um.USER_DATA_LOADERS is not udh.USER_DATA_LOADERS:
         raise AssertionError(
-            "USER_DATA_LOADERS mismatch: core.user_management and core.user_data_handlers hold different dict objects."
+            "USER_DATA_LOADERS mismatch: core.user_data_handlers reloads hold different dict objects."
         )
 
     # Completeness check: attempt registration once if any missing
@@ -245,7 +245,7 @@ def verify_user_data_loader_registry():
 # Ensure import order and perform a single default loader registration at session start
 @pytest.fixture(scope="session", autouse=True)
 def initialize_loader_import_order(request):
-    """Import core.user_management before core.user_data_handlers and register loaders once.
+    """Reload core.user_data_handlers and register loaders once.
 
     This ensures both modules share the same USER_DATA_LOADERS dict and that required
     loaders are present without relying on the data shim.
@@ -256,7 +256,7 @@ def initialize_loader_import_order(request):
     
     # Try to import core modules - skip if not available (e.g., development tools tests)
     try:
-        import core.user_management as um
+        import core.user_data_handlers as um
     except (ImportError, ModuleNotFoundError):
         # Core modules not available (e.g., in development tools test environment)
         yield
@@ -285,7 +285,7 @@ def _apply_get_user_data_shim_early():
     if os.getenv("ENABLE_TEST_DATA_SHIM", "1") != "1":
         return
     try:
-        import core.user_management as um
+        import core.user_data_handlers as um
     except Exception:
         return
     try:
@@ -293,8 +293,7 @@ def _apply_get_user_data_shim_early():
     except Exception:
         udh = None
 
-    # Prefer core.user_management.get_user_data if present; otherwise fall back to
-    # core.user_data_handlers.get_user_data so the shim always applies.
+    # Prefer core.user_data_handlers.get_user_data so the shim always applies.
     original_get_user_data = getattr(um, 'get_user_data', None)
     if original_get_user_data is None and udh is not None and hasattr(udh, 'get_user_data'):
         original_get_user_data = getattr(udh, 'get_user_data', None)
@@ -1785,7 +1784,7 @@ def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
         update_user_preferences,
         update_user_schedules,
     )
-    from core.user_management import get_user_id_by_identifier
+    from core.user_data_handlers import get_user_id_by_identifier
     from core.config import get_user_data_dir
     import os
     
@@ -1901,7 +1900,7 @@ def ensure_mock_config_applied(mock_config, test_data_dir):
 @pytest.fixture(scope="function", autouse=True)
 def clear_user_caches_between_tests():
     """Ensure user data caches don't leak between tests."""
-    from core.user_management import clear_user_caches
+    from core.user_data_handlers import clear_user_caches
     clear_user_caches()
     yield
     clear_user_caches()
@@ -1909,7 +1908,7 @@ def clear_user_caches_between_tests():
 @pytest.fixture(scope="session", autouse=True)
 def register_user_data_loaders_session():
     """Ensure core user data loaders are present without overwriting metadata."""
-    import core.user_management as um
+    import core.user_data_handlers as um
     # Set only missing loaders to avoid clobbering metadata
     for key, func, ftype in [
         ('account', um._get_user_data__load_account, 'account'),
@@ -1929,7 +1928,7 @@ def register_user_data_loaders_session():
 @pytest.fixture(scope="function", autouse=True)
 def fix_user_data_loaders():
     """Ensure loaders stay correctly registered for each test without overwriting metadata."""
-    import core.user_management as um
+    import core.user_data_handlers as um
     for key, func, ftype in [
         ('account', um._get_user_data__load_account, 'account'),
         ('preferences', um._get_user_data__load_preferences, 'preferences'),
@@ -1943,14 +1942,14 @@ def fix_user_data_loaders():
 
 @pytest.fixture(scope="session", autouse=True)
 def shim_get_user_data_to_invoke_loaders():
-    """Shim core.user_management.get_user_data to ensure structured dicts.
+    """Shim core.user_data_handlers.get_user_data to ensure structured dicts.
 
     If a test calls get_user_data with 'all' or a specific type and the result is
     empty/missing, invoke the registered loaders in USER_DATA_LOADERS to assemble
     the expected structure. This preserves production behavior when everything is
     wired correctly, but guards against import-order timing in tests.
     """
-    import core.user_management as um
+    import core.user_data_handlers as um
     # Safety net: always provide structural dicts during tests regardless of loader state
     # Also patch the public helpers module used by many tests
     try:
@@ -1958,7 +1957,7 @@ def shim_get_user_data_to_invoke_loaders():
     except Exception:
         udh = None
 
-    # Prefer core.user_management.get_user_data; fall back to handlers if missing
+    # Prefer core.user_data_handlers.get_user_data; fall back to handlers if missing
     original_get_user_data = getattr(um, 'get_user_data', None)
     if original_get_user_data is None and udh is not None and hasattr(udh, 'get_user_data'):
         original_get_user_data = getattr(udh, 'get_user_data', None)
@@ -2122,7 +2121,7 @@ def shim_get_user_data_to_invoke_loaders():
 def verify_required_loaders_present():
     """Fail fast if required user-data loaders are missing at session start."""
     try:
-        import core.user_management as um
+        import core.user_data_handlers as um
         required = ('account', 'preferences', 'context', 'schedules')
         missing = []
         for k in required:
@@ -2691,7 +2690,7 @@ def cleanup_test_users_after_session():
     
     # Clear all user caches to prevent state pollution between test runs
     try:
-        from core.user_management import clear_user_caches
+        from core.user_data_handlers import clear_user_caches
         clear_user_caches()  # Clear all caches
     except Exception:
         pass  # Ignore errors during cleanup

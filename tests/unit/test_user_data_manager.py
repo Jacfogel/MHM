@@ -113,7 +113,7 @@ class TestUserDataManagerMessageReferences:
             test_data_dir=test_data_dir
         )
         
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -206,7 +206,7 @@ class TestUserDataManagerBackup:
         user_id = "test_backup_user"
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -285,7 +285,7 @@ class TestUserDataManagerExport:
         user_id = "test_export_user"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -349,7 +349,7 @@ class TestUserDataManagerIndex:
         Note: This fixture is used by tests marked @pytest.mark.no_parallel,
         so serial execution ensures data is available without retry logic.
         """
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
         from core.user_data_handlers import get_user_data
         
@@ -498,7 +498,7 @@ class TestUserDataManagerSearch:
         user_id = "test_search_user"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -570,7 +570,7 @@ class TestUserDataManagerSummary:
         user_id = "test_summary_user"
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -804,7 +804,7 @@ class TestUserDataManagerDeleteUser:
         user_id = "test_delete_user"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id

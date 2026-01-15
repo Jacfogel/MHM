@@ -815,7 +815,7 @@ class TestAccountLifecycle:
             "start_time": "18:00",
             "end_time": "21:00"
         }
-        from core.user_management import update_user_schedules
+        from core.user_data_handlers import update_user_schedules
         update_user_schedules(actual_user_id, curr)
         
         # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
@@ -889,7 +889,7 @@ class TestAccountLifecycle:
         schedules_now = get_user_data(actual_user_id, 'schedules').get('schedules', {})
         morning_period = schedules_now.setdefault("motivational", {}).setdefault("periods", {}).setdefault("morning", {})
         morning_period.update({"start_time": "08:00", "end_time": "11:00", "days": ["monday","tuesday","wednesday","thursday","friday","saturday"]})
-        from core.user_management import update_user_schedules
+        from core.user_data_handlers import update_user_schedules
         update_user_schedules(actual_user_id, schedules_now)
         
         # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
@@ -958,7 +958,7 @@ class TestAccountLifecycle:
         self._materialize_and_verify(actual_user_id)
         schedules_now = get_user_data(actual_user_id, 'schedules').get('schedules', {})
         schedules_now.setdefault("motivational", {}).setdefault("periods", {}).pop("evening", None)
-        from core.user_management import update_user_schedules
+        from core.user_data_handlers import update_user_schedules
         update_user_schedules(actual_user_id, schedules_now)
         
         # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
@@ -1035,7 +1035,7 @@ class TestAccountLifecycle:
         
         # 2. Enable features via public APIs
         self._materialize_and_verify(actual_user_id)
-        from core.user_management import update_user_account
+        from core.user_data_handlers import update_user_account
         update_user_account(actual_user_id, {"enabled_features": ["messages", "tasks", "checkins"]})
         from core.user_data_handlers import save_user_data
         save_user_data(actual_user_id, {"preferences": {"task_settings": {"enabled": True, "reminder_frequency": "daily"}, "checkin_settings": {"enabled": True, "questions": ["How are you feeling?"]}}})
@@ -1055,7 +1055,7 @@ class TestAccountLifecycle:
         
         # 3. Disable features via public APIs
         self._ensure_minimal_structure(actual_user_id)
-        from core.user_management import update_user_account
+        from core.user_data_handlers import update_user_account
         update_user_account(actual_user_id, {"enabled_features": ["messages", "checkins"]})
         from core.user_data_handlers import save_user_data
         save_user_data(actual_user_id, {"preferences": {"task_settings": {}}})
@@ -1067,7 +1067,7 @@ class TestAccountLifecycle:
         
         # 4. Re-enable features via public APIs
         self._ensure_minimal_structure(actual_user_id)
-        from core.user_management import update_user_account
+        from core.user_data_handlers import update_user_account
         update_user_account(actual_user_id, {"enabled_features": ["messages", "checkins", "tasks"]})
         from core.user_data_handlers import save_user_data
         save_user_data(actual_user_id, {"preferences": {"task_settings": {"enabled": True, "reminder_frequency": "daily"}}})

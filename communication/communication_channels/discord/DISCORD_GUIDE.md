@@ -96,7 +96,7 @@ Discord messages are handled by `DiscordEventHandler.on_message`:
    - User, channel, guild, message IDs.
    - Content, attachments, and embeds. :contentReference[oaicite:14]{index=14}  
 3. Optionally passes the message through a set of custom message handlers. :contentReference[oaicite:15]{index=15}  
-4. Resolves the internal user ID using `core.user_management.get_user_id_by_identifier(...)`. :contentReference[oaicite:16]{index=16}  
+4. Resolves the internal user ID using `core.user_data_handlers.get_user_id_by_identifier(...)`. :contentReference[oaicite:16]{index=16}  
 5. Routes the content through `handle_user_message(internal_user_id, message.content, "discord")` in the interaction manager. :contentReference[oaicite:17]{index=17}  
 6. Sends the response to the channel via `_send_response(...)`. :contentReference[oaicite:18]{index=18}  
 
@@ -132,7 +132,7 @@ UI views are adapters between Discord's UI and the core message pipeline:
 Each button callback:
 
 - Is wrapped with `handle_errors` from `core.error_handling`, supplying a clear context string.  
-- Resolves the internal user ID using `core.user_management.get_user_id_by_identifier` and the Discord user ID.  
+- Resolves the internal user ID using `core.user_data_handlers.get_user_id_by_identifier` and the Discord user ID.  
 - Uses `handle_user_message(internal_user_id, command_text, "discord")` to keep all real logic in the shared pipeline.
 
 ---

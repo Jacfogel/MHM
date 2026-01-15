@@ -1330,7 +1330,7 @@ def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
         logger.error(f"Error getting user info for data manager: {e}")
         return None
 
-# Import get_user_categories from user_management to avoid duplication
+# Import get_user_categories from user_data_handlers to avoid duplication
 from core.user_data_handlers import get_user_categories
 
 @handle_errors("building user index", default_return={})

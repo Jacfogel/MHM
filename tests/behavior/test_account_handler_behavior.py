@@ -8,7 +8,7 @@ These tests verify that account handlers actually work and produce expected side
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 from tests.test_utilities import TestUserFactory
-from core.user_management import get_user_id_by_identifier
+from core.user_data_handlers import get_user_id_by_identifier
 from core.user_data_handlers import get_user_data
 from communication.command_handlers.account_handler import (
     AccountManagementHandler,

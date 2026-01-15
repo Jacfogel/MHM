@@ -16,7 +16,7 @@ from datetime import datetime
 
 # Do not modify sys.path; rely on package imports
 
-from core.user_management import create_new_user
+from core.user_data_handlers import create_new_user
 from core.user_data_handlers import save_user_data
 from core.file_operations import ensure_user_directory
 
@@ -564,7 +564,7 @@ class TestUserFactory:
         """Internal implementation of full featured user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
+            from core.user_data_handlers import create_new_user
             
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -721,7 +721,7 @@ class TestUserFactory:
                 email = f"{user_id}@example.com"
             
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
+            from core.user_data_handlers import create_new_user
             
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -817,7 +817,7 @@ class TestUserFactory:
                 }
             
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
+            from core.user_data_handlers import create_new_user
             
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -947,7 +947,7 @@ class TestUserFactory:
                 }
             
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
+            from core.user_data_handlers import create_new_user
             
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -1310,7 +1310,7 @@ class TestUserFactory:
         """Internal implementation of minimal user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
+            from core.user_data_handlers import create_new_user
             
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -1464,7 +1464,7 @@ class TestUserFactory:
         """Internal implementation of complex checkins user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
+            from core.user_data_handlers import create_new_user
             
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -1619,7 +1619,7 @@ class TestUserFactory:
         """Internal implementation of health focus user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
+            from core.user_data_handlers import create_new_user
             
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -1768,7 +1768,7 @@ class TestUserFactory:
         """Internal implementation of task focus user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
+            from core.user_data_handlers import create_new_user
             
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -1916,7 +1916,7 @@ class TestUserFactory:
         """Internal implementation of disability user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
+            from core.user_data_handlers import create_new_user
             
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -2063,7 +2063,7 @@ class TestUserFactory:
         """Internal implementation of limited data user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
+            from core.user_data_handlers import create_new_user
             
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -2209,7 +2209,7 @@ class TestUserFactory:
         """Internal implementation of inconsistent data user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
+            from core.user_data_handlers import create_new_user
             
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -2358,7 +2358,7 @@ class TestUserFactory:
              patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')):
             
             # Verify the user was created successfully by trying to find it
-            from core.user_management import get_user_id_by_identifier
+            from core.user_data_handlers import get_user_id_by_identifier
             found_user_id = get_user_id_by_identifier(user_id)
             
             if found_user_id:
@@ -2396,7 +2396,7 @@ class TestUserFactory:
              patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')):
             
             # Verify the user was created successfully by trying to find it
-            from core.user_management import get_user_id_by_identifier
+            from core.user_data_handlers import get_user_id_by_identifier
             found_user_id = get_user_id_by_identifier(user_id)
             
             if found_user_id:
