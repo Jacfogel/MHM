@@ -13,7 +13,8 @@ from .standard_exclusions import (
     get_documentation_exclusions,
 )
 from .exclusion_utilities import (
-    is_auto_generated_code,
+    is_generated_file,
+    is_generated_function,
     is_special_python_method,
     is_test_function,
 )
@@ -30,7 +31,8 @@ __all__ = [
     "get_analysis_exclusions",
     "get_documentation_exclusions",
     # Function/code exclusion utilities
-    "is_auto_generated_code",
+    "is_generated_file",
+    "is_generated_function",
     "is_special_python_method",
     "is_test_function",
     # Module classification

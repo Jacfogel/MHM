@@ -24,6 +24,12 @@ from core.error_handling import handle_errors
 logger = get_component_logger("main")
 service_logger = get_component_logger("main")
 
+# Timestamp formatting conventions (project-wide)
+# - READABLE: for logs/metadata fields (readable, sortable)
+# - FILENAME: for filenames/IDs on Windows (no ":" or spaces)
+READABLE_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
+FILENAME_TIMESTAMP_FORMAT = "%Y-%m-%d_%H-%M-%S"
+
 
 # Throttler class
 class Throttler:
@@ -53,19 +59,19 @@ class Throttler:
 
         if self.last_run is None:
             # Set first-run timestamp so we actually throttle subsequent calls
-            self.last_run = current_time.strftime("%Y-%m-%d %H:%M:%S")
+            self.last_run = current_time.strftime(READABLE_TIMESTAMP_FORMAT)
             return True
 
         try:
-            last_run_date = datetime.strptime(self.last_run, "%Y-%m-%d %H:%M:%S")
+            last_run_date = datetime.strptime(self.last_run, READABLE_TIMESTAMP_FORMAT)
         except (ValueError, TypeError):
             # If parsing fails, allow run and reset timestamp
-            self.last_run = current_time.strftime("%Y-%m-%d %H:%M:%S")
+            self.last_run = current_time.strftime(READABLE_TIMESTAMP_FORMAT)
             return True
 
         time_since_last_run = (current_time - last_run_date).total_seconds()
         if time_since_last_run >= self.interval:
-            self.last_run = current_time.strftime("%Y-%m-%d %H:%M:%S")
+            self.last_run = current_time.strftime(READABLE_TIMESTAMP_FORMAT)
             return True
 
         return False
@@ -83,6 +89,16 @@ class InvalidTimeFormatError(Exception):
 
 # Global throttler instance
 throttler = Throttler(SCHEDULER_INTERVAL)
+
+
+def now_readable_timestamp() -> str:
+    """Readable timestamp for logs and metadata."""
+    return datetime.now().strftime(READABLE_TIMESTAMP_FORMAT)
+
+
+def now_filename_timestamp() -> str:
+    """Filename-safe timestamp for filenames and identifiers."""
+    return datetime.now().strftime(FILENAME_TIMESTAMP_FORMAT)
 
 
 @handle_errors("getting flags directory", default_return="")

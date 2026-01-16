@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Dict, Optional, Any
 
 from core.logger import get_component_logger
+from core.service_utilities import now_readable_timestamp, now_filename_timestamp
 from .file_rotation import FileRotator
 
 logger = get_component_logger("development_tools")
@@ -113,8 +114,10 @@ def save_tool_result(
     result_file = jsons_dir / f"{tool_name}_results.json"
 
     # Prepare data with metadata
-    timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    timestamp_iso = datetime.now().isoformat()
+    timestamp_str = now_readable_timestamp()
+    # If you want a machine-friendly timestamp, generate ISO from datetime (not from the readable string).
+    timestamp_iso = datetime.now().isoformat(timespec="seconds")
+    filename_timestamp = now_filename_timestamp()
 
     result_data = {
         "generated_by": f"{tool_name} - Development Tools",
@@ -134,8 +137,7 @@ def save_tool_result(
         archive_dir.mkdir(parents=True, exist_ok=True)
 
         # Create timestamped archive
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-        archive_name = f"{tool_name}_results_{timestamp}.json"
+        archive_name = f"{tool_name}_results_{filename_timestamp}.json"
         archive_path = archive_dir / archive_name
 
         # Move existing file to archive
@@ -338,7 +340,7 @@ def save_tool_cache(
     cache_file = jsons_dir / f".{tool_name}_cache.json"
 
     # Prepare cache data with metadata
-    timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp_str = now_readable_timestamp()
     timestamp_iso = datetime.now().isoformat()
 
     cache_data = {

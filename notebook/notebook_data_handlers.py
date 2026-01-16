@@ -6,12 +6,12 @@ Handles JSON persistence for notebook entries with lazy directory creation.
 
 from pathlib import Path
 from typing import List
-from datetime import datetime
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors, FileOperationError
 from core.config import get_user_data_dir
 from core.file_operations import load_json_data, save_json_data
+from core.service_utilities import now_readable_timestamp
 
 from notebook.schemas import Entry
 
@@ -117,7 +117,7 @@ def save_entries(user_id: str, entries: list[Entry]) -> None:
     data_to_save = {
         "schema_version": SCHEMA_VERSION,
         "entries": entries_data,
-        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "updated_at": now_readable_timestamp(),
     }
 
     # Use core.file_operations.save_json_data for atomic write

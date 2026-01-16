@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-15 06:33:47
+> **Last Generated**: 2026-01-16 05:47:23
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
-- **Files Scanned**: 109
-- **Functions Found**: 1516
+- **Files Scanned**: 108
+- **Functions Found**: 1498
 - **Methods Found**: 1135
 - **Classes Found**: 154
-- **Total Items**: 2651
-- **Functions Documented**: 1450
+- **Total Items**: 2633
+- **Functions Documented**: 1433
 - **Methods Documented**: 1095
 - **Classes Documented**: 119
-- **Total Documented**: 2545
+- **Total Documented**: 2528
 - **Template-Generated**: 4
-- **Last Updated**: 2026-01-15
+- **Last Updated**: 2026-01-16
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (536)
+### **Core System Functions** (538)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (399)
@@ -309,14 +309,14 @@ Args:
     role: Message role ("user" or "assistant")
     content: Message content
     metadata: Optional message metadata
-    
+
 Returns:
     True if message was added successfully
 - [OK] `clear_history(self, user_id)` - Clear all conversation history for a user
 
 Args:
     user_id: User ID
-    
+
 Returns:
     True if history was cleared successfully
 - [OK] `delete_session(self, user_id, session_id)` - Delete a specific conversation session
@@ -324,21 +324,21 @@ Returns:
 Args:
     user_id: User ID
     session_id: Session ID to delete
-    
+
 Returns:
     True if session was deleted successfully
 - [OK] `end_session(self, user_id)` - End the active conversation session for a user
 
 Args:
     user_id: User ID
-    
+
 Returns:
     True if session was ended successfully
 - [OK] `get_active_session(self, user_id)` - Get the active conversation session for a user
 
 Args:
     user_id: User ID
-    
+
 Returns:
     Active conversation session or None
 - [OK] `get_conversation_history()` - Get the global conversation history instance
@@ -347,7 +347,7 @@ Returns:
 Args:
     user_id: User ID
     session_id: Optional specific session ID
-    
+
 Returns:
     Conversation summary string
 - [OK] `get_history(self, user_id, limit, include_metadata)` - Get conversation history for a user
@@ -356,7 +356,7 @@ Args:
     user_id: User ID
     limit: Maximum number of messages to return
     include_metadata: Whether to include message metadata
-    
+
 Returns:
     List of conversation messages
 - [OK] `get_recent_messages(self, user_id, count)` - Get recent conversation messages for a user
@@ -364,7 +364,7 @@ Returns:
 Args:
     user_id: User ID
     count: Number of recent messages to return
-    
+
 Returns:
     List of recent conversation messages
 - [OK] `get_session_messages(self, user_id, session_id)` - Get all messages from a specific session
@@ -372,14 +372,14 @@ Returns:
 Args:
     user_id: User ID
     session_id: Session ID
-    
+
 Returns:
     List of messages in the session
 - [OK] `get_statistics(self, user_id)` - Get conversation statistics for a user
 
 Args:
     user_id: User ID
-    
+
 Returns:
     Dictionary with conversation statistics
 - [OK] `start_session(self, user_id, session_id)` - Start a new conversation session
@@ -387,7 +387,7 @@ Returns:
 Args:
     user_id: User ID
     session_id: Optional custom session ID
-    
+
 Returns:
     Session ID
 **Classes:**
@@ -401,14 +401,14 @@ Args:
     role: Message role ("user" or "assistant")
     content: Message content
     metadata: Optional message metadata
-    
+
 Returns:
     True if message was added successfully
   - [OK] `ConversationHistory.clear_history(self, user_id)` - Clear all conversation history for a user
 
 Args:
     user_id: User ID
-    
+
 Returns:
     True if history was cleared successfully
   - [OK] `ConversationHistory.delete_session(self, user_id, session_id)` - Delete a specific conversation session
@@ -416,21 +416,21 @@ Returns:
 Args:
     user_id: User ID
     session_id: Session ID to delete
-    
+
 Returns:
     True if session was deleted successfully
   - [OK] `ConversationHistory.end_session(self, user_id)` - End the active conversation session for a user
 
 Args:
     user_id: User ID
-    
+
 Returns:
     True if session was ended successfully
   - [OK] `ConversationHistory.get_active_session(self, user_id)` - Get the active conversation session for a user
 
 Args:
     user_id: User ID
-    
+
 Returns:
     Active conversation session or None
   - [OK] `ConversationHistory.get_conversation_summary(self, user_id, session_id)` - Get a summary of conversation history
@@ -438,7 +438,7 @@ Returns:
 Args:
     user_id: User ID
     session_id: Optional specific session ID
-    
+
 Returns:
     Conversation summary string
   - [OK] `ConversationHistory.get_history(self, user_id, limit, include_metadata)` - Get conversation history for a user
@@ -447,7 +447,7 @@ Args:
     user_id: User ID
     limit: Maximum number of messages to return
     include_metadata: Whether to include message metadata
-    
+
 Returns:
     List of conversation messages
   - [OK] `ConversationHistory.get_recent_messages(self, user_id, count)` - Get recent conversation messages for a user
@@ -455,7 +455,7 @@ Returns:
 Args:
     user_id: User ID
     count: Number of recent messages to return
-    
+
 Returns:
     List of recent conversation messages
   - [OK] `ConversationHistory.get_session_messages(self, user_id, session_id)` - Get all messages from a specific session
@@ -463,14 +463,14 @@ Returns:
 Args:
     user_id: User ID
     session_id: Session ID
-    
+
 Returns:
     List of messages in the session
   - [OK] `ConversationHistory.get_statistics(self, user_id)` - Get conversation statistics for a user
 
 Args:
     user_id: User ID
-    
+
 Returns:
     Dictionary with conversation statistics
   - [OK] `ConversationHistory.start_session(self, user_id, session_id)` - Start a new conversation session
@@ -478,7 +478,7 @@ Returns:
 Args:
     user_id: User ID
     session_id: Optional custom session ID
-    
+
 Returns:
     Session ID
 - [OK] `ConversationMessage` - A single message in a conversation
@@ -4227,6 +4227,8 @@ Returns:
 
 Raises:
     InvalidTimeFormatError: If datetime_str format is invalid
+- [OK] `now_filename_timestamp()` - Filename-safe timestamp for filenames and identifiers.
+- [OK] `now_readable_timestamp()` - Readable timestamp for logs and metadata.
 - [OK] `should_run(self)` - Check if enough time has passed since the last run to allow another execution.
 - [OK] `wait_for_network(timeout)` - Wait for the network to be available, retrying every 5 seconds up to a timeout.
 **Classes:**
@@ -4766,66 +4768,6 @@ Args:
 
 Returns:
     str: Path to Python executable
-
-#### `run_tests.py`
-**Functions:**
-- [OK] `check_critical_resources(resources)` - Check if resources exceed critical thresholds requiring termination.
-- [OK] `check_resource_warnings(resources)` - Check if resources exceed warning thresholds.
-- [OK] `cleanup_orphaned_pytest_processes()` - Find and kill any orphaned pytest worker processes on Windows.
-
-Returns:
-    int: Number of orphaned processes found and killed
-- [OK] `detect_stuck_process(last_output_time, current_time, threshold)` - Detect if process appears stuck (no output for extended period).
-- [OK] `extract_failures_from_junit_xml(xml_path)` - Extract detailed failure information from JUnit XML.
-
-Returns a list of dicts with 'test', 'message', and 'type' keys.
-- [OK] `extract_pytest_session_info(output_text)` - Extract pytest session information from output text.
-- [OK] `extract_results_from_output(output_text)` - Extract test results from pytest output text when JUnit XML is unavailable.
-- [OK] `interrupt_handler(signum, frame)` - Handle interrupt signals (Ctrl+C) gracefully.
-- [OK] `kill_process_tree_windows(pid)` - Kill a process and all its children on Windows.
-
-Returns:
-    bool: True if taskkill succeeded, False otherwise
-- [OK] `main()` - Main entry point for MHM test runner.
-
-Parses command-line arguments and executes pytest with appropriate configuration
-based on the selected test mode (all, fast, unit, integration, behavior, ui, slow).
-
-Returns:
-    int: Exit code (0 for success, 1 for failure)
-- [OK] `monitor_resources()` - Monitor system resource usage and return metrics.
-- [OK] `parse_junit_xml(xml_path)` - Parse JUnit XML report to extract test statistics.
-
-Returns a dictionary with: passed, failed, skipped, warnings, errors, total
-- [OK] `print_combined_summary(parallel_results, no_parallel_results, description)` - Print a combined summary of test results from both parallel and serial runs.
-
-Args:
-    parallel_results: Results dict from parallel test run (or None if not run)
-    no_parallel_results: Results dict from serial test run (or None if not run)
-    description: Test mode description
-- [OK] `print_test_mode_info()` - Print helpful information about test modes.
-- [OK] `read_output(pipe, queue_obj)` - Read from pipe and put lines in queue, also write to terminal.
-- [OK] `run_command(cmd, description, progress_interval, capture_output, test_context)` - Run a command and return results with periodic progress logs.
-
-Args:
-    cmd: Command to run
-    description: Description for progress messages
-    progress_interval: Seconds between progress updates
-    capture_output: If True, capture results via JUnit XML (always True in practice)
-    test_context: Optional dict with test run context (mode, phase, config, etc.)
-
-Returns:
-    dict with 'success', 'output', 'results', 'duration', 'warnings', 'failures' keys
-- [OK] `run_static_logging_check()` - Run the static logging enforcement script before executing tests.
-- [OK] `save_partial_results(junit_xml_path, interrupted, output_text, test_context)` - Save partial test results from JUnit XML, falling back to output text parsing.
-- [OK] `setup_test_logger()` - Set up logger for test duration logging.
-
-Creates a logger for test run duration logging and ensures the tests/logs
-directory exists. Returns a configured logger instance.
-
-Returns:
-    logging.Logger: Configured logger instance for test runs
-- [MISSING] `signal_handler(signum, frame)` - No description
 
 ### `tasks/` - Task Management
 

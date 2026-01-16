@@ -1,6 +1,6 @@
 {
   "exclusions": {
-    "universal_exclusions": [
+    "base_exclusions": [
       "__pycache__",
       "*.pyc",
       "*.pyo",
@@ -63,4 +63,3 @@
     "development_docs_dir": "development_docs"
   }
 }
-

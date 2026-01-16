@@ -23,8 +23,9 @@ These patterns apply to all tools and contexts:
 - IDE and editor files: `.vscode`, `.idea`, `*.swp`, `*.swo`, `*~`, `.cursorignore`
 - OS generated files: `.DS_Store`, `Thumbs.db`, `desktop.ini`
 - Archive and backup directories: `archive`, `backup*`, `backups`
-- Scripts directory: `scripts/*`, `*/scripts/*`
-- Test artifacts: `.pytest_cache`, `tests/__pycache__`, `tests/.pytest_cache`, `tests/logs/`, `tests/data/`, `tests/temp/`, `tests/fixtures/`
+- Scripts directory: `scripts`, `scripts/*`, `*/scripts/*`
+- Build metadata and caches: `.ruff_cache`, `mhm.egg-info`
+- Test artifacts: `.pytest_cache`, `tests/__pycache__`, `tests/.pytest_cache`, `tests/logs/`, `tests/data/`, `tests/temp/`, `tests/fixtures/`, `tests/ai/results`, `tests/coverage_html`
 - Generated files: `*/generated/*`, `*/ui/generated/*`, `*/pyscript*`, `*/shibokensupport/*`, `*/signature_bootstrap.py`
 
 ### Context-Specific Exclusions
@@ -128,7 +129,7 @@ Exclusion patterns can be customized via `development_tools_config.json`:
 ```json
 {
   "exclusions": {
-    "universal_exclusions": [...],
+    "base_exclusions": [...],
     "tool_exclusions": {
       "coverage": [...],
       "analysis": [...],
@@ -160,12 +161,16 @@ if should_exclude_file(file_path, tool_type='analysis', context='production'):
 
 ```python
 from development_tools.shared.exclusion_utilities import (
-    is_auto_generated_code,
+    is_generated_file,
+    is_generated_function,
     is_special_python_method,
     is_test_function
 )
 
-if is_auto_generated_code(file_path, func_name):
+if is_generated_file(file_path):
+    # Skip this file
+
+if is_generated_function(func_name):
     # Skip this function
 
 if is_special_python_method(func_name, complexity):

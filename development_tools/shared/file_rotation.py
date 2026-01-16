@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 from core.logger import get_component_logger
+from core.service_utilities import now_readable_timestamp
 
 logger = get_component_logger("development_tools")
 
@@ -760,7 +761,7 @@ def append_to_log(log_file: str, content: str, max_size_mb: int = 10) -> str:
         rotator.rotate_file(str(log_path))
 
     # Append content with timestamp
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = now_readable_timestamp()
     log_entry = f"[{timestamp}] {content}\n"
 
     with open(log_path, "a", encoding="utf-8") as f:

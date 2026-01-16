@@ -63,7 +63,8 @@ Use these AI docs as your primary routing table; they, in turn, point to detaile
 - **Development tooling** - [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)  
   - Section 1 "Main Entry Point" - `development_tools/run_development_tools.py` commands.  
   - Section 2 "Fast Mode vs Full Mode" - when to use `audit` vs `audit --full`.  
-  - Section 3 "Generated Outputs" - where reports and status files live.
+  - Section 3 "Generated Outputs" - where reports and status files live.  
+  - Check `shared/standard_exclusions.py` (and config) before running tools so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` stay skipped.
 
 - **Legacy removal** - [AI_LEGACY_REMOVAL_GUIDE.md](ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md)  
   - Quick reference for using `development_tools/legacy/fix_legacy_references.py` and the `legacy` command.  

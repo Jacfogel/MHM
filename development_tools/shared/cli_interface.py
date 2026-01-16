@@ -448,6 +448,20 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         return 1
 
 
+def _export_code_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """
+    Export Python files into a single Markdown snapshot.
+
+    Note: this command does not require AIToolsService; we accept it to conform
+    to the CommandRegistration signature.
+    """
+    # Delegate parsing + behavior to the tool module
+    from development_tools.shared.export_code_snapshot import main
+
+    # main() expects argv excluding the command name (same as we receive here)
+    return int(main(list(argv)))
+
+
 def _trees_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     if argv:
         if any(arg not in ("-h", "--help") for arg in argv):
@@ -577,6 +591,14 @@ COMMAND_REGISTRY = OrderedDict(
                 "cleanup",
                 _cleanup_command,
                 "Clean up project cache and temporary files.",
+            ),
+        ),
+        (
+            "export-code",
+            CommandRegistration(
+                "export-code",
+                _export_code_command,
+                "Export Python files into a single Markdown snapshot (LLM-friendly).",
             ),
         ),
         (

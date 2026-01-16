@@ -133,14 +133,10 @@ class UnusedImportsChecker:
         # Files to skip entirely
         # Import constants from services
         from development_tools.shared.standard_exclusions import (
-            STANDARD_EXCLUSION_PATTERNS,
-            UNUSED_IMPORTS_INIT_FILES,
+            BASE_EXCLUSION_SHORTLIST,
         )
 
-        self.skip_patterns = set(STANDARD_EXCLUSION_PATTERNS)
-
-        # Special handling files
-        self.init_files = set(UNUSED_IMPORTS_INIT_FILES)
+        self.skip_patterns = set(BASE_EXCLUSION_SHORTLIST)
 
         # Results storage
         self.findings = {

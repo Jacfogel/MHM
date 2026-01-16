@@ -13,6 +13,7 @@ from core.file_operations import load_json_data, save_json_data
 from core.error_handling import handle_errors
 from core.config import get_user_data_dir
 from core.user_data_handlers import get_user_data
+from core.service_utilities import now_readable_timestamp
 
 logger = get_component_logger("tasks")
 task_logger = get_component_logger("main")
@@ -264,7 +265,7 @@ def create_task(
             "due_date": due_date,
             "due_time": due_time,
             "completed": False,
-            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "created_at": now_readable_timestamp(),
             "completed_at": None,
             "priority": priority,
         }
@@ -382,7 +383,7 @@ def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
                 updated_fields.append(f"{field}: {old_value} -> {value}")
 
             # Add last updated timestamp
-            task["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            task["last_updated"] = now_readable_timestamp()
 
             # Save updated tasks
             if save_active_tasks(user_id, tasks):
@@ -449,16 +450,12 @@ def complete_task(
                             f"{completion_date} {completion_time}:00"
                         )
                     else:
-                        task_to_complete["completed_at"] = datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S"
-                        )
+                        task_to_complete["completed_at"] = now_readable_timestamp()
 
                     if completion_notes:
                         task_to_complete["completion_notes"] = completion_notes
                 else:
-                    task_to_complete["completed_at"] = datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S"
-                    )
+                    task_to_complete["completed_at"] = now_readable_timestamp()
             else:
                 updated_active_tasks.append(task)
 
@@ -927,7 +924,7 @@ def _create_next_recurring_task_instance(
 
         # Calculate the next due date based on completion date and recurrence pattern
         completion_date_str = completed_task.get(
-            "completed_at", datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "completed_at", now_readable_timestamp()
         )
         completion_date = datetime.strptime(completion_date_str.split()[0], "%Y-%m-%d")
 
@@ -952,7 +949,7 @@ def _create_next_recurring_task_instance(
             "due_date": next_due_date.strftime("%Y-%m-%d"),
             "due_time": completed_task.get("due_time"),
             "completed": False,
-            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "created_at": now_readable_timestamp(),
             "completed_at": None,
             "priority": completed_task.get("priority", "medium"),
             "recurrence_pattern": recurrence_pattern,

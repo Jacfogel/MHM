@@ -174,7 +174,7 @@ This guide covers both how the systems work and how to restore from backups.
 #### Option B: Manual Restore
 
 1. **Extract the backup ZIP:**
-   - Right-click the backup file → "Extract All"
+   - Right-click the backup file -> "Extract All"
    - Or use PowerShell: `Expand-Archive -Path data\backups\mhm_backup_YYYYMMDD_HHMMSS.zip -DestinationPath .\restore_temp`
 
 2. **Verify backup contents:**
@@ -376,7 +376,7 @@ snapshot_path = create_project_snapshot(
 ### 6.2. How to Extract .gz Files
 
 **On Windows:**
-- **Right-click** → "Extract All" (Windows 10/11 built-in support)
+- **Right-click** -> "Extract All" (Windows 10/11 built-in support)
 - **PowerShell**: `Expand-Archive -Path file.gz -DestinationPath .`
 - **7-Zip/WinRAR**: Open and extract like any archive
 
@@ -416,7 +416,7 @@ All retention policies have been standardized for consistency. This is the autho
 
 | System | Retention | Archive Location | Compression | Notes |
 |--------|-----------|------------------|-------------|-------|
-| **Logs (all)** | 7 backups | `logs/backups/` → `logs/archive/` | After 7 days | Standardized |
+| **Logs (all)** | 7 backups | `logs/backups/` -> `logs/archive/` | After 7 days | Standardized |
 | **Log archives** | 30 days | `logs/archive/` | Yes (.gz) | Compressed after 7 days |
 | **User backups** | 30 days OR 10 files | `data/backups/` | Yes (ZIP) | Whichever is stricter |
 | **Message archives** | 90 days | `data/users/{id}/messages/archives/` | No | Only messages >365 days |
@@ -596,7 +596,7 @@ Retention policies are configured in:
 
 ---
 
-## Related Documentation
+## 11. Related Documentation
 
 - [AI_BACKUP_GUIDE.md](../ai_development_docs/AI_BACKUP_GUIDE.md) - AI collaborator guide
 - [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) - Detailed logging documentation

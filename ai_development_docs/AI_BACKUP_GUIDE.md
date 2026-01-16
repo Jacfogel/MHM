@@ -121,7 +121,7 @@
 - Used to save disk space for old/archived files
 
 **How to extract:**
-- Windows: Right-click → "Extract All" or use 7-Zip
+- Windows: Right-click -> "Extract All" or use 7-Zip
 - Python: `gzip.open('file.gz', 'rt')`
 - PowerShell: `Expand-Archive` (may work depending on Windows version)
 
@@ -170,19 +170,19 @@
 
 ## 9. Troubleshooting
 
-### Logs Not Rotating
+### 9.1. Logs Not Rotating
 - Check file size (must be >5KB)
 - Check file age (must be >1 hour)
 - Check rotation time (happens at midnight)
 - Check for errors in `logs/errors.log`
 
-### Backups Not Created
+### 9.2. Backups Not Created
 - Check scheduler (runs at 01:00)
 - Check last backup age (only if 7+ days old)
 - Check disk space
 - Check logs for errors
 
-### Message Archives Empty
+### 9.3. Message Archives Empty
 - **This is normal** if messages <365 days old
 - Check message ages to verify
 - Wait for monthly cleanup to run
@@ -209,7 +209,7 @@
 
 ---
 
-## Related Documentation
+## 11. Related Documentation
 
 - [BACKUP_GUIDE.md](../development_docs/BACKUP_GUIDE.md) - Complete backup system documentation and restore procedures
 - [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) - Detailed logging documentation

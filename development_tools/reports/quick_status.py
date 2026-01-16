@@ -258,7 +258,7 @@ class QuickStatus:
         from development_tools.shared.constants import PROJECT_DIRECTORIES
         from development_tools.shared.standard_exclusions import (
             ALL_GENERATED_FILES,
-            STANDARD_EXCLUSION_PATTERNS,
+            BASE_EXCLUSION_SHORTLIST,
         )
 
         key_directories = list(PROJECT_DIRECTORIES)
@@ -267,7 +267,7 @@ class QuickStatus:
         additional_excluded_files = set(ALL_GENERATED_FILES)
 
         # Additional patterns to exclude (beyond standard exclusions)
-        additional_excluded_patterns = set(STANDARD_EXCLUSION_PATTERNS)
+        additional_excluded_patterns = set(BASE_EXCLUSION_SHORTLIST)
 
         # Limit the number of directories and files checked to avoid timeout
         # Only check a subset of key directories for performance

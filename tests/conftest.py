@@ -12,10 +12,13 @@ This file provides:
 import pytest
 import sys
 import os
+
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 # Set environment variable for consolidated logging very early, before any logging initialization
 # Allow override via environment variable for individual component logging
-os.environ['TEST_CONSOLIDATED_LOGGING'] = os.environ.get('TEST_CONSOLIDATED_LOGGING', '1')
+os.environ["TEST_CONSOLIDATED_LOGGING"] = os.environ.get(
+    "TEST_CONSOLIDATED_LOGGING", "1"
+)
 import tempfile
 import shutil
 import json
@@ -27,12 +30,16 @@ import re
 from pathlib import Path
 from unittest.mock import Mock, patch
 from datetime import datetime
+from core.service_utilities import now_filename_timestamp, now_readable_timestamp
 
 # CRITICAL: Suppress __package__ != __spec__.parent warnings immediately after importing warnings
 # These warnings are emitted during module import, so they must be filtered before any other imports
 # Use simplefilter to catch all DeprecationWarnings, then add specific filters
 warnings.simplefilter("ignore", DeprecationWarning)
-warnings.filterwarnings("ignore", message=".*__package__.*", category=DeprecationWarning)
+warnings.filterwarnings(
+    "ignore", message=".*__package__.*", category=DeprecationWarning
+)
+
 
 def ensure_qt_runtime():
     """Ensure PySide6 can load in the current environment.
@@ -50,53 +57,98 @@ def ensure_qt_runtime():
         lower_message = message.lower()
         gl_indicators = ("libgl", "opengl", "libegl", "libglu", "glx")
         if any(token in lower_message for token in gl_indicators):
-            pytest.skip(
-                f"Qt runtime unavailable: {exc}", allow_module_level=True
-            )
+            pytest.skip(f"Qt runtime unavailable: {exc}", allow_module_level=True)
         raise
 
+
 # Suppress Discord library warnings
-warnings.filterwarnings("ignore", message=".*audioop.*is deprecated.*", category=DeprecationWarning)
-warnings.filterwarnings("ignore", message=".*parameter 'timeout' of type 'float' is deprecated.*", category=DeprecationWarning)
+warnings.filterwarnings(
+    "ignore", message=".*audioop.*is deprecated.*", category=DeprecationWarning
+)
+warnings.filterwarnings(
+    "ignore",
+    message=".*parameter 'timeout' of type 'float' is deprecated.*",
+    category=DeprecationWarning,
+)
 warnings.filterwarnings("ignore", category=pytest.PytestUnhandledThreadExceptionWarning)
 warnings.filterwarnings("ignore", category=pytest.PytestUnraisableExceptionWarning)
 # Suppress PytestCollectionWarning for development tools implementation classes
 # These classes (TestCoverageAnalyzer, TestCoverageReportGenerator) are implementation classes, not test classes
 # They start with "Test" which makes pytest try to collect them, but they have __init__ constructors
 # Apply filters early to catch warnings during collection
-warnings.filterwarnings("ignore", message=".*cannot collect test class.*TestCoverage.*", category=pytest.PytestCollectionWarning)
-warnings.filterwarnings("ignore", message=".*cannot collect test class.*because it has a __init__ constructor.*", category=pytest.PytestCollectionWarning)
+warnings.filterwarnings(
+    "ignore",
+    message=".*cannot collect test class.*TestCoverage.*",
+    category=pytest.PytestCollectionWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message=".*cannot collect test class.*because it has a __init__ constructor.*",
+    category=pytest.PytestCollectionWarning,
+)
 # General filter for all PytestCollectionWarning from development_tools modules
-warnings.filterwarnings("ignore", category=pytest.PytestCollectionWarning, module="development_tools.tests.*")
+warnings.filterwarnings(
+    "ignore",
+    category=pytest.PytestCollectionWarning,
+    module="development_tools.tests.*",
+)
 
 # Additional __package__ warning filters (redundant but explicit for clarity)
 # The main filter is above, right after importing warnings
-warnings.filterwarnings("ignore", message=".*__package__.*", category=DeprecationWarning)
+warnings.filterwarnings(
+    "ignore", message=".*__package__.*", category=DeprecationWarning
+)
 
 # Suppress specific Discord library warnings more broadly
 warnings.filterwarnings("ignore", module="discord.player")
 warnings.filterwarnings("ignore", module="discord.http")
 warnings.filterwarnings("ignore", message=".*audioop.*", category=DeprecationWarning)
-warnings.filterwarnings("ignore", message=".*timeout.*deprecated.*", category=DeprecationWarning)
+warnings.filterwarnings(
+    "ignore", message=".*timeout.*deprecated.*", category=DeprecationWarning
+)
 
 # Additional comprehensive warning suppression
 # Suppress audioop deprecation warning from discord.player (Python 3.13 deprecation)
 # Note: This warning comes from discord library's use of deprecated audioop module
 # It will be fixed when discord.py updates, but we suppress it in tests for now
-warnings.filterwarnings("ignore", message=".*audioop.*deprecated.*", category=DeprecationWarning)
-warnings.filterwarnings("ignore", message=".*audioop.*", category=DeprecationWarning, module="discord.player")
+warnings.filterwarnings(
+    "ignore", message=".*audioop.*deprecated.*", category=DeprecationWarning
+)
+warnings.filterwarnings(
+    "ignore",
+    message=".*audioop.*",
+    category=DeprecationWarning,
+    module="discord.player",
+)
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="discord.player")
-warnings.filterwarnings("ignore", message=".*timeout.*", category=DeprecationWarning, module="discord.*")
+warnings.filterwarnings(
+    "ignore", message=".*timeout.*", category=DeprecationWarning, module="discord.*"
+)
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="discord.http")
 
 # Suppress aiohttp client session warnings
-warnings.filterwarnings("ignore", message=".*Unclosed client session.*", category=ResourceWarning)
-warnings.filterwarnings("ignore", message=".*Task was destroyed but it is pending.*", category=RuntimeWarning)
+warnings.filterwarnings(
+    "ignore", message=".*Unclosed client session.*", category=ResourceWarning
+)
+warnings.filterwarnings(
+    "ignore",
+    message=".*Task was destroyed but it is pending.*",
+    category=RuntimeWarning,
+)
 # Suppress unawaited coroutine warnings from Discord bot event handlers in test environments
 # This is expected when using mocks - the coroutines are created but never executed
 # The coroutine is registered with @bot.event but may not be awaited in test environments
-warnings.filterwarnings("ignore", message=".*coroutine.*_on_ready_internal.*was never awaited.*", category=RuntimeWarning)
-warnings.filterwarnings("ignore", message=".*coroutine.*was never awaited.*", category=RuntimeWarning, module="communication.communication_channels.discord.bot")
+warnings.filterwarnings(
+    "ignore",
+    message=".*coroutine.*_on_ready_internal.*was never awaited.*",
+    category=RuntimeWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message=".*coroutine.*was never awaited.*",
+    category=RuntimeWarning,
+    module="communication.communication_channels.discord.bot",
+)
 
 # Note: Do not override BASE_DATA_DIR/USER_INFO_DIR_PATH via environment here,
 # as some unit tests assert the library defaults. Session fixtures below
@@ -105,30 +157,38 @@ warnings.filterwarnings("ignore", message=".*coroutine.*was never awaited.*", ca
 # Ensure project root is on sys.path ONCE for all tests
 project_root = Path(__file__).parent.parent
 
+
 # CRITICAL: Set up logging isolation BEFORE importing any core modules
 def setup_logging_isolation():
     """Set up logging isolation before any core modules are imported."""
     # Remove all handlers from root logger to prevent test logs from going to app.log
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:
-        if isinstance(handler, logging.StreamHandler) and handler.stream in (sys.stdout, sys.stderr):
+        if isinstance(handler, logging.StreamHandler) and handler.stream in (
+            sys.stdout,
+            sys.stderr,
+        ):
             root_logger.removeHandler(handler)
             continue
         handler.close()
         root_logger.removeHandler(handler)
-    
+
     # Also clear any handlers from the main application logger if it exists
     main_logger = logging.getLogger("mhm")
     for handler in main_logger.handlers[:]:
-        if isinstance(handler, logging.StreamHandler) and handler.stream in (sys.stdout, sys.stderr):
+        if isinstance(handler, logging.StreamHandler) and handler.stream in (
+            sys.stdout,
+            sys.stderr,
+        ):
             main_logger.removeHandler(handler)
             continue
         handler.close()
         main_logger.removeHandler(handler)
-    
+
     # Set propagate to False for main loggers to prevent test logs from bubbling up
     root_logger.propagate = False
     main_logger.propagate = False
+
 
 # Set up logging isolation immediately
 setup_logging_isolation()
@@ -136,59 +196,60 @@ setup_logging_isolation()
 # Set environment variable to indicate we're running tests
 # TEST_VERBOSE_LOGS levels:
 #   '0' (quiet/default): Component loggers INFO, Test loggers WARNING
-#   '1' (medium): Component loggers INFO, Test loggers INFO  
+#   '1' (medium): Component loggers INFO, Test loggers INFO
 #   '2' (verbose): Component loggers DEBUG, Test loggers DEBUG
-os.environ['MHM_TESTING'] = '1'
-os.environ['TEST_VERBOSE_LOGS'] = os.environ.get('TEST_VERBOSE_LOGS', '0')
+os.environ["MHM_TESTING"] = "1"
+os.environ["TEST_VERBOSE_LOGS"] = os.environ.get("TEST_VERBOSE_LOGS", "0")
 # Disable core app log rotation during tests to avoid Windows file-in-use issues
-os.environ['DISABLE_LOG_ROTATION'] = '1'
+os.environ["DISABLE_LOG_ROTATION"] = "1"
 
 # Force all log paths to tests/logs for absolute isolation, even if modules read env at import time
-tests_logs_dir = (Path(__file__).parent / 'logs').resolve()
+tests_logs_dir = (Path(__file__).parent / "logs").resolve()
 tests_logs_dir.mkdir(exist_ok=True)
-os.environ['LOGS_DIR'] = str(tests_logs_dir)
-os.environ['LOG_BACKUP_DIR'] = str(tests_logs_dir / 'backups')
-os.environ['LOG_ARCHIVE_DIR'] = str(tests_logs_dir / 'archive')
-(tests_logs_dir / 'backups').mkdir(exist_ok=True)
-(tests_logs_dir / 'archive').mkdir(exist_ok=True)
+os.environ["LOGS_DIR"] = str(tests_logs_dir)
+os.environ["LOG_BACKUP_DIR"] = str(tests_logs_dir / "backups")
+os.environ["LOG_ARCHIVE_DIR"] = str(tests_logs_dir / "archive")
+(tests_logs_dir / "backups").mkdir(exist_ok=True)
+(tests_logs_dir / "archive").mkdir(exist_ok=True)
 
 # In test mode, all component logs go to test_consolidated.log
 # We'll set these up properly in setup_consolidated_test_logging fixture
 # For now, just point them to a placeholder - the fixture will redirect them
-consolidated_log_placeholder = str(tests_logs_dir / 'test_consolidated.log')
-os.environ['LOG_MAIN_FILE'] = consolidated_log_placeholder
-os.environ['LOG_DISCORD_FILE'] = consolidated_log_placeholder
-os.environ['LOG_AI_FILE'] = consolidated_log_placeholder
-os.environ['LOG_USER_ACTIVITY_FILE'] = consolidated_log_placeholder
-os.environ['LOG_ERRORS_FILE'] = consolidated_log_placeholder
-os.environ['LOG_COMMUNICATION_MANAGER_FILE'] = consolidated_log_placeholder
-os.environ['LOG_EMAIL_FILE'] = consolidated_log_placeholder
-os.environ['LOG_UI_FILE'] = consolidated_log_placeholder
-os.environ['LOG_FILE_OPS_FILE'] = consolidated_log_placeholder
-os.environ['LOG_SCHEDULER_FILE'] = consolidated_log_placeholder
+consolidated_log_placeholder = str(tests_logs_dir / "test_consolidated.log")
+os.environ["LOG_MAIN_FILE"] = consolidated_log_placeholder
+os.environ["LOG_DISCORD_FILE"] = consolidated_log_placeholder
+os.environ["LOG_AI_FILE"] = consolidated_log_placeholder
+os.environ["LOG_USER_ACTIVITY_FILE"] = consolidated_log_placeholder
+os.environ["LOG_ERRORS_FILE"] = consolidated_log_placeholder
+os.environ["LOG_COMMUNICATION_MANAGER_FILE"] = consolidated_log_placeholder
+os.environ["LOG_EMAIL_FILE"] = consolidated_log_placeholder
+os.environ["LOG_UI_FILE"] = consolidated_log_placeholder
+os.environ["LOG_FILE_OPS_FILE"] = consolidated_log_placeholder
+os.environ["LOG_SCHEDULER_FILE"] = consolidated_log_placeholder
 
 # Ensure all user data for tests is stored under tests/data to avoid
 # accidental writes to system directories like /tmp or the real data
 # directory. The environment variable must be set before importing
 # core.config so that BASE_DATA_DIR resolves correctly.
-tests_data_dir = (Path(__file__).parent / 'data').resolve()
+tests_data_dir = (Path(__file__).parent / "data").resolve()
 tests_data_dir.mkdir(exist_ok=True)
-(tests_data_dir / 'users').mkdir(parents=True, exist_ok=True)
-os.environ['TEST_DATA_DIR'] = os.environ.get('TEST_DATA_DIR', str(tests_data_dir))
+(tests_data_dir / "users").mkdir(parents=True, exist_ok=True)
+os.environ["TEST_DATA_DIR"] = os.environ.get("TEST_DATA_DIR", str(tests_data_dir))
 # Also set BASE_DATA_DIR for any code that reads it directly
-os.environ['BASE_DATA_DIR'] = str(tests_data_dir)
+os.environ["BASE_DATA_DIR"] = str(tests_data_dir)
 # Route service flags to tests/data/flags in test mode
-flags_dir = tests_data_dir / 'flags'
+flags_dir = tests_data_dir / "flags"
 flags_dir.mkdir(parents=True, exist_ok=True)
-os.environ['MHM_FLAGS_DIR'] = str(flags_dir)
+os.environ["MHM_FLAGS_DIR"] = str(flags_dir)
 
 # Import core modules for testing (after logging isolation is set up)
 # Force core config paths to tests/data early so all modules see test isolation
 # Note: This import may fail for development tools tests that don't need core modules
 try:
     import core.config as _core_config
+
     _core_config.BASE_DATA_DIR = str(tests_data_dir)
-    _core_config.USER_INFO_DIR_PATH = str(tests_data_dir / 'users')
+    _core_config.USER_INFO_DIR_PATH = str(tests_data_dir / "users")
 except (ImportError, ModuleNotFoundError):
     # Core modules not available (e.g., in development tools tests)
     # This is expected and safe to ignore for tests that don't use core functionality
@@ -199,11 +260,13 @@ except (ImportError, ModuleNotFoundError):
 try:
     import core.user_data_manager as udm_module
     from core.user_data_manager import UserDataManager
+
     # Recreate the module-level instance with updated BASE_DATA_DIR
-    if hasattr(udm_module, 'user_data_manager'):
+    if hasattr(udm_module, "user_data_manager"):
         udm_module.user_data_manager = UserDataManager()
 except (ImportError, NameError):
     pass  # UserDataManager not imported yet, will use correct paths when imported
+
 
 # Session-start guard: ensure loader registry identity and completeness
 @pytest.fixture(scope="session", autouse=True)
@@ -224,14 +287,14 @@ def verify_user_data_loader_registry():
 
     # Completeness check: attempt registration once if any missing
     def _missing_keys():
-        return [k for k, v in um.USER_DATA_LOADERS.items() if not v.get('loader')]
+        return [k for k, v in um.USER_DATA_LOADERS.items() if not v.get("loader")]
 
     missing = _missing_keys()
     if missing:
         try:
-            if hasattr(um, 'register_default_loaders'):
+            if hasattr(um, "register_default_loaders"):
                 um.register_default_loaders()
-            elif hasattr(udh, 'register_default_loaders'):
+            elif hasattr(udh, "register_default_loaders"):
                 udh.register_default_loaders()
         except Exception as e:
             raise AssertionError(f"Failed to register default loaders: {e}")
@@ -246,6 +309,7 @@ def verify_user_data_loader_registry():
     # All good; continue tests
     yield
 
+
 # Ensure import order and perform a single default loader registration at session start
 @pytest.fixture(scope="session", autouse=True)
 def initialize_loader_import_order(request):
@@ -253,11 +317,11 @@ def initialize_loader_import_order(request):
 
     This ensures both modules share the same USER_DATA_LOADERS dict and that required
     loaders are present without relying on the data shim.
-    
+
     Skip this fixture for development tools tests that don't have core modules available.
     """
     import importlib
-    
+
     # Try to import core modules - skip if not available (e.g., development tools tests)
     try:
         import core.user_data_handlers as um
@@ -268,20 +332,22 @@ def initialize_loader_import_order(request):
     um = importlib.reload(um)
     try:
         import core.user_data_handlers as udh
+
         udh = importlib.reload(udh)
     except Exception:
         udh = None
 
     # Single registration pass if available
     try:
-        if hasattr(um, 'register_default_loaders'):
+        if hasattr(um, "register_default_loaders"):
             um.register_default_loaders()
-        elif udh is not None and hasattr(udh, 'register_default_loaders'):
+        elif udh is not None and hasattr(udh, "register_default_loaders"):
             udh.register_default_loaders()
     except Exception:
         # Do not fail session start; verify_user_data_loader_registry will enforce later
         pass
     yield
+
 
 # Apply user-data shim immediately so tests cannot capture pre-patch references
 def _apply_get_user_data_shim_early():
@@ -298,22 +364,26 @@ def _apply_get_user_data_shim_early():
         udh = None
 
     # Prefer core.user_data_handlers.get_user_data so the shim always applies.
-    original_get_user_data = getattr(um, 'get_user_data', None)
-    if original_get_user_data is None and udh is not None and hasattr(udh, 'get_user_data'):
-        original_get_user_data = getattr(udh, 'get_user_data', None)
+    original_get_user_data = getattr(um, "get_user_data", None)
+    if (
+        original_get_user_data is None
+        and udh is not None
+        and hasattr(udh, "get_user_data")
+    ):
+        original_get_user_data = getattr(udh, "get_user_data", None)
     if original_get_user_data is None:
         return
 
     def _load_single_type(user_id: str, key: str, *, auto_create: bool):
         try:
             entry = um.USER_DATA_LOADERS.get(key)
-            loader = entry.get('loader') if entry else None
+            loader = entry.get("loader") if entry else None
             if loader is None:
                 key_to_func_and_file = {
-                    'account': (um._get_user_data__load_account, 'account'),
-                    'preferences': (um._get_user_data__load_preferences, 'preferences'),
-                    'context': (um._get_user_data__load_context, 'user_context'),
-                    'schedules': (um._get_user_data__load_schedules, 'schedules'),
+                    "account": (um._get_user_data__load_account, "account"),
+                    "preferences": (um._get_user_data__load_preferences, "preferences"),
+                    "context": (um._get_user_data__load_context, "user_context"),
+                    "schedules": (um._get_user_data__load_schedules, "schedules"),
                 }
                 func_file = key_to_func_and_file.get(key)
                 if func_file is None:
@@ -322,7 +392,7 @@ def _apply_get_user_data_shim_early():
                 try:
                     um.register_data_loader(key, func, file_type)
                     entry = um.USER_DATA_LOADERS.get(key)
-                    loader = entry.get('loader') if entry else None
+                    loader = entry.get("loader") if entry else None
                 except Exception:
                     loader = func
             if loader is None:
@@ -331,20 +401,22 @@ def _apply_get_user_data_shim_early():
         except Exception:
             return None
 
-    def wrapped_get_user_data(user_id: str, data_type: str = 'all', *args, **kwargs):
+    def wrapped_get_user_data(user_id: str, data_type: str = "all", *args, **kwargs):
         auto_create = True
         try:
-            auto_create = bool(kwargs.get('auto_create', True))
+            auto_create = bool(kwargs.get("auto_create", True))
         except Exception:
             auto_create = True
         result = original_get_user_data(user_id, data_type, *args, **kwargs)
         try:
-            if data_type == 'all':
+            if data_type == "all":
                 if not isinstance(result, dict):
                     result = {} if result is None else {"value": result}
-                for key in ('account', 'preferences', 'context', 'schedules'):
+                for key in ("account", "preferences", "context", "schedules"):
                     if key not in result or not result.get(key):
-                        loaded = _load_single_type(user_id, key, auto_create=auto_create)
+                        loaded = _load_single_type(
+                            user_id, key, auto_create=auto_create
+                        )
                         if loaded is not None:
                             result[key] = loaded
                 return result
@@ -354,7 +426,9 @@ def _apply_get_user_data_shim_early():
                     result = {}
                 for key in data_type:
                     if key not in result or not result.get(key):
-                        loaded = _load_single_type(user_id, key, auto_create=auto_create)
+                        loaded = _load_single_type(
+                            user_id, key, auto_create=auto_create
+                        )
                         if loaded is not None:
                             result[key] = loaded
                 return result
@@ -371,66 +445,70 @@ def _apply_get_user_data_shim_early():
 
     # Patch both modules so call sites using either path receive the shim
     try:
-        setattr(um, 'get_user_data', wrapped_get_user_data)
+        setattr(um, "get_user_data", wrapped_get_user_data)
     except Exception:
         pass
     try:
-        if udh is not None and hasattr(udh, 'get_user_data'):
-            setattr(udh, 'get_user_data', wrapped_get_user_data)
+        if udh is not None and hasattr(udh, "get_user_data"):
+            setattr(udh, "get_user_data", wrapped_get_user_data)
     except Exception:
         pass
 
+
 _apply_get_user_data_shim_early()
+
 
 # Allow tests to opt-out of the data shim via marker: @pytest.mark.no_data_shim
 @pytest.fixture(scope="function", autouse=True)
 def toggle_data_shim_per_marker(request, monkeypatch):
-    marker = request.node.get_closest_marker('no_data_shim')
+    marker = request.node.get_closest_marker("no_data_shim")
     if marker is not None:
-        monkeypatch.setenv('ENABLE_TEST_DATA_SHIM', '0')
+        monkeypatch.setenv("ENABLE_TEST_DATA_SHIM", "0")
     yield
+
 
 # Global QMessageBox patch to prevent popup dialogs during testing
 def setup_qmessagebox_patches():
     """Set up global QMessageBox patches to prevent popup dialogs during testing."""
     try:
         from PySide6.QtWidgets import QMessageBox
-        
+
         # Create a mock QMessageBox that returns appropriate values
         class MockQMessageBox:
             @staticmethod
             def information(*args, **kwargs):
                 return QMessageBox.StandardButton.Ok
-            
+
             @staticmethod
             def warning(*args, **kwargs):
                 return QMessageBox.StandardButton.Ok
-            
+
             @staticmethod
             def critical(*args, **kwargs):
                 return QMessageBox.StandardButton.Ok
-            
+
             @staticmethod
             def question(*args, **kwargs):
                 return QMessageBox.StandardButton.Yes
-            
+
             @staticmethod
             def about(*args, **kwargs):
                 return QMessageBox.StandardButton.Ok
-        
+
         # Apply the patch globally
         QMessageBox.information = MockQMessageBox.information
         QMessageBox.warning = MockQMessageBox.warning
         QMessageBox.critical = MockQMessageBox.critical
         QMessageBox.question = MockQMessageBox.question
         QMessageBox.about = MockQMessageBox.about
-        
+
         print("Global QMessageBox patches applied to prevent popup dialogs")
     except ImportError:
         # PySide6 not available, skip QMessageBox patches
         print("PySide6 not available, skipping QMessageBox patches")
     except Exception as e:
         print(f"Failed to apply QMessageBox patches: {e}")
+
 
 # Set up QMessageBox patches
 setup_qmessagebox_patches()
@@ -448,40 +526,52 @@ except (ImportError, ModuleNotFoundError):
         def __init__(self, fmt=None, datefmt=None):
             super().__init__(fmt=fmt, datefmt=datefmt)
 
-    PytestContextLogFormatter: type[logging.Formatter] = _FallbackPytestContextLogFormatter
+    PytestContextLogFormatter: type[logging.Formatter] = (
+        _FallbackPytestContextLogFormatter
+    )
 
 # Global flag to prevent multiple test logging setups
 _test_logging_setup_done = False
 _test_logger_global = None
 _test_log_file_global = None
 
+
 # Set up dedicated testing logging
 def setup_test_logging():
     """Set up dedicated logging for tests with complete isolation from main app logging."""
     global _test_logging_setup_done, _test_logger_global, _test_log_file_global
-    
+
     # Prevent multiple setup calls
     if _test_logging_setup_done:
         return _test_logger_global, _test_log_file_global
-    
+
     _test_logging_setup_done = True
-    
+
     # Suppress Discord library warnings
     import warnings
-    warnings.filterwarnings("ignore", message="'audioop' is deprecated and slated for removal in Python 3.13", category=DeprecationWarning)
-    warnings.filterwarnings("ignore", message="parameter 'timeout' of type 'float' is deprecated", category=DeprecationWarning)
-    
+
+    warnings.filterwarnings(
+        "ignore",
+        message="'audioop' is deprecated and slated for removal in Python 3.13",
+        category=DeprecationWarning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message="parameter 'timeout' of type 'float' is deprecated",
+        category=DeprecationWarning,
+    )
+
     # Create test logs directory
     test_logs_dir = Path(project_root) / "tests" / "logs"
     test_logs_dir.mkdir(exist_ok=True)
     (test_logs_dir / "backups").mkdir(exist_ok=True)
-    
+
     # Create test log filename with consistent naming (one per session)
     test_log_file = test_logs_dir / "test_run.log"
-    
+
     # Configure test logger
     test_logger = logging.getLogger("mhm_tests")
-    # Respect TEST_VERBOSE_LOGS: 
+    # Respect TEST_VERBOSE_LOGS:
     #   0 = WARNING (failures/warnings/skips only), 1 = INFO (test execution details), 2 = DEBUG (everything)
     # All levels log failures, warnings, and skips - the difference is in infrastructure logging
     verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
@@ -492,33 +582,33 @@ def setup_test_logging():
     else:
         test_logger_level = logging.WARNING  # Level 0: Only failures, warnings, skips
     test_logger.setLevel(test_logger_level)
-    
+
     # Clear any existing handlers
     test_logger.handlers.clear()
-    
+
     # Use simple file handler for test logs (no size-based rotation during session)
-    file_handler = logging.FileHandler(test_log_file, encoding='utf-8')
+    file_handler = logging.FileHandler(test_log_file, encoding="utf-8")
     # File handler level matches logger level to respect verbose setting
     file_handler.setLevel(test_logger_level)
-    
+
     # Console handler for test output
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.ERROR)  # Minimize console spam during full runs
-    
+
     # Create formatter with test context
     formatter = PytestContextLogFormatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
     file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)
-    
+
     # Add handlers to test logger only
     test_logger.addHandler(file_handler)
     test_logger.addHandler(console_handler)
-    
+
     # Prevent test logger from propagating to root logger
     test_logger.propagate = False
-    
+
     # Also set up a handler for any "mhm" loggers to go to test logs
     mhm_logger = logging.getLogger("mhm")
     # Keep component loggers quiet at levels 0 and 1 to avoid excessive logging
@@ -532,57 +622,64 @@ def setup_test_logging():
     mhm_logger.handlers.clear()
     mhm_logger.addHandler(file_handler)
     mhm_logger.propagate = False
-    
+
     # Store for reuse
     _test_logger_global = test_logger
     _test_log_file_global = test_log_file
-    
+
     return test_logger, test_log_file
+
 
 # Set up test logging
 test_logger, test_log_file = setup_test_logging()
 
+
 # Session-based log rotation management
 class SessionLogRotationManager:
     """Manages session-based log rotation that rotates ALL logs together if any exceed size limits."""
-    
-    def __init__(self, max_size_mb=2):  # 2MB for test logs (lower than production 5MB for more frequent rotation)
+
+    def __init__(
+        self, max_size_mb=2
+    ):  # 2MB for test logs (lower than production 5MB for more frequent rotation)
         self.max_size_bytes = max_size_mb * 1024 * 1024
         self.log_files = []
         self.rotation_needed = False
         self.last_rotation_check = self._load_last_rotation_time()
-    
+
     def _get_rotation_state_file(self):
         """Get the path to the file that stores last rotation time."""
-        rotation_state_file = Path(os.environ.get('LOG_BACKUP_DIR', 'tests/logs/backups')) / '.last_rotation'
+        rotation_state_file = (
+            Path(os.environ.get("LOG_BACKUP_DIR", "tests/logs/backups"))
+            / ".last_rotation"
+        )
         return rotation_state_file
-    
+
     def _load_last_rotation_time(self):
         """Load the last rotation time from persistent storage."""
         rotation_state_file = self._get_rotation_state_file()
         try:
             if rotation_state_file.exists():
-                with open(rotation_state_file, 'r', encoding='utf-8') as f:
+                with open(rotation_state_file, "r", encoding="utf-8") as f:
                     timestamp_str = f.read().strip()
                     if timestamp_str:
                         return datetime.fromisoformat(timestamp_str)
         except (OSError, ValueError) as e:
             test_logger.debug(f"Could not load last rotation time: {e}")
         return None
-    
+
     def _save_last_rotation_time(self, timestamp):
         """Save the last rotation time to persistent storage."""
         rotation_state_file = self._get_rotation_state_file()
         try:
             rotation_state_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(rotation_state_file, 'w', encoding='utf-8') as f:
+            with open(rotation_state_file, "w", encoding="utf-8") as f:
                 f.write(timestamp.isoformat())
         except OSError as e:
             test_logger.debug(f"Could not save last rotation time: {e}")
-        
+
     def register_log_file(self, file_path):
         """Register a log file for session-based rotation monitoring.
-        
+
         Files are registered even if they don't exist yet - they'll be checked
         for rotation when they're created.
         """
@@ -591,24 +688,26 @@ class SessionLogRotationManager:
             abs_path = os.path.abspath(file_path)
             if abs_path not in self.log_files:
                 self.log_files.append(abs_path)
-    
+
     def check_rotation_needed(self):
         """Check if any log file exceeds the size limit or if time-based rotation is needed.
-        
+
         This method checks rotation conditions but does NOT update last_rotation_check.
         The timestamp is only updated after rotation actually completes in rotate_all_logs().
         """
         from datetime import datetime, timedelta
-        
+
         now = datetime.now()
-        
+
         # Check time-based rotation (daily rotation for test logs)
         if self.last_rotation_check is not None:
             # We have a previous rotation timestamp - check elapsed time
             time_since_last = now - self.last_rotation_check
             if time_since_last > timedelta(hours=24):
                 self.rotation_needed = True
-                test_logger.info(f"Time-based rotation needed (last rotation: {self.last_rotation_check}, elapsed: {time_since_last})")
+                test_logger.info(
+                    f"Time-based rotation needed (last rotation: {self.last_rotation_check}, elapsed: {time_since_last})"
+                )
                 return True
         else:
             # First time checking - use the oldest log entry timestamp to determine if rotation is needed
@@ -623,12 +722,16 @@ class SessionLogRotationManager:
                             time_since_oldest = now - oldest_timestamp
                             if time_since_oldest > timedelta(hours=24):
                                 self.rotation_needed = True
-                                test_logger.info(f"Time-based rotation needed (log file {log_file} has entries from {oldest_timestamp}, {time_since_oldest} old, no previous rotation)")
+                                test_logger.info(
+                                    f"Time-based rotation needed (log file {log_file} has entries from {oldest_timestamp}, {time_since_oldest} old, no previous rotation)"
+                                )
                                 return True
                 except (OSError, FileNotFoundError) as e:
-                    test_logger.debug(f"Could not check oldest log timestamp for {log_file}: {e}")
+                    test_logger.debug(
+                        f"Could not check oldest log timestamp for {log_file}: {e}"
+                    )
                     continue
-        
+
         # Check size-based rotation
         for log_file in self.log_files:
             try:
@@ -637,58 +740,66 @@ class SessionLogRotationManager:
                     if file_size > self.max_size_bytes:
                         self.rotation_needed = True
                         size_mb = file_size / (1024 * 1024)
-                        test_logger.info(f"Log file {log_file} exceeds limit ({size_mb:.2f}MB > {self.max_size_bytes / (1024 * 1024):.2f}MB), rotation needed")
+                        test_logger.info(
+                            f"Log file {log_file} exceeds limit ({size_mb:.2f}MB > {self.max_size_bytes / (1024 * 1024):.2f}MB), rotation needed"
+                        )
                         return True
             except (OSError, FileNotFoundError) as e:
                 test_logger.debug(f"Could not check size for {log_file}: {e}")
                 continue
-        
+
         return False
-    
+
     def _get_oldest_log_timestamp(self, log_file: str):
         """Extract the oldest timestamp from a log file by checking the header or first log entry.
-        
+
         Returns the datetime of the oldest entry, or None if it can't be determined.
         """
         try:
-            with open(log_file, 'r', encoding='utf-8') as f:
+            with open(log_file, "r", encoding="utf-8") as f:
                 # Read first few lines to find header or first log entry
                 for i, line in enumerate(f):
                     if i > 20:  # Don't read too far
                         break
-                    
+
                     # Check for header timestamp: "# TEST RUN STARTED: YYYY-MM-DD HH:MM:SS"
-                    if 'TEST RUN STARTED:' in line:
+                    if "TEST RUN STARTED:" in line:
                         try:
                             # Extract timestamp from header
-                            match = re.search(r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})', line)
+                            match = re.search(
+                                r"(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})", line
+                            )
                             if match:
                                 timestamp_str = match.group(1)
-                                return datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+                                return datetime.strptime(
+                                    timestamp_str, "%Y-%m-%d %H:%M:%S"
+                                )
                         except (ValueError, AttributeError):
                             pass
-                    
+
                     # Check for log entry timestamp: "YYYY-MM-DD HH:MM:SS - ..."
-                    if re.match(r'^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}', line):
+                    if re.match(r"^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}", line):
                         try:
-                            timestamp_str = line[:19]  # First 19 chars are "YYYY-MM-DD HH:MM:SS"
-                            return datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+                            timestamp_str = line[
+                                :19
+                            ]  # First 19 chars are "YYYY-MM-DD HH:MM:SS"
+                            return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
                         except ValueError:
                             pass
         except (OSError, FileNotFoundError, UnicodeDecodeError):
             pass
         return None
-    
+
     def _write_log_header(self, log_file: str, timestamp: str):
         """Write a formatted header to a log file during rotation.
-        
+
         Args:
             log_file: Path to the log file
             timestamp: Timestamp string to include in header
         """
         log_filename = Path(log_file).name
-        
-        if 'test_run' in log_filename:
+
+        if "test_run" in log_filename:
             header_text = (
                 f"{'='*80}\n"
                 f"# TEST RUN STARTED: {timestamp}\n"
@@ -696,7 +807,7 @@ class SessionLogRotationManager:
                 f"# Test execution and framework logs are captured here\n"
                 f"{'='*80}\n\n"
             )
-        elif 'consolidated' in log_filename:
+        elif "consolidated" in log_filename:
             header_text = (
                 f"{'='*80}\n"
                 f"# TEST RUN STARTED: {timestamp}\n"
@@ -707,16 +818,17 @@ class SessionLogRotationManager:
         else:
             # Default header for other log files
             header_text = f"# Log rotated at {timestamp}\n"
-        
+
         # Use 'w' mode for rotation (creates new file)
         # Add retry logic to handle file locking
         import time
+
         max_retries = 3
         retry_delay = 0.1
-        
+
         for attempt in range(max_retries):
             try:
-                with open(log_file, 'w', encoding='utf-8') as f:
+                with open(log_file, "w", encoding="utf-8") as f:
                     f.write(header_text)
                 break  # Success
             except (OSError, PermissionError) as e:
@@ -724,11 +836,13 @@ class SessionLogRotationManager:
                     time.sleep(retry_delay)
                     continue
                 # Last attempt failed - log warning but don't raise
-                test_logger.warning(f"Failed to write header to {log_file} after {max_retries} attempts: {e}")
-    
+                test_logger.warning(
+                    f"Failed to write header to {log_file} after {max_retries} attempts: {e}"
+                )
+
     def rotate_all_logs(self, rotation_context="session"):
         """Rotate all registered log files together to maintain continuity.
-        
+
         Args:
             rotation_context: Context string for logging (e.g., "session start", "session end")
         """
@@ -739,41 +853,42 @@ class SessionLogRotationManager:
             if self.last_rotation_check is None:
                 self.last_rotation_check = datetime.now()
             return
-            
+
         test_logger.info(f"Starting {rotation_context} log rotation for all log files")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        timestamp_display = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
+        timestamp = now_filename_timestamp()
+        timestamp_display = now_readable_timestamp()
+
         # Ensure backups directory exists
-        backup_dir = Path(os.environ.get('LOG_BACKUP_DIR', 'tests/logs/backups'))
+        backup_dir = Path(os.environ.get("LOG_BACKUP_DIR", "tests/logs/backups"))
         backup_dir.mkdir(parents=True, exist_ok=True)
-        
+
         rotated_files = []
         failed_files = []
-        
+
         for log_file in self.log_files:
             try:
                 if not os.path.exists(log_file):
                     test_logger.debug(f"Skipping {log_file} - file does not exist")
                     continue
-                
+
                 file_size = os.path.getsize(log_file)
                 if file_size == 0:
                     test_logger.debug(f"Skipping {log_file} - file is empty")
                     continue
-                
+
                 # Create backup filename with timestamp
                 log_filename = Path(log_file).name
                 backup_filename = f"{log_filename}.{timestamp}.bak"
                 backup_file = backup_dir / backup_filename
-                
+
                 # Handle Windows file locking by copying instead of moving
                 # Add retry logic with timeout to prevent hanging
                 import time
+
                 max_retries = 5  # Increased retries
                 retry_delay = 0.2  # Longer delay between retries
                 rotation_success = False
-                
+
                 for attempt in range(max_retries):
                     try:
                         # Try to move first (faster and atomic)
@@ -782,42 +897,58 @@ class SessionLogRotationManager:
                         if backup_file.exists():
                             backup_size = backup_file.stat().st_size
                             if backup_size > 0:
-                                test_logger.info(f"Rotated {log_file} ({file_size} bytes) to {backup_file} ({backup_size} bytes)")
+                                test_logger.info(
+                                    f"Rotated {log_file} ({file_size} bytes) to {backup_file} ({backup_size} bytes)"
+                                )
                                 rotation_success = True
                                 rotated_files.append(log_file)
                                 break
                             else:
-                                test_logger.warning(f"Move succeeded but backup file is empty: {backup_file}")
+                                test_logger.warning(
+                                    f"Move succeeded but backup file is empty: {backup_file}"
+                                )
                         else:
-                            test_logger.warning(f"Move succeeded but backup file is missing: {backup_file}")
+                            test_logger.warning(
+                                f"Move succeeded but backup file is missing: {backup_file}"
+                            )
                     except (OSError, PermissionError) as move_error:
                         if attempt < max_retries - 1:
                             time.sleep(retry_delay)
                             continue
                         # If move fails after retries, try copy method
                         try:
-                            test_logger.warning(f"Move failed for {log_file} due to file locking, using copy method: {move_error}")
+                            test_logger.warning(
+                                f"Move failed for {log_file} due to file locking, using copy method: {move_error}"
+                            )
                             # Read entire file first to ensure we get all content
-                            with open(log_file, 'rb') as src:
-                                with open(backup_file, 'wb') as dst:
+                            with open(log_file, "rb") as src:
+                                with open(backup_file, "wb") as dst:
                                     shutil.copyfileobj(src, dst)
                             # Verify backup was created and has content
                             if backup_file.exists():
                                 backup_size = backup_file.stat().st_size
                                 if backup_size > 0:
-                                    test_logger.info(f"Copied {log_file} ({file_size} bytes) to {backup_file} ({backup_size} bytes)")
+                                    test_logger.info(
+                                        f"Copied {log_file} ({file_size} bytes) to {backup_file} ({backup_size} bytes)"
+                                    )
                                     rotation_success = True
                                     rotated_files.append(log_file)
                                     break
                                 else:
-                                    test_logger.warning(f"Copy succeeded but backup file is empty: {backup_file}")
+                                    test_logger.warning(
+                                        f"Copy succeeded but backup file is empty: {backup_file}"
+                                    )
                             else:
-                                test_logger.warning(f"Copy succeeded but backup file is missing: {backup_file}")
+                                test_logger.warning(
+                                    f"Copy succeeded but backup file is missing: {backup_file}"
+                                )
                         except (OSError, PermissionError) as copy_error:
-                            test_logger.warning(f"Copy also failed for {log_file}: {copy_error}")
+                            test_logger.warning(
+                                f"Copy also failed for {log_file}: {copy_error}"
+                            )
                             failed_files.append((log_file, str(copy_error)))
                             continue
-                
+
                 if rotation_success:
                     # Truncate the original file and write formatted header
                     # Add retry for header writing too
@@ -831,42 +962,49 @@ class SessionLogRotationManager:
                             if attempt < max_retries - 1:
                                 time.sleep(retry_delay)
                                 continue
-                            test_logger.warning(f"Failed to write header to {log_file}: {header_error}")
+                            test_logger.warning(
+                                f"Failed to write header to {log_file}: {header_error}"
+                            )
                 else:
                     failed_files.append((log_file, "Rotation failed after all retries"))
-                        
+
             except (OSError, FileNotFoundError) as e:
                 test_logger.warning(f"Failed to rotate {log_file}: {e}")
                 failed_files.append((log_file, str(e)))
-        
+
         # Log summary
         if rotated_files:
-            test_logger.info(f"Successfully rotated {len(rotated_files)} log file(s): {', '.join(Path(f).name for f in rotated_files)}")
+            test_logger.info(
+                f"Successfully rotated {len(rotated_files)} log file(s): {', '.join(Path(f).name for f in rotated_files)}"
+            )
         if failed_files:
-            test_logger.warning(f"Failed to rotate {len(failed_files)} log file(s): {', '.join(f'{Path(f).name} ({err})' for f, err in failed_files)}")
-        
+            test_logger.warning(
+                f"Failed to rotate {len(failed_files)} log file(s): {', '.join(f'{Path(f).name} ({err})' for f, err in failed_files)}"
+            )
+
         self.rotation_needed = False
         rotation_time = datetime.now()
         self.last_rotation_check = rotation_time
         self._save_last_rotation_time(rotation_time)
         test_logger.info(f"{rotation_context.capitalize()} log rotation completed")
 
+
 # Helper function for writing log headers
 def _write_test_log_header(log_file: str, timestamp: str):
     """Write a formatted header to a test log file.
-    
+
     Args:
         log_file: Path to the log file
         timestamp: Timestamp string to include in header (format: 'YYYY-MM-DD HH:MM:SS')
     """
     # Skip header writing in parallel worker processes to avoid duplicate headers
     # pytest-xdist sets PYTEST_XDIST_WORKER for worker processes
-    if os.environ.get('PYTEST_XDIST_WORKER'):
+    if os.environ.get("PYTEST_XDIST_WORKER"):
         return
-    
+
     log_filename = Path(log_file).name
-    
-    if 'test_run' in log_filename:
+
+    if "test_run" in log_filename:
         header_text = (
             f"\n{'='*80}\n"
             f"# TEST RUN STARTED: {timestamp}\n"
@@ -874,7 +1012,7 @@ def _write_test_log_header(log_file: str, timestamp: str):
             f"# Test execution and framework logs are captured here\n"
             f"{'='*80}\n\n"
         )
-    elif 'consolidated' in log_filename:
+    elif "consolidated" in log_filename:
         header_text = (
             f"\n{'='*80}\n"
             f"# TEST RUN STARTED: {timestamp}\n"
@@ -885,9 +1023,10 @@ def _write_test_log_header(log_file: str, timestamp: str):
     else:
         # Default header for other log files
         header_text = f"# Log rotated at {timestamp}\n"
-    
-    with open(log_file, 'a', encoding='utf-8') as f:
+
+    with open(log_file, "a", encoding="utf-8") as f:
         f.write(header_text)
+
 
 # Global session rotation manager
 session_rotation_manager = SessionLogRotationManager()
@@ -899,73 +1038,86 @@ _consolidated_handler = None
 if test_log_file and test_log_file.exists():
     session_rotation_manager.register_log_file(str(test_log_file))
 
+
 # Log lifecycle management
 class LogLifecycleManager:
     """Manages log file lifecycle including backup, archive, and cleanup operations."""
-    
+
     def __init__(self, archive_days=30):
         self.archive_days = archive_days
-        self.backup_dir = Path(os.environ.get('LOG_BACKUP_DIR', 'tests/logs/backups'))
-        self.archive_dir = Path(os.environ.get('LOG_ARCHIVE_DIR', 'tests/logs/archive'))
-        
+        self.backup_dir = Path(os.environ.get("LOG_BACKUP_DIR", "tests/logs/backups"))
+        self.archive_dir = Path(os.environ.get("LOG_ARCHIVE_DIR", "tests/logs/archive"))
+
         # Ensure directories exist
         self.backup_dir.mkdir(parents=True, exist_ok=True)
         self.archive_dir.mkdir(parents=True, exist_ok=True)
-    
+
     def cleanup_old_archives(self):
         """Remove archive files older than the specified number of days."""
         cutoff_date = datetime.now().timestamp() - (self.archive_days * 24 * 60 * 60)
-        
+
         cleaned_count = 0
-        for archive_file in self.archive_dir.glob('*'):
+        for archive_file in self.archive_dir.glob("*"):
             try:
-                if archive_file.is_file() and archive_file.stat().st_mtime < cutoff_date:
+                if (
+                    archive_file.is_file()
+                    and archive_file.stat().st_mtime < cutoff_date
+                ):
                     archive_file.unlink()
                     cleaned_count += 1
                     test_logger.debug(f"Removed old archive: {archive_file}")
             except (OSError, FileNotFoundError) as e:
                 test_logger.warning(f"Failed to remove archive {archive_file}: {e}")
-        
+
         if cleaned_count > 0:
-            test_logger.info(f"Cleaned up {cleaned_count} old archive files (older than {self.archive_days} days)")
-        
+            test_logger.info(
+                f"Cleaned up {cleaned_count} old archive files (older than {self.archive_days} days)"
+            )
+
         return cleaned_count
-    
+
     def archive_old_backups(self):
         """Move old backup files to archive directory."""
         cutoff_date = datetime.now().timestamp() - (7 * 24 * 60 * 60)  # 7 days
-        
+
         archived_count = 0
-        for backup_file in self.backup_dir.glob('*'):
+        for backup_file in self.backup_dir.glob("*"):
             try:
                 if backup_file.is_file() and backup_file.stat().st_mtime < cutoff_date:
                     # Create archive filename with timestamp
-                    timestamp = datetime.fromtimestamp(backup_file.stat().st_mtime).strftime("%Y%m%d_%H%M%S")
-                    archive_filename = f"{backup_file.stem}_{timestamp}{backup_file.suffix}"
+                    timestamp = now_filename_timestamp()
+                    archive_filename = (
+                        f"{backup_file.stem}_{timestamp}{backup_file.suffix}"
+                    )
                     archive_path = self.archive_dir / archive_filename
-                    
+
                     shutil.move(str(backup_file), str(archive_path))
                     archived_count += 1
-                    test_logger.debug(f"Archived backup: {backup_file} -> {archive_path}")
+                    test_logger.debug(
+                        f"Archived backup: {backup_file} -> {archive_path}"
+                    )
             except (OSError, FileNotFoundError) as e:
                 test_logger.warning(f"Failed to archive backup {backup_file}: {e}")
-        
+
         if archived_count > 0:
             test_logger.info(f"Archived {archived_count} old backup files")
-        
+
         return archived_count
-    
+
     def perform_lifecycle_maintenance(self):
         """Perform all lifecycle maintenance operations."""
         # Reduce verbosity - only log if something actually happens
         archived_count = self.archive_old_backups()
         cleanup_count = self.cleanup_old_archives()
         if archived_count > 0 or cleanup_count > 0:
-            test_logger.debug(f"Log lifecycle maintenance: archived {archived_count}, cleaned {cleanup_count}")
+            test_logger.debug(
+                f"Log lifecycle maintenance: archived {archived_count}, cleaned {cleanup_count}"
+            )
 
 
 # Global log lifecycle manager
 log_lifecycle_manager = LogLifecycleManager()
+
 
 # Configure size-based rotation for component logs during tests to avoid growth
 @pytest.fixture(scope="session", autouse=True)
@@ -974,78 +1126,86 @@ def setup_consolidated_test_logging():
 
     This replaces the complex multi-file logging system with a single consolidated log file
     that contains all component logs, making it much easier to manage and debug.
-    
+
     In parallel execution mode (pytest-xdist), uses per-worker log files to avoid
     file locking issues and interleaved log entries.
     """
     # Detect parallel execution mode
-    worker_id = os.environ.get('PYTEST_XDIST_WORKER')
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER")
     is_parallel = worker_id is not None
-    
+
     # Use per-worker log files in parallel mode to avoid file locking issues
     if is_parallel:
         # Per-worker log files: test_run_gw0.log, test_consolidated_gw0.log, etc.
-        consolidated_log_file = Path(project_root) / "tests" / "logs" / f"test_consolidated_{worker_id}.log"
-        test_run_log_file = Path(project_root) / "tests" / "logs" / f"test_run_{worker_id}.log"
+        consolidated_log_file = (
+            Path(project_root) / "tests" / "logs" / f"test_consolidated_{worker_id}.log"
+        )
+        test_run_log_file = (
+            Path(project_root) / "tests" / "logs" / f"test_run_{worker_id}.log"
+        )
     else:
         # Sequential mode: use standard log files
-        consolidated_log_file = Path(project_root) / "tests" / "logs" / "test_consolidated.log"
+        consolidated_log_file = (
+            Path(project_root) / "tests" / "logs" / "test_consolidated.log"
+        )
         test_run_log_file = Path(project_root) / "tests" / "logs" / "test_run.log"
-    
+
     consolidated_log_file.parent.mkdir(exist_ok=True)
 
     # CRITICAL: Only rotate in the main process, not in worker processes
     # Workers use per-worker log files that get consolidated later
     # Rotation should only happen on the main log files (test_run.log, test_consolidated.log)
     rotation_happened = False
-    
+
     # Only check rotation in main process (not in workers)
     # Workers use per-worker files that don't need rotation
     if not is_parallel:
         # Register both log files with session rotation manager BEFORE checking rotation
         session_rotation_manager.register_log_file(str(consolidated_log_file))
         session_rotation_manager.register_log_file(str(test_run_log_file))
-        
+
         # Check for rotation BEFORE writing headers (rotation will create backups and write headers to new files)
         # CRITICAL: Only rotate if files are safe to rotate (not locked, not being written to)
         rotation_needed = session_rotation_manager.check_rotation_needed()
     else:
         rotation_needed = False
-    
+
     if rotation_needed and not is_parallel:
         # Check if files are safe to rotate (not locked by active handlers)
         # We can only safely rotate if no handlers are currently writing to the files
         files_safe_to_rotate = True
-        
+
         for log_file in session_rotation_manager.log_files:
             if os.path.exists(log_file):
                 # Try to open the file in exclusive mode to check if it's locked
                 try:
                     # On Windows, opening in 'r+b' mode will fail if file is locked
-                    with open(log_file, 'r+b') as f:
+                    with open(log_file, "r+b") as f:
                         f.seek(0, 2)  # Seek to end
                         f.flush()
                 except (OSError, PermissionError) as e:
-                    test_logger.warning(f"Cannot rotate {log_file} - file is locked (likely still being written to): {e}")
+                    test_logger.warning(
+                        f"Cannot rotate {log_file} - file is locked (likely still being written to): {e}"
+                    )
                     files_safe_to_rotate = False
                     break
-        
+
         if files_safe_to_rotate:
             # Close any existing handlers that might be writing to these files
             # This prevents "file in use" errors during rotation
             loggers_to_check = [
                 test_logger,
-                logging.getLogger('mhm'),
-                logging.getLogger('mhm.error_handler'),
-                logging.getLogger('mhm_tests'),
-                logging.getLogger('mhm_tests.run_tests'),
+                logging.getLogger("mhm"),
+                logging.getLogger("mhm.error_handler"),
+                logging.getLogger("mhm_tests"),
+                logging.getLogger("mhm_tests.run_tests"),
                 logging.root,
             ]
-            
+
             # Also check all existing loggers
             for logger_name in logging.Logger.manager.loggerDict:
                 loggers_to_check.append(logging.getLogger(logger_name))
-            
+
             handlers_closed = 0
             for logger in loggers_to_check:
                 for handler in list(logger.handlers):
@@ -1057,45 +1217,58 @@ def setup_consolidated_test_logging():
                             handlers_closed += 1
                         except Exception:
                             pass
-            
+
             if handlers_closed > 0:
-                test_logger.debug(f"Closed {handlers_closed} file handlers before rotation")
-            
+                test_logger.debug(
+                    f"Closed {handlers_closed} file handlers before rotation"
+                )
+
             # Short delay to ensure Windows releases file handles
             time.sleep(0.2)
-            
+
             # Attempt rotation with timeout to prevent hanging
             # Use threading to ensure rotation doesn't block test execution
             import threading
+
             rotation_complete = threading.Event()
             rotation_error: list[Exception | None] = [None]
             rotation_success = [False]
-            
+
             def do_rotation():
                 try:
-                    session_rotation_manager.rotate_all_logs(rotation_context="session start")
+                    session_rotation_manager.rotate_all_logs(
+                        rotation_context="session start"
+                    )
                     rotation_success[0] = True
-                    test_logger.info("Performed automatic log rotation at session start")
+                    test_logger.info(
+                        "Performed automatic log rotation at session start"
+                    )
                 except Exception as e:
                     rotation_error[0] = e
                     test_logger.warning(f"Log rotation failed: {e}")
                 finally:
                     rotation_complete.set()
-            
+
             rotation_thread = threading.Thread(target=do_rotation, daemon=True)
             rotation_thread.start()
-            
+
             # Wait up to 5 seconds for rotation to complete (non-blocking)
             if rotation_complete.wait(timeout=5.0):
                 if rotation_error[0]:
-                    test_logger.warning(f"Log rotation completed with errors: {rotation_error[0]}")
+                    test_logger.warning(
+                        f"Log rotation completed with errors: {rotation_error[0]}"
+                    )
                 elif rotation_success[0]:
                     rotation_happened = True
             else:
-                test_logger.warning("Log rotation timed out after 5 seconds - continuing without rotation (logs will rotate on next run)")
+                test_logger.warning(
+                    "Log rotation timed out after 5 seconds - continuing without rotation (logs will rotate on next run)"
+                )
         else:
-            test_logger.info("Skipping log rotation - files are locked (likely from previous session still cleaning up)")
-    
+            test_logger.info(
+                "Skipping log rotation - files are locked (likely from previous session still cleaning up)"
+            )
+
     # Ensure test_run.log exists so rotation manager can write headers to it
     if not test_run_log_file.exists():
         test_run_log_file.touch()
@@ -1103,13 +1276,19 @@ def setup_consolidated_test_logging():
     # Write headers only if rotation didn't happen (rotation already wrote headers)
     # or if files are empty/new
     from datetime import datetime
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
+
+    timestamp = now_readable_timestamp()
+
     if not rotation_happened:
         # Check if files are empty or don't exist - only write headers if needed
-        write_header_run = not test_run_log_file.exists() or test_run_log_file.stat().st_size == 0
-        write_header_consolidated = not consolidated_log_file.exists() or consolidated_log_file.stat().st_size == 0
-        
+        write_header_run = (
+            not test_run_log_file.exists() or test_run_log_file.stat().st_size == 0
+        )
+        write_header_consolidated = (
+            not consolidated_log_file.exists()
+            or consolidated_log_file.stat().st_size == 0
+        )
+
         if write_header_run:
             _write_test_log_header(str(test_run_log_file), timestamp)
         if write_header_consolidated:
@@ -1121,17 +1300,17 @@ def setup_consolidated_test_logging():
         logs_dir = Path(project_root) / "tests" / "logs"
         worker_consolidated = str(consolidated_log_file)
         # Point all component loggers to the per-worker consolidated log
-        os.environ['LOG_MAIN_FILE'] = worker_consolidated
-        os.environ['LOG_ERRORS_FILE'] = worker_consolidated
-        os.environ['LOG_DISCORD_FILE'] = worker_consolidated
-        os.environ['LOG_AI_FILE'] = worker_consolidated
-        os.environ['LOG_USER_ACTIVITY_FILE'] = worker_consolidated
-        os.environ['LOG_COMMUNICATION_MANAGER_FILE'] = worker_consolidated
-        os.environ['LOG_EMAIL_FILE'] = worker_consolidated
-        os.environ['LOG_UI_FILE'] = worker_consolidated
-        os.environ['LOG_FILE_OPS_FILE'] = worker_consolidated
-        os.environ['LOG_SCHEDULER_FILE'] = worker_consolidated
-        
+        os.environ["LOG_MAIN_FILE"] = worker_consolidated
+        os.environ["LOG_ERRORS_FILE"] = worker_consolidated
+        os.environ["LOG_DISCORD_FILE"] = worker_consolidated
+        os.environ["LOG_AI_FILE"] = worker_consolidated
+        os.environ["LOG_USER_ACTIVITY_FILE"] = worker_consolidated
+        os.environ["LOG_COMMUNICATION_MANAGER_FILE"] = worker_consolidated
+        os.environ["LOG_EMAIL_FILE"] = worker_consolidated
+        os.environ["LOG_UI_FILE"] = worker_consolidated
+        os.environ["LOG_FILE_OPS_FILE"] = worker_consolidated
+        os.environ["LOG_SCHEDULER_FILE"] = worker_consolidated
+
         # CRITICAL: Update test_logger to write to per-worker test_run log file
         # test_logger was set up at import time with test_run.log, but in parallel mode
         # we need it to write to test_run_gw*.log so [WORKER-TEST] entries are captured
@@ -1141,7 +1320,7 @@ def setup_consolidated_test_logging():
             # These are essential for debugging memory leaks, regardless of verbose setting
             if test_logger.level > logging.INFO:
                 test_logger.setLevel(logging.INFO)
-            
+
             # Find and update the existing file handler instead of removing/recreating
             # This preserves any other handlers (like console handler) and avoids timing issues
             file_handler_found = False
@@ -1151,65 +1330,81 @@ def setup_consolidated_test_logging():
                     handler.close()
                     test_logger.removeHandler(handler)
                     file_handler_found = True
-            
+
             # Add new file handler for per-worker log file
-            worker_test_run_handler = logging.FileHandler(test_run_log_file, encoding='utf-8', mode='a')
+            worker_test_run_handler = logging.FileHandler(
+                test_run_log_file, encoding="utf-8", mode="a"
+            )
             # CRITICAL: Always set handler to INFO level to capture [WORKER-TEST] entries
             # These are essential for debugging memory leaks, regardless of verbose setting
             worker_test_run_handler.setLevel(logging.INFO)
-            
+
             # Use same formatter as before
             # PytestContextLogFormatter is defined at module level (line 434)
             # Reference it from the current module's globals to avoid UnboundLocalError in parallel mode
             import sys
+
             current_module = sys.modules[__name__]
             formatter = current_module.PytestContextLogFormatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
             worker_test_run_handler.setFormatter(formatter)
             test_logger.addHandler(worker_test_run_handler)
     else:
         # Sequential mode: point all component loggers to the consolidated log
         consolidated_path = str(consolidated_log_file)
-        os.environ['LOG_MAIN_FILE'] = consolidated_path
-        os.environ['LOG_ERRORS_FILE'] = consolidated_path
-        os.environ['LOG_DISCORD_FILE'] = consolidated_path
-        os.environ['LOG_AI_FILE'] = consolidated_path
-        os.environ['LOG_USER_ACTIVITY_FILE'] = consolidated_path
-        os.environ['LOG_COMMUNICATION_MANAGER_FILE'] = consolidated_path
-        os.environ['LOG_EMAIL_FILE'] = consolidated_path
-        os.environ['LOG_UI_FILE'] = consolidated_path
-        os.environ['LOG_FILE_OPS_FILE'] = consolidated_path
-        os.environ['LOG_SCHEDULER_FILE'] = consolidated_path
+        os.environ["LOG_MAIN_FILE"] = consolidated_path
+        os.environ["LOG_ERRORS_FILE"] = consolidated_path
+        os.environ["LOG_DISCORD_FILE"] = consolidated_path
+        os.environ["LOG_AI_FILE"] = consolidated_path
+        os.environ["LOG_USER_ACTIVITY_FILE"] = consolidated_path
+        os.environ["LOG_COMMUNICATION_MANAGER_FILE"] = consolidated_path
+        os.environ["LOG_EMAIL_FILE"] = consolidated_path
+        os.environ["LOG_UI_FILE"] = consolidated_path
+        os.environ["LOG_FILE_OPS_FILE"] = consolidated_path
+        os.environ["LOG_SCHEDULER_FILE"] = consolidated_path
 
     # Set up separate handlers for component logs vs test execution logs
     # Component logs go directly to test_consolidated.log (no test context)
     # Test execution logs go directly to test_run.log (with test context)
 
     # Create handler for component logs (no test context)
-    component_handler = logging.FileHandler(str(consolidated_log_file), mode='a', encoding='utf-8')
+    component_handler = logging.FileHandler(
+        str(consolidated_log_file), mode="a", encoding="utf-8"
+    )
     # CRITICAL: Set handler level to WARNING for levels 0 and 1 to prevent excessive logging
     # Only level 2 (DEBUG) will log everything from components
     verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
     if verbose_logs == "2":
         component_handler.setLevel(logging.DEBUG)
     else:
-        component_handler.setLevel(logging.WARNING)  # Levels 0 and 1: Only warnings and errors
-    component_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
-                                           datefmt='%Y-%m-%d %H:%M:%S')
+        component_handler.setLevel(
+            logging.WARNING
+        )  # Levels 0 and 1: Only warnings and errors
+    component_formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
     component_handler.setFormatter(component_formatter)
 
     # Create handler for test execution logs (with test context)
-    test_handler = logging.FileHandler(str(test_run_log_file), mode='a', encoding='utf-8')
+    test_handler = logging.FileHandler(
+        str(test_run_log_file), mode="a", encoding="utf-8"
+    )
     try:
         from core.logger import PytestContextLogFormatter
-        test_formatter = PytestContextLogFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
-                                            datefmt='%Y-%m-%d %H:%M:%S')
+
+        test_formatter = PytestContextLogFormatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
     except (ImportError, ModuleNotFoundError):
         # Core modules not available (e.g., in development tools tests)
         # Use standard formatter instead
-        test_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
-                                          datefmt='%Y-%m-%d %H:%M:%S')
+        test_formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
     test_handler.setFormatter(test_formatter)
 
     # CRITICAL: Ensure root logger has a valid level FIRST (child loggers inherit from root)
@@ -1217,7 +1412,7 @@ def setup_consolidated_test_logging():
     root_logger = logging.getLogger()
     if not isinstance(root_logger.level, int) or root_logger.level == logging.NOTSET:
         root_logger.setLevel(logging.WARNING)  # Set a safe default level
-    
+
     # Also ensure all existing loggers have valid levels before we start configuring
     # Walk through logger hierarchy and ensure no None levels
     for logger_name in list(logging.Logger.manager.loggerDict.keys()):
@@ -1241,10 +1436,11 @@ def setup_consolidated_test_logging():
     # Clear the component logger cache so they'll be recreated with updated paths
     try:
         from core.logger import _component_loggers
+
         _component_loggers.clear()
     except (ImportError, AttributeError):
         pass  # If cache doesn't exist or isn't accessible, that's okay
-    
+
     # Ensure component loggers are created by importing the modules that create them
     # This will recreate them with the updated environment variables
     try:
@@ -1254,18 +1450,20 @@ def setup_consolidated_test_logging():
         from ai.chatbot import AIChatbot
     except ImportError:
         pass  # Some modules might not be available during tests
-    
+
     # Component loggers are now available for configuration
-    
+
     # Configure loggers
-    for logger_name in list(logging.Logger.manager.loggerDict.keys()):  # Use list() to avoid modification during iteration
+    for logger_name in list(
+        logging.Logger.manager.loggerDict.keys()
+    ):  # Use list() to avoid modification during iteration
         try:
             # Skip pytest's internal loggers to avoid breaking pytest's logging
-            if logger_name.startswith('_pytest') or logger_name == 'pytest':
+            if logger_name.startswith("_pytest") or logger_name == "pytest":
                 continue
-                
+
             logger_obj = logging.getLogger(logger_name)
-            
+
             # Skip if logger_obj is not actually a Logger instance (could be PlaceHolder or other type)
             if not isinstance(logger_obj, logging.Logger):
                 continue
@@ -1280,11 +1478,17 @@ def setup_consolidated_test_logging():
 
             # Set appropriate log level
             # Validate logging constants are actually integers (defensive check)
-            if not isinstance(logging.DEBUG, int) or not isinstance(logging.INFO, int) or not isinstance(logging.WARNING, int):
+            if (
+                not isinstance(logging.DEBUG, int)
+                or not isinstance(logging.INFO, int)
+                or not isinstance(logging.WARNING, int)
+            ):
                 # Logging module is in invalid state - skip configuration
-                test_logger.warning("Logging constants are invalid - skipping logger configuration")
+                test_logger.warning(
+                    "Logging constants are invalid - skipping logger configuration"
+                )
                 continue
-            
+
             if logger_name.startswith("mhm."):
                 # Component loggers: Keep quiet at levels 0 and 1 to avoid excessive logging
                 #   0 = WARNING (quiet), 1 = WARNING (quiet - focus on test execution, not component chatter), 2 = DEBUG (verbose)
@@ -1292,7 +1496,9 @@ def setup_consolidated_test_logging():
                 if verbose_logs == "2":
                     level = logging.DEBUG
                 else:
-                    level = logging.WARNING  # Levels 0 and 1: Only warnings and errors from components
+                    level = (
+                        logging.WARNING
+                    )  # Levels 0 and 1: Only warnings and errors from components
             else:
                 # Test execution loggers:
                 #   0 = WARNING (failures/warnings/skips only), 1 = INFO (test execution details), 2 = DEBUG (everything)
@@ -1303,17 +1509,19 @@ def setup_consolidated_test_logging():
                     level = logging.INFO
                 else:
                     level = logging.WARNING  # Level 0: Only failures, warnings, skips
-            
+
             # Ensure level is a valid integer before setting
             if level is None or not isinstance(level, int):
                 level = logging.WARNING  # Safe default
-            
+
             # Set level with error handling in case logger is in invalid state
             try:
                 logger_obj.setLevel(level)
             except (TypeError, AttributeError) as e:
                 # Skip loggers that can't have their level set (might be in invalid state)
-                test_logger.debug(f"Skipping logger {logger_name} - cannot set level: {e}")
+                test_logger.debug(
+                    f"Skipping logger {logger_name} - cannot set level: {e}"
+                )
                 continue
 
             # Component loggers go to test_consolidated.log (no test context)
@@ -1324,7 +1532,7 @@ def setup_consolidated_test_logging():
             else:
                 logger_obj.addHandler(test_handler)
                 logger_obj.propagate = True
-                
+
                 # Special handling for mhm_tests logger: ensure it respects verbose setting
                 if logger_name == "mhm_tests":
                     verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
@@ -1333,7 +1541,9 @@ def setup_consolidated_test_logging():
                     elif verbose_logs == "1":
                         test_level = logging.INFO
                     else:
-                        test_level = logging.WARNING  # Level 0: Only failures, warnings, skips
+                        test_level = (
+                            logging.WARNING
+                        )  # Level 0: Only failures, warnings, skips
                     logger_obj.setLevel(test_level)
                     # Also update handler level
                     for handler in logger_obj.handlers:
@@ -1348,7 +1558,7 @@ def setup_consolidated_test_logging():
     root_logger = logging.getLogger()
     if not isinstance(root_logger.level, int) or root_logger.level == logging.NOTSET:
         root_logger.setLevel(logging.WARNING)  # Set a safe default level
-    
+
     # CRITICAL: Configure root logger to catch unnamed log entries (empty string logger name)
     # Unnamed entries with test context should go to test_run.log, not test_consolidated.log
     # Clear any existing handlers on root logger first
@@ -1361,12 +1571,13 @@ def setup_consolidated_test_logging():
     # Add test handler to root logger to catch unnamed logs (they should have test context)
     root_logger.addHandler(test_handler)
     root_logger.propagate = False  # Prevent double logging
-    
+
     # Note: Log files are already registered and rotation checked above, before headers are written
-    
+
     # Clean up any individual log files that were created before consolidated mode was enabled
     _cleanup_individual_log_files()
-    
+
+
 # --- HOUSEKEEPING: Prune old test artifacts to keep repo tidy ---
 def _cleanup_test_log_files():
     """Clean up excessive test log files to prevent accumulation."""
@@ -1374,23 +1585,26 @@ def _cleanup_test_log_files():
         logs_dir = Path(project_root) / "tests" / "logs"
         if not logs_dir.exists():
             return
-            
+
         # Remove old individual component log files (now that we use consolidated logging)
         for log_file in logs_dir.glob("*.log"):
             # Skip the consolidated log file and test_run.log
             if log_file.name in ["test_consolidated.log", "test_run.log"]:
                 continue
-                
+
             try:
-                with open(log_file, 'r', encoding='utf-8') as f:
+                with open(log_file, "r", encoding="utf-8") as f:
                     content = f.read().strip()
                     # If file only contains rotation message or is empty, remove it
-                    if (content.startswith("# Log rotated at") and len(content.split('\n')) <= 2) or len(content) == 0:
+                    if (
+                        content.startswith("# Log rotated at")
+                        and len(content.split("\n")) <= 2
+                    ) or len(content) == 0:
                         log_file.unlink()
                         # Don't log cleanup operations - focus on test results
             except Exception:
                 continue
-                
+
         # Clean up backup files older than 1 day
         backups_dir = logs_dir / "backups"
         if backups_dir.exists():
@@ -1401,14 +1615,14 @@ def _cleanup_test_log_files():
                         # Don't log cleanup operations - focus on test results
                 except Exception:
                     continue
-                    
+
     except Exception as e:
         test_logger.warning(f"Error during test log cleanup: {e}")
 
 
 def _cleanup_individual_log_files():
     """Clean up individual log files that were created before consolidated mode was enabled.
-    
+
     NOTE: We no longer copy content from these files because component loggers write directly
     to test_consolidated.log via environment variables. These files should not exist in
     consolidated logging mode, so we just delete them.
@@ -1417,15 +1631,26 @@ def _cleanup_individual_log_files():
         logs_dir = Path(project_root) / "tests" / "logs"
         if not logs_dir.exists():
             return
-            
+
         # List of individual log files that should be cleaned up in consolidated mode
         individual_log_files = [
-            "app.log", "errors.log", "ai.log", "discord.log", "user_activity.log",
-            "communication_manager.log", "email.log", "ui.log", "file_ops.log",
-            "scheduler.log", "schedule_utilities.log", "analytics.log", "message.log",
-            "backup.log", "checkin_dynamic.log"
+            "app.log",
+            "errors.log",
+            "ai.log",
+            "discord.log",
+            "user_activity.log",
+            "communication_manager.log",
+            "email.log",
+            "ui.log",
+            "file_ops.log",
+            "scheduler.log",
+            "schedule_utilities.log",
+            "analytics.log",
+            "message.log",
+            "backup.log",
+            "checkin_dynamic.log",
         ]
-        
+
         for log_file_name in individual_log_files:
             log_file = logs_dir / log_file_name
             if log_file.exists():
@@ -1433,17 +1658,19 @@ def _cleanup_individual_log_files():
                     # Just delete the file - component loggers write directly to consolidated log
                     # No need to copy content as it's already in test_consolidated.log
                     log_file.unlink()
-                    test_logger.debug(f"Cleaned up individual log file: {log_file_name}")
+                    test_logger.debug(
+                        f"Cleaned up individual log file: {log_file_name}"
+                    )
                 except Exception as e:
                     test_logger.warning(f"Error cleaning up {log_file_name}: {e}")
-                    
+
     except Exception as e:
         test_logger.warning(f"Error during individual log file cleanup: {e}")
 
 
 def _consolidate_and_cleanup_main_logs():
     """DEPRECATED: No longer consolidates from app.log/errors.log.
-    
+
     Component loggers now write directly to test_consolidated.log via environment variables.
     This function is kept for backward compatibility but does nothing.
     """
@@ -1458,7 +1685,9 @@ def _add_test_run_start_markers():
     pass
 
 
-def _prune_old_files(target_dir: Path, patterns: list[str], older_than_days: int) -> int:
+def _prune_old_files(
+    target_dir: Path, patterns: list[str], older_than_days: int
+) -> int:
     """Remove files in target_dir matching any pattern older than N days.
 
     Returns the number of files removed.
@@ -1490,9 +1719,11 @@ def clear_test_user_factory_cache():
     # Clear cache after all tests complete
     try:
         from tests.test_utilities import TestUserFactory
+
         TestUserFactory.clear_cache()
     except Exception:
         pass  # Ignore errors during cleanup
+
 
 @pytest.fixture(scope="session", autouse=True)
 def prune_test_artifacts_before_and_after_session():
@@ -1539,9 +1770,10 @@ def prune_test_artifacts_before_and_after_session():
                 # Don't log cleanup operations - focus on test results
             except Exception:
                 pass
-        
+
         # Remove any pytest-of-* and tmp_* directories (pytest creates these when using tmpdir fixtures)
         import glob
+
         pytest_pattern = str(data_dir / "pytest-of-*")
         pytest_dirs = glob.glob(pytest_pattern)
         for stray in pytest_dirs:
@@ -1549,15 +1781,17 @@ def prune_test_artifacts_before_and_after_session():
             if stray_path.exists():
                 shutil.rmtree(stray_path, ignore_errors=True)
                 # Don't log cleanup operations - focus on test results
-        
+
         # Remove tmp* directories directly in tests/data (but not the "tmp" directory itself)
         # Matches: tmp_*, tmp* (but not just "tmp"), pytest-of-*
         for item in data_dir.iterdir():
             try:
                 if item.is_dir():
-                    if (item.name.startswith("tmp_") or 
-                        (item.name.startswith("tmp") and item.name != "tmp") or
-                        item.name.startswith("pytest-of-")):
+                    if (
+                        item.name.startswith("tmp_")
+                        or (item.name.startswith("tmp") and item.name != "tmp")
+                        or item.name.startswith("pytest-of-")
+                    ):
                         shutil.rmtree(item, ignore_errors=True)
                         # Don't log cleanup operations - focus on test results
                 elif item.is_file() and item.name == ".last_cache_cleanup":
@@ -1565,18 +1799,20 @@ def prune_test_artifacts_before_and_after_session():
                     # Don't log cleanup operations - focus on test results
             except Exception:
                 pass
-        
+
         # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking.json)
         test_json_patterns = ["test_", ".tmp_", "welcome_tracking.json"]
         for item in data_dir.iterdir():
             try:
                 if item.is_file() and item.suffix == ".json":
-                    if any(item.name.startswith(pattern) for pattern in test_json_patterns):
+                    if any(
+                        item.name.startswith(pattern) for pattern in test_json_patterns
+                    ):
                         item.unlink(missing_ok=True)
                         # Don't log cleanup operations - focus on test results
             except Exception:
                 pass
-        
+
         tmp_dir = data_dir / "tmp"
         if tmp_dir.exists():
             for child in tmp_dir.iterdir():
@@ -1614,7 +1850,7 @@ def prune_test_artifacts_before_and_after_session():
     # Session-end purge: flags, tmp children, pytest-of-* directories, and tmp_* directories
     try:
         data_dir = project_root_path / "tests" / "data"
-        
+
         # Remove pytest-of-* directories (pytest creates these when using tmpdir fixtures)
         # Also remove tmp* directories (created when TMPDIR is set to tests/data)
         # Matches: tmp_*, tmp* (but not just "tmp"), pytest-of-*
@@ -1623,16 +1859,25 @@ def prune_test_artifacts_before_and_after_session():
             for item in data_dir.iterdir():
                 try:
                     if item.is_dir():
-                        if (item.name.startswith("pytest-of-") or 
-                            item.name.startswith("tmp_") or
-                            (item.name.startswith("tmp") and item.name != "tmp")):
+                        if (
+                            item.name.startswith("pytest-of-")
+                            or item.name.startswith("tmp_")
+                            or (item.name.startswith("tmp") and item.name != "tmp")
+                        ):
                             shutil.rmtree(item, ignore_errors=True)
                             # Don't log cleanup operations - focus on test results
                     elif item.is_file():
                         # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking.json)
                         if item.suffix == ".json":
-                            test_json_patterns = ["test_", ".tmp_", "welcome_tracking.json"]
-                            if any(item.name.startswith(pattern) for pattern in test_json_patterns):
+                            test_json_patterns = [
+                                "test_",
+                                ".tmp_",
+                                "welcome_tracking.json",
+                            ]
+                            if any(
+                                item.name.startswith(pattern)
+                                for pattern in test_json_patterns
+                            ):
                                 item.unlink(missing_ok=True)
                                 # Don't log cleanup operations - focus on test results
                         # Clean up .last_cache_cleanup file
@@ -1641,7 +1886,7 @@ def prune_test_artifacts_before_and_after_session():
                             # Don't log cleanup operations - focus on test results
                 except Exception:
                     pass
-        
+
         # Clear flags directory
         flags_dir = data_dir / "flags"
         if flags_dir.exists():
@@ -1654,7 +1899,7 @@ def prune_test_artifacts_before_and_after_session():
                 except Exception:
                     pass
             # Don't log cleanup operations - focus on test results (failures, warnings, skips)
-        
+
         # Clear tmp directory
         tmp_dir = data_dir / "tmp"
         if tmp_dir.exists():
@@ -1667,7 +1912,7 @@ def prune_test_artifacts_before_and_after_session():
                 except Exception:
                     pass
             # Don't log cleanup operations - they're not interesting for test results
-        
+
         # Clear requests directory
         requests_dir = data_dir / "requests"
         if requests_dir.exists():
@@ -1680,7 +1925,7 @@ def prune_test_artifacts_before_and_after_session():
                 except Exception:
                     pass
             # Don't log cleanup operations - focus on test results (failures, warnings, skips)
-        
+
         # Clean up conversation_states.json
         conversation_states_file = data_dir / "conversation_states.json"
         if conversation_states_file.exists():
@@ -1692,22 +1937,25 @@ def prune_test_artifacts_before_and_after_session():
     except Exception:
         pass
 
+
 @pytest.fixture(scope="session", autouse=True)
 def log_lifecycle_maintenance():
     """Perform log lifecycle maintenance at session start."""
     # Perform lifecycle maintenance (archive old backups, cleanup old archives)
     log_lifecycle_manager.perform_lifecycle_maintenance()
-    
+
     yield
+
 
 @pytest.fixture(scope="session", autouse=True)
 def session_log_rotation_check():
     """Perform final log cleanup at session end.
-    
+
     NOTE: Log rotation only happens at session START in setup_consolidated_test_logging.
     This ensures rotation only occurs between test runs, never during an active session.
     """
     yield
+
 
 @pytest.fixture(scope="session", autouse=True)
 def isolate_logging():
@@ -1715,46 +1963,55 @@ def isolate_logging():
     # Store original handlers
     root_logger = logging.getLogger()
     original_root_handlers = root_logger.handlers[:]
-    
+
     main_logger = logging.getLogger("mhm")
     original_main_handlers = main_logger.handlers[:]
-    
+
     # Remove all handlers from main loggers to prevent test logs from going to app.log
     for handler in root_logger.handlers[:]:
-        if isinstance(handler, logging.StreamHandler) and handler.stream in (sys.stdout, sys.stderr):
+        if isinstance(handler, logging.StreamHandler) and handler.stream in (
+            sys.stdout,
+            sys.stderr,
+        ):
             root_logger.removeHandler(handler)
             continue
         handler.close()
         root_logger.removeHandler(handler)
-    
+
     for handler in main_logger.handlers[:]:
-        if isinstance(handler, logging.StreamHandler) and handler.stream in (sys.stdout, sys.stderr):
+        if isinstance(handler, logging.StreamHandler) and handler.stream in (
+            sys.stdout,
+            sys.stderr,
+        ):
             main_logger.removeHandler(handler)
             continue
         handler.close()
         main_logger.removeHandler(handler)
-    
+
     # Set propagate to False for main loggers to prevent test logs from bubbling up
     root_logger.propagate = False
     main_logger.propagate = False
-    
+
     # Reduce verbosity - this is expected behavior, no need to log it
-    test_logger.debug("Logging isolation activated - test logs will not appear in main app.log")
-    
+    test_logger.debug(
+        "Logging isolation activated - test logs will not appear in main app.log"
+    )
+
     yield
-    
+
     # Restore original handlers after tests complete
     for handler in original_root_handlers:
         root_logger.addHandler(handler)
-    
+
     for handler in original_main_handlers:
         main_logger.addHandler(handler)
-    
+
     # Restore propagate settings
     root_logger.propagate = True
     main_logger.propagate = True
-    
+
     test_logger.info("Logging isolation deactivated - main app logging restored")
+
 
 # Test helper: wait until a predicate returns True within a timeout
 def wait_until(predicate, timeout_seconds: float = 1.0, poll_seconds: float = 0.005):
@@ -1763,6 +2020,7 @@ def wait_until(predicate, timeout_seconds: float = 1.0, poll_seconds: float = 0.
     Returns True if predicate succeeds within timeout, otherwise False.
     """
     import time as _time
+
     deadline = _time.perf_counter() + timeout_seconds
     while _time.perf_counter() < deadline:
         try:
@@ -1773,6 +2031,7 @@ def wait_until(predicate, timeout_seconds: float = 1.0, poll_seconds: float = 0.
             pass
         _time.sleep(poll_seconds)
     return False
+
 
 # Test helper: materialize minimal user structures via public APIs
 def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
@@ -1791,55 +2050,60 @@ def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
     from core.user_data_handlers import get_user_id_by_identifier
     from core.config import get_user_data_dir
     import os
-    
+
     # Resolve UUID if user_id is an internal username (race condition fix)
     # get_user_data_dir uses user_id directly, so we need to resolve UUIDs first
     resolved_user_id = user_id
     if not os.path.exists(get_user_data_dir(user_id)):
         # Try to resolve UUID from internal username
         from tests.test_utilities import TestUserFactory as TUF
-        uuid_resolved = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, os.getenv('TEST_DATA_DIR', 'tests/data'))
+
+        uuid_resolved = get_user_id_by_identifier(
+            user_id
+        ) or TUF.get_test_user_id_by_internal_username(
+            user_id, os.getenv("TEST_DATA_DIR", "tests/data")
+        )
         if uuid_resolved and uuid_resolved != user_id:
             resolved_user_id = uuid_resolved
             # Verify resolved UUID directory exists
             if os.path.exists(get_user_data_dir(resolved_user_id)):
                 user_id = resolved_user_id
-    
+
     # Ensure user directory exists before proceeding (race condition fix)
     user_dir = get_user_data_dir(user_id)
     if not os.path.exists(user_dir):
         os.makedirs(user_dir, exist_ok=True)
 
     # Load current state
-    current_all = get_user_data(user_id, 'all') or {}
-    current_account = current_all.get('account') or {}
-    current_prefs = current_all.get('preferences') or {}
-    current_schedules = current_all.get('schedules') or {}
+    current_all = get_user_data(user_id, "all") or {}
+    current_account = current_all.get("account") or {}
+    current_prefs = current_all.get("preferences") or {}
+    current_schedules = current_all.get("schedules") or {}
 
     # Account: preserve existing values; set sensible defaults where missing
-    merged_features = dict(current_account.get('features') or {})
-    if 'automated_messages' not in merged_features:
-        merged_features['automated_messages'] = 'enabled'
-    if 'task_management' not in merged_features:
-        merged_features['task_management'] = 'disabled'
-    if 'checkins' not in merged_features:
-        merged_features['checkins'] = 'disabled'
+    merged_features = dict(current_account.get("features") or {})
+    if "automated_messages" not in merged_features:
+        merged_features["automated_messages"] = "enabled"
+    if "task_management" not in merged_features:
+        merged_features["task_management"] = "disabled"
+    if "checkins" not in merged_features:
+        merged_features["checkins"] = "disabled"
 
     account_updates = {
-        'user_id': current_account.get('user_id') or user_id,
-        'internal_username': current_account.get('internal_username') or user_id,
-        'account_status': current_account.get('account_status') or 'active',
-        'features': merged_features,
+        "user_id": current_account.get("user_id") or user_id,
+        "internal_username": current_account.get("internal_username") or user_id,
+        "account_status": current_account.get("account_status") or "active",
+        "features": merged_features,
     }
     update_user_account(user_id, account_updates)
 
     # Preferences: add missing keys only
     # Always ensure preferences exist (even if empty) to prevent get_user_data returning empty dict
     prefs_updates = {}
-    if not current_prefs.get('categories'):
-        prefs_updates['categories'] = ['motivational']
-    if not current_prefs.get('channel'):
-        prefs_updates['channel'] = {"type": "discord", "contact": "test#1234"}
+    if not current_prefs.get("categories"):
+        prefs_updates["categories"] = ["motivational"]
+    if not current_prefs.get("channel"):
+        prefs_updates["channel"] = {"type": "discord", "contact": "test#1234"}
     # Always update preferences to ensure file exists (race condition fix)
     if prefs_updates or not current_prefs:
         update_user_preferences(user_id, prefs_updates)
@@ -1847,26 +2111,27 @@ def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
     # Schedules: ensure schedules exist for all categories in preferences; merge into existing
     schedules_updates = current_schedules if isinstance(current_schedules, dict) else {}
     # Get categories from preferences (or default to motivational)
-    categories = current_prefs.get('categories', ['motivational'])
+    categories = current_prefs.get("categories", ["motivational"])
     if not categories:
-        categories = ['motivational']
-    
+        categories = ["motivational"]
+
     # Ensure schedules exist for all categories
     for category in categories:
-        schedules_updates.setdefault(category, {}).setdefault('periods', {})
+        schedules_updates.setdefault(category, {}).setdefault("periods", {})
         # Add a default morning period if none exists
-        if 'morning' not in schedules_updates[category]['periods']:
-            schedules_updates[category]['periods']['morning'] = {
-                'active': True,
-                'days': ['monday','tuesday','wednesday','thursday','friday'],
-                'start_time': '09:00',
-                'end_time': '12:00',
+        if "morning" not in schedules_updates[category]["periods"]:
+            schedules_updates[category]["periods"]["morning"] = {
+                "active": True,
+                "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                "start_time": "09:00",
+                "end_time": "12:00",
             }
     update_user_schedules(user_id, schedules_updates)
 
     # Ensure context exists
-    get_user_data(user_id, 'context')
-    return get_user_data(user_id, 'all')
+    get_user_data(user_id, "context")
+    return get_user_data(user_id, "all")
+
 
 @pytest.fixture(scope="session")
 def test_data_dir():
@@ -1874,20 +2139,31 @@ def test_data_dir():
     test_logger.info(f"Using test data directory: {tests_data_dir}")
     return str(tests_data_dir)
 
+
 @pytest.fixture(scope="function", autouse=True)
 def mock_config(test_data_dir):
     """Mock configuration for testing with proper test data directory."""
     test_logger.debug(f"Setting up mock config with test data dir: {test_data_dir}")
     import core.config
-    
+
     # Always patch to ensure consistent test environment
     # This ensures that even if patch_user_data_dirs is not active, we have a consistent config
-    default_categories = '["motivational", "health", "quotes_to_ponder", "word_of_the_day", "fun_facts"]'
+    default_categories = (
+        '["motivational", "health", "quotes_to_ponder", "word_of_the_day", "fun_facts"]'
+    )
 
-    with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
-         patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')), \
-         patch.object(core.config, "DEFAULT_MESSAGES_DIR_PATH", os.path.join(project_root, 'resources', 'default_messages')), \
-        patch.dict(os.environ, {"CATEGORIES": default_categories}, clear=False):
+    with (
+        patch.object(core.config, "BASE_DATA_DIR", test_data_dir),
+        patch.object(
+            core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, "users")
+        ),
+        patch.object(
+            core.config,
+            "DEFAULT_MESSAGES_DIR_PATH",
+            os.path.join(project_root, "resources", "default_messages"),
+        ),
+        patch.dict(os.environ, {"CATEGORIES": default_categories}, clear=False),
+    ):
         yield
 
 
@@ -1905,44 +2181,50 @@ def ensure_mock_config_applied(mock_config, test_data_dir):
 def clear_user_caches_between_tests():
     """Ensure user data caches don't leak between tests."""
     from core.user_data_handlers import clear_user_caches
+
     clear_user_caches()
     yield
     clear_user_caches()
+
 
 @pytest.fixture(scope="session", autouse=True)
 def register_user_data_loaders_session():
     """Ensure core user data loaders are present without overwriting metadata."""
     import core.user_data_handlers as um
+
     # Set only missing loaders to avoid clobbering metadata
     for key, func, ftype in [
-        ('account', um._get_user_data__load_account, 'account'),
-        ('preferences', um._get_user_data__load_preferences, 'preferences'),
-        ('context', um._get_user_data__load_context, 'user_context'),
-        ('schedules', um._get_user_data__load_schedules, 'schedules'),
+        ("account", um._get_user_data__load_account, "account"),
+        ("preferences", um._get_user_data__load_preferences, "preferences"),
+        ("context", um._get_user_data__load_context, "user_context"),
+        ("schedules", um._get_user_data__load_schedules, "schedules"),
     ]:
         try:
             entry = um.USER_DATA_LOADERS.get(key)
-            if entry and entry.get('loader') is None:
+            if entry and entry.get("loader") is None:
                 um.register_data_loader(key, func, ftype)
         except Exception:
             # As a fallback, if the dict is missing, register minimally
             um.register_data_loader(key, func, ftype)
     yield
 
+
 @pytest.fixture(scope="function", autouse=True)
 def fix_user_data_loaders():
     """Ensure loaders stay correctly registered for each test without overwriting metadata."""
     import core.user_data_handlers as um
+
     for key, func, ftype in [
-        ('account', um._get_user_data__load_account, 'account'),
-        ('preferences', um._get_user_data__load_preferences, 'preferences'),
-        ('context', um._get_user_data__load_context, 'user_context'),
-        ('schedules', um._get_user_data__load_schedules, 'schedules'),
+        ("account", um._get_user_data__load_account, "account"),
+        ("preferences", um._get_user_data__load_preferences, "preferences"),
+        ("context", um._get_user_data__load_context, "user_context"),
+        ("schedules", um._get_user_data__load_schedules, "schedules"),
     ]:
         entry = um.USER_DATA_LOADERS.get(key)
-        if entry and entry.get('loader') is None:
+        if entry and entry.get("loader") is None:
             um.register_data_loader(key, func, ftype)
     yield
+
 
 @pytest.fixture(scope="session", autouse=True)
 def shim_get_user_data_to_invoke_loaders():
@@ -1954,6 +2236,7 @@ def shim_get_user_data_to_invoke_loaders():
     wired correctly, but guards against import-order timing in tests.
     """
     import core.user_data_handlers as um
+
     # Safety net: always provide structural dicts during tests regardless of loader state
     # Also patch the public helpers module used by many tests
     try:
@@ -1962,9 +2245,13 @@ def shim_get_user_data_to_invoke_loaders():
         udh = None
 
     # Prefer core.user_data_handlers.get_user_data; fall back to handlers if missing
-    original_get_user_data = getattr(um, 'get_user_data', None)
-    if original_get_user_data is None and udh is not None and hasattr(udh, 'get_user_data'):
-        original_get_user_data = getattr(udh, 'get_user_data', None)
+    original_get_user_data = getattr(um, "get_user_data", None)
+    if (
+        original_get_user_data is None
+        and udh is not None
+        and hasattr(udh, "get_user_data")
+    ):
+        original_get_user_data = getattr(udh, "get_user_data", None)
     if original_get_user_data is None:
         yield
         return
@@ -1974,14 +2261,14 @@ def shim_get_user_data_to_invoke_loaders():
             entry = um.USER_DATA_LOADERS.get(key)
             loader = None
             if entry:
-                loader = entry.get('loader')
+                loader = entry.get("loader")
             # If loader is missing, attempt to self-heal by (re)registering
             if loader is None:
                 key_to_func_and_file = {
-                    'account': (um._get_user_data__load_account, 'account'),
-                    'preferences': (um._get_user_data__load_preferences, 'preferences'),
-                    'context': (um._get_user_data__load_context, 'user_context'),
-                    'schedules': (um._get_user_data__load_schedules, 'schedules'),
+                    "account": (um._get_user_data__load_account, "account"),
+                    "preferences": (um._get_user_data__load_preferences, "preferences"),
+                    "context": (um._get_user_data__load_context, "user_context"),
+                    "schedules": (um._get_user_data__load_schedules, "schedules"),
                 }
                 func_file = key_to_func_and_file.get(key)
                 if func_file is None:
@@ -1990,7 +2277,7 @@ def shim_get_user_data_to_invoke_loaders():
                 try:
                     um.register_data_loader(key, func, file_type)
                     entry = um.USER_DATA_LOADERS.get(key)
-                    loader = entry.get('loader') if entry else None
+                    loader = entry.get("loader") if entry else None
                 except Exception:
                     loader = func
             if loader is None:
@@ -2014,10 +2301,10 @@ def shim_get_user_data_to_invoke_loaders():
         except Exception:
             user_dir = os.path.join(_cfg.USER_INFO_DIR_PATH, user_id)
         filename_map = {
-            'account': 'account.json',
-            'preferences': 'preferences.json',
-            'context': 'user_context.json',
-            'schedules': 'schedules.json',
+            "account": "account.json",
+            "preferences": "preferences.json",
+            "context": "user_context.json",
+            "schedules": "schedules.json",
         }
         filename = filename_map.get(key)
         if not filename:
@@ -2026,38 +2313,45 @@ def shim_get_user_data_to_invoke_loaders():
         if not os.path.exists(file_path):
             return None
         try:
-            with open(file_path, 'r', encoding='utf-8') as fh:
+            with open(file_path, "r", encoding="utf-8") as fh:
                 return json.load(fh)
         except Exception:
             return None
 
-    def wrapped_get_user_data(user_id: str, data_type: str = 'all', *args, **kwargs):
+    def wrapped_get_user_data(user_id: str, data_type: str = "all", *args, **kwargs):
         auto_create = True
         try:
-            auto_create = bool(kwargs.get('auto_create', True))
+            auto_create = bool(kwargs.get("auto_create", True))
         except Exception:
             auto_create = True
         result = original_get_user_data(user_id, data_type, *args, **kwargs)
         try:
             # If asking for all, ensure a dict with expected keys
-            if data_type == 'all':
+            if data_type == "all":
                 if not isinstance(result, dict):
-                    test_logger.debug(f"shim_get_user_data: Coercing non-dict 'all' result for {user_id} -> assembling structure")
+                    test_logger.debug(
+                        f"shim_get_user_data: Coercing non-dict 'all' result for {user_id} -> assembling structure"
+                    )
                     result = {} if result is None else {"value": result}
                 # Respect auto_create and only assemble when user dir exists
                 should_assemble = auto_create
                 if should_assemble:
                     try:
                         from core.config import get_user_data_dir as _get_user_data_dir
+
                         if not os.path.exists(_get_user_data_dir(user_id)):
                             should_assemble = False
                     except Exception:
                         should_assemble = False
                 if should_assemble:
-                    for key in ('account', 'preferences', 'context', 'schedules'):
+                    for key in ("account", "preferences", "context", "schedules"):
                         if key not in result or not result.get(key):
-                            test_logger.debug(f"shim_get_user_data: '{key}' missing/empty for {user_id}; invoking loader")
-                            loaded = _load_single_type(user_id, key, auto_create=auto_create)
+                            test_logger.debug(
+                                f"shim_get_user_data: '{key}' missing/empty for {user_id}; invoking loader"
+                            )
+                            loaded = _load_single_type(
+                                user_id, key, auto_create=auto_create
+                            )
                             if loaded is not None:
                                 result[key] = loaded
                             else:
@@ -2066,7 +2360,9 @@ def shim_get_user_data_to_invoke_loaders():
                                 if fb is not None:
                                     result[key] = fb
                                 else:
-                                    test_logger.warning(f"shim_get_user_data: loader and file fallback could not provide '{key}' for {user_id}")
+                                    test_logger.warning(
+                                        f"shim_get_user_data: loader and file fallback could not provide '{key}' for {user_id}"
+                                    )
                 return result
 
             # Specific type request: ensure structure present
@@ -2080,12 +2376,15 @@ def shim_get_user_data_to_invoke_loaders():
                 if should_assemble:
                     try:
                         from core.config import get_user_data_dir as _get_user_data_dir
+
                         if not os.path.exists(_get_user_data_dir(user_id)):
                             should_assemble = False
                     except Exception:
                         should_assemble = False
                 if should_assemble:
-                    test_logger.debug(f"shim_get_user_data: '{key}' request returned empty for {user_id}; invoking loader")
+                    test_logger.debug(
+                        f"shim_get_user_data: '{key}' request returned empty for {user_id}; invoking loader"
+                    )
                     loaded = _load_single_type(user_id, key, auto_create=auto_create)
                     if loaded is not None:
                         return {key: loaded}
@@ -2094,29 +2393,31 @@ def shim_get_user_data_to_invoke_loaders():
                         return {key: fb}
                 return result
         except Exception:
-            test_logger.exception("shim_get_user_data: unexpected error while assembling result")
+            test_logger.exception(
+                "shim_get_user_data: unexpected error while assembling result"
+            )
             return result
 
         return result
 
     # Patch in place for the duration of the test
     # Patch both modules so all call sites are covered
-    setattr(um, 'get_user_data', wrapped_get_user_data)
+    setattr(um, "get_user_data", wrapped_get_user_data)
     original_handlers_get = None
-    if udh is not None and hasattr(udh, 'get_user_data'):
+    if udh is not None and hasattr(udh, "get_user_data"):
         original_handlers_get = udh.get_user_data
-        setattr(udh, 'get_user_data', wrapped_get_user_data)
+        setattr(udh, "get_user_data", wrapped_get_user_data)
     try:
         yield
     finally:
         # Restore originals at end of session
         try:
-            setattr(um, 'get_user_data', original_get_user_data)
+            setattr(um, "get_user_data", original_get_user_data)
         except Exception:
             pass
         if udh is not None and original_handlers_get is not None:
             try:
-                setattr(udh, 'get_user_data', original_handlers_get)
+                setattr(udh, "get_user_data", original_handlers_get)
             except Exception:
                 pass
 
@@ -2126,11 +2427,12 @@ def verify_required_loaders_present():
     """Fail fast if required user-data loaders are missing at session start."""
     try:
         import core.user_data_handlers as um
-        required = ('account', 'preferences', 'context', 'schedules')
+
+        required = ("account", "preferences", "context", "schedules")
         missing = []
         for k in required:
             entry = um.USER_DATA_LOADERS.get(k)
-            if not (isinstance(entry, dict) and entry.get('loader')):
+            if not (isinstance(entry, dict) and entry.get("loader")):
                 missing.append(k)
         if missing:
             raise AssertionError(
@@ -2140,6 +2442,7 @@ def verify_required_loaders_present():
     except Exception as e:
         raise AssertionError(f"Loader self-check failed: {e}")
 
+
 @pytest.fixture(scope="function", autouse=True)
 def env_guard_and_restore(monkeypatch):
     """Snapshot and restore critical environment variables to prevent test leakage.
@@ -2147,11 +2450,26 @@ def env_guard_and_restore(monkeypatch):
     Restores after each test to ensure environment stability across the suite.
     """
     critical_keys = [
-        'MHM_TESTING', 'CATEGORIES', 'LOGS_DIR', 'LOG_BACKUP_DIR', 'LOG_ARCHIVE_DIR',
-        'LOG_MAIN_FILE', 'LOG_DISCORD_FILE', 'LOG_AI_FILE', 'LOG_USER_ACTIVITY_FILE',
-        'LOG_ERRORS_FILE', 'LOG_COMMUNICATION_MANAGER_FILE', 'LOG_EMAIL_FILE',
-        'LOG_UI_FILE', 'LOG_FILE_OPS_FILE', 'LOG_SCHEDULER_FILE',
-        'BASE_DATA_DIR', 'USER_INFO_DIR_PATH', 'TEMP', 'TMP', 'TMPDIR'
+        "MHM_TESTING",
+        "CATEGORIES",
+        "LOGS_DIR",
+        "LOG_BACKUP_DIR",
+        "LOG_ARCHIVE_DIR",
+        "LOG_MAIN_FILE",
+        "LOG_DISCORD_FILE",
+        "LOG_AI_FILE",
+        "LOG_USER_ACTIVITY_FILE",
+        "LOG_ERRORS_FILE",
+        "LOG_COMMUNICATION_MANAGER_FILE",
+        "LOG_EMAIL_FILE",
+        "LOG_UI_FILE",
+        "LOG_FILE_OPS_FILE",
+        "LOG_SCHEDULER_FILE",
+        "BASE_DATA_DIR",
+        "USER_INFO_DIR_PATH",
+        "TEMP",
+        "TMP",
+        "TMPDIR",
     ]
     snapshot = {k: os.environ.get(k) for k in critical_keys}
     try:
@@ -2164,14 +2482,16 @@ def env_guard_and_restore(monkeypatch):
             else:
                 monkeypatch.setenv(k, v)
 
+
 @pytest.fixture(scope="session", autouse=True)
 def ensure_tmp_base_directory():
     """Ensure base tmp directory exists at session start (optimization: create once)."""
     # Use the session-scoped test_data_dir directly to avoid scope mismatch
     # with function-scoped test_data_dir fixtures in some test files
-    base_tmp = os.path.join(tests_data_dir, 'tmp')
+    base_tmp = os.path.join(tests_data_dir, "tmp")
     os.makedirs(base_tmp, exist_ok=True)
     yield
+
 
 @pytest.fixture(scope="function")
 def test_path_factory(test_data_dir, ensure_tmp_base_directory):
@@ -2181,11 +2501,13 @@ def test_path_factory(test_data_dir, ensure_tmp_base_directory):
     Optimized: base tmp directory is created once at session start.
     """
     import uuid
-    base_tmp = os.path.join(test_data_dir, 'tmp')
+
+    base_tmp = os.path.join(test_data_dir, "tmp")
     # Base directory already exists from session fixture, just create subdirectory
     path = os.path.join(base_tmp, uuid.uuid4().hex)
     os.makedirs(path, exist_ok=True)
     return path
+
 
 @pytest.fixture(scope="function")
 def ensure_user_materialized(test_data_dir):
@@ -2199,44 +2521,56 @@ def ensure_user_materialized(test_data_dir):
     import os as _os
 
     def _helper(user_id: str):
-        users_dir = _Path(test_data_dir) / 'users'
+        users_dir = _Path(test_data_dir) / "users"
         user_dir = users_dir / user_id
         if not user_dir.exists():
             try:
                 from tests.test_utilities import TestUserFactory
-                TestUserFactory.create_basic_user(user_id, test_data_dir=str(test_data_dir))
+
+                TestUserFactory.create_basic_user(
+                    user_id, test_data_dir=str(test_data_dir)
+                )
             except Exception:
                 user_dir.mkdir(parents=True, exist_ok=True)
         # Materialize minimal files if missing
-        acct_path = user_dir / 'account.json'
-        prefs_path = user_dir / 'preferences.json'
-        ctx_path = user_dir / 'user_context.json'
+        acct_path = user_dir / "account.json"
+        prefs_path = user_dir / "preferences.json"
+        ctx_path = user_dir / "user_context.json"
         if not acct_path.exists():
-            _json.dump({
-                "user_id": user_id,
-                "internal_username": user_id,
-                "account_status": "active",
-                "features": {
-                    "automated_messages": "disabled",
-                    "task_management": "disabled",
-                    "checkins": "disabled"
-                }
-            }, open(acct_path, 'w', encoding='utf-8'), indent=2)
+            _json.dump(
+                {
+                    "user_id": user_id,
+                    "internal_username": user_id,
+                    "account_status": "active",
+                    "features": {
+                        "automated_messages": "disabled",
+                        "task_management": "disabled",
+                        "checkins": "disabled",
+                    },
+                },
+                open(acct_path, "w", encoding="utf-8"),
+                indent=2,
+            )
         if not prefs_path.exists():
-            _json.dump({
-                "channel": {"type": "email"},
-                "checkin_settings": {"enabled": False},
-                "task_settings": {"enabled": False}
-            }, open(prefs_path, 'w', encoding='utf-8'), indent=2)
+            _json.dump(
+                {
+                    "channel": {"type": "email"},
+                    "checkin_settings": {"enabled": False},
+                    "task_settings": {"enabled": False},
+                },
+                open(prefs_path, "w", encoding="utf-8"),
+                indent=2,
+            )
         if not ctx_path.exists():
-            _json.dump({
-                "preferred_name": user_id,
-                "pronouns": [],
-                "custom_fields": {}
-            }, open(ctx_path, 'w', encoding='utf-8'), indent=2)
+            _json.dump(
+                {"preferred_name": user_id, "pronouns": [], "custom_fields": {}},
+                open(ctx_path, "w", encoding="utf-8"),
+                indent=2,
+            )
         return str(user_dir)
 
     return _helper
+
 
 @pytest.fixture(scope="function", autouse=True)
 def path_sanitizer():
@@ -2245,6 +2579,7 @@ def path_sanitizer():
     Fails fast if the active temp directory is outside tests/data.
     """
     import tempfile
+
     # Always enforce repository-scoped tests/data as the allowed root
     allowed_root = os.path.abspath(str(tests_data_dir))
     # Validate Python's temp resolution points to tests/data
@@ -2265,11 +2600,15 @@ def enforce_user_dir_locations():
     Cleans stray dirs to keep workspace tidy before failing.
     """
     base = tests_data_dir
-    users_dir = base / 'users'
-    tmp_dir = base / 'tmp'
+    users_dir = base / "users"
+    tmp_dir = base / "tmp"
     try:
         pre_top = set(x.name for x in base.iterdir() if x.is_dir())
-        pre_tmp_children = set(x.name for x in (tmp_dir.iterdir() if tmp_dir.exists() else [] ) if x.is_dir())
+        pre_tmp_children = set(
+            x.name
+            for x in (tmp_dir.iterdir() if tmp_dir.exists() else [])
+            if x.is_dir()
+        )
     except Exception:
         pre_top, pre_tmp_children = set(), set()
 
@@ -2280,7 +2619,11 @@ def enforce_user_dir_locations():
         for entry in base.iterdir():
             if not entry.is_dir():
                 continue
-            if entry.name.startswith('test-user') and entry.parent == base and entry != users_dir:
+            if (
+                entry.name.startswith("test-user")
+                and entry.parent == base
+                and entry != users_dir
+            ):
                 try:
                     shutil.rmtree(entry, ignore_errors=True)
                 finally:
@@ -2301,13 +2644,13 @@ def enforce_user_dir_locations():
                 # Heuristics: tmp dir is a misplaced user dir if it has user-signature files
                 # or looks like a test-user name
                 looks_like_user = (
-                    child.name.startswith('test-user') or
-                    (child / 'account.json').exists() or
-                    (child / 'preferences.json').exists() or
-                    (child / 'user_context.json').exists() or
-                    (child / 'checkins.json').exists() or
-                    (child / 'schedules.json').exists() or
-                    (child / 'messages').is_dir()
+                    child.name.startswith("test-user")
+                    or (child / "account.json").exists()
+                    or (child / "preferences.json").exists()
+                    or (child / "user_context.json").exists()
+                    or (child / "checkins.json").exists()
+                    or (child / "schedules.json").exists()
+                    or (child / "messages").is_dir()
                 )
                 if looks_like_user:
                     try:
@@ -2326,7 +2669,7 @@ def cleanup_tmp_at_session_end():
     """Clear tests/data/tmp contents at session end to keep the workspace tidy."""
     yield
     try:
-        tmp_dir = tests_data_dir / 'tmp'
+        tmp_dir = tests_data_dir / "tmp"
         if tmp_dir.exists():
             for child in tmp_dir.iterdir():
                 if child.is_dir():
@@ -2339,10 +2682,12 @@ def cleanup_tmp_at_session_end():
     except Exception:
         pass
 
+
 @pytest.fixture(scope="session", autouse=True)
 def force_test_data_directory():
     """Route all system temp usage into tests/data for the entire session."""
     import tempfile
+
     root = str(tests_data_dir)
     # Set common env vars so any native/library lookups resolve under tests/data
     os.environ["TMPDIR"] = root
@@ -2356,21 +2701,22 @@ def force_test_data_directory():
     finally:
         tempfile.tempdir = original_tempdir
 
+
 @pytest.fixture(scope="function")
 def mock_user_data(mock_config, test_data_dir, request):
     """Create mock user data for testing with unique user ID for each test."""
     import uuid
     import core.config
-    
+
     # Generate unique user ID for each test to prevent interference
     user_id = f"test-user-{uuid.uuid4().hex[:8]}"
     user_dir = os.path.join(test_data_dir, "users", user_id)
     # Ensure parent directory exists first (race condition fix for parallel execution)
     os.makedirs(os.path.dirname(user_dir), exist_ok=True)
     os.makedirs(user_dir, exist_ok=True)
-    
+
     test_logger.debug(f"Creating mock user data for user: {user_id}")
-    
+
     # Create mock account.json with current timestamp
     current_time = datetime.now().isoformat() + "Z"
     account_data = {
@@ -2386,32 +2732,30 @@ def mock_user_data(mock_config, test_data_dir, request):
         "features": {
             "automated_messages": "disabled",
             "checkins": "disabled",
-            "task_management": "disabled"
-        }
+            "task_management": "disabled",
+        },
     }
-    
+
     # Create mock preferences.json - categories only included if automated_messages enabled
     preferences_data = {
-        "channel": {
-            "type": "email"
-        },
+        "channel": {"type": "email"},
         "checkin_settings": {
             "enabled": False,
             "frequency": "daily",
             "time": "09:00",
-            "categories": ["mood", "energy", "sleep"]
+            "categories": ["mood", "energy", "sleep"],
         },
         "task_settings": {
             "enabled": False,
             "reminder_frequency": "daily",
-            "reminder_time": "10:00"
-        }
+            "reminder_time": "10:00",
+        },
     }
-    
+
     # Only add categories if automated_messages is enabled
     if account_data["features"]["automated_messages"] == "enabled":
         preferences_data["categories"] = ["motivational", "health", "quotes_to_ponder"]
-    
+
     # Create mock user_context.json
     context_data = {
         "preferred_name": f"Test User {user_id[-4:]}",
@@ -2422,7 +2766,7 @@ def mock_user_data(mock_config, test_data_dir, request):
             "medications_treatments": [],
             "reminders_needed": [],
             "gender_identity": "",
-            "accessibility_needs": []
+            "accessibility_needs": [],
         },
         "interests": ["reading", "music"],
         "goals": ["Improve mental health", "Stay organized"],
@@ -2430,66 +2774,53 @@ def mock_user_data(mock_config, test_data_dir, request):
         "activities_for_encouragement": ["exercise", "socializing"],
         "notes_for_ai": ["Prefers gentle encouragement", "Responds well to structure"],
         "created_at": current_time,
-        "last_updated": current_time
-    }
-    
-    # Create mock checkins.json
-    checkins_data = {
-        "checkins": [],
-        "last_checkin_date": None,
-        "streak_count": 0
+        "last_updated": current_time,
     }
 
+    # Create mock checkins.json
+    checkins_data = {"checkins": [], "last_checkin_date": None, "streak_count": 0}
+
     # Create minimal schedules.json so schedule reads/writes have a base file
-    schedules_data = {
-        "categories": {}
-    }
-    
+    schedules_data = {"categories": {}}
+
     # Create mock chat_interactions.json
-    chat_data = {
-        "interactions": [],
-        "total_interactions": 0,
-        "last_interaction": None
-    }
-    
+    chat_data = {"interactions": [], "total_interactions": 0, "last_interaction": None}
+
     # Create messages directory and sent_messages.json only if automated_messages enabled
     messages_dir = os.path.join(user_dir, "messages")
     if account_data["features"]["automated_messages"] == "enabled":
         os.makedirs(messages_dir, exist_ok=True)
-        
-        sent_messages_data = {
-            "messages": [],
-            "total_sent": 0,
-            "last_sent": None
-        }
-        
+
+        sent_messages_data = {"messages": [], "total_sent": 0, "last_sent": None}
+
         with open(os.path.join(messages_dir, "sent_messages.json"), "w") as f:
             json.dump(sent_messages_data, f, indent=2)
     else:
         sent_messages_data = None
-    
+
     # Save all mock data
     with open(os.path.join(user_dir, "account.json"), "w") as f:
         json.dump(account_data, f, indent=2)
-    
+
     with open(os.path.join(user_dir, "preferences.json"), "w") as f:
         json.dump(preferences_data, f, indent=2)
-    
+
     with open(os.path.join(user_dir, "user_context.json"), "w") as f:
         json.dump(context_data, f, indent=2)
-    
+
     with open(os.path.join(user_dir, "checkins.json"), "w") as f:
         json.dump(checkins_data, f, indent=2)
-    
+
     with open(os.path.join(user_dir, "chat_interactions.json"), "w") as f:
         json.dump(chat_data, f, indent=2)
     with open(os.path.join(user_dir, "schedules.json"), "w") as f:
         json.dump(schedules_data, f, indent=2)
-    
+
     # Ensure user is discoverable via identifier lookups
     # Use file locking-aware update and retry if needed
     try:
         from core.user_data_manager import update_user_index
+
         # Retry update_user_index in case of race conditions in parallel execution
         max_retries = 3
         for attempt in range(max_retries):
@@ -2498,18 +2829,21 @@ def mock_user_data(mock_config, test_data_dir, request):
                 break
             if attempt < max_retries - 1:
                 import time
+
                 time.sleep(0.1)  # Brief delay before retry
         if not success:
-            test_logger.warning(f"Failed to update user index for {user_id} after {max_retries} attempts")
+            test_logger.warning(
+                f"Failed to update user index for {user_id} after {max_retries} attempts"
+            )
     except Exception as e:
         test_logger.warning(f"Error updating user index for {user_id}: {e}")
         # Don't fail the test, but log the issue
-    
+
     test_logger.debug(f"Created complete mock user data files in: {user_dir}")
-    
+
     # Store user_id for cleanup
     request.node.user_id = user_id
-    
+
     return {
         "user_id": user_id,
         "user_dir": user_dir,
@@ -2519,21 +2853,22 @@ def mock_user_data(mock_config, test_data_dir, request):
         "checkins_data": checkins_data,
         "schedules_data": schedules_data,
         "chat_data": chat_data,
-        "sent_messages_data": sent_messages_data
+        "sent_messages_data": sent_messages_data,
     }
+
 
 @pytest.fixture(scope="function")
 def mock_user_data_with_messages(test_data_dir, mock_config, request):
     """Create mock user data for testing with automated_messages enabled and categories."""
     import uuid
-    
+
     # Generate unique user ID for each test to prevent interference
     user_id = f"test-user-messages-{uuid.uuid4().hex[:8]}"
     user_dir = os.path.join(test_data_dir, "users", user_id)
     os.makedirs(user_dir, exist_ok=True)
-    
+
     test_logger.debug(f"Creating mock user data with messages for user: {user_id}")
-    
+
     # Create mock account.json with automated_messages enabled
     current_time = datetime.now().isoformat() + "Z"
     account_data = {
@@ -2549,29 +2884,27 @@ def mock_user_data_with_messages(test_data_dir, mock_config, request):
         "features": {
             "automated_messages": "enabled",
             "checkins": "disabled",
-            "task_management": "disabled"
-        }
+            "task_management": "disabled",
+        },
     }
-    
+
     # Create mock preferences.json with categories (automated_messages enabled)
     preferences_data = {
-        "channel": {
-            "type": "email"
-        },
+        "channel": {"type": "email"},
         "categories": ["motivational", "health", "quotes_to_ponder"],
         "checkin_settings": {
             "enabled": False,
             "frequency": "daily",
             "time": "09:00",
-            "categories": ["mood", "energy", "sleep"]
+            "categories": ["mood", "energy", "sleep"],
         },
         "task_settings": {
             "enabled": False,
             "reminder_frequency": "daily",
-            "reminder_time": "10:00"
-        }
+            "reminder_time": "10:00",
+        },
     }
-    
+
     # Create mock user_context.json
     context_data = {
         "preferred_name": f"Test User {user_id[-4:]}",
@@ -2582,7 +2915,7 @@ def mock_user_data_with_messages(test_data_dir, mock_config, request):
             "medications_treatments": [],
             "reminders_needed": [],
             "gender_identity": "",
-            "accessibility_needs": []
+            "accessibility_needs": [],
         },
         "interests": ["reading", "music"],
         "goals": ["Improve mental health", "Stay organized"],
@@ -2590,57 +2923,45 @@ def mock_user_data_with_messages(test_data_dir, mock_config, request):
         "activities_for_encouragement": ["exercise", "socializing"],
         "notes_for_ai": ["Prefers gentle encouragement", "Responds well to structure"],
         "created_at": current_time,
-        "last_updated": current_time
+        "last_updated": current_time,
     }
-    
+
     # Create mock checkins.json
-    checkins_data = {
-        "checkins": [],
-        "last_checkin_date": None,
-        "streak_count": 0
-    }
-    
+    checkins_data = {"checkins": [], "last_checkin_date": None, "streak_count": 0}
+
     # Create mock chat_interactions.json
-    chat_data = {
-        "interactions": [],
-        "total_interactions": 0,
-        "last_interaction": None
-    }
-    
+    chat_data = {"interactions": [], "total_interactions": 0, "last_interaction": None}
+
     # Create messages directory and sent_messages.json (automated_messages enabled)
     messages_dir = os.path.join(user_dir, "messages")
     os.makedirs(messages_dir, exist_ok=True)
-    
-    sent_messages_data = {
-        "messages": [],
-        "total_sent": 0,
-        "last_sent": None
-    }
-    
+
+    sent_messages_data = {"messages": [], "total_sent": 0, "last_sent": None}
+
     # Save all mock data
     with open(os.path.join(user_dir, "account.json"), "w") as f:
         json.dump(account_data, f, indent=2)
-    
+
     with open(os.path.join(user_dir, "preferences.json"), "w") as f:
         json.dump(preferences_data, f, indent=2)
-    
+
     with open(os.path.join(user_dir, "user_context.json"), "w") as f:
         json.dump(context_data, f, indent=2)
-    
+
     with open(os.path.join(user_dir, "checkins.json"), "w") as f:
         json.dump(checkins_data, f, indent=2)
-    
+
     with open(os.path.join(user_dir, "chat_interactions.json"), "w") as f:
         json.dump(chat_data, f, indent=2)
-    
+
     with open(os.path.join(messages_dir, "sent_messages.json"), "w") as f:
         json.dump(sent_messages_data, f, indent=2)
-    
+
     test_logger.debug(f"Created complete mock user data with messages in: {user_dir}")
-    
+
     # Store user_id for cleanup
     request.node.user_id = user_id
-    
+
     return {
         "user_id": user_id,
         "user_dir": user_dir,
@@ -2649,26 +2970,34 @@ def mock_user_data_with_messages(test_data_dir, mock_config, request):
         "context_data": context_data,
         "checkins_data": checkins_data,
         "chat_data": chat_data,
-        "sent_messages_data": sent_messages_data
+        "sent_messages_data": sent_messages_data,
     }
+
 
 @pytest.fixture(scope="function")
 def update_user_index_for_test(test_data_dir):
     """Helper fixture to update user index for test users."""
+
     def _update_index(user_id):
         try:
             from core.user_data_manager import update_user_index
+
             success = update_user_index(user_id)
             if success:
                 test_logger.debug(f"Updated user index for test user: {user_id}")
             else:
-                test_logger.warning(f"Failed to update user index for test user: {user_id}")
+                test_logger.warning(
+                    f"Failed to update user index for test user: {user_id}"
+                )
             return success
         except Exception as e:
-            test_logger.warning(f"Error updating user index for test user {user_id}: {e}")
+            test_logger.warning(
+                f"Error updating user index for test user {user_id}: {e}"
+            )
             return False
-    
+
     return _update_index
+
 
 # --- GLOBAL PATCH: Force all user data to tests/data/users/ for all tests ---
 # DISABLED: This fixture was causing test isolation issues
@@ -2680,25 +3009,27 @@ def update_user_index_for_test(test_data_dir):
 #     test_data_dir = os.path.abspath("tests/data")
 #     users_dir = os.path.join(test_data_dir, "users")
 #     os.makedirs(users_dir, exist_ok=True)
-#     
+#
 #     # Patch the module attributes directly
 #     with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
 #          patch.object(core.config, "USER_INFO_DIR_PATH", users_dir):
 #         yield
+
 
 # --- CLEANUP FIXTURE: Remove test users from tests/data/users/ after all tests (NEVER touches real user data) ---
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_test_users_after_session():
     """Remove test users from tests/data/users/ after all tests. NEVER touches real user data."""
     yield  # Run all tests first
-    
+
     # Clear all user caches to prevent state pollution between test runs
     try:
         from core.user_data_handlers import clear_user_caches
+
         clear_user_caches()  # Clear all caches
     except Exception:
         pass  # Ignore errors during cleanup
-    
+
     # Only clean up test directories, NEVER real user data
     for base_dir in ["tests/data/users"]:
         abs_dir = os.path.abspath(base_dir)
@@ -2706,9 +3037,11 @@ def cleanup_test_users_after_session():
             for item in os.listdir(abs_dir):
                 # Clean up ONLY test directories (test-*, test_*, testuser*)
                 # NEVER clean up UUID directories - these are real users!
-                if (item.startswith("test-") or 
-                    item.startswith("test_") or 
-                    item.startswith("testuser")):
+                if (
+                    item.startswith("test-")
+                    or item.startswith("test_")
+                    or item.startswith("testuser")
+                ):
                     item_path = os.path.join(abs_dir, item)
                     try:
                         if os.path.isdir(item_path):
@@ -2717,7 +3050,7 @@ def cleanup_test_users_after_session():
                             os.remove(item_path)
                     except Exception:
                         pass
-    
+
     # Additional cleanup: Remove ALL directories in tests/data/users/ for complete isolation
     # This ensures no test data persists between test runs
     test_users_dir = os.path.abspath("tests/data/users")
@@ -2731,7 +3064,7 @@ def cleanup_test_users_after_session():
                     os.remove(item_path)
             except Exception:
                 pass
-    
+
     # Also clean up the user index file to prevent stale entries
     test_data_dir = os.path.abspath("tests/data")
     user_index_file = os.path.join(test_data_dir, "user_index.json")
@@ -2740,7 +3073,7 @@ def cleanup_test_users_after_session():
             os.remove(user_index_file)
         except Exception:
             pass
-    
+
     # Clean up test request files from schedule editor tests
     requests_dir = os.path.join(test_data_dir, "requests")
     if os.path.exists(requests_dir):
@@ -2755,7 +3088,7 @@ def cleanup_test_users_after_session():
                         pass
         except Exception:
             pass
-    
+
     # Clean up test backup files to prevent clutter
     backup_dir = os.path.join(test_data_dir, "backups")
     if os.path.exists(backup_dir):
@@ -2771,7 +3104,7 @@ def cleanup_test_users_after_session():
                     pass
         except Exception:
             pass
-    
+
     # Clean up pytest-of-* and tmp* directories (pytest creates these when using tmpdir fixtures)
     # Matches: tmp_*, tmp* (but not just "tmp"), pytest-of-*
     # Use direct directory iteration instead of glob for Windows compatibility
@@ -2781,15 +3114,24 @@ def cleanup_test_users_after_session():
                 item_path = os.path.join(test_data_dir, item)
                 try:
                     if os.path.isdir(item_path):
-                        if (item.startswith("pytest-of-") or 
-                            item.startswith("tmp_") or
-                            (item.startswith("tmp") and item != "tmp")):
+                        if (
+                            item.startswith("pytest-of-")
+                            or item.startswith("tmp_")
+                            or (item.startswith("tmp") and item != "tmp")
+                        ):
                             shutil.rmtree(item_path, ignore_errors=True)
                     elif os.path.isfile(item_path):
                         # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking.json)
                         if item.endswith(".json"):
-                            test_json_patterns = ["test_", ".tmp_", "welcome_tracking.json"]
-                            if any(item.startswith(pattern) for pattern in test_json_patterns):
+                            test_json_patterns = [
+                                "test_",
+                                ".tmp_",
+                                "welcome_tracking.json",
+                            ]
+                            if any(
+                                item.startswith(pattern)
+                                for pattern in test_json_patterns
+                            ):
                                 os.remove(item_path)
                         # Clean up .last_cache_cleanup file
                         elif item == ".last_cache_cleanup":
@@ -2798,7 +3140,7 @@ def cleanup_test_users_after_session():
                     pass
     except Exception:
         pass
-    
+
     # Clean up flags directory
     flags_dir = os.path.join(test_data_dir, "flags")
     if os.path.exists(flags_dir):
@@ -2814,7 +3156,7 @@ def cleanup_test_users_after_session():
                     pass
         except Exception:
             pass
-    
+
     # Clean up tmp directory
     tmp_dir = os.path.join(test_data_dir, "tmp")
     if os.path.exists(tmp_dir):
@@ -2830,7 +3172,7 @@ def cleanup_test_users_after_session():
                     pass
         except Exception:
             pass
-    
+
     # Clean up other test artifacts according to cleanup standards
     try:
         # Remove pytest temporary directories (pytest-of-* and tmp* directories created by pytest's tmpdir plugin)
@@ -2841,45 +3183,56 @@ def cleanup_test_users_after_session():
                 item_path = os.path.join(test_data_dir, item)
                 try:
                     if os.path.isdir(item_path):
-                        if (item.startswith("pytest-of-") or 
-                            item.startswith("tmp_") or
-                            (item.startswith("tmp") and item != "tmp")):
+                        if (
+                            item.startswith("pytest-of-")
+                            or item.startswith("tmp_")
+                            or (item.startswith("tmp") and item != "tmp")
+                        ):
                             shutil.rmtree(item_path, ignore_errors=True)
                     elif os.path.isfile(item_path):
                         # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking.json)
                         if item.endswith(".json"):
-                            test_json_patterns = ["test_", ".tmp_", "welcome_tracking.json"]
-                            if any(item.startswith(pattern) for pattern in test_json_patterns):
+                            test_json_patterns = [
+                                "test_",
+                                ".tmp_",
+                                "welcome_tracking.json",
+                            ]
+                            if any(
+                                item.startswith(pattern)
+                                for pattern in test_json_patterns
+                            ):
                                 os.remove(item_path)
                         # Clean up .last_cache_cleanup file
                         elif item == ".last_cache_cleanup":
                             os.remove(item_path)
                 except Exception:
                     pass
-        
+
         # Remove stray config directory
         config_dir = os.path.join(test_data_dir, "config")
         if os.path.exists(config_dir):
             shutil.rmtree(config_dir, ignore_errors=True)
-        
+
         # Remove root files
         for filename in [".env", "requirements.txt", "test_file.json"]:
             file_path = os.path.join(test_data_dir, filename)
             if os.path.exists(file_path):
                 os.remove(file_path)
-        
+
         # Remove legacy nested directory
         nested_dir = os.path.join(test_data_dir, "nested")
         if os.path.exists(nested_dir):
             shutil.rmtree(nested_dir, ignore_errors=True)
-        
+
         # Remove corrupted files
         for item in os.listdir(test_data_dir):
-            if (item.startswith("tmp") and ".corrupted_" in item) or ".corrupted_" in item:
+            if (
+                item.startswith("tmp") and ".corrupted_" in item
+            ) or ".corrupted_" in item:
                 item_path = os.path.join(test_data_dir, item)
                 if os.path.isfile(item_path):
                     os.remove(item_path)
-        
+
         # Clear tmp directory completely - remove all subdirectories and files
         tmp_dir = os.path.join(test_data_dir, "tmp")
         if os.path.exists(tmp_dir):
@@ -2897,7 +3250,7 @@ def cleanup_test_users_after_session():
                 # Directory itself stays but is now empty
             except Exception:
                 pass
-        
+
         # Clear flags directory completely
         flags_dir = os.path.join(test_data_dir, "flags")
         if os.path.exists(flags_dir):
@@ -2913,7 +3266,7 @@ def cleanup_test_users_after_session():
                         pass
             except Exception:
                 pass
-        
+
         # Clear requests directory completely
         requests_dir = os.path.join(test_data_dir, "requests")
         if os.path.exists(requests_dir):
@@ -2929,33 +3282,39 @@ def cleanup_test_users_after_session():
                         pass
             except Exception:
                 pass
-        
+
         # Clean up conversation_states.json
-        conversation_states_file = os.path.join(test_data_dir, "conversation_states.json")
+        conversation_states_file = os.path.join(
+            test_data_dir, "conversation_states.json"
+        )
         if os.path.exists(conversation_states_file):
             try:
                 os.remove(conversation_states_file)
             except Exception:
                 pass
-        
+
         # Clear logs directory
         logs_dir = os.path.join(test_data_dir, "logs")
         if os.path.exists(logs_dir):
             shutil.rmtree(logs_dir, ignore_errors=True)
-        
+
         # Clean up old test_run files in tests/logs (but preserve current session files)
         test_logs_dir = os.path.join(project_root, "tests", "logs")
         if os.path.exists(test_logs_dir):
             try:
                 for item in os.listdir(test_logs_dir):
                     # Only clean up old test_run files, not the current session's test_run.log
-                    if item.startswith("test_run_") and item.endswith(".log") and item != "test_run.log":
+                    if (
+                        item.startswith("test_run_")
+                        and item.endswith(".log")
+                        and item != "test_run.log"
+                    ):
                         item_path = os.path.join(test_logs_dir, item)
                         if os.path.isfile(item_path):
                             os.remove(item_path)
             except Exception:
                 pass
-        
+
         # Clean up any stray test.log files in tests/data
         try:
             for root, dirs, files in os.walk(test_data_dir):
@@ -2968,24 +3327,27 @@ def cleanup_test_users_after_session():
                             pass
         except Exception:
             pass
-            
+
     except Exception:
         pass  # Ignore cleanup errors
+
 
 @pytest.fixture(scope="function")
 def mock_logger():
     """Mock logger for testing."""
-    with patch('core.logger.get_logger') as mock_logger:
+    with patch("core.logger.get_logger") as mock_logger:
         mock_logger.return_value = Mock()
         yield mock_logger
+
 
 @pytest.fixture(scope="function")
 def temp_file():
     """Create a temporary file for testing."""
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w+", delete=False) as f:
         yield f.name
     # Cleanup
     os.unlink(f.name)
+
 
 @pytest.fixture(scope="function")
 def mock_ai_response():
@@ -2994,8 +3356,9 @@ def mock_ai_response():
         "response": "This is a test AI response.",
         "confidence": 0.85,
         "model": "test-model",
-        "timestamp": "2025-01-01T12:00:00Z"
+        "timestamp": "2025-01-01T12:00:00Z",
     }
+
 
 @pytest.fixture(scope="function")
 def mock_task_data():
@@ -3008,8 +3371,9 @@ def mock_task_data():
         "due_date": "2025-01-15",
         "completed": False,
         "created_at": "2025-01-01T12:00:00Z",
-        "updated_at": "2025-01-01T12:00:00Z"
+        "updated_at": "2025-01-01T12:00:00Z",
     }
+
 
 @pytest.fixture(scope="function")
 def mock_message_data():
@@ -3020,8 +3384,9 @@ def mock_message_data():
         "category": "motivational",
         "days": ["monday", "wednesday", "friday"],
         "time_periods": ["18:00-20:00"],
-        "active": True
+        "active": True,
     }
+
 
 @pytest.fixture(scope="function")
 def mock_service_data():
@@ -3032,11 +3397,9 @@ def mock_service_data():
         "status": "running",
         "pid": 12345,
         "start_time": "2025-01-01T12:00:00Z",
-        "config": {
-            "port": 8080,
-            "host": "localhost"
-        }
+        "config": {"port": 8080, "host": "localhost"},
     }
+
 
 @pytest.fixture(scope="function")
 def mock_communication_data():
@@ -3047,8 +3410,9 @@ def mock_communication_data():
         "channel": "email",
         "content": "Test message content",
         "sent_at": "2025-01-01T12:00:00Z",
-        "status": "sent"
+        "status": "sent",
     }
+
 
 @pytest.fixture(scope="function")
 def mock_schedule_data():
@@ -3060,16 +3424,17 @@ def mock_schedule_data():
                 "start_time": "08:00",
                 "end_time": "10:00",
                 "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                "active": True
+                "active": True,
             },
             "evening": {
                 "start_time": "18:00",
                 "end_time": "20:00",
                 "days": ["monday", "wednesday", "friday"],
-                "active": True
-            }
-        }
+                "active": True,
+            },
+        },
     }
+
 
 # Configure pytest
 def pytest_collection_modifyitems(config, items):
@@ -3077,97 +3442,111 @@ def pytest_collection_modifyitems(config, items):
     # These test classes are designed to be run via run_ai_functionality_tests.py, not pytest
     # They have __init__ constructors that require parameters, which causes pytest collection warnings
     ai_test_files = [
-        'tests/ai/test_ai_core.py',
-        'tests/ai/test_ai_integration.py',
-        'tests/ai/test_ai_errors.py',
-        'tests/ai/test_ai_cache.py',
-        'tests/ai/test_ai_performance.py',
-        'tests/ai/test_ai_quality.py',
-        'tests/ai/test_ai_advanced.py',
-        'tests/ai/test_ai_functionality_manual.py',  # Manual test runner, not a pytest test
+        "tests/ai/test_ai_core.py",
+        "tests/ai/test_ai_integration.py",
+        "tests/ai/test_ai_errors.py",
+        "tests/ai/test_ai_cache.py",
+        "tests/ai/test_ai_performance.py",
+        "tests/ai/test_ai_quality.py",
+        "tests/ai/test_ai_advanced.py",
+        "tests/ai/test_ai_functionality_manual.py",  # Manual test runner, not a pytest test
     ]
-    
+
     items_to_remove = []
     for item in items:
         # Get the file path from the item
-        item_path = str(item.fspath) if hasattr(item, 'fspath') else str(Path(item.nodeid.split('::')[0]))
+        item_path = (
+            str(item.fspath)
+            if hasattr(item, "fspath")
+            else str(Path(item.nodeid.split("::")[0]))
+        )
         # Normalize path separators
-        normalized_item_path = item_path.replace('\\', os.sep).replace('/', os.sep)
-        
+        normalized_item_path = item_path.replace("\\", os.sep).replace("/", os.sep)
+
         for ai_file in ai_test_files:
-            normalized_ai_file = ai_file.replace('\\', os.sep).replace('/', os.sep)
-            if normalized_ai_file in normalized_item_path or os.path.basename(normalized_ai_file) == os.path.basename(normalized_item_path):
+            normalized_ai_file = ai_file.replace("\\", os.sep).replace("/", os.sep)
+            if normalized_ai_file in normalized_item_path or os.path.basename(
+                normalized_ai_file
+            ) == os.path.basename(normalized_item_path):
                 items_to_remove.append(item)
                 break
-    
+
     # Remove excluded items
     for item in items_to_remove:
         items.remove(item)
-    
+
     # Add default markers to remaining items
     for item in items:
         # Add unit marker by default if no marker is present
         if not any(item.iter_markers()):
             item.add_marker(pytest.mark.unit)
 
+
 def pytest_ignore_collect(collection_path, config):
     """Ignore temp directories created by parallel coverage runs to prevent collection errors."""
     path_str = str(collection_path)
     # Ignore temp directories created by coverage runs
-    if 'pytest-tmp-' in path_str or 'pytest-of-' in path_str:
+    if "pytest-tmp-" in path_str or "pytest-of-" in path_str:
         # Only ignore if it's under tests/data (our temp directory location)
-        if 'tests' + os.sep + 'data' in path_str:
+        if "tests" + os.sep + "data" in path_str:
             return True
     return None  # Let other ignore rules handle it
+
 
 def pytest_configure(config):
     """Configure pytest for MHM testing and suppress collection warnings for development tools implementation classes."""
     # Register custom markers to avoid warnings
-    config.addinivalue_line("markers", "notebook: Notebook functionality tests (notes, lists, journal entries)")
-    
+    config.addinivalue_line(
+        "markers",
+        "notebook: Notebook functionality tests (notes, lists, journal entries)",
+    )
+
     # Suppress PytestCollectionWarning for development tools implementation classes
     # These warnings are emitted during collection, so we need to filter them in the hook
     # Note: pytest is already imported at module level, don't import it again here
     import warnings
-    warnings.filterwarnings("ignore", message=".*cannot collect test class.*TestCoverage.*", category=pytest.PytestCollectionWarning)
-    warnings.filterwarnings("ignore", message=".*cannot collect test class.*because it has a __init__ constructor.*", category=pytest.PytestCollectionWarning)
-    warnings.filterwarnings("ignore", category=pytest.PytestCollectionWarning, module="development_tools.tests.*")
-    
+
+    warnings.filterwarnings(
+        "ignore",
+        message=".*cannot collect test class.*TestCoverage.*",
+        category=pytest.PytestCollectionWarning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=".*cannot collect test class.*because it has a __init__ constructor.*",
+        category=pytest.PytestCollectionWarning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        category=pytest.PytestCollectionWarning,
+        module="development_tools.tests.*",
+    )
+
     # Only log from main process to avoid duplicate messages in parallel mode
-    if not os.environ.get('PYTEST_XDIST_WORKER'):
+    if not os.environ.get("PYTEST_XDIST_WORKER"):
         test_logger.debug("Configuring pytest for MHM testing")
-    
+
     # Configure pytest tmpdir to use tests/data/tmp instead of creating pytest-of-* directories
     # This ensures all temporary files stay within tests/data
     try:
         # Set the base temporary directory for pytest's tmpdir fixture
-        if hasattr(config, 'option') and hasattr(config.option, 'tmp_path_factory'):
-            config.option.tmp_path_factory = str(tests_data_dir / 'tmp')
+        if hasattr(config, "option") and hasattr(config.option, "tmp_path_factory"):
+            config.option.tmp_path_factory = str(tests_data_dir / "tmp")
     except Exception:
         pass  # Ignore if pytest version doesn't support this
-    
+
     # Core test type markers
-    config.addinivalue_line(
-        "markers", "unit: mark test as a unit test"
-    )
-    config.addinivalue_line(
-        "markers", "integration: mark test as an integration test"
-    )
-    config.addinivalue_line(
-        "markers", "behavior: mark test as a behavior test"
-    )
-    config.addinivalue_line(
-        "markers", "ui: mark test as testing UI components"
-    )
-    
+    config.addinivalue_line("markers", "unit: mark test as a unit test")
+    config.addinivalue_line("markers", "integration: mark test as an integration test")
+    config.addinivalue_line("markers", "behavior: mark test as a behavior test")
+    config.addinivalue_line("markers", "ui: mark test as testing UI components")
+
     # Speed markers
-    config.addinivalue_line(
-        "markers", "slow: mark test as slow running (>1 second)"
-    )
+    config.addinivalue_line("markers", "slow: mark test as slow running (>1 second)")
     config.addinivalue_line(
         "markers", "fast: mark test as fast running (<100ms, optional)"
     )
-    
+
     # Resource markers
     config.addinivalue_line(
         "markers", "asyncio: mark test as requiring asyncio support"
@@ -3175,16 +3554,15 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "file_io: mark test as having heavy file operations"
     )
-    
+
     # Feature-specific markers (aligned with component loggers)
-    config.addinivalue_line(
-        "markers", "ai: mark test as requiring AI functionality"
-    )
+    config.addinivalue_line("markers", "ai: mark test as requiring AI functionality")
     config.addinivalue_line(
         "markers", "communication: mark test as testing communication channels"
     )
     config.addinivalue_line(
-        "markers", "tasks: mark test as task management functionality (includes reminders)"
+        "markers",
+        "tasks: mark test as task management functionality (includes reminders)",
     )
     config.addinivalue_line(
         "markers", "checkins: mark test as check-in system functionality"
@@ -3201,7 +3579,7 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "scheduler: mark test as scheduler functionality"
     )
-    
+
     # Test quality markers
     config.addinivalue_line(
         "markers", "regression: mark test as preventing regression issues"
@@ -3209,31 +3587,36 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "smoke: mark test as basic functionality smoke test"
     )
+    config.addinivalue_line("markers", "critical: mark test as critical path test")
     config.addinivalue_line(
-        "markers", "critical: mark test as critical path test"
+        "markers",
+        "no_parallel: mark test as must not run under pytest-xdist parallel execution",
     )
     config.addinivalue_line(
-        "markers", "no_parallel: mark test as must not run under pytest-xdist parallel execution"
+        "markers",
+        "e2e: End-to-end tests with real tool execution (slow, excluded from regular runs)",
     )
-    config.addinivalue_line(
-        "markers", "e2e: End-to-end tests with real tool execution (slow, excluded from regular runs)"
-    )
+
 
 def pytest_sessionstart(session):
     """Log test session start."""
     # Only log from main process to avoid duplicate messages in parallel mode
-    if not os.environ.get('PYTEST_XDIST_WORKER'):
+    if not os.environ.get("PYTEST_XDIST_WORKER"):
         test_logger.debug(f"Starting test session with {len(session.items)} tests")
         test_logger.debug(f"Test log file: {test_log_file}")
-        
+
         # Register atexit handler for crash recovery
         import atexit
+
         def crash_recovery_handler():
             """Ensure cleanup on unexpected exit."""
             try:
                 from communication.core.channel_orchestrator import CommunicationManager
+
                 if CommunicationManager._instance is not None:
-                    test_logger.warning("Crash recovery: Cleaning up CommunicationManager on unexpected exit")
+                    test_logger.warning(
+                        "Crash recovery: Cleaning up CommunicationManager on unexpected exit"
+                    )
                     try:
                         CommunicationManager._instance.stop_all()
                     except Exception:
@@ -3243,55 +3626,58 @@ def pytest_sessionstart(session):
                 pass
             except Exception as e:
                 test_logger.warning(f"Error in crash recovery handler: {e}")
-        
+
         atexit.register(crash_recovery_handler)
 
-        
         # Diagnostic logging for DLL error investigation (0xC0000135 - STATUS_DLL_NOT_FOUND)
         try:
             import sys
             import pytest
+
             test_logger.debug(f"Python executable: {sys.executable}")
             test_logger.debug(f"Python version: {sys.version}")
             test_logger.debug(f"Python path: {sys.path[:3]}...")  # First 3 entries only
             test_logger.debug(f"Pytest version: {pytest.__version__}")
             try:
                 import pytest_xdist  # type: ignore[reportMissingImports]
+
                 test_logger.debug(f"Pytest-xdist version: {pytest_xdist.__version__}")
             except (ImportError, AttributeError):
                 test_logger.debug("Pytest-xdist: not available")
         except Exception as e:
             test_logger.warning(f"Failed to log diagnostic information: {e}")
 
+
 def _consolidate_worker_logs():
     """Consolidate per-worker log files into main log files at the end of parallel test runs.
-    
+
     This function should only be called from the main process (not workers).
     It finds all worker log files (test_run_gw*.log, test_consolidated_gw*.log, etc.)
     and combines them into the main log files.
     """
     # Only run in main process (not in workers)
-    if os.environ.get('PYTEST_XDIST_WORKER'):
+    if os.environ.get("PYTEST_XDIST_WORKER"):
         return
-    
+
     try:
         logs_dir = Path(project_root) / "tests" / "logs"
         if not logs_dir.exists():
             return
-        
+
         # CRITICAL: Small delay to allow worker processes to close their file handles
         # This prevents file locking issues during consolidation
         import time
+
         time.sleep(0.5)  # 500ms delay to allow workers to close files
-        
+
         # Find all worker log files
         worker_test_run_logs = sorted(logs_dir.glob("test_run_gw*.log"))
         worker_consolidated_logs = sorted(logs_dir.glob("test_consolidated_gw*.log"))
-        
+
         # If no worker logs found, nothing to consolidate
         if not (worker_test_run_logs or worker_consolidated_logs):
             return
-        
+
         # CRITICAL: Backup worker log files BEFORE consolidation for debugging memory leaks
         # This allows us to analyze which tests each worker ran even after consolidation
         backup_dir = logs_dir / "worker_logs_backup"
@@ -3300,21 +3686,22 @@ def _consolidate_worker_logs():
             try:
                 backup_path = backup_dir / log_file.name
                 import shutil
+
                 shutil.copy2(log_file, backup_path)
             except Exception as e:
                 test_logger.debug(f"Failed to backup worker log {log_file}: {e}")
-        
+
         test_logger.info("Consolidating worker log files into main log files...")
-        
+
         # Consolidate test_run logs
         main_test_run_log = logs_dir / "test_run.log"
         if worker_test_run_logs:
             try:
-                with open(main_test_run_log, 'a', encoding='utf-8') as main_file:
+                with open(main_test_run_log, "a", encoding="utf-8") as main_file:
                     main_file.write(f"\n{'='*80}\n")
                     main_file.write("# CONSOLIDATED FROM PARALLEL WORKERS\n")
                     main_file.write(f"{'='*80}\n\n")
-                    
+
                     for worker_log in worker_test_run_logs:
                         worker_id = worker_log.stem.replace("test_run_", "")
                         main_file.write(f"\n# --- Worker {worker_id} ---\n")
@@ -3322,9 +3709,10 @@ def _consolidate_worker_logs():
                             # Retry mechanism to handle file locking issues
                             # Workers might still have file handles open
                             import time
+
                             max_retries = 5
                             retry_delay = 0.2  # 200ms between retries
-                            
+
                             for attempt in range(max_retries):
                                 try:
                                     # Stream file content in chunks to avoid loading entire file into memory
@@ -3332,21 +3720,31 @@ def _consolidate_worker_logs():
                                     max_size = 50 * 1024 * 1024  # 50MB
                                     file_size = worker_log.stat().st_size
                                     chunk_size = 1024 * 1024  # 1MB chunks for streaming
-                                    
+
                                     if file_size > max_size:
-                                        test_logger.warning(f"Worker log {worker_log.name} is {file_size / (1024*1024):.1f}MB, truncating to last 50MB")
+                                        test_logger.warning(
+                                            f"Worker log {worker_log.name} is {file_size / (1024*1024):.1f}MB, truncating to last 50MB"
+                                        )
                                         # Read only the last 50MB in streaming chunks
-                                        with open(worker_log, 'rb') as f:
-                                            f.seek(-max_size, 2)  # Seek to 50MB from end
+                                        with open(worker_log, "rb") as f:
+                                            f.seek(
+                                                -max_size, 2
+                                            )  # Seek to 50MB from end
                                             while True:
                                                 chunk = f.read(chunk_size)
                                                 if not chunk:
                                                     break
-                                                main_file.write(chunk.decode('utf-8', errors='replace'))
+                                                main_file.write(
+                                                    chunk.decode(
+                                                        "utf-8", errors="replace"
+                                                    )
+                                                )
                                                 main_file.flush()  # Flush to disk to free memory
                                     else:
                                         # Stream entire file in chunks to avoid memory accumulation
-                                        with open(worker_log, 'r', encoding='utf-8') as worker_file:
+                                        with open(
+                                            worker_log, "r", encoding="utf-8"
+                                        ) as worker_file:
                                             while True:
                                                 chunk = worker_file.read(chunk_size)
                                                 if not chunk:
@@ -3360,28 +3758,36 @@ def _consolidate_worker_logs():
                                         continue
                                     else:
                                         # Last attempt failed, log warning and skip this file
-                                        test_logger.warning(f"Failed to read worker log {worker_log.name} after {max_retries} attempts: {e}")
-                                        main_file.write(f"# Error: Could not read {worker_log.name} - file may be locked\n")
+                                        test_logger.warning(
+                                            f"Failed to read worker log {worker_log.name} after {max_retries} attempts: {e}"
+                                        )
+                                        main_file.write(
+                                            f"# Error: Could not read {worker_log.name} - file may be locked\n"
+                                        )
                                         break
                         except Exception as e:
                             main_file.write(f"# Error reading {worker_log.name}: {e}\n")
-                            test_logger.warning(f"Error reading worker log {worker_log.name}: {e}")
+                            test_logger.warning(
+                                f"Error reading worker log {worker_log.name}: {e}"
+                            )
                         main_file.write(f"\n# --- End Worker {worker_id} ---\n\n")
                         main_file.flush()  # Ensure worker section is written before next
-                
-                test_logger.info(f"Consolidated {len(worker_test_run_logs)} worker test_run logs into {main_test_run_log.name}")
+
+                test_logger.info(
+                    f"Consolidated {len(worker_test_run_logs)} worker test_run logs into {main_test_run_log.name}"
+                )
             except Exception as e:
                 test_logger.warning(f"Error consolidating test_run logs: {e}")
-        
+
         # Consolidate consolidated logs
         main_consolidated_log = logs_dir / "test_consolidated.log"
         if worker_consolidated_logs:
             try:
-                with open(main_consolidated_log, 'a', encoding='utf-8') as main_file:
+                with open(main_consolidated_log, "a", encoding="utf-8") as main_file:
                     main_file.write(f"\n{'='*80}\n")
                     main_file.write("# CONSOLIDATED FROM PARALLEL WORKERS\n")
                     main_file.write(f"{'='*80}\n\n")
-                    
+
                     for worker_log in worker_consolidated_logs:
                         worker_id = worker_log.stem.replace("test_consolidated_", "")
                         main_file.write(f"\n# --- Worker {worker_id} ---\n")
@@ -3389,10 +3795,11 @@ def _consolidate_worker_logs():
                             # Retry mechanism to handle file locking issues
                             # Workers might still have file handles open
                             import time
+
                             max_retries = 5
                             retry_delay = 0.2  # 200ms between retries
                             content = None
-                            
+
                             for attempt in range(max_retries):
                                 try:
                                     # Stream file content in chunks to avoid loading entire file into memory
@@ -3400,21 +3807,31 @@ def _consolidate_worker_logs():
                                     max_size = 10 * 1024 * 1024  # 10MB
                                     file_size = worker_log.stat().st_size
                                     chunk_size = 1024 * 1024  # 1MB chunks for streaming
-                                    
+
                                     if file_size > max_size:
-                                        test_logger.warning(f"Worker log {worker_log.name} is {file_size / (1024*1024):.1f}MB, truncating to last 10MB")
+                                        test_logger.warning(
+                                            f"Worker log {worker_log.name} is {file_size / (1024*1024):.1f}MB, truncating to last 10MB"
+                                        )
                                         # Read only the last 10MB in streaming chunks
-                                        with open(worker_log, 'rb') as f:
-                                            f.seek(-max_size, 2)  # Seek to 10MB from end
+                                        with open(worker_log, "rb") as f:
+                                            f.seek(
+                                                -max_size, 2
+                                            )  # Seek to 10MB from end
                                             while True:
                                                 chunk = f.read(chunk_size)
                                                 if not chunk:
                                                     break
-                                                main_file.write(chunk.decode('utf-8', errors='replace'))
+                                                main_file.write(
+                                                    chunk.decode(
+                                                        "utf-8", errors="replace"
+                                                    )
+                                                )
                                                 main_file.flush()  # Flush to disk to free memory
                                     else:
                                         # Stream entire file in chunks to avoid memory accumulation
-                                        with open(worker_log, 'r', encoding='utf-8') as worker_file:
+                                        with open(
+                                            worker_log, "r", encoding="utf-8"
+                                        ) as worker_file:
                                             while True:
                                                 chunk = worker_file.read(chunk_size)
                                                 if not chunk:
@@ -3428,38 +3845,47 @@ def _consolidate_worker_logs():
                                         continue
                                     else:
                                         # Last attempt failed, log warning and skip this file
-                                        test_logger.warning(f"Failed to read worker log {worker_log.name} after {max_retries} attempts: {e}")
-                                        main_file.write(f"# Error: Could not read {worker_log.name} - file may be locked\n")
+                                        test_logger.warning(
+                                            f"Failed to read worker log {worker_log.name} after {max_retries} attempts: {e}"
+                                        )
+                                        main_file.write(
+                                            f"# Error: Could not read {worker_log.name} - file may be locked\n"
+                                        )
                                         break
                         except Exception as e:
                             main_file.write(f"# Error reading {worker_log.name}: {e}\n")
-                            test_logger.warning(f"Error reading worker log {worker_log.name}: {e}")
+                            test_logger.warning(
+                                f"Error reading worker log {worker_log.name}: {e}"
+                            )
                         main_file.write(f"\n# --- End Worker {worker_id} ---\n\n")
-                
-                test_logger.info(f"Consolidated {len(worker_consolidated_logs)} worker consolidated logs into {main_consolidated_log.name}")
-                
+
+                test_logger.info(
+                    f"Consolidated {len(worker_consolidated_logs)} worker consolidated logs into {main_consolidated_log.name}"
+                )
+
                 # CRITICAL: Register main consolidated log for rotation AFTER consolidation
                 # (consolidation can make the file huge, so we need to check rotation after)
                 session_rotation_manager.register_log_file(str(main_consolidated_log))
             except Exception as e:
                 test_logger.warning(f"Error consolidating consolidated logs: {e}")
-        
+
         # Clean up worker log files after consolidation
         # CRITICAL: Add delay before cleanup to allow workers to close file handles
         # Windows file locking can prevent immediate deletion
         import time
+
         time.sleep(0.5)  # 500ms delay to allow workers to close file handles
-        
+
         all_worker_logs = worker_test_run_logs + worker_consolidated_logs
         cleaned_count = 0
         failed_logs = []
-        
+
         for worker_log in all_worker_logs:
             # Retry deletion with exponential backoff for Windows file locking
             max_retries = 5
             retry_delay = 0.1  # Start with 100ms
             deleted = False
-            
+
             for attempt in range(max_retries):
                 try:
                     worker_log.unlink()
@@ -3470,25 +3896,35 @@ def _consolidate_worker_logs():
                     # Windows file locking error - retry with delay
                     if attempt < max_retries - 1:
                         time.sleep(retry_delay)
-                        retry_delay *= 2  # Exponential backoff: 0.1s, 0.2s, 0.4s, 0.8s, 1.6s
+                        retry_delay *= (
+                            2  # Exponential backoff: 0.1s, 0.2s, 0.4s, 0.8s, 1.6s
+                        )
                     else:
                         # Last attempt failed - log but don't fail
                         failed_logs.append(worker_log.name)
-                        test_logger.debug(f"Could not remove worker log {worker_log.name} after {max_retries} attempts: {e}")
+                        test_logger.debug(
+                            f"Could not remove worker log {worker_log.name} after {max_retries} attempts: {e}"
+                        )
                 except Exception as e:
                     # Other errors - don't retry
                     failed_logs.append(worker_log.name)
-                    test_logger.debug(f"Error removing worker log {worker_log.name}: {e}")
+                    test_logger.debug(
+                        f"Error removing worker log {worker_log.name}: {e}"
+                    )
                     break
-        
+
         if cleaned_count > 0:
-            test_logger.debug(f"Cleaned up {cleaned_count} worker log files after consolidation")
+            test_logger.debug(
+                f"Cleaned up {cleaned_count} worker log files after consolidation"
+            )
         if failed_logs:
             # Only log warning if some files failed (not critical - they'll be cleaned up next run)
-            test_logger.debug(f"Could not clean up {len(failed_logs)} worker log files (locked by workers): {', '.join(failed_logs[:5])}{'...' if len(failed_logs) > 5 else ''}")
-        
+            test_logger.debug(
+                f"Could not clean up {len(failed_logs)} worker log files (locked by workers): {', '.join(failed_logs[:5])}{'...' if len(failed_logs) > 5 else ''}"
+            )
+
         test_logger.info("Worker log consolidation completed")
-        
+
     except Exception as e:
         test_logger.warning(f"Error during worker log consolidation: {e}")
 
@@ -3496,34 +3932,39 @@ def _consolidate_worker_logs():
 def pytest_sessionfinish(session, exitstatus):
     """Log test session finish, check for log rotation, consolidate worker logs, and handle crash recovery."""
     test_logger.info(f"Test session finished with exit status: {exitstatus}")
-    if hasattr(session, 'testscollected'):
+    if hasattr(session, "testscollected"):
         test_logger.info(f"Tests collected: {session.testscollected}")
 
     # Only run in main process
-    if os.environ.get('PYTEST_XDIST_WORKER'):
+    if os.environ.get("PYTEST_XDIST_WORKER"):
         return
 
     # Detect crash (non-zero exit status that's not a normal failure)
     # Exit status 1 = tests failed (normal), 2 = interrupted (normal), 3 = internal error (crash)
     if exitstatus == 3:
-        test_logger.error("Test session crashed (internal error) - saving crash diagnostics")
+        test_logger.error(
+            "Test session crashed (internal error) - saving crash diagnostics"
+        )
 
         # Save crash diagnostics
         crash_log_file = Path("tests/logs/crash_diagnostics.log")
         try:
             crash_log_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(crash_log_file, 'a', encoding='utf-8') as f:
+            with open(crash_log_file, "a", encoding="utf-8") as f:
                 f.write(f"\n{'='*80}\n")
                 f.write(f"CRASH DETECTED: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
                 f.write(f"Exit Status: {exitstatus}\n")
-                f.write(f"Tests Run: {getattr(session, 'testsfailed', 0)} failed, {getattr(session, 'testscollected', 0)} collected\n")
+                f.write(
+                    f"Tests Run: {getattr(session, 'testsfailed', 0)} failed, {getattr(session, 'testscollected', 0)} collected\n"
+                )
                 f.write(f"{'='*80}\n")
         except Exception as e:
             test_logger.warning(f"Could not save crash diagnostics: {e}")
-    
+
     # Ensure cleanup even on crash
     try:
         from communication.core.channel_orchestrator import CommunicationManager
+
         if CommunicationManager._instance is not None:
             test_logger.debug("Session finish: Ensuring CommunicationManager cleanup")
             try:
@@ -3538,15 +3979,17 @@ def pytest_sessionfinish(session, exitstatus):
 
     # Consolidate worker logs FIRST (this can make main log files huge)
     _consolidate_worker_logs()
-    
+
     # NOTE: Log rotation only happens at session START in setup_consolidated_test_logging.
     # We do NOT rotate at session end because:
     # 1. File handlers are still active and writing, causing corruption
     # 2. Rotation at session start (before logging begins) is safer
     # 3. Consolidation happens here, but rotation should wait until next session start
 
+
 # Track test start times for duration calculation (for debugging)
 _test_start_times = {}
+
 
 def pytest_runtest_setup(item):
     """Log when a test starts with timestamp (DEBUG level only)."""
@@ -3554,23 +3997,24 @@ def pytest_runtest_setup(item):
     start_time = datetime.now()
     _test_start_times[test_id] = start_time
     timestamp = start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
-    
+
     # Include worker ID if running in parallel mode
-    worker_id = os.environ.get('PYTEST_XDIST_WORKER', 'main')
-    
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER", "main")
+
     # CRITICAL: Always log test starts with worker ID at INFO level for worker tracking
     # This is essential for debugging memory leaks - we need to know which worker ran which test
     test_logger.info(f"[WORKER-TEST] [{worker_id}] START: {test_id}")
-    
+
     # Use DEBUG level to reduce log noise - only visible with TEST_VERBOSE_LOGS=2
     test_logger.debug(f"[TEST-START] [{worker_id}] {timestamp} - {test_id}")
+
 
 def pytest_runtest_teardown(item, nextitem):
     """Log when a test ends with timestamp and duration (DEBUG level only)."""
     test_id = item.nodeid
     end_time = datetime.now()
     timestamp = end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
-    
+
     # Calculate duration if we have start time
     duration = None
     if test_id in _test_start_times:
@@ -3578,69 +4022,80 @@ def pytest_runtest_teardown(item, nextitem):
         duration_seconds = (end_time - start_time).total_seconds()
         duration = f"{duration_seconds:.3f}s"
         del _test_start_times[test_id]
-    
+
     # Use DEBUG level to reduce log noise - only visible with TEST_VERBOSE_LOGS=2
     if duration:
         test_logger.debug(f"[TEST-END] {timestamp} - {test_id} (duration: {duration})")
     else:
         test_logger.debug(f"[TEST-END] {timestamp} - {test_id}")
 
+
 def pytest_runtest_logreport(report):
     """Log individual test results with timestamps."""
-    if report.when == 'call':
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
+    if report.when == "call":
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[
+            :-3
+        ]  # Include milliseconds
         # Only log PASSED tests when verbose mode is enabled (to reduce log noise)
         verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
         if report.passed:
             # Only log passed tests at DEBUG level (level 2) to avoid I/O overhead
             # Level 1 and 0: don't log passed tests - focus on failures, warnings, and skips
             if verbose_logs == "2":
-                test_logger.debug(f"[TEST-RESULT] {timestamp} - PASSED: {report.nodeid}")
+                test_logger.debug(
+                    f"[TEST-RESULT] {timestamp} - PASSED: {report.nodeid}"
+                )
             # Don't log passed tests at other levels - they're not interesting
         elif report.failed:
             # Always log failures - these are important
-            worker_id = os.environ.get('PYTEST_XDIST_WORKER', 'main')
+            worker_id = os.environ.get("PYTEST_XDIST_WORKER", "main")
             # CRITICAL: Also log at INFO level for worker tracking (even failures)
             test_logger.info(f"[WORKER-TEST] [{worker_id}] FAILED: {report.nodeid}")
-            test_logger.error(f"[TEST-RESULT] [{worker_id}] {timestamp} - FAILED: {report.nodeid}")
+            test_logger.error(
+                f"[TEST-RESULT] [{worker_id}] {timestamp} - FAILED: {report.nodeid}"
+            )
             if report.longrepr:
                 test_logger.error(f"Error details: {report.longrepr}")
         elif report.skipped:
             # Always log skips - these might indicate issues
-            worker_id = os.environ.get('PYTEST_XDIST_WORKER', 'main')
-            test_logger.warning(f"[TEST-RESULT] [{worker_id}] {timestamp} - SKIPPED: {report.nodeid}")
+            worker_id = os.environ.get("PYTEST_XDIST_WORKER", "main")
+            test_logger.warning(
+                f"[TEST-RESULT] [{worker_id}] {timestamp} - SKIPPED: {report.nodeid}"
+            )
         elif report.passed:
             # CRITICAL: Log passed tests at INFO level for worker tracking (memory leak debugging)
             # This is essential to know which tests each worker ran
-            worker_id = os.environ.get('PYTEST_XDIST_WORKER', 'main')
+            worker_id = os.environ.get("PYTEST_XDIST_WORKER", "main")
             test_logger.info(f"[WORKER-TEST] [{worker_id}] PASSED: {report.nodeid}")
+
 
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_communication_manager():
     """Clean up CommunicationManager singleton after all tests complete."""
     yield
-    
+
     # Clean up CommunicationManager singleton to prevent access violations
     # CRITICAL: Add timeout to prevent hanging during cleanup
     import threading
     import time
-    
+
     cleanup_complete = threading.Event()
     cleanup_error: list[Exception | None] = [None]
-    
+
     def do_cleanup():
         try:
             from communication.core.channel_orchestrator import CommunicationManager
+
             if CommunicationManager._instance is not None:
                 test_logger.debug("Cleaning up CommunicationManager singleton...")
                 # Add timeout wrapper to prevent hanging
                 import signal
                 import sys
-                
+
                 # On Windows, use threading timeout instead of signal
                 stop_complete = threading.Event()
                 stop_error: list[Exception | None] = [None]
-                
+
                 def stop_worker():
                     try:
                         CommunicationManager._instance.stop_all()
@@ -3648,23 +4103,25 @@ def cleanup_communication_manager():
                         stop_error[0] = e
                     finally:
                         stop_complete.set()
-                
+
                 stop_thread = threading.Thread(target=stop_worker, daemon=True)
                 stop_thread.start()
-                
+
                 # Wait up to 10 seconds for stop_all to complete
                 if not stop_complete.wait(timeout=10.0):
-                    test_logger.warning("CommunicationManager.stop_all() timed out after 10 seconds - forcing cleanup")
+                    test_logger.warning(
+                        "CommunicationManager.stop_all() timed out after 10 seconds - forcing cleanup"
+                    )
                     # Force cleanup even if stop_all didn't complete
                     try:
                         CommunicationManager._instance._running = False
-                        if hasattr(CommunicationManager._instance, '_channels_dict'):
+                        if hasattr(CommunicationManager._instance, "_channels_dict"):
                             CommunicationManager._instance._channels_dict.clear()
                     except Exception:
                         pass
                 elif stop_error[0]:
                     test_logger.warning(f"Error during stop_all(): {stop_error[0]}")
-                
+
                 CommunicationManager._instance = None
                 test_logger.debug("CommunicationManager cleanup completed")
         except (ImportError, ModuleNotFoundError):
@@ -3674,34 +4131,43 @@ def cleanup_communication_manager():
             cleanup_error[0] = e
         finally:
             cleanup_complete.set()
-    
+
     cleanup_thread = threading.Thread(target=do_cleanup, daemon=True)
     cleanup_thread.start()
-    
+
     # Wait up to 15 seconds for cleanup to complete (increased from 5 to account for stop_all timeout)
     if not cleanup_complete.wait(timeout=15.0):
         test_logger.warning("CommunicationManager cleanup timed out after 15 seconds")
     elif cleanup_error[0]:
-        test_logger.warning(f"Error during CommunicationManager cleanup: {cleanup_error[0]}")
+        test_logger.warning(
+            f"Error during CommunicationManager cleanup: {cleanup_error[0]}"
+        )
+
 
 @pytest.fixture(autouse=True)
 def cleanup_conversation_manager():
     """Clean up ConversationManager state before each test."""
     # Clear state before test
     try:
-        from communication.message_processing.conversation_flow_manager import conversation_manager
+        from communication.message_processing.conversation_flow_manager import (
+            conversation_manager,
+        )
+
         conversation_manager.clear_all_states()
     except (ImportError, ModuleNotFoundError):
         # Silently skip if core/communication modules aren't available (e.g., development tools tests)
         pass
     except Exception as e:
         test_logger.warning(f"Error clearing conversation manager state: {e}")
-    
+
     yield
-    
+
     # Clear state after test
     try:
-        from communication.message_processing.conversation_flow_manager import conversation_manager
+        from communication.message_processing.conversation_flow_manager import (
+            conversation_manager,
+        )
+
         conversation_manager.clear_all_states()
     except (ImportError, ModuleNotFoundError):
         # Silently skip if core/communication modules aren't available (e.g., development tools tests)
@@ -3713,135 +4179,156 @@ def cleanup_conversation_manager():
 @pytest.fixture(autouse=True)
 def cleanup_conversation_history():
     """Clean up ConversationHistory singleton state before and after each test.
-    
+
     This prevents conversation history from accumulating across tests, which was
     causing memory leaks in batch runs (especially batch 8 with AI conversation tests).
     """
     # Clear state before test
     try:
         from ai.conversation_history import get_conversation_history
+
         history = get_conversation_history()
         if history is not None:
             # Clear all sessions for all users
-            if hasattr(history, '_sessions'):
+            if hasattr(history, "_sessions"):
                 history._sessions.clear()
-            if hasattr(history, '_active_sessions'):
+            if hasattr(history, "_active_sessions"):
                 history._active_sessions.clear()
     except (ImportError, ModuleNotFoundError):
         # Silently skip if AI modules aren't available
         pass
     except Exception as e:
         test_logger.warning(f"Error clearing conversation history state: {e}")
-    
+
     yield
-    
+
     # Clear state after test
     try:
         from ai.conversation_history import get_conversation_history
+
         history = get_conversation_history()
         if history is not None:
             # Clear all sessions for all users
-            if hasattr(history, '_sessions'):
+            if hasattr(history, "_sessions"):
                 history._sessions.clear()
-            if hasattr(history, '_active_sessions'):
+            if hasattr(history, "_active_sessions"):
                 history._active_sessions.clear()
     except (ImportError, ModuleNotFoundError):
         # Silently skip if AI modules aren't available
         pass
     except Exception as e:
         test_logger.warning(f"Error clearing conversation history state: {e}")
+
 
 @pytest.fixture(autouse=True)
 def cleanup_singletons():
     """Clean up singleton instances before each test to ensure isolation."""
     # Store original singleton instances
     original_instances = {}
-    
+
     try:
         # Store AI Chatbot singleton
         try:
             from ai.chatbot import AIChatBotSingleton
-            original_instances['ai_chatbot'] = AIChatBotSingleton._instance
+
+            original_instances["ai_chatbot"] = AIChatBotSingleton._instance
         except (ImportError, AttributeError):
             pass
-        
+
         # Store MessageRouter singleton
         try:
             import communication.message_processing.message_router as router_module
-            original_instances['message_router'] = router_module._message_router
+
+            original_instances["message_router"] = router_module._message_router
         except (ImportError, AttributeError):
             pass
-        
+
         # Store cache instances
         try:
             import ai.cache_manager as cache_module
-            original_instances['response_cache'] = getattr(cache_module, '_response_cache', None)
-            original_instances['context_cache'] = getattr(cache_module, '_context_cache', None)
+
+            original_instances["response_cache"] = getattr(
+                cache_module, "_response_cache", None
+            )
+            original_instances["context_cache"] = getattr(
+                cache_module, "_context_cache", None
+            )
         except (ImportError, AttributeError):
             pass
-        
+
         yield
-        
+
     finally:
         # Restore original singleton instances to prevent state pollution
         try:
             from ai.chatbot import AIChatBotSingleton
-            if 'ai_chatbot' in original_instances:
-                AIChatBotSingleton._instance = original_instances['ai_chatbot']
+
+            if "ai_chatbot" in original_instances:
+                AIChatBotSingleton._instance = original_instances["ai_chatbot"]
                 # Also clear the locks_by_user defaultdict which can accumulate
                 if AIChatBotSingleton._instance is not None:
-                    if hasattr(AIChatBotSingleton._instance, '_locks_by_user'):
+                    if hasattr(AIChatBotSingleton._instance, "_locks_by_user"):
                         AIChatBotSingleton._instance._locks_by_user.clear()
         except (ImportError, AttributeError):
             pass
-        
+
         try:
             import communication.message_processing.message_router as router_module
-            if 'message_router' in original_instances:
-                router_module._message_router = original_instances['message_router']
+
+            if "message_router" in original_instances:
+                router_module._message_router = original_instances["message_router"]
         except (ImportError, AttributeError):
             pass
-        
+
         # Clear cache instances (not restore - caches should be fresh for each test)
         try:
             import ai.cache_manager as cache_module
+
             # Clear caches if they exist and have a clear method
-            if hasattr(cache_module, '_response_cache') and cache_module._response_cache is not None:
-                if hasattr(cache_module._response_cache, 'clear'):
+            if (
+                hasattr(cache_module, "_response_cache")
+                and cache_module._response_cache is not None
+            ):
+                if hasattr(cache_module._response_cache, "clear"):
                     cache_module._response_cache.clear()
                 cache_module._response_cache = None
-            if hasattr(cache_module, '_context_cache') and cache_module._context_cache is not None:
-                if hasattr(cache_module._context_cache, 'clear'):
+            if (
+                hasattr(cache_module, "_context_cache")
+                and cache_module._context_cache is not None
+            ):
+                if hasattr(cache_module._context_cache, "clear"):
                     cache_module._context_cache.clear()
                 cache_module._context_cache = None
         except (ImportError, AttributeError):
             pass
 
+
 @pytest.fixture(autouse=True)
 def cleanup_communication_threads():
     """
     Lightweight cleanup of CommunicationManager state between tests.
-    
+
     This fixture performs only lightweight state clearing to prevent resource
     accumulation. Full cleanup with thread joins and async operations is handled
     by the session-scoped cleanup_communication_manager fixture at the end of
     the test session.
-    
+
     Rationale: Per-test cleanup must be fast and non-blocking. Calling stop_all()
     after every test causes resource exhaustion (threads, file handles, memory)
     that accumulates over hundreds of tests, eventually making the system unresponsive.
     """
     yield
-    
+
     # Lightweight state clearing only - no blocking operations
     # Full cleanup is handled by cleanup_communication_manager fixture at session end
     try:
         from communication.core.channel_orchestrator import CommunicationManager
+
         if CommunicationManager._instance is not None:
             try:
                 # Only clear state without blocking operations
                 # This prevents resource accumulation while keeping cleanup fast
-                if hasattr(CommunicationManager._instance, '_channels_dict'):
+                if hasattr(CommunicationManager._instance, "_channels_dict"):
                     # Clear channels dict to prevent state leakage between tests
                     # This is safe because channels will be recreated if needed
                     CommunicationManager._instance._channels_dict.clear()
@@ -3853,52 +4340,67 @@ def cleanup_communication_threads():
     except Exception:
         pass  # Ignore other errors
 
+
 @pytest.fixture(autouse=True)
 def periodic_memory_cleanup(request):
     """
     Periodic memory cleanup to prevent accumulation during long test runs.
-    
+
     Performs garbage collection every N tests to help prevent memory accumulation.
     This is especially important for long-running test suites and parallel execution.
     """
     yield
-    
+
     # Run garbage collection more frequently to prevent memory accumulation
     # Reduced from every 100 tests to every 20 tests for better memory management
     # This is especially important for parallel test execution with pytest-xdist
-    test_count = getattr(periodic_memory_cleanup, '_test_count', 0) + 1
+    test_count = getattr(periodic_memory_cleanup, "_test_count", 0) + 1
     periodic_memory_cleanup._test_count = test_count
-    
+
     # More frequent GC for parallel runs, less frequent for sequential
     import os
-    is_parallel = 'PYTEST_XDIST_WORKER' in os.environ
-    gc_interval = 5 if is_parallel else 20  # Every 5 tests in parallel (more aggressive), 20 in sequential
-    
+
+    is_parallel = "PYTEST_XDIST_WORKER" in os.environ
+    gc_interval = (
+        5 if is_parallel else 20
+    )  # Every 5 tests in parallel (more aggressive), 20 in sequential
+
     if test_count % gc_interval == 0:
         import gc
+
         # Force garbage collection to free up memory
         collected = gc.collect()
         if collected > 0:
-            test_logger.debug(f"Garbage collection freed {collected} objects after {test_count} tests")
-        
+            test_logger.debug(
+                f"Garbage collection freed {collected} objects after {test_count} tests"
+            )
+
         # Also clear any module-level caches that might accumulate
         try:
             # Clear AI caches
             import ai.cache_manager as cache_module
-            if hasattr(cache_module, '_response_cache') and cache_module._response_cache is not None:
-                if hasattr(cache_module._response_cache, 'clear'):
+
+            if (
+                hasattr(cache_module, "_response_cache")
+                and cache_module._response_cache is not None
+            ):
+                if hasattr(cache_module._response_cache, "clear"):
                     cache_module._response_cache.clear()
-            if hasattr(cache_module, '_context_cache') and cache_module._context_cache is not None:
-                if hasattr(cache_module._context_cache, 'clear'):
+            if (
+                hasattr(cache_module, "_context_cache")
+                and cache_module._context_cache is not None
+            ):
+                if hasattr(cache_module._context_cache, "clear"):
                     cache_module._context_cache.clear()
         except (ImportError, AttributeError):
             pass
-        
+
         # Clear AI chatbot locks dictionary (defaultdict can accumulate)
         try:
             from ai.chatbot import AIChatBotSingleton
+
             if AIChatBotSingleton._instance is not None:
-                if hasattr(AIChatBotSingleton._instance, '_locks_by_user'):
+                if hasattr(AIChatBotSingleton._instance, "_locks_by_user"):
                     # Clear old locks to prevent accumulation
                     AIChatBotSingleton._instance._locks_by_user.clear()
         except (ImportError, AttributeError):

@@ -91,9 +91,11 @@ class LegacyReferenceAnalyzer:
                 }
 
         # Files that should be preserved (historical context)
-        from development_tools.shared.standard_exclusions import LEGACY_PRESERVE_FILES
+        from development_tools.shared.standard_exclusions import (
+            HISTORICAL_PRESERVE_FILES,
+        )
 
-        self.preserve_files = set(LEGACY_PRESERVE_FILES)
+        self.preserve_files = set(HISTORICAL_PRESERVE_FILES)
 
         # File extensions to skip entirely
         skip_exts = legacy_config.get(
@@ -182,12 +184,12 @@ class LegacyReferenceAnalyzer:
 
         # Skip certain directories (check relative path, not absolute)
         from development_tools.shared.standard_exclusions import (
-            STANDARD_EXCLUSION_PATTERNS,
+            BASE_EXCLUSION_SHORTLIST,
         )
 
         skip_dirs = [
             pattern.rstrip("/")
-            for pattern in STANDARD_EXCLUSION_PATTERNS
+            for pattern in BASE_EXCLUSION_SHORTLIST
             if not pattern.startswith("*")
         ]
         for skip_dir in skip_dirs:

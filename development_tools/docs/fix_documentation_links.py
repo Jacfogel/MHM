@@ -58,8 +58,23 @@ class DocumentationLinkFixer:
         )
 
     def _is_generated_file(self, file_path: Path) -> bool:
-        """Check if a file is generated (should not be edited). Uses link analyzer logic."""
-        return self.link_analyzer._is_generated_file(file_path)
+        """Check if a file is generated (should not be edited)."""
+        from development_tools.shared.exclusion_utilities import is_generated_file
+        from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
+
+        # Fast path: authoritative list (relative to project root)
+        try:
+            rel_path_str = str(file_path.relative_to(self.project_root)).replace(
+                "\\", "/"
+            )
+            if rel_path_str in ALL_GENERATED_FILES:
+                return True
+        except ValueError:
+            # Not under project root; fall back to heuristic detection only
+            pass
+
+        # Heuristic detection (header markers, /generated/, suffix patterns, _pyqt.py)
+        return is_generated_file(str(file_path))
 
     def fix_convert_links(self, dry_run: bool = False) -> Dict[str, any]:
         """
@@ -169,9 +184,8 @@ class DocumentationLinkFixer:
 
                         # Check if target file is generated (don't link to generated files)
                         target_path = self.project_root / path
-                        if (
-                            target_path.exists()
-                            and self.link_analyzer._is_generated_file(target_path)
+                        if target_path.exists() and self._is_generated_file(
+                            target_path
                         ):
                             breakdown["skipped_invalid_path"] += 1
                             return match.group(0)

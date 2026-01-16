@@ -20,6 +20,7 @@ import json
 from pathlib import Path
 from typing import Dict, Optional, List
 from core.error_handling import handle_errors
+from core.service_utilities import now_filename_timestamp, now_readable_timestamp
 
 # Try to import psutil for resource monitoring (optional dependency)
 try:
@@ -593,7 +594,7 @@ def save_partial_results(
             # so we leave passed/failed/skipped as-is (they only reflect completed tests)
 
     partial_data = {
-        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "timestamp": now_readable_timestamp(),
         "interrupted": interrupted,
         "results": results,
         "junit_xml_path": junit_xml_path,
@@ -615,7 +616,7 @@ def save_partial_results(
             json.dump(partial_data, f, indent=2)
 
         # Also save timestamped copy to backups directory so it doesn't get overwritten
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        timestamp = now_filename_timestamp()
         phase = test_context.get("phase", "unknown") if test_context else "unknown"
         mode = test_context.get("mode", "unknown") if test_context else "unknown"
         partial_filename = f"partial_results_{phase}_{mode}_{timestamp}.json"
@@ -1286,7 +1287,7 @@ def run_command(
         if os.path.exists(junit_xml_path):
             try:
                 # Save to backup location with timestamp (using consolidated backups directory)
-                timestamp = time.strftime("%Y%m%d_%H%M%S")
+                timestamp = now_filename_timestamp()
                 backup_path = _backups_dir / f"junit_results_{timestamp}.xml"
 
                 # Atomic copy: write to temp first, then rename

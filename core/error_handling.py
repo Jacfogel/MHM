@@ -293,9 +293,11 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
                 return False
 
             # Try to create backup of corrupted file
-            backup_path = (
-                f"{file_path}.corrupted_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            )
+            # Use filename-safe readable timestamp (project-wide convention)
+            from core.service_utilities import now_filename_timestamp
+
+            backup_path = f"{file_path}.corrupted_{now_filename_timestamp()}"
+
             if os.path.exists(file_path):
                 import shutil
 

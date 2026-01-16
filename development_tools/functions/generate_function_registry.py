@@ -14,7 +14,6 @@ import sys
 import os
 from pathlib import Path
 from typing import Dict, List
-from datetime import datetime
 
 # Ensure we can import from development_tools
 # Add parent directory to path if running as script
@@ -32,6 +31,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from core.logger import get_component_logger
+from core.service_utilities import now_readable_timestamp
 
 # Import config for project name
 try:
@@ -212,7 +212,7 @@ def generate_function_registry_content(actual_functions: Dict[str, Dict]) -> str
     project_name = config.get_project_name("Project")
 
     # Generate header
-    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    generated_at = now_readable_timestamp()
     content = f"""# Function Registry - {project_name} Project
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
@@ -240,7 +240,7 @@ def generate_function_registry_content(actual_functions: Dict[str, Dict]) -> str
 - **Classes Documented**: {documented_classes}
 - **Total Documented**: {documented_items}
 - **Template-Generated**: {template_items}
-- **Last Updated**: {datetime.now().strftime('%Y-%m-%d')}
+- **Last Updated**: {now_readable_timestamp().split(" ")[0]}
 
 **Status**: {'[OK] **EXCELLENT** - All functions have proper documentation' if coverage_percentage >= 95 else '[WARNING] **GOOD** - Most functions documented, some gaps remain' if coverage_percentage >= 50 else '[ERROR] **CRITICAL GAP** - Many functions lack documentation'}
 
@@ -499,7 +499,7 @@ def generate_ai_function_registry_content(actual_functions: Dict[str, Dict]) -> 
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+> **Last Generated**: {now_readable_timestamp()}
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -571,7 +571,7 @@ def generate_ai_function_registry_content(actual_functions: Dict[str, Dict]) -> 
 {file_organization_section}
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+> **Last Updated**: {now_readable_timestamp()}
 """
 
     return content

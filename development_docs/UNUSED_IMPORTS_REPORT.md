@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-15 06:37:12
+> **Last Generated**: 2026-01-16 05:50:49
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 413
-- **Files with Unused Imports**: 181
-- **Total Unused Imports**: 520
+- **Total Files Scanned**: 411
+- **Files with Unused Imports**: 184
+- **Total Unused Imports**: 525
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 132 imports
-- **Type Hints Only**: 30 imports
+- **Obvious Unused**: 137 imports
+- **Type Hints Only**: 29 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
 - **Test Mocking**: 146 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 152 imports
+- **Test Infrastructure**: 153 imports
 - **Production Test Mocking**: 4 imports
 - **Ui Imports**: 1 imports
 
@@ -38,9 +38,10 @@
 
 ### `ai/chatbot.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
 - **Line 16**: Unused Optional imported from typing
+- **Line 47**: Unused now_readable_timestamp imported from core.service_utilities
 
 ### `ai/context_builder.py`
 
@@ -310,6 +311,12 @@
 - **Line 24**: Unused Optional imported from typing
 - **Line 24**: Unused List imported from typing
 
+### `core/file_operations.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 10**: Unused datetime imported from datetime
+
 ### `core/headless_service.py`
 
 **Count**: 1 unused import(s)
@@ -343,8 +350,9 @@
 
 ### `core/user_data_handlers.py`
 
-**Count**: 4 unused import(s)
+**Count**: 5 unused import(s)
 
+- **Line 12**: Unused datetime imported from datetime
 - **Line 14**: Unused Dict imported from typing
 - **Line 14**: Unused List imported from typing
 - **Line 14**: Unused Union imported from typing
@@ -363,6 +371,30 @@
 - **Line 9**: Unused Tuple imported from typing
 - **Line 9**: Unused List imported from typing
 - **Line 9**: Unused Optional imported from typing
+
+### `development_tools/docs/generate_directory_tree.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 20**: Unused datetime imported from datetime
+
+### `development_tools/functions/generate_function_docstrings.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 20**: Unused datetime imported from datetime
+
+### `development_tools/imports/generate_unused_imports_report.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 25**: Unused datetime imported from datetime
+
+### `development_tools/shared/common.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 13**: Unused get_exclusions imported from development_tools.shared.standard_exclusions
 
 ### `notebook/notebook_data_handlers.py`
 
@@ -392,13 +424,6 @@
 - **Line 8**: Unused List imported from typing
 - **Line 8**: Unused Optional imported from typing
 
-### `run_tests.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 21**: Unused Dict imported from typing
-- **Line 21**: Unused List imported from typing
-
 ### `tasks/task_management.py`
 
 **Count**: 1 unused import(s)
@@ -416,15 +441,15 @@
 
 **Count**: 3 unused import(s)
 
-- **Line 24**: Unused List imported from typing
-- **Line 24**: Unused Optional imported from typing
-- **Line 24**: Unused Type imported from typing
+- **Line 27**: Unused List imported from typing
+- **Line 27**: Unused Optional imported from typing
+- **Line 27**: Unused Type imported from typing
 
 ### `tests/ui/test_account_creation_ui.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 21**: Unused Optional imported from typing
+- **Line 22**: Unused Optional imported from typing
 
 ### `tests/unit/test_cleanup.py`
 
@@ -523,9 +548,9 @@
 
 **Count**: 3 unused import(s)
 
-- **Line 17**: Unused List imported from typing
-- **Line 17**: Unused Dict imported from typing
-- **Line 17**: Unused Optional imported from typing
+- **Line 18**: Unused List imported from typing
+- **Line 18**: Unused Dict imported from typing
+- **Line 18**: Unused Optional imported from typing
 
 ### `core/schedule_management.py`
 
@@ -564,12 +589,6 @@
 **Count**: 1 unused import(s)
 
 - **Line 9**: Unused Dict imported from typing
-
-### `run_tests.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 21**: Unused Optional imported from typing
 
 ### `tasks/task_management.py`
 
@@ -617,8 +636,8 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 18**: Unused Mock imported from unittest.mock
-- **Line 24**: Unused get_user_data imported from core.user_data_handlers
+- **Line 20**: Unused Mock imported from unittest.mock
+- **Line 27**: Unused get_user_data imported from core.user_data_handlers
 
 ### `tests/ai/test_cache_manager.py`
 
@@ -865,11 +884,11 @@
 
 **Count**: 5 unused import(s)
 
-- **Line 22**: Unused MagicMock imported from unittest.mock
-- **Line 34**: Unused create_user_files imported from core.file_operations
-- **Line 34**: Unused get_user_file_path imported from core.file_operations
-- **Line 35**: Unused is_valid_email imported from core.user_data_validation
-- **Line 35**: Unused validate_schedule_periods__validate_time_format imported from core.user_data_validation
+- **Line 23**: Unused MagicMock imported from unittest.mock
+- **Line 37**: Unused create_user_files imported from core.file_operations
+- **Line 37**: Unused get_user_file_path imported from core.file_operations
+- **Line 38**: Unused is_valid_email imported from core.user_data_validation
+- **Line 38**: Unused validate_schedule_periods__validate_time_format imported from core.user_data_validation
 
 ### `tests/ui/test_account_creator_dialog_validation.py`
 
@@ -1162,10 +1181,10 @@
 
 **Count**: 4 unused import(s)
 
-- **Line 25**: Unused QWidget imported from PySide6.QtWidgets
-- **Line 25**: Unused QMessageBox imported from PySide6.QtWidgets
-- **Line 26**: Unused Qt imported from PySide6.QtCore
-- **Line 26**: Unused QTimer imported from PySide6.QtCore
+- **Line 26**: Unused QWidget imported from PySide6.QtWidgets
+- **Line 26**: Unused QMessageBox imported from PySide6.QtWidgets
+- **Line 27**: Unused Qt imported from PySide6.QtCore
+- **Line 27**: Unused QTimer imported from PySide6.QtCore
 
 ### `tests/ui/test_category_management_dialog.py`
 
@@ -1722,21 +1741,23 @@
 
 ### `tests/test_utilities.py`
 
-**Count**: 2 unused import(s)
+**Count**: 3 unused import(s)
 
 - **Line 8**: Unused import tempfile
 - **Line 13**: Unused Path imported from pathlib
+- **Line 15**: Unused datetime imported from datetime
 
 ### `tests/ui/test_account_creation_ui.py`
 
-**Count**: 6 unused import(s)
+**Count**: 7 unused import(s)
 
-- **Line 20**: Unused import shutil
-- **Line 24**: Unused Path imported from pathlib
-- **Line 37**: Unused CategorySelectionWidget imported from ui.widgets.category_selection_widget
-- **Line 38**: Unused ChannelSelectionWidget imported from ui.widgets.channel_selection_widget
-- **Line 39**: Unused TaskSettingsWidget imported from ui.widgets.task_settings_widget
-- **Line 40**: Unused CheckinSettingsWidget imported from ui.widgets.checkin_settings_widget
+- **Line 21**: Unused import shutil
+- **Line 24**: Unused datetime imported from datetime
+- **Line 25**: Unused Path imported from pathlib
+- **Line 43**: Unused CategorySelectionWidget imported from ui.widgets.category_selection_widget
+- **Line 44**: Unused ChannelSelectionWidget imported from ui.widgets.channel_selection_widget
+- **Line 45**: Unused TaskSettingsWidget imported from ui.widgets.task_settings_widget
+- **Line 46**: Unused CheckinSettingsWidget imported from ui.widgets.checkin_settings_widget
 
 ### `tests/ui/test_dialog_behavior.py`
 
@@ -1823,12 +1844,6 @@
 - **Line 17**: Unused import os
 - **Line 18**: Unused import tempfile
 - **Line 20**: Unused Path imported from pathlib
-
-### `tests/unit/test_scripts_exclusion_policy.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 8**: Unused import os
 
 ### `tests/unit/test_user_data_manager.py`
 

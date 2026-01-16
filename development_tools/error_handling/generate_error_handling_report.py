@@ -21,6 +21,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from core.logger import get_component_logger
+from core.service_utilities import now_readable_timestamp
 
 # Handle both relative and absolute imports
 try:
@@ -142,7 +143,7 @@ class ErrorHandlingReportGenerator:
     def save_json_report(self, output_path: Path) -> None:
         """Save analysis results as JSON report with standardized metadata."""
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp_str = now_readable_timestamp()
         timestamp_iso = datetime.now().isoformat()
         report_data = {
             "generated_by": "generate_error_handling_report.py - Error Handling Report Generator",

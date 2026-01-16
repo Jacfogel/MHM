@@ -19,14 +19,16 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+from development_tools.shared.standard_exclusions import should_exclude_file
 from core.logger import get_component_logger
+from core.service_utilities import now_readable_timestamp
 
 # Handle both relative and absolute imports
 if __name__ != "__main__" and __package__ and "." in __package__:
@@ -42,6 +44,32 @@ except (AttributeError, ImportError):
     pass
 
 logger = get_component_logger("development_tools")
+
+
+def _get_line_indent(line: str) -> Optional[int]:
+    """
+    Return the character index where the "+---" or "\\---" marker appears.
+    """
+    for marker in ("+---", "\\---"):
+        idx = line.find(marker)
+        if idx >= 0:
+            return idx
+    return None
+
+
+def _build_dir_path(line: str, indent: int, stack: List[str]) -> Optional[str]:
+    """
+    Update the current path stack and return the joined path for the current directory.
+    """
+    segment = line[indent:]
+    for marker in ("+---", "\\---"):
+        if segment.startswith(marker):
+            dir_name = segment[len(marker) :].strip()
+            level = indent // 4
+            stack[:] = stack[:level]
+            stack.append(dir_name)
+            return "/".join(stack)
+    return None
 
 
 class DirectoryTreeGenerator:
@@ -111,18 +139,49 @@ class DirectoryTreeGenerator:
         # Process lines
         processed_lines = []
         skip_until_next_dir = False
+        skip_exclusion_indent: Optional[int] = None
+        path_stack: List[str] = []
 
-        for i, line in enumerate(lines):
-            if skip_until_next_dir:
-                # Skip ALL content until we hit the next root-level directory
-                # Look for lines that start with +--- (root level directories)
-                if line.strip() and line.startswith("+---"):
-                    # Found next directory at same level, stop skipping
-                    skip_until_next_dir = False
-                    # Now process this line normally (fall through to the else clause)
+        for line in lines:
+            indent = _get_line_indent(line)
+
+            if skip_exclusion_indent is not None:
+                if indent is not None and indent <= skip_exclusion_indent:
+                    skip_exclusion_indent = None
                 else:
-                    # Skip this line completely (don't add it, even if it's a nested placeholder)
                     continue
+
+            if skip_until_next_dir:
+                stripped_line = line.strip()
+                if stripped_line and (
+                    stripped_line.startswith("+---")
+                    or stripped_line.startswith("\\---")
+                ):
+                    skip_until_next_dir = False
+                else:
+                    continue
+
+            dir_path = None
+            if indent is not None:
+                dir_path = _build_dir_path(line, indent, path_stack)
+
+            if dir_path:
+                dir_name = dir_path.split("/")[-1]
+                candidate = self.project_root / dir_path
+                if should_exclude_file(candidate, context="development"):
+                    skip_exclusion_indent = indent if indent is not None else 0
+                    continue
+            elif "|" in line:
+                stripped = line.strip()
+                if stripped and not stripped.startswith("("):
+                    candidate_parts = list(path_stack)
+                    candidate = (
+                        self.project_root.joinpath(*candidate_parts, stripped)
+                        if candidate_parts
+                        else self.project_root / stripped
+                    )
+                    if should_exclude_file(candidate, context="development"):
+                        continue
 
             # Check if this line contains a directory we want to replace
             should_replace = False
@@ -144,8 +203,7 @@ class DirectoryTreeGenerator:
                 processed_lines.append(line)
 
         # Create the final content with standardized metadata
-        now = datetime.now()
-        timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = now_readable_timestamp()
 
         header = [
             "# Project Directory Tree",

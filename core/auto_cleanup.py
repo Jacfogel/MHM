@@ -16,6 +16,7 @@ from pathlib import Path
 
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
+from core.service_utilities import READABLE_TIMESTAMP_FORMAT
 
 CLEANUP_TRACKER_FILENAME = ".last_cache_cleanup"
 
@@ -674,7 +675,8 @@ def _get_cleanup_status__format_next_cleanup_date(last_date):
 def _get_cleanup_status__build_status_response(last_date, days_since, next_cleanup):
     """Build the final status response dictionary."""
     return {
-        "last_cleanup": last_date.strftime("%Y-%m-%d %H:%M:%S"),
+        # Use canonical readable format for display/metadata text.
+        "last_cleanup": last_date.strftime(READABLE_TIMESTAMP_FORMAT),
         "days_since": days_since,
         "next_cleanup": next_cleanup,
     }

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-15 06:37:20
+> **Last Generated**: 2026-01-16 05:50:56
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 35
 **Legacy Compatibility Markers Detected**: 64
@@ -45,12 +45,12 @@
 ### core\__init__.py
 **Issues Found**: 2
 
-- **Line 519**: `Legacy module`
+- **Line 519**: `backward compatibility`
   ```
   # Legacy module names (for backward compatibility)
   ```
 
-- **Line 519**: `backward compatibility`
+- **Line 519**: `Legacy module`
   ```
   # Legacy module names (for backward compatibility)
   ```
@@ -66,7 +66,7 @@
 ### core\message_management.py
 **Issues Found**: 1
 
-- **Line 650**: `backward compatibility`
+- **Line 653**: `backward compatibility`
   ```
   Handles multiple timestamp formats for backward compatibility.
   ```
@@ -90,12 +90,12 @@
 ### core\user_data_handlers.py
 **Issues Found**: 2
 
-- **Line 1763**: `backward compatibility`
+- **Line 1765**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but should primarily be used
   ```
 
-- **Line 2246**: `backward compatibility`
+- **Line 2251**: `backward compatibility`
   ```
   # Check for explicit messages_enabled flag first, then fall back to categories check (for backward compatibility)
   ```
@@ -273,7 +273,7 @@
 ### development_tools\shared\standard_exclusions.py
 **Issues Found**: 1
 
-- **Line 331**: `backward compatibility`
+- **Line 336**: `backward compatibility`
   ```
   # For backward compatibility: ALL_GENERATED_FILES contains only exact paths
   ```
@@ -289,7 +289,7 @@
 ### development_tools\tests\generate_test_coverage_report.py
 **Issues Found**: 1
 
-- **Line 78**: `backward compatibility`
+- **Line 79**: `backward compatibility`
   ```
   # Fall back to root location for backward compatibility
   ```
@@ -297,22 +297,22 @@
 ### development_tools\tests\run_test_coverage.py
 **Issues Found**: 4
 
-- **Line 170**: `backward compatibility`
+- **Line 172**: `backward compatibility`
   ```
   # Fall back to root location for backward compatibility
   ```
 
-- **Line 235**: `backward compatibility`
+- **Line 237**: `backward compatibility`
   ```
   self.use_domain_cache = use_domain_cache  # Keep name for backward compatibility
   ```
 
-- **Line 1056**: `backward compatibility`
+- **Line 1058**: `backward compatibility`
   ```
   stdout_log_path  # Keep variable name for backward compatibility
   ```
 
-- **Line 3711**: `backward compatibility`
+- **Line 3713**: `backward compatibility`
   ```
   # Keeping for backward compatibility but it shouldn't be called
   ```
@@ -320,7 +320,7 @@
 ### run_tests.py
 **Issues Found**: 1
 
-- **Line 2171**: `backward compatibility`
+- **Line 2172**: `backward compatibility`
   ```
   # Handle case where parallel_results might be a bool (backward compatibility)
   ```
@@ -336,7 +336,7 @@
 ### tests\conftest.py
 **Issues Found**: 1
 
-- **Line 1448**: `backward compatibility`
+- **Line 1675**: `backward compatibility`
   ```
   This function is kept for backward compatibility but does nothing.
   ```
@@ -357,67 +357,67 @@
 ### tests\test_utilities.py
 **Issues Found**: 13
 
-- **Line 483**: `backward compatibility`
+- **Line 587**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 639**: `backward compatibility`
+- **Line 795**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 801**: `backward compatibility`
+- **Line 965**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 914**: `backward compatibility`
+- **Line 1090**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1156**: `backward compatibility`
+- **Line 1395**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1180**: `backward compatibility`
+- **Line 1423**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1382**: `backward compatibility`
+- **Line 1637**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1543**: `backward compatibility`
+- **Line 1826**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1692**: `backward compatibility`
+- **Line 2016**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1841**: `backward compatibility`
+- **Line 2184**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1988**: `backward compatibility`
+- **Line 2357**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2135**: `backward compatibility`
+- **Line 2514**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2575**: `backward compatibility`
+- **Line 2995**: `backward compatibility`
   ```
   # Convenience functions for backward compatibility
   ```

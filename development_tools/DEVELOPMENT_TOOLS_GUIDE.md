@@ -80,6 +80,7 @@ python development_tools/run_development_tools.py config
 - `unused-imports` - runs the AST-based unused import detection tool (analysis only).
 - `unused-imports-report` - generates unused imports report from analysis results.
 - `workflow` - executes an audit-first workflow task.
+- `export-code` - Exports Python source files from a specified directory into a single Markdown snapshot for LLM context (portable, project-root-relative paths).
 - `trees` - generates directory tree reports.
 - `cleanup` - cleans up project cache files, temporary directories, and artifacts.
 - `help` - shows detailed help information.
@@ -277,6 +278,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | system_signals.py | supporting | advisory | Collects OS/process health signals for consolidated reports. |
 | decision_support.py | supporting | advisory | Aggregates metrics into improvement priorities. |
 | shared/file_rotation.py | supporting | stable | Timestamped rotation utility used by coverage generation. |
+| shared/export_code_snapshot.py | supporting | stable | Exports Python source files into a single Markdown snapshot for LLM context. |
 | shared/tool_guide.py | supporting | stable | Provides contextual guidance and tier overviews for assistants. |
 | docs/fix_version_sync.py | experimental | experimental | Attempts cross-file version synchronization (fragile). |
 | functions/generate_function_docstrings.py | experimental | experimental | Auto-generates docstrings; high-risk and currently prototype. |
@@ -288,6 +290,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 ## 5. Operating Standards and Maintenance
 
 - Follow the audit-first workflow (see [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)) before touching documentation or infrastructure
+- Keep the standard exclusions + config aligned so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` are skipped by the majority of analyzer runs.
 - **Caching Infrastructure**:
 - **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching). The cache automatically invalidates when `development_tools_config.json` changes, ensuring config updates are immediately reflected.
 - **Test Coverage Caching**:

@@ -12,6 +12,7 @@ from datetime import datetime
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
+from core.service_utilities import now_readable_timestamp
 from core.tags import parse_tags_from_text
 
 from communication.command_handlers.base_handler import InteractionHandler
@@ -245,7 +246,6 @@ class NotebookHandler(InteractionHandler):
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle quick note creation - no body text required, automatically grouped as 'Quick Notes'."""
-        from datetime import datetime
 
         title = entities.get("title")
         tags = entities.get("tags", [])
@@ -255,7 +255,7 @@ class NotebookHandler(InteractionHandler):
         # If no title provided, use a default
         if not title or not title.strip():
             # Use timestamp as default title for quick notes
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+            timestamp = now_readable_timestamp()
             title = f"Quick Note - {timestamp}"
 
         # Parse tags from title if present

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-15 06:33:47
+> **Last Generated**: 2026-01-16 05:47:23
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 96.0% [OK] EXCELLENT**
-- **Total Functions**: 1516
+- **Total Functions**: 1498
 - **Total Methods**: 1135
-- **Documented**: 2545/2651
-- **Files Scanned**: 109
+- **Documented**: 2528/2633
+- **Files Scanned**: 108
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -172,8 +172,8 @@ Core System Decision Tree:
 - [OK] `ui/ui_app_qt.py::main()` - Application entry point
 - [OK] `run_headless_service.py::main()` - Application entry point
 - [OK] `run_mhm.py::main()` - Application entry point
-- [OK] `run_tests.py::main()` - Application entry point
 - [OK] `core/config.py::__init__()` - Initialization
+- [OK] `core/service.py::__init__()` - Initialization
 
 ### **Data Access Patterns**
 - **User Data**: `core/user_data_handlers.py` - User data operations (53/54 functions)
@@ -207,12 +207,12 @@ Core System Decision Tree:
 1. **User Message**: `communication/message_processing/interaction_manager.py::handle_message()`
 2. **AI Response**: `ai/chatbot.py::generate_response()`
 3. **Main Entry**: `run_headless_service.py::main()`
-4. **User Data Access**: `core/config.py::get_user_data_dir()`
-5. **Send Message**: `core/headless_service.py::send_test_message()`
+4. **User Data Access**: `communication/message_processing/interaction_manager.py::get_user_suggestions()`
+5. **User Data Save**: `communication/message_processing/conversation_flow_manager.py::_save_user_states()`
 6. **Command Parsing**: `communication/message_processing/command_parser.py::get_enhanced_command_parser()`
 7. **Error Handling**: `core/error_handling.py::handle_errors()`
 8. **Scheduling**: `core/scheduler.py::run_full_scheduler_standalone()`
-9. **Configuration**: `core/config.py::get_user_data_dir()`
+9. **Configuration**: `communication/core/channel_orchestrator.py::get_configured_channels()`
 
 
 ### **Complexity Metrics**
@@ -221,7 +221,7 @@ Most complex functions (may need refactoring):
 2. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2554
 3. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2298
 4. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2208
-5. [OK] `run_tests.py::run_command()` - Complexity: 2200
+5. [OK] `core/user_data_handlers.py::get_user_data()` - Complexity: 2099
 
 
 ### **Pattern Recognition**
@@ -231,7 +231,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (26 files, 800 functions)
+- `core/` - System utilities and data management (26 files, 802 functions)
 - `communication/` - Communication channels and message processing (38 files, 760 functions)
 - `ai/` - AI chatbot functionality (7 files, 189 functions)
 - `ui/` - User interface components (28 files, 793 functions)
@@ -239,4 +239,4 @@ Most complex functions (may need refactoring):
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2026-01-15 06:33:47
+> **Last Updated**: 2026-01-16 05:47:23

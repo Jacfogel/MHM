@@ -12,7 +12,7 @@ from typing import List, Dict, Any
 
 from core.user_data_handlers import get_all_user_ids
 from core.schedule_management import get_schedule_time_periods
-from core.service_utilities import load_and_localize_datetime
+from core.service_utilities import load_and_localize_datetime, now_filename_timestamp
 from core.logger import get_component_logger
 from user.user_context import UserContext
 from core.error_handling import handle_errors
@@ -1529,7 +1529,7 @@ class SchedulerManager:
                 logger.info("Starting weekly backup process")
                 
                 backup_path = backup_manager.create_backup(
-                    backup_name=f"weekly_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                    backup_name=f"weekly_backup_{now_filename_timestamp()}",
                     include_users=True,
                     include_config=True,
                     include_logs=False

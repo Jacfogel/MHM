@@ -14,6 +14,7 @@ from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, determine_file_path
 from core.schemas import validate_messages_file_dict
 from core.error_handling import ValidationError, handle_errors
+from core.service_utilities import now_filename_timestamp, now_readable_timestamp
 from typing import List, Dict, Any, Optional
 
 logger = get_component_logger("message")
@@ -506,7 +507,8 @@ def store_sent_message(
             "message_id": message_id,
             "message": message,
             "category": category,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            # Canonical readable timestamp for metadata/log display fields
+            "timestamp": now_readable_timestamp(),
             "delivery_status": delivery_status,
         }
 
@@ -537,7 +539,8 @@ def store_sent_message(
             data["metadata"] = {}
 
         data["metadata"]["total_messages"] = len(messages)
-        data["metadata"]["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Canonical readable timestamp for metadata/log display fields
+        data["metadata"]["last_updated"] = now_readable_timestamp()
 
         save_json_data(data, file_path)
 
@@ -598,16 +601,15 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
         archive_dir = Path(file_path).parent / "archives"
         archive_dir.mkdir(exist_ok=True)
 
-        archive_filename = (
-            f"sent_messages_archive_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        )
+        archive_filename = f"sent_messages_archive_{now_filename_timestamp()}.json"
         archive_path = archive_dir / archive_filename
 
         # Save archived messages
         archive_data = {
             "metadata": {
                 "version": "2.0",
-                "archived_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                # Canonical readable timestamp for metadata/log display fields
+                "archived_date": now_readable_timestamp(),
                 "original_file": str(file_path),
                 "total_messages": len(archived_messages),
                 "date_range": {
@@ -627,7 +629,8 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
         # Update active file
         data["messages"] = active_messages
         data["metadata"]["total_messages"] = len(active_messages)
-        data["metadata"]["last_archived"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Canonical readable timestamp for metadata/log display fields
+        data["metadata"]["last_archived"] = now_readable_timestamp()
         data["metadata"]["archived_count"] = len(archived_messages)
 
         save_json_data(data, file_path)

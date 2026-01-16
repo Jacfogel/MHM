@@ -10,7 +10,7 @@
 
 
 ## Overview
-This file is a lightweight summary of recent changes for AI collaborators. It provides essential context without overwhelming detail. For the complete historical record, see `development_docs/CHANGELOG_DETAIL.md`.
+This file is a lightweight summary of recent changes for AI collaborators. It provides essential context without overwhelming detail. For the complete historical record, see [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md).
 
 ## How to Update This File
 1. Add a new entry at the top summarising the change in 2-4 bullets.
@@ -43,13 +43,13 @@ Guidelines:
 
 ### 2026-01-15 - Test Flags Isolation and Coverage Cache Mapping Refresh **COMPLETED**
 - Routed shutdown/test flags through `get_flags_dir()` and set `MHM_FLAGS_DIR` to `tests/data/flags` in `tests/conftest.py` to prevent tests from stopping live services
-- Aligned `TEST_VERBOSE_LOGS` docs in `logs/LOGGING_GUIDE.md` with actual test logging levels
+- Aligned `TEST_VERBOSE_LOGS` docs in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) with actual test logging levels
 - Added domain inference + dev tools mapping for test-file coverage caching and regenerated the cache (0 unmapped tests)
 
 ### 2026-01-14 - User Management Retirement Finalized **COMPLETED**
 - Removed the `core/user_management.py` shim and finished the migration cleanup in core user data modules
 - Updated dev tools generators and audit aggregation to stop surfacing legacy `core/user_management` references
-- Regenerated AI function registry and full audit outputs; removed the completed retirement task from `TODO.md`
+- Regenerated AI function registry and full audit outputs; removed the completed retirement task from [TODO.md](TODO.md)
 
 ### 2026-01-14 - Legacy Cleanup and Test Fixes **COMPLETED**
 - Moved user identifier/category/preset/timezone helpers into `core/user_data_handlers.py` and delegated legacy accessors in `core/user_management.py`
@@ -1153,7 +1153,7 @@ Guidelines:
 - **Environment Setup**: Both headless service manager and UI now use consistent Python path configuration for reliable service startup.
 
 ### 2025-10-21 - Documentation & Testing Improvements **COMPLETED**
-- **ASCII Compliance**: Fixed all non-ASCII characters in documentation files (`development_docs/CHANGELOG_DETAIL.md`, [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)) by replacing smart quotes, arrows, and special characters with ASCII equivalents.
+- **ASCII Compliance**: Fixed all non-ASCII characters in documentation files ([CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)) by replacing smart quotes, arrows, and special characters with ASCII equivalents.
 - **Path Drift Resolution**: Improved documentation sync checker with 87.5% reduction in false positives (8->1 path drift issues) through enhanced pattern matching and context-aware extraction.
 - **Test Suite Stabilization**: Fixed 9 logging violations in `regenerate_coverage_metrics.py` by converting old-style string formatting to f-strings, ensuring all 1866 tests pass.
 - **Error Handling Progress**: Added @handle_errors decorators to service_utilities.py Throttler class, improving error handling coverage from 91.6% to 91.7%.
@@ -1207,7 +1207,7 @@ Guidelines:
   - **UI Tests**: 23 files cleaned including production UI files
   - **Production UI Files**: 4 files cleaned (account_creator_dialog.py, message_editor_dialog.py, schedule_editor_dialog.py, user_analytics_dialog.py)
 - **Testing**: All 1848 tests pass, service starts successfully, unused imports report shows 42 files with 193 remaining (down from 1100+)
-- **Documentation**: Updated the unused imports cleanup summary (legacy doc), `development_docs/CHANGELOG_DETAIL.md`, and [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with final results
+- **Documentation**: Updated the unused imports cleanup summary (legacy doc), [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), and [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with final results
 
 ### 2025-10-18 - Logging System Optimization and Redundancy Reduction **COMPLETED**
 - **Problem Solved**: Excessive logging frequency and redundant messages making logs noisy and less useful for debugging

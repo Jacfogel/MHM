@@ -9,7 +9,6 @@ Orchestrates import analysis, pattern analysis, and content generation.
 
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
-from datetime import datetime
 import sys
 
 # Add project root to path for core module imports
@@ -46,6 +45,7 @@ else:
     from development_tools.shared.common import ensure_ascii
 
 from core.logger import get_component_logger
+from core.service_utilities import now_readable_timestamp
 
 # Load external config on module import
 config.load_external_config()
@@ -61,11 +61,10 @@ def generate_module_dependencies_content(
     actual_imports: Dict[str, Dict], existing_content: str = ""
 ) -> str:
     """Generate comprehensive module dependencies content with hybrid format."""
-    timestamp = datetime.now()
     content: List[str] = []
 
-    generated_at = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-    generated_date = timestamp.strftime("%Y-%m-%d")
+    generated_at = now_readable_timestamp()
+    generated_date = now_readable_timestamp().split(" ")[0]
 
     # Get project name from config
     project_name = config.get_project_name("Project")
@@ -611,8 +610,7 @@ def identify_modules_needing_enhancement(
 
 def generate_ai_module_dependencies_content(actual_imports: Dict[str, Dict]) -> str:
     """Generate the AI-facing dependency summary - dynamic and data-driven."""
-    timestamp = datetime.now()
-    generated_at = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+    generated_at = now_readable_timestamp()
 
     total_files = len(actual_imports)
     total_imports = sum(data["total_imports"] for data in actual_imports.values())

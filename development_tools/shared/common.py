@@ -37,9 +37,13 @@ except (AttributeError, ImportError):
 
 # Get project root from config (config-driven, portable)
 def _get_project_root() -> Path:
-    """Get project root from config."""
+    """Get project root from config.
+
+    Always returns a fully-resolved absolute path so callers can safely use
+    Path.relative_to() comparisons against other resolved paths.
+    """
     try:
-        return Path(config.get_project_root())
+        return Path(config.get_project_root()).expanduser().resolve()
     except (AttributeError, ImportError, TypeError):
         # Fallback to path calculation if config not available
         return Path(__file__).resolve().parents[2]
@@ -68,7 +72,7 @@ class ProjectPaths:
             project_root = Path(root)
         else:
             try:
-                project_root = Path(config.get_project_root())
+                project_root = Path(config.get_project_root()).expanduser().resolve()
             except (AttributeError, ImportError, TypeError):
                 # Fallback to path calculation if config not available
                 project_root = Path(__file__).resolve().parents[2]
@@ -135,12 +139,8 @@ def iter_python_sources(
     """
     # Get project root from config if not provided
     if project_root is None:
-        try:
-            project_root = Path(config.get_project_root())
-        except (AttributeError, ImportError, TypeError):
-            project_root = PROJECT_ROOT
+        project_root = PROJECT_ROOT
 
-    base_exclusions = get_exclusions(tool_type, context)
     for directory in directories:
         base_path = (
             project_root / directory if isinstance(directory, str) else directory

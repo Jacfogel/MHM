@@ -16,6 +16,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import ensure_user_directory, get_user_file_path
 from core.file_operations import load_json_data, save_json_data, determine_file_path
+from core.service_utilities import now_readable_timestamp
 from core.user_data_validation import (
     validate_new_user_data,
     validate_user_update,
@@ -244,7 +245,8 @@ def _get_user_data__load_account(
         )
         ensure_user_directory(user_id)
         # Create default account data
-        current_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Canonical readable timestamp for metadata fields
+        current_time_str = now_readable_timestamp()
         default_account = {
             "user_id": user_id,
             "internal_username": "",
@@ -299,7 +301,7 @@ def _save_user_data__save_account(user_id: str, account_data: dict[str, Any]) ->
     account_file = get_user_file_path(user_id, "account")
 
     # Add metadata
-    account_data["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    account_data["updated_at"] = now_readable_timestamp()
 
     # Validate/normalize via Pydantic schema (non-blocking)
     try:
@@ -485,7 +487,7 @@ def _get_user_data__load_context(
         )
         ensure_user_directory(user_id)
         # Create default context data
-        current_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        current_time_str = now_readable_timestamp()
         default_context = {
             "preferred_name": "",
             "gender_identity": [],
@@ -535,7 +537,7 @@ def _save_user_data__save_context(user_id: str, context_data: dict[str, Any]) ->
     context_file = get_user_file_path(user_id, "context")
 
     # Add metadata
-    context_data["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    context_data["last_updated"] = now_readable_timestamp()
 
     save_json_data(context_data, context_file)
 
@@ -2231,6 +2233,9 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
     """Create a new user with the new data structure."""
     user_id = str(uuid.uuid4())
 
+    # Use a single canonical timestamp for this creation operation so all "created" fields match.
+    created_ts = now_readable_timestamp()
+
     # Create account data
     account_data = {
         "user_id": user_id,
@@ -2240,8 +2245,8 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
         "phone": user_data.get("phone", ""),
         "email": user_data.get("email", ""),
         "discord_user_id": user_data.get("discord_user_id", ""),
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "created_at": created_ts,
+        "updated_at": created_ts,  # account schema uses updated_at
         "features": {
             # Check for explicit messages_enabled flag first, then fall back to categories check (for backward compatibility)
             "automated_messages": (
@@ -2313,8 +2318,8 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
             "activities_for_encouragement", []
         ),
         "notes_for_ai": user_data.get("notes_for_ai", []),
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "created_at": created_ts,
+        "last_updated": created_ts,  # context schema uses last_updated
     }
 
     # Save all data using centralized save_user_data

@@ -9,9 +9,9 @@ development_tools source files have not changed.
 import json
 import os
 import time
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
+from core.service_utilities import now_readable_timestamp, now_filename_timestamp
 
 # Try to import file locking (Unix/Linux)
 try:
@@ -111,8 +111,8 @@ class DevToolsCoverageCache:
     def _save_cache(self) -> None:
         """Save cache to disk with file locking and atomic write for thread safety."""
         try:
-            timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            timestamp_iso = datetime.now().isoformat()
+            timestamp_str = now_readable_timestamp()
+            timestamp_iso = now_filename_timestamp()
             self.cache_data["last_updated"] = timestamp_iso
             self.cache_data["last_updated_readable"] = timestamp_str
             self.cache_data["generated_by"] = (

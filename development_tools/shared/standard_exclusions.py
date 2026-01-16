@@ -44,12 +44,13 @@ except (AttributeError, ImportError):
 
 # Default universal exclusions (generic patterns - should work for most projects)
 # These are fallbacks if external config doesn't provide exclusions
-_DEFAULT_UNIVERSAL_EXCLUSIONS = [
+_DEFAULT_BASE_EXCLUSIONS = [
     # Python cache and compiled files
     "__pycache__",
     "*.pyc",
     "*.pyo",
     "*.pyi",
+    ".ruff_cache",
     # Virtual environments
     "venv",
     ".venv",
@@ -76,6 +77,7 @@ _DEFAULT_UNIVERSAL_EXCLUSIONS = [
     "backup*",
     "backups",
     # Scripts directory (should be excluded in all contexts)
+    "scripts",
     "scripts/*",
     "*/scripts/*",
     # Test artifacts
@@ -86,6 +88,9 @@ _DEFAULT_UNIVERSAL_EXCLUSIONS = [
     "tests/data/",
     "tests/temp/",
     "tests/fixtures/",
+    "tests/ai/results",
+    "tests/coverage_html",
+    "mhm.egg-info",
     # Pytest temporary directories (created during parallel test runs)
     "pytest-tmp-*",
     "pytest-of-*",
@@ -110,16 +115,16 @@ def _get_exclusions_config_safe():
     return None
 
 
-def _load_universal_exclusions() -> List[str]:
+def _load_base_exclusions() -> List[str]:
     """Load universal exclusions from config or return defaults."""
     exclusions_config = _get_exclusions_config_safe()
-    if exclusions_config and "universal_exclusions" in exclusions_config:
-        return exclusions_config["universal_exclusions"]
-    return _DEFAULT_UNIVERSAL_EXCLUSIONS.copy()
+    if exclusions_config and "base_exclusions" in exclusions_config:
+        return exclusions_config["base_exclusions"]
+    return _DEFAULT_BASE_EXCLUSIONS.copy()
 
 
-# Universal exclusions - start with defaults, will be updated when config loads
-UNIVERSAL_EXCLUSIONS = _DEFAULT_UNIVERSAL_EXCLUSIONS.copy()
+# Universal exclusions - start from config or fall back to defaults
+BASE_EXCLUSIONS = _load_base_exclusions()
 
 # Default tool-specific exclusions (empty by default - projects can override via config)
 _DEFAULT_TOOL_EXCLUSIONS = {}
@@ -133,8 +138,8 @@ def _load_tool_exclusions() -> Dict[str, List[str]]:
     return _DEFAULT_TOOL_EXCLUSIONS.copy()
 
 
-# Tool-specific exclusions - start with defaults
-TOOL_EXCLUSIONS = _DEFAULT_TOOL_EXCLUSIONS.copy()
+# Tool-specific exclusions - load from config or fall back to defaults
+TOOL_EXCLUSIONS = _load_tool_exclusions()
 
 # Default context-specific exclusions (generic patterns)
 _DEFAULT_CONTEXT_EXCLUSIONS = {
@@ -204,7 +209,7 @@ def get_exclusions(tool_type: str = None, context: str = "development") -> list:
     Returns:
         List of exclusion patterns
     """
-    exclusions = UNIVERSAL_EXCLUSIONS.copy()
+    exclusions = BASE_EXCLUSIONS.copy()
 
     # Add tool-specific exclusions
     if tool_type and tool_type in TOOL_EXCLUSIONS:
@@ -341,24 +346,25 @@ _CONTEXT_EXCLUSIONS_TEMP["recent_changes"] = list(ALL_GENERATED_FILES) + list(
 CONTEXT_EXCLUSIONS = _CONTEXT_EXCLUSIONS_TEMP
 
 
-def _load_standard_exclusion_patterns() -> Tuple[str, ...]:
+def _load_base_exclusion_shortlist() -> Tuple[str, ...]:
     """Load standard exclusion patterns from config or return defaults."""
     exclusions_config = _get_exclusions_config_safe()
-    if exclusions_config and "standard_exclusion_patterns" in exclusions_config:
-        return tuple(exclusions_config["standard_exclusion_patterns"])
+    if exclusions_config and "base_exclusion_shortlist" in exclusions_config:
+        return tuple(exclusions_config["base_exclusion_shortlist"])
     # Default generic patterns
     return (
         "logs/",
         "data/",
-        "resources/",
         "coverage_html/",
         "__pycache__/",
         ".pytest_cache/",
+        ".ruff_cache/",
         "venv/",
         ".venv/",
         "htmlcov/",
         "archive/",
         "ui/generated/",
+        "mhm.egg-info/",
         "*.log",
         ".coverage",
         "coverage.xml",
@@ -367,45 +373,34 @@ def _load_standard_exclusion_patterns() -> Tuple[str, ...]:
 
 
 # Standard exclusion patterns (used by multiple tools)
-STANDARD_EXCLUSION_PATTERNS: Tuple[str, ...] = _load_standard_exclusion_patterns()
+BASE_EXCLUSION_SHORTLIST: Tuple[str, ...] = _load_base_exclusion_shortlist()
 
 # =============================================================================
 # TOOL-SPECIFIC EXCLUSIONS
 # =============================================================================
 
 
-def _load_unused_imports_init_files() -> Tuple[str, ...]:
-    """Load unused imports init files from config or return defaults."""
+def _load_historical_preserve_files() -> Tuple[str, ...]:
+    """Load historical preserve files from config or return defaults."""
     exclusions_config = _get_exclusions_config_safe()
-    if exclusions_config and "unused_imports_init_files" in exclusions_config:
-        return tuple(exclusions_config["unused_imports_init_files"])
+    if exclusions_config and "historical_preserve_files" in exclusions_config:
+        return tuple(exclusions_config["historical_preserve_files"])
     # Default: empty (projects should define their own)
     return ()
 
-
-def _load_legacy_preserve_files() -> Tuple[str, ...]:
-    """Load legacy preserve files from config or return defaults."""
-    exclusions_config = _get_exclusions_config_safe()
-    if exclusions_config and "legacy_preserve_files" in exclusions_config:
-        return tuple(exclusions_config["legacy_preserve_files"])
-    # Default: empty (projects should define their own)
-    return ()
-
-
-# Unused imports checker specific files
-UNUSED_IMPORTS_INIT_FILES: Tuple[str, ...] = _load_unused_imports_init_files()
 
 # Legacy cleanup preserve files
-LEGACY_PRESERVE_FILES: Tuple[str, ...] = _load_legacy_preserve_files()
+HISTORICAL_PRESERVE_FILES: Tuple[str, ...] = _load_historical_preserve_files()
 
 # Documentation sync checker placeholders
 DOC_SYNC_PLACEHOLDERS: Dict[str, str] = {
-    "__pycache__": "    (Python cache files)",
-    ".pytest_cache": "    (pytest cache files)",
-    ".venv": "    (virtual environment files)",
-    "backups": "    (backup files)",
+    "logs": "    (log files)",
+    "data": "    (data files)",
     "htmlcov": "    (HTML coverage reports)",
+    "backups": "    (backup files)",
     "archive": "    (archived files)",
+    "jsons": "    (JSON files created by development tools)",
+    "development_tools/tests/logs": "    (test coverage log files)",
 }
 
 # Example usage

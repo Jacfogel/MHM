@@ -29,6 +29,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from core.service_utilities import now_readable_timestamp, now_filename_timestamp
+
 # Add project root to path for core module imports
 # Script is at: development_tools/tests/generate_test_coverage.py
 # So we need to go up 3 levels: tests -> development_tools -> project_root
@@ -834,7 +836,7 @@ class CoverageMetricsRegenerator:
                 if cached_coverage_json:
                     # Save cached JSON to coverage_output with timestamp metadata
                     try:
-                        timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        timestamp_str = now_readable_timestamp()
                         timestamp_iso = datetime.now().isoformat()
                         cached_coverage_json["_metadata"] = {
                             "generated_by": "test-file cache (no test execution) - Development Tools",
@@ -1262,7 +1264,7 @@ class CoverageMetricsRegenerator:
                         fresh_coverage_json = None
                     elif fresh_coverage_json:
                         # Add timestamp metadata
-                        timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        timestamp_str = now_readable_timestamp()
                         timestamp_iso = datetime.now().isoformat()
                         fresh_coverage_json["_metadata"] = {
                             "generated_by": "pytest-cov --cov-report=json - Development Tools",
@@ -1359,7 +1361,7 @@ class CoverageMetricsRegenerator:
 
                 # Save merged coverage JSON with timestamp metadata
                 try:
-                    timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    timestamp_str = now_readable_timestamp()
                     timestamp_iso = datetime.now().isoformat()
                     merged_coverage_json["_metadata"] = {
                         "generated_by": "pytest-cov + test-file cache merge - Development Tools",
@@ -3124,7 +3126,7 @@ class CoverageMetricsRegenerator:
             self._rotate_log_files("pytest_dev_tools_stdout", max_versions=8)
 
             # Create timestamp for log file
-            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            timestamp = now_filename_timestamp()
             dev_tools_stdout_log = (
                 self.coverage_logs_dir / f"pytest_dev_tools_stdout_{timestamp}.log"
             )
@@ -3212,7 +3214,7 @@ class CoverageMetricsRegenerator:
                     try:
                         with open(coverage_output, "r", encoding="utf-8") as f:
                             dev_tools_coverage_json = json.load(f)
-                        timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        timestamp_str = now_readable_timestamp()
                         timestamp_iso = datetime.now().isoformat()
                         dev_tools_coverage_json["_metadata"] = {
                             "generated_by": "pytest-cov --cov-report=json - Development Tools (dev_tools)",

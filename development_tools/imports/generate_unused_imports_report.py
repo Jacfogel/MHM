@@ -31,6 +31,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from core.logger import get_component_logger
+from core.service_utilities import now_readable_timestamp
 
 # Handle both relative and absolute imports
 try:
@@ -128,7 +129,7 @@ class UnusedImportsReportGenerator:
 
     def generate_report(self) -> str:
         """Generate a detailed markdown report."""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = now_readable_timestamp()
 
         lines = []
         lines.append("# Unused Imports Report")

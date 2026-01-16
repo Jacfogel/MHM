@@ -24,6 +24,7 @@ from core.user_data_handlers import get_user_data
 from core.user_data_handlers import get_all_user_ids
 from core.schemas import validate_messages_file_dict
 from core.error_handling import handle_errors
+from core.service_utilities import now_filename_timestamp, now_readable_timestamp
 
 logger = get_component_logger("main")
 data_manager_logger = get_component_logger("user_activity")
@@ -209,7 +210,7 @@ class UserDataManager:
             return ""
         """Create a complete backup of user's data"""
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = now_filename_timestamp()
             backup_filename = f"user_backup_{user_id}_{timestamp}.zip"
             backup_path = str(Path(self.backup_dir) / backup_filename)
 
@@ -1552,7 +1553,8 @@ def build_user_index() -> dict[str, Any]:
                 index_data[user_id] = {
                     "active": True,
                     "categories": sorted(set(categories)),
-                    "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    # Canonical readable timestamp for metadata fields
+                    "last_updated": now_readable_timestamp(),
                     "message_count": message_count,
                 }
 
@@ -1630,7 +1632,8 @@ def get_user_summary(user_id: str) -> dict[str, Any]:
             "categories": categories,
             "message_stats": message_stats,
             "total_messages": total_messages,
-            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            # Canonical readable timestamp for metadata fields
+            "last_updated": now_readable_timestamp(),
         }
 
         return summary

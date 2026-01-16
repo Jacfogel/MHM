@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-15 06:33:51
+> **Last Generated**: 2026-01-16 05:47:26
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -11,11 +11,6 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
-|   .cursorignore
-|   .env
-|   .env.example
-|   .gitattributes
-|   .gitignore
 |   ARCHITECTURE.md
 |   create_backup.py
 |   DEVELOPMENT_WORKFLOW.md
@@ -28,8 +23,6 @@ C:.
 |   README.md
 |   requirements.txt
 |   run_headless_service.py
-|   run_mhm.py
-|   run_tests.py
 |   TODO.md
 |   
 +---.cursor
@@ -55,157 +48,16 @@ C:.
 |   |   |   notebook_feature_implementation_ce88ed1a.plan.md
 |   |   |   systematic_pyright_review_6d01910c.plan.md
 |   |   |   
-|   |   \---archive
-    (archived files)
-+---.ruff_cache
-|   |   .gitignore
-|   |   CACHEDIR.TAG
-|   |   
-|   \---0.14.11
-|           10152068920988601095
-|           10333475620027539704
-|           10562779384254381362
-|           10645244109263308637
-|           10844686483123322672
-|           11004955583481255708
-|           11053917909929002447
-|           11056238334372458054
-|           11071001825568639980
-|           11315278285996491550
-|           11378495277848614368
-|           11475018156143724042
-|           11484555623357255844
-|           11550245044725910902
-|           11633034208743990452
-|           11913223304120245069
-|           12642010273243918067
-|           12642096825250822466
-|           12842885393315008675
-|           12893204480527525678
-|           12996903149026359404
-|           13137210192820111838
-|           13348423970089302876
-|           13446800333254737231
-|           13486614172030749069
-|           13571240580330589237
-|           13767101666882004623
-|           13790543243738605588
-|           13829440492986280015
-|           14032717974304457478
-|           14067395312073713908
-|           14117641418570183813
-|           14134323620561789170
-|           14337376554550632511
-|           14454711842518065583
-|           14503397943335135853
-|           14512825743484858278
-|           14534670166033240432
-|           14674549430344115359
-|           14750778713428644334
-|           14773008887669483736
-|           14858005313342433777
-|           14905186028323053776
-|           1504531828526222989
-|           15163208502250254929
-|           15180819230236900712
-|           152057412507829062
-|           15219455867121516058
-|           15517950090749718423
-|           15529109397016446585
-|           15591488886683843875
-|           15704145846983915074
-|           1587531381650703930
-|           16001181080684773051
-|           16219493980036554303
-|           16266989256797399775
-|           16301296202720312511
-|           16303995432142616452
-|           16319414731745625949
-|           16413929096521061665
-|           16719605949105909415
-|           16936915960387747773
-|           16977442183627668329
-|           1708293311039825171
-|           17254534226410776015
-|           17362242692533301957
-|           17436725964936569188
-|           17588985691318498259
-|           17966335135725267387
-|           1802495668532657319
-|           18053985244057552255
-|           18143017362187925657
-|           18192678926053186317
-|           1832973676347810283
-|           18341202225450172015
-|           2006291497904776056
-|           2068646115306874854
-|           2120368521478808116
-|           2157110307795717741
-|           2198850710823909611
-|           2229330795064641443
-|           2239061353609375070
-|           2248769099208642104
-|           2254856181265054222
-|           2317140848733725595
-|           2403673223108679099
-|           2428128543759430985
-|           2491876186019442
-|           2510487937726919212
-|           2853966234336396858
-|           3014937097085976753
-|           3367479501918303246
-|           3526428647933956634
-|           357007680249659599
-|           3878880171751142208
-|           4004413240486489935
-|           4204065675263224493
-|           4287411017711305882
-|           453836652249366384
-|           4546000236454576570
-|           4612358610326128512
-|           4906557327833212821
-|           5000890545256730042
-|           505816831473885624
-|           5349207853940448919
-|           5360641767887459189
-|           5465069128373650051
-|           5548166758319487649
-|           5629635877014121745
-|           6237971755299014294
-|           6525566172545330151
-|           6762872659792306050
-|           6779169463251560950
-|           7020157244408217403
-|           7033565760181845642
-|           7344901637126331034
-|           7605027532596425463
-|           7672817049205887088
-|           7683317547615179897
-|           7725711574981384562
-|           7751046743121353905
-|           7764968371551103558
-|           8008241600910749657
-|           8009273407258281430
-|           8032304793174702147
-|           8095376511919281810
-|           8164884423496636696
-|           8763163409329255027
-|           9041376347394508832
-|           9104786295357959491
-|           9126591946971119259
-|           9202601846894174458
-|           9345129524282229984
-|           9376311037705952443
-|           9593270777252930573
-|           9607079015312250993
-|           9758628855874663066
-|           9901975432200623842
+|   \---rules
+|           ai-tools.mdc
+|           communication-guidelines.mdc
+|           context.mdc
+|           core-guidelines.mdc
+|           critical.mdc
+|           quality-standards.mdc
+|           testing-guidelines.mdc
+|           ui-guidelines.mdc
 |           
-+---.venv
-    (virtual environment files)
-+---.vscode
-|       settings.json
-|       
 +---ai
 |   |   cache_manager.py
 |   |   chatbot.py
@@ -216,8 +68,6 @@ C:.
 |   |   SYSTEM_AI_GUIDE.md
 |   |   __init__.py
 |   |   
-|   \---__pycache__
-    (Python cache files)
 +---ai_development_docs
 |   |   AI_ARCHITECTURE.md
 |   |   AI_BACKUP_GUIDE.md
@@ -233,10 +83,6 @@ C:.
 |   |   AI_SESSION_STARTER.md
 |   |   AI_TESTING_GUIDE.md
 |   |   
-|   \---archive
-    (archived files)
-+---archive
-    (archived files)
 +---communication
 |   |   COMMUNICATION_GUIDE.md
 |   |   __init__.py
@@ -254,8 +100,45 @@ C:.
 |   |   |   task_handler.py
 |   |   |   __init__.py
 |   |   |   
-|   |   \---__pycache__
-    (Python cache files)
+|   +---communication_channels
+|   |   |   __init__.py
+|   |   |   
+|   |   +---base
+|   |   |   |   base_channel.py
+|   |   |   |   command_registry.py
+|   |   |   |   message_formatter.py
+|   |   |   |   rich_formatter.py
+|   |   |   |   
+|   |   +---discord
+|   |   |       account_flow_handler.py
+|   |   |       api_client.py
+|   |   |       bot.py
+|   |   |       checkin_view.py
+|   |   |       DISCORD_GUIDE.md
+|   |   |       event_handler.py
+|   |   |       task_reminder_view.py
+|   |   |       webhook_handler.py
+|   |   |       webhook_server.py
+|   |   |       welcome_handler.py
+|   |   |       
+|   |   +---email
+|   |   |       bot.py
+|   |   |       
+|   +---core
+|   |   |   channel_monitor.py
+|   |   |   channel_orchestrator.py
+|   |   |   factory.py
+|   |   |   retry_manager.py
+|   |   |   welcome_manager.py
+|   |   |   __init__.py
+|   |   |   
+|   +---message_processing
+|   |   |   command_parser.py
+|   |   |   conversation_flow_manager.py
+|   |   |   interaction_manager.py
+|   |   |   message_router.py
+|   |   |   __init__.py
+|   |   |   
 +---core
 |   |   auto_cleanup.py
 |   |   backup_manager.py
@@ -285,16 +168,8 @@ C:.
 |   |   user_data_validation.py
 |   |   __init__.py
 |   |   
-|   \---__pycache__
-    (Python cache files)
 +---data
-|   |   .last_cache_cleanup
-|   |   conversation_states.json
-|   |   user_index.json
-|   |   welcome_tracking.json
-|   |   
-|   +---backups
-    (backup files)
+    (data files)
 +---development_docs
 |   |   BACKUP_GUIDE.md
 |   |   CHANGELOG_DETAIL.md
@@ -308,8 +183,6 @@ C:.
 |   |   TEST_COVERAGE_REPORT.md
 |   |   UNUSED_IMPORTS_REPORT.md
 |   |   
-|   \---archive
-    (archived files)
 +---development_tools
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
 |   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md
@@ -326,36 +199,9 @@ C:.
 |   |   |   __init__.py
 |   |   |   
 |   |   \---jsons
-|   |       |   analyze_ai_work_results.json
-|   |       |   
-|   |       \---archive
-    (archived files)
-+---htmlcov
-    (HTML coverage reports)
+    (JSON files created by development tools)
 +---logs
-|   |   ai.log
-|   |   ai_dev_tools.log
-|   |   app.log
-|   |   communication_manager.log
-|   |   discord.log
-|   |   email.log
-|   |   errors.log
-|   |   file_ops.log
-|   |   LOGGING_GUIDE.md
-|   |   message.log
-|   |   scheduler.log
-|   |   ui.log
-|   |   user_activity.log
-|   |   
-|   +---archive
-    (archived files)
-+---mhm.egg-info
-|       dependency_links.txt
-|       PKG-INFO
-|       requires.txt
-|       SOURCES.txt
-|       top_level.txt
-|       
+    (log files)
 +---notebook
 |       notebook_data_handlers.py
 |       notebook_data_manager.py
@@ -380,90 +226,6 @@ C:.
 |           quotes_to_ponder.json
 |           word_of_the_day.json
 |           
-+---scripts
-|   |   add_category_markers.py
-|   |   analyze_json_files.py
-|   |   analyze_non_standard_tests.md
-|   |   analyze_test_markers.py
-|   |   cleanup_project.py
-|   |   cleanup_unused_imports.py
-|   |   cleanup_windows_tasks.py
-|   |   comprehensive_file_analysis.py
-|   |   create_project_snapshot.py
-|   |   demo_dynamic_checkin.py
-|   |   find_tests_missing_category_markers.py
-|   |   fix_non_ascii_chars.py
-|   |   flaky_detector.py
-|   |   generate_phase1_candidates.py
-|   |   number_documentation_headings.py
-|   |   replace_try_except_with_decorator.py
-|   |   SCRIPTS_GUIDE.md
-|   |   script_test_network_connectivity.py
-|   |   verify_ascii_fix.py
-|   |   
-|   +---debug
-|   |   |   debug_category_dialog.py
-|   |   |   debug_comprehensive_prompt.py
-|   |   |   debug_discord_connectivity.py
-|   |   |   debug_lm_studio_timeout.py
-|   |   |   debug_preferences.py
-|   |   |   discord_connectivity_diagnostic.py
-|   |   |   script_test_dns_fallback.py
-|   |   |   
-|   |   \---diagnostics
-|   +---launchers
-|   |       start_service.bat
-|   |       start_service.sh
-|   |       start_ui.bat
-|   |       start_ui.sh
-|   |       
-|   +---static_checks
-|   |       check_channel_loggers.py
-|   |       
-|   +---testing
-|   |   |   analyze_documentation_overlap.py
-|   |   |   analyze_memory_leak.py
-|   |   |   consolidate_worker_logs.py
-|   |   |   cross_reference_worker_runs.py
-|   |   |   debug_memory_leak.py
-|   |   |   extract_worker_tests_from_profiler_output.py
-|   |   |   extract_worker_test_assignments.py
-|   |   |   investigate_memory_leak.py
-|   |   |   memory_profiler.py
-|   |   |   parse_worker_from_terminal.py
-|   |   |   read_backup_results.py
-|   |   |   script_test_user_data_analysis.py
-|   |   |   script_test_utils_functions.py
-|   |   |   validate_config.py
-|   |   |   verify_process_cleanup.py
-|   |   |   
-|   |   \---ai
-|   |           script_test_ai_with_clear_cache.py
-|   |           script_test_comprehensive_ai.py
-|   |           script_test_data_integrity.py
-|   |           script_test_lm_studio.py
-|   |           script_test_new_modules.py
-|   |           
-|   \---utilities
-|       |   add_checkin_schedules.py
-|       |   add_documentation_addresses.py
-|       |   check_checkin_schedules.py
-|       |   cleanup_duplicate_messages.py
-|       |   cleanup_test_users.py
-|       |   convert_paths_to_links.py
-|       |   fix_user_schedules.py
-|       |   rebuild_index.py
-|       |   regenerate_ui.ps1
-|       |   restore_custom_periods.py
-|       |   user_data_cli.py
-|       |   
-|       \---cleanup
-|               cleanup_backups.py
-|               cleanup_data_test_users.py
-|               cleanup_real_test_users.py
-|               cleanup_test_data.py
-|               cleanup_user_message_files.py
-|               
 +---styles
 |       admin_theme.qss
 |       
@@ -471,8 +233,6 @@ C:.
 |   |   task_management.py
 |   |   __init__.py
 |   |   
-|   \---__pycache__
-    (Python cache files)
 +---tests
 |   |   conftest.py
 |   |   debug_file_paths.py
@@ -501,19 +261,6 @@ C:.
 |   |   |   test_cache_manager.py
 |   |   |   test_context_includes_recent_messages.py
 |   |   |   
-|   |   \---results
-|   |           ai_functionality_test_results_20251101_201859.md
-|   |           ai_functionality_test_results_20251101_203148.md
-|   |           ai_functionality_test_results_20251101_210054.md
-|   |           ai_functionality_test_results_20251102_031745.md
-|   |           ai_functionality_test_results_20251102_033626.md
-|   |           ai_functionality_test_results_20251103_032636.md
-|   |           ai_functionality_test_results_20251104_171625.md
-|   |           ai_functionality_test_results_20251104_171630.md
-|   |           ai_functionality_test_results_20251104_235559.md
-|   |           ai_functionality_test_results_20251114_180111.md
-|   |           ai_functionality_test_results_latest.md
-|   |           
 |   +---behavior
 |   |       test_account_handler_behavior.py
 |   |       test_account_management_real_behavior.py
@@ -606,145 +353,8 @@ C:.
 |   |       test_python_interpreter_selection.py
 |   |       test_schedule_utilities.py
 |   |       
-|   +---coverage_html
-|   |       .gitignore
-|   |       class_index.html
-|   |       coverage_html_cb_497bf287.js
-|   |       favicon_32_cb_58284776.png
-|   |       function_index.html
-|   |       index.html
-|   |       keybd_closed_cb_ce680311.png
-|   |       status.json
-|   |       style_cb_dca529e9.css
-|   |       z_19b8bf288843bf35_generate_ui_files_py.html
-|   |       z_19b8bf288843bf35_ui_app_qt_py.html
-|   |       z_19b8bf288843bf35___init___py.html
-|   |       z_432b4947a63cda7b_bot_py.html
-|   |       z_43d05d6de8e0ea25___init___py.html
-|   |       z_50d3665e04f608fa_channel_monitor_py.html
-|   |       z_50d3665e04f608fa_channel_orchestrator_py.html
-|   |       z_50d3665e04f608fa_factory_py.html
-|   |       z_50d3665e04f608fa_retry_manager_py.html
-|   |       z_50d3665e04f608fa_welcome_manager_py.html
-|   |       z_50d3665e04f608fa___init___py.html
-|   |       z_57760688d1f824db_auto_cleanup_py.html
-|   |       z_57760688d1f824db_backup_manager_py.html
-|   |       z_57760688d1f824db_checkin_analytics_py.html
-|   |       z_57760688d1f824db_checkin_dynamic_manager_py.html
-|   |       z_57760688d1f824db_config_py.html
-|   |       z_57760688d1f824db_error_handling_py.html
-|   |       z_57760688d1f824db_file_auditor_py.html
-|   |       z_57760688d1f824db_file_locking_py.html
-|   |       z_57760688d1f824db_file_operations_py.html
-|   |       z_57760688d1f824db_headless_service_py.html
-|   |       z_57760688d1f824db_logger_py.html
-|   |       z_57760688d1f824db_message_analytics_py.html
-|   |       z_57760688d1f824db_message_management_py.html
-|   |       z_57760688d1f824db_response_tracking_py.html
-|   |       z_57760688d1f824db_scheduler_py.html
-|   |       z_57760688d1f824db_schedule_management_py.html
-|   |       z_57760688d1f824db_schedule_utilities_py.html
-|   |       z_57760688d1f824db_schemas_py.html
-|   |       z_57760688d1f824db_service_py.html
-|   |       z_57760688d1f824db_service_utilities_py.html
-|   |       z_57760688d1f824db_ui_management_py.html
-|   |       z_57760688d1f824db_user_data_handlers_py.html
-|   |       z_57760688d1f824db_user_data_manager_py.html
-|   |       z_57760688d1f824db_user_data_validation_py.html
-|   |       z_57760688d1f824db_user_management_py.html
-|   |       z_57760688d1f824db___init___py.html
-|   |       z_5caf520a5ad64cff_task_management_py.html
-|   |       z_5caf520a5ad64cff___init___py.html
-|   |       z_7283e5228b8cf305_base_channel_py.html
-|   |       z_7283e5228b8cf305_command_registry_py.html
-|   |       z_7283e5228b8cf305_message_formatter_py.html
-|   |       z_7283e5228b8cf305_rich_formatter_py.html
-|   |       z_8ac76453d769d4fd_context_manager_py.html
-|   |       z_8ac76453d769d4fd_user_context_py.html
-|   |       z_8ac76453d769d4fd_user_preferences_py.html
-|   |       z_8ac76453d769d4fd___init___py.html
-|   |       z_9145e270107ce0a5___init___py.html
-|   |       z_a304bfba8ecaee72_account_creator_dialog_py.html
-|   |       z_a304bfba8ecaee72_admin_panel_py.html
-|   |       z_a304bfba8ecaee72_category_management_dialog_py.html
-|   |       z_a304bfba8ecaee72_channel_management_dialog_py.html
-|   |       z_a304bfba8ecaee72_checkin_management_dialog_py.html
-|   |       z_a304bfba8ecaee72_message_editor_dialog_py.html
-|   |       z_a304bfba8ecaee72_process_watcher_dialog_py.html
-|   |       z_a304bfba8ecaee72_schedule_editor_dialog_py.html
-|   |       z_a304bfba8ecaee72_task_completion_dialog_py.html
-|   |       z_a304bfba8ecaee72_task_crud_dialog_py.html
-|   |       z_a304bfba8ecaee72_task_edit_dialog_py.html
-|   |       z_a304bfba8ecaee72_task_management_dialog_py.html
-|   |       z_a304bfba8ecaee72_user_analytics_dialog_py.html
-|   |       z_a304bfba8ecaee72_user_profile_dialog_py.html
-|   |       z_a304bfba8ecaee72___init___py.html
-|   |       z_ac13f704f5203ba0_cache_manager_py.html
-|   |       z_ac13f704f5203ba0_chatbot_py.html
-|   |       z_ac13f704f5203ba0_context_builder_py.html
-|   |       z_ac13f704f5203ba0_conversation_history_py.html
-|   |       z_ac13f704f5203ba0_lm_studio_manager_py.html
-|   |       z_ac13f704f5203ba0_prompt_manager_py.html
-|   |       z_ac13f704f5203ba0___init___py.html
-|   |       z_ceda28c348e4bb67_account_creator_dialog_pyqt_py.html
-|   |       z_ceda28c348e4bb67_admin_panel_pyqt_py.html
-|   |       z_ceda28c348e4bb67_category_management_dialog_pyqt_py.html
-|   |       z_ceda28c348e4bb67_category_selection_widget_pyqt_py.html
-|   |       z_ceda28c348e4bb67_channel_management_dialog_pyqt_py.html
-|   |       z_ceda28c348e4bb67_channel_selection_widget_pyqt_py.html
-|   |       z_ceda28c348e4bb67_checkin_element_template_pyqt_py.html
-|   |       z_ceda28c348e4bb67_checkin_management_dialog_pyqt_py.html
-|   |       z_ceda28c348e4bb67_checkin_settings_widget_pyqt_py.html
-|   |       z_ceda28c348e4bb67_dynamic_list_field_template_pyqt_py.html
-|   |       z_ceda28c348e4bb67_message_editor_dialog_pyqt_py.html
-|   |       z_ceda28c348e4bb67_period_row_template_pyqt_py.html
-|   |       z_ceda28c348e4bb67_schedule_editor_dialog_pyqt_py.html
-|   |       z_ceda28c348e4bb67_tag_widget_pyqt_py.html
-|   |       z_ceda28c348e4bb67_task_completion_dialog_pyqt_py.html
-|   |       z_ceda28c348e4bb67_task_crud_dialog_pyqt_py.html
-|   |       z_ceda28c348e4bb67_task_edit_dialog_pyqt_py.html
-|   |       z_ceda28c348e4bb67_task_management_dialog_pyqt_py.html
-|   |       z_ceda28c348e4bb67_task_settings_widget_pyqt_py.html
-|   |       z_ceda28c348e4bb67_user_analytics_dialog_pyqt_py.html
-|   |       z_ceda28c348e4bb67_user_profile_management_dialog_pyqt_py.html
-|   |       z_ceda28c348e4bb67_user_profile_settings_widget_pyqt_py.html
-|   |       z_ceda28c348e4bb67___init___py.html
-|   |       z_cf1eb4bc6ea98321_command_parser_py.html
-|   |       z_cf1eb4bc6ea98321_conversation_flow_manager_py.html
-|   |       z_cf1eb4bc6ea98321_interaction_manager_py.html
-|   |       z_cf1eb4bc6ea98321_message_router_py.html
-|   |       z_cf1eb4bc6ea98321___init___py.html
-|   |       z_d0714ef8e029451b_account_handler_py.html
-|   |       z_d0714ef8e029451b_analytics_handler_py.html
-|   |       z_d0714ef8e029451b_base_handler_py.html
-|   |       z_d0714ef8e029451b_checkin_handler_py.html
-|   |       z_d0714ef8e029451b_interaction_handlers_py.html
-|   |       z_d0714ef8e029451b_profile_handler_py.html
-|   |       z_d0714ef8e029451b_schedule_handler_py.html
-|   |       z_d0714ef8e029451b_shared_types_py.html
-|   |       z_d0714ef8e029451b_task_handler_py.html
-|   |       z_d0714ef8e029451b___init___py.html
-|   |       z_f826a83e0e63cf5c_api_client_py.html
-|   |       z_f826a83e0e63cf5c_bot_py.html
-|   |       z_f826a83e0e63cf5c_checkin_view_py.html
-|   |       z_f826a83e0e63cf5c_event_handler_py.html
-|   |       z_f826a83e0e63cf5c_webhook_handler_py.html
-|   |       z_f826a83e0e63cf5c_webhook_server_py.html
-|   |       z_f826a83e0e63cf5c_welcome_handler_py.html
-|   |       z_fed745d81eb11572_category_selection_widget_py.html
-|   |       z_fed745d81eb11572_channel_selection_widget_py.html
-|   |       z_fed745d81eb11572_checkin_settings_widget_py.html
-|   |       z_fed745d81eb11572_dynamic_list_container_py.html
-|   |       z_fed745d81eb11572_dynamic_list_field_py.html
-|   |       z_fed745d81eb11572_period_row_widget_py.html
-|   |       z_fed745d81eb11572_tag_widget_py.html
-|   |       z_fed745d81eb11572_task_settings_widget_py.html
-|   |       z_fed745d81eb11572_user_profile_settings_widget_py.html
-|   |       z_fed745d81eb11572___init___py.html
-|   |       
 |   +---data
-|   |   +---backups
-    (backup files)
+    (data files)
 +---ui
 |   |   generate_ui_files.py
 |   |   ui_app_qt.py
@@ -776,67 +386,13 @@ C:.
 |   |       user_profile_settings_widget.ui
 |   |       
 |   +---dialogs
-|   |       account_creator_dialog.py
-|   |       admin_panel.py
-|   |       category_management_dialog.py
-|   |       channel_management_dialog.py
-|   |       checkin_management_dialog.py
-|   |       message_editor_dialog.py
-|   |       process_watcher_dialog.py
-|   |       schedule_editor_dialog.py
-|   |       task_completion_dialog.py
-|   |       task_crud_dialog.py
-|   |       task_edit_dialog.py
-|   |       task_management_dialog.py
-|   |       user_analytics_dialog.py
-|   |       user_profile_dialog.py
-|   |       __init__.py
-|   |       
-|   +---generated
-|   |       account_creator_dialog_pyqt.py
-|   |       admin_panel_pyqt.py
-|   |       category_management_dialog_pyqt.py
-|   |       category_selection_widget_pyqt.py
-|   |       channel_management_dialog_pyqt.py
-|   |       channel_selection_widget_pyqt.py
-|   |       checkin_element_template_pyqt.py
-|   |       checkin_management_dialog_pyqt.py
-|   |       checkin_settings_widget_pyqt.py
-|   |       dynamic_list_field_template_pyqt.py
-|   |       message_editor_dialog_pyqt.py
-|   |       period_row_template_pyqt.py
-|   |       schedule_editor_dialog_pyqt.py
-|   |       tag_widget_pyqt.py
-|   |       task_completion_dialog_pyqt.py
-|   |       task_crud_dialog_pyqt.py
-|   |       task_edit_dialog_pyqt.py
-|   |       task_management_dialog_pyqt.py
-|   |       task_settings_widget_pyqt.py
-|   |       user_analytics_dialog_pyqt.py
-|   |       user_profile_management_dialog_pyqt.py
-|   |       user_profile_settings_widget_pyqt.py
-|   |       __init__.py
-|   |       
-|   \---widgets
-|           category_selection_widget.py
-|           channel_selection_widget.py
-|           checkin_settings_widget.py
-|           dynamic_list_container.py
-|           dynamic_list_field.py
-|           period_row_widget.py
-|           tag_widget.py
-|           task_settings_widget.py
-|           user_profile_settings_widget.py
-|           __init__.py
-|           
+    (log files)
 \---user
     |   context_manager.py
     |   user_context.py
     |   user_preferences.py
     |   __init__.py
     |   
-    \---__pycache__
-    (Python cache files)
 
 ---
 

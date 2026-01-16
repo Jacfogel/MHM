@@ -342,6 +342,13 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="advisory",
         description="Aggregates metrics into recommendations and priorities.",
     ),
+    "export_code_snapshot": ToolInfo(
+        name="export_code_snapshot",
+        path="development_tools/shared/export_code_snapshot.py",
+        tier="supporting",
+        trust="stable",
+        description="Exports Python files from a directory into a single Markdown snapshot for LLM context.",
+    ),
     "file_rotation": ToolInfo(
         name="file_rotation",
         path="development_tools/shared/file_rotation.py",
@@ -407,6 +414,7 @@ COMMAND_GROUPS = OrderedDict(
                 "workflow",
                 "trees",
                 "cleanup",
+                "export-code",
                 "help",
             ],
         },

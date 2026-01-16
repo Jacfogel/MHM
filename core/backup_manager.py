@@ -17,6 +17,7 @@ from core.logger import get_logger, get_component_logger
 import core.config
 from core.error_handling import handle_errors
 from core.user_data_handlers import get_user_data, get_all_user_ids
+from core.service_utilities import now_filename_timestamp
 
 logger = get_component_logger("file_ops")
 backup_logger = get_component_logger("main")
@@ -56,12 +57,10 @@ class BackupManager:
         return True
 
     @handle_errors("setting up backup parameters", default_return=("", ""))
-    def _create_backup__setup_backup(
-        self, backup_name: str | None
-    ) -> tuple[str, str]:
+    def _create_backup__setup_backup(self, backup_name: str | None) -> tuple[str, str]:
         """Setup backup name and path parameters."""
         if not backup_name:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = now_filename_timestamp()
             backup_name = f"mhm_backup_{timestamp}"
 
         backup_path = Path(self.backup_dir) / f"{backup_name}.zip"
@@ -756,14 +755,13 @@ def create_automatic_backup(operation_name: str = "automatic") -> str | None:
     Returns:
         Path to the backup file, or None if failed
     """
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = now_filename_timestamp()
     backup_name = f"auto_{operation_name}_{timestamp}"
 
     logger.info(f"Creating automatic backup: {backup_name}")
     return backup_manager.create_backup(backup_name)
 
 
-@handle_errors("validating user index", default_return=False)
 @handle_errors("validating user index", default_return=False)
 def _validate_system_state__validate_user_index() -> bool:
     """Validate the user index file and corresponding user directories."""

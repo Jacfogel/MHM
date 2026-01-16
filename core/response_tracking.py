@@ -9,6 +9,8 @@ from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
 from core.file_operations import load_json_data, save_json_data, get_user_file_path
 from core.error_handling import handle_errors
+from core.service_utilities import now_readable_timestamp
+
 
 logger = get_component_logger("user_activity")
 tracking_logger = get_component_logger("user_activity")
@@ -41,7 +43,8 @@ def store_user_response(
     existing_data = load_json_data(log_file) or []
 
     if "timestamp" not in response_data:
-        response_data["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Canonical readable timestamp for stored interaction metadata
+        response_data["timestamp"] = now_readable_timestamp()
 
     existing_data.append(response_data)
 
@@ -60,7 +63,8 @@ def store_chat_interaction(
         "context_used": context_used,
         "message_length": len(user_message),
         "response_length": len(ai_response),
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        # Canonical readable timestamp for stored interaction metadata
+        "timestamp": now_readable_timestamp(),
     }
     store_user_response(user_id, response_data, "chat_interaction")
     logger.info(f"Stored chat_interaction response for user {user_id}: {response_data}")

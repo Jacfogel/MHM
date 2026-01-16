@@ -42,23 +42,23 @@ When adding new changes, follow this format:
 - **Changes**:
   1. **New formatting tool**: Added Ruff to the repository tooling suite and captured the current `ruff check . --statistics` result so we can prioritize the remaining offenses (see AI changelog entry for the full count summary).
   2. **Selective fixes**: Applied `ruff check . --fix --select` for the safe non-pep585/PEP604 annotations and sanitized suppressible-exception handling; but the large `development_tools` folder triggered a TypeError in the status generator, so we rolled back those fixes and now run the audit without touching that folder until we guard the offending `|` usage.
-  3. **Audit health**: Tier 3 audits still finish, but the AI_STATUS/AI_PRIORITIES/consolidated reports currently log “unsupported operand type(s) for |…” and drop placeholder content until the report generator is fixed.
-  4. **Current Ruff state**: `ruff check . --statistics` reports 5,842 findings (1,259 `F401`, 938 `UP025`, 779 `UP006`, 347 `E402`, etc.) with 3,777 fixable. We’ll keep the remaining work tracked and revisit once the report generator stops crashing.
-- **Impact**: Ruff is now in place and partially applied; the remaining lint backlog is known, and the Tier 3-generated documents remain blocked by the report-generation TypeError until that expression is defended.
-- **Testing**: `ruff check . --statistics` (see counts below); Tier 3 audit now runs without the Ruff-induced break.
+  3. **Audit health**: Tier 3 audits still finish, but the AI_STATUS/AI_PRIORITIES/consolidated reports currently log "unsupported operand type(s) for |..." and drop placeholder content until the report generator is fixed.
+  4. **Current Ruff state**: `ruff check . --statistics` reports 5,842 findings (1,259 `F401`, 938 `UP025`, 779 `UP006`, 347 `E402`, etc.) with 3,777 fixable. We'll keep the remaining work tracked and revisit once the report generator stops crashing.
+- **Impact**: Ruff is now in place and partially applied; the remaining lint backlog is known, and the Tier 3-generated documents remain blocked by the report-generation TypeError until that expression is defended.
+- **Testing**: `ruff check . --statistics` (see counts below); Tier 3 audit now runs without the Ruff-induced break.
 
 ### 2026-01-15 - Test Flags Isolation, Logging Doc Fix, and Domain Mapping Refresh
-- **Feature**: Routed shutdown/test flag files through `core.service_utilities.get_flags_dir()` (used by `core/service.py`, `core/headless_service.py`, and `ui/ui_app_qt.py`) and set `MHM_FLAGS_DIR` to `tests/data/flags` in `tests/conftest.py` to prevent test runs from touching live service flags. Added a small behavior test for flag routing. Aligned `TEST_VERBOSE_LOGS` documentation in `logs/LOGGING_GUIDE.md` with actual test logging levels. Added path-based domain inference and development-tools mapping for test-file coverage caching and regenerated the cache.
+- **Feature**: Routed shutdown/test flag files through `core.service_utilities.get_flags_dir()` (used by `core/service.py`, `core/headless_service.py`, and `ui/ui_app_qt.py`) and set `MHM_FLAGS_DIR` to `tests/data/flags` in `tests/conftest.py` to prevent test runs from touching live service flags. Added a small behavior test for flag routing. Aligned `TEST_VERBOSE_LOGS` documentation in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) with actual test logging levels. Added path-based domain inference and development-tools mapping for test-file coverage caching and regenerated the cache.
 - **Impact**: Running tests no longer stops a live service, logging docs match real behavior, and the test-file cache no longer leaves unmapped tests.
 - **Testing**: `python run_tests.py`, `python -m pytest tests/ui/test_task_management_dialog.py::TestTaskManagementDialogRealBehavior::test_save_task_settings_persists_after_reload -v`, `python development_tools/run_development_tools.py audit --full` (one intermittent UI test failure during coverage run).
 
 ### 2026-01-14 - User Management Retirement Finalized and Dev Tools Cache Cleanup
-- **Feature**: Removed the `core/user_management.py` shim and finalized the user data handler migration by cleaning legacy references in `core/user_data_handlers.py`, `core/user_data_validation.py`, `core/user_data_manager.py`, and `core/__init__.py`. Updated development tools generators to stop emitting `core/user_management` in AI function registries and module dependency summaries, and improved dev tools audit aggregation to prefer the newest tool result when duplicate JSONs exist. Cleared a stale `development_tools/reports/jsons/analyze_package_exports_results.json` and regenerated the AI function registry and consolidated audit outputs. Removed the completed retirement task from `TODO.md`.
+- **Feature**: Removed the `core/user_management.py` shim and finalized the user data handler migration by cleaning legacy references in `core/user_data_handlers.py`, `core/user_data_validation.py`, `core/user_data_manager.py`, and `core/__init__.py`. Updated development tools generators to stop emitting `core/user_management` in AI function registries and module dependency summaries, and improved dev tools audit aggregation to prefer the newest tool result when duplicate JSONs exist. Cleared a stale `development_tools/reports/jsons/analyze_package_exports_results.json` and regenerated the AI function registry and consolidated audit outputs. Removed the completed retirement task from [TODO.md](TODO.md).
 - **Impact**: Fully retires the legacy user management module, keeps generated docs clean, and prevents stale dev tool results from reintroducing removed file references.
 - **Testing**: `python development_tools/run_development_tools.py docs`, `python development_tools/run_development_tools.py audit --full`
 
 ### 2026-01-14 - Legacy Cleanup Progress, Doc Tooling Fix, and Test Repairs
-- **Feature**: Continued legacy retirement by moving identifier/category/preset/timezone helpers into `core/user_data_handlers.py`, delegating legacy accessors in `core/user_management.py`, and updating production imports (communication/core/ui) to use the centralized handlers. Removed legacy logger aliases in `core/service.py` and `core/message_management.py`. Fixed development tools reporting guidance to remove the invalid `doc-sync --fix` instruction in `development_tools/shared/service/report_generation.py`. Updated `tests/behavior/test_schedule_handler_behavior.py` mocks to patch `core.user_data_handlers.get_user_categories` after the import migration and refreshed the `core.user_management` retirement task status in `TODO.md`.
+- **Feature**: Continued legacy retirement by moving identifier/category/preset/timezone helpers into `core/user_data_handlers.py`, delegating legacy accessors in `core/user_management.py`, and updating production imports (communication/core/ui) to use the centralized handlers. Removed legacy logger aliases in `core/service.py` and `core/message_management.py`. Fixed development tools reporting guidance to remove the invalid `doc-sync --fix` instruction in `development_tools/shared/service/report_generation.py`. Updated `tests/behavior/test_schedule_handler_behavior.py` mocks to patch `core.user_data_handlers.get_user_categories` after the import migration and refreshed the `core.user_management` retirement task status in [TODO.md](TODO.md).
 - **Impact**: Reduced reliance on legacy user management paths, clarified documentation tool guidance, and restored test stability for schedule handler behavior.
 - **Testing**: `python -m pytest tests/behavior/test_schedule_handler_behavior.py::TestScheduleHandlerBehavior::test_schedule_handler_schedule_status tests/unit/test_user_management.py::TestUserManagementEdgeCases::test_get_user_preferences_corrupted_file -vv`
 
@@ -103,23 +103,23 @@ When adding new changes, follow this format:
 - **Feature**: Standardized planning docs, expanded AI routing guidance, clarified UI/test patterns, and updated legacy tracking patterns in development tools.
 - **Changes**:
   1. **Documentation routing fixes**:
-     - Added missing routing links in `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` for run commands, emergency procedures, and learning resources.
-     - Clarified configuration routing in `ai_development_docs/AI_ARCHITECTURE.md` to point to workflow/run docs instead of logging.
-     - Fixed duplicated "section 2." wording in `ARCHITECTURE.md`.
+     - Added missing routing links in [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for run commands, emergency procedures, and learning resources.
+     - Clarified configuration routing in [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) to point to workflow/run docs instead of logging.
+     - Fixed duplicated "section 2." wording in [ARCHITECTURE.md](ARCHITECTURE.md).
   2. **UI & testing guidance**:
-     - Added explicit UI flow + signal-based update patterns in `ui/UI_GUIDE.md`.
-     - Promoted "Test logging isolation" to a headline rule in `tests/TESTING_GUIDE.md` and `ai_development_docs/AI_TESTING_GUIDE.md`.
+     - Added explicit UI flow + signal-based update patterns in [UI_GUIDE.md](ui/UI_GUIDE.md).
+     - Promoted "Test logging isolation" to a headline rule in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) and [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md).
   3. **Planning cleanup and task organization**:
-     - Reorganized `TODO.md` by priority, removed completed/overlapping items, updated the channel command registry follow-ups, and refreshed `core.user_management` retirement subtasks.
-     - Refined `development_docs/PLANS.md` content (removed stale sections, consolidated UI testing into UI migration, updated Testing Strategy plan), and extracted the Task System plan into `development_docs/TASKS_PLAN.md`.
-     - Added plan metadata/parent relationships for `development_docs/PLANS.md`, `development_docs/NOTES_PLAN.md`, and `development_docs/TASKS_PLAN.md`, and normalized `.md` links in `development_docs/PLANS.md`.
+     - Reorganized [TODO.md](TODO.md) by priority, removed completed/overlapping items, updated the channel command registry follow-ups, and refreshed `core.user_management` retirement subtasks.
+     - Refined [PLANS.md](development_docs/PLANS.md) content (removed stale sections, consolidated UI testing into UI migration, updated Testing Strategy plan), and extracted the Task System plan into [TASKS_PLAN.md](development_docs/TASKS_PLAN.md).
+     - Added plan metadata/parent relationships for [PLANS.md](development_docs/PLANS.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), and normalized `.md` links in [PLANS.md](development_docs/PLANS.md).
   4. **Documentation guide cleanup**:
-     - Fixed link/path drift and unconverted link references in `DOCUMENTATION_GUIDE.md` and `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`.
+     - Fixed link/path drift and unconverted link references in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) and [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
   5. **Legacy tracking updates**:
      - Added legacy inventory tracking patterns in `development_tools/config/development_tools_config.json` and regenerated legacy reporting outputs.
      - Added a dev tools plan item for the example marking standards checker in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`.
 - **Impact**: Documentation routing and testing guidance are clearer, plan ownership is explicit, TODO/plan scope is tighter, and legacy reporting now tracks additional compatibility markers.
-- **Files**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`, `ai_development_docs/AI_ARCHITECTURE.md`, `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`, `DOCUMENTATION_GUIDE.md`, `ui/UI_GUIDE.md`, `tests/TESTING_GUIDE.md`, `ai_development_docs/AI_TESTING_GUIDE.md`, `ARCHITECTURE.md`, `TODO.md`, `development_docs/PLANS.md`, `development_docs/NOTES_PLAN.md`, `development_docs/TASKS_PLAN.md`, `development_tools/config/development_tools_config.json`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`
+- **Files**: [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md), [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md), [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md), [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), [UI_GUIDE.md](ui/UI_GUIDE.md), [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [ARCHITECTURE.md](ARCHITECTURE.md), [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), `development_tools/config/development_tools_config.json`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`
 - **Testing**: Not run (documentation/config updates only).
 
 ### 2026-01-13 - Coverage Caching Overhaul and Dev Tools Cache **COMPLETED**
@@ -145,7 +145,7 @@ When adding new changes, follow this format:
   5. **Documentation Updates**:
      - Updated AI and human dev tools guides plus improvement plan to reflect test-file + dev tools caching
 - **Impact**: Selective runs remain accurate (~72% coverage), no longer overwritten by regenerated JSON, dev tools coverage skips pytest when unchanged, and cache cleanup is consistent.
-- **Files**: `development_tools/tests/run_test_coverage.py`, `development_tools/tests/test_file_coverage_cache.py`, `development_tools/tests/dev_tools_coverage_cache.py`, `development_tools/tests/domain_mapper.py`, `development_tools/run_development_tools.py`, `development_tools/shared/fix_project_cleanup.py`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`
+- **Files**: `development_tools/tests/run_test_coverage.py`, `development_tools/tests/test_file_coverage_cache.py`, `development_tools/tests/dev_tools_coverage_cache.py`, `development_tools/tests/domain_mapper.py`, `development_tools/run_development_tools.py`, `development_tools/shared/fix_project_cleanup.py`, [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md), `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`
 - **Testing**: Verified via repeated `audit --full` runs (cached/uncached behavior) and selective runs after domain/dev tools changes; one selective run reported a failing behavior test (`tests/behavior/test_discord_task_reminder_followup.py::TestDiscordTaskReminderFollowup::test_discord_reminder_followup_no_reminders`) while coverage still merged.
 
 ### 2026-01-12 - Quick Note Feature, Command Parsing Improvements, and Documentation Updates **COMPLETED**
@@ -169,20 +169,20 @@ When adding new changes, follow this format:
      - Added `create_quick_note` to available actions list in `ai/prompt_manager.py` (line 121)
      - Added `create_quick_note` and full notebook command list to `ai/chatbot.py` fallback prompt (line 979)
   5. **Documentation Updates**:
-     - Condensed `tests/MANUAL_DISCORD_TEST_GUIDE.md` from 1352 lines to ~396 lines - removed verbose step-by-step instructions, made command-focused with clear separation between test cases
+     - Condensed [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md) from 1352 lines to ~396 lines - removed verbose step-by-step instructions, made command-focused with clear separation between test cases
      - Added comprehensive quick note test section to manual testing guide with all aliases and verification steps
-     - Updated `development_docs/NOTES_PLAN.md` to document quick note command in V0 section and update implementation status
+     - Updated [NOTES_PLAN.md](development_docs/NOTES_PLAN.md) to document quick note command in V0 section and update implementation status
   6. **Task Creation**:
-     - Added task to `TODO.md` to investigate why there are two separate AI command lists and explore dynamic generation from handlers/parser
+     - Added task to [TODO.md](TODO.md) to investigate why there are two separate AI command lists and explore dynamic generation from handlers/parser
 - **Files Changed**:
   - `communication/message_processing/command_parser.py` - Added quick note patterns, fixed "titled with body" pattern, added early quick note checking
   - `communication/command_handlers/notebook_handler.py` - Added `_handle_create_quick_note()` method, updated to use `format_short_id()`
   - `communication/message_processing/interaction_manager.py` - Added `create_quick_note` to intent list
   - `ai/prompt_manager.py` - Added `create_quick_note` to available actions list
   - `ai/chatbot.py` - Added `create_quick_note` and full notebook commands to fallback prompt
-  - `tests/MANUAL_DISCORD_TEST_GUIDE.md` - Condensed format, added quick note test section
-  - `development_docs/NOTES_PLAN.md` - Added quick note to command set and implementation status
-  - `TODO.md` - Added task for investigating dynamic command list generation
+  - [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md) - Condensed format, added quick note test section
+  - [NOTES_PLAN.md](development_docs/NOTES_PLAN.md) - Added quick note to command set and implementation status
+  - [TODO.md](TODO.md) - Added task for investigating dynamic command list generation
 - **Impact**: Users can now create quick notes without body text that are automatically organized in "Quick Notes" group. Fixed issue where quick note commands were being misinterpreted as task creation (defaulting to "buy groceries"). Improved command parsing for natural language note creation. Documentation is now more concise and easier to use for manual testing.
 
 ### 2026-01-12 - Domain-Aware Caching Fixes and Cleanup Command Improvements **COMPLETED**
@@ -242,11 +242,11 @@ When adding new changes, follow this format:
      - Moved `domain_mapper.py` and `coverage_cache.py` from `development_tools/shared/` to `development_tools/tests/` (test-specific tools)
      - Updated all imports and documentation references to reflect new locations
   4. **Documentation Updates**:
-     - Updated `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` with caching documentation:
+     - Updated [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) with caching documentation:
        - Coverage Analysis Caching section with implementation details
        - Domain-Aware Coverage Cache POC section with status and usage notes
        - Updated tool catalog entries for new caching modules
-     - Updated `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` with matching caching documentation
+     - Updated [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) with matching caching documentation
      - Updated `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` section 2.10 to mark POC as complete
      - Fixed path drift issues: updated 4 references to `run_test_coverage.py` to include `tests/` prefix
   5. **Test Fixes**:
@@ -298,7 +298,7 @@ When adding new changes, follow this format:
     - `cleanup --full` cleans everything including tool caches, coverage files, and domain-aware cache
     - Tool caches are only cleaned when `--full` is specified (prevents accidental cache clearing)
     - Updated help text to reflect new behavior
-- **Files**: `development_tools/tests/analyze_test_coverage.py`, `development_tools/tests/domain_mapper.py`, `development_tools/tests/coverage_cache.py`, `development_tools/tests/run_test_coverage.py`, `development_tools/run_development_tools.py`, `development_tools/shared/fix_project_cleanup.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/cli_interface.py`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `tests/ui/test_ui_app_qt_main.py`
+- **Files**: `development_tools/tests/analyze_test_coverage.py`, `development_tools/tests/domain_mapper.py`, `development_tools/tests/coverage_cache.py`, `development_tools/tests/run_test_coverage.py`, `development_tools/run_development_tools.py`, `development_tools/shared/fix_project_cleanup.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/cli_interface.py`, [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md), `tests/ui/test_ui_app_qt_main.py`
 - **Testing**: Coverage analysis caching verified working (saves ~2s when coverage JSON unchanged). Domain-aware cache POC infrastructure tested and ready. Test suite: 3917 passed, 0 failed, 2 skipped.
 
 ### 2026-01-11 - Development Tools Cache Management Improvements **COMPLETED**
@@ -359,7 +359,7 @@ When adding new changes, follow this format:
   - Cache invalidation now works correctly when config changes, preventing stale analysis results
   - Legacy analyzer properly filters cached results against current config patterns
   - All development tools now automatically invalidate cache when `development_tools_config.json` changes
-- **Files**: `development_tools/shared/mtime_cache.py`, `development_tools/legacy/analyze_legacy_references.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/cli_interface.py`, `development_tools/shared/tool_metadata.py`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, test files, `development_tools/config/development_tools_config.json`
+- **Files**: `development_tools/shared/mtime_cache.py`, `development_tools/legacy/analyze_legacy_references.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/cli_interface.py`, `development_tools/shared/tool_metadata.py`, [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), test files, `development_tools/config/development_tools_config.json`
 - **Testing**: Legacy reference report now shows 0 issues (previously 25 markers in 8 files). Cache invalidation verified working via mtime comparison tests.
 
 ### 2026-01-10 - Notebook Short ID Format Update: Removed Dash for Mobile-Friendly Typing **COMPLETED**
@@ -376,10 +376,10 @@ When adding new changes, follow this format:
   3. **Validation Logic Improvements**:
      - Updated `is_valid_entry_reference()` to only check invalid prefix pattern for strings <= 9 chars (short IDs are max 9: prefix + 8 hex), allowing long title strings like `'a' * 100` to be valid as title references
   4. **Documentation Updates**:
-     - Updated `development_docs/NOTES_PLAN.md`: Documented new format, noted backward compatibility removed, updated examples
+     - Updated [NOTES_PLAN.md](development_docs/NOTES_PLAN.md): Documented new format, noted backward compatibility removed, updated examples
      - Updated docstrings in validation functions to reflect new format
 - **Impact**: Short IDs are now easier to type on mobile devices (no dash required). All code, tests, and documentation consistently use the new format. Test suite: 4074 passed, 1 failed (unrelated account creation UI test), 1 skipped. All notebook-related tests passing.
-- **Files**: `notebook/notebook_validation.py`, `communication/command_handlers/notebook_handler.py`, `notebook/notebook_data_manager.py`, `tests/behavior/test_notebook_handler_behavior.py`, `tests/unit/test_notebook_validation.py`, `tests/integration/test_notebook_validation_integration.py`, `development_docs/NOTES_PLAN.md`
+- **Files**: `notebook/notebook_validation.py`, `communication/command_handlers/notebook_handler.py`, `notebook/notebook_data_manager.py`, `tests/behavior/test_notebook_handler_behavior.py`, `tests/unit/test_notebook_validation.py`, `tests/integration/test_notebook_validation_integration.py`, [NOTES_PLAN.md](development_docs/NOTES_PLAN.md)
 
 ### 2026-01-09 - Notebook Validation System Implementation and Testing **COMPLETED**
 - **Feature**: Implemented comprehensive validation system for notebook feature with proper separation of concerns, error handling compliance, and extensive test coverage. Refactored validation architecture to use shared general validators while keeping notebook-specific validation separate.
@@ -414,15 +414,15 @@ When adding new changes, follow this format:
   6. **Test Infrastructure**: 
      - Fixed pytest marker registration by adding `notebook` marker to `conftest.py`'s `pytest_configure` hook via `config.addinivalue_line()`, eliminating `PytestUnknownMarkWarning` warnings
      - Added `notebook` marker to `pytest.ini` markers section
-     - Updated `tests/TESTING_GUIDE.md` and `ai_development_docs/AI_TESTING_GUIDE.md` to include `notebook` marker in feature markers list
+     - Updated [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) and [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) to include `notebook` marker in feature markers list
   7. **Test Fixes**: Fixed multiple test failures during development including list creation parameter types, Pydantic validation issues, flow completion assertions, and case-insensitive entity extraction assertions.
   6. **Documentation Updates**:
-     - Updated `development_docs/NOTES_PLAN.md` testing status section with comprehensive breakdown of all 54 tests organized by category (Core Handler, Entity Extraction, Flow State Edge Cases, Error Handling)
+     - Updated [NOTES_PLAN.md](development_docs/NOTES_PLAN.md) testing status section with comprehensive breakdown of all 54 tests organized by category (Core Handler, Entity Extraction, Flow State Edge Cases, Error Handling)
      - Updated test suite status to show all priority testing areas as complete (Command Patterns, Flow State Management, Command Generalization, Data Operations, Edge Cases)
      - Marked "Comprehensive Test Suite" task as completed in Implementation Remaining section
-  7. **Task Tracking**: Updated `TODO.md` to mark notebook feature test task as completed with reference to test file location.
+  7. **Task Tracking**: Updated [TODO.md](TODO.md) to mark notebook feature test task as completed with reference to test file location.
 - **Impact**: Comprehensive test coverage ensures notebook feature robustness, validates edge cases and error conditions, and provides automated validation replacing manual Discord testing. All priority testing areas from NOTES_PLAN.md are now covered. All 54 notebook tests passing, full test suite shows 4023 passed, 1 failed (unrelated checkin test: `test_delete_custom_question`), 1 skipped. Test suite validates command parsing, entity extraction, flow state management, error handling, and end-to-end command processing through InteractionManager.
-- **Files**: `tests/behavior/test_notebook_handler_behavior.py` (created), `tests/conftest.py`, `pytest.ini`, `tests/TESTING_GUIDE.md`, `ai_development_docs/AI_TESTING_GUIDE.md`, `development_docs/NOTES_PLAN.md`, `TODO.md`
+- **Files**: `tests/behavior/test_notebook_handler_behavior.py` (created), `tests/conftest.py`, `pytest.ini`, [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), [TODO.md](TODO.md)
 
 ### 2026-01-09 - Command Handler Consolidation and Profile Formatting Fixes **COMPLETED**
 - **Feature**: Consolidated duplicate command handler implementations across `interaction_handlers.py` (monolithic) and separate handler files, fixed profile display formatting to match test expectations, and improved test runner failure display reliability.
@@ -492,7 +492,7 @@ When adding new changes, follow this format:
      - Added task to investigate and deduplicate duplicate `TaskManagementHandler` classes (found in both `task_handler.py` and `interaction_handlers.py`)
      - Corrected verification status: marked flow expiration and interference detection as "not yet verified" (implemented but not tested)
 - **Impact**: Task creation now correctly prompts for due date when none is provided, and reminder prompts only appear when a valid due date exists. Improved natural language date/time parsing makes task creation more user-friendly. Note creation flows verified to work correctly with button-style prompts. Documentation accurately reflects current implementation status and testing needs.
-- **Files**: `communication/command_handlers/task_handler.py`, `communication/command_handlers/interaction_handlers.py`, `development_docs/NOTES_PLAN.md`, `.cursor/plans/notebook_feature_implementation_ce88ed1a.plan.md`
+- **Files**: `communication/command_handlers/task_handler.py`, `communication/command_handlers/interaction_handlers.py`, [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), `.cursor/plans/notebook_feature_implementation_ce88ed1a.plan.md`
 
 ### 2026-01-14 - Notebook Feature Documentation: Status Updates and Testing Roadmap **COMPLETED**
 - **Feature**: Updated notebook feature planning documents with current implementation status, recent fixes, testing requirements, and remaining work
@@ -510,7 +510,7 @@ When adding new changes, follow this format:
   - Documentation provides clear roadmap for testing and future development work
 - **Background**: The notebook feature implementation (Milestones 1-3) is functionally complete, but documentation needed to be updated to reflect current status, recent architectural fixes, and provide clear testing roadmap
 - **Impact**: Planning documents now serve as accurate reference for current implementation status and next steps. Clear testing requirements documented for comprehensive notebook feature validation. Future development work (edit sessions, skip integration, AI extraction) clearly identified.
-- **Files**: `development_docs/NOTES_PLAN.md`, `.cursor/plans/notebook_feature_implementation_ce88ed1a.plan.md`
+- **Files**: [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), `.cursor/plans/notebook_feature_implementation_ce88ed1a.plan.md`
 
 ### 2026-01-07 - Notebook Feature: Core Implementation Complete and Search Fix **COMPLETED**
 - **Feature**: Completed core notebook feature implementation (Milestones 1-3) and fixed critical search functionality bug
@@ -568,7 +568,7 @@ When adding new changes, follow this format:
       - Modified Phase 1 candidate detection logic to exclude nested functions (line 619)
       - Nested functions with try-except blocks are now marked as appropriate error handling pattern, not candidates for decorator replacement
   - **Path Drift**:
-    - Updated `TODO.md`:
+    - Updated [TODO.md](TODO.md):
       - Line 67: `test_checkin_management_dialog.py` -> `tests/unit/test_checkin_management_dialog.py`
       - Line 74: `checkin_management_dialog.py` -> `ui/dialogs/checkin_management_dialog.py`
 - **Impact**: 
@@ -581,7 +581,7 @@ When adding new changes, follow this format:
   - `core/user_data_handlers.py` (safeguard for message file creation)
   - `development_tools/error_handling/analyze_error_handling.py` (nested function detection)
   - `ui/widgets/checkin_settings_widget.py` (nested function with proper error handling)
-  - `TODO.md` (fixed path references)
+  - [TODO.md](TODO.md) (fixed path references)
 - **Testing**: All existing error handling analyzer tests pass (23/23); manual verification confirms nested function is no longer flagged; path drift verification shows 0 issues for TODO.md
 
 ### 2026-01-04 - Check-in Settings UI Improvements: Min/Max Validation and Question Management **PARTIAL**
@@ -678,7 +678,7 @@ When adding new changes, follow this format:
   - **ASCII Compliance**: Fixed multiplication symbol (x) in AI_TESTING_GUIDE.md. Enhanced ASCII fixer to handle additional common symbols: degree (deg), plus-minus (+/-), division (/), bullet (-), trademark (TM), registered (R), and copyright (C).
   - **Test Fixes**: Fixed `test_save_channel_settings_exception_handling` by properly binding real methods to mock instances so decorators execute correctly.
 - **Impact**: Improved code quality, documentation accuracy, and test reliability. Error handling is now consistent across flagged functions, documentation paths are correct, and the ASCII fixer can automatically handle more common non-ASCII characters in future runs.
-- **Files**: `ui/dialogs/channel_management_dialog.py`, `run_tests.py`, `development_tools/tests/generate_test_coverage_report.py`, `development_tools/docs/fix_documentation_ascii.py`, `development_tools/docs/analyze_ascii_compliance.py`, `development_tools/error_handling/analyze_error_handling.py`, `tests/ui/test_channel_management_dialog_coverage_expansion.py`, `TODO.md`, `ai_development_docs/AI_TESTING_GUIDE.md`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`
+- **Files**: `ui/dialogs/channel_management_dialog.py`, `run_tests.py`, `development_tools/tests/generate_test_coverage_report.py`, `development_tools/docs/fix_documentation_ascii.py`, `development_tools/docs/analyze_ascii_compliance.py`, `development_tools/error_handling/analyze_error_handling.py`, `tests/ui/test_channel_management_dialog_coverage_expansion.py`, [TODO.md](TODO.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`
 
 ### 2026-01-04 - Memory Leak Fix: Test Mocking and Parallel Execution Stability **COMPLETED**
 - **Feature**: Fixed critical memory leak in parallel test execution that was causing worker crashes at 94% system memory. Root cause was `test_full_audit_status_reflects_final_results` running real tools instead of mocks, causing memory accumulation when multiple workers executed real audit tools simultaneously.
@@ -720,8 +720,8 @@ When adding new changes, follow this format:
   - `tests/development_tools/test_audit_tier_comprehensive.py` (initialized results_cache)
   - `tests/development_tools/test_generate_error_handling_recommendations.py` (updated to test inlined method)
   - `development_tools/tests/run_test_coverage.py` (improved coverage warning diagnostics)
-  - `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` (updated documentation)
-  - `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` (updated documentation)
+  - [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) (updated documentation)
+  - [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) (updated documentation)
   - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` (documented findings)
 
 ### 2025-12-31 - Improved Recommendation Quality in Development Tools **COMPLETED**
@@ -773,7 +773,7 @@ When adding new changes, follow this format:
 - **Investigation Tasks**: Added section 4.14 to `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` for investigating duplicate function declarations that need proper analysis:
   - `generate_dependency_report()` exists twice in `analyze_module_dependencies.py` (needs investigation to determine if both needed or should be merged, and to convert print() to logger usage)
   - Multiple duplicate methods in `tool_wrappers.py` (needs full investigation to compare implementations and determine if duplicates should be removed or merged)
-- **Complementary Tools Evaluation**: Added comprehensive TODO items in `TODO.md` for evaluating complementary development tools to determine if they should replace or complement existing custom development tools:
+- **Complementary Tools Evaluation**: Added comprehensive TODO items in [TODO.md](TODO.md) for evaluating complementary development tools to determine if they should replace or complement existing custom development tools:
   - **ruff**: Fast linter/formatter (10-100x faster than pylint) - evaluate for unused imports detection
   - **radon**: Complexity analysis - evaluate for complementing `analyze_functions.py` complexity tracking
   - **pydeps**: Dependency graph generation - evaluate for complementing `analyze_module_dependencies.py`
@@ -782,7 +782,7 @@ When adding new changes, follow this format:
   - **vulture**: Dead code detection (optional - finds unused functions/classes)
   - **pre-commit**: Git hooks for automated quality checks (optional - workflow tool)
   - All tools verified for Cursor IDE compatibility (ruff and bandit have VS Code extensions)
-- **Files Modified**: `core/service.py`, `ai/chatbot.py`, `ai/context_builder.py`, `ai/conversation_history.py`, `communication/communication_channels/base/base_channel.py`, `communication/communication_channels/base/command_registry.py`, `communication/communication_channels/discord/api_client.py`, `communication/communication_channels/discord/event_handler.py`, `development_tools/shared/service/data_loading.py`, `development_tools/shared/file_rotation.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/service/report_generation.py`, `development_tools/tests/run_test_coverage.py`, `development_tools/config/development_tools_config.json`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`, `TODO.md`
+- **Files Modified**: `core/service.py`, `ai/chatbot.py`, `ai/context_builder.py`, `ai/conversation_history.py`, `communication/communication_channels/base/base_channel.py`, `communication/communication_channels/base/command_registry.py`, `communication/communication_channels/discord/api_client.py`, `communication/communication_channels/discord/event_handler.py`, `development_tools/shared/service/data_loading.py`, `development_tools/shared/file_rotation.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/service/report_generation.py`, `development_tools/tests/run_test_coverage.py`, `development_tools/config/development_tools_config.json`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`, [TODO.md](TODO.md)
 - **Impact**: Fixed real runtime bugs that could cause crashes (None access, unbound variables). Improved type safety and code quality. Legacy compatibility code properly marked for future cleanup. Investigation tasks documented for remaining duplicate declarations. Roadmap established for evaluating complementary tools that may improve development workflow efficiency and security.
 
 ### 2025-12-31 - Config Validation and Function Metrics Standardization **COMPLETED**
@@ -846,7 +846,7 @@ When adding new changes, follow this format:
   - `test_run.log` backups: ~0.89 MB (928,074 bytes) - complete
   - `test_consolidated.log` backups: ~0.45 MB (472,596 bytes) - complete
   - Rotation triggers correctly based on size (2MB limit) or time (24 hours)
-- **Documentation**: Updated `tests/TESTING_GUIDE.md` and `ai_development_docs/AI_TESTING_GUIDE.md` with test logging information (section 3.5 in TESTING_GUIDE.md, section 3 in AI_TESTING_GUIDE.md).
+- **Documentation**: Updated [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) and [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) with test logging information (section 3.5 in TESTING_GUIDE.md, section 3 in AI_TESTING_GUIDE.md).
 - **Impact**: Prevents log files from growing unbounded, ensures proper log management, and enables easier debugging with complete log history preserved in backups.
 
 ### 2025-12-27 - Repository Cleanup: Untrack Files That Should Be Ignored **COMPLETED**
@@ -857,15 +857,15 @@ When adding new changes, follow this format:
 
 ### 2025-12-27 - Coverage Tools Refactoring Completion and Bug Fixes **COMPLETED**
 - **Coverage Tool Refactoring Completion**: Completed Option E implementation from improvement plan section 2.7. Fixed critical bugs preventing `generate_test_coverage_report` from executing: corrected method name mismatch (`_load_coverage_json` -> `load_coverage_json`, `_extract_overall_from_json` -> `extract_overall_from_json`) in `analyze_test_coverage.py`, and fixed relative import issues in `generate_test_coverage_report.py` to work when run as standalone script.
-- **File Cleanup**: Deleted old files after verification: `development_tools/tests/generate_test_coverage.py`, `development_tools/tests/generate_test_coverage_reports.py`, and `development_tools/tests/COVERAGE_TOOLS_ANALYSIS.md`. Updated documentation references in `DEVELOPMENT_TOOLS_GUIDE.md` and `tests/TESTING_GUIDE.md` to use new file names (`run_test_coverage.py`, `generate_test_coverage_report.py`).
+- **File Cleanup**: Deleted old files after verification: `development_tools/tests/generate_test_coverage.py`, `development_tools/tests/generate_test_coverage_reports.py`, and `development_tools/tests/COVERAGE_TOOLS_ANALYSIS.md`. Updated documentation references in `DEVELOPMENT_TOOLS_GUIDE.md` and [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) to use new file names (`run_test_coverage.py`, `generate_test_coverage_report.py`).
 - **Improvement Plan Status Updates**: Updated `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` to reflect completion status of sections 2.4-2.7: Enhanced System Health Analysis ([OK]), Renamed system_signals to analyze_system_signals ([OK]), Moved quick_status to end of Tier 1 ([OK]), and Coverage Tool Naming refactoring ([OK]). All tasks verified complete with successful full audit execution.
 - **Impact**: Coverage tools now work correctly end-to-end. Full audit (`audit --full`) completes successfully with all coverage tools executing properly. TEST_COVERAGE_REPORT.md generates correctly. All old files removed and documentation updated. Improvement plan sections 2.4-2.7 now marked complete.
 
 ### 2025-12-26 - Unused Imports Cleanup Completion and Documentation Quality Fixes **COMPLETED**
 - **Unused Imports Cleanup**: Removed 59 "Obvious Unused" imports, reducing from 59 to 0 in that category. Total unused imports reduced from 415 to 356 across 126 files. Cleaned up imports from production code (`communication/core/welcome_manager.py`, `development_tools/imports/generate_module_dependencies.py`, `development_tools/run_development_tools.py`) and test files.
 - **Pytest Fixture Detection Enhancement**: Enhanced `development_tools/imports/analyze_unused_imports.py` to correctly identify pytest fixtures imported from `conftest` files. Added `_is_pytest_fixture_import()` method that detects fixtures used as function parameters, preventing false positives. This improved categorization moved many imports from "Obvious Unused" to "Test Infrastructure" category.
-- **ASCII Compliance Fix**: Fixed remaining ASCII compliance issue in `development_docs/CHANGELOG_DETAIL.md` by replacing non-ASCII character (U+2264) in line 65 with plain text. All documentation now ASCII-compliant (0 issues verified).
-- **Documentation Path Drift Fix**: Fixed broken path references in `tests/TESTING_GUIDE.md` by correcting relative paths for `LOGGING_GUIDE.md`, `ERROR_HANDLING_GUIDE.md`, and `test_audit_tier_comprehensive.py`. All documentation paths now correctly resolved (0 path drift issues verified).
+- **ASCII Compliance Fix**: Fixed remaining ASCII compliance issue in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) by replacing non-ASCII character (U+2264) in line 65 with plain text. All documentation now ASCII-compliant (0 issues verified).
+- **Documentation Path Drift Fix**: Fixed broken path references in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) by correcting relative paths for `LOGGING_GUIDE.md`, `ERROR_HANDLING_GUIDE.md`, and `test_audit_tier_comprehensive.py`. All documentation paths now correctly resolved (0 path drift issues verified).
 - **Impact**: Codebase cleanup complete with all "Obvious Unused" imports removed. Enhanced unused imports analyzer now correctly categorizes pytest fixtures, reducing false positives. All documentation quality checks (ASCII compliance, path drift) now pass. Remaining unused imports (356 total) are appropriately categorized as test mocking, Qt testing, or test infrastructure imports that should be kept.
 
 ### 2025-12-25 - Enhanced Audit Tier E2E Testing to Verify All 23 Tools **COMPLETED**
@@ -892,14 +892,14 @@ When adding new changes, follow this format:
 - **Threshold Validation Tests**: Added `TestThresholdValidation` class (2 tests) verifying thresholds are loaded from config (80% docs/test, 60% dev tools) and used consistently in report generation.
 - **Recommendation Quality Tests**: Added `TestRecommendationQuality` class (2 tests) verifying recommendations have required structure and are non-empty strings. Fixed import errors by using `load_development_tools_module` helper instead of direct imports.
 - **Pytest Markers**: Added `@pytest.mark.unit` markers to all 23 validation tests (15 exclusion utilities + 14 validation framework) to enable selective test execution and better organization.
-- **ASCII Compliance Fix**: Fixed 2 ASCII compliance issues by replacing non-ASCII characters with `<=` in `development_docs/CHANGELOG_DETAIL.md` and `ai_development_docs/AI_CHANGELOG.md`. All documentation now ASCII-compliant (0 issues).
+- **ASCII Compliance Fix**: Fixed 2 ASCII compliance issues by replacing non-ASCII characters with `<=` in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md). All documentation now ASCII-compliant (0 issues).
 - **Test Results**: All 34 validation tests passing (15 exclusion utilities + 14 validation framework + 5 false negative detection). Full test suite: 3964 passed, 1 skipped (intentional Windows skip), 0 failed.
 - **Impact**: Validation framework now provides comprehensive coverage of analysis tool accuracy, ensuring tools detect real issues and don't produce false positives. All tests properly marked for selective execution. Documentation quality checks all pass.
 
 ### 2025-12-24 - Analysis Logic Validation and False Negative Detection **COMPLETED**
 - **False Negative Detection Test Suite**: Created comprehensive test suite (`tests/development_tools/test_false_negative_detection.py`) with 5 tests to verify analysis tools correctly detect known issues and don't miss real problems. Created test fixtures with intentional issues:
   - `tests/fixtures/development_tools_demo/false_negative_test_code.py` - Functions with missing error handling decorators and missing docstrings
-  - `tests/fixtures/development_tools_demo/docs/false_negative_test_doc.md` - Documentation with broken file path references
+  - [false_negative_test_doc.md](tests/fixtures/development_tools_demo/docs/false_negative_test_doc.md) - Documentation with broken file path references
 - **Test Verification**: All 5 false negative detection tests passing, confirming that:
   - Error handling analyzer correctly detects functions missing decorators (Phase 1 candidates)
   - Function registry analyzer correctly detects functions missing docstrings
@@ -952,7 +952,7 @@ When adding new changes, follow this format:
 
 ### 2025-12-22 - Priority Generation Enhancements and Documentation Fixes **COMPLETED**
 - **Priority Generation**: Enhanced `AI_PRIORITIES.md` generation to include test markers and unused imports as priority items. Test markers appear as Tier 3 priority with details about affected files. Unused imports appear as Tier 1/2 priority (based on count) with category breakdown and top files. Removed test markers from Quick Wins to avoid duplication.
-- **ASCII Compliance Fix**: Fixed 4 ASCII compliance issues by replacing non-ASCII `<=` characters with `<=` in `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_docs/CHANGELOG_DETAIL.md`, and `ai_development_docs/AI_CHANGELOG.md`.
+- **ASCII Compliance Fix**: Fixed 4 ASCII compliance issues by replacing non-ASCII `<=` characters with `<=` in [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md), [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), and [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md).
 - **Path Drift Fix**: Fixed false positive in path drift analyzer by adding "extraction" and other common English words to the skip list in `analyze_path_drift.py`. The analyzer was incorrectly flagging the word "extraction" in documentation text as a potentially outdated module reference.
 - **Impact**: AI_PRIORITIES.md now provides complete visibility into test markers and unused imports issues. All documentation quality issues (ASCII compliance, path drift) are resolved. Test markers and unused imports are properly prioritized for action.
 
@@ -1010,7 +1010,7 @@ When adding new changes, follow this format:
 - **ASCII Compliance Fix**: Fixed ASCII compliance issue in `TODO.md` by running `python development_tools/run_development_tools.py doc-fix --fix-ascii`. All documentation files now pass ASCII compliance checks.
 - **Data Loading Discrepancy Fix**: Fixed critical data loading issue where `AI_PRIORITIES.md` was using `analyze_function_registry` data (registry file coverage) instead of `analyze_functions` data (code docstrings) for missing docstring counts. Updated `development_tools/shared/service/report_generation.py` to consistently use `analyze_functions` data for both `AI_STATUS.md` and `AI_PRIORITIES.md`, ensuring both reports show the same docstring coverage metrics. Fixed fallback logic to prefer function metrics over registry metrics.
 - **Consolidated Report Enhancement**: Added Function Docstring Coverage to Documentation Status section in `consolidated_report.txt`. Coverage now appears in Documentation Status alongside other metrics (Path Drift, ASCII Compliance, etc.), showing status even when coverage is 100% (CLEAN with coverage percentage). Previously only appeared in Function Patterns section.
-- **Files Modified**: `development_tools/docs/fix_version_sync.py` (enhanced completion detection patterns), `TODO.md` (removed 3 completed entries), `development_tools/shared/service/report_generation.py` (fixed data source for priorities, added docstring coverage to consolidated report).
+- **Files Modified**: `development_tools/docs/fix_version_sync.py` (enhanced completion detection patterns), [TODO.md](TODO.md) (removed 3 completed entries), `development_tools/shared/service/report_generation.py` (fixed data source for priorities, added docstring coverage to consolidated report).
 - **Impact**: TODO sync now correctly detects all completed entries for cleanup. Both status reports show consistent docstring coverage metrics. Consolidated report provides complete documentation status overview including docstring coverage. All fixes verified - TODO sync detects 3 completed entries, ASCII compliance passes, reports show consistent data.
 
 ### 2025-12-18 - Development Tools Result Saving and Log Rotation Fixes **COMPLETED**
@@ -1039,7 +1039,7 @@ When adding new changes, follow this format:
 
 ### 2025-12-17 - Code Comment Cleanup and Development Tools Fixes **COMPLETED**
 - **Comment Cleanup**: Removed 61 redundant comments across the codebase that were restating what the code already shows. Cleaned up comments about removed/moved/changed functionality after verifying migrations were complete. Removed redundant action comments ("Create", "Get", "Load", "Save", "Update", "Calculate", etc.) that simply restated function names or obvious operations. Cleaned up comments in `core/` (35 comments), `ai/` (9 comments), `communication/` (13 comments), and `ui/` (4 comments) directories. Kept comments that provide value: TEMPORARY markers for tracked migrations, placeholder comments documenting intentional behavior, comments explaining non-obvious workarounds, and legacy format conversion comments for active migration code.
-- **Development Tools Fixes**: Fixed import error in `development_tools/run_development_tools.py` - changed from relative imports to absolute imports since project root is added to sys.path. Fixed syntax error in `core/file_operations.py` (removed duplicate `if tasks_enabled:` line introduced during comment cleanup). Fixed documentation path drift in `development_docs/OUTDATED_REFERENCE_AUDIT.md` by wrapping `TODO.md` references in backticks for consistent formatting. Fixed argument mismatch in `doc-fix` command - changed `--fix-all` to `--all` to match what `fix_documentation.py` expects. Enhanced error handling in `run_documentation_fix()` to provide better error messages when failures occur (shows return codes and script output when error message is empty).
+- **Development Tools Fixes**: Fixed import error in `development_tools/run_development_tools.py` - changed from relative imports to absolute imports since project root is added to sys.path. Fixed syntax error in `core/file_operations.py` (removed duplicate `if tasks_enabled:` line introduced during comment cleanup). Fixed documentation path drift in `development_docs/OUTDATED_REFERENCE_AUDIT.md` by wrapping [TODO.md](TODO.md) references in backticks for consistent formatting. Fixed argument mismatch in `doc-fix` command - changed `--fix-all` to `--all` to match what `fix_documentation.py` expects. Enhanced error handling in `run_documentation_fix()` to provide better error messages when failures occur (shows return codes and script output when error message is empty).
 - **Files Modified**: `core/file_operations.py` (removed 10 redundant comments, fixed syntax error), `core/backup_manager.py` (removed 5 comments), `core/message_management.py` (removed 6 comments), `core/user_data_manager.py` (removed 16 comments), `core/response_tracking.py` (removed 6 comments), `core/checkin_dynamic_manager.py` (removed 2 comments), `core/checkin_analytics.py` (removed 6 comments), `core/message_analytics.py` (removed 1 comment), `core/user_data_handlers.py` (removed 3 comments), `core/user_data_validation.py` (removed 6 comments), `ai/conversation_history.py` (removed 2 comments), `ai/cache_manager.py` (removed 1 comment), `ai/context_builder.py` (removed 3 comments), `ai/chatbot.py` (removed 4 comments), `communication/communication_channels/discord/api_client.py` (removed 3 comments), `communication/communication_channels/discord/event_handler.py` (removed 2 comments), `communication/command_handlers/account_handler.py` (removed 3 comments), `communication/command_handlers/analytics_handler.py` (removed 2 comments), `communication/core/channel_orchestrator.py` (removed 2 comments), `communication/communication_channels/email/bot.py` (removed 5 comments), `ui/dialogs/category_management_dialog.py` (removed 3 comments), `ui/dialogs/channel_management_dialog.py` (removed 5 comments), `ui/ui_app_qt.py` (removed 4 comments), `ui/widgets/dynamic_list_container.py` (removed 1 comment), `ui/widgets/tag_widget.py` (removed 1 comment), `development_tools/run_development_tools.py` (fixed imports), `development_tools/shared/service/commands.py` (fixed argument mismatch, improved error handling), `development_docs/OUTDATED_REFERENCE_AUDIT.md` (fixed path references, updated cleanup status).
 - **Impact**: Codebase is cleaner with redundant comments removed while preserving valuable context. Development tools now work correctly with proper imports and argument handling. Documentation path drift issues resolved. Error messages are more informative for debugging. All fixes verified - commands run successfully, syntax errors resolved, and documentation sync passes.
 - **Technical Details**: Comment cleanup followed systematic approach: verified underlying migrations/removals were complete before removing comments, kept comments explaining non-obvious behavior or workarounds, preserved TEMPORARY markers for tracked migrations (e.g., `core.user_management` retirement tracked in TODO.md). Import fix ensures `development_tools` can be imported as a package when script is run directly. Argument fix ensures `doc-fix --all` and default behavior work correctly. Error handling improvement provides fallback messages using return codes when stderr is empty.
@@ -1084,7 +1084,7 @@ When adding new changes, follow this format:
 - **Impact**: Phase 1 candidate count reduced from 73 to 53 functions (20 completed, 100% of high-priority candidates). Error handling infrastructure functions no longer incorrectly flagged as candidates. Centralized error handling now consistently applied to all high-priority entry points and critical operations. Improved error detection accuracy in development tools.
 
 ### 2025-12-15 - Development Tools Bug Fixes and Improvements **COMPLETED**
-- **Feature**: Fixed critical bugs in development tools that were preventing accurate analysis and causing stale data issues. Fixed syntax errors in `tests/development_tools/conftest.py` (indentation issues at lines 264-265) that were preventing test suite execution. Resolved 16 documentation path drift issues by updating references in `DOCUMENTATION_GUIDE.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, and `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` to use correct full paths for modular service architecture components (`development_tools/shared/service/*.py`).
+- **Feature**: Fixed critical bugs in development tools that were preventing accurate analysis and causing stale data issues. Fixed syntax errors in `tests/development_tools/conftest.py` (indentation issues at lines 264-265) that were preventing test suite execution. Resolved 16 documentation path drift issues by updating references in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), and [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) to use correct full paths for modular service architecture components (`development_tools/shared/service/*.py`).
 - **Error Handling Analyzer Fixes**: Fixed critical initialization bug in `development_tools/error_handling/analyze_error_handling.py` where `error_patterns` and related attributes were initialized in `_to_standard_format()` instead of `__init__()`, causing `AttributeError` when `analyze_file()` tried to use them. Moved initialization to new `_initialize_patterns()` method called from `__init__()`. Added comprehensive error logging at warning/error level to all failure points: `analyze_file()` logs warnings on file analysis failures, `_generate_recommendations()` logs warnings on recommendation generation failures, and `main()` logs errors on project analysis or report generation failures. All logging includes full tracebacks via `exc_info=True`.
 - **Tool Wrapper Stale Data Fix**: Fixed bug in `development_tools/shared/service/tool_wrappers.py` where `run_analyze_error_handling()` would perpetuate stale cached data when the analyzer failed. Changed behavior to only load from cache if script succeeded (`returncode == 0`), only save data if script succeeded, and only mark success if script actually succeeded. This prevents stale data from being saved back when the analyzer fails.
 - **Coverage Generation Improvements**: Fixed timeout and buffering issues in `development_tools/tests/generate_test_coverage.py`. Increased default timeout from 15 to 30 minutes and made it configurable via `development_tools_config.json`. Fixed output buffering deadlock by redirecting stdout/stderr directly to files with line buffering (`buffering=1`) instead of using `capture_output=True`, which was causing subprocess hangs. Created log files before running subprocess so output is visible even if process hangs. Improved timeout diagnostics to check for progress indicators and provide better error messages. Fixed `NameError: name 'coverage_config_data' is not defined` by loading config at start of `run_coverage_analysis()` method.
@@ -1120,8 +1120,8 @@ When adding new changes, follow this format:
   - **Modified**: `tests/development_tools/test_run_development_tools.py` - Removed deprecation warning filter
   - **Modified**: `tests/development_tools/test_status_file_timing.py` - Removed deprecation warning filter
   - **Deleted**: `development_tools/shared/operations.py` - Legacy facade removed (verified no active references)
-  - **Updated**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` - Updated service architecture documentation
-  - **Updated**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` - Updated service architecture documentation and tool catalog
+  - **Updated**: [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) - Updated service architecture documentation
+  - **Updated**: [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) - Updated service architecture documentation and tool catalog
 
 ### 2025-12-14 - Completed Standard Format Migration for All Analysis Tools **COMPLETED**
 - **Feature**: Completed migration of all 19 analysis tools to output standard format directly. Migrated remaining 13 tools: `analyze_documentation_sync`, `analyze_functions`, `analyze_error_handling`, `analyze_function_registry`, `analyze_config`, `analyze_function_patterns`, `analyze_module_imports`, `analyze_dependency_patterns`, `analyze_package_exports`, `analyze_documentation`, `analyze_ai_work`, `analyze_module_dependencies`, `analyze_legacy_references`, and `analyze_test_coverage` (via wrapper). All tools now output consistent JSON structure with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). Updated normalization layer in `result_format.py` to detect standard format and skip conversion. Updated all `run_analyze_*` functions in `operations.py` to handle standard format directly, accessing data from `details` section. Fixed all report generation code to properly access data from standard format structure.
@@ -1144,8 +1144,8 @@ When adding new changes, follow this format:
   - **Modified**: `tests/development_tools/test_analyze_documentation.py` - Updated 2 tests to access data from `details`
   - **Modified**: `tests/development_tools/test_documentation_sync_checker.py` - Updated 1 test to access `paired_docs` from `details`
   - **Updated**: `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md` - Added complete standard format migration details, all fixes documented
-  - **Updated**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` - Added standard format documentation with JSON structure example
-  - **Updated**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` - Added standard format documentation with JSON structure example
+  - **Updated**: [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) - Added standard format documentation with JSON structure example
+  - **Updated**: [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) - Added standard format documentation with JSON structure example
 
 ### 2025-12-14 - Standardized Report Format and Fixed Test Suite Timeout **COMPLETED**
 - **Feature**: Standardized report format across all three development tools reports (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt) and fixed test suite timeout issues. Updated `AI_STATUS.md` to show "Function Docstring Coverage" with explicit missing count (e.g., "23 functions missing docstrings") and separate "Registry Gaps" metric on different lines. Enhanced `AI_PRIORITIES.md` to include prioritized example lists for functions and handler classes with ", ... +N more" format showing top 5 by complexity. Consolidated all docstring metrics in `consolidated_report.txt` into Function Patterns section with detailed example lists. Removed duplicate sections and conditional "Regenerate registry entries" text from priorities. Updated `analyze_functions.py` to include `undocumented_examples` (top 5 by complexity) in JSON output for consistent access by report generators.
@@ -1196,7 +1196,7 @@ When adding new changes, follow this format:
 - **Impact**: Both tests now pass consistently. The email user creation test verifies that email users are properly created and can be found by identifier. The account creation UI test verifies that user directories are created during the account creation workflow. Improved robustness of test utilities by ensuring index updates happen before verification checks.
 - **Technical Changes**:
   - **Modified**: `tests/test_utilities.py` - Enhanced `verify_email_user_creation__with_test_dir()` to update user index before verification, added email parameter extraction, updated call site to pass email parameter
-  - **Removed**: `TODO.md` - Removed completed tasks for both test fixes
+  - **Removed**: [TODO.md](TODO.md) - Removed completed tasks for both test fixes
 
 ### 2025-12-06 - Complete Tool Result Saving and Fix Mid-Audit Status Updates **COMPLETED**
 - **Feature**: Completed Priority 2.5 (Ensure All Tools Explicitly Save Results) and Priority 2.1 (Fix Mid-Audit Status Updates) from AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md. For Priority 2.5: Updated `analyze_config.py` to use standardized `save_tool_result()` storage instead of direct `json.dump()`. Modified `main()` to return results dictionary and added `--json-output` flag support. Updated `operations.py` wrapper to call `save_tool_result()` after running script. All 20 tools now use standardized storage (100% completion). For Priority 2.1: Implemented file-based lock mechanism (`.audit_in_progress.lock` and `.coverage_in_progress.lock`) for cross-process protection with pytest-xdist. Enhanced `_is_audit_in_progress()` helper to check both in-memory global flag and file-based locks. Added coverage lock protection to `run_coverage_regeneration()` and `run_dev_tools_coverage()` to prevent status writes during pytest execution. Added skip checks to tests that call `run_status()` or create `AIToolsService` instances during audits. Added file modification time tracking to detect and log mid-audit writes. Cleaned up verbose debug logging added during troubleshooting. Updated warning logic in status generation functions to only warn on actual mid-audit writes, not legitimate end-of-audit writes. Fixed indentation errors introduced during cleanup. Updated `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md` to reflect completion status with detailed implementation notes.
@@ -1311,7 +1311,7 @@ When adding new changes, follow this format:
   - **Modified**: `development_tools/config/analyze_config.py` - Modified `print_validation_report` to print to stdout instead of logging
   - **Modified**: `development_tools/reports/decision_support.py` - Modified `print_dashboard` to print full dashboard to stdout
   - **Modified**: `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` - Added Phase 9 and Phase 10 sections with completed milestones (M9.1.1, M9.1.2, M10.1.1, M10.1.2) marked, updated progress summary
-  - **Modified**: `TODO.md` - Removed completed tasks (AI_STATUS formatting, config validation, TODO sync, test markers, project cleanup) and tasks transferred to improvement plan (function counting, error handling metrics, mid-audit updates, tool output storage)
+  - **Modified**: [TODO.md](TODO.md) - Removed completed tasks (AI_STATUS formatting, config validation, TODO sync, test markers, project cleanup) and tasks transferred to improvement plan (function counting, error handling metrics, mid-audit updates, tool output storage)
 
 ### 2025-12-02 - Implemented Shared Mtime-Based Caching for Development Tools **COMPLETED**
 - **Feature**: Created shared `MtimeFileCache` utility (`development_tools/shared/mtime_cache.py`) to provide reusable mtime-based caching for file-based analyzers. Refactored 6 analyzers to use this shared utility: `analyze_unused_imports.py`, `analyze_ascii_compliance.py`, `analyze_missing_addresses.py`, `analyze_path_drift.py`, `analyze_unconverted_links.py`, and `analyze_heading_numbering.py`. Removed git-based incremental mode from `analyze_unused_imports.py` as the mtime-based cache provides better performance. The shared utility handles cache loading, saving, validation, and migration from old cache formats (e.g., `'issues'` key to `'results'` key). Updated documentation guides (`AI_DEVELOPMENT_TOOLS_GUIDE.md` and `DEVELOPMENT_TOOLS_GUIDE.md`) to document the shared caching infrastructure.
@@ -1326,11 +1326,11 @@ When adding new changes, follow this format:
     - `development_tools/docs/analyze_unconverted_links.py`: Added caching to `check_unconverted_links()` with cache file `.unconverted_links_cache.json`
     - `development_tools/docs/analyze_heading_numbering.py`: Added caching to `check_heading_numbering()` with cache file `.heading_numbering_cache.json`
   - **Removed Features**: Git-based incremental mode removed from `analyze_unused_imports.py` and `development_tools/shared/operations.py` (no longer needed with mtime-based cache)
-  - **Documentation**: Updated `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` and `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` to document the shared caching infrastructure
-- **Files**: `development_tools/shared/mtime_cache.py` (new), `development_tools/imports/analyze_unused_imports.py`, `development_tools/docs/analyze_ascii_compliance.py`, `development_tools/docs/analyze_missing_addresses.py`, `development_tools/docs/analyze_path_drift.py`, `development_tools/docs/analyze_unconverted_links.py`, `development_tools/docs/analyze_heading_numbering.py`, `development_tools/shared/operations.py`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `TODO.md`
+  - **Documentation**: Updated [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) and [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) to document the shared caching infrastructure
+- **Files**: `development_tools/shared/mtime_cache.py` (new), `development_tools/imports/analyze_unused_imports.py`, `development_tools/docs/analyze_ascii_compliance.py`, `development_tools/docs/analyze_missing_addresses.py`, `development_tools/docs/analyze_path_drift.py`, `development_tools/docs/analyze_unconverted_links.py`, `development_tools/docs/analyze_heading_numbering.py`, `development_tools/shared/operations.py`, [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md), [TODO.md](TODO.md)
 
 ### 2025-12-02 - Fixed Path Drift and Non-ASCII Characters in Documentation **COMPLETED**
-- **Feature**: Fixed 30 path drift issues across multiple documentation files by updating outdated file path references to use full, accurate paths from the project root. Fixed all non-ASCII characters (emojis) in generated documentation and test files to ensure ASCII compliance. Replaced emoji characters with ASCII equivalents throughout the codebase. Fixed the function registry generator (`development_tools/functions/generate_function_registry.py`) to use ASCII-only status indicators (`[OK]`, `[ERROR]`, `[WARNING]`, `[MISSING]` instead of emoji characters). Fixed 484 emoji occurrences in test file comments across 15 files, replacing them with ASCII equivalents like `[OK] VERIFY`. Fixed test output formatting files (`tests/ai/run_ai_functionality_tests.py`, `tests/ai/test_ai_functionality_manual.py`) to use ASCII status symbols. Regenerated `FUNCTION_REGISTRY_DETAIL.md` which is now fully ASCII-compliant. Preserved legitimate emoji test data in files that test emoji handling (message formatting, character processing). Updated documentation analyzers to exclude `.cursor/` directory files from path drift and missing address checks. Fixed metadata link deduplication logic to ensure only the first occurrence of each file path is converted to a link in metadata sections. Fixed unconverted link in `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`. Fixed non-ASCII character (arrow) in `development_docs/CHANGELOG_DETAIL.md`.
+- **Feature**: Fixed 30 path drift issues across multiple documentation files by updating outdated file path references to use full, accurate paths from the project root. Fixed all non-ASCII characters (emojis) in generated documentation and test files to ensure ASCII compliance. Replaced emoji characters with ASCII equivalents throughout the codebase. Fixed the function registry generator (`development_tools/functions/generate_function_registry.py`) to use ASCII-only status indicators (`[OK]`, `[ERROR]`, `[WARNING]`, `[MISSING]` instead of emoji characters). Fixed 484 emoji occurrences in test file comments across 15 files, replacing them with ASCII equivalents like `[OK] VERIFY`. Fixed test output formatting files (`tests/ai/run_ai_functionality_tests.py`, `tests/ai/test_ai_functionality_manual.py`) to use ASCII status symbols. Regenerated `FUNCTION_REGISTRY_DETAIL.md` which is now fully ASCII-compliant. Preserved legitimate emoji test data in files that test emoji handling (message formatting, character processing). Updated documentation analyzers to exclude `.cursor/` directory files from path drift and missing address checks. Fixed metadata link deduplication logic to ensure only the first occurrence of each file path is converted to a link in metadata sections. Fixed unconverted link in [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md). Fixed non-ASCII character (arrow) in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md).
 - **Impact**: All documentation files are now ASCII-compliant, improving compatibility and ensuring consistent formatting. All file path references are now accurate and use full paths from the project root. Doc Sync status improved from FAIL (32 tracked issues) to PASS (0 tracked issues). Path Drift status improved from NEEDS ATTENTION (30 issues) to CLEAN (0 issues). ASCII compliance check now passes for all documentation files.
 - **Technical Changes**:
   - **Path Drift Fixes**: Updated file path references in multiple documentation files:
@@ -1350,7 +1350,7 @@ When adding new changes, follow this format:
     - `tests/behavior/*.py` (7 files): Replaced emoji comments with ASCII equivalents  
     - `tests/ui/*.py` (4 files): Replaced emoji comments with ASCII equivalents
     - `tests/ai/run_ai_functionality_tests.py`, `tests/ai/test_ai_functionality_manual.py`: Replaced emoji status symbols with ASCII equivalents
-    - `development_docs/CHANGELOG_DETAIL.md`: Replaced non-ASCII arrow character (->) with ASCII equivalent
+    - [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md): Replaced non-ASCII arrow character (->) with ASCII equivalent
     - `development_docs/FUNCTION_REGISTRY_DETAIL.md`: Regenerated with ASCII-only content
   - **Documentation Analyzer Improvements**:
     - `development_tools/docs/analyze_path_drift.py`: Updated to exclude all `.cursor/` directory files (not just plans)
@@ -1370,8 +1370,8 @@ When adding new changes, follow this format:
   - Fixed import paths in: `analyze_module_imports.py`, `analyze_dependency_patterns.py`, `generate_module_dependencies.py`, `analyze_unused_imports.py`, `analyze_module_dependencies.py`
   - `tests/development_tools/test_error_scenarios.py`: Updated to import from `imports.analyze_module_imports` instead of `generate_module_dependencies`
   - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`: Added "Additional Decomposition" section documenting the decomposition
-  - `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`: Updated tool categories to note extraction date (2025-12-02)
-  - `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`: Updated tool catalog entries with extraction dates and detailed descriptions
+  - [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md): Updated tool categories to note extraction date (2025-12-02)
+  - [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md): Updated tool catalog entries with extraction dates and detailed descriptions
 - **Impact**: Completes M7.4 milestone with all 6 planned tools plus 1 additional tool decomposed (7 total, 23+ new focused tools created). Improves modularity and maintainability across all development tools. Tools can now be used independently, making testing and reuse easier. Follows established naming conventions (analyze_*, generate_*, fix_*). All functionality preserved, tests passing, documentation updated, plan marked as completed.
 
 ### 2025-12-01 - Development Tools Configuration Cleanup and Complexity Calculation Fix **COMPLETED**
@@ -1434,19 +1434,19 @@ When adding new changes, follow this format:
 - **Files Modified**: `development_tools/error_handling_coverage.py`, `development_tools/analyze_documentation.py`, `development_tools/services/operations.py`, `scripts/generate_phase1_candidates.py`, `scripts/generate_phase2_audit.py`, `scripts/testing/analyze_documentation_overlap.py`, `scripts/static_checks/check_channel_loggers.py`, `tests/unit/test_schedule_management.py`, `development_tools/legacy_reference_cleanup.py`
 
 ### 2025-12-07 - Check-in Flow Expiration Behavior Coverage
-- **Feature**: Added a behavior test to verify that active check-in flows expire when the communication orchestrator sends a non-scheduled outbound message. The test patches the orchestrator to use a test-specific `ConversationManager`, exercises a personalized send path, and confirms the persisted flow state is removed once the unrelated message is delivered. Updated `TODO.md` to mark the follow-up as completed.
+- **Feature**: Added a behavior test to verify that active check-in flows expire when the communication orchestrator sends a non-scheduled outbound message. The test patches the orchestrator to use a test-specific `ConversationManager`, exercises a personalized send path, and confirms the persisted flow state is removed once the unrelated message is delivered. Updated [TODO.md](TODO.md) to mark the follow-up as completed.
 - **Impact**: Protects the intended coupling between outbound message handling and check-in flow cleanup, preventing users from getting stuck in stale flows after receiving other messages.
 - **Testing**: `python -m pytest tests/behavior/test_conversation_flow_manager_behavior.py::TestConversationFlowManagerBehavior::test_checkin_flow_expires_after_unrelated_outbound`
 
 ### 2025-12-05 - Static Logging Guard Restoration
 - **Feature**: Recreated `scripts/static_checks/check_channel_loggers.py` to enforce forbidden direct `logging` imports, disallow `logging.getLogger` outside allowlisted files, and flag multi-argument logger calls; exclusions cover tests/scripts/ai_tools/development_tools with explicit allowlists for core logger infrastructure.
-- **Feature**: Added a static logging preflight to `run_tests.py` (toggle via `--skip-static-logging-check`) so style violations fail before pytest runs; updated `TODO.md` to reflect the enforcement step being wired through the runner.
+- **Feature**: Added a static logging preflight to `run_tests.py` (toggle via `--skip-static-logging-check`) so style violations fail before pytest runs; updated [TODO.md](TODO.md) to reflect the enforcement step being wired through the runner.
 - **Impact**: Restores the static logging check expected by behavior tests and makes logging style drift visible in local and CI test runs.
 
 ### 2025-11-29 - Normalize User Data Reads with Pydantic Schemas
 - **Feature**: Added read-path validation for accounts, preferences, and schedules in `core/user_management.py` so cached data is normalized via tolerant Pydantic schemas and validation issues surface in logs.
 - **Impact**: Ensures business logic consumes normalized user data even when legacy or malformed payloads are present, reducing downstream errors.
-- **Documentation**: Removed the completed Pydantic schema follow-up from `TODO.md` now that read-path normalization is in place.
+- **Documentation**: Removed the completed Pydantic schema follow-up from [TODO.md](TODO.md) now that read-path normalization is in place.
 
 ### 2025-11-29 - Coverage Stability for UI Tests
 
@@ -1455,7 +1455,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 
 #### Changes Made
 - **`tests/unit/test_ui_management.py`**: Guarded the PySide6 imports with `pytest.importorskip` so the module is skipped gracefully on systems without GUI libraries.
-- **`TODO.md`**: Removed the stale "Investigate Test Coverage Analysis Failures" task after confirming the failures were tied to missing Qt dependencies rather than the targeted tests.
+- **[TODO.md](TODO.md)**: Removed the stale "Investigate Test Coverage Analysis Failures" task after confirming the failures were tied to missing Qt dependencies rather than the targeted tests.
 
 #### Impact
 - **Coverage Reliability**: Coverage analysis and targeted test runs now skip UI-specific tests cleanly instead of erroring during collection when GUI libraries are missing.
@@ -1548,18 +1548,18 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
      - Fixed system signals data unavailable message (improved loading logic)
      - Fixed import error in `regenerate_coverage_metrics.py` (changed from relative to absolute import)
 - **Impact**: Development tools are now portable and can be used in other projects. External configuration allows projects to customize paths, exclusions, constants, and other settings without modifying tool source code. Backward compatible - tools work without external config using generic defaults.
-- **Files Modified**: `development_tools/ai_tools_runner.py`, `development_tools/services/operations.py`, `development_tools/config.py`, `development_tools/services/standard_exclusions.py`, `development_tools/services/constants.py`, `development_tools/documentation_sync_checker.py`, `development_tools/generate_function_registry.py`, `development_tools/function_discovery.py`, `development_tools/generate_module_dependencies.py`, `development_tools/legacy_reference_cleanup.py`, `development_tools/regenerate_coverage_metrics.py`, `development_tools/error_handling_coverage.py`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`
+- **Files Modified**: `development_tools/ai_tools_runner.py`, `development_tools/services/operations.py`, `development_tools/config.py`, `development_tools/services/standard_exclusions.py`, `development_tools/services/constants.py`, `development_tools/documentation_sync_checker.py`, `development_tools/generate_function_registry.py`, `development_tools/function_discovery.py`, `development_tools/generate_module_dependencies.py`, `development_tools/legacy_reference_cleanup.py`, `development_tools/regenerate_coverage_metrics.py`, `development_tools/error_handling_coverage.py`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`, [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md), [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
 - **Files Created**: `development_tools_config.json`, `development_tools/development_tools_config.json.example`
 
 ### 2025-11-27 - Phase 5 Development Tools: Documentation Alignment and Audit Data Capture Fixes **COMPLETED**
 - **Feature**: Completed Phase 5 of the AI Development Tools Improvement Plan and fixed audit data capture issues for complexity metrics, validation results, and system signals.
 - **Technical Changes**:
   1. **Phase 5 Milestone M5.2 - Standard Audit Recipe**:
-     - Added "## 10. Standard Audit Recipe" section to `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
+     - Added "## 10. Standard Audit Recipe" section to [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
      - Documented when to run `audit` (day-to-day), `audit --full` (pre-merge/pre-release), `doc-sync` and `docs` (doc work), and `status` (quick snapshot)
      - Included reference to `AI_DEVELOPMENT_TOOLS_GUIDE.md` for detailed usage
   2. **Phase 5 Milestone M5.3 - Session Starter Routing**:
-     - Updated `ai_development_docs/AI_SESSION_STARTER.md` with routing guidance for development tools tasks
+     - Updated [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md) with routing guidance for development tools tasks
      - Added primary routing to `AI_DEVELOPMENT_TOOLS_GUIDE.md` when tasks touch dev tools
      - Integrated development tooling section in "2. Quick Reference" with specific command routing
   3. **Audit Data Capture Fixes**:
@@ -1568,8 +1568,8 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
      - **System Signals**: Ensured `_save_additional_tool_results()` is called after `run_system_signals()` in status command, enhanced cache loading to properly extract system health and activity data
      - **Cache Loading**: Enhanced all three report generation methods (`_generate_ai_status_document`, `_generate_consolidated_report`, `_generate_ai_priorities_document`) to robustly load missing data from `ai_audit_detailed_results.json` when instance attributes are missing
 - **Files Modified**:
-  - `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` - Added standard audit recipe section
-  - `ai_development_docs/AI_SESSION_STARTER.md` - Added dev tools routing guidance
+  - [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) - Added standard audit recipe section
+  - [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md) - Added dev tools routing guidance
   - `development_tools/services/operations.py` - Fixed complexity extraction, validation loading, system signals saving, cache loading logic, added complexity priority generation
   - `development_tools/decision_support.py` - Enhanced to output parseable metrics to stdout
   - `development_tools/validate_ai_work.py` - Fixed to print results to stdout for subprocess capture
@@ -1618,7 +1618,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
      - Updated tests to unset `DISABLE_LOG_ROTATION` environment variable for file rotation tests
      - Fixed patching of exclusion lists (`ALL_GENERATED_FILES`, `STANDARD_EXCLUSION_PATTERNS`) in quick_status tests
 - **Impact**: Phase 4 of the AI Development Tools Improvement Plan is complete. Experimental tools are now clearly separated, Tier-2 tools have documented recommendations, development tools coverage is tracked and reported, and supporting tools have regression tests. Development tools coverage increased from 23.7% to 30.3% (6.6 percentage point improvement), with the three target files now having 58-74% coverage individually. All 6 supporting tools regression tests pass, providing regression protection for these utilities.
-- **Files Modified**: `development_tools/file_rotation.py`, `development_tools/quick_status.py`, `development_tools/system_signals.py`, `development_tools/regenerate_coverage_metrics.py`, `development_tools/services/operations.py`, `development_tools/services/tool_metadata.py`, `development_tools/experimental/version_sync.py`, `development_tools/experimental/auto_document_functions.py`, `development_tools/tool_guide.py`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`
+- **Files Modified**: `development_tools/file_rotation.py`, `development_tools/quick_status.py`, `development_tools/system_signals.py`, `development_tools/regenerate_coverage_metrics.py`, `development_tools/services/operations.py`, `development_tools/services/tool_metadata.py`, `development_tools/experimental/version_sync.py`, `development_tools/experimental/auto_document_functions.py`, `development_tools/tool_guide.py`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`, [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)
 - **Files Created**: `development_tools/experimental/` (directory), `development_tools/experimental/version_sync.py`, `development_tools/experimental/auto_document_functions.py`, `development_tools/experimental/__init__.py`, `development_tools/coverage_dev_tools.ini`, `tests/development_tools/test_supporting_tools.py`
 - **Testing**: All 6 new regression tests pass. Full test suite: 3464 passed, 0 failed, 1 skipped.
 
@@ -1626,20 +1626,20 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - **Feature**: Comprehensive documentation cleanup including non-ASCII character fixes, path drift resolution, heading numbering corrections, missing file reference fixes, documentation sync checker improvements, and automated path-to-link conversion.
 - **Technical Changes**:
   1. **Non-ASCII Character Fixes**:
-     - Fixed em dashes (replaced with hyphens (-)) in `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`
+     - Fixed em dashes (replaced with hyphens (-)) in [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)
      - Fixed checkmark emojis (replaced with `[OK]` markers) in multiple files
      - Fixed arrow characters (replaced with `->`) in changelog files
-     - Added `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` and `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` to ASCII compliance check list
+     - Added [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) and [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) to ASCII compliance check list
   2. **Path Drift Fixes** (60+ ambiguous short paths corrected):
      - Updated short path references to full paths across multiple documentation files
-     - Fixed references in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`, `communication/communication_channels/discord/DISCORD_GUIDE.md`, `ARCHITECTURE.md`, `README.md`, `DEVELOPMENT_WORKFLOW.md`, `DOCUMENTATION_GUIDE.md`, `tests/TESTING_GUIDE.md`, `tests/MANUAL_TESTING_GUIDE.md`, `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`, `development_docs/PLANS.md`
+     - Fixed references in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`, [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md), [ARCHITECTURE.md](ARCHITECTURE.md), [README.md](README.md), [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md), [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md), [PLANS.md](development_docs/PLANS.md)
      - Updated references to use full paths (e.g., `config.py` -> `development_tools/config.py`, `bot.py` -> `communication/communication_channels/discord/bot.py`)
   3. **Heading Numbering Fixes**:
      - Fixed missing H3 numbers in `HOW_TO_RUN.md` (section 6 renumbered from 5.x to 6.x)
      - Fixed missing H3 numbers in `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` (added 3.1, 3.2)
-     - Fixed missing H3 numbers in `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` (added 2.1, 2.2, 4.1, 4.2)
+     - Fixed missing H3 numbers in [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) (added 2.1, 2.2, 4.1, 4.2)
   4. **Missing File Reference Fixes**:
-     - Fixed `SYSTEM_AI_GUIDE.md` -> `ai/SYSTEM_AI_GUIDE.md` in multiple files
+     - Fixed `SYSTEM_AI_GUIDE.md` -> [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) in multiple files
      - Updated conditional file references (e.g., `HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md` marked as archived/conditional)
   5. **Documentation Sync Checker Improvements** (`development_tools/documentation_sync_checker.py`):
      - **Direct import integration**: Modified `run_documentation_sync_checker()` in `development_tools/services/operations.py` to import and call `DocumentationSyncChecker` directly instead of running as subprocess, capturing full structured output with detailed issues
@@ -1663,8 +1663,8 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
      - Fixed incorrectly converted examples (reverted to backticks where appropriate)
      - Fixed missed conversions that should have been links
   8. **Documentation Updates**:
-     - Added development tools guides to paired documentation list in `DOCUMENTATION_GUIDE.md`
-     - Standardized example marking in `DOCUMENTATION_GUIDE.md` to follow example marking standards
+     - Added development tools guides to paired documentation list in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)
+     - Standardized example marking in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) to follow example marking standards
 - **Impact**: Documentation is now fully ASCII-compliant, all path references are accurate and use consistent full paths, heading numbering is consistent, and the documentation sync checker provides more accurate and detailed results. All file references are now clickable markdown links for improved navigation. The path-to-link conversion script can be reused for future documentation updates.
 
 ### 2025-11-26 - Schedule Period Edit Cache Race Condition Fix **COMPLETED**
@@ -1695,7 +1695,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
   reduces the chance of malformed periods leaking onto disk.
 ### 2025-11-26 - Pathlib cleanup for Discord diagnostic **COMPLETED**
 - **Feature**: Converted `scripts/debug/discord_connectivity_diagnostic.py` to use `pathlib.Path` for project root detection and diagnostics output paths, ensuring directory creation via `Path.mkdir()` and removing the last `os.path.join` usage in active non-test code.
-- **Impact**: Restores the pathlib migration to active status by aligning the Discord connectivity diagnostic with cross-platform path handling and removes the outdated Pathlib migration entry from `TODO.md` now that non-test usages are resolved.
+- **Impact**: Restores the pathlib migration to active status by aligning the Discord connectivity diagnostic with cross-platform path handling and removes the outdated Pathlib migration entry from [TODO.md](TODO.md) now that non-test usages are resolved.
 
 ### 2025-11-26 - Development Tools Test Stabilization
 - **Feature**: Simplified the new development-tools integration and error scenario suites to keep total runtime and skip counts in line with historical baselines while still exercising the intended behavior.
@@ -1745,7 +1745,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
      - Created `tests/development_tools/test_standard_exclusions.py` with 21 tests covering universal exclusions, tool-specific exclusions, context-specific exclusions, and Path object handling
      - Created `tests/development_tools/test_constants.py` with 25 tests covering DEFAULT_DOCS paths, PAIRED_DOCS paths, LOCAL_MODULE_PREFIXES, and helper functions
      - Created `tests/development_tools/test_ai_tools_runner.py` with 7 CLI smoke tests verifying command execution, exit codes, and error handling
-     - Fixed path mismatch in `development_tools/services/constants.py` (`tests/AI_FUNCTIONALITY_TEST_GUIDE.md` -> `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`)
+     - Fixed path mismatch in `development_tools/services/constants.py` (`tests/AI_FUNCTIONALITY_TEST_GUIDE.md` -> [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md))
   2. **Logging Normalization** (`development_tools/services/operations.py`):
      - Added consistent "Starting {operation_name}..." and "Completed {operation_name}..." logging to all major operations (`run_audit`, `run_docs`, `run_validate`, `run_config`, `run_status`, `run_documentation_sync`, `run_coverage_regeneration`, `run_legacy_cleanup`, `run_system_signals`, `run_unused_imports_report`, `generate_directory_trees`)
      - Ensured all command handlers return appropriate exit codes (0 for success, non-zero for failures)
@@ -1753,19 +1753,19 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
      - Added try/except block around command execution in `main()` to catch and log general exceptions
      - Proper exit code propagation (0 for success, 1 for failures, 2 for usage errors, 3 for unexpected errors)
   4. **Documentation Updates**:
-     - Updated `tests/TESTING_GUIDE.md` and `ai_development_docs/AI_TESTING_GUIDE.md` to include `tests/development_tools/` as a valid test directory for infrastructure tests
+     - Updated [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) and [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) to include `tests/development_tools/` as a valid test directory for infrastructure tests
      - Updated `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` to mark Phase 2 as completed with detailed milestone checklists
      - Updated cross-cutting issue #2 ("No tests for tooling") to "PARTIALLY RESOLVED" with Phase 2 accomplishments
      - Updated per-tool breakdown sections to note test coverage and logging improvements
 - **Impact**: Core infrastructure now has 76 tests providing regression protection. Logging makes operations traceable, and error handling is consistent across all commands. The infrastructure is predictable and diagnosable, providing a solid foundation for Phase 3 work on complex analysis tools. All tests pass (3,386 passed, 1 skipped) and are integrated into the main test suite.
-- **Files Affected**: `tests/development_tools/` (new test directory), `development_tools/services/operations.py`, `development_tools/ai_tools_runner.py`, `development_tools/services/constants.py`, `tests/TESTING_GUIDE.md`, `ai_development_docs/AI_TESTING_GUIDE.md`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`
+- **Files Affected**: `tests/development_tools/` (new test directory), `development_tools/services/operations.py`, `development_tools/ai_tools_runner.py`, `development_tools/services/constants.py`, [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`
 
 ### 2025-11-25 - AI Dev Tools Tiering and Documentation Alignment **COMPLETED**
 - **Feature**:
   1. Added `development_tools/services/tool_metadata.py` as the single source of truth for tool tier, portability, trust, description, and command-group metadata. Used the registry to inject `# TOOL_TIER` / `# TOOL_PORTABILITY` headers into every tool module, removing stray BOM characters discovered during the sweep.
   2. Refreshed CLI help output: updated `development_tools/services/common.py`, `development_tools/ai_tools_runner.py`, and `development_tools/services/operations.py` so the `help` command groups entries under Core, Supporting, and Experimental headings with explicit warnings for risky commands. Expanded `tool_guide.py` to print a tier overview sourced from the new registry.
   3. Renamed `ai_development_tools/` -> `development_tools/` (plus every import, script, and doc reference) so the package name matches its purpose. Deleted the one-off helper scripts (`scripts/update_tool_headers_tmp.py`, `scripts/remove_bom_tmp.py`) after the migration.
-  4. Split the documentation pair: the AI-facing quick reference is now `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` (routing only) and the detailed human catalog lives in the new `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`. Added the pair to `DEFAULT_DOCS`, `PAIRED_DOCS`, the directory tree, README, and other doc listings.
+  4. Split the documentation pair: the AI-facing quick reference is now [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) (routing only) and the detailed human catalog lives in the new [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md). Added the pair to `DEFAULT_DOCS`, `PAIRED_DOCS`, the directory tree, README, and other doc listings.
   5. Extended `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` with a comprehensive portability roadmap (per tool) and a naming/directory strategy so future work is explicitly tracked.
   6. **Path reference cleanup**: Systematically updated all remaining `ai_development_tools/` references throughout the codebase to `development_tools/` in active documentation and configuration files. Updated `.cursor/rules/` files (ai-tools.mdc, critical.mdc, core-guidelines.mdc, context.mdc, quality-standards.mdc) and `.gitignore` to use the new directory name. Preserved historical references in changelogs and archives as requested.
   7. **Documentation standards alignment**: Aligned the paired documentation files (`development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` and `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`) with project documentation standards. Added proper metadata blocks with Pair declarations, ensured identical H2 heading structure (Purpose and Scope, Running the Tool Suite, Audit Modes and Outputs, Tool Catalog and Tiering, Operating Standards and Maintenance), and verified all detailed content from the AI guide was preserved in the human guide with additional context. The AI guide remains concise and routing-focused while the human guide contains the complete catalog, command descriptions, entry point expectations, and comprehensive maintenance standards.
@@ -1861,9 +1861,9 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
     - Enhanced cached data loading fallback to read from file and include Phase 1/2 metrics
   - **Documentation Updates**:
     - `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`: Added Phase 1 and Phase 2 auditing details to Error Handling Coverage Analysis section
-    - `core/ERROR_HANDLING_GUIDE.md`: Added Phase 1 and Phase 2 analysis documentation to Testing Error Handling section
-    - `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`: Added Phase 1 and Phase 2 auditing details with reference to PLANS.md
-    - `development_docs/PLANS.md`: Updated Error Handling Quality Improvement Plan with progress, marked tooling complete, added detailed next steps for Phase 1 (26 high-priority candidates) and Phase 2 (1 generic exception)
+    - [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md): Added Phase 1 and Phase 2 analysis documentation to Testing Error Handling section
+    - [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md): Added Phase 1 and Phase 2 auditing details with reference to PLANS.md
+    - [PLANS.md](development_docs/PLANS.md): Updated Error Handling Quality Improvement Plan with progress, marked tooling complete, added detailed next steps for Phase 1 (26 high-priority candidates) and Phase 2 (1 generic exception)
 - **Impact**: Provides actionable metrics for systematic error handling quality improvements. Phase 1 and Phase 2 data now appear in all audit reports (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`), enabling progress tracking. Current status: 88 Phase 1 candidates (26 high, 38 medium, 24 low priority), 1 Phase 2 exception (1 ValueError) identified and ready for replacement.
 
 ### 2025-11-20 - Error Handling Coverage Expansion to 100% **COMPLETED**
@@ -1944,13 +1944,13 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - **Technical Changes**:
   - **Marker Consolidation**: Removed unused markers (`chat_interactions`, `memory`, `flaky`, `known_issue`, `wip`, `todo`, `skip_ci`, `manual`, `debug`), consolidated redundant markers (`discord` -> `communication`, `channels` -> `communication`, `reminders` -> `tasks`, `schedules` -> `scheduler`, `performance` -> `slow`, `service` -> `behavior`/`ui`, `bug` -> `regression`, `error_handling` -> `critical`, `edge_cases` -> `regression`), and removed generic markers (`external`, `network`, `config`)
   - **Marker Application**: Applied category markers (`unit`, `integration`, `behavior`, `ui`) to all 162 test files, added feature markers (`tasks`, `scheduler`, `checkins`, `messages`, `analytics`, `user_management`, `communication`, `ai`) where appropriate, and applied speed/quality/resource markers (`slow`, `fast`, `asyncio`, `no_parallel`, `critical`, `regression`, `smoke`, `file_io`) systematically
-  - **Documentation**: Added comprehensive marker usage guidelines with decision tree, examples, and filtering patterns to `tests/TESTING_GUIDE.md` section 10.2, updated `ai_development_docs/AI_TESTING_GUIDE.md` with concise marker reference, and removed all retired marker references from code, comments, docstrings, and documentation
+  - **Documentation**: Added comprehensive marker usage guidelines with decision tree, examples, and filtering patterns to [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) section 10.2, updated [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) with concise marker reference, and removed all retired marker references from code, comments, docstrings, and documentation
   - **Test Fixes**: Replaced 69 `print()` statements with logging calls using `logging.getLogger("mhm_tests")` in `tests/integration/test_account_management.py` (35 instances) and `tests/behavior/test_utilities_demo.py` (34 instances), removed `pytestmark = pytest.mark.debug` from `test_account_management.py`, and updated `test_no_prints_policy.py` to exclude itself from print() detection
 - **Impact**: Improved test organization and filtering capabilities, reduced marker complexity by 55%, ensured consistent marker application across all tests, and enforced logging policy in test files. All tests now passing (3101 passed, 1 skipped) with proper marker coverage enabling better test selection and parallelization control.
-- **Files Affected**: `pytest.ini`, `tests/conftest.py`, all 162 test files, `tests/TESTING_GUIDE.md`, `ai_development_docs/AI_TESTING_GUIDE.md`, `tests/integration/test_account_management.py`, `tests/behavior/test_utilities_demo.py`, `tests/unit/test_no_prints_policy.py`
+- **Files Affected**: `pytest.ini`, `tests/conftest.py`, all 162 test files, [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), `tests/integration/test_account_management.py`, `tests/behavior/test_utilities_demo.py`, `tests/unit/test_no_prints_policy.py`
 
 ### 2025-11-18 - Documentation Heading Numbering Standardization Implementation **COMPLETED**
-- **Feature**: Implemented numbered heading standard (H2 and H3) across all main documentation files and created automated tooling to maintain it. Created `scripts/number_documentation_headings.py` to automatically number headings, detect and fix non-standard formats (missing trailing periods), fix out-of-order numbering sequentially, remove emojis, and convert Q&A/Step headings to bold text. Enhanced `ai_development_tools/documentation_sync_checker.py` to validate consecutive numbering and detect cascading out-of-order issues. Applied numbering to ~20 documentation files including PROJECT_VISION.md, README.md, HOW_TO_RUN.md, ARCHITECTURE.md, all guide files, and AI development docs. Fixed 32 non-standard numbering format issues discovered during implementation. Reordered sections in `ai_development_docs/AI_TESTING_GUIDE.md` to match `tests/TESTING_GUIDE.md`. All documentation sync checks now pass with 0 issues.
+- **Feature**: Implemented numbered heading standard (H2 and H3) across all main documentation files and created automated tooling to maintain it. Created `scripts/number_documentation_headings.py` to automatically number headings, detect and fix non-standard formats (missing trailing periods), fix out-of-order numbering sequentially, remove emojis, and convert Q&A/Step headings to bold text. Enhanced `ai_development_tools/documentation_sync_checker.py` to validate consecutive numbering and detect cascading out-of-order issues. Applied numbering to ~20 documentation files including PROJECT_VISION.md, README.md, HOW_TO_RUN.md, ARCHITECTURE.md, all guide files, and AI development docs. Fixed 32 non-standard numbering format issues discovered during implementation. Reordered sections in [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) to match [TESTING_GUIDE.md](tests/TESTING_GUIDE.md). All documentation sync checks now pass with 0 issues.
 - **Technical Changes**:
   - Enhanced `scripts/number_documentation_headings.py`:
     - Added `has_standard_numbering_format()` to detect missing trailing periods
@@ -1965,11 +1965,11 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
     - Updated to detect cascading out-of-order issues sequentially
     - Changed terminology from "not consecutive" to "out of order" to match numbering script
   - Fixed files:
-    - `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`: Fixed 5 non-standard format issues
-    - `core/ERROR_HANDLING_GUIDE.md`: Fixed 6 non-standard format issues
-    - `logs/LOGGING_GUIDE.md`: Fixed 21 non-standard format issues
-    - `ai_development_docs/AI_TESTING_GUIDE.md`: Reordered sections 8-10 to match human-facing guide
-    - `ui/UI_GUIDE.md`, `scripts/SCRIPTS_GUIDE.md`: Removed emojis from Quick Reference headings
+    - [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md): Fixed 5 non-standard format issues
+    - [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md): Fixed 6 non-standard format issues
+    - [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md): Fixed 21 non-standard format issues
+    - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md): Reordered sections 8-10 to match human-facing guide
+    - [UI_GUIDE.md](ui/UI_GUIDE.md), [SCRIPTS_GUIDE.md](scripts/SCRIPTS_GUIDE.md): Removed emojis from Quick Reference headings
     - `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`: Converted H3-before-H2 heading to bold text
 - **Impact**: All documentation synchronization checks now pass (0 paired doc issues, 0 path drift issues, 0 ASCII compliance issues, 0 heading numbering issues). Documentation is now consistent, properly numbered, and compliant with all standards. The numbering script and sync checker work together to maintain documentation quality automatically.
 
@@ -1984,30 +1984,30 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 **Technical Changes**:
 
 1. **Paired Documentation Updates** (updated both human-facing and AI-facing versions):
-   - `DEVELOPMENT_WORKFLOW.md` / `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` - Updated workflow guidance
-   - `DOCUMENTATION_GUIDE.md` / `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` - Enhanced documentation standards and practices
-   - `tests/TESTING_GUIDE.md` / `ai_development_docs/AI_TESTING_GUIDE.md` - Consolidated testing guidance
-   - `logs/LOGGING_GUIDE.md` / `ai_development_docs/AI_LOGGING_GUIDE.md` - Updated logging practices
-   - `core/ERROR_HANDLING_GUIDE.md` / `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` - Enhanced error handling documentation
-   - `HOW_TO_RUN.md` - Updated runtime instructions
+   - [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) / [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) - Updated workflow guidance
+   - [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) / [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) - Enhanced documentation standards and practices
+   - [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) / [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) - Consolidated testing guidance
+   - [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) / [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md) - Updated logging practices
+   - [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) / [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) - Enhanced error handling documentation
+   - [HOW_TO_RUN.md](HOW_TO_RUN.md) - Updated runtime instructions
 
 2. **Documentation Consolidation**:
-   - Consolidated `tests/MANUAL_TESTING_GUIDE.md` into `tests/TESTING_GUIDE.md` and `ai_development_docs/AI_TESTING_GUIDE.md` - eliminated duplicate testing guidance
-   - Consolidated the former documentation sync checklist into `DOCUMENTATION_GUIDE.md` and `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` - unified documentation maintenance procedures
+   - Consolidated [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md) into [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) and [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) - eliminated duplicate testing guidance
+   - Consolidated the former documentation sync checklist into [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) and [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) - unified documentation maintenance procedures
 
 3. **File Removals**:
    - Removed `QUICK_REFERENCE.md` - content no longer needed or consolidated elsewhere
 
 4. **File Renaming for Clarity** (standardized naming convention from README.md to descriptive GUIDE.md):
-   - Renamed the AI README to `ai/SYSTEM_AI_GUIDE.md`
+   - Renamed the AI README to [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md)
    - `ai_development_tools/README.md` -> `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`
-   - `communication/communication_channels/discord/README.md` -> `communication/communication_channels/discord/DISCORD_GUIDE.md`
-   - `communication/README.md` -> `communication/COMMUNICATION_GUIDE.md`
-   - `scripts/README.md` -> `scripts/SCRIPTS_GUIDE.md`
-   - `ui/README.md` -> `ui/UI_GUIDE.md`
+   - `communication/communication_channels/discord/README.md` -> [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md)
+   - `communication/README.md` -> [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md)
+   - `scripts/README.md` -> [SCRIPTS_GUIDE.md](scripts/SCRIPTS_GUIDE.md)
+   - `ui/README.md` -> [UI_GUIDE.md](ui/UI_GUIDE.md)
 
 **Files Changed**:
-- Updated: `DEVELOPMENT_WORKFLOW.md`, `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`, `DOCUMENTATION_GUIDE.md`, `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`, `tests/TESTING_GUIDE.md`, `ai_development_docs/AI_TESTING_GUIDE.md`, `logs/LOGGING_GUIDE.md`, `ai_development_docs/AI_LOGGING_GUIDE.md`, `core/ERROR_HANDLING_GUIDE.md`, `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`, `HOW_TO_RUN.md`
+- Updated: [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md), [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md), [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md), [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md), [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md), [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md), [HOW_TO_RUN.md](HOW_TO_RUN.md)
 - Consolidated: the legacy manual testing guide (into TESTING_GUIDE.md) and the documentation sync checklist (into DOCUMENTATION_GUIDE.md)
 - Removed: `QUICK_REFERENCE.md`
 - Renamed: 6 README.md files to descriptive GUIDE.md files across ai/, ai_development_tools/, communication/, scripts/, and ui/ directories
@@ -2210,8 +2210,8 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
    - Added `--dry-run` and `--verbose` flags for safe testing
 
 2. **Documentation Standards Updated**:
-   - Updated `DOCUMENTATION_GUIDE.md` with comprehensive file address requirement section, including format specifications and maintenance instructions
-   - Updated `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` with concise file address standard for AI collaborators
+   - Updated [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) with comprehensive file address requirement section, including format specifications and maintenance instructions
+   - Updated [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) with concise file address standard for AI collaborators
    - Both guides now document the standard and reference the maintenance script
 
 3. **Generated File Generators Updated** (all now include file addresses in output):
@@ -2231,8 +2231,8 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 
 **Files Modified**:
 - `scripts/utilities/add_documentation_addresses.py` (new)
-- `DOCUMENTATION_GUIDE.md`
-- `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
+- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)
+- [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
 - `development_docs/HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md`
 - `ai_development_tools/services/operations.py`
 - `ai_development_tools/generate_function_registry.py`
@@ -2301,7 +2301,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
    - Tests now verify direct call to `send_actual_test_message()` instead of `confirm_test_message()`
    - Tests verify service validation before sending (when service not running)
 
-8. **Test Failure Documentation** (`TODO.md`):
+8. **Test Failure Documentation** ([TODO.md](TODO.md)):
    - Documented 3 pre-existing test failures related to user ID lookup/indexing issues
    - Marked as unrelated to recent changes (UI improvements, response files, Discord views)
 
@@ -2316,7 +2316,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - `communication/core/channel_orchestrator.py` - Message content tracking and Discord view factory functions
 - `communication/communication_channels/discord/bot.py` - Factory function handling in async context
 - `tests/behavior/test_ui_app_behavior.py` - Test updates for removed confirmation dialogs
-- `TODO.md` - Pre-existing test failure documentation
+- [TODO.md](TODO.md) - Pre-existing test failure documentation
 
 ### 2025-11-15 - Discord Button UI Improvements and Test Isolation Fixes **COMPLETED**
 
@@ -2380,7 +2380,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - `communication/communication_channels/discord/welcome_handler.py`
 
 **Documentation Updates**:
-- Updated `TODO.md` with failing/flaky test documentation
+- Updated [TODO.md](TODO.md) with failing/flaky test documentation
 - Updated both changelog files
 
 ### 2025-01-14 - Test Coverage Expansion for User Preferences, UI Management, and Prompt Manager **COMPLETED**
@@ -2428,8 +2428,8 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - `tests/unit/test_prompt_manager.py` (new file, 49 tests)
 
 **Documentation Updates**:
-- Updated `TODO.md` to reflect 20 modules completed (486 total new tests)
-- Updated `development_docs/PLANS.md` with new coverage expansion plan entry
+- Updated [TODO.md](TODO.md) to reflect 20 modules completed (486 total new tests)
+- Updated [PLANS.md](development_docs/PLANS.md) with new coverage expansion plan entry
 - Updated both changelog files
 
 ### 2025-11-14 - Enhanced Discord Account Creation with Feature Selection **COMPLETED**
@@ -2575,14 +2575,14 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 **Technical Changes**:
 
 1. **ASCII Compliance Fixes** (4 files):
-   - Replaced all non-ASCII characters with ASCII equivalents in `ai_development_docs/AI_CHANGELOG.md`, `development_docs/CHANGELOG_DETAIL.md`, `development_docs/PLANS.md`, and `TODO.md`
+   - Replaced all non-ASCII characters with ASCII equivalents in [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md), [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), [PLANS.md](development_docs/PLANS.md), and [TODO.md](TODO.md)
    - Fixed 17 issues: replaced arrows with `->`, `>=` with `>=`, emojis with text equivalents, and smart quotes with regular quotes
    - Result: All files now ASCII-compliant (0 issues remaining)
 
 2. **Path Drift Fixes** (4 files):
    - Fixed 6 incomplete file path references in documentation:
      - `development_docs/TASK_SYSTEM_AUDIT.md`: Updated 6 incomplete paths (`task_handler.py` -> `communication/command_handlers/task_handler.py`, `scheduler.py` -> `core/scheduler.py`, `task_management.py` -> `tasks/task_management.py`)
-     - `ai_development_docs/AI_CHANGELOG.md`: Fixed `discord/bot.py` -> `communication/communication_channels/discord/bot.py`
+     - [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md): Fixed `discord/bot.py` -> `communication/communication_channels/discord/bot.py`
      - `TODO.md`: Removed reference to missing `scripts/CLEANUP_ANALYSIS.md`, updated archived script reference
      - `development_docs/PLANS.md`: Fixed `user_preferences.py` -> `user/user_preferences.py`
    - Result: Path drift issues reduced from 7 to 1 (remaining is historical file deletion reference)
@@ -2601,11 +2601,11 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 **Impact**: Documentation synchronization issues reduced from 32 to 9 (23 fixed). All ASCII compliance issues resolved. Tool improvements eliminate false positives and provide more accurate metrics. Documentation is now cleaner and more maintainable.
 
 **Files Modified**:
-- `ai_development_docs/AI_CHANGELOG.md` (ASCII fixes, path fixes)
-- `development_docs/CHANGELOG_DETAIL.md` (ASCII fixes)
-- `development_docs/PLANS.md` (ASCII fixes, path fixes)
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) (ASCII fixes, path fixes)
+- [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) (ASCII fixes)
+- [PLANS.md](development_docs/PLANS.md) (ASCII fixes, path fixes)
 - `development_docs/TASK_SYSTEM_AUDIT.md` (path fixes)
-- `TODO.md` (ASCII fixes, path fixes)
+- [TODO.md](TODO.md) (ASCII fixes, path fixes)
 - `ai_development_tools/documentation_sync_checker.py` (section header filtering)
 - `ai_development_tools/regenerate_coverage_metrics.py` (decimal precision)
 
@@ -2668,14 +2668,14 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - `ui/designs/admin_panel.ui` (status labels)
 - `core/config.py` (DISCORD_PUBLIC_KEY, DISCORD_WEBHOOK_PORT, DISCORD_AUTO_NGROK)
 - `requirements.txt` (PyNaCl>=1.5.0)
-- `development_docs/PLANS.md` (Account Management System Improvements plan)
-- `TODO.md` (Discord username storage, communication module review)
+- [PLANS.md](development_docs/PLANS.md) (Account Management System Improvements plan)
+- [TODO.md](TODO.md) (Discord username storage, communication module review)
 - `development_docs/TASK_SYSTEM_AUDIT.md` (account management work noted)
-- `tests/MANUAL_TESTING_GUIDE.md` (integrated reminder follow-up tests)
+- [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md) (integrated reminder follow-up tests)
 
 **Documentation**:
 - `communication/communication_channels/discord/WEBHOOK_SETUP.md` (rewritten to describe implemented system)
-- `tests/MANUAL_TESTING_GUIDE.md` (integrated task reminder follow-up testing guide)
+- [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md) (integrated task reminder follow-up testing guide)
 - `communication/README.md` (created channel-agnostic architecture guide ~120 lines with 5 layers, patterns, DO/DON'T principles, guide for adding channels)
 - `.cursor/rules/communication-guidelines.mdc` (updated with critical architecture principles and rules ~30 lines)
 
@@ -2847,7 +2847,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
    - Ensures `test_consolidated.log` (currently 500k+ lines) will rotate at next session start
 
 6. **Documented Flaky Tests**:
-   - Added 7 new flaky test failures to `TODO.md` with observation dates and error details
+   - Added 7 new flaky test failures to [TODO.md](TODO.md) with observation dates and error details
    - Documented `errors.log` file persistence issue (file locking prevents cleanup, but no longer copied repeatedly)
    - Marked duplicate log content issue as FIXED
 
@@ -2856,7 +2856,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - `ai_development_tools/regenerate_coverage_metrics.py`: Added parallel execution support with `-n auto` and `--dist=loadscope`
 - `tests/conftest.py`: Fixed return statements, improved logging verbosity, removed duplicate consolidation, improved parallel logging
 - `run_tests.py`: Changed default workers to "auto"
-- `TODO.md`: Added new flaky test failures and updated known issues
+- [TODO.md](TODO.md): Added new flaky test failures and updated known issues
 
 **Impact**: Audit system is now significantly faster (under 10 minutes vs 18-20 minutes), test suite is more reliable, logs are cleaner and more manageable, and flaky tests are properly documented for future investigation. Test execution is faster with optimal parallelization.
 
@@ -2915,7 +2915,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
    - Marked "Message frequency analytics" as completed with implementation details
    - Updated "User Context & Preferences Integration Investigation" to reflect that `UserPreferences` initialization was removed from `UserContext` and class is currently unused but functional
    - Updated "User Data Flow Architecture Improvements" plan to "COMPLETED" status
-   - Files: `development_docs/PLANS.md`
+   - Files: [PLANS.md](development_docs/PLANS.md)
 
 5. **UserPreferences Documentation Improvements**:
    - Enhanced `user/user_preferences.py` docstring to clarify when to use `UserPreferences` class versus direct access (`get_user_data`/`update_user_preferences`)
@@ -2968,7 +2968,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - `core/message_analytics.py` - New file with MessageAnalytics class
 - `tests/behavior/test_message_analytics_behavior.py` - New test file with 7 behavior tests
 - `tests/behavior/test_user_data_flow_architecture.py` - New test file with 12 behavior tests for refactored architecture
-- `development_docs/PLANS.md` - Updated multiple plans to reflect current status and scope
+- [PLANS.md](development_docs/PLANS.md) - Updated multiple plans to reflect current status and scope
 - `user/user_preferences.py` - Enhanced documentation and usage guidance
 - `development_docs/REFACTOR_PLAN_DATA_FLOW.md` - Deleted (temporary planning document, information preserved in PLANS.md and CHANGELOG_DETAIL.md)
 - `ui/dialogs/account_creator_dialog.py` - Converted `username` to property for robust UI validation
@@ -3056,7 +3056,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 4. **Plan Cleanup - COMPLETED**:
    - Removed fully completed "User Preferences Integration Plan" from PLANS.md
    - Removed fully completed "Discord Hardening" subsection from "Channel Interaction Implementation Plan"
-   - Files: `development_docs/PLANS.md`
+   - Files: [PLANS.md](development_docs/PLANS.md)
 
 **Impact**: 
 - Improved code cleanliness by removing unused initialization
@@ -3115,7 +3115,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
    - Changed from simple position tracking to comprehensive overlap detection with match length comparison
    - Removed internal deduplication keys from output to keep results clean
 
-2. **Testing Policy Documentation** (`ai_development_docs/AI_TESTING_GUIDE.md`, `tests/TESTING_GUIDE.md`):
+2. **Testing Policy Documentation** ([AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)):
    - Added "Test Discovery Policy" section documenting scripts directory exclusion
    - Explained that `scripts/` is always excluded via `pytest.ini` configuration (norecursedirs, collect_ignore, --ignore flags)
    - Created verification test `tests/unit/test_scripts_exclusion_policy.py` with 2 tests:
@@ -3149,12 +3149,12 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 
 **Files Modified**:
 - `ai_development_tools/legacy_reference_cleanup.py` - Enhanced duplicate detection
-- `ai_development_docs/AI_TESTING_GUIDE.md` - Added test discovery policy section
-- `tests/TESTING_GUIDE.md` - Added test discovery policy section
+- [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) - Added test discovery policy section
+- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) - Added test discovery policy section
 - `tests/unit/test_scripts_exclusion_policy.py` - New verification test file
 - `tests/behavior/test_discord_checkin_retry_behavior.py` - New comprehensive test suite
 - `tests/behavior/test_discord_bot_behavior.py` - Fixed aiohttp cleanup warning
-- `TODO.md` - Marked 2 tasks as completed
+- [TODO.md](TODO.md) - Marked 2 tasks as completed
 
 **Testing**: All 2796 tests pass (2796 passed, 1 skipped, 6 warnings - all expected external library warnings)
 
@@ -3208,7 +3208,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
    - Audited usage across codebase - found `UserContext` primarily used as singleton for user ID/username
    - Critical finding: `UserPreferences` is initialized but never actually used anywhere in codebase
    - Documented integration gaps: direct data access bypasses context, limited context usage, redundant wrappers
-   - Updated `development_docs/PLANS.md` with investigation findings and recommendations
+   - Updated [PLANS.md](development_docs/PLANS.md) with investigation findings and recommendations
 
 3. **Bot Module Naming & Clarity Investigation** (`communication/` modules):
    - Analyzed 6 communication modules and their purposes
@@ -3217,7 +3217,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
    - Documented recommendations for clarifying routing hierarchy and standardizing naming
    - Fixed docstring in `conversation_flow_manager.py` to match actual filename
 
-4. **Windows Fatal Exception Investigation** (`development_docs/PLANS.md`):
+4. **Windows Fatal Exception Investigation** ([PLANS.md](development_docs/PLANS.md)):
    - Marked investigation as complete - fix already implemented via `cleanup_communication_threads` fixture
    - Documented solution: thread cleanup fixture prevents crashes between tests
 
@@ -3225,9 +3225,9 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - `core/user_data_handlers.py` - Renamed function and updated documentation
 - `user/user_preferences.py` - Updated comment to reflect actual state
 - `communication/message_processing/conversation_flow_manager.py` - Fixed docstring filename
-- `development_docs/PLANS.md` - Updated three investigation items with findings
+- [PLANS.md](development_docs/PLANS.md) - Updated three investigation items with findings
 - `development_docs/LEGACY_REFERENCE_REPORT.md` - Added audit completion note
-- `TODO.md` - Removed completed legacy audit task
+- [TODO.md](TODO.md) - Removed completed legacy audit task
 
 **Testing**:
 - Full test suite passes: 2,789 passed, 1 skipped, 5 warnings (expected external library deprecations)
@@ -3329,9 +3329,9 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 
 **Files Modified**:
 - `ai_development_tools/documentation_sync_checker.py` - Enhanced path drift detection
-- `ai_development_docs/AI_CHANGELOG.md` - Fixed path references
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) - Fixed path references
 - `tests/AI_FUNCTIONALITY_TEST_PLAN.md` - Fixed test file path references
-- `ai_development_docs/AI_TESTING_GUIDE.md` - Fixed manual testing guide reference
+- [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) - Fixed manual testing guide reference
 - `tests/unit/test_user_context.py` - Updated docstring
 
 **Verification**:
@@ -3578,7 +3578,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
   - `error_handling_coverage.py`, `decision_support.py`, `config_validator.py`
   - `auto_document_functions.py`, `audit_package_exports.py`, `audit_module_dependencies.py`
   - `ai_tools_runner.py`, `services/operations.py` (and all other files in the directory)
-- **Documentation**: Updated `ai_development_docs/AI_LOGGING_GUIDE.md` to document the new `ai_dev_tools.log` file and component logger usage
+- **Documentation**: Updated [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md) to document the new `ai_dev_tools.log` file and component logger usage
 - **Test Fixes**: Updated test mocks in `tests/behavior/test_logger_coverage_expansion_phase3_simple.py` to include the new `ai_dev_tools_file` key
 
 **Testing**:
@@ -3610,7 +3610,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - `tests/unit/test_logger_unit.py` (33 tests)
 
 **Files Modified**:
-- `TODO.md` (updated test coverage expansion status)
+- [TODO.md](TODO.md) (updated test coverage expansion status)
 
 **Testing**: All 2,310 tests pass (1 skipped, 5 warnings). Test suite execution time: 401.14s (6:41). No files written outside `tests/` directory. All new tests follow Arrange-Act-Assert pattern and verify actual system behavior.
 
@@ -3674,7 +3674,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - `core/user_data_manager.py`
 - `core/config.py`
 - `core/logger.py`
-- `TODO.md` (updated status)
+- [TODO.md](TODO.md) (updated status)
 
 **Testing**:
 - All 2071 tests pass (1 skipped, 4 expected warnings)
@@ -3700,7 +3700,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 **Files Modified**:
 - `core/user_data_handlers.py`: Removed block removal logic (lines 578-617), updated documentation
 - `tests/behavior/test_legacy_enabled_fields_compatibility.py`: Updated test to verify preservation instead of removal
-- `TODO.md`: Updated task description to reflect preservation behavior
+- [TODO.md](TODO.md): Updated task description to reflect preservation behavior
 
 **Testing**: All 2071 tests passing - behavior tests verify that settings blocks are preserved on both full and partial updates even when features are disabled.
 
@@ -3770,9 +3770,9 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - No test artifacts remain after test execution
 
 **Documentation Updates**:
-- Updated `ai_development_docs/AI_CHANGELOG.md` with fix summary
-- Updated `development_docs/CHANGELOG_DETAIL.md` with detailed technical record
-- Removed completed tasks from `TODO.md`
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with fix summary
+- Updated [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) with detailed technical record
+- Removed completed tasks from [TODO.md](TODO.md)
 
 **Outcome**: Test suite is now more stable with significantly improved test isolation. The flaky test passes consistently, error handling works correctly, and no files are created outside the test directory. Singleton state pollution has been eliminated through centralized cleanup fixtures.
 
@@ -3817,8 +3817,8 @@ if file_size < MIN_FILE_SIZE:
 - Log file sizes stable: Files accumulate properly until they reach meaningful size or age
 
 **Documentation Updates**:
-- Updated `ai_development_docs/AI_CHANGELOG.md` with fix summary
-- Updated `development_docs/CHANGELOG_DETAIL.md` with detailed technical record
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with fix summary
+- Updated [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) with detailed technical record
 
 **Outcome**: Log files now accumulate properly without premature clearing. The infinite error loop that was flooding `app.log` has been resolved. Log rotation now only occurs when files have meaningful content (>=100 bytes) and are at least 1 hour old.
 
@@ -3939,7 +3939,7 @@ if file_size < MIN_FILE_SIZE:
 - `tests/behavior/test_task_handler_behavior.py` (expanded, 621 lines)
 - `tests/behavior/test_profile_handler_behavior.py` (expanded, 594 lines)
 - `tests/behavior/test_base_handler_behavior.py` (created, 492 lines)
-- `TODO.md` (added bug investigation task)
+- [TODO.md](TODO.md) (added bug investigation task)
 - `pytest.ini` (no changes needed - used existing `user_management` mark)
 
 **Testing**:
@@ -3964,7 +3964,7 @@ if file_size < MIN_FILE_SIZE:
 
 1. **ARCHITECTURE.md Review and Update**:
    - Added "Last Updated: 2025-11-04" to document header for tracking
-   - Added reference to `ai/SYSTEM_AI_GUIDE.md` in the document header for comprehensive AI system documentation
+   - Added reference to [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) in the document header for comprehensive AI system documentation
    - Added new "AI System Integration" section explaining how the AI system integrates into the communication flow
    - Documented AI components (`ai/chatbot.py`, `ai/prompt_manager.py`, `ai/cache_manager.py`, `ai/lm_studio_manager.py`)
    - Explained context building and fallback mechanisms
@@ -3983,9 +3983,9 @@ if file_size < MIN_FILE_SIZE:
    - Updated `update_module_dependencies()` to handle the new return type and use preserved enhancement information for reporting
 
 **Files Modified**:
-- `ARCHITECTURE.md`: Added last updated date, AI system integration section, and documentation references
+- [ARCHITECTURE.md](ARCHITECTURE.md): Added last updated date, AI system integration section, and documentation references
 - `ai_development_tools/generate_module_dependencies.py`: Enhanced preservation function with validation and reporting
-- `TODO.md`: Removed completed tasks
+- [TODO.md](TODO.md): Removed completed tasks
 
 **Testing**:
 - Import test passed: Function successfully imports and type hints are correct
@@ -4012,7 +4012,7 @@ if file_size < MIN_FILE_SIZE:
    - Added explicit examples showing what NOT to do (BAD examples) and what TO do (GOOD examples) to make instructions clearer
 
 **Files Modified**:
-- `ARCHITECTURE.md`: Added last updated date, AI system integration section, and documentation references
+- [ARCHITECTURE.md](ARCHITECTURE.md): Added last updated date, AI system integration section, and documentation references
 - `ai_development_tools/generate_module_dependencies.py`: Enhanced preservation function with validation and reporting
 - `ui/dialogs/schedule_editor_dialog.py`: Improved error messages to be more actionable
 - `ui/dialogs/account_creator_dialog.py`: Enhanced error messages with specific guidance
@@ -4023,10 +4023,10 @@ if file_size < MIN_FILE_SIZE:
 - `ai/chatbot.py`: Updated `_create_comprehensive_context_prompt` method with strengthened instructions
 - `.cursor/commands/docs.md`: Added note about validation/reporting for manual enhancements
 - `ai_development_tools/README.md`: Added details about validation/reporting for manual enhancements
-- `ai/SYSTEM_AI_GUIDE.md`: Added prompt instructions section documenting system prompt features
-- `DOCUMENTATION_GUIDE.md`: Updated to mention validation/reporting for manual enhancements
-- `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`: Updated to mention validation/reporting for manual enhancements
-- `TODO.md`: Removed completed tasks
+- [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md): Added prompt instructions section documenting system prompt features
+- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md): Updated to mention validation/reporting for manual enhancements
+- [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md): Updated to mention validation/reporting for manual enhancements
+- [TODO.md](TODO.md): Removed completed tasks
 
 **Testing**:
 - Import test passed: Function successfully imports and type hints are correct
@@ -4101,9 +4101,9 @@ if file_size < MIN_FILE_SIZE:
 - No regressions: All existing functionality preserved
 
 **Documentation Updates**:
-- Updated `TODO.md`: Marked AI Tools Improvement as completed and removed from TODO
-- Updated `development_docs/PLANS.md`: Marked AI Tools Improvement Plan as completed with results, removed completed plan
-- Updated `development_docs/PLANS.md`: Updated Error Handling Coverage Expansion status (92.0% achieved, 1,285 functions protected, 1899 tests passing)
+- Updated [TODO.md](TODO.md): Marked AI Tools Improvement as completed and removed from TODO
+- Updated [PLANS.md](development_docs/PLANS.md): Marked AI Tools Improvement Plan as completed with results, removed completed plan
+- Updated [PLANS.md](development_docs/PLANS.md): Updated Error Handling Coverage Expansion status (92.0% achieved, 1,285 functions protected, 1899 tests passing)
 - Updated `development_docs/MODULE_DEPENDENCIES_DETAIL.md`: Restored 82 manual enhancements from backup, verified preservation through regeneration
 
 **Result**: AI documentation generators now produce truly dynamic, data-driven documentation that provides high-signal, actionable information for AI collaborators. All preset text removed, comprehensive pattern detection implemented, and formatting issues resolved. Manual enhancements (82 of 85) successfully restored and preserved through regeneration process, ensuring valuable manual documentation is maintained alongside auto-generated content.
@@ -4171,7 +4171,7 @@ if file_size < MIN_FILE_SIZE:
    - Supports `--package <name>` or `--all` flags
    - Provides recommendations prioritized by usage (high >=5, medium 2-4, low 0-1)
 
-2. **Created Migration Plan (`development_docs/PLANS.md`)**:
+2. **Created Migration Plan ([PLANS.md](development_docs/PLANS.md))**:
    - Detailed 10-phase plan for migrating all packages to package-level exports
    - Includes verification steps, risk assessment, and timeline (14-24 hours estimated)
    - Documents circular dependency handling strategy
@@ -4226,7 +4226,7 @@ if file_size < MIN_FILE_SIZE:
    - All packages maintain backward compatibility (module-level imports still work)
 
 **Documentation Updates**:
-- Added comprehensive migration plan to `development_docs/PLANS.md`
+- Added comprehensive migration plan to [PLANS.md](development_docs/PLANS.md)
 - Updated Phase 0-2 status with completion checklists
 - Documented circular dependency handling strategy
 
@@ -4289,7 +4289,7 @@ if file_size < MIN_FILE_SIZE:
    - Added exclusion for `ai_development_tools/logs/coverage_regeneration/*.log` (timestamped logs)
    - Added exception for `!ai_development_tools/logs/coverage_regeneration/*.latest.log` to keep latest files tracked if needed
 
-5. **Updated `scripts/SCRIPTS_GUIDE.md`**:
+5. **Updated [SCRIPTS_GUIDE.md](scripts/SCRIPTS_GUIDE.md)**:
    - Documented archiving of one-time migration/audit scripts
    - Clarified script categories and lifecycle management
 
@@ -4304,8 +4304,8 @@ if file_size < MIN_FILE_SIZE:
 - `scripts/cleanup_project.py` - Added cleanup for test data subdirectories
 - `ai_development_tools/regenerate_coverage_metrics.py` - Added automatic log cleanup
 - `.gitignore` - Added coverage log exclusions
-- `scripts/SCRIPTS_GUIDE.md` - Updated to reflect archiving of one-time scripts
-- `tests/ai/results/ai_functionality_test_results_latest.md` - Corrected T-1.1 status and added manual review notes
+- [SCRIPTS_GUIDE.md](scripts/SCRIPTS_GUIDE.md) - Updated to reflect archiving of one-time scripts
+- [ai_functionality_test_results_latest.md](tests/ai/results/ai_functionality_test_results_latest.md) - Corrected T-1.1 status and added manual review notes
 
 **Testing**:
 - Full test suite: 1899 passed, 1 skipped (all tests passing)
@@ -4470,7 +4470,7 @@ if file_size < MIN_FILE_SIZE:
 - **AI Validator**: Enhanced quality control - catches fabricated data, self-contradictions, and greeting acknowledgment failures automatically, reducing manual review burden
 
 **Documentation Updates**:
-- Updated `TODO.md` (removed completed tasks: Schedule Editor Validation, UI Import Detection Fix, Permission Test Environment Issue, AI Validator Enhancements)
+- Updated [TODO.md](TODO.md) (removed completed tasks: Schedule Editor Validation, UI Import Detection Fix, Permission Test Environment Issue, AI Validator Enhancements)
 - Both changelogs updated with consolidated entry
 
 **Impact**: Improved UI validation behavior, better import categorization, more reliable test environment handling, and enhanced AI response quality validation. All changes verified through testing.
@@ -4510,14 +4510,14 @@ if file_size < MIN_FILE_SIZE:
 
 4. **Documentation Updates**:
    - Added `DISCORD_APPLICATION_ID` to configuration section in `QUICK_REFERENCE.md` with note that it's optional and prevents slash command sync warnings
-   - Added troubleshooting section for "Discord Slash Command Warnings" in `README.md`
+   - Added troubleshooting section for "Discord Slash Command Warnings" in [README.md](README.md)
    - Included instructions on where to find application ID (Discord Developer Portal)
 
 **Files Modified**:
 - `ai/chatbot.py` - Added `_clean_system_prompt_leaks()` method, enhanced `_get_contextual_fallback()` method, integrated cleanup into response pipeline
 - `tests/behavior/test_service_utilities_behavior.py` - Updated Throttler test to verify `last_run` is set on first call and fixed outdated comment
 - `QUICK_REFERENCE.md` - Added `DISCORD_APPLICATION_ID` to configuration section
-- `README.md` - Added troubleshooting section for slash command warnings
+- [README.md](README.md) - Added troubleshooting section for slash command warnings
 
 **Testing**:
 - AI functionality tests: 39 passed, 4 partial, 7 failed out of 50 tests
@@ -4533,7 +4533,7 @@ if file_size < MIN_FILE_SIZE:
 - **Documentation**: Users now have clear guidance on optional `DISCORD_APPLICATION_ID` configuration
 
 **Documentation Updates**:
-- Updated `TODO.md` (removed completed tasks: system prompt leak fix, missing context fallback, Throttler test fix, Discord Application ID documentation)
+- Updated [TODO.md](TODO.md) (removed completed tasks: system prompt leak fix, missing context fallback, Throttler test fix, Discord Application ID documentation)
 - Both changelogs updated with consolidated entry
 
 **Impact**: Significantly improved AI response quality and user experience. System prompt leaks are prevented, missing context responses are more helpful and engaging, test coverage is improved, and users have better documentation. All improvements verified through AI functionality testing.
@@ -4563,8 +4563,8 @@ if file_size < MIN_FILE_SIZE:
 
 3. **Fixed Non-ASCII Character Issues**:
    - Created and ran script to replace Unicode characters with ASCII equivalents in 7 files:
-     - `ai_development_docs/AI_CHANGELOG.md`, `AI_ERROR_HANDLING_GUIDE.md`, `AI_TESTING_GUIDE.md`
-     - `ARCHITECTURE.md`, `development_docs/CHANGELOG_DETAIL.md`, `PLANS.md`, `TODO.md`
+     - [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md), `AI_ERROR_HANDLING_GUIDE.md`, `AI_TESTING_GUIDE.md`
+     - [ARCHITECTURE.md](ARCHITECTURE.md), [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), `PLANS.md`, [TODO.md](TODO.md)
    - Replaced arrows, quotes, emojis, box-drawing characters with ASCII equivalents
    - Result: Reduced non-ASCII issues from 7 files to 1 file (86% reduction)
 
@@ -4582,7 +4582,7 @@ if file_size < MIN_FILE_SIZE:
 
 **Files Modified**:
 - `ai_development_tools/generate_function_registry.py` - Fixed imports and added registry inclusion for entry point files
-- `ai/SYSTEM_AI_GUIDE.md` - Fixed path references
+- [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) - Fixed path references
 - `tests/AI_FUNCTIONALITY_TEST_PLAN.md` - Fixed test file path references
 - `tests/ai/test_ai_core.py`, `test_ai_cache.py`, `test_ai_advanced.py`, `test_ai_errors.py`, `test_ai_integration.py`, `test_ai_performance.py`, `test_ai_quality.py` - Added `__test__ = False`
 - 7 documentation files - Fixed non-ASCII characters
@@ -4602,7 +4602,7 @@ if file_size < MIN_FILE_SIZE:
 - **Remaining Warnings**: 4 external library deprecation warnings (Discord + audioop) - cannot be fixed
 
 **Documentation Updates**:
-- Updated `TODO.md` with test warning investigation status
+- Updated [TODO.md](TODO.md) with test warning investigation status
 - Both changelogs updated with this entry
 
 **Impact**: Significantly improved documentation health and test suite cleanliness. All critical documentation sync issues resolved, registry gaps closed, and test warnings reduced to only external library warnings that cannot be fixed.
@@ -4638,7 +4638,7 @@ if file_size < MIN_FILE_SIZE:
 
 4. **Test Results Review and Documentation**:
    - Identified 10 issues in test results (prompt-response mismatches, fabricated data, incorrect facts, repetitive responses)
-   - Added comprehensive "AI Review of Test Results" section to `tests/ai/results/ai_functionality_test_results_latest.md`
+   - Added comprehensive "AI Review of Test Results" section to [ai_functionality_test_results_latest.md](tests/ai/results/ai_functionality_test_results_latest.md)
    - Documented grading corrections needed (5 tests incorrectly graded PASS)
    - Identified self-contradiction detection as a validation improvement (T-12.4: claims X but provides data showing NOT X)
 
@@ -4800,11 +4800,11 @@ Files Modified (high-level):
 - Keep the AI guides focused on unique troubleshooting/logging cues while delegating general rules to `.cursor/rules`.
 
 **Technical Updates**:
-- `ai_development_docs/AI_SESSION_STARTER.md`
+- [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)
   - Removed mojibake characters, normalized paired-document references to ASCII `<->` notation, and smoothed section headings.
-- `ai_development_docs/AI_REFERENCE.md`
+- [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md)
   - Rewrote troubleshooting sections to stress audit-to-action steps, condensed communication prompts, refreshed system overview/dataflow notes, and eliminated redundant instructions now covered by rules.
-- `ai_development_docs/AI_LOGGING_GUIDE.md`
+- [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)
   - Re-centered the guide on directory structure, component loggers, triage workflow, key PowerShell snippets, recurring scenarios, maintenance, and best practices; stripped legacy duplication with rule content.
 
 **Documentation**:
@@ -4880,7 +4880,7 @@ Files Modified (high-level):
 **Background**: The system audit revealed several critical issues that needed immediate attention: ASCII compliance violations in documentation files, path drift issues in documentation references, and logging violations causing test failures. These issues were blocking the test suite and affecting documentation quality.
 
 **Problems Addressed**:
-- ASCII compliance violations in `development_docs/CHANGELOG_DETAIL.md` and `ai_development_docs/AI_CHANGELOG.md` with smart quotes, arrows, and special characters
+- ASCII compliance violations in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with smart quotes, arrows, and special characters
 - Path drift issues in documentation sync checker with 8 false positives due to overly aggressive pattern matching
 - Test suite failure due to 9 logging violations in `ai_development_tools/regenerate_coverage_metrics.py` using old-style string formatting
 - Error handling coverage at 91.6% with 120+ functions still needing protection
@@ -4905,13 +4905,13 @@ Files Modified (high-level):
 - **Error Handling Progress**: Added @handle_errors decorators to `core/service_utilities.py` Throttler class methods, improving coverage from 91.6% to 91.7%
 
 **Files Modified**:
-- `development_docs/CHANGELOG_DETAIL.md` - ASCII compliance fixes
-- `ai_development_docs/AI_CHANGELOG.md` - ASCII compliance fixes  
+- [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) - ASCII compliance fixes
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) - ASCII compliance fixes  
 - `ai_development_tools/documentation_sync_checker.py` - Enhanced pattern matching and filtering
 - `ai_development_tools/regenerate_coverage_metrics.py` - Fixed logging violations
 - `core/service_utilities.py` - Added error handling decorators
 - `ui/widgets/category_selection_widget.py` - Added error handling decorators
-- `TODO.md` - Removed completed tasks
+- [TODO.md](TODO.md) - Removed completed tasks
 
 **Testing Evidence**:
 - Full test suite now passes: 1866 passed, 0 failed, 1 skipped
@@ -4943,14 +4943,14 @@ Files Modified (high-level):
 **Solutions Implemented**:
 - Rebuilt `_generate_ai_status_document`, `_generate_ai_priorities_document`, and `_generate_consolidated_report` in `ai_development_tools/services/operations.py` to pull concrete metrics from audit results (documentation drift, missing error handling, test coverage gaps, complexity hotspots, legacy references, etc.).
 - Regenerated `ai_development_tools/AI_STATUS.md`, `ai_development_tools/AI_PRIORITIES.md`, and `ai_development_tools/consolidated_report.txt` via fresh audit runs so they now reflect live data.
-- Logged new follow-up tasks in `TODO.md` and recorded a dedicated "Coverage Infrastructure Remediation" plan in `development_docs/PLANS.md` to capture the required remediation work.
+- Logged new follow-up tasks in [TODO.md](TODO.md) and recorded a dedicated "Coverage Infrastructure Remediation" plan in [PLANS.md](development_docs/PLANS.md) to capture the required remediation work.
 - Documented today's changes in both AI and detailed changelogs.
 
 **Artifacts / Files Updated**:
 - `ai_development_tools/services/operations.py`
 - `ai_development_tools/AI_STATUS.md`, `ai_development_tools/AI_PRIORITIES.md`, `ai_development_tools/consolidated_report.txt`
 - `ai_development_tools/ai_audit_detailed_results.json`, `ai_development_tools/config_validation_results.json`, `development_docs/LEGACY_REFERENCE_REPORT.md`
-- `TODO.md`, `development_docs/PLANS.md`, `ai_development_docs/AI_CHANGELOG.md`, `development_docs/CHANGELOG_DETAIL.md`
+- [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md), [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)
 
 **Testing / Verification**:
 - Ran `python ai_development_tools/ai_tools_runner.py audit --fast` to regenerate outputs with the new generators.
@@ -5056,8 +5056,8 @@ elif isinstance(v_raw, str):
 - **Data Integrity**: Analytics remain accurate despite flexible input formats
 
 **Documentation Updates**:
-- `ai_development_docs/AI_CHANGELOG.md` - Added comprehensive summary
-- `development_docs/CHANGELOG_DETAIL.md` - This detailed entry
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) - Added comprehensive summary
+- [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) - This detailed entry
 - Question texts updated to remove verbose explanations
 - Initial checkin prompt enhanced with helpful guidance
 
@@ -5105,7 +5105,7 @@ elif isinstance(v_raw, str):
 - Enhanced categorization logic properly categorizes more imports
 
 **Documentation**:
-- Updated `ai_development_docs/AI_CHANGELOG.md` with summary
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with summary
 - Created `development_docs/unused_imports_final_analysis.md` with detailed analysis
 - Updated `development_docs/UNUSED_IMPORTS_REPORT.md` with improved categorization
 
@@ -5145,8 +5145,8 @@ elif isinstance(v_raw, str):
 
 **Documentation Updates**:
 - Updated the unused imports cleanup summary (legacy doc) with final results
-- Updated `development_docs/CHANGELOG_DETAIL.md` with comprehensive cleanup summary
-- Updated `ai_development_docs/AI_CHANGELOG.md` with AI-friendly summary
+- Updated [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) with comprehensive cleanup summary
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with AI-friendly summary
 
 **Outcome**: Successfully completed the most comprehensive unused imports cleanup in the project's history, removing 1100+ unused imports from 267+ files while maintaining full test coverage and service functionality.
 
@@ -5184,7 +5184,7 @@ elif isinstance(v_raw, str):
 - **Discord Guilds**: Added explanation that "Guilds" refers to Discord servers the bot is connected to
 
 **Documentation Updates**:
-- **Logging Guides**: Updated both `logs/LOGGING_GUIDE.md` and `ai_development_docs/AI_LOGGING_GUIDE.md`
+- **Logging Guides**: Updated both [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)
 - **Component Count**: Updated from 12 to 11 component loggers (removed `backup` logger)
 - **File References**: Removed references to non-existent `backup.log` and other removed log files
 - **Directory Structure**: Updated to reflect current log file organization
@@ -5227,8 +5227,8 @@ elif isinstance(v_raw, str):
 - `core/user_data_handlers.py` - Suppress duplicate logging
 - `core/user_management.py` - Suppress duplicate logging
 - `tests/behavior/test_auto_cleanup_behavior.py` - Test fixture updates
-- `ai_development_docs/AI_CHANGELOG.md` - Documentation updates
-- `development_docs/CHANGELOG_DETAIL.md` - Documentation updates
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) - Documentation updates
+- [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) - Documentation updates
 
 **Impact**: Dramatically improved log quality and organization across the entire system, making debugging more efficient and logs more useful.
 
@@ -5284,8 +5284,8 @@ elif isinstance(v_raw, str):
 - [[[OK]]] No regressions introduced
 
 **Documentation Updates**:
-- Updated `TODO.md` with Phase 2.12 next steps
-- Updated `ai_development_docs/AI_CHANGELOG.md` with completion summary
+- Updated [TODO.md](TODO.md) with Phase 2.12 next steps
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with completion summary
 - Updated this detailed changelog
 
 **Outcomes**:
@@ -5336,7 +5336,7 @@ elif isinstance(v_raw, str):
 **Files Modified**:
 - `ai_development_tools/services/operations.py` - Audit optimization
 - `ui/dialogs/user_analytics_dialog.py` - UI fix
-- `development_docs/PLANS.md` - Plan cleanup
+- [PLANS.md](development_docs/PLANS.md) - Plan cleanup
 - `ai_development_tools/README.md` - Documentation update
 - `ai_development_tools/AI_STATUS.md` - Generated report
 - `ai_development_tools/AI_PRIORITIES.md` - Generated report
@@ -5430,8 +5430,8 @@ elif isinstance(v_raw, str):
 
 **Files Modified**:
 - `tests/behavior/test_scheduler_coverage_expansion.py` (3 test fixes)
-- `tests/TESTING_GUIDE.md` (comprehensive prevention requirements section)
-- `ai_development_docs/AI_TESTING_GUIDE.md` (concise prevention patterns)
+- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) (comprehensive prevention requirements section)
+- [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) (concise prevention patterns)
 
 **Testing Evidence**:
 - **Pre-fix**: 598 Windows tasks polluting system
@@ -5593,8 +5593,8 @@ Some imports must remain at module level for `@patch` to work in tests:
 
 **Documentation Updated**:
 - [[[OK]]] `development_docs/ui_unused_imports_cleanup_summary.md` - Complete session summary
-- [[[OK]]] `development_docs/CHANGELOG_DETAIL.md` - This detailed entry
-- [[[OK]]] `ai_development_docs/AI_CHANGELOG.md` - Concise AI-friendly summary
+- [[[OK]]] [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) - This detailed entry
+- [[[OK]]] [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) - Concise AI-friendly summary
 - [[[OK]]] `development_docs/UNUSED_IMPORTS_REPORT.md` - Regenerated with current stats
 
 **Remaining Work**:
@@ -5772,8 +5772,8 @@ Production code cleaned (47 files, ~170 imports removed):
   - `.cursor/commands/status.md` - Added unused imports to status response template
 
 - **Documentation Updates**:
-  - `DOCUMENTATION_GUIDE.md` - Added UNUSED_IMPORTS_REPORT.md to Known Generated Files
-  - `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` - Added to prioritized generated files
+  - [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) - Added UNUSED_IMPORTS_REPORT.md to Known Generated Files
+  - [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) - Added to prioritized generated files
   - `ai_development_tools/README.md` - Added unused-imports to commands and outputs
 
 **Initial Scan Results**:
@@ -5791,8 +5791,8 @@ Production code cleaned (47 files, ~170 imports removed):
 - `.cursor/commands/audit.md` - Response template update
 - `.cursor/commands/docs.md` - Inspection list update
 - `.cursor/commands/status.md` - Response template update
-- `DOCUMENTATION_GUIDE.md` - Generated files list
-- `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` - Generated files list
+- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) - Generated files list
+- [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) - Generated files list
 - `ai_development_tools/README.md` - Commands and outputs documentation
 
 **Testing**:
@@ -5942,8 +5942,8 @@ Production code cleaned (47 files, ~170 imports removed):
 - `tests/test_utilities.py` - Fixed create_test_environment() to use flat lookup structure
 - `tests/behavior/test_backup_manager_behavior.py` - Fixed to create flat lookup structure
 - `tests/behavior/test_account_management_real_behavior.py` - Fixed to create flat lookup structure
-- `development_docs/CHANGELOG_DETAIL.md` - This entry
-- `ai_development_docs/AI_CHANGELOG.md` - Corresponding entry
+- [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) - This entry
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) - Corresponding entry
 
 ---
 
@@ -6004,7 +6004,7 @@ Production code cleaned (47 files, ~170 imports removed):
 **Files Changed**:
 - `core/scheduler.py` - Added backup check integration (60 lines added/modified)
 - `QUICK_REFERENCE.md` - Updated backup documentation
-- `ai_development_docs/AI_REFERENCE.md` - Added backup patterns
+- [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md) - Added backup patterns
 
 **User Impact**: User data is now automatically backed up weekly (checked daily at 01:00), providing protection against data loss with minimal storage footprint (10 backups maximum, 30-day retention). Backup runs before log archival to ensure data is protected before any cleanup operations.
 
@@ -6248,8 +6248,8 @@ data = load_json_data(file_path)  # Expects string, gets Path
 - [[[OK]]] Service runs cleanly without initialization errors
 
 **Documentation Updates**:
-- Updated `ai_development_docs/AI_CHANGELOG.md` with concise entry
-- Updated `development_docs/CHANGELOG_DETAIL.md` with detailed entry (this file)
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with concise entry
+- Updated [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) with detailed entry (this file)
 - Test documentation included in test file comments
 
 **Lessons Learned**:
@@ -6525,7 +6525,7 @@ data = load_json_data(file_path)  # Expects string, gets Path
 
 **Technical Changes**:
 - **Manual Testing Consolidation**: 
-  - Combined `tests/MANUAL_DISCORD_TESTING_GUIDE.md` into `tests/MANUAL_TESTING_GUIDE.md`
+  - Combined `tests/MANUAL_DISCORD_TESTING_GUIDE.md` into [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md)
   - Removed redundant Discord testing scenarios (now automated)
   - Focused manual testing on visual verification, UX, performance, and real-world integration
   - Deleted redundant `tests/MANUAL_DISCORD_TESTING_GUIDE.md`
@@ -6538,8 +6538,8 @@ data = load_json_data(file_path)  # Expects string, gets Path
   - Added actual system state verification, not just return values
 
 - **Documentation Updates**:
-  - Updated `tests/TESTING_GUIDE.md` with consolidated navigation and resources
-  - Enhanced `ai_development_docs/AI_TESTING_GUIDE.md` with concise best practices
+  - Updated [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) with consolidated navigation and resources
+  - Enhanced [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) with concise best practices
   - Added testing best practices: real behavior testing, side effects verification, data persistence
   - Streamlined navigation and removed redundant automation links
 
@@ -6562,9 +6562,9 @@ data = load_json_data(file_path)  # Expects string, gets Path
 - `tests/behavior/test_discord_automation_complete.py` (new)
 - `tests/behavior/test_ui_automation_complete.py` (new) 
 - `tests/behavior/test_discord_advanced_automation.py` (new)
-- `tests/MANUAL_TESTING_GUIDE.md` (consolidated)
-- `tests/TESTING_GUIDE.md` (streamlined)
-- `ai_development_docs/AI_TESTING_GUIDE.md` (enhanced)
+- [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md) (consolidated)
+- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) (streamlined)
+- [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) (enhanced)
 - `tests/MANUAL_DISCORD_TESTING_GUIDE.md` (deleted)
 
 **Outcome**: Testing framework is now fully consolidated with comprehensive automation covering 57 scenarios. Manual testing is focused on visual verification and integration testing. All documentation is streamlined and focused. Test coverage is comprehensive with all tests passing.
@@ -6991,9 +6991,9 @@ data = load_json_data(file_path)  # Expects string, gets Path
 - `tests/core/test_message_management.py` - New message management tests (5 tests)
 
 **Documentation Updates**:
-- Updated `TODO.md` to reflect completed test coverage expansion
-- Updated `development_docs/PLANS.md` with completed test coverage plan
-- Updated `ai_development_docs/AI_CHANGELOG.md` with test coverage achievements
+- Updated [TODO.md](TODO.md) to reflect completed test coverage expansion
+- Updated [PLANS.md](development_docs/PLANS.md) with completed test coverage plan
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with test coverage achievements
 
 **Testing Evidence**:
 - **Before**: 1716 tests, 16 failures, 3 UI failures
@@ -7055,10 +7055,10 @@ data = load_json_data(file_path)  # Expects string, gets Path
 **Files Modified**:
 - `ai_development_docs/AI_MODULE_DEPENDENCIES.md` - Fixed discord.py -> discord references
 - `development_docs/UI_COMPONENT_TESTING_STRATEGY.md` - Fixed TaskCRUDDialog -> TaskCrudDialog case
-- `TODO.md` - Added completed work section
-- `development_docs/PLANS.md` - Marked documentation cleanup as completed
-- `ai_development_docs/AI_CHANGELOG.md` - Added new entry
-- `development_docs/CHANGELOG_DETAIL.md` - Added detailed entry
+- [TODO.md](TODO.md) - Added completed work section
+- [PLANS.md](development_docs/PLANS.md) - Marked documentation cleanup as completed
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) - Added new entry
+- [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) - Added detailed entry
 
 ### 2025-10-02 - AI Development Tools Audit and Documentation Fixes **COMPLETED**
 
@@ -7078,7 +7078,7 @@ data = load_json_data(file_path)  # Expects string, gets Path
 - **`.cursor/rules/audit.mdc`**: Added mention of standard exclusions system
 
 **Documentation Updates**:
-- Updated `ai_development_docs/AI_CHANGELOG.md` with session summary
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with session summary
 - Enhanced `ai_development_tools/README.md` with infrastructure documentation
 - Updated Cursor command and rule files to reflect improvements
 
@@ -7158,7 +7158,7 @@ data = load_json_data(file_path)  # Expects string, gets Path
 - Refactored `legacy_reference_cleanup.py` to produce summary metrics, recommended actions, and sorted detail sections
 - Regenerated `LEGACY_REFERENCE_REPORT.md` so the published report mirrors the new structure
 - Rebuilt `TEST_COVERAGE_EXPANSION_PLAN.md` with tiered module backlogs (<50%, 50-59%, 60-69%) anchored to the latest coverage metrics
-- Added explicit follow-up items to `TODO.md` ensuring regression tests and recurring legacy scans are tracked
+- Added explicit follow-up items to [TODO.md](TODO.md) ensuring regression tests and recurring legacy scans are tracked
 
 **Technical Changes**:
 - **ai_development_tools/legacy_reference_cleanup.py**: rewrote `generate_cleanup_report` to compute affected-file counts, marker totals, summary bullets, and reusable follow-up checklist; kept detailed per-file listings sorted for consistency
@@ -7167,8 +7167,8 @@ data = load_json_data(file_path)  # Expects string, gets Path
 - **TODO.md**: appended regression-test and rerun tasks under "Legacy Compatibility Marker Audit" to keep cleanup momentum visible
 
 **Documentation Updates**:
-- Updated `ai_development_docs/AI_CHANGELOG.md` with high-level summary of the reporting refresh
-- Added this detailed entry to `development_docs/CHANGELOG_DETAIL.md`
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with high-level summary of the reporting refresh
+- Added this detailed entry to [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)
 
 **Testing Evidence**:
 - Reran `python ai_development_tools/ai_tools_runner.py legacy` to regenerate the report and verify the new format end-to-end
@@ -7202,8 +7202,8 @@ data = load_json_data(file_path)  # Expects string, gets Path
 - **ui/widgets/user_profile_settings_widget.py**: Added missing `from core.error_handling import handle_errors` import
 
 **Documentation Updates**:
-- Updated `ai_development_docs/AI_CHANGELOG.md` with completion summary
-- Updated `development_docs/CHANGELOG_DETAIL.md` with detailed technical changes
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with completion summary
+- Updated [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) with detailed technical changes
 
 **Testing Evidence**:
 - All 1519 tests passing (1519 passed, 1 skipped, 4 warnings)
@@ -7237,8 +7237,8 @@ data = load_json_data(file_path)  # Expects string, gets Path
 - **tests/behavior/test_interaction_handlers_coverage_expansion.py**: Updated to use new questions configuration format
 
 **Documentation Updates**:
-- Updated `ai_development_docs/AI_CHANGELOG.md` with completion summary
-- Updated `development_docs/CHANGELOG_DETAIL.md` with detailed technical changes
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with completion summary
+- Updated [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) with detailed technical changes
 
 **Testing Evidence**:
 - All 1516 tests passing (1516 passed, 1 skipped, 4 warnings)
@@ -7310,8 +7310,8 @@ except Exception as truncate_error:
 - Verified both `app.log` and `errors.log` rotation scenarios work identically
 
 **Documentation Updates**:
-- Updated `ai_development_docs/AI_CHANGELOG.md` with fix summary
-- Updated `development_docs/CHANGELOG_DETAIL.md` with detailed technical record
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with fix summary
+- Updated [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) with detailed technical record
 
 **Outcome**: Log rotation now works correctly with proper file truncation. At midnight tonight, `app.log` and `errors.log` will be properly backed up and truncated, preventing future multi-day accumulation.
 
@@ -7359,7 +7359,7 @@ except Exception as truncate_error:
 - Improved test assertions to be more flexible while maintaining coverage
 
 **Documentation Updates**:
-- Updated `ai_development_docs/AI_CHANGELOG.md` with new test implementation
+- Updated [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) with new test implementation
 - All tests properly documented with clear descriptions and expected behaviors
 - Test file includes comprehensive docstrings for each test method
 
@@ -7380,8 +7380,8 @@ except Exception as truncate_error:
 
 **Files Modified**:
 - `tests/behavior/test_chat_interaction_storage_real_scenarios.py` (new)
-- `ai_development_docs/AI_CHANGELOG.md` (updated)
-- `development_docs/CHANGELOG_DETAIL.md` (this entry)
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) (updated)
+- [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) (this entry)
 
 ### 2025-10-01 - Downstream AI Tooling Metrics & Doc Sync Cleanup **COMPLETED**
 
@@ -7426,8 +7426,8 @@ except Exception as truncate_error:
 
 **Documentation Updates**:
 - `DEVELOPMENT_WORKFLOW.md`, `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
-- `DOCUMENTATION_GUIDE.md`, `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
-- `ARCHITECTURE.md`, `ai_development_docs/AI_ARCHITECTURE.md`
+- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
+- [ARCHITECTURE.md](ARCHITECTURE.md), [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md)
 - `ai_development_docs/AI_CHANGELOG.md`, `ai_development_tools/archive/AI_CHANGELOG_ARCHIVE.md`
 
 **Testing**:
@@ -7772,7 +7772,7 @@ except Exception as truncate_error:
 
 **Documentation Standards Analysis**:
 - Analyzed 34+ documentation files to identify common themes and templates
-- Updated `DOCUMENTATION_GUIDE.md` with comprehensive standards for generated files
+- Updated [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) with comprehensive standards for generated files
 - Established clear identification requirements for all generated files
 
 **Generator Tool Updates**:
@@ -7798,7 +7798,7 @@ except Exception as truncate_error:
 - **Maintainability**: Clear distinction between manual and generated files
 
 **Files Modified**:
-- `DOCUMENTATION_GUIDE.md`: Added comprehensive generated file standards
+- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md): Added comprehensive generated file standards
 - `ai_development_tools/ai_tools_runner.py`: Updated to include generation headers
 - `ai_development_tools/config_validator.py`: Added generation headers to JSON output
 - `ui/generate_ui_files.py`: Moved and updated with proper headers
@@ -7922,8 +7922,8 @@ except Exception as truncate_error:
 - `ai_development_tools/quick_status.py`
 - `ai_development_tools/validate_ai_work.py`
 - `.coveragerc`  `coverage.ini` (renamed)
-- `TODO.md` (added test failure)
-- `ai_development_docs/AI_CHANGELOG.md`
+- [TODO.md](TODO.md) (added test failure)
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)
 
 **Impact**: AI development tools now provide accurate, comprehensive analysis with consistent file management, realistic metrics, and proper exclusion patterns. The system is more maintainable and provides better insights for development decisions.
 
@@ -8413,8 +8413,8 @@ except Exception as truncate_error:
 
 **Files Modified**:
 - `core/user_data_handlers.py` - Removed legacy field preservation code
-- `ai_development_docs/AI_CHANGELOG.md` - Added concise summary
-- `development_docs/CHANGELOG_DETAIL.md` - Added detailed entry
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) - Added concise summary
+- [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) - Added detailed entry
 
 **Verification**:
 - User index still correctly derives `enabled_features` from modern `features` object
@@ -8667,8 +8667,8 @@ except Exception as truncate_error:
 - `tests/conftest.py`: Fixed multiple test_run file creation, removed conflicting rotation, registered test_run files
 - `tests/behavior/test_logger_coverage_expansion_phase3_simple.py`: Fixed failing tests with complete mock data
 - `tests/unit/test_error_handling.py`: Fixed test_file.json location
-- `TODO.md`: Updated with final verification results
-- `ai_development_docs/AI_CHANGELOG.md`: Updated with completion status
+- [TODO.md](TODO.md): Updated with final verification results
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md): Updated with completion status
 
 ### Impact
 - **Production-Ready Logging System**: Complete test logging system with automatic context, coordinated rotation, and lifecycle management
@@ -8756,7 +8756,7 @@ except Exception as truncate_error:
    - Improved error context for better debugging
 
 5. **Comprehensive Documentation**:
-   - Created `core/ERROR_HANDLING_GUIDE.md` with complete system documentation
+   - Created [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) with complete system documentation
    - Documented all recovery strategies and their usage patterns
    - Provided examples and best practices for developers
 
@@ -10702,7 +10702,7 @@ os.environ['DISABLE_LOG_ROTATION'] = '1'  # Prevent log rotation issues during t
 - `tests/behavior/test_utilities_demo.py` - Updated imports and function calls
 - `tests/unit/test_user_management.py` - Import and call updates
 - `tests/behavior/test_user_context_behavior.py` - Import and call updates
-- `DOCUMENTATION_GUIDE.md` - Added helper function naming convention
+- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) - Added helper function naming convention
 - `AI_DOCUMENTATION_GUIDE.md` - Added coding standards section
 - `LEGACY_CODE_MANAGEMENT_STRATEGY.md` - Comprehensive refactoring plan and progress tracking
 
@@ -11736,9 +11736,9 @@ def test_something():
 - **Documentation**: Maintained consistency with existing documentation standards
 
 **Files Created/Modified**:
-- `PROJECT_VISION.md` - Updated with user-aligned vision and AI assistant details
+- [PROJECT_VISION.md](PROJECT_VISION.md) - Updated with user-aligned vision and AI assistant details
 - `PLANS.md` - Added three development phases with comprehensive checklists
-- `README.md` - Added navigation link to PROJECT_VISION.md
+- [README.md](README.md) - Added navigation link to PROJECT_VISION.md
 
 **Testing**:
 - Vision document updated with user feedback and alignment
@@ -11776,7 +11776,7 @@ def test_something():
 
 **Solutions Implemented**:
 
-**1. Comprehensive Vision Document** (`PROJECT_VISION.md`):
+**1. Comprehensive Vision Document** ([PROJECT_VISION.md](PROJECT_VISION.md)):
 - **Core Vision**: "Personal mental health assistant for executive functioning challenges"
 - **Mission Statement**: "Supportive, intelligent companion with privacy and local-first design"
 - **Core Values**: Personal & Private, Supportive & Non-Judgmental, Accessible & User-Friendly, Intelligent & Adaptive
@@ -11826,8 +11826,8 @@ def test_something():
 - **Consistent Styling**: Matches existing documentation format and style
 
 **Files Created/Modified**:
-- `PROJECT_VISION.md` - New comprehensive vision document
-- `README.md` - Added vision document to navigation
+- [PROJECT_VISION.md](PROJECT_VISION.md) - New comprehensive vision document
+- [README.md](README.md) - Added vision document to navigation
 
 **Testing**:
 - Vision document created with comprehensive coverage
@@ -12010,7 +12010,7 @@ def test_something():
 
 **Files Modified**:
 - `AI_REFERENCE.md` - Streamlined to focus on troubleshooting patterns only
-- `TODO.md` - Added AI tools improvement priorities
+- [TODO.md](TODO.md) - Added AI tools improvement priorities
 - `PLANS.md` - Added comprehensive AI tools improvement plan
 - `AI_CHANGELOG.md` - Documented optimization work
 - `CHANGELOG_DETAIL.md` - Added detailed documentation of changes
@@ -12461,7 +12461,7 @@ The low activity is **completely expected behavior** for a personal mental healt
 #### **Documentation Updates**
 - **Updated**: `AI_CHANGELOG.md` with completed fixes summary
 - **Updated**: `CHANGELOG_DETAIL.md` with detailed technical information
-- **Updated**: `TODO.md` with new testing requirements
+- **Updated**: [TODO.md](TODO.md) with new testing requirements
 - **Updated**: `PLANS.md` with completed plan documentation
 
 ### 2025-08-14 - Added Scheduler Integration for New Users **COMPLETED**
@@ -12698,7 +12698,7 @@ Completed component-first logging migration across bot modules, finalized orches
 - Manual async script
   - `scripts/test_discord_connection.py` is now skipped in pytest (manual diagnostic tool); TODO added to migrate to `pytest-asyncio`
 - Documentation
-  - `logs/LOGGING_GUIDE.md` updated with BaseChannel pattern and test isolation behavior
+  - [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) updated with BaseChannel pattern and test isolation behavior
 
 #### Tests
 - Full suite: 629 passed, 2 skipped
@@ -12897,7 +12897,7 @@ Successfully completed a comprehensive pytest marker application project to impr
 - `run_tests.py` - Enhanced with UI mode
 - `AI_CHANGELOG.md` - Added brief summary
 - `CHANGELOG_DETAIL.md` - Added detailed entry
-- `TODO.md` - Updated with completion status
+- [TODO.md](TODO.md) - Updated with completion status
 - `PLANS.md` - Updated with project completion
 
 #### **Documentation and Cleanup**
@@ -13044,7 +13044,7 @@ Consolidate duplicate functions and clean up unnecessary wrapper functions to im
 - **Updated tests** to patch the correct module (`core.user_data_handlers.get_user_data`)
 
 #### Personalized Suggestions Task Addition
-- **Added to `TODO.md`**: "Personalized User Suggestions Implementation" task
+- **Added to [TODO.md](TODO.md)**: "Personalized User Suggestions Implementation" task
   - Review the unused `get_user_suggestions()` function in interaction_manager.py
   - Implement proper personalized suggestions based on user's tasks, check-ins, preferences, and interaction history
   - Medium priority task for improving user experience
@@ -13055,7 +13055,7 @@ Consolidate duplicate functions and clean up unnecessary wrapper functions to im
 - `core/scheduler.py` - Removed duplicate `get_user_categories()`, added import  
 - `core/service.py` - Removed duplicate `get_user_categories()`, added import
 - `tests/behavior/test_scheduler_behavior.py` - Updated test patches to use correct module
-- `TODO.md` - Added personalized suggestions implementation task
+- [TODO.md](TODO.md) - Added personalized suggestions implementation task
 
 ### Testing Results
 - **User Management Unit Tests**: 25/25 passed 
@@ -13109,8 +13109,8 @@ Complete the function consolidation and cleanup by removing additional unnecessa
 Document the current Discord/chat command set and remove the completed follow-up from the TODO list so onboarding references stay accurate.
 
 #### Changes Made
-- **`HOW_TO_RUN.md`**: Added a command reference table covering slash commands, bang commands, mapped text equivalents, and notes for check-in flows.
-- **`TODO.md`**: Removed the finished follow-up item for documenting the command list in `HOW_TO_RUN.md`.
+- **[HOW_TO_RUN.md](HOW_TO_RUN.md)**: Added a command reference table covering slash commands, bang commands, mapped text equivalents, and notes for check-in flows.
+- **[TODO.md](TODO.md)**: Removed the finished follow-up item for documenting the command list in [HOW_TO_RUN.md](HOW_TO_RUN.md).
 
 #### Impact
 - **Onboarding Clarity**: New users can see all supported commands in one place with consistent descriptions.
@@ -13123,7 +13123,7 @@ Confirm whether any legacy fallback logic remains in the user profile settings w
 
 #### Changes Made
 - **`ui/widgets/user_profile_settings_widget.py`**: Reviewed the full file to verify it only uses modern data extraction and validation paths (dynamic list containers, date-of-birth handling, loved-ones parsing) with no compatibility shims.
-- **`development_docs/PLANS.md`**: Marked the user profile settings widget legacy cleanup item as completed and removed it from the active removal list now that no legacy fallbacks remain.
+- **[PLANS.md](development_docs/PLANS.md)**: Marked the user profile settings widget legacy cleanup item as completed and removed it from the active removal list now that no legacy fallbacks remain.
 
 #### Impact
 - **Accurate Legacy Tracking**: The legacy cleanup plan now reflects the verified state of the widget, preventing duplicate work.
@@ -13140,7 +13140,7 @@ Ensure Discord usernames are persisted alongside Discord IDs in `account.json` f
 - **`core/file_operations.py`**: Wrote `discord_username` when creating initial user files using preferences data.
 - **`ui/dialogs/account_creator_dialog.py`**: Propagated optional Discord usernames from the account creation dialog into user preferences.
 - **`communication/communication_channels/discord/webhook_handler.py`**: Captured the latest Discord username from authorization webhooks and saved it to `account.json` when the user already has an account.
-- **`TODO.md`**: Removed the completed follow-up task for storing Discord usernames.
+- **[TODO.md](TODO.md)**: Removed the completed follow-up task for storing Discord usernames.
 
 #### Impact
 - **User Identity Clarity**: Discord usernames now persist with IDs, improving display and debugging.
@@ -13154,7 +13154,7 @@ Normalize sent message retrieval so business logic and filters run against valid
 #### Changes Made
 - **`core/message_management.py`**: Applied `validate_messages_file_dict` when loading sent messages, logging validation warnings and preserving categories so filtering still works after normalization.
 - **`tests/behavior/test_message_behavior.py`**: Added a behavior test that writes a mixed-quality `sent_messages.json` file and asserts invalid rows are dropped while defaults (like days/time periods) are applied.
-- **`TODO.md`**: Checked off the behavior-test follow-up and documented the newly normalized sent message read path under the schema adoption plan.
+- **[TODO.md](TODO.md)**: Checked off the behavior-test follow-up and documented the newly normalized sent message read path under the schema adoption plan.
 
 #### Impact
 - **Safer Sent Message Reads**: Malformed sent message rows no longer surface in user-facing history, reducing surprises from corrupted data.
@@ -13170,7 +13170,7 @@ Provide users with context-aware prompts that reflect their current tasks, check
 
 #### Changes Made
 - **`communication/message_processing/interaction_manager.py`**: Reworked `get_user_suggestions` to surface task-specific prompts (due today/overdue/coming up), context-aware check-in nudges (first-time, overdue, or recent mood follow-up), schedule reminders driven by user categories, and analytics prompts once enough check-ins exist.
-- **`TODO.md`**: Removed the completed personalized user suggestions task after shipping the updated behavior.
+- **[TODO.md](TODO.md)**: Removed the completed personalized user suggestions task after shipping the updated behavior.
 
 #### Impact
 - **More Relevant Guidance**: Suggestions now adapt to each user's data, encouraging action on pressing tasks and timely check-ins.
@@ -13183,7 +13183,7 @@ Keep message statistics and user index generation resilient to malformed or lega
 
 #### Changes Made
 - **`core/user_data_manager.py`**: Applied `validate_messages_file_dict` while counting messages for the user index and per-category summaries, logging validation issues and using normalized data for counts.
-- **`TODO.md`**: Recorded the completed normalization sweep for message count/read paths under the Pydantic schema follow-up plan.
+- **[TODO.md](TODO.md)**: Recorded the completed normalization sweep for message count/read paths under the Pydantic schema follow-up plan.
 
 #### Impact
 - **Safer Metrics**: Message counts and summaries no longer trust raw JSON, preventing malformed files from skewing or breaking statistics.

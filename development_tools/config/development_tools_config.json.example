@@ -1,5 +1,5 @@
 {
-  "_comment": "Example configuration file for development tools. Copy this to development_tools_config.json in the project_root and customize as needed.",
+  "_comment": "Example configuration file for development tools. Make a copy of this in development_tools_config.json in development_tools/config and customize as needed.",
   "project": {
     "name": "YourProjectName",
     "key_files": [
@@ -8,23 +8,23 @@
       "core/config.py"
     ],
     "core_system_files": [
-      "run_your_app.py",
-      "core/service.py",
+      ".gitignore",
       "core/config.py",
+      "core/service.py",
       "requirements.txt",
-      ".gitignore"
+      "run_your_app.py"
     ]
   },
   "paths": {
     "project_root": ".",
     "scan_directories": [
-      "core",
+      "ai",
       "communication",
-      "ui",
-      "user",
+      "core",
       "tasks",
       "tests",
-      "ai"
+      "ui",
+      "user"
     ],
     "docs_dir": "development_docs",
     "logs_dir": "logs",
@@ -42,8 +42,15 @@
     "logs_docs": [],
     "scripts_docs": [],
     "tests_docs": [],
-    "documentation_patterns": ["*.md"],
-    "exclude_patterns": ["*.pyc", "__pycache__", ".git", ".venv"]
+    "documentation_patterns": [
+      "*.md"
+    ],
+    "exclude_patterns": [
+      "*.pyc",
+      "__pycache__",
+      ".git",
+      ".venv"
+    ]
   },
   "quick_audit": {
     "_comment": "Customize audit behavior",
@@ -84,54 +91,61 @@
     "critical_complexity_threshold": 200,
     "min_docstring_length": 10,
     "handler_keywords": [
-      "handle",
-      "process",
-      "validate",
       "check",
-      "get",
-      "set",
-      "save",
-      "load",
-      "create",
-      "update",
-      "delete",
-      "manage",
       "configure",
-      "setup"
+      "create",
+      "delete",
+      "get",
+      "handle",
+      "load",
+      "manage",
+      "process",
+      "save",
+      "set",
+      "setup",
+      "update",
+      "validate"
     ],
     "test_keywords": [
-      "test_",
-      "test",
+      "assert_",
       "check_",
-      "verify_",
-      "assert_"
+      "test",
+      "test_",
+      "verify_"
     ],
     "critical_functions": [
+      "init",
       "main",
       "run",
+      "setup",
       "start",
       "stop",
-      "init",
-      "setup",
       "validate"
     ]
   },
   "exclusions": {
     "_comment": "File exclusion patterns for development tools. All patterns are optional - tools will use generic defaults if not provided.",
-    "universal_exclusions": [
-      "__pycache__",
+    "BASE_EXCLUSIONS": [
       "*.pyc",
       "*.pyo",
-      "venv",
-      ".venv",
+      "*/generated/*",
       ".git",
-      ".vscode",
       ".idea",
+      ".pytest_cache",
+      ".ruff_cache",
+      ".venv",
+      ".vscode",
+      "__pycache__",
       "archive",
       "backup*",
-      ".pytest_cache",
+      "mhm.egg-info",
+      "scripts",
+      "scripts/*",
+      "scripts/**/*",
       "tests/__pycache__",
-      "*/generated/*"
+      "tests/ai/results",
+      "tests/coverage_html",
+      "venv"
     ],
     "tool_exclusions": {},
     "context_exclusions": {
@@ -150,27 +164,34 @@
       ]
     },
     "generated_files": [
+      "ai_development_docs/AI_FUNCTION_REGISTRY.md",
+      "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+      "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+      "development_docs/LEGACY_REFERENCE_REPORT.md",
+      "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
+      "development_docs/UNUSED_IMPORTS_REPORT.md",
       "development_tools/AI_PRIORITIES.md",
       "development_tools/AI_STATUS.md",
-      "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
-      "ai_development_docs/AI_FUNCTION_REGISTRY.md",
-      "development_docs/UNUSED_IMPORTS_REPORT.md",
-      "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
-      "development_docs/LEGACY_REFERENCE_REPORT.md",
-      "development_docs/FUNCTION_REGISTRY_DETAIL.md",
-      "ui/generated/*",
-      "*/ui/generated/*"
+      "ui/generated/*"
     ],
-    "standard_exclusion_patterns": [
-      "logs/",
-      "data/",
-      "__pycache__/",
+    "base_exclusion_shortlist": [
+      "*.log",
       ".pytest_cache/",
-      "venv/",
-      "*.log"
+      ".ruff_cache/",
+      ".venv/",
+      "__pycache__/",
+      "coverage_html/",
+      "data/",
+      "htmlcov/",
+      "logs/",
+      "mhm.egg-info/",
+      "resources/",
+      "scripts/",
+      "tests/ai/results/",
+      "tests/coverage_html/",
+      "venv/"
     ],
-    "legacy_preserve_files": [],
-    "unused_imports_init_files": []
+    "historical_preserve_files": []
   },
   "validation": {
     "_comment": "Validation thresholds and warning settings",
@@ -190,20 +211,20 @@
       "error_handler"
     ],
     "exception_base_classes": [
-      "MHMError",
-      "DataError",
-      "ConfigurationError",
+      "AIError",
       "CommunicationError",
-      "ValidationError",
-      "AIError"
+      "ConfigurationError",
+      "DataError",
+      "MHMError",
+      "ValidationError"
     ],
     "error_handler_functions": [
-      "handle_file_error",
-      "handle_network_error",
+      "handle_ai_error",
       "handle_communication_error",
       "handle_configuration_error",
+      "handle_file_error",
+      "handle_network_error",
       "handle_validation_error",
-      "handle_ai_error",
       "safe_file_operation"
     ],
     "generic_exceptions": {
@@ -215,11 +236,37 @@
     },
     "critical_function_keywords": {
       "_comment": "Keywords that indicate functions requiring error handling",
-      "file_operations": ["open", "read", "write", "save", "load"],
-      "network_operations": ["send", "receive", "connect", "request"],
-      "data_operations": ["parse", "serialize", "deserialize", "validate"],
-      "user_operations": ["create", "update", "delete", "authenticate"],
-      "ai_operations": ["generate", "process", "analyze", "classify"]
+      "file_operations": [
+        "load",
+        "open",
+        "read",
+        "save",
+        "write"
+      ],
+      "network_operations": [
+        "send",
+        "receive",
+        "connect",
+        "request"
+      ],
+      "data_operations": [
+        "parse",
+        "serialize",
+        "deserialize",
+        "validate"
+      ],
+      "user_operations": [
+        "create",
+        "update",
+        "delete",
+        "authenticate"
+      ],
+      "ai_operations": [
+        "generate",
+        "process",
+        "analyze",
+        "classify"
+      ]
     }
   },
   "output": {
@@ -239,13 +286,13 @@
     "ui_files": "*.ui",
     "config_files": "*.json",
     "exclude_patterns": [
-      "__pycache__",
+      "*.pyc",
+      "*.pyo",
       ".git",
-      "venv",
+      "__pycache__",
       "env",
       "node_modules",
-      "*.pyc",
-      "*.pyo"
+      "venv"
     ]
   },
   "workflow": {
@@ -298,11 +345,20 @@
     "_comment": "Coverage regeneration settings. Customize pytest command, config, and artifact directories for your project.",
     "pytest_command": {
       "_comment": "Pytest command as array (e.g., ['python', '-m', 'pytest'] or ['pytest'])",
-      "_example": ["python", "-m", "pytest"]
+      "_example": [
+        "python",
+        "-m",
+        "pytest"
+      ]
     },
     "pytest_base_args": {
       "_comment": "Base pytest arguments (applied to all coverage runs)",
-      "_example": ["--cov-report=term-missing", "--tb=line", "-q", "--maxfail=5"]
+      "_example": [
+        "--cov-report=term-missing",
+        "--tb=line",
+        "-q",
+        "--maxfail=5"
+      ]
     },
     "test_directory": {
       "_comment": "Directory containing tests (relative to project root)",
@@ -334,7 +390,10 @@
     },
     "log_locations": {
       "_comment": "Log file/directory paths to scan for legacy references",
-      "_example": ["logs/", "*.log"]
+      "_example": [
+        "logs/",
+        "*.log"
+      ]
     },
     "skip_extensions": [
       ".md",
@@ -372,17 +431,63 @@
   },
   "documentation_analysis": {
     "_comment": "Documentation analysis settings for analyze_documentation.py",
-    "heading_patterns": ["## ", "### "],
-    "placeholder_patterns": ["TBD", "TODO", "to be filled", "\\[insert[^\\]]*\\]"],
-    "placeholder_flags": ["IGNORECASE"],
+    "heading_patterns": [
+      "## ",
+      "### "
+    ],
+    "placeholder_patterns": [
+      "TBD",
+      "TODO",
+      "to be filled",
+      "\\[insert[^\\]]*\\]"
+    ],
+    "placeholder_flags": [
+      "IGNORECASE"
+    ],
     "topic_keywords": {
-      "Setup & Installation": ["install", "setup", "environment", "run"],
-      "Development Workflow": ["workflow", "develop", "commit", "merge", "refactor"],
-      "Testing": ["test", "pytest", "coverage", "suite"],
-      "Architecture": ["architecture", "module", "dependency", "structure"],
-      "Troubleshooting": ["error", "issue", "debug", "fail", "failure"],
-      "Code Quality": ["quality", "lint", "style", "pattern"],
-      "Project Structure": ["directory", "structure", "tree"]
+      "Setup & Installation": [
+        "install",
+        "setup",
+        "environment",
+        "run"
+      ],
+      "Development Workflow": [
+        "commit",
+        "develop",
+        "merge",
+        "refactor",
+        "workflow"
+      ],
+      "Testing": [
+        "test",
+        "pytest",
+        "coverage",
+        "suite"
+      ],
+      "Architecture": [
+        "architecture",
+        "module",
+        "dependency",
+        "structure"
+      ],
+      "Troubleshooting": [
+        "debug",
+        "error",
+        "fail",
+        "failure",
+        "issue"
+      ],
+      "Code Quality": [
+        "quality",
+        "lint",
+        "style",
+        "pattern"
+      ],
+      "Project Structure": [
+        "directory",
+        "structure",
+        "tree"
+      ]
     },
     "ignore_rules": []
   },
@@ -423,7 +528,11 @@
   },
   "unused_imports": {
     "_comment": "Unused imports checker settings",
-    "pylint_command": ["python", "-m", "pylint"],
+    "pylint_command": [
+      "python",
+      "-m",
+      "pylint"
+    ],
     "ignore_patterns": [],
     "type_stub_locations": [],
     "timeout_seconds": 30
@@ -445,13 +554,32 @@
     "doc_targets": {},
     "formatting_rules": {},
     "function_type_detection": {
-      "qt_translation": {"file_pattern": "ui/generated/", "name": "qtTrId"},
-      "ui_generated": {"file_pattern": "ui/generated/", "names": ["setupUi", "retranslateUi"]},
-      "test_function": {"name_patterns": ["test_", "test"]},
-      "special_method": {"name_pattern": "__.*__"},
-      "constructor": {"name": "__init__"},
-      "main_function": {"name": "main"}
+      "qt_translation": {
+        "file_pattern": "ui/generated/",
+        "name": "qtTrId"
+      },
+      "ui_generated": {
+        "file_pattern": "ui/generated/",
+        "names": [
+          "setupUi",
+          "retranslateUi"
+        ]
+      },
+      "test_function": {
+        "name_patterns": [
+          "test_",
+          "test"
+        ]
+      },
+      "special_method": {
+        "name_pattern": "__.*__"
+      },
+      "constructor": {
+        "name": "__init__"
+      },
+      "main_function": {
+        "name": "main"
+      }
     }
   }
 }
-
