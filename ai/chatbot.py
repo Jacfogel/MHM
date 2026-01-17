@@ -44,7 +44,7 @@ from ai.cache_manager import get_response_cache
 from datetime import datetime
 from core.error_handling import handle_errors
 from core.message_management import get_recent_messages
-from core.service_utilities import now_readable_timestamp
+from core.service_utilities import TIME_HM_FORMAT
 
 
 ai_logger = get_component_logger("ai")
@@ -940,10 +940,10 @@ class AIChatBotSingleton:
                     energy_val = recent_checkins[0].get("energy")
                     if ts:
                         try:
-                            dt = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
+                            dt = datetime.strptime(ts, READABLE_TIMESTAMP_FORMAT)
                             if dt.date() == date.today():
                                 completed_today = True
-                                completed_at = dt.strftime("%H:%M")
+                                completed_at = dt.strftime(TIME_HM_FORMAT)
                         except Exception:
                             pass
                 if completed_today:

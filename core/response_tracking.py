@@ -9,7 +9,7 @@ from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
 from core.file_operations import load_json_data, save_json_data, get_user_file_path
 from core.error_handling import handle_errors
-from core.service_utilities import now_readable_timestamp
+from core.service_utilities import now_readable_timestamp, READABLE_TIMESTAMP_FORMAT
 
 
 logger = get_component_logger("user_activity")
@@ -98,7 +98,7 @@ def get_recent_responses(user_id: str, response_type: str = "checkin", limit: in
             timestamp = item.get("timestamp", "1970-01-01 00:00:00")
             try:
                 # Parse human-readable format
-                dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+                dt = datetime.strptime(timestamp, READABLE_TIMESTAMP_FORMAT)
                 return dt.timestamp()
             except (ValueError, TypeError):
                 # If parsing fails, use 0
@@ -137,7 +137,7 @@ def get_checkins_by_days(user_id: str, days: int = 7):
         if "timestamp" in checkin:
             try:
                 checkin_date = datetime.strptime(
-                    checkin["timestamp"], "%Y-%m-%d %H:%M:%S"
+                    checkin["timestamp"], READABLE_TIMESTAMP_FORMAT
                 )
                 if checkin_date >= cutoff_date:
                     recent_checkins.append(checkin)

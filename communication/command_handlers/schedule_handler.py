@@ -338,8 +338,8 @@ class ScheduleManagementHandler(InteractionHandler):
             )
 
             # Parse and validate time formats
-            start_time = self._handle_add_schedule_period__parse_time_format(start_time)
-            end_time = self._handle_add_schedule_period__parse_time_format(end_time)
+            start_time = self._normalize_time_string_to_12h(start_time)
+            end_time = self._normalize_time_string_to_12h(end_time)
 
             # Parse days if provided
             if isinstance(days, str):
@@ -402,76 +402,6 @@ class ScheduleManagementHandler(InteractionHandler):
                 f"I'm having trouble adding the schedule period: {str(e)}", True
             )
 
-    @handle_errors("parsing time format", default_return="")
-    def _handle_add_schedule_period__parse_time_format(self, time_str: str) -> str:
-        """Parse various time formats and convert to standard format"""
-        if not time_str:
-            return time_str
-
-        time_str = time_str.lower().strip()
-
-        # Handle common time formats
-        if "am" in time_str or "pm" in time_str:
-            # Already in 12-hour format, just standardize
-            return time_str.upper()
-        elif ":" in time_str:
-            # Assume 24-hour format, convert to 12-hour
-            try:
-                from datetime import datetime
-
-                time_obj = datetime.strptime(time_str, "%H:%M")
-                return time_obj.strftime("%I:%M %p")
-            except ValueError:
-                return time_str
-        else:
-            # Try to parse as hour only
-            try:
-                hour = int(time_str)
-                if 0 <= hour <= 23:
-                    from datetime import datetime
-
-                    time_obj = datetime.strptime(f"{hour:02d}:00", "%H:%M")
-                    return time_obj.strftime("%I:%M %p")
-            except ValueError:
-                pass
-
-            return time_str
-
-    @handle_errors("parsing time format for edit", default_return="")
-    def _handle_edit_schedule_period__parse_time_format(self, time_str: str) -> str:
-        """Parse various time formats and convert to standard format"""
-        if not time_str:
-            return time_str
-
-        time_str = time_str.lower().strip()
-
-        # Handle common time formats
-        if "am" in time_str or "pm" in time_str:
-            # Already in 12-hour format, just standardize
-            return time_str.upper()
-        elif ":" in time_str:
-            # Assume 24-hour format, convert to 12-hour
-            try:
-                from datetime import datetime
-
-                time_obj = datetime.strptime(time_str, "%H:%M")
-                return time_obj.strftime("%I:%M %p")
-            except ValueError:
-                return time_str
-        else:
-            # Try to parse as hour only
-            try:
-                hour = int(time_str)
-                if 0 <= hour <= 23:
-                    from datetime import datetime
-
-                    time_obj = datetime.strptime(f"{hour:02d}:00", "%H:%M")
-                    return time_obj.strftime("%I:%M %p")
-            except ValueError:
-                pass
-
-            return time_str
-
     @handle_errors(
         "editing schedule period",
         default_return=InteractionResponse(
@@ -533,16 +463,12 @@ class ScheduleManagementHandler(InteractionHandler):
             updates = []
 
             if new_start_time:
-                new_start_time = self._handle_edit_schedule_period__parse_time_format(
-                    new_start_time
-                )
+                new_start_time = self._normalize_time_string_to_12h(new_start_time)
                 current_period["start_time"] = new_start_time
                 updates.append(f"start time to {new_start_time}")
 
             if new_end_time:
-                new_end_time = self._handle_edit_schedule_period__parse_time_format(
-                    new_end_time
-                )
+                new_end_time = self._normalize_time_string_to_12h(new_end_time)
                 current_period["end_time"] = new_end_time
                 updates.append(f"end time to {new_end_time}")
 
@@ -631,3 +557,62 @@ class ScheduleManagementHandler(InteractionHandler):
             "edit work period days to Monday, Tuesday, Wednesday, Thursday, Friday",
             "disable evening period in task schedule",
         ]
+
+    @handle_errors("normalizing time string", default_return="")
+    def _normalize_time_string_to_12h(self, time_str: str) -> str:
+        """
+        Normalize common user-provided time strings to a consistent 12-hour format.
+
+        This is NOT timestamp handling — it is schedule time-of-day formatting
+        for user-facing text.
+
+        Accepted inputs:
+        - "9am", "9 am"
+        - "09:00", "9:00"
+        - "21:30"
+        - "9"
+
+        Output examples:
+        - "9 AM"
+        - "09:00 AM"
+        - "09:30 PM"
+        """
+        if not time_str:
+            return time_str
+
+        raw = str(time_str).strip()
+        if not raw:
+            return raw
+
+        s = raw.lower().strip()
+
+        # Already 12-hour format → normalize casing/spacing only
+        if "am" in s or "pm" in s:
+            return " ".join(s.replace(".", "").split()).upper()
+
+        # 24-hour time with minutes (accept "9:00" and "09:00")
+        if ":" in s:
+            try:
+                hour_part, minute_part = s.split(":", 1)
+                hour = int(hour_part)
+                minute = int(minute_part)
+                if 0 <= hour <= 23 and 0 <= minute <= 59:
+                    hour12 = hour % 12 or 12
+                    ampm = "AM" if hour < 12 else "PM"
+                    return f"{hour12:02d}:{minute:02d} {ampm}"
+            except (ValueError, TypeError):
+                return raw
+
+            return raw
+
+        # Hour-only input ("9", "21")
+        try:
+            hour = int(s)
+            if 0 <= hour <= 23:
+                hour12 = hour % 12 or 12
+                ampm = "AM" if hour < 12 else "PM"
+                return f"{hour12:02d}:00 {ampm}"
+        except (ValueError, TypeError):
+            pass
+
+        return raw

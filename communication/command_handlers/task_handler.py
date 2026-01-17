@@ -13,6 +13,7 @@ import re
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
+from core.service_utilities import DATE_ONLY_FORMAT
 from tasks.task_management import (
     create_task,
     load_active_tasks,
@@ -192,7 +193,7 @@ class TaskManagementHandler(InteractionHandler):
         ):  # Check for None, empty string, or whitespace-only
             try:
                 # Validate the parsed date format
-                datetime.strptime(due_date, "%Y-%m-%d")
+                datetime.strptime(due_date, DATE_ONLY_FORMAT)
                 valid_due_date = due_date
             except ValueError:
                 # Still invalid after parsing - treat as no due date
@@ -347,40 +348,36 @@ class TaskManagementHandler(InteractionHandler):
         import re
 
         date_str_lower = date_str.lower().strip()
-        today = datetime.now()
+        now_dt = datetime.now()
 
         if date_str_lower == "today":
-            return today.strftime("%Y-%m-%d")
+            return now_dt.date().isoformat()
         elif date_str_lower == "tomorrow":
-            tomorrow = today + timedelta(days=1)
-            return tomorrow.strftime("%Y-%m-%d")
+            return (now_dt + timedelta(days=1)).date().isoformat()
         elif date_str_lower == "next week":
-            next_week = today + timedelta(days=7)
-            return next_week.strftime("%Y-%m-%d")
+            return (now_dt + timedelta(days=7)).date().isoformat()
         elif date_str_lower == "next month":
             # Simple next month calculation
-            if today.month == 12:
-                next_month = today.replace(year=today.year + 1, month=1)
+            if now_dt.month == 12:
+                next_month = now_dt.replace(year=now_dt.year + 1, month=1)
             else:
-                next_month = today.replace(month=today.month + 1)
-            return next_month.strftime("%Y-%m-%d")
+                next_month = now_dt.replace(month=now_dt.month + 1)
+            return next_month.date().isoformat()
         elif date_str_lower.startswith("in "):
             # Parse "in X hours", "in X days", or "in X weeks"
             hours_match = re.search(r"in\s+(\d+)\s+hours?", date_str_lower)
             if hours_match:
                 hours = int(hours_match.group(1))
-                target_datetime = today + timedelta(hours=hours)
-                return target_datetime.strftime("%Y-%m-%d")
+                target_datetime = now_dt + timedelta(hours=hours)
+                return target_datetime.date().isoformat()
             days_match = re.search(r"in\s+(\d+)\s+days?", date_str_lower)
             if days_match:
                 days = int(days_match.group(1))
-                target_date = today + timedelta(days=days)
-                return target_date.strftime("%Y-%m-%d")
+                return (now_dt + timedelta(days=days)).date().isoformat()
             weeks_match = re.search(r"in\s+(\d+)\s+weeks?", date_str_lower)
             if weeks_match:
                 weeks = int(weeks_match.group(1))
-                target_date = today + timedelta(weeks=weeks)
-                return target_date.strftime("%Y-%m-%d")
+                return (now_dt + timedelta(weeks=weeks)).date().isoformat()
         elif date_str_lower.startswith("next "):
             # Parse "next Tuesday", "next Monday", etc.
             days_of_week = [
@@ -400,24 +397,22 @@ class TaskManagementHandler(InteractionHandler):
                 day_name = day_match.group(1).lower()
                 day_index = days_of_week.index(day_name)
                 # Find next occurrence of this day (always next week since "next" is specified)
-                days_ahead = (day_index - today.weekday()) % 7
+                days_ahead = (day_index - now_dt.weekday()) % 7
                 if days_ahead == 0:  # Today is that day, use next week
                     days_ahead = 7
                 else:
                     # Add 7 to get next week's occurrence (since "next" means next week, not this week)
                     days_ahead += 7
-                target_date = today + timedelta(days=days_ahead)
-                return target_date.strftime("%Y-%m-%d")
+                return (now_dt + timedelta(days=days_ahead)).date().isoformat()
             # If "next" doesn't match a day, try other "next" patterns
             elif "next week" in date_str_lower:
-                next_week = today + timedelta(days=7)
-                return next_week.strftime("%Y-%m-%d")
+                return (now_dt + timedelta(days=7)).date().isoformat()
             elif "next month" in date_str_lower:
-                if today.month == 12:
-                    next_month = today.replace(year=today.year + 1, month=1)
+                if now_dt.month == 12:
+                    next_month = now_dt.replace(year=now_dt.year + 1, month=1)
                 else:
-                    next_month = today.replace(month=today.month + 1)
-                return next_month.strftime("%Y-%m-%d")
+                    next_month = now_dt.replace(month=now_dt.month + 1)
+                return next_month.date().isoformat()
         elif re.match(
             r"(monday|tuesday|wednesday|thursday|friday|saturday|sunday)",
             date_str_lower,
@@ -440,14 +435,13 @@ class TaskManagementHandler(InteractionHandler):
                 day_name = day_match.group(1).lower()
                 day_index = days_of_week.index(day_name)
                 # Find next occurrence of this day
-                days_ahead = (day_index - today.weekday()) % 7
+                days_ahead = (day_index - now_dt.weekday()) % 7
                 if days_ahead == 0:  # Today is that day, use next week
                     days_ahead = 7
-                target_date = today + timedelta(days=days_ahead)
-                return target_date.strftime("%Y-%m-%d")
-        else:
-            # Return as-is if it's already a proper date or unknown format
-            return date_str
+                return (now_dt + timedelta(days=days_ahead)).date().isoformat()
+
+        # Return as-is if it's already a proper date or unknown format
+        return date_str
 
     @handle_errors("handling task listing")
     def _handle_list_tasks(
@@ -515,7 +509,7 @@ class TaskManagementHandler(InteractionHandler):
         if filter_type == "due_soon":
             filtered_tasks = get_tasks_due_soon(user_id, days_ahead=7)
         elif filter_type == "overdue":
-            today = datetime.now().strftime("%Y-%m-%d")
+            today = datetime.now().date().isoformat()
             filtered_tasks = [
                 task
                 for task in filtered_tasks
@@ -620,7 +614,7 @@ class TaskManagementHandler(InteractionHandler):
         if not due_date:
             return ""
 
-        today = datetime.now().strftime("%Y-%m-%d")
+        today = datetime.now().date().isoformat()
         if due_date < today:
             return f" (OVERDUE: {due_date})"
         elif due_date == today:
@@ -686,12 +680,11 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors("getting suggestion")
     def _handle_list_tasks__get_suggestion(self, tasks):
         """Get contextual show suggestion based on task analysis."""
+        today = datetime.now().date().isoformat()
+
         # Check for overdue tasks first
         overdue_count = sum(
-            1
-            for task in tasks
-            if task.get("due_date")
-            and task["due_date"] < datetime.now().strftime("%Y-%m-%d")
+            1 for task in tasks if task.get("due_date") and task["due_date"] < today
         )
         if overdue_count > 0:
             return f"Show {overdue_count} overdue tasks"
@@ -701,13 +694,12 @@ class TaskManagementHandler(InteractionHandler):
         if high_priority_count > 0:
             return f"Show {high_priority_count} high priority tasks"
 
-        # Check for tasks due soon
+        # Check for tasks due soon (within 3 days)
+        soon_cutoff = (datetime.now() + timedelta(days=3)).date().isoformat()
         due_soon_count = sum(
             1
             for task in tasks
-            if task.get("due_date")
-            and task["due_date"]
-            <= (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d")
+            if task.get("due_date") and task["due_date"] <= soon_cutoff
         )
         if due_soon_count > 0:
             return f"Show {due_soon_count} tasks due soon"
@@ -1174,7 +1166,7 @@ class TaskManagementHandler(InteractionHandler):
         if not tasks:
             return None
 
-        today = datetime.now().strftime("%Y-%m-%d")
+        today = datetime.now().date().isoformat()
 
         # Priority order: overdue > critical > high > medium > low
         priority_order = {"critical": 5, "high": 4, "medium": 3, "low": 2}
@@ -1197,8 +1189,8 @@ class TaskManagementHandler(InteractionHandler):
             # Add due date proximity bonus (closer = higher score)
             if due_date:
                 try:
-                    due_dt = datetime.strptime(due_date, "%Y-%m-%d")
-                    today_dt = datetime.strptime(today, "%Y-%m-%d")
+                    due_dt = datetime.strptime(due_date, DATE_ONLY_FORMAT)
+                    today_dt = datetime.strptime(today, DATE_ONLY_FORMAT)
                     days_until_due = (due_dt - today_dt).days
                     if days_until_due <= 0:  # Due today or overdue
                         score += 50

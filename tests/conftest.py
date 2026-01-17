@@ -30,7 +30,11 @@ import re
 from pathlib import Path
 from unittest.mock import Mock, patch
 from datetime import datetime
-from core.service_utilities import now_filename_timestamp, now_readable_timestamp
+from core.service_utilities import (
+    now_filename_timestamp,
+    now_readable_timestamp,
+    READABLE_TIMESTAMP_FORMAT,
+)
 
 # CRITICAL: Suppress __package__ != __spec__.parent warnings immediately after importing warnings
 # These warnings are emitted during module import, so they must be filtered before any other imports
@@ -772,7 +776,7 @@ class SessionLogRotationManager:
                             if match:
                                 timestamp_str = match.group(1)
                                 return datetime.strptime(
-                                    timestamp_str, "%Y-%m-%d %H:%M:%S"
+                                    timestamp_str, READABLE_TIMESTAMP_FORMAT
                                 )
                         except (ValueError, AttributeError):
                             pass
@@ -783,7 +787,9 @@ class SessionLogRotationManager:
                             timestamp_str = line[
                                 :19
                             ]  # First 19 chars are "YYYY-MM-DD HH:MM:SS"
-                            return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+                            return datetime.strptime(
+                                timestamp_str, READABLE_TIMESTAMP_FORMAT
+                            )
                         except ValueError:
                             pass
         except (OSError, FileNotFoundError, UnicodeDecodeError):

@@ -11,7 +11,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import BASE_DATA_DIR
 
-logger = get_component_logger('communication_manager')
+logger = get_component_logger("communication_manager")
 
 # File to track which users have been welcomed (channel-agnostic)
 WELCOME_TRACKING_FILE = Path(BASE_DATA_DIR) / "welcome_tracking.json"
@@ -22,8 +22,8 @@ def _load_welcome_tracking() -> dict[str, dict[str, Any]]:
     """Load the welcome tracking data."""
     if not WELCOME_TRACKING_FILE.exists():
         return {}
-    
-    with open(WELCOME_TRACKING_FILE, 'r', encoding='utf-8') as f:
+
+    with open(WELCOME_TRACKING_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -31,20 +31,20 @@ def _load_welcome_tracking() -> dict[str, dict[str, Any]]:
 def _save_welcome_tracking(tracking_data: dict[str, dict[str, Any]]) -> bool:
     """Save the welcome tracking data."""
     WELCOME_TRACKING_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(WELCOME_TRACKING_FILE, 'w', encoding='utf-8') as f:
+    with open(WELCOME_TRACKING_FILE, "w", encoding="utf-8") as f:
         json.dump(tracking_data, f, indent=2)
     return True
 
 
 @handle_errors("checking if user has been welcomed", default_return=False)
-def has_been_welcomed(channel_identifier: str, channel_type: str = 'discord') -> bool:
+def has_been_welcomed(channel_identifier: str, channel_type: str = "discord") -> bool:
     """
     Check if a user has already been sent a welcome message.
-    
+
     Args:
         channel_identifier: The user's channel-specific identifier (Discord ID, email, etc.)
         channel_type: The type of channel ('discord', 'email', etc.)
-    
+
     Returns:
         bool: True if user has been welcomed
     """
@@ -54,37 +54,49 @@ def has_been_welcomed(channel_identifier: str, channel_type: str = 'discord') ->
 
 
 @handle_errors("marking user as welcomed", default_return=False)
-def mark_as_welcomed(channel_identifier: str, channel_type: str = 'discord') -> bool:
+def mark_as_welcomed(channel_identifier: str, channel_type: str = "discord") -> bool:
     """
     Mark a user as having been welcomed.
-    
+
     Args:
         channel_identifier: The user's channel-specific identifier
         channel_type: The type of channel ('discord', 'email', etc.)
-    
+
     Returns:
         bool: True if successful
     """
+    # Local import to avoid startup-time circular import traps.
+    from core.service_utilities import now_readable_timestamp
     from datetime import datetime
+
     tracking_data = _load_welcome_tracking()
     key = f"{channel_type}:{channel_identifier}"
+
     tracking_data[key] = {
-        "welcomed_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        # Human-readable timestamp preferred for JSONs humans might read.
+        # Keep the existing key name to avoid breaking any readers.
+        "welcomed_at": now_readable_timestamp(),
+        # Optional machine-friendly timestamp for sorting/analysis.
+        # ISO must come from a datetime object (not string manipulation).
+        "welcomed_at_iso": datetime.now().isoformat(),
         "channel_type": channel_type,
-        "welcomed": True
+        "welcomed": True,
     }
+
     return _save_welcome_tracking(tracking_data)
 
 
 @handle_errors("clearing welcomed status", default_return=False)
-def clear_welcomed_status(channel_identifier: str, channel_type: str = 'discord') -> bool:
+def clear_welcomed_status(
+    channel_identifier: str, channel_type: str = "discord"
+) -> bool:
     """
     Clear the welcomed status for a user (e.g., when they deauthorize).
-    
+
     Args:
         channel_identifier: The user's channel-specific identifier
         channel_type: The type of channel ('discord', 'email', etc.)
-    
+
     Returns:
         bool: True if successful
     """
@@ -99,19 +111,19 @@ def clear_welcomed_status(channel_identifier: str, channel_type: str = 'discord'
 @handle_errors("getting welcome message", default_return="")
 def get_welcome_message(
     channel_identifier: str,
-    channel_type: str = 'discord',
+    channel_type: str = "discord",
     username: str | None = None,
-    is_authorization: bool = False
+    is_authorization: bool = False,
 ) -> str:
     """
     Get a channel-agnostic welcome message for a new user.
-    
+
     Args:
         channel_identifier: The user's channel-specific identifier
         channel_type: The type of channel ('discord', 'email', etc.)
         username: Optional username to prefill
         is_authorization: True if this is triggered by app authorization, False for general messages
-    
+
     Returns:
         str: Welcome message text
     """
@@ -160,6 +172,5 @@ I'm your motivational health assistant, and I'm here to help you manage tasks, c
 • `show my profile` - View your profile (once linked)
 
 I'll be here when you're ready! 🚀"""
-    
-    return message
 
+    return message

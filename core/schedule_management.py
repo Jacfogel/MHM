@@ -11,7 +11,7 @@ from typing import Dict, Any, Optional
 from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
 
-from core.service_utilities import create_reschedule_request
+from core.service_utilities import create_reschedule_request, TIME_HM_FORMAT
 from user.user_context import UserContext
 from core.error_handling import handle_errors, ValidationError
 
@@ -77,7 +77,7 @@ def get_schedule_time_periods(user_id, category):
                 )
                 continue
             try:
-                start_time_obj = datetime.strptime(start_time, "%H:%M")
+                start_time_obj = datetime.strptime(start_time, TIME_HM_FORMAT)
             except ValueError as e:
                 logger.warning(
                     f"Error parsing start time for period {period_name} in category {category}: {e}"
@@ -236,7 +236,7 @@ def get_current_time_periods_with_validation(user_id, category):
         return [], []
 
     current_datetime = datetime.now().time()  # Get current time
-    current_time_str = current_datetime.strftime("%H:%M")
+    current_time_str = current_datetime.strftime(TIME_HM_FORMAT)
     time_periods = get_schedule_time_periods(user_id, category)
 
     valid_periods = list(time_periods.keys())

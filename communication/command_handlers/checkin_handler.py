@@ -5,12 +5,14 @@ from typing import Dict, Any, List
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.response_tracking import is_user_checkins_enabled, get_recent_checkins
+from core.service_utilities import READABLE_TIMESTAMP_FORMAT
 from datetime import datetime, date
 from communication.command_handlers.base_handler import InteractionHandler
 from communication.command_handlers.shared_types import (
     InteractionResponse,
     ParsedCommand,
 )
+
 
 # Route checkin logs to command handlers component
 checkin_logger = get_component_logger("checkin_handler")
@@ -76,7 +78,7 @@ class CheckinHandler(InteractionHandler):
             try:
                 if last_checkin_timestamp:
                     last_checkin_date = datetime.strptime(
-                        last_checkin_timestamp, "%Y-%m-%d %H:%M:%S"
+                        last_checkin_timestamp, READABLE_TIMESTAMP_FORMAT
                     ).date()
                     if last_checkin_date == today:
                         return InteractionResponse(

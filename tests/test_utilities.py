@@ -16,10 +16,9 @@ from datetime import datetime
 
 # Do not modify sys.path; rely on package imports
 
-from core.user_data_handlers import create_new_user
-from core.user_data_handlers import save_user_data
+from core.user_data_handlers import create_new_user, save_user_data, get_user_data
 from core.file_operations import ensure_user_directory
-from core.service_utilities import now_readable_timestamp
+from core.service_utilities import now_readable_timestamp, DATE_ONLY_FORMAT
 
 # Setup logger for test utilities
 logger = logging.getLogger(__name__)
@@ -3217,7 +3216,7 @@ class TestDataFactory:
                 "priority": "medium",
                 "status": "active",
                 "due_date": (datetime.now() + timedelta(days=i + 1)).strftime(
-                    "%Y-%m-%d"
+                    DATE_ONLY_FORMAT
                 ),
                 "created_at": now_readable_timestamp(),
                 "updated_at": now_readable_timestamp(),

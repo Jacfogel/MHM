@@ -37,6 +37,20 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2016-01-17 - Standardize datetime formatting usage and audit datetime.now() calls
+
+- Completed sweep replacing hardcoded strftime/strptime format strings with
+  canonical constants from core/service_utilities.py
+- Adopted now_readable_timestamp() and now_filename_timestamp() for metadata
+  and filename-safe timestamp generation where appropriate
+- Audited datetime.now() usages across core, communication, and scheduler code
+  and intentionally preserved datetime objects used for time arithmetic,
+  comparisons, and flow logic
+- Aligned cleanup metadata to use canonical readable timestamps
+- Left ISO-based persistence and logger rotation behavior unchanged by design
+
+No behavioral changes intended beyond timestamp formatting consistency.
+
 ### 2026-01-15 - Ruff rollout, selective fixes, and report generator diagnostics **IN PROGRESS**
 - **Feature**: Brought Ruff into the workspace, exercised `ruff check . --fix` on a subset of safe rules, and documented the current failure mode inside the report generation step.
 - **Changes**:

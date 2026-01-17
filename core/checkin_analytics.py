@@ -13,6 +13,7 @@ from typing import Dict, List, Optional
 from core.logger import get_component_logger
 from core.response_tracking import get_checkins_by_days
 from core.error_handling import handle_errors
+from core.service_utilities import READABLE_TIMESTAMP_FORMAT, TIME_HM_FORMAT
 
 logger = get_component_logger("user_activity")
 analytics_logger = get_component_logger("user_activity")
@@ -41,7 +42,7 @@ class CheckinAnalytics:
             if "mood" in checkin and "timestamp" in checkin:
                 try:
                     timestamp = datetime.strptime(
-                        checkin["timestamp"], "%Y-%m-%d %H:%M:%S"
+                        checkin["timestamp"], READABLE_TIMESTAMP_FORMAT
                     )
                     mood_data.append(
                         {
@@ -90,11 +91,12 @@ class CheckinAnalytics:
             "mood_volatility": round(mood_std, 2),
             "trend": trend,
             "best_day": {
-                "date": best_day["date"].strftime("%Y-%m-%d"),
+                # ISO date should come from the date object
+                "date": best_day["date"].isoformat(),
                 "mood": best_day["mood"],
             },
             "worst_day": {
-                "date": worst_day["date"].strftime("%Y-%m-%d"),
+                "date": worst_day["date"].isoformat(),
                 "mood": worst_day["mood"],
             },
             "mood_distribution": self._get_mood_distribution(moods),
@@ -116,7 +118,7 @@ class CheckinAnalytics:
             if "energy" in checkin and "timestamp" in checkin:
                 try:
                     timestamp = datetime.strptime(
-                        checkin["timestamp"], "%Y-%m-%d %H:%M:%S"
+                        checkin["timestamp"], READABLE_TIMESTAMP_FORMAT
                     )
                     energy_data.append(
                         {
@@ -165,11 +167,11 @@ class CheckinAnalytics:
             "energy_volatility": round(energy_std, 2),
             "trend": trend,
             "best_day": {
-                "date": best_day["date"].strftime("%Y-%m-%d"),
+                "date": best_day["date"].isoformat(),
                 "energy": best_day["energy"],
             },
             "worst_day": {
-                "date": worst_day["date"].strftime("%Y-%m-%d"),
+                "date": worst_day["date"].isoformat(),
                 "energy": worst_day["energy"],
             },
             "energy_distribution": self._get_energy_distribution(energies),
@@ -235,7 +237,7 @@ class CheckinAnalytics:
             if has_sleep_data:
                 try:
                     timestamp = datetime.strptime(
-                        checkin["timestamp"], "%Y-%m-%d %H:%M:%S"
+                        checkin["timestamp"], READABLE_TIMESTAMP_FORMAT
                     )
                     sleep_entry = {
                         "date": timestamp.date(),
@@ -375,12 +377,12 @@ class CheckinAnalytics:
             if "timestamp" in checkin:
                 try:
                     timestamp = datetime.strptime(
-                        checkin["timestamp"], "%Y-%m-%d %H:%M:%S"
+                        checkin["timestamp"], READABLE_TIMESTAMP_FORMAT
                     )
-                    formatted_date = timestamp.strftime("%Y-%m-%d")
 
                     formatted_checkin = {
-                        "date": formatted_date,
+                        # ISO date should come from the date object
+                        "date": timestamp.date().isoformat(),
                         "mood": checkin.get("mood", "No mood recorded"),
                         "energy": checkin.get("energy", "No energy recorded"),
                         "timestamp": checkin["timestamp"],
@@ -962,8 +964,8 @@ class CheckinAnalytics:
             from datetime import datetime, timedelta
 
             # Parse times
-            sleep_dt = datetime.strptime(sleep_time, "%H:%M")
-            wake_dt = datetime.strptime(wake_time, "%H:%M")
+            sleep_dt = datetime.strptime(sleep_time, TIME_HM_FORMAT)
+            wake_dt = datetime.strptime(wake_time, TIME_HM_FORMAT)
 
             # Calculate duration (handle overnight sleep)
             if wake_dt < sleep_dt:

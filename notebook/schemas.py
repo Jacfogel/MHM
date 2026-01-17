@@ -12,11 +12,10 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator, model_valida
 
 from core.tags import normalize_tags, validate_tag
 from core.logger import get_component_logger
+from core.service_utilities import READABLE_TIMESTAMP_FORMAT, now_readable_timestamp
 
 logger = get_component_logger("notebook_schemas")
 
-# Standard timestamp format used throughout MHM
-TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 EntryKind = Literal["note", "list", "journal"]
 
@@ -30,12 +29,8 @@ class ListItem(BaseModel):
     text: str
     done: bool = False
     order: int
-    created_at: str = Field(
-        default_factory=lambda: datetime.now().strftime(TIMESTAMP_FORMAT)
-    )
-    updated_at: str = Field(
-        default_factory=lambda: datetime.now().strftime(TIMESTAMP_FORMAT)
-    )
+    created_at: str = Field(default_factory=now_readable_timestamp)
+    updated_at: str = Field(default_factory=now_readable_timestamp)
 
     @field_validator("text", mode="before")
     @classmethod
@@ -59,12 +54,8 @@ class Entry(BaseModel):
     group: str | None = None
     pinned: bool = False
     archived: bool = False
-    created_at: str = Field(
-        default_factory=lambda: datetime.now().strftime(TIMESTAMP_FORMAT)
-    )
-    updated_at: str = Field(
-        default_factory=lambda: datetime.now().strftime(TIMESTAMP_FORMAT)
-    )
+    created_at: str = Field(default_factory=now_readable_timestamp)
+    updated_at: str = Field(default_factory=now_readable_timestamp)
 
     @field_validator("title", "body", "group", mode="before")
     @classmethod
@@ -99,7 +90,7 @@ class Entry(BaseModel):
             for i, item in enumerate(v):
                 if item.order != i:
                     item.order = i  # Auto-correct order
-                    item.updated_at = datetime.now().strftime(TIMESTAMP_FORMAT)
+                    item.updated_at = now_readable_timestamp()
         elif v is not None:
             raise ValueError("Only 'list' kind entries can have 'items'.")
         return v

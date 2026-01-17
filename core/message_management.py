@@ -14,7 +14,11 @@ from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, determine_file_path
 from core.schemas import validate_messages_file_dict
 from core.error_handling import ValidationError, handle_errors
-from core.service_utilities import now_filename_timestamp, now_readable_timestamp
+from core.service_utilities import (
+    now_filename_timestamp,
+    now_readable_timestamp,
+    READABLE_TIMESTAMP_FORMAT,
+)
 from typing import List, Dict, Any, Optional
 
 logger = get_component_logger("message")
@@ -663,7 +667,7 @@ def _parse_timestamp(timestamp_str: str) -> datetime:
 
     # Try different timestamp formats
     formats = [
-        "%Y-%m-%d %H:%M:%S",
+        READABLE_TIMESTAMP_FORMAT,
         "%Y-%m-%dT%H:%M:%S",
         "%Y-%m-%dT%H:%M:%SZ",
         "%Y-%m-%dT%H:%M:%S.%fZ",
@@ -864,7 +868,7 @@ def get_timestamp_for_sorting(item):
         return 0.0
     timestamp = item.get("timestamp", "1970-01-01 00:00:00")
     try:
-        dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+        dt = datetime.strptime(timestamp, READABLE_TIMESTAMP_FORMAT)
         return dt.timestamp()
     except (ValueError, TypeError):
         return 0.0

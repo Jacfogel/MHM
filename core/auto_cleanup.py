@@ -16,7 +16,7 @@ from pathlib import Path
 
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
-from core.service_utilities import READABLE_TIMESTAMP_FORMAT
+from core.service_utilities import DATE_ONLY_FORMAT
 
 CLEANUP_TRACKER_FILENAME = ".last_cache_cleanup"
 
@@ -39,29 +39,65 @@ DEFAULT_CLEANUP_INTERVAL_DAYS = 30
 
 
 @handle_errors("getting last cleanup timestamp", default_return=0)
-def get_last_cleanup_timestamp():
+def get_last_cleanup_timestamp() -> float:
     """Get the timestamp of the last cleanup from tracker file."""
     if os.path.exists(CLEANUP_TRACKER_FILE):
-        with open(CLEANUP_TRACKER_FILE) as f:
+        with open(CLEANUP_TRACKER_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-            return data.get("last_cleanup_timestamp", 0)
+
+            # Store is expected to be epoch seconds
+            raw = data.get("last_cleanup_timestamp", 0)
+
+            # IMPORTANT:
+            # - 0 means "never cleaned"
+            # - -1 means "tracker exists but timestamp is invalid/corrupt"
+            if raw in (None, "", 0, "0"):
+                return 0.0
+
+            try:
+                return float(raw)
+            except Exception:
+                logger.warning(
+                    f"Invalid last_cleanup_timestamp in tracker file: {raw!r}"
+                )
+                return -1.0
+
     logger.debug("No valid cleanup tracker file found")
-    return 0
+    return 0.0
 
 
 @handle_errors("updating cleanup timestamp")
-def update_cleanup_timestamp():
+def update_cleanup_timestamp() -> None:
     """Update the cleanup tracker file with current timestamp."""
     tracker_path = Path(CLEANUP_TRACKER_FILE)
     tracker_path.parent.mkdir(parents=True, exist_ok=True)
 
+    from core.service_utilities import now_readable_timestamp
+
     data = {
+        # Machine-friendly
         "last_cleanup_timestamp": time.time(),
-        "last_cleanup_date": datetime.now().isoformat(),
+        # Canonical readable metadata timestamp
+        "last_cleanup_date": now_readable_timestamp(),
+        # Human-friendly date-only display
+        "last_cleanup_date_display": datetime.now().strftime(DATE_ONLY_FORMAT),
     }
-    with tracker_path.open("w") as f:
+
+    with tracker_path.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
-    logger.debug(f"Updated cleanup timestamp: {data['last_cleanup_date']}")
+
+    logger.debug(f"Updated cleanup timestamp: {data['last_cleanup_date_display']}")
+
+
+@handle_errors("getting invalid tracker status", default_return={})
+def _get_cleanup_status__get_invalid_tracker_status():
+    """Get status when cleanup tracker exists but contains an invalid timestamp."""
+    return {
+        "error": "Invalid last_cleanup_timestamp in cleanup tracker file",
+        "last_cleanup": "Invalid",
+        "days_since": float("inf"),
+        "next_cleanup": "On next startup",
+    }
 
 
 @handle_errors("checking if cleanup should run", default_return=False)
@@ -656,19 +692,18 @@ def _get_cleanup_status__calculate_days_since_cleanup(last_cleanup_timestamp):
 
 
 @handle_errors("formatting next cleanup date", default_return="Unknown")
-def _get_cleanup_status__format_next_cleanup_date(last_date):
+def _get_cleanup_status__format_next_cleanup_date(last_date: datetime) -> str:
     """Format the next cleanup date or return 'Overdue'."""
     next_cleanup_date = last_date + timedelta(days=DEFAULT_CLEANUP_INTERVAL_DAYS)
     now = datetime.now()
+
     # Show "Overdue" if the next cleanup date is today or in the past
     # Use date comparison (ignoring time) to avoid microsecond timing issues
-    next_date_only = next_cleanup_date.date()
-    now_date_only = now.date()
-    # If next cleanup date is today or earlier, it's overdue
-    if next_date_only <= now_date_only:
+    if next_cleanup_date.date() <= now.date():
         return "Overdue"
-    # Otherwise return the formatted date
-    return next_cleanup_date.strftime("%Y-%m-%d")
+
+    # Date-only output for status display
+    return next_cleanup_date.strftime(DATE_ONLY_FORMAT)
 
 
 @handle_errors("building status response", default_return={})
@@ -676,7 +711,7 @@ def _get_cleanup_status__build_status_response(last_date, days_since, next_clean
     """Build the final status response dictionary."""
     return {
         # Use canonical readable format for display/metadata text.
-        "last_cleanup": last_date.strftime(READABLE_TIMESTAMP_FORMAT),
+        "last_cleanup": last_date.strftime(DATE_ONLY_FORMAT),
         "days_since": days_since,
         "next_cleanup": next_cleanup,
     }
@@ -692,6 +727,10 @@ def get_cleanup_status():
     # Handle case where cleanup has never been performed
     if last_cleanup_timestamp == 0:
         return _get_cleanup_status__get_never_cleaned_status()
+
+    # Handle case where tracker file exists but is malformed/corrupt
+    if last_cleanup_timestamp < 0:
+        return _get_cleanup_status__get_invalid_tracker_status()
 
     # Calculate days since cleanup and get last date
     days_since, last_date = _get_cleanup_status__calculate_days_since_cleanup(

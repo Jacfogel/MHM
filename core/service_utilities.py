@@ -30,6 +30,11 @@ service_logger = get_component_logger("main")
 READABLE_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 FILENAME_TIMESTAMP_FORMAT = "%Y-%m-%d_%H-%M-%S"
 
+# Additional canonical formats used across scheduler + UI
+DATE_ONLY_FORMAT = "%Y-%m-%d"
+TIME_HM_FORMAT = "%H:%M"
+READABLE_MINUTE_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M"
+
 
 # Throttler class
 class Throttler:
@@ -47,31 +52,47 @@ class Throttler:
         Args:
             interval: Time interval in seconds between allowed operations
         """
-        self.interval = interval
-        self.last_run = None
+        # Force float so comparisons are consistent even if an int is passed.
+        self.interval = float(interval)
+
+        # Use a monotonic clock for throttling. This avoids issues where the system clock
+        # changes (NTP adjustment, manual change, DST, VM time drift).
+        #
+        # Note: This is intentionally NOT a datetime object anymore; it's internal-only state.
+        self.last_run: float | None = None
 
     @handle_errors("checking if throttler should run", default_return=False)
     def should_run(self):
         """
         Check if enough time has passed since the last run to allow another execution.
+
+        IMPORTANT:
+        - Uses monotonic time (safe for measuring intervals).
+        - Does NOT update last_run when returning False.
         """
-        current_time = datetime.now()
+        import time
+
+        current_time = time.monotonic()
 
         if self.last_run is None:
             # Set first-run timestamp so we actually throttle subsequent calls
-            self.last_run = current_time.strftime(READABLE_TIMESTAMP_FORMAT)
+            self.last_run = current_time
             return True
 
-        try:
-            last_run_date = datetime.strptime(self.last_run, READABLE_TIMESTAMP_FORMAT)
-        except (ValueError, TypeError):
-            # If parsing fails, allow run and reset timestamp
-            self.last_run = current_time.strftime(READABLE_TIMESTAMP_FORMAT)
+        # Defensive: last_run is internal state and should always be a float,
+        # but tests (and potentially older call sites) may still inject invalid values.
+        # If last_run is invalid, fail open and reset state.
+        if not isinstance(self.last_run, (int, float)):
+            self.last_run = current_time
             return True
 
-        time_since_last_run = (current_time - last_run_date).total_seconds()
-        if time_since_last_run >= self.interval:
-            self.last_run = current_time.strftime(READABLE_TIMESTAMP_FORMAT)
+        time_since_last_run = current_time - float(self.last_run)
+
+        # Small epsilon helps avoid edge flakiness when interval == timeout and the scheduler
+        # wakes up *just* under the boundary (common on Windows/xdist).
+        epsilon = 0.002  # 2ms is tiny, but enough to reduce boundary flake
+        if time_since_last_run + epsilon >= self.interval:
+            self.last_run = current_time
             return True
 
         return False
@@ -138,17 +159,28 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
         )
         return False
 
+    # Human-readable timestamp for JSON (preferred where humans might read it)
+    requested_at_readable = now_readable_timestamp()
+
+    # ISO 8601 should come from a datetime object (not from strings).
+    # Optional, but useful if you later sort/process these programmatically.
+    requested_at_iso = datetime.now().isoformat()
+
     # Create request data
     request_data = {
         "user_id": user_id,
         "category": category,
-        "timestamp": time.time(),
+        "requested_at_readable": requested_at_readable,
+        "requested_at_iso": requested_at_iso,
         "source": "ui_schedule_editor",
     }
 
-    # Create unique filename
-    timestamp = int(time.time() * 1000)  # milliseconds for uniqueness
-    filename = f"reschedule_request_{user_id}_{category}_{timestamp}.flag"
+    # Create unique filename:
+    # - Human-readable base (Windows-safe)
+    # - Millisecond suffix for uniqueness (not a "policy timestamp", just an ID component)
+    ms_suffix = int(time.time() * 1000) % 1000
+    filename_timestamp = f"{now_filename_timestamp()}_{ms_suffix:03d}"
+    filename = f"reschedule_request_{user_id}_{category}_{filename_timestamp}.flag"
 
     base_dir = get_flags_dir()
     request_file = Path(base_dir) / filename
@@ -318,7 +350,9 @@ def load_and_localize_datetime(datetime_str, timezone_str="America/Regina"):
     """
     try:
         tz = pytz.timezone(timezone_str)
-        naive_datetime = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M")
+        naive_datetime = datetime.strptime(
+            datetime_str, READABLE_MINUTE_TIMESTAMP_FORMAT
+        )
         aware_datetime = tz.localize(naive_datetime)
         logger.debug(
             f"Localized datetime '{datetime_str}' to timezone '{timezone_str}': '{aware_datetime}'"

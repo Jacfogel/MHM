@@ -28,6 +28,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFont
 
+from core.service_utilities import READABLE_TIMESTAMP_FORMAT
+
 # Set up logging
 from core.logger import setup_logging, get_component_logger
 
@@ -621,7 +623,8 @@ class MHMManagerUI(QMainWindow):
                             if timestamp_match and last_init_time is None:
                                 try:
                                     last_init_time = datetime.strptime(
-                                        timestamp_match.group(1), "%Y-%m-%d %H:%M:%S"
+                                        timestamp_match.group(1),
+                                        READABLE_TIMESTAMP_FORMAT,
                                     )
                                 except ValueError:
                                     pass
@@ -634,7 +637,8 @@ class MHMManagerUI(QMainWindow):
                             if timestamp_match and last_shutdown_time is None:
                                 try:
                                     last_shutdown_time = datetime.strptime(
-                                        timestamp_match.group(1), "%Y-%m-%d %H:%M:%S"
+                                        timestamp_match.group(1),
+                                        READABLE_TIMESTAMP_FORMAT,
                                     )
                                 except ValueError:
                                     pass
@@ -647,7 +651,8 @@ class MHMManagerUI(QMainWindow):
                             if timestamp_match and last_activity_time is None:
                                 try:
                                     last_activity_time = datetime.strptime(
-                                        timestamp_match.group(1), "%Y-%m-%d %H:%M:%S"
+                                        timestamp_match.group(1),
+                                        READABLE_TIMESTAMP_FORMAT,
                                     )
                                 except ValueError:
                                     pass
@@ -694,7 +699,7 @@ class MHMManagerUI(QMainWindow):
                                     try:
                                         init_time = datetime.strptime(
                                             timestamp_match.group(1),
-                                            "%Y-%m-%d %H:%M:%S",
+                                            READABLE_TIMESTAMP_FORMAT,
                                         )
                                         if init_time > last_shutdown_time:
                                             # Check if this restart is recent
@@ -786,7 +791,8 @@ class MHMManagerUI(QMainWindow):
                             if timestamp_match and last_init_time is None:
                                 try:
                                     last_init_time = datetime.strptime(
-                                        timestamp_match.group(1), "%Y-%m-%d %H:%M:%S"
+                                        timestamp_match.group(1),
+                                        READABLE_TIMESTAMP_FORMAT,
                                     )
                                 except ValueError:
                                     pass
@@ -799,7 +805,8 @@ class MHMManagerUI(QMainWindow):
                             if timestamp_match and last_shutdown_time is None:
                                 try:
                                     last_shutdown_time = datetime.strptime(
-                                        timestamp_match.group(1), "%Y-%m-%d %H:%M:%S"
+                                        timestamp_match.group(1),
+                                        READABLE_TIMESTAMP_FORMAT,
                                     )
                                 except ValueError:
                                     pass
@@ -834,7 +841,7 @@ class MHMManagerUI(QMainWindow):
                                     try:
                                         init_time = datetime.strptime(
                                             timestamp_match.group(1),
-                                            "%Y-%m-%d %H:%M:%S",
+                                            READABLE_TIMESTAMP_FORMAT,
                                         )
                                         if init_time > last_shutdown_time:
                                             # Check if this restart is recent

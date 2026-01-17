@@ -2,21 +2,65 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-16 05:50:56
+> **Last Generated**: 2026-01-17 06:02:35
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 35
-**Legacy Compatibility Markers Detected**: 64
+**Total Files with Issues**: 36
+**Legacy Compatibility Markers Detected**: 73
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
+- Legacy compatibility markers remain in 1 file(s) (2 total markers).
 
 ## Recommended Follow-Up
 1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.
 2. Add regression tests covering analytics handler flows and user data migrations before deleting markers.
 3. Track the cleanup effort and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.
 
+## Deprecated Functions
+**Files Affected**: 1
+
+### tests\data\tmp4vsotbno\demo_project\legacy_code.py
+**Issues Found**: 2
+
+- **Line 27**: `LegacyChannelWrapper`
+  ```
+  class LegacyChannelWrapper:
+  ```
+
+- **Line 32**: `_create_legacy_channel_access(`
+  ```
+  def _create_legacy_channel_access():
+  ```
+
+## Historical References
+**Files Affected**: 1
+
+### tests\data\tmp4vsotbno\demo_project\legacy_code.py
+**Issues Found**: 1
+
+- **Line 23**: `bot/communication`
+  ```
+  old_path = "bot/communication/old_file.py"
+  ```
+
+## Legacy Compatibility Markers
+**Files Affected**: 1
+
+### tests\data\tmp4vsotbno\demo_project\legacy_code.py
+**Issues Found**: 2
+
+- **Line 9**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: This function is kept for backward compatibility
+  ```
+
+- **Line 15**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Old import pattern
+  ```
+
 ## Legacy Inventory Tracking
-**Files Affected**: 35
+**Files Affected**: 36
 
 ### communication\command_handlers\account_handler.py
 **Issues Found**: 1
@@ -66,7 +110,7 @@
 ### core\message_management.py
 **Issues Found**: 1
 
-- **Line 653**: `backward compatibility`
+- **Line 657**: `backward compatibility`
   ```
   Handles multiple timestamp formats for backward compatibility.
   ```
@@ -74,7 +118,7 @@
 ### core\scheduler.py
 **Issues Found**: 1
 
-- **Line 1269**: `backward compatibility`
+- **Line 1596**: `backward compatibility`
   ```
   Legacy function for backward compatibility.
   ```
@@ -103,22 +147,22 @@
 ### core\user_data_validation.py
 **Issues Found**: 4
 
-- **Line 329**: `backward compatibility`
+- **Line 330**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
   ```
 
-- **Line 333**: `backward compatibility`
+- **Line 334**: `backward compatibility`
   ```
   # This maintains backward compatibility with the old validation approach
   ```
 
-- **Line 375**: `backward compatibility`
+- **Line 376**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
   ```
 
-- **Line 433**: `backward compatibility`
+- **Line 434**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
   ```
@@ -336,9 +380,17 @@
 ### tests\conftest.py
 **Issues Found**: 1
 
-- **Line 1675**: `backward compatibility`
+- **Line 1681**: `backward compatibility`
   ```
   This function is kept for backward compatibility but does nothing.
+  ```
+
+### tests\data\tmp4vsotbno\demo_project\legacy_code.py
+**Issues Found**: 1
+
+- **Line 9**: `backward compatibility`
+  ```
+  # LEGACY COMPATIBILITY: This function is kept for backward compatibility
   ```
 
 ### tests\development_tools\test_config.py
@@ -357,67 +409,67 @@
 ### tests\test_utilities.py
 **Issues Found**: 13
 
-- **Line 587**: `backward compatibility`
+- **Line 586**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 795**: `backward compatibility`
+- **Line 794**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 965**: `backward compatibility`
+- **Line 964**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1090**: `backward compatibility`
+- **Line 1089**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1395**: `backward compatibility`
+- **Line 1394**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1423**: `backward compatibility`
+- **Line 1422**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1637**: `backward compatibility`
+- **Line 1636**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1826**: `backward compatibility`
+- **Line 1825**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2016**: `backward compatibility`
+- **Line 2015**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2184**: `backward compatibility`
+- **Line 2183**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2357**: `backward compatibility`
+- **Line 2356**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2514**: `backward compatibility`
+- **Line 2513**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2995**: `backward compatibility`
+- **Line 2994**: `backward compatibility`
   ```
   # Convenience functions for backward compatibility
   ```
@@ -441,4 +493,31 @@
 - **Line 75**: `legacy extraction`
   ```
   # Extract data and update using new functions directly - no legacy extraction needed
+  ```
+
+## Old Bot Directory
+**Files Affected**: 1
+
+### tests\data\tmp4vsotbno\demo_project\legacy_code.py
+**Issues Found**: 2
+
+- **Line 17**: `from bot.`
+  ```
+  # from bot.communication import old_module  # noqa: F401
+  ```
+
+- **Line 23**: `bot/`
+  ```
+  old_path = "bot/communication/old_file.py"
+  ```
+
+## Old Import Paths
+**Files Affected**: 1
+
+### tests\data\tmp4vsotbno\demo_project\legacy_code.py
+**Issues Found**: 1
+
+- **Line 17**: `from bot.communication`
+  ```
+  # from bot.communication import old_module  # noqa: F401
   ```

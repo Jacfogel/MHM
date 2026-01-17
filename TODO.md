@@ -321,3 +321,16 @@ When adding new tasks, follow this format:
 - after recent changes, including running some automate ruff fixes these categories which were showing 0 now show
   - *Obvious Unused*: 132 imports
   - *Type Hints Only*: 30 imports
+
+
+  **Unify derived command map semantics** - Remove/standardize the precomputed `slash_command_map` - see communication\message_processing\interaction_manager.py
+- *What it means*: Identify all usages of `InteractionManager.slash_command_map` and either (a) delete it and rely on `get_slash_command_map()`, or (b) standardize it to use unprefixed keys (e.g. `"tasks"`) and correct naming/comments.
+- *Why it helps*: Prevents mismatched expectations (`"/tasks"` vs `"tasks"`), reduces duplicate sources of truth, and makes command registration code less error-prone.
+- *Estimated effort*: Small
+
+
+**Eliminate inconsistent command conversion recursion** - Make slash and bang command handling follow the same conversion strategy - see communication\message_processing\interaction_manager.py
+- *What it means*: Refactor the `/...` and `!...` branches so they both either (a) convert the message and continue in the same `handle_message()` call, or (b) recurse in a controlled single-path function (recommended: convert + continue). Ensure flow-clearing and keyword handling run exactly once.
+- *Why it helps*: Removes subtle behavior drift between `/cmd` and `!cmd` (double-logging, repeated flow clearing, different keyword precedence), making command handling predictable and testable.
+- *Estimated effort*: Medium
+

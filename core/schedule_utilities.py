@@ -60,6 +60,10 @@ def is_schedule_active(
     Returns:
         bool: True if the schedule is active, False otherwise
     """
+    from core.service_utilities import (
+        TIME_HM_FORMAT,
+    )  # local import to keep deps minimal
+
     if not current_time:
         current_time = datetime.now()
 
@@ -85,8 +89,9 @@ def is_schedule_active(
     end_time_str = schedule_data.get("end_time", "23:59")
 
     try:
-        start_time = datetime.strptime(start_time_str, "%H:%M").time()
-        end_time = datetime.strptime(end_time_str, "%H:%M").time()
+        # Canonical time parsing format
+        start_time = datetime.strptime(start_time_str, TIME_HM_FORMAT).time()
+        end_time = datetime.strptime(end_time_str, TIME_HM_FORMAT).time()
         current_time_only = current_time.time()
 
         is_active = start_time <= current_time_only <= end_time
@@ -108,14 +113,11 @@ def get_current_active_schedules(
 ) -> list[str]:
     """
     Get list of schedule periods that are currently active based on time and day.
-
-    Args:
-        schedules: Dictionary containing all schedule periods
-        current_time: Current time to check against (defaults to now)
-
-    Returns:
-        list: List of currently active schedule period names
     """
+    from core.service_utilities import (
+        TIME_HM_FORMAT,
+    )  # local import to keep deps minimal
+
     if not schedules:
         logger.debug("No schedules provided - returning empty list")
         return []
@@ -130,7 +132,9 @@ def get_current_active_schedules(
         if is_schedule_active(period_data, current_time):
             active_periods.append(period_name)
 
+    # No canonical seconds format exists; log minute precision consistently.
     logger.debug(
-        f"Checked {total_periods} schedules at {current_time.strftime('%H:%M:%S')}, found {len(active_periods)} currently active: {active_periods}"
+        f"Checked {total_periods} schedules at {current_time.strftime(TIME_HM_FORMAT)}, "
+        f"found {len(active_periods)} currently active: {active_periods}"
     )
     return active_periods

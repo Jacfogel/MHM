@@ -2,23 +2,23 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-16 05:50:49
+> **Last Generated**: 2026-01-17 06:01:30
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 411
-- **Files with Unused Imports**: 184
-- **Total Unused Imports**: 525
+- **Files with Unused Imports**: 185
+- **Total Unused Imports**: 530
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 137 imports
+- **Obvious Unused**: 141 imports
 - **Type Hints Only**: 29 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 146 imports
+- **Test Mocking**: 147 imports
 - **Qt Testing**: 54 imports
 - **Test Infrastructure**: 153 imports
 - **Production Test Mocking**: 4 imports
@@ -38,10 +38,9 @@
 
 ### `ai/chatbot.py`
 
-**Count**: 2 unused import(s)
+**Count**: 1 unused import(s)
 
 - **Line 16**: Unused Optional imported from typing
-- **Line 47**: Unused now_readable_timestamp imported from core.service_utilities
 
 ### `ai/context_builder.py`
 
@@ -102,11 +101,12 @@
 
 ### `communication/command_handlers/notebook_handler.py`
 
-**Count**: 3 unused import(s)
+**Count**: 4 unused import(s)
 
 - **Line 10**: Unused Dict imported from typing
 - **Line 10**: Unused List imported from typing
 - **Line 10**: Unused Optional imported from typing
+- **Line 14**: Unused READABLE_TIMESTAMP_FORMAT imported from core.service_utilities
 
 ### `communication/command_handlers/profile_handler.py`
 
@@ -253,8 +253,9 @@
 
 ### `communication/message_processing/conversation_flow_manager.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
+- **Line 19**: Unused import os
 - **Line 23**: Unused Optional imported from typing
 
 ### `communication/message_processing/interaction_manager.py`
@@ -419,10 +420,12 @@
 
 ### `notebook/schemas.py`
 
-**Count**: 2 unused import(s)
+**Count**: 4 unused import(s)
 
 - **Line 8**: Unused List imported from typing
 - **Line 8**: Unused Optional imported from typing
+- **Line 10**: Unused datetime imported from datetime
+- **Line 15**: Unused READABLE_TIMESTAMP_FORMAT imported from core.service_utilities
 
 ### `tasks/task_management.py`
 
@@ -457,6 +460,12 @@
 
 - **Line 18**: Unused Dict imported from typing
 - **Line 18**: Unused Optional imported from typing
+
+### `ui/generate_ui_files.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 13**: Unused datetime imported from datetime
 
 ### `ui/widgets/period_row_widget.py`
 
@@ -548,9 +557,9 @@
 
 **Count**: 3 unused import(s)
 
-- **Line 18**: Unused List imported from typing
-- **Line 18**: Unused Dict imported from typing
-- **Line 18**: Unused Optional imported from typing
+- **Line 22**: Unused List imported from typing
+- **Line 22**: Unused Dict imported from typing
+- **Line 22**: Unused Optional imported from typing
 
 ### `core/schedule_management.py`
 
@@ -707,8 +716,8 @@
 
 **Count**: 2 unused import(s)
 
+- **Line 14**: Unused get_user_categories imported from core.user_data_handlers
 - **Line 14**: Unused get_user_data imported from core.user_data_handlers
-- **Line 21**: Unused get_user_categories imported from core.user_data_handlers
 
 ### `tests/behavior/test_task_handler_behavior.py`
 
@@ -874,11 +883,12 @@
 
 ### `tests/test_utilities.py`
 
-**Count**: 3 unused import(s)
+**Count**: 4 unused import(s)
 
 - **Line 19**: Unused create_new_user imported from core.user_data_handlers
-- **Line 20**: Unused save_user_data imported from core.user_data_handlers
-- **Line 21**: Unused ensure_user_directory imported from core.file_operations
+- **Line 19**: Unused save_user_data imported from core.user_data_handlers
+- **Line 19**: Unused get_user_data imported from core.user_data_handlers
+- **Line 20**: Unused ensure_user_directory imported from core.file_operations
 
 ### `tests/ui/test_account_creation_ui.py`
 
