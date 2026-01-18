@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 # Do not modify sys.path; rely on package imports
 
 from core.message_analytics import MessageAnalytics
-from core.service_utilities import READABLE_TIMESTAMP_FORMAT
+from core.time_utilities import TIMESTAMP_FULL
 
 
 @pytest.mark.behavior
@@ -59,7 +59,7 @@ class TestMessageAnalyticsFrequencyBehavior:
                     "message_id": f"msg-{i}",
                     "message": f"Test message {i}",
                     "category": category,
-                    "timestamp": date.strftime(READABLE_TIMESTAMP_FORMAT),
+                    "timestamp": date.strftime(TIMESTAMP_FULL),
                     "delivery_status": "sent",
                     "time_period": time_period,
                 }
@@ -161,7 +161,7 @@ class TestMessageAnalyticsDeliveryBehavior:
                     "message_id": f"msg-{i}",
                     "message": f"Test message {i}",
                     "category": "motivational",
-                    "timestamp": date.strftime(READABLE_TIMESTAMP_FORMAT),
+                    "timestamp": date.strftime(TIMESTAMP_FULL),
                     "delivery_status": status,
                     "time_period": "morning",
                 }
@@ -228,7 +228,7 @@ class TestMessageAnalyticsSummaryBehavior:
                     "message_id": f"msg-{i}",
                     "message": f"Test message {i}",
                     "category": "motivational" if i % 2 == 0 else "health",
-                    "timestamp": date.strftime(READABLE_TIMESTAMP_FORMAT),
+                    "timestamp": date.strftime(TIMESTAMP_FULL),
                     "delivery_status": "sent",
                     "time_period": "morning",
                 }

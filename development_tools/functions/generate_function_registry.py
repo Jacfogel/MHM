@@ -31,7 +31,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from core.logger import get_component_logger
-from core.service_utilities import now_readable_timestamp
+from core.time_utilities import now_timestamp_full
 
 # Import config for project name
 try:
@@ -212,7 +212,7 @@ def generate_function_registry_content(actual_functions: Dict[str, Dict]) -> str
     project_name = config.get_project_name("Project")
 
     # Generate header
-    generated_at = now_readable_timestamp()
+    generated_at = now_timestamp_full()
     content = f"""# Function Registry - {project_name} Project
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
@@ -240,7 +240,7 @@ def generate_function_registry_content(actual_functions: Dict[str, Dict]) -> str
 - **Classes Documented**: {documented_classes}
 - **Total Documented**: {documented_items}
 - **Template-Generated**: {template_items}
-- **Last Updated**: {now_readable_timestamp().split(" ")[0]}
+- **Last Updated**: {now_timestamp_full().split(" ")[0]}
 
 **Status**: {'[OK] **EXCELLENT** - All functions have proper documentation' if coverage_percentage >= 95 else '[WARNING] **GOOD** - Most functions documented, some gaps remain' if coverage_percentage >= 50 else '[ERROR] **CRITICAL GAP** - Many functions lack documentation'}
 
@@ -499,7 +499,7 @@ def generate_ai_function_registry_content(actual_functions: Dict[str, Dict]) -> 
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: {now_readable_timestamp()}
+> **Last Generated**: {now_timestamp_full()}
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -571,7 +571,7 @@ def generate_ai_function_registry_content(actual_functions: Dict[str, Dict]) -> 
 {file_organization_section}
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: {now_readable_timestamp()}
+> **Last Updated**: {now_timestamp_full()}
 """
 
     return content

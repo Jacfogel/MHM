@@ -11,7 +11,7 @@ from tests.test_utilities import (
     cleanup_test_data_environment,
     create_test_user,
 )
-from core.service_utilities import READABLE_TIMESTAMP_FORMAT
+from core.time_utilities import TIMESTAMP_FULL
 
 
 import pytest
@@ -49,7 +49,7 @@ class TestCheckinExpirySemantics:
         # Backdate last_activity beyond the configured inactivity window to trigger expiry
         idle_minutes = CHECKIN_INACTIVITY_MINUTES + 1
         past = (datetime.now() - timedelta(minutes=idle_minutes)).strftime(
-            READABLE_TIMESTAMP_FORMAT
+            TIMESTAMP_FULL
         )
         state["last_activity"] = past
 

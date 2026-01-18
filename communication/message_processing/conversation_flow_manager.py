@@ -29,7 +29,12 @@ from core.response_tracking import (
     get_recent_checkins,
 )
 from core.error_handling import handle_errors
-from core.service_utilities import DATE_ONLY_FORMAT, TIME_HM_FORMAT
+from core.time_utilities import (
+    TIMESTAMP_FULL,
+    DATE_ONLY,
+    TIME_ONLY_MINUTE,
+    now_timestamp_full,
+)
 
 # Route conversation orchestration to communication_manager component log
 logger = get_component_logger("communication_manager")
@@ -151,7 +156,7 @@ class ConversationManager:
     def _expire_inactive_checkins(self, user_id: str | None = None) -> None:
         """Remove stale check-in flows that have been idle beyond the allowed window."""
         # Local import to avoid circular-import traps during early startup
-        from core.service_utilities import READABLE_TIMESTAMP_FORMAT
+        from core.time_utilities import TIMESTAMP_FULL
 
         expired_users: list[str] = []
         now = datetime.now()
@@ -168,7 +173,7 @@ class ConversationManager:
                 continue
 
             try:
-                last_dt = datetime.strptime(last_ts, READABLE_TIMESTAMP_FORMAT)
+                last_dt = datetime.strptime(last_ts, TIMESTAMP_FULL)
             except Exception:
                 # If state is malformed, don't crash expiration sweeps.
                 continue
@@ -529,8 +534,6 @@ class ConversationManager:
     )
     def _start_dynamic_checkin(self, user_id: str) -> tuple[str, bool]:
         """Start a dynamic check-in flow based on user preferences with weighted question selection"""
-        # Local import to avoid startup-time circular import traps.
-        from core.service_utilities import now_readable_timestamp
 
         # Get user's check-in preferences
         prefs_result = get_user_data(user_id, "preferences")
@@ -565,7 +568,7 @@ class ConversationManager:
             "data": {},
             "question_order": question_order,
             "current_question_index": 0,
-            "last_activity": now_readable_timestamp(),
+            "last_activity": now_timestamp_full(),
         }
         self.user_states[user_id] = user_state
 
@@ -689,16 +692,16 @@ class ConversationManager:
         Enhanced check-in flow with dynamic questions and better validation
         """
         # Local import to avoid startup-time circular import traps.
-        from core.service_utilities import (
-            READABLE_TIMESTAMP_FORMAT,
-            now_readable_timestamp,
+        from core.time_utilities import (
+            TIMESTAMP_FULL,
+            now_timestamp_full,
         )
 
         # Idle expiry: 45 minutes since last activity
         try:
             last_ts = user_state.get("last_activity")
             if last_ts:
-                last_dt = datetime.strptime(last_ts, READABLE_TIMESTAMP_FORMAT)
+                last_dt = datetime.strptime(last_ts, TIMESTAMP_FULL)
                 if datetime.now() - last_dt > timedelta(
                     minutes=CHECKIN_INACTIVITY_MINUTES
                 ):
@@ -813,7 +816,7 @@ class ConversationManager:
         # Move to next question and update activity
         user_state["current_question_index"] = current_index + 1
         try:
-            user_state["last_activity"] = now_readable_timestamp()
+            user_state["last_activity"] = now_timestamp_full()
         except Exception:
             pass
 
@@ -1368,7 +1371,7 @@ class ConversationManager:
 
             # Validate that due_date is in proper format (YYYY-MM-DD)
             try:
-                datetime.strptime(due_date_str, DATE_ONLY_FORMAT)
+                datetime.strptime(due_date_str, DATE_ONLY)
             except ValueError:
                 # Invalid date format - can't set reminders
                 logger.warning(
@@ -1500,11 +1503,11 @@ class ConversationManager:
         from tasks.task_management import get_task_by_id
 
         # Canonical formats:
-        # - DATE_ONLY_FORMAT / TIME_HM_FORMAT are shared constants
-        # - READABLE_MINUTE_TIMESTAMP_FORMAT is canonical for "YYYY-MM-DD HH:MM"
-        from core.service_utilities import (
-            READABLE_MINUTE_TIMESTAMP_FORMAT,
-            now_readable_timestamp,  # "now" helper
+        # - DATE_ONLY / TIME_ONLY_MINUTE are shared constants
+        # - TIMESTAMP_MINUTE is canonical for "YYYY-MM-DD HH:MM"
+        from core.time_utilities import (
+            TIMESTAMP_MINUTE,
+            now_timestamp_full,  # "now" helper
         )
 
         text_lower = text.lower().strip()
@@ -1526,13 +1529,13 @@ class ConversationManager:
         try:
             # Parse due date and time (use canonical formats, not inline strings)
             due_datetime = datetime.strptime(
-                f"{due_date_str} {due_time_str}", READABLE_MINUTE_TIMESTAMP_FORMAT
+                f"{due_date_str} {due_time_str}", TIMESTAMP_MINUTE
             )
             logger.debug(f"Parsed due datetime for task {task_id}: {due_datetime}")
         except ValueError:
             # Try without time (date-only)
             try:
-                due_datetime = datetime.strptime(due_date_str, DATE_ONLY_FORMAT)
+                due_datetime = datetime.strptime(due_date_str, DATE_ONLY)
                 due_datetime = due_datetime.replace(hour=9, minute=0)  # Default to 9 AM
                 logger.debug(f"Parsed due date only for task {task_id}: {due_datetime}")
             except ValueError as e2:
@@ -1615,16 +1618,16 @@ class ConversationManager:
                 now = datetime.now()
                 if reminder_end < now:
                     logger.debug(
-                        f"Reminder time {reminder_end} is in the past (now={now_readable_timestamp()}), skipping"
+                        f"Reminder time {reminder_end} is in the past (now={now_timestamp_full()}), skipping"
                     )
                     continue
 
                 # Create reminder period (canonical formats for date/time fields)
                 reminder_periods.append(
                     {
-                        "date": reminder_start.strftime(DATE_ONLY_FORMAT),
-                        "start_time": reminder_start.strftime(TIME_HM_FORMAT),
-                        "end_time": reminder_end.strftime(TIME_HM_FORMAT),
+                        "date": reminder_start.strftime(DATE_ONLY),
+                        "start_time": reminder_start.strftime(TIME_ONLY_MINUTE),
+                        "end_time": reminder_end.strftime(TIME_ONLY_MINUTE),
                     }
                 )
 
@@ -1701,7 +1704,7 @@ class ConversationManager:
 
         try:
             # Parse due date
-            due_date = datetime.strptime(due_date_str, DATE_ONLY_FORMAT)
+            due_date = datetime.strptime(due_date_str, DATE_ONLY)
 
             # Parse time if provided, otherwise use current time of day
             if due_time_str and due_time_str.strip():
@@ -1928,11 +1931,11 @@ class ConversationManager:
         import re
         from datetime import datetime, timedelta
 
-        # Canonical formats live in core.service_utilities
-        # - DATE_ONLY_FORMAT is still useful for parsing/strptime in other places,
+        # Canonical formats live in core.time_utilities
+        # - DATE_ONLY is still useful for parsing/strptime in other places,
         #   but for *date-only string output* we prefer date().isoformat().
-        from core.service_utilities import (
-            DATE_ONLY_FORMAT,
+        from core.time_utilities import (
+            DATE_ONLY,
         )  # noqa: F401 (documented canonical)
 
         text_lower = (text or "").lower().strip()

@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 # Do not modify sys.path; rely on package imports
 
 from core.checkin_analytics import CheckinAnalytics
-from core.service_utilities import READABLE_TIMESTAMP_FORMAT
+from core.time_utilities import TIMESTAMP_FULL
 
 
 @pytest.mark.behavior
@@ -49,7 +49,7 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
             date = base_date + timedelta(days=i)
             checkins.append(
                 {
-                    "timestamp": date.strftime(READABLE_TIMESTAMP_FORMAT),
+                    "timestamp": date.strftime(TIMESTAMP_FULL),
                     "mood": 3 + (i % 3),  # Alternating moods: 3, 4, 5
                     "user_id": "test_user",
                 }
@@ -149,7 +149,7 @@ class TestCheckinAnalyticsHabitAnalysisBehavior:
             date = base_date + timedelta(days=i)
             checkins.append(
                 {
-                    "timestamp": date.strftime(READABLE_TIMESTAMP_FORMAT),
+                    "timestamp": date.strftime(TIMESTAMP_FULL),
                     "ate_breakfast": i % 2,  # Every other day
                     "brushed_teeth": 1,  # Every day
                     "medication_taken": i % 3 == 0,  # Every third day
@@ -243,7 +243,7 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
             wake_time = "07:00"
             checkins.append(
                 {
-                    "timestamp": date.strftime(READABLE_TIMESTAMP_FORMAT),
+                    "timestamp": date.strftime(TIMESTAMP_FULL),
                     "sleep_schedule": {
                         "sleep_time": sleep_time,
                         "wake_time": wake_time,
@@ -327,7 +327,7 @@ class TestCheckinAnalyticsWellnessScoreBehavior:
             date = base_date + timedelta(days=i)
             checkins.append(
                 {
-                    "timestamp": date.strftime(READABLE_TIMESTAMP_FORMAT),
+                    "timestamp": date.strftime(TIMESTAMP_FULL),
                     "mood": 4,  # Good mood
                     "ate_breakfast": 1,  # Good habits
                     "brushed_teeth": 1,
@@ -417,7 +417,7 @@ class TestCheckinAnalyticsHistoryBehavior:
             date = base_date + timedelta(days=i)
             checkins.append(
                 {
-                    "timestamp": date.strftime(READABLE_TIMESTAMP_FORMAT),
+                    "timestamp": date.strftime(TIMESTAMP_FULL),
                     "mood": 4,
                     "notes": f"Check-in note for day {i}",
                     "user_id": "test_user",
@@ -482,7 +482,7 @@ class TestCheckinAnalyticsCompletionRateBehavior:
             date = base_date + timedelta(days=i)
             checkins.append(
                 {
-                    "timestamp": date.strftime(READABLE_TIMESTAMP_FORMAT),
+                    "timestamp": date.strftime(TIMESTAMP_FULL),
                     "ate_breakfast": i % 2,  # 50% completion
                     "brushed_teeth": 1,  # 100% completion
                     "medication_taken": i % 3 == 0,  # 33% completion
@@ -551,7 +551,7 @@ class TestCheckinAnalyticsTaskStatsBehavior:
             date = base_date + timedelta(days=i)
             checkins.append(
                 {
-                    "timestamp": date.strftime(READABLE_TIMESTAMP_FORMAT),
+                    "timestamp": date.strftime(TIMESTAMP_FULL),
                     "tasks_completed": i + 1,  # 1, 2, 3, 4, 5, 6, 7 tasks
                     "tasks_total": 10,  # Always 10 total tasks
                     "user_id": "test_user",

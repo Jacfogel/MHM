@@ -30,10 +30,10 @@ import re
 from pathlib import Path
 from unittest.mock import Mock, patch
 from datetime import datetime
-from core.service_utilities import (
-    now_filename_timestamp,
-    now_readable_timestamp,
-    READABLE_TIMESTAMP_FORMAT,
+from core.time_utilities import (
+    now_timestamp_filename,
+    now_timestamp_full,
+    TIMESTAMP_FULL,
 )
 
 # CRITICAL: Suppress __package__ != __spec__.parent warnings immediately after importing warnings
@@ -775,9 +775,7 @@ class SessionLogRotationManager:
                             )
                             if match:
                                 timestamp_str = match.group(1)
-                                return datetime.strptime(
-                                    timestamp_str, READABLE_TIMESTAMP_FORMAT
-                                )
+                                return datetime.strptime(timestamp_str, TIMESTAMP_FULL)
                         except (ValueError, AttributeError):
                             pass
 
@@ -787,9 +785,7 @@ class SessionLogRotationManager:
                             timestamp_str = line[
                                 :19
                             ]  # First 19 chars are "YYYY-MM-DD HH:MM:SS"
-                            return datetime.strptime(
-                                timestamp_str, READABLE_TIMESTAMP_FORMAT
-                            )
+                            return datetime.strptime(timestamp_str, TIMESTAMP_FULL)
                         except ValueError:
                             pass
         except (OSError, FileNotFoundError, UnicodeDecodeError):
@@ -861,8 +857,8 @@ class SessionLogRotationManager:
             return
 
         test_logger.info(f"Starting {rotation_context} log rotation for all log files")
-        timestamp = now_filename_timestamp()
-        timestamp_display = now_readable_timestamp()
+        timestamp = now_timestamp_filename()
+        timestamp_display = now_timestamp_full()
 
         # Ensure backups directory exists
         backup_dir = Path(os.environ.get("LOG_BACKUP_DIR", "tests/logs/backups"))
@@ -1091,7 +1087,7 @@ class LogLifecycleManager:
             try:
                 if backup_file.is_file() and backup_file.stat().st_mtime < cutoff_date:
                     # Create archive filename with timestamp
-                    timestamp = now_filename_timestamp()
+                    timestamp = now_timestamp_filename()
                     archive_filename = (
                         f"{backup_file.stem}_{timestamp}{backup_file.suffix}"
                     )
@@ -1283,7 +1279,7 @@ def setup_consolidated_test_logging():
     # or if files are empty/new
     from datetime import datetime
 
-    timestamp = now_readable_timestamp()
+    timestamp = now_timestamp_full()
 
     if not rotation_happened:
         # Check if files are empty or don't exist - only write headers if needed

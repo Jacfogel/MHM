@@ -37,6 +37,27 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2016-01-18 - ## Added `core/time_utilities.py`: central module for canonical date/time formats and helpers.
+  - Canonical formats:
+    - `TIMESTAMP_FULL` (%Y-%m-%d %H:%M:%S) — primary internal timestamp
+    - `TIMESTAMP_MINUTE` (%Y-%m-%d %H:%M) — scheduler/UI precision
+    - `DATE_ONLY` (%Y-%m-%d)
+    - `TIME_ONLY_MINUTE` (%H:%M)
+    - `TIMESTAMP_FILENAME` (%Y-%m-%d_%H-%M-%S) — filename-safe
+    - Display-only:
+      - `DATE_DISPLAY_MONTH_DAY` (%b %d)
+      - `DATE_DISPLAY_WEEKDAY` (%A)
+    - Debug-only:
+      - `TIMESTAMP_WITH_MICROSECONDS` (%Y-%m-%d %H:%M:%S.%f)
+  - Standard helpers:
+    - `now_timestamp_full()`, `now_timestamp_minute()`, `now_timestamp_filename()`
+    - `parse_timestamp_full()`, `parse_timestamp_minute()`
+    - `format_datetime(dt, fmt)`, `parse_datetime(value, fmt)`
+  - Notes:
+    - Designed to prevent format drift by consolidating timestamp definitions.
+    - Avoids timezone libraries at import-time; timezone conversion (if used) is lazy-import only.
+
+
 ### 2016-01-17 - Standardize datetime formatting usage and audit datetime.now() calls
 
 - Completed sweep replacing hardcoded strftime/strptime format strings with

@@ -27,7 +27,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from core.logger import get_component_logger
-from core.service_utilities import now_readable_timestamp
+from core.time_utilities import now_timestamp_full
 
 # Handle both relative and absolute imports
 if __name__ != "__main__" and __package__ and "." in __package__:
@@ -71,7 +71,7 @@ class LegacyReferenceReportGenerator:
         """
         report_lines = []
 
-        generated_at = now_readable_timestamp()
+        generated_at = now_timestamp_full()
         report_lines.append("# Legacy Reference Cleanup Report")
         report_lines.append("")
         report_lines.append("> **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`")

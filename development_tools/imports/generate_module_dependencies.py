@@ -45,7 +45,7 @@ else:
     from development_tools.shared.common import ensure_ascii
 
 from core.logger import get_component_logger
-from core.service_utilities import now_readable_timestamp
+from core.time_utilities import now_timestamp_full
 
 # Load external config on module import
 config.load_external_config()
@@ -63,8 +63,8 @@ def generate_module_dependencies_content(
     """Generate comprehensive module dependencies content with hybrid format."""
     content: List[str] = []
 
-    generated_at = now_readable_timestamp()
-    generated_date = now_readable_timestamp().split(" ")[0]
+    generated_at = now_timestamp_full()
+    generated_date = now_timestamp_full().split(" ")[0]
 
     # Get project name from config
     project_name = config.get_project_name("Project")
@@ -610,7 +610,7 @@ def identify_modules_needing_enhancement(
 
 def generate_ai_module_dependencies_content(actual_imports: Dict[str, Dict]) -> str:
     """Generate the AI-facing dependency summary - dynamic and data-driven."""
-    generated_at = now_readable_timestamp()
+    generated_at = now_timestamp_full()
 
     total_files = len(actual_imports)
     total_imports = sum(data["total_imports"] for data in actual_imports.values())

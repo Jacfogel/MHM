@@ -52,8 +52,7 @@ except ImportError:
     logger = None
 
 from .domain_mapper import DomainMapper
-from core.service_utilities import now_readable_timestamp
-from core.service_utilities import now_filename_timestamp
+from core.time_utilities import now_timestamp_full, now_timestamp_filename
 
 
 class TestFileCoverageCache:
@@ -180,8 +179,8 @@ class TestFileCoverageCache:
     def _save_cache(self) -> None:
         """Save cache to disk with file locking and atomic write for thread safety."""
         try:
-            timestamp_str = now_readable_timestamp()
-            timestamp_iso = now_filename_timestamp()
+            timestamp_str = now_timestamp_full()
+            timestamp_iso = now_timestamp_filename()
             self.cache_data["last_updated"] = timestamp_iso
             self.cache_data["last_updated_readable"] = timestamp_str
             self.cache_data["generated_by"] = (

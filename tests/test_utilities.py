@@ -10,6 +10,8 @@ import shutil
 import json
 import logging
 import copy
+import uuid
+
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -18,7 +20,7 @@ from datetime import datetime
 
 from core.user_data_handlers import create_new_user, save_user_data, get_user_data
 from core.file_operations import ensure_user_directory
-from core.service_utilities import now_readable_timestamp, DATE_ONLY_FORMAT
+from core.time_utilities import now_timestamp_full, DATE_ONLY
 
 # Setup logger for test utilities
 logger = logging.getLogger(__name__)
@@ -137,8 +139,8 @@ class TestUserFactory:
             "phone": user_data.get("phone", ""),
             "email": user_data.get("email", ""),
             "discord_user_id": user_data.get("discord_user_id", ""),
-            "created_at": now_readable_timestamp(),
-            "updated_at": now_readable_timestamp(),
+            "created_at": now_timestamp_full(),
+            "updated_at": now_timestamp_full(),
             "features": {
                 "automated_messages": (
                     "enabled" if user_data.get("categories") else "disabled"
@@ -207,8 +209,8 @@ class TestUserFactory:
                 "activities_for_encouragement", []
             ),
             "notes_for_ai": user_data.get("notes_for_ai", []),
-            "created_at": now_readable_timestamp(),
-            "last_updated": now_readable_timestamp(),
+            "created_at": now_timestamp_full(),
+            "last_updated": now_timestamp_full(),
         }
 
     @staticmethod
@@ -3205,7 +3207,7 @@ class TestDataFactory:
         """
         import uuid
         from datetime import datetime, timedelta
-        from core.service_utilities import now_readable_timestamp
+        from core.time_utilities import now_timestamp_full
 
         tasks = []
         for i in range(task_count):
@@ -3216,10 +3218,10 @@ class TestDataFactory:
                 "priority": "medium",
                 "status": "active",
                 "due_date": (datetime.now() + timedelta(days=i + 1)).strftime(
-                    DATE_ONLY_FORMAT
+                    DATE_ONLY
                 ),
-                "created_at": now_readable_timestamp(),
-                "updated_at": now_readable_timestamp(),
+                "created_at": now_timestamp_full(),
+                "updated_at": now_timestamp_full(),
             }
             tasks.append(task)
 
@@ -3239,8 +3241,6 @@ class TestDataFactory:
         Returns:
             List of message dictionaries
         """
-        import uuid
-        from core.service_utilities import now_readable_timestamp
 
         messages = []
         for i in range(message_count):
@@ -3248,9 +3248,9 @@ class TestDataFactory:
                 "message_id": str(uuid.uuid4()),
                 "content": f"Test message {i+1} for {category}",
                 "category": category,
-                "created_at": now_readable_timestamp(),
+                "created_at": now_timestamp_full(),
                 "sent": False,
-                "scheduled_for": now_readable_timestamp(),
+                "scheduled_for": now_timestamp_full(),
             }
             messages.append(message)
 

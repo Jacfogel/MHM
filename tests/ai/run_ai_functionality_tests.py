@@ -25,7 +25,7 @@ os.environ["LOGS_DIR"] = tests_logs_dir
 os.environ["TEST_LOGS_DIR"] = tests_logs_dir
 
 import shutil
-from core.service_utilities import now_filename_timestamp, now_readable_timestamp
+from core.time_utilities import now_timestamp_filename, now_timestamp_full
 
 # Add project root to path (already set above)
 sys.path.insert(0, project_root)
@@ -49,7 +49,7 @@ def setup_consolidated_ai_test_logging():
         test_run_log_file.touch()
 
     # Write headers FIRST before any logging starts
-    timestamp = now_readable_timestamp()
+    timestamp = now_timestamp_full()
 
     # Write headers to both log files
     def write_log_header(log_file, log_name, description):
@@ -347,7 +347,7 @@ class AITestResultsCollector:
         # Rotate old result files (keep only last 10)
         self._rotate_result_files(results_dir, max_files=10)
 
-        timestamp = now_filename_timestamp()
+        timestamp = now_timestamp_filename()
         report_file = os.path.join(
             results_dir, f"ai_functionality_test_results_{timestamp}.md"
         )

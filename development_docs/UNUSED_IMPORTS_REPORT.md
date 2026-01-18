@@ -2,18 +2,18 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-17 06:01:30
+> **Last Generated**: 2026-01-18 01:49:20
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 411
+- **Total Files Scanned**: 412
 - **Files with Unused Imports**: 185
-- **Total Unused Imports**: 530
+- **Total Unused Imports**: 532
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 141 imports
+- **Obvious Unused**: 143 imports
 - **Type Hints Only**: 29 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
@@ -38,9 +38,10 @@
 
 ### `ai/chatbot.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
 - **Line 16**: Unused Optional imported from typing
+- **Line 44**: Unused datetime imported from datetime
 
 ### `ai/context_builder.py`
 
@@ -106,7 +107,7 @@
 - **Line 10**: Unused Dict imported from typing
 - **Line 10**: Unused List imported from typing
 - **Line 10**: Unused Optional imported from typing
-- **Line 14**: Unused READABLE_TIMESTAMP_FORMAT imported from core.service_utilities
+- **Line 14**: Unused TIMESTAMP_FULL imported from core.time_utilities
 
 ### `communication/command_handlers/profile_handler.py`
 
@@ -253,10 +254,11 @@
 
 ### `communication/message_processing/conversation_flow_manager.py`
 
-**Count**: 2 unused import(s)
+**Count**: 3 unused import(s)
 
 - **Line 19**: Unused import os
 - **Line 23**: Unused Optional imported from typing
+- **Line 32**: Unused TIMESTAMP_FULL imported from core.time_utilities
 
 ### `communication/message_processing/interaction_manager.py`
 
@@ -340,7 +342,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 11**: Unused Dict imported from typing
+- **Line 12**: Unused Dict imported from typing
 
 ### `core/schemas.py`
 
@@ -425,7 +427,7 @@
 - **Line 8**: Unused List imported from typing
 - **Line 8**: Unused Optional imported from typing
 - **Line 10**: Unused datetime imported from datetime
-- **Line 15**: Unused READABLE_TIMESTAMP_FORMAT imported from core.service_utilities
+- **Line 15**: Unused TIMESTAMP_FULL imported from core.time_utilities
 
 ### `tasks/task_management.py`
 
@@ -557,9 +559,9 @@
 
 **Count**: 3 unused import(s)
 
-- **Line 22**: Unused List imported from typing
-- **Line 22**: Unused Dict imported from typing
-- **Line 22**: Unused Optional imported from typing
+- **Line 12**: Unused List imported from typing
+- **Line 12**: Unused Dict imported from typing
+- **Line 12**: Unused Optional imported from typing
 
 ### `core/schedule_management.py`
 
@@ -578,7 +580,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 11**: Unused List imported from typing
+- **Line 12**: Unused List imported from typing
 
 ### `core/schemas.py`
 
@@ -617,9 +619,9 @@
 
 **Count**: 3 unused import(s)
 
-- **Line 14**: Unused Dict imported from typing
-- **Line 14**: Unused Optional imported from typing
-- **Line 14**: Unused List imported from typing
+- **Line 16**: Unused Dict imported from typing
+- **Line 16**: Unused Optional imported from typing
+- **Line 16**: Unused List imported from typing
 
 ### `tests/unit/test_cleanup.py`
 
@@ -885,10 +887,10 @@
 
 **Count**: 4 unused import(s)
 
-- **Line 19**: Unused create_new_user imported from core.user_data_handlers
-- **Line 19**: Unused save_user_data imported from core.user_data_handlers
-- **Line 19**: Unused get_user_data imported from core.user_data_handlers
-- **Line 20**: Unused ensure_user_directory imported from core.file_operations
+- **Line 21**: Unused create_new_user imported from core.user_data_handlers
+- **Line 21**: Unused save_user_data imported from core.user_data_handlers
+- **Line 21**: Unused get_user_data imported from core.user_data_handlers
+- **Line 22**: Unused ensure_user_directory imported from core.file_operations
 
 ### `tests/ui/test_account_creation_ui.py`
 
@@ -1754,8 +1756,8 @@
 **Count**: 3 unused import(s)
 
 - **Line 8**: Unused import tempfile
-- **Line 13**: Unused Path imported from pathlib
-- **Line 15**: Unused datetime imported from datetime
+- **Line 15**: Unused Path imported from pathlib
+- **Line 17**: Unused datetime imported from datetime
 
 ### `tests/ui/test_account_creation_ui.py`
 

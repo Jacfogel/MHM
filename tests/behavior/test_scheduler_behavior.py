@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from core.user_data_handlers import get_user_data
 from core.scheduler import SchedulerManager, schedule_all_task_reminders
 from core.user_data_handlers import get_user_categories
-from core.service_utilities import TIME_HM_FORMAT, READABLE_MINUTE_TIMESTAMP_FORMAT
+from core.time_utilities import TIME_ONLY_MINUTE, TIMESTAMP_MINUTE
 
 
 @pytest.fixture
@@ -135,13 +135,13 @@ class TestSchedulerManager:
             assert isinstance(result, str)
 
             # Parse the result to verify it's a valid datetime string
-            result_dt = datetime.strptime(result, READABLE_MINUTE_TIMESTAMP_FORMAT)
+            result_dt = datetime.strptime(result, TIMESTAMP_MINUTE)
             assert isinstance(result_dt, datetime)
 
             # Verify the time is within the specified range (9:00-17:00)
             result_time = result_dt.time()
-            start_time = datetime.strptime("09:00", TIME_HM_FORMAT).time()
-            end_time = datetime.strptime("17:00", TIME_HM_FORMAT).time()
+            start_time = datetime.strptime("09:00", TIME_ONLY_MINUTE).time()
+            end_time = datetime.strptime("17:00", TIME_ONLY_MINUTE).time()
             assert start_time <= result_time <= end_time
 
             # Verify side effect: function should have called get_schedule_time_periods
@@ -428,13 +428,11 @@ class TestSchedulerEdgeCases:
                     times.append(result)
 
             # All times should be within the specified range
-            start_dt = datetime.strptime("10:00", TIME_HM_FORMAT).time()
-            end_dt = datetime.strptime("12:00", TIME_HM_FORMAT).time()
+            start_dt = datetime.strptime("10:00", TIME_ONLY_MINUTE).time()
+            end_dt = datetime.strptime("12:00", TIME_ONLY_MINUTE).time()
 
             for time_str in times:
-                result_dt = datetime.strptime(
-                    time_str, READABLE_MINUTE_TIMESTAMP_FORMAT
-                )
+                result_dt = datetime.strptime(time_str, TIMESTAMP_MINUTE)
                 result_time = result_dt.time()
                 assert (
                     start_dt <= result_time <= end_dt

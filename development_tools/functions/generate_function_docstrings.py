@@ -31,7 +31,7 @@ except ImportError:
     from development_tools import config
 
 from core.logger import get_component_logger
-from core.service_utilities import now_filename_timestamp
+from core.time_utilities import now_timestamp_filename
 
 logger = get_component_logger("development_tools")
 
@@ -407,7 +407,7 @@ def main():
 
     # Create backup before making changes
     project_root = Path(__file__).parent.parent
-    backup_dir = project_root.parent / f"backup_auto_doc_{now_filename_timestamp()}"
+    backup_dir = project_root.parent / f"backup_auto_doc_{now_timestamp_filename()}"
 
     logger.info(f"Creating backup at {backup_dir}")
     try:

@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.service_utilities import now_readable_timestamp, READABLE_TIMESTAMP_FORMAT
+from core.time_utilities import now_timestamp_full, TIMESTAMP_FULL
 from core.tags import parse_tags_from_text
 
 from communication.command_handlers.base_handler import InteractionHandler
@@ -202,7 +202,7 @@ class NotebookHandler(InteractionHandler):
                 "flow": FLOW_NOTE_BODY,
                 "state": 0,
                 "data": {"title": title, "tags": tags, "group": group},
-                "started_at": now_readable_timestamp(),
+                "started_at": now_timestamp_full(),
             }
             conversation_manager._save_user_states()
             return InteractionResponse(
@@ -254,7 +254,7 @@ class NotebookHandler(InteractionHandler):
         # If no title provided, use a default
         if not title or not title.strip():
             # Use timestamp as default title for quick notes
-            timestamp = now_readable_timestamp()
+            timestamp = now_timestamp_full()
             title = f"Quick Note - {timestamp}"
 
         # Parse tags from title if present
@@ -307,7 +307,7 @@ class NotebookHandler(InteractionHandler):
                 "flow": FLOW_LIST_ITEMS,
                 "state": 0,
                 "data": {"title": title, "tags": tags, "group": group, "items": []},
-                "started_at": now_readable_timestamp(),
+                "started_at": now_timestamp_full(),
             }
             conversation_manager._save_user_states()
             return InteractionResponse(

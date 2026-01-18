@@ -17,7 +17,7 @@ from communication.command_handlers.shared_types import (
     ParsedCommand,
 )
 from tests.test_utilities import TestUserFactory
-from core.service_utilities import DATE_ONLY_FORMAT
+from core.time_utilities import DATE_ONLY
 
 
 class TestCheckinHandlerBehavior:
@@ -209,7 +209,7 @@ class TestCheckinHandlerBehavior:
         mock_is_enabled.return_value = True
 
         # Mock check-in already done today
-        today_str = date.today().strftime(DATE_ONLY_FORMAT)
+        today_str = date.today().strftime(DATE_ONLY)
         mock_get_recent.return_value = [
             {"timestamp": f"{today_str} 10:00:00", "date": today_str, "mood": 4}
         ]
@@ -413,8 +413,8 @@ class TestCheckinHandlerBehavior:
         mock_is_enabled.return_value = True
 
         # Mock recent check-ins
-        today_str = date.today().strftime(DATE_ONLY_FORMAT)
-        yesterday_str = (date.today() - date.resolution).strftime(DATE_ONLY_FORMAT)
+        today_str = date.today().strftime(DATE_ONLY)
+        yesterday_str = (date.today() - date.resolution).strftime(DATE_ONLY)
         mock_get_recent.return_value = [
             {"date": today_str, "mood": 4, "timestamp": f"{today_str} 10:00:00"},
             {
@@ -423,9 +423,9 @@ class TestCheckinHandlerBehavior:
                 "timestamp": f"{yesterday_str} 14:00:00",
             },
             {
-                "date": (date.today() - date.resolution * 2).strftime(DATE_ONLY_FORMAT),
+                "date": (date.today() - date.resolution * 2).strftime(DATE_ONLY),
                 "mood": 5,
-                "timestamp": f"{(date.today() - date.resolution * 2).strftime(DATE_ONLY_FORMAT)} 09:00:00",
+                "timestamp": f"{(date.today() - date.resolution * 2).strftime(DATE_ONLY)} 09:00:00",
             },
         ]
 
@@ -475,9 +475,9 @@ class TestCheckinHandlerBehavior:
         today = date.today()
         mock_get_recent.return_value = [
             {
-                "date": (today - date.resolution * i).strftime(DATE_ONLY_FORMAT),
+                "date": (today - date.resolution * i).strftime(DATE_ONLY),
                 "mood": i % 5 + 1,
-                "timestamp": f"{(today - date.resolution * i).strftime(DATE_ONLY_FORMAT)} 10:00:00",
+                "timestamp": f"{(today - date.resolution * i).strftime(DATE_ONLY)} 10:00:00",
             }
             for i in range(7)
         ]
@@ -521,7 +521,7 @@ class TestCheckinHandlerBehavior:
         mock_is_enabled.return_value = True
 
         # Mock check-in from yesterday (not today)
-        yesterday_str = (date.today() - date.resolution).strftime(DATE_ONLY_FORMAT)
+        yesterday_str = (date.today() - date.resolution).strftime(DATE_ONLY)
         mock_get_recent.return_value = [
             {"timestamp": f"{yesterday_str} 10:00:00", "date": yesterday_str, "mood": 4}
         ]

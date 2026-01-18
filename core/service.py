@@ -31,11 +31,8 @@ from core.config import validate_and_raise_if_invalid, print_configuration_repor
 from communication.core.channel_orchestrator import CommunicationManager
 from core.config import LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir
 from core.scheduler import SchedulerManager
-from core.service_utilities import (
-    get_flags_dir,
-    READABLE_TIMESTAMP_FORMAT,
-    now_readable_timestamp,
-)
+from core.service_utilities import get_flags_dir
+from core.time_utilities import TIMESTAMP_FULL, now_timestamp_full
 from core.file_operations import verify_file_access
 from core.user_data_handlers import get_all_user_ids
 from core.user_data_handlers import get_user_data
@@ -199,15 +196,13 @@ class MHMService:
 
         current_time = datetime.now()
 
-        # Matches READABLE_TIMESTAMP_FORMAT timestamps (YYYY-MM-DD HH:MM:SS) in log content.
+        # Matches TIMESTAMP_FULL timestamps (YYYY-MM-DD HH:MM:SS) in log content.
         recent_pattern = r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})"
         matches = re.findall(recent_pattern, recent_content)
 
         if matches:
             try:
-                latest_log_time = datetime.strptime(
-                    matches[-1], READABLE_TIMESTAMP_FORMAT
-                )
+                latest_log_time = datetime.strptime(matches[-1], TIMESTAMP_FULL)
                 time_diff = (current_time - latest_log_time).total_seconds()
 
                 if time_diff < 300:  # Less than 5 minutes
@@ -828,7 +823,7 @@ class MHMService:
                 "user_id": user_id,
                 "category": category,
                 "message": message,
-                "timestamp": now_readable_timestamp(),
+                "timestamp": now_timestamp_full(),
             }
 
             with open(response_file, "w") as f:
@@ -1002,7 +997,7 @@ class MHMService:
             response_data = {
                 "user_id": user_id,
                 "first_question": first_question,
-                "timestamp": now_readable_timestamp(),
+                "timestamp": now_timestamp_full(),
             }
 
             with open(response_file, "w") as f:

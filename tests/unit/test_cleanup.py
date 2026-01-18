@@ -20,7 +20,7 @@ from typing import List, Dict, Any, Optional
 # Do not modify sys.path; rely on package imports
 
 from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
-from core.service_utilities import now_filename_timestamp
+from core.time_utilities import now_timestamp_filename
 from core.logger import get_component_logger
 
 logger = get_component_logger("main")
@@ -126,7 +126,7 @@ class CleanupManager:
 
     def _create_user_backup(self, user_id: str, user_path: str) -> str:
         """Create a backup of user data before cleanup."""
-        timestamp = now_filename_timestamp()
+        timestamp = now_timestamp_filename()
         backup_name = f"test_user_backup_{user_id}_{timestamp}.zip"
         backup_path = self.backup_dir / backup_name
 

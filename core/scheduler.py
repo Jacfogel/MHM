@@ -2,6 +2,7 @@
 
 import schedule
 import time
+import calendar
 import pytz
 import threading
 import random
@@ -12,13 +13,13 @@ from typing import List, Dict, Any
 
 from core.user_data_handlers import get_all_user_ids
 from core.schedule_management import get_schedule_time_periods
-from core.service_utilities import (
-    load_and_localize_datetime,
-    now_filename_timestamp,
-    READABLE_TIMESTAMP_FORMAT,
-    DATE_ONLY_FORMAT,
-    TIME_HM_FORMAT,
-    READABLE_MINUTE_TIMESTAMP_FORMAT,
+from core.service_utilities import load_and_localize_datetime
+from core.time_utilities import (
+    now_timestamp_filename,
+    TIMESTAMP_FULL,
+    DATE_ONLY,
+    TIME_ONLY_MINUTE,
+    TIMESTAMP_MINUTE,
 )
 from core.logger import get_component_logger
 from user.user_context import UserContext
@@ -265,7 +266,7 @@ class SchedulerManager:
         tz = pytz.timezone("America/Regina")
         now_datetime = datetime.now(tz)
         logger.info(
-            f"Current time for scheduling: {now_datetime.strftime(READABLE_MINUTE_TIMESTAMP_FORMAT)}"
+            f"Current time for scheduling: {now_datetime.strftime(TIMESTAMP_MINUTE)}"
         )
 
         for user_id in user_ids:
@@ -341,7 +342,11 @@ class SchedulerManager:
                 job_func = job.job_func
                 if not job_func:
                     continue
-                job_func_name = getattr(job_func, "__name__", "UnknownJob")
+
+                # schedule often wraps callables (functools.partial) which may not have __name__
+                func_obj = job_func.func if hasattr(job_func, "func") else job_func
+                job_func_name = getattr(func_obj, "__name__", "UnknownJob")
+
                 job_types[job_func_name] = job_types.get(job_func_name, 0) + 1
 
             job_type_summary = ", ".join(
@@ -493,9 +498,11 @@ class SchedulerManager:
 
         # Schedule a message for each active period
         scheduled_count = 0
-        from datetime import datetime
 
-        today_name = datetime.now().strftime("%A")
+        # Avoid hardcoded strftime("%A") format strings.
+        # Use weekday index + calendar for a stable day-name.
+        today_name = calendar.day_name[datetime.now().weekday()]
+
         for period_name, period_data in time_periods.items():
             # Skip the "ALL" period - it should not be scheduled, only used as fallback
             if period_name == "ALL":
@@ -503,6 +510,7 @@ class SchedulerManager:
                     f"Skipping ALL period scheduling for user {user_id}, category {category} - ALL is fallback only"
                 )
                 continue
+
             # Check if this period is active (default to active if not specified)
             if period_data.get("active", True):
                 # If 'days' is present, only schedule if today is in days or if days contains "ALL"
@@ -523,6 +531,7 @@ class SchedulerManager:
                             f"Skipping period {period_name} for user {user_id}, category {category} (not scheduled for today: {today_name})"
                         )
                         continue
+
                 try:
                     self.schedule_message_for_period(user_id, category, period_name)
                     scheduled_count += 1
@@ -584,7 +593,7 @@ class SchedulerManager:
                             f"Adjusted scheduling time to future for user {user_id}: {schedule_datetime}"
                         )
 
-                    time_part = schedule_datetime.strftime(TIME_HM_FORMAT)
+                    time_part = schedule_datetime.strftime(TIME_ONLY_MINUTE)
                     # Schedule as one-time job that will remove itself after execution
                     schedule.every().day.at(time_part).do(
                         self.handle_sending_scheduled_message,
@@ -593,7 +602,7 @@ class SchedulerManager:
                     )
                     logger.info(
                         f"Successfully scheduled {category} message for user {user_id}, period {period_name} "
-                        f"at {time_part} on {schedule_datetime.strftime(DATE_ONLY_FORMAT)}."
+                        f"at {time_part} on {schedule_datetime.strftime(DATE_ONLY)}."
                     )
 
                     # Set the wake timer for the scheduled time
@@ -662,7 +671,7 @@ class SchedulerManager:
                 )
 
             # Schedule the check-in
-            time_part = schedule_datetime.strftime(TIME_HM_FORMAT)
+            time_part = schedule_datetime.strftime(TIME_ONLY_MINUTE)
             schedule.every().day.at(time_part).do(
                 self.handle_sending_scheduled_message,
                 user_id=user_id,
@@ -670,7 +679,7 @@ class SchedulerManager:
             )
             logger.info(
                 f"Successfully scheduled check-in for user {user_id} at {time_part} "
-                f"on {schedule_datetime.strftime(DATE_ONLY_FORMAT)}."
+                f"on {schedule_datetime.strftime(DATE_ONLY)}."
             )
 
             # Set the wake timer for the scheduled time
@@ -737,7 +746,7 @@ class SchedulerManager:
                             f"Adjusted scheduling time to future for user {user_id}: {schedule_datetime}"
                         )
 
-                    time_part = schedule_datetime.strftime(TIME_HM_FORMAT)
+                    time_part = schedule_datetime.strftime(TIME_ONLY_MINUTE)
                     schedule.every().day.at(time_part).do(
                         self.handle_sending_scheduled_message,
                         user_id=user_id,
@@ -745,7 +754,7 @@ class SchedulerManager:
                     )
                     logger.info(
                         f"Successfully scheduled {category} message for user {user_id} at {time_part} "
-                        f"on {schedule_datetime.strftime(DATE_ONLY_FORMAT)}."
+                        f"on {schedule_datetime.strftime(DATE_ONLY)}."
                     )
 
                     self.set_wake_timer(
@@ -771,19 +780,58 @@ class SchedulerManager:
 
     @handle_errors("checking time conflict", default_return=False)
     def is_time_conflict(self, user_id, schedule_datetime):
-        """Checks if there is a time conflict with any existing scheduled jobs for the user."""
+        """
+        Checks if there is a time conflict with any existing scheduled jobs for the user.
+
+        NOTE:
+        The `schedule` library commonly uses naive datetimes for `job.next_run`.
+        Our schedule_datetime is often tz-aware (pytz). Subtracting naive/aware raises TypeError.
+        """
+        # Normalize schedule_datetime to naive for comparison against schedule's job.next_run.
+        # We intentionally drop tzinfo here because schedule's next_run is not reliably tz-aware.
+        if (
+            isinstance(schedule_datetime, datetime)
+            and schedule_datetime.tzinfo is not None
+        ):
+            schedule_dt_for_compare = schedule_datetime.replace(tzinfo=None)
+        else:
+            schedule_dt_for_compare = schedule_datetime
+
         for job in schedule.jobs:
             job_func = job.job_func
             if not job_func:
                 continue
+
             job_args = getattr(job_func, "args", None)
             if job_args and job_args[0] == user_id:
                 job_time = job.next_run
+                if not job_time:
+                    continue
+
+                # Normalize job_time too (defensive)
+                if isinstance(job_time, datetime) and job_time.tzinfo is not None:
+                    job_time_for_compare = job_time.replace(tzinfo=None)
+                else:
+                    job_time_for_compare = job_time
+
                 # Increase conflict window to 2 hours to prevent multiple messages at similar times
-                if (
-                    abs((job_time - schedule_datetime).total_seconds()) < 7200
-                ):  # 2 hours = 7200 seconds
-                    return True
+                try:
+                    if (
+                        abs(
+                            (
+                                job_time_for_compare - schedule_dt_for_compare
+                            ).total_seconds()
+                        )
+                        < 7200
+                    ):
+                        return True
+                except TypeError as e:
+                    # Extremely defensive: if something weird slips through, log and treat as no conflict
+                    logger.debug(
+                        f"TypeError comparing job_time and schedule_datetime for conflict check: {e}"
+                    )
+                    continue
+
         return False
 
     @handle_errors("getting random time within period", default_return=None)
@@ -817,8 +865,8 @@ class SchedulerManager:
             )
             return None
 
-        period_start_time = datetime.strptime(start_time, TIME_HM_FORMAT).time()
-        period_end_time = datetime.strptime(end_time, TIME_HM_FORMAT).time()
+        period_start_time = datetime.strptime(start_time, TIME_ONLY_MINUTE).time()
+        period_end_time = datetime.strptime(end_time, TIME_ONLY_MINUTE).time()
 
         # Create datetime objects for today
         start_datetime = datetime.combine(
@@ -847,7 +895,7 @@ class SchedulerManager:
         if random_datetime <= now_datetime:
             random_datetime += timedelta(days=1)
 
-        random_time_str = random_datetime.strftime(READABLE_MINUTE_TIMESTAMP_FORMAT)
+        random_time_str = random_datetime.strftime(TIMESTAMP_MINUTE)
         logger.info(f"Scheduled random time: {random_time_str}")
         return random_time_str
 
@@ -858,14 +906,14 @@ class SchedulerManager:
             job_func = job.job_func
             if not job_func:
                 continue
-            next_run = (
-                job.next_run.strftime(READABLE_TIMESTAMP_FORMAT)
-                if job.next_run
-                else "None"
-            )
-            task_name = (
-                job_func.__name__ if hasattr(job_func, "__name__") else "Scheduled Task"
-            )
+
+            next_run = job.next_run.strftime(TIMESTAMP_FULL) if job.next_run else "None"
+
+            # Safely resolve function name for schedule-wrapped callables.
+            # schedule often wraps functions in functools.partial, which may not have __name__.
+            func_obj = job_func.func if hasattr(job_func, "func") else job_func
+            task_name = getattr(func_obj, "__name__", "Scheduled Task")
+
             task_description = (
                 str(job_func).split("function ")[-1].split(" at ")[0]
                 if "function" in str(job_func)
@@ -1051,10 +1099,10 @@ class SchedulerManager:
         # Adjust the schedule_time to wake the computer a few minutes earlier
         wake_time = schedule_time - timedelta(minutes=wake_ahead_minutes)
         task_name = (
-            f"Wake_{user_id}_{category}_{period}_{wake_time.strftime(TIME_HM_FORMAT)}"
+            f"Wake_{user_id}_{category}_{period}_{wake_time.strftime(TIME_ONLY_MINUTE)}"
         )
-        task_time = wake_time.strftime(TIME_HM_FORMAT)
-        task_date = wake_time.strftime(DATE_ONLY_FORMAT)
+        task_time = wake_time.strftime(TIME_ONLY_MINUTE)
+        task_date = wake_time.strftime(DATE_ONLY)
 
         # PowerShell script to create the task with Wake computer enabled
         ps_command = f"""
@@ -1071,7 +1119,7 @@ class SchedulerManager:
 
         if result.returncode == 0:
             logger.info(
-                f"Wake timer set for {wake_time.strftime(READABLE_MINUTE_TIMESTAMP_FORMAT)} with task {task_name}"
+                f"Wake timer set for {wake_time.strftime(TIMESTAMP_MINUTE)} with task {task_name}"
             )
         else:
             logger.error(f"Failed to set wake timer with error: {result.stderr}")
@@ -1327,7 +1375,7 @@ class SchedulerManager:
         try:
             from datetime import datetime
 
-            due_date = datetime.strptime(due_date_str, DATE_ONLY_FORMAT).date()
+            due_date = datetime.strptime(due_date_str, DATE_ONLY).date()
             days_until_due = (due_date - today).days
 
             # Sliding scale calculation
@@ -1491,8 +1539,8 @@ class SchedulerManager:
             import random
 
             # Parse start and end times
-            start_dt = datetime.strptime(start_time, TIME_HM_FORMAT)
-            end_dt = datetime.strptime(end_time, TIME_HM_FORMAT)
+            start_dt = datetime.strptime(start_time, TIME_ONLY_MINUTE)
+            end_dt = datetime.strptime(end_time, TIME_ONLY_MINUTE)
 
             # If end time is before start time, it means the period spans midnight
             # For now, we'll assume it's the same day
@@ -1511,7 +1559,7 @@ class SchedulerManager:
             random_dt = start_dt + timedelta(seconds=random_seconds)
 
             # Format as HH:MM
-            random_time = random_dt.strftime(TIME_HM_FORMAT)
+            random_time = random_dt.strftime(TIME_ONLY_MINUTE)
 
             logger.debug(
                 f"Generated random time {random_time} within period {start_time}-{end_time}"
@@ -1622,7 +1670,7 @@ class SchedulerManager:
             # Parse the date and time
             try:
                 reminder_datetime = datetime.strptime(
-                    f"{date_str} {time_str}", READABLE_MINUTE_TIMESTAMP_FORMAT
+                    f"{date_str} {time_str}", TIMESTAMP_MINUTE
                 )
             except ValueError:
                 logger.error(f"Invalid date/time format: {date_str} {time_str}")
@@ -1915,7 +1963,7 @@ class SchedulerManager:
                 logger.info("Starting weekly backup process")
 
                 backup_path = backup_manager.create_backup(
-                    backup_name=f"weekly_backup_{now_filename_timestamp()}",
+                    backup_name=f"weekly_backup_{now_timestamp_filename()}",
                     include_users=True,
                     include_config=True,
                     include_logs=False,
@@ -1953,7 +2001,6 @@ class SchedulerManager:
 
 
 # Standalone functions for admin UI access
-@handle_errors("running full scheduler standalone", default_return=False)
 @handle_errors("running full scheduler standalone", default_return=False)
 def run_full_scheduler_standalone():
     """

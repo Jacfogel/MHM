@@ -16,7 +16,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import ensure_user_directory, get_user_file_path
 from core.file_operations import load_json_data, save_json_data, determine_file_path
-from core.service_utilities import now_readable_timestamp
+from core.time_utilities import now_timestamp_full
 from core.user_data_validation import (
     validate_new_user_data,
     validate_user_update,
@@ -246,7 +246,7 @@ def _get_user_data__load_account(
         ensure_user_directory(user_id)
         # Create default account data
         # Canonical readable timestamp for metadata fields
-        current_time_str = now_readable_timestamp()
+        current_time_str = now_timestamp_full()
         default_account = {
             "user_id": user_id,
             "internal_username": "",
@@ -301,7 +301,7 @@ def _save_user_data__save_account(user_id: str, account_data: dict[str, Any]) ->
     account_file = get_user_file_path(user_id, "account")
 
     # Add metadata
-    account_data["updated_at"] = now_readable_timestamp()
+    account_data["updated_at"] = now_timestamp_full()
 
     # Validate/normalize via Pydantic schema (non-blocking)
     try:
@@ -487,7 +487,7 @@ def _get_user_data__load_context(
         )
         ensure_user_directory(user_id)
         # Create default context data
-        current_time_str = now_readable_timestamp()
+        current_time_str = now_timestamp_full()
         default_context = {
             "preferred_name": "",
             "gender_identity": [],
@@ -537,7 +537,7 @@ def _save_user_data__save_context(user_id: str, context_data: dict[str, Any]) ->
     context_file = get_user_file_path(user_id, "context")
 
     # Add metadata
-    context_data["last_updated"] = now_readable_timestamp()
+    context_data["last_updated"] = now_timestamp_full()
 
     save_json_data(context_data, context_file)
 
@@ -2234,7 +2234,7 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
     user_id = str(uuid.uuid4())
 
     # Use a single canonical timestamp for this creation operation so all "created" fields match.
-    created_ts = now_readable_timestamp()
+    created_ts = now_timestamp_full()
 
     # Create account data
     account_data = {

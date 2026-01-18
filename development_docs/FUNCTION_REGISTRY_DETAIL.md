@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-16 05:47:23
+> **Last Generated**: 2026-01-18 01:45:37
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
-- **Files Scanned**: 108
-- **Functions Found**: 1498
-- **Methods Found**: 1135
+### **Function Documentation Coverage: 96.1% [OK] COMPLETED**
+- **Files Scanned**: 109
+- **Functions Found**: 1508
+- **Methods Found**: 1134
 - **Classes Found**: 154
-- **Total Items**: 2633
-- **Functions Documented**: 1433
-- **Methods Documented**: 1095
-- **Classes Documented**: 119
-- **Total Documented**: 2528
+- **Total Items**: 2642
+- **Functions Documented**: 1444
+- **Methods Documented**: 1094
+- **Classes Documented**: 120
+- **Total Documented**: 2538
 - **Template-Generated**: 4
-- **Last Updated**: 2026-01-16
+- **Last Updated**: 2026-01-18
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (538)
+### **Core System Functions** (548)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (399)
@@ -957,12 +957,25 @@ Returns:
 #### `communication/command_handlers/schedule_handler.py`
 **Functions:**
 - [OK] `_handle_add_schedule_period(self, user_id, entities)` - Add a new schedule period with enhanced options
-- [OK] `_handle_add_schedule_period__parse_time_format(self, time_str)` - Parse various time formats and convert to standard format
 - [OK] `_handle_edit_schedule_period(self, user_id, entities)` - Edit an existing schedule period with enhanced options
-- [OK] `_handle_edit_schedule_period__parse_time_format(self, time_str)` - Parse various time formats and convert to standard format
 - [OK] `_handle_schedule_status(self, user_id, entities)` - Show status of schedules
 - [OK] `_handle_show_schedule(self, user_id, entities)` - Show schedule for a specific category or all categories
 - [OK] `_handle_update_schedule(self, user_id, entities)` - Update schedule settings
+- [OK] `_normalize_time_string_to_12h(self, time_str)` - Normalize common user-provided time strings to a consistent 12-hour format.
+
+This is NOT timestamp handling — it is schedule time-of-day formatting
+for user-facing text.
+
+Accepted inputs:
+- "9am", "9 am"
+- "09:00", "9:00"
+- "21:30"
+- "9"
+
+Output examples:
+- "9 AM"
+- "09:00 AM"
+- "09:30 PM"
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_examples(self)` - Get example commands for schedule management.
 - [OK] `get_help(self)` - Get help text for schedule management commands.
@@ -970,12 +983,25 @@ Returns:
 **Classes:**
 - [OK] `ScheduleManagementHandler` - Handler for schedule management interactions
   - [OK] `ScheduleManagementHandler._handle_add_schedule_period(self, user_id, entities)` - Add a new schedule period with enhanced options
-  - [OK] `ScheduleManagementHandler._handle_add_schedule_period__parse_time_format(self, time_str)` - Parse various time formats and convert to standard format
   - [OK] `ScheduleManagementHandler._handle_edit_schedule_period(self, user_id, entities)` - Edit an existing schedule period with enhanced options
-  - [OK] `ScheduleManagementHandler._handle_edit_schedule_period__parse_time_format(self, time_str)` - Parse various time formats and convert to standard format
   - [OK] `ScheduleManagementHandler._handle_schedule_status(self, user_id, entities)` - Show status of schedules
   - [OK] `ScheduleManagementHandler._handle_show_schedule(self, user_id, entities)` - Show schedule for a specific category or all categories
   - [OK] `ScheduleManagementHandler._handle_update_schedule(self, user_id, entities)` - Update schedule settings
+  - [OK] `ScheduleManagementHandler._normalize_time_string_to_12h(self, time_str)` - Normalize common user-provided time strings to a consistent 12-hour format.
+
+This is NOT timestamp handling — it is schedule time-of-day formatting
+for user-facing text.
+
+Accepted inputs:
+- "9am", "9 am"
+- "09:00", "9:00"
+- "21:30"
+- "9"
+
+Output examples:
+- "9 AM"
+- "09:00 AM"
+- "09:30 PM"
   - [OK] `ScheduleManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
   - [OK] `ScheduleManagementHandler.get_examples(self)` - Get example commands for schedule management.
   - [OK] `ScheduleManagementHandler.get_help(self)` - Get help text for schedule management commands.
@@ -1964,6 +1990,7 @@ Returns:
 **Functions:**
 - [OK] `__init__(self)` - Initialize the object.
 - [OK] `_complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
+- [OK] `_date_str(dt)` - Return YYYY-MM-DD without sprinkling strftime format strings.
 - [OK] `_expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
 - [OK] `_generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
 - [OK] `_generate_context_aware_reminder_suggestions(self, user_id, task_id)` - Generate reminder period suggestions based on task's due date/time.
@@ -2014,7 +2041,7 @@ Args:
         - 'enabled': bool (whether question is enabled)
         - 'always_include': bool (whether to always include this question)
         - 'sometimes_include': bool (whether to sometimes include this question)
-    
+
 Returns:
     List of question keys in selected order
 - [OK] `_start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
@@ -2039,7 +2066,7 @@ through the interaction manager. Returns the response message and completion sta
 
 Args:
     user_id: The internal user ID to start the analytics flow for
-    
+
 Returns:
     tuple[str, bool]: Response message and completion status (always True for this flow)
 - [OK] `start_checkin(self, user_id)` - Public method to start a check-in flow for a user.
@@ -2051,7 +2078,7 @@ through the interaction manager. Returns the response message and completion sta
 
 Args:
     user_id: The internal user ID to start the messages flow for
-    
+
 Returns:
     tuple[str, bool]: Response message and completion status (always True for this flow)
 - [MISSING] `start_profile_flow(self, user_id)` - No description
@@ -2115,7 +2142,7 @@ Args:
         - 'enabled': bool (whether question is enabled)
         - 'always_include': bool (whether to always include this question)
         - 'sometimes_include': bool (whether to sometimes include this question)
-    
+
 Returns:
     List of question keys in selected order
   - [OK] `ConversationManager._start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
@@ -2140,7 +2167,7 @@ through the interaction manager. Returns the response message and completion sta
 
 Args:
     user_id: The internal user ID to start the analytics flow for
-    
+
 Returns:
     tuple[str, bool]: Response message and completion status (always True for this flow)
   - [OK] `ConversationManager.start_checkin(self, user_id)` - Public method to start a check-in flow for a user.
@@ -2152,7 +2179,7 @@ through the interaction manager. Returns the response message and completion sta
 
 Args:
     user_id: The internal user ID to start the messages flow for
-    
+
 Returns:
     tuple[str, bool]: Response message and completion status (always True for this flow)
   - [MISSING] `ConversationManager.start_profile_flow(self, user_id)` - No description
@@ -2192,13 +2219,20 @@ Args:
     user_id: The user's ID
     message: The user's message
     channel_type: Type of channel (discord, email)
-    
+
 Returns:
     InteractionResponse with appropriate response
 - [OK] `handle_user_message(user_id, message, channel_type)` - Convenience function to handle a user message
-- [MISSING] `parse_due(task)` - No description
+- [OK] `parse_due(task)` - Parse due date/time into a datetime for sorting.
+Uses canonical formats from time_utilities (no inline format strings).
 **Classes:**
-- [MISSING] `CommandDefinition` - No description
+- [OK] `CommandDefinition` - Canonical command definition.
+
+- name: The slash/bang command name without prefix (e.g. "tasks")
+- mapped_message: The internal message text to feed the parser/handlers (e.g. "show my tasks")
+    - Use None for "discoverability-only" commands (no mapping/translation)
+- description: Human-facing help text
+- is_flow: Whether this command should invoke a flow starter directly
   - [OK] `CommandDefinition.get_mapped_message(self)` - Get the mapped message, defaulting to !{name} if not specified.
 - [OK] `InteractionManager` - Main manager for handling user interactions across all channels
   - [OK] `InteractionManager.__init__(self)` - Special Python method
@@ -2225,7 +2259,7 @@ Args:
     user_id: The user's ID
     message: The user's message
     channel_type: Type of channel (discord, email)
-    
+
 Returns:
     InteractionResponse with appropriate response
 
@@ -2322,6 +2356,7 @@ Returns:
 - [OK] `_get_cleanup_status__build_status_response(last_date, days_since, next_cleanup)` - Build the final status response dictionary.
 - [OK] `_get_cleanup_status__calculate_days_since_cleanup(last_cleanup_timestamp)` - Calculate days since last cleanup.
 - [OK] `_get_cleanup_status__format_next_cleanup_date(last_date)` - Format the next cleanup date or return 'Overdue'.
+- [OK] `_get_cleanup_status__get_invalid_tracker_status()` - Get status when cleanup tracker exists but contains an invalid timestamp.
 - [OK] `_get_cleanup_status__get_never_cleaned_status()` - Get status when cleanup has never been performed.
 - [OK] `_perform_cleanup__discover_cache_files(root_path)` - Discover all cache files and directories in the given root path.
 - [OK] `_perform_cleanup__log_completion_results(removed_dirs, removed_files, total_size)` - Log the final cleanup results and statistics.
@@ -3739,13 +3774,6 @@ Args:
 Returns:
     list: List of active schedule period names
 - [OK] `get_current_active_schedules(schedules, current_time)` - Get list of schedule periods that are currently active based on time and day.
-
-Args:
-    schedules: Dictionary containing all schedule periods
-    current_time: Current time to check against (defaults to now)
-
-Returns:
-    list: List of currently active schedule period names
 - [OK] `is_schedule_active(schedule_data, current_time)` - Check if a schedule period is currently active based on time and day.
 
 Args:
@@ -3789,7 +3817,7 @@ Handles both one-time reminders (schedule_task_reminder_at_datetime) and daily r
 Args:
     user_id: The user's ID
     task_id: The task ID to clean up reminders for
-    
+
 Returns:
     bool: True if cleanup succeeded (or no reminders found), False on error
 - [OK] `clear_all_accumulated_jobs(self)` - Clears all accumulated scheduler jobs and reschedules only the necessary ones.
@@ -3807,6 +3835,10 @@ This is a one-time job that removes itself after execution.
 - [OK] `handle_task_reminder(self, user_id, task_id, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
 - [OK] `is_job_for_category(self, job, user_id, category)` - Determines if a job is scheduled for a specific user and category.
 - [OK] `is_time_conflict(self, user_id, schedule_datetime)` - Checks if there is a time conflict with any existing scheduled jobs for the user.
+
+NOTE:
+The `schedule` library commonly uses naive datetimes for `job.next_run`.
+Our schedule_datetime is often tz-aware (pytz). Subtracting naive/aware raises TypeError.
 - [OK] `log_scheduled_tasks(self)` - Logs all current and upcoming scheduled tasks in a user-friendly manner.
 - [OK] `perform_daily_log_archival(self)` - Perform daily log archival to compress old logs and clean up archives.
 This runs automatically at 02:00 daily via the scheduler.
@@ -3846,7 +3878,7 @@ Schedule a reminder for a specific task at the specified time.
 
 Args:
     incomplete_tasks: List of incomplete tasks to choose from
-    
+
 Returns:
     Selected task dictionary
 - [OK] `set_wake_timer(self, schedule_time, user_id, category, period, wake_ahead_minutes)` - Set a Windows scheduled task to wake the computer before a scheduled message.
@@ -3892,7 +3924,7 @@ Handles both one-time reminders (schedule_task_reminder_at_datetime) and daily r
 Args:
     user_id: The user's ID
     task_id: The task ID to clean up reminders for
-    
+
 Returns:
     bool: True if cleanup succeeded (or no reminders found), False on error
   - [OK] `SchedulerManager.clear_all_accumulated_jobs(self)` - Clears all accumulated scheduler jobs and reschedules only the necessary ones.
@@ -3908,6 +3940,10 @@ This is a one-time job that removes itself after execution.
   - [OK] `SchedulerManager.handle_task_reminder(self, user_id, task_id, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
   - [OK] `SchedulerManager.is_job_for_category(self, job, user_id, category)` - Determines if a job is scheduled for a specific user and category.
   - [OK] `SchedulerManager.is_time_conflict(self, user_id, schedule_datetime)` - Checks if there is a time conflict with any existing scheduled jobs for the user.
+
+NOTE:
+The `schedule` library commonly uses naive datetimes for `job.next_run`.
+Our schedule_datetime is often tz-aware (pytz). Subtracting naive/aware raises TypeError.
   - [OK] `SchedulerManager.log_scheduled_tasks(self)` - Logs all current and upcoming scheduled tasks in a user-friendly manner.
   - [OK] `SchedulerManager.perform_daily_log_archival(self)` - Perform daily log archival to compress old logs and clean up archives.
 This runs automatically at 02:00 daily via the scheduler.
@@ -3936,7 +3972,7 @@ Schedule a reminder for a specific task at the specified time.
 
 Args:
     incomplete_tasks: List of incomplete tasks to choose from
-    
+
 Returns:
     Selected task dictionary
   - [OK] `SchedulerManager.set_wake_timer(self, schedule_time, user_id, category, period, wake_ahead_minutes)` - Set a Windows scheduled task to wake the computer before a scheduled message.
@@ -4227,9 +4263,11 @@ Returns:
 
 Raises:
     InvalidTimeFormatError: If datetime_str format is invalid
-- [OK] `now_filename_timestamp()` - Filename-safe timestamp for filenames and identifiers.
-- [OK] `now_readable_timestamp()` - Readable timestamp for logs and metadata.
 - [OK] `should_run(self)` - Check if enough time has passed since the last run to allow another execution.
+
+IMPORTANT:
+- Uses monotonic time (safe for measuring intervals).
+- Does NOT update last_run when returning False.
 - [OK] `wait_for_network(timeout)` - Wait for the network to be available, retrying every 5 seconds up to a timeout.
 **Classes:**
 - [OK] `InvalidTimeFormatError` - Exception raised when time format is invalid.
@@ -4243,6 +4281,10 @@ Prevents operations from running too frequently by tracking the last execution t
 Args:
     interval: Time interval in seconds between allowed operations
   - [OK] `Throttler.should_run(self)` - Check if enough time has passed since the last run to allow another execution.
+
+IMPORTANT:
+- Uses monotonic time (safe for measuring intervals).
+- Does NOT update last_run when returning False.
 
 #### `core/tags.py`
 **Functions:**
@@ -4310,6 +4352,28 @@ Returns:
     True if successful, False otherwise
 - [OK] `validate_tag(tag)` - Validates a single normalized tag for length and allowed characters.
 Raises ValidationError if invalid.
+
+#### `core/time_utilities.py`
+**Functions:**
+- [OK] `format_timestamp(dt, fmt)` - Format a datetime using a provided format string. Returns "" for None.
+- [OK] `format_timestamp_milliseconds(dt)` - Debug-only: format to milliseconds (3 decimals).
+Example output: "2026-01-18 12:34:56.789"
+- [OK] `now_timestamp_filename()` - Current local timestamp formatted with TIMESTAMP_FILENAME.
+- [OK] `now_timestamp_full()` - Current local timestamp formatted with TIMESTAMP_FULL.
+- [OK] `now_timestamp_minute()` - Current local timestamp formatted with TIMESTAMP_MINUTE.
+- [OK] `parse_date_and_time_minute(date_str, time_str)` - Parse a DATE_ONLY + TIME_ONLY_MINUTE combination into a datetime.
+Returns None on invalid input.
+- [OK] `parse_date_only(value)` - Parse DATE_ONLY (date at 00:00). Returns None on invalid input.
+- [OK] `parse_time_only_minute(value)` - Parse TIME_ONLY_MINUTE.
+Note: datetime.strptime() will produce a datetime with a default date (1900-01-01).
+Returns None on invalid input.
+- [OK] `parse_timestamp(value)` - Parse a timestamp string using an allowed set of formats.
+Returns None if no allowed format matches.
+
+Use this only when multiple inputs are expected.
+Prefer parse_timestamp_full / parse_timestamp_minute for critical state.
+- [OK] `parse_timestamp_full(value)` - Parse TIMESTAMP_FULL. Returns None on invalid input.
+- [OK] `parse_timestamp_minute(value)` - Parse TIMESTAMP_MINUTE. Returns None on invalid input.
 
 #### `core/ui_management.py`
 **Functions:**

@@ -23,7 +23,7 @@ from pathlib import Path
 
 # Import task management functions
 from core.user_data_handlers import get_user_data
-from core.service_utilities import DATE_ONLY_FORMAT
+from core.time_utilities import DATE_ONLY
 from tasks.task_management import (
     ensure_task_directory,
     load_active_tasks,
@@ -915,8 +915,8 @@ class TestTaskManagementCoverageExpansion:
         """Test getting tasks due within specified days."""
         # Create tasks with different due dates
         today = datetime.now().date()
-        due_soon = (today + timedelta(days=2)).strftime(DATE_ONLY_FORMAT)
-        due_late = (today + timedelta(days=10)).strftime(DATE_ONLY_FORMAT)
+        due_soon = (today + timedelta(days=2)).strftime(DATE_ONLY)
+        due_late = (today + timedelta(days=10)).strftime(DATE_ONLY)
 
         id_soon = create_task(user_id, "Soon Task", due_date=due_soon)
         id_late = create_task(user_id, "Late Task", due_date=due_late)
@@ -956,11 +956,9 @@ class TestTaskManagementCoverageExpansion:
         # Create tasks with different due dates
         today = datetime.now().date()
         exactly_cutoff = (today + timedelta(days=7)).strftime(
-            DATE_ONLY_FORMAT
+            DATE_ONLY
         )  # Exactly 7 days ahead
-        just_over = (today + timedelta(days=8)).strftime(
-            DATE_ONLY_FORMAT
-        )  # Just over 7 days
+        just_over = (today + timedelta(days=8)).strftime(DATE_ONLY)  # Just over 7 days
 
         id_exact = create_task(user_id, "Exact Cutoff Task", due_date=exactly_cutoff)
         id_over = create_task(user_id, "Over Cutoff Task", due_date=just_over)
@@ -979,10 +977,10 @@ class TestTaskManagementCoverageExpansion:
         """Test that get_tasks_due_soon returns tasks sorted by due_date."""
         today = datetime.now().date()
         dates = [
-            (today + timedelta(days=5)).strftime(DATE_ONLY_FORMAT),
-            (today + timedelta(days=2)).strftime(DATE_ONLY_FORMAT),
-            (today + timedelta(days=7)).strftime(DATE_ONLY_FORMAT),
-            (today + timedelta(days=1)).strftime(DATE_ONLY_FORMAT),
+            (today + timedelta(days=5)).strftime(DATE_ONLY),
+            (today + timedelta(days=2)).strftime(DATE_ONLY),
+            (today + timedelta(days=7)).strftime(DATE_ONLY),
+            (today + timedelta(days=1)).strftime(DATE_ONLY),
         ]
 
         # Create tasks with different due dates

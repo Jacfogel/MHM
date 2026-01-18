@@ -12,7 +12,7 @@ from tests.test_utilities import (
     cleanup_test_data_environment,
     TestUserFactory,
 )
-from core.service_utilities import READABLE_TIMESTAMP_FORMAT
+from core.time_utilities import TIMESTAMP_FULL
 
 
 @pytest.mark.behavior
@@ -412,7 +412,7 @@ class TestAnalyticsWithNewQuestions:
             "energy": 3,
             "sleep_quality": 4,
             "sleep_schedule": {"sleep_time": "23:00", "wake_time": "07:00"},
-            "timestamp": datetime.now().strftime(READABLE_TIMESTAMP_FORMAT),
+            "timestamp": datetime.now().strftime(TIMESTAMP_FULL),
         }
 
         # Store check-in using patched file path
@@ -458,7 +458,7 @@ class TestAnalyticsWithNewQuestions:
             "irritability_level": 3,
             "motivation_level": 4,
             "treatment_adherence": True,
-            "timestamp": datetime.now().strftime(READABLE_TIMESTAMP_FORMAT),
+            "timestamp": datetime.now().strftime(TIMESTAMP_FULL),
         }
 
         # Store check-in using patched file path

@@ -6,7 +6,7 @@ from datetime import datetime
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.service_utilities import now_filename_timestamp
+from core.time_utilities import now_timestamp_filename
 
 # Route conversation history logs to AI component
 history_logger = get_component_logger("ai_conversation")
@@ -79,7 +79,7 @@ class ConversationHistory:
         try:
             if session_id is None:
                 # Session IDs behave like identifiers/filenames: readable + Windows-safe
-                session_id = f"{user_id}_{now_filename_timestamp()}"
+                session_id = f"{user_id}_{now_timestamp_filename()}"
 
             # End any existing active session
             if user_id in self._active_sessions:

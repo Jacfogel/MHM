@@ -9,7 +9,7 @@ from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
 from core.file_operations import load_json_data, save_json_data, get_user_file_path
 from core.error_handling import handle_errors
-from core.service_utilities import now_readable_timestamp, READABLE_TIMESTAMP_FORMAT
+from core.time_utilities import now_timestamp_full, TIMESTAMP_FULL
 
 
 logger = get_component_logger("user_activity")
@@ -44,7 +44,7 @@ def store_user_response(
 
     if "timestamp" not in response_data:
         # Canonical readable timestamp for stored interaction metadata
-        response_data["timestamp"] = now_readable_timestamp()
+        response_data["timestamp"] = now_timestamp_full()
 
     existing_data.append(response_data)
 
@@ -64,7 +64,7 @@ def store_chat_interaction(
         "message_length": len(user_message),
         "response_length": len(ai_response),
         # Canonical readable timestamp for stored interaction metadata
-        "timestamp": now_readable_timestamp(),
+        "timestamp": now_timestamp_full(),
     }
     store_user_response(user_id, response_data, "chat_interaction")
     logger.info(f"Stored chat_interaction response for user {user_id}: {response_data}")
@@ -98,7 +98,7 @@ def get_recent_responses(user_id: str, response_type: str = "checkin", limit: in
             timestamp = item.get("timestamp", "1970-01-01 00:00:00")
             try:
                 # Parse human-readable format
-                dt = datetime.strptime(timestamp, READABLE_TIMESTAMP_FORMAT)
+                dt = datetime.strptime(timestamp, TIMESTAMP_FULL)
                 return dt.timestamp()
             except (ValueError, TypeError):
                 # If parsing fails, use 0
@@ -118,7 +118,7 @@ def get_recent_checkins(user_id: str, limit: int = 7):
 @handle_errors("getting checkins by days", default_return=[])
 def get_checkins_by_days(user_id: str, days: int = 7):
     """Get check-ins from the last N calendar days."""
-    from datetime import datetime, timedelta
+    from datetime import timedelta
 
     # Get all check-ins first
     all_checkins = get_recent_responses(
@@ -128,7 +128,7 @@ def get_checkins_by_days(user_id: str, days: int = 7):
     if not all_checkins:
         return []
 
-    # Calculate cutoff date
+    # Calculate cutoff date (local-naive, consistent with now_timestamp_full() storage)
     cutoff_date = datetime.now() - timedelta(days=days)
 
     # Filter check-ins by date
@@ -136,9 +136,7 @@ def get_checkins_by_days(user_id: str, days: int = 7):
     for checkin in all_checkins:
         if "timestamp" in checkin:
             try:
-                checkin_date = datetime.strptime(
-                    checkin["timestamp"], READABLE_TIMESTAMP_FORMAT
-                )
+                checkin_date = datetime.strptime(checkin["timestamp"], TIMESTAMP_FULL)
                 if checkin_date >= cutoff_date:
                     recent_checkins.append(checkin)
             except (ValueError, TypeError):

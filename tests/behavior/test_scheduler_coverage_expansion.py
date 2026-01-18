@@ -18,11 +18,7 @@ from core.scheduler import (
     process_user_schedules,
     process_category_schedule,
 )
-from core.service_utilities import (
-    DATE_ONLY_FORMAT,
-    TIME_HM_FORMAT,
-    READABLE_MINUTE_TIMESTAMP_FORMAT,
-)
+from core.time_utilities import DATE_ONLY, TIME_ONLY_MINUTE, TIMESTAMP_MINUTE
 
 
 @pytest.fixture
@@ -553,9 +549,9 @@ class TestTaskReminderScheduling:
         assert 0 <= minute <= 59
 
         # Verify the time is within the specified range
-        result_time = datetime.strptime(result, TIME_HM_FORMAT).time()
-        start_time_obj = datetime.strptime(start_time, TIME_HM_FORMAT).time()
-        end_time_obj = datetime.strptime(end_time, TIME_HM_FORMAT).time()
+        result_time = datetime.strptime(result, TIME_ONLY_MINUTE).time()
+        start_time_obj = datetime.strptime(start_time, TIME_ONLY_MINUTE).time()
+        end_time_obj = datetime.strptime(end_time, TIME_ONLY_MINUTE).time()
         assert start_time_obj <= result_time <= end_time_obj
 
 
@@ -636,13 +632,13 @@ class TestTimeManagement:
             assert isinstance(result, str)
 
             # Parse the result
-            result_dt = datetime.strptime(result, READABLE_MINUTE_TIMESTAMP_FORMAT)
+            result_dt = datetime.strptime(result, TIMESTAMP_MINUTE)
             assert isinstance(result_dt, datetime)
 
             # Verify the time is within the specified range
             result_time = result_dt.time()
-            start_time = datetime.strptime("09:00", TIME_HM_FORMAT).time()
-            end_time = datetime.strptime("17:00", TIME_HM_FORMAT).time()
+            start_time = datetime.strptime("09:00", TIME_ONLY_MINUTE).time()
+            end_time = datetime.strptime("17:00", TIME_ONLY_MINUTE).time()
             assert start_time <= result_time <= end_time
 
     @pytest.mark.behavior
@@ -1535,10 +1531,8 @@ class TestSelectTaskForReminderBehavior:
         self, scheduler_manager
     ):
         """Test due date proximity weighting for tasks due today."""
-        today = datetime.now().date().strftime(DATE_ONLY_FORMAT)
-        future_date = (datetime.now().date() + timedelta(days=30)).strftime(
-            DATE_ONLY_FORMAT
-        )
+        today = datetime.now().date().strftime(DATE_ONLY)
+        future_date = (datetime.now().date() + timedelta(days=30)).strftime(DATE_ONLY)
 
         tasks = [
             {
@@ -1572,12 +1566,8 @@ class TestSelectTaskForReminderBehavior:
         self, scheduler_manager
     ):
         """Test overdue task weighting with exponential increase."""
-        overdue_date = (datetime.now().date() - timedelta(days=5)).strftime(
-            DATE_ONLY_FORMAT
-        )
-        future_date = (datetime.now().date() + timedelta(days=30)).strftime(
-            DATE_ONLY_FORMAT
-        )
+        overdue_date = (datetime.now().date() - timedelta(days=5)).strftime(DATE_ONLY)
+        future_date = (datetime.now().date() + timedelta(days=30)).strftime(DATE_ONLY)
 
         tasks = [
             {
@@ -1673,7 +1663,7 @@ class TestSelectTaskForReminderBehavior:
         for i in range(50):
             priority = ["critical", "high", "medium", "low", "none"][i % 5]
             due_date = (today + timedelta(days=i - 25)).strftime(
-                DATE_ONLY_FORMAT
+                DATE_ONLY
             )  # Mix of past and future
 
             tasks.append(
@@ -1752,19 +1742,19 @@ class TestSelectTaskForReminderBehavior:
                 "id": "task1",
                 "title": "Due Tomorrow",
                 "priority": "medium",
-                "due_date": (today + timedelta(days=1)).strftime(DATE_ONLY_FORMAT),
+                "due_date": (today + timedelta(days=1)).strftime(DATE_ONLY),
             },
             {
                 "id": "task2",
                 "title": "Due in 3 Days",
                 "priority": "medium",
-                "due_date": (today + timedelta(days=3)).strftime(DATE_ONLY_FORMAT),
+                "due_date": (today + timedelta(days=3)).strftime(DATE_ONLY),
             },
             {
                 "id": "task3",
                 "title": "Due in 7 Days",
                 "priority": "medium",
-                "due_date": (today + timedelta(days=7)).strftime(DATE_ONLY_FORMAT),
+                "due_date": (today + timedelta(days=7)).strftime(DATE_ONLY),
             },
         ]
 
@@ -1805,19 +1795,19 @@ class TestSelectTaskForReminderBehavior:
                 "id": "task1",
                 "title": "Due in 8 Days",
                 "priority": "medium",
-                "due_date": (today + timedelta(days=8)).strftime(DATE_ONLY_FORMAT),
+                "due_date": (today + timedelta(days=8)).strftime(DATE_ONLY),
             },
             {
                 "id": "task2",
                 "title": "Due in 15 Days",
                 "priority": "medium",
-                "due_date": (today + timedelta(days=15)).strftime(DATE_ONLY_FORMAT),
+                "due_date": (today + timedelta(days=15)).strftime(DATE_ONLY),
             },
             {
                 "id": "task3",
                 "title": "Due in 30 Days",
                 "priority": "medium",
-                "due_date": (today + timedelta(days=30)).strftime(DATE_ONLY_FORMAT),
+                "due_date": (today + timedelta(days=30)).strftime(DATE_ONLY),
             },
         ]
 

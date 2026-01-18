@@ -23,7 +23,7 @@ import requests
 from ai.chatbot import AIChatBotSingleton
 from ai.cache_manager import get_response_cache
 from tests.test_utilities import TestUserFactory
-from core.service_utilities import now_filename_timestamp
+from core.time_utilities import now_timestamp_filename
 from core.user_data_handlers import get_user_data
 from core.response_tracking import get_recent_chat_interactions
 from core.user_data_handlers import get_user_id_by_identifier
@@ -2258,7 +2258,7 @@ class AITestRunner:
         os.makedirs(results_dir, exist_ok=True)
 
         # Also save to test data directory for this run
-        timestamp = now_filename_timestamp()
+        timestamp = now_timestamp_filename()
         report_file = os.path.join(
             results_dir, f"ai_functionality_test_results_{timestamp}.md"
         )

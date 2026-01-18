@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
+from core.time_utilities import TIME_ONLY_MINUTE
 
 logger = get_component_logger("scheduler")
 
@@ -60,11 +61,9 @@ def is_schedule_active(
     Returns:
         bool: True if the schedule is active, False otherwise
     """
-    from core.service_utilities import (
-        TIME_HM_FORMAT,
-    )  # local import to keep deps minimal
 
-    if not current_time:
+    # Be explicit: only default when caller provided nothing.
+    if current_time is None:
         current_time = datetime.now()
 
     if not schedule_data or not isinstance(schedule_data, dict):
@@ -90,8 +89,8 @@ def is_schedule_active(
 
     try:
         # Canonical time parsing format
-        start_time = datetime.strptime(start_time_str, TIME_HM_FORMAT).time()
-        end_time = datetime.strptime(end_time_str, TIME_HM_FORMAT).time()
+        start_time = datetime.strptime(start_time_str, TIME_ONLY_MINUTE).time()
+        end_time = datetime.strptime(end_time_str, TIME_ONLY_MINUTE).time()
         current_time_only = current_time.time()
 
         is_active = start_time <= current_time_only <= end_time
@@ -114,15 +113,14 @@ def get_current_active_schedules(
     """
     Get list of schedule periods that are currently active based on time and day.
     """
-    from core.service_utilities import (
-        TIME_HM_FORMAT,
-    )  # local import to keep deps minimal
+    # local import to keep deps minimal
 
     if not schedules:
         logger.debug("No schedules provided - returning empty list")
         return []
 
-    if not current_time:
+    # Be explicit: only default when caller provided nothing.
+    if current_time is None:
         current_time = datetime.now()
 
     active_periods = []
@@ -134,7 +132,7 @@ def get_current_active_schedules(
 
     # No canonical seconds format exists; log minute precision consistently.
     logger.debug(
-        f"Checked {total_periods} schedules at {current_time.strftime(TIME_HM_FORMAT)}, "
+        f"Checked {total_periods} schedules at {current_time.strftime(TIME_ONLY_MINUTE)}, "
         f"found {len(active_periods)} currently active: {active_periods}"
     )
     return active_periods

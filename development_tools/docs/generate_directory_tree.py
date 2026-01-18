@@ -28,7 +28,7 @@ if str(project_root) not in sys.path:
 
 from development_tools.shared.standard_exclusions import should_exclude_file
 from core.logger import get_component_logger
-from core.service_utilities import now_readable_timestamp
+from core.time_utilities import now_timestamp_full
 
 # Handle both relative and absolute imports
 if __name__ != "__main__" and __package__ and "." in __package__:
@@ -203,7 +203,7 @@ class DirectoryTreeGenerator:
                 processed_lines.append(line)
 
         # Create the final content with standardized metadata
-        timestamp = now_readable_timestamp()
+        timestamp = now_timestamp_full()
 
         header = [
             "# Project Directory Tree",

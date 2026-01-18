@@ -17,7 +17,11 @@ from core.logger import get_logger, get_component_logger
 import core.config
 from core.error_handling import handle_errors
 from core.user_data_handlers import get_user_data, get_all_user_ids
-from core.service_utilities import now_filename_timestamp
+from core.time_utilities import (
+    now_timestamp_filename,
+    now_timestamp_full,
+    TIMESTAMP_FULL,
+)
 
 logger = get_component_logger("file_ops")
 backup_logger = get_component_logger("main")
@@ -60,7 +64,7 @@ class BackupManager:
     def _create_backup__setup_backup(self, backup_name: str | None) -> tuple[str, str]:
         """Setup backup name and path parameters."""
         if not backup_name:
-            timestamp = now_filename_timestamp()
+            timestamp = now_timestamp_filename()
             backup_name = f"mhm_backup_{timestamp}"
 
         backup_path = Path(self.backup_dir) / f"{backup_name}.zip"
@@ -335,9 +339,10 @@ class BackupManager:
         include_code: bool = False,
     ) -> None:
         """Create a manifest file describing the backup contents."""
+
         manifest = {
             "backup_name": backup_name,
-            "created_at": datetime.now().isoformat(),
+            "created_at": now_timestamp_full(),
             "includes": {
                 "users": include_users,
                 "config": include_config,
@@ -492,13 +497,16 @@ class BackupManager:
                     }
                 else:
                     # Fallback for backups without manifest
+
+                    created_at = datetime.fromtimestamp(
+                        os.path.getmtime(backup_path)
+                    ).strftime(TIMESTAMP_FULL)
+
                     return {
                         "file_path": backup_path,
                         "file_name": os.path.basename(backup_path),
                         "file_size": os.path.getsize(backup_path),
-                        "created_at": datetime.fromtimestamp(
-                            os.path.getmtime(backup_path)
-                        ).isoformat(),
+                        "created_at": created_at,
                         "backup_name": "Unknown",
                         "includes": {},
                         "system_info": {},
@@ -755,7 +763,7 @@ def create_automatic_backup(operation_name: str = "automatic") -> str | None:
     Returns:
         Path to the backup file, or None if failed
     """
-    timestamp = now_filename_timestamp()
+    timestamp = now_timestamp_filename()
     backup_name = f"auto_{operation_name}_{timestamp}"
 
     logger.info(f"Creating automatic backup: {backup_name}")

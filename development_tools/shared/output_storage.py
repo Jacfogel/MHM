@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, Optional, Any
 
 from core.logger import get_component_logger
-from core.service_utilities import now_readable_timestamp, now_filename_timestamp
+from core.time_utilities import now_timestamp_full, now_timestamp_filename
 from .file_rotation import FileRotator
 
 logger = get_component_logger("development_tools")
@@ -114,10 +114,10 @@ def save_tool_result(
     result_file = jsons_dir / f"{tool_name}_results.json"
 
     # Prepare data with metadata
-    timestamp_str = now_readable_timestamp()
+    timestamp_str = now_timestamp_full()
     # If you want a machine-friendly timestamp, generate ISO from datetime (not from the readable string).
     timestamp_iso = datetime.now().isoformat(timespec="seconds")
-    filename_timestamp = now_filename_timestamp()
+    filename_timestamp = now_timestamp_filename()
 
     result_data = {
         "generated_by": f"{tool_name} - Development Tools",
@@ -340,7 +340,7 @@ def save_tool_cache(
     cache_file = jsons_dir / f".{tool_name}_cache.json"
 
     # Prepare cache data with metadata
-    timestamp_str = now_readable_timestamp()
+    timestamp_str = now_timestamp_full()
     timestamp_iso = datetime.now().isoformat()
 
     cache_data = {

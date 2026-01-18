@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFont
 
-from core.service_utilities import READABLE_TIMESTAMP_FORMAT
+from core.time_utilities import TIMESTAMP_FULL
 
 # Set up logging
 from core.logger import setup_logging, get_component_logger
@@ -624,7 +624,7 @@ class MHMManagerUI(QMainWindow):
                                 try:
                                     last_init_time = datetime.strptime(
                                         timestamp_match.group(1),
-                                        READABLE_TIMESTAMP_FORMAT,
+                                        TIMESTAMP_FULL,
                                     )
                                 except ValueError:
                                     pass
@@ -638,7 +638,7 @@ class MHMManagerUI(QMainWindow):
                                 try:
                                     last_shutdown_time = datetime.strptime(
                                         timestamp_match.group(1),
-                                        READABLE_TIMESTAMP_FORMAT,
+                                        TIMESTAMP_FULL,
                                     )
                                 except ValueError:
                                     pass
@@ -652,7 +652,7 @@ class MHMManagerUI(QMainWindow):
                                 try:
                                     last_activity_time = datetime.strptime(
                                         timestamp_match.group(1),
-                                        READABLE_TIMESTAMP_FORMAT,
+                                        TIMESTAMP_FULL,
                                     )
                                 except ValueError:
                                     pass
@@ -699,7 +699,7 @@ class MHMManagerUI(QMainWindow):
                                     try:
                                         init_time = datetime.strptime(
                                             timestamp_match.group(1),
-                                            READABLE_TIMESTAMP_FORMAT,
+                                            TIMESTAMP_FULL,
                                         )
                                         if init_time > last_shutdown_time:
                                             # Check if this restart is recent
@@ -792,7 +792,7 @@ class MHMManagerUI(QMainWindow):
                                 try:
                                     last_init_time = datetime.strptime(
                                         timestamp_match.group(1),
-                                        READABLE_TIMESTAMP_FORMAT,
+                                        TIMESTAMP_FULL,
                                     )
                                 except ValueError:
                                     pass
@@ -806,7 +806,7 @@ class MHMManagerUI(QMainWindow):
                                 try:
                                     last_shutdown_time = datetime.strptime(
                                         timestamp_match.group(1),
-                                        READABLE_TIMESTAMP_FORMAT,
+                                        TIMESTAMP_FULL,
                                     )
                                 except ValueError:
                                     pass
@@ -841,7 +841,7 @@ class MHMManagerUI(QMainWindow):
                                     try:
                                         init_time = datetime.strptime(
                                             timestamp_match.group(1),
-                                            READABLE_TIMESTAMP_FORMAT,
+                                            TIMESTAMP_FULL,
                                         )
                                         if init_time > last_shutdown_time:
                                             # Check if this restart is recent

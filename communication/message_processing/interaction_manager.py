@@ -1155,7 +1155,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
 
         # Get task-related suggestions if user has tasks
         try:
-            from core.service_utilities import DATE_ONLY_FORMAT, TIME_HM_FORMAT
+            from core.time_utilities import DATE_ONLY, TIME_ONLY_MINUTE
             from tasks.task_management import load_active_tasks
 
             tasks = load_active_tasks(user_id) or []
@@ -1164,7 +1164,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
             def parse_due(task: dict) -> datetime | None:
                 """
                 Parse due date/time into a datetime for sorting.
-                Uses canonical formats from service_utilities (no inline format strings).
+                Uses canonical formats from time_utilities (no inline format strings).
                 """
                 due_date = task.get("due_date")
                 due_time = task.get("due_time")
@@ -1174,10 +1174,10 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
 
                 # Canonical stored formats are date-only and HH:MM.
                 if due_time:
-                    dt_format = f"{DATE_ONLY_FORMAT} {TIME_HM_FORMAT}"
+                    dt_format = f"{DATE_ONLY} {TIME_ONLY_MINUTE}"
                     return datetime.strptime(f"{due_date} {due_time}", dt_format)
 
-                return datetime.strptime(due_date, DATE_ONLY_FORMAT)
+                return datetime.strptime(due_date, DATE_ONLY)
 
             if tasks:
                 dated_tasks = [(task, parse_due(task)) for task in tasks]
@@ -1213,7 +1213,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
                 get_recent_checkins,
                 is_user_checkins_enabled,
             )
-            from core.service_utilities import READABLE_TIMESTAMP_FORMAT
+            from core.time_utilities import TIMESTAMP_FULL
 
             if is_user_checkins_enabled(user_id):
                 recent_checkins = get_recent_checkins(user_id, limit=3) or []
@@ -1223,7 +1223,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
 
                     try:
                         timestamp = (
-                            datetime.strptime(timestamp_str, READABLE_TIMESTAMP_FORMAT)
+                            datetime.strptime(timestamp_str, TIMESTAMP_FULL)
                             if timestamp_str
                             else None
                         )

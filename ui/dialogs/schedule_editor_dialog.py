@@ -21,7 +21,7 @@ from core.ui_management import (
 )
 from core.error_handling import handle_errors
 from core.user_data_validation import _shared__title_case, validate_schedule_periods
-from core.service_utilities import now_filename_timestamp
+from core.time_utilities import now_timestamp_filename
 
 # Import our new period row widget
 from ui.widgets.period_row_widget import PeriodRowWidget
@@ -404,7 +404,7 @@ class ScheduleEditorDialog(QDialog):
             requests_dir.mkdir(parents=True, exist_ok=True)
 
             # Create a unique filename
-            timestamp_str = now_filename_timestamp()
+            timestamp_str = now_timestamp_filename()
             filename = f"reschedule_{self.user_id}_{self.category}_{timestamp_str}.json"
             request_file = requests_dir / filename
 

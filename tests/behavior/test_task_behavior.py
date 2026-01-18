@@ -14,7 +14,7 @@ import os
 from unittest.mock import patch
 import json
 from datetime import datetime, timedelta
-from core.service_utilities import DATE_ONLY_FORMAT
+from core.time_utilities import DATE_ONLY
 
 # Do not modify sys.path; rely on package imports
 
@@ -267,8 +267,8 @@ class TestTaskManagement:
         mock_get_user_dir.return_value = temp_dir
         # Create tasks with due dates
         today = datetime.now().date()
-        due_soon = (today + timedelta(days=2)).strftime(DATE_ONLY_FORMAT)
-        due_late = (today + timedelta(days=10)).strftime(DATE_ONLY_FORMAT)
+        due_soon = (today + timedelta(days=2)).strftime(DATE_ONLY)
+        due_late = (today + timedelta(days=10)).strftime(DATE_ONLY)
         id_soon = create_task(user_id, "Soon Task", due_date=due_soon)
         id_late = create_task(user_id, "Late Task", due_date=due_late)
         # Get tasks due soon (within 7 days)

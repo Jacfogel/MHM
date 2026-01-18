@@ -16,7 +16,7 @@ from core.config import (
     get_user_data_dir,
 )
 from core.error_handling import FileOperationError, handle_file_error, handle_errors
-from core.service_utilities import now_readable_timestamp
+from core.time_utilities import now_timestamp_full
 
 try:
     from core.file_auditor import record_created as _record_created
@@ -419,7 +419,7 @@ def _create_user_files__account_file(
             return
 
         # Canonical readable timestamp for metadata fields
-        current_time = now_readable_timestamp()
+        current_time = now_timestamp_full()
 
         internal_username = user_prefs.get("internal_username", "")
         chat_id = user_prefs.get("chat_id", "")
@@ -520,7 +520,7 @@ def _create_user_files__context_file(user_id, user_prefs):
             return
 
         # Canonical readable timestamp for metadata fields
-        current_time = now_readable_timestamp()
+        current_time = now_timestamp_full()
 
         personalization_data = user_prefs.get("personalization_data", {})
 

@@ -13,7 +13,7 @@ from typing import Dict, List, Optional
 from core.logger import get_component_logger
 from core.response_tracking import get_checkins_by_days
 from core.error_handling import handle_errors
-from core.service_utilities import READABLE_TIMESTAMP_FORMAT, TIME_HM_FORMAT
+from core.time_utilities import TIMESTAMP_FULL, TIME_ONLY_MINUTE
 
 logger = get_component_logger("user_activity")
 analytics_logger = get_component_logger("user_activity")
@@ -41,9 +41,7 @@ class CheckinAnalytics:
         for checkin in checkins:
             if "mood" in checkin and "timestamp" in checkin:
                 try:
-                    timestamp = datetime.strptime(
-                        checkin["timestamp"], READABLE_TIMESTAMP_FORMAT
-                    )
+                    timestamp = datetime.strptime(checkin["timestamp"], TIMESTAMP_FULL)
                     mood_data.append(
                         {
                             "date": timestamp.date(),
@@ -117,9 +115,7 @@ class CheckinAnalytics:
         for checkin in checkins:
             if "energy" in checkin and "timestamp" in checkin:
                 try:
-                    timestamp = datetime.strptime(
-                        checkin["timestamp"], READABLE_TIMESTAMP_FORMAT
-                    )
+                    timestamp = datetime.strptime(checkin["timestamp"], TIMESTAMP_FULL)
                     energy_data.append(
                         {
                             "date": timestamp.date(),
@@ -236,9 +232,7 @@ class CheckinAnalytics:
             has_sleep_data = "sleep_quality" in checkin or "sleep_schedule" in checkin
             if has_sleep_data:
                 try:
-                    timestamp = datetime.strptime(
-                        checkin["timestamp"], READABLE_TIMESTAMP_FORMAT
-                    )
+                    timestamp = datetime.strptime(checkin["timestamp"], TIMESTAMP_FULL)
                     sleep_entry = {
                         "date": timestamp.date(),
                         "timestamp": checkin["timestamp"],
@@ -376,9 +370,7 @@ class CheckinAnalytics:
         for checkin in checkins:
             if "timestamp" in checkin:
                 try:
-                    timestamp = datetime.strptime(
-                        checkin["timestamp"], READABLE_TIMESTAMP_FORMAT
-                    )
+                    timestamp = datetime.strptime(checkin["timestamp"], TIMESTAMP_FULL)
 
                     formatted_checkin = {
                         # ISO date should come from the date object
@@ -964,8 +956,8 @@ class CheckinAnalytics:
             from datetime import datetime, timedelta
 
             # Parse times
-            sleep_dt = datetime.strptime(sleep_time, TIME_HM_FORMAT)
-            wake_dt = datetime.strptime(wake_time, TIME_HM_FORMAT)
+            sleep_dt = datetime.strptime(sleep_time, TIME_ONLY_MINUTE)
+            wake_dt = datetime.strptime(wake_time, TIME_ONLY_MINUTE)
 
             # Calculate duration (handle overnight sleep)
             if wake_dt < sleep_dt:

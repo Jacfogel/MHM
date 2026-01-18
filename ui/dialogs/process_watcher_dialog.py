@@ -19,7 +19,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 import psutil
 from datetime import datetime
-from core.service_utilities import READABLE_TIMESTAMP_FORMAT
+from core.time_utilities import TIMESTAMP_FULL
 
 # Route process watcher logs to UI component
 process_logger = get_component_logger("process_watcher")
@@ -310,7 +310,7 @@ class ProcessWatcherDialog(QDialog):
 
                 # Start Time
                 start_time = datetime.fromtimestamp(proc_info["create_time"]).strftime(
-                    READABLE_TIMESTAMP_FORMAT
+                    TIMESTAMP_FULL
                 )
                 self.all_processes_table.setItem(row, 5, QTableWidgetItem(start_time))
 
@@ -384,7 +384,7 @@ class ProcessWatcherDialog(QDialog):
 
                 # Start Time
                 start_time = datetime.fromtimestamp(proc_info["create_time"]).strftime(
-                    READABLE_TIMESTAMP_FORMAT
+                    TIMESTAMP_FULL
                 )
                 self.mhm_processes_table.setItem(row, 5, QTableWidgetItem(start_time))
 
@@ -457,7 +457,7 @@ class ProcessWatcherDialog(QDialog):
                 # Basic info
                 details += f"Name: {proc.name()}\n"
                 details += f"Status: {proc.status()}\n"
-                details += f"Create Time: {datetime.fromtimestamp(proc.create_time()).strftime(READABLE_TIMESTAMP_FORMAT)}\n"
+                details += f"Create Time: {datetime.fromtimestamp(proc.create_time()).strftime(TIMESTAMP_FULL)}\n"
                 details += f"CPU Percent: {proc.cpu_percent():.1f}%\n"
                 details += f"Memory Percent: {proc.memory_percent():.1f}%\n"
                 details += f"Memory Info: {proc.memory_info()}\n\n"

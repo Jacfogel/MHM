@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.tags import normalize_tags
-from core.service_utilities import READABLE_TIMESTAMP_FORMAT, now_readable_timestamp
+from core.time_utilities import TIMESTAMP_FULL, now_timestamp_full
 from notebook.schemas import Entry, ListItem, EntryKind
 from notebook.notebook_data_handlers import load_entries, save_entries
 from notebook.notebook_validation import (
@@ -33,7 +33,7 @@ logger = get_component_logger("notebook_data_manager")
 @handle_errors("saving updated entry")
 def _save_updated_entry(user_id: str, entry: Entry, all_entries: list[Entry]) -> Entry:
     """Updates the entry's updated_at timestamp and saves all entries."""
-    entry.updated_at = now_readable_timestamp()
+    entry.updated_at = now_timestamp_full()
     save_entries(user_id, all_entries)
     return entry
 
@@ -120,7 +120,7 @@ def create_entry(
 
     normalized_tags = normalize_tags(tags or [])
 
-    now_ts = now_readable_timestamp()
+    now_ts = now_timestamp_full()
 
     entry_data = {
         "id": uuid.uuid4(),
@@ -248,7 +248,7 @@ def list_recent(
     # Sort by updated_at descending (parse timestamp strings for comparison)
     entries.sort(
         key=lambda e: (
-            datetime.strptime(e.updated_at, READABLE_TIMESTAMP_FORMAT)
+            datetime.strptime(e.updated_at, TIMESTAMP_FULL)
             if isinstance(e.updated_at, str)
             else datetime.min
         ),
@@ -468,7 +468,7 @@ def search_entries(user_id: str, query: str, limit: int = 100) -> list[Entry]:
     try:
         unique_matches.sort(
             key=lambda e: (
-                datetime.strptime(e.updated_at, READABLE_TIMESTAMP_FORMAT)
+                datetime.strptime(e.updated_at, TIMESTAMP_FULL)
                 if isinstance(e.updated_at, str)
                 else datetime.min
             ),
@@ -537,7 +537,7 @@ def toggle_list_item_done(
         return None
 
     entry.items[normalized_index].done = done
-    entry.items[normalized_index].updated_at = now_readable_timestamp()
+    entry.items[normalized_index].updated_at = now_timestamp_full()
 
     return _save_updated_entry(user_id, entry, entries)
 
@@ -564,7 +564,7 @@ def remove_list_item(user_id: str, ref: str, item_index: int) -> Entry | None:
 
     entry.items.pop(normalized_index)
     # Reorder remaining items
-    now_ts = now_readable_timestamp()
+    now_ts = now_timestamp_full()
     for i, item in enumerate(entry.items):
         item.order = i
         item.updated_at = now_ts
@@ -580,7 +580,7 @@ def list_by_group(user_id: str, group: str, limit: int = 100) -> list[Entry]:
     matching = [e for e in entries if e.group and e.group.lower() == group.lower()]
     matching.sort(
         key=lambda e: (
-            datetime.strptime(e.updated_at, READABLE_TIMESTAMP_FORMAT)
+            datetime.strptime(e.updated_at, TIMESTAMP_FULL)
             if isinstance(e.updated_at, str)
             else datetime.min
         ),
@@ -596,7 +596,7 @@ def list_pinned(user_id: str, limit: int = 100) -> list[Entry]:
     pinned = [e for e in entries if e.pinned and not e.archived]
     pinned.sort(
         key=lambda e: (
-            datetime.strptime(e.updated_at, READABLE_TIMESTAMP_FORMAT)
+            datetime.strptime(e.updated_at, TIMESTAMP_FULL)
             if isinstance(e.updated_at, str)
             else datetime.min
         ),
@@ -617,7 +617,7 @@ def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> list[Entry]:
             # Parse timestamp string to compare
             try:
                 entry_timestamp = datetime.strptime(
-                    e.updated_at, READABLE_TIMESTAMP_FORMAT
+                    e.updated_at, TIMESTAMP_FULL
                 ).timestamp()
                 if entry_timestamp >= cutoff:
                     inbox.append(e)
@@ -630,7 +630,7 @@ def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> list[Entry]:
 
     inbox.sort(
         key=lambda e: (
-            datetime.strptime(e.updated_at, READABLE_TIMESTAMP_FORMAT)
+            datetime.strptime(e.updated_at, TIMESTAMP_FULL)
             if isinstance(e.updated_at, str)
             else datetime.min
         ),
@@ -646,7 +646,7 @@ def list_archived(user_id: str, limit: int = 100) -> list[Entry]:
     archived = [e for e in entries if e.archived]
     archived.sort(
         key=lambda e: (
-            datetime.strptime(e.updated_at, READABLE_TIMESTAMP_FORMAT)
+            datetime.strptime(e.updated_at, TIMESTAMP_FULL)
             if isinstance(e.updated_at, str)
             else datetime.min
         ),
@@ -666,7 +666,7 @@ def list_by_tag(user_id: str, tag: str, limit: int = 100) -> list[Entry]:
     matching = [e for e in entries if normalized_tag in e.tags]
     matching.sort(
         key=lambda e: (
-            datetime.strptime(e.updated_at, READABLE_TIMESTAMP_FORMAT)
+            datetime.strptime(e.updated_at, TIMESTAMP_FULL)
             if isinstance(e.updated_at, str)
             else datetime.min
         ),

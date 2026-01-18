@@ -9,17 +9,18 @@ from pathlib import Path
 import json
 import uuid
 from datetime import datetime, timezone, timedelta
+from typing import List, Dict, Any, Optional
 from core.logger import get_component_logger
 from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, determine_file_path
 from core.schemas import validate_messages_file_dict
 from core.error_handling import ValidationError, handle_errors
-from core.service_utilities import (
-    now_filename_timestamp,
-    now_readable_timestamp,
-    READABLE_TIMESTAMP_FORMAT,
+from core.time_utilities import (
+    now_timestamp_filename,
+    now_timestamp_full,
+    TIMESTAMP_FULL,
 )
-from typing import List, Dict, Any, Optional
+
 
 logger = get_component_logger("message")
 
@@ -512,7 +513,7 @@ def store_sent_message(
             "message": message,
             "category": category,
             # Canonical readable timestamp for metadata/log display fields
-            "timestamp": now_readable_timestamp(),
+            "timestamp": now_timestamp_full(),
             "delivery_status": delivery_status,
         }
 
@@ -544,7 +545,7 @@ def store_sent_message(
 
         data["metadata"]["total_messages"] = len(messages)
         # Canonical readable timestamp for metadata/log display fields
-        data["metadata"]["last_updated"] = now_readable_timestamp()
+        data["metadata"]["last_updated"] = now_timestamp_full()
 
         save_json_data(data, file_path)
 
@@ -605,7 +606,7 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
         archive_dir = Path(file_path).parent / "archives"
         archive_dir.mkdir(exist_ok=True)
 
-        archive_filename = f"sent_messages_archive_{now_filename_timestamp()}.json"
+        archive_filename = f"sent_messages_archive_{now_timestamp_filename()}.json"
         archive_path = archive_dir / archive_filename
 
         # Save archived messages
@@ -613,7 +614,7 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
             "metadata": {
                 "version": "2.0",
                 # Canonical readable timestamp for metadata/log display fields
-                "archived_date": now_readable_timestamp(),
+                "archived_date": now_timestamp_full(),
                 "original_file": str(file_path),
                 "total_messages": len(archived_messages),
                 "date_range": {
@@ -634,7 +635,7 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
         data["messages"] = active_messages
         data["metadata"]["total_messages"] = len(active_messages)
         # Canonical readable timestamp for metadata/log display fields
-        data["metadata"]["last_archived"] = now_readable_timestamp()
+        data["metadata"]["last_archived"] = now_timestamp_full()
         data["metadata"]["archived_count"] = len(archived_messages)
 
         save_json_data(data, file_path)
@@ -649,7 +650,12 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
         return False
 
 
-@handle_errors("parsing timestamp", default_return=datetime.now())
+@handle_errors(
+    "parsing timestamp",
+    # IMPORTANT: avoid datetime.now() here (it would be evaluated at import time).
+    # Use the same "invalid timestamp" sentinel the function already returns.
+    default_return=datetime.min.replace(tzinfo=timezone.utc),
+)
 def _parse_timestamp(timestamp_str: str) -> datetime:
     """
     Parse timestamp string to datetime object.
@@ -667,7 +673,7 @@ def _parse_timestamp(timestamp_str: str) -> datetime:
 
     # Try different timestamp formats
     formats = [
-        READABLE_TIMESTAMP_FORMAT,
+        TIMESTAMP_FULL,
         "%Y-%m-%dT%H:%M:%S",
         "%Y-%m-%dT%H:%M:%SZ",
         "%Y-%m-%dT%H:%M:%S.%fZ",
@@ -851,7 +857,7 @@ def ensure_user_message_files(user_id: str, categories: list[str]) -> dict:
         }
 
 
-@handle_errors("getting timestamp for sorting", default_return=datetime.now())
+@handle_errors("getting timestamp for sorting", default_return=0.0)
 def get_timestamp_for_sorting(item):
     """
     Convert timestamp to float for consistent sorting.
@@ -868,7 +874,7 @@ def get_timestamp_for_sorting(item):
         return 0.0
     timestamp = item.get("timestamp", "1970-01-01 00:00:00")
     try:
-        dt = datetime.strptime(timestamp, READABLE_TIMESTAMP_FORMAT)
+        dt = datetime.strptime(timestamp, TIMESTAMP_FULL)
         return dt.timestamp()
     except (ValueError, TypeError):
         return 0.0

@@ -13,7 +13,7 @@ from tests.test_utilities import TestUserFactory
 from core.user_data_handlers import get_user_id_by_identifier
 from core.response_tracking import get_recent_chat_interactions
 from user.context_manager import user_context_manager
-from core.service_utilities import DATE_ONLY_FORMAT
+from core.time_utilities import DATE_ONLY
 
 
 class TestAIIntegration(AITestBase):
@@ -86,7 +86,7 @@ class TestAIIntegration(AITestBase):
                     c
                     for c in recent_checkins
                     if c.get("timestamp", "").startswith(
-                        datetime.now().strftime(DATE_ONLY_FORMAT)
+                        datetime.now().strftime(DATE_ONLY)
                     )
                 ]
 

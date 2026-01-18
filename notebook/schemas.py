@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator, model_valida
 
 from core.tags import normalize_tags, validate_tag
 from core.logger import get_component_logger
-from core.service_utilities import READABLE_TIMESTAMP_FORMAT, now_readable_timestamp
+from core.time_utilities import TIMESTAMP_FULL, now_timestamp_full
 
 logger = get_component_logger("notebook_schemas")
 
@@ -29,8 +29,8 @@ class ListItem(BaseModel):
     text: str
     done: bool = False
     order: int
-    created_at: str = Field(default_factory=now_readable_timestamp)
-    updated_at: str = Field(default_factory=now_readable_timestamp)
+    created_at: str = Field(default_factory=now_timestamp_full)
+    updated_at: str = Field(default_factory=now_timestamp_full)
 
     @field_validator("text", mode="before")
     @classmethod
@@ -54,8 +54,8 @@ class Entry(BaseModel):
     group: str | None = None
     pinned: bool = False
     archived: bool = False
-    created_at: str = Field(default_factory=now_readable_timestamp)
-    updated_at: str = Field(default_factory=now_readable_timestamp)
+    created_at: str = Field(default_factory=now_timestamp_full)
+    updated_at: str = Field(default_factory=now_timestamp_full)
 
     @field_validator("title", "body", "group", mode="before")
     @classmethod
@@ -90,7 +90,7 @@ class Entry(BaseModel):
             for i, item in enumerate(v):
                 if item.order != i:
                     item.order = i  # Auto-correct order
-                    item.updated_at = now_readable_timestamp()
+                    item.updated_at = now_timestamp_full()
         elif v is not None:
             raise ValueError("Only 'list' kind entries can have 'items'.")
         return v

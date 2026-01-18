@@ -13,7 +13,7 @@ import re
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.service_utilities import DATE_ONLY_FORMAT
+from core.time_utilities import DATE_ONLY
 from tasks.task_management import (
     create_task,
     load_active_tasks,
@@ -193,7 +193,7 @@ class TaskManagementHandler(InteractionHandler):
         ):  # Check for None, empty string, or whitespace-only
             try:
                 # Validate the parsed date format
-                datetime.strptime(due_date, DATE_ONLY_FORMAT)
+                datetime.strptime(due_date, DATE_ONLY)
                 valid_due_date = due_date
             except ValueError:
                 # Still invalid after parsing - treat as no due date
@@ -1189,8 +1189,8 @@ class TaskManagementHandler(InteractionHandler):
             # Add due date proximity bonus (closer = higher score)
             if due_date:
                 try:
-                    due_dt = datetime.strptime(due_date, DATE_ONLY_FORMAT)
-                    today_dt = datetime.strptime(today, DATE_ONLY_FORMAT)
+                    due_dt = datetime.strptime(due_date, DATE_ONLY)
+                    today_dt = datetime.strptime(today, DATE_ONLY)
                     days_until_due = (due_dt - today_dt).days
                     if days_until_due <= 0:  # Due today or overdue
                         score += 50

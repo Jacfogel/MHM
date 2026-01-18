@@ -66,7 +66,7 @@ def mark_as_welcomed(channel_identifier: str, channel_type: str = "discord") -> 
         bool: True if successful
     """
     # Local import to avoid startup-time circular import traps.
-    from core.service_utilities import now_readable_timestamp
+    from core.time_utilities import now_timestamp_full
     from datetime import datetime
 
     tracking_data = _load_welcome_tracking()
@@ -75,7 +75,7 @@ def mark_as_welcomed(channel_identifier: str, channel_type: str = "discord") -> 
     tracking_data[key] = {
         # Human-readable timestamp preferred for JSONs humans might read.
         # Keep the existing key name to avoid breaking any readers.
-        "welcomed_at": now_readable_timestamp(),
+        "welcomed_at": now_timestamp_full(),
         # Optional machine-friendly timestamp for sorting/analysis.
         # ISO must come from a datetime object (not string manipulation).
         "welcomed_at_iso": datetime.now().isoformat(),

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-17 06:02:35
+> **Last Generated**: 2026-01-18 01:50:31
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 36
 **Legacy Compatibility Markers Detected**: 73
@@ -19,7 +19,7 @@
 ## Deprecated Functions
 **Files Affected**: 1
 
-### tests\data\tmp4vsotbno\demo_project\legacy_code.py
+### tests\data\tmpneut7le6\demo_project\legacy_code.py
 **Issues Found**: 2
 
 - **Line 27**: `LegacyChannelWrapper`
@@ -35,7 +35,7 @@
 ## Historical References
 **Files Affected**: 1
 
-### tests\data\tmp4vsotbno\demo_project\legacy_code.py
+### tests\data\tmpneut7le6\demo_project\legacy_code.py
 **Issues Found**: 1
 
 - **Line 23**: `bot/communication`
@@ -46,7 +46,7 @@
 ## Legacy Compatibility Markers
 **Files Affected**: 1
 
-### tests\data\tmp4vsotbno\demo_project\legacy_code.py
+### tests\data\tmpneut7le6\demo_project\legacy_code.py
 **Issues Found**: 2
 
 - **Line 9**: `# LEGACY COMPATIBILITY:`
@@ -110,7 +110,7 @@
 ### core\message_management.py
 **Issues Found**: 1
 
-- **Line 657**: `backward compatibility`
+- **Line 663**: `backward compatibility`
   ```
   Handles multiple timestamp formats for backward compatibility.
   ```
@@ -118,7 +118,7 @@
 ### core\scheduler.py
 **Issues Found**: 1
 
-- **Line 1596**: `backward compatibility`
+- **Line 1644**: `backward compatibility`
   ```
   Legacy function for backward compatibility.
   ```
@@ -380,12 +380,12 @@
 ### tests\conftest.py
 **Issues Found**: 1
 
-- **Line 1681**: `backward compatibility`
+- **Line 1677**: `backward compatibility`
   ```
   This function is kept for backward compatibility but does nothing.
   ```
 
-### tests\data\tmp4vsotbno\demo_project\legacy_code.py
+### tests\data\tmpneut7le6\demo_project\legacy_code.py
 **Issues Found**: 1
 
 - **Line 9**: `backward compatibility`
@@ -409,67 +409,67 @@
 ### tests\test_utilities.py
 **Issues Found**: 13
 
-- **Line 586**: `backward compatibility`
+- **Line 588**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 794**: `backward compatibility`
+- **Line 796**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 964**: `backward compatibility`
+- **Line 966**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1089**: `backward compatibility`
+- **Line 1091**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1394**: `backward compatibility`
+- **Line 1396**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1422**: `backward compatibility`
+- **Line 1424**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1636**: `backward compatibility`
+- **Line 1638**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1825**: `backward compatibility`
+- **Line 1827**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2015**: `backward compatibility`
+- **Line 2017**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2183**: `backward compatibility`
+- **Line 2185**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2356**: `backward compatibility`
+- **Line 2358**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2513**: `backward compatibility`
+- **Line 2515**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2994**: `backward compatibility`
+- **Line 2996**: `backward compatibility`
   ```
   # Convenience functions for backward compatibility
   ```
@@ -498,7 +498,7 @@
 ## Old Bot Directory
 **Files Affected**: 1
 
-### tests\data\tmp4vsotbno\demo_project\legacy_code.py
+### tests\data\tmpneut7le6\demo_project\legacy_code.py
 **Issues Found**: 2
 
 - **Line 17**: `from bot.`
@@ -514,7 +514,7 @@
 ## Old Import Paths
 **Files Affected**: 1
 
-### tests\data\tmp4vsotbno\demo_project\legacy_code.py
+### tests\data\tmpneut7le6\demo_project\legacy_code.py
 **Issues Found**: 1
 
 - **Line 17**: `from bot.communication`

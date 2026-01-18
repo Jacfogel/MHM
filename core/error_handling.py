@@ -294,9 +294,9 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
 
             # Try to create backup of corrupted file
             # Use filename-safe readable timestamp (project-wide convention)
-            from core.service_utilities import now_filename_timestamp
+            from core.time_utilities import now_timestamp_filename
 
-            backup_path = f"{file_path}.corrupted_{now_filename_timestamp()}"
+            backup_path = f"{file_path}.corrupted_{now_timestamp_filename()}"
 
             if os.path.exists(file_path):
                 import shutil

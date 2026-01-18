@@ -9,7 +9,7 @@ import os
 from typing import Dict, Any, Tuple, List, Optional
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.service_utilities import DATE_ONLY_FORMAT, TIME_HM_FORMAT
+from core.time_utilities import DATE_ONLY, TIME_ONLY_MINUTE
 
 logger = get_component_logger("main")
 validation_logger = get_component_logger("user_activity")
@@ -420,7 +420,7 @@ def validate_user_update(
             try:
                 from datetime import datetime as _dt
 
-                _dt.strptime(dob, DATE_ONLY_FORMAT)
+                _dt.strptime(dob, DATE_ONLY)
             except ValueError:
                 errors.append("date_of_birth must be in YYYY-MM-DD format")
         if "custom_fields" in updates and not isinstance(
@@ -547,8 +547,8 @@ def validate_schedule_periods(
             try:
                 from datetime import datetime as _dt
 
-                st = _dt.strptime(start_time, TIME_HM_FORMAT)
-                et = _dt.strptime(end_time, TIME_HM_FORMAT)
+                st = _dt.strptime(start_time, TIME_ONLY_MINUTE)
+                et = _dt.strptime(end_time, TIME_ONLY_MINUTE)
                 if st >= et:
                     errors.append(
                         f"Period '{period_name}' start_time must be before end_time"
@@ -693,7 +693,7 @@ def validate_personalization_data(data: dict[str, Any]) -> tuple[bool, list[str]
         try:
             from datetime import datetime as _dt
 
-            _dt.strptime(dob, DATE_ONLY_FORMAT)
+            _dt.strptime(dob, DATE_ONLY)
         except ValueError:
             errors.append("date_of_birth must be in YYYY-MM-DD format")
 

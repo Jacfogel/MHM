@@ -13,6 +13,11 @@ from datetime import datetime
 from pathlib import Path
 import pytz
 from core.logger import get_component_logger
+from core.time_utilities import (
+    now_timestamp_full,
+    now_timestamp_filename,
+    TIMESTAMP_MINUTE,
+)
 
 try:
     from core.file_auditor import record_created as _record_created
@@ -23,17 +28,6 @@ from core.error_handling import handle_errors
 
 logger = get_component_logger("main")
 service_logger = get_component_logger("main")
-
-# Timestamp formatting conventions (project-wide)
-# - READABLE: for logs/metadata fields (readable, sortable)
-# - FILENAME: for filenames/IDs on Windows (no ":" or spaces)
-READABLE_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
-FILENAME_TIMESTAMP_FORMAT = "%Y-%m-%d_%H-%M-%S"
-
-# Additional canonical formats used across scheduler + UI
-DATE_ONLY_FORMAT = "%Y-%m-%d"
-TIME_HM_FORMAT = "%H:%M"
-READABLE_MINUTE_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M"
 
 
 # Throttler class
@@ -112,16 +106,6 @@ class InvalidTimeFormatError(Exception):
 throttler = Throttler(SCHEDULER_INTERVAL)
 
 
-def now_readable_timestamp() -> str:
-    """Readable timestamp for logs and metadata."""
-    return datetime.now().strftime(READABLE_TIMESTAMP_FORMAT)
-
-
-def now_filename_timestamp() -> str:
-    """Filename-safe timestamp for filenames and identifiers."""
-    return datetime.now().strftime(FILENAME_TIMESTAMP_FORMAT)
-
-
 @handle_errors("getting flags directory", default_return="")
 def get_flags_dir() -> Path:
     """Get the directory for service flag files."""
@@ -159,14 +143,13 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
         )
         return False
 
-    # Human-readable timestamp for JSON (preferred where humans might read it)
-    requested_at_readable = now_readable_timestamp()
+    # Canonical readable timestamp for JSON (preferred where humans might read it)
+    requested_at_readable = now_timestamp_full()
 
-    # ISO 8601 should come from a datetime object (not from strings).
-    # Optional, but useful if you later sort/process these programmatically.
-    requested_at_iso = datetime.now().isoformat()
+    # Use timezone-aware ISO 8601 so the timestamp is unambiguous and sortable across environments.
+    tz = pytz.timezone("America/Regina")
+    requested_at_iso = datetime.now(tz).isoformat()
 
-    # Create request data
     request_data = {
         "user_id": user_id,
         "category": category,
@@ -179,13 +162,12 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
     # - Human-readable base (Windows-safe)
     # - Millisecond suffix for uniqueness (not a "policy timestamp", just an ID component)
     ms_suffix = int(time.time() * 1000) % 1000
-    filename_timestamp = f"{now_filename_timestamp()}_{ms_suffix:03d}"
+    filename_timestamp = f"{now_timestamp_filename()}_{ms_suffix:03d}"
     filename = f"reschedule_request_{user_id}_{category}_{filename_timestamp}.flag"
 
     base_dir = get_flags_dir()
     request_file = Path(base_dir) / filename
 
-    # Write the request file
     with open(str(request_file), "w", encoding="utf-8") as f:
         json.dump(request_data, f, indent=2)
 
@@ -350,9 +332,7 @@ def load_and_localize_datetime(datetime_str, timezone_str="America/Regina"):
     """
     try:
         tz = pytz.timezone(timezone_str)
-        naive_datetime = datetime.strptime(
-            datetime_str, READABLE_MINUTE_TIMESTAMP_FORMAT
-        )
+        naive_datetime = datetime.strptime(datetime_str, TIMESTAMP_MINUTE)
         aware_datetime = tz.localize(naive_datetime)
         logger.debug(
             f"Localized datetime '{datetime_str}' to timezone '{timezone_str}': '{aware_datetime}'"

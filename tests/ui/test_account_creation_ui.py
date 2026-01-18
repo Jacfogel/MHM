@@ -32,7 +32,7 @@ logger = logging.getLogger("mhm_tests")
 
 # Do not modify sys.path; rely on package imports
 
-from core.service_utilities import now_filename_timestamp
+from core.time_utilities import now_timestamp_filename
 from core.user_data_handlers import save_user_data, get_user_data
 from core.file_operations import create_user_files, get_user_file_path
 from core.user_data_validation import (
@@ -431,7 +431,7 @@ class TestAccountCreationDialogRealBehavior:
         username_edit = dialog.ui.lineEdit_username
         timezone_combo = dialog.channel_widget.ui.comboBox_timezone
         # Use unique username to avoid conflicts
-        unique_username = f"testuser_messages_validation_{now_filename_timestamp()}"
+        unique_username = f"testuser_messages_validation_{now_timestamp_filename()}"
         QTest.keyClicks(username_edit, unique_username)
         timezone_combo.setCurrentText("America/New_York")
         QApplication.processEvents()
