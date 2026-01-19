@@ -32,7 +32,7 @@ from communication.core.channel_orchestrator import CommunicationManager
 from core.config import LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir
 from core.scheduler import SchedulerManager
 from core.service_utilities import get_flags_dir
-from core.time_utilities import TIMESTAMP_FULL, now_timestamp_full
+from core.time_utilities import TIMESTAMP_FULL, now_timestamp_full, parse_timestamp_full
 from core.file_operations import verify_file_access
 from core.user_data_handlers import get_all_user_ids
 from core.user_data_handlers import get_user_data
@@ -202,7 +202,9 @@ class MHMService:
 
         if matches:
             try:
-                latest_log_time = datetime.strptime(matches[-1], TIMESTAMP_FULL)
+                latest_log_time = parse_timestamp_full(matches[-1])
+                if latest_log_time is None:
+                    return False
                 time_diff = (current_time - latest_log_time).total_seconds()
 
                 if time_diff < 300:  # Less than 5 minutes

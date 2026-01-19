@@ -30,9 +30,13 @@ from core.response_tracking import (
 )
 from core.error_handling import handle_errors
 from core.time_utilities import (
-    TIMESTAMP_FULL,
-    DATE_ONLY,
     TIME_ONLY_MINUTE,
+    format_timestamp,
+    parse_timestamp_full,
+    parse_date_only,
+    parse_date_and_time_minute,
+    parse_time_only_minute,
+    DATE_ONLY,
     now_timestamp_full,
 )
 
@@ -155,9 +159,6 @@ class ConversationManager:
     @handle_errors("expiring inactive check-in states", default_return=None)
     def _expire_inactive_checkins(self, user_id: str | None = None) -> None:
         """Remove stale check-in flows that have been idle beyond the allowed window."""
-        # Local import to avoid circular-import traps during early startup
-        from core.time_utilities import TIMESTAMP_FULL
-
         expired_users: list[str] = []
         now = datetime.now()
 
@@ -172,9 +173,10 @@ class ConversationManager:
             if not last_ts:
                 continue
 
-            try:
-                last_dt = datetime.strptime(last_ts, TIMESTAMP_FULL)
-            except Exception:
+            # last_activity is internal persisted state (string timestamp).
+            # Parse strictly using canonical helper.
+            last_dt = parse_timestamp_full(last_ts)
+            if last_dt is None:
                 # If state is malformed, don't crash expiration sweeps.
                 continue
 
@@ -691,27 +693,24 @@ class ConversationManager:
         """
         Enhanced check-in flow with dynamic questions and better validation
         """
-        # Local import to avoid startup-time circular import traps.
-        from core.time_utilities import (
-            TIMESTAMP_FULL,
-            now_timestamp_full,
-        )
-
         # Idle expiry: 45 minutes since last activity
         try:
             last_ts = user_state.get("last_activity")
             if last_ts:
-                last_dt = datetime.strptime(last_ts, TIMESTAMP_FULL)
-                if datetime.now() - last_dt > timedelta(
-                    minutes=CHECKIN_INACTIVITY_MINUTES
-                ):
-                    # Expire flow due to inactivity
-                    self.user_states.pop(user_id, None)
-                    self._save_user_states()
-                    return (
-                        "The previous check-in expired due to inactivity. You can start a new one with /checkin.",
-                        True,
-                    )
+                # last_activity is internal persisted state (string timestamp).
+                # Parse strictly using canonical helper.
+                last_dt = parse_timestamp_full(last_ts)
+                if last_dt is not None:
+                    if datetime.now() - last_dt > timedelta(
+                        minutes=CHECKIN_INACTIVITY_MINUTES
+                    ):
+                        # Expire flow due to inactivity
+                        self.user_states.pop(user_id, None)
+                        self._save_user_states()
+                        return (
+                            "The previous check-in expired due to inactivity. You can start a new one with /checkin.",
+                            True,
+                        )
         except Exception:
             pass
 
@@ -1370,9 +1369,7 @@ class ConversationManager:
                 )
 
             # Validate that due_date is in proper format (YYYY-MM-DD)
-            try:
-                datetime.strptime(due_date_str, DATE_ONLY)
-            except ValueError:
+            if parse_date_only(due_date_str) is None:
                 # Invalid date format - can't set reminders
                 logger.warning(
                     f"Task {task_id} has invalid due_date format '{due_date_str}', cannot set reminders"
@@ -1499,16 +1496,7 @@ class ConversationManager:
         Returns list of reminder period dicts with date, start_time, end_time.
         """
         import re
-        from datetime import datetime, timedelta
         from tasks.task_management import get_task_by_id
-
-        # Canonical formats:
-        # - DATE_ONLY / TIME_ONLY_MINUTE are shared constants
-        # - TIMESTAMP_MINUTE is canonical for "YYYY-MM-DD HH:MM"
-        from core.time_utilities import (
-            TIMESTAMP_MINUTE,
-            now_timestamp_full,  # "now" helper
-        )
 
         text_lower = text.lower().strip()
         reminder_periods = []
@@ -1526,23 +1514,24 @@ class ConversationManager:
         if not due_time_str or due_time_str.strip() == "":
             due_time_str = "09:00"  # Default to 9 AM if no time specified
 
-        try:
-            # Parse due date and time (use canonical formats, not inline strings)
-            due_datetime = datetime.strptime(
-                f"{due_date_str} {due_time_str}", TIMESTAMP_MINUTE
-            )
+        # Parse due datetime (canonical parsing helpers only; no inline strptime)
+        due_datetime: datetime | None = None
+
+        # If a time exists, prefer strict DATE_ONLY + TIME_ONLY_MINUTE combination.
+        due_datetime = parse_date_and_time_minute(due_date_str, due_time_str)
+        if due_datetime is not None:
             logger.debug(f"Parsed due datetime for task {task_id}: {due_datetime}")
-        except ValueError:
-            # Try without time (date-only)
-            try:
-                due_datetime = datetime.strptime(due_date_str, DATE_ONLY)
-                due_datetime = due_datetime.replace(hour=9, minute=0)  # Default to 9 AM
-                logger.debug(f"Parsed due date only for task {task_id}: {due_datetime}")
-            except ValueError as e2:
+        else:
+            # Fallback: date-only, default time to 09:00 (preserves existing behavior)
+            due_date_only_dt = parse_date_only(due_date_str)
+            if due_date_only_dt is None:
                 logger.warning(
-                    f"Could not parse due date/time for task {task_id}: {due_date_str} {due_time_str}, error: {e2}"
+                    f"Could not parse due date/time for task {task_id}: {due_date_str} {due_time_str}"
                 )
                 return []
+
+            due_datetime = due_date_only_dt.replace(hour=9, minute=0)
+            logger.debug(f"Parsed due date only for task {task_id}: {due_datetime}")
 
         # Pattern: "X to Y [unit] before" or "X [unit] to [an] Y [unit] before"
         # Handle "an hour" = 60 minutes (do this before parsing)
@@ -1622,12 +1611,14 @@ class ConversationManager:
                     )
                     continue
 
-                # Create reminder period (canonical formats for date/time fields)
+                # Create reminder period (canonical formatting helper only; no inline strftime)
                 reminder_periods.append(
                     {
-                        "date": reminder_start.strftime(DATE_ONLY),
-                        "start_time": reminder_start.strftime(TIME_ONLY_MINUTE),
-                        "end_time": reminder_end.strftime(TIME_ONLY_MINUTE),
+                        "date": format_timestamp(reminder_start, DATE_ONLY),
+                        "start_time": format_timestamp(
+                            reminder_start, TIME_ONLY_MINUTE
+                        ),
+                        "end_time": format_timestamp(reminder_end, TIME_ONLY_MINUTE),
                     }
                 )
 
@@ -1703,25 +1694,27 @@ class ConversationManager:
         due_time_str = task.get("due_time")
 
         try:
-            # Parse due date
-            due_date = datetime.strptime(due_date_str, DATE_ONLY)
+            # Parse due date (canonical strict helper)
+            due_date = parse_date_only(due_date_str)
+            if due_date is None:
+                return ["Skip"]
 
             # Parse time if provided, otherwise use current time of day
             if due_time_str and due_time_str.strip():
-                try:
-                    time_parts = due_time_str.strip().split(":")
+                parsed_time = parse_time_only_minute(due_time_str.strip())
+                if parsed_time is not None:
                     due_date = due_date.replace(
-                        hour=int(time_parts[0]),
-                        minute=int(time_parts[1]) if len(time_parts) > 1 else 0,
+                        hour=parsed_time.hour,
+                        minute=parsed_time.minute,
                     )
                     has_time = True
-                except (ValueError, IndexError):
-                    # Invalid time format, use current time of day
+                else:
+                    # Invalid time format, use current time of day (preserve behavior)
                     now = datetime.now()
                     due_date = due_date.replace(hour=now.hour, minute=now.minute)
                     has_time = False
             else:
-                # No time specified, use current time of day
+                # No time specified, use current time of day (preserve behavior)
                 now = datetime.now()
                 due_date = due_date.replace(hour=now.hour, minute=now.minute)
                 has_time = False

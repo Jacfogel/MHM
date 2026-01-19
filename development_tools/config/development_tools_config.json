@@ -364,6 +364,10 @@
       ],
       "legacy_parameters": [
         "all_cleanup="
+      ],
+      "legacy_timestamp_parsing": [
+        "_parse_timestamp\\(",
+        "LEGACY COMPATIBILITY: Parsed non-.*message timestamp"
       ]
     },
     "replacement_mappings": {

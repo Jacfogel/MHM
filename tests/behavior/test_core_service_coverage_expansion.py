@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock, mock_open
 
 from core.service import MHMService, InitializationError, main, get_scheduler_manager
-from core.time_utilities import TIMESTAMP_FULL
+from core.time_utilities import TIMESTAMP_FULL, format_timestamp
 
 
 class TestCoreServiceCoverageExpansion:
@@ -1464,7 +1464,7 @@ class TestCoreServiceCoverageExpansion:
 
         # Create log content with recent timestamp (within 5 minutes)
         recent_time = datetime.now() - timedelta(minutes=2)
-        recent_timestamp = recent_time.strftime(TIMESTAMP_FULL)
+        recent_timestamp = format_timestamp(recent_time, TIMESTAMP_FULL)
         log_content = f"2025-01-16 10:00:00 DEBUG: Old message\n{recent_timestamp} DEBUG: Recent message"
 
         with patch("core.service.logger") as mock_logger:
@@ -1485,7 +1485,7 @@ class TestCoreServiceCoverageExpansion:
 
         # Create log content with old timestamp (more than 5 minutes ago)
         old_time = datetime.now() - timedelta(minutes=10)
-        old_timestamp = old_time.strftime(TIMESTAMP_FULL)
+        old_timestamp = format_timestamp(old_time, TIMESTAMP_FULL)
         log_content = f"2025-01-16 10:00:00 DEBUG: Old message\n{old_timestamp} DEBUG: Old activity"
 
         with patch("core.service.logger") as mock_logger:

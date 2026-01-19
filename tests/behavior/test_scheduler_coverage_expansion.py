@@ -18,7 +18,14 @@ from core.scheduler import (
     process_user_schedules,
     process_category_schedule,
 )
-from core.time_utilities import DATE_ONLY, TIME_ONLY_MINUTE, TIMESTAMP_MINUTE
+from core.time_utilities import (
+    DATE_ONLY,
+    TIME_ONLY_MINUTE,
+    TIMESTAMP_MINUTE,
+    format_timestamp,
+    parse_time_only_minute,
+    parse_timestamp_minute,
+)
 
 
 @pytest.fixture
@@ -549,9 +556,15 @@ class TestTaskReminderScheduling:
         assert 0 <= minute <= 59
 
         # Verify the time is within the specified range
-        result_time = datetime.strptime(result, TIME_ONLY_MINUTE).time()
-        start_time_obj = datetime.strptime(start_time, TIME_ONLY_MINUTE).time()
-        end_time_obj = datetime.strptime(end_time, TIME_ONLY_MINUTE).time()
+        result_dt = parse_time_only_minute(result)
+        assert result_dt is not None
+        result_time = result_dt.time()
+        start_dt_obj = parse_time_only_minute(start_time)
+        assert start_dt_obj is not None
+        start_time_obj = start_dt_obj.time()
+        end_dt_obj = parse_time_only_minute(end_time)
+        assert end_dt_obj is not None
+        end_time_obj = end_dt_obj.time()
         assert start_time_obj <= result_time <= end_time_obj
 
 
@@ -632,13 +645,18 @@ class TestTimeManagement:
             assert isinstance(result, str)
 
             # Parse the result
-            result_dt = datetime.strptime(result, TIMESTAMP_MINUTE)
+            result_dt = parse_timestamp_minute(result)
+            assert result_dt is not None
             assert isinstance(result_dt, datetime)
 
             # Verify the time is within the specified range
             result_time = result_dt.time()
-            start_time = datetime.strptime("09:00", TIME_ONLY_MINUTE).time()
-            end_time = datetime.strptime("17:00", TIME_ONLY_MINUTE).time()
+            start_dt_obj = parse_time_only_minute("09:00")
+            assert start_dt_obj is not None
+            start_time = start_dt_obj.time()
+            end_dt_obj = parse_time_only_minute("17:00")
+            assert end_dt_obj is not None
+            end_time = end_dt_obj.time()
             assert start_time <= result_time <= end_time
 
     @pytest.mark.behavior
@@ -1531,8 +1549,16 @@ class TestSelectTaskForReminderBehavior:
         self, scheduler_manager
     ):
         """Test due date proximity weighting for tasks due today."""
-        today = datetime.now().date().strftime(DATE_ONLY)
-        future_date = (datetime.now().date() + timedelta(days=30)).strftime(DATE_ONLY)
+        today_date = datetime.now().date()
+
+        today = format_timestamp(
+            datetime.combine(today_date, datetime.min.time()), DATE_ONLY
+        )
+        future_date_obj = datetime.now().date() + timedelta(days=30)
+
+        future_date = format_timestamp(
+            datetime.combine(future_date_obj, datetime.min.time()), DATE_ONLY
+        )
 
         tasks = [
             {
@@ -1566,8 +1592,15 @@ class TestSelectTaskForReminderBehavior:
         self, scheduler_manager
     ):
         """Test overdue task weighting with exponential increase."""
-        overdue_date = (datetime.now().date() - timedelta(days=5)).strftime(DATE_ONLY)
-        future_date = (datetime.now().date() + timedelta(days=30)).strftime(DATE_ONLY)
+        overdue_date_date = datetime.now().date() - timedelta(days=5)
+        overdue_date = format_timestamp(
+            datetime.combine(overdue_date_date, datetime.min.time()), DATE_ONLY
+        )
+        future_date_obj = datetime.now().date() + timedelta(days=30)
+
+        future_date = format_timestamp(
+            datetime.combine(future_date_obj, datetime.min.time()), DATE_ONLY
+        )
 
         tasks = [
             {
@@ -1662,8 +1695,9 @@ class TestSelectTaskForReminderBehavior:
 
         for i in range(50):
             priority = ["critical", "high", "medium", "low", "none"][i % 5]
-            due_date = (today + timedelta(days=i - 25)).strftime(
-                DATE_ONLY
+            due_date = format_timestamp(
+                datetime.combine(today + timedelta(days=i - 25), datetime.min.time()),
+                DATE_ONLY,
             )  # Mix of past and future
 
             tasks.append(
@@ -1742,19 +1776,28 @@ class TestSelectTaskForReminderBehavior:
                 "id": "task1",
                 "title": "Due Tomorrow",
                 "priority": "medium",
-                "due_date": (today + timedelta(days=1)).strftime(DATE_ONLY),
+                "due_date": format_timestamp(
+                    datetime.combine(today + timedelta(days=1), datetime.min.time()),
+                    DATE_ONLY,
+                ),
             },
             {
                 "id": "task2",
                 "title": "Due in 3 Days",
                 "priority": "medium",
-                "due_date": (today + timedelta(days=3)).strftime(DATE_ONLY),
+                "due_date": format_timestamp(
+                    datetime.combine(today + timedelta(days=3), datetime.min.time()),
+                    DATE_ONLY,
+                ),
             },
             {
                 "id": "task3",
                 "title": "Due in 7 Days",
                 "priority": "medium",
-                "due_date": (today + timedelta(days=7)).strftime(DATE_ONLY),
+                "due_date": format_timestamp(
+                    datetime.combine(today + timedelta(days=7), datetime.min.time()),
+                    DATE_ONLY,
+                ),
             },
         ]
 
@@ -1795,19 +1838,28 @@ class TestSelectTaskForReminderBehavior:
                 "id": "task1",
                 "title": "Due in 8 Days",
                 "priority": "medium",
-                "due_date": (today + timedelta(days=8)).strftime(DATE_ONLY),
+                "due_date": format_timestamp(
+                    datetime.combine(today + timedelta(days=8), datetime.min.time()),
+                    DATE_ONLY,
+                ),
             },
             {
                 "id": "task2",
                 "title": "Due in 15 Days",
                 "priority": "medium",
-                "due_date": (today + timedelta(days=15)).strftime(DATE_ONLY),
+                "due_date": format_timestamp(
+                    datetime.combine(today + timedelta(days=15), datetime.min.time()),
+                    DATE_ONLY,
+                ),
             },
             {
                 "id": "task3",
                 "title": "Due in 30 Days",
                 "priority": "medium",
-                "due_date": (today + timedelta(days=30)).strftime(DATE_ONLY),
+                "due_date": format_timestamp(
+                    datetime.combine(today + timedelta(days=30), datetime.min.time()),
+                    DATE_ONLY,
+                ),
             },
         ]
 

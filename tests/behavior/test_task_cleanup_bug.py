@@ -9,7 +9,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
 
-from core.time_utilities import DATE_ONLY
+from core.time_utilities import DATE_ONLY, format_timestamp
 from tasks.task_management import create_task, cleanup_task_reminders
 from tests.test_utilities import TestUserFactory
 
@@ -44,7 +44,7 @@ class TestTaskCleanupBug:
         # Create a task with reminders
         reminder_periods = [
             {
-                "date": (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY),
+                "date": format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY),
                 "start_time": "09:00",
                 "end_time": "10:00",
             }

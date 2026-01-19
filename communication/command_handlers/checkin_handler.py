@@ -5,8 +5,8 @@ from typing import Dict, Any, List
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.response_tracking import is_user_checkins_enabled, get_recent_checkins
-from core.time_utilities import TIMESTAMP_FULL
-from datetime import datetime, date
+from core.time_utilities import parse_timestamp_full
+from datetime import date
 from communication.command_handlers.base_handler import InteractionHandler
 from communication.command_handlers.shared_types import (
     InteractionResponse,
@@ -75,20 +75,14 @@ class CheckinHandler(InteractionHandler):
             last_checkin_timestamp = last_checkin.get("timestamp", "")
 
             # Parse the timestamp to check if it's from today
-            try:
-                if last_checkin_timestamp:
-                    last_checkin_date = datetime.strptime(
-                        last_checkin_timestamp, TIMESTAMP_FULL
-                    ).date()
-                    if last_checkin_date == today:
-                        return InteractionResponse(
-                            f"You've already completed a check-in today at {last_checkin_timestamp}. "
-                            "You can start a new check-in tomorrow!",
-                            True,
-                        )
-            except (ValueError, TypeError):
-                # If timestamp parsing fails, continue with check-in
-                pass
+            last_checkin_dt = parse_timestamp_full(last_checkin_timestamp)
+            if last_checkin_dt is not None:
+                if last_checkin_dt.date() == today:
+                    return InteractionResponse(
+                        f"You've already completed a check-in today at {last_checkin_timestamp}. "
+                        "You can start a new check-in tomorrow!",
+                        True,
+                    )
 
         # Delegate to conversation manager for proper check-in flow (modern API)
         from communication.message_processing.conversation_flow_manager import (

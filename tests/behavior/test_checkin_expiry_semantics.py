@@ -48,9 +48,13 @@ class TestCheckinExpirySemantics:
 
         # Backdate last_activity beyond the configured inactivity window to trigger expiry
         idle_minutes = CHECKIN_INACTIVITY_MINUTES + 1
-        past = (datetime.now() - timedelta(minutes=idle_minutes)).strftime(
-            TIMESTAMP_FULL
-        )
+
+        # Canonical formatting (no inline strftime outside core.time_utilities)
+        from core.time_utilities import format_timestamp
+
+        past_dt = datetime.now() - timedelta(minutes=idle_minutes)
+        past = format_timestamp(past_dt, TIMESTAMP_FULL)
+
         state["last_activity"] = past
 
         # Any inbound message should now cause expiry

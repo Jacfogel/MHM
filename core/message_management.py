@@ -19,8 +19,9 @@ from core.time_utilities import (
     now_timestamp_filename,
     now_timestamp_full,
     TIMESTAMP_FULL,
+    parse_timestamp_full,
+    parse_timestamp,
 )
-
 
 logger = get_component_logger("message")
 
@@ -671,24 +672,38 @@ def _parse_timestamp(timestamp_str: str) -> datetime:
     if not timestamp_str:
         return datetime.min.replace(tzinfo=timezone.utc)
 
-    # Try different timestamp formats
-    formats = [
-        TIMESTAMP_FULL,
-        "%Y-%m-%dT%H:%M:%S",
-        "%Y-%m-%dT%H:%M:%SZ",
-        "%Y-%m-%dT%H:%M:%S.%fZ",
-    ]
+    # LEGACY COMPATIBILITY:
+    # Historical sent_messages data may contain timestamps that are not TIMESTAMP_FULL.
+    # This function preserves backward compatibility for persisted message timestamps.
+    #
+    # Removal plan:
+    # - Add a migration/normalization step to ensure all persisted message timestamps are TIMESTAMP_FULL.
+    # - Once logs confirm no legacy formats remain, replace callers with strict parse_timestamp_full(...)
+    #   and delete this helper.
 
-    for fmt in formats:
-        try:
-            dt = datetime.strptime(timestamp_str, fmt)
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
-            return dt
-        except ValueError:
-            continue
+    # First, try strict internal persisted format.
+    strict = parse_timestamp_full(timestamp_str)
+    if strict is not None:
+        parsed = strict
+    else:
+        # Backward-compat parsing:
+        # - Internal persisted state SHOULD be TIMESTAMP_FULL
+        # - Older/external variants may appear in historical data
+        parsed = parse_timestamp(timestamp_str, allowed=("external",))
+        if parsed is not None:
+            # Log only when the legacy/external compatibility path is exercised.
+            logger.info(
+                f"LEGACY COMPATIBILITY: Parsed non-{TIMESTAMP_FULL} message timestamp: {timestamp_str!r}"
+            )
 
-    return datetime.min.replace(tzinfo=timezone.utc)
+    if parsed is None:
+        return datetime.min.replace(tzinfo=timezone.utc)
+
+    # Preserve existing behavior: assume UTC if tzinfo is missing.
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+
+    return parsed
 
 
 @handle_errors("creating message file from defaults")
@@ -874,7 +889,9 @@ def get_timestamp_for_sorting(item):
         return 0.0
     timestamp = item.get("timestamp", "1970-01-01 00:00:00")
     try:
-        dt = datetime.strptime(timestamp, TIMESTAMP_FULL)
+        dt = parse_timestamp_full(timestamp)
+        if dt is None:
+            return 0.0
         return dt.timestamp()
     except (ValueError, TypeError):
         return 0.0

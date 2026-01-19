@@ -21,7 +21,7 @@ from tasks.task_management import (
 )
 from communication.command_handlers.task_handler import TaskManagementHandler
 from communication.command_handlers.shared_types import ParsedCommand
-from core.time_utilities import DATE_ONLY
+from core.time_utilities import DATE_ONLY, format_timestamp
 from tests.test_utilities import TestUserFactory
 
 
@@ -160,7 +160,9 @@ class TestTaskErrorHandling:
 
         reminder_periods = [
             {
-                "date": (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY),
+                "date": format_timestamp(
+                    (datetime.now() + timedelta(days=1)), DATE_ONLY
+                ),
                 "start_time": "09:00",
                 "end_time": "10:00",
             }
@@ -186,11 +188,15 @@ class TestTaskErrorHandling:
         # Incomplete reminder periods (missing fields)
         incomplete_periods = [
             {
-                "date": (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+                "date": format_timestamp(
+                    (datetime.now() + timedelta(days=1)), DATE_ONLY
+                )
             },  # Missing start_time, end_time
             {"start_time": "09:00", "end_time": "10:00"},  # Missing date
             {
-                "date": (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY),
+                "date": format_timestamp(
+                    (datetime.now() + timedelta(days=1)), DATE_ONLY
+                ),
                 "start_time": "09:00",
             },  # Missing end_time
         ]
@@ -281,7 +287,9 @@ class TestTaskEdgeCases:
 
         reminder_periods = [
             {
-                "date": (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY),
+                "date": format_timestamp(
+                    (datetime.now() + timedelta(days=1)), DATE_ONLY
+                ),
                 "start_time": "09:00",
                 "end_time": "10:00",
             }
@@ -315,7 +323,7 @@ class TestTaskEdgeCases:
             user_id, test_data_dir=test_data_dir
         ), "Failed to create test user"
 
-        past_date = (datetime.now() - timedelta(days=5)).strftime(DATE_ONLY)
+        past_date = format_timestamp((datetime.now() - timedelta(days=5)), DATE_ONLY)
         task_id = create_task(user_id=user_id, title="Overdue Task", due_date=past_date)
 
         assert task_id is not None, "Task should be created even with past due_date"

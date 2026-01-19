@@ -13,7 +13,13 @@ from core.file_operations import load_json_data, save_json_data
 from core.error_handling import handle_errors
 from core.config import get_user_data_dir
 from core.user_data_handlers import get_user_data
-from core.time_utilities import now_timestamp_full, DATE_ONLY
+from core.time_utilities import (
+    now_timestamp_full,
+    DATE_ONLY,
+    parse_date_only,
+    format_timestamp,
+    parse_timestamp_full,
+)
 
 logger = get_component_logger("tasks")
 task_logger = get_component_logger("main")
@@ -222,10 +228,8 @@ def create_task(
 
         # Validate due_date format if provided
         if due_date:
-            try:
-                # Validate date format YYYY-MM-DD
-                datetime.strptime(due_date, DATE_ONLY)
-            except ValueError:
+            parsed_due_date = parse_date_only(due_date)
+            if parsed_due_date is None:
                 # Try to parse as relative date or other format
                 logger.warning(
                     f"Invalid due_date format '{due_date}', expected YYYY-MM-DD. Task will be created but due_date may be invalid."
@@ -363,9 +367,7 @@ def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
                         continue
 
                 if field == "due_date" and value:
-                    try:
-                        datetime.strptime(value, DATE_ONLY)
-                    except ValueError:
+                    if parse_date_only(value) is None:
                         logger.warning(
                             f"Invalid due_date format '{value}' for task {task_id}, expected YYYY-MM-DD"
                         )
@@ -652,15 +654,15 @@ def get_tasks_due_soon(user_id: str, days_ahead: int = 7) -> list[dict[str, Any]
 
         for task in active_tasks:
             if task.get("due_date"):
-                try:
-                    due_date = datetime.strptime(task["due_date"], DATE_ONLY)
-                    if due_date <= cutoff_date:
-                        due_soon.append(task)
-                except ValueError:
+                due_date_dt = parse_date_only(task["due_date"])
+                if due_date_dt is None:
                     logger.warning(
                         f"Invalid due date format for task {task.get('task_id')}"
                     )
                     continue
+
+                if due_date_dt <= cutoff_date:
+                    due_soon.append(task)
 
         # Sort by due date
         due_soon.sort(key=lambda x: x.get("due_date", "9999-12-31"))
@@ -924,7 +926,22 @@ def _create_next_recurring_task_instance(
 
         # Calculate the next due date based on completion date and recurrence pattern
         completion_date_str = completed_task.get("completed_at", now_timestamp_full())
-        completion_date = datetime.strptime(completion_date_str.split()[0], DATE_ONLY)
+
+        # completed_at is persisted internal state but may be stored in multiple internal formats:
+        # - now_timestamp_full() -> "YYYY-MM-DD HH:MM:SS"
+        # - f"{completion_date} {completion_time}:00" -> "YYYY-MM-DD HH:MM:SS"
+        # We parse full timestamp first; if that fails, fall back to parsing the leading date token.
+        completion_dt = parse_timestamp_full(completion_date_str)
+        if completion_dt is None:
+            completion_dt = parse_date_only(str(completion_date_str).split()[0])
+
+        if completion_dt is None:
+            logger.warning(
+                f"Could not parse completion date '{completion_date_str}' for recurring task {completed_task.get('task_id')}"
+            )
+            return False
+
+        completion_date = completion_dt
 
         next_due_date = _calculate_next_due_date(
             completion_date,
@@ -939,12 +956,14 @@ def _create_next_recurring_task_instance(
             )
             return False
 
+        next_due_date_str = format_timestamp(next_due_date, DATE_ONLY)
+
         # Create the next task instance
         next_task = {
             "task_id": str(uuid.uuid4()),
             "title": completed_task.get("title"),
             "description": completed_task.get("description", ""),
-            "due_date": next_due_date.strftime(DATE_ONLY),
+            "due_date": next_due_date_str,
             "due_time": completed_task.get("due_time"),
             "completed": False,
             "created_at": now_timestamp_full(),
@@ -953,7 +972,7 @@ def _create_next_recurring_task_instance(
             "recurrence_pattern": recurrence_pattern,
             "recurrence_interval": recurrence_interval,
             "repeat_after_completion": repeat_after_completion,
-            "next_due_date": next_due_date.strftime(DATE_ONLY),
+            "next_due_date": next_due_date_str,
         }
 
         # Copy over optional fields
@@ -971,7 +990,7 @@ def _create_next_recurring_task_instance(
         # Save updated tasks
         if save_active_tasks(user_id, tasks):
             logger.info(
-                f"Created next recurring task instance for task {completed_task.get('task_id')} with due date {next_due_date.strftime(DATE_ONLY)}"
+                f"Created next recurring task instance for task {completed_task.get('task_id')} with due date {next_due_date_str}"
             )
 
             # Schedule reminders for the new task if needed

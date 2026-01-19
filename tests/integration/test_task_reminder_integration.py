@@ -17,7 +17,7 @@ from tasks.task_management import (
     load_active_tasks,
 )
 from tests.test_utilities import TestUserFactory
-from core.time_utilities import DATE_ONLY
+from core.time_utilities import DATE_ONLY, format_timestamp
 
 
 class TestTaskReminderIntegration:
@@ -43,12 +43,12 @@ class TestTaskReminderIntegration:
         # Create task with reminder periods
         reminder_periods = [
             {
-                "date": (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY),
+                "date": format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY),
                 "start_time": "09:00",
                 "end_time": "10:00",
             },
             {
-                "date": (datetime.now() + timedelta(days=2)).strftime(DATE_ONLY),
+                "date": format_timestamp(datetime.now() + timedelta(days=2), DATE_ONLY),
                 "start_time": "14:00",
                 "end_time": "15:00",
             },
@@ -101,7 +101,7 @@ class TestTaskReminderIntegration:
         # Create task with reminders
         reminder_periods = [
             {
-                "date": (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY),
+                "date": format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY),
                 "start_time": "09:00",
                 "end_time": "10:00",
             }
@@ -150,7 +150,7 @@ class TestTaskReminderIntegration:
         # Create task with reminders
         reminder_periods = [
             {
-                "date": (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY),
+                "date": format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY),
                 "start_time": "09:00",
                 "end_time": "10:00",
             }
@@ -199,7 +199,7 @@ class TestTaskReminderIntegration:
         # Create task with initial reminders
         initial_reminders = [
             {
-                "date": (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY),
+                "date": format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY),
                 "start_time": "09:00",
                 "end_time": "10:00",
             }
@@ -219,12 +219,16 @@ class TestTaskReminderIntegration:
             # Update with new reminders
             new_reminders = [
                 {
-                    "date": (datetime.now() + timedelta(days=3)).strftime(DATE_ONLY),
+                    "date": format_timestamp(
+                        datetime.now() + timedelta(days=3), DATE_ONLY
+                    ),
                     "start_time": "15:00",
                     "end_time": "16:00",
                 },
                 {
-                    "date": (datetime.now() + timedelta(days=4)).strftime(DATE_ONLY),
+                    "date": format_timestamp(
+                        datetime.now() + timedelta(days=4), DATE_ONLY
+                    ),
                     "start_time": "10:00",
                     "end_time": "11:00",
                 },
@@ -272,7 +276,7 @@ class TestTaskReminderIntegration:
         # Create recurring task with reminders
         reminder_periods = [
             {
-                "date": (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY),
+                "date": format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY),
                 "start_time": "09:00",
                 "end_time": "10:00",
             }

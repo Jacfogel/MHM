@@ -14,7 +14,7 @@ from core.service_utilities import (
     wait_for_network,
     load_and_localize_datetime,
 )
-from core.time_utilities import TIMESTAMP_MINUTE
+from core.time_utilities import TIMESTAMP_MINUTE, format_timestamp
 from core.user_data_validation import _shared__title_case
 
 
@@ -261,7 +261,7 @@ class TestServiceUtilitiesBehavior:
         assert localized_datetime is not None, "Should return datetime object"
         assert localized_datetime.tzinfo is not None, "Should be timezone-aware"
         assert (
-            localized_datetime.strftime(TIMESTAMP_MINUTE) == "2025-01-15 14:30"
+            format_timestamp(localized_datetime, TIMESTAMP_MINUTE) == "2025-01-15 14:30"
         ), "Should preserve date/time"
 
     def test_load_and_localize_datetime_raises_error_for_invalid_format(

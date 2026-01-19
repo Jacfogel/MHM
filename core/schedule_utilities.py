@@ -10,7 +10,13 @@ from typing import Dict, List, Optional
 from datetime import datetime
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.time_utilities import TIME_ONLY_MINUTE
+from core.time_utilities import (
+    TIME_ONLY_MINUTE,
+    DATE_DISPLAY_WEEKDAY,
+    format_timestamp,
+    parse_time_only_minute,
+)
+
 
 logger = get_component_logger("scheduler")
 
@@ -78,7 +84,8 @@ def is_schedule_active(
     # Check days
     days = schedule_data.get("days", ["ALL"])
     if "ALL" not in days:
-        current_day = current_time.strftime("%A")
+        # Display-only weekday name for day matching (never persisted).
+        current_day = format_timestamp(current_time, DATE_DISPLAY_WEEKDAY)
         if current_day not in days:
             logger.debug(f"Current day '{current_day}' not in schedule days: {days}")
             return False
@@ -87,23 +94,24 @@ def is_schedule_active(
     start_time_str = schedule_data.get("start_time", "00:00")
     end_time_str = schedule_data.get("end_time", "23:59")
 
-    try:
-        # Canonical time parsing format
-        start_time = datetime.strptime(start_time_str, TIME_ONLY_MINUTE).time()
-        end_time = datetime.strptime(end_time_str, TIME_ONLY_MINUTE).time()
-        current_time_only = current_time.time()
-
-        is_active = start_time <= current_time_only <= end_time
-        logger.debug(
-            f"Time check: {start_time} <= {current_time_only} <= {end_time} = {is_active}"
-        )
-        return is_active
-
-    except ValueError as e:
+    # Canonical time parsing via core.time_utilities
+    start_dt = parse_time_only_minute(start_time_str)
+    end_dt = parse_time_only_minute(end_time_str)
+    if start_dt is None or end_dt is None:
         logger.warning(
-            f"Invalid time format in schedule data: start_time='{start_time_str}', end_time='{end_time_str}' - {e}"
+            f"Invalid time format in schedule data: start_time='{start_time_str}', end_time='{end_time_str}'"
         )
         return False
+
+    start_time = start_dt.time()
+    end_time = end_dt.time()
+    current_time_only = current_time.time()
+
+    is_active = start_time <= current_time_only <= end_time
+    logger.debug(
+        f"Time check: {start_time} <= {current_time_only} <= {end_time} = {is_active}"
+    )
+    return is_active
 
 
 @handle_errors("getting current active schedules", default_return=[])
@@ -132,7 +140,7 @@ def get_current_active_schedules(
 
     # No canonical seconds format exists; log minute precision consistently.
     logger.debug(
-        f"Checked {total_periods} schedules at {current_time.strftime(TIME_ONLY_MINUTE)}, "
+        f"Checked {total_periods} schedules at {format_timestamp(current_time, TIME_ONLY_MINUTE)}, "
         f"found {len(active_periods)} currently active: {active_periods}"
     )
     return active_periods

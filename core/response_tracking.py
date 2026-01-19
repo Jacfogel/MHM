@@ -96,13 +96,16 @@ def get_recent_responses(user_id: str, response_type: str = "checkin", limit: in
                 return 0.0
 
             timestamp = item.get("timestamp", "1970-01-01 00:00:00")
-            try:
-                # Parse human-readable format
-                dt = datetime.strptime(timestamp, TIMESTAMP_FULL)
-                return dt.timestamp()
-            except (ValueError, TypeError):
+
+            # Canonical strict parse for stored timestamps
+            from core.time_utilities import parse_timestamp_full
+
+            dt = parse_timestamp_full(timestamp)
+            if dt is None:
                 # If parsing fails, use 0
                 return 0.0
+
+            return dt.timestamp()
 
         sorted_data = sorted(data, key=get_timestamp_for_sorting, reverse=True)
         return sorted_data[:limit]
@@ -135,12 +138,15 @@ def get_checkins_by_days(user_id: str, days: int = 7):
     recent_checkins = []
     for checkin in all_checkins:
         if "timestamp" in checkin:
-            try:
-                checkin_date = datetime.strptime(checkin["timestamp"], TIMESTAMP_FULL)
-                if checkin_date >= cutoff_date:
-                    recent_checkins.append(checkin)
-            except (ValueError, TypeError):
+            # Canonical strict parse for stored timestamps
+            from core.time_utilities import parse_timestamp_full
+
+            checkin_date = parse_timestamp_full(checkin.get("timestamp", ""))
+            if checkin_date is None:
                 continue
+
+            if checkin_date >= cutoff_date:
+                recent_checkins.append(checkin)
 
     return recent_checkins
 

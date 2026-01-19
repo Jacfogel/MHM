@@ -11,7 +11,12 @@ from datetime import datetime, timedelta
 from core.user_data_handlers import get_user_data
 from core.scheduler import SchedulerManager, schedule_all_task_reminders
 from core.user_data_handlers import get_user_categories
-from core.time_utilities import TIME_ONLY_MINUTE, TIMESTAMP_MINUTE
+from core.time_utilities import (
+    TIME_ONLY_MINUTE,
+    TIMESTAMP_MINUTE,
+    parse_time_only_minute,
+    parse_timestamp_minute,
+)
 
 
 @pytest.fixture
@@ -135,13 +140,18 @@ class TestSchedulerManager:
             assert isinstance(result, str)
 
             # Parse the result to verify it's a valid datetime string
-            result_dt = datetime.strptime(result, TIMESTAMP_MINUTE)
+            result_dt = parse_timestamp_minute(result)
+            assert result_dt is not None
             assert isinstance(result_dt, datetime)
 
             # Verify the time is within the specified range (9:00-17:00)
             result_time = result_dt.time()
-            start_time = datetime.strptime("09:00", TIME_ONLY_MINUTE).time()
-            end_time = datetime.strptime("17:00", TIME_ONLY_MINUTE).time()
+            start_dt_obj = parse_time_only_minute("09:00")
+            assert start_dt_obj is not None
+            start_time = start_dt_obj.time()
+            end_dt_obj = parse_time_only_minute("17:00")
+            assert end_dt_obj is not None
+            end_time = end_dt_obj.time()
             assert start_time <= result_time <= end_time
 
             # Verify side effect: function should have called get_schedule_time_periods
@@ -428,11 +438,16 @@ class TestSchedulerEdgeCases:
                     times.append(result)
 
             # All times should be within the specified range
-            start_dt = datetime.strptime("10:00", TIME_ONLY_MINUTE).time()
-            end_dt = datetime.strptime("12:00", TIME_ONLY_MINUTE).time()
+            start_dt_obj = parse_time_only_minute("10:00")
+            assert start_dt_obj is not None
+            start_dt = start_dt_obj.time()
+            end_dt_obj = parse_time_only_minute("12:00")
+            assert end_dt_obj is not None
+            end_dt = end_dt_obj.time()
 
             for time_str in times:
-                result_dt = datetime.strptime(time_str, TIMESTAMP_MINUTE)
+                result_dt = parse_timestamp_minute(time_str)
+                assert result_dt is not None
                 result_time = result_dt.time()
                 assert (
                     start_dt <= result_time <= end_dt

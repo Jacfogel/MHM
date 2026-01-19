@@ -16,7 +16,7 @@ from pathlib import Path
 
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
-from core.time_utilities import DATE_ONLY, now_timestamp_full
+from core.time_utilities import DATE_ONLY, now_timestamp_full, format_timestamp
 
 CLEANUP_TRACKER_FILENAME = ".last_cache_cleanup"
 
@@ -78,7 +78,7 @@ def update_cleanup_timestamp() -> None:
         # Canonical readable metadata timestamp
         "last_cleanup_date": now_timestamp_full(),
         # Human-friendly date-only display
-        "last_cleanup_date_display": datetime.now().strftime(DATE_ONLY),
+        "last_cleanup_date_display": format_timestamp(datetime.now(), DATE_ONLY),
     }
 
     with tracker_path.open("w", encoding="utf-8") as f:
@@ -701,7 +701,7 @@ def _get_cleanup_status__format_next_cleanup_date(last_date: datetime) -> str:
         return "Overdue"
 
     # Date-only output for status display
-    return next_cleanup_date.strftime(DATE_ONLY)
+    return format_timestamp(next_cleanup_date, DATE_ONLY)
 
 
 @handle_errors("building status response", default_return={})
@@ -709,7 +709,7 @@ def _get_cleanup_status__build_status_response(last_date, days_since, next_clean
     """Build the final status response dictionary."""
     return {
         # Use canonical readable format for display/metadata text.
-        "last_cleanup": last_date.strftime(DATE_ONLY),
+        "last_cleanup": format_timestamp(last_date, DATE_ONLY),
         "days_since": days_since,
         "next_cleanup": next_cleanup,
     }

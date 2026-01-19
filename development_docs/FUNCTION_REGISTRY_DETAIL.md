@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-18 01:45:37
+> **Last Generated**: 2026-01-19 05:41:40
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -25,7 +25,7 @@
 - **Classes Documented**: 120
 - **Total Documented**: 2538
 - **Template-Generated**: 4
-- **Last Updated**: 2026-01-18
+- **Last Updated**: 2026-01-19
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -2224,7 +2224,7 @@ Returns:
     InteractionResponse with appropriate response
 - [OK] `handle_user_message(user_id, message, channel_type)` - Convenience function to handle a user message
 - [OK] `parse_due(task)` - Parse due date/time into a datetime for sorting.
-Uses canonical formats from time_utilities (no inline format strings).
+Uses canonical parsers from time_utilities (no inline parsing).
 **Classes:**
 - [OK] `CommandDefinition` - Canonical command definition.
 

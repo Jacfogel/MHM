@@ -45,11 +45,13 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
         base_date = datetime.now() - timedelta(days=30)
         checkins = []
 
+        from core.time_utilities import format_timestamp, TIMESTAMP_FULL
+
         for i in range(30):
             date = base_date + timedelta(days=i)
             checkins.append(
                 {
-                    "timestamp": date.strftime(TIMESTAMP_FULL),
+                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
                     "mood": 3 + (i % 3),  # Alternating moods: 3, 4, 5
                     "user_id": "test_user",
                 }
@@ -145,11 +147,13 @@ class TestCheckinAnalyticsHabitAnalysisBehavior:
         base_date = datetime.now() - timedelta(days=30)
         checkins = []
 
+        from core.time_utilities import format_timestamp, TIMESTAMP_FULL
+
         for i in range(30):
             date = base_date + timedelta(days=i)
             checkins.append(
                 {
-                    "timestamp": date.strftime(TIMESTAMP_FULL),
+                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
                     "ate_breakfast": i % 2,  # Every other day
                     "brushed_teeth": 1,  # Every day
                     "medication_taken": i % 3 == 0,  # Every third day
@@ -235,6 +239,8 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
         base_date = datetime.now() - timedelta(days=30)
         checkins = []
 
+        from core.time_utilities import format_timestamp, TIMESTAMP_FULL
+
         for i in range(30):
             date = base_date + timedelta(days=i)
             # Calculate sleep times for 7, 8, 9 hour durations
@@ -243,7 +249,7 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
             wake_time = "07:00"
             checkins.append(
                 {
-                    "timestamp": date.strftime(TIMESTAMP_FULL),
+                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
                     "sleep_schedule": {
                         "sleep_time": sleep_time,
                         "wake_time": wake_time,
@@ -323,11 +329,13 @@ class TestCheckinAnalyticsWellnessScoreBehavior:
         base_date = datetime.now() - timedelta(days=7)
         checkins = []
 
+        from core.time_utilities import format_timestamp, TIMESTAMP_FULL
+
         for i in range(7):
             date = base_date + timedelta(days=i)
             checkins.append(
                 {
-                    "timestamp": date.strftime(TIMESTAMP_FULL),
+                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
                     "mood": 4,  # Good mood
                     "ate_breakfast": 1,  # Good habits
                     "brushed_teeth": 1,
@@ -413,11 +421,13 @@ class TestCheckinAnalyticsHistoryBehavior:
         base_date = datetime.now() - timedelta(days=30)
         checkins = []
 
+        from core.time_utilities import format_timestamp, TIMESTAMP_FULL
+
         for i in range(30):
             date = base_date + timedelta(days=i)
             checkins.append(
                 {
-                    "timestamp": date.strftime(TIMESTAMP_FULL),
+                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
                     "mood": 4,
                     "notes": f"Check-in note for day {i}",
                     "user_id": "test_user",
@@ -478,11 +488,13 @@ class TestCheckinAnalyticsCompletionRateBehavior:
         base_date = datetime.now() - timedelta(days=30)
         checkins = []
 
+        from core.time_utilities import format_timestamp, TIMESTAMP_FULL
+
         for i in range(30):
             date = base_date + timedelta(days=i)
             checkins.append(
                 {
-                    "timestamp": date.strftime(TIMESTAMP_FULL),
+                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
                     "ate_breakfast": i % 2,  # 50% completion
                     "brushed_teeth": 1,  # 100% completion
                     "medication_taken": i % 3 == 0,  # 33% completion
@@ -547,11 +559,13 @@ class TestCheckinAnalyticsTaskStatsBehavior:
         base_date = datetime.now() - timedelta(days=7)
         checkins = []
 
+        from core.time_utilities import format_timestamp, TIMESTAMP_FULL
+
         for i in range(7):
             date = base_date + timedelta(days=i)
             checkins.append(
                 {
-                    "timestamp": date.strftime(TIMESTAMP_FULL),
+                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
                     "tasks_completed": i + 1,  # 1, 2, 3, 4, 5, 6, 7 tasks
                     "tasks_total": 10,  # Always 10 total tasks
                     "user_id": "test_user",

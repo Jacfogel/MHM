@@ -498,7 +498,41 @@ Follow these guidelines:
 
 - Do not re-implement the same setup logic in multiple tests; extract it into a fixture or helper.
 
-### 6.4. Quality expectations
+### 6.4. Test Time Rules (Canonical Time Utilities)
+
+MHM uses `core/time_utilities.py` as the single source of truth for time formats and parsing.
+
+#### Core rule
+Tests follow the same time rules as production code whenever the time value crosses a boundary:
+- persisted test fixtures / JSON files
+- values passed into production parsing/formatting
+- scheduler / UI time strings
+- anything that production code will read or interpret
+
+#### Required in tests (default)
+- Do NOT use inline `strftime()` / `strptime()` in tests.
+- Do NOT use inline datetime format strings in tests.
+- Use canonical constants from `core.time_utilities` when specifying formats:
+  - `TIMESTAMP_FULL`, `TIMESTAMP_MINUTE`, `DATE_ONLY`, `TIME_ONLY_MINUTE`, `TIMESTAMP_FILENAME`
+- Use canonical parse helpers whenever parsing is required:
+  - Prefer `parse_timestamp_full`, `parse_timestamp_minute`, `parse_date_only`, `parse_time_only_minute`
+  - Use `parse_timestamp(..., allowed=...)` only when multiple input shapes are genuinely expected.
+
+#### Allowed test-only exceptions (must be explicit)
+These are permitted ONLY when the value is test metadata / human display and is NOT consumed by production code:
+- `datetime.now().isoformat()` for test-run metadata fields (e.g., results collectors), because MHM does not emit ISO timestamps as a canonical output format.
+- Any timestamp format used purely for console printing/debugging within tests.
+
+When using an exception, add a short comment explaining:
+- this is test metadata/debug-only
+- it is not persisted as application state
+- it is not parsed by production code
+
+#### Never allowed (even in tests)
+- Emitting a non-canonical timestamp/date/time into any JSON or data file that production code reads.
+- Parsing display-only formats (`DATE_DISPLAY_*`) or debug-only formats as “real” persisted state.
+
+### 6.5. Quality expectations
 
 - Tests must be **deterministic**:
   - Avoid using real time (or use time-freezing utilities).
@@ -508,7 +542,7 @@ Follow these guidelines:
   - Add TODOs in the tests or issues in your tracker.
   - Reference those gaps when appropriate so they are not forgotten.
 
-### 6.5. End-to-end (E2E) tests
+### 6.6. End-to-end (E2E) tests
 
 End-to-end tests marked with `@pytest.mark.e2e` run real audits with actual tool execution (no mocks). These tests are:
 

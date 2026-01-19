@@ -17,7 +17,7 @@ from tasks.task_management import (
     get_task_by_id,
 )
 from tests.test_utilities import TestUserFactory
-from core.time_utilities import DATE_ONLY
+from core.time_utilities import DATE_ONLY, format_timestamp
 
 
 class TestOrphanedReminderCleanup:
@@ -39,7 +39,7 @@ class TestOrphanedReminderCleanup:
         )
 
         # Create a task with reminders
-        due_date = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+        due_date = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
         task_id = create_task(
             user_id=user_id,
             title="Test task for cleanup",
@@ -126,7 +126,7 @@ class TestOrphanedReminderCleanup:
         )
 
         # Create a task with reminders
-        due_date = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+        due_date = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
         task_id = create_task(
             user_id=user_id,
             title="Test task for cleanup",
@@ -212,7 +212,7 @@ class TestOrphanedReminderCleanup:
         )
 
         # Create a task with reminders
-        due_date = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+        due_date = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
         task_id = create_task(
             user_id=user_id,
             title="Test active task",
@@ -296,7 +296,7 @@ class TestOrphanedReminderCleanup:
         )
 
         # Create tasks for both users
-        due_date = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+        due_date = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
 
         task1_id = create_task(user_id=user1_id, title="User1 task", due_date=due_date)
         task2_id = create_task(user_id=user2_id, title="User2 task", due_date=due_date)

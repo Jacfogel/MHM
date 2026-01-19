@@ -21,7 +21,7 @@ from communication.command_handlers.shared_types import (
 from core.user_data_handlers import get_user_data, save_user_data
 from tasks.task_management import create_task, load_active_tasks
 from tests.test_utilities import TestUserFactory
-from core.time_utilities import DATE_ONLY
+from core.time_utilities import DATE_ONLY, format_timestamp
 
 
 @pytest.fixture
@@ -130,21 +130,21 @@ class TestTaskManagementHandlerCoverage:
         """Test relative date parsing for 'today'."""
         handler = TaskManagementHandler()
         result = handler._handle_create_task__parse_relative_date("today")
-        expected = datetime.now().strftime(DATE_ONLY)
+        expected = format_timestamp(datetime.now(), DATE_ONLY)
         assert result == expected
 
     def test_parse_relative_date_tomorrow(self):
         """Test relative date parsing for 'tomorrow'."""
         handler = TaskManagementHandler()
         result = handler._handle_create_task__parse_relative_date("tomorrow")
-        expected = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+        expected = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
         assert result == expected
 
     def test_parse_relative_date_next_week(self):
         """Test relative date parsing for 'next week'."""
         handler = TaskManagementHandler()
         result = handler._handle_create_task__parse_relative_date("next week")
-        expected = (datetime.now() + timedelta(days=7)).strftime(DATE_ONLY)
+        expected = format_timestamp(datetime.now() + timedelta(days=7), DATE_ONLY)
         assert result == expected
 
     def test_parse_relative_date_next_month(self):
@@ -241,9 +241,9 @@ class TestTaskManagementHandlerCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Create tasks with different due dates
-        today = datetime.now().strftime(DATE_ONLY)
-        tomorrow = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
-        next_week = (datetime.now() + timedelta(days=8)).strftime(DATE_ONLY)
+        today = format_timestamp(datetime.now(), DATE_ONLY)
+        tomorrow = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
+        next_week = format_timestamp(datetime.now() + timedelta(days=8), DATE_ONLY)
 
         create_task(user_id, "Due Today", today)
         create_task(user_id, "Due Tomorrow", tomorrow)
@@ -270,7 +270,7 @@ class TestTaskManagementHandlerCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Create overdue task
-        yesterday = (datetime.now() - timedelta(days=1)).strftime(DATE_ONLY)
+        yesterday = format_timestamp(datetime.now() - timedelta(days=1), DATE_ONLY)
         create_task(user_id, "Overdue Task", yesterday)
         create_task(user_id, "Future Task", "2024-12-25")
 

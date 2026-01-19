@@ -37,25 +37,47 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
-### 2016-01-18 - ## Added `core/time_utilities.py`: central module for canonical date/time formats and helpers.
-  - Canonical formats:
-    - `TIMESTAMP_FULL` (%Y-%m-%d %H:%M:%S) — primary internal timestamp
-    - `TIMESTAMP_MINUTE` (%Y-%m-%d %H:%M) — scheduler/UI precision
-    - `DATE_ONLY` (%Y-%m-%d)
-    - `TIME_ONLY_MINUTE` (%H:%M)
-    - `TIMESTAMP_FILENAME` (%Y-%m-%d_%H-%M-%S) — filename-safe
-    - Display-only:
-      - `DATE_DISPLAY_MONTH_DAY` (%b %d)
-      - `DATE_DISPLAY_WEEKDAY` (%A)
-    - Debug-only:
-      - `TIMESTAMP_WITH_MICROSECONDS` (%Y-%m-%d %H:%M:%S.%f)
-  - Standard helpers:
-    - `now_timestamp_full()`, `now_timestamp_minute()`, `now_timestamp_filename()`
-    - `parse_timestamp_full()`, `parse_timestamp_minute()`
-    - `format_datetime(dt, fmt)`, `parse_datetime(value, fmt)`
-  - Notes:
-    - Designed to prevent format drift by consolidating timestamp definitions.
-    - Avoids timezone libraries at import-time; timezone conversion (if used) is lazy-import only.
+### 2026-01-19 - Standardized all datetime parsing and formatting across the codebase to route exclusively through core/time_utilities.py.
+Removed all remaining direct uses of:
+- datetime.strptime
+- datetime.fromisoformat
+- inline datetime format strings
+- Replaced remaining strftime usages with canonical helpers and format constants.
+- Updated scheduler, UI, service, validation, notebook, and test modules to use:
+- strict parsers (parse_timestamp_full, parse_timestamp_minute, parse_date_only, parse_time_only_minute)
+- canonical now_* helpers for timestamp generation.
+- Explicitly marked and instrumented legacy compatibility parsing for historical persisted message timestamps:
+- Added clear legacy annotations.
+- Added logging when the legacy path is exercised.
+- Preserved existing sentinel and UTC-normalization behavior.
+- Updated tests to reflect canonical parsing helpers and clarified intent where legacy behavior is explicitly asserted.
+- Fixed static logging violations introduced during the legacy instrumentation pass.
+Notes
+- This was an adoption-only change; no new datetime formats or helpers were introduced.
+- Behavior is preserved unless strict parsing was required for correctness or policy compliance.
+- The codebase now enforces a single source of truth for datetime handling.
+
+### 2026-01-18 - ## Introduce core/time_utilities.py with canonical datetime formats and helpers
+- Added new core/time_utilities.py as the single source of truth for all timestamp, date, and time formats in MHM.
+- Defined a clear, descriptive canonical format set covering:
+   - full internal timestamps (seconds)
+   - minute-level timestamps (scheduler / UI)
+   - date-only and time-only values
+   - filename-safe timestamps
+   - display-only formats
+   - debug-only microsecond precision
+- Introduced strict parsing helpers for critical state (parse_timestamp_full, parse_timestamp_minute, etc.) that fail safely.
+- Added explicitly-scoped flexible parsing via parse_timestamp(...) for cases where multiple external timestamp shapes are legitimately expected.
+- Centralized handling of external timestamp variants (ISO-like inputs) as parse-only, never emitted by the system.
+- Added lightweight “now” helpers (now_timestamp_full, now_timestamp_minute, now_timestamp_filename) to eliminate scattered datetime.now().strftime(...) usage.
+- Enforced design constraints:
+   - no logging, config, or timezone dependencies
+   - no inline datetime format strings outside this module
+   - no import-time side effects
+- This change is foundational and precedes a full codebase sweep to replace legacy datetime handling.
+Notes:
+- No behavioral changes intended yet; follow-up commits will migrate call sites incrementally.
+- Tests may require updates where mocking assumptions depended on inline strftime usage.
 
 
 ### 2016-01-17 - Standardize datetime formatting usage and audit datetime.now() calls

@@ -21,6 +21,7 @@ from core.time_utilities import (
     now_timestamp_filename,
     now_timestamp_full,
     TIMESTAMP_FULL,
+    format_timestamp,
 )
 
 logger = get_component_logger("file_ops")
@@ -497,10 +498,10 @@ class BackupManager:
                     }
                 else:
                     # Fallback for backups without manifest
-
-                    created_at = datetime.fromtimestamp(
+                    created_at_dt = datetime.fromtimestamp(
                         os.path.getmtime(backup_path)
-                    ).strftime(TIMESTAMP_FULL)
+                    )
+                    created_at = format_timestamp(created_at_dt, TIMESTAMP_FULL)
 
                     return {
                         "file_path": backup_path,

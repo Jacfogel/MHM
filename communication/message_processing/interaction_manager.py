@@ -11,10 +11,18 @@ This module provides a unified interface for handling user interactions by:
 """
 
 from typing import Optional, Dict, Any, List
+from datetime import datetime
 from dataclasses import dataclass
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import AI_MAX_RESPONSE_LENGTH
+from core.time_utilities import (
+    DATE_DISPLAY_MONTH_DAY,
+    format_timestamp,
+    parse_date_and_time_minute,
+    parse_date_only,
+    parse_timestamp_full,
+)
 from communication.message_processing.command_parser import (
     get_enhanced_command_parser,
     ParsingResult,
@@ -1142,7 +1150,6 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
     @handle_errors("getting user suggestions", default_return=[])
     def get_user_suggestions(self, user_id: str, context: str = "") -> list:
         """Get personalized suggestions for the user"""
-        from datetime import datetime
 
         suggestions: list[str] = []
         now = datetime.now()
@@ -1155,7 +1162,6 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
 
         # Get task-related suggestions if user has tasks
         try:
-            from core.time_utilities import DATE_ONLY, TIME_ONLY_MINUTE
             from tasks.task_management import load_active_tasks
 
             tasks = load_active_tasks(user_id) or []
@@ -1164,7 +1170,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
             def parse_due(task: dict) -> datetime | None:
                 """
                 Parse due date/time into a datetime for sorting.
-                Uses canonical formats from time_utilities (no inline format strings).
+                Uses canonical parsers from time_utilities (no inline parsing).
                 """
                 due_date = task.get("due_date")
                 due_time = task.get("due_time")
@@ -1172,12 +1178,11 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
                 if not due_date:
                     return None
 
-                # Canonical stored formats are date-only and HH:MM.
+                # Canonical stored formats are DATE_ONLY and TIME_ONLY_MINUTE.
                 if due_time:
-                    dt_format = f"{DATE_ONLY} {TIME_ONLY_MINUTE}"
-                    return datetime.strptime(f"{due_date} {due_time}", dt_format)
+                    return parse_date_and_time_minute(due_date, due_time)
 
-                return datetime.strptime(due_date, DATE_ONLY)
+                return parse_date_only(due_date)
 
             if tasks:
                 dated_tasks = [(task, parse_due(task)) for task in tasks]
@@ -1186,16 +1191,15 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
                 title = top_task.get("title") or "your top task"
 
                 if due_at:
+                    # Display-only: month/day is never parsed or persisted.
+                    due_display = format_timestamp(due_at, DATE_DISPLAY_MONTH_DAY)
+
                     if due_at.date() < now.date():
-                        add_suggestion(
-                            f'Catch up on "{title}" (was due {due_at.strftime("%b %d")})'
-                        )
+                        add_suggestion(f'Catch up on "{title}" (was due {due_display})')
                     elif due_at.date() == now.date():
                         add_suggestion(f'Finish "{title}" due today')
                     else:
-                        add_suggestion(
-                            f'Plan for "{title}" due {due_at.strftime("%b %d")}'
-                        )
+                        add_suggestion(f'Plan for "{title}" due {due_display}')
                 else:
                     add_suggestion(f'Work on "{title}" from your task list')
 
@@ -1213,7 +1217,6 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
                 get_recent_checkins,
                 is_user_checkins_enabled,
             )
-            from core.time_utilities import TIMESTAMP_FULL
 
             if is_user_checkins_enabled(user_id):
                 recent_checkins = get_recent_checkins(user_id, limit=3) or []
@@ -1221,14 +1224,10 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
                     latest = recent_checkins[0]
                     timestamp_str = latest.get("timestamp")
 
-                    try:
-                        timestamp = (
-                            datetime.strptime(timestamp_str, TIMESTAMP_FULL)
-                            if timestamp_str
-                            else None
-                        )
-                    except Exception:
-                        timestamp = None
+                    # Internal persisted state: strict canonical parse.
+                    timestamp = (
+                        parse_timestamp_full(timestamp_str) if timestamp_str else None
+                    )
 
                     # If last check-in was 2+ days ago, prompt a new one.
                     if timestamp and (now.date() - timestamp.date()).days >= 2:

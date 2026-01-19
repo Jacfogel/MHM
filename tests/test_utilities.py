@@ -20,7 +20,7 @@ from datetime import datetime
 
 from core.user_data_handlers import create_new_user, save_user_data, get_user_data
 from core.file_operations import ensure_user_directory
-from core.time_utilities import now_timestamp_full, DATE_ONLY
+from core.time_utilities import now_timestamp_full, format_timestamp, DATE_ONLY
 
 # Setup logger for test utilities
 logger = logging.getLogger(__name__)
@@ -3207,7 +3207,7 @@ class TestDataFactory:
         """
         import uuid
         from datetime import datetime, timedelta
-        from core.time_utilities import now_timestamp_full
+        from core.time_utilities import now_timestamp_full, format_timestamp
 
         tasks = []
         for i in range(task_count):
@@ -3217,8 +3217,8 @@ class TestDataFactory:
                 "description": f"Description for test task {i+1}",
                 "priority": "medium",
                 "status": "active",
-                "due_date": (datetime.now() + timedelta(days=i + 1)).strftime(
-                    DATE_ONLY
+                "due_date": format_timestamp(
+                    datetime.now() + timedelta(days=i + 1), DATE_ONLY
                 ),
                 "created_at": now_timestamp_full(),
                 "updated_at": now_timestamp_full(),

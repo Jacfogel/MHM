@@ -17,6 +17,7 @@ from core.time_utilities import (
     now_timestamp_full,
     now_timestamp_filename,
     TIMESTAMP_MINUTE,
+    parse_timestamp_minute,
 )
 
 try:
@@ -332,13 +333,20 @@ def load_and_localize_datetime(datetime_str, timezone_str="America/Regina"):
     """
     try:
         tz = pytz.timezone(timezone_str)
-        naive_datetime = datetime.strptime(datetime_str, TIMESTAMP_MINUTE)
+
+        # Strict parse: scheduler/UI minute timestamp shape.
+        # parse_timestamp_minute() returns None on invalid input (it does not raise).
+        naive_datetime = parse_timestamp_minute(datetime_str)
+        if naive_datetime is None:
+            raise InvalidTimeFormatError(
+                f"Invalid datetime format '{datetime_str}' (expected '{TIMESTAMP_MINUTE}')"
+            )
+
         aware_datetime = tz.localize(naive_datetime)
         logger.debug(
             f"Localized datetime '{datetime_str}' to timezone '{timezone_str}': '{aware_datetime}'"
         )
         return aware_datetime
-    except ValueError as e:
-        raise InvalidTimeFormatError(f"Invalid datetime format '{datetime_str}': {e}")
+
     except pytz.exceptions.UnknownTimeZoneError as e:
         raise InvalidTimeFormatError(f"Unknown timezone '{timezone_str}': {e}")

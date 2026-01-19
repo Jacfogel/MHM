@@ -12,7 +12,7 @@ from tests.test_utilities import (
     cleanup_test_data_environment,
     TestUserFactory,
 )
-from core.time_utilities import TIMESTAMP_FULL
+from core.time_utilities import now_timestamp_full
 
 
 @pytest.mark.behavior
@@ -402,7 +402,6 @@ class TestAnalyticsWithNewQuestions:
         monkeypatch.setenv("MHM_TESTING", "1")
 
         from core.response_tracking import store_user_response, get_checkins_by_days
-        from datetime import datetime
         from unittest.mock import patch
         import os
 
@@ -412,7 +411,7 @@ class TestAnalyticsWithNewQuestions:
             "energy": 3,
             "sleep_quality": 4,
             "sleep_schedule": {"sleep_time": "23:00", "wake_time": "07:00"},
-            "timestamp": datetime.now().strftime(TIMESTAMP_FULL),
+            "timestamp": now_timestamp_full(),
         }
 
         # Store check-in using patched file path
@@ -447,7 +446,6 @@ class TestAnalyticsWithNewQuestions:
         monkeypatch.setenv("MHM_TESTING", "1")
 
         from core.response_tracking import store_user_response, get_checkins_by_days
-        from datetime import datetime
         from unittest.mock import patch
         import os
 
@@ -458,7 +456,7 @@ class TestAnalyticsWithNewQuestions:
             "irritability_level": 3,
             "motivation_level": 4,
             "treatment_adherence": True,
-            "timestamp": datetime.now().strftime(TIMESTAMP_FULL),
+            "timestamp": now_timestamp_full(),
         }
 
         # Store check-in using patched file path

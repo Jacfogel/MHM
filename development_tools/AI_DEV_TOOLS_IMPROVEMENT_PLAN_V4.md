@@ -242,6 +242,8 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 
 ### 5. Future Enhancements (LOW)
 
+#### 5.0 Explore adding a possible duplicate function/method analysis
+
 #### 5.1 Unused imports cleanup module
 **Status**: PENDING  
 **Tasks**:

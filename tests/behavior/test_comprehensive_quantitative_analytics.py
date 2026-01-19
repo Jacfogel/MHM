@@ -13,7 +13,7 @@ from core.user_data_handlers import (
     get_user_id_by_identifier,
 )
 from core.config import get_user_file_path
-from core.time_utilities import TIMESTAMP_FULL
+from core.time_utilities import TIMESTAMP_FULL, format_timestamp
 from tests.test_utilities import TestUserFactory
 
 
@@ -74,7 +74,7 @@ class TestComprehensiveQuantitativeAnalytics:
         now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": (now - timedelta(days=1)).strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
                 # Scale 1-5 questions
                 "mood": 4,
                 "energy": 3,
@@ -95,7 +95,7 @@ class TestComprehensiveQuantitativeAnalytics:
                 "daily_reflection": "Feeling good today",
             },
             {
-                "timestamp": now.strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now, TIMESTAMP_FULL),
                 # Scale 1-5 questions
                 "mood": 3,
                 "energy": 4,
@@ -237,21 +237,21 @@ class TestComprehensiveQuantitativeAnalytics:
         now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": (now - timedelta(days=2)).strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now - timedelta(days=2), TIMESTAMP_FULL),
                 "ate_breakfast": "yes",
                 "exercise": "no",
                 "medication_taken": "y",
                 "hydration": "n",
             },
             {
-                "timestamp": (now - timedelta(days=1)).strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
                 "ate_breakfast": "YES",
                 "exercise": "NO",
                 "medication_taken": "true",
                 "hydration": "false",
             },
             {
-                "timestamp": now.strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now, TIMESTAMP_FULL),
                 "ate_breakfast": "1",
                 "exercise": "0",
                 "medication_taken": "Yes",
@@ -329,7 +329,7 @@ class TestComprehensiveQuantitativeAnalytics:
         now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": (now - timedelta(days=1)).strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
                 "responses": {
                     "mood": "4",
                     "energy": "3",
@@ -338,7 +338,7 @@ class TestComprehensiveQuantitativeAnalytics:
                 },
             },
             {
-                "timestamp": now.strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now, TIMESTAMP_FULL),
                 "responses": {
                     "mood": "3",
                     "energy": "4",

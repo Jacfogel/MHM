@@ -33,6 +33,9 @@ from datetime import datetime
 from core.time_utilities import (
     now_timestamp_filename,
     now_timestamp_full,
+    format_timestamp,
+    format_timestamp_milliseconds,
+    parse_timestamp_full,
     TIMESTAMP_FULL,
 )
 
@@ -666,7 +669,7 @@ class SessionLogRotationManager:
                 with open(rotation_state_file, "r", encoding="utf-8") as f:
                     timestamp_str = f.read().strip()
                     if timestamp_str:
-                        return datetime.fromisoformat(timestamp_str)
+                        return parse_timestamp_full(timestamp_str)
         except (OSError, ValueError) as e:
             test_logger.debug(f"Could not load last rotation time: {e}")
         return None
@@ -677,7 +680,7 @@ class SessionLogRotationManager:
         try:
             rotation_state_file.parent.mkdir(parents=True, exist_ok=True)
             with open(rotation_state_file, "w", encoding="utf-8") as f:
-                f.write(timestamp.isoformat())
+                f.write(format_timestamp(timestamp, TIMESTAMP_FULL))
         except OSError as e:
             test_logger.debug(f"Could not save last rotation time: {e}")
 
@@ -775,7 +778,9 @@ class SessionLogRotationManager:
                             )
                             if match:
                                 timestamp_str = match.group(1)
-                                return datetime.strptime(timestamp_str, TIMESTAMP_FULL)
+                                parsed = parse_timestamp_full(timestamp_str)
+                            if parsed is not None:
+                                return parsed
                         except (ValueError, AttributeError):
                             pass
 
@@ -785,7 +790,9 @@ class SessionLogRotationManager:
                             timestamp_str = line[
                                 :19
                             ]  # First 19 chars are "YYYY-MM-DD HH:MM:SS"
-                            return datetime.strptime(timestamp_str, TIMESTAMP_FULL)
+                            parsed = parse_timestamp_full(timestamp_str)
+                            if parsed is not None:
+                                return parsed
                         except ValueError:
                             pass
         except (OSError, FileNotFoundError, UnicodeDecodeError):
@@ -3954,7 +3961,7 @@ def pytest_sessionfinish(session, exitstatus):
             crash_log_file.parent.mkdir(parents=True, exist_ok=True)
             with open(crash_log_file, "a", encoding="utf-8") as f:
                 f.write(f"\n{'='*80}\n")
-                f.write(f"CRASH DETECTED: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"CRASH DETECTED: {now_timestamp_full()}\n")
                 f.write(f"Exit Status: {exitstatus}\n")
                 f.write(
                     f"Tests Run: {getattr(session, 'testsfailed', 0)} failed, {getattr(session, 'testscollected', 0)} collected\n"
@@ -3998,7 +4005,7 @@ def pytest_runtest_setup(item):
     test_id = item.nodeid
     start_time = datetime.now()
     _test_start_times[test_id] = start_time
-    timestamp = start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
+    timestamp = format_timestamp_milliseconds(start_time)  # Include milliseconds
 
     # Include worker ID if running in parallel mode
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", "main")
@@ -4015,7 +4022,7 @@ def pytest_runtest_teardown(item, nextitem):
     """Log when a test ends with timestamp and duration (DEBUG level only)."""
     test_id = item.nodeid
     end_time = datetime.now()
-    timestamp = end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
+    timestamp = format_timestamp_milliseconds(end_time)  # Include milliseconds
 
     # Calculate duration if we have start time
     duration = None
@@ -4035,9 +4042,9 @@ def pytest_runtest_teardown(item, nextitem):
 def pytest_runtest_logreport(report):
     """Log individual test results with timestamps."""
     if report.when == "call":
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[
-            :-3
-        ]  # Include milliseconds
+        timestamp = format_timestamp_milliseconds(
+            datetime.now()
+        )  # Include milliseconds
         # Only log PASSED tests when verbose mode is enabled (to reduce log noise)
         verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
         if report.passed:

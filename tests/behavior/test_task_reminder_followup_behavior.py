@@ -16,7 +16,7 @@ from communication.message_processing.conversation_flow_manager import (
 from communication.command_handlers.task_handler import TaskManagementHandler
 from tasks.task_management import create_task, get_task_by_id
 from tests.test_utilities import TestUserFactory
-from core.time_utilities import DATE_ONLY
+from core.time_utilities import DATE_ONLY, format_timestamp, parse_date_only
 
 
 class TestTaskReminderFollowupBehavior:
@@ -41,7 +41,9 @@ class TestTaskReminderFollowupBehavior:
         # Act - Create a task
         entities = {
             "title": "Test reminder task",
-            "due_date": (datetime.now() + timedelta(days=2)).strftime(DATE_ONLY),
+            "due_date": format_timestamp(
+                (datetime.now() + timedelta(days=2)), DATE_ONLY
+            ),
         }
         response = handler._handle_create_task(user_id, entities)
 
@@ -78,7 +80,7 @@ class TestTaskReminderFollowupBehavior:
         task_id = create_task(
             user_id=user_id,
             title="Test task",
-            due_date=(datetime.now() + timedelta(days=1)).strftime(DATE_ONLY),
+            due_date=format_timestamp((datetime.now() + timedelta(days=1)), DATE_ONLY),
         )
         conversation_manager.start_task_reminder_followup(user_id, task_id)
 
@@ -121,7 +123,7 @@ class TestTaskReminderFollowupBehavior:
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
 
-        due_date = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+        due_date = format_timestamp((datetime.now() + timedelta(days=1)), DATE_ONLY)
         due_time = "14:00"  # 2 PM
 
         # Create a task with due date and time
@@ -181,7 +183,7 @@ class TestTaskReminderFollowupBehavior:
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
 
-        due_date = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+        due_date = format_timestamp((datetime.now() + timedelta(days=1)), DATE_ONLY)
         due_time = "15:00"  # 3 PM
 
         task_id = create_task(
@@ -226,7 +228,7 @@ class TestTaskReminderFollowupBehavior:
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
 
-        due_date = (datetime.now() + timedelta(days=3)).strftime(DATE_ONLY)
+        due_date = format_timestamp((datetime.now() + timedelta(days=3)), DATE_ONLY)
 
         task_id = create_task(user_id=user_id, title="Test task", due_date=due_date)
         conversation_manager.start_task_reminder_followup(user_id, task_id)
@@ -245,8 +247,12 @@ class TestTaskReminderFollowupBehavior:
         reminder = task["reminder_periods"][0]
 
         # Should be 1-2 days before due date
-        reminder_date = datetime.strptime(reminder["date"], DATE_ONLY).date()
-        due_date_obj = datetime.strptime(due_date, DATE_ONLY).date()
+        reminder_dt = parse_date_only(reminder["date"])
+        due_dt = parse_date_only(due_date)
+        assert reminder_dt is not None
+        assert due_dt is not None
+        reminder_date = reminder_dt.date()
+        due_date_obj = due_dt.date()
         days_before = (due_date_obj - reminder_date).days
 
         assert (
@@ -301,7 +307,7 @@ class TestTaskReminderFollowupBehavior:
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
 
-        due_date = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+        due_date = format_timestamp((datetime.now() + timedelta(days=1)), DATE_ONLY)
 
         task_id = create_task(user_id=user_id, title="Test task", due_date=due_date)
         conversation_manager.start_task_reminder_followup(user_id, task_id)
@@ -339,7 +345,7 @@ class TestTaskReminderFollowupBehavior:
         mock_scheduler = MagicMock()
         mock_get_scheduler.return_value = mock_scheduler
 
-        due_date = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+        due_date = format_timestamp((datetime.now() + timedelta(days=1)), DATE_ONLY)
         due_time = "14:00"
 
         task_id = create_task(

@@ -17,7 +17,7 @@ from communication.command_handlers.shared_types import (
     ParsedCommand,
 )
 from tests.test_utilities import TestUserFactory
-from core.time_utilities import DATE_ONLY
+from core.time_utilities import DATE_ONLY, format_timestamp
 
 
 class TestTaskHandlerBehavior:
@@ -156,7 +156,9 @@ class TestTaskHandlerBehavior:
         # Verify due_date was parsed from 'tomorrow' to actual date
         from datetime import datetime, timedelta
 
-        expected_date = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+        expected_date = format_timestamp(
+            (datetime.now() + timedelta(days=1)), DATE_ONLY
+        )
         assert (
             call_kwargs.get("due_date") == expected_date
         ), f"Should parse 'tomorrow' to {expected_date}"
@@ -234,7 +236,7 @@ class TestTaskHandlerBehavior:
         """Test that TaskManagementHandler parses 'today' correctly."""
         handler = TaskManagementHandler()
         result = handler._handle_create_task__parse_relative_date("today")
-        expected = datetime.now().strftime(DATE_ONLY)
+        expected = format_timestamp(datetime.now(), DATE_ONLY)
         assert result == expected, f"Should parse 'today' as {expected}, got {result}"
 
     @pytest.mark.behavior
@@ -244,7 +246,7 @@ class TestTaskHandlerBehavior:
         """Test that TaskManagementHandler parses 'tomorrow' correctly."""
         handler = TaskManagementHandler()
         result = handler._handle_create_task__parse_relative_date("tomorrow")
-        expected = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+        expected = format_timestamp((datetime.now() + timedelta(days=1)), DATE_ONLY)
         assert (
             result == expected
         ), f"Should parse 'tomorrow' as {expected}, got {result}"
@@ -256,7 +258,7 @@ class TestTaskHandlerBehavior:
         """Test that TaskManagementHandler parses 'next week' correctly."""
         handler = TaskManagementHandler()
         result = handler._handle_create_task__parse_relative_date("next week")
-        expected = (datetime.now() + timedelta(days=7)).strftime(DATE_ONLY)
+        expected = format_timestamp((datetime.now() + timedelta(days=7)), DATE_ONLY)
         assert (
             result == expected
         ), f"Should parse 'next week' as {expected}, got {result}"
@@ -779,7 +781,7 @@ class TestTaskHandlerBehavior:
     def test_task_handler_format_due_date_overdue(self):
         """Test that TaskManagementHandler formats overdue dates correctly."""
         handler = TaskManagementHandler()
-        yesterday = (datetime.now() - timedelta(days=1)).strftime(DATE_ONLY)
+        yesterday = format_timestamp((datetime.now() - timedelta(days=1)), DATE_ONLY)
         result = handler._handle_list_tasks__format_due_date(yesterday)
         assert "OVERDUE" in result.upper(), "Should indicate overdue date"
 
@@ -789,7 +791,7 @@ class TestTaskHandlerBehavior:
     def test_task_handler_format_due_date_today(self):
         """Test that TaskManagementHandler formats today's dates correctly."""
         handler = TaskManagementHandler()
-        today = datetime.now().strftime(DATE_ONLY)
+        today = format_timestamp(datetime.now(), DATE_ONLY)
         result = handler._handle_list_tasks__format_due_date(today)
         assert "TODAY" in result.upper(), "Should indicate today's date"
 
@@ -799,7 +801,7 @@ class TestTaskHandlerBehavior:
     def test_task_handler_format_due_date_future(self):
         """Test that TaskManagementHandler formats future dates correctly."""
         handler = TaskManagementHandler()
-        tomorrow = (datetime.now() + timedelta(days=1)).strftime(DATE_ONLY)
+        tomorrow = format_timestamp((datetime.now() + timedelta(days=1)), DATE_ONLY)
         result = handler._handle_list_tasks__format_due_date(tomorrow)
         assert "due" in result.lower(), "Should indicate future date"
         assert tomorrow in result, "Should include the date"

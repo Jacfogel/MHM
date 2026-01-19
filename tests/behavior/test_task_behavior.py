@@ -14,7 +14,7 @@ import os
 from unittest.mock import patch
 import json
 from datetime import datetime, timedelta
-from core.time_utilities import DATE_ONLY
+from core.time_utilities import DATE_ONLY, format_timestamp
 
 # Do not modify sys.path; rely on package imports
 
@@ -265,21 +265,37 @@ class TestTaskManagement:
         """Test getting tasks due soon with file verification."""
         user_id = "test-user-due-soon"
         mock_get_user_dir.return_value = temp_dir
+
         # Create tasks with due dates
         today = datetime.now().date()
-        due_soon = (today + timedelta(days=2)).strftime(DATE_ONLY)
-        due_late = (today + timedelta(days=10)).strftime(DATE_ONLY)
+
+        due_soon_date = today + timedelta(days=2)
+        due_late_date = today + timedelta(days=10)
+
+        # due_date is persisted as DATE_ONLY ("YYYY-MM-DD")
+        due_soon = format_timestamp(
+            datetime.combine(due_soon_date, datetime.min.time()),
+            DATE_ONLY,
+        )
+        due_late = format_timestamp(
+            datetime.combine(due_late_date, datetime.min.time()),
+            DATE_ONLY,
+        )
+
         id_soon = create_task(user_id, "Soon Task", due_date=due_soon)
         id_late = create_task(user_id, "Late Task", due_date=due_late)
+
         # Get tasks due soon (within 7 days)
         due_soon_tasks = get_tasks_due_soon(user_id, days_ahead=7)
         assert any(t["task_id"] == id_soon for t in due_soon_tasks)
         assert all(t["task_id"] != id_late for t in due_soon_tasks)
+
         # Verify file content
         task_dir = os.path.join(temp_dir, "tasks")
         task_file = os.path.join(task_dir, "active_tasks.json")
         with open(task_file, "r") as f:
             data = json.load(f)
+
         assert any(t["task_id"] == id_soon for t in data["tasks"])
         assert any(t["task_id"] == id_late for t in data["tasks"])
 

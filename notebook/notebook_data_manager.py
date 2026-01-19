@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.tags import normalize_tags
-from core.time_utilities import TIMESTAMP_FULL, now_timestamp_full
+from core.time_utilities import TIMESTAMP_FULL, now_timestamp_full, parse_timestamp_full
 from notebook.schemas import Entry, ListItem, EntryKind
 from notebook.notebook_data_handlers import load_entries, save_entries
 from notebook.notebook_validation import (
@@ -248,7 +248,7 @@ def list_recent(
     # Sort by updated_at descending (parse timestamp strings for comparison)
     entries.sort(
         key=lambda e: (
-            datetime.strptime(e.updated_at, TIMESTAMP_FULL)
+            (parse_timestamp_full(e.updated_at) or datetime.min)
             if isinstance(e.updated_at, str)
             else datetime.min
         ),
@@ -468,7 +468,7 @@ def search_entries(user_id: str, query: str, limit: int = 100) -> list[Entry]:
     try:
         unique_matches.sort(
             key=lambda e: (
-                datetime.strptime(e.updated_at, TIMESTAMP_FULL)
+                (parse_timestamp_full(e.updated_at) or datetime.min)
                 if isinstance(e.updated_at, str)
                 else datetime.min
             ),
@@ -580,7 +580,7 @@ def list_by_group(user_id: str, group: str, limit: int = 100) -> list[Entry]:
     matching = [e for e in entries if e.group and e.group.lower() == group.lower()]
     matching.sort(
         key=lambda e: (
-            datetime.strptime(e.updated_at, TIMESTAMP_FULL)
+            (parse_timestamp_full(e.updated_at) or datetime.min)
             if isinstance(e.updated_at, str)
             else datetime.min
         ),
@@ -596,7 +596,7 @@ def list_pinned(user_id: str, limit: int = 100) -> list[Entry]:
     pinned = [e for e in entries if e.pinned and not e.archived]
     pinned.sort(
         key=lambda e: (
-            datetime.strptime(e.updated_at, TIMESTAMP_FULL)
+            (parse_timestamp_full(e.updated_at) or datetime.min)
             if isinstance(e.updated_at, str)
             else datetime.min
         ),
@@ -616,9 +616,11 @@ def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> list[Entry]:
         if not e.archived and not e.tags:
             # Parse timestamp string to compare
             try:
-                entry_timestamp = datetime.strptime(
-                    e.updated_at, TIMESTAMP_FULL
-                ).timestamp()
+                parsed_updated_at = parse_timestamp_full(e.updated_at)
+                if parsed_updated_at is None:
+                    raise ValueError("invalid timestamp")
+
+                entry_timestamp = parsed_updated_at.timestamp()
                 if entry_timestamp >= cutoff:
                     inbox.append(e)
             except (ValueError, TypeError) as err:
@@ -630,7 +632,7 @@ def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> list[Entry]:
 
     inbox.sort(
         key=lambda e: (
-            datetime.strptime(e.updated_at, TIMESTAMP_FULL)
+            (parse_timestamp_full(e.updated_at) or datetime.min)
             if isinstance(e.updated_at, str)
             else datetime.min
         ),
@@ -646,7 +648,7 @@ def list_archived(user_id: str, limit: int = 100) -> list[Entry]:
     archived = [e for e in entries if e.archived]
     archived.sort(
         key=lambda e: (
-            datetime.strptime(e.updated_at, TIMESTAMP_FULL)
+            (parse_timestamp_full(e.updated_at) or datetime.min)
             if isinstance(e.updated_at, str)
             else datetime.min
         ),
@@ -666,7 +668,7 @@ def list_by_tag(user_id: str, tag: str, limit: int = 100) -> list[Entry]:
     matching = [e for e in entries if normalized_tag in e.tags]
     matching.sort(
         key=lambda e: (
-            datetime.strptime(e.updated_at, TIMESTAMP_FULL)
+            (parse_timestamp_full(e.updated_at) or datetime.min)
             if isinstance(e.updated_at, str)
             else datetime.min
         ),

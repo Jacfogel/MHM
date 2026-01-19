@@ -13,7 +13,7 @@ import re
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.time_utilities import DATE_ONLY
+from core.time_utilities import DATE_ONLY, format_timestamp, parse_date_only
 from tasks.task_management import (
     create_task,
     load_active_tasks,
@@ -184,18 +184,15 @@ class TaskManagementHandler(InteractionHandler):
             logger.warning(
                 f"Invalid recurrence_pattern '{recurrence_pattern}' provided, ignoring"
             )
-            recurrence_pattern = None
-
-        # Validate due_date format if provided (due_date was already parsed above)
+            recurrence_pattern = None  # Validate due_date format if provided (due_date was already parsed above)
         valid_due_date = None
         if (
             due_date and due_date.strip()
         ):  # Check for None, empty string, or whitespace-only
-            try:
-                # Validate the parsed date format
-                datetime.strptime(due_date, DATE_ONLY)
+            # Strict parse (external input) via core.time_utilities
+            if parse_date_only(due_date) is not None:
                 valid_due_date = due_date
-            except ValueError:
+            else:
                 # Still invalid after parsing - treat as no due date
                 logger.warning(
                     f"Could not parse due_date '{due_date}' to valid date format, treating as no due date"
@@ -1166,7 +1163,8 @@ class TaskManagementHandler(InteractionHandler):
         if not tasks:
             return None
 
-        today = datetime.now().date().isoformat()
+        # Internal scheduler/UI state: always use canonical DATE_ONLY formatting.
+        today = format_timestamp(datetime.now(), DATE_ONLY)
 
         # Priority order: overdue > critical > high > medium > low
         priority_order = {"critical": 5, "high": 4, "medium": 3, "low": 2}
@@ -1185,12 +1183,13 @@ class TaskManagementHandler(InteractionHandler):
             # Add priority score
             priority = task.get("priority", "medium")
             score += priority_order.get(priority, 0)
-
             # Add due date proximity bonus (closer = higher score)
             if due_date:
-                try:
-                    due_dt = datetime.strptime(due_date, DATE_ONLY)
-                    today_dt = datetime.strptime(today, DATE_ONLY)
+                # Persisted internal state: tasks store due_date as DATE_ONLY (YYYY-MM-DD).
+                # Use strict parsing so invalid values are safely ignored.
+                due_dt = parse_date_only(due_date)
+                today_dt = parse_date_only(today)
+                if due_dt and today_dt:
                     days_until_due = (due_dt - today_dt).days
                     if days_until_due <= 0:  # Due today or overdue
                         score += 50
@@ -1198,8 +1197,6 @@ class TaskManagementHandler(InteractionHandler):
                         score += 30
                     elif days_until_due <= 3:  # Due this week
                         score += 10
-                except ValueError:
-                    pass  # Invalid date format, ignore
 
             if score > highest_score:
                 highest_score = score

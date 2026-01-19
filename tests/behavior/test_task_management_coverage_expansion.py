@@ -23,7 +23,7 @@ from pathlib import Path
 
 # Import task management functions
 from core.user_data_handlers import get_user_data
-from core.time_utilities import DATE_ONLY
+from core.time_utilities import DATE_ONLY, format_timestamp
 from tasks.task_management import (
     ensure_task_directory,
     load_active_tasks,
@@ -914,9 +914,9 @@ class TestTaskManagementCoverageExpansion:
     def test_get_tasks_due_soon_real_behavior(self, mock_user_data_dir, user_id):
         """Test getting tasks due within specified days."""
         # Create tasks with different due dates
-        today = datetime.now().date()
-        due_soon = (today + timedelta(days=2)).strftime(DATE_ONLY)
-        due_late = (today + timedelta(days=10)).strftime(DATE_ONLY)
+        base_dt = datetime.now()
+        due_soon = format_timestamp(base_dt + timedelta(days=2), DATE_ONLY)
+        due_late = format_timestamp(base_dt + timedelta(days=10), DATE_ONLY)
 
         id_soon = create_task(user_id, "Soon Task", due_date=due_soon)
         id_late = create_task(user_id, "Late Task", due_date=due_late)
@@ -954,11 +954,14 @@ class TestTaskManagementCoverageExpansion:
     ):
         """Test get_tasks_due_soon with tasks exactly at cutoff_date."""
         # Create tasks with different due dates
-        today = datetime.now().date()
-        exactly_cutoff = (today + timedelta(days=7)).strftime(
-            DATE_ONLY
+        # Use format_timestamp(...) to avoid inline strftime outside core.time_utilities
+        now = datetime.now()
+        exactly_cutoff = format_timestamp(
+            now + timedelta(days=7), DATE_ONLY
         )  # Exactly 7 days ahead
-        just_over = (today + timedelta(days=8)).strftime(DATE_ONLY)  # Just over 7 days
+        just_over = format_timestamp(
+            now + timedelta(days=8), DATE_ONLY
+        )  # Just over 7 days
 
         id_exact = create_task(user_id, "Exact Cutoff Task", due_date=exactly_cutoff)
         id_over = create_task(user_id, "Over Cutoff Task", due_date=just_over)
@@ -975,12 +978,12 @@ class TestTaskManagementCoverageExpansion:
         self, mock_user_data_dir, user_id
     ):
         """Test that get_tasks_due_soon returns tasks sorted by due_date."""
-        today = datetime.now().date()
+        base_dt = datetime.now()
         dates = [
-            (today + timedelta(days=5)).strftime(DATE_ONLY),
-            (today + timedelta(days=2)).strftime(DATE_ONLY),
-            (today + timedelta(days=7)).strftime(DATE_ONLY),
-            (today + timedelta(days=1)).strftime(DATE_ONLY),
+            format_timestamp(base_dt + timedelta(days=5), DATE_ONLY),
+            format_timestamp(base_dt + timedelta(days=2), DATE_ONLY),
+            format_timestamp(base_dt + timedelta(days=7), DATE_ONLY),
+            format_timestamp(base_dt + timedelta(days=1), DATE_ONLY),
         ]
 
         # Create tasks with different due dates

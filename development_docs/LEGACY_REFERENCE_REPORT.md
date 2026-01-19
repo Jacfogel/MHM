@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-18 01:50:31
+> **Last Generated**: 2026-01-19 05:47:30
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 36
-**Legacy Compatibility Markers Detected**: 73
+**Total Files with Issues**: 38
+**Legacy Compatibility Markers Detected**: 86
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
-- Legacy compatibility markers remain in 1 file(s) (2 total markers).
+- Legacy compatibility markers remain in 2 file(s) (3 total markers).
 
 ## Recommended Follow-Up
 1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.
@@ -19,7 +19,7 @@
 ## Deprecated Functions
 **Files Affected**: 1
 
-### tests\data\tmpneut7le6\demo_project\legacy_code.py
+### tests\data\tmpt0l34t9s\demo_project\legacy_code.py
 **Issues Found**: 2
 
 - **Line 27**: `LegacyChannelWrapper`
@@ -35,7 +35,7 @@
 ## Historical References
 **Files Affected**: 1
 
-### tests\data\tmpneut7le6\demo_project\legacy_code.py
+### tests\data\tmpt0l34t9s\demo_project\legacy_code.py
 **Issues Found**: 1
 
 - **Line 23**: `bot/communication`
@@ -44,9 +44,17 @@
   ```
 
 ## Legacy Compatibility Markers
-**Files Affected**: 1
+**Files Affected**: 2
 
-### tests\data\tmpneut7le6\demo_project\legacy_code.py
+### core\message_management.py
+**Issues Found**: 1
+
+- **Line 675**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY:
+  ```
+
+### tests\data\tmpt0l34t9s\demo_project\legacy_code.py
 **Issues Found**: 2
 
 - **Line 9**: `# LEGACY COMPATIBILITY:`
@@ -108,17 +116,22 @@
   ```
 
 ### core\message_management.py
-**Issues Found**: 1
+**Issues Found**: 2
 
-- **Line 663**: `backward compatibility`
+- **Line 664**: `backward compatibility`
   ```
   Handles multiple timestamp formats for backward compatibility.
+  ```
+
+- **Line 677**: `backward compatibility`
+  ```
+  # This function preserves backward compatibility for persisted message timestamps.
   ```
 
 ### core\scheduler.py
 **Issues Found**: 1
 
-- **Line 1644**: `backward compatibility`
+- **Line 1664**: `backward compatibility`
   ```
   Legacy function for backward compatibility.
   ```
@@ -147,22 +160,22 @@
 ### core\user_data_validation.py
 **Issues Found**: 4
 
-- **Line 330**: `backward compatibility`
+- **Line 335**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
   ```
 
-- **Line 334**: `backward compatibility`
+- **Line 339**: `backward compatibility`
   ```
   # This maintains backward compatibility with the old validation approach
   ```
 
-- **Line 376**: `backward compatibility`
+- **Line 381**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
   ```
 
-- **Line 434**: `backward compatibility`
+- **Line 440**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
   ```
@@ -380,12 +393,12 @@
 ### tests\conftest.py
 **Issues Found**: 1
 
-- **Line 1677**: `backward compatibility`
+- **Line 1684**: `backward compatibility`
   ```
   This function is kept for backward compatibility but does nothing.
   ```
 
-### tests\data\tmpneut7le6\demo_project\legacy_code.py
+### tests\data\tmpt0l34t9s\demo_project\legacy_code.py
 **Issues Found**: 1
 
 - **Line 9**: `backward compatibility`
@@ -495,10 +508,77 @@
   # Extract data and update using new functions directly - no legacy extraction needed
   ```
 
+## Legacy Timestamp Parsing
+**Files Affected**: 3
+
+### core\message_management.py
+**Issues Found**: 7
+
+- **Line 456**: `_parse_timestamp(`
+  ```
+  if _parse_timestamp(msg.get("timestamp", "")) >= cutoff_date
+  ```
+
+- **Line 461**: `_parse_timestamp(`
+  ```
+  key=lambda msg: _parse_timestamp(msg.get("timestamp", "")), reverse=True
+  ```
+
+- **Line 530**: `_parse_timestamp(`
+  ```
+  new_timestamp = _parse_timestamp(new_message["timestamp"])
+  ```
+
+- **Line 533**: `_parse_timestamp(`
+  ```
+  existing_timestamp = _parse_timestamp(existing_msg.get("timestamp", ""))
+  ```
+
+- **Line 596**: `_parse_timestamp(`
+  ```
+  message_timestamp = _parse_timestamp(message.get("timestamp", ""))
+  ```
+
+- **Line 660**: `_parse_timestamp(`
+  ```
+  def _parse_timestamp(timestamp_str: str) -> datetime:
+  ```
+
+- **Line 696**: `LEGACY COMPATIBILITY: Parsed non-{TIMESTAMP_FULL} message timestamp`
+  ```
+  f"LEGACY COMPATIBILITY: Parsed non-{TIMESTAMP_FULL} message timestamp: {timestamp_str!r}"
+  ```
+
+### development_tools\shared\output_storage.py
+**Issues Found**: 3
+
+- **Line 437**: `_parse_timestamp(`
+  ```
+  def _parse_timestamp(result_data: Dict[str, Any], result_file: Path) -> datetime:
+  ```
+
+- **Line 479**: `_parse_timestamp(`
+  ```
+  existing_ts = _parse_timestamp(existing, result_file)
+  ```
+
+- **Line 480**: `_parse_timestamp(`
+  ```
+  candidate_ts = _parse_timestamp(result_data, result_file)
+  ```
+
+### tests\behavior\test_core_message_management_coverage_expansion.py
+**Issues Found**: 1
+
+- **Line 90**: `_parse_timestamp(`
+  ```
+  result = _parse_timestamp(timestamp_str)
+  ```
+
 ## Old Bot Directory
 **Files Affected**: 1
 
-### tests\data\tmpneut7le6\demo_project\legacy_code.py
+### tests\data\tmpt0l34t9s\demo_project\legacy_code.py
 **Issues Found**: 2
 
 - **Line 17**: `from bot.`
@@ -514,7 +594,7 @@
 ## Old Import Paths
 **Files Affected**: 1
 
-### tests\data\tmpneut7le6\demo_project\legacy_code.py
+### tests\data\tmpt0l34t9s\demo_project\legacy_code.py
 **Issues Found**: 1
 
 - **Line 17**: `from bot.communication`

@@ -13,7 +13,7 @@ from core.user_data_handlers import (
     save_user_data,
 )
 from core.config import get_user_file_path
-from core.time_utilities import TIMESTAMP_FULL
+from core.time_utilities import TIMESTAMP_FULL, format_timestamp
 from tests.test_utilities import TestUserFactory
 
 
@@ -66,7 +66,7 @@ class TestQuantitativeAnalyticsExpansion:
         now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": (now - timedelta(days=2)).strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now - timedelta(days=2), TIMESTAMP_FULL),
                 "mood": 4,
                 "energy": 3,
                 "stress_level": 2,
@@ -81,7 +81,7 @@ class TestQuantitativeAnalyticsExpansion:
                 "exercise": "no",
             },
             {
-                "timestamp": (now - timedelta(days=1)).strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
                 "mood": 3,
                 "energy": 4,
                 "stress_level": 3,
@@ -96,7 +96,7 @@ class TestQuantitativeAnalyticsExpansion:
                 "exercise": "yes",
             },
             {
-                "timestamp": now.strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now, TIMESTAMP_FULL),
                 "mood": 5,
                 "energy": 5,
                 "stress_level": 1,
@@ -227,7 +227,7 @@ class TestQuantitativeAnalyticsExpansion:
         now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": (now - timedelta(days=1)).strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
                 "mood": 4,
                 "energy": 3,  # Should be ignored
                 "stress_level": 2,
@@ -309,13 +309,13 @@ class TestQuantitativeAnalyticsExpansion:
         now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": (now - timedelta(days=1)).strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
                 "mood": 4,
                 "energy": 3,
                 # Missing: stress_level, sleep_quality, anxiety_level, focus_level, sleep_schedule
             },
             {
-                "timestamp": now.strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now, TIMESTAMP_FULL),
                 "mood": 3,
                 "stress_level": 2,
                 "sleep_quality": 4,
@@ -417,11 +417,11 @@ class TestQuantitativeAnalyticsExpansion:
         now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": (now - timedelta(days=2)).strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now - timedelta(days=2), TIMESTAMP_FULL),
                 "responses": {"mood": "4", "energy": "3", "stress_level": "2"},
             },
             {
-                "timestamp": (now - timedelta(days=1)).strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
                 "responses": {"mood": "3", "energy": "4", "stress_level": "3"},
             },
         ]
@@ -513,17 +513,17 @@ class TestQuantitativeAnalyticsExpansion:
         now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": (now - timedelta(days=2)).strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now - timedelta(days=2), TIMESTAMP_FULL),
                 "mood": "invalid",  # Invalid value
                 "energy": 3,
             },
             {
-                "timestamp": (now - timedelta(days=1)).strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
                 "mood": 4,
                 "energy": "not_a_number",  # Invalid value
             },
             {
-                "timestamp": now.strftime(TIMESTAMP_FULL),
+                "timestamp": format_timestamp(now, TIMESTAMP_FULL),
                 "mood": 5,
                 "energy": 4,
             },

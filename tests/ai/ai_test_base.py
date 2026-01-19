@@ -272,6 +272,7 @@ class AITestBase:
                     c
                     for c in recent_checkins
                     if c.get("timestamp", "").startswith(
+                        # Test metadata only; ISO-8601 shape is required for external tooling and is not consumed by production code.
                         datetime.now().strftime(DATE_ONLY)
                     )
                 ]

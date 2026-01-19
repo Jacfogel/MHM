@@ -8,12 +8,11 @@ understand their patterns and progress over time.
 """
 
 import statistics
-from datetime import datetime
 from typing import Dict, List, Optional
 from core.logger import get_component_logger
 from core.response_tracking import get_checkins_by_days
 from core.error_handling import handle_errors
-from core.time_utilities import TIMESTAMP_FULL, TIME_ONLY_MINUTE
+from core.time_utilities import parse_timestamp_full, parse_time_only_minute
 
 logger = get_component_logger("user_activity")
 analytics_logger = get_component_logger("user_activity")
@@ -41,7 +40,11 @@ class CheckinAnalytics:
         for checkin in checkins:
             if "mood" in checkin and "timestamp" in checkin:
                 try:
-                    timestamp = datetime.strptime(checkin["timestamp"], TIMESTAMP_FULL)
+                    timestamp = parse_timestamp_full(checkin["timestamp"])
+
+                    if timestamp is None:
+
+                        raise ValueError("Invalid timestamp")
                     mood_data.append(
                         {
                             "date": timestamp.date(),
@@ -115,7 +118,11 @@ class CheckinAnalytics:
         for checkin in checkins:
             if "energy" in checkin and "timestamp" in checkin:
                 try:
-                    timestamp = datetime.strptime(checkin["timestamp"], TIMESTAMP_FULL)
+                    timestamp = parse_timestamp_full(checkin["timestamp"])
+
+                    if timestamp is None:
+
+                        raise ValueError("Invalid timestamp")
                     energy_data.append(
                         {
                             "date": timestamp.date(),
@@ -232,7 +239,11 @@ class CheckinAnalytics:
             has_sleep_data = "sleep_quality" in checkin or "sleep_schedule" in checkin
             if has_sleep_data:
                 try:
-                    timestamp = datetime.strptime(checkin["timestamp"], TIMESTAMP_FULL)
+                    timestamp = parse_timestamp_full(checkin["timestamp"])
+
+                    if timestamp is None:
+
+                        raise ValueError("Invalid timestamp")
                     sleep_entry = {
                         "date": timestamp.date(),
                         "timestamp": checkin["timestamp"],
@@ -370,7 +381,11 @@ class CheckinAnalytics:
         for checkin in checkins:
             if "timestamp" in checkin:
                 try:
-                    timestamp = datetime.strptime(checkin["timestamp"], TIMESTAMP_FULL)
+                    timestamp = parse_timestamp_full(checkin["timestamp"])
+
+                    if timestamp is None:
+
+                        raise ValueError("Invalid timestamp")
 
                     formatted_checkin = {
                         # ISO date should come from the date object
@@ -953,11 +968,13 @@ class CheckinAnalytics:
     ) -> float | None:
         """Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format)."""
         try:
-            from datetime import datetime, timedelta
+            from datetime import timedelta
 
             # Parse times
-            sleep_dt = datetime.strptime(sleep_time, TIME_ONLY_MINUTE)
-            wake_dt = datetime.strptime(wake_time, TIME_ONLY_MINUTE)
+            sleep_dt = parse_time_only_minute(sleep_time)
+            wake_dt = parse_time_only_minute(wake_time)
+            if sleep_dt is None or wake_dt is None:
+                return None
 
             # Calculate duration (handle overnight sleep)
             if wake_dt < sleep_dt:

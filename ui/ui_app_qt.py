@@ -28,7 +28,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFont
 
-from core.time_utilities import TIMESTAMP_FULL
+from core.time_utilities import (
+    TIMESTAMP_FULL,
+    now_timestamp_full,
+    parse_timestamp_full,
+)
 
 # Set up logging
 from core.logger import setup_logging, get_component_logger
@@ -622,10 +626,11 @@ class MHMManagerUI(QMainWindow):
                             )
                             if timestamp_match and last_init_time is None:
                                 try:
-                                    last_init_time = datetime.strptime(
-                                        timestamp_match.group(1),
-                                        TIMESTAMP_FULL,
+                                    last_init_time = parse_timestamp_full(
+                                        timestamp_match.group(1)
                                     )
+                                    if last_init_time is None:
+                                        raise ValueError
                                 except ValueError:
                                     pass
 
@@ -636,10 +641,11 @@ class MHMManagerUI(QMainWindow):
                             )
                             if timestamp_match and last_shutdown_time is None:
                                 try:
-                                    last_shutdown_time = datetime.strptime(
-                                        timestamp_match.group(1),
-                                        TIMESTAMP_FULL,
+                                    last_shutdown_time = parse_timestamp_full(
+                                        timestamp_match.group(1)
                                     )
+                                    if last_shutdown_time is None:
+                                        raise ValueError
                                 except ValueError:
                                     pass
 
@@ -650,10 +656,11 @@ class MHMManagerUI(QMainWindow):
                             )
                             if timestamp_match and last_activity_time is None:
                                 try:
-                                    last_activity_time = datetime.strptime(
-                                        timestamp_match.group(1),
-                                        TIMESTAMP_FULL,
+                                    last_activity_time = parse_timestamp_full(
+                                        timestamp_match.group(1)
                                     )
+                                    if last_activity_time is None:
+                                        raise ValueError
                                 except ValueError:
                                     pass
 
@@ -697,10 +704,11 @@ class MHMManagerUI(QMainWindow):
                                 )
                                 if timestamp_match:
                                     try:
-                                        init_time = datetime.strptime(
-                                            timestamp_match.group(1),
-                                            TIMESTAMP_FULL,
+                                        init_time = parse_timestamp_full(
+                                            timestamp_match.group(1)
                                         )
+                                        if init_time is None:
+                                            raise ValueError
                                         if init_time > last_shutdown_time:
                                             # Check if this restart is recent
                                             time_since_restart = (
@@ -790,10 +798,11 @@ class MHMManagerUI(QMainWindow):
                             )
                             if timestamp_match and last_init_time is None:
                                 try:
-                                    last_init_time = datetime.strptime(
-                                        timestamp_match.group(1),
-                                        TIMESTAMP_FULL,
+                                    last_init_time = parse_timestamp_full(
+                                        timestamp_match.group(1)
                                     )
+                                    if last_init_time is None:
+                                        raise ValueError
                                 except ValueError:
                                     pass
 
@@ -804,10 +813,11 @@ class MHMManagerUI(QMainWindow):
                             )
                             if timestamp_match and last_shutdown_time is None:
                                 try:
-                                    last_shutdown_time = datetime.strptime(
-                                        timestamp_match.group(1),
-                                        TIMESTAMP_FULL,
+                                    last_shutdown_time = parse_timestamp_full(
+                                        timestamp_match.group(1)
                                     )
+                                    if last_shutdown_time is None:
+                                        raise ValueError
                                 except ValueError:
                                     pass
 
@@ -839,10 +849,11 @@ class MHMManagerUI(QMainWindow):
                                 )
                                 if timestamp_match:
                                     try:
-                                        init_time = datetime.strptime(
-                                            timestamp_match.group(1),
-                                            TIMESTAMP_FULL,
+                                        init_time = parse_timestamp_full(
+                                            timestamp_match.group(1)
                                         )
+                                        if init_time is None:
+                                            raise ValueError
                                         if init_time > last_shutdown_time:
                                             # Check if this restart is recent
                                             time_since_restart = (
@@ -1894,7 +1905,7 @@ class MHMManagerUI(QMainWindow):
         test_request = {
             "user_id": self.current_user,
             "category": category,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": now_timestamp_full(),
             "source": "admin_panel",
         }
 
@@ -2045,7 +2056,7 @@ class MHMManagerUI(QMainWindow):
 
         checkin_request = {
             "user_id": self.current_user,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": now_timestamp_full(),
             "source": "admin_panel",
         }
 
@@ -2209,7 +2220,7 @@ class MHMManagerUI(QMainWindow):
             task_reminder_request = {
                 "user_id": self.current_user,
                 "task_id": task_id,
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": now_timestamp_full(),
                 "source": "admin_panel",
             }
 
