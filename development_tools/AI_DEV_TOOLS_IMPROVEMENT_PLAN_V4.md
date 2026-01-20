@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-01-13
+> **Last Updated**: 2026-01-20
 
 This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -243,6 +243,12 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 ### 5. Future Enhancements (LOW)
 
 #### 5.0 Explore adding a possible duplicate function/method analysis
+**Status**: COMPLETED  
+**Tasks**:
+- [x] Add `functions/analyze_duplicate_functions.py` with similarity scoring (name/args/locals/imports)
+- [x] Add config defaults + external overrides (`analyze_duplicate_functions`)
+- [x] Register tool in metadata, CLI, and audit Tier 2
+- [x] Document in AI + human development tools guides
 
 #### 5.1 Unused imports cleanup module
 **Status**: PENDING  

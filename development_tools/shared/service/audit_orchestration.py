@@ -101,6 +101,10 @@ def _is_audit_in_progress(project_root: Path) -> bool:
 
 class AuditOrchestrationMixin:
     """Mixin class providing audit orchestration methods to AIToolsService."""
+
+    def run_analyze_duplicate_functions(self, *args, **kwargs):
+        """Stub for mixin typing; implemented in ToolWrappersMixin."""
+        raise NotImplementedError
     
     def _get_audit_lock_file_path(self) -> Path:
         """Get audit lock file path (configurable via config, defaults to .audit_in_progress.lock relative to project root)."""
@@ -526,6 +530,7 @@ class AuditOrchestrationMixin:
             ('analyze_functions', self.run_analyze_functions),  # 3.41s
             ('analyze_error_handling', self.run_analyze_error_handling),  # 3.06s
             ('analyze_package_exports', self.run_analyze_package_exports),  # 9.06s
+            ('analyze_duplicate_functions', self.run_analyze_duplicate_functions),  # 6.50s
         ]
         
         # Dependent groups (>2s but ≤10s)

@@ -6,7 +6,8 @@ from datetime import datetime
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.time_utilities import now_timestamp_filename
+from core.time_utilities import now_timestamp_filename, now_datetime_full
+
 
 # Route conversation history logs to AI component
 history_logger = get_component_logger("ai_conversation")
@@ -89,7 +90,7 @@ class ConversationHistory:
             session = ConversationSession(
                 session_id=session_id,
                 user_id=user_id,
-                start_time=datetime.now(),
+                start_time=now_datetime_full(),
             )
 
             # Store session
@@ -123,7 +124,7 @@ class ConversationHistory:
         try:
             if user_id in self._active_sessions:
                 session = self._active_sessions[user_id]
-                session.end_time = datetime.now()
+                session.end_time = now_datetime_full()
                 del self._active_sessions[user_id]
 
                 logger.debug(
@@ -164,7 +165,7 @@ class ConversationHistory:
             message = ConversationMessage(
                 role=role,
                 content=content,
-                timestamp=datetime.now(),
+                timestamp=now_datetime_full(),
                 metadata=metadata or {},
             )
 
@@ -222,6 +223,9 @@ class ConversationHistory:
                     msg_dict = {
                         "role": message.role,
                         "content": message.content,
+                        # NOTE: This uses ISO-8601 via datetime.isoformat().
+                        # This does not map cleanly to core/time_utilities.py without adding an ISO format/parser.
+                        # Leave as-is for now; requires an explicit project decision to standardize.
                         "timestamp": message.timestamp.isoformat(),
                         "session_id": session.session_id,
                     }
@@ -391,6 +395,9 @@ class ConversationHistory:
                         ConversationMessage(
                             role=msg_data["role"],
                             content=msg_data["content"],
+                            # NOTE: This parses ISO-8601 produced by datetime.isoformat() above.
+                            # core/time_utilities.py intentionally does not (yet) include an ISO parser variant.
+                            # Leave as-is for now; requires an explicit project decision to standardize.
                             timestamp=datetime.fromisoformat(msg_data["timestamp"]),
                         )
                     )

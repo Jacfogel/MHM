@@ -21,7 +21,7 @@ from core.ui_management import (
 )
 from core.error_handling import handle_errors
 from core.user_data_validation import _shared__title_case, validate_schedule_periods
-from core.time_utilities import now_timestamp_filename
+from core.time_utilities import now_timestamp_filename, now_timestamp_full
 
 # Import our new period row widget
 from ui.widgets.period_row_widget import PeriodRowWidget
@@ -378,13 +378,12 @@ class ScheduleEditorDialog(QDialog):
         try:
             import json
             import os
-            from datetime import datetime
 
             # Create a reschedule request file that the service will pick up
             request_data = {
                 "user_id": self.user_id,
                 "category": self.category,
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": now_timestamp_full(),
                 "source": "schedule_editor",
             }
 

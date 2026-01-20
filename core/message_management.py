@@ -449,6 +449,10 @@ def get_recent_messages(
 
         # Filter by days_back if specified
         if days_back:
+            # NOTE: This is timezone-aware UTC state used for retention filtering.
+            # core.time_utilities currently provides local-naive "now" helpers only,
+            # so this usage does not map cleanly without adding new helpers.
+            # Keep as-is for correctness.
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
             filtered_messages = [
                 msg
@@ -586,6 +590,10 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
             return True
 
         # Calculate cutoff date
+        # NOTE: This is timezone-aware UTC state used for retention filtering.
+        # core.time_utilities currently provides local-naive "now" helpers only,
+        # so this usage does not map cleanly without adding new helpers.
+        # Keep as-is for correctness.
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_to_keep)
 
         messages = data["messages"]

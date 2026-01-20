@@ -14,6 +14,7 @@ from core.error_handling import handle_errors
 from core.config import get_user_data_dir
 from core.user_data_handlers import get_user_data
 from core.time_utilities import (
+    now_datetime_full,
     now_timestamp_full,
     DATE_ONLY,
     parse_date_only,
@@ -650,7 +651,7 @@ def get_tasks_due_soon(user_id: str, days_ahead: int = 7) -> list[dict[str, Any]
         active_tasks = load_active_tasks(user_id)
         due_soon = []
 
-        cutoff_date = datetime.now() + timedelta(days=days_ahead)
+        cutoff_date = now_datetime_full() + timedelta(days=days_ahead)
 
         for task in active_tasks:
             if task.get("due_date"):

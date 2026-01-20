@@ -146,6 +146,28 @@ TOOL_GUIDE = {
             "Provides improvement suggestions",
         ],
     },
+    "analyze_duplicate_functions.py": {
+        "purpose": "Detect possible duplicate or highly similar functions/methods",
+        "when_to_use": [
+            "Investigating code bloat or repeated patterns",
+            "Before refactoring to consolidate utilities",
+            "Auditing for redundant handlers or helpers",
+            "Checking modularity regressions",
+            "Planning deduplication tasks",
+        ],
+        "output_interpretation": {
+            "duplicate_groups": "Clusters of similar functions grouped by similarity score",
+            "top_pairs": "Highest-scoring potential duplicates",
+            "similarity_scores": "Weighted similarity across name, args, locals, imports",
+            "skipped_token_groups": "Common tokens skipped to reduce noise",
+        },
+        "success_criteria": [
+            "Reports groups with actionable similarity scores",
+            "Lists example pairs with file/line details",
+            "Captures files affected for follow-up",
+            "Filters out noisy token groups",
+        ],
+    },
     "analyze_module_dependencies.py": {
         "purpose": "Analyze module dependencies and import relationships",
         "when_to_use": [

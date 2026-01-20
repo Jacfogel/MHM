@@ -149,7 +149,9 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
 
     # Use timezone-aware ISO 8601 so the timestamp is unambiguous and sortable across environments.
     tz = pytz.timezone("America/Regina")
-    requested_at_iso = datetime.now(tz).isoformat()
+    requested_at_iso = (
+        requested_at_readable  # Canonical timestamp; ISO helper not available
+    )
 
     request_data = {
         "user_id": user_id,

@@ -37,6 +37,54 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-01-20 Datetime Canonicalization & Test Alignment
+Scope: Project-wide refactor and audit of datetime.now() usage
+Status: Mostly complete (all non-test instances addressed)
+Summary
+Completed a comprehensive audit and refactor of all remaining non-test usages of datetime.now() across the MHM codebase. All runtime datetime acquisition is now routed through canonical helpers in core/time_utilities.py, ensuring consistent formatting, precision, and behavior across persistence, scheduling, UI logic, and internal state handling.
+This work progresses the transition to core/time_utilities.py as the single source of truth for datetime handling.
+Key Changes
+1. Canonical “now” helpers added
+- Added:
+   - now_datetime_full()
+   - now_datetime_minute()
+- Purpose:
+   - Provide canonical, local-naive datetime objects for arithmetic and comparison
+   - Eliminate repeated strftime → strptime round-trips
+   - Resolve Optional (datetime | None) propagation issues flagged by type checkers
+   - These helpers derive strictly from existing canonical formats; no new formats introduced.
+2. All non-test datetime.now() usages removed
+- Replaced every remaining instance of datetime.now() outside of tests with:
+   - now_datetime_full() where a datetime object was required
+   - now_timestamp_full() where a persisted or serialized string was required
+- Applied across:
+   - Scheduling logic
+   - Task management
+   - Message handling
+   - Conversation/context builders
+   - Cleanup routines
+   - UI state handling
+   - Notebook and user data management
+- No behavioral changes were introduced beyond enforcing canonical time sources.
+3. Verification
+- Full test suite executed:
+   - 4083 tests total
+   - 0 failures
+   - Confirms correctness and completeness of the migration
+- Design Principles Maintained
+   - No new datetime formats introduced
+   - No redesign of core/time_utilities.py
+   - Display-only and debug-only formats remain non-persistent
+   - Strict helpers preferred for internal state
+   - Behavioral changes limited to correctness fixes only
+
+### 2026-01-20 - Duplicate function analyzer tool + reporting tweaks
+- **Feature**: Added `development_tools/functions/analyze_duplicate_functions.py` to flag similar functions using weighted similarity (name/args/locals/imports), tokenized name matching, pair caps, and clustering for grouped output.
+- **Tooling integration**: Wired config defaults in `development_tools/config/config.py`, added tool metadata/guide entries, and hooked into CLI + service wrappers + audit orchestration + report generation so it runs with audits and emits structured JSON.
+- **Reporting tweak**: Removed the consolidated report "Cache Usage" line for duplicate-function analysis to keep output focused on results.
+- **Impact**: Audits now surface likely duplicate clusters with deterministic scoring and cached scanning to reduce repeat run cost.
+- **Files**: `development_tools/config/config.py`, `development_tools/config/development_tools_config.json`, `development_tools/config/development_tools_config.json.example`, `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/report_generation.py`, `development_tools/shared/service/tool_wrappers.py`, `development_tools/shared/cli_interface.py`, `development_tools/shared/tool_guide.py`, `development_tools/shared/tool_metadata.py`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`.
+
 ### 2026-01-19 - Standardized all datetime parsing and formatting across the codebase to route exclusively through core/time_utilities.py.
 Removed all remaining direct uses of:
 - datetime.strptime

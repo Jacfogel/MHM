@@ -1214,7 +1214,7 @@ class TestCheckinSchedulingCoverage:
             patch("core.scheduler.get_schedule_time_periods") as mock_get_periods,
             patch("core.scheduler.schedule.every") as mock_schedule,
             patch.object(scheduler_manager, "set_wake_timer") as mock_wake_timer,
-            patch("core.scheduler.datetime") as mock_datetime,
+            patch("core.scheduler.now_datetime_full") as mock_now_dt,
         ):
 
             # Mock time periods
@@ -1222,13 +1222,9 @@ class TestCheckinSchedulingCoverage:
                 period_name: {"start_time": "08:00", "active": True}
             }
 
-            # Mock current time
-            mock_now = datetime(2025, 9, 10, 10, 0, 0)  # 10 AM
-            mock_datetime.now.return_value = mock_now
-            mock_datetime.combine.return_value = datetime(2025, 9, 10, 8, 0, 0)  # 8 AM
-            mock_datetime.min.time.return_value.replace.return_value = (
-                datetime.min.time()
-            )
+            # Mock current time via canonical helper (scheduler uses now_datetime_full)
+            mock_now = datetime(2025, 9, 10, 10, 0, 0)  # 10 AM (local-naive)
+            mock_now_dt.return_value = mock_now
 
             # Mock schedule chain
             mock_schedule.return_value.day.at.return_value.do.return_value = None

@@ -9,7 +9,11 @@ from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
 from core.file_operations import load_json_data, save_json_data, get_user_file_path
 from core.error_handling import handle_errors
-from core.time_utilities import now_timestamp_full, TIMESTAMP_FULL
+from core.time_utilities import (
+    now_timestamp_full,
+    now_datetime_full,
+    parse_timestamp_full,
+)
 
 
 logger = get_component_logger("user_activity")
@@ -98,8 +102,6 @@ def get_recent_responses(user_id: str, response_type: str = "checkin", limit: in
             timestamp = item.get("timestamp", "1970-01-01 00:00:00")
 
             # Canonical strict parse for stored timestamps
-            from core.time_utilities import parse_timestamp_full
-
             dt = parse_timestamp_full(timestamp)
             if dt is None:
                 # If parsing fails, use 0
@@ -132,15 +134,13 @@ def get_checkins_by_days(user_id: str, days: int = 7):
         return []
 
     # Calculate cutoff date (local-naive, consistent with now_timestamp_full() storage)
-    cutoff_date = datetime.now() - timedelta(days=days)
+    cutoff_date = now_datetime_full() - timedelta(days=days)
 
     # Filter check-ins by date
     recent_checkins = []
     for checkin in all_checkins:
         if "timestamp" in checkin:
             # Canonical strict parse for stored timestamps
-            from core.time_utilities import parse_timestamp_full
-
             checkin_date = parse_timestamp_full(checkin.get("timestamp", ""))
             if checkin_date is None:
                 continue

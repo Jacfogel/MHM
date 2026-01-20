@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-19 05:41:43
+> **Last Generated**: 2026-01-20 03:43:52
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports Found**: 1467
+- **Total Imports Found**: 1468
 - **Dependencies Documented**: 108 (100% coverage)
-- **Standard Library Imports**: 405 (27.6%)
+- **Standard Library Imports**: 400 (27.2%)
 - **Third-Party Imports**: 230 (15.7%)
-- **Local Imports**: 832 (56.7%)
-- **Last Updated**: 2026-01-19
+- **Local Imports**: 838 (57.1%)
+- **Last Updated**: 2026-01-20
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 405 imports (27.6%)
+- **Standard Library**: 400 imports (27.2%)
 - **Third-Party**: 230 imports (15.7%)
-- **Local**: 832 imports (56.7%)
+- **Local**: 838 imports (57.1%)
 
 ## Module Dependencies by Directory
 
@@ -126,6 +126,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (get_recent_responses)` (NEW)
+    - `core.time_utilities (now_datetime_full)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
     - `user.context_manager (user_context_manager)` (NEW)
   - **Standard Library**:
@@ -135,7 +136,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.response_tracking, core.user_data_handlers, user.context_manager
+- Added: core.error_handling, core.logger, core.response_tracking, core.time_utilities, core.user_data_handlers, user.context_manager
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -147,7 +148,7 @@
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.time_utilities (now_timestamp_filename)` (NEW)
+    - `core.time_utilities (now_datetime_full, now_timestamp_filename)` (NEW)
   - **Standard Library**:
     - `dataclasses (dataclass)`
     - `datetime`
@@ -512,7 +513,7 @@
     - `core.checkin_analytics (CheckinAnalytics)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.time_utilities (DATE_ONLY, format_timestamp, parse_date_only)` (NEW)
+    - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, parse_date_only)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
     - `tasks.task_management (complete_task, create_task, delete_task, get_tasks_due_soon, get_user_task_stats, load_active_tasks, update_task)` (NEW)
   - **Standard Library**:
@@ -914,6 +915,7 @@
     - `communication.communication_channels.base.base_channel (BaseChannel)`
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.time_utilities (now_datetime_full)` (NEW)
   - **Standard Library**:
     - `datetime`
     - `threading`
@@ -923,7 +925,7 @@
   - `communication/core/channel_orchestrator.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger
+- Added: core.error_handling, core.logger, core.time_utilities
 - Removed: communication/core/channel_orchestrator.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1004,6 +1006,7 @@
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.time_utilities (now_datetime_full)` (NEW)
   - **Standard Library**:
     - `dataclasses (dataclass)`
     - `datetime`
@@ -1014,7 +1017,7 @@
   - `communication/core/channel_orchestrator.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger
+- Added: core.error_handling, core.logger, core.time_utilities
 - Removed: communication/core/channel_orchestrator.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1102,7 +1105,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (get_recent_checkins, is_user_checkins_enabled, store_user_response)` (NEW)
     - `core.tags (parse_tags_from_text)` (NEW)
-    - `core.time_utilities (DATE_ONLY, TIME_ONLY_MINUTE, format_timestamp, now_timestamp_full, parse_date_and_time_minute, parse_date_only, parse_time_only_minute, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (DATE_ONLY, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, now_timestamp_full, parse_date_and_time_minute, parse_date_only, parse_time_only_minute, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
     - `tasks.task_management (get_task_by_id, update_task)` (NEW)
   - **Standard Library**:
@@ -1145,7 +1148,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (get_recent_checkins, is_user_checkins_enabled)` (NEW)
-    - `core.time_utilities (DATE_DISPLAY_MONTH_DAY, format_timestamp, parse_date_and_time_minute, parse_date_only, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (DATE_DISPLAY_MONTH_DAY, format_timestamp, now_datetime_full, parse_date_and_time_minute, parse_date_only, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_categories)` (NEW)
     - `tasks.task_management (load_active_tasks)` (NEW)
   - **Standard Library**:
@@ -1231,7 +1234,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
     - `core.message_management (archive_old_messages)` (NEW)
-    - `core.time_utilities (DATE_ONLY, format_timestamp, now_timestamp_full)` (NEW)
+    - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, now_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_all_user_ids)` (NEW)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
@@ -1393,7 +1396,7 @@
   - **Local**:
     - `core.logger (get_component_logger)` (NEW)
     - `core.service_utilities (wait_for_network)` (NEW)
-    - `core.time_utilities (now_timestamp_filename)` (NEW)
+    - `core.time_utilities (now_datetime_full, now_timestamp_filename, now_timestamp_full, parse_timestamp_full)` (NEW)
   - **Standard Library**:
     - `asyncio`
     - `datetime`
@@ -1812,7 +1815,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.file_operations (get_user_file_path, load_json_data, save_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.time_utilities (TIMESTAMP_FULL, now_timestamp_full, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
@@ -1846,7 +1849,7 @@
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.service_utilities (create_reschedule_request)` (NEW)
-    - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, parse_time_only_minute)` (NEW)
+    - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_time_only_minute)` (NEW)
     - `core.user_data_handlers (get_user_data, update_user_schedules)` (NEW)
     - `user.user_context (UserContext)` (NEW)
   - **Standard Library**:
@@ -1882,7 +1885,7 @@
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.time_utilities (DATE_DISPLAY_WEEKDAY, TIME_ONLY_MINUTE, format_timestamp, parse_time_only_minute)` (NEW)
+    - `core.time_utilities (DATE_DISPLAY_WEEKDAY, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_time_only_minute)` (NEW)
   - **Standard Library**:
     - `datetime`
     - `typing (Dict, List, Optional)`
@@ -1911,7 +1914,7 @@
     - `core.schedule_management (get_schedule_time_periods)` (NEW)
     - `core.scheduler (SchedulerManager)` (NEW)
     - `core.service_utilities (load_and_localize_datetime)` (NEW)
-    - `core.time_utilities (DATE_DISPLAY_WEEKDAY, DATE_ONLY, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIME_ONLY_MINUTE, format_timestamp, now_timestamp_filename, parse_date_only, parse_time_only_minute, parse_timestamp_full, parse_timestamp_minute)` (NEW)
+    - `core.time_utilities (DATE_DISPLAY_WEEKDAY, DATE_ONLY, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, now_timestamp_filename, parse_date_only, parse_time_only_minute, parse_timestamp_full, parse_timestamp_minute)` (NEW)
     - `core.user_data_handlers (get_all_user_ids, get_user_data)` (NEW)
     - `tasks.task_management (are_tasks_enabled, get_task_by_id, load_active_tasks, update_task)` (NEW)
     - `user.user_context (UserContext)` (NEW)
@@ -1986,7 +1989,7 @@
     - `core.schedule_management (get_current_day_names, get_current_time_periods_with_validation)` (NEW)
     - `core.scheduler (SchedulerManager)` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
-    - `core.time_utilities (TIMESTAMP_FULL, now_timestamp_full, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (TIMESTAMP_FULL, now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_all_user_ids, get_user_data)` (NEW)
   - **Standard Library**:
     - `atexit`
@@ -2058,8 +2061,8 @@
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.file_operations (load_json_data, save_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.time_utilities (now_timestamp_full)` (NEW)
   - **Standard Library**:
-    - `datetime`
     - `json`
     - `pathlib (Path)`
     - `re`
@@ -2072,7 +2075,7 @@
   - `tasks/task_management.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.file_operations, core.logger
+- Added: core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities
 - Removed: communication/command_handlers/notebook_handler.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, core/user_data_handlers.py, tasks/task_management.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2088,10 +2091,13 @@
     - `typing (Iterable, Literal)`
 - **Used by**: 
   - `ai/chatbot.py`
+  - `ai/context_builder.py`
   - `ai/conversation_history.py`
   - `communication/command_handlers/checkin_handler.py`
   - `communication/command_handlers/notebook_handler.py`
   - `communication/command_handlers/task_handler.py`
+  - `communication/core/channel_monitor.py`
+  - `communication/core/retry_manager.py`
   - `communication/core/welcome_manager.py`
   - `communication/message_processing/conversation_flow_manager.py`
   - `communication/message_processing/interaction_manager.py`
@@ -2107,17 +2113,21 @@
   - `core/scheduler.py`
   - `core/service.py`
   - `core/service_utilities.py`
+  - `core/tags.py`
   - `core/user_data_handlers.py`
   - `core/user_data_manager.py`
   - `core/user_data_validation.py`
   - `tasks/task_management.py`
+  - `ui/dialogs/message_editor_dialog.py`
   - `ui/dialogs/process_watcher_dialog.py`
   - `ui/dialogs/schedule_editor_dialog.py`
+  - `ui/dialogs/user_profile_dialog.py`
   - `ui/generate_ui_files.py`
   - `ui/ui_app_qt.py`
+  - `user/context_manager.py`
 
 **Dependency Changes**:
-- Removed: ai/chatbot.py, ai/conversation_history.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/welcome_manager.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/error_handling.py, core/file_operations.py, core/message_management.py, core/response_tracking.py, core/schedule_management.py, core/schedule_utilities.py, core/scheduler.py, core/service.py, core/service_utilities.py, core/user_data_handlers.py, core/user_data_manager.py, core/user_data_validation.py, tasks/task_management.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/generate_ui_files.py, ui/ui_app_qt.py
+- Removed: ai/chatbot.py, ai/context_builder.py, ai/conversation_history.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_monitor.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/error_handling.py, core/file_operations.py, core/message_management.py, core/response_tracking.py, core/schedule_management.py, core/schedule_utilities.py, core/scheduler.py, core/service.py, core/service_utilities.py, core/tags.py, core/user_data_handlers.py, core/user_data_manager.py, core/user_data_validation.py, tasks/task_management.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/generate_ui_files.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2358,7 +2368,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.service (get_scheduler_manager)` (NEW)
     - `core.tags (add_user_tag, get_user_tags, remove_user_tag)` (NEW)
-    - `core.time_utilities (DATE_ONLY, format_timestamp, now_timestamp_full, parse_date_only, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, now_timestamp_full, parse_date_only, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
@@ -2624,9 +2634,9 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
     - `core.message_management (add_message, delete_message, edit_message, load_user_messages)` (NEW)
+    - `core.time_utilities (now_timestamp_full)` (NEW)
     - `ui.generated.message_editor_dialog_pyqt (Ui_Dialog_message_editor)` (NEW)
   - **Standard Library**:
-    - `datetime`
     - `uuid`
   - **Third-party**:
     - `PySide6.QtCore (Qt, Signal)`
@@ -2636,7 +2646,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.message_management, ui.generated.message_editor_dialog_pyqt
+- Added: core.error_handling, core.logger, core.message_management, core.time_utilities, ui.generated.message_editor_dialog_pyqt
 - Removed: PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2677,13 +2687,12 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
     - `core.schedule_management (clear_schedule_periods_cache, set_schedule_periods)` (NEW)
-    - `core.time_utilities (now_timestamp_filename)` (NEW)
+    - `core.time_utilities (now_timestamp_filename, now_timestamp_full)` (NEW)
     - `core.ui_management (collect_period_data_from_widgets, load_period_widgets_for_category)` (NEW)
     - `core.user_data_validation (_shared__title_case, validate_schedule_periods)` (NEW)
     - `ui.generated.schedule_editor_dialog_pyqt (Ui_Dialog_edit_schedule)` (NEW)
     - `ui.widgets.period_row_widget (PeriodRowWidget)` (NEW)
   - **Standard Library**:
-    - `datetime`
     - `json`
     - `os`
     - `pathlib (Path)`
@@ -2829,13 +2838,13 @@
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
+    - `core.time_utilities (now_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_predefined_options, update_user_context)` (NEW)
     - `core.user_data_validation (validate_personalization_data)` (NEW)
     - `ui.generated.user_profile_management_dialog_pyqt (Ui_Dialog_user_profile)` (NEW)
     - `ui.widgets.dynamic_list_container (DynamicListContainer)` (NEW)
     - `ui.widgets.user_profile_settings_widget (UserProfileSettingsWidget)` (NEW)
   - **Standard Library**:
-    - `datetime`
     - `re`
     - `typing (Any, Callable, Dict, Optional)`
   - **Third-party**:
@@ -2846,7 +2855,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.user_data_handlers, core.user_data_validation, ui.generated.user_profile_management_dialog_pyqt, ui.widgets.dynamic_list_container, ui.widgets.user_profile_settings_widget
+- Added: core.error_handling, core.logger, core.time_utilities, core.user_data_handlers, core.user_data_validation, ui.generated.user_profile_management_dialog_pyqt, ui.widgets.dynamic_list_container, ui.widgets.user_profile_settings_widget
 - Removed: PySide6.QtCore, PySide6.QtWidgets, ui/dialogs/account_creator_dialog.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2885,7 +2894,7 @@
     - `core.logger (get_component_logger, get_verbose_mode, setup_logging, toggle_verbose_logging)` (NEW)
     - `core.scheduler (SchedulerManager, run_category_scheduler_standalone, run_full_scheduler_standalone, run_user_scheduler_standalone)` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
-    - `core.time_utilities (TIMESTAMP_FULL, now_timestamp_full, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (TIMESTAMP_FULL, now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_all_user_ids, get_user_data, save_user_data, update_user_context)` (NEW)
     - `core.user_data_manager (rebuild_user_index)` (NEW)
     - `core.user_data_validation (_shared__title_case)` (NEW)
@@ -3190,17 +3199,17 @@
     - `core.message_management (get_recent_messages)` (NEW)
     - `core.response_tracking (get_recent_chat_interactions, get_recent_checkins)` (NEW)
     - `core.schedule_utilities (get_active_schedules)` (NEW)
+    - `core.time_utilities (now_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
     - `user.user_context (UserContext)` (NEW)
   - **Standard Library**:
-    - `datetime`
     - `typing (Any, Dict, List)`
 - **Used by**: 
   - `ai/chatbot.py`
   - `ai/context_builder.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.message_management, core.response_tracking, core.schedule_utilities, core.user_data_handlers, user.user_context
+- Added: core.error_handling, core.logger, core.message_management, core.response_tracking, core.schedule_utilities, core.time_utilities, core.user_data_handlers, user.user_context
 - Removed: ai/chatbot.py, ai/context_builder.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

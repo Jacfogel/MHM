@@ -12,7 +12,12 @@ from pydantic import ValidationError
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.tags import normalize_tags
-from core.time_utilities import TIMESTAMP_FULL, now_timestamp_full, parse_timestamp_full
+from core.time_utilities import (
+    TIMESTAMP_FULL,
+    now_timestamp_full,
+    parse_timestamp_full,
+    now_datetime_full,
+)
 from notebook.schemas import Entry, ListItem, EntryKind
 from notebook.notebook_data_handlers import load_entries, save_entries
 from notebook.notebook_validation import (
@@ -609,7 +614,7 @@ def list_pinned(user_id: str, limit: int = 100) -> list[Entry]:
 def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> list[Entry]:
     """Lists inbox entries (untagged, unarchived, recent) - up to limit (pagination handled in handler)."""
     entries = load_entries(user_id)
-    cutoff = datetime.now().timestamp() - (days * 24 * 60 * 60)
+    cutoff = now_datetime_full().timestamp() - (days * 24 * 60 * 60)
 
     inbox = []
     for e in entries:

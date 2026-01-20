@@ -14,6 +14,12 @@ import functools
 from typing import Optional, Dict, Any, Callable, List
 from datetime import datetime
 
+from core.time_utilities import (
+    now_timestamp_full,
+    parse_timestamp_full,
+    now_datetime_full,
+)
+
 # Create a safe fallback logger that doesn't depend on get_component_logger
 # This prevents circular errors when logging fails
 _safe_logger = logging.getLogger("mhm.error_handler")
@@ -56,7 +62,8 @@ class MHMError(Exception):
         self.message = message
         self.details = details or {}
         self.recoverable = recoverable
-        self.timestamp = datetime.now()
+        # Internal in-memory state: use canonical now + strict parse to get a local-naive datetime.
+        self.timestamp = now_datetime_full()
         self.traceback = traceback.format_exc()
 
 
@@ -224,19 +231,19 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
             return {
                 "user_id": context.get("user_id", "unknown"),
                 "preferences": {},
-                "created": datetime.now().isoformat(),
+                "created": now_timestamp_full(),
             }
         elif "messages" in file_path:
             return {
                 "messages": [],
                 "category": context.get("category", "unknown"),
-                "created": datetime.now().isoformat(),
+                "created": now_timestamp_full(),
             }
         elif "schedule" in file_path:
             return {
                 "periods": [],
                 "category": context.get("category", "unknown"),
-                "created": datetime.now().isoformat(),
+                "created": now_timestamp_full(),
             }
         elif "checkins" in file_path or "chat_interactions" in file_path:
             # Log files should be simple arrays
@@ -245,7 +252,7 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
             # Generic JSON file - create basic structure
             return {
                 "data": {},
-                "created": datetime.now().isoformat(),
+                "created": now_timestamp_full(),
                 "file_type": "generic_json",
             }
         return None
@@ -337,19 +344,19 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
             return {
                 "user_id": context.get("user_id", "unknown"),
                 "preferences": {},
-                "created": datetime.now().isoformat(),
+                "created": now_timestamp_full(),
             }
         elif "messages" in file_path:
             return {
                 "messages": [],
                 "category": context.get("category", "unknown"),
-                "created": datetime.now().isoformat(),
+                "created": now_timestamp_full(),
             }
         elif "schedule" in file_path:
             return {
                 "periods": [],
                 "category": context.get("category", "unknown"),
-                "created": datetime.now().isoformat(),
+                "created": now_timestamp_full(),
             }
         elif "checkins" in file_path or "chat_interactions" in file_path:
             # Log files should be simple arrays
@@ -358,7 +365,7 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
             # Generic JSON file - create basic structure
             return {
                 "data": {},
-                "created": datetime.now().isoformat(),
+                "created": now_timestamp_full(),
                 "file_type": "generic_json",
             }
         return None

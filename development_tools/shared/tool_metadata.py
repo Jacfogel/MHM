@@ -258,6 +258,13 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="stable",
         description="AST discovery utility backing several other tools.",
     ),
+    "analyze_duplicate_functions": ToolInfo(
+        name="analyze_duplicate_functions",
+        path="development_tools/functions/analyze_duplicate_functions.py",
+        tier="supporting",
+        trust="partial",
+        description="Flags possible duplicate/similar functions and methods using weighted similarity.",
+    ),
     "analyze_function_patterns": ToolInfo(
         name="analyze_function_patterns",
         path="development_tools/functions/analyze_function_patterns.py",
@@ -411,6 +418,7 @@ COMMAND_GROUPS = OrderedDict(
                 "validate",
                 "decision-support",
                 "unused-imports",
+                "duplicate-functions",
                 "workflow",
                 "trees",
                 "cleanup",

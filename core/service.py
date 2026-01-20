@@ -32,7 +32,12 @@ from communication.core.channel_orchestrator import CommunicationManager
 from core.config import LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir
 from core.scheduler import SchedulerManager
 from core.service_utilities import get_flags_dir
-from core.time_utilities import TIMESTAMP_FULL, now_timestamp_full, parse_timestamp_full
+from core.time_utilities import (
+    TIMESTAMP_FULL,
+    now_timestamp_full,
+    parse_timestamp_full,
+    now_datetime_full,
+)
 from core.file_operations import verify_file_access
 from core.user_data_handlers import get_all_user_ids
 from core.user_data_handlers import get_user_data
@@ -194,7 +199,7 @@ class MHMService:
         """Check if there's any recent activity within the last 5 minutes using timestamp patterns."""
         import re
 
-        current_time = datetime.now()
+        current_time = now_datetime_full()
 
         # Matches TIMESTAMP_FULL timestamps (YYYY-MM-DD HH:MM:SS) in log content.
         recent_pattern = r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})"

@@ -689,6 +689,40 @@
     "max_undocumented_json": 200,
     "max_duplicates_json": 200
   },
+  "analyze_duplicate_functions": {
+    "use_mtime_cache": true,
+    "min_name_similarity": 0.6,
+    "min_overall_similarity": 0.7,
+    "max_pairs": 50,
+    "max_groups": 25,
+    "max_candidate_pairs": 20000,
+    "max_token_group_size": 200,
+    "stop_name_tokens": [
+      "get",
+      "set",
+      "update",
+      "create",
+      "delete",
+      "handle",
+      "process",
+      "load",
+      "save",
+      "run",
+      "init",
+      "main",
+      "check",
+      "build",
+      "fetch",
+      "sync",
+      "prepare"
+    ],
+    "weights": {
+      "name": 0.45,
+      "args": 0.2,
+      "locals": 0.2,
+      "imports": 0.15
+    }
+  },
   "analyze_module_dependencies": {
     "dependency_doc_path": "development_docs/MODULE_DEPENDENCIES_DETAIL.md"
   },

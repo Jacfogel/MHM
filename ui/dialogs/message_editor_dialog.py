@@ -35,8 +35,8 @@ from core.message_management import (
 )
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
+from core.time_utilities import now_timestamp_full
 import uuid
-from datetime import datetime
 
 setup_logging()
 logger = get_component_logger("ui")
@@ -196,7 +196,7 @@ class MessageEditDialog(QDialog):
             # Add new message
             message_id = str(uuid.uuid4())
             message_data["message_id"] = message_id
-            message_data["created_at"] = datetime.now().isoformat()
+            message_data["created_at"] = now_timestamp_full()
 
             add_message(self.user_id, self.category, message_data)
             QMessageBox.information(self, "Success", "Message added successfully.")

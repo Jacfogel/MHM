@@ -659,6 +659,58 @@ def get_analyze_function_registry_config():
     return AUDIT_FUNCTION_REGISTRY
 
 
+# Duplicate function analysis configuration
+ANALYZE_DUPLICATE_FUNCTIONS = {
+    "use_mtime_cache": True,
+    "min_name_similarity": 0.6,
+    "min_overall_similarity": 0.7,
+    "max_pairs": 50,
+    "max_groups": 25,
+    "max_candidate_pairs": 20000,
+    "max_token_group_size": 200,
+    "stop_name_tokens": [
+        "get",
+        "set",
+        "update",
+        "create",
+        "delete",
+        "handle",
+        "process",
+        "load",
+        "save",
+        "run",
+        "init",
+        "main",
+        "check",
+        "build",
+        "fetch",
+        "sync",
+        "prepare",
+    ],
+    "weights": {
+        "name": 0.45,
+        "args": 0.2,
+        "locals": 0.2,
+        "imports": 0.15,
+    },
+}
+
+
+def get_analyze_duplicate_functions_config():
+    """Get duplicate function analysis configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value("analyze_duplicate_functions", None)
+    if external_config:
+        result = ANALYZE_DUPLICATE_FUNCTIONS.copy()
+        result.update(external_config)
+        if "weights" in external_config and isinstance(result.get("weights"), dict):
+            result["weights"] = {
+                **ANALYZE_DUPLICATE_FUNCTIONS.get("weights", {}),
+                **external_config.get("weights", {}),
+            }
+        return result
+    return ANALYZE_DUPLICATE_FUNCTIONS
+
+
 # Audit module dependencies configuration
 AUDIT_MODULE_DEPENDENCIES = {
     "dependency_doc_path": "development_docs/MODULE_DEPENDENCIES_DETAIL.md",  # Generic default

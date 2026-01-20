@@ -11,6 +11,7 @@ from datetime import datetime
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.time_utilities import (
+    now_datetime_full,
     TIME_ONLY_MINUTE,
     DATE_DISPLAY_WEEKDAY,
     format_timestamp,
@@ -70,7 +71,7 @@ def is_schedule_active(
 
     # Be explicit: only default when caller provided nothing.
     if current_time is None:
-        current_time = datetime.now()
+        current_time = now_datetime_full()
 
     if not schedule_data or not isinstance(schedule_data, dict):
         logger.warning(f"Invalid schedule data provided: {schedule_data}")
@@ -129,7 +130,7 @@ def get_current_active_schedules(
 
     # Be explicit: only default when caller provided nothing.
     if current_time is None:
-        current_time = datetime.now()
+        current_time = now_datetime_full()
 
     active_periods = []
     total_periods = len(schedules)

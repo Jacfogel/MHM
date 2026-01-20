@@ -10,7 +10,6 @@ Manages comprehensive user context for AI conversations including:
 - Personalized insights
 """
 
-from datetime import datetime
 from typing import Dict, List, Any
 
 from core.logger import get_component_logger
@@ -19,6 +18,7 @@ from core.response_tracking import get_recent_checkins, get_recent_chat_interact
 from core.message_management import get_recent_messages
 from core.schedule_utilities import get_active_schedules
 from core.error_handling import handle_errors
+from core.time_utilities import now_timestamp_full
 from user.user_context import UserContext
 
 context_logger = get_component_logger("user_activity")
@@ -293,7 +293,7 @@ class UserContextManager:
             self.conversation_history[user_id] = []
 
         exchange = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": now_timestamp_full(),
             "user_message": user_message,
             "ai_response": ai_response,
             "message_length": len(user_message),

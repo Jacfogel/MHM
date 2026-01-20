@@ -5,7 +5,6 @@ Provides a comprehensive interface for collecting and editing user personalizati
 """
 
 import re
-from datetime import datetime
 from typing import Dict, Any, Optional, Callable
 
 # PySide6 imports
@@ -40,6 +39,7 @@ dialog_logger = logger
 from core.user_data_handlers import get_predefined_options
 from core.user_data_validation import validate_personalization_data
 from core.error_handling import handle_errors
+from core.time_utilities import now_timestamp_full
 
 
 class UserProfileDialog(QDialog):
@@ -507,7 +507,7 @@ class UserProfileDialog(QDialog):
             data = self.profile_widget.get_personalization_data()
 
             # Add metadata
-            data["last_updated"] = datetime.now().isoformat()
+            data["last_updated"] = now_timestamp_full()
             data["user_id"] = self.user_id
 
             # Validate data

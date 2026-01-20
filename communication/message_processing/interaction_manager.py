@@ -22,6 +22,7 @@ from core.time_utilities import (
     parse_date_and_time_minute,
     parse_date_only,
     parse_timestamp_full,
+    now_datetime_full,
 )
 from communication.message_processing.command_parser import (
     get_enhanced_command_parser,
@@ -1152,7 +1153,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
         """Get personalized suggestions for the user"""
 
         suggestions: list[str] = []
-        now = datetime.now()
+        now = now_datetime_full()
 
         @handle_errors("adding suggestion", default_return=None)
         def add_suggestion(text: str) -> None:

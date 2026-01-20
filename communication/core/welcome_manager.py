@@ -78,6 +78,10 @@ def mark_as_welcomed(channel_identifier: str, channel_type: str = "discord") -> 
         "welcomed_at": now_timestamp_full(),
         # Optional machine-friendly timestamp for sorting/analysis.
         # ISO must come from a datetime object (not string manipulation).
+        #
+        # NOTE (datetime audit): This does not map cleanly to core/time_utilities.py
+        # without introducing new helpers or adopting ISO as a canonical persisted
+        # format. Leaving as-is for now and explicitly flagging.
         "welcomed_at_iso": datetime.now().isoformat(),
         "channel_type": channel_type,
         "welcomed": True,

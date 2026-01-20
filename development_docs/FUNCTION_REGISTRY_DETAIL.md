@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-19 05:41:40
+> **Last Generated**: 2026-01-20 03:43:50
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 96.1% [OK] COMPLETED**
 - **Files Scanned**: 109
-- **Functions Found**: 1508
+- **Functions Found**: 1510
 - **Methods Found**: 1134
 - **Classes Found**: 154
-- **Total Items**: 2642
-- **Functions Documented**: 1444
+- **Total Items**: 2644
+- **Functions Documented**: 1446
 - **Methods Documented**: 1094
 - **Classes Documented**: 120
-- **Total Documented**: 2538
+- **Total Documented**: 2540
 - **Template-Generated**: 4
-- **Last Updated**: 2026-01-19
+- **Last Updated**: 2026-01-20
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (548)
+### **Core System Functions** (550)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (399)
@@ -210,7 +210,7 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
 
 Args:
     context_data: Context data to analyze
-    
+
 Returns:
     ContextAnalysis with insights and trends
 - [OK] `build_user_context(self, user_id, include_conversation_history)` - Build comprehensive context for a user
@@ -218,7 +218,7 @@ Returns:
 Args:
     user_id: User ID to build context for
     include_conversation_history: Whether to include conversation history
-    
+
 Returns:
     ContextData object with all available context
 - [OK] `create_checkin_context(self, user_id, checkin_type)` - Create context specifically for check-in interactions
@@ -226,7 +226,7 @@ Returns:
 Args:
     user_id: User ID
     checkin_type: Type of check-in (daily, weekly, etc.)
-    
+
 Returns:
     Check-in specific context string
 - [OK] `create_context_prompt(self, context_data, analysis)` - Create a context prompt string for AI interactions
@@ -234,7 +234,7 @@ Returns:
 Args:
     context_data: User context data
     analysis: Optional pre-computed analysis
-    
+
 Returns:
     Formatted context prompt string
 - [OK] `create_task_context(self, user_id, task_description)` - Create context specifically for task-related interactions
@@ -242,7 +242,7 @@ Returns:
 Args:
     user_id: User ID
     task_description: Description of the task
-    
+
 Returns:
     Task-specific context string
 - [OK] `get_context_builder()` - Get the global context builder instance
@@ -258,7 +258,7 @@ Returns:
 
 Args:
     context_data: Context data to analyze
-    
+
 Returns:
     ContextAnalysis with insights and trends
   - [OK] `ContextBuilder.build_user_context(self, user_id, include_conversation_history)` - Build comprehensive context for a user
@@ -266,7 +266,7 @@ Returns:
 Args:
     user_id: User ID to build context for
     include_conversation_history: Whether to include conversation history
-    
+
 Returns:
     ContextData object with all available context
   - [OK] `ContextBuilder.create_checkin_context(self, user_id, checkin_type)` - Create context specifically for check-in interactions
@@ -274,7 +274,7 @@ Returns:
 Args:
     user_id: User ID
     checkin_type: Type of check-in (daily, weekly, etc.)
-    
+
 Returns:
     Check-in specific context string
   - [OK] `ContextBuilder.create_context_prompt(self, context_data, analysis)` - Create a context prompt string for AI interactions
@@ -282,7 +282,7 @@ Returns:
 Args:
     context_data: User context data
     analysis: Optional pre-computed analysis
-    
+
 Returns:
     Formatted context prompt string
   - [OK] `ContextBuilder.create_task_context(self, user_id, task_description)` - Create context specifically for task-related interactions
@@ -290,7 +290,7 @@ Returns:
 Args:
     user_id: User ID
     task_description: Description of the task
-    
+
 Returns:
     Task-specific context string
 - [OK] `ContextData` - Structured context data for AI interactions
@@ -1870,7 +1870,7 @@ Returns:
 - [OK] `__init__(self, send_callback)` - Initialize the retry manager
 
 Args:
-    send_callback: Optional callable that takes (channel_name, recipient, message, **kwargs) 
+    send_callback: Optional callable that takes (channel_name, recipient, message, **kwargs)
                   and returns bool indicating success. If None, retries will only be logged.
 - [OK] `_process_retry_queue(self)` - Process the retry queue and attempt to resend failed messages
 - [OK] `_retry_loop(self)` - Main retry loop that processes failed messages
@@ -1885,7 +1885,7 @@ Args:
   - [OK] `RetryManager.__init__(self, send_callback)` - Initialize the retry manager
 
 Args:
-    send_callback: Optional callable that takes (channel_name, recipient, message, **kwargs) 
+    send_callback: Optional callable that takes (channel_name, recipient, message, **kwargs)
                   and returns bool indicating success. If None, retries will only be logged.
   - [OK] `RetryManager._process_retry_queue(self)` - Process the retry queue and attempt to resend failed messages
   - [OK] `RetryManager._retry_loop(self)` - Main retry loop that processes failed messages
@@ -4358,6 +4358,13 @@ Raises ValidationError if invalid.
 - [OK] `format_timestamp(dt, fmt)` - Format a datetime using a provided format string. Returns "" for None.
 - [OK] `format_timestamp_milliseconds(dt)` - Debug-only: format to milliseconds (3 decimals).
 Example output: "2026-01-18 12:34:56.789"
+- [OK] `now_datetime_full()` - Current local-naive datetime with second precision matching TIMESTAMP_FULL.
+
+This is the canonical replacement for datetime.now() in places that need a
+datetime object (arithmetic/comparisons) rather than a formatted string.
+- [OK] `now_datetime_minute()` - Current local-naive datetime rounded to minute precision matching TIMESTAMP_MINUTE.
+
+Use for scheduler/UI state where minute precision is the canonical persisted shape.
 - [OK] `now_timestamp_filename()` - Current local timestamp formatted with TIMESTAMP_FILENAME.
 - [OK] `now_timestamp_full()` - Current local timestamp formatted with TIMESTAMP_FULL.
 - [OK] `now_timestamp_minute()` - Current local timestamp formatted with TIMESTAMP_MINUTE.

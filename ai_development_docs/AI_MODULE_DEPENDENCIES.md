@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-19 05:41:43
+> **Last Generated**: 2026-01-20 03:43:52
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports**: 1467
-- **Standard Library**: 405 (27.6%)
+- **Total Imports**: 1468
+- **Standard Library**: 400 (27.2%)
 - **Third-Party**: 230 (15.7%)
-- **Local Imports**: 832 (56.7%)
+- **Local Imports**: 838 (57.1%)
 
 ## Dependency Decision Trees
 
@@ -43,7 +43,7 @@ AI System Dependencies:
   - communication/command_handlers/base_handler.py <- standard library (abc, typing), shared_types, logger, error_handling
 - Communication Integration
   - communication/communication_channels/__init__.py <- none
-  - communication/core/channel_monitor.py <- standard library (datetime, threading, time, typing), logger, error_handling, base_channel
+  - communication/core/channel_monitor.py <- standard library (datetime, threading, time, typing), time_utilities, logger, error_handling, base_channel
 
 ### Need Communication Channel Coverage?
 Communication Dependencies:
@@ -78,7 +78,7 @@ UI Dependencies:
 Communication and AI modules depend on core system modules.
 - `ai/cache_manager.py` -> core.logger, core.error_handling, core.config
 - `ai/chatbot.py` -> core.logger, core.config, core.response_tracking
-- `ai/context_builder.py` -> core.logger, core.error_handling, core.response_tracking
+- `ai/context_builder.py` -> core.logger, core.error_handling, core.time_utilities
 
 ### UI -> Core
 UI modules rely on core configuration and data access.

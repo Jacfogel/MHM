@@ -16,7 +16,12 @@ from pathlib import Path
 
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
-from core.time_utilities import DATE_ONLY, now_timestamp_full, format_timestamp
+from core.time_utilities import (
+    DATE_ONLY,
+    now_timestamp_full,
+    now_datetime_full,
+    format_timestamp,
+)
 
 CLEANUP_TRACKER_FILENAME = ".last_cache_cleanup"
 
@@ -78,7 +83,7 @@ def update_cleanup_timestamp() -> None:
         # Canonical readable metadata timestamp
         "last_cleanup_date": now_timestamp_full(),
         # Human-friendly date-only display
-        "last_cleanup_date_display": format_timestamp(datetime.now(), DATE_ONLY),
+        "last_cleanup_date_display": format_timestamp(now_datetime_full(), DATE_ONLY),
     }
 
     with tracker_path.open("w", encoding="utf-8") as f:
@@ -685,7 +690,14 @@ def _get_cleanup_status__get_never_cleaned_status():
 def _get_cleanup_status__calculate_days_since_cleanup(last_cleanup_timestamp):
     """Calculate days since last cleanup."""
     last_date = datetime.fromtimestamp(last_cleanup_timestamp)
-    days_since = (datetime.now() - last_date).days
+
+    # Internal in-memory datetime arithmetic: use canonical now + strict parse.
+    now_dt = now_datetime_full()
+    if now_dt is None:
+        # Defensive: now_timestamp_full() uses TIMESTAMP_FULL, so this should never be None.
+        return 0, last_date
+
+    days_since = (now_dt - last_date).days
     return days_since, last_date
 
 
@@ -693,11 +705,16 @@ def _get_cleanup_status__calculate_days_since_cleanup(last_cleanup_timestamp):
 def _get_cleanup_status__format_next_cleanup_date(last_date: datetime) -> str:
     """Format the next cleanup date or return 'Overdue'."""
     next_cleanup_date = last_date + timedelta(days=DEFAULT_CLEANUP_INTERVAL_DAYS)
-    now = datetime.now()
+
+    # Internal in-memory datetime comparisons: use canonical now + strict parse.
+    now_dt = now_datetime_full()
+    if now_dt is None:
+        # Defensive: now_timestamp_full() uses TIMESTAMP_FULL, so this should never be None.
+        return format_timestamp(next_cleanup_date, DATE_ONLY)
 
     # Show "Overdue" if the next cleanup date is today or in the past
     # Use date comparison (ignoring time) to avoid microsecond timing issues
-    if next_cleanup_date.date() <= now.date():
+    if next_cleanup_date.date() <= now_dt.date():
         return "Overdue"
 
     # Date-only output for status display

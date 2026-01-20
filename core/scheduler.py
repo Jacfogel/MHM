@@ -16,6 +16,7 @@ from core.schedule_management import get_schedule_time_periods
 from core.service_utilities import load_and_localize_datetime
 from core.time_utilities import (
     now_timestamp_filename,
+    now_datetime_full,
     TIMESTAMP_FULL,
     DATE_ONLY,
     TIME_ONLY_MINUTE,
@@ -270,7 +271,7 @@ class SchedulerManager:
 
         # Log current time once at the start
         tz = pytz.timezone("America/Regina")
-        now_datetime = datetime.now(tz)
+        now_datetime = tz.localize(now_datetime_full())
         logger.info(
             f"Current time for scheduling: {format_timestamp(now_datetime, TIMESTAMP_MINUTE)}"
         )
@@ -507,7 +508,7 @@ class SchedulerManager:
 
         # Avoid hardcoded strftime("%A") format strings.
         # Use weekday index + calendar for a stable day-name.
-        today_name = calendar.day_name[datetime.now().weekday()]
+        today_name = calendar.day_name[now_datetime_full().weekday()]
 
         for period_name, period_data in time_periods.items():
             # Skip the "ALL" period - it should not be scheduled, only used as fallback
@@ -586,7 +587,7 @@ class SchedulerManager:
                 schedule_datetime = load_and_localize_datetime(
                     datetime_str, "America/Regina"
                 )
-                now = datetime.now(pytz.timezone("America/Regina"))
+                now = pytz.timezone("America/Regina").localize(now_datetime_full())
 
                 logger.info(
                     f"Attempting to schedule message for user {user_id}, category {category}, period {period_name} at {schedule_datetime} (now is {now})"
@@ -660,7 +661,7 @@ class SchedulerManager:
 
             # Create datetime for today at the specified time
             tz = pytz.timezone("America/Regina")
-            now = datetime.now(tz)
+            now = tz.localize(now_datetime_full())
             today = now.date()
 
             # Parse the check-in time (HH:MM)
@@ -741,7 +742,7 @@ class SchedulerManager:
                 schedule_datetime = load_and_localize_datetime(
                     random_time_str, "America/Regina"
                 )
-                now = datetime.now(pytz.timezone("America/Regina"))
+                now = pytz.timezone("America/Regina").localize(now_datetime_full())
 
                 logger.info(
                     f"Attempting to schedule message for user {user_id}, category {category} at {schedule_datetime} (now is {now})"
@@ -848,7 +849,7 @@ class SchedulerManager:
     ):
         """Get a random time within a specified period for a given category."""
         tz = pytz.timezone(timezone_str)
-        now_datetime = datetime.now(tz)
+        now_datetime = tz.localize(now_datetime_full())
 
         time_periods = get_schedule_time_periods(user_id, category)
 
@@ -1525,7 +1526,7 @@ class SchedulerManager:
             return edge_case_result
 
         # Calculate weights for each task
-        today = datetime.now().date()
+        today = now_datetime_full().date()
         task_weights = self._select_task_for_reminder__calculate_task_weights(
             incomplete_tasks, today
         )
@@ -1631,7 +1632,7 @@ class SchedulerManager:
 
             # Create datetime for today at the specified time
             tz = pytz.timezone("America/Regina")
-            now = datetime.now(tz)
+            now = tz.localize(now_datetime_full())
             today = now.date()
 
             # Parse the reminder time
@@ -1694,14 +1695,14 @@ class SchedulerManager:
                 return False
 
             # Check if the reminder time is in the past
-            if reminder_datetime < datetime.now():
+            if reminder_datetime < now_datetime_full():
                 logger.debug(
                     f"Reminder time {reminder_datetime} is in the past, skipping"
                 )
                 return False
 
             # Calculate delay until the reminder time
-            delay_seconds = (reminder_datetime - datetime.now()).total_seconds()
+            delay_seconds = (reminder_datetime - now_datetime_full()).total_seconds()
 
             # Schedule the task reminder
             delay_seconds_int = max(1, int(delay_seconds))
@@ -1971,7 +1972,7 @@ class SchedulerManager:
                     )
                     needs_backup = True
                 else:
-                    days_since_backup = (datetime.now() - last_backup_time).days
+                    days_since_backup = (now_datetime_full() - last_backup_time).days
 
                     if days_since_backup >= 7:
                         logger.info(
@@ -2009,7 +2010,7 @@ class SchedulerManager:
                                 f"Backup health: Latest backup has invalid created_at '{latest_created_at_str}'"
                             )
                         else:
-                            days_old = (datetime.now() - backup_time).days
+                            days_old = (now_datetime_full() - backup_time).days
                             backup_size_mb = latest_backup.get("file_size", 0) / (
                                 1024 * 1024
                             )

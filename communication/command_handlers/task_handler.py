@@ -13,7 +13,12 @@ import re
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.time_utilities import DATE_ONLY, format_timestamp, parse_date_only
+from core.time_utilities import (
+    DATE_ONLY,
+    format_timestamp,
+    parse_date_only,
+    now_datetime_full,
+)
 from tasks.task_management import (
     create_task,
     load_active_tasks,
@@ -345,36 +350,38 @@ class TaskManagementHandler(InteractionHandler):
         import re
 
         date_str_lower = date_str.lower().strip()
-        now_dt = datetime.now()
+
+        # Internal in-memory datetime arithmetic: use canonical now + strict parse.
+        now_dt = now_datetime_full()
 
         if date_str_lower == "today":
-            return now_dt.date().isoformat()
+            return format_timestamp(now_dt, DATE_ONLY)
         elif date_str_lower == "tomorrow":
-            return (now_dt + timedelta(days=1)).date().isoformat()
+            return format_timestamp(now_dt + timedelta(days=1), DATE_ONLY)
         elif date_str_lower == "next week":
-            return (now_dt + timedelta(days=7)).date().isoformat()
+            return format_timestamp(now_dt + timedelta(days=7), DATE_ONLY)
         elif date_str_lower == "next month":
             # Simple next month calculation
             if now_dt.month == 12:
                 next_month = now_dt.replace(year=now_dt.year + 1, month=1)
             else:
                 next_month = now_dt.replace(month=now_dt.month + 1)
-            return next_month.date().isoformat()
+            return format_timestamp(next_month, DATE_ONLY)
         elif date_str_lower.startswith("in "):
             # Parse "in X hours", "in X days", or "in X weeks"
             hours_match = re.search(r"in\s+(\d+)\s+hours?", date_str_lower)
             if hours_match:
                 hours = int(hours_match.group(1))
                 target_datetime = now_dt + timedelta(hours=hours)
-                return target_datetime.date().isoformat()
+                return format_timestamp(target_datetime, DATE_ONLY)
             days_match = re.search(r"in\s+(\d+)\s+days?", date_str_lower)
             if days_match:
                 days = int(days_match.group(1))
-                return (now_dt + timedelta(days=days)).date().isoformat()
+                return format_timestamp(now_dt + timedelta(days=days), DATE_ONLY)
             weeks_match = re.search(r"in\s+(\d+)\s+weeks?", date_str_lower)
             if weeks_match:
                 weeks = int(weeks_match.group(1))
-                return (now_dt + timedelta(weeks=weeks)).date().isoformat()
+                return format_timestamp(now_dt + timedelta(weeks=weeks), DATE_ONLY)
         elif date_str_lower.startswith("next "):
             # Parse "next Tuesday", "next Monday", etc.
             days_of_week = [
@@ -400,16 +407,16 @@ class TaskManagementHandler(InteractionHandler):
                 else:
                     # Add 7 to get next week's occurrence (since "next" means next week, not this week)
                     days_ahead += 7
-                return (now_dt + timedelta(days=days_ahead)).date().isoformat()
+                return format_timestamp(now_dt + timedelta(days=days_ahead), DATE_ONLY)
             # If "next" doesn't match a day, try other "next" patterns
             elif "next week" in date_str_lower:
-                return (now_dt + timedelta(days=7)).date().isoformat()
+                return format_timestamp(now_dt + timedelta(days=7), DATE_ONLY)
             elif "next month" in date_str_lower:
                 if now_dt.month == 12:
                     next_month = now_dt.replace(year=now_dt.year + 1, month=1)
                 else:
                     next_month = now_dt.replace(month=now_dt.month + 1)
-                return next_month.date().isoformat()
+                return format_timestamp(next_month, DATE_ONLY)
         elif re.match(
             r"(monday|tuesday|wednesday|thursday|friday|saturday|sunday)",
             date_str_lower,
@@ -506,7 +513,7 @@ class TaskManagementHandler(InteractionHandler):
         if filter_type == "due_soon":
             filtered_tasks = get_tasks_due_soon(user_id, days_ahead=7)
         elif filter_type == "overdue":
-            today = datetime.now().date().isoformat()
+            today = format_timestamp(now_datetime_full(), DATE_ONLY)
             filtered_tasks = [
                 task
                 for task in filtered_tasks
@@ -611,7 +618,7 @@ class TaskManagementHandler(InteractionHandler):
         if not due_date:
             return ""
 
-        today = datetime.now().date().isoformat()
+        today = format_timestamp(now_datetime_full(), DATE_ONLY)
         if due_date < today:
             return f" (OVERDUE: {due_date})"
         elif due_date == today:
@@ -677,7 +684,10 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors("getting suggestion")
     def _handle_list_tasks__get_suggestion(self, tasks):
         """Get contextual show suggestion based on task analysis."""
-        today = datetime.now().date().isoformat()
+        # Scheduler/UI state comparisons: use canonical now + strict parse.
+        now_dt = now_datetime_full()
+
+        today = format_timestamp(now_dt, DATE_ONLY)
 
         # Check for overdue tasks first
         overdue_count = sum(
@@ -692,7 +702,7 @@ class TaskManagementHandler(InteractionHandler):
             return f"Show {high_priority_count} high priority tasks"
 
         # Check for tasks due soon (within 3 days)
-        soon_cutoff = (datetime.now() + timedelta(days=3)).date().isoformat()
+        soon_cutoff = format_timestamp(now_dt + timedelta(days=3), DATE_ONLY)
         due_soon_count = sum(
             1
             for task in tasks
@@ -1164,7 +1174,7 @@ class TaskManagementHandler(InteractionHandler):
             return None
 
         # Internal scheduler/UI state: always use canonical DATE_ONLY formatting.
-        today = format_timestamp(datetime.now(), DATE_ONLY)
+        today = format_timestamp(now_datetime_full(), DATE_ONLY)
 
         # Priority order: overdue > critical > high > medium > low
         priority_order = {"critical": 5, "high": 4, "medium": 3, "low": 2}

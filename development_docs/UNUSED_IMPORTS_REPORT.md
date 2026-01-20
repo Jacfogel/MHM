@@ -2,18 +2,18 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-19 05:46:08
+> **Last Generated**: 2026-01-20 03:48:26
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 412
-- **Files with Unused Imports**: 190
-- **Total Unused Imports**: 543
+- **Total Files Scanned**: 413
+- **Files with Unused Imports**: 191
+- **Total Unused Imports**: 551
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 155 imports
+- **Obvious Unused**: 163 imports
 - **Type Hints Only**: 29 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
@@ -133,10 +133,11 @@
 
 ### `communication/command_handlers/task_handler.py`
 
-**Count**: 2 unused import(s)
+**Count**: 3 unused import(s)
 
 - **Line 10**: Unused Dict imported from typing
 - **Line 10**: Unused Optional imported from typing
+- **Line 11**: Unused datetime imported from datetime
 
 ### `communication/communication_channels/base/base_channel.py`
 
@@ -218,10 +219,11 @@
 
 ### `communication/core/channel_monitor.py`
 
-**Count**: 2 unused import(s)
+**Count**: 3 unused import(s)
 
 - **Line 5**: Unused Dict imported from typing
 - **Line 5**: Unused Optional imported from typing
+- **Line 6**: Unused datetime imported from datetime
 
 ### `communication/core/channel_orchestrator.py`
 
@@ -300,10 +302,12 @@
 
 ### `core/error_handling.py`
 
-**Count**: 2 unused import(s)
+**Count**: 4 unused import(s)
 
 - **Line 14**: Unused Dict imported from typing
 - **Line 14**: Unused List imported from typing
+- **Line 15**: Unused datetime imported from datetime
+- **Line 17**: Unused parse_timestamp_full imported from core.time_utilities
 
 ### `core/file_auditor.py`
 
@@ -329,7 +333,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 12**: Unused TIMESTAMP_FULL imported from core.time_utilities
+- **Line 6**: Unused datetime imported from datetime
 
 ### `core/schedule_management.py`
 
@@ -359,9 +363,16 @@
 
 ### `core/service.py`
 
+**Count**: 2 unused import(s)
+
+- **Line 7**: Unused datetime imported from datetime
+- **Line 35**: Unused TIMESTAMP_FULL imported from core.time_utilities
+
+### `core/service_utilities.py`
+
 **Count**: 1 unused import(s)
 
-- **Line 35**: Unused TIMESTAMP_FULL imported from core.time_utilities
+- **Line 12**: Unused datetime imported from datetime
 
 ### `core/user_data_handlers.py`
 
@@ -375,9 +386,10 @@
 
 ### `core/user_data_manager.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
-- **Line 12**: Unused Optional imported from typing
+- **Line 11**: Unused datetime imported from datetime
+- **Line 13**: Unused Optional imported from typing
 
 ### `core/user_data_validation.py`
 
@@ -512,8 +524,9 @@
 
 ### `ui/ui_app_qt.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
+- **Line 8**: Unused datetime imported from datetime
 - **Line 31**: Unused TIMESTAMP_FULL imported from core.time_utilities
 
 ### `ui/widgets/period_row_widget.py`
@@ -535,8 +548,8 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 14**: Unused Dict imported from typing
-- **Line 14**: Unused List imported from typing
+- **Line 13**: Unused Dict imported from typing
+- **Line 13**: Unused List imported from typing
 
 ## Type Hints Only
 
@@ -639,8 +652,8 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 12**: Unused Dict imported from typing
-- **Line 12**: Unused List imported from typing
+- **Line 13**: Unused Dict imported from typing
+- **Line 13**: Unused List imported from typing
 
 ### `core/user_data_validation.py`
 

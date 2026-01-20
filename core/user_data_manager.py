@@ -9,6 +9,7 @@ import json
 import shutil
 import zipfile
 from datetime import datetime
+
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 
@@ -246,7 +247,7 @@ class UserDataManager:
                 # Add metadata
                 metadata = {
                     "user_id": user_id,
-                    "backup_date": datetime.now().isoformat(),
+                    "backup_date": now_timestamp_full(),
                     "backup_type": "complete",
                     "includes_messages": include_messages,
                     "files_backed_up": zipf.namelist(),
@@ -289,7 +290,7 @@ class UserDataManager:
         """Export all user data to a structured format"""
         export_data = {
             "user_id": user_id,
-            "export_date": datetime.now().isoformat(),
+            "export_date": now_timestamp_full(),
             "profile": {},
             "preferences": {},
             "schedules": {},
@@ -887,7 +888,7 @@ class UserDataManager:
                 index_data[f"phone:{phone}"] = user_id
 
             # Add metadata
-            index_data["last_updated"] = datetime.now().isoformat()
+            index_data["last_updated"] = now_timestamp_full()
 
             # Retry write operation in case of temporary lock contention
             max_write_retries = 3
@@ -968,7 +969,7 @@ class UserDataManager:
             if phone and f"phone:{phone}" in index_data:
                 del index_data[f"phone:{phone}"]
 
-            index_data["last_updated"] = datetime.now().isoformat()
+            index_data["last_updated"] = now_timestamp_full()
 
             # Save updated index with file locking
             if not safe_json_write(self.index_file, index_data, indent=4):
@@ -1016,7 +1017,7 @@ class UserDataManager:
             from core.file_locking import safe_json_write
             import time
 
-            index_data = {"last_updated": datetime.now().isoformat()}
+            index_data = {"last_updated": now_timestamp_full()}
 
             # Track successful and failed user indexings
             successful_count = 0

@@ -29,6 +29,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFont
 
 from core.time_utilities import (
+    now_datetime_full,
     TIMESTAMP_FULL,
     now_timestamp_full,
     parse_timestamp_full,
@@ -667,7 +668,7 @@ class MHMManagerUI(QMainWindow):
                     # If we found recent activity (within last 5 minutes), Discord is definitely running
                     if last_activity_time:
                         time_since_activity = (
-                            datetime.now() - last_activity_time
+                            now_datetime_full() - last_activity_time
                         ).total_seconds()
                         if time_since_activity < 300:  # Within last 5 minutes
                             return True
@@ -676,7 +677,7 @@ class MHMManagerUI(QMainWindow):
                     if last_init_time:
                         # Check if initialization is recent (within last hour) to handle improper shutdowns
                         time_since_init = (
-                            datetime.now() - last_init_time
+                            now_datetime_full() - last_init_time
                         ).total_seconds()
 
                         if (
@@ -712,7 +713,7 @@ class MHMManagerUI(QMainWindow):
                                         if init_time > last_shutdown_time:
                                             # Check if this restart is recent
                                             time_since_restart = (
-                                                datetime.now() - init_time
+                                                now_datetime_full() - init_time
                                             ).total_seconds()
                                             if (
                                                 time_since_restart < 3600
@@ -724,7 +725,7 @@ class MHMManagerUI(QMainWindow):
                         # No initialization found - but if we have recent activity, Discord is running
                         if last_activity_time:
                             time_since_activity = (
-                                datetime.now() - last_activity_time
+                                now_datetime_full() - last_activity_time
                             ).total_seconds()
                             if time_since_activity < 3600:  # Within last hour
                                 return True
@@ -825,7 +826,7 @@ class MHMManagerUI(QMainWindow):
                     if last_init_time:
                         # Check if initialization is recent (within last hour) to handle improper shutdowns
                         time_since_init = (
-                            datetime.now() - last_init_time
+                            now_datetime_full() - last_init_time
                         ).total_seconds()
 
                         if (
@@ -857,7 +858,7 @@ class MHMManagerUI(QMainWindow):
                                         if init_time > last_shutdown_time:
                                             # Check if this restart is recent
                                             time_since_restart = (
-                                                datetime.now() - init_time
+                                                now_datetime_full() - init_time
                                             ).total_seconds()
                                             if (
                                                 time_since_restart < 3600

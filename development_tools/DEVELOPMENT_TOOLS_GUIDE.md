@@ -79,6 +79,7 @@ python development_tools/run_development_tools.py config
 - `decision-support` - generates decision support insights.
 - `unused-imports` - runs the AST-based unused import detection tool (analysis only).
 - `unused-imports-report` - generates unused imports report from analysis results.
+- `duplicate-functions` - detects possible duplicate or similar functions (analysis only).
 - `workflow` - executes an audit-first workflow task.
 - `export-code` - Exports Python source files from a specified directory into a single Markdown snapshot for LLM context (portable, project-root-relative paths).
 - `trees` - generates directory tree reports.
@@ -264,6 +265,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | analyze_error_handling.py | core | stable | Audits decorator usage and exception handling depth. Decorator names and exception classes load from external config. Generates recommendations internally as part of analysis. |
 | generate_error_handling_report.py | supporting | stable | Generates error handling reports from analysis results. |
 | analyze_functions.py | core | stable | AST discovery utility supporting registries and audits. Configurable scan roots and filters via external config. Enhanced with function/class discovery logic from generate_function_registry.py. |
+| analyze_duplicate_functions.py | supporting | partial | Flags possible duplicate/similar functions and methods using weighted similarity scoring. |
 | analyze_function_patterns.py | core | stable | Analyzes function patterns (handlers, managers, factories, etc.) for AI consumption. |
 | generate_function_registry.py | core | stable | Builds the authoritative function registry via AST parsing. 
 | analyze_documentation.py | supporting | partial | Secondary doc analysis that focuses on corruption/overlap. |
@@ -291,6 +293,14 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 
 - Follow the audit-first workflow (see [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)) before touching documentation or infrastructure
 - Keep the standard exclusions + config aligned so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` are skipped by the majority of analyzer runs.
+- **Duplicate function analysis settings** (from `analyze_duplicate_functions` config):
+  - `use_mtime_cache`: Reuse cached per-file function signatures when mtimes match to speed repeat runs.
+  - `min_name_similarity`: Minimum name-token overlap to consider a candidate pair.
+  - `min_overall_similarity`: Minimum weighted similarity to report a pair/group.
+  - `max_pairs` / `max_groups`: Cap the reported output (top pairs/groups only). Increase these to see more; when caps are hit, the consolidated report flags the output limits.
+  - `max_candidate_pairs` / `max_token_group_size`: Safety limits to prevent combinatorial blowups from common tokens.
+  - `stop_name_tokens`: Tokens to ignore when forming candidate pairs (noise reducers like "get", "set").
+  - `weights`: Balance similarity scoring across name/args/locals/imports.
 - **Caching Infrastructure**:
 - **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching). The cache automatically invalidates when `development_tools_config.json` changes, ensuring config updates are immediately reflected.
 - **Test Coverage Caching**:

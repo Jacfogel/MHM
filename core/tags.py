@@ -10,7 +10,7 @@ import re
 import json
 from pathlib import Path
 from typing import Any
-from datetime import datetime
+from core.time_utilities import now_timestamp_full
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors, ValidationError
@@ -198,8 +198,8 @@ def load_user_tags(user_id: str) -> dict[str, Any]:
             tags_data = {
                 "tags": default_tags,
                 "metadata": {
-                    "created_at": datetime.now().isoformat(),
-                    "updated_at": datetime.now().isoformat(),
+                    "created_at": now_timestamp_full(),
+                    "updated_at": now_timestamp_full(),
                     "initialized_with_defaults": True,
                 },
             }
@@ -222,8 +222,8 @@ def load_user_tags(user_id: str) -> dict[str, Any]:
             tags_data = {
                 "tags": default_tags,
                 "metadata": {
-                    "created_at": datetime.now().isoformat(),
-                    "updated_at": datetime.now().isoformat(),
+                    "created_at": now_timestamp_full(),
+                    "updated_at": now_timestamp_full(),
                     "initialized_with_defaults": True,
                     "reinitialized": True,
                 },
@@ -238,8 +238,8 @@ def load_user_tags(user_id: str) -> dict[str, Any]:
             return {
                 "tags": default_tags,
                 "metadata": {
-                    "created_at": datetime.now().isoformat(),
-                    "updated_at": datetime.now().isoformat(),
+                    "created_at": now_timestamp_full(),
+                    "updated_at": now_timestamp_full(),
                 },
             }
 
@@ -290,9 +290,9 @@ def save_user_tags(user_id: str, tags_data: dict[str, Any]) -> bool:
         # Update metadata
         if "metadata" not in tags_data:
             tags_data["metadata"] = {}
-        tags_data["metadata"]["updated_at"] = datetime.now().isoformat()
+        tags_data["metadata"]["updated_at"] = now_timestamp_full()
         if "created_at" not in tags_data["metadata"]:
-            tags_data["metadata"]["created_at"] = datetime.now().isoformat()
+            tags_data["metadata"]["created_at"] = now_timestamp_full()
 
         # Use save_json_data directly (this is called by save_user_data internally)
         success = save_json_data(tags_data, tags_file_path)

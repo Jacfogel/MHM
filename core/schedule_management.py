@@ -16,6 +16,7 @@ from core.time_utilities import (
     TIME_ONLY_MINUTE,
     format_timestamp,
     parse_time_only_minute,
+    now_datetime_full,
 )
 from user.user_context import UserContext
 from core.error_handling import handle_errors, ValidationError
@@ -242,7 +243,7 @@ def get_current_time_periods_with_validation(user_id, category):
         return [], []
 
     # Canonical time-only formatting (HH:MM) via core.time_utilities
-    current_time_str = format_timestamp(datetime.now(), TIME_ONLY_MINUTE)
+    current_time_str = format_timestamp(now_datetime_full(), TIME_ONLY_MINUTE)
     time_periods = get_schedule_time_periods(user_id, category)
 
     valid_periods = list(time_periods.keys())

@@ -74,6 +74,42 @@ def now_timestamp_filename() -> str:
 
 
 # ---------------------------------------------------------------------------
+# "Now" helpers (datetime objects)
+# ---------------------------------------------------------------------------
+
+
+def now_datetime_full() -> datetime:
+    """
+    Current local-naive datetime with second precision matching TIMESTAMP_FULL.
+
+    This is the canonical replacement for datetime.now() in places that need a
+    datetime object (arithmetic/comparisons) rather than a formatted string.
+    """
+    # Derive through canonical formatting/parsing to guarantee the same shape
+    # as persisted TIMESTAMP_FULL timestamps.
+    value = now_timestamp_full()
+    dt = parse_timestamp_full(value)
+    if dt is None:
+        # Defensive: should never happen unless the canonical helpers are broken.
+        # Keep behavior safe and obvious rather than propagating None.
+        return datetime.min
+    return dt
+
+
+def now_datetime_minute() -> datetime:
+    """
+    Current local-naive datetime rounded to minute precision matching TIMESTAMP_MINUTE.
+
+    Use for scheduler/UI state where minute precision is the canonical persisted shape.
+    """
+    value = now_timestamp_minute()
+    dt = parse_timestamp_minute(value)
+    if dt is None:
+        return datetime.min
+    return dt
+
+
+# ---------------------------------------------------------------------------
 # Formatting helpers
 # ---------------------------------------------------------------------------
 

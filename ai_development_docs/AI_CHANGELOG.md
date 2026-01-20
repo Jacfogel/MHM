@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-20 - Duplicate function analysis tool added **COMPLETED**
+- Added `development_tools/functions/analyze_duplicate_functions.py` to flag similar functions using weighted similarity (name/args/locals/imports) and clustered output.
+- Wired into config/CLI/metadata/service wrappers/audit reporting (plus tool guides) so audits surface duplicate clusters.
+- Removed the duplicate-function cache usage line from the consolidated report output.
+
 ### 2026-01-15 - Ruff rollout and report-generator diagnostics **IN PROGRESS**
 - Added Ruff to the workspace tooling and inspected `ruff check . --statistics` (5,842 findings total; top offenses include `F401`, `UP025`, `UP006`, `E402`; 3,777 of the issues are fixable) so we can triage the remaining style debt.
 - Applied targeted `ruff check --fix` for a small set of safe rules, then reverted the mass changes after the `development_tools` audit phase crashed with an `unsupported operand type(s) for |` when writing AI status/priorities/consolidated reports.

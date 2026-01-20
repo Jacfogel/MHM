@@ -38,10 +38,12 @@ from core.time_utilities import (
     parse_time_only_minute,
     DATE_ONLY,
     now_timestamp_full,
+    now_datetime_full,
 )
 
 # Route conversation orchestration to communication_manager component log
 logger = get_component_logger("communication_manager")
+
 
 # We'll define 'flow' constants
 FLOW_NONE = 0
@@ -160,7 +162,7 @@ class ConversationManager:
     def _expire_inactive_checkins(self, user_id: str | None = None) -> None:
         """Remove stale check-in flows that have been idle beyond the allowed window."""
         expired_users: list[str] = []
-        now = datetime.now()
+        now = now_datetime_full()
 
         for uid, state in list(self.user_states.items()):
             if user_id and uid != user_id:
@@ -701,7 +703,7 @@ class ConversationManager:
                 # Parse strictly using canonical helper.
                 last_dt = parse_timestamp_full(last_ts)
                 if last_dt is not None:
-                    if datetime.now() - last_dt > timedelta(
+                    if now_datetime_full() - last_dt > timedelta(
                         minutes=CHECKIN_INACTIVITY_MINUTES
                     ):
                         # Expire flow due to inactivity
@@ -1266,17 +1268,18 @@ class ConversationManager:
             # Check for timeout first (10 minutes)
             started_at_str = user_state.get("started_at")
             if started_at_str:
-                try:
-                    started_at = datetime.fromisoformat(started_at_str)
-                    if datetime.now() - started_at > timedelta(minutes=10):
-                        self.user_states.pop(user_id, None)
-                        self._save_user_states()
-                        return (
-                            "⏱️ Reminder flow expired. Task was created successfully. You can add reminders later by updating the task.",
-                            True,
-                        )
-                except (ValueError, TypeError):
-                    pass
+                # started_at is internal persisted state (string timestamp).
+                # Parse strictly using canonical helper.
+                started_at = parse_timestamp_full(started_at_str)
+                if started_at is not None and (
+                    now_datetime_full() - started_at
+                ) > timedelta(minutes=10):
+                    self.user_states.pop(user_id, None)
+                    self._save_user_states()
+                    return (
+                        "⏱️ Reminder flow expired. Task was created successfully. You can add reminders later by updating the task.",
+                        True,
+                    )
 
             message_lower = message_text.lower().strip()
 
@@ -1604,7 +1607,7 @@ class ConversationManager:
                 )
 
                 # Ensure reminder is in the future
-                now = datetime.now()
+                now = now_datetime_full()
                 if reminder_end < now:
                     logger.debug(
                         f"Reminder time {reminder_end} is in the past (now={now_timestamp_full()}), skipping"
@@ -1649,7 +1652,7 @@ class ConversationManager:
             "flow": FLOW_TASK_DUE_DATE,
             "state": 0,
             "data": {"task_id": task_id},
-            "started_at": datetime.now().isoformat(),
+            "started_at": now_timestamp_full(),
         }
         self._save_user_states()
         logger.debug(f"Started task due date flow for user {user_id}, task {task_id}")
@@ -1664,7 +1667,7 @@ class ConversationManager:
             "flow": FLOW_TASK_REMINDER,
             "state": 0,
             "data": {"task_id": task_id},
-            "started_at": datetime.now().isoformat(),
+            "started_at": now_timestamp_full(),
         }
         self._save_user_states()
         logger.debug(
@@ -1710,17 +1713,17 @@ class ConversationManager:
                     has_time = True
                 else:
                     # Invalid time format, use current time of day (preserve behavior)
-                    now = datetime.now()
+                    now = now_datetime_full()
                     due_date = due_date.replace(hour=now.hour, minute=now.minute)
                     has_time = False
             else:
                 # No time specified, use current time of day (preserve behavior)
-                now = datetime.now()
+                now = now_datetime_full()
                 due_date = due_date.replace(hour=now.hour, minute=now.minute)
                 has_time = False
 
             # Calculate days until due
-            now = datetime.now()
+            now = now_datetime_full()
             days_until = (due_date - now).days
             hours_until = (due_date - now).total_seconds() / 3600
 
@@ -1792,17 +1795,18 @@ class ConversationManager:
         # Check for timeout first (10 minutes)
         started_at_str = user_state.get("started_at")
         if started_at_str:
-            try:
-                started_at = datetime.fromisoformat(started_at_str)
-                if datetime.now() - started_at > timedelta(minutes=10):
-                    self.user_states.pop(user_id, None)
-                    self._save_user_states()
-                    return (
-                        "⏱️ Due date flow expired. Task was created without a due date. You can add one later by updating the task.",
-                        True,
-                    )
-            except (ValueError, TypeError):
-                pass
+            # started_at is internal persisted state (string timestamp).
+            # Parse strictly using canonical helper.
+            started_at = parse_timestamp_full(started_at_str)
+            if started_at is not None and (
+                now_datetime_full() - started_at
+            ) > timedelta(minutes=10):
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return (
+                    "⏱️ Due date flow expired. Task was created without a due date. You can add one later by updating the task.",
+                    True,
+                )
 
         # Check for skip/cancel commands
         skip_keywords = ["skip", "!skip", "/skip"]
@@ -1926,17 +1930,17 @@ class ConversationManager:
 
         # Canonical formats live in core.time_utilities
         # - DATE_ONLY is still useful for parsing/strptime in other places,
-        #   but for *date-only string output* we prefer date().isoformat().
+        #   and for date-only string output we use core.time_utilities.format_timestamp(..., DATE_ONLY).
         from core.time_utilities import (
             DATE_ONLY,
         )  # noqa: F401 (documented canonical)
 
         text_lower = (text or "").lower().strip()
-        today_dt = datetime.now()
+        today_dt = now_datetime_full()
 
         def _date_str(dt: datetime) -> str:
             """Return YYYY-MM-DD without sprinkling strftime format strings."""
-            return dt.date().isoformat()
+            return format_timestamp(dt, DATE_ONLY)
 
         # Try to parse relative dates first
         if text_lower == "today":
@@ -2080,18 +2084,19 @@ class ConversationManager:
         # Check for timeout first (10 minutes)
         started_at_str = user_state.get("started_at")
         if started_at_str:
-            try:
-                started_at = datetime.fromisoformat(started_at_str)
-                if datetime.now() - started_at > timedelta(minutes=10):
-                    # Flow expired
-                    self.user_states.pop(user_id, None)
-                    self._save_user_states()
-                    return (
-                        "⏱️ Note flow expired. Please start over with `!n <title>`",
-                        True,
-                    )
-            except (ValueError, TypeError):
-                pass
+            # started_at is internal persisted state (string timestamp).
+            # Parse strictly using canonical helper.
+            started_at = parse_timestamp_full(started_at_str)
+            if started_at is not None and (
+                now_datetime_full() - started_at
+            ) > timedelta(minutes=10):
+                # Flow expired
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return (
+                    "⏱️ Note flow expired. Please start over with `!n <title>`",
+                    True,
+                )
 
         # Check for skip/cancel commands
         skip_keywords = ["skip", "!skip", "/skip"]
@@ -2256,18 +2261,19 @@ class ConversationManager:
         # Check for timeout first (10 minutes)
         started_at_str = user_state.get("started_at")
         if started_at_str:
-            try:
-                started_at = datetime.fromisoformat(started_at_str)
-                if datetime.now() - started_at > timedelta(minutes=10):
-                    # Flow expired
-                    self.user_states.pop(user_id, None)
-                    self._save_user_states()
-                    return (
-                        "⏱️ List flow expired. Please start over with `!l <title>`",
-                        True,
-                    )
-            except (ValueError, TypeError):
-                pass
+            # started_at is internal persisted state (string timestamp).
+            # Parse strictly using canonical helper.
+            started_at = parse_timestamp_full(started_at_str)
+            if started_at is not None and (
+                now_datetime_full() - started_at
+            ) > timedelta(minutes=10):
+                # Flow expired
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return (
+                    "⏱️ List flow expired. Please start over with `!l <title>`",
+                    True,
+                )
 
         # Check if message is clearly unrelated to list items flow (commands or unrelated content)
         unrelated_patterns = [

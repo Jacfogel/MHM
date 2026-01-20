@@ -34,6 +34,7 @@ SCRIPT_REGISTRY = {
     'analyze_error_handling': 'error_handling/analyze_error_handling.py',
     'generate_error_handling_report': 'error_handling/generate_error_handling_report.py',
     'analyze_functions': 'functions/analyze_functions.py',
+    'analyze_duplicate_functions': 'functions/analyze_duplicate_functions.py',
     'analyze_function_patterns': 'functions/analyze_function_patterns.py',
     'analyze_package_exports': 'functions/analyze_package_exports.py',
     'generate_function_registry': 'functions/generate_function_registry.py',
@@ -60,6 +61,9 @@ SCRIPT_REGISTRY = {
 
 class ToolWrappersMixin:
     """Mixin class providing tool execution methods to AIToolsService."""
+
+    exclusion_config: Dict[str, bool]
+    project_root: Path
     
     def run_script(self, script_name: str, *args, timeout: Optional[int] = 300) -> Dict:
         """Run a registered helper script from development_tools."""
@@ -277,6 +281,45 @@ class ToolWrappersMixin:
                     logger.warning(f"Failed to save analyze_functions result: {e}")
             except (json.JSONDecodeError, ValueError) as e:
                 logger.warning(f"Failed to parse analyze_functions JSON output: {e}")
+        return result
+
+    def run_analyze_duplicate_functions(
+        self, min_overall: Optional[float] = None, min_name: Optional[float] = None
+    ) -> Dict:
+        """Run analyze_duplicate_functions with structured JSON handling."""
+        logger.info("Analyzing duplicate functions...")
+        args = ["--json"]
+        if self.exclusion_config.get('include_tests', False):
+            args.append("--include-tests")
+        if self.exclusion_config.get('include_dev_tools', False):
+            args.append("--include-dev-tools")
+        if min_overall is not None:
+            args.extend(["--min-overall", str(min_overall)])
+        if min_name is not None:
+            args.extend(["--min-name", str(min_name)])
+        result = self.run_script("analyze_duplicate_functions", *args)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            try:
+                save_tool_result(
+                    "analyze_duplicate_functions",
+                    "functions",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_duplicate_functions result: {e}")
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
         return result
     
     def run_decision_support(self) -> Dict:

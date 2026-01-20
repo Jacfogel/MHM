@@ -344,6 +344,53 @@ def _unused_imports_report_command(
     return 0 if success else 1
 
 
+def _duplicate_functions_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle duplicate-functions command (analysis only)."""
+    parser = argparse.ArgumentParser(prog="duplicate-functions", add_help=False)
+    parser.add_argument(
+        "--include-tests", action="store_true", help="Include test files in analysis."
+    )
+    parser.add_argument(
+        "--include-dev-tools",
+        action="store_true",
+        help="Include development_tools in analysis.",
+    )
+    parser.add_argument(
+        "--include-all",
+        action="store_true",
+        help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
+    )
+    parser.add_argument(
+        "--min-overall",
+        type=float,
+        default=None,
+        help="Override minimum overall similarity threshold.",
+    )
+    parser.add_argument(
+        "--min-name",
+        type=float,
+        default=None,
+        help="Override minimum name similarity threshold.",
+    )
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+
+    service.set_exclusion_config(
+        include_tests=ns.include_tests or ns.include_all,
+        include_dev_tools=ns.include_dev_tools or ns.include_all,
+    )
+
+    result = service.run_analyze_duplicate_functions(
+        min_overall=ns.min_overall, min_name=ns.min_name
+    )
+    success = result.get("success", False) if isinstance(result, dict) else bool(result)
+    return 0 if success else 1
+
+
 def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     """Handle cleanup command."""
     parser = argparse.ArgumentParser(prog="cleanup", add_help=False)
@@ -583,6 +630,14 @@ COMMAND_REGISTRY = OrderedDict(
                 "unused-imports-report",
                 _unused_imports_report_command,
                 "Generate unused imports report from analysis results.",
+            ),
+        ),
+        (
+            "duplicate-functions",
+            CommandRegistration(
+                "duplicate-functions",
+                _duplicate_functions_command,
+                "Detect possible duplicate or similar functions (analysis only).",
             ),
         ),
         (
