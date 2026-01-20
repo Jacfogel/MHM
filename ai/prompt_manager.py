@@ -1,7 +1,6 @@
 # prompt_manager.py
 
 import os
-from typing import Dict, Optional
 from dataclasses import dataclass
 
 from core.logger import get_component_logger

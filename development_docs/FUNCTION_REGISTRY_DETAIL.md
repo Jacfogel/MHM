@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 03:43:50
+> **Last Generated**: 2026-01-20 06:07:40
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 96.1% [OK] COMPLETED**
 - **Files Scanned**: 109
-- **Functions Found**: 1510
+- **Functions Found**: 1511
 - **Methods Found**: 1134
 - **Classes Found**: 154
-- **Total Items**: 2644
-- **Functions Documented**: 1446
+- **Total Items**: 2645
+- **Functions Documented**: 1447
 - **Methods Documented**: 1094
 - **Classes Documented**: 120
-- **Total Documented**: 2540
+- **Total Documented**: 2541
 - **Template-Generated**: 4
 - **Last Updated**: 2026-01-20
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (550)
+### **Core System Functions** (551)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (399)
@@ -4355,6 +4355,7 @@ Raises ValidationError if invalid.
 
 #### `core/time_utilities.py`
 **Functions:**
+- [OK] `_log_time_error(operation, error)` - Log time utility failures without crashing the caller.
 - [OK] `format_timestamp(dt, fmt)` - Format a datetime using a provided format string. Returns "" for None.
 - [OK] `format_timestamp_milliseconds(dt)` - Debug-only: format to milliseconds (3 decimals).
 Example output: "2026-01-18 12:34:56.789"

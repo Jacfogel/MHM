@@ -19,6 +19,9 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Iterable, Literal
 
+from core.error_handling import handle_errors
+from core.logger import get_component_logger
+
 # ---------------------------------------------------------------------------
 # Canonical formats (project-wide)
 # ---------------------------------------------------------------------------
@@ -53,21 +56,28 @@ EXTERNAL_TIMESTAMP_VARIANTS: list[str] = [
     "%Y-%m-%dT%H:%M:%S.%fZ",
 ]
 
-# ---------------------------------------------------------------------------
-# "Now" helpers
-# ---------------------------------------------------------------------------
+_time_logger = get_component_logger("time_utilities")
 
 
+@handle_errors("logging time error", default_return=None, user_friendly=False)
+def _log_time_error(operation: str, error: Exception) -> None:
+    """Log time utility failures without crashing the caller."""
+    _time_logger.error(f"{operation} failed: {error}", exc_info=True)
+
+
+@handle_errors("getting canonical timestamp", default_return="", user_friendly=False)
 def now_timestamp_full() -> str:
     """Current local timestamp formatted with TIMESTAMP_FULL."""
     return datetime.now().strftime(TIMESTAMP_FULL)
 
 
+@handle_errors("getting canonical minute timestamp", default_return="", user_friendly=False)
 def now_timestamp_minute() -> str:
     """Current local timestamp formatted with TIMESTAMP_MINUTE."""
     return datetime.now().strftime(TIMESTAMP_MINUTE)
 
 
+@handle_errors("getting filename-safe timestamp", default_return="", user_friendly=False)
 def now_timestamp_filename() -> str:
     """Current local timestamp formatted with TIMESTAMP_FILENAME."""
     return datetime.now().strftime(TIMESTAMP_FILENAME)
@@ -78,6 +88,7 @@ def now_timestamp_filename() -> str:
 # ---------------------------------------------------------------------------
 
 
+@handle_errors("building canonical datetime", default_return=datetime.min, user_friendly=False)
 def now_datetime_full() -> datetime:
     """
     Current local-naive datetime with second precision matching TIMESTAMP_FULL.
@@ -91,11 +102,11 @@ def now_datetime_full() -> datetime:
     dt = parse_timestamp_full(value)
     if dt is None:
         # Defensive: should never happen unless the canonical helpers are broken.
-        # Keep behavior safe and obvious rather than propagating None.
         return datetime.min
     return dt
 
 
+@handle_errors("building canonical minute datetime", default_return=datetime.min, user_friendly=False)
 def now_datetime_minute() -> datetime:
     """
     Current local-naive datetime rounded to minute precision matching TIMESTAMP_MINUTE.
@@ -114,6 +125,7 @@ def now_datetime_minute() -> datetime:
 # ---------------------------------------------------------------------------
 
 
+@handle_errors("formatting timestamp", default_return="", user_friendly=False)
 def format_timestamp(dt: datetime | None, fmt: str) -> str:
     """Format a datetime using a provided format string. Returns "" for None."""
     if dt is None:
@@ -121,6 +133,7 @@ def format_timestamp(dt: datetime | None, fmt: str) -> str:
     return dt.strftime(fmt)
 
 
+@handle_errors("formatting timestamp with milliseconds", default_return="", user_friendly=False)
 def format_timestamp_milliseconds(dt: datetime | None) -> str:
     """
     Debug-only: format to milliseconds (3 decimals).

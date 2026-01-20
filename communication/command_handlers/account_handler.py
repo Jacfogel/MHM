@@ -4,7 +4,7 @@ Account Management Handler
 Channel-agnostic handler for account creation and linking operations.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Any
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.user_data_handlers import get_user_id_by_identifier, create_new_user

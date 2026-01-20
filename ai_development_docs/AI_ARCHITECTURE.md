@@ -118,6 +118,10 @@ If you need full rationale or examples, see section 3. Data Handling Patterns in
 
 ## 4. Key Modules and Responsibilities
 
+- **core/time_utilities.py**  
+  Single source of truth for datetime formats, parsing, and current-time helpers.
+  Other modules must not use `datetime.now()`, `strftime()`, or `strptime()` directly.
+
 Use this list to anchor AI changes to the right modules.
 
 - `run_mhm.py` - UI entry point; launches the PySide6 admin app.  

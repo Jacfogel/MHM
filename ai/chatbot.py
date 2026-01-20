@@ -13,7 +13,6 @@ import asyncio
 import threading
 import requests
 import collections
-from typing import Optional
 from core.logger import get_component_logger
 from core.config import (
     LM_STUDIO_BASE_URL,
@@ -41,7 +40,6 @@ from core.user_data_handlers import get_user_data
 from user.context_manager import user_context_manager
 from ai.prompt_manager import get_prompt_manager
 from ai.cache_manager import get_response_cache
-from datetime import datetime
 from core.error_handling import handle_errors
 from core.message_management import get_recent_messages
 from core.time_utilities import (

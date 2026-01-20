@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 03:43:52
+> **Last Generated**: 2026-01-20 06:07:42
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports Found**: 1468
+- **Total Imports Found**: 1466
 - **Dependencies Documented**: 108 (100% coverage)
-- **Standard Library Imports**: 400 (27.2%)
+- **Standard Library Imports**: 397 (27.1%)
 - **Third-Party Imports**: 230 (15.7%)
-- **Local Imports**: 838 (57.1%)
+- **Local Imports**: 839 (57.2%)
 - **Last Updated**: 2026-01-20
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 400 imports (27.2%)
+- **Standard Library**: 397 imports (27.1%)
 - **Third-Party**: 230 imports (15.7%)
-- **Local**: 838 imports (57.1%)
+- **Local**: 839 imports (57.2%)
 
 ## Module Dependencies by Directory
 
@@ -1111,11 +1111,9 @@
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
     - `json`
-    - `os`
     - `pathlib (Path)`
     - `random`
     - `re`
-    - `typing (Optional)`
   - **Third-party**:
     - `notebook.notebook_data_manager (create_list, create_note)`
 - **Used by**: 
@@ -1708,6 +1706,7 @@
   - `core/service.py`
   - `core/service_utilities.py`
   - `core/tags.py`
+  - `core/time_utilities.py`
   - `core/ui_management.py`
   - `core/user_data_handlers.py`
   - `core/user_data_manager.py`
@@ -1818,7 +1817,7 @@
     - `core.time_utilities (now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
   - **Standard Library**:
-    - `datetime (datetime, timedelta)`
+    - `datetime (timedelta)`
     - `typing (Any)`
 - **Used by**: 
   - `ai/chatbot.py`
@@ -1914,7 +1913,7 @@
     - `core.schedule_management (get_schedule_time_periods)` (NEW)
     - `core.scheduler (SchedulerManager)` (NEW)
     - `core.service_utilities (load_and_localize_datetime)` (NEW)
-    - `core.time_utilities (DATE_DISPLAY_WEEKDAY, DATE_ONLY, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, now_timestamp_filename, parse_date_only, parse_time_only_minute, parse_timestamp_full, parse_timestamp_minute)` (NEW)
+    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, now_timestamp_filename, parse_date_only, parse_time_only_minute, parse_timestamp_full, parse_timestamp_minute)` (NEW)
     - `core.user_data_handlers (get_all_user_ids, get_user_data)` (NEW)
     - `tasks.task_management (are_tasks_enabled, get_task_by_id, load_active_tasks, update_task)` (NEW)
     - `user.user_context (UserContext)` (NEW)
@@ -1926,7 +1925,7 @@
     - `subprocess`
     - `threading`
     - `time`
-    - `typing (Any, Dict, List)`
+    - `typing (Any, List)`
   - **Third-party**:
     - `pytz`
     - `schedule`
@@ -2085,6 +2084,8 @@
 #### `core/time_utilities.py`
 - **Purpose**: Core system module for time_utilities
 - **Dependencies**: 
+  - **Local**:
+    - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
     - `datetime`
@@ -2127,7 +2128,8 @@
   - `user/context_manager.py`
 
 **Dependency Changes**:
-- Removed: ai/chatbot.py, ai/context_builder.py, ai/conversation_history.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_monitor.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/error_handling.py, core/file_operations.py, core/message_management.py, core/response_tracking.py, core/schedule_management.py, core/schedule_utilities.py, core/scheduler.py, core/service.py, core/service_utilities.py, core/tags.py, core/user_data_handlers.py, core/user_data_manager.py, core/user_data_validation.py, tasks/task_management.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/generate_ui_files.py, ui/ui_app_qt.py
+- Added: core.logger
+- Removed: ai/chatbot.py, ai/context_builder.py, ai/conversation_history.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_monitor.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/error_handling.py, core/file_operations.py, core/message_management.py, core/response_tracking.py, core/schedule_management.py, core/schedule_utilities.py, core/scheduler.py, core/service.py, core/service_utilities.py, core/tags.py, core/user_data_handlers.py, core/user_data_manager.py, core/user_data_validation.py, tasks/task_management.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, ui/ui_app_qt.py, user/context_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

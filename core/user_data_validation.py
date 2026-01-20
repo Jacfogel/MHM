@@ -8,7 +8,7 @@ import re
 import os
 from typing import Dict, Any, Tuple, List, Optional
 from core.logger import get_component_logger
-from core.error_handling import handle_errors
+from core.error_handling import ValidationError, handle_errors
 from core.time_utilities import (
     DATE_ONLY,
     TIME_ONLY_MINUTE,
@@ -426,8 +426,8 @@ def validate_user_update(
                 from datetime import datetime as _dt
 
                 if parse_date_only(dob) is None:
-                    raise ValueError("invalid date")
-            except ValueError:
+                    raise ValidationError("invalid date")
+            except ValidationError:
                 errors.append("date_of_birth must be in YYYY-MM-DD format")
         if "custom_fields" in updates and not isinstance(
             updates["custom_fields"], dict
@@ -556,12 +556,12 @@ def validate_schedule_periods(
                 st = parse_time_only_minute(start_time)
                 et = parse_time_only_minute(end_time)
                 if st is None or et is None:
-                    raise ValueError("invalid time")
+                    raise ValidationError("invalid time")
                 if st >= et:
                     errors.append(
                         f"Period '{period_name}' start_time must be before end_time"
                     )
-            except ValueError:
+            except ValidationError:
                 # Already caught by format validation
                 pass
 
@@ -702,8 +702,8 @@ def validate_personalization_data(data: dict[str, Any]) -> tuple[bool, list[str]
             from datetime import datetime as _dt
 
             if parse_date_only(dob) is None:
-                raise ValueError("invalid date")
-        except ValueError:
+                raise ValidationError("invalid date")
+        except ValidationError:
             errors.append("date_of_birth must be in YYYY-MM-DD format")
 
     # loved_ones list of dicts

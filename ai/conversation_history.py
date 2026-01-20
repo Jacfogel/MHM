@@ -1,6 +1,6 @@
 # conversation_history.py
 
-from typing import Dict, Any, List, Optional
+from typing import Any
 from dataclasses import dataclass
 from datetime import datetime
 

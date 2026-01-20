@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 03:43:52
+> **Last Generated**: 2026-01-20 06:07:43
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports**: 1468
-- **Standard Library**: 400 (27.2%)
+- **Total Imports**: 1466
+- **Standard Library**: 397 (27.1%)
 - **Third-Party**: 230 (15.7%)
-- **Local Imports**: 838 (57.1%)
+- **Local Imports**: 839 (57.2%)
 
 ## Dependency Decision Trees
 
@@ -55,7 +55,7 @@ Communication Dependencies:
   - communication/communication_channels/discord/account_flow_handler.py <- standard library (typing), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_handlers
   - communication/communication_channels/discord/api_client.py <- standard library (asyncio, dataclasses, time, typing), third-party (discord), logger, error_handling
 - Conversation Flow
-  - communication/message_processing/conversation_flow_manager.py <- standard library (datetime, json, os, pathlib), third-party (notebook.notebook_data_manager), chatbot, logger, user_data_handlers, response_tracking, error_handling (+12 more)
+  - communication/message_processing/conversation_flow_manager.py <- standard library (datetime, json, pathlib, random), third-party (notebook.notebook_data_manager), chatbot, logger, user_data_handlers, response_tracking, error_handling (+12 more)
   - communication/communication_channels/discord/account_flow_handler.py <- standard library (typing), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_handlers
 
 ### Need UI Dependencies?

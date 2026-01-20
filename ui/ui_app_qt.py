@@ -46,7 +46,7 @@ ui_logger = logger
 from core.config import validate_all_configuration
 
 # Import comprehensive error handling
-from core.error_handling import handle_errors
+from core.error_handling import DataError, handle_errors
 from core.service_utilities import get_flags_dir
 
 from user.user_context import UserContext
@@ -631,8 +631,10 @@ class MHMManagerUI(QMainWindow):
                                         timestamp_match.group(1)
                                     )
                                     if last_init_time is None:
-                                        raise ValueError
-                                except ValueError:
+                                        raise DataError(
+                                            "Invalid Discord initialization timestamp"
+                                        )
+                                except DataError:
                                     pass
 
                         # Look for shutdown messages
@@ -646,8 +648,10 @@ class MHMManagerUI(QMainWindow):
                                         timestamp_match.group(1)
                                     )
                                     if last_shutdown_time is None:
-                                        raise ValueError
-                                except ValueError:
+                                        raise DataError(
+                                            "Invalid Discord shutdown timestamp"
+                                        )
+                                except DataError:
                                     pass
 
                         # Look for recent activity
@@ -661,8 +665,10 @@ class MHMManagerUI(QMainWindow):
                                         timestamp_match.group(1)
                                     )
                                     if last_activity_time is None:
-                                        raise ValueError
-                                except ValueError:
+                                        raise DataError(
+                                            "Invalid Discord activity timestamp"
+                                        )
+                                except DataError:
                                     pass
 
                     # If we found recent activity (within last 5 minutes), Discord is definitely running
@@ -709,7 +715,9 @@ class MHMManagerUI(QMainWindow):
                                             timestamp_match.group(1)
                                         )
                                         if init_time is None:
-                                            raise ValueError
+                                            raise DataError(
+                                                "Invalid Discord restart timestamp"
+                                            )
                                         if init_time > last_shutdown_time:
                                             # Check if this restart is recent
                                             time_since_restart = (
@@ -719,7 +727,7 @@ class MHMManagerUI(QMainWindow):
                                                 time_since_restart < 3600
                                             ):  # Within last hour
                                                 return True
-                                    except ValueError:
+                                    except DataError:
                                         pass
                     else:
                         # No initialization found - but if we have recent activity, Discord is running
@@ -803,8 +811,10 @@ class MHMManagerUI(QMainWindow):
                                         timestamp_match.group(1)
                                     )
                                     if last_init_time is None:
-                                        raise ValueError
-                                except ValueError:
+                                        raise DataError(
+                                            "Invalid Email initialization timestamp"
+                                        )
+                                except DataError:
                                     pass
 
                         # Look for shutdown messages
@@ -818,8 +828,10 @@ class MHMManagerUI(QMainWindow):
                                         timestamp_match.group(1)
                                     )
                                     if last_shutdown_time is None:
-                                        raise ValueError
-                                except ValueError:
+                                        raise DataError(
+                                            "Invalid Email shutdown timestamp"
+                                        )
+                                except DataError:
                                     pass
 
                     # If we found an initialization, check if shutdown happened after it
@@ -854,7 +866,9 @@ class MHMManagerUI(QMainWindow):
                                             timestamp_match.group(1)
                                         )
                                         if init_time is None:
-                                            raise ValueError
+                                            raise DataError(
+                                                "Invalid Email restart timestamp"
+                                            )
                                         if init_time > last_shutdown_time:
                                             # Check if this restart is recent
                                             time_since_restart = (
@@ -864,7 +878,7 @@ class MHMManagerUI(QMainWindow):
                                                 time_since_restart < 3600
                                             ):  # Within last hour
                                                 return True
-                                    except ValueError:
+                                    except DataError:
                                         pass
                     else:
                         # No initialization found - channel never started or logs are empty

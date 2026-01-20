@@ -260,6 +260,11 @@ When adding new data or changing existing structures:
 
 ## 4. Key Modules and Responsibilities
 
+- **core/time_utilities.py**  
+  Canonical source of truth for all datetime acquisition, formatting, and parsing across the codebase.
+  All timestamp formats, parsing helpers, and "now" helpers live here. No other module should call
+  `datetime.now()`, `strftime()`, or `strptime()` directly.
+
 This section summarizes the most important modules and how they relate. It is not a complete
 listing of every file.
 

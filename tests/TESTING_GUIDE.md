@@ -530,7 +530,7 @@ When using an exception, add a short comment explaining:
 
 #### Never allowed (even in tests)
 - Emitting a non-canonical timestamp/date/time into any JSON or data file that production code reads.
-- Parsing display-only formats (`DATE_DISPLAY_*`) or debug-only formats as “real” persisted state.
+- Parsing display-only formats (`DATE_DISPLAY_*`) or debug-only formats as "real" persisted state.
 
 ### 6.5. Quality expectations
 

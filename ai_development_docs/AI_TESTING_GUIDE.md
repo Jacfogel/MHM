@@ -184,6 +184,14 @@ For rationale and examples, see sections 5.1-5.3 in [TESTING_GUIDE.md](tests/TES
 
 ## 6. Writing and Extending Tests
 
+### 6.1. Time rules (canonical utilities)
+
+- `core/time_utilities.py` is the single source of truth for datetime formats and current-time helpers.
+- Do **not** mock or patch `datetime.now()` in tests.
+- Patch canonical helpers instead (for example, `now_datetime_full()`).
+- Use canonical parse/format helpers when constructing test inputs that production code will read.
+
+
 Placement rules:
 
 - Use the correct directory (`unit`, `integration`, `behavior`, `ui`) based on behavior.

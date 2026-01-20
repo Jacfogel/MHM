@@ -42,6 +42,10 @@
 
 ## 1. Safety First
 
+- **Datetime rules**  
+  Use only helpers from `core/time_utilities.py` for current time, formatting, or parsing.
+  Do not introduce `datetime.now()`, `strftime()`, or `strptime()` in other modules.
+
 - Default assumptions:
   - The user is working on the `main` branch unless they say otherwise.
   - The virtual environment is `.venv` in the project root.

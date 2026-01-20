@@ -2,19 +2,19 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 03:48:26
+> **Last Generated**: 2026-01-20 07:08:01
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 413
-- **Files with Unused Imports**: 191
-- **Total Unused Imports**: 551
+- **Files with Unused Imports**: 183
+- **Total Unused Imports**: 528
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 163 imports
-- **Type Hints Only**: 29 imports
+- **Obvious Unused**: 142 imports
+- **Type Hints Only**: 27 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
@@ -27,50 +27,6 @@
 ## Obvious Unused
 
 **Recommendation**: These imports can likely be safely removed.
-
-### `ai/cache_manager.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 6**: Unused Dict imported from typing
-- **Line 6**: Unused Optional imported from typing
-- **Line 6**: Unused Tuple imported from typing
-
-### `ai/chatbot.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 16**: Unused Optional imported from typing
-- **Line 44**: Unused datetime imported from datetime
-
-### `ai/context_builder.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 3**: Unused Dict imported from typing
-- **Line 3**: Unused List imported from typing
-
-### `ai/conversation_history.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 3**: Unused Dict imported from typing
-- **Line 3**: Unused List imported from typing
-
-### `ai/prompt_manager.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 4**: Unused Dict imported from typing
-- **Line 4**: Unused Optional imported from typing
-
-### `communication/command_handlers/account_handler.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 7**: Unused Dict imported from typing
-- **Line 7**: Unused List imported from typing
-- **Line 7**: Unused Optional imported from typing
 
 ### `communication/command_handlers/analytics_handler.py`
 
@@ -254,13 +210,6 @@
 - **Line 14**: Unused List imported from typing
 - **Line 14**: Unused Optional imported from typing
 
-### `communication/message_processing/conversation_flow_manager.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 19**: Unused import os
-- **Line 23**: Unused Optional imported from typing
-
 ### `communication/message_processing/interaction_manager.py`
 
 **Count**: 3 unused import(s)
@@ -302,12 +251,10 @@
 
 ### `core/error_handling.py`
 
-**Count**: 4 unused import(s)
+**Count**: 2 unused import(s)
 
 - **Line 14**: Unused Dict imported from typing
 - **Line 14**: Unused List imported from typing
-- **Line 15**: Unused datetime imported from datetime
-- **Line 17**: Unused parse_timestamp_full imported from core.time_utilities
 
 ### `core/file_auditor.py`
 
@@ -329,12 +276,6 @@
 
 - **Line 13**: Unused Optional imported from typing
 
-### `core/response_tracking.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 6**: Unused datetime imported from datetime
-
 ### `core/schedule_management.py`
 
 **Count**: 1 unused import(s)
@@ -346,13 +287,6 @@
 **Count**: 1 unused import(s)
 
 - **Line 9**: Unused Optional imported from typing
-
-### `core/scheduler.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 12**: Unused Dict imported from typing
-- **Line 17**: Unused DATE_DISPLAY_WEEKDAY imported from core.time_utilities
 
 ### `core/schemas.py`
 
@@ -554,18 +488,6 @@
 ## Type Hints Only
 
 **Recommendation**: Consider using `TYPE_CHECKING` guard for these imports.
-
-### `ai/context_builder.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 3**: Unused Optional imported from typing
-
-### `ai/conversation_history.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 3**: Unused Optional imported from typing
 
 ### `communication/command_handlers/base_handler.py`
 

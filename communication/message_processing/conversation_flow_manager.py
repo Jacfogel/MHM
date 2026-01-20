@@ -16,11 +16,9 @@ Usage:
   4) If completed == True, the flow is done, so we remove them from user_states.
 """
 
-import os
 import json
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Optional
 from ai.chatbot import get_ai_chatbot
 from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
@@ -1940,7 +1938,13 @@ class ConversationManager:
 
         def _date_str(dt: datetime) -> str:
             """Return YYYY-MM-DD without sprinkling strftime format strings."""
-            return format_timestamp(dt, DATE_ONLY)
+            try:
+                return format_timestamp(dt, DATE_ONLY)
+            except Exception as exc:
+                logger.error(
+                    f"Failed to format date for natural language parser: {exc}", exc_info=True
+                )
+                return ""
 
         # Try to parse relative dates first
         if text_lower == "today":

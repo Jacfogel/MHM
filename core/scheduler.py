@@ -9,7 +9,7 @@ import random
 import subprocess
 import os  # Needed for test mocking (os.path.exists)
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
+from typing import List, Any
 
 from core.user_data_handlers import get_all_user_ids
 from core.schedule_management import get_schedule_time_periods
@@ -21,7 +21,6 @@ from core.time_utilities import (
     DATE_ONLY,
     TIME_ONLY_MINUTE,
     TIMESTAMP_MINUTE,
-    DATE_DISPLAY_WEEKDAY,
     format_timestamp,
     parse_date_only,
     parse_time_only_minute,
@@ -1384,6 +1383,7 @@ class SchedulerManager:
         }
         return priority_multipliers.get(priority, 1.0)
 
+    @handle_errors("calculating due date weight for reminder selection", default_return=1.0, user_friendly=False)
     def _select_task_for_reminder__calculate_due_date_weight(self, task, today):
         """Calculate due date proximity weight for a task."""
         due_date_str = task.get("due_date")

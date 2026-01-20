@@ -11,7 +11,7 @@ import statistics
 from typing import Dict, List, Optional
 from core.logger import get_component_logger
 from core.response_tracking import get_checkins_by_days
-from core.error_handling import handle_errors
+from core.error_handling import ValidationError, handle_errors
 from core.time_utilities import parse_timestamp_full, parse_time_only_minute
 
 logger = get_component_logger("user_activity")
@@ -41,10 +41,8 @@ class CheckinAnalytics:
             if "mood" in checkin and "timestamp" in checkin:
                 try:
                     timestamp = parse_timestamp_full(checkin["timestamp"])
-
                     if timestamp is None:
-
-                        raise ValueError("Invalid timestamp")
+                        raise ValidationError("Invalid timestamp")
                     mood_data.append(
                         {
                             "date": timestamp.date(),
@@ -52,7 +50,7 @@ class CheckinAnalytics:
                             "timestamp": checkin["timestamp"],
                         }
                     )
-                except (ValueError, TypeError):
+                except (ValidationError, TypeError):
                     continue
 
         if not mood_data:
@@ -121,8 +119,7 @@ class CheckinAnalytics:
                     timestamp = parse_timestamp_full(checkin["timestamp"])
 
                     if timestamp is None:
-
-                        raise ValueError("Invalid timestamp")
+                        raise ValidationError("Invalid timestamp")
                     energy_data.append(
                         {
                             "date": timestamp.date(),
@@ -130,7 +127,7 @@ class CheckinAnalytics:
                             "timestamp": checkin["timestamp"],
                         }
                     )
-                except (ValueError, TypeError):
+                except (ValidationError, TypeError):
                     continue
 
         if not energy_data:
@@ -242,8 +239,7 @@ class CheckinAnalytics:
                     timestamp = parse_timestamp_full(checkin["timestamp"])
 
                     if timestamp is None:
-
-                        raise ValueError("Invalid timestamp")
+                        raise ValidationError("Invalid timestamp")
                     sleep_entry = {
                         "date": timestamp.date(),
                         "timestamp": checkin["timestamp"],
@@ -266,7 +262,7 @@ class CheckinAnalytics:
                                 sleep_entry["hours"] = sleep_duration
 
                     sleep_data.append(sleep_entry)
-                except (ValueError, TypeError):
+                except (ValidationError, TypeError):
                     continue
 
         if not sleep_data:
@@ -384,8 +380,7 @@ class CheckinAnalytics:
                     timestamp = parse_timestamp_full(checkin["timestamp"])
 
                     if timestamp is None:
-
-                        raise ValueError("Invalid timestamp")
+                        raise ValidationError("Invalid timestamp")
 
                     formatted_checkin = {
                         # ISO date should come from the date object
@@ -409,7 +404,7 @@ class CheckinAnalytics:
                             formatted_checkin[habit] = checkin[habit]
 
                     formatted_history.append(formatted_checkin)
-                except (ValueError, TypeError):
+                except (ValidationError, TypeError):
                     continue
 
         return formatted_history

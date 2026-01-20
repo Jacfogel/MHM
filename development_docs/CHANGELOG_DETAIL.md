@@ -37,6 +37,29 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-01-20 - Harden error handling and timestamp helpers
+
+#### Objective
+Reduce uncategorized exception exposure and guard all time helpers so downstream callers never crash on unexpected formatting issues.
+
+#### Changes Made
+- **`core/time_utilities.py`**: Decorated the canonical timestamp helpers (`now_timestamp_*`, `format_timestamp*`, and the bridge helpers in `core/error_handling.py`) so they log failures via `handle_errors` and return safe defaults while avoiding circular imports.
+- **`core/scheduler.py`**: Added `@handle_errors` to `_select_task_for_reminder__calculate_due_date_weight` to centralize recovery instead of inline try/except logic.
+- **`core/checkin_analytics.py`, `core/user_data_validation.py`, `ui/ui_app_qt.py`**: Replaced the remaining `ValueError` raises with `ValidationError`/`DataError` so the analyzer now sees domain-specific exceptions and the surrounding logic catches them explicitly.
+- **`core/error_handling.py`**: Redirected internal timestamp helpers to import the decorated time utilities lazily to avoid circular import issues, keeping error reports stable.
+
+#### Impact
+- **More consistent recovery**: Core helpers now follow the centralized `handle_errors` path, so logging, recovery, and retries remain uniform and test coverage can reason about failures.
+- **Stronger exception taxonomy**: Using `ValidationError` and `DataError` makes the analyzer’s Phase 2 recommendations go away while making caller code more explicit about why a timestamp was invalid.
+
+#### Testing
+- `python run_tests.py` (complete suite, 4 082 passes / 1 skip)
+- `python development_tools/run_development_tools.py cleanup --full`
+- `python development_tools/run_development_tools.py audit --full`
+
+#### Documentation Impact
+- Regenerated `development_tools/AI_PRIORITIES.md`, `AI_STATUS.md`, `consolidated_report.txt`, and the various generated reports during the Tier 3 audit run.
+
 ### 2026-01-20 Datetime Canonicalization & Test Alignment
 Scope: Project-wide refactor and audit of datetime.now() usage
 Status: Mostly complete (all non-test instances addressed)
@@ -44,13 +67,13 @@ Summary
 Completed a comprehensive audit and refactor of all remaining non-test usages of datetime.now() across the MHM codebase. All runtime datetime acquisition is now routed through canonical helpers in core/time_utilities.py, ensuring consistent formatting, precision, and behavior across persistence, scheduling, UI logic, and internal state handling.
 This work progresses the transition to core/time_utilities.py as the single source of truth for datetime handling.
 Key Changes
-1. Canonical “now” helpers added
+1. Canonical "now" helpers added
 - Added:
    - now_datetime_full()
    - now_datetime_minute()
 - Purpose:
    - Provide canonical, local-naive datetime objects for arithmetic and comparison
-   - Eliminate repeated strftime → strptime round-trips
+   - Eliminate repeated strftime -> strptime round-trips
    - Resolve Optional (datetime | None) propagation issues flagged by type checkers
    - These helpers derive strictly from existing canonical formats; no new formats introduced.
 2. All non-test datetime.now() usages removed
@@ -83,7 +106,7 @@ Key Changes
 - **Tooling integration**: Wired config defaults in `development_tools/config/config.py`, added tool metadata/guide entries, and hooked into CLI + service wrappers + audit orchestration + report generation so it runs with audits and emits structured JSON.
 - **Reporting tweak**: Removed the consolidated report "Cache Usage" line for duplicate-function analysis to keep output focused on results.
 - **Impact**: Audits now surface likely duplicate clusters with deterministic scoring and cached scanning to reduce repeat run cost.
-- **Files**: `development_tools/config/config.py`, `development_tools/config/development_tools_config.json`, `development_tools/config/development_tools_config.json.example`, `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/report_generation.py`, `development_tools/shared/service/tool_wrappers.py`, `development_tools/shared/cli_interface.py`, `development_tools/shared/tool_guide.py`, `development_tools/shared/tool_metadata.py`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`.
+- **Files**: `development_tools/config/config.py`, `development_tools/config/development_tools_config.json`, `development_tools/config/development_tools_config.json.example`, `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/report_generation.py`, `development_tools/shared/service/tool_wrappers.py`, `development_tools/shared/cli_interface.py`, `development_tools/shared/tool_guide.py`, `development_tools/shared/tool_metadata.py`, [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md).
 
 ### 2026-01-19 - Standardized all datetime parsing and formatting across the codebase to route exclusively through core/time_utilities.py.
 Removed all remaining direct uses of:
@@ -117,7 +140,7 @@ Notes
 - Introduced strict parsing helpers for critical state (parse_timestamp_full, parse_timestamp_minute, etc.) that fail safely.
 - Added explicitly-scoped flexible parsing via parse_timestamp(...) for cases where multiple external timestamp shapes are legitimately expected.
 - Centralized handling of external timestamp variants (ISO-like inputs) as parse-only, never emitted by the system.
-- Added lightweight “now” helpers (now_timestamp_full, now_timestamp_minute, now_timestamp_filename) to eliminate scattered datetime.now().strftime(...) usage.
+- Added lightweight "now" helpers (now_timestamp_full, now_timestamp_minute, now_timestamp_filename) to eliminate scattered datetime.now().strftime(...) usage.
 - Enforced design constraints:
    - no logging, config, or timezone dependencies
    - no inline datetime format strings outside this module

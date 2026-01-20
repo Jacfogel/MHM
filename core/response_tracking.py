@@ -3,7 +3,6 @@ Response tracking utilities for MHM.
 Contains functions for storing and retrieving user responses, check-ins, and interactions.
 """
 
-from datetime import datetime
 from typing import Any
 from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
@@ -91,23 +90,25 @@ def get_recent_responses(user_id: str, response_type: str = "checkin", limit: in
 
         def get_timestamp_for_sorting(item):
             """Convert timestamp to float for consistent sorting"""
-            # Handle case where item might be a string instead of a dictionary
-            if isinstance(item, str):
-                # If it's a string, it's probably a malformed entry - assign it a very old timestamp
-                return 0.0
-            elif not isinstance(item, dict):
-                # If it's not a dict or string, treat as very old
-                return 0.0
+            try:
+                # Handle case where item might be a string instead of a dictionary
+                if isinstance(item, str) or not isinstance(item, dict):
+                    return 0.0
 
-            timestamp = item.get("timestamp", "1970-01-01 00:00:00")
+                timestamp = item.get("timestamp", "1970-01-01 00:00:00")
 
-            # Canonical strict parse for stored timestamps
-            dt = parse_timestamp_full(timestamp)
-            if dt is None:
-                # If parsing fails, use 0
+                # Canonical strict parse for stored timestamps
+                dt = parse_timestamp_full(timestamp)
+                if dt is None:
+                    # If parsing fails, use 0
+                    return 0.0
+
+                return dt.timestamp()
+            except Exception as exc:
+                tracking_logger.error(
+                    f"Failed to convert timestamp for sorting: {exc}", exc_info=True
+                )
                 return 0.0
-
-            return dt.timestamp()
 
         sorted_data = sorted(data, key=get_timestamp_for_sorting, reverse=True)
         return sorted_data[:limit]
