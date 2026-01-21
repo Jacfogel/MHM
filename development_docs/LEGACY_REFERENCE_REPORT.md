@@ -2,33 +2,21 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 07:08:17
+> **Last Generated**: 2026-01-20 23:28:20
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 37
-**Legacy Compatibility Markers Detected**: 77
+**Total Files with Issues**: 34
+**Legacy Compatibility Markers Detected**: 63
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
-- Legacy compatibility markers remain in 1 file(s) (1 total markers).
 
 ## Recommended Follow-Up
 1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.
 2. Add regression tests covering analytics handler flows and user data migrations before deleting markers.
 3. Track the cleanup effort and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.
 
-## Legacy Compatibility Markers
-**Files Affected**: 1
-
-### core\message_management.py
-**Issues Found**: 1
-
-- **Line 683**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY:
-  ```
-
 ## Legacy Inventory Tracking
-**Files Affected**: 35
+**Files Affected**: 34
 
 ### communication\command_handlers\account_handler.py
 **Issues Found**: 1
@@ -73,19 +61,6 @@
 - **Line 708**: `backward compatibility`
   ```
   # Legacy validation functions (kept for backward compatibility)
-  ```
-
-### core\message_management.py
-**Issues Found**: 2
-
-- **Line 672**: `backward compatibility`
-  ```
-  Handles multiple timestamp formats for backward compatibility.
-  ```
-
-- **Line 685**: `backward compatibility`
-  ```
-  # This function preserves backward compatibility for persisted message timestamps.
   ```
 
 ### core\scheduler.py
@@ -458,71 +433,4 @@
 - **Line 75**: `legacy extraction`
   ```
   # Extract data and update using new functions directly - no legacy extraction needed
-  ```
-
-## Legacy Timestamp Parsing
-**Files Affected**: 3
-
-### core\message_management.py
-**Issues Found**: 7
-
-- **Line 460**: `_parse_timestamp(`
-  ```
-  if _parse_timestamp(msg.get("timestamp", "")) >= cutoff_date
-  ```
-
-- **Line 465**: `_parse_timestamp(`
-  ```
-  key=lambda msg: _parse_timestamp(msg.get("timestamp", "")), reverse=True
-  ```
-
-- **Line 534**: `_parse_timestamp(`
-  ```
-  new_timestamp = _parse_timestamp(new_message["timestamp"])
-  ```
-
-- **Line 537**: `_parse_timestamp(`
-  ```
-  existing_timestamp = _parse_timestamp(existing_msg.get("timestamp", ""))
-  ```
-
-- **Line 604**: `_parse_timestamp(`
-  ```
-  message_timestamp = _parse_timestamp(message.get("timestamp", ""))
-  ```
-
-- **Line 668**: `_parse_timestamp(`
-  ```
-  def _parse_timestamp(timestamp_str: str) -> datetime:
-  ```
-
-- **Line 704**: `LEGACY COMPATIBILITY: Parsed non-{TIMESTAMP_FULL} message timestamp`
-  ```
-  f"LEGACY COMPATIBILITY: Parsed non-{TIMESTAMP_FULL} message timestamp: {timestamp_str!r}"
-  ```
-
-### development_tools\shared\output_storage.py
-**Issues Found**: 3
-
-- **Line 437**: `_parse_timestamp(`
-  ```
-  def _parse_timestamp(result_data: Dict[str, Any], result_file: Path) -> datetime:
-  ```
-
-- **Line 479**: `_parse_timestamp(`
-  ```
-  existing_ts = _parse_timestamp(existing, result_file)
-  ```
-
-- **Line 480**: `_parse_timestamp(`
-  ```
-  candidate_ts = _parse_timestamp(result_data, result_file)
-  ```
-
-### tests\behavior\test_core_message_management_coverage_expansion.py
-**Issues Found**: 1
-
-- **Line 90**: `_parse_timestamp(`
-  ```
-  result = _parse_timestamp(timestamp_str)
   ```

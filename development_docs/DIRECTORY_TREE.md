@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 06:07:44
+> **Last Generated**: 2026-01-20 22:56:55
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -58,6 +58,7 @@ C:.
 |           testing-guidelines.mdc
 |           ui-guidelines.mdc
 |           
++---.pytest_tmp
 +---ai
 |   |   cache_manager.py
 |   |   chatbot.py
@@ -247,6 +248,7 @@ C:.
 |   |   test_isolation.py
 |   |   test_utilities.py
 |   |   
+|   +---.pytest_core_mgmt
 |   +---ai
 |   |   |   ai_response_validator.py
 |   |   |   ai_test_base.py

@@ -13,6 +13,7 @@ import shutil
 from pathlib import Path
 from unittest.mock import patch
 from datetime import datetime
+from core.time_utilities import now_datetime_full
 
 # Do not modify sys.path; rely on package imports
 
@@ -76,7 +77,10 @@ class TestAutoCleanupTimestampBehavior:
         test_timestamp = time.time()
         test_data = {
             "last_cleanup_timestamp": test_timestamp,
-            "last_cleanup_date": datetime.now().isoformat(),
+            "last_cleanup_date": (
+                # Test metadata only; human-readable field and not used for production time calculations.
+                now_datetime_full().isoformat()
+            ),
         }
 
         with open(temp_tracker_file, "w") as f:

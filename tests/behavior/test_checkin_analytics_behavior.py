@@ -9,6 +9,10 @@ import pytest
 from unittest.mock import patch
 from datetime import datetime, timedelta
 
+
+# Deterministic anchor for test data generation.
+# These timestamps are parsed/processed by production logic, so we avoid wall-clock time.
+TEST_ANCHOR_DT = datetime(2026, 1, 15, 12, 0, 0)
 # Do not modify sys.path; rely on package imports
 
 from core.checkin_analytics import CheckinAnalytics
@@ -42,7 +46,7 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
     @pytest.fixture
     def mock_checkins_with_mood(self):
         """Create mock check-in data with mood information."""
-        base_date = datetime.now() - timedelta(days=30)
+        base_date = TEST_ANCHOR_DT - timedelta(days=30)
         checkins = []
 
         from core.time_utilities import format_timestamp, TIMESTAMP_FULL
@@ -144,7 +148,7 @@ class TestCheckinAnalyticsHabitAnalysisBehavior:
     @pytest.fixture
     def mock_checkins_with_habits(self):
         """Create mock check-in data with habit information."""
-        base_date = datetime.now() - timedelta(days=30)
+        base_date = TEST_ANCHOR_DT - timedelta(days=30)
         checkins = []
 
         from core.time_utilities import format_timestamp, TIMESTAMP_FULL
@@ -236,7 +240,7 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
     @pytest.fixture
     def mock_checkins_with_sleep(self):
         """Create mock check-in data with sleep information."""
-        base_date = datetime.now() - timedelta(days=30)
+        base_date = TEST_ANCHOR_DT - timedelta(days=30)
         checkins = []
 
         from core.time_utilities import format_timestamp, TIMESTAMP_FULL
@@ -326,7 +330,7 @@ class TestCheckinAnalyticsWellnessScoreBehavior:
     @pytest.fixture
     def mock_checkins_for_wellness(self):
         """Create mock check-in data for wellness scoring."""
-        base_date = datetime.now() - timedelta(days=7)
+        base_date = TEST_ANCHOR_DT - timedelta(days=7)
         checkins = []
 
         from core.time_utilities import format_timestamp, TIMESTAMP_FULL
@@ -418,7 +422,7 @@ class TestCheckinAnalyticsHistoryBehavior:
     @pytest.fixture
     def mock_checkins_for_history(self):
         """Create mock check-in data for history testing."""
-        base_date = datetime.now() - timedelta(days=30)
+        base_date = TEST_ANCHOR_DT - timedelta(days=30)
         checkins = []
 
         from core.time_utilities import format_timestamp, TIMESTAMP_FULL
@@ -485,7 +489,7 @@ class TestCheckinAnalyticsCompletionRateBehavior:
     @pytest.fixture
     def mock_checkins_for_completion(self):
         """Create mock check-in data for completion rate testing."""
-        base_date = datetime.now() - timedelta(days=30)
+        base_date = TEST_ANCHOR_DT - timedelta(days=30)
         checkins = []
 
         from core.time_utilities import format_timestamp, TIMESTAMP_FULL
@@ -556,7 +560,7 @@ class TestCheckinAnalyticsTaskStatsBehavior:
     @pytest.fixture
     def mock_checkins_for_tasks(self):
         """Create mock check-in data for task stats testing."""
-        base_date = datetime.now() - timedelta(days=7)
+        base_date = TEST_ANCHOR_DT - timedelta(days=7)
         checkins = []
 
         from core.time_utilities import format_timestamp, TIMESTAMP_FULL

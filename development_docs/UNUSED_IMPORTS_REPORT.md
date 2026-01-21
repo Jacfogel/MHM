@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 07:08:01
+> **Last Generated**: 2026-01-20 23:27:11
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 413
-- **Files with Unused Imports**: 183
-- **Total Unused Imports**: 528
+- **Files with Unused Imports**: 187
+- **Total Unused Imports**: 533
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 142 imports
+- **Obvious Unused**: 143 imports
 - **Type Hints Only**: 27 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
 - **Test Mocking**: 147 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 152 imports
+- **Test Infrastructure**: 156 imports
 - **Production Test Mocking**: 4 imports
 - **Ui Imports**: 1 imports
 
@@ -407,7 +407,13 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 15**: Unused TIMESTAMP_FULL imported from core.time_utilities
+- **Line 19**: Unused TIMESTAMP_FULL imported from core.time_utilities
+
+### `tests/behavior/test_interaction_handlers_coverage_expansion.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 24**: Unused now_datetime_full imported from core.time_utilities
 
 ### `tests/behavior/test_scheduler_behavior.py`
 
@@ -629,8 +635,8 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 20**: Unused Mock imported from unittest.mock
-- **Line 27**: Unused get_user_data imported from core.user_data_handlers
+- **Line 19**: Unused Mock imported from unittest.mock
+- **Line 26**: Unused get_user_data imported from core.user_data_handlers
 
 ### `tests/ai/test_cache_manager.py`
 
@@ -1314,6 +1320,12 @@
 
 **Recommendation**: These imports are required for test infrastructure (fixtures, data creation, etc.).
 
+### `tests/ai/ai_test_base.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 8**: Unused datetime imported from datetime
+
 ### `tests/ai/test_ai_core.py`
 
 **Count**: 1 unused import(s)
@@ -1326,11 +1338,18 @@
 
 - **Line 1**: Unused import os
 
-### `tests/behavior/test_checkin_expiry_semantics.py`
+### `tests/behavior/test_backup_manager_behavior.py`
 
 **Count**: 1 unused import(s)
 
+- **Line 15**: Unused datetime imported from datetime
+
+### `tests/behavior/test_checkin_expiry_semantics.py`
+
+**Count**: 2 unused import(s)
+
 - **Line 1**: Unused import os
+- **Line 2**: Unused datetime imported from datetime
 
 ### `tests/behavior/test_communication_manager_behavior.py`
 
@@ -1368,6 +1387,12 @@
 - **Line 18**: Unused TestUserFactory imported from tests.test_utilities
 
 ### `tests/behavior/test_notebook_handler_behavior.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 10**: Unused datetime imported from datetime
+
+### `tests/behavior/test_task_cleanup_bug.py`
 
 **Count**: 1 unused import(s)
 

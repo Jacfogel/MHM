@@ -4,12 +4,16 @@ import pytest
 import os
 import signal
 import time
+from datetime import datetime, timedelta
 import json
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock, mock_open
 
 from core.service import MHMService, InitializationError, main, get_scheduler_manager
 from core.time_utilities import TIMESTAMP_FULL, format_timestamp
+
+# Deterministic 'now' for tests that compare timestamps to "recent activity" thresholds.
+TEST_NOW_DT = datetime(2026, 1, 20, 12, 0, 0)
 
 
 class TestCoreServiceCoverageExpansion:
@@ -1460,44 +1464,70 @@ class TestCoreServiceCoverageExpansion:
         self, service
     ):
         """Test the most complex helper function - recent activity timestamp checking with recent activity."""
-        from datetime import datetime, timedelta
+        # Patch canonical now helper so "recent activity" comparisons are deterministic.
+        with (
+            patch(
+                "core.service.now_datetime_full", return_value=TEST_NOW_DT, create=True
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+        ):
 
-        # Create log content with recent timestamp (within 5 minutes)
-        recent_time = datetime.now() - timedelta(minutes=2)
-        recent_timestamp = format_timestamp(recent_time, TIMESTAMP_FULL)
-        log_content = f"2025-01-16 10:00:00 DEBUG: Old message\n{recent_timestamp} DEBUG: Recent message"
-
-        with patch("core.service.logger") as mock_logger:
-            result = service._check_and_fix_logging__check_recent_activity_timestamps(
-                log_content
+            # Create log content with a controlled timestamp.
+            recent_time = TEST_NOW_DT - timedelta(minutes=2)
+            recent_timestamp = format_timestamp(recent_time, TIMESTAMP_FULL)
+            log_content = (
+                "2025-01-16 10:00:00 DEBUG: Old message\n"
+                f"{recent_timestamp} DEBUG: Recent message"
             )
 
-            # Should detect recent activity and log success
-            assert result is True
-            mock_logger.debug.assert_called_with("Logging system healthy")
+            with patch("core.service.logger") as mock_logger:
+                result = service._check_and_fix_logging__check_recent_activity_timestamps(
+                    log_content
+                )
+
+                # Should detect recent activity and log success
+                assert result is True
+                mock_logger.debug.assert_called_with("Logging system healthy")
 
     @pytest.mark.behavior
     def test_check_and_fix_logging_check_recent_activity_timestamps_old_activity(
         self, service
     ):
         """Test the most complex helper function - recent activity timestamp checking with old activity."""
-        from datetime import datetime, timedelta
+        # Patch canonical now helper so "recent activity" comparisons are deterministic.
+        with (
+            patch(
+                "core.service.now_datetime_full", return_value=TEST_NOW_DT, create=True
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+        ):
 
-        # Create log content with old timestamp (more than 5 minutes ago)
-        old_time = datetime.now() - timedelta(minutes=10)
-        old_timestamp = format_timestamp(old_time, TIMESTAMP_FULL)
-        log_content = f"2025-01-16 10:00:00 DEBUG: Old message\n{old_timestamp} DEBUG: Old activity"
-
-        with patch("core.service.logger") as mock_logger:
-            result = service._check_and_fix_logging__check_recent_activity_timestamps(
-                log_content
+            # Create log content with a controlled timestamp.
+            old_time = TEST_NOW_DT - timedelta(minutes=10)
+            old_timestamp = format_timestamp(old_time, TIMESTAMP_FULL)
+            log_content = (
+                "2025-01-16 10:00:00 DEBUG: Old message\n"
+                f"{old_timestamp} DEBUG: Old activity"
             )
 
-            # Should detect old activity and log warning
-            assert result is False
-            mock_logger.warning.assert_called_with(
-                "No recent logging activity detected, may need restart"
-            )
+            with patch("core.service.logger") as mock_logger:
+                result = service._check_and_fix_logging__check_recent_activity_timestamps(
+                    log_content
+                )
+
+                # Should detect old activity and log warning
+                assert result is False
+                mock_logger.warning.assert_called_with(
+                    "No recent logging activity detected, may need restart"
+                )
 
     @pytest.mark.behavior
     def test_check_and_fix_logging_check_recent_activity_timestamps_invalid_timestamp(

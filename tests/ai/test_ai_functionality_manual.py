@@ -8,7 +8,6 @@ This script performs manual tests that verify AI behavior in various scenarios.
 import sys
 import os
 import time
-from datetime import datetime
 
 # Add project root to path (tests/ai -> tests -> project root)
 project_root = os.path.dirname(
@@ -23,7 +22,7 @@ import requests
 from ai.chatbot import AIChatBotSingleton
 from ai.cache_manager import get_response_cache
 from tests.test_utilities import TestUserFactory
-from core.time_utilities import now_timestamp_filename
+from core.time_utilities import now_datetime_full, now_timestamp_filename
 from core.user_data_handlers import get_user_data
 from core.response_tracking import get_recent_chat_interactions
 from core.user_data_handlers import get_user_id_by_identifier
@@ -63,7 +62,8 @@ class AITestRunner:
             "response": response,
             "response_time": response_time,
             "metrics": metrics or {},
-            "timestamp": datetime.now().isoformat(),
+            # Test metadata only; not parsed/persisted by production code.
+            "timestamp": now_datetime_full().isoformat(),
         }
         self.results.append(result)
 
@@ -2268,7 +2268,7 @@ class AITestRunner:
 
         with open(report_file, "w", encoding="utf-8") as f:
             f.write("# AI Functionality Test Results\n\n")
-            f.write(f"**Test Date**: {datetime.now().isoformat()}\n\n")
+            f.write(f"**Test Date**: {now_datetime_full().isoformat()}\n\n")
             f.write(
                 f"**Summary**: {passed} passed, {partial} partial, {failed} failed out of {total} tests\n\n"
             )

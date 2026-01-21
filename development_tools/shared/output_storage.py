@@ -434,7 +434,7 @@ def get_all_tool_results(
         "shared",
     ]
 
-    def _parse_timestamp(result_data: Dict[str, Any], result_file: Path) -> datetime:
+    def _parse_result_timestamp(result_data: Dict[str, Any], result_file: Path) -> datetime:
         """Return a comparable timestamp for a tool result entry."""
         raw_ts = None
         if isinstance(result_data, dict):
@@ -476,8 +476,8 @@ def get_all_tool_results(
                     result_data = json.load(f)
                 if tool_name in all_results:
                     existing = all_results[tool_name]
-                    existing_ts = _parse_timestamp(existing, result_file)
-                    candidate_ts = _parse_timestamp(result_data, result_file)
+                    existing_ts = _parse_result_timestamp(existing, result_file)
+                    candidate_ts = _parse_result_timestamp(result_data, result_file)
                     if candidate_ts > existing_ts:
                         all_results[tool_name] = result_data
                 else:

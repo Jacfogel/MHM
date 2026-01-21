@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 06:07:40
+> **Last Generated**: 2026-01-20 22:56:51
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 96.1% [OK] EXCELLENT**
-- **Total Functions**: 1511
+### **Documentation Coverage: 96.0% [OK] EXCELLENT**
+- **Total Functions**: 1515
 - **Total Methods**: 1134
-- **Documented**: 2541/2645
+- **Documented**: 2543/2649
 - **Files Scanned**: 109
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -81,7 +81,7 @@ Core System Decision Tree:
 +-- Configuration
 |   `-- `core/config.py` - System configuration (22 functions)
 +-- Error Handling
-|   `-- `core/error_handling.py` - Error management (60/62 functions)
+|   `-- `core/error_handling.py` - Error management (60/64 functions)
 +-- File Operations
 |   +-- `core/file_operations.py` - File I/O (16 functions)
 |   `-- `core/backup_manager.py` - Backup operations (53 functions)
@@ -231,7 +231,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (27 files, 815 functions)
+- `core/` - System utilities and data management (27 files, 819 functions)
 - `communication/` - Communication channels and message processing (38 files, 759 functions)
 - `ai/` - AI chatbot functionality (7 files, 189 functions)
 - `ui/` - User interface components (28 files, 793 functions)
@@ -239,4 +239,4 @@ Most complex functions (may need refactoring):
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2026-01-20 06:07:40
+> **Last Updated**: 2026-01-20 22:56:51

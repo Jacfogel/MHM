@@ -9,6 +9,10 @@ import pytest
 from unittest.mock import patch
 from datetime import datetime, timedelta
 
+# Deterministic anchor for test data generation.
+# These timestamps are consumed by production analytics parsing/logic, so avoid datetime.now().
+TEST_ANCHOR_DT = datetime(2026, 1, 20, 12, 0, 0)
+
 # Do not modify sys.path; rely on package imports
 
 from core.message_analytics import MessageAnalytics
@@ -42,7 +46,7 @@ class TestMessageAnalyticsFrequencyBehavior:
     @pytest.fixture
     def mock_messages(self):
         """Create mock sent message data."""
-        base_date = datetime.now() - timedelta(days=30)
+        base_date = TEST_ANCHOR_DT - timedelta(days=30)
         messages = []
 
         # Create messages across different categories and time periods
@@ -147,7 +151,7 @@ class TestMessageAnalyticsDeliveryBehavior:
     @pytest.fixture
     def mock_messages_mixed_status(self):
         """Create mock sent message data with mixed delivery statuses."""
-        base_date = datetime.now() - timedelta(days=30)
+        base_date = TEST_ANCHOR_DT - timedelta(days=30)
         messages = []
 
         statuses = ["sent", "sent", "sent", "failed", "sent"]  # 80% success rate
@@ -218,7 +222,7 @@ class TestMessageAnalyticsSummaryBehavior:
     @pytest.fixture
     def mock_messages(self):
         """Create mock sent message data."""
-        base_date = datetime.now() - timedelta(days=30)
+        base_date = TEST_ANCHOR_DT - timedelta(days=30)
         messages = []
 
         for i in range(20):

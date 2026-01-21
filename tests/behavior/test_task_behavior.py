@@ -14,7 +14,7 @@ import os
 from unittest.mock import patch
 import json
 from datetime import datetime, timedelta
-from core.time_utilities import DATE_ONLY, format_timestamp
+from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 
 # Do not modify sys.path; rely on package imports
 
@@ -267,7 +267,7 @@ class TestTaskManagement:
         mock_get_user_dir.return_value = temp_dir
 
         # Create tasks with due dates
-        today = datetime.now().date()
+        today = now_datetime_full().date()
 
         due_soon_date = today + timedelta(days=2)
         due_late_date = today + timedelta(days=10)

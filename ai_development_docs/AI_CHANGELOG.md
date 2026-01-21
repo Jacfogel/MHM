@@ -26,10 +26,19 @@ Guidelines:
 - REMOVE OLDER ENTRIES when adding new ones to keep context short
 - Target 10-15 recent entries maximum for optimal AI context window usage
 ## Recent Changes (Most Recent First)
+### 2026-01-20 - Test suite datetime canonicalization update **COMPLETED**
+- Continued replacing `datetime.now()` calls in behavior/unit/integration tests with `core/time_utilities` helpers so production-sensitive paths (scheduling, analytics, cleanup, conflict detection) rely on the same canonical timestamps.
+- Patched canonical helpers when deterministic control was needed and left inline `datetime` only for metadata/debug discussions, reducing wall-clock dependence while covering AI, analytics, scheduler, task, notebook, cleanup, backup, and check-in suites (~80% of remaining files completed).
+- Logged the remaining ~20 files pending canonicalization and noted the commands (`development_tools/run_development_tools.py cleanup --full`, `development_tools/run_development_tools.py docs`, `python run_tests.py`) used during the session.
+### 2026-01-20 - Test canonicalization and doc/test hygiene **COMPLETED**
+- Summarized the deterministic `core/time_utilities` adoption in tests and noted that cleanup/docs/test commands were run in this session.
+- Logged the flaky `tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_feature_enablement_persistence_real_behavior` into [TODO.md](TODO.md) so the intermittent failure now tracks worker isolation issues.
+- Ensured the documentation state references the commands used (`development_tools/run_development_tools.py cleanup --full`, `development_tools/run_development_tools.py docs`, `python run_tests.py`) as part of this effort.
+
 ### 2026-01-20 - Hardened time helpers and error classification **COMPLETED**
 - Decorated every canonical timestamp helper (`core/time_utilities.py`), the scheduler due-date weight calculator, and the internal `_now_*` helpers so they already route through `@handle_errors` and provide safe defaults when formatting/parsing fails.
 - Replaced the remaining `ValueError` raises with `ValidationError` or `DataError` in the analytics, validation, and UI tracking layers so collectors already run against domain-specific error types.
-- Reran the full test suite via `python run_tests.py` (4 082 passes, 1 skip) plus `development_tools/run_development_tools.py cleanup --full` and `development_tools/run_development_tools.py audit --full` so the Tier 3 snapshot now reflects the updated hygiene state.
+- Reran the full test suite via `python run_tests.py` (4 082 passes, 1 skip) plus `development_tools/run_development_tools.py cleanup --full` and `development_tools/run_development_tools.py audit --full` so the Tier 3 snapshot now reflects the updated hygiene state.
 ### 2026-01-20 - Duplicate function analysis tool added **COMPLETED**
 - Added `development_tools/functions/analyze_duplicate_functions.py` to flag similar functions using weighted similarity (name/args/locals/imports) and clustered output.
 - Wired into config/CLI/metadata/service wrappers/audit reporting (plus tool guides) so audits surface duplicate clusters.

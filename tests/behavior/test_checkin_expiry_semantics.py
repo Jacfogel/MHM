@@ -52,7 +52,12 @@ class TestCheckinExpirySemantics:
         # Canonical formatting (no inline strftime outside core.time_utilities)
         from core.time_utilities import format_timestamp
 
-        past_dt = datetime.now() - timedelta(minutes=idle_minutes)
+        from core.time_utilities import (
+            now_datetime_full,
+        )  # canonical 'now' for production-behavior-sensitive tests
+
+        current_dt = now_datetime_full()
+        past_dt = current_dt - timedelta(minutes=idle_minutes)
         past = format_timestamp(past_dt, TIMESTAMP_FULL)
 
         state["last_activity"] = past

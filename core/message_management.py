@@ -405,6 +405,8 @@ def get_recent_messages(
             logger.debug(f"No sent messages found for user {user_id}")
             return []
 
+        _normalize_message_timestamps(data, file_path)
+
         # Normalize/validate to drop malformed entries and apply defaults
         normalized_data, errors = validate_messages_file_dict(data)
         if errors:
@@ -457,12 +459,12 @@ def get_recent_messages(
             filtered_messages = [
                 msg
                 for msg in filtered_messages
-                if _parse_timestamp(msg.get("timestamp", "")) >= cutoff_date
+                if _parse_message_timestamp(msg.get("timestamp", "")) >= cutoff_date
             ]
 
         # Sort by timestamp descending (newest first)
         filtered_messages.sort(
-            key=lambda msg: _parse_timestamp(msg.get("timestamp", "")), reverse=True
+            key=lambda msg: _parse_message_timestamp(msg.get("timestamp", "")), reverse=True
         )
 
         # Apply limit
@@ -511,6 +513,7 @@ def store_sent_message(
     try:
         file_path = determine_file_path("sent_messages", user_id)
         data = load_json_data(file_path) or {}
+        _normalize_message_timestamps(data, file_path)
 
         # Create new message entry (without redundant user_id field)
         new_message = {
@@ -531,10 +534,10 @@ def store_sent_message(
 
         # Find insertion point
         insert_index = 0
-        new_timestamp = _parse_timestamp(new_message["timestamp"])
+        new_timestamp = _parse_message_timestamp(new_message["timestamp"])
 
         for i, existing_msg in enumerate(messages):
-            existing_timestamp = _parse_timestamp(existing_msg.get("timestamp", ""))
+            existing_timestamp = _parse_message_timestamp(existing_msg.get("timestamp", ""))
             if new_timestamp > existing_timestamp:
                 insert_index = i
                 break
@@ -585,6 +588,9 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
         file_path = determine_file_path("sent_messages", user_id)
         data = load_json_data(file_path)
 
+        if data:
+            _normalize_message_timestamps(data, file_path)
+
         if not data or "messages" not in data:
             logger.debug(f"No messages to archive for user {user_id}")
             return True
@@ -601,7 +607,7 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
         archived_messages = []
 
         for message in messages:
-            message_timestamp = _parse_timestamp(message.get("timestamp", ""))
+            message_timestamp = _parse_message_timestamp(message.get("timestamp", ""))
             if message_timestamp >= cutoff_date:
                 active_messages.append(message)
             else:
@@ -660,58 +666,99 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
 
 
 @handle_errors(
-    "parsing timestamp",
+    "parsing message timestamp",
     # IMPORTANT: avoid datetime.now() here (it would be evaluated at import time).
     # Use the same "invalid timestamp" sentinel the function already returns.
     default_return=datetime.min.replace(tzinfo=timezone.utc),
 )
-def _parse_timestamp(timestamp_str: str) -> datetime:
+def _parse_message_timestamp(timestamp_str: str) -> datetime:
     """
     Parse timestamp string to datetime object.
-
-    Handles multiple timestamp formats for backward compatibility.
 
     Args:
         timestamp_str: Timestamp string to parse
 
     Returns:
-        datetime: Parsed datetime object
+        datetime: Parsed datetime object (UTC) or sentinel minimum
     """
     if not timestamp_str:
         return datetime.min.replace(tzinfo=timezone.utc)
 
-    # LEGACY COMPATIBILITY:
-    # Historical sent_messages data may contain timestamps that are not TIMESTAMP_FULL.
-    # This function preserves backward compatibility for persisted message timestamps.
-    #
-    # Removal plan:
-    # - Add a migration/normalization step to ensure all persisted message timestamps are TIMESTAMP_FULL.
-    # - Once logs confirm no legacy formats remain, replace callers with strict parse_timestamp_full(...)
-    #   and delete this helper.
-
-    # First, try strict internal persisted format.
-    strict = parse_timestamp_full(timestamp_str)
-    if strict is not None:
-        parsed = strict
-    else:
-        # Backward-compat parsing:
-        # - Internal persisted state SHOULD be TIMESTAMP_FULL
-        # - Older/external variants may appear in historical data
-        parsed = parse_timestamp(timestamp_str, allowed=("external",))
-        if parsed is not None:
-            # Log only when the legacy/external compatibility path is exercised.
-            logger.info(
-                f"LEGACY COMPATIBILITY: Parsed non-{TIMESTAMP_FULL} message timestamp: {timestamp_str!r}"
-            )
-
+    parsed = parse_timestamp_full(timestamp_str)
     if parsed is None:
         return datetime.min.replace(tzinfo=timezone.utc)
 
-    # Preserve existing behavior: assume UTC if tzinfo is missing.
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=timezone.utc)
+    else:
+        parsed = parsed.astimezone(timezone.utc)
 
     return parsed
+
+
+@handle_errors(
+    "parsing legacy timestamp for normalization",
+    default_return=None,
+    user_friendly=False,
+)
+def _parse_legacy_timestamp_for_normalization(timestamp_str: str) -> datetime | None:
+    """
+    Parse an older timestamp shape when normalizing persisted sent_messages data.
+
+    The returned datetime is naive (no timezone) so it can be serialized using TIMESTAMP_FULL.
+    """
+    if not timestamp_str:
+        return None
+    return parse_timestamp(
+        timestamp_str,
+        allowed=("full", "minute", "microseconds", "external"),
+    )
+
+
+@handle_errors(
+    "normalizing message timestamps",
+    default_return=False,
+    user_friendly=False,
+)
+def _normalize_message_timestamps(
+    data: dict[str, Any], file_path: str | Path
+) -> bool:
+    """
+    Normalize timestamps in persisted sent_messages data to the canonical TIMESTAMP_FULL shape.
+
+    Returns:
+        bool: True if any timestamps were rewritten.
+    """
+    messages = data.get("messages")
+    if not isinstance(messages, list):
+        return False
+
+    normalized_count = 0
+    for message in messages:
+        timestamp_value = message.get("timestamp", "")
+        if not timestamp_value:
+            continue
+
+        if parse_timestamp_full(timestamp_value) is not None:
+            continue
+
+        legacy_dt = _parse_legacy_timestamp_for_normalization(timestamp_value)
+        if legacy_dt is None:
+            continue
+
+        message["timestamp"] = legacy_dt.strftime(TIMESTAMP_FULL)
+        normalized_count += 1
+
+    if not normalized_count:
+        return False
+
+    file_path_obj = Path(file_path)
+    save_json_data(data, str(file_path_obj))
+    logger.info(
+        f"Normalized {normalized_count} legacy timestamps in {file_path_obj}"
+    )
+
+    return True
 
 
 @handle_errors("creating message file from defaults")

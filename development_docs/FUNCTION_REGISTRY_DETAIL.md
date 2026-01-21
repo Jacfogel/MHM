@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 06:07:40
+> **Last Generated**: 2026-01-20 22:56:51
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 96.1% [OK] COMPLETED**
+### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
 - **Files Scanned**: 109
-- **Functions Found**: 1511
+- **Functions Found**: 1515
 - **Methods Found**: 1134
 - **Classes Found**: 154
-- **Total Items**: 2645
-- **Functions Documented**: 1447
+- **Total Items**: 2649
+- **Functions Documented**: 1449
 - **Methods Documented**: 1094
 - **Classes Documented**: 120
-- **Total Documented**: 2541
+- **Total Documented**: 2543
 - **Template-Generated**: 4
 - **Last Updated**: 2026-01-20
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (551)
+### **Core System Functions** (555)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (399)
@@ -2792,6 +2792,8 @@ Args:
 - [OK] `_get_default_data(self, file_path, context)` - Get appropriate default data based on file type.
 - [OK] `_get_user_friendly_message(self, error, context)` - Convert technical error to user-friendly message.
 - [OK] `_log_error(self, error, context)` - Log error with context.
+- [MISSING] `_now_datetime_full()` - No description
+- [MISSING] `_now_timestamp_full()` - No description
 - [OK] `_show_user_error(self, error, context, custom_message)` - Show user-friendly error message.
 - [OK] `can_handle(self, error)` - Check if this strategy can handle the given error.
 - [OK] `can_handle(self, error)` - Check if this strategy can handle the given error.
@@ -3533,15 +3535,20 @@ Returns:
 
 #### `core/message_management.py`
 **Functions:**
-- [OK] `_parse_timestamp(timestamp_str)` - Parse timestamp string to datetime object.
+- [OK] `_normalize_message_timestamps(data, file_path)` - Normalize timestamps in persisted sent_messages data to the canonical TIMESTAMP_FULL shape.
 
-Handles multiple timestamp formats for backward compatibility.
+Returns:
+    bool: True if any timestamps were rewritten.
+- [OK] `_parse_legacy_timestamp_for_normalization(timestamp_str)` - Parse an older timestamp shape when normalizing persisted sent_messages data.
+
+The returned datetime is naive (no timezone) so it can be serialized using TIMESTAMP_FULL.
+- [OK] `_parse_message_timestamp(timestamp_str)` - Parse timestamp string to datetime object.
 
 Args:
     timestamp_str: Timestamp string to parse
 
 Returns:
-    datetime: Parsed datetime object
+    datetime: Parsed datetime object (UTC) or sentinel minimum
 - [OK] `add_message(user_id, category, message_data, index)` - Add a new message to a user's category.
 
 Args:

@@ -8,7 +8,6 @@ import sys
 import os
 import logging
 from pathlib import Path
-from datetime import datetime
 
 # CRITICAL: Set environment variables BEFORE any imports that might initialize loggers
 # This ensures test logs go to tests/logs/ instead of logs/
@@ -25,7 +24,11 @@ os.environ["LOGS_DIR"] = tests_logs_dir
 os.environ["TEST_LOGS_DIR"] = tests_logs_dir
 
 import shutil
-from core.time_utilities import now_timestamp_filename, now_timestamp_full
+from core.time_utilities import (
+    now_datetime_full,
+    now_timestamp_filename,
+    now_timestamp_full,
+)
 
 # Add project root to path (already set above)
 sys.path.insert(0, project_root)
@@ -357,7 +360,7 @@ class AITestResultsCollector:
 
         with open(report_file, "w", encoding="utf-8") as f:
             f.write("# AI Functionality Test Results\n\n")
-            f.write(f"**Test Date**: {datetime.now().isoformat()}\n\n")
+            f.write(f"**Test Date**: {now_datetime_full().isoformat()}\n\n")
             f.write(
                 f"**Summary**: {passed} passed, {partial} partial, {failed} failed out of {total} tests\n\n"
             )

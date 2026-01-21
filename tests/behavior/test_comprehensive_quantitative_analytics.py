@@ -71,7 +71,7 @@ class TestComprehensiveQuantitativeAnalytics:
         # Create sample check-in data with all quantitative fields (use recent dates)
         from datetime import datetime, timedelta
 
-        now = datetime.now()
+        now = datetime(2026, 1, 15, 12, 0, 0)
         sample_checkins = [
             {
                 "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
@@ -234,7 +234,7 @@ class TestComprehensiveQuantitativeAnalytics:
         # Create check-in data with various yes/no formats (use recent dates)
         from datetime import datetime, timedelta
 
-        now = datetime.now()
+        now = datetime(2026, 1, 15, 12, 0, 0)
         sample_checkins = [
             {
                 "timestamp": format_timestamp(now - timedelta(days=2), TIMESTAMP_FULL),
@@ -326,7 +326,7 @@ class TestComprehensiveQuantitativeAnalytics:
         # Create check-in data with responses dict format (use recent dates)
         from datetime import datetime, timedelta
 
-        now = datetime.now()
+        now = datetime(2026, 1, 15, 12, 0, 0)
         sample_checkins = [
             {
                 "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),

@@ -6,14 +6,17 @@ Tests for context with check-ins, conversation history, and integration features
 
 import os
 from unittest.mock import patch
-from datetime import datetime
+
+# NOTE: Avoid datetime.now in tests that touch production behavior.
+# Use canonical time helpers from core.time_utilities instead.
+
 
 from tests.ai.ai_test_base import AITestBase
 from tests.test_utilities import TestUserFactory
 from core.user_data_handlers import get_user_id_by_identifier
 from core.response_tracking import get_recent_chat_interactions
 from user.context_manager import user_context_manager
-from core.time_utilities import DATE_ONLY
+from core.time_utilities import DATE_ONLY, now_datetime_full
 
 
 class TestAIIntegration(AITestBase):
@@ -84,7 +87,7 @@ def test_context_with_checkins(self):
             )  # get_recent_checkins uses limit, not days
 
             # Canonical formatting: avoid inline strftime in tests.
-            today_prefix = format_timestamp(datetime.now(), DATE_ONLY)
+            today_prefix = format_timestamp(now_datetime_full(), DATE_ONLY)
 
             checkins_today = [
                 c
@@ -362,7 +365,9 @@ def test_context_with_checkins(self):
             try:
                 # Check if check-in data exists before first response
                 from core.response_tracking import get_recent_checkins
-                from datetime import datetime
+
+                # NOTE: Avoid datetime.now in tests that touch production behavior.
+                # Use canonical time helpers from core.time_utilities instead.
 
                 checkins_before = (
                     get_recent_checkins(actual_user_id, limit=10)

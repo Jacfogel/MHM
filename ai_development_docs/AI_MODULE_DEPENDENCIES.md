@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 06:07:43
+> **Last Generated**: 2026-01-20 22:56:53
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports**: 1466
-- **Standard Library**: 397 (27.1%)
+- **Total Imports**: 1465
+- **Standard Library**: 394 (26.9%)
 - **Third-Party**: 230 (15.7%)
-- **Local Imports**: 839 (57.2%)
+- **Local Imports**: 841 (57.4%)
 
 ## Dependency Decision Trees
 
@@ -135,7 +135,7 @@ External libraries provide channel and UI support.
 - `communication/command_handlers/task_handler.py` <-> `communication/message_processing/conversation_flow_manager.py`
 - `communication/message_processing/conversation_flow_manager.py` <-> `communication/message_processing/interaction_manager.py`
 - `core/config.py` <-> `core/logger.py`
-- `core/error_handling.py` <-> `core/service_utilities.py`
+- `core/error_handling.py` <-> `core/time_utilities.py`
 
 
 ## Quick Reference for AI

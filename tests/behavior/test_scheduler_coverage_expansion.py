@@ -25,6 +25,7 @@ from core.time_utilities import (
     format_timestamp,
     parse_time_only_minute,
     parse_timestamp_minute,
+    now_datetime_full,
 )
 
 
@@ -323,7 +324,7 @@ class TestMessageScheduling:
             mock_get_time.return_value = "2024-01-15 10:30"
 
             with patch("core.scheduler.load_and_localize_datetime") as mock_load_time:
-                mock_load_time.return_value = datetime.now() + timedelta(hours=1)
+                mock_load_time.return_value = now_datetime_full() + timedelta(hours=1)
 
                 with patch.object(
                     scheduler_manager, "is_time_conflict"
@@ -365,7 +366,7 @@ class TestMessageScheduling:
             mock_get_time.return_value = "2024-01-15 10:30"
 
             with patch("core.scheduler.load_and_localize_datetime") as mock_load_time:
-                mock_load_time.return_value = datetime.now() + timedelta(hours=1)
+                mock_load_time.return_value = now_datetime_full() + timedelta(hours=1)
 
                 with patch.object(
                     scheduler_manager, "is_time_conflict"
@@ -577,7 +578,7 @@ class TestTimeManagement:
     def test_is_time_conflict_with_conflict_real_behavior(self, scheduler_manager):
         """Test time conflict detection when conflicts exist."""
         user_id = "test-user"
-        schedule_datetime = datetime.now() + timedelta(hours=1)
+        schedule_datetime = now_datetime_full() + timedelta(hours=1)
 
         # Create a mock job that conflicts
         mock_job = Mock()
@@ -600,7 +601,7 @@ class TestTimeManagement:
     def test_is_time_conflict_no_conflict_different_user(self, scheduler_manager):
         """Test time conflict detection with different user."""
         user_id = "test-user"
-        schedule_datetime = datetime.now() + timedelta(hours=1)
+        schedule_datetime = now_datetime_full() + timedelta(hours=1)
 
         # Create a mock job for a different user
         mock_job = Mock()
@@ -791,7 +792,7 @@ class TestWakeTimerFunctionality:
     @pytest.mark.critical
     def test_set_wake_timer_real_behavior(self, scheduler_manager):
         """Test setting wake timer for scheduled messages."""
-        schedule_time = datetime.now() + timedelta(hours=1)
+        schedule_time = now_datetime_full() + timedelta(hours=1)
         user_id = "test-user"
         category = "motivational"
         period = "morning"
@@ -810,7 +811,7 @@ class TestWakeTimerFunctionality:
     @pytest.mark.scheduler
     def test_set_wake_timer_failure_handling(self, scheduler_manager):
         """Test wake timer failure handling."""
-        schedule_time = datetime.now() + timedelta(hours=1)
+        schedule_time = now_datetime_full() + timedelta(hours=1)
         user_id = "test-user"
         category = "motivational"
         period = "morning"
@@ -1059,7 +1060,7 @@ class TestErrorHandling:
             mock_get_time.return_value = "2024-01-15 10:30"
 
             with patch("core.scheduler.load_and_localize_datetime") as mock_load_time:
-                mock_load_time.return_value = datetime.now() + timedelta(hours=1)
+                mock_load_time.return_value = now_datetime_full() + timedelta(hours=1)
 
                 with patch.object(
                     scheduler_manager, "is_time_conflict"
@@ -1545,12 +1546,12 @@ class TestSelectTaskForReminderBehavior:
         self, scheduler_manager
     ):
         """Test due date proximity weighting for tasks due today."""
-        today_date = datetime.now().date()
+        today_date = now_datetime_full().date()
 
         today = format_timestamp(
             datetime.combine(today_date, datetime.min.time()), DATE_ONLY
         )
-        future_date_obj = datetime.now().date() + timedelta(days=30)
+        future_date_obj = now_datetime_full().date() + timedelta(days=30)
 
         future_date = format_timestamp(
             datetime.combine(future_date_obj, datetime.min.time()), DATE_ONLY
@@ -1588,11 +1589,11 @@ class TestSelectTaskForReminderBehavior:
         self, scheduler_manager
     ):
         """Test overdue task weighting with exponential increase."""
-        overdue_date_date = datetime.now().date() - timedelta(days=5)
+        overdue_date_date = now_datetime_full().date() - timedelta(days=5)
         overdue_date = format_timestamp(
             datetime.combine(overdue_date_date, datetime.min.time()), DATE_ONLY
         )
-        future_date_obj = datetime.now().date() + timedelta(days=30)
+        future_date_obj = now_datetime_full().date() + timedelta(days=30)
 
         future_date = format_timestamp(
             datetime.combine(future_date_obj, datetime.min.time()), DATE_ONLY
@@ -1687,7 +1688,7 @@ class TestSelectTaskForReminderBehavior:
         """Test performance and correctness with large task lists."""
         # Create 50 tasks with varying priorities and due dates
         tasks = []
-        today = datetime.now().date()
+        today = now_datetime_full().date()
 
         for i in range(50):
             priority = ["critical", "high", "medium", "low", "none"][i % 5]
@@ -1765,7 +1766,7 @@ class TestSelectTaskForReminderBehavior:
         self, scheduler_manager
     ):
         """Test sliding scale weighting for tasks due within a week."""
-        today = datetime.now().date()
+        today = now_datetime_full().date()
 
         tasks = [
             {
@@ -1827,7 +1828,7 @@ class TestSelectTaskForReminderBehavior:
         self, scheduler_manager
     ):
         """Test sliding scale weighting for tasks due within a month."""
-        today = datetime.now().date()
+        today = now_datetime_full().date()
 
         tasks = [
             {

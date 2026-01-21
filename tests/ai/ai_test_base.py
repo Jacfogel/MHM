@@ -6,13 +6,14 @@ Provides shared utilities for all AI test modules.
 
 import os
 from datetime import datetime
+
 from unittest.mock import patch
 
 from ai.chatbot import AIChatBotSingleton
 from tests.test_utilities import TestUserFactory
 from core.user_data_handlers import get_user_id_by_identifier
 from tests.ai.ai_response_validator import AIResponseValidator
-from core.time_utilities import DATE_ONLY
+from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 
 
 class AITestBase:
@@ -109,7 +110,8 @@ class AITestBase:
             "metrics": metrics or {},
             "context_info": context_info or {},  # Include context information
             "manual_review_notes": "",  # Will be populated during AI review
-            "timestamp": datetime.now().isoformat(),
+            # Test metadata only; not parsed/persisted by production code.
+            "timestamp": now_datetime_full().isoformat(),
         }
         self.results_collector.results.append(result)
 
@@ -273,7 +275,7 @@ class AITestBase:
                     for c in recent_checkins
                     if c.get("timestamp", "").startswith(
                         # Test metadata only; ISO-8601 shape is required for external tooling and is not consumed by production code.
-                        datetime.now().strftime(DATE_ONLY)
+                        format_timestamp(now_datetime_full(), DATE_ONLY)
                     )
                 ]
                 context_info["checkins_today"] = len(checkins_today)

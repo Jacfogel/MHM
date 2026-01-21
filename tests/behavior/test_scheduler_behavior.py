@@ -16,6 +16,7 @@ from core.time_utilities import (
     TIMESTAMP_MINUTE,
     parse_time_only_minute,
     parse_timestamp_minute,
+    now_datetime_full,
 )
 
 
@@ -193,7 +194,7 @@ class TestSchedulerManager:
     @pytest.mark.regression
     def test_is_time_conflict_no_conflicts(self, scheduler_manager):
         """Test time conflict detection when no conflicts exist."""
-        schedule_datetime = datetime.now() + timedelta(hours=1)
+        schedule_datetime = now_datetime_full() + timedelta(hours=1)
 
         result = scheduler_manager.is_time_conflict("test-user", schedule_datetime)
         assert result is False
@@ -214,7 +215,7 @@ class TestSchedulerManager:
         # Mock schedule.jobs to contain old tasks
         mock_job = Mock()
         mock_job.job_func.args = [user_id, category]
-        mock_job.next_run = datetime.now() - timedelta(days=2)  # Old job
+        mock_job.next_run = now_datetime_full() - timedelta(days=2)  # Old job
 
         with patch("core.scheduler.schedule") as mock_schedule:
             mock_schedule.jobs = [mock_job]
@@ -231,11 +232,11 @@ class TestSchedulerManager:
         # Mock schedule.jobs
         mock_job1 = Mock()
         mock_job1.job_func.args = ["user1", "motivational"]
-        mock_job1.next_run = datetime.now() + timedelta(hours=1)
+        mock_job1.next_run = now_datetime_full() + timedelta(hours=1)
 
         mock_job2 = Mock()
         mock_job2.job_func.args = ["user2", "health"]
-        mock_job2.next_run = datetime.now() + timedelta(hours=2)
+        mock_job2.next_run = now_datetime_full() + timedelta(hours=2)
 
         with patch("core.scheduler.schedule") as mock_schedule:
             mock_schedule.jobs = [mock_job1, mock_job2]
