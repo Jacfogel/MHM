@@ -10,7 +10,6 @@ import sys
 import time
 import subprocess
 from pathlib import Path
-from typing import Optional
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.service_utilities import (

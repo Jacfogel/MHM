@@ -11,7 +11,7 @@ from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.time_utilities import now_timestamp_full, TIMESTAMP_FULL
+from core.time_utilities import now_timestamp_full
 from core.tags import parse_tags_from_text
 
 from communication.command_handlers.base_handler import InteractionHandler

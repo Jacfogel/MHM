@@ -9,7 +9,7 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
 from communication.command_handlers.task_handler import TaskManagementHandler
-from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
+from core.time_utilities import DATE_ONLY, format_timestamp
 
 
 # Deterministic anchor for all relative-date tests.
@@ -148,9 +148,14 @@ class TestTaskManagementHandlerHelpers:
             {"title": "Future Task", "due_date": tomorrow},
         ]
 
-        result = self.handler._handle_list_tasks__apply_filters(
-            "user", tasks, "overdue", None, None
-        )
+        with patch(
+            "communication.command_handlers.task_handler.now_datetime_full",
+            return_value=TEST_NOW_DT,
+            create=True,
+        ):
+            result = self.handler._handle_list_tasks__apply_filters(
+                "user", tasks, "overdue", None, None
+            )
         assert len(result) == 1, "Should return only overdue tasks"
         assert result[0]["title"] == "Overdue Task", "Should return correct task"
 

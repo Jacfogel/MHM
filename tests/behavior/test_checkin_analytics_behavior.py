@@ -16,7 +16,6 @@ TEST_ANCHOR_DT = datetime(2026, 1, 15, 12, 0, 0)
 # Do not modify sys.path; rely on package imports
 
 from core.checkin_analytics import CheckinAnalytics
-from core.time_utilities import TIMESTAMP_FULL
 
 
 @pytest.mark.behavior

@@ -19,7 +19,6 @@ import pytest
 import os
 import json
 import shutil
-from typing import Optional
 from unittest.mock import patch, Mock, MagicMock
 from datetime import datetime
 from pathlib import Path

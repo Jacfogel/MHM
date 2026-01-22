@@ -7,7 +7,6 @@ and can be used independently for validation checks.
 """
 
 import re
-from typing import Optional, Tuple
 from uuid import UUID
 
 from core.logger import get_component_logger

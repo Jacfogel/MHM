@@ -12,8 +12,6 @@ from core.user_data_handlers import get_user_data
 from core.scheduler import SchedulerManager, schedule_all_task_reminders
 from core.user_data_handlers import get_user_categories
 from core.time_utilities import (
-    TIME_ONLY_MINUTE,
-    TIMESTAMP_MINUTE,
     parse_time_only_minute,
     parse_timestamp_minute,
     now_datetime_full,

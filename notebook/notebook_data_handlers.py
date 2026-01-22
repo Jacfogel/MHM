@@ -5,7 +5,6 @@ Handles JSON persistence for notebook entries with lazy directory creation.
 """
 
 from pathlib import Path
-from typing import List
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors, FileOperationError

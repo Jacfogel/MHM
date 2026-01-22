@@ -10,7 +10,7 @@ Manages comprehensive user context for AI conversations including:
 - Personalized insights
 """
 
-from typing import Dict, List, Any
+from typing import Any
 
 from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data

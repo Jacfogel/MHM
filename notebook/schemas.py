@@ -5,14 +5,13 @@ Defines Entry and ListItem models with validation, following MHM patterns.
 """
 
 from __future__ import annotations
-from typing import List, Literal, Optional
+from typing import Literal
 from uuid import UUID, uuid4
-from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
 
 from core.tags import normalize_tags, validate_tag
 from core.logger import get_component_logger
-from core.time_utilities import TIMESTAMP_FULL, now_timestamp_full
+from core.time_utilities import now_timestamp_full
 
 logger = get_component_logger("notebook_schemas")
 

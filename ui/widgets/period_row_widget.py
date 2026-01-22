@@ -1,6 +1,6 @@
 # period_row_widget.py - Reusable period row widget for schedules, check-ins, and tasks
 
-from typing import Dict, Any, List, Optional
+from typing import Any
 
 # PySide6 imports
 from PySide6.QtWidgets import QWidget, QButtonGroup

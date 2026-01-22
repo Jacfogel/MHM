@@ -6,7 +6,6 @@ Used in manual AI functionality tests to automatically flag issues.
 """
 
 import re
-from typing import List, Dict, Tuple, Optional
 
 
 class AIResponseValidator:

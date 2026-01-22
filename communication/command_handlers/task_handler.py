@@ -8,7 +8,7 @@ listing, completing, deleting, updating, and getting statistics for tasks.
 """
 
 from typing import Any
-from datetime import datetime, timedelta
+from datetime import timedelta
 import re
 
 from core.logger import get_component_logger

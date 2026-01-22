@@ -1,6 +1,6 @@
 # command_registry.py
 
-from typing import Dict, List, Optional, Callable
+from typing import Callable
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 

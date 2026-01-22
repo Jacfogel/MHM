@@ -5,7 +5,6 @@ import psutil
 import time
 import re
 from pathlib import Path
-from datetime import datetime
 
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -30,7 +29,6 @@ from PySide6.QtGui import QFont
 
 from core.time_utilities import (
     now_datetime_full,
-    TIMESTAMP_FULL,
     now_timestamp_full,
     parse_timestamp_full,
 )

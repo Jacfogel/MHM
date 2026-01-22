@@ -13,8 +13,7 @@ import copy
 import uuid
 
 from pathlib import Path
-from typing import Dict, Any, Optional, List
-from datetime import datetime
+from typing import Any
 
 # Do not modify sys.path; rely on package imports
 
@@ -3212,12 +3211,6 @@ class TestDataFactory:
         """
         import uuid
         from datetime import timedelta
-        from core.time_utilities import (
-            now_datetime_full,
-            now_timestamp_full,
-            format_timestamp,
-        )
-
         tasks = []
         for i in range(task_count):
             task = {

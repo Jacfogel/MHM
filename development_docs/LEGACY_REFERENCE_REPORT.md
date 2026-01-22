@@ -2,65 +2,21 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-21 19:52:45
+> **Last Generated**: 2026-01-22 02:50:59
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 35
-**Legacy Compatibility Markers Detected**: 72
+**Total Files with Issues**: 34
+**Legacy Compatibility Markers Detected**: 63
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
-- Legacy compatibility markers remain in 1 file(s) (2 total markers).
 
 ## Recommended Follow-Up
 1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.
 2. Add regression tests covering analytics handler flows and user data migrations before deleting markers.
 3. Track the cleanup effort and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.
 
-## Deprecated Functions
-**Files Affected**: 1
-
-### tests\data\tmphob1cxv4\demo_project\legacy_code.py
-**Issues Found**: 2
-
-- **Line 27**: `LegacyChannelWrapper`
-  ```
-  class LegacyChannelWrapper:
-  ```
-
-- **Line 32**: `_create_legacy_channel_access(`
-  ```
-  def _create_legacy_channel_access():
-  ```
-
-## Historical References
-**Files Affected**: 1
-
-### tests\data\tmphob1cxv4\demo_project\legacy_code.py
-**Issues Found**: 1
-
-- **Line 23**: `bot/communication`
-  ```
-  old_path = "bot/communication/old_file.py"
-  ```
-
-## Legacy Compatibility Markers
-**Files Affected**: 1
-
-### tests\data\tmphob1cxv4\demo_project\legacy_code.py
-**Issues Found**: 2
-
-- **Line 9**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: This function is kept for backward compatibility
-  ```
-
-- **Line 15**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Old import pattern
-  ```
-
 ## Legacy Inventory Tracking
-**Files Affected**: 35
+**Files Affected**: 34
 
 ### communication\command_handlers\account_handler.py
 **Issues Found**: 1
@@ -102,7 +58,7 @@
 ### core\config.py
 **Issues Found**: 1
 
-- **Line 708**: `backward compatibility`
+- **Line 707**: `backward compatibility`
   ```
   # Legacy validation functions (kept for backward compatibility)
   ```
@@ -110,7 +66,7 @@
 ### core\scheduler.py
 **Issues Found**: 1
 
-- **Line 1665**: `backward compatibility`
+- **Line 1675**: `backward compatibility`
   ```
   Legacy function for backward compatibility.
   ```
@@ -126,12 +82,12 @@
 ### core\user_data_handlers.py
 **Issues Found**: 2
 
-- **Line 1765**: `backward compatibility`
+- **Line 1764**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but should primarily be used
   ```
 
-- **Line 2251**: `backward compatibility`
+- **Line 2250**: `backward compatibility`
   ```
   # Check for explicit messages_enabled flag first, then fall back to categories check (for backward compatibility)
   ```
@@ -139,22 +95,22 @@
 ### core\user_data_validation.py
 **Issues Found**: 4
 
-- **Line 335**: `backward compatibility`
+- **Line 333**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
   ```
 
-- **Line 339**: `backward compatibility`
+- **Line 337**: `backward compatibility`
   ```
   # This maintains backward compatibility with the old validation approach
   ```
 
-- **Line 381**: `backward compatibility`
+- **Line 379**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
   ```
 
-- **Line 440**: `backward compatibility`
+- **Line 438**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but delegates to Pydantic
   ```
@@ -372,17 +328,9 @@
 ### tests\conftest.py
 **Issues Found**: 1
 
-- **Line 1687**: `backward compatibility`
+- **Line 1686**: `backward compatibility`
   ```
   This function is kept for backward compatibility but does nothing.
-  ```
-
-### tests\data\tmphob1cxv4\demo_project\legacy_code.py
-**Issues Found**: 1
-
-- **Line 9**: `backward compatibility`
-  ```
-  # LEGACY COMPATIBILITY: This function is kept for backward compatibility
   ```
 
 ### tests\development_tools\test_config.py
@@ -401,67 +349,67 @@
 ### tests\test_utilities.py
 **Issues Found**: 13
 
-- **Line 593**: `backward compatibility`
+- **Line 592**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 801**: `backward compatibility`
+- **Line 800**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 971**: `backward compatibility`
+- **Line 970**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1096**: `backward compatibility`
+- **Line 1095**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1401**: `backward compatibility`
+- **Line 1400**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1429**: `backward compatibility`
+- **Line 1428**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1643**: `backward compatibility`
+- **Line 1642**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1832**: `backward compatibility`
+- **Line 1831**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2022**: `backward compatibility`
+- **Line 2021**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2190**: `backward compatibility`
+- **Line 2189**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2363**: `backward compatibility`
+- **Line 2362**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2520**: `backward compatibility`
+- **Line 2519**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 3001**: `backward compatibility`
+- **Line 3000**: `backward compatibility`
   ```
   # Convenience functions for backward compatibility
   ```
@@ -485,31 +433,4 @@
 - **Line 75**: `legacy extraction`
   ```
   # Extract data and update using new functions directly - no legacy extraction needed
-  ```
-
-## Old Bot Directory
-**Files Affected**: 1
-
-### tests\data\tmphob1cxv4\demo_project\legacy_code.py
-**Issues Found**: 2
-
-- **Line 17**: `from bot.`
-  ```
-  # from bot.communication import old_module  # noqa: F401
-  ```
-
-- **Line 23**: `bot/`
-  ```
-  old_path = "bot/communication/old_file.py"
-  ```
-
-## Old Import Paths
-**Files Affected**: 1
-
-### tests\data\tmphob1cxv4\demo_project\legacy_code.py
-**Issues Found**: 1
-
-- **Line 17**: `from bot.communication`
-  ```
-  # from bot.communication import old_module  # noqa: F401
   ```

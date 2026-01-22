@@ -7,7 +7,7 @@ Contains functions for task CRUD operations, task scheduling, and task data mana
 from pathlib import Path
 import uuid
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from typing import Any
 from core.logger import get_component_logger
 from core.file_operations import load_json_data, save_json_data
 from core.error_handling import handle_errors

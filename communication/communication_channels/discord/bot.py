@@ -5,7 +5,7 @@ from discord import app_commands
 import asyncio
 import threading
 from discord.ext import commands
-from typing import List, Dict, Any, Optional
+from typing import Any
 import queue
 import time
 import socket
@@ -2153,4 +2153,3 @@ class DiscordBot(BaseChannel):
             return False
         """Send a direct message to a Discord user"""
         return await self.send_message(user_id, message)
-

@@ -4,7 +4,6 @@ import signal
 import time
 import os
 import atexit
-from datetime import datetime
 from pathlib import Path
 
 # Set up logging FIRST before any other imports
@@ -33,7 +32,6 @@ from core.config import LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir
 from core.scheduler import SchedulerManager
 from core.service_utilities import get_flags_dir
 from core.time_utilities import (
-    TIMESTAMP_FULL,
     now_timestamp_full,
     parse_timestamp_full,
     now_datetime_full,

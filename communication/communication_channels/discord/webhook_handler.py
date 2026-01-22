@@ -6,7 +6,7 @@ for user-installable apps.
 """
 
 import json
-from typing import Dict, Any, Optional
+from typing import Any
 from core.logger import get_component_logger, _is_testing_environment
 from core.error_handling import handle_errors
 

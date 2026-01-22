@@ -7,7 +7,7 @@ Contains functions for schedule time periods, period activation, validation, and
 import time
 import calendar
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Any
 from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
 

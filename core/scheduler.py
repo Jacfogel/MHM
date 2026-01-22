@@ -669,7 +669,9 @@ class SchedulerManager:
                 logger.error(f"Invalid check-in time format: {checkin_time}")
                 return
 
-            schedule_datetime = datetime.combine(today, checkin_dt.time(), tzinfo=tz)
+            # Build a timezone-aware datetime for today's check-in time.
+            # IMPORTANT: with pytz, never pass tzinfo=tz directly; always localize a naive datetime.
+            schedule_datetime = tz.localize(datetime.combine(today, checkin_dt.time()))
 
             # If the time has already passed today, schedule for tomorrow
             if schedule_datetime <= now:
@@ -884,11 +886,14 @@ class SchedulerManager:
         period_start_time = start_dt.time()
         period_end_time = end_dt.time()
 
-        # Create datetime objects for today
-        start_datetime = datetime.combine(
-            now_datetime.date(), period_start_time, tzinfo=tz
+        # Create timezone-aware datetime objects for today.
+        # IMPORTANT: with pytz, never pass tzinfo=tz directly; always localize a naive datetime.
+        start_datetime = tz.localize(
+            datetime.combine(now_datetime.date(), period_start_time)
         )
-        end_datetime = datetime.combine(now_datetime.date(), period_end_time, tzinfo=tz)
+        end_datetime = tz.localize(
+            datetime.combine(now_datetime.date(), period_end_time)
+        )
 
         # If the period has already ended today, schedule for tomorrow
         if end_datetime <= now_datetime:
@@ -1383,7 +1388,11 @@ class SchedulerManager:
         }
         return priority_multipliers.get(priority, 1.0)
 
-    @handle_errors("calculating due date weight for reminder selection", default_return=1.0, user_friendly=False)
+    @handle_errors(
+        "calculating due date weight for reminder selection",
+        default_return=1.0,
+        user_friendly=False,
+    )
     def _select_task_for_reminder__calculate_due_date_weight(self, task, today):
         """Calculate due date proximity weight for a task."""
         due_date_str = task.get("due_date")
@@ -1637,9 +1646,10 @@ class SchedulerManager:
 
             # Parse the reminder time
             hour, minute = map(int, time_str.split(":"))
-            schedule_datetime = datetime.combine(
-                today, datetime.min.time().replace(hour=hour, minute=minute), tzinfo=tz
-            )
+            # Build a timezone-aware datetime for today's reminder time.
+            # IMPORTANT: with pytz, never pass tzinfo=tz directly; always localize a naive datetime.
+            schedule_time_obj = datetime.min.time().replace(hour=hour, minute=minute)
+            schedule_datetime = tz.localize(datetime.combine(today, schedule_time_obj))
 
             # If the time has already passed today, schedule for tomorrow
             if schedule_datetime <= now:

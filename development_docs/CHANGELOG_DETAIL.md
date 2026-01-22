@@ -40,9 +40,14 @@ When adding new changes, follow this format:
 ### 2026-01-21 - Test suite datetime canonicalization & unused import hygiene
 - **Feature**: Completed the focused `datetime.now()` audit for the test suite so production-sensitive tests (scheduling, reminders, analytics, cleanup, retries, channel behavior) now go through the canonical helpers in `core/time_utilities.py`, with deterministic patching (including new fixed anchor `TEST_NOW_DT`) for relative-date assertions and inline `datetime` limited to metadata/debug-only values. The audit also cleaned up a mis-indented pytest method to prevent collection errors.
 - **Impact**: Eliminates wall-clock dependence, removes the last bursts of unpredictable `datetime.now()` usage, and gives tests deterministic anchors; the hardened helpers can now be patched before logic under test runs, reducing midnight-rollover flakiness.
-- **Feature**: Strengthened the unused-import hygiene workflow—`run_generate_unused_imports_report` now reruns `analyze_unused_imports` (so the markdown report always refreshes), and the cleanup touched command handlers plus communication modules to keep only necessary typing imports while preserving intentional `Any` usage.
-- **Impact**: Keeps the “Obvious Unused” audit priority under control, prevents stale report data from misleading reviewers, and makes the code clearer until the remaining entries reach zero.
+- **Feature**: Strengthened the unused-import hygiene workflow-`run_generate_unused_imports_report` now reruns `analyze_unused_imports` (so the markdown report always refreshes), and the cleanup touched command handlers plus communication modules to keep only necessary typing imports while preserving intentional `Any` usage.
+- **Impact**: Keeps the "Obvious Unused" audit priority under control, prevents stale report data from misleading reviewers, and makes the code clearer until the remaining entries reach zero.
 - **Testing**: `python run_tests.py` (rerun now that the Discord API client import includes `Any` again so the suite can collect successfully; previous run failed before we restored the typing import).
+
+### 2026-01-21 - Datetime Canonicalization Audit (Session Update)
+- **Feature**: Completed the datetime.now() audit across the test suite, replacing every production-sensitive `datetime.now()` call in tests with `core/time_utilities` helpers, patching the helpers when determinism is required, and fixing the dedented pytest method that was causing `self` to be interpreted as a fixture.
+- **Impact**: Removed all remaining wall-clock-dependent imports, ensured canonical helpers are used or mocked across scheduling, analytics, cleanup, and relative-date tests, and proved the fixes by rerunning the full `python run_tests.py` suite plus the Tier-3 `development_tools/run_development_tools.py audit --full --clear-cache`.
+- **Status**: [OK] datetime.now() audit complete (tests); follow-up in progress for the two coverage-audit failures (`tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_updates_account_features` and `tests/behavior/test_user_data_flow_architecture.py::TestAtomicOperations::test_atomic_operation_all_types_succeed`). Up next: explicit `datetime(` construction audit.
 
 ### 2026-01-20 - Documented canonical test-time sweep and doc/test hygiene
 

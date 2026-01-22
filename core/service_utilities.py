@@ -9,7 +9,6 @@ import json
 import time
 import socket
 import psutil
-from datetime import datetime
 from pathlib import Path
 import pytz
 from core.logger import get_component_logger

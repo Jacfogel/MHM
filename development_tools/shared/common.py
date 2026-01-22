@@ -10,10 +10,7 @@ import sys
 from pathlib import Path
 from typing import Callable, Iterable, Iterator, Sequence, Tuple, Dict, Any, Optional
 
-from development_tools.shared.standard_exclusions import (
-    get_exclusions,
-    should_exclude_file,
-)
+from development_tools.shared.standard_exclusions import should_exclude_file
 from development_tools.shared.tool_metadata import COMMAND_GROUPS
 
 # Import config for project root and paths

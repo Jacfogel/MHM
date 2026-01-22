@@ -6,7 +6,7 @@ Handles welcome messages and onboarding tracking across all channels.
 
 import json
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import BASE_DATA_DIR

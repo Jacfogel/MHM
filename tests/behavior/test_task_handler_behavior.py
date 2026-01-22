@@ -17,7 +17,7 @@ from communication.command_handlers.shared_types import (
     ParsedCommand,
 )
 from tests.test_utilities import TestUserFactory
-from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
+from core.time_utilities import DATE_ONLY, format_timestamp
 
 
 class TestTaskHandlerBehavior:

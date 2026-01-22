@@ -1,6 +1,6 @@
 # user_profile_settings_widget.py - User profile settings widget implementation
 
-from typing import Dict, Any, Optional
+from typing import Any
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from PySide6.QtCore import Qt, QDate

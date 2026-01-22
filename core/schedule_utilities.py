@@ -6,7 +6,6 @@ This module provides common schedule functions that are used across multiple mod
 to eliminate code duplication and provide a single source of truth.
 """
 
-from typing import Dict, List, Optional
 from datetime import datetime
 from core.logger import get_component_logger
 from core.error_handling import handle_errors

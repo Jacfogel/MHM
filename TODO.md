@@ -239,6 +239,15 @@ When adding new tasks, follow this format:
 - *Why it helps*: Keeps TODO.md focused while staying aligned with the latest audit-driven priorities.
 - *Estimated effort*: Small
 
+**Coverage audit follow-up - Category management & atomic operations**
+- *What it means*: Investigate why `tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_updates_account_features` and `tests/behavior/test_user_data_flow_architecture.py::TestAtomicOperations::test_atomic_operation_all_types_succeed` only fail during the coverage-driven audit run. 
+- *Why it helps*: Clearing these Tier-3 audit failures is required before the next explicit `datetime(` construction audit and keeps the audit output green.
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Reproduce the failures in the coverage environment to capture any extra instrumentation or timing dependencies.
+  - [ ] Adjust the tests or supporting data/setup so they succeed under coverage while maintaining their intended assertions.
+  - [ ] Re-run `development_tools/run_development_tools.py audit --full --clear-cache` to confirm the audit passes cleanly.
+
 **CI Guard for Logging Enforcement**
 - *What it means*: Wire the static logging check into CI to enforce ComponentLogger rules automatically.
 - *Why it helps*: Prevents regressions of forbidden logging patterns.
@@ -335,3 +344,47 @@ When adding new tasks, follow this format:
 - *Why it helps*: Removes subtle behavior drift between `/cmd` and `!cmd` (double-logging, repeated flow clearing, different keyword precedence), making command handling predictable and testable.
 - *Estimated effort*: Medium
 
+**Investigate naive vs timezone-aware datetime usage in scheduler & task reminders**
+
+Context: During the datetime canonicalization audit, a potential split was identified between:
+- **Timezone-aware datetimes** (e.g., `pytz.localize(...)`) used in parts of `core/scheduler.py`, and  
+- **Naive datetimes** produced by canonical parsing helpers (e.g., `parse_timestamp_minute(...)`) and compared against canonical "now".
+This task is to **investigate intent and correctness**, not to refactor preemptively.
+---
+Scope of investigation
+- Identify all places where:
+  - naive datetimes are compared to aware datetimes
+  - scheduling logic mixes naive and aware datetimes within the same workflow
+- Confirm intended semantics for:
+  - task reminders scheduled via `schedule_task_reminder_at_datetime`
+  - check-ins and scheduled messages using localized datetimes
+- Review test coverage to determine:
+  - whether timezone behavior is explicitly asserted
+  - whether naive/aware assumptions are relied upon implicitly
+  - [ ] Audit tests with `TEST_NOW_DT` variables to ensure canonical time helpers (`now_datetime_full`, `now_datetime_minute`) are patched where "now" semantics are intended
+---
+Key questions to answer
+- Are task reminders intentionally timezone-agnostic, or should they respect user timezone?
+- Are all scheduler comparisons guaranteed to be naive-to-naive or aware-to-aware today?
+- Is there any risk of:
+  - `TypeError` from naive/aware comparisons
+  - silent offset errors around DST or midnight boundaries
+- Should timezone localization be:
+  - centralized further, or
+  - kept split by design (and documented)?
+---
+Non-goals
+- Do **not** change behavior during this task
+- Do **not** introduce new datetime helpers or formats
+- Do **not** refactor unless a correctness bug is proven
+---
+Deliverables
+- Written conclusion stating whether the naive/aware split is:
+  - intentional and safe, or
+  - accidental and risky
+- If risky, a **separate, explicitly scoped follow-up task** proposing a fix
+- Documentation note if the split is intentional (where and why)
+---
+Priority
+- Medium  
+- Blocker only if a real bug or undefined behavior is confirmed

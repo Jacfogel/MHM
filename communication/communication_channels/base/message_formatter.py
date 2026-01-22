@@ -1,6 +1,6 @@
 # message_formatter.py
 
-from typing import Dict, Any, List, Optional
+from typing import Any
 from abc import ABC, abstractmethod
 
 from core.logger import get_component_logger

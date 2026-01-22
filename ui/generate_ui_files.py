@@ -10,7 +10,6 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from datetime import datetime
 
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_full

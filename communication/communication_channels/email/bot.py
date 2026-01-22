@@ -7,7 +7,7 @@ import asyncio
 import time
 from email.mime.text import MIMEText
 from email.header import decode_header
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any
 
 from core.config import (
     EMAIL_SMTP_SERVER,
