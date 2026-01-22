@@ -17,7 +17,7 @@ from tasks.task_management import (
     get_task_by_id,
 )
 from tests.test_utilities import TestUserFactory
-from core.time_utilities import DATE_ONLY, format_timestamp
+from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 
 
 class TestOrphanedReminderCleanup:
@@ -38,8 +38,10 @@ class TestOrphanedReminderCleanup:
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
 
+        anchor_now = now_datetime_full()
+
         # Create a task with reminders
-        due_date = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
+        due_date = format_timestamp(anchor_now + timedelta(days=1), DATE_ONLY)
         task_id = create_task(
             user_id=user_id,
             title="Test task for cleanup",
@@ -125,8 +127,10 @@ class TestOrphanedReminderCleanup:
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
 
+        anchor_now = now_datetime_full()
+
         # Create a task with reminders
-        due_date = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
+        due_date = format_timestamp(anchor_now + timedelta(days=1), DATE_ONLY)
         task_id = create_task(
             user_id=user_id,
             title="Test task for cleanup",
@@ -211,8 +215,10 @@ class TestOrphanedReminderCleanup:
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
 
+        anchor_now = now_datetime_full()
+
         # Create a task with reminders
-        due_date = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
+        due_date = format_timestamp(anchor_now + timedelta(days=1), DATE_ONLY)
         task_id = create_task(
             user_id=user_id,
             title="Test active task",
@@ -291,12 +297,14 @@ class TestOrphanedReminderCleanup:
         TestUserFactory.create_basic_user(
             user1_id, enable_tasks=True, test_data_dir=test_data_dir
         )
+
+        anchor_now = now_datetime_full()
         TestUserFactory.create_basic_user(
             user2_id, enable_tasks=True, test_data_dir=test_data_dir
         )
 
         # Create tasks for both users
-        due_date = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
+        due_date = format_timestamp(anchor_now + timedelta(days=1), DATE_ONLY)
 
         task1_id = create_task(user_id=user1_id, title="User1 task", due_date=due_date)
         task2_id = create_task(user_id=user2_id, title="User2 task", due_date=due_date)

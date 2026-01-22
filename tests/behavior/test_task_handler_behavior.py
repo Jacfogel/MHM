@@ -17,7 +17,7 @@ from communication.command_handlers.shared_types import (
     ParsedCommand,
 )
 from tests.test_utilities import TestUserFactory
-from core.time_utilities import DATE_ONLY, format_timestamp
+from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 
 
 class TestTaskHandlerBehavior:
@@ -129,7 +129,21 @@ class TestTaskHandlerBehavior:
             original_message="create task 'Test Task' priority high due tomorrow",
         )
 
-        response = handler.handle(user_id, parsed_command)
+        # Deterministic "now" for production-behavior-sensitive relative date parsing.
+        test_now_dt = datetime(2026, 1, 20, 12, 0, 0)
+        with (
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=test_now_dt,
+            ),
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=test_now_dt,
+                create=True,
+            ),
+        ):
+            response = handler.handle(user_id, parsed_command)
+
         assert isinstance(
             response, InteractionResponse
         ), "Should return InteractionResponse"
@@ -153,12 +167,9 @@ class TestTaskHandlerBehavior:
         assert (
             call_kwargs.get("due_date") is not None
         ), "Should parse and include due_date"
-        # Verify due_date was parsed from 'tomorrow' to actual date
-        from datetime import datetime, timedelta
 
-        expected_date = format_timestamp(
-            (datetime.now() + timedelta(days=1)), DATE_ONLY
-        )
+        # Verify due_date was parsed from 'tomorrow' to actual date
+        expected_date = format_timestamp((test_now_dt + timedelta(days=1)), DATE_ONLY)
         assert (
             call_kwargs.get("due_date") == expected_date
         ), f"Should parse 'tomorrow' to {expected_date}"
@@ -235,8 +246,23 @@ class TestTaskHandlerBehavior:
     def test_task_handler_parse_relative_date_today(self):
         """Test that TaskManagementHandler parses 'today' correctly."""
         handler = TaskManagementHandler()
-        result = handler._handle_create_task__parse_relative_date("today")
-        expected = format_timestamp(datetime.now(), DATE_ONLY)
+
+        # Deterministic "now" for production-behavior-sensitive relative date parsing.
+        test_now_dt = datetime(2026, 1, 20, 12, 0, 0)
+        with (
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=test_now_dt,
+            ),
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=test_now_dt,
+                create=True,
+            ),
+        ):
+            result = handler._handle_create_task__parse_relative_date("today")
+            expected = format_timestamp(test_now_dt, DATE_ONLY)
+
         assert result == expected, f"Should parse 'today' as {expected}, got {result}"
 
     @pytest.mark.behavior
@@ -245,8 +271,23 @@ class TestTaskHandlerBehavior:
     def test_task_handler_parse_relative_date_tomorrow(self):
         """Test that TaskManagementHandler parses 'tomorrow' correctly."""
         handler = TaskManagementHandler()
-        result = handler._handle_create_task__parse_relative_date("tomorrow")
-        expected = format_timestamp((datetime.now() + timedelta(days=1)), DATE_ONLY)
+
+        # Deterministic "now" for production-behavior-sensitive relative date parsing.
+        test_now_dt = datetime(2026, 1, 20, 12, 0, 0)
+        with (
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=test_now_dt,
+            ),
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=test_now_dt,
+                create=True,
+            ),
+        ):
+            result = handler._handle_create_task__parse_relative_date("tomorrow")
+            expected = format_timestamp((test_now_dt + timedelta(days=1)), DATE_ONLY)
+
         assert (
             result == expected
         ), f"Should parse 'tomorrow' as {expected}, got {result}"
@@ -257,8 +298,23 @@ class TestTaskHandlerBehavior:
     def test_task_handler_parse_relative_date_next_week(self):
         """Test that TaskManagementHandler parses 'next week' correctly."""
         handler = TaskManagementHandler()
-        result = handler._handle_create_task__parse_relative_date("next week")
-        expected = format_timestamp((datetime.now() + timedelta(days=7)), DATE_ONLY)
+
+        # Deterministic "now" for production-behavior-sensitive relative date parsing.
+        test_now_dt = datetime(2026, 1, 20, 12, 0, 0)
+        with (
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=test_now_dt,
+            ),
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=test_now_dt,
+                create=True,
+            ),
+        ):
+            result = handler._handle_create_task__parse_relative_date("next week")
+            expected = format_timestamp((test_now_dt + timedelta(days=7)), DATE_ONLY)
+
         assert (
             result == expected
         ), f"Should parse 'next week' as {expected}, got {result}"
@@ -781,8 +837,23 @@ class TestTaskHandlerBehavior:
     def test_task_handler_format_due_date_overdue(self):
         """Test that TaskManagementHandler formats overdue dates correctly."""
         handler = TaskManagementHandler()
-        yesterday = format_timestamp((datetime.now() - timedelta(days=1)), DATE_ONLY)
-        result = handler._handle_list_tasks__format_due_date(yesterday)
+
+        # Deterministic "now" for production-behavior-sensitive due date formatting.
+        test_now_dt = datetime(2026, 1, 20, 12, 0, 0)
+        with (
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=test_now_dt,
+            ),
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=test_now_dt,
+                create=True,
+            ),
+        ):
+            yesterday = format_timestamp((test_now_dt - timedelta(days=1)), DATE_ONLY)
+            result = handler._handle_list_tasks__format_due_date(yesterday)
+
         assert "OVERDUE" in result.upper(), "Should indicate overdue date"
 
     @pytest.mark.behavior
@@ -791,8 +862,23 @@ class TestTaskHandlerBehavior:
     def test_task_handler_format_due_date_today(self):
         """Test that TaskManagementHandler formats today's dates correctly."""
         handler = TaskManagementHandler()
-        today = format_timestamp(datetime.now(), DATE_ONLY)
-        result = handler._handle_list_tasks__format_due_date(today)
+
+        # Deterministic "now" for production-behavior-sensitive due date formatting.
+        test_now_dt = datetime(2026, 1, 20, 12, 0, 0)
+        with (
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=test_now_dt,
+            ),
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=test_now_dt,
+                create=True,
+            ),
+        ):
+            today = format_timestamp(test_now_dt, DATE_ONLY)
+            result = handler._handle_list_tasks__format_due_date(today)
+
         assert "TODAY" in result.upper(), "Should indicate today's date"
 
     @pytest.mark.behavior
@@ -801,7 +887,22 @@ class TestTaskHandlerBehavior:
     def test_task_handler_format_due_date_future(self):
         """Test that TaskManagementHandler formats future dates correctly."""
         handler = TaskManagementHandler()
-        tomorrow = format_timestamp((datetime.now() + timedelta(days=1)), DATE_ONLY)
-        result = handler._handle_list_tasks__format_due_date(tomorrow)
+
+        # Deterministic "now" for production-behavior-sensitive due date formatting.
+        test_now_dt = datetime(2026, 1, 20, 12, 0, 0)
+        with (
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=test_now_dt,
+            ),
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=test_now_dt,
+                create=True,
+            ),
+        ):
+            tomorrow = format_timestamp((test_now_dt + timedelta(days=1)), DATE_ONLY)
+            result = handler._handle_list_tasks__format_due_date(tomorrow)
+
         assert "due" in result.lower(), "Should indicate future date"
         assert tomorrow in result, "Should include the date"

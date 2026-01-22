@@ -395,7 +395,7 @@ class TestScheduleUtilities:
             }
         }
 
-        # Test without providing current_time (should use datetime.now())
+        # Test without providing current_time (should use now_datetime_full())
         with patch("core.schedule_utilities.now_datetime_full") as mock_now:
             mock_now.return_value = datetime(2025, 10, 2, 10, 0)
             result = get_current_active_schedules(schedules)

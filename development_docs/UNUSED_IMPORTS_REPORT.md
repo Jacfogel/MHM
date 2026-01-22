@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 23:27:11
+> **Last Generated**: 2026-01-21 19:51:16
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 413
-- **Files with Unused Imports**: 187
-- **Total Unused Imports**: 533
+- **Files with Unused Imports**: 183
+- **Total Unused Imports**: 513
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 143 imports
-- **Type Hints Only**: 27 imports
+- **Obvious Unused**: 117 imports
+- **Type Hints Only**: 24 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
 - **Test Mocking**: 147 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 156 imports
+- **Test Infrastructure**: 165 imports
 - **Production Test Mocking**: 4 imports
 - **Ui Imports**: 1 imports
 
@@ -28,49 +28,11 @@
 
 **Recommendation**: These imports can likely be safely removed.
 
-### `communication/command_handlers/analytics_handler.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 3**: Unused Dict imported from typing
-- **Line 3**: Unused List imported from typing
-
-### `communication/command_handlers/base_handler.py`
+### `communication/command_handlers/notebook_handler.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 11**: Unused List imported from typing
-
-### `communication/command_handlers/checkin_handler.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 3**: Unused Dict imported from typing
-- **Line 3**: Unused List imported from typing
-
-### `communication/command_handlers/interaction_handlers.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 11**: Unused Dict imported from typing
-- **Line 11**: Unused List imported from typing
-- **Line 11**: Unused Optional imported from typing
-
-### `communication/command_handlers/notebook_handler.py`
-
-**Count**: 4 unused import(s)
-
-- **Line 10**: Unused Dict imported from typing
-- **Line 10**: Unused List imported from typing
-- **Line 10**: Unused Optional imported from typing
 - **Line 14**: Unused TIMESTAMP_FULL imported from core.time_utilities
-
-### `communication/command_handlers/profile_handler.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 3**: Unused Dict imported from typing
-- **Line 3**: Unused List imported from typing
 
 ### `communication/command_handlers/schedule_handler.py`
 
@@ -79,29 +41,11 @@
 - **Line 3**: Unused Dict imported from typing
 - **Line 3**: Unused List imported from typing
 
-### `communication/command_handlers/shared_types.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 3**: Unused Dict imported from typing
-- **Line 3**: Unused List imported from typing
-- **Line 3**: Unused Optional imported from typing
-
 ### `communication/command_handlers/task_handler.py`
 
-**Count**: 3 unused import(s)
+**Count**: 1 unused import(s)
 
-- **Line 10**: Unused Dict imported from typing
-- **Line 10**: Unused Optional imported from typing
 - **Line 11**: Unused datetime imported from datetime
-
-### `communication/communication_channels/base/base_channel.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 3**: Unused Optional imported from typing
-- **Line 3**: Unused Dict imported from typing
-- **Line 3**: Unused List imported from typing
 
 ### `communication/communication_channels/base/command_registry.py`
 
@@ -125,15 +69,6 @@
 
 - **Line 3**: Unused Dict imported from typing
 - **Line 3**: Unused List imported from typing
-
-### `communication/communication_channels/discord/api_client.py`
-
-**Count**: 4 unused import(s)
-
-- **Line 6**: Unused Dict imported from typing
-- **Line 6**: Unused List imported from typing
-- **Line 6**: Unused Optional imported from typing
-- **Line 6**: Unused Union imported from typing
 
 ### `communication/communication_channels/discord/bot.py`
 
@@ -175,18 +110,9 @@
 
 ### `communication/core/channel_monitor.py`
 
-**Count**: 3 unused import(s)
+**Count**: 1 unused import(s)
 
-- **Line 5**: Unused Dict imported from typing
-- **Line 5**: Unused Optional imported from typing
 - **Line 6**: Unused datetime imported from datetime
-
-### `communication/core/channel_orchestrator.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 8**: Unused Dict imported from typing
-- **Line 8**: Unused Optional imported from typing
 
 ### `communication/core/factory.py`
 
@@ -409,12 +335,6 @@
 
 - **Line 19**: Unused TIMESTAMP_FULL imported from core.time_utilities
 
-### `tests/behavior/test_interaction_handlers_coverage_expansion.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 24**: Unused now_datetime_full imported from core.time_utilities
-
 ### `tests/behavior/test_scheduler_behavior.py`
 
 **Count**: 2 unused import(s)
@@ -429,6 +349,18 @@
 - **Line 21**: Unused TIME_ONLY_MINUTE imported from core.time_utilities
 - **Line 21**: Unused TIMESTAMP_MINUTE imported from core.time_utilities
 
+### `tests/behavior/test_task_handler_behavior.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 20**: Unused now_datetime_full imported from core.time_utilities
+
+### `tests/communication/test_retry_manager.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 8**: Unused timedelta imported from datetime
+
 ### `tests/conftest.py`
 
 **Count**: 3 unused import(s)
@@ -439,8 +371,9 @@
 
 ### `tests/test_utilities.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
+- **Line 23**: Unused now_datetime_full imported from core.time_utilities
 - **Line 23**: Unused format_timestamp imported from core.time_utilities
 
 ### `tests/ui/test_account_creation_ui.py`
@@ -453,8 +386,14 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 18**: Unused Dict imported from typing
-- **Line 18**: Unused Optional imported from typing
+- **Line 21**: Unused Dict imported from typing
+- **Line 21**: Unused Optional imported from typing
+
+### `tests/unit/test_interaction_handlers_helpers.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 12**: Unused now_datetime_full imported from core.time_utilities
 
 ### `ui/generate_ui_files.py`
 
@@ -495,29 +434,11 @@
 
 **Recommendation**: Consider using `TYPE_CHECKING` guard for these imports.
 
-### `communication/command_handlers/base_handler.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 11**: Unused Optional imported from typing
-
-### `communication/command_handlers/task_handler.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused List imported from typing
-
 ### `communication/communication_channels/discord/account_flow_handler.py`
 
 **Count**: 1 unused import(s)
 
 - **Line 9**: Unused Optional imported from typing
-
-### `communication/core/channel_orchestrator.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 8**: Unused List imported from typing
 
 ### `communication/core/welcome_manager.py`
 
@@ -615,7 +536,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 18**: Unused List imported from typing
+- **Line 21**: Unused List imported from typing
 
 ## Conditional Imports
 
@@ -946,7 +867,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 16**: Unused Mock imported from unittest.mock
+- **Line 17**: Unused Mock imported from unittest.mock
 
 ### `tests/ui/test_signal_handler_integration.py`
 
@@ -1225,9 +1146,9 @@
 
 **Count**: 3 unused import(s)
 
-- **Line 19**: Unused Qt imported from PySide6.QtCore
-- **Line 19**: Unused QTimer imported from PySide6.QtCore
-- **Line 20**: Unused QTest imported from PySide6.QtTest
+- **Line 22**: Unused Qt imported from PySide6.QtCore
+- **Line 22**: Unused QTimer imported from PySide6.QtCore
+- **Line 23**: Unused QTest imported from PySide6.QtTest
 
 ### `tests/ui/test_signal_handler_integration.py`
 
@@ -1400,10 +1321,23 @@
 
 ### `tests/behavior/test_task_error_handling.py`
 
-**Count**: 2 unused import(s)
+**Count**: 3 unused import(s)
 
+- **Line 9**: Unused datetime imported from datetime
 - **Line 10**: Unused import json
 - **Line 11**: Unused import os
+
+### `tests/behavior/test_task_management_coverage_expansion.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 21**: Unused datetime imported from datetime
+
+### `tests/behavior/test_task_reminder_followup_behavior.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 10**: Unused datetime imported from datetime
 
 ### `tests/behavior/test_user_data_flow_architecture.py`
 
@@ -1422,6 +1356,12 @@
 **Count**: 1 unused import(s)
 
 - **Line 10**: Unused import os
+
+### `tests/communication/test_channel_monitor.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 8**: Unused datetime imported from datetime
 
 ### `tests/communication/test_retry_manager.py`
 
@@ -1720,7 +1660,19 @@
 - **Line 11**: Unused import time
 - **Line 12**: Unused import tempfile
 
+### `tests/integration/test_orphaned_reminder_cleanup.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 9**: Unused datetime imported from datetime
+
 ### `tests/integration/test_task_cleanup_real.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 12**: Unused datetime imported from datetime
+
+### `tests/integration/test_task_cleanup_real_bug_verification.py`
 
 **Count**: 1 unused import(s)
 
@@ -1734,8 +1686,9 @@
 
 ### `tests/integration/test_task_reminder_integration.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
+- **Line 9**: Unused datetime imported from datetime
 - **Line 10**: Unused import time
 
 ### `tests/integration/test_user_creation.py`
@@ -1801,6 +1754,12 @@
 
 - **Line 15**: Unused Path imported from pathlib
 
+### `tests/ui/test_process_watcher_dialog.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 18**: Unused datetime imported from datetime
+
 ### `tests/ui/test_ui_widgets_coverage_expansion.py`
 
 **Count**: 1 unused import(s)
@@ -1831,6 +1790,12 @@
 - **Line 25**: Unused datetime imported from datetime
 - **Line 25**: Unused time imported from datetime
 - **Line 35**: Unused TestUserDataFactory imported from tests.test_utilities
+
+### `tests/unit/test_cleanup.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 17**: Unused datetime imported from datetime
 
 ### `tests/unit/test_file_locking.py`
 

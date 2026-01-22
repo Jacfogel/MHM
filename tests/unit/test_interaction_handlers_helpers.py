@@ -9,7 +9,12 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
 from communication.command_handlers.task_handler import TaskManagementHandler
-from core.time_utilities import DATE_ONLY, format_timestamp
+from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
+
+
+# Deterministic anchor for all relative-date tests.
+# These helpers are production-behavior-sensitive and must not rely on wall-clock time.
+TEST_NOW_DT = datetime(2026, 1, 20, 12, 0, 0)
 
 
 @pytest.mark.unit
@@ -23,33 +28,83 @@ class TestTaskManagementHandlerHelpers:
 
     def test_parse_relative_date_today(self):
         """Test _handle_create_task__parse_relative_date with 'today'."""
-        result = self.handler._handle_create_task__parse_relative_date("today")
-        expected = format_timestamp(datetime.now(), DATE_ONLY)
-        assert result == expected, "Should return today's date"
+        with (
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+        ):
+            result = self.handler._handle_create_task__parse_relative_date("today")
+            expected = format_timestamp(TEST_NOW_DT, DATE_ONLY)
+            assert result == expected, "Should return today's date"
 
     def test_parse_relative_date_tomorrow(self):
         """Test _handle_create_task__parse_relative_date with 'tomorrow'."""
-        result = self.handler._handle_create_task__parse_relative_date("tomorrow")
-        expected = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
-        assert result == expected, "Should return tomorrow's date"
+        with (
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+        ):
+            result = self.handler._handle_create_task__parse_relative_date("tomorrow")
+            expected = format_timestamp(TEST_NOW_DT + timedelta(days=1), DATE_ONLY)
+            assert result == expected, "Should return tomorrow's date"
 
     def test_parse_relative_date_next_week(self):
         """Test _handle_create_task__parse_relative_date with 'next week'."""
-        result = self.handler._handle_create_task__parse_relative_date("next week")
-        expected = format_timestamp(datetime.now() + timedelta(days=7), DATE_ONLY)
-        assert result == expected, "Should return date 7 days from now"
+        with (
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+        ):
+            result = self.handler._handle_create_task__parse_relative_date("next week")
+            expected = format_timestamp(TEST_NOW_DT + timedelta(days=7), DATE_ONLY)
+            assert result == expected, "Should return date 7 days from now"
 
     def test_parse_relative_date_next_month(self):
         """Test _handle_create_task__parse_relative_date with 'next month'."""
-        result = self.handler._handle_create_task__parse_relative_date("next month")
-        today = datetime.now()
-        if today.month == 12:
-            expected = format_timestamp(
-                today.replace(year=today.year + 1, month=1), DATE_ONLY
-            )
-        else:
-            expected = format_timestamp(today.replace(month=today.month + 1), DATE_ONLY)
-        assert result == expected, "Should return next month's date"
+        with (
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+        ):
+            result = self.handler._handle_create_task__parse_relative_date("next month")
+
+            # Deterministic month boundary behavior (avoid wall-clock dependence).
+            today = TEST_NOW_DT
+            if today.month == 12:
+                expected_dt = today.replace(year=today.year + 1, month=1)
+            else:
+                expected_dt = today.replace(month=today.month + 1)
+
+            expected = format_timestamp(expected_dt, DATE_ONLY)
+            assert result == expected, "Should return next month's date"
 
     def test_parse_relative_date_already_formatted(self):
         """Test _handle_create_task__parse_relative_date with already formatted date."""
@@ -83,9 +138,10 @@ class TestTaskManagementHandlerHelpers:
 
     def test_apply_filters_overdue(self):
         """Test _handle_list_tasks__apply_filters with 'overdue' filter."""
-        today = format_timestamp(datetime.now(), DATE_ONLY)
-        yesterday = format_timestamp(datetime.now() - timedelta(days=1), DATE_ONLY)
-        tomorrow = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
+        # Deterministic dates (no wall-clock dependence).
+        today = format_timestamp(TEST_NOW_DT, DATE_ONLY)
+        yesterday = format_timestamp(TEST_NOW_DT - timedelta(days=1), DATE_ONLY)
+        tomorrow = format_timestamp(TEST_NOW_DT + timedelta(days=1), DATE_ONLY)
 
         tasks = [
             {"title": "Overdue Task", "due_date": yesterday},
@@ -195,24 +251,60 @@ class TestTaskManagementHandlerHelpers:
 
     def test_format_due_date_overdue(self):
         """Test _handle_list_tasks__format_due_date for overdue tasks."""
-        yesterday = format_timestamp(datetime.now() - timedelta(days=1), DATE_ONLY)
-        result = self.handler._handle_list_tasks__format_due_date(yesterday)
-        assert "OVERDUE" in result, "Should indicate overdue status"
-        assert yesterday in result, "Should include date"
+        with (
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+        ):
+            yesterday = format_timestamp(TEST_NOW_DT - timedelta(days=1), DATE_ONLY)
+            result = self.handler._handle_list_tasks__format_due_date(yesterday)
+            assert "OVERDUE" in result, "Should indicate overdue status"
+            assert yesterday in result, "Should include date"
 
     def test_format_due_date_today(self):
         """Test _handle_list_tasks__format_due_date for today."""
-        today = format_timestamp(datetime.now(), DATE_ONLY)
-        result = self.handler._handle_list_tasks__format_due_date(today)
-        assert "TODAY" in result, "Should indicate due today"
-        assert today in result, "Should include date"
+        with (
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+        ):
+            today = format_timestamp(TEST_NOW_DT, DATE_ONLY)
+            result = self.handler._handle_list_tasks__format_due_date(today)
+            assert "TODAY" in result, "Should indicate due today"
+            assert today in result, "Should include date"
 
     def test_format_due_date_future(self):
         """Test _handle_list_tasks__format_due_date for future dates."""
-        tomorrow = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
-        result = self.handler._handle_list_tasks__format_due_date(tomorrow)
-        assert "due:" in result, "Should indicate due date"
-        assert tomorrow in result, "Should include date"
+        with (
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+        ):
+            tomorrow = format_timestamp(TEST_NOW_DT + timedelta(days=1), DATE_ONLY)
+            result = self.handler._handle_list_tasks__format_due_date(tomorrow)
+            assert "due:" in result, "Should indicate due date"
+            assert tomorrow in result, "Should include date"
 
     def test_format_due_date_none(self):
         """Test _handle_list_tasks__format_due_date with None."""
@@ -418,74 +510,110 @@ class TestTaskManagementHandlerHelpers:
 
     def test_find_most_urgent_task_overdue(self):
         """Test _handle_complete_task__find_most_urgent_task prioritizes overdue tasks."""
-        yesterday = format_timestamp(datetime.now() - timedelta(days=1), DATE_ONLY)
-        tomorrow = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
+        with (
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+        ):
+            yesterday = format_timestamp(TEST_NOW_DT - timedelta(days=1), DATE_ONLY)
+            tomorrow = format_timestamp(TEST_NOW_DT + timedelta(days=1), DATE_ONLY)
 
-        tasks = [
-            {
-                "task_id": "abc123",
-                "title": "Future Task",
-                "priority": "high",
-                "due_date": tomorrow,
-            },
-            {
-                "task_id": "def456",
-                "title": "Overdue Task",
-                "priority": "low",
-                "due_date": yesterday,
-            },
-        ]
+            tasks = [
+                {
+                    "task_id": "abc123",
+                    "title": "Future Task",
+                    "priority": "high",
+                    "due_date": tomorrow,
+                },
+                {
+                    "task_id": "def456",
+                    "title": "Overdue Task",
+                    "priority": "low",
+                    "due_date": yesterday,
+                },
+            ]
 
-        result = self.handler._handle_complete_task__find_most_urgent_task(tasks)
-        assert result is not None, "Should find task"
-        assert result["title"] == "Overdue Task", "Should prioritize overdue task"
+            result = self.handler._handle_complete_task__find_most_urgent_task(tasks)
+            assert result is not None, "Should find task"
+            assert result["title"] == "Overdue Task", "Should prioritize overdue task"
 
     def test_find_most_urgent_task_priority(self):
         """Test _handle_complete_task__find_most_urgent_task prioritizes by priority."""
-        tomorrow = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
+        with (
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+        ):
+            tomorrow = format_timestamp(TEST_NOW_DT + timedelta(days=1), DATE_ONLY)
 
-        tasks = [
-            {
-                "task_id": "abc123",
-                "title": "Low Priority",
-                "priority": "low",
-                "due_date": tomorrow,
-            },
-            {
-                "task_id": "def456",
-                "title": "High Priority",
-                "priority": "high",
-                "due_date": tomorrow,
-            },
-        ]
+            tasks = [
+                {
+                    "task_id": "abc123",
+                    "title": "Low Priority",
+                    "priority": "low",
+                    "due_date": tomorrow,
+                },
+                {
+                    "task_id": "def456",
+                    "title": "High Priority",
+                    "priority": "high",
+                    "due_date": tomorrow,
+                },
+            ]
 
-        result = self.handler._handle_complete_task__find_most_urgent_task(tasks)
-        assert result is not None, "Should find task"
-        assert result["title"] == "High Priority", "Should prioritize high priority"
+            result = self.handler._handle_complete_task__find_most_urgent_task(tasks)
+            assert result is not None, "Should find task"
+            assert result["title"] == "High Priority", "Should prioritize high priority"
 
     def test_find_most_urgent_task_due_today(self):
         """Test _handle_complete_task__find_most_urgent_task prioritizes tasks due today."""
-        today = format_timestamp(datetime.now(), DATE_ONLY)
-        tomorrow = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
+        with (
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+        ):
+            today = format_timestamp(TEST_NOW_DT, DATE_ONLY)
+            tomorrow = format_timestamp(TEST_NOW_DT + timedelta(days=1), DATE_ONLY)
 
-        tasks = [
-            {
-                "task_id": "abc123",
-                "title": "Due Tomorrow",
-                "priority": "high",
-                "due_date": tomorrow,
-            },
-            {
-                "task_id": "def456",
-                "title": "Due Today",
-                "priority": "high",
-                "due_date": today,
-            },
-        ]
+            tasks = [
+                {
+                    "task_id": "abc123",
+                    "title": "Due Tomorrow",
+                    "priority": "high",
+                    "due_date": tomorrow,
+                },
+                {
+                    "task_id": "def456",
+                    "title": "Due Today",
+                    "priority": "high",
+                    "due_date": today,
+                },
+            ]
 
-        result = self.handler._handle_complete_task__find_most_urgent_task(tasks)
-        assert result is not None, "Should find task"
-        assert result["title"] == "Due Today", "Should prioritize task due today"
+            result = self.handler._handle_complete_task__find_most_urgent_task(tasks)
+            assert result is not None, "Should find task"
+            assert result["title"] == "Due Today", "Should prioritize task due today"
 
     def test_find_most_urgent_task_empty_list(self):
         """Test _handle_complete_task__find_most_urgent_task with empty list."""

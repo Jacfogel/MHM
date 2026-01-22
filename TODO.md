@@ -263,6 +263,8 @@ When adding new tasks, follow this format:
   - [ ] Check for timing/race condition issues in test setup or teardown
   - [ ] Verify test isolation and data cleanup between test runs
   - [ ] Add retry logic or fix root cause if identified
+  - [ ] Track `tests/development_tools/test_legacy_reference_cleanup.py::TestCleanupOperations::test_cleanup_legacy_references_dry_run` failures (PermissionError when copying `tests/fixtures/development_tools_demo` into `tests/data/tmp*/demo_project`) and ensure the temporary `tests/data/tmp*` directories remain writable before rerunning the suite.
+  - [ ] Track `tests/behavior/test_user_data_flow_architecture.py::TestTwoPhaseSave::test_two_phase_save_merge_before_write` flake (KeyError: 'email' in parallel runs; passes when run in isolation) and investigate if parallel writes/race conditions or missing retries are the culprit.
 
 **Review Communication Module Architecture**
 - *What it means*: Review all modules in `communication/` directory to ensure they follow channel-agnostic architecture principles
@@ -317,12 +319,10 @@ When adding new tasks, follow this format:
 - also exclude tests\ai\results where appropriate
 - also exclude tests\coverage_html where appropriate
 
-
 **investigate unused imports boom**
 - after recent changes, including running some automate ruff fixes these categories which were showing 0 now show
   - *Obvious Unused*: 132 imports
   - *Type Hints Only*: 30 imports
-
 
   **Unify derived command map semantics** - Remove/standardize the precomputed `slash_command_map` - see communication\message_processing\interaction_manager.py
 - *What it means*: Identify all usages of `InteractionManager.slash_command_map` and either (a) delete it and rely on `get_slash_command_map()`, or (b) standardize it to use unprefixed keys (e.g. `"tasks"`) and correct naming/comments.

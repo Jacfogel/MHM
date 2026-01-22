@@ -13,7 +13,7 @@ from core.user_data_handlers import (
     save_user_data,
 )
 from core.config import get_user_file_path
-from core.time_utilities import TIMESTAMP_FULL, format_timestamp
+from core.time_utilities import TIMESTAMP_FULL, format_timestamp, now_datetime_full
 from tests.test_utilities import TestUserFactory
 
 
@@ -63,7 +63,7 @@ class TestQuantitativeAnalyticsExpansion:
         # Create sample check-in data with all quantitative fields (use recent dates)
         from datetime import datetime, timedelta
 
-        now = datetime.now()
+        now = now_datetime_full()
         sample_checkins = [
             {
                 "timestamp": format_timestamp(now - timedelta(days=2), TIMESTAMP_FULL),
@@ -224,7 +224,7 @@ class TestQuantitativeAnalyticsExpansion:
         # Create sample check-in data (use recent date)
         from datetime import datetime, timedelta
 
-        now = datetime.now()
+        now = now_datetime_full()
         sample_checkins = [
             {
                 "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
@@ -306,7 +306,7 @@ class TestQuantitativeAnalyticsExpansion:
         # Create check-in data with missing fields (use recent dates)
         from datetime import datetime, timedelta
 
-        now = datetime.now()
+        now = now_datetime_full()
         sample_checkins = [
             {
                 "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
@@ -414,7 +414,7 @@ class TestQuantitativeAnalyticsExpansion:
         # Create check-in data with responses dict format (use recent dates)
         from datetime import datetime, timedelta
 
-        now = datetime.now()
+        now = now_datetime_full()
         sample_checkins = [
             {
                 "timestamp": format_timestamp(now - timedelta(days=2), TIMESTAMP_FULL),
@@ -510,7 +510,7 @@ class TestQuantitativeAnalyticsExpansion:
         # Create check-in data with invalid values (use recent dates)
         from datetime import datetime, timedelta
 
-        now = datetime.now()
+        now = now_datetime_full()
         sample_checkins = [
             {
                 "timestamp": format_timestamp(now - timedelta(days=2), TIMESTAMP_FULL),

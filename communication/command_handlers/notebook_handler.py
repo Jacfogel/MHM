@@ -7,7 +7,7 @@ This module handles all notebook-related interactions including creating,
 viewing, updating, and searching notebook entries (notes, lists, journal).
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors

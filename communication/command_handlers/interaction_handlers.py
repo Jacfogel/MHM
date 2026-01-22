@@ -8,7 +8,7 @@ This module provides a framework for handling different types of user interactio
 all communication channels (Discord, email, etc.).
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Any
 
 # Pending confirmations (simple in-memory store)
 PENDING_DELETIONS: dict[str, str] = {}

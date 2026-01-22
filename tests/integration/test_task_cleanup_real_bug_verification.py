@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 import schedule
 
-from core.time_utilities import DATE_ONLY, format_timestamp
+from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 from tasks.task_management import (
     create_task,
     complete_task,
@@ -119,9 +119,10 @@ class TestTaskCleanupBugVerification:
 
         task_id = create_task(user_id=user_id, title="Task with Reminders")
 
+        anchor_now = now_datetime_full()
         reminder_periods = [
             {
-                "date": format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY),
+                "date": format_timestamp(anchor_now + timedelta(days=1), DATE_ONLY),
                 "start_time": "09:00",
                 "end_time": "10:00",
             }

@@ -25,7 +25,13 @@ Guidelines:
 - Maintain chronological order (most recent first)
 - REMOVE OLDER ENTRIES when adding new ones to keep context short
 - Target 10-15 recent entries maximum for optimal AI context window usage
+
 ## Recent Changes (Most Recent First)
+### 2026-01-21 - Test canonicalization & unused-import hygiene **COMPLETED**
+- Completed the focused `datetime.now()` audit so every production-sensitive test now uses `core/time_utilities` helpers (patchable anchors, deterministic relative-date asserts, inline `datetime` reserved for metadata), and fixed the dedented pytest method that was breaking collection.
+- Ensured `run_generate_unused_imports_report` reruns `analyze_unused_imports` before writing and removed the obsolete typing imports in the command handler and communication modules while preserving intentional `Any` usage.
+- Follow-up: rerun `python run_tests.py` now that the Discord API client import loads correctly, then keep chipping away at the remaining “Obvious Unused” entries via `unused-imports-report`.
+
 ### 2026-01-20 - Test suite datetime canonicalization update **COMPLETED**
 - Continued replacing `datetime.now()` calls in behavior/unit/integration tests with `core/time_utilities` helpers so production-sensitive paths (scheduling, analytics, cleanup, conflict detection) rely on the same canonical timestamps.
 - Patched canonical helpers when deterministic control was needed and left inline `datetime` only for metadata/debug discussions, reducing wall-clock dependence while covering AI, analytics, scheduler, task, notebook, cleanup, backup, and check-in suites (~80% of remaining files completed).

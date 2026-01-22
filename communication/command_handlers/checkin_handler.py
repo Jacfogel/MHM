@@ -1,6 +1,6 @@
 # checkin_handler.py
 
-from typing import Dict, Any, List
+from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors

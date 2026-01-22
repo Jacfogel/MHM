@@ -21,10 +21,10 @@ from communication.command_handlers.shared_types import (
 from core.user_data_handlers import get_user_data, save_user_data
 from tasks.task_management import create_task, load_active_tasks
 from tests.test_utilities import TestUserFactory
-from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
+from core.time_utilities import DATE_ONLY, format_timestamp
 
-# Deterministic 'now' used for tests that validate relative-date parsing.
-# These tests patch canonical now helpers to avoid wall-clock dependence.
+
+# Deterministic 'now' for tests that depend on relative-date behavior.
 TEST_NOW_DT = datetime(2026, 1, 20, 12, 0, 0)
 
 
@@ -134,57 +134,28 @@ class TestTaskManagementHandlerCoverage:
         """Test relative date parsing for 'today'."""
         handler = TaskManagementHandler()
         result = handler._handle_create_task__parse_relative_date("today")
-        with (
-            patch(
-                "communication.command_handlers.task_handler.now_datetime_full",
-                return_value=TEST_NOW_DT,
-                create=True,
-            ),
-            patch(
-                "core.time_utilities.now_datetime_full",
-                return_value=TEST_NOW_DT,
-                create=True,
-            ),
-        ):
-            expected = format_timestamp(TEST_NOW_DT, DATE_ONLY)
+        expected = format_timestamp(datetime.now(), DATE_ONLY)
         assert result == expected
 
     def test_parse_relative_date_tomorrow(self):
         """Test relative date parsing for 'tomorrow'."""
         handler = TaskManagementHandler()
         result = handler._handle_create_task__parse_relative_date("tomorrow")
-        with (
-            patch(
-                "communication.command_handlers.task_handler.now_datetime_full",
-                return_value=TEST_NOW_DT,
-                create=True,
-            ),
-            patch(
-                "core.time_utilities.now_datetime_full",
-                return_value=TEST_NOW_DT,
-                create=True,
-            ),
-        ):
-            expected = format_timestamp(TEST_NOW_DT + timedelta(days=1), DATE_ONLY)
+        expected = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
         assert result == expected
 
     def test_parse_relative_date_next_week(self):
         """Test relative date parsing for 'next week'."""
         handler = TaskManagementHandler()
-        result = handler._handle_create_task__parse_relative_date("next week")
-        with (
-            patch(
-                "communication.command_handlers.task_handler.now_datetime_full",
-                return_value=TEST_NOW_DT,
-                create=True,
-            ),
-            patch(
-                "core.time_utilities.now_datetime_full",
-                return_value=TEST_NOW_DT,
-                create=True,
-            ),
+
+        with patch(
+            "communication.command_handlers.task_handler.now_datetime_full",
+            return_value=TEST_NOW_DT,
+            create=True,
         ):
-            expected = format_timestamp(TEST_NOW_DT + timedelta(days=7), DATE_ONLY)
+            result = handler._handle_create_task__parse_relative_date("next week")
+
+        expected = format_timestamp(TEST_NOW_DT + timedelta(days=7), DATE_ONLY)
         assert result == expected
 
     def test_parse_relative_date_next_month(self):
@@ -281,21 +252,9 @@ class TestTaskManagementHandlerCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Create tasks with different due dates
-        with (
-            patch(
-                "communication.command_handlers.task_handler.now_datetime_full",
-                return_value=TEST_NOW_DT,
-                create=True,
-            ),
-            patch(
-                "core.time_utilities.now_datetime_full",
-                return_value=TEST_NOW_DT,
-                create=True,
-            ),
-        ):
-            today = format_timestamp(TEST_NOW_DT, DATE_ONLY)
-            tomorrow = format_timestamp(TEST_NOW_DT + timedelta(days=1), DATE_ONLY)
-            next_week = format_timestamp(TEST_NOW_DT + timedelta(days=8), DATE_ONLY)
+        today = format_timestamp(datetime.now(), DATE_ONLY)
+        tomorrow = format_timestamp(datetime.now() + timedelta(days=1), DATE_ONLY)
+        next_week = format_timestamp(datetime.now() + timedelta(days=8), DATE_ONLY)
 
         create_task(user_id, "Due Today", today)
         create_task(user_id, "Due Tomorrow", tomorrow)
@@ -322,19 +281,7 @@ class TestTaskManagementHandlerCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Create overdue task
-        with (
-            patch(
-                "communication.command_handlers.task_handler.now_datetime_full",
-                return_value=TEST_NOW_DT,
-                create=True,
-            ),
-            patch(
-                "core.time_utilities.now_datetime_full",
-                return_value=TEST_NOW_DT,
-                create=True,
-            ),
-        ):
-            yesterday = format_timestamp(TEST_NOW_DT - timedelta(days=1), DATE_ONLY)
+        yesterday = format_timestamp(datetime.now() - timedelta(days=1), DATE_ONLY)
         create_task(user_id, "Overdue Task", yesterday)
         create_task(user_id, "Future Task", "2024-12-25")
 

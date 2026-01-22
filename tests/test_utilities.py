@@ -20,7 +20,12 @@ from datetime import datetime
 
 from core.user_data_handlers import create_new_user, save_user_data, get_user_data
 from core.file_operations import ensure_user_directory
-from core.time_utilities import now_timestamp_full, format_timestamp, DATE_ONLY
+from core.time_utilities import (
+    now_datetime_full,
+    now_timestamp_full,
+    format_timestamp,
+    DATE_ONLY,
+)
 
 # Setup logger for test utilities
 logger = logging.getLogger(__name__)
@@ -3206,8 +3211,12 @@ class TestDataFactory:
             List of task dictionaries
         """
         import uuid
-        from datetime import datetime, timedelta
-        from core.time_utilities import now_timestamp_full, format_timestamp
+        from datetime import timedelta
+        from core.time_utilities import (
+            now_datetime_full,
+            now_timestamp_full,
+            format_timestamp,
+        )
 
         tasks = []
         for i in range(task_count):
@@ -3218,7 +3227,7 @@ class TestDataFactory:
                 "priority": "medium",
                 "status": "active",
                 "due_date": format_timestamp(
-                    datetime.now() + timedelta(days=i + 1), DATE_ONLY
+                    now_datetime_full() + timedelta(days=i + 1), DATE_ONLY
                 ),
                 "created_at": now_timestamp_full(),
                 "updated_at": now_timestamp_full(),

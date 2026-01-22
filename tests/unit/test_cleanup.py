@@ -15,6 +15,9 @@ import json
 import logging
 from pathlib import Path
 from datetime import datetime
+from core.time_utilities import (
+    now_datetime_full,
+)  # Canonical 'now' helper for test utilities
 from typing import List, Dict, Any, Optional
 
 # Do not modify sys.path; rely on package imports
@@ -165,7 +168,7 @@ class CleanupManager:
             if not test_logs_dir.exists():
                 return
 
-            cutoff_time = datetime.now().timestamp() - (keep_days * 24 * 60 * 60)
+            cutoff_time = now_datetime_full().timestamp() - (keep_days * 24 * 60 * 60)
 
             for log_file in test_logs_dir.glob("*.log"):
                 if log_file.stat().st_mtime < cutoff_time:

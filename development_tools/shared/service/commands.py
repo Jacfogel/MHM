@@ -578,6 +578,8 @@ class CommandsMixin:
             logger.info("Unused imports analysis completed!")
         else:
             logger.warning(f"Unused imports analysis completed with issues: {result.get('error', 'Unknown error')}")
+        if hasattr(self, '_tools_run_in_current_tier'):
+            self._tools_run_in_current_tier.add('analyze_unused_imports')
         return result
     
     def run_unused_imports_report(self):

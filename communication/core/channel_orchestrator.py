@@ -5,7 +5,7 @@ import threading
 import time
 import random
 import re
-from typing import Dict, List, Optional, Any
+from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
@@ -1763,4 +1763,3 @@ class CommunicationManager:
             logger.debug(f"Selected message (fallback selection)")
         
         return selected_message
-

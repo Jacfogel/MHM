@@ -8,7 +8,6 @@ that all command handlers inherit from and use.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional
 from communication.command_handlers.shared_types import (
     InteractionResponse,
     ParsedCommand,

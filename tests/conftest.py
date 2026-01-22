@@ -33,6 +33,7 @@ from datetime import datetime
 from core.time_utilities import (
     now_timestamp_filename,
     now_timestamp_full,
+    now_datetime_full,
     format_timestamp,
     format_timestamp_milliseconds,
     parse_timestamp_full,
@@ -702,9 +703,9 @@ class SessionLogRotationManager:
         This method checks rotation conditions but does NOT update last_rotation_check.
         The timestamp is only updated after rotation actually completes in rotate_all_logs().
         """
-        from datetime import datetime, timedelta
+        from datetime import timedelta
 
-        now = datetime.now()
+        now = now_datetime_full()
 
         # Check time-based rotation (daily rotation for test logs)
         if self.last_rotation_check is not None:
@@ -860,7 +861,7 @@ class SessionLogRotationManager:
             # If no rotation needed, initialize last_rotation_check on first call
             # This prevents time-based rotation from triggering immediately on next check
             if self.last_rotation_check is None:
-                self.last_rotation_check = datetime.now()
+                self.last_rotation_check = now_datetime_full()
             return
 
         test_logger.info(f"Starting {rotation_context} log rotation for all log files")
@@ -992,7 +993,7 @@ class SessionLogRotationManager:
             )
 
         self.rotation_needed = False
-        rotation_time = datetime.now()
+        rotation_time = now_datetime_full()
         self.last_rotation_check = rotation_time
         self._save_last_rotation_time(rotation_time)
         test_logger.info(f"{rotation_context.capitalize()} log rotation completed")
@@ -1063,7 +1064,9 @@ class LogLifecycleManager:
 
     def cleanup_old_archives(self):
         """Remove archive files older than the specified number of days."""
-        cutoff_date = datetime.now().timestamp() - (self.archive_days * 24 * 60 * 60)
+        cutoff_date = now_datetime_full().timestamp() - (
+            self.archive_days * 24 * 60 * 60
+        )
 
         cleaned_count = 0
         for archive_file in self.archive_dir.glob("*"):
@@ -1087,7 +1090,7 @@ class LogLifecycleManager:
 
     def archive_old_backups(self):
         """Move old backup files to archive directory."""
-        cutoff_date = datetime.now().timestamp() - (7 * 24 * 60 * 60)  # 7 days
+        cutoff_date = now_datetime_full().timestamp() - (7 * 24 * 60 * 60)  # 7 days
 
         archived_count = 0
         for backup_file in self.backup_dir.glob("*"):
@@ -1705,7 +1708,7 @@ def _prune_old_files(
     try:
         if older_than_days <= 0:
             return 0
-        cutoff = datetime.now().timestamp() - (older_than_days * 24 * 3600)
+        cutoff = now_datetime_full().timestamp() - (older_than_days * 24 * 3600)
         for pattern in patterns:
             for file_path in target_dir.rglob(pattern):
                 try:
@@ -2727,7 +2730,7 @@ def mock_user_data(mock_config, test_data_dir, request):
     test_logger.debug(f"Creating mock user data for user: {user_id}")
 
     # Create mock account.json with current timestamp
-    current_time = datetime.now().isoformat() + "Z"
+    current_time = now_timestamp_full()
     account_data = {
         "user_id": user_id,
         "internal_username": f"testuser_{user_id[-4:]}",
@@ -2879,7 +2882,7 @@ def mock_user_data_with_messages(test_data_dir, mock_config, request):
     test_logger.debug(f"Creating mock user data with messages for user: {user_id}")
 
     # Create mock account.json with automated_messages enabled
-    current_time = datetime.now().isoformat() + "Z"
+    current_time = now_timestamp_full()
     account_data = {
         "user_id": user_id,
         "internal_username": f"testuser_{user_id[-4:]}",
@@ -4003,6 +4006,7 @@ _test_start_times = {}
 def pytest_runtest_setup(item):
     """Log when a test starts with timestamp (DEBUG level only)."""
     test_id = item.nodeid
+    # Debug-only timestamp for test runner logging (not persisted/parsed by production code).
     start_time = datetime.now()
     _test_start_times[test_id] = start_time
     timestamp = format_timestamp_milliseconds(start_time)  # Include milliseconds
@@ -4021,6 +4025,7 @@ def pytest_runtest_setup(item):
 def pytest_runtest_teardown(item, nextitem):
     """Log when a test ends with timestamp and duration (DEBUG level only)."""
     test_id = item.nodeid
+    # Debug-only timestamp for test runner logging (not persisted/parsed by production code).
     end_time = datetime.now()
     timestamp = format_timestamp_milliseconds(end_time)  # Include milliseconds
 
@@ -4043,6 +4048,7 @@ def pytest_runtest_logreport(report):
     """Log individual test results with timestamps."""
     if report.when == "call":
         timestamp = format_timestamp_milliseconds(
+            # Debug-only timestamp for test result logging (not persisted/parsed by production code).
             datetime.now()
         )  # Include milliseconds
         # Only log PASSED tests when verbose mode is enabled (to reduce log noise)

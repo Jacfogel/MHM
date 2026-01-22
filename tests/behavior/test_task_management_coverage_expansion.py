@@ -23,7 +23,7 @@ from pathlib import Path
 
 # Import task management functions
 from core.user_data_handlers import get_user_data
-from core.time_utilities import DATE_ONLY, format_timestamp
+from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 from tasks.task_management import (
     ensure_task_directory,
     load_active_tasks,
@@ -914,7 +914,7 @@ class TestTaskManagementCoverageExpansion:
     def test_get_tasks_due_soon_real_behavior(self, mock_user_data_dir, user_id):
         """Test getting tasks due within specified days."""
         # Create tasks with different due dates
-        base_dt = datetime.now()
+        base_dt = now_datetime_full()
         due_soon = format_timestamp(base_dt + timedelta(days=2), DATE_ONLY)
         due_late = format_timestamp(base_dt + timedelta(days=10), DATE_ONLY)
 
@@ -955,7 +955,7 @@ class TestTaskManagementCoverageExpansion:
         """Test get_tasks_due_soon with tasks exactly at cutoff_date."""
         # Create tasks with different due dates
         # Use format_timestamp(...) to avoid inline strftime outside core.time_utilities
-        now = datetime.now()
+        now = now_datetime_full()
         exactly_cutoff = format_timestamp(
             now + timedelta(days=7), DATE_ONLY
         )  # Exactly 7 days ahead
@@ -978,7 +978,7 @@ class TestTaskManagementCoverageExpansion:
         self, mock_user_data_dir, user_id
     ):
         """Test that get_tasks_due_soon returns tasks sorted by due_date."""
-        base_dt = datetime.now()
+        base_dt = now_datetime_full()
         dates = [
             format_timestamp(base_dt + timedelta(days=5), DATE_ONLY),
             format_timestamp(base_dt + timedelta(days=2), DATE_ONLY),

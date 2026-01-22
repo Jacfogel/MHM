@@ -1037,6 +1037,17 @@ class ToolWrappersMixin:
     def run_generate_unused_imports_report(self) -> Dict:
         """Run generate_unused_imports_report to generate markdown report from analysis results."""
         logger.info("Generating unused imports report...")
+        tools_run = getattr(self, "_tools_run_in_current_tier", None)
+        if tools_run is None:
+            tools_run = set()
+            setattr(self, "_tools_run_in_current_tier", tools_run)
+        if "analyze_unused_imports" not in tools_run:
+            logger.info("Running unused imports analysis before generating the report.")
+            analysis_result = self.run_unused_imports()
+            if not analysis_result.get("success", False):
+                logger.warning(
+                    "Unused imports analysis failed; the report will use cached data (if available)."
+                )
         script_path = Path(__file__).resolve().parent.parent.parent / 'imports' / 'generate_unused_imports_report.py'
         cmd = [sys.executable, str(script_path), '--project-root', str(self.project_root)]
         
