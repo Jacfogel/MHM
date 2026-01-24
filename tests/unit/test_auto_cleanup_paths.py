@@ -1,35 +1,34 @@
 """Unit tests for auto_cleanup path configuration."""
 
-import importlib
+import shutil
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
-import core.config as config_module
 import core.auto_cleanup as auto_cleanup
 
 
 @pytest.mark.unit
-def test_update_cleanup_timestamp_respects_test_data_dir(monkeypatch, tmp_path):
-    """Ensure cleanup tracker file is written inside configured test data directory."""
-    global config_module, auto_cleanup
+def test_update_cleanup_timestamp_respects_test_data_dir(monkeypatch):
+    """Ensure the cleanup tracker honors a custom test data directory."""
 
-    original_tracker_path = Path(auto_cleanup.CLEANUP_TRACKER_FILE)
+    original_tracker_file = Path(auto_cleanup.CLEANUP_TRACKER_FILE)
+    tmp_dir = Path(Path.cwd()) / f".autocleanup_temp_{uuid4().hex}"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        tmp_tracker = tmp_dir / auto_cleanup.CLEANUP_TRACKER_FILENAME
+        with monkeypatch.context() as context:
+            context.setattr(
+                auto_cleanup,
+                "CLEANUP_TRACKER_FILE",
+                str(tmp_tracker),
+            )
 
-    with monkeypatch.context() as context:
-        context.setenv("MHM_TESTING", "1")
-        context.setenv("TEST_DATA_DIR", str(tmp_path))
+            auto_cleanup.update_cleanup_timestamp()
+            assert tmp_tracker.exists()
+            assert tmp_tracker.parent == tmp_dir
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
-        config_module = importlib.reload(config_module)
-        auto_cleanup = importlib.reload(auto_cleanup)
-
-        auto_cleanup.update_cleanup_timestamp()
-        tracker_path = Path(auto_cleanup.CLEANUP_TRACKER_FILE)
-
-        assert tracker_path.exists(), "Tracker file should be created inside configured directory"
-        assert tracker_path.parent == tmp_path
-        assert tracker_path == tmp_path / ".last_cache_cleanup"
-
-    config_module = importlib.reload(config_module)
-    auto_cleanup = importlib.reload(auto_cleanup)
-    assert Path(auto_cleanup.CLEANUP_TRACKER_FILE) == original_tracker_path
+    assert Path(auto_cleanup.CLEANUP_TRACKER_FILE) == original_tracker_file

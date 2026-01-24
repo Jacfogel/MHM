@@ -37,6 +37,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-01-24 - Strengthened tests and flaky fixes
+- **Feature**: Added regression suites for `core.tags`, `core.auto_cleanup`, `communication.command_handlers.analytics_handler`, `communication.command_handlers.profile_handler`, and the reschedule-request behavior utility so the moderate-coverage modules now have targeted coverage and the failing flag-file test hits the real file semantics instead of a mock.
+- **Feature**: Hardened the auto-cleanup logic helpers (tracker timestamps + interval gating) and created a deterministic `SchedulerManager.is_job_for_category` test plus auto-cleanup path isolation tests to support accurate coverage reporting under parallel runs.
+- **Feature**: Fixed the intermittent `test_create_reschedule_request_creates_actual_file` failure by writing through the actual flag directory, and reran the focused behavior test; recorded the known flaky UI/task-management failure in TODO.md while noting the other recent parallel-only failures still under investigation.
+- **Impact**: Coverage now exercises previously light modules, the audit `json.dump` expectation no longer fails, and clarified intermittent issues for future tracking.
+- **Testing**: `pytest tests/unit/test_tags.py`, `pytest tests/unit/test_auto_cleanup_paths.py`, `pytest tests/unit/test_auto_cleanup_logic.py`, `pytest tests/unit/test_analytics_handler.py`, `pytest tests/unit/test_profile_handler.py`, `pytest tests/behavior/test_service_utilities_behavior.py -k create_reschedule_request`, `python development_tools/tests/fix_test_markers.py` (checks markers).
+
 ### 2026-01-21 - Test suite datetime canonicalization & unused import hygiene
 - **Feature**: Completed the focused `datetime.now()` audit for the test suite so production-sensitive tests (scheduling, reminders, analytics, cleanup, retries, channel behavior) now go through the canonical helpers in `core/time_utilities.py`, with deterministic patching (including new fixed anchor `TEST_NOW_DT`) for relative-date assertions and inline `datetime` limited to metadata/debug-only values. The audit also cleaned up a mis-indented pytest method to prevent collection errors.
 - **Impact**: Eliminates wall-clock dependence, removes the last bursts of unpredictable `datetime.now()` usage, and gives tests deterministic anchors; the hardened helpers can now be patched before logic under test runs, reducing midnight-rollover flakiness.

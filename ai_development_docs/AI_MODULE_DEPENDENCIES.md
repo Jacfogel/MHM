@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 22:56:53
+> **Last Generated**: 2026-01-24 05:08:06
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,22 +13,22 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports**: 1465
-- **Standard Library**: 394 (26.9%)
-- **Third-Party**: 230 (15.7%)
-- **Local Imports**: 841 (57.4%)
+- **Total Imports**: 1449
+- **Standard Library**: 378 (26.1%)
+- **Third-Party**: 230 (15.9%)
+- **Local Imports**: 841 (58.0%)
 
 ## Dependency Decision Trees
 
 ### Need Core System Access?
 Core System Dependencies:
 - Configuration and Setup
-  - core/config.py <- standard library (os, pathlib, typing), third-party (dotenv), error_handling, logger
+  - core/config.py <- standard library (os, pathlib), third-party (dotenv), error_handling, logger
   - core/logger.py <- standard library (glob, gzip, json, logging), error_handling, config
 - Data Management
-  - core/file_operations.py <- standard library (datetime, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+2 more)
-  - core/user_data_handlers.py <- standard library (copy, datetime, json, os), third-party (pytz), logger, error_handling, config, file_operations, time_utilities (+6 more)
-  - core/user_data_manager.py <- standard library (datetime, json, os, pathlib), logger, config, file_operations, user_data_handlers, schemas (+5 more)
+  - core/file_operations.py <- standard library (json, os, pathlib, re), logger, config, error_handling, time_utilities, file_auditor (+2 more)
+  - core/user_data_handlers.py <- standard library (copy, json, os, pathlib), third-party (pytz), logger, error_handling, config, file_operations, time_utilities (+6 more)
+  - core/user_data_manager.py <- standard library (json, os, pathlib, shutil), logger, config, file_operations, user_data_handlers, schemas (+5 more)
 - Error Handling
   - core/error_handling.py <- standard library (asyncio, datetime, functools, json), time_utilities, service_utilities, logger
 
@@ -40,16 +40,16 @@ AI System Dependencies:
 - Command Processing
   - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, user_data_handlers, user_data_manager, base_handler (+3 more)
   - communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, checkin_analytics (+3 more)
-  - communication/command_handlers/base_handler.py <- standard library (abc, typing), shared_types, logger, error_handling
+  - communication/command_handlers/base_handler.py <- standard library (abc), shared_types, logger, error_handling
 - Communication Integration
   - communication/communication_channels/__init__.py <- none
-  - communication/core/channel_monitor.py <- standard library (datetime, threading, time, typing), time_utilities, logger, error_handling, base_channel
+  - communication/core/channel_monitor.py <- standard library (threading, time, typing), time_utilities, logger, error_handling, base_channel
 
 ### Need Communication Channel Coverage?
 Communication Dependencies:
 - Channel Infrastructure
-  - communication/command_handlers/base_handler.py <- standard library (abc, typing), shared_types, logger, error_handling
-  - communication/core/factory.py <- standard library (importlib, typing), base_channel, logger, error_handling, config
+  - communication/command_handlers/base_handler.py <- standard library (abc), shared_types, logger, error_handling
+  - communication/core/factory.py <- standard library (importlib), base_channel, logger, error_handling, config
   - communication/communication_channels/base/base_channel.py <- standard library (abc, dataclasses, enum, typing), logger, error_handling
 - Specific Channels
   - communication/communication_channels/discord/account_flow_handler.py <- standard library (typing), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_handlers
@@ -104,9 +104,9 @@ External libraries provide channel and UI support.
 - `run_headless_service.py` -> standard library (sys), headless_service, logger, error_handling (main application entry)
 
 ### Data Flow
-- file_operations.py: core/file_operations.py <- standard library (datetime, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+2 more)
-- user_data_handlers.py: core/user_data_handlers.py <- standard library (copy, datetime, json, os), third-party (pytz), logger, error_handling, config, file_operations, time_utilities (+6 more)
-- user_data_manager.py: core/user_data_manager.py <- standard library (datetime, json, os, pathlib), logger, config, file_operations, user_data_handlers, schemas (+5 more)
+- file_operations.py: core/file_operations.py <- standard library (json, os, pathlib, re), logger, config, error_handling, time_utilities, file_auditor (+2 more)
+- user_data_handlers.py: core/user_data_handlers.py <- standard library (copy, json, os, pathlib), third-party (pytz), logger, error_handling, config, file_operations, time_utilities (+6 more)
+- user_data_manager.py: core/user_data_manager.py <- standard library (json, os, pathlib, shutil), logger, config, file_operations, user_data_handlers, schemas (+5 more)
 
 ### Communication Flow
 - __init__: communication/__init__.py <- third-party (command_handlers.analytics_handler, command_handlers.base_handler, command_handlers.checkin_handler), retry_manager, channel_orchestrator, factory, channel_monitor

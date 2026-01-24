@@ -3,6 +3,7 @@ Behavior tests for Service Utilities module.
 Tests real behavior and side effects of service utility functions.
 """
 
+import json
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open
@@ -102,33 +103,28 @@ class TestServiceUtilitiesBehavior:
         user_id = "test-user-reschedule"
         category = "checkin"
 
-        # Arrange - Mock file operations
-        mock_file_content = ""
-
-        # Act - Create reschedule request with mocked file operations
+        base_flags = Path(test_data_dir) / "flags"
+        existing = set(base_flags.iterdir())
         with patch("core.service_utilities.is_service_running", return_value=True):
-            with patch("builtins.open", mock_open()) as mock_file:
-                with patch("json.dump") as mock_json_dump:
-                    result = create_reschedule_request(user_id, category)
+            result = create_reschedule_request(user_id, category)
 
-        # Assert - Verify file operations were called
-        mock_file.assert_called_once()
-        mock_json_dump.assert_called_once()
         assert result is True
 
-        # Verify the request data structure
-        call_args = mock_json_dump.call_args[0][0]
-        assert call_args["user_id"] == user_id, "Should include user_id"
-        assert call_args["category"] == category, "Should include category"
+        new_files = [p for p in base_flags.iterdir() if p not in existing]
+        assert len(new_files) == 1, "Should create exactly one new reschedule file"
+        new_file = new_files[0]
         assert (
-            "requested_at_readable" in call_args
-        ), "Should include requested_at_readable"
-        assert "requested_at_iso" in call_args, "Should include requested_at_iso"
-        assert call_args["source"] == "ui_schedule_editor", "Should include source"
-        assert call_args[
-            "requested_at_readable"
-        ], "requested_at_readable should not be empty"
-        assert call_args["requested_at_iso"], "requested_at_iso should not be empty"
+            new_file.name.startswith(f"reschedule_request_{user_id}_{category}_")
+        ), "Filename should include identifying info"
+
+        data = json.loads(new_file.read_text(encoding="utf-8"))
+        assert data["user_id"] == user_id
+        assert data["category"] == category
+        assert data["source"] == "ui_schedule_editor"
+        assert data["requested_at_readable"]
+        assert data["requested_at_iso"]
+
+        new_file.unlink()
 
     def test_create_reschedule_request_skips_when_service_not_running(
         self, test_data_dir

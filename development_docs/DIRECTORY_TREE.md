@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 22:56:55
+> **Last Generated**: 2026-01-24 05:08:08
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -248,6 +248,7 @@ C:.
 |   |   test_isolation.py
 |   |   test_utilities.py
 |   |   
+|   +---.pytest_account
 |   +---.pytest_core_mgmt
 |   +---ai
 |   |   |   ai_response_validator.py

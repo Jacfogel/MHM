@@ -27,6 +27,10 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-01-24 - Expanded pytest coverage & flaky fixes **COMPLETED**
+- Added regression suites for `core.tags`, `core.auto_cleanup`, analytics/profile handlers, and the reschedule-request behavior so those modules are now well covered and the previous `json.dump` failure is resolved by touching the real flag directory.
+- Hardened the auto-cleanup helper logic and documented the remaining UI/user-data flakes while the focused behavior run (`tests/behavior/test_service_utilities_behavior.py -k create_reschedule_request`) now passes; tracked the known real UI flake in `TODO.md`.
+- Testing: `pytest tests/unit/test_tags.py`, `pytest tests/unit/test_auto_cleanup_paths.py`, `pytest tests/unit/test_auto_cleanup_logic.py`, `pytest tests/unit/test_analytics_handler.py`, `pytest tests/unit/test_profile_handler.py`, `pytest tests/behavior/test_service_utilities_behavior.py -k create_reschedule_request`, `python development_tools/tests/fix_test_markers.py`.
 ### 2026-01-21 - Datetime canonicalization audit recap **COMPLETED**
 - Ran the canonical time helper audit across tests, removed the remaining `datetime.now()` usage, and fixed the pytest collection issue so the full `python run_tests.py` and Tier-3 `development_tools/run_development_tools.py audit --full --clear-cache` runs pass.
 - Logged the two coverage-driven failures (`tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_updates_account_features` and `tests/behavior/test_user_data_flow_architecture.py::TestAtomicOperations::test_atomic_operation_all_types_succeed`) for follow-up before the next audit, which will focus on explicit `datetime(` constructions.

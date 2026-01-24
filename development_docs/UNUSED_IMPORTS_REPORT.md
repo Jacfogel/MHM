@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-22 03:01:04
+> **Last Generated**: 2026-01-24 05:21:11
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 413
-- **Files with Unused Imports**: 133
-- **Total Unused Imports**: 375
+- **Total Files Scanned**: 417
+- **Files with Unused Imports**: 135
+- **Total Unused Imports**: 377
 
 ## Breakdown by Category
 
@@ -18,9 +18,9 @@
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 147 imports
+- **Test Mocking**: 148 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 163 imports
+- **Test Infrastructure**: 164 imports
 - **Production Test Mocking**: 4 imports
 - **Ui Imports**: 1 imports
 
@@ -547,6 +547,12 @@
 
 - **Line 12**: Unused MagicMock imported from unittest.mock
 - **Line 19**: Unused DataError imported from core.error_handling
+
+### `tests/unit/test_profile_handler.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 3**: Unused patch imported from unittest.mock
 
 ### `tests/unit/test_prompt_manager.py`
 
@@ -1299,6 +1305,12 @@
 - **Line 25**: Unused datetime imported from datetime
 - **Line 25**: Unused time imported from datetime
 - **Line 35**: Unused TestUserDataFactory imported from tests.test_utilities
+
+### `tests/unit/test_auto_cleanup_logic.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 5**: Unused import tempfile
 
 ### `tests/unit/test_file_locking.py`
 

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-20 22:56:53
+> **Last Generated**: 2026-01-24 05:08:06
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports Found**: 1465
+- **Total Imports Found**: 1449
 - **Dependencies Documented**: 108 (100% coverage)
-- **Standard Library Imports**: 394 (26.9%)
-- **Third-Party Imports**: 230 (15.7%)
-- **Local Imports**: 841 (57.4%)
-- **Last Updated**: 2026-01-20
+- **Standard Library Imports**: 378 (26.1%)
+- **Third-Party Imports**: 230 (15.9%)
+- **Local Imports**: 841 (58.0%)
+- **Last Updated**: 2026-01-24
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 394 imports (26.9%)
-- **Third-Party**: 230 imports (15.7%)
-- **Local**: 841 imports (57.4%)
+- **Standard Library**: 378 imports (26.1%)
+- **Third-Party**: 230 imports (15.9%)
+- **Local**: 841 imports (58.0%)
 
 ## Module Dependencies by Directory
 
@@ -301,7 +301,7 @@
     - `tasks.task_management (get_user_task_stats, load_active_tasks, load_completed_tasks)` (NEW)
   - **Standard Library**:
     - `collections (Counter)`
-    - `typing (Any, Dict, List)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/command_handlers/interaction_handlers.py`
   - `communication/message_processing/conversation_flow_manager.py`
@@ -323,7 +323,6 @@
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
     - `abc (ABC, abstractmethod)`
-    - `typing (List, Optional)`
 - **Used by**: 
   - `communication/command_handlers/account_handler.py`
   - `communication/command_handlers/analytics_handler.py`
@@ -354,7 +353,7 @@
     - `core.time_utilities (parse_timestamp_full)` (NEW)
   - **Standard Library**:
     - `datetime (date)`
-    - `typing (Any, Dict, List)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/command_handlers/interaction_handlers.py`
 
@@ -385,7 +384,7 @@
     - `core.user_data_handlers (get_user_data, save_user_data)` (NEW)
     - `tasks.task_management (load_active_tasks)` (NEW)
   - **Standard Library**:
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/message_processing/command_parser.py`
   - `communication/message_processing/conversation_flow_manager.py`
@@ -409,9 +408,9 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.tags (parse_tags_from_text)` (NEW)
-    - `core.time_utilities (TIMESTAMP_FULL, now_timestamp_full)` (NEW)
+    - `core.time_utilities (now_timestamp_full)` (NEW)
   - **Standard Library**:
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
   - **Third-party**:
     - `notebook.notebook_data_manager (add_list_item, add_tags, append_to_entry_body, archive_entry, create_journal, create_list, create_note, get_entry, list_archived, list_by_group, list_by_tag, list_inbox, list_pinned, list_recent, pin_entry, remove_list_item, remove_tags, search_entries, set_entry_body, set_group, toggle_list_item_done)`
     - `notebook.notebook_validation (format_short_id)`
@@ -439,7 +438,7 @@
     - `core.user_data_handlers (get_user_data, save_user_data)` (NEW)
     - `tasks.task_management (get_user_task_stats)` (NEW)
   - **Standard Library**:
-    - `typing (Any, Dict, List)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/command_handlers/interaction_handlers.py`
   - `communication/message_processing/conversation_flow_manager.py`
@@ -463,7 +462,7 @@
     - `core.schedule_management (add_schedule_period, get_schedule_time_periods, set_schedule_periods)` (NEW)
     - `core.user_data_handlers (get_user_categories)` (NEW)
   - **Standard Library**:
-    - `typing (Any, Dict, List)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/command_handlers/interaction_handlers.py`
   - `communication/message_processing/conversation_flow_manager.py`
@@ -481,7 +480,7 @@
 - **Dependencies**: 
   - **Standard Library**:
     - `dataclasses (dataclass)`
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/command_handlers/account_handler.py`
   - `communication/command_handlers/analytics_handler.py`
@@ -515,9 +514,9 @@
     - `core.user_data_handlers (get_user_data)` (NEW)
     - `tasks.task_management (complete_task, create_task, delete_task, get_tasks_due_soon, get_user_task_stats, load_active_tasks, update_task)` (NEW)
   - **Standard Library**:
-    - `datetime (datetime, timedelta)`
+    - `datetime (timedelta)`
     - `re`
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
   - **Third-party**:
     - `base_handler (InteractionHandler, InteractionResponse, ParsedCommand)`
 - **Used by**: 
@@ -552,7 +551,7 @@
     - `abc (ABC, abstractmethod)`
     - `dataclasses (dataclass)`
     - `enum (Enum)`
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/communication_channels/discord/bot.py`
   - `communication/communication_channels/email/bot.py`
@@ -577,7 +576,7 @@
   - **Standard Library**:
     - `abc (ABC, abstractmethod)`
     - `dataclasses (dataclass)`
-    - `typing (Callable, Dict, List, Optional)`
+    - `typing (Callable)`
   - **Third-party**:
     - `discord (app_commands)`
 - **Used by**: None (not imported by other modules)
@@ -597,7 +596,7 @@
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
     - `abc (ABC, abstractmethod)`
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
@@ -615,7 +614,7 @@
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
     - `abc (ABC, abstractmethod)`
-    - `typing (Any, Dict, List)`
+    - `typing (Any)`
   - **Third-party**:
     - `discord`
 - **Used by**: 
@@ -664,7 +663,7 @@
     - `asyncio`
     - `dataclasses (dataclass)`
     - `time`
-    - `typing (Any, Dict, List, Optional, Union)`
+    - `typing (Any)`
   - **Third-party**:
     - `discord`
 - **Used by**: None (not imported by other modules)
@@ -701,7 +700,7 @@
     - `subprocess`
     - `threading`
     - `time`
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
   - **Third-party**:
     - `aiohttp`
     - `discord (app_commands, discord)`
@@ -754,7 +753,7 @@
     - `dataclasses (dataclass)`
     - `enum (Enum)`
     - `time`
-    - `typing (Any, Callable, Dict, List, Optional)`
+    - `typing (Any, Callable)`
   - **Third-party**:
     - `discord`
 - **Used by**: None (not imported by other modules)
@@ -802,7 +801,7 @@
     - `asyncio`
     - `concurrent.futures (Future)`
     - `json`
-    - `typing (Any, Dict, Optional)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/communication_channels/discord/webhook_server.py`
 
@@ -849,7 +848,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
-    - `typing (Optional, TYPE_CHECKING)`
+    - `typing (TYPE_CHECKING)`
   - **Third-party**:
     - `discord`
 - **Used by**: 
@@ -882,7 +881,7 @@
     - `smtplib`
     - `socket`
     - `time`
-    - `typing (Any, Dict, List, Optional, Tuple)`
+    - `typing (Any)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
@@ -915,10 +914,9 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (now_datetime_full)` (NEW)
   - **Standard Library**:
-    - `datetime`
     - `threading`
     - `time`
-    - `typing (Any, Dict, Optional)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/core/channel_orchestrator.py`
 
@@ -960,7 +958,7 @@
     - `re`
     - `threading`
     - `time`
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
     - `uuid`
 - **Used by**: 
   - `communication/command_handlers/account_handler.py`
@@ -986,7 +984,6 @@
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
     - `importlib`
-    - `typing (Dict, Optional, Type)`
 - **Used by**: 
   - `communication/core/channel_orchestrator.py`
 
@@ -1034,7 +1031,7 @@
     - `datetime`
     - `json`
     - `pathlib (Path)`
-    - `typing (Any, Dict, Optional)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/communication_channels/discord/webhook_handler.py`
   - `communication/communication_channels/discord/welcome_handler.py`
@@ -1073,7 +1070,7 @@
     - `dataclasses (dataclass)`
     - `json`
     - `re`
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/message_processing/interaction_manager.py`
 
@@ -1152,7 +1149,7 @@
     - `datetime`
     - `json`
     - `re`
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/communication_channels/discord/bot.py`
   - `communication/communication_channels/discord/checkin_view.py`
@@ -1178,7 +1175,6 @@
   - **Standard Library**:
     - `dataclasses (dataclass)`
     - `enum (Enum)`
-    - `typing (Dict, List, Optional)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
@@ -1296,7 +1292,6 @@
   - **Standard Library**:
     - `datetime (timedelta)`
     - `statistics`
-    - `typing (Dict, List, Optional)`
 - **Used by**: 
   - `communication/command_handlers/analytics_handler.py`
   - `communication/command_handlers/task_handler.py`
@@ -1322,7 +1317,7 @@
     - `pathlib (Path)`
     - `random`
     - `re`
-    - `typing (Any, Dict, Optional, Tuple)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/message_processing/conversation_flow_manager.py`
   - `ui/widgets/checkin_settings_widget.py`
@@ -1344,7 +1339,6 @@
   - **Standard Library**:
     - `os`
     - `pathlib (Path)`
-    - `typing (Dict, List, Optional, Tuple)`
   - **Third-party**:
     - `dotenv (load_dotenv)`
 - **Used by**: 
@@ -1405,7 +1399,7 @@
     - `threading`
     - `time`
     - `traceback`
-    - `typing (Any, Callable, Dict, List, Optional)`
+    - `typing (Any, Callable)`
 - **Used by**: 
   - `ai/cache_manager.py`
   - `ai/chatbot.py`
@@ -1519,7 +1513,6 @@
     - `__future__ (annotations)`
     - `os`
     - `traceback`
-    - `typing (Dict, List, Optional)`
 - **Used by**: 
   - `core/file_operations.py`
   - `core/service.py`
@@ -1573,7 +1566,6 @@
     - `core.time_utilities (now_timestamp_full)` (NEW)
     - `core.user_data_manager (update_message_references, update_user_index)` (NEW)
   - **Standard Library**:
-    - `datetime`
     - `json`
     - `os`
     - `pathlib (Path)`
@@ -1615,7 +1607,6 @@
     - `subprocess`
     - `sys`
     - `time`
-    - `typing (Optional)`
   - **Third-party**:
     - `psutil`
 - **Used by**: 
@@ -1855,7 +1846,7 @@
     - `datetime`
     - `re`
     - `time`
-    - `typing (Any, Dict, Optional)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/command_handlers/schedule_handler.py`
   - `communication/core/channel_orchestrator.py`
@@ -1886,7 +1877,6 @@
     - `core.time_utilities (DATE_DISPLAY_WEEKDAY, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_time_only_minute)` (NEW)
   - **Standard Library**:
     - `datetime`
-    - `typing (Dict, List, Optional)`
 - **Used by**: 
   - `user/context_manager.py`
   - `user/user_context.py`
@@ -1952,7 +1942,7 @@
   - **Standard Library**:
     - `__future__ (annotations)`
     - `re`
-    - `typing (Any, Dict, List, Literal, Optional)`
+    - `typing (Any, Literal)`
   - **Third-party**:
     - `pydantic (BaseModel, ConfigDict, Field, RootModel, field_validator, model_validator)`
     - `pytz`
@@ -1987,11 +1977,10 @@
     - `core.schedule_management (get_current_day_names, get_current_time_periods_with_validation)` (NEW)
     - `core.scheduler (SchedulerManager)` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
-    - `core.time_utilities (TIMESTAMP_FULL, now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_all_user_ids, get_user_data)` (NEW)
   - **Standard Library**:
     - `atexit`
-    - `datetime`
     - `json`
     - `logging`
     - `os`
@@ -2024,7 +2013,6 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (TIMESTAMP_MINUTE, now_timestamp_filename, now_timestamp_full, parse_timestamp_minute)` (NEW)
   - **Standard Library**:
-    - `datetime`
     - `json`
     - `os`
     - `pathlib (Path)`
@@ -2173,13 +2161,12 @@
     - `core.user_data_validation (validate_new_user_data, validate_user_update)` (NEW)
   - **Standard Library**:
     - `copy`
-    - `datetime`
     - `json`
     - `os`
     - `pathlib (Path)`
     - `time`
     - `traceback`
-    - `typing (Any, Dict, List, Optional, Union)`
+    - `typing (Any)`
     - `uuid`
   - **Third-party**:
     - `pytz`
@@ -2252,13 +2239,12 @@
     - `core.time_utilities (now_timestamp_filename, now_timestamp_full)` (NEW)
     - `core.user_data_handlers (USER_DATA_LOADERS, get_all_user_ids, get_user_categories, get_user_data)` (NEW)
   - **Standard Library**:
-    - `datetime`
     - `json`
     - `os`
     - `pathlib (Path)`
     - `shutil`
     - `time`
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
     - `zipfile`
 - **Used by**: 
   - `communication/command_handlers/account_handler.py`
@@ -2285,14 +2271,14 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.message_management (get_message_categories)` (NEW)
     - `core.schemas (validate_account_dict, validate_preferences_dict, validate_schedules_dict)` (NEW)
-    - `core.time_utilities (DATE_ONLY, TIME_ONLY_MINUTE, parse_date_only, parse_time_only_minute)` (NEW)
+    - `core.time_utilities (parse_date_only, parse_time_only_minute)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
   - **Standard Library**:
     - `datetime`
     - `os`
     - `re`
     - `time`
-    - `typing (Any, Dict, List, Optional, Tuple)`
+    - `typing (Any)`
 - **Used by**: 
   - `core/schemas.py`
   - `core/user_data_handlers.py`
@@ -2375,7 +2361,7 @@
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
     - `pathlib (Path)`
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
     - `uuid`
 - **Used by**: 
   - `ai/chatbot.py`
@@ -2871,7 +2857,6 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
   - **Standard Library**:
-    - `datetime`
     - `os`
     - `pathlib (Path)`
     - `subprocess`
@@ -2896,7 +2881,7 @@
     - `core.logger (get_component_logger, get_verbose_mode, setup_logging, toggle_verbose_logging)` (NEW)
     - `core.scheduler (SchedulerManager, run_category_scheduler_standalone, run_full_scheduler_standalone, run_user_scheduler_standalone)` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
-    - `core.time_utilities (TIMESTAMP_FULL, now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_all_user_ids, get_user_data, save_user_data, update_user_context)` (NEW)
     - `core.user_data_manager (rebuild_user_index)` (NEW)
     - `core.user_data_validation (_shared__title_case)` (NEW)
@@ -3085,7 +3070,7 @@
     - `core.schedule_management (get_period_data__time_12h_display_to_24h, get_period_data__time_24h_to_12h_display)` (NEW)
     - `ui.generated.period_row_template_pyqt (Ui_Form_period_row_template)` (NEW)
   - **Standard Library**:
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any)`
   - **Third-party**:
     - `PySide6.QtCore (Signal)`
     - `PySide6.QtWidgets (QButtonGroup, QWidget)`
@@ -3162,7 +3147,7 @@
     - `ui.generated.user_profile_settings_widget_pyqt (Ui_Form_user_profile_settings)` (NEW)
     - `ui.widgets.dynamic_list_container (DynamicListContainer)` (NEW)
   - **Standard Library**:
-    - `typing (Any, Dict, Optional)`
+    - `typing (Any)`
   - **Third-party**:
     - `PySide6.QtCore (QDate, Qt)`
     - `PySide6.QtWidgets (QLabel, QLineEdit, QVBoxLayout, QWidget)`
@@ -3205,7 +3190,7 @@
     - `core.user_data_handlers (get_user_data)` (NEW)
     - `user.user_context (UserContext)` (NEW)
   - **Standard Library**:
-    - `typing (Any, Dict, List)`
+    - `typing (Any)`
 - **Used by**: 
   - `ai/chatbot.py`
   - `ai/context_builder.py`
