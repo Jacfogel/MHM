@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-01-24 05:22:05",
+  "last_generated": "2026-01-24 17:56:16",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-01-24T05:22:05.845325",
+  "timestamp": "2026-01-24T17:56:16.798335",
   "successful": [
     "analyze_duplicate_functions",
     "analyze_functions",
@@ -48,8 +48,8 @@
           "total_functions": 1543,
           "cache": {
             "total_files": 108,
-            "cached_files": 108,
-            "scanned_files": 0
+            "cached_files": 0,
+            "scanned_files": 108
           },
           "pairs_considered": 20000,
           "pairs_reported": 60,
@@ -3331,7 +3331,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-24T05:20:54"
+      "timestamp": "2026-01-24T17:44:03"
     },
     "analyze_functions": {
       "success": true,
@@ -3462,7 +3462,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-24T05:20:55"
+      "timestamp": "2026-01-24T17:44:04"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -5420,7 +5420,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-24T05:20:49"
+      "timestamp": "2026-01-24T17:43:58"
     },
     "analyze_function_registry": {
       "success": true,
@@ -7622,7 +7622,7 @@
           "total_issues": 20
         }
       },
-      "timestamp": "2026-01-24T05:20:57"
+      "timestamp": "2026-01-24T17:44:07"
     },
     "analyze_package_exports": {
       "success": true,
@@ -15231,7 +15231,7 @@
           }
         }
       },
-      "timestamp": "2026-01-24T05:21:08"
+      "timestamp": "2026-01-24T17:44:23"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -15240,7 +15240,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-24T05:21:03"
+      "timestamp": "2026-01-24T17:44:14"
     },
     "analyze_documentation": {
       "success": true,
@@ -15282,7 +15282,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.18634496128880368,
+              "similarity_score": 0.18631820180959477,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -15507,20 +15507,20 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 191075,
+              "content_length": 192035,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
-              "section_count": 228,
+              "section_count": 229,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-01-24 - Expanded pytest coverage & flaky fixes **COMPLETED**",
                 "2026-01-21 - Datetime canonicalization audit recap **COMPLETED**",
                 "2026-01-21 - Test canonicalization & unused-import hygiene **COMPLETED**",
                 "2026-01-20 - Test suite datetime canonicalization update **COMPLETED**",
-                "2026-01-20 - Test canonicalization and doc/test hygiene **COMPLETED**",
-                "2026-01-20 - Hardened time helpers and error classification **COMPLETED**"
+                "2026-01-20 - Test canonicalization and doc/test hygiene **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -15724,9 +15724,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 1106851,
+              "content_length": 1108422,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 384,
+              "section_count": 385,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -15734,10 +15734,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-01-24 - Strengthened tests and flaky fixes",
                 "2026-01-21 - Test suite datetime canonicalization & unused import hygiene",
                 "2026-01-21 - Datetime Canonicalization Audit (Session Update)",
-                "2026-01-20 - Documented canonical test-time sweep and doc/test hygiene",
-                "2026-01-20 - Test suite datetime canonicalization report"
+                "2026-01-20 - Documented canonical test-time sweep and doc/test hygiene"
               ]
             },
             "development_docs/PLANS.md": {
@@ -16012,15 +16012,15 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-01-24T05:20:48"
+      "timestamp": "2026-01-24T17:43:56"
     },
     "analyze_documentation_sync": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 1,
           "files_affected": 0,
-          "status": "PASS"
+          "status": "FAIL"
         },
         "details": {
           "paired_doc_issues": 0,
@@ -16028,7 +16028,7 @@
           "ascii_compliance_issues": 0,
           "heading_numbering_issues": 0,
           "missing_address_issues": 0,
-          "unconverted_link_issues": 0,
+          "unconverted_link_issues": 1,
           "path_drift_files": [],
           "paired_docs": {},
           "path_drift": {
@@ -16052,13 +16052,15 @@
             "total_issues": 0
           },
           "unconverted_links": {
-            "files": {},
-            "file_count": 0,
-            "total_issues": 0
+            "files": {
+              "ai_development_docs/AI_CHANGELOG.md": 1
+            },
+            "file_count": 1,
+            "total_issues": 1
           }
         }
       },
-      "timestamp": "2026-01-24T05:21:09"
+      "timestamp": "2026-01-24T17:44:52"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -16067,7 +16069,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-24T05:21:04"
+      "timestamp": "2026-01-24T17:44:16"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -16076,7 +16078,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-24T05:21:08"
+      "timestamp": "2026-01-24T17:44:21"
     },
     "analyze_path_drift": {
       "success": true,
@@ -16085,16 +16087,18 @@
         "total_issues": 0,
         "detailed_issues": {}
       },
-      "timestamp": "2026-01-24T05:21:01"
+      "timestamp": "2026-01-24T17:44:13"
     },
     "analyze_unconverted_links": {
       "success": true,
       "data": {
-        "files": {},
-        "file_count": 0,
-        "total_issues": 0
+        "files": {
+          "ai_development_docs/AI_CHANGELOG.md": 1
+        },
+        "file_count": 1,
+        "total_issues": 1
       },
-      "timestamp": "2026-01-24T05:21:09"
+      "timestamp": "2026-01-24T17:44:52"
     },
     "analyze_error_handling": {
       "success": true,
@@ -16114,20 +16118,20 @@
             "handle_errors_decorator": 1475,
             "try_except": 709,
             "handle_ai_error": 16,
-            "handle_network_error": 5,
             "handle_communication_error": 4,
+            "handle_network_error": 5,
             "DataError": 15,
             "ConfigurationError": 8,
             "ValidationError": 25,
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "handle_file_error": 3,
-            "AIError": 2,
-            "FileOperationError": 8,
             "MHMError": 2,
+            "handle_file_error": 3,
             "safe_file_operation": 1,
-            "CommunicationError": 2
+            "CommunicationError": 2,
+            "FileOperationError": 8,
+            "AIError": 2
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -16175,7 +16179,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-24T05:20:55"
+      "timestamp": "2026-01-24T17:44:04"
     },
     "analyze_test_coverage": {
       "success": true,
@@ -16186,32 +16190,32 @@
         },
         "details": {
           "overall": {
-            "coverage": 72.1,
-            "statements": 28630,
-            "covered": 20636,
-            "missed": 7994,
-            "generated": "2026-01-24T05:18:50.298131"
+            "coverage": 72.5,
+            "statements": 28528,
+            "covered": 20696,
+            "missed": 7832,
+            "generated": "2026-01-24T17:56:09.523411"
           },
           "modules": [
             {
               "module": "communication",
-              "coverage": 68.9,
-              "missed": 2844
+              "coverage": 70.2,
+              "missed": 2704
             },
             {
               "module": "ui",
               "coverage": 70.6,
-              "missed": 1982
+              "missed": 1980
             },
             {
               "module": "core",
-              "coverage": 73.8,
-              "missed": 2674
+              "coverage": 73.9,
+              "missed": 2659
             },
             {
               "module": "ai",
-              "coverage": 77.9,
-              "missed": 380
+              "coverage": 78.2,
+              "missed": 375
             },
             {
               "module": "tasks",
@@ -16243,7 +16247,7 @@
             {
               "path": "ui/ui_app_qt.py",
               "coverage": 52.6,
-              "missing": 665
+              "missing": 664
             },
             {
               "path": "communication/core/channel_orchestrator.py",
@@ -16253,7 +16257,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-24T05:21:12"
+      "timestamp": "2026-01-24T17:56:13"
     },
     "analyze_test_markers": {
       "success": true,
@@ -16261,15 +16265,15 @@
         "missing_count": 0,
         "missing": []
       },
-      "timestamp": "2026-01-24T05:22:04"
+      "timestamp": "2026-01-24T17:56:15"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "overall": {
-          "overall_coverage": 39.9,
+          "overall_coverage": 39.7,
           "total_statements": 21469,
-          "total_missed": 12909
+          "total_missed": 12936
         },
         "modules": {
           "development_tools\\__init__.py": {
@@ -16421,7 +16425,7 @@
           },
           "development_tools\\config\\config.py": {
             "statements": 330,
-            "missed": 62,
+            "missed": 64,
             "coverage": 81,
             "missing_lines": [
               "50",
@@ -16434,6 +16438,8 @@
               "66",
               "92",
               "360",
+              "363",
+              "375",
               "386",
               "407",
               "418",
@@ -16487,7 +16493,7 @@
               "950",
               "952"
             ],
-            "covered": 268
+            "covered": 266
           },
           "development_tools\\docs\\__init__.py": {
             "statements": 0,
@@ -16895,7 +16901,7 @@
           },
           "development_tools\\docs\\analyze_path_drift.py": {
             "statements": 381,
-            "missed": 130,
+            "missed": 129,
             "coverage": 66,
             "missing_lines": [
               "28",
@@ -16907,7 +16913,6 @@
               "122",
               "123",
               "173",
-              "178",
               "186",
               "194",
               "206",
@@ -17029,7 +17034,7 @@
               "1056",
               "1058"
             ],
-            "covered": 251
+            "covered": 252
           },
           "development_tools\\docs\\analyze_unconverted_links.py": {
             "statements": 276,
@@ -19938,8 +19943,8 @@
           },
           "development_tools\\imports\\analyze_module_imports.py": {
             "statements": 274,
-            "missed": 115,
-            "coverage": 58,
+            "missed": 113,
+            "coverage": 59,
             "missing_lines": [
               "18",
               "27",
@@ -19947,7 +19952,6 @@
               "51",
               "70",
               "72",
-              "97",
               "108",
               "147",
               "148",
@@ -19956,7 +19960,6 @@
               "161",
               "163",
               "189",
-              "196",
               "239",
               "240",
               "241",
@@ -20057,7 +20060,7 @@
               "457",
               "459"
             ],
-            "covered": 159
+            "covered": 161
           },
           "development_tools\\imports\\analyze_unused_imports.py": {
             "statements": 401,
@@ -22605,7 +22608,7 @@
           },
           "development_tools\\shared\\service\\audit_orchestration.py": {
             "statements": 736,
-            "missed": 397,
+            "missed": 401,
             "coverage": 46,
             "missing_lines": [
               "34",
@@ -22697,6 +22700,9 @@
               "280",
               "281",
               "282",
+              "287",
+              "288",
+              "289",
               "295",
               "302",
               "303",
@@ -22998,6 +23004,7 @@
               "1152",
               "1166",
               "1167",
+              "1174",
               "1191",
               "1192",
               "1205",
@@ -23006,7 +23013,7 @@
               "1211",
               "1212"
             ],
-            "covered": 339
+            "covered": 335
           },
           "development_tools\\shared\\service\\commands.py": {
             "statements": 606,
@@ -24334,8 +24341,8 @@
           },
           "development_tools\\shared\\service\\report_generation.py": {
             "statements": 3094,
-            "missed": 1957,
-            "coverage": 37,
+            "missed": 1981,
+            "coverage": 36,
             "missing_lines": [
               "30",
               "32",
@@ -24465,6 +24472,9 @@
               "458",
               "461",
               "462",
+              "489",
+              "490",
+              "491",
               "492",
               "496",
               "497",
@@ -24482,7 +24492,13 @@
               "512",
               "513",
               "514",
+              "522",
+              "523",
+              "524",
               "527",
+              "529",
+              "530",
+              "531",
               "536",
               "537",
               "538",
@@ -24503,6 +24519,7 @@
               "598",
               "599",
               "600",
+              "609",
               "614",
               "615",
               "617",
@@ -24526,6 +24543,9 @@
               "682",
               "683",
               "684",
+              "697",
+              "698",
+              "699",
               "704",
               "705",
               "706",
@@ -24539,6 +24559,7 @@
               "739",
               "742",
               "743",
+              "754",
               "760",
               "761",
               "762",
@@ -24581,6 +24602,7 @@
               "1045",
               "1046",
               "1050",
+              "1058",
               "1065",
               "1066",
               "1067",
@@ -25366,6 +25388,7 @@
               "3392",
               "3395",
               "3398",
+              "3414",
               "3424",
               "3425",
               "3426",
@@ -25415,6 +25438,7 @@
               "3547",
               "3556",
               "3574",
+              "3583",
               "3594",
               "3595",
               "3596",
@@ -25495,6 +25519,7 @@
               "3966",
               "4015",
               "4051",
+              "4053",
               "4055",
               "4074",
               "4075",
@@ -25970,12 +25995,16 @@
               "5259",
               "5294",
               "5295",
+              "5301",
               "5302",
               "5303",
               "5306",
               "5309",
               "5310",
               "5311",
+              "5315",
+              "5316",
+              "5317",
               "5322",
               "5323",
               "5324",
@@ -25986,6 +26015,7 @@
               "5335",
               "5338",
               "5339",
+              "5342",
               "5348",
               "5349",
               "5353",
@@ -26077,6 +26107,7 @@
               "5591",
               "5592",
               "5593",
+              "5599",
               "5604",
               "5605",
               "5616",
@@ -26295,7 +26326,7 @@
               "6241",
               "6244"
             ],
-            "covered": 1137
+            "covered": 1113
           },
           "development_tools\\shared\\service\\tool_wrappers.py": {
             "statements": 868,
@@ -29830,7 +29861,7 @@
         "output_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\coverage_dev_tools.json",
         "html_dir": null
       },
-      "timestamp": "2026-01-24T05:21:13"
+      "timestamp": "2026-01-24T17:52:23"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -32884,7 +32915,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-24T05:21:00"
+      "timestamp": "2026-01-24T17:44:12"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -32904,7 +32935,7 @@
           "missing_sections": []
         }
       },
-      "timestamp": "2026-01-24T05:21:03"
+      "timestamp": "2026-01-24T17:44:15"
     },
     "analyze_module_imports": {
       "success": true,
@@ -44832,7 +44863,7 @@
           }
         }
       },
-      "timestamp": "2026-01-24T05:20:57"
+      "timestamp": "2026-01-24T17:44:08"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -47639,10 +47670,10 @@
             ]
           },
           "stats": {
-            "files_scanned": 417,
+            "files_scanned": 421,
             "files_with_issues": 135,
             "total_unused": 377,
-            "cache_hits": 416,
+            "cache_hits": 0,
             "cache_misses": 0
           },
           "by_category": {
@@ -47657,17 +47688,17 @@
             "production_test_mocking": 4,
             "ui_imports": 1
           },
-          "files_scanned": 417
+          "files_scanned": 421
         }
       },
-      "timestamp": "2026-01-24T05:21:10"
+      "timestamp": "2026-01-24T17:47:20"
     },
     "analyze_legacy_references": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 63,
-          "files_affected": 34
+          "total_issues": 72,
+          "files_affected": 40
         },
         "details": {
           "findings": {
@@ -48379,15 +48410,133 @@
                     "end": 6858
                   }
                 ]
+              ],
+              [
+                "tests\\data\\tmp4d0tl7nx\\demo_project\\legacy_code.py",
+                "\"\"\"\nLegacy code module for testing legacy reference cleanup.\n\nThis module contains legacy patterns that should be detected and cleaned up.\nNote: This file is in tests/fixtures/ and is excluded from main project scans,\nbut is intentionally scanned in test contexts to verify legacy detection works.\n\"\"\"\n\n# LEGACY COMPATIBILITY: This function is kept for backward compatibility\ndef legacy_function():\n    \"\"\"Legacy function that should be detected.\"\"\"\n    pass\n\n\n# LEGACY COMPATIBILITY: Old import pattern\n# Note: This is commented out to avoid import errors, but the pattern is still detectable\n# from bot.communication import old_module  # noqa: F401\n\n\ndef uses_legacy_pattern():\n    \"\"\"Function that uses legacy patterns.\"\"\"\n    # Reference to old bot directory\n    old_path = \"bot/communication/old_file.py\"\n    return old_path\n\n\nclass LegacyChannelWrapper:\n    \"\"\"Legacy wrapper class.\"\"\"\n    pass\n\n\ndef _create_legacy_channel_access():\n    \"\"\"Legacy channel access function.\"\"\"\n    pass\n\n",
+                [
+                  {
+                    "pattern": "(?i)backward compatibility",
+                    "match": "backward compatibility",
+                    "line": 9,
+                    "line_content": "# LEGACY COMPATIBILITY: This function is kept for backward compatibility",
+                    "start": 353,
+                    "end": 375
+                  }
+                ]
+              ]
+            ],
+            "old_bot_directory": [
+              [
+                "tests\\data\\tmp4d0tl7nx\\demo_project\\legacy_code.py",
+                "\"\"\"\nLegacy code module for testing legacy reference cleanup.\n\nThis module contains legacy patterns that should be detected and cleaned up.\nNote: This file is in tests/fixtures/ and is excluded from main project scans,\nbut is intentionally scanned in test contexts to verify legacy detection works.\n\"\"\"\n\n# LEGACY COMPATIBILITY: This function is kept for backward compatibility\ndef legacy_function():\n    \"\"\"Legacy function that should be detected.\"\"\"\n    pass\n\n\n# LEGACY COMPATIBILITY: Old import pattern\n# Note: This is commented out to avoid import errors, but the pattern is still detectable\n# from bot.communication import old_module  # noqa: F401\n\n\ndef uses_legacy_pattern():\n    \"\"\"Function that uses legacy patterns.\"\"\"\n    # Reference to old bot directory\n    old_path = \"bot/communication/old_file.py\"\n    return old_path\n\n\nclass LegacyChannelWrapper:\n    \"\"\"Legacy wrapper class.\"\"\"\n    pass\n\n\ndef _create_legacy_channel_access():\n    \"\"\"Legacy channel access function.\"\"\"\n    pass\n\n",
+                [
+                  {
+                    "pattern": "bot/",
+                    "match": "bot/",
+                    "line": 23,
+                    "line_content": "old_path = \"bot/communication/old_file.py\"",
+                    "start": 779,
+                    "end": 783
+                  },
+                  {
+                    "pattern": "from\\s+bot\\.",
+                    "match": "from bot.",
+                    "line": 17,
+                    "line_content": "# from bot.communication import old_module  # noqa: F401",
+                    "start": 596,
+                    "end": 605
+                  }
+                ]
+              ]
+            ],
+            "old_import_paths": [
+              [
+                "tests\\data\\tmp4d0tl7nx\\demo_project\\legacy_code.py",
+                "\"\"\"\nLegacy code module for testing legacy reference cleanup.\n\nThis module contains legacy patterns that should be detected and cleaned up.\nNote: This file is in tests/fixtures/ and is excluded from main project scans,\nbut is intentionally scanned in test contexts to verify legacy detection works.\n\"\"\"\n\n# LEGACY COMPATIBILITY: This function is kept for backward compatibility\ndef legacy_function():\n    \"\"\"Legacy function that should be detected.\"\"\"\n    pass\n\n\n# LEGACY COMPATIBILITY: Old import pattern\n# Note: This is commented out to avoid import errors, but the pattern is still detectable\n# from bot.communication import old_module  # noqa: F401\n\n\ndef uses_legacy_pattern():\n    \"\"\"Function that uses legacy patterns.\"\"\"\n    # Reference to old bot directory\n    old_path = \"bot/communication/old_file.py\"\n    return old_path\n\n\nclass LegacyChannelWrapper:\n    \"\"\"Legacy wrapper class.\"\"\"\n    pass\n\n\ndef _create_legacy_channel_access():\n    \"\"\"Legacy channel access function.\"\"\"\n    pass\n\n",
+                [
+                  {
+                    "pattern": "from\\s+bot\\.communication",
+                    "match": "from bot.communication",
+                    "line": 17,
+                    "line_content": "# from bot.communication import old_module  # noqa: F401",
+                    "start": 596,
+                    "end": 618
+                  }
+                ]
+              ]
+            ],
+            "historical_references": [
+              [
+                "tests\\data\\tmp4d0tl7nx\\demo_project\\legacy_code.py",
+                "\"\"\"\nLegacy code module for testing legacy reference cleanup.\n\nThis module contains legacy patterns that should be detected and cleaned up.\nNote: This file is in tests/fixtures/ and is excluded from main project scans,\nbut is intentionally scanned in test contexts to verify legacy detection works.\n\"\"\"\n\n# LEGACY COMPATIBILITY: This function is kept for backward compatibility\ndef legacy_function():\n    \"\"\"Legacy function that should be detected.\"\"\"\n    pass\n\n\n# LEGACY COMPATIBILITY: Old import pattern\n# Note: This is commented out to avoid import errors, but the pattern is still detectable\n# from bot.communication import old_module  # noqa: F401\n\n\ndef uses_legacy_pattern():\n    \"\"\"Function that uses legacy patterns.\"\"\"\n    # Reference to old bot directory\n    old_path = \"bot/communication/old_file.py\"\n    return old_path\n\n\nclass LegacyChannelWrapper:\n    \"\"\"Legacy wrapper class.\"\"\"\n    pass\n\n\ndef _create_legacy_channel_access():\n    \"\"\"Legacy channel access function.\"\"\"\n    pass\n\n",
+                [
+                  {
+                    "pattern": "bot/communication",
+                    "match": "bot/communication",
+                    "line": 23,
+                    "line_content": "old_path = \"bot/communication/old_file.py\"",
+                    "start": 779,
+                    "end": 796
+                  }
+                ]
+              ]
+            ],
+            "deprecated_functions": [
+              [
+                "tests\\data\\tmp4d0tl7nx\\demo_project\\legacy_code.py",
+                "\"\"\"\nLegacy code module for testing legacy reference cleanup.\n\nThis module contains legacy patterns that should be detected and cleaned up.\nNote: This file is in tests/fixtures/ and is excluded from main project scans,\nbut is intentionally scanned in test contexts to verify legacy detection works.\n\"\"\"\n\n# LEGACY COMPATIBILITY: This function is kept for backward compatibility\ndef legacy_function():\n    \"\"\"Legacy function that should be detected.\"\"\"\n    pass\n\n\n# LEGACY COMPATIBILITY: Old import pattern\n# Note: This is commented out to avoid import errors, but the pattern is still detectable\n# from bot.communication import old_module  # noqa: F401\n\n\ndef uses_legacy_pattern():\n    \"\"\"Function that uses legacy patterns.\"\"\"\n    # Reference to old bot directory\n    old_path = \"bot/communication/old_file.py\"\n    return old_path\n\n\nclass LegacyChannelWrapper:\n    \"\"\"Legacy wrapper class.\"\"\"\n    pass\n\n\ndef _create_legacy_channel_access():\n    \"\"\"Legacy channel access function.\"\"\"\n    pass\n\n",
+                [
+                  {
+                    "pattern": "LegacyChannelWrapper",
+                    "match": "LegacyChannelWrapper",
+                    "line": 27,
+                    "line_content": "class LegacyChannelWrapper:",
+                    "start": 838,
+                    "end": 858
+                  },
+                  {
+                    "pattern": "_create_legacy_channel_access\\(",
+                    "match": "_create_legacy_channel_access(",
+                    "line": 32,
+                    "line_content": "def _create_legacy_channel_access():",
+                    "start": 907,
+                    "end": 937
+                  }
+                ]
+              ]
+            ],
+            "legacy_compatibility_markers": [
+              [
+                "tests\\data\\tmp4d0tl7nx\\demo_project\\legacy_code.py",
+                "\"\"\"\nLegacy code module for testing legacy reference cleanup.\n\nThis module contains legacy patterns that should be detected and cleaned up.\nNote: This file is in tests/fixtures/ and is excluded from main project scans,\nbut is intentionally scanned in test contexts to verify legacy detection works.\n\"\"\"\n\n# LEGACY COMPATIBILITY: This function is kept for backward compatibility\ndef legacy_function():\n    \"\"\"Legacy function that should be detected.\"\"\"\n    pass\n\n\n# LEGACY COMPATIBILITY: Old import pattern\n# Note: This is commented out to avoid import errors, but the pattern is still detectable\n# from bot.communication import old_module  # noqa: F401\n\n\ndef uses_legacy_pattern():\n    \"\"\"Function that uses legacy patterns.\"\"\"\n    # Reference to old bot directory\n    old_path = \"bot/communication/old_file.py\"\n    return old_path\n\n\nclass LegacyChannelWrapper:\n    \"\"\"Legacy wrapper class.\"\"\"\n    pass\n\n\ndef _create_legacy_channel_access():\n    \"\"\"Legacy channel access function.\"\"\"\n    pass\n\n",
+                [
+                  {
+                    "pattern": "# LEGACY COMPATIBILITY:",
+                    "match": "# LEGACY COMPATIBILITY:",
+                    "line": 9,
+                    "line_content": "# LEGACY COMPATIBILITY: This function is kept for backward compatibility",
+                    "start": 303,
+                    "end": 326
+                  },
+                  {
+                    "pattern": "# LEGACY COMPATIBILITY:",
+                    "match": "# LEGACY COMPATIBILITY:",
+                    "line": 15,
+                    "line_content": "# LEGACY COMPATIBILITY: Old import pattern",
+                    "start": 461,
+                    "end": 484
+                  }
+                ]
               ]
             ]
           },
-          "files_with_issues": 34,
-          "legacy_markers": 63,
+          "files_with_issues": 40,
+          "legacy_markers": 72,
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2026-01-24T05:22:01"
+      "timestamp": "2026-01-24T17:48:46"
     },
     "analyze_config": {
       "success": true,
@@ -48455,7 +48604,7 @@
           }
         }
       },
-      "timestamp": "2026-01-24T05:15:01"
+      "timestamp": "2026-01-24T17:51:24"
     },
     "analyze_ai_work": {
       "success": true,
@@ -48470,12 +48619,12 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-01-24T05:20:48"
+      "timestamp": "2026-01-24T17:43:56"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2026-01-24T05:20:46.636389",
+        "timestamp": "2026-01-24T17:43:54.876697",
         "system_health": {
           "overall_status": "ISSUES",
           "core_files": {
@@ -48493,21 +48642,23 @@
             "ui": "OK",
             "user": "OK"
           },
-          "last_audit": "2026-01-24T05:19:10.668106",
-          "audit_freshness": "<1 hour",
+          "last_audit": "2026-01-24T16:42:25.966920",
+          "audit_freshness": "<24 hours",
           "test_coverage_status": "Unknown",
-          "documentation_sync_status": "Synchronized",
+          "documentation_sync_status": "Minor Issues",
           "health_indicators": [
-            "Audit data is very recent (<1 hour)",
-            "Documentation is synchronized"
+            "Audit data is recent (1 hours ago)"
           ],
           "recommendations": [
+            "Run `python development_tools/run_development_tools.py doc-sync` to check details",
             "Check logs/errors.log for recent errors"
           ],
           "warnings": [],
           "errors": [],
           "severity_levels": {
-            "INFO": [],
+            "INFO": [
+              "Documentation has 1 minor sync issue(s)"
+            ],
             "WARNING": [
               "Errors detected in logs/errors.log (last 24 hours)"
             ],
@@ -48516,16 +48667,16 @@
         },
         "recent_activity": {
           "recent_changes": [
-            "ui/widgets/period_row_widget.py",
-            "user/context_manager.py",
-            "tests/behavior/test_checkin_analytics_behavior.py",
-            "communication/communication_channels/base/rich_formatter.py",
-            "communication/communication_channels/email/bot.py",
-            "communication/communication_channels/base/command_registry.py",
-            "core/scheduler.py",
-            "tasks/task_management.py",
-            "communication/communication_channels/discord/event_handler.py",
-            "communication/communication_channels/discord/welcome_handler.py"
+            "tests/unit/test_tags_expansion.py",
+            "tests/unit/test_command_parser_task_entities_expansion.py",
+            "tests/unit/test_command_parser_notebook_entities_expansion.py",
+            "tests/unit/test_analytics_handler.py",
+            "tests/behavior/test_service_utilities_behavior.py",
+            "tests/unit/test_auto_cleanup_paths.py",
+            "tests/unit/test_command_parser_rule_based_patterns_expansion.py",
+            "tests/unit/test_profile_handler.py",
+            "tests/unit/test_tags.py",
+            "tests/unit/test_auto_cleanup_logic.py"
           ],
           "git_status": "Modified",
           "last_commit": null,
@@ -48535,8 +48686,8 @@
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.1MB",
-            "app.log": "0.1MB",
+            "ai_dev_tools.log": "0.2MB",
+            "app.log": "0.0MB",
             "communication_manager.log": "0.0MB",
             "discord.log": "0.0MB",
             "email.log": "0.0MB",
@@ -48552,7 +48703,7 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2026-01-24T05:20:46"
+      "timestamp": "2026-01-24T17:43:55"
     },
     "decision_support": {
       "success": true,
@@ -48681,12 +48832,12 @@
           }
         ]
       },
-      "timestamp": "2026-01-24T05:20:50"
+      "timestamp": "2026-01-24T17:43:59"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2026-01-24T05:20:51.651670",
+        "timestamp": "2026-01-24T17:44:00.297887",
         "system_health": {
           "core_files": {
             "run_mhm.py": "OK",
@@ -48706,7 +48857,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2026-01-24T05:19:10.614334",
+          "recent_audit": "2026-01-24T16:42:25.909254",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -48719,27 +48870,14 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2026-01-24T05:19:10.614334",
+          "last_audit": "2026-01-24T16:42:25.909254",
           "recent_changes": [
-            "tasks/task_management.py",
-            "core/user_data_validation.py",
-            "core/user_data_manager.py",
-            "core/user_data_handlers.py",
-            "core/service_utilities.py",
-            "core/service.py",
-            "core/schemas.py",
-            "core/scheduler.py",
-            "core/schedule_utilities.py",
-            "core/schedule_management.py",
-            "core/headless_service.py",
-            "core/file_operations.py",
-            "core/file_auditor.py",
-            "core/error_handling.py",
-            "core/config.py"
+            "ai_development_docs/AI_CHANGELOG.md",
+            "TODO.md"
           ]
         }
       },
-      "timestamp": "2026-01-24T05:20:51"
+      "timestamp": "2026-01-24T17:44:00"
     },
     "system_signals": {
       "success": true,
@@ -48932,7 +49070,7 @@
           }
         ]
       },
-      "timestamp": "2026-01-24T05:22:05.845325"
+      "timestamp": "2026-01-24T17:56:16.798335"
     }
   }
 }

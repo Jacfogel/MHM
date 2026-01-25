@@ -154,6 +154,12 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Verify no raw dict/list dumps during audits
 - [ ] Consider progress indicators for long-running tools
 
+
+#### 2.7 
+
+Remove duplicate last updated field at the bottom of AI_FUNCTION_REGISTRY.md
+
+
 ---
 
 ### 3. Tooling Integrity and Validation (MEDIUM/HIGH)
