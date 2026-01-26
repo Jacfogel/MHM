@@ -106,6 +106,7 @@ class ConversationManager:
         # Store user states: { user_id: {"flow": FLOW_..., "state": int, "data": {}, "question_order": [] } }
         """Initialize the object."""
         self.user_states = {}
+        self._checkin_order_cache: dict[str, dict[str, str | list[str]]] = {}
 
         # Use BASE_DATA_DIR from config to respect test environment
         from core.config import BASE_DATA_DIR
@@ -188,15 +189,56 @@ class ConversationManager:
 
         for uid in expired_users:
             try:
-                self.user_states.pop(uid, None)
+                self._cache_expired_checkin_order(uid, self.user_states.get(uid, {}))
                 logger.info(
-                    f"FLOW_STATE_EXPIRE: Removed stale check-in flow due to inactivity | "
+                    f"FLOW_STATE_EXPIRE: Expired stale check-in flow due to inactivity | "
                     f"user={uid} | threshold_minutes={CHECKIN_INACTIVITY_MINUTES}"
                 )
             except Exception:
                 continue
 
         self._save_user_states()
+
+    @handle_errors("caching expired check-in order", default_return=None)
+    def _cache_expired_checkin_order(self, user_id: str, user_state: dict) -> None:
+        """Cache the question order for a same-day restart after expiration."""
+        question_order = user_state.get("question_order", [])
+        if not question_order:
+            self.user_states.pop(user_id, None)
+            return
+
+        started_at_str = user_state.get("started_at") or user_state.get("last_activity")
+        started_dt = (
+            parse_timestamp_full(started_at_str) if started_at_str else None
+        ) or now_datetime_full()
+        started_date = format_timestamp(started_dt, DATE_ONLY)
+
+        self._checkin_order_cache[user_id] = {
+            "order": question_order,
+            "date": started_date,
+        }
+        self.user_states.pop(user_id, None)
+
+    @handle_errors("getting cached check-in order", default_return=None)
+    def _get_cached_checkin_order(self, user_id: str) -> list[str] | None:
+        """Return same-day cached question order if present and valid."""
+        cache = self._checkin_order_cache.get(user_id)
+        if not cache:
+            return None
+
+        cached_order = cache.get("order")
+        cached_date = cache.get("date")
+        if not cached_order or not cached_date:
+            self._checkin_order_cache.pop(user_id, None)
+            return None
+
+        today = format_timestamp(now_datetime_full(), DATE_ONLY)
+        if cached_date == today:
+            return cached_order
+
+        # Clean up stale cached order
+        self._checkin_order_cache.pop(user_id, None)
+        return None
 
     @handle_errors(
         "expiring check-in flow due to unrelated outbound", default_return=False
@@ -218,7 +260,7 @@ class ConversationManager:
             )
 
             # End the flow silently
-            self.user_states.pop(user_id, None)
+            self._cache_expired_checkin_order(user_id, user_state)
             self._save_user_states()
             logger.info(
                 f"FLOW_STATE_EXPIRE: Successfully expired and saved state for user {user_id}"
@@ -552,10 +594,16 @@ class ConversationManager:
                     "label": custom_def.get("ui_display_name", custom_key),
                 }
 
-        # Use weighted selection for question order
-        question_order = self._select_checkin_questions_with_weighting(
+        cached_order = self._get_cached_checkin_order(user_id)
+
+        # Use weighted selection for question order unless a same-day cache exists
+        question_order = cached_order or self._select_checkin_questions_with_weighting(
             user_id, enabled_questions
         )
+        if cached_order:
+            logger.info(
+                f"FLOW_STATE_CREATE: Reusing cached check-in question order for user {user_id}"
+            )
 
         if not question_order:
             return (
@@ -570,6 +618,7 @@ class ConversationManager:
             "data": {},
             "question_order": question_order,
             "current_question_index": 0,
+            "started_at": now_timestamp_full(),
             "last_activity": now_timestamp_full(),
         }
         self.user_states[user_id] = user_state
@@ -705,7 +754,7 @@ class ConversationManager:
                         minutes=CHECKIN_INACTIVITY_MINUTES
                     ):
                         # Expire flow due to inactivity
-                        self.user_states.pop(user_id, None)
+                        self._cache_expired_checkin_order(user_id, user_state)
                         self._save_user_states()
                         return (
                             "The previous check-in expired due to inactivity. You can start a new one with /checkin.",

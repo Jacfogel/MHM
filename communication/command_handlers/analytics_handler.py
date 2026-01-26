@@ -96,50 +96,33 @@ class AnalyticsHandler(InteractionHandler):
 
             analytics = CheckinAnalytics()
 
-            # Get wellness score
-            wellness_data = analytics.get_wellness_score(user_id, days)
-            if "error" in wellness_data:
+            basic_data = analytics.get_basic_analytics(user_id, days)
+            if "error" in basic_data:
                 return InteractionResponse(
-                    "You don't have enough check-in data for analytics yet. Try completing some check-ins first!",
+                    f"Analytics: no check-ins found in the last {days} days.",
                     True,
                 )
 
-            # Get mood trends
-            mood_data = analytics.get_mood_trends(user_id, days)
-            mood_summary = ""
-            if "error" not in mood_data:
-                avg_mood = mood_data.get("average_mood", 0)
-                mood_summary = f"Average mood: {avg_mood}/5"
+            total_checkins = basic_data.get("total_checkins", 0)
+            categories = basic_data.get("categories", {})
 
-            # Get habit analysis
-            habit_data = analytics.get_habit_analysis(user_id, days)
-            habit_summary = ""
-            if "error" not in habit_data:
-                completion_rate = habit_data.get("overall_completion", 0)
-                habit_summary = f"Habit completion: {completion_rate}%"
+            response = f"**Check-in Analytics (Last {days} days):**\n\n"
+            response += f"Total check-ins: {total_checkins}\n"
+            response += "Based on answered questions in this period.\n"
 
-            response = f"**📊 Your Wellness Analytics (Last {days} days):**\n\n"
-            response += (
-                f"🎯 **Overall Wellness Score:** {wellness_data.get('score', 0)}/100\n"
-            )
-            response += f"   Level: {wellness_data.get('level', 'Unknown')}\n\n"
+            if not categories:
+                response += "\nNo answered questions found in this time window."
+                return InteractionResponse(response, True)
 
-            if mood_summary:
-                response += f"😊 **Mood:** {mood_summary}\n"
-            if habit_summary:
-                response += f"✅ **Habits:** {habit_summary}\n"
+            for category_key, category_data in categories.items():
+                category_name = category_data.get("name", category_key.title())
+                response += f"\n{category_name}\n"
+                for question in category_data.get("questions", []):
+                    line = self._format_basic_analytics_line(question)
+                    if line:
+                        response += f"- {line}\n"
 
-            # Add recommendations
-            recommendations = wellness_data.get("recommendations", [])
-            if recommendations:
-                response += "\n💡 **Recommendations:**\n"
-                for rec in recommendations[:3]:  # Show top 3
-                    response += f"• {rec}\n"
-
-            response += (
-                "\nTry 'mood trends' or 'habit analysis' for more detailed insights!"
-            )
-
+            response = self._truncate_response(response)
             return InteractionResponse(response, True)
 
         except Exception as e:
@@ -193,6 +176,12 @@ class AnalyticsHandler(InteractionHandler):
                 response += "\n💡 **Insights:**\n"
                 for insight in insights[:2]:  # Show top 2 insights
                     response += f"• {insight}\n"
+
+            trend_graph = self._build_trend_graph(
+                mood_data.get("recent_data", []), "mood", "Mood trend"
+            )
+            if trend_graph:
+                response += f"\n**Trend Graph:**\n{trend_graph}\n"
 
             return InteractionResponse(response, True)
 
@@ -249,6 +238,12 @@ class AnalyticsHandler(InteractionHandler):
                 response += "\n💡 **Insight:** Your energy levels have been consistently high!\n"
             elif avg_energy <= 2:
                 response += "\n💡 **Insight:** Your energy levels have been low - consider rest and self-care.\n"
+
+            trend_graph = self._build_trend_graph(
+                energy_data.get("recent_data", []), "energy", "Energy trend"
+            )
+            if trend_graph:
+                response += f"\n**Trend Graph:**\n{trend_graph}\n"
 
             return InteractionResponse(response, True)
 
@@ -345,30 +340,27 @@ class AnalyticsHandler(InteractionHandler):
                     True,
                 )
 
-            response = f"**✅ Habit Analysis (Last {days} days):**\n\n"
-            response += f"📊 **Overall Completion:** {habit_data.get('overall_completion', 0)}%\n"
-            response += (
-                f"🔥 **Current Streak:** {habit_data.get('current_streak', 0)} days\n"
-            )
-            response += (
-                f"🏆 **Best Streak:** {habit_data.get('best_streak', 0)} days\n\n"
-            )
-
-            # Show individual habits
             habits = habit_data.get("habits", {})
-            if habits:
-                response += "**Individual Habits:**\n"
-                for habit_name, habit_stats in habits.items():
-                    completion = habit_stats.get("completion_rate", 0)
-                    status = habit_stats.get("status", "Unknown")
-                    response += f"• {habit_name}: {completion}% ({status})\n"
+            if not habits:
+                return InteractionResponse(
+                    f"No habit questions were answered in the last {days} days.",
+                    True,
+                )
 
-            # Add recommendations
-            recommendations = habit_data.get("recommendations", [])
-            if recommendations:
-                response += "\n💡 **Recommendations:**\n"
-                for rec in recommendations[:2]:  # Show top 2
-                    response += f"• {rec}\n"
+            response = f"**Habit Analysis (Last {days} days):**\n\n"
+            response += (
+                f"Overall completion: {habit_data.get('overall_completion', 0)}%\n\n"
+            )
+            response += "Habits:\n"
+            for _, habit_stats in sorted(
+                habits.items(),
+                key=lambda item: item[1].get("name", ""),
+            ):
+                name = habit_stats.get("name", "Unknown")
+                completed = habit_stats.get("completed_days", 0)
+                answered = habit_stats.get("answered_days", 0)
+                completion = habit_stats.get("completion_rate", 0)
+                response += f"- {name}: {completed}/{answered} yes ({completion}%)\n"
 
             return InteractionResponse(response, True)
 
@@ -449,63 +441,13 @@ class AnalyticsHandler(InteractionHandler):
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Show wellness score"""
-        days = entities.get("days", 30)
-
-        try:
-            from core.checkin_analytics import CheckinAnalytics
-
-            analytics = CheckinAnalytics()
-
-            wellness_data = analytics.get_wellness_score(user_id, days)
-            if "error" in wellness_data:
-                return InteractionResponse(
-                    "You don't have enough data for a wellness score yet. Try completing some check-ins first!",
-                    True,
-                )
-
-            response = f"**🎯 Wellness Score (Last {days} days):**\n\n"
-            response += f"📊 **Overall Score:** {wellness_data.get('score', 0)}/100\n"
-            response += f"📈 **Level:** {wellness_data.get('level', 'Unknown')}\n\n"
-
-            # Show component scores
-            components = wellness_data.get("components", {})
-            if components:
-                response += "**Component Scores:**\n"
-                # Convert mood and energy from 0-100 back to 1-5 scale for display
-                from core.checkin_analytics import CheckinAnalytics
-
-                mood_score_5 = CheckinAnalytics.convert_score_100_to_5(
-                    components.get("mood_score", 0)
-                )
-                energy_score_5 = CheckinAnalytics.convert_score_100_to_5(
-                    components.get("energy_score", 0)
-                )
-                response += f"😊 **Mood Score:** {mood_score_5}/5\n"
-                response += f"⚡ **Energy Score:** {energy_score_5}/5\n"
-                response += (
-                    f"✅ **Habit Score:** {components.get('habit_score', 0)}/100\n"
-                )
-                response += (
-                    f"😴 **Sleep Score:** {components.get('sleep_score', 0)}/100\n\n"
-                )
-
-            # Add recommendations
-            recommendations = wellness_data.get("recommendations", [])
-            if recommendations:
-                response += "💡 **Recommendations:**\n"
-                for rec in recommendations[:3]:  # Show top 3
-                    response += f"• {rec}\n"
-
-            return InteractionResponse(response, True)
-
-        except Exception as e:
-            from core.error_handling import handle_ai_error
-
-            handle_ai_error(e, "calculating wellness score", user_id)
-            return InteractionResponse(
-                "I'm having trouble calculating your wellness score right now. Please try again.",
-                True,
+        response = self._handle_show_analytics(user_id, entities)
+        if response and response.message:
+            response.message = (
+                "Wellness score has been replaced by basic analytics.\n\n"
+                + response.message
             )
+        return response
 
     @handle_errors(
         "showing check-in history",
@@ -518,13 +460,20 @@ class AnalyticsHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Show check-in history"""
         days = entities.get("days", 30)
+        limit = entities.get("limit")
 
         try:
             from core.checkin_analytics import CheckinAnalytics
+            from core.checkin_dynamic_manager import dynamic_checkin_manager
+            from core.response_tracking import get_recent_checkins
+            from core.time_utilities import parse_timestamp_full
 
             analytics = CheckinAnalytics()
 
-            checkin_history = analytics.get_checkin_history(user_id, days)
+            if limit:
+                checkin_history = get_recent_checkins(user_id, limit=limit)
+            else:
+                checkin_history = analytics.get_checkin_history(user_id, days)
             # Handle error case (dict with 'error' key) or empty list
             if isinstance(checkin_history, dict) and "error" in checkin_history:
                 return InteractionResponse(
@@ -533,26 +482,68 @@ class AnalyticsHandler(InteractionHandler):
                 )
 
             if not checkin_history:
+                if limit:
+                    return InteractionResponse(
+                        "You haven't completed any check-ins yet. Try starting one with '/checkin'!",
+                        True,
+                    )
+                recent_checkins = get_recent_checkins(user_id, limit=1)
+                if recent_checkins:
+                    last_timestamp = recent_checkins[0].get("timestamp")
+                    last_dt = (
+                        parse_timestamp_full(last_timestamp)
+                        if last_timestamp
+                        else None
+                    )
+                    last_date = (
+                        last_dt.date().isoformat() if last_dt else "an earlier date"
+                    )
+                    return InteractionResponse(
+                        f"No check-ins in the last {days} days. Most recent check-in was on {last_date}.",
+                        True,
+                    )
                 return InteractionResponse(
                     "You haven't completed any check-ins yet. Try starting one with '/checkin'!",
                     True,
                 )
 
-            response = f"**📅 Check-in History (Last {days} days):**\n\n"
-            for checkin in checkin_history[:5]:  # Show last 5 check-ins
-                date = checkin.get("date", "Unknown date")
-                mood = checkin.get("mood", "No mood recorded")
-                energy = checkin.get("energy", "No energy recorded")
+            if limit:
+                header_label = (
+                    f"Last {limit} check-in" if limit == 1 else f"Last {limit} check-ins"
+                )
+            else:
+                header_label = f"Last {days} days"
+            response_lines = [f"**Check-in History ({header_label}):**", ""]
+            question_defs = dynamic_checkin_manager.get_all_questions(user_id)
+            question_keys = set(question_defs.keys())
 
-                # Display mood and energy together if both are available
-                if energy != "No energy recorded":
-                    response += f"📅 {date}: 😊 Mood {mood}/5 | ⚡ Energy {energy}/5\n"
-                else:
-                    response += f"📅 {date}: 😊 Mood {mood}/5\n"
+            for checkin in checkin_history[:5]:  # Show last 5 check-ins
+                timestamp = checkin.get("timestamp", "")
+                date = checkin.get("date") or (timestamp[:10] if timestamp else "Unknown date")
+                responses = self._extract_checkin_responses(checkin, question_keys)
+                ordered_keys = self._get_ordered_checkin_keys(checkin, responses)
+
+                response_lines.append(f"- {date}")
+                if not ordered_keys:
+                    response_lines.append("  - No responses recorded")
+                    continue
+
+                for key in ordered_keys:
+                    formatted_value = self._format_checkin_response_value(
+                        key, responses.get(key), question_defs
+                    )
+                    if not formatted_value:
+                        continue
+                    label = self._get_checkin_label(key, question_defs)
+                    response_lines.append(f"  - {label}: {formatted_value}")
 
             if len(checkin_history) > 5:
-                response += f"... and {len(checkin_history) - 5} more check-ins\n"
+                response_lines.append(
+                    f"... and {len(checkin_history) - 5} more check-ins"
+                )
 
+            response = "\n".join(response_lines)
+            response = self._truncate_response(response)
             return InteractionResponse(response, True)
 
         except Exception as e:
@@ -563,6 +554,179 @@ class AnalyticsHandler(InteractionHandler):
                 "I'm having trouble showing your check-in history right now. Please try again.",
                 True,
             )
+
+    @handle_errors("extracting check-in responses", default_return={})
+    def _extract_checkin_responses(
+        self, checkin: dict[str, Any], question_keys: set[str]
+    ) -> dict[str, Any]:
+        """Extract responses from current check-in records."""
+        responses: dict[str, Any] = {}
+
+        for key in question_keys:
+            if key in checkin and key not in responses:
+                responses[key] = checkin[key]
+
+        reserved_keys = {
+            "timestamp",
+            "questions_asked",
+            "completed",
+            "user_id",
+            "responses",
+            "date",
+        }
+        for key, value in checkin.items():
+            if key in reserved_keys or key in responses:
+                continue
+            responses[key] = value
+
+        return responses
+
+    @handle_errors("ordering check-in keys", default_return=[])
+    def _get_ordered_checkin_keys(
+        self, checkin: dict[str, Any], responses: dict[str, Any]
+    ) -> list[str]:
+        """Preserve original check-in order when available."""
+        ordered: list[str] = []
+        questions_asked = checkin.get("questions_asked")
+        if isinstance(questions_asked, list):
+            for key in questions_asked:
+                if key in responses and key not in ordered:
+                    ordered.append(key)
+
+        for key in sorted(responses.keys()):
+            if key not in ordered:
+                ordered.append(key)
+
+        return ordered
+
+    @handle_errors("getting check-in label", default_return="")
+    def _get_checkin_label(
+        self, key: str, question_defs: dict[str, dict[str, Any]]
+    ) -> str:
+        """Get a readable label for a check-in response key."""
+        question_def = question_defs.get(key, {})
+        if isinstance(question_def, dict):
+            label = question_def.get("ui_display_name") or question_def.get("label")
+            if label:
+                return self._clean_checkin_label(str(label))
+        return self._clean_checkin_label(key.replace("_", " ").strip().title())
+
+    @handle_errors("cleaning check-in label", default_return="")
+    def _clean_checkin_label(self, label: str) -> str:
+        """Remove redundant suffixes from check-in labels."""
+        suffixes = [
+            " (1-5 scale)",
+            " (1-10 scale)",
+            " (yes/no)",
+            " (yes-no)",
+            " (time pair)",
+        ]
+        for suffix in suffixes:
+            if label.endswith(suffix):
+                label = label[: -len(suffix)]
+        return label.strip()
+
+    @handle_errors("getting question scale", default_return=None)
+    def _get_question_scale(
+        self, key: str, question_defs: dict[str, dict[str, Any]]
+    ) -> int | float | None:
+        """Return scale max for a question when available."""
+        question_def = question_defs.get(key, {})
+        if isinstance(question_def, dict):
+            validation = question_def.get("validation") or {}
+            qtype = question_def.get("type")
+            max_value = validation.get("max")
+            if qtype and str(qtype).startswith("scale_") and isinstance(
+                max_value, (int, float)
+            ):
+                if isinstance(max_value, float) and max_value.is_integer():
+                    max_value = int(max_value)
+                return max_value
+        return self._get_field_scale(key)
+
+    @handle_errors("formatting numeric value", default_return="")
+    def _format_numeric_value(self, value: float) -> str:
+        """Format numeric values with minimal trailing decimals."""
+        if isinstance(value, float) and not value.is_integer():
+            return f"{value:.1f}"
+        return str(int(value))
+
+    @handle_errors("formatting check-in response value", default_return=None)
+    def _format_checkin_response_value(
+        self,
+        key: str,
+        value: Any,
+        question_defs: dict[str, dict[str, Any]],
+    ) -> str | None:
+        """Format a check-in response value for display."""
+        if value is None:
+            return None
+        if value == "SKIPPED":
+            return "Skipped"
+        if isinstance(value, bool):
+            return "Yes" if value else "No"
+        if isinstance(value, str):
+            value_str = value.strip()
+            if not value_str:
+                return None
+            lower_value = value_str.lower()
+            if lower_value in {"yes", "y", "true", "1"}:
+                return "Yes"
+            if lower_value in {"no", "n", "false", "0"}:
+                return "No"
+            try:
+                numeric_value = float(value_str)
+                scale = self._get_question_scale(key, question_defs)
+                numeric_text = self._format_numeric_value(numeric_value)
+                return f"{numeric_text}/{scale}" if scale else numeric_text
+            except ValueError:
+                return value_str
+        if isinstance(value, dict):
+            sleep_time = value.get("sleep_time")
+            wake_time = value.get("wake_time")
+            if sleep_time and wake_time:
+                return f"{sleep_time}-{wake_time}"
+            if not value:
+                return None
+            return ", ".join(f"{k}={v}" for k, v in value.items())
+        if isinstance(value, list):
+            return ", ".join(str(item) for item in value) if value else None
+        if isinstance(value, (int, float)):
+            scale = self._get_question_scale(key, question_defs)
+            numeric_text = self._format_numeric_value(float(value))
+            return f"{numeric_text}/{scale}" if scale else numeric_text
+        return str(value)
+
+    @handle_errors("building trend graph", default_return="")
+    def _build_trend_graph(
+        self,
+        recent_data: list[dict[str, Any]],
+        value_key: str,
+        label: str,
+        max_points: int = 7,
+    ) -> str:
+        """Build a simple ASCII trend graph for recent check-in values."""
+        series = []
+        for entry in recent_data or []:
+            value = entry.get(value_key)
+            if not isinstance(value, (int, float)):
+                continue
+            date_value = entry.get("date") or entry.get("timestamp") or "Unknown"
+            date_label = (
+                date_value[:10] if isinstance(date_value, str) else str(date_value)
+            )
+            series.append((date_label, float(value)))
+
+        if not series:
+            return ""
+
+        series = list(reversed(series[:max_points]))
+        lines = [f"{label} (last {len(series)} days):"]
+        for date_label, value in series:
+            bar_len = max(0, min(10, int(round(value * 2))))
+            bar = "#" * bar_len
+            lines.append(f"{date_label}: {bar} ({value:.1f})")
+        return "\n".join(lines)
 
     @handle_errors(
         "showing check-in analysis",
@@ -577,10 +741,11 @@ class AnalyticsHandler(InteractionHandler):
         days = entities.get("days", 30)
 
         try:
-            from core.response_tracking import get_recent_checkins
+            from core.response_tracking import get_checkins_by_days
             from core.checkin_analytics import CheckinAnalytics
+            from core.checkin_dynamic_manager import dynamic_checkin_manager
 
-            checkins = get_recent_checkins(user_id, limit=days)
+            checkins = get_checkins_by_days(user_id, days)
 
             if not checkins:
                 return InteractionResponse(
@@ -614,9 +779,14 @@ class AnalyticsHandler(InteractionHandler):
 
             # Analyze common responses
             all_responses = {}
+            question_keys = set(
+                dynamic_checkin_manager.get_all_questions(user_id).keys()
+            )
             for checkin in checkins:
-                responses = checkin.get("responses", {})
+                responses = self._extract_checkin_responses(checkin, question_keys)
                 for question, answer in responses.items():
+                    if answer == "SKIPPED":
+                        continue
                     if question not in all_responses:
                         all_responses[question] = []
                     all_responses[question].append(answer)
@@ -906,7 +1076,6 @@ class AnalyticsHandler(InteractionHandler):
             "energy trends",
             "habit analysis",
             "sleep analysis",
-            "wellness score",
             "checkin history",
             "checkin analysis",
             "completion rate",
@@ -914,6 +1083,39 @@ class AnalyticsHandler(InteractionHandler):
             "task stats",
             "quant summary",
         ]
+
+    @handle_errors("formatting basic analytics line", default_return="")
+    def _format_basic_analytics_line(self, question: dict[str, Any]) -> str:
+        """Format a single basic analytics line."""
+        name = question.get("name", "Unknown")
+        scale_max = question.get("scale_max")
+        if "average" in question:
+            avg = self._format_numeric_value(question.get("average", 0))
+            min_val = self._format_numeric_value(question.get("min", 0))
+            max_val = self._format_numeric_value(question.get("max", 0))
+            count = question.get("count", 0)
+            scale_suffix = f"/{int(scale_max)}" if scale_max else ""
+            return (
+                f"{name}: avg {avg}{scale_suffix} "
+                f"(min {min_val}{scale_suffix}, max {max_val}{scale_suffix}) "
+                f"over {count} answers"
+            )
+        if "average_hours" in question:
+            avg = self._format_numeric_value(question.get("average_hours", 0))
+            min_val = self._format_numeric_value(question.get("min_hours", 0))
+            max_val = self._format_numeric_value(question.get("max_hours", 0))
+            count = question.get("count", 0)
+            return (
+                f"{name}: avg {avg}h (min {min_val}h, max {max_val}h) "
+                f"over {count} answers"
+            )
+        if "yes_rate" in question:
+            yes_count = question.get("yes_count", 0)
+            count = question.get("count", 0)
+            yes_rate = question.get("yes_rate", 0)
+            return f"{name}: Yes {yes_count}/{count} ({yes_rate}%)"
+        count = question.get("count", 0)
+        return f"{name}: {count} responses"
 
     @handle_errors("getting field scale", default_return=None)
     def _get_field_scale(self, field: str) -> int:

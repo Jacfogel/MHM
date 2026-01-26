@@ -59,7 +59,7 @@ class EnhancedCommandParser:
                 r'^ctask\s+(.+)$',
                 r'^createtask\s+(.+)$',
                 r'^createt\s+(.+)$',
-                r'^task\s+(.+)$',
+                r'^task\s+(?!stats\b|statistics\b|analytics\b|analysis\b|summary\b|summaries\b|insights\b|trends\b)(.+)$',
                 r'create\s+(?:a\s+)?task\s+(?:to\s+)?(.+)',
                 r'add\s+(?:a\s+)?task\s+(?:to\s+)?(.+)',
                 r'new\s+task\s+(?:to\s+)?(.+)',
@@ -127,11 +127,6 @@ class EnhancedCommandParser:
                 r'task\s+trends',
                 r'my\s+task\s+analytics',
             ],
-            'edit_schedule_period': [
-                # Edit schedule period even without times, capturing period name and category
-                r'edit\s+(?:the\s+)?([\w\-]+)\s+period\s+in\s+my\s+(tasks?|check.?ins?|messages?)\s+schedule',
-                r'edit\s+schedule\s+period\s+([\w\-]+)\s+(tasks?|check.?ins?|messages?)',
-            ],
             'start_checkin': [
                 r'start\s+(?:a\s+)?check.?in',
                 r'begin\s+(?:a\s+)?check.?in',
@@ -162,6 +157,8 @@ class EnhancedCommandParser:
                 r'check.?in\s+records',
                 r'past\s+check.?ins?',
                 r'check.?in\s+log',
+                r'last\s+\d+\s+check.?ins?',
+                r'past\s+\d+\s+check.?ins?',
             ],
             'checkin_analysis': [
                 r'analyse\s+(?:my\s+)?check.?in\s+responses?',
@@ -181,6 +178,12 @@ class EnhancedCommandParser:
                 r'task\s+completion\s+rate',
                 r'my\s+completion\s+rate',
                 r'completion\s+percentage',
+            ],
+            'quant_summary': [
+                r'quant\s+summary',
+                r'quantitative\s+summary',
+                r'quant\s+summary\s+(?:for\s+)?\d+\s+days?',
+                r'quantitative\s+summary\s+(?:for\s+)?\d+\s+days?',
             ],
             'show_profile': [
                 r'show\s+(?:my\s+)?profile',
@@ -268,6 +271,8 @@ class EnhancedCommandParser:
                 r'create\s+(?:a\s+)?new\s+period\s+for\s+(?:my\s+)?(\w+)\s+schedule',
             ],
             'edit_schedule_period': [
+                r'edit\s+schedule\s+period\s+([\w\-]+)\s+(tasks?|check.?ins?|messages?)',
+                r'edit\s+(?:the\s+)?([\w\-]+)\s+period\s+in\s+my\s+(tasks?|check.?ins?|messages?)\s+schedule',
                 r'edit\s+(?:the\s+)?(\w+)\s+period\s+in\s+(?:my\s+)?(\w+)\s+schedule',
                 r'change\s+(?:the\s+)?(\w+)\s+period\s+to\s+(.+)',
                 r'update\s+(?:the\s+)?(\w+)\s+period\s+time',
@@ -278,6 +283,7 @@ class EnhancedCommandParser:
                 r'my\s+analytics',
                 r'view\s+(?:my\s+)?analytics',
                 r'display\s+(?:my\s+)?analytics',
+                r'show\s+trends?',
                 r'analytics\s+(?:for\s+)?(\d+)\s+days?',
                 r'how\s+am\s+i\s+doing\s+(?:overall|in\s+general)',
             ],
@@ -291,13 +297,37 @@ class EnhancedCommandParser:
                 r'what.*mood.*been.*like.*lately',
                 r'how\s+has\s+my\s+mood\s+been\s+(?:lately|recently)',
                 r'my\s+mood\s+history',
+                r'mood\s+history',
+                r'mood\s+graphs?',
                 r'mood\s+tracking',
                 r'track\s+my\s+mood',
                 r'my\s+mood\s+tracking',
                 r'mood\s+patterns',
             ],
+            'energy_trends': [
+                r'^energy\s+trends?(?:\s+(?:for\s+)?\d+\s+days?)?$',
+                r'^check.?in\s+energy\s+trends?(?:\s+(?:for\s+)?\d+\s+days?)?$',
+                r'energy\s+trends?',
+                r'check.?in\s+energy\s+trends?',
+                r'how\s+has\s+(?:my\s+)?energy\s+been',
+                r'energy\s+analysis',
+                r'energy\s+history',
+                r'energy\s+graphs?',
+                r'energy\s+over\s+time',
+                r'energy\s+(?:for\s+)?(\d+)\s+days?',
+                r'what\s*[\'s]?\s*(?:has\s+)?my\s+energy\s+been\s+like\s+(?:lately|recently)',
+                r'what.*energy.*been.*like.*lately',
+                r'how\s+has\s+my\s+energy\s+been\s+(?:lately|recently)',
+                r'my\s+energy\s+history',
+                r'energy\s+tracking',
+                r'track\s+my\s+energy',
+                r'my\s+energy\s+tracking',
+                r'energy\s+patterns',
+            ],
             'habit_analysis': [
                 r'habit\s+analysis',
+                r'habit\s+trends?',
+                r'habit\s+history',
                 r'how\s+am\s+i\s+doing\s+with\s+habits?',
                 r'habit\s+progress',
                 r'habit\s+completion',
@@ -305,6 +335,8 @@ class EnhancedCommandParser:
             ],
             'sleep_analysis': [
                 r'sleep\s+analysis',
+                r'sleep\s+trends?',
+                r'sleep\s+history',
                 r'how\s+am\s+i\s+sleeping',
                 r'sleep\s+patterns?',
                 r'sleep\s+quality',
@@ -523,7 +555,23 @@ class EnhancedCommandParser:
         
         # For certain intents, prefer rule-based results even with lower confidence to avoid AI misinterpretation
         # This prevents short patterns like 'r' from being misinterpreted as tasks
-        high_priority_intents = ['list_recent_entries', 'list_recent_notes', 'create_quick_note']
+        high_priority_intents = [
+            'list_recent_entries',
+            'list_recent_notes',
+            'create_quick_note',
+            'checkin_analysis',
+            'checkin_history',
+            'completion_rate',
+            'energy_trends',
+            'habit_analysis',
+            'mood_trends',
+            'quant_summary',
+            'show_analytics',
+            'sleep_analysis',
+            'task_analytics',
+            'task_stats',
+            'wellness_score',
+        ]
         if rule_result.parsed_command.intent in high_priority_intents and rule_result.confidence > 0.0:
             # We have a rule-based match for a high-priority intent - use it even if confidence is lower
             return rule_result
@@ -660,97 +708,152 @@ class EnhancedCommandParser:
     def _rule_based_parse(self, message: str) -> ParsingResult:
         """Parse using rule-based patterns"""
         message_lower = message.lower().strip()
-        
-        # Special handling: Check high-priority patterns first to ensure they take precedence
-        # Check help patterns first (simple, common command) - use exact match check
-        if message_lower == 'help':
-            # Direct match for simple "help" command to avoid any pattern issues
-            return ParsingResult(
-                ParsedCommand('help', {}, 1.0, message),
-                1.0, "rule_based"
-            )
-        
-        # Check other help patterns
-        if 'help' in self.compiled_patterns:
-            for pattern in self.compiled_patterns['help']:
-                match = pattern.match(message_lower)
-                if match:
-                    entities = self._extract_entities_rule_based('help', match, message)
-                    confidence = self._calculate_confidence('help', match, message)
-                    
-                    return ParsingResult(
-                        ParsedCommand('help', entities, confidence, message),
-                        confidence, "rule_based"
-                    )
-        
-        # Check list_tasks patterns second to ensure they take precedence over show_entry patterns
-        if 'list_tasks' in self.compiled_patterns:
-            for pattern in self.compiled_patterns['list_tasks']:
-                match = pattern.match(message_lower)
-                if match:
-                    entities = self._extract_entities_rule_based('list_tasks', match, message)
-                    confidence = self._calculate_confidence('list_tasks', match, message)
-                    
-                    return ParsingResult(
-                        ParsedCommand('list_tasks', entities, confidence, message),
-                        confidence, "rule_based"
-                    )
-        
-        # Check quick note patterns early to ensure they take precedence over task patterns
-        if 'create_quick_note' in self.compiled_patterns:
-            for pattern in self.compiled_patterns['create_quick_note']:
-                match = pattern.match(message_lower) if pattern.pattern.startswith('^') else pattern.search(message_lower)
-                if match:
-                    entities = self._extract_entities_rule_based('create_quick_note', match, message)
-                    confidence = self._calculate_confidence('create_quick_note', match, message)
-                    
-                    return ParsingResult(
-                        ParsedCommand('create_quick_note', entities, confidence, message),
-                        confidence, "rule_based"
-                    )
-        
-        # Check list_recent_entries patterns early to ensure short patterns like 'r' match before AI parsing
-        if 'list_recent_entries' in self.compiled_patterns:
-            for pattern in self.compiled_patterns['list_recent_entries']:
-                match = pattern.match(message_lower) if pattern.pattern.startswith('^') else pattern.search(message_lower)
-                if match:
-                    entities = self._extract_entities_rule_based('list_recent_entries', match, message)
-                    confidence = self._calculate_confidence('list_recent_entries', match, message)
-                    
-                    return ParsingResult(
-                        ParsedCommand('list_recent_entries', entities, confidence, message),
-                        confidence, "rule_based"
-                    )
-        
-        # Check list_recent_notes patterns early as well
-        if 'list_recent_notes' in self.compiled_patterns:
-            for pattern in self.compiled_patterns['list_recent_notes']:
-                match = pattern.match(message_lower) if pattern.pattern.startswith('^') else pattern.search(message_lower)
-                if match:
-                    entities = self._extract_entities_rule_based('list_recent_notes', match, message)
-                    confidence = self._calculate_confidence('list_recent_notes', match, message)
-                    
-                    return ParsingResult(
-                        ParsedCommand('list_recent_notes', entities, confidence, message),
-                        confidence, "rule_based"
-                    )
-        
-        # Check each intent pattern (excluding help, list_tasks, create_quick_note, list_recent_entries, list_recent_notes which were already checked)
-        for intent, patterns in self.compiled_patterns.items():
-            if intent in ['help', 'list_tasks', 'create_quick_note', 'list_recent_entries', 'list_recent_notes']:  # Skip, already checked above
-                continue
-            for pattern in patterns:
-                # Use match() for patterns that start with ^, search() for others
-                match = pattern.match(message_lower) if pattern.pattern.startswith('^') else pattern.search(message_lower)
-                if match:
-                    entities = self._extract_entities_rule_based(intent, match, message)
-                    confidence = self._calculate_confidence(intent, match, message)
-                    
-                    return ParsingResult(
-                        ParsedCommand(intent, entities, confidence, message),
-                        confidence, "rule_based"
-                    )
-        
+        normalized_message = re.sub(
+            r"\s+",
+            " ",
+            message_lower.replace("-", " "),
+        ).strip()
+
+        @handle_errors("matching command message", default_return=None)
+        def _match_message(message_for_match: str) -> ParsingResult | None:
+            """Attempt to match intents against the provided message."""
+            # Special handling: Check high-priority patterns first to ensure they take precedence
+            # Check help patterns first (simple, common command) - use exact match check
+            if message_for_match == 'help':
+                # Direct match for simple "help" command to avoid any pattern issues
+                return ParsingResult(
+                    ParsedCommand('help', {}, 1.0, message),
+                    1.0, "rule_based"
+                )
+
+            # Check other help patterns
+            if 'help' in self.compiled_patterns:
+                for pattern in self.compiled_patterns['help']:
+                    match = pattern.match(message_for_match)
+                    if match:
+                        entities = self._extract_entities_rule_based('help', match, message_for_match)
+                        confidence = self._calculate_confidence('help', match, message_for_match)
+
+                        return ParsingResult(
+                            ParsedCommand('help', entities, confidence, message),
+                            confidence, "rule_based"
+                        )
+
+            # Check list_tasks patterns second to ensure they take precedence over show_entry patterns
+            if 'list_tasks' in self.compiled_patterns:
+                for pattern in self.compiled_patterns['list_tasks']:
+                    match = pattern.match(message_for_match)
+                    if match:
+                        entities = self._extract_entities_rule_based('list_tasks', match, message_for_match)
+                        confidence = self._calculate_confidence('list_tasks', match, message_for_match)
+
+                        return ParsingResult(
+                            ParsedCommand('list_tasks', entities, confidence, message),
+                            confidence, "rule_based"
+                        )
+
+            # Check task stats/analytics before create_task patterns
+            if 'task_stats' in self.compiled_patterns:
+                for pattern in self.compiled_patterns['task_stats']:
+                    match = pattern.match(message_for_match) if pattern.pattern.startswith('^') else pattern.search(message_for_match)
+                    if match:
+                        entities = self._extract_entities_rule_based('task_stats', match, message_for_match)
+                        confidence = self._calculate_confidence('task_stats', match, message_for_match)
+
+                        return ParsingResult(
+                            ParsedCommand('task_stats', entities, confidence, message),
+                            confidence, "rule_based"
+                        )
+
+            if 'task_analytics' in self.compiled_patterns:
+                for pattern in self.compiled_patterns['task_analytics']:
+                    match = pattern.match(message_for_match) if pattern.pattern.startswith('^') else pattern.search(message_for_match)
+                    if match:
+                        entities = self._extract_entities_rule_based('task_analytics', match, message_for_match)
+                        confidence = self._calculate_confidence('task_analytics', match, message_for_match)
+
+                        return ParsingResult(
+                            ParsedCommand('task_analytics', entities, confidence, message),
+                            confidence, "rule_based"
+                        )
+
+            # Check schedule edits before generic task update patterns
+            if 'edit_schedule_period' in self.compiled_patterns:
+                for pattern in self.compiled_patterns['edit_schedule_period']:
+                    match = pattern.match(message_for_match) if pattern.pattern.startswith('^') else pattern.search(message_for_match)
+                    if match:
+                        entities = self._extract_entities_rule_based('edit_schedule_period', match, message_for_match)
+                        confidence = self._calculate_confidence('edit_schedule_period', match, message_for_match)
+
+                        return ParsingResult(
+                            ParsedCommand('edit_schedule_period', entities, confidence, message),
+                            confidence, "rule_based"
+                        )
+
+            # Check quick note patterns early to ensure they take precedence over task patterns
+            if 'create_quick_note' in self.compiled_patterns:
+                for pattern in self.compiled_patterns['create_quick_note']:
+                    match = pattern.match(message_for_match) if pattern.pattern.startswith('^') else pattern.search(message_for_match)
+                    if match:
+                        entities = self._extract_entities_rule_based('create_quick_note', match, message_for_match)
+                        confidence = self._calculate_confidence('create_quick_note', match, message_for_match)
+
+                        return ParsingResult(
+                            ParsedCommand('create_quick_note', entities, confidence, message),
+                            confidence, "rule_based"
+                        )
+
+            # Check list_recent_entries patterns early to ensure short patterns like 'r' match before AI parsing
+            if 'list_recent_entries' in self.compiled_patterns:
+                for pattern in self.compiled_patterns['list_recent_entries']:
+                    match = pattern.match(message_for_match) if pattern.pattern.startswith('^') else pattern.search(message_for_match)
+                    if match:
+                        entities = self._extract_entities_rule_based('list_recent_entries', match, message_for_match)
+                        confidence = self._calculate_confidence('list_recent_entries', match, message_for_match)
+
+                        return ParsingResult(
+                            ParsedCommand('list_recent_entries', entities, confidence, message),
+                            confidence, "rule_based"
+                        )
+
+            # Check list_recent_notes patterns early as well
+            if 'list_recent_notes' in self.compiled_patterns:
+                for pattern in self.compiled_patterns['list_recent_notes']:
+                    match = pattern.match(message_for_match) if pattern.pattern.startswith('^') else pattern.search(message_for_match)
+                    if match:
+                        entities = self._extract_entities_rule_based('list_recent_notes', match, message_for_match)
+                        confidence = self._calculate_confidence('list_recent_notes', match, message_for_match)
+
+                        return ParsingResult(
+                            ParsedCommand('list_recent_notes', entities, confidence, message),
+                            confidence, "rule_based"
+                        )
+
+            # Check each intent pattern (excluding help, list_tasks, create_quick_note, list_recent_entries, list_recent_notes which were already checked)
+            for intent, patterns in self.compiled_patterns.items():
+                if intent in ['help', 'list_tasks', 'create_quick_note', 'list_recent_entries', 'list_recent_notes']:  # Skip, already checked above
+                    continue
+                for pattern in patterns:
+                    # Use match() for patterns that start with ^, search() for others
+                    match = pattern.match(message_for_match) if pattern.pattern.startswith('^') else pattern.search(message_for_match)
+                    if match:
+                        entities = self._extract_entities_rule_based(intent, match, message_for_match)
+                        confidence = self._calculate_confidence(intent, match, message_for_match)
+
+                        return ParsingResult(
+                            ParsedCommand(intent, entities, confidence, message),
+                            confidence, "rule_based"
+                        )
+
+            return None
+        result = _match_message(message_lower)
+        if result:
+            return result
+        if normalized_message != message_lower:
+            result = _match_message(normalized_message)
+            if result:
+                return result
+
         # No pattern matched
         return ParsingResult(
             ParsedCommand("unknown", {}, 0.0, message),
@@ -1008,12 +1111,55 @@ class EnhancedCommandParser:
                     entities['new_start_time'] = time_match.group(1)
                     entities['new_end_time'] = time_match.group(2)
         
+        elif intent == 'checkin_history':
+            message_lower = message.lower()
+            limit_match = re.search(r'(?:last|past)\s+(\d+)\s+check.?ins?', message_lower)
+            if limit_match:
+                entities['limit'] = int(limit_match.group(1))
+            else:
+                weeks_match = re.search(r'(\d+)\s+weeks?', message_lower)
+                months_match = re.search(r'(\d+)\s+months?', message_lower)
+                days_match = re.search(r'(\d+)\s+days?', message_lower)
+
+                if weeks_match:
+                    entities['days'] = int(weeks_match.group(1)) * 7
+                elif months_match:
+                    entities['days'] = int(months_match.group(1)) * 30
+                elif re.search(r'(last|past)\s+week', message_lower):
+                    entities['days'] = 7
+                elif re.search(r'(last|past)\s+month', message_lower):
+                    entities['days'] = 30
+                elif days_match:
+                    entities['days'] = int(days_match.group(1))
+                else:
+                    entities['days'] = 30  # Default to 30 days
+
         # Analytics Entity Extraction
-        elif intent in ['show_analytics', 'mood_trends', 'habit_analysis', 'sleep_analysis', 'wellness_score']:
+        elif intent in [
+            'show_analytics',
+            'mood_trends',
+            'energy_trends',
+            'habit_analysis',
+            'sleep_analysis',
+            'wellness_score',
+            'quant_summary',
+        ]:
             # Extract number of days if specified
-            days_match = re.search(r'(\d+)\s+days?', message.lower())
+            message_lower = message.lower()
+            days_match = re.search(r'(\d+)\s+days?', message_lower)
+            weeks_match = re.search(r'(\d+)\s+weeks?', message_lower)
+            months_match = re.search(r'(\d+)\s+months?', message_lower)
+
             if days_match:
                 entities['days'] = int(days_match.group(1))
+            elif weeks_match:
+                entities['days'] = int(weeks_match.group(1)) * 7
+            elif months_match:
+                entities['days'] = int(months_match.group(1)) * 30
+            elif re.search(r'(last|past)\s+week', message_lower):
+                entities['days'] = 7
+            elif re.search(r'(last|past)\s+month', message_lower):
+                entities['days'] = 30
             else:
                 entities['days'] = 30  # Default to 30 days
         

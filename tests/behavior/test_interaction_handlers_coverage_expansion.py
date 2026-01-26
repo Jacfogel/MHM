@@ -951,7 +951,7 @@ class TestAnalyticsHandlerCoverage:
                         "timestamp": "2025-01-10 09:00:00",
                         "mood": 4,
                         "energy": 2,
-                        "responses": {"How was your sleep?": "Okay"},
+                        "How was your sleep?": "Okay",
                     }
                 ]
 

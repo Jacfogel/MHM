@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-24 16:31:19
+> **Last Generated**: 2026-01-25 23:38:43
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports Found**: 1449
+- **Total Imports Found**: 1452
 - **Dependencies Documented**: 108 (100% coverage)
-- **Standard Library Imports**: 378 (26.1%)
-- **Third-Party Imports**: 230 (15.9%)
-- **Local Imports**: 841 (58.0%)
-- **Last Updated**: 2026-01-24
+- **Standard Library Imports**: 379 (26.1%)
+- **Third-Party Imports**: 230 (15.8%)
+- **Local Imports**: 843 (58.1%)
+- **Last Updated**: 2026-01-25
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 378 imports (26.1%)
-- **Third-Party**: 230 imports (15.9%)
-- **Local**: 841 imports (58.0%)
+- **Standard Library**: 379 imports (26.1%)
+- **Third-Party**: 230 imports (15.8%)
+- **Local**: 843 imports (58.1%)
 
 ## Module Dependencies by Directory
 
@@ -294,9 +294,11 @@
     - `communication.command_handlers.base_handler (InteractionHandler)`
     - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)`
     - `core.checkin_analytics (CheckinAnalytics)` (NEW)
+    - `core.checkin_dynamic_manager (dynamic_checkin_manager)` (NEW)
     - `core.error_handling (handle_ai_error, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.response_tracking (get_recent_checkins)` (NEW)
+    - `core.response_tracking (get_checkins_by_days, get_recent_checkins)` (NEW)
+    - `core.time_utilities (parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
     - `tasks.task_management (get_user_task_stats, load_active_tasks, load_completed_tasks)` (NEW)
   - **Standard Library**:
@@ -307,7 +309,7 @@
   - `communication/message_processing/conversation_flow_manager.py`
 
 **Dependency Changes**:
-- Added: core.checkin_analytics, core.error_handling, core.logger, core.response_tracking, core.user_data_handlers, tasks.task_management
+- Added: core.checkin_analytics, core.checkin_dynamic_manager, core.error_handling, core.logger, core.response_tracking, core.time_utilities, core.user_data_handlers, tasks.task_management
 - Removed: communication/command_handlers/interaction_handlers.py, communication/message_processing/conversation_flow_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1284,6 +1286,7 @@
 - **Purpose**: Analyzes check-in data and provides insights
 - **Dependencies**: 
   - **Local**:
+    - `core.checkin_dynamic_manager (dynamic_checkin_manager)` (NEW)
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (get_checkins_by_days)` (NEW)
@@ -1292,13 +1295,14 @@
   - **Standard Library**:
     - `datetime (timedelta)`
     - `statistics`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/command_handlers/analytics_handler.py`
   - `communication/command_handlers/task_handler.py`
   - `ui/dialogs/user_analytics_dialog.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.response_tracking, core.time_utilities, core.user_data_handlers
+- Added: core.checkin_dynamic_manager, core.error_handling, core.logger, core.response_tracking, core.time_utilities, core.user_data_handlers
 - Removed: communication/command_handlers/analytics_handler.py, communication/command_handlers/task_handler.py, ui/dialogs/user_analytics_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1319,7 +1323,9 @@
     - `re`
     - `typing (Any)`
 - **Used by**: 
+  - `communication/command_handlers/analytics_handler.py`
   - `communication/message_processing/conversation_flow_manager.py`
+  - `core/checkin_analytics.py`
   - `ui/widgets/checkin_settings_widget.py`
 
 **Dependency Changes**:
@@ -2082,6 +2088,7 @@
   - `ai/chatbot.py`
   - `ai/context_builder.py`
   - `ai/conversation_history.py`
+  - `communication/command_handlers/analytics_handler.py`
   - `communication/command_handlers/checkin_handler.py`
   - `communication/command_handlers/notebook_handler.py`
   - `communication/command_handlers/task_handler.py`

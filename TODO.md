@@ -273,7 +273,6 @@ When adding new tasks, follow this format:
   - [ ] Verify test isolation and data cleanup between test runs
   - [ ] Add retry logic or fix root cause if identified
   - [ ] Track `tests/development_tools/test_legacy_reference_cleanup.py::TestCleanupOperations::test_cleanup_legacy_references_dry_run` failures (PermissionError when copying `tests/fixtures/development_tools_demo` into `tests/data/tmp*/demo_project`) and ensure the temporary `tests/data/tmp*` directories remain writable before rerunning the suite.
-  - [ ] Track `tests/behavior/test_user_data_flow_architecture.py::TestTwoPhaseSave::test_two_phase_save_merge_before_write` flake (KeyError: 'email' in parallel runs; passes when run in isolation) and investigate if parallel writes/race conditions or missing retries are the culprit.
 
 **Review Communication Module Architecture**
 - *What it means*: Review all modules in `communication/` directory to ensure they follow channel-agnostic architecture principles
@@ -316,9 +315,6 @@ When adding new tasks, follow this format:
   - [ ] Identify which tests are writing to production logs
   - [ ] Fix test logging to use test-specific log files only
   - [ ] Add safeguards to prevent tests from writing to production logs
-
-**Checkin may not save non-integer results properly**
-- Investigate data saving and analytics for handling of fractions and decimals
 
 **headless service not working**
 - Investigate and fix

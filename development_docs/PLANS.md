@@ -36,7 +36,7 @@
 **Priority**: Medium  
 **Effort**: Medium  
 **Date**: 2025-11-23  
-**Last Updated**: 2025-11-24
+**Last Updated**: 2026-01-26
 
 **Objective**: Optimize test suite execution time from ~265 seconds (4.4 minutes) to ~205-225 seconds (3.4-3.7 minutes) by reducing unnecessary delays, optimizing expensive operations, and improving test efficiency.
 
@@ -44,6 +44,7 @@
 - Total Duration: ~226-235 seconds (3.8-3.9 minutes) - **Baseline performance**
   - Parallel tests: ~142-161s (3,178-3,195 tests)
   - Serial tests: ~75-84s (115-131 tests)
+- Recent run (2026-01-26): ~327s parallel (4,376 tests) + ~138s serial (159 tests).
 - **Performance Investigation Results (2025-11-24)**:
   - Attempted optimizations (removed `no_parallel` markers, added `wait_until` helpers, reduced retry loops)
   - Performance did not improve; actually degraded in some cases
@@ -107,6 +108,7 @@
 - **Optimization Attempts**: Tried removing `no_parallel` markers, adding `wait_until` helpers, reducing retry loops
 - **Reverted Changes**: All optimization attempts reverted after determining performance variability is due to system load
 - **Current Status**: Plan on hold - baseline performance (~3.8-4 minutes) is acceptable. Future optimizations should focus on reducing expensive operations (like `rebuild_user_index()`) rather than test execution patterns.
+- **2026-01-26 Update**: Short-circuited heavy UI startup work in `MHM_TESTING` mode to reduce long-running parallel UI tests; re-baseline after next full run.
 
 ### **Error Handling Quality Improvement Plan** **IN PROGRESS**
 
@@ -544,5 +546,4 @@
 **Note**: Task system work is tracked in [TASKS_PLAN.md](development_docs/TASKS_PLAN.md). Individual Task Reminders and Recurring Tasks are completed (custom reminder times implemented in scheduler.py and task_management.py). All remaining items should be updated in the tasks plan.
 
 ---
-
 

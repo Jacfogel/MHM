@@ -192,6 +192,7 @@ class TestCommandParserCheckinPatterns:
         "message",
         [
             "checkin history",
+            "checkin-history",
             "show my checkin history",
             "my checkin history",
             "checkin records",
@@ -205,6 +206,27 @@ class TestCommandParserCheckinPatterns:
 
         assert result.parsed_command.intent == "checkin_history"
 
+    def test_checkin_history_entities(self, command_parser):
+        result = _rule_parse(command_parser, "checkin history last 2 weeks")
+        assert result.parsed_command.intent == "checkin_history"
+        assert result.parsed_command.entities.get("days") == 14
+
+        result = _rule_parse(command_parser, "checkin-history last 7 days")
+        assert result.parsed_command.intent == "checkin_history"
+        assert result.parsed_command.entities.get("days") == 7
+
+        result = _rule_parse(command_parser, "checkin history last month")
+        assert result.parsed_command.intent == "checkin_history"
+        assert result.parsed_command.entities.get("days") == 30
+
+        result = _rule_parse(command_parser, "checkin-history last 3 checkins")
+        assert result.parsed_command.intent == "checkin_history"
+        assert result.parsed_command.entities.get("limit") == 3
+
+        result = _rule_parse(command_parser, "last 3 checkins")
+        assert result.parsed_command.intent == "checkin_history"
+        assert result.parsed_command.entities.get("limit") == 3
+
     @pytest.mark.parametrize(
         "message",
         [
@@ -214,6 +236,7 @@ class TestCommandParserCheckinPatterns:
             "checkin insights",
             "checkin trends",
             "analyze checkin responses",
+            "checkin-analysis",
         ],
     )
     def test_checkin_analysis_patterns(self, command_parser, message):
@@ -387,14 +410,37 @@ class TestCommandParserAnalyticsPatterns:
         "message, expected_days",
         [
             ("show analytics", 30),
+            ("show-analytics", 30),
             ("show my analytics", 30),
             ("analytics for 7 days", 7),
+            ("show trends", 30),
+            ("show-trends", 30),
             ("mood trends", 30),
             ("mood trends 14 days", 14),
             ("mood for 10 days", 10),
+            ("mood history", 30),
+            ("mood graphs", 30),
+            ("mood-graphs", 30),
+            ("mood trends last month", 30),
+            ("energy trends", 30),
+            ("energy trends 14 days", 14),
+            ("energy for 7 days", 7),
+            ("energy history", 30),
+            ("energy graphs", 30),
+            ("energy-graphs", 30),
+            ("energy trends last week", 7),
+            ("quant summary", 30),
             ("habit analysis", 30),
+            ("habit-analysis", 30),
+            ("habit analysis last 2 weeks", 14),
+            ("habit trends", 30),
+            ("habit history", 30),
             ("habit for 21 days", 21),
             ("sleep analysis", 30),
+            ("sleep-analysis", 30),
+            ("sleep analysis last 3 months", 90),
+            ("sleep trends", 30),
+            ("sleep history", 30),
             ("sleep for 5 days", 5),
             ("wellness score", 30),
             ("wellness for 3 days", 3),
@@ -406,6 +452,8 @@ class TestCommandParserAnalyticsPatterns:
         assert result.parsed_command.intent in {
             "show_analytics",
             "mood_trends",
+            "energy_trends",
+            "quant_summary",
             "habit_analysis",
             "sleep_analysis",
             "wellness_score",

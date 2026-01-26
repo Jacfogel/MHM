@@ -68,7 +68,7 @@ class TestDynamicCheckinManager:
         # Test scale questions
         is_valid, value, error = dynamic_checkin_manager.validate_answer('mood', '3')
         assert is_valid is True
-        assert value == 3
+        assert value == 3.0
         assert error is None
         
         is_valid, value, error = dynamic_checkin_manager.validate_answer('mood', '6')
@@ -146,7 +146,7 @@ class TestDynamicCheckinIntegration:
         # Test that validation works
         is_valid, value, error = dynamic_checkin_manager.validate_answer('mood', '3')
         assert is_valid is True
-        assert value == 3
+        assert value == 3.0
     
     def test_question_text_uses_dynamic_manager(self):
         """Test that question text is retrieved from the dynamic manager."""
@@ -161,9 +161,9 @@ class TestDynamicCheckinIntegration:
         """Test that validation uses the dynamic manager."""
         # Test validation
         result = conversation_manager._validate_response('mood', '4')
-        
+
         assert result['valid'] is True
-        assert result['value'] == 4
+        assert result['value'] == 4.0
         assert result['message'] is None
         
         # Test invalid input

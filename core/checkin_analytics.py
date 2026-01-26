@@ -8,6 +8,7 @@ understand their patterns and progress over time.
 """
 
 import statistics
+from typing import Any
 from core.logger import get_component_logger
 from core.response_tracking import get_checkins_by_days
 from core.error_handling import ValidationError, handle_errors
@@ -18,6 +19,15 @@ analytics_logger = get_component_logger("user_activity")
 
 
 class CheckinAnalytics:
+    _RESERVED_CHECKIN_KEYS = {
+        "timestamp",
+        "date",
+        "user_id",
+        "completed",
+        "responses",
+        "questions_asked",
+    }
+
     @handle_errors("initializing checkin analytics", default_return=None)
     def __init__(self):
         """
@@ -26,6 +36,115 @@ class CheckinAnalytics:
         This class provides analytics and insights from check-in data.
         """
         pass
+
+    @handle_errors("getting questions asked", default_return=[])
+    def _get_questions_asked(self, checkin: dict) -> list[str]:
+        """Return the list of questions asked for a check-in."""
+        questions_asked = checkin.get("questions_asked")
+        if isinstance(questions_asked, list):
+            return [q for q in questions_asked if isinstance(q, str) and q]
+        return [
+            key
+            for key in checkin.keys()
+            if key not in self._RESERVED_CHECKIN_KEYS
+        ]
+
+    @handle_errors("checking question asked", default_return=False)
+    def _is_question_asked(self, checkin: dict, question_key: str) -> bool:
+        """Check if a question was asked for a check-in."""
+        questions_asked = checkin.get("questions_asked")
+        if isinstance(questions_asked, list):
+            return question_key in questions_asked
+        return question_key in checkin
+
+    @handle_errors("checking answered value", default_return=False)
+    def _is_answered_value(self, value: Any) -> bool:
+        """Return True if the value counts as answered."""
+        if value is None:
+            return False
+        if value == "SKIPPED":
+            return True
+        if isinstance(value, str):
+            return bool(value.strip())
+        if isinstance(value, (list, dict)):
+            return bool(value)
+        return True
+
+    @handle_errors("coercing yes/no value", default_return=None)
+    def _coerce_yes_no(self, value: Any) -> bool | None:
+        """Convert yes/no-like values to bool."""
+        if value is None or value == "SKIPPED":
+            return None
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            if value in (0, 1):
+                return bool(value)
+            return None
+        if isinstance(value, str):
+            text = value.strip().lower()
+            if text in {
+                "yes",
+                "y",
+                "yeah",
+                "yep",
+                "true",
+                "1",
+                "absolutely",
+                "definitely",
+                "sure",
+                "of course",
+                "i did",
+                "i have",
+                "100",
+                "100%",
+                "correct",
+                "affirmative",
+                "indeed",
+                "certainly",
+                "positively",
+            }:
+                return True
+            if text in {
+                "no",
+                "n",
+                "nope",
+                "false",
+                "0",
+                "not",
+                "never",
+                "i didn't",
+                "i did not",
+                "i haven't",
+                "i have not",
+                "no way",
+                "absolutely not",
+                "definitely not",
+                "negative",
+                "incorrect",
+                "wrong",
+                "0%",
+            }:
+                return False
+        return None
+
+    @handle_errors("coercing sleep hours", default_return=None)
+    def _coerce_sleep_hours(self, value: Any) -> float | None:
+        """Convert sleep schedule values into hours."""
+        if value is None or value == "SKIPPED":
+            return None
+        if isinstance(value, dict):
+            sleep_time = value.get("sleep_time")
+            wake_time = value.get("wake_time")
+            if sleep_time and wake_time:
+                return self._calculate_sleep_duration(sleep_time, wake_time)
+            return None
+        if isinstance(value, str):
+            cleaned = value.strip()
+            if "-" in cleaned:
+                parts = cleaned.split("-", 1)
+                return self._calculate_sleep_duration(parts[0].strip(), parts[1].strip())
+        return None
 
     @handle_errors("analyzing mood trends", default_return={"error": "Analysis failed"})
     def get_mood_trends(self, user_id: str, days: int = 30) -> dict:
@@ -37,15 +156,20 @@ class CheckinAnalytics:
         # Extract mood data with timestamps
         mood_data = []
         for checkin in checkins:
-            if "mood" in checkin and "timestamp" in checkin:
+            if not self._is_question_asked(checkin, "mood"):
+                continue
+            if "timestamp" in checkin:
                 try:
                     timestamp = parse_timestamp_full(checkin["timestamp"])
                     if timestamp is None:
                         raise ValidationError("Invalid timestamp")
+                    mood_value = self._coerce_numeric(checkin.get("mood"))
+                    if mood_value is None:
+                        continue
                     mood_data.append(
                         {
                             "date": timestamp.date(),
-                            "mood": checkin["mood"],
+                            "mood": mood_value,
                             "timestamp": checkin["timestamp"],
                         }
                     )
@@ -113,16 +237,21 @@ class CheckinAnalytics:
         # Extract energy data with timestamps
         energy_data = []
         for checkin in checkins:
-            if "energy" in checkin and "timestamp" in checkin:
+            if not self._is_question_asked(checkin, "energy"):
+                continue
+            if "timestamp" in checkin:
                 try:
                     timestamp = parse_timestamp_full(checkin["timestamp"])
 
                     if timestamp is None:
                         raise ValidationError("Invalid timestamp")
+                    energy_value = self._coerce_numeric(checkin.get("energy"))
+                    if energy_value is None:
+                        continue
                     energy_data.append(
                         {
                             "date": timestamp.date(),
-                            "energy": checkin["energy"],
+                            "energy": energy_value,
                             "timestamp": checkin["timestamp"],
                         }
                     )
@@ -146,7 +275,7 @@ class CheckinAnalytics:
             older_avg = statistics.mean(older_energies)
             if recent_avg > older_avg + 0.5:
                 trend = "improving"
-            elif recent_avg < older_avg + 0.5:
+            elif recent_avg < older_avg - 0.5:
                 trend = "declining"
 
         # Find best and worst days
@@ -184,37 +313,42 @@ class CheckinAnalytics:
         if not checkins:
             return {"error": "No check-in data available"}
 
-        # Define habits to track
-        habits = {
-            "ate_breakfast": "Breakfast",
-            "brushed_teeth": "Teeth Brushing",
-            "medication_taken": "Medication",
-            "exercise": "Exercise",
-            "hydration": "Hydration",
-            "social_interaction": "Social Interaction",
-            "treatment_adherence": "Treatment Adherence",
-        }
+        from core.checkin_dynamic_manager import dynamic_checkin_manager
 
-        habit_stats = {}
-        for habit_key, habit_name in habits.items():
-            habit_data = []
-            for checkin in checkins:
-                if habit_key in checkin:
-                    habit_data.append(checkin[habit_key])
+        question_defs = dynamic_checkin_manager.get_all_questions(user_id)
 
-            if habit_data:
-                completion_rate = sum(habit_data) / len(habit_data) * 100
-                streak_info = self._calculate_streak(checkins, habit_key)
+        habit_stats: dict[str, dict[str, Any]] = {}
+        for checkin in checkins:
+            for question_key in self._get_questions_asked(checkin):
+                question_def = question_defs.get(question_key) or {}
+                if question_def.get("type") != "yes_no":
+                    continue
+                value = self._coerce_yes_no(checkin.get(question_key))
+                if value is None:
+                    continue
+                habit_entry = habit_stats.setdefault(
+                    question_key,
+                    {
+                        "name": question_def.get(
+                            "ui_display_name",
+                            question_key.replace("_", " ").title(),
+                        ),
+                        "answered_days": 0,
+                        "completed_days": 0,
+                    },
+                )
+                habit_entry["answered_days"] += 1
+                if value:
+                    habit_entry["completed_days"] += 1
 
-                habit_stats[habit_key] = {
-                    "name": habit_name,
-                    "completion_rate": round(completion_rate, 1),
-                    "total_days": len(habit_data),
-                    "completed_days": sum(habit_data),
-                    "current_streak": streak_info["current"],
-                    "best_streak": streak_info["best"],
-                    "status": self._get_habit_status(completion_rate),
-                }
+        for habit_key, habit_entry in habit_stats.items():
+            answered_days = habit_entry.get("answered_days", 0)
+            completed_days = habit_entry.get("completed_days", 0)
+            completion_rate = (
+                (completed_days / answered_days) * 100 if answered_days else 0
+            )
+            habit_entry["completion_rate"] = round(completion_rate, 1)
+            habit_entry["status"] = self._get_habit_status(completion_rate)
 
         return {
             "period_days": days,
@@ -232,7 +366,9 @@ class CheckinAnalytics:
         sleep_data = []
         for checkin in checkins:
             # Check for any sleep-related data (quality or schedule)
-            has_sleep_data = "sleep_quality" in checkin or "sleep_schedule" in checkin
+            has_sleep_data = self._is_question_asked(
+                checkin, "sleep_quality"
+            ) or self._is_question_asked(checkin, "sleep_schedule")
             if has_sleep_data:
                 try:
                     timestamp = parse_timestamp_full(checkin["timestamp"])
@@ -245,20 +381,18 @@ class CheckinAnalytics:
                     }
 
                     # Add available sleep data
-                    if "sleep_quality" in checkin:
-                        sleep_entry["quality"] = checkin["sleep_quality"]
-                    if "sleep_schedule" in checkin:
-                        schedule = checkin["sleep_schedule"]
-                        if (
-                            isinstance(schedule, dict)
-                            and "sleep_time" in schedule
-                            and "wake_time" in schedule
-                        ):
-                            sleep_duration = self._calculate_sleep_duration(
-                                schedule["sleep_time"], schedule["wake_time"]
-                            )
-                            if sleep_duration is not None:
-                                sleep_entry["hours"] = sleep_duration
+                    if self._is_question_asked(checkin, "sleep_quality"):
+                        quality_value = self._coerce_numeric(
+                            checkin.get("sleep_quality")
+                        )
+                        if quality_value is not None:
+                            sleep_entry["quality"] = quality_value
+                    if self._is_question_asked(checkin, "sleep_schedule"):
+                        sleep_duration = self._coerce_sleep_hours(
+                            checkin.get("sleep_schedule")
+                        )
+                        if sleep_duration is not None:
+                            sleep_entry["hours"] = sleep_duration
 
                     sleep_data.append(sleep_entry)
                 except (ValidationError, TypeError):
@@ -312,6 +446,161 @@ class CheckinAnalytics:
                 avg_hours, avg_quality, len(poor_sleep_days)
             ),
             "recent_data": sleep_data[:7],  # Last 7 days
+        }
+
+    @handle_errors(
+        "calculating basic analytics", default_return={"error": "Analysis failed"}
+    )
+    def get_basic_analytics(self, user_id: str, days: int = 30) -> dict:
+        """Return basic per-question stats grouped by category."""
+        checkins = get_checkins_by_days(user_id, days)
+        if not checkins:
+            return {"error": "No check-in data available"}
+
+        from core.checkin_dynamic_manager import dynamic_checkin_manager
+
+        question_defs = dynamic_checkin_manager.get_all_questions(user_id)
+        categories = dynamic_checkin_manager.get_categories()
+
+        question_stats: dict[str, dict[str, Any]] = {}
+        for checkin in checkins:
+            for question_key in self._get_questions_asked(checkin):
+                if question_key in self._RESERVED_CHECKIN_KEYS:
+                    continue
+                question_def = question_defs.get(question_key) or {}
+                question_type = question_def.get("type", "unknown")
+                category = question_def.get("category", "other")
+                display_name = question_def.get(
+                    "ui_display_name", question_key.replace("_", " ").title()
+                )
+
+                stats = question_stats.setdefault(
+                    question_key,
+                    {
+                        "key": question_key,
+                        "name": display_name,
+                        "type": question_type,
+                        "category": category,
+                        "asked_count": 0,
+                        "answered_count": 0,
+                        "numeric_values": [],
+                        "yes_count": 0,
+                        "no_count": 0,
+                        "text_count": 0,
+                        "hours_values": [],
+                        "scale_max": question_def.get("validation", {}).get("max")
+                        if question_type == "scale_1_5"
+                        else None,
+                    },
+                )
+                stats["asked_count"] += 1
+
+                value = checkin.get(question_key)
+                if value is None or value == "SKIPPED":
+                    continue
+
+                if question_type == "yes_no":
+                    bool_value = self._coerce_yes_no(value)
+                    if bool_value is None:
+                        continue
+                    stats["answered_count"] += 1
+                    if bool_value:
+                        stats["yes_count"] += 1
+                    else:
+                        stats["no_count"] += 1
+                    continue
+
+                if question_type == "time_pair":
+                    hours = self._coerce_sleep_hours(value)
+                    if hours is None:
+                        continue
+                    stats["answered_count"] += 1
+                    stats["hours_values"].append(hours)
+                    continue
+
+                numeric_value = self._coerce_numeric(value)
+                if numeric_value is not None:
+                    stats["answered_count"] += 1
+                    stats["numeric_values"].append(numeric_value)
+                    continue
+
+                if self._is_answered_value(value):
+                    stats["answered_count"] += 1
+                    stats["text_count"] += 1
+
+        categories_summary: dict[str, dict[str, Any]] = {}
+        for question_key, stats in question_stats.items():
+            has_data = (
+                stats["numeric_values"]
+                or stats["hours_values"]
+                or stats["answered_count"] > 0
+            )
+            if not has_data:
+                continue
+            category_key = stats.get("category") or "other"
+            category_def = categories.get(category_key, {})
+            category_name = category_def.get("name", category_key.title())
+            category_entry = categories_summary.setdefault(
+                category_key, {"name": category_name, "questions": []}
+            )
+
+            question_entry: dict[str, Any] = {
+                "key": question_key,
+                "name": stats["name"],
+                "type": stats["type"],
+                "asked_count": stats["asked_count"],
+                "answered_count": stats["answered_count"],
+                "scale_max": stats["scale_max"],
+            }
+
+            if stats["numeric_values"]:
+                numeric_values = stats["numeric_values"]
+                question_entry.update(
+                    {
+                        "average": round(statistics.mean(numeric_values), 2),
+                        "min": min(numeric_values),
+                        "max": max(numeric_values),
+                        "count": len(numeric_values),
+                    }
+                )
+            elif stats["hours_values"]:
+                hours_values = stats["hours_values"]
+                question_entry.update(
+                    {
+                        "average_hours": round(statistics.mean(hours_values), 2),
+                        "min_hours": min(hours_values),
+                        "max_hours": max(hours_values),
+                        "count": len(hours_values),
+                    }
+                )
+            elif stats["type"] == "yes_no":
+                answered = stats["answered_count"]
+                yes_count = stats["yes_count"]
+                no_count = stats["no_count"]
+                question_entry.update(
+                    {
+                        "yes_count": yes_count,
+                        "no_count": no_count,
+                        "count": answered,
+                        "yes_rate": round((yes_count / answered) * 100, 1)
+                        if answered
+                        else 0.0,
+                    }
+                )
+            else:
+                question_entry.update({"count": stats["answered_count"]})
+
+            category_entry["questions"].append(question_entry)
+
+        for category_entry in categories_summary.values():
+            category_entry["questions"].sort(
+                key=lambda q: q.get("name", "").lower()
+            )
+
+        return {
+            "period_days": days,
+            "total_checkins": len(checkins),
+            "categories": categories_summary,
         }
 
     @handle_errors(
@@ -384,23 +673,23 @@ class CheckinAnalytics:
                     formatted_checkin = {
                         # ISO date should come from the date object
                         "date": timestamp.date().isoformat(),
-                        "mood": checkin.get("mood", "No mood recorded"),
-                        "energy": checkin.get("energy", "No energy recorded"),
                         "timestamp": checkin["timestamp"],
                     }
+                    if "questions_asked" in checkin:
+                        formatted_checkin["questions_asked"] = checkin["questions_asked"]
 
-                    # Add habit information if available
-                    habits = [
-                        "ate_breakfast",
-                        "brushed_teeth",
-                        "medication_taken",
-                        "exercise",
-                        "hydration",
-                        "social_interaction",
-                    ]
-                    for habit in habits:
-                        if habit in checkin:
-                            formatted_checkin[habit] = checkin[habit]
+                    reserved_keys = {
+                        "timestamp",
+                        "date",
+                        "user_id",
+                        "completed",
+                        "responses",
+                        "questions_asked",
+                    }
+                    for key, value in checkin.items():
+                        if key in reserved_keys:
+                            continue
+                        formatted_checkin[key] = value
 
                     formatted_history.append(formatted_checkin)
                 except (ValidationError, TypeError):
@@ -562,6 +851,8 @@ class CheckinAnalytics:
         for field in fields:
             values: list[float] = []
             for c in checkins:
+                if not self._is_question_asked(c, field):
+                    continue
                 if field in c:
                     try:
                         v_raw = c[field]
@@ -576,69 +867,6 @@ class CheckinAnalytics:
                                 )
                                 if duration is not None:
                                     values.append(duration)
-                            continue
-                        # Handle yes/no questions by converting to 0/1
-                        if isinstance(v_raw, bool):
-                            # Boolean values from validation (True/False)
-                            v = 1.0 if v_raw else 0.0
-                        elif isinstance(v_raw, str):
-                            v_raw_lower = v_raw.lower().strip()
-                            if v_raw_lower in [
-                                "yes",
-                                "y",
-                                "yeah",
-                                "yep",
-                                "true",
-                                "1",
-                                "absolutely",
-                                "definitely",
-                                "sure",
-                                "of course",
-                                "i did",
-                                "i have",
-                                "100",
-                                "100%",
-                                "correct",
-                                "affirmative",
-                                "indeed",
-                                "certainly",
-                                "positively",
-                            ]:
-                                v = 1.0
-                            elif v_raw_lower in [
-                                "no",
-                                "n",
-                                "nope",
-                                "false",
-                                "0",
-                                "not",
-                                "never",
-                                "i didn't",
-                                "i did not",
-                                "i haven't",
-                                "i have not",
-                                "no way",
-                                "absolutely not",
-                                "definitely not",
-                                "negative",
-                                "incorrect",
-                                "wrong",
-                                "0%",
-                            ]:
-                                v = 0.0
-                            else:
-                                v = float(v_raw)
-                        else:
-                            v = float(v_raw)
-                        values.append(v)
-                    except Exception:
-                        continue
-                # Also support responses dict with numeric answers
-                elif isinstance(c.get("responses"), dict) and field in c["responses"]:
-                    try:
-                        v_raw = c["responses"][field]
-                        # Skip 'SKIPPED' responses to avoid analytics inaccuracies
-                        if v_raw == "SKIPPED":
                             continue
                         # Handle yes/no questions by converting to 0/1
                         if isinstance(v_raw, bool):
@@ -714,10 +942,32 @@ class CheckinAnalytics:
         if not checkins:
             return {"error": "No check-in data available"}
 
+        from core.checkin_dynamic_manager import dynamic_checkin_manager
+
+        question_defs = dynamic_checkin_manager.get_all_questions(user_id)
+
         total_days = len(checkins)
-        completed_days = sum(
-            1 for checkin in checkins if checkin.get("completed", False)
-        )
+        completed_days = 0
+        for checkin in checkins:
+            questions_asked = checkin.get("questions_asked")
+            if not isinstance(questions_asked, list):
+                completed_days += 1
+                continue
+            is_complete = True
+            for key in questions_asked:
+                value = checkin.get(key)
+                if value == "SKIPPED":
+                    continue
+                if value is None:
+                    is_complete = False
+                    break
+                if isinstance(value, str) and not value.strip():
+                    question_type = (question_defs.get(key) or {}).get("type")
+                    if question_type != "optional_text":
+                        is_complete = False
+                        break
+            if is_complete:
+                completed_days += 1
         missed_days = total_days - completed_days
 
         completion_rate = (completed_days / total_days * 100) if total_days > 0 else 0
@@ -751,43 +1001,85 @@ class CheckinAnalytics:
 
         task_stats = {}
         for task_key, task_name in tasks.items():
-            completed_days = sum(
-                1 for checkin in checkins if checkin.get(task_key, False)
-            )
-            missed_days = len(checkins) - completed_days
+            completed_days = 0
+            answered_days = 0
+            for checkin in checkins:
+                if not self._is_question_asked(checkin, task_key):
+                    continue
+                value = self._coerce_yes_no(checkin.get(task_key))
+                if value is None:
+                    continue
+                answered_days += 1
+                if value:
+                    completed_days += 1
+            if answered_days == 0:
+                continue
+            missed_days = answered_days - completed_days
 
             task_stats[task_name] = {
                 "completed_days": completed_days,
                 "missed_days": missed_days,
-                "total_days": len(checkins),
+                "total_days": answered_days,
                 "completion_rate": round(
-                    (completed_days / len(checkins) * 100) if len(checkins) > 0 else 0,
+                    (completed_days / answered_days * 100) if answered_days > 0 else 0,
                     1,
                 ),
             }
 
         return task_stats
 
+    @staticmethod
+    @handle_errors("coercing numeric value", default_return=None)
+    def _coerce_numeric(value: Any) -> float | None:
+        """Convert numeric-like values to float, skipping invalid or skipped entries."""
+        if value is None or value == "SKIPPED":
+            return None
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            value_str = value.strip()
+            if not value_str:
+                return None
+            try:
+                return float(value_str)
+            except ValueError:
+                return None
+        return None
+
+    @staticmethod
+    @handle_errors("bucketing scale value", default_return=None)
+    def _bucket_scale_value(value: float | None) -> int | None:
+        """Bucket a numeric value to the nearest 1-5 integer (half-up)."""
+        if value is None:
+            return None
+        if value < 1 or value > 5:
+            return None
+        return min(5, max(1, int(value + 0.5)))
+
     @handle_errors(
         "calculating mood distribution", default_return={1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
     )
-    def _get_mood_distribution(self, moods: list[int]) -> dict:
-        """Calculate distribution of mood scores"""
+    def _get_mood_distribution(self, moods: list[float]) -> dict:
+        """Calculate distribution of mood scores (bucketed to 1-5)."""
         distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         for mood in moods:
-            if mood in distribution:
-                distribution[mood] += 1
+            bucket = self._bucket_scale_value(mood)
+            if bucket in distribution:
+                distribution[bucket] += 1
         return distribution
 
     @handle_errors(
         "calculating energy distribution", default_return={1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
     )
-    def _get_energy_distribution(self, energies: list[int]) -> dict:
-        """Calculate distribution of energy scores"""
+    def _get_energy_distribution(self, energies: list[float]) -> dict:
+        """Calculate distribution of energy scores (bucketed to 1-5)."""
         distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         for energy in energies:
-            if energy in distribution:
-                distribution[energy] += 1
+            bucket = self._bucket_scale_value(energy)
+            if bucket in distribution:
+                distribution[bucket] += 1
         return distribution
 
     @handle_errors("calculating habit streak", default_return={"current": 0, "best": 0})
@@ -912,7 +1204,13 @@ class CheckinAnalytics:
     @handle_errors("calculating mood score", default_return=50.0)
     def _calculate_mood_score(self, checkins: list[dict]) -> float:
         """Calculate mood score (0-100)"""
-        moods = [c.get("mood", 3) for c in checkins if "mood" in c]
+        moods = []
+        for checkin in checkins:
+            if not self._is_question_asked(checkin, "mood"):
+                continue
+            mood_value = self._coerce_numeric(checkin.get("mood"))
+            if mood_value is not None:
+                moods.append(mood_value)
         if not moods:
             return 50
 
@@ -923,7 +1221,13 @@ class CheckinAnalytics:
     @handle_errors("calculating energy score", default_return=50.0)
     def _calculate_energy_score(self, checkins: list[dict]) -> float:
         """Calculate energy score (0-100)"""
-        energies = [c.get("energy", 3) for c in checkins if "energy" in c]
+        energies = []
+        for checkin in checkins:
+            if not self._is_question_asked(checkin, "energy"):
+                continue
+            energy_value = self._coerce_numeric(checkin.get("energy"))
+            if energy_value is not None:
+                energies.append(energy_value)
         if not energies:
             return 50
 
@@ -946,10 +1250,14 @@ class CheckinAnalytics:
 
         for checkin in checkins:
             for habit in habits:
-                if habit in checkin:
-                    total_possible += 1
-                    if checkin[habit]:
-                        total_completion += 1
+                if not self._is_question_asked(checkin, habit):
+                    continue
+                value = self._coerce_yes_no(checkin.get(habit))
+                if value is None:
+                    continue
+                total_possible += 1
+                if value:
+                    total_completion += 1
 
         if total_possible == 0:
             return 50
@@ -992,20 +1300,12 @@ class CheckinAnalytics:
             quality = None
 
             # Get sleep quality
-            if "sleep_quality" in checkin:
-                quality = checkin["sleep_quality"]
+            if self._is_question_asked(checkin, "sleep_quality"):
+                quality = self._coerce_numeric(checkin.get("sleep_quality"))
 
             # Get sleep hours from sleep_schedule
-            if "sleep_schedule" in checkin:
-                schedule = checkin["sleep_schedule"]
-                if (
-                    isinstance(schedule, dict)
-                    and "sleep_time" in schedule
-                    and "wake_time" in schedule
-                ):
-                    hours = self._calculate_sleep_duration(
-                        schedule["sleep_time"], schedule["wake_time"]
-                    )
+            if self._is_question_asked(checkin, "sleep_schedule"):
+                hours = self._coerce_sleep_hours(checkin.get("sleep_schedule"))
 
             # Need both hours and quality to calculate score
             if hours is not None and quality is not None:

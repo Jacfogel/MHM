@@ -382,13 +382,13 @@ class TestQuantitativeAnalyticsExpansion:
     @pytest.mark.behavior
     @pytest.mark.analytics
     @pytest.mark.file_io
-    def test_quantitative_analytics_handles_responses_dict_format(
+    def test_quantitative_analytics_handles_top_level_format(
         self, test_data_dir, fix_user_data_loaders
     ):
-        """Test that analytics handle check-in data in responses dict format."""
+        """Test that analytics handle check-in data in top-level format."""
         user_id = "test-user-responses-dict"
 
-        # Arrange - Create user with check-in data in responses dict format
+        # Arrange - Create user with check-in data in top-level format
         test_user = TestUserFactory.create_basic_user(
             user_id, test_data_dir=test_data_dir
         )
@@ -411,18 +411,22 @@ class TestQuantitativeAnalyticsExpansion:
         user_data["preferences"] = {"checkin_settings": checkin_settings}
         save_user_data(actual_user_id, "preferences", user_data)
 
-        # Create check-in data with responses dict format (use recent dates)
+        # Create check-in data with top-level format (use recent dates)
         from datetime import datetime, timedelta
 
         now = now_datetime_full()
         sample_checkins = [
             {
                 "timestamp": format_timestamp(now - timedelta(days=2), TIMESTAMP_FULL),
-                "responses": {"mood": "4", "energy": "3", "stress_level": "2"},
+                "mood": "4",
+                "energy": "3",
+                "stress_level": "2",
             },
             {
                 "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
-                "responses": {"mood": "3", "energy": "4", "stress_level": "3"},
+                "mood": "3",
+                "energy": "4",
+                "stress_level": "3",
             },
         ]
 
@@ -453,11 +457,11 @@ class TestQuantitativeAnalyticsExpansion:
         assert "error" not in summaries, f"Should not have error: {summaries}"
 
         # Check all fields are present
-        assert "mood" in summaries, "Should include mood from responses dict"
-        assert "energy" in summaries, "Should include energy from responses dict"
+        assert "mood" in summaries, "Should include mood from top-level fields"
+        assert "energy" in summaries, "Should include energy from top-level fields"
         assert (
             "stress_level" in summaries
-        ), "Should include stress_level from responses dict"
+        ), "Should include stress_level from top-level fields"
 
         # Verify calculations are correct
         assert summaries["mood"]["count"] == 2, "Mood should have count of 2"

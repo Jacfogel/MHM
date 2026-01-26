@@ -308,13 +308,13 @@ class TestComprehensiveQuantitativeAnalytics:
     @pytest.mark.behavior
     @pytest.mark.analytics
     @pytest.mark.file_io
-    def test_responses_dict_format_with_yes_no(
+    def test_top_level_format_with_yes_no(
         self, test_data_dir, fix_user_data_loaders
     ):
-        """Test that yes/no questions work correctly in responses dict format."""
+        """Test that yes/no questions work correctly in top-level format."""
         user_id = "test-user-responses-yes-no"
 
-        # Arrange - Create user with responses dict format
+        # Arrange - Create user with top-level format
         test_user = TestUserFactory.create_basic_user(
             user_id, test_data_dir=test_data_dir
         )
@@ -323,28 +323,24 @@ class TestComprehensiveQuantitativeAnalytics:
         actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "User should be created and resolvable"
 
-        # Create check-in data with responses dict format (use recent dates)
+        # Create check-in data with top-level format (use recent dates)
         from datetime import datetime, timedelta
 
         now = datetime(2026, 1, 15, 12, 0, 0)
         sample_checkins = [
             {
                 "timestamp": format_timestamp(now - timedelta(days=1), TIMESTAMP_FULL),
-                "responses": {
-                    "mood": "4",
-                    "energy": "3",
-                    "ate_breakfast": "yes",
-                    "exercise": "no",
-                },
+                "mood": "4",
+                "energy": "3",
+                "ate_breakfast": "yes",
+                "exercise": "no",
             },
             {
                 "timestamp": format_timestamp(now, TIMESTAMP_FULL),
-                "responses": {
-                    "mood": "3",
-                    "energy": "4",
-                    "ate_breakfast": "no",
-                    "exercise": "yes",
-                },
+                "mood": "3",
+                "energy": "4",
+                "ate_breakfast": "no",
+                "exercise": "yes",
             },
         ]
 
@@ -366,14 +362,14 @@ class TestComprehensiveQuantitativeAnalytics:
 
         # Check all fields are present
         for field in enabled_fields:
-            assert field in summaries, f"Should include {field} from responses dict"
+            assert field in summaries, f"Should include {field} from top-level fields"
             assert summaries[field]["count"] == 2, f"{field} should have count of 2"
 
         # Verify calculations are correct
         assert summaries["mood"]["average"] == 3.5, "Mood average should be 3.5"
         assert summaries["energy"]["average"] == 3.5, "Energy average should be 3.5"
 
-        # Verify yes/no conversions in responses dict
+        # Verify yes/no conversions in top-level fields
         assert (
             summaries["ate_breakfast"]["average"] == 0.5
         ), "Breakfast average should be 0.5 (1 yes, 1 no)"

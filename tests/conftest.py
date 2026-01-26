@@ -3028,11 +3028,8 @@ def update_user_index_for_test(test_data_dir):
 
 
 # --- CLEANUP FIXTURE: Remove test users from tests/data/users/ after all tests (NEVER touches real user data) ---
-@pytest.fixture(scope="session", autouse=True)
-def cleanup_test_users_after_session():
-    """Remove test users from tests/data/users/ after all tests. NEVER touches real user data."""
-    yield  # Run all tests first
-
+def _cleanup_test_user_artifacts() -> None:
+    """Remove test users from tests/data/users/ after all tests."""
     # Clear all user caches to prevent state pollution between test runs
     try:
         from core.user_data_handlers import clear_user_caches
@@ -3085,8 +3082,20 @@ def cleanup_test_users_after_session():
         except Exception:
             pass
 
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_test_users_after_session():
+    """Remove test users from tests/data/users/ after all tests. NEVER touches real user data."""
+    yield  # Run all tests first
+
+    if os.environ.get("PYTEST_XDIST_WORKER"):
+        return
+
+    _cleanup_test_user_artifacts()
+    base_test_data_dir = str(tests_data_dir)
+
     # Clean up test request files from schedule editor tests
-    requests_dir = os.path.join(test_data_dir, "requests")
+    requests_dir = os.path.join(base_test_data_dir, "requests")
     if os.path.exists(requests_dir):
         try:
             for item in os.listdir(requests_dir):
@@ -3101,7 +3110,7 @@ def cleanup_test_users_after_session():
             pass
 
     # Clean up test backup files to prevent clutter
-    backup_dir = os.path.join(test_data_dir, "backups")
+    backup_dir = os.path.join(base_test_data_dir, "backups")
     if os.path.exists(backup_dir):
         try:
             for item in os.listdir(backup_dir):
@@ -3120,9 +3129,9 @@ def cleanup_test_users_after_session():
     # Matches: tmp_*, tmp* (but not just "tmp"), pytest-of-*
     # Use direct directory iteration instead of glob for Windows compatibility
     try:
-        if os.path.exists(test_data_dir):
-            for item in os.listdir(test_data_dir):
-                item_path = os.path.join(test_data_dir, item)
+        if os.path.exists(base_test_data_dir):
+            for item in os.listdir(base_test_data_dir):
+                item_path = os.path.join(base_test_data_dir, item)
                 try:
                     if os.path.isdir(item_path):
                         if (
@@ -3153,7 +3162,7 @@ def cleanup_test_users_after_session():
         pass
 
     # Clean up flags directory
-    flags_dir = os.path.join(test_data_dir, "flags")
+    flags_dir = os.path.join(base_test_data_dir, "flags")
     if os.path.exists(flags_dir):
         try:
             for item in os.listdir(flags_dir):
@@ -3169,7 +3178,7 @@ def cleanup_test_users_after_session():
             pass
 
     # Clean up tmp directory
-    tmp_dir = os.path.join(test_data_dir, "tmp")
+    tmp_dir = os.path.join(base_test_data_dir, "tmp")
     if os.path.exists(tmp_dir):
         try:
             for item in os.listdir(tmp_dir):
@@ -3189,9 +3198,9 @@ def cleanup_test_users_after_session():
         # Remove pytest temporary directories (pytest-of-* and tmp* directories created by pytest's tmpdir plugin)
         # Matches: tmp_*, tmp* (but not just "tmp"), pytest-of-*
         # Use direct directory iteration instead of glob for Windows compatibility
-        if os.path.exists(test_data_dir):
-            for item in os.listdir(test_data_dir):
-                item_path = os.path.join(test_data_dir, item)
+        if os.path.exists(base_test_data_dir):
+            for item in os.listdir(base_test_data_dir):
+                item_path = os.path.join(base_test_data_dir, item)
                 try:
                     if os.path.isdir(item_path):
                         if (
@@ -3220,32 +3229,32 @@ def cleanup_test_users_after_session():
                     pass
 
         # Remove stray config directory
-        config_dir = os.path.join(test_data_dir, "config")
+        config_dir = os.path.join(base_test_data_dir, "config")
         if os.path.exists(config_dir):
             shutil.rmtree(config_dir, ignore_errors=True)
 
         # Remove root files
         for filename in [".env", "requirements.txt", "test_file.json"]:
-            file_path = os.path.join(test_data_dir, filename)
+            file_path = os.path.join(base_test_data_dir, filename)
             if os.path.exists(file_path):
                 os.remove(file_path)
 
         # Remove legacy nested directory
-        nested_dir = os.path.join(test_data_dir, "nested")
+        nested_dir = os.path.join(base_test_data_dir, "nested")
         if os.path.exists(nested_dir):
             shutil.rmtree(nested_dir, ignore_errors=True)
 
         # Remove corrupted files
-        for item in os.listdir(test_data_dir):
+        for item in os.listdir(base_test_data_dir):
             if (
                 item.startswith("tmp") and ".corrupted_" in item
             ) or ".corrupted_" in item:
-                item_path = os.path.join(test_data_dir, item)
+                item_path = os.path.join(base_test_data_dir, item)
                 if os.path.isfile(item_path):
                     os.remove(item_path)
 
         # Clear tmp directory completely - remove all subdirectories and files
-        tmp_dir = os.path.join(test_data_dir, "tmp")
+        tmp_dir = os.path.join(base_test_data_dir, "tmp")
         if os.path.exists(tmp_dir):
             try:
                 # Remove all contents (subdirectories and files)
@@ -3263,7 +3272,7 @@ def cleanup_test_users_after_session():
                 pass
 
         # Clear flags directory completely
-        flags_dir = os.path.join(test_data_dir, "flags")
+        flags_dir = os.path.join(base_test_data_dir, "flags")
         if os.path.exists(flags_dir):
             try:
                 for item in os.listdir(flags_dir):
@@ -3279,7 +3288,7 @@ def cleanup_test_users_after_session():
                 pass
 
         # Clear requests directory completely
-        requests_dir = os.path.join(test_data_dir, "requests")
+        requests_dir = os.path.join(base_test_data_dir, "requests")
         if os.path.exists(requests_dir):
             try:
                 for item in os.listdir(requests_dir):
@@ -3296,7 +3305,7 @@ def cleanup_test_users_after_session():
 
         # Clean up conversation_states.json
         conversation_states_file = os.path.join(
-            test_data_dir, "conversation_states.json"
+            base_test_data_dir, "conversation_states.json"
         )
         if os.path.exists(conversation_states_file):
             try:
@@ -3305,7 +3314,7 @@ def cleanup_test_users_after_session():
                 pass
 
         # Clear logs directory
-        logs_dir = os.path.join(test_data_dir, "logs")
+        logs_dir = os.path.join(base_test_data_dir, "logs")
         if os.path.exists(logs_dir):
             shutil.rmtree(logs_dir, ignore_errors=True)
 
@@ -3328,7 +3337,7 @@ def cleanup_test_users_after_session():
 
         # Clean up any stray test.log files in tests/data
         try:
-            for root, dirs, files in os.walk(test_data_dir):
+            for root, dirs, files in os.walk(base_test_data_dir):
                 for file in files:
                     if file == "test.log":
                         file_path = os.path.join(root, file)
@@ -3990,6 +3999,10 @@ def pytest_sessionfinish(session, exitstatus):
 
     # Consolidate worker logs FIRST (this can make main log files huge)
     _consolidate_worker_logs()
+
+    is_xdist = bool(getattr(session.config.option, "numprocesses", 0))
+    if is_xdist:
+        _cleanup_test_user_artifacts()
 
     # NOTE: Log rotation only happens at session START in setup_consolidated_test_logging.
     # We do NOT rotate at session end because:

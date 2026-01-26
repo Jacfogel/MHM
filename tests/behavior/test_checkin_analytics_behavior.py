@@ -132,7 +132,9 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
             result = analytics.get_mood_trends("test_user", days=30)
 
         assert "error" in result, "Should return error with invalid mood data"
-        assert result["error"] == "Analysis failed", "Should have correct error message"
+        assert (
+            result["error"] == "No valid mood data found"
+        ), "Should have correct error message"
 
 
 @pytest.mark.behavior
@@ -212,10 +214,8 @@ class TestCheckinAnalyticsHabitAnalysisBehavior:
         # [OK] VERIFY REAL BEHAVIOR: Habit statistics are reasonable
         breakfast_stats = habits["ate_breakfast"]
         assert "completion_rate" in breakfast_stats, "Should have completion rate"
-        assert "total_days" in breakfast_stats, "Should have total days"
+        assert "answered_days" in breakfast_stats, "Should have answered days"
         assert "completed_days" in breakfast_stats, "Should have completed days"
-        assert "current_streak" in breakfast_stats, "Should have current streak"
-        assert "best_streak" in breakfast_stats, "Should have best streak"
         assert "status" in breakfast_stats, "Should have status"
 
         # [OK] VERIFY REAL BEHAVIOR: Values are reasonable
@@ -569,8 +569,10 @@ class TestCheckinAnalyticsTaskStatsBehavior:
             checkins.append(
                 {
                     "timestamp": format_timestamp(date, TIMESTAMP_FULL),
-                    "tasks_completed": i + 1,  # 1, 2, 3, 4, 5, 6, 7 tasks
-                    "tasks_total": 10,  # Always 10 total tasks
+                    "ate_breakfast": i % 2 == 0,
+                    "exercise": i % 3 == 0,
+                    "hydration": True,
+                    "medication_taken": i % 4 == 0,
                     "user_id": "test_user",
                 }
             )

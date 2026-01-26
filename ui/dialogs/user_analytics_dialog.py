@@ -420,7 +420,9 @@ Habit Breakdown:"""
             for habit_key, stats in habits_dict.items():
                 name = stats.get("name", habit_key)
                 completion = stats.get("completion_rate", 0)
-                total_days = stats.get("total_days", 0)
+                total_days = stats.get(
+                    "answered_days", stats.get("total_days", 0)
+                )
                 completed_days = stats.get("completed_days", 0)
                 status = stats.get("status", "Unknown")
 

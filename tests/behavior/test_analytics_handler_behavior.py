@@ -84,26 +84,24 @@ class TestAnalyticsHandlerBehavior:
         mock_analytics = MagicMock()
         mock_analytics_class.return_value = mock_analytics
         
-        # Mock wellness score
-        mock_analytics.get_wellness_score.return_value = {
-            'score': 75,
-            'level': 'Good',
-            'recommendations': ['Get more sleep', 'Exercise regularly']
-        }
-        
-        # Mock mood trends
-        mock_analytics.get_mood_trends.return_value = {
-            'average_mood': 4.0,
-            'min_mood': 3,
-            'max_mood': 5,
-            'trend': 'Stable'
-        }
-        
-        # Mock habit analysis
-        mock_analytics.get_habit_analysis.return_value = {
-            'overall_completion': 80,
-            'current_streak': 5,
-            'best_streak': 10
+        # Mock basic analytics
+        mock_analytics.get_basic_analytics.return_value = {
+            'total_checkins': 5,
+            'categories': {
+                'mood': {
+                    'name': 'Mood',
+                    'questions': [
+                        {
+                            'name': 'Mood',
+                            'average': 3.5,
+                            'min': 2,
+                            'max': 5,
+                            'count': 5,
+                            'scale_max': 5,
+                        }
+                    ],
+                }
+            },
         }
         
         # Create a parsed command for showing analytics
@@ -120,15 +118,11 @@ class TestAnalyticsHandlerBehavior:
         # Verify response
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
         assert response.completed, "Response should be completed"
-        assert "analytics" in response.message.lower() or "wellness" in response.message.lower(), "Should mention analytics or wellness"
-        assert "75" in response.message or "score" in response.message.lower(), "Should include wellness score"
+        assert "analytics" in response.message.lower(), "Should mention analytics"
+        assert "total check-ins" in response.message.lower(), "Should include totals"
         
         # Verify actual system changes: Check that analytics methods were called with correct parameters
-        mock_analytics.get_wellness_score.assert_called_once()
-        call_args = mock_analytics.get_wellness_score.call_args
-        # Verify days parameter (default 30 if not specified)
-        assert call_args[0][0] == user_id, "Should call get_wellness_score with correct user_id"
-        assert call_args[0][1] == 30 if len(call_args[0]) > 1 else True, "Should use default 30 days or specified days"
+        mock_analytics.get_basic_analytics.assert_called_once_with(user_id, 30)
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -147,8 +141,8 @@ class TestAnalyticsHandlerBehavior:
         mock_analytics = MagicMock()
         mock_analytics_class.return_value = mock_analytics
         
-        # Mock wellness score to return error
-        mock_analytics.get_wellness_score.return_value = {'error': 'Not enough data'}
+        # Mock basic analytics to return error
+        mock_analytics.get_basic_analytics.return_value = {'error': 'No data'}
         
         # Create a parsed command for showing analytics
         parsed_command = ParsedCommand(
@@ -233,16 +227,24 @@ class TestAnalyticsHandlerBehavior:
         mock_analytics = MagicMock()
         mock_analytics_class.return_value = mock_analytics
         
-        # Mock wellness score
-        mock_analytics.get_wellness_score.return_value = {
-            'score': 80,
-            'level': 'Excellent',
-            'components': {
-                'mood_score': 85,
-                'habit_score': 75,
-                'sleep_score': 80
+        # Mock basic analytics
+        mock_analytics.get_basic_analytics.return_value = {
+            'total_checkins': 3,
+            'categories': {
+                'mood': {
+                    'name': 'Mood',
+                    'questions': [
+                        {
+                            'name': 'Mood',
+                            'average': 4.0,
+                            'min': 3,
+                            'max': 5,
+                            'count': 3,
+                            'scale_max': 5,
+                        }
+                    ],
+                }
             },
-            'recommendations': ['Keep up the good work', 'Maintain consistency']
         }
         
         # Create a parsed command for wellness score
@@ -259,14 +261,11 @@ class TestAnalyticsHandlerBehavior:
         # Verify response
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
         assert response.completed, "Response should be completed"
-        assert "wellness" in response.message.lower() or "score" in response.message.lower(), "Should mention wellness score"
-        assert "80" in response.message or "score" in response.message.lower(), "Should include score"
+        assert "wellness score" in response.message.lower(), "Should mention wellness score replacement"
+        assert "check-in analytics" in response.message.lower(), "Should include analytics output"
         
-        # Verify actual system changes: Check that get_wellness_score was called with correct parameters
-        mock_analytics.get_wellness_score.assert_called_once()
-        call_args = mock_analytics.get_wellness_score.call_args
-        assert call_args[0][0] == user_id, "Should call get_wellness_score with correct user_id"
-        assert call_args[0][1] == 30 if len(call_args[0]) > 1 else True, "Should use specified days parameter"
+        # Verify actual system changes: Check that basic analytics was called with correct parameters
+        mock_analytics.get_basic_analytics.assert_called_once_with(user_id, 30)
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -372,8 +371,8 @@ class TestAnalyticsHandlerBehavior:
         
         # Mock check-ins
         mock_get_checkins.return_value = [
-            {'timestamp': '2025-01-01 10:00:00', 'mood': 4, 'responses': {'How are you?': 'Good'}},
-            {'timestamp': '2025-01-02 10:00:00', 'mood': 5, 'responses': {'How are you?': 'Great'}}
+            {'timestamp': '2025-01-01 10:00:00', 'mood': 4, 'How are you?': 'Good'},
+            {'timestamp': '2025-01-02 10:00:00', 'mood': 5, 'How are you?': 'Great'}
         ]
         
         # Mock analytics instance
@@ -424,13 +423,22 @@ class TestAnalyticsHandlerBehavior:
         # Mock habit analysis
         mock_analytics.get_habit_analysis.return_value = {
             'overall_completion': 75,
-            'current_streak': 5,
-            'best_streak': 10,
             'habits': {
-                'Exercise': {'completion_rate': 80, 'status': 'Good'},
-                'Meditation': {'completion_rate': 70, 'status': 'Fair'}
+                'exercise': {
+                    'name': 'Exercise',
+                    'completed_days': 8,
+                    'answered_days': 10,
+                    'completion_rate': 80,
+                    'status': 'Good',
+                },
+                'meditation': {
+                    'name': 'Meditation',
+                    'completed_days': 7,
+                    'answered_days': 10,
+                    'completion_rate': 70,
+                    'status': 'Fair',
+                },
             },
-            'recommendations': ['Keep it up', 'Focus on consistency']
         }
         
         # Create a parsed command for habit analysis
@@ -447,7 +455,7 @@ class TestAnalyticsHandlerBehavior:
         # Verify response
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
         assert response.completed, "Response should be completed"
-        assert "habit" in response.message.lower() or "completion" in response.message.lower(), "Should mention habit analysis"
+        assert "habit" in response.message.lower(), "Should mention habit analysis"
         assert "75" in response.message or "completion" in response.message.lower(), "Should include completion rate"
     
     @pytest.mark.behavior

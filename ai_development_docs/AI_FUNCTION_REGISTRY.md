@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-24 16:31:17
+> **Last Generated**: 2026-01-25 23:38:41
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 96.0% [OK] EXCELLENT**
-- **Total Functions**: 1515
-- **Total Methods**: 1134
-- **Documented**: 2543/2649
+### **Documentation Coverage: 96.1% [OK] EXCELLENT**
+- **Total Functions**: 1536
+- **Total Methods**: 1154
+- **Documented**: 2584/2690
 - **Files Scanned**: 109
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -39,7 +39,7 @@ AI Operations Decision Tree:
 |   +-- `ai/chatbot.py` - Main AI implementation (55 functions)
 |   `-- `user/context_manager.py` - Context for AI (24 functions)
 +-- Command Parsing
-|   +-- `communication/message_processing/command_parser.py` - Natural language parsing (30 functions)
+|   +-- `communication/message_processing/command_parser.py` - Natural language parsing (31 functions)
 |   `-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
 `-- Interaction Management
     `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (40/42 functions)
@@ -56,7 +56,7 @@ Communication Decision Tree:
 |   +-- `communication/communication_channels/discord/bot.py` - Discord integration (40 functions)
 |   `-- `communication/communication_channels/email/bot.py` - Email integration (14/16 functions)
 `-- Conversation Flow
-    `-- `communication/message_processing/conversation_flow_manager.py` - Conversation management (69/73 functions)
+    `-- `communication/message_processing/conversation_flow_manager.py` - Conversation management (73/77 functions)
 ```
 
 ### **[UI] Need UI/User Interface?**
@@ -217,9 +217,9 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2625
-2. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2543
-3. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2298
+1. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2662
+2. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2625
+3. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2576
 4. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2208
 5. [OK] `core/user_data_handlers.py::get_user_data()` - Complexity: 2099
 
@@ -231,12 +231,12 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (27 files, 819 functions)
-- `communication/` - Communication channels and message processing (38 files, 759 functions)
+- `core/` - System utilities and data management (27 files, 837 functions)
+- `communication/` - Communication channels and message processing (38 files, 782 functions)
 - `ai/` - AI chatbot functionality (7 files, 189 functions)
 - `ui/` - User interface components (28 files, 793 functions)
 - `user/` - User context and preferences (4 files, 64 functions)
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2026-01-24 16:31:17
+> **Last Updated**: 2026-01-25 23:38:41

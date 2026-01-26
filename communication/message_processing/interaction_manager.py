@@ -193,6 +193,89 @@ class InteractionManager:
                 ),
             ]
 
+            analytics_aliases = [
+                ("show-analytics", "Show check-in analytics", "show analytics"),
+                ("showanalytics", "Show check-in analytics", "show analytics"),
+                ("show-trends", "Show check-in analytics", "show analytics"),
+                ("showtrends", "Show check-in analytics", "show analytics"),
+                ("checkin-trends", "Show check-in trends", "checkin trends"),
+                ("checkintrends", "Show check-in trends", "checkin trends"),
+                ("checkin-analysis", "Show check-in analysis", "checkin analysis"),
+                ("checkinanalysis", "Show check-in analysis", "checkin analysis"),
+                ("checkin-history", "Show check-in history", "checkin history"),
+                ("checkinhistory", "Show check-in history", "checkin history"),
+                ("show-checkin-trends", "Show check-in trends", "checkin trends"),
+                ("showcheckintrends", "Show check-in trends", "checkin trends"),
+                ("show-checkin-analysis", "Show check-in analysis", "checkin analysis"),
+                ("showcheckinanalysis", "Show check-in analysis", "checkin analysis"),
+                ("show-checkin-history", "Show check-in history", "checkin history"),
+                ("showcheckinhistory", "Show check-in history", "checkin history"),
+                ("habit-analysis", "Show habit analysis", "habit analysis"),
+                ("habitanalysis", "Show habit analysis", "habit analysis"),
+                ("habit-trends", "Show habit trends", "habit trends"),
+                ("habittrends", "Show habit trends", "habit trends"),
+                ("habit-history", "Show habit history", "habit history"),
+                ("habithistory", "Show habit history", "habit history"),
+                ("show-habit-analysis", "Show habit analysis", "habit analysis"),
+                ("showhabitanalysis", "Show habit analysis", "habit analysis"),
+                ("show-habit-trends", "Show habit trends", "habit trends"),
+                ("showhabittrends", "Show habit trends", "habit trends"),
+                ("show-habit-history", "Show habit history", "habit history"),
+                ("showhabithistory", "Show habit history", "habit history"),
+                ("sleep-analysis", "Show sleep analysis", "sleep analysis"),
+                ("sleepanalysis", "Show sleep analysis", "sleep analysis"),
+                ("sleep-trends", "Show sleep trends", "sleep trends"),
+                ("sleeptrends", "Show sleep trends", "sleep trends"),
+                ("sleep-history", "Show sleep history", "sleep history"),
+                ("sleephistory", "Show sleep history", "sleep history"),
+                ("show-sleep-analysis", "Show sleep analysis", "sleep analysis"),
+                ("showsleepanalysis", "Show sleep analysis", "sleep analysis"),
+                ("show-sleep-trends", "Show sleep trends", "sleep trends"),
+                ("showsleeptrends", "Show sleep trends", "sleep trends"),
+                ("show-sleep-history", "Show sleep history", "sleep history"),
+                ("showsleephistory", "Show sleep history", "sleep history"),
+                ("energy-trends", "Show energy trends", "energy trends"),
+                ("energytrends", "Show energy trends", "energy trends"),
+                ("energy-analysis", "Show energy analysis", "energy analysis"),
+                ("energyanalysis", "Show energy analysis", "energy analysis"),
+                ("energy-history", "Show energy history", "energy history"),
+                ("energyhistory", "Show energy history", "energy history"),
+                ("energy-graphs", "Show energy graphs", "energy graphs"),
+                ("energygraphs", "Show energy graphs", "energy graphs"),
+                ("show-energy-trends", "Show energy trends", "energy trends"),
+                ("showenergytrends", "Show energy trends", "energy trends"),
+                ("show-energy-analysis", "Show energy analysis", "energy analysis"),
+                ("showenergyanalysis", "Show energy analysis", "energy analysis"),
+                ("show-energy-history", "Show energy history", "energy history"),
+                ("showenergyhistory", "Show energy history", "energy history"),
+                ("show-energy-graphs", "Show energy graphs", "energy graphs"),
+                ("showenergygraphs", "Show energy graphs", "energy graphs"),
+                ("mood-trends", "Show mood trends", "mood trends"),
+                ("moodtrends", "Show mood trends", "mood trends"),
+                ("mood-analysis", "Show mood analysis", "mood analysis"),
+                ("moodanalysis", "Show mood analysis", "mood analysis"),
+                ("mood-history", "Show mood history", "mood history"),
+                ("moodhistory", "Show mood history", "mood history"),
+                ("mood-graphs", "Show mood graphs", "mood graphs"),
+                ("moodgraphs", "Show mood graphs", "mood graphs"),
+                ("show-mood-trends", "Show mood trends", "mood trends"),
+                ("showmoodtrends", "Show mood trends", "mood trends"),
+                ("show-mood-analysis", "Show mood analysis", "mood analysis"),
+                ("showmoodanalysis", "Show mood analysis", "mood analysis"),
+                ("show-mood-history", "Show mood history", "mood history"),
+                ("showmoodhistory", "Show mood history", "mood history"),
+                ("show-mood-graphs", "Show mood graphs", "mood graphs"),
+                ("showmoodgraphs", "Show mood graphs", "mood graphs"),
+            ]
+            for name, description, mapped_message in analytics_aliases:
+                self._command_definitions.append(
+                    CommandDefinition(
+                        name,
+                        description,
+                        mapped_message=mapped_message,
+                    )
+                )
+
             # Derived lookup map for quick access, derived from definitions.
             # Keys are command names without prefixes (e.g. "tasks"), suitable for Discord registration.
             self.slash_command_map = {
@@ -230,6 +313,7 @@ class InteractionManager:
             )
 
         # Handle explicit slash-commands first to preserve legacy flow behavior
+        rule_based_override: ParsingResult | None = None
         message_stripped = message.strip() if message else ""
         logger.info(
             f"COMMAND_DETECTION: Processing message '{message_stripped[:50]}...' for user {user_id}"
@@ -461,6 +545,26 @@ class InteractionManager:
                 )
                 return InteractionResponse(reply_text, completed)
 
+            # If the message matches a known command, bypass the flow.
+            try:
+                rule_based_result = self.command_parser._rule_based_parse(message)
+            except Exception:
+                rule_based_result = None
+
+            if (
+                rule_based_result is not None
+                and rule_based_result.parsed_command.intent != "unknown"
+            ):
+                logger.info(
+                    f"User {user_id} in flow {user_state['flow']} issued command intent "
+                    f"'{rule_based_result.parsed_command.intent}', clearing flow"
+                )
+                conversation_manager.user_states.pop(user_id, None)
+                conversation_manager._save_user_states()
+                rule_based_override = rule_based_result
+            else:
+                rule_based_result = None
+
             # Check if they're trying to issue a command (other than flow keywords)
             # Commands should bypass the flow and be processed normally
             command_keywords = [
@@ -502,14 +606,14 @@ class InteractionManager:
                 for keyword in command_keywords
             )
 
-            if is_command:
+            if rule_based_override is None and is_command:
                 # User is issuing a command, clear the flow and process the command
                 logger.info(
                     f"User {user_id} in flow {user_state['flow']} but issued command, clearing flow and processing command"
                 )
                 conversation_manager.user_states.pop(user_id, None)
                 conversation_manager._save_user_states()
-            else:
+            elif rule_based_override is None:
                 # User is in a flow and not issuing a command, let conversation manager handle it
                 logger.info(
                     f"User {user_id} in active flow {user_state['flow']}, delegating to conversation manager"
@@ -595,10 +699,6 @@ class InteractionManager:
             if m:
                 period_name = m.group(1)
                 category = m.group(2)
-                from communication.command_handlers.shared_types import ParsedCommand
-                from communication.message_processing.command_parser import (
-                    ParsingResult,
-                )
 
                 parsed_cmd = ParsedCommand(
                     "edit_schedule_period",
@@ -617,7 +717,10 @@ class InteractionManager:
             pass
 
         # Parse the message to determine intent
-        parsing_result = self.command_parser.parse(message, user_id)
+        if rule_based_override is not None:
+            parsing_result = rule_based_override
+        else:
+            parsing_result = self.command_parser.parse(message, user_id)
 
         # Safety: if user clearly asked to update a task but parser was unsure, coerce minimal entities
         try:
@@ -921,11 +1024,13 @@ class InteractionManager:
                 "commands",
                 "examples",
                 "checkin_history",
+                "checkin_analysis",
                 "start_checkin",
                 "checkin_status",
                 "completion_rate",
                 "task_weekly_stats",
                 "task_stats",
+                "task_analytics",
                 "list_tasks",
                 "create_task",
                 "complete_task",
@@ -936,6 +1041,12 @@ class InteractionManager:
                 "show_schedule",
                 "schedule_status",
                 "show_analytics",
+                "mood_trends",
+                "energy_trends",
+                "habit_analysis",
+                "sleep_analysis",
+                "quant_summary",
+                "wellness_score",
                 "analytics",
                 "messages",
                 "show_messages",
@@ -1406,6 +1517,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
                 "update profile": "update_profile",
                 "profile stats": "profile_stats",
                 "mood trends": "mood_trends",
+                "energy trends": "energy_trends",
                 "habit analysis": "habit_analysis",
                 "sleep analysis": "sleep_analysis",
                 "wellness score": "wellness_score",

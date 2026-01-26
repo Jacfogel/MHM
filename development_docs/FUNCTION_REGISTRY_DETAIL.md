@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-24 16:31:17
+> **Last Generated**: 2026-01-25 23:38:41
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
+### **Function Documentation Coverage: 96.1% [OK] COMPLETED**
 - **Files Scanned**: 109
-- **Functions Found**: 1515
-- **Methods Found**: 1134
+- **Functions Found**: 1536
+- **Methods Found**: 1154
 - **Classes Found**: 154
-- **Total Items**: 2649
-- **Functions Documented**: 1449
-- **Methods Documented**: 1094
+- **Total Items**: 2690
+- **Functions Documented**: 1470
+- **Methods Documented**: 1114
 - **Classes Documented**: 120
-- **Total Documented**: 2543
+- **Total Documented**: 2584
 - **Template-Generated**: 4
-- **Last Updated**: 2026-01-24
+- **Last Updated**: 2026-01-25
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (555)
+### **Core System Functions** (564)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (399)
+### **Communication Functions** (411)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (405)
@@ -708,10 +708,19 @@ Returns:
 
 #### `communication/command_handlers/analytics_handler.py`
 **Functions:**
+- [OK] `_build_trend_graph(self, recent_data, value_key, label, max_points)` - Build a simple ASCII trend graph for recent check-in values.
+- [OK] `_clean_checkin_label(self, label)` - Remove redundant suffixes from check-in labels.
+- [OK] `_extract_checkin_responses(self, checkin, question_keys)` - Extract responses from current check-in records.
+- [OK] `_format_basic_analytics_line(self, question)` - Format a single basic analytics line.
+- [OK] `_format_checkin_response_value(self, key, value, question_defs)` - Format a check-in response value for display.
+- [OK] `_format_numeric_value(self, value)` - Format numeric values with minimal trailing decimals.
+- [OK] `_get_checkin_label(self, key, question_defs)` - Get a readable label for a check-in response key.
 - [OK] `_get_field_scale(self, field)` - Determine the scale for a field (1-5 scale, or None for other types)
 
 Returns:
     int: Scale value (5 for 1-5 scale fields, None for other types)
+- [OK] `_get_ordered_checkin_keys(self, checkin, responses)` - Preserve original check-in order when available.
+- [OK] `_get_question_scale(self, key, question_defs)` - Return scale max for a question when available.
 - [OK] `_handle_checkin_analysis(self, user_id, entities)` - Show comprehensive check-in response analysis
 - [OK] `_handle_checkin_history(self, user_id, entities)` - Show check-in history
 - [OK] `_handle_completion_rate(self, user_id, entities)` - Show completion rate
@@ -731,10 +740,19 @@ Returns:
 - [OK] `handle(self, user_id, parsed_command)` - Handle analytics and insights interactions.
 **Classes:**
 - [OK] `AnalyticsHandler` - Handler for analytics and insights interactions
+  - [OK] `AnalyticsHandler._build_trend_graph(self, recent_data, value_key, label, max_points)` - Build a simple ASCII trend graph for recent check-in values.
+  - [OK] `AnalyticsHandler._clean_checkin_label(self, label)` - Remove redundant suffixes from check-in labels.
+  - [OK] `AnalyticsHandler._extract_checkin_responses(self, checkin, question_keys)` - Extract responses from current check-in records.
+  - [OK] `AnalyticsHandler._format_basic_analytics_line(self, question)` - Format a single basic analytics line.
+  - [OK] `AnalyticsHandler._format_checkin_response_value(self, key, value, question_defs)` - Format a check-in response value for display.
+  - [OK] `AnalyticsHandler._format_numeric_value(self, value)` - Format numeric values with minimal trailing decimals.
+  - [OK] `AnalyticsHandler._get_checkin_label(self, key, question_defs)` - Get a readable label for a check-in response key.
   - [OK] `AnalyticsHandler._get_field_scale(self, field)` - Determine the scale for a field (1-5 scale, or None for other types)
 
 Returns:
     int: Scale value (5 for 1-5 scale fields, None for other types)
+  - [OK] `AnalyticsHandler._get_ordered_checkin_keys(self, checkin, responses)` - Preserve original check-in order when available.
+  - [OK] `AnalyticsHandler._get_question_scale(self, key, question_defs)` - Return scale max for a question when available.
   - [OK] `AnalyticsHandler._handle_checkin_analysis(self, user_id, entities)` - Show comprehensive check-in response analysis
   - [OK] `AnalyticsHandler._handle_checkin_history(self, user_id, entities)` - Show check-in history
   - [OK] `AnalyticsHandler._handle_completion_rate(self, user_id, entities)` - Show completion rate
@@ -1951,6 +1969,7 @@ and initializes rule-based intent patterns for common commands.
 - [OK] `_extract_task_name_from_context(self, message)` - Extract task name from natural language context
 - [OK] `_extract_update_entities(self, update_text)` - Extract update entities from update text
 - [OK] `_is_valid_intent(self, intent)` - Check if intent is supported by any handler
+- [OK] `_match_message(message_for_match)` - Attempt to match intents against the provided message.
 - [OK] `_parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
 - [OK] `_rule_based_parse(self, message)` - Parse using rule-based patterns
@@ -1989,6 +2008,7 @@ Returns:
 #### `communication/message_processing/conversation_flow_manager.py`
 **Functions:**
 - [OK] `__init__(self)` - Initialize the object.
+- [OK] `_cache_expired_checkin_order(self, user_id, user_state)` - Cache the question order for a same-day restart after expiration.
 - [OK] `_complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
 - [OK] `_date_str(dt)` - Return YYYY-MM-DD without sprinkling strftime format strings.
 - [OK] `_expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
@@ -1998,6 +2018,7 @@ Returns:
 Examples:
 - Task due in 6 days (no time) -> "1 to 2 days before", "3 to 4 days before"
 - Task due in 12 days at 10:00 AM -> "1 to 2 hours before", "1 to 2 days before", "3 to 5 days before"
+- [OK] `_get_cached_checkin_order(self, user_id)` - Return same-day cached question order if present and valid.
 - [OK] `_get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
 - [OK] `_get_personalized_welcome(self, user_id, question_count)` - Generate a personalized welcome message based on user history
 - [OK] `_get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
@@ -2091,6 +2112,7 @@ Called by task handler after creating a task with a due date.
 **Classes:**
 - [MISSING] `ConversationManager` - No description
   - [OK] `ConversationManager.__init__(self)` - Initialize the object.
+  - [OK] `ConversationManager._cache_expired_checkin_order(self, user_id, user_state)` - Cache the question order for a same-day restart after expiration.
   - [OK] `ConversationManager._complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
   - [OK] `ConversationManager._expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
   - [OK] `ConversationManager._generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
@@ -2099,6 +2121,7 @@ Called by task handler after creating a task with a due date.
 Examples:
 - Task due in 6 days (no time) -> "1 to 2 days before", "3 to 4 days before"
 - Task due in 12 days at 10:00 AM -> "1 to 2 hours before", "1 to 2 days before", "3 to 5 days before"
+  - [OK] `ConversationManager._get_cached_checkin_order(self, user_id)` - Return same-day cached question order if present and valid.
   - [OK] `ConversationManager._get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
   - [OK] `ConversationManager._get_personalized_welcome(self, user_id, question_count)` - Generate a personalized welcome message based on user history
   - [OK] `ConversationManager._get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
@@ -2503,6 +2526,7 @@ Returns:
 - [OK] `__init__(self)` - Initialize the CheckinAnalytics instance.
 
 This class provides analytics and insights from check-in data.
+- [OK] `_bucket_scale_value(value)` - Bucket a numeric value to the nearest 1-5 integer (half-up).
 - [OK] `_calculate_energy_score(self, checkins)` - Calculate energy score (0-100)
 - [OK] `_calculate_habit_score(self, checkins)` - Calculate habit score (0-100)
 - [OK] `_calculate_mood_score(self, checkins)` - Calculate mood score (0-100)
@@ -2511,12 +2535,18 @@ This class provides analytics and insights from check-in data.
 - [OK] `_calculate_sleep_duration(self, sleep_time, wake_time)` - Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format).
 - [OK] `_calculate_sleep_score(self, checkins)` - Calculate sleep score (0-100)
 - [OK] `_calculate_streak(self, checkins, habit_key)` - Calculate current and best streaks for a habit
-- [OK] `_get_energy_distribution(self, energies)` - Calculate distribution of energy scores
+- [OK] `_coerce_numeric(value)` - Convert numeric-like values to float, skipping invalid or skipped entries.
+- [OK] `_coerce_sleep_hours(self, value)` - Convert sleep schedule values into hours.
+- [OK] `_coerce_yes_no(self, value)` - Convert yes/no-like values to bool.
+- [OK] `_get_energy_distribution(self, energies)` - Calculate distribution of energy scores (bucketed to 1-5).
 - [OK] `_get_habit_status(self, completion_rate)` - Get status description for habit completion rate
-- [OK] `_get_mood_distribution(self, moods)` - Calculate distribution of mood scores
+- [OK] `_get_mood_distribution(self, moods)` - Calculate distribution of mood scores (bucketed to 1-5).
+- [OK] `_get_questions_asked(self, checkin)` - Return the list of questions asked for a check-in.
 - [OK] `_get_score_level(self, score)` - Get wellness score level description
 - [OK] `_get_sleep_recommendations(self, avg_hours, avg_quality, poor_days)` - Generate sleep recommendations
 - [OK] `_get_wellness_recommendations(self, mood_score, energy_score, habit_score, sleep_score)` - Generate wellness recommendations based on component scores
+- [OK] `_is_answered_value(self, value)` - Return True if the value counts as answered.
+- [OK] `_is_question_asked(self, checkin, question_key)` - Check if a question was asked for a check-in.
 - [OK] `convert_score_100_to_5(score_100)` - Convert a score from 0-100 scale to 1-5 scale for display.
 
 Args:
@@ -2532,6 +2562,7 @@ Args:
 Returns:
     Score on 0-100 scale
 - [OK] `get_available_data_types(self, user_id, days)` - Detect what types of data are available for analytics
+- [OK] `get_basic_analytics(self, user_id, days)` - Return basic per-question stats grouped by category.
 - [OK] `get_checkin_history(self, user_id, days)` - Get check-in history with proper date formatting
 - [OK] `get_completion_rate(self, user_id, days)` - Calculate overall completion rate for check-ins
 - [OK] `get_energy_trends(self, user_id, days)` - Analyze energy trends over the specified period
@@ -2554,6 +2585,7 @@ Only includes fields that appear in the data and are in enabled_fields if provid
   - [OK] `CheckinAnalytics.__init__(self)` - Initialize the CheckinAnalytics instance.
 
 This class provides analytics and insights from check-in data.
+  - [OK] `CheckinAnalytics._bucket_scale_value(value)` - Bucket a numeric value to the nearest 1-5 integer (half-up).
   - [OK] `CheckinAnalytics._calculate_energy_score(self, checkins)` - Calculate energy score (0-100)
   - [OK] `CheckinAnalytics._calculate_habit_score(self, checkins)` - Calculate habit score (0-100)
   - [OK] `CheckinAnalytics._calculate_mood_score(self, checkins)` - Calculate mood score (0-100)
@@ -2562,12 +2594,18 @@ This class provides analytics and insights from check-in data.
   - [OK] `CheckinAnalytics._calculate_sleep_duration(self, sleep_time, wake_time)` - Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format).
   - [OK] `CheckinAnalytics._calculate_sleep_score(self, checkins)` - Calculate sleep score (0-100)
   - [OK] `CheckinAnalytics._calculate_streak(self, checkins, habit_key)` - Calculate current and best streaks for a habit
-  - [OK] `CheckinAnalytics._get_energy_distribution(self, energies)` - Calculate distribution of energy scores
+  - [OK] `CheckinAnalytics._coerce_numeric(value)` - Convert numeric-like values to float, skipping invalid or skipped entries.
+  - [OK] `CheckinAnalytics._coerce_sleep_hours(self, value)` - Convert sleep schedule values into hours.
+  - [OK] `CheckinAnalytics._coerce_yes_no(self, value)` - Convert yes/no-like values to bool.
+  - [OK] `CheckinAnalytics._get_energy_distribution(self, energies)` - Calculate distribution of energy scores (bucketed to 1-5).
   - [OK] `CheckinAnalytics._get_habit_status(self, completion_rate)` - Get status description for habit completion rate
-  - [OK] `CheckinAnalytics._get_mood_distribution(self, moods)` - Calculate distribution of mood scores
+  - [OK] `CheckinAnalytics._get_mood_distribution(self, moods)` - Calculate distribution of mood scores (bucketed to 1-5).
+  - [OK] `CheckinAnalytics._get_questions_asked(self, checkin)` - Return the list of questions asked for a check-in.
   - [OK] `CheckinAnalytics._get_score_level(self, score)` - Get wellness score level description
   - [OK] `CheckinAnalytics._get_sleep_recommendations(self, avg_hours, avg_quality, poor_days)` - Generate sleep recommendations
   - [OK] `CheckinAnalytics._get_wellness_recommendations(self, mood_score, energy_score, habit_score, sleep_score)` - Generate wellness recommendations based on component scores
+  - [OK] `CheckinAnalytics._is_answered_value(self, value)` - Return True if the value counts as answered.
+  - [OK] `CheckinAnalytics._is_question_asked(self, checkin, question_key)` - Check if a question was asked for a check-in.
   - [OK] `CheckinAnalytics.convert_score_100_to_5(score_100)` - Convert a score from 0-100 scale to 1-5 scale for display.
 
 Args:
@@ -2583,6 +2621,7 @@ Args:
 Returns:
     Score on 0-100 scale
   - [OK] `CheckinAnalytics.get_available_data_types(self, user_id, days)` - Detect what types of data are available for analytics
+  - [OK] `CheckinAnalytics.get_basic_analytics(self, user_id, days)` - Return basic per-question stats grouped by category.
   - [OK] `CheckinAnalytics.get_checkin_history(self, user_id, days)` - Get check-in history with proper date formatting
   - [OK] `CheckinAnalytics.get_completion_rate(self, user_id, days)` - Calculate overall completion rate for check-ins
   - [OK] `CheckinAnalytics.get_energy_trends(self, user_id, days)` - Analyze energy trends over the specified period
@@ -2604,6 +2643,7 @@ Only includes fields that appear in the data and are in enabled_fields if provid
 #### `core/checkin_dynamic_manager.py`
 **Functions:**
 - [OK] `__init__(self)` - Initialize the dynamic check-in manager.
+- [OK] `_get_numeric_response_fallback(self, question_responses, answer_value)` - Return response list for nearest integer key when float answers are provided.
 - [OK] `_load_data(self)` - Load questions and responses data from JSON files.
 - [OK] `_normalize_time(self, time_str)` - Normalize time string to HH:MM format (24-hour).
 
@@ -2644,6 +2684,7 @@ Checks custom questions first (if user_id provided), then predefined questions.
 **Classes:**
 - [OK] `DynamicCheckinManager` - Manages dynamic check-in questions and responses loaded from JSON files.
   - [OK] `DynamicCheckinManager.__init__(self)` - Initialize the dynamic check-in manager.
+  - [OK] `DynamicCheckinManager._get_numeric_response_fallback(self, question_responses, answer_value)` - Return response list for nearest integer key when float answers are provided.
   - [OK] `DynamicCheckinManager._load_data(self)` - Load questions and responses data from JSON files.
   - [OK] `DynamicCheckinManager._normalize_time(self, time_str)` - Normalize time string to HH:MM format (24-hour).
 

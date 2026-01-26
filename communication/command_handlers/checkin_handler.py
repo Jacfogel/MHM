@@ -140,7 +140,11 @@ class CheckinHandler(InteractionHandler):
         # Format status
         response = "**Recent Check-ins:**\n"
         for checkin in recent_checkins[:5]:  # Show last 5
-            date = checkin.get("date", "Unknown date")
+            date = checkin.get("date")
+            if not date:
+                timestamp = checkin.get("timestamp", "")
+                parsed_dt = parse_timestamp_full(timestamp) if timestamp else None
+                date = parsed_dt.date().isoformat() if parsed_dt else "Unknown date"
             mood = checkin.get("mood", "No mood recorded")
             energy = checkin.get("energy", "No energy recorded")
 

@@ -142,6 +142,10 @@ class DynamicCheckinManager:
             answer_key = str(answer_value)
 
         response_list = question_responses.get(answer_key, [])
+        if not response_list and isinstance(answer_value, float):
+            response_list = self._get_numeric_response_fallback(
+                question_responses, answer_value
+            )
 
         if response_list:
             return random.choice(response_list)
@@ -176,11 +180,31 @@ class DynamicCheckinManager:
         question_text = self.get_question_text(question_key)
 
         # Build the complete message
-        if response_statement:
-            transition = self.get_transition_phrase()
-            return f"{response_statement}\n\n{transition} {question_text}"
-        else:
+        if previous_answer is None:
             return question_text
+
+        transition = self.get_transition_phrase()
+        if response_statement:
+            return f"{response_statement}\n\n{transition} {question_text}"
+        return f"{transition} {question_text}"
+
+    @handle_errors("resolving numeric response fallback", default_return=[])
+    def _get_numeric_response_fallback(
+        self, question_responses: dict[str, list[str]], answer_value: float
+    ) -> list[str]:
+        """Return response list for nearest integer key when float answers are provided."""
+        numeric_keys = []
+        for key in question_responses.keys():
+            try:
+                numeric_keys.append(int(key))
+            except (ValueError, TypeError):
+                continue
+
+        if not numeric_keys:
+            return []
+
+        nearest = min(numeric_keys, key=lambda k: abs(answer_value - k))
+        return question_responses.get(str(nearest), [])
 
     @handle_errors(
         "validating answer", default_return=(False, None, "Validation failed")
@@ -256,13 +280,13 @@ class DynamicCheckinManager:
                 return False, None, error_message
 
         elif question_type == "scale_1_5":
-            # Enhanced numerical parsing for scale questions
+            # Enhanced numerical parsing for scale questions (preserve decimals)
             parsed_value = self._parse_numerical_response(answer)
             if parsed_value is not None:
                 min_val = validation.get("min", 1)
                 max_val = validation.get("max", 5)
                 if min_val <= parsed_value <= max_val:
-                    return True, int(parsed_value), None
+                    return True, round(float(parsed_value), 1), None
                 else:
                     return False, None, error_message
             else:

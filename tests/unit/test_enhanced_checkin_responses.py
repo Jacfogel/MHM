@@ -335,11 +335,11 @@ class TestScaleQuestionsWithEnhancedParsing:
         }
         
         test_cases = [
-            ("3", 3),  # Direct number
-            ("3.5", 3),  # Decimal (should be converted to int)
-            ("three", 3),  # Written number
-            ("two and a half", 2),  # Mixed format (should be converted to int)
-            ("four point five", 4),  # Decimal written
+            ("3", 3.0),  # Direct number
+            ("3.5", 3.5),  # Decimal
+            ("three", 3.0),  # Written number
+            ("two and a half", 2.5),  # Mixed format
+            ("four point five", 4.5),  # Decimal written
         ]
         
         for input_val, expected in test_cases:

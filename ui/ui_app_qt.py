@@ -409,9 +409,10 @@ class MHMManagerUI(QMainWindow):
         # Set up timer for status updates
         self.status_timer = QTimer()
         self.status_timer.timeout.connect(self.update_service_status)
-        self.status_timer.start(5000)  # Update every 5 seconds
-        # Initial status update
-        self.update_service_status()
+        if os.getenv("MHM_TESTING") != "1":
+            self.status_timer.start(5000)  # Update every 5 seconds
+            # Initial status update
+            self.update_service_status()
 
     @handle_errors("loading UI", default_return=None)
     def load_ui(self):
@@ -499,6 +500,9 @@ class MHMManagerUI(QMainWindow):
         """Initialize the UI state"""
         # Disable category management until user is selected
         self.disable_content_management()
+
+        if os.getenv("MHM_TESTING") == "1":
+            return
 
         # Update user index automatically on startup
         self.update_user_index_on_startup()

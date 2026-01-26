@@ -37,6 +37,15 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-01-26 - Check-in Analytics and Command Handling Overhaul
+- **Feature**: Rebuilt check-in analytics to be question-asked scoped with transparent category summaries, updated completion rules (all asked questions answered; skipped allowed; legacy check-ins counted as complete), and added habit/sleep/energy/mood analyses. (See `core/checkin_analytics.py`, `communication/command_handlers/analytics_handler.py`, `ui/dialogs/user_analytics_dialog.py`)
+- **Feature**: Expanded analytics command recognition and slash/bang registry with hyphen/no-hyphen and show-* variants for check-in, habit, sleep, energy, mood, trends, history, and graphs; added time-window parsing for days/weeks/months plus "last N check-ins". (See `communication/message_processing/command_parser.py`, `communication/message_processing/interaction_manager.py`)
+- **Feature**: Improved check-in history rendering to show all responses in original order with cleaned labels and missing-date fallback, plus decimal-safe response handling and numeric response fallbacks for check-in prompts. (See `communication/command_handlers/analytics_handler.py`, `communication/command_handlers/checkin_handler.py`, `core/checkin_dynamic_manager.py`)
+- **Feature**: Preserved same-day check-in question order across expirations by caching and reusing order on restart. (See `communication/message_processing/conversation_flow_manager.py`)
+- **Maintenance**: Refreshed AI/dev tooling reports and registries after analytics/command updates (function registry, module dependencies, test coverage, unused imports, audit outputs). (See `ai_development_docs/AI_FUNCTION_REGISTRY.md`, `ai_development_docs/AI_MODULE_DEPENDENCIES.md`, `development_docs/*`, `development_tools/*`)
+- **Feature**: Stabilized test cleanup teardown and reduced UI test startup work when `MHM_TESTING=1`. (See `tests/conftest.py`, `ui/ui_app_qt.py`)
+- **Testing**: `python -m pytest tests/behavior/test_welcome_manager_behavior.py::TestWelcomeManagerBehavior::test_mark_as_welcomed_persists_across_calls -q`
+
 ### 2026-01-24 - Strengthened tests and flaky fixes
 - **Feature**: Added regression suites for `core.tags`, `core.auto_cleanup`, `communication.command_handlers.analytics_handler`, `communication.command_handlers.profile_handler`, and the reschedule-request behavior utility so the moderate-coverage modules now have targeted coverage and the failing flag-file test hits the real file semantics instead of a mock.
 - **Feature**: Hardened the auto-cleanup logic helpers (tracker timestamps + interval gating) and created a deterministic `SchedulerManager.is_job_for_category` test plus auto-cleanup path isolation tests to support accurate coverage reporting under parallel runs.
