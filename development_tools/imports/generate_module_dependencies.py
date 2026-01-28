@@ -411,27 +411,12 @@ def preserve_manual_enhancements(
     current_content = []
 
     for line in existing_content.split("\n"):
-        # Look for module headers in both formats:
-        # 1. "#### `module_name.py`" (with #### prefix)
-        # 2. "module_name.py" (without #### prefix)
+        # Look for module headers in the format: "#### `module_name.py`"
         if line.startswith("#### `") and line.endswith("`") and ".py`" in line:
-            # Format: "#### `module_name.py`"
             if current_section:
                 sections[current_section] = "\n".join(current_content)
 
             current_section = line[6:-1]  # Remove "#### `" and "`"
-            current_content = [line]
-        elif (
-            line.strip().endswith(".py")
-            and not line.startswith("-")
-            and not line.startswith("**")
-            and "/" in line
-        ):
-            # Format: "module_name.py" (legacy format)
-            if current_section:
-                sections[current_section] = "\n".join(current_content)
-
-            current_section = line.strip()
             current_content = [line]
         elif current_section:
             current_content.append(line)
@@ -540,27 +525,12 @@ def identify_modules_needing_enhancement(
         current_content = []
 
         for line in existing_content.split("\n"):
-            # Look for module headers in both formats:
-            # 1. "#### `module_name.py`" (with #### prefix)
-            # 2. "module_name.py" (without #### prefix)
+            # Look for module headers in the format: "#### `module_name.py`"
             if line.startswith("#### `") and line.endswith("`") and ".py`" in line:
-                # Format: "#### `module_name.py`"
                 if current_section:
                     sections[current_section] = "\n".join(current_content)
 
                 current_section = line[6:-1]  # Remove "#### `" and "`"
-                current_content = [line]
-            elif (
-                line.strip().endswith(".py")
-                and not line.startswith("-")
-                and not line.startswith("**")
-                and "/" in line
-            ):
-                # Format: "module_name.py" (legacy format)
-                if current_section:
-                    sections[current_section] = "\n".join(current_content)
-
-                current_section = line.strip()
                 current_content = [line]
             elif current_section:
                 current_content.append(line)

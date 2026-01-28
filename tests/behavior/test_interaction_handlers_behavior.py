@@ -188,14 +188,25 @@ class TestInteractionHandlersBehavior:
     def test_task_management_handler_lists_actual_tasks(self, test_data_dir):
         """Test that TaskManagementHandler actually lists tasks from the system."""
         handler = TaskManagementHandler()
-        user_id = "test_user_456"
+        # Use a unique identifier to avoid cross-test interference in parallel runs.
+        import uuid
+
+        user_id = f"test_user_456_{uuid.uuid4().hex[:8]}"
         
         # Create test user
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
+
+        # Resolve to the internal UUID to match the rest of the system.
+        from core.user_data_handlers import get_user_id_by_identifier
+        from core.user_data_manager import rebuild_user_index
+
+        rebuild_user_index()
+        internal_user_id = get_user_id_by_identifier(user_id)
+        assert internal_user_id is not None, "Should be able to get UUID for created user"
         
         # Create some test tasks first
-        create_task(user_id, "Task 1", "2025-08-02")
-        create_task(user_id, "Task 2", "2025-08-03")
+        create_task(internal_user_id, "Task 1", "2025-08-02")
+        create_task(internal_user_id, "Task 2", "2025-08-03")
         
         # Create a parsed command for listing tasks
         parsed_command = ParsedCommand(
@@ -206,7 +217,7 @@ class TestInteractionHandlersBehavior:
         )
         
         # Handle the command
-        response = handler.handle(user_id, parsed_command)
+        response = handler.handle(internal_user_id, parsed_command)
         
         # Verify response
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"

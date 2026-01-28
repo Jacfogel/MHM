@@ -57,8 +57,12 @@ class DataLoadingMixin:
                     logger.debug(f"[DATA SOURCE] {tool_name}: loaded from current audit run (Tier {audit_tier})")
                 # Normalize before returning
                 from ..result_format import normalize_to_standard_format
-                normalized = normalize_to_standard_format(tool_name, cached_data)
-                return normalized
+                try:
+                    normalized = normalize_to_standard_format(tool_name, cached_data)
+                except ValueError as e:
+                    logger.error(f"Invalid cached result format for {tool_name}: {e}")
+                else:
+                    return normalized
         
         # Step 2: Fallback to standardized storage (recent run)
         # CRITICAL: Do NOT store in results_cache - this is cached data, not current audit run data
@@ -74,46 +78,9 @@ class DataLoadingMixin:
         except Exception as e:
             logger.debug(f"Failed to load {tool_name} from standardized storage: {e}")
         
-        # Step 3: Fallback to central aggregation file (cached)
-        # CRITICAL: Do NOT store in results_cache - this is cached data, not current audit run data
-        # Skip in test directories to prevent loading large files
-        try:
-            # Check if we're in a test directory (use method from AuditOrchestrationMixin if available)
-            is_test_dir = False
-            if hasattr(self, '_is_test_directory'):
-                is_test_dir = self._is_test_directory(self.project_root)
-            
-            if is_test_dir:
-                return {}
-            
-            results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-            if results_file.exists():
-                with open(results_file, 'r', encoding='utf-8') as f:
-                    cached_data = json.load(f)
-                
-                if 'results' in cached_data and tool_name in cached_data['results']:
-                    tool_data = cached_data['results'][tool_name]
-                    # Handle nested data structure: results.tool_name.data
-                    if 'data' in tool_data:
-                        data = tool_data['data']
-                        if log_source:
-                            logger.debug(f"[DATA SOURCE] {tool_name}: loaded from central aggregation file (cached)")
-                        # Normalize before returning
-                        from ..result_format import normalize_to_standard_format
-                        normalized = normalize_to_standard_format(tool_name, data)
-                        # Do NOT store in results_cache - this is cached data, not from current audit run
-                        return normalized
-                    else:
-                        # Some tools store data directly without 'data' wrapper
-                        if log_source:
-                            logger.debug(f"[DATA SOURCE] {tool_name}: loaded from central aggregation file (cached, direct)")
-                        # Normalize before returning
-                        from ..result_format import normalize_to_standard_format
-                        normalized = normalize_to_standard_format(tool_name, tool_data)
-                        # Do NOT store in results_cache - this is cached data, not from current audit run
-                        return normalized
-        except Exception as e:
-            logger.debug(f"Failed to load {tool_name} from central aggregation file: {e}")
+        # Step 3: Central aggregation file is intentionally ignored.
+        # It can contain legacy-shaped data that produces noisy validation errors.
+        # Standardized per-tool storage is the source of truth.
         
         # No data found in any source
         if log_source:
@@ -122,26 +89,38 @@ class DataLoadingMixin:
     
     def _get_canonical_metrics(self) -> Dict[str, Any]:
         """Provide consistent totals across downstream documents."""
+        def _get_decision_support_details(raw: Any) -> Dict[str, Any]:
+            if not isinstance(raw, dict):
+                return {}
+            try:
+                from ..result_format import normalize_to_standard_format
+
+                normalized = normalize_to_standard_format("decision_support", raw)
+            except ValueError:
+                return {}
+            details = normalized.get("details", {})
+            return details if isinstance(details, dict) else {}
+
         results_cache = self.results_cache or {}
         fd_metrics_raw = results_cache.get('analyze_functions', {}) or {}
-        
-        # Handle standard format - extract details if present
-        if 'details' in fd_metrics_raw and isinstance(fd_metrics_raw.get('details'), dict):
-            fd_metrics = fd_metrics_raw['details']
-        else:
-            fd_metrics = fd_metrics_raw
+        fd_metrics = {}
+        if isinstance(fd_metrics_raw, dict):
+            fd_metrics = fd_metrics_raw.get('details', {})
+        if not isinstance(fd_metrics, dict):
+            fd_metrics = {}
 
-        ds_metrics = results_cache.get('decision_support_metrics', {}) or {}
+        ds_metrics = _get_decision_support_details(
+            results_cache.get('decision_support')
+        )
 
         audit_data = results_cache.get('analyze_function_registry', {}) or {}
-        
-        # Handle standard format for audit_data
-        if 'details' in audit_data and isinstance(audit_data.get('details'), dict):
-            audit_data_details = audit_data['details']
-            audit_totals = audit_data_details.get('totals') if isinstance(audit_data_details, dict) else {}
-        else:
-            audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
-        if audit_totals is None or not isinstance(audit_totals, dict):
+        audit_data_details = {}
+        if isinstance(audit_data, dict):
+            audit_data_details = audit_data.get('details', {})
+        if not isinstance(audit_data_details, dict):
+            audit_data_details = {}
+        audit_totals = audit_data_details.get('totals', {})
+        if not isinstance(audit_totals, dict):
             audit_totals = {}
 
         # PRIORITY: Always use analyze_functions as single source of truth (most accurate and consistent)
@@ -160,12 +139,8 @@ class DataLoadingMixin:
             total_functions = ds_metrics.get('total_functions')
 
         # Last resort: analyze_function_registry (but only if it's reasonable)
-        if total_functions is None and isinstance(audit_data, dict):
-            # Check both standard format and legacy format
-            if 'details' in audit_data:
-                audit_total = audit_data['details'].get('totals', {}).get('functions_found')
-            else:
-                audit_total = audit_data.get('total_functions')
+        if total_functions is None and audit_data_details:
+            audit_total = audit_data_details.get('totals', {}).get('functions_found')
             if audit_total is not None and isinstance(audit_total, int) and audit_total > 100:
                 total_functions = audit_total
 
@@ -213,11 +188,11 @@ class DataLoadingMixin:
                         func_data = cached_data['results']['analyze_functions']
                         if 'data' in func_data:
                             cached_metrics_raw = func_data['data']
-                            # Handle standard format
-                            if 'details' in cached_metrics_raw and isinstance(cached_metrics_raw.get('details'), dict):
-                                cached_metrics = cached_metrics_raw['details']
-                            else:
-                                cached_metrics = cached_metrics_raw
+                            cached_metrics = {}
+                            if isinstance(cached_metrics_raw, dict):
+                                cached_metrics = cached_metrics_raw.get('details', {})
+                            if not isinstance(cached_metrics, dict):
+                                cached_metrics = {}
                             if total_functions is None:
                                 total_functions = cached_metrics.get('total_functions')
                             if moderate is None:
@@ -231,8 +206,10 @@ class DataLoadingMixin:
                     if (total_functions is None or moderate is None or high is None or critical is None) and 'results' in cached_data:
                         if 'decision_support' in cached_data['results']:
                             ds_data = cached_data['results']['decision_support']
-                            if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
-                                cached_ds_metrics = ds_data['data']['decision_support_metrics']
+                            cached_ds_metrics = _get_decision_support_details(
+                                ds_data.get('data') if isinstance(ds_data, dict) else None
+                            )
+                            if cached_ds_metrics:
                                 if total_functions is None:
                                     total_functions = cached_ds_metrics.get('total_functions')
                                 if moderate is None:
@@ -266,16 +243,16 @@ class DataLoadingMixin:
                 logger.debug(f"Failed to load metrics from cache in _get_canonical_metrics: {e}")
                 pass
 
-        doc_coverage = audit_data.get('doc_coverage') if isinstance(audit_data, dict) else None
+        doc_coverage = audit_data_details.get('doc_coverage')
 
         # Use analyze_functions for docstring coverage (consistent source)
         if doc_coverage is None:
             fd_metrics_raw = self.results_cache.get('analyze_functions', {}) or {}
-            # Handle standard format
-            if 'details' in fd_metrics_raw and isinstance(fd_metrics_raw.get('details'), dict):
-                fd_metrics = fd_metrics_raw['details']
-            else:
-                fd_metrics = fd_metrics_raw
+            fd_metrics = {}
+            if isinstance(fd_metrics_raw, dict):
+                fd_metrics = fd_metrics_raw.get('details', {})
+            if not isinstance(fd_metrics, dict):
+                fd_metrics = {}
             func_total = fd_metrics.get('total_functions')
             func_undocumented = fd_metrics.get('undocumented', 0)
             
@@ -298,10 +275,11 @@ class DataLoadingMixin:
                         val = float(val_str)
                         if val > 100:
                             fd_metrics_raw = self.results_cache.get('analyze_functions', {}) or {}
-                            if 'details' in fd_metrics_raw and isinstance(fd_metrics_raw.get('details'), dict):
-                                fd_metrics = fd_metrics_raw['details']
-                            else:
-                                fd_metrics = fd_metrics_raw
+                            fd_metrics = {}
+                            if isinstance(fd_metrics_raw, dict):
+                                fd_metrics = fd_metrics_raw.get('details', {})
+                            if not isinstance(fd_metrics, dict):
+                                fd_metrics = {}
                             func_total = fd_metrics.get('total_functions')
                             func_undocumented = fd_metrics.get('undocumented', 0)
                             if func_total is not None and func_total > 0:
@@ -373,11 +351,8 @@ class DataLoadingMixin:
     
     def _load_coverage_summary(self) -> Optional[Dict[str, Any]]:
         """Load overall and per-module coverage metrics from coverage.json."""
-        # Check development_tools/tests/jsons first (new location), then fall back to old location (legacy)
+        # Check development_tools/tests/jsons for coverage results.
         coverage_path = self.project_root / "development_tools" / "tests" / "jsons" / "coverage.json"
-        if not coverage_path.exists():
-            # Fallback to old location (development_tools/tests/coverage.json) for backward compatibility
-            coverage_path = self.project_root / "development_tools" / "tests" / "coverage.json"
         
         # If main file doesn't exist, check archive for most recent coverage.json (may have been rotated)
         if not coverage_path.exists():
@@ -486,58 +461,26 @@ class DataLoadingMixin:
                     logger.debug(f"[DATA SOURCE] config_validation_summary: loaded from {config_file.name} (cached)")
                 with open(config_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    # Handle standard format (summary/details) and legacy formats
-                    if 'summary' in data and 'details' in data:
-                        top_summary = data['summary']
-                        details = data['details']
-                        nested_summary = details.get('summary', {})
-                        summary = {**top_summary, **nested_summary}
-                        summary['recommendations'] = details.get('recommendations', [])
-                        summary['tools_analysis'] = details.get('tools_analysis', {})
-                        summary['config_valid'] = nested_summary.get('config_valid', summary.get('config_valid', False))
-                        summary['config_complete'] = nested_summary.get('config_complete', summary.get('config_complete', False))
-                        if 'validation' in details and summary.get('config_valid') is False:
-                            validation = details['validation']
-                            summary['config_valid'] = validation.get('config_structure_valid', False)
-                        if 'completeness' in details and summary.get('config_complete') is False:
-                            completeness = details['completeness']
-                            summary['config_complete'] = completeness.get('sections_complete', False)
-                        return summary
-                    elif 'data' in data:
-                        config_data = data['data']
-                        if 'summary' in config_data and 'details' in config_data:
-                            top_summary = config_data['summary']
-                            details = config_data['details']
-                            nested_summary = details.get('summary', {})
-                            summary = {**top_summary, **nested_summary}
-                            summary['recommendations'] = details.get('recommendations', [])
-                            summary['tools_analysis'] = details.get('tools_analysis', {})
-                            summary['config_valid'] = nested_summary.get('config_valid', summary.get('config_valid', False))
-                            summary['config_complete'] = nested_summary.get('config_complete', summary.get('config_complete', False))
-                            if 'validation' in details and summary.get('config_valid') is False:
-                                validation = details['validation']
-                                summary['config_valid'] = validation.get('config_structure_valid', False)
-                            if 'completeness' in details and summary.get('config_complete') is False:
-                                completeness = details['completeness']
-                                summary['config_complete'] = completeness.get('sections_complete', False)
-                            return summary
-                        else:
-                            summary = config_data.get('summary', {})
-                            summary['recommendations'] = config_data.get('recommendations', [])
-                            summary['tools_analysis'] = config_data.get('tools_analysis', {})
-                            if 'config_validation' in config_data and summary.get('config_valid') is None:
-                                config_validation = config_data['config_validation']
-                                summary['config_valid'] = config_validation.get('config_structure_valid', False)
-                            if 'completeness' in config_data and summary.get('config_complete') is None:
-                                completeness = config_data['completeness']
-                                summary['config_complete'] = completeness.get('sections_complete', False)
-                            return summary
-                    elif 'validation_results' in data:
-                        validation_results = data.get('validation_results', {})
-                        summary = validation_results.get('summary', {})
-                        summary['recommendations'] = validation_results.get('recommendations', [])
-                        summary['tools_analysis'] = validation_results.get('tools_analysis', {})
-                        return summary
+                    if 'data' in data:
+                        data = data['data']
+                    if 'summary' not in data or 'details' not in data:
+                        logger.warning("[DATA SOURCE] config_validation_summary: invalid format (expected summary/details)")
+                        return None
+                    top_summary = data['summary']
+                    details = data['details']
+                    nested_summary = details.get('summary', {})
+                    summary = {**top_summary, **nested_summary}
+                    summary['recommendations'] = details.get('recommendations', [])
+                    summary['tools_analysis'] = details.get('tools_analysis', {})
+                    summary['config_valid'] = nested_summary.get('config_valid', summary.get('config_valid', False))
+                    summary['config_complete'] = nested_summary.get('config_complete', summary.get('config_complete', False))
+                    if 'validation' in details and summary.get('config_valid') is False:
+                        validation = details['validation']
+                        summary['config_valid'] = validation.get('config_structure_valid', False)
+                    if 'completeness' in details and summary.get('config_complete') is False:
+                        completeness = details['completeness']
+                        summary['config_complete'] = completeness.get('sections_complete', False)
+                    return summary
             else:
                 logger.warning(f"[DATA SOURCE] config_validation_summary: not found at {config_file} (using empty fallback)")
         except Exception as e:
@@ -546,10 +489,8 @@ class DataLoadingMixin:
     
     def _load_dev_tools_coverage(self) -> None:
         """Load dev tools coverage from JSON file if it exists."""
-        # Check development_tools/tests/jsons first (new location), then fall back to old location (legacy)
+        # Check development_tools/tests/jsons for coverage results.
         coverage_path = self.project_root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
-        if not coverage_path.exists():
-            coverage_path = self.project_root / "development_tools" / "tests" / "coverage_dev_tools.json"
         if not coverage_path.exists():
             return
         try:
@@ -804,211 +745,70 @@ class DataLoadingMixin:
                     summary['path_drift_files'].append(file_part)
         return summary
     
-    def _parse_documentation_sync_output(self, output: str) -> Dict[str, Any]:
-        """Parse paired documentation sync output."""
-        issues = {}
-        if not isinstance(output, str) or not output.strip():
-            return issues
-        lines = output.splitlines()
-        current_section = None
-        for line in lines:
-            line = line.strip()
-            if 'PAIRED DOCUMENTATION ISSUES:' in line:
-                current_section = 'paired_docs'
-                continue
-            if current_section == 'paired_docs' and line.startswith('   '):
-                if ':' in line:
-                    issue_type = line.split(':')[0].strip()
-                    if issue_type not in issues:
-                        issues[issue_type] = []
-                elif line.startswith('     - '):
-                    if current_section:
-                        last_type = list(issues.keys())[-1] if issues else None
-                        if last_type:
-                            issues[last_type].append(line[7:])
-        return issues
-    
     def _parse_path_drift_output(self, output: str) -> Dict[str, Any]:
         """Parse path drift analysis output."""
-        # Try to parse as JSON first
+        if not isinstance(output, str) or not output.strip():
+            return self._create_standard_format_result(0, 0, {})
         if output.strip().startswith('{'):
             try:
                 parsed = json.loads(output)
                 from ..result_format import normalize_to_standard_format
-                normalized = normalize_to_standard_format('analyze_path_drift', parsed)
-                # Format conversion: Convert standard format to simplified format expected by aggregation code
-                # The aggregation code in _aggregate_documentation_sync_results() expects:
-                # {'files': {file: count}, 'total_issues': int}
-                # TODO: Consider refactoring aggregation code to use standard format directly
-                if 'summary' in normalized:
-                    logger.debug("_parse_path_drift_output: Converting standard format to simplified format for aggregation")
-                    return {
-                        'files': normalized.get('files', {}),
-                        'total_issues': normalized.get('summary', {}).get('total_issues', 0),
-                        'detailed_issues': normalized.get('details', {}).get('detailed_issues', {})
-                    }
-                return normalized
+                return normalize_to_standard_format('analyze_path_drift', parsed)
             except (json.JSONDecodeError, ValueError):
-                pass
-        # Fall back to text parsing if JSON parsing failed
-        result = {'files': {}, 'total_issues': 0}
-        if not isinstance(output, str) or not output.strip():
-            return result
-        lines = output.splitlines()
-        in_files_section = False
-        for line in lines:
-            line = line.strip()
-            if 'Total issues found:' in line:
-                value = self._extract_first_int(line)
-                if value is not None:
-                    result['total_issues'] = value
-            elif 'Top files with most issues:' in line:
-                in_files_section = True
-                continue
-            elif in_files_section and ':' in line and line.endswith('issues'):
-                parts = line.split(':')
-                if len(parts) == 2:
-                    file_path = parts[0].strip()
-                    issue_count = self._extract_first_int(parts[1])
-                    if issue_count is not None:
-                        result['files'][file_path] = issue_count
-        return result
+                return self._create_standard_format_result(0, 0, {})
+        return self._create_standard_format_result(0, 0, {})
     
     def _parse_ascii_compliance_output(self, output: str) -> Dict[str, Any]:
         """Parse ASCII compliance check output. Returns standard format."""
-        # Try to parse as JSON first
+        if not isinstance(output, str) or not output.strip():
+            return self._create_standard_format_result(0, 0, {})
         if output.strip().startswith('{'):
             try:
                 parsed = json.loads(output)
                 from ..result_format import normalize_to_standard_format
                 return normalize_to_standard_format("analyze_ascii_compliance", parsed)
             except (json.JSONDecodeError, ValueError):
-                pass
-        # Fall back to text parsing if JSON parsing failed
-        files = {}
-        total_issues = 0
-        file_count = 0
-        if not isinstance(output, str) or not output.strip():
-            return self._create_standard_format_result(total_issues, file_count, files)
-        lines = output.splitlines()
-        for line in lines:
-            line = line.strip()
-            if 'Total files with non-ASCII characters:' in line:
-                value = self._extract_first_int(line)
-                if value is not None:
-                    file_count = value
-            elif 'Total issues found:' in line:
-                value = self._extract_first_int(line)
-                if value is not None:
-                    total_issues = value
-            elif ':' in line and ('issues' in line.lower() or 'characters' in line.lower()):
-                parts = line.split(':')
-                if len(parts) == 2:
-                    file_path = parts[0].strip()
-                    issue_text = parts[1].strip()
-                    issue_count = self._extract_first_int(issue_text)
-                    if issue_count is not None:
-                        files[file_path] = issue_count
-        return self._create_standard_format_result(total_issues, file_count, files)
+                return self._create_standard_format_result(0, 0, {})
+        return self._create_standard_format_result(0, 0, {})
     
     def _parse_heading_numbering_output(self, output: str) -> Dict[str, Any]:
         """Parse heading numbering check output. Returns standard format."""
-        # Try to parse as JSON first
+        if not isinstance(output, str) or not output.strip():
+            return self._create_standard_format_result(0, 0, {})
         if output.strip().startswith('{'):
             try:
                 parsed = json.loads(output)
                 from ..result_format import normalize_to_standard_format
                 return normalize_to_standard_format("analyze_heading_numbering", parsed)
             except (json.JSONDecodeError, ValueError):
-                pass
-        # Fall back to text parsing if JSON parsing failed
-        files = {}
-        total_issues = 0
-        file_count = 0
-        if not isinstance(output, str) or not output.strip():
-            return self._create_standard_format_result(total_issues, file_count, files)
-        lines = output.splitlines()
-        for line in lines:
-            line = line.strip()
-            if 'Total files with numbering issues:' in line:
-                value = self._extract_first_int(line)
-                if value is not None:
-                    file_count = value
-            elif 'Total issues found:' in line:
-                value = self._extract_first_int(line)
-                if value is not None:
-                    total_issues = value
-            elif ':' in line and 'issues' in line.lower():
-                parts = line.split(':')
-                if len(parts) == 2:
-                    file_path = parts[0].strip()
-                    issue_count = self._extract_first_int(parts[1])
-                    if issue_count is not None:
-                        files[file_path] = issue_count
-        return self._create_standard_format_result(total_issues, file_count, files)
+                return self._create_standard_format_result(0, 0, {})
+        return self._create_standard_format_result(0, 0, {})
     
     def _parse_missing_addresses_output(self, output: str) -> Dict[str, Any]:
         """Parse missing addresses check output."""
-        # Try to parse as JSON first
+        if not isinstance(output, str) or not output.strip():
+            return self._create_standard_format_result(0, 0, {})
         if output.strip().startswith('{'):
             try:
                 parsed = json.loads(output)
                 from ..result_format import normalize_to_standard_format
                 return normalize_to_standard_format("analyze_missing_addresses", parsed)
             except (json.JSONDecodeError, ValueError):
-                pass
-        # Fall back to text parsing if JSON parsing failed
-        result = {'files': [], 'total_issues': 0}
-        if not isinstance(output, str) or not output.strip():
-            return result
-        if 'All documentation files have file addresses!' in output:
-            return result
-        lines = output.splitlines()
-        for line in lines:
-            line = line.strip()
-            if 'Total files missing addresses:' in line:
-                value = self._extract_first_int(line)
-                if value is not None:
-                    result['total_issues'] = value
-            elif line.startswith('- ') or line.startswith('  - '):
-                file_path = line.lstrip('- ').strip()
-                if file_path:
-                    result['files'].append(file_path)
-        return result
+                return self._create_standard_format_result(0, 0, {})
+        return self._create_standard_format_result(0, 0, {})
     
     def _parse_unconverted_links_output(self, output: str) -> Dict[str, Any]:
         """Parse unconverted links check output."""
-        # Try to parse as JSON first
+        if not isinstance(output, str) or not output.strip():
+            return self._create_standard_format_result(0, 0, {})
         if output.strip().startswith('{'):
             try:
                 parsed = json.loads(output)
                 from ..result_format import normalize_to_standard_format
                 return normalize_to_standard_format("analyze_unconverted_links", parsed)
             except (json.JSONDecodeError, ValueError):
-                pass
-        # Fall back to text parsing if JSON parsing failed
-        result = {'files': {}, 'total_issues': 0}
-        if not isinstance(output, str) or not output.strip():
-            return result
-        lines = output.splitlines()
-        for line in lines:
-            line = line.strip()
-            if 'Total files with unconverted links:' in line:
-                value = self._extract_first_int(line)
-                if value is not None:
-                    result['file_count'] = value
-            elif 'Total issues found:' in line:
-                value = self._extract_first_int(line)
-                if value is not None:
-                    result['total_issues'] = value
-            elif ':' in line and 'issues' in line.lower():
-                parts = line.split(':')
-                if len(parts) == 2:
-                    file_path = parts[0].strip()
-                    issue_count = self._extract_first_int(parts[1])
-                    if issue_count is not None:
-                        result['files'][file_path] = issue_count
-        return result
+                return self._create_standard_format_result(0, 0, {})
+        return self._create_standard_format_result(0, 0, {})
     
     def _aggregate_doc_sync_results(self, all_results: Dict[str, Any]) -> Dict[str, Any]:
         """Aggregate results from all documentation sync tools into unified summary."""
@@ -1033,7 +833,7 @@ class DataLoadingMixin:
         # Aggregate path drift
         path_drift = all_results.get('path_drift', {})
         if isinstance(path_drift, dict):
-            summary['path_drift_issues'] = path_drift.get('total_issues', 0)
+            summary['path_drift_issues'] = path_drift.get('summary', {}).get('total_issues', 0)
             summary['total_issues'] += summary['path_drift_issues']
             files = path_drift.get('files', {})
             if isinstance(files, dict):
@@ -1041,22 +841,22 @@ class DataLoadingMixin:
         # Aggregate ASCII compliance
         ascii_compliance = all_results.get('ascii_compliance', {})
         if isinstance(ascii_compliance, dict):
-            summary['ascii_issues'] = ascii_compliance.get('total_issues', 0)
+            summary['ascii_issues'] = ascii_compliance.get('summary', {}).get('total_issues', 0)
             summary['total_issues'] += summary['ascii_issues']
         # Aggregate heading numbering
         heading_numbering = all_results.get('heading_numbering', {})
         if isinstance(heading_numbering, dict):
-            summary['heading_numbering_issues'] = heading_numbering.get('total_issues', 0)
+            summary['heading_numbering_issues'] = heading_numbering.get('summary', {}).get('total_issues', 0)
             summary['total_issues'] += summary['heading_numbering_issues']
         # Aggregate missing addresses
         missing_addresses = all_results.get('missing_addresses', {})
         if isinstance(missing_addresses, dict):
-            summary['missing_address_issues'] = missing_addresses.get('total_issues', 0)
+            summary['missing_address_issues'] = missing_addresses.get('summary', {}).get('total_issues', 0)
             summary['total_issues'] += summary['missing_address_issues']
         # Aggregate unconverted links
         unconverted_links = all_results.get('unconverted_links', {})
         if isinstance(unconverted_links, dict):
-            summary['unconverted_link_issues'] = unconverted_links.get('total_issues', 0)
+            summary['unconverted_link_issues'] = unconverted_links.get('summary', {}).get('total_issues', 0)
             summary['total_issues'] += summary['unconverted_link_issues']
         # Determine overall status
         if summary['total_issues'] > 0:
@@ -1123,7 +923,7 @@ class DataLoadingMixin:
         except Exception as cache_error:
             logger.debug(f"Failed to load {tool_name} from cache: {cache_error}")
         
-        # Step 2: Convert cache format to results format
+        # Step 2: Convert cache format to results format (standard format)
         if cache_data and isinstance(cache_data, dict):
             # Handle both formats: wrapped {'data': {...}} and direct {file_path: {...}}
             if 'data' in cache_data:
@@ -1164,9 +964,9 @@ class DataLoadingMixin:
                 file_data = filtered_file_data
                 # Use custom converter if provided, otherwise use default
                 if cache_converter_func:
-                    tool_result = cache_converter_func(file_data)
+                    raw_result = cache_converter_func(file_data)
                 else:
-                    # Default converter
+                    # Default converter (raw, pre-standard)
                     files_with_issues = {}
                     total_issues = 0
                     for file_path, file_info in file_data.items():
@@ -1175,11 +975,26 @@ class DataLoadingMixin:
                             if results:
                                 files_with_issues[file_path] = len(results)
                                 total_issues += len(results)
-                    tool_result = {
+                    raw_result = {
                         'files': files_with_issues,
                         'file_count': len(files_with_issues),
                         'total_issues': total_issues
                     }
+
+                # Ensure standard format with summary/details
+                tool_result = raw_result
+                if not (isinstance(raw_result, dict) and isinstance(raw_result.get('summary'), dict)):
+                    files_with_issues = raw_result.get('files', {}) if isinstance(raw_result, dict) else {}
+                    file_count = raw_result.get('file_count')
+                    if not isinstance(file_count, int):
+                        file_count = len(files_with_issues) if isinstance(files_with_issues, dict) else 0
+                    total_issues = raw_result.get('total_issues', 0) if isinstance(raw_result, dict) else 0
+                    tool_result = self._create_standard_format_result(
+                        total_issues,
+                        file_count,
+                        files_with_issues if isinstance(files_with_issues, dict) else {},
+                        raw_result if isinstance(raw_result, dict) else {}
+                    )
                 
                 # Step 3: Save to results JSON and populate in-memory cache
                 try:
@@ -1198,6 +1013,16 @@ class DataLoadingMixin:
         if result.get('output') or result.get('success'):
             if parse_output_func:
                 tool_result = parse_output_func(result.get('output', ''))
+                if isinstance(tool_result, dict) and 'summary' not in tool_result:
+                    files_with_issues = tool_result.get('files', {})
+                    file_count = tool_result.get('file_count', len(files_with_issues) if isinstance(files_with_issues, dict) else 0)
+                    total_issues = tool_result.get('total_issues', 0)
+                    tool_result = self._create_standard_format_result(
+                        total_issues,
+                        file_count,
+                        files_with_issues if isinstance(files_with_issues, dict) else {},
+                        tool_result
+                    )
                 try:
                     save_tool_result(tool_name, domain, tool_result, project_root=self.project_root)
                     logger.debug(f"Saved {tool_name} results from parsed output")

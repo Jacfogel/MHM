@@ -93,8 +93,8 @@ class TestCoreMessageManagementCoverageExpansion:
         assert sentinel == datetime.min.replace(tzinfo=timezone.utc)
 
     @pytest.mark.behavior
-    def test_normalize_message_timestamps_rewrites_legacy_values(self, tmp_path):
-        """Normalize legacy timestamp shapes before other processing runs."""
+    def test_normalize_message_timestamps_rewrites_compatibility_values(self, tmp_path):
+        """Normalize compatibility timestamp shapes before other processing runs."""
         file_path = tmp_path / "sent_messages.json"
         data = {
             "messages": [

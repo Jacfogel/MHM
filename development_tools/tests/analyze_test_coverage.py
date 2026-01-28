@@ -306,8 +306,6 @@ class TestCoverageAnalyzer:
                 / "jsons"
                 / "coverage.json"
             )
-            if not default_json.exists():
-                default_json = self.project_root / "coverage.json"
             if default_json.exists():
                 json_file_for_cache = default_json
 
@@ -340,11 +338,7 @@ class TestCoverageAnalyzer:
             coverage_data = self.parse_coverage_output(coverage_output)
             overall_data = self.extract_overall_coverage(coverage_output)
         else:
-            # Try to find coverage.json in project root
-            default_json = self.project_root / "coverage.json"
-            if default_json.exists():
-                coverage_data = self.load_coverage_json(default_json)
-                overall_data = self.extract_overall_from_json(default_json)
+            pass
 
         # Categorize modules
         categories = self.categorize_modules(coverage_data)
@@ -396,7 +390,13 @@ def main():
         coverage_json_path = Path(args.json)
     elif not args.input:
         # Try default location
-        default_json = analyzer.project_root / "coverage.json"
+        default_json = (
+            analyzer.project_root
+            / "development_tools"
+            / "tests"
+            / "jsons"
+            / "coverage.json"
+        )
         if default_json.exists():
             coverage_json_path = default_json
 

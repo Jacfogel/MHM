@@ -138,9 +138,6 @@ class TestMarkerAnalyzer:
     def add_markers(self, dry_run: bool = False) -> Dict:
         """
         Add missing markers to test files based on directory structure.
-
-        Note: This method is kept here for backward compatibility but the fixing
-        logic should be used via fix_test_markers.py module.
         """
         test_files = self.find_test_files()
         files_updated = []
@@ -397,8 +394,17 @@ def main():
         result = analyzer.analyze_markers()
         if args.json:
             import json
-
-            print(json.dumps(result, indent=2))
+            missing_markers = result.get("missing_markers", [])
+            files_affected = len({item[0] for item in missing_markers if item})
+            total_issues = result.get("files_needing_markers", files_affected)
+            standard_result = {
+                "summary": {
+                    "total_issues": total_issues,
+                    "files_affected": files_affected,
+                },
+                "details": result,
+            }
+            print(json.dumps(standard_result, indent=2))
         else:
             print(f"Total test files: {result['total_files']}")
             print(f"Files needing category markers: {result['files_needing_markers']}")
@@ -414,19 +420,22 @@ def main():
         missing = analyzer.find_missing_markers_ast()
         if args.json:
             import json
-
-            print(
-                json.dumps(
-                    {
-                        "missing_count": len(missing),
-                        "missing": [
-                            {"file": f, "line": l, "name": n, "type": t}
-                            for f, l, n, t in missing
-                        ],
-                    },
-                    indent=2,
-                )
-            )
+            missing_list = [
+                {"file": f, "line": l, "name": n, "type": t}
+                for f, l, n, t in missing
+            ]
+            files_affected = len({item["file"] for item in missing_list if item.get("file")})
+            standard_result = {
+                "summary": {
+                    "total_issues": len(missing_list),
+                    "files_affected": files_affected,
+                },
+                "details": {
+                    "missing_count": len(missing_list),
+                    "missing": missing_list,
+                },
+            }
+            print(json.dumps(standard_result, indent=2))
         else:
             if not missing:
                 print("All tests have category markers. Great job!")

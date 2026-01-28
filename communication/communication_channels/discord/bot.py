@@ -662,11 +662,7 @@ class DiscordBot(BaseChannel):
                     command, args = self._command_queue.get_nowait()
                     
                     if command == "send_message":
-                        if len(args) == 2:
-                            # Backward compatibility: just message
-                            recipient, message = args
-                            result = await self._send_message_internal(recipient, message)
-                        elif len(args) == 4:
+                        if len(args) == 4:
                             # New format: message with rich data and suggestions
                             recipient, message, rich_data, suggestions = args
                             result = await self._send_message_internal(recipient, message, rich_data, suggestions)

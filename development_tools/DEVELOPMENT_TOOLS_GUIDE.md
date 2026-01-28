@@ -18,7 +18,7 @@ Use this guide when you need:
 
 The machine-readable metadata lives in `development_tools/shared/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
 
-**Note on Tool Relationships**: These development tools are complementary to other quality tools (Pyright for type checking, ruff/bandit for security/style). They focus on project-specific analysis (error handling patterns, documentation sync, legacy tracking) that no existing tools provide. See [TODO.md](TODO.md) for evaluation tasks for complementary tools.
+**Note on Tool Relationships**: These development tools are complementary to other quality tools (Pyright for type checking, ruff/bandit for security/style). They focus on project-specific analysis (error handling patterns, documentation sync, legacy reference tracking) that no existing tools provide. See [TODO.md](TODO.md) for evaluation tasks for complementary tools.
 
 ---
 
@@ -154,7 +154,7 @@ The modular structure provides clear separation of concerns, making the codebase
 - Coverage report generation (~5s, requires coverage data from both test suites)
 - **Legacy group** (runs in parallel with coverage tools):
 - Legacy reference scanning (~62s, >10s)
-- Legacy reference report generation (~1s, but part of legacy group)
+- Reference report generation (~1s, but part of the legacy reference group)
 - Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_REPORT.md, UNUSED_IMPORTS_REPORT.md)
 
 **Performance**: Total full audit time: ~6-7 minutes (coverage tools run in parallel, reducing total time from ~460s to ~365s)
@@ -174,7 +174,7 @@ Pipeline artifacts:
 - Cached snapshots: `status` loads data from `reports/analysis_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting
 
 **Tool Output Format**:
-- All analysis tools that participate in audit aggregation output JSON in a standardized structure for consistent data aggregation (with normalization/backward-compatibility for tools that still emit legacy shapes):
+- All analysis tools that participate in audit aggregation output JSON in a standardized structure for consistent data aggregation:
 ```json
 {
 "summary": {
@@ -188,8 +188,8 @@ Pipeline artifacts:
 }
 ```
 - Tools support `--json` flag to output standard format directly when run standalone
-- Normalization layer in `development_tools/shared/result_format.py` provides backward compatibility for any legacy formats
-- Report generation code automatically detects and handles standard format, accessing data from `details` section
+- Tool results must already be in standard format; validation is strict
+- Report generation code accesses data from `details` section
 - This standardization enables consistent data aggregation, easier tool integration, and simplified report generation.
 
 **When to run each command**: See "Standard Audit Recipe" section in [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for guidance on day-to-day checks (`audit`), pre-merge/pre-release checks (`audit --full`), and documentation work (`doc-sync`, `docs`).
@@ -211,7 +211,7 @@ Most tools follow a 3-prefix naming system established in :
 - Examples: `generate_function_registry.py`, `tests/run_test_coverage.py`, `generate_module_dependencies.py`
 - These tools create or regenerate documentation and report files
 - **`fix_*`** - Cleanup/repair (removal, cleanup operations)
-- Examples: `fix_legacy_references.py`, `fix_version_sync.py`, `fix_project_cleanup.py`
+- Examples: `fix_legacy_references.py`, `fix_version_sync.py`, `fix_project_cleanup.py` (legacy reference cleanup tool included)
 - These tools perform cleanup, removal, or repair operations (often support `--dry-run`)
 - **No prefix** - Reporting/utility tools (descriptive names)
 - Examples: `decision_support.py`, `quick_status.py`, `system_signals.py`, `file_rotation.py`, `tool_guide.py`
@@ -255,7 +255,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | imports/generate_module_dependencies.py | core | stable | Orchestrates module dependency analysis and generates dependency documentation. Accepts custom module prefixes for portability. 
 | imports/analyze_module_imports.py | core | stable | Extracts and analyzes imports from Python files. Provides import parsing, scanning, reverse dependencies, dependency changes, purpose inference, and import formatting. |
 | imports/analyze_dependency_patterns.py | core | stable | Analyzes dependency patterns, circular dependencies, and risk areas. Provides pattern analysis, circular dependency detection, risk area detection, and critical dependency finding. |
-| legacy/fix_legacy_references.py | core | stable | Finds/validates LEGACY COMPATIBILITY usage before cleanup. Legacy patterns and mappings load from external config. 
+| legacy/fix_legacy_references.py | core | stable | Finds/validates legacy markers before cleanup. Pattern mappings load from external config. 
 | tests/run_test_coverage.py | core | stable | Orchestrates coverage execution (pytest runs) and artifact management. Executes tests and collects coverage data. Accepts pytest command, coverage config, and artifact directories via external config. 
 | tests/analyze_test_coverage.py | core | stable | Parses coverage output and performs coverage analysis. Pure analysis tool that works with existing coverage data. Includes caching support - caches analysis results based on coverage JSON file mtime. |
 | tests/generate_test_coverage_report.py | core | stable | Generates coverage reports (TEST_COVERAGE_REPORT.md, JSON, HTML) from analysis results. Uses TestCoverageReportGenerator class to create reports from coverage.json. |
@@ -302,16 +302,16 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
   - `stop_name_tokens`: Tokens to ignore when forming candidate pairs (noise reducers like "get", "set").
   - `weights`: Balance similarity scoring across name/args/locals/imports.
 - **Caching Infrastructure**:
-- **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching). The cache automatically invalidates when `development_tools_config.json` changes, ensuring config updates are immediately reflected.
+- **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py` (compatibility scan), `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching). The cache automatically invalidates when `development_tools_config.json` changes, ensuring config updates are immediately reflected.
 - **Test Coverage Caching**:
 - **Coverage Analysis Caching**: `tests/analyze_test_coverage.py` Caches analysis results based on coverage JSON file mtime, saving ~2s on repeated analysis when coverage data hasn't changed.
 - **Test-file coverage caching (Integrated, enabled by default)**: `tests/test_file_coverage_cache.py` uses `tests/domain_mapper.py` (`DomainMapper`) to map source directories to test files. When a domain changes, only the test files that cover that domain are re-run, and cached coverage is merged for unchanged tests. Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json`. Disable with `--no-domain-cache`.
 - **Dev tools coverage caching (Integrated, enabled by default)**: `tests/dev_tools_coverage_cache.py` caches development_tools coverage JSON keyed by dev tools source mtimes. Cache file: `development_tools/tests/jsons/dev_tools_coverage_cache.json`. Disable with `--no-domain-cache`.
 - **Parallel Execution**: Tools run in parallel where possible to reduce audit time:
 - **Tier 2**: Independent tools (5 tools) run in parallel; dependent groups run sequentially within groups but in parallel with each other
-- **Tier 3**: Coverage tools (main tests and dev tools tests) run in parallel (~365s max); legacy group runs in parallel with coverage tools; coverage-dependent tools (marker analysis, report generation) run sequentially after coverage completes
+- **Tier 3**: Coverage tools (main tests and dev tools tests) run in parallel (~365s max); legacy reference group runs in parallel with coverage tools; coverage-dependent tools (marker analysis, report generation) run sequentially after coverage completes
 - **Tool Dependencies**: Some tools must run together due to dependencies (e.g., analysis -> report, imports -> patterns/dependencies). Coverage-dependent tools require data from both test suites, so they run after coverage completes. See `development_tools/shared/service/audit_orchestration.py` for dependency groupings.
-- **Output Format Standardization**: All 19 analysis tools output JSON in a standardized structure with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). This enables consistent data aggregation and simplified report generation. Tools support `--json` flag for direct standard format output. The normalization layer in `shared/result_format.py` provides backward compatibility for any legacy formats.
+- **Output Format Standardization**: All 19 analysis tools output JSON in a standardized structure with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). This enables consistent data aggregation and simplified report generation. Tools support `--json` flag for direct standard format output. Results are validated against the standard format in `shared/result_format.py`.
 - When adding or relocating tools, update:
 - `shared/tool_metadata.py`
 - This guide and the AI guide (paired H2 requirements)

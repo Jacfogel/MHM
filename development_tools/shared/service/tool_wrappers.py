@@ -334,9 +334,7 @@ class ToolWrappersMixin:
         self._extract_decision_insights(result)
         try:
             data = None
-            if 'decision_support_metrics' in self.results_cache:
-                data = self.results_cache['decision_support_metrics']
-            elif 'decision_support' in self.results_cache:
+            if 'decision_support' in self.results_cache:
                 data = self.results_cache['decision_support']
             elif result.get('data'):
                 data = result.get('data')
@@ -344,20 +342,30 @@ class ToolWrappersMixin:
                 try:
                     data = json.loads(result.get('output', ''))
                 except (json.JSONDecodeError, TypeError):
-                    data = {
-                        'success': result.get('success', False),
-                        'output': result.get('output', ''),
-                        'error': result.get('error', ''),
-                        'returncode': result.get('returncode', 0)
-                    }
+                    data = None
             if data is not None:
-                save_tool_result('decision_support', 'reports', data, project_root=self.project_root)
+                try:
+                    from ..result_format import normalize_to_standard_format
+
+                    data = normalize_to_standard_format('decision_support', data)
+                    save_tool_result('decision_support', 'reports', data, project_root=self.project_root)
+                except ValueError as e:
+                    logger.error(f"Invalid decision_support result format: {e}")
+                    error_result = self._create_standard_format_result(
+                        0,
+                        0,
+                        None,
+                        {'error': str(e)}
+                    )
+                    save_tool_result('decision_support', 'reports', error_result, project_root=self.project_root)
             else:
-                save_tool_result('decision_support', 'reports', {
-                    'success': result.get('success', False),
-                    'output': result.get('output', '')[:500] if result.get('output') else '',
-                    'returncode': result.get('returncode', 0)
-                }, project_root=self.project_root)
+                error_result = self._create_standard_format_result(
+                    0,
+                    0,
+                    None,
+                    {'error': 'decision_support produced no JSON output'}
+                )
+                save_tool_result('decision_support', 'reports', error_result, project_root=self.project_root)
         except Exception as save_error:
             logger.error(f"Failed to save decision_support results: {save_error}", exc_info=True)
         return result
@@ -569,7 +577,7 @@ class ToolWrappersMixin:
     def run_analyze_documentation_sync(self) -> Dict:
         """Run analyze_documentation_sync with structured data handling."""
         try:
-            if self._run_doc_sync_check('--check'):
+            if self._run_doc_sync_check():
                 summary = self.docs_sync_summary or {}
                 all_results = getattr(self, 'docs_sync_results', {}).get('all_results', {})
                 path_drift_files = summary.get('path_drift_files', [])
@@ -603,14 +611,14 @@ class ToolWrappersMixin:
                 try:
                     from development_tools.docs.analyze_documentation_sync import DocumentationSyncChecker
                     checker = DocumentationSyncChecker()
-                    results = {
-                        'summary': summary,
-                        'paired_docs': all_results.get('paired_docs', {}),
-                        'path_drift': all_results.get('path_drift', {}),
-                        'ascii_compliance': all_results.get('ascii_compliance', {}),
-                        'heading_numbering': all_results.get('heading_numbering', {})
+                    report_results = {
+                        'summary': data['summary'],
+                        'details': {
+                            'paired_doc_issues': data['details'].get('paired_doc_issues', 0),
+                            'paired_docs': data['details'].get('paired_docs', {})
+                        }
                     }
-                    checker.print_report(results)
+                    checker.print_report(report_results)
                     output = output_buffer.getvalue()
                 finally:
                     sys.stdout = original_stdout
@@ -649,23 +657,27 @@ class ToolWrappersMixin:
             structured_results = analyzer.run_analysis()
             # run_analysis() always returns standard format with 'summary', 'files', and 'details' keys
             summary = structured_results.get('summary', {})
-            data = {
-                'files': structured_results.get('files', {}),
-                'total_issues': summary.get('total_issues', 0),
-                'detailed_issues': structured_results.get('details', {}).get('detailed_issues', {})
-            }
+            files = structured_results.get('files', {}) if isinstance(structured_results, dict) else {}
+            total_issues = summary.get('total_issues', 0)
+            details = structured_results.get('details', {}) if isinstance(structured_results, dict) else {}
+            data = self._create_standard_format_result(
+                total_issues,
+                len(files) if isinstance(files, dict) else 0,
+                files if isinstance(files, dict) else {},
+                details
+            )
             import io
             import sys
             output_buffer = io.StringIO()
             original_stdout = sys.stdout
             sys.stdout = output_buffer
             try:
-                if data['total_issues'] > 0:
+                if total_issues > 0:
                     print(f"\nPath Drift Issues:")
-                    print(f"   Total files with issues: {len(data['files'])}")
-                    print(f"   Total issues found: {data['total_issues']}")
+                    print(f"   Total files with issues: {len(files)}")
+                    print(f"   Total issues found: {total_issues}")
                     print(f"   Top files with most issues:")
-                    sorted_files = sorted(data['files'].items(), key=lambda x: x[1], reverse=True)
+                    sorted_files = sorted(files.items(), key=lambda x: x[1], reverse=True)
                     for doc_file, issue_count in sorted_files[:5]:
                         print(f"     {doc_file}: {issue_count} issues")
                 else:
@@ -769,16 +781,15 @@ class ToolWrappersMixin:
         import json
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False, encoding='utf-8') as f:
             findings_file = f.name
-            # Extract findings from legacy_data - handle both standard format and old format
-            findings = {}
-            if 'findings' in legacy_data:
-                findings = legacy_data['findings']
-            elif 'details' in legacy_data and 'findings' in legacy_data['details']:
-                findings = legacy_data['details']['findings']
-            elif isinstance(legacy_data, dict):
-                # If no findings key, use the whole structure (might be in old format)
-                findings = legacy_data
-            
+            details = legacy_data.get('details', {}) if isinstance(legacy_data, dict) else {}
+            findings = details.get('findings')
+            if findings is None:
+                return {
+                    'success': False,
+                    'output': '',
+                    'error': 'Legacy reference results missing details.findings.',
+                    'returncode': 1
+                }
             json.dump(findings, f, indent=2)
         
         try:
@@ -1086,715 +1097,3 @@ class ToolWrappersMixin:
             }
         return result
     
-    def run_analyze_error_handling_legacy(self) -> Dict:
-        """Run analyze_error_handling with structured JSON handling."""
-        args = ["--json"]
-
-        if self.exclusion_config.get('include_tests', False):
-
-            args.append("--include-tests")
-
-        if self.exclusion_config.get('include_dev_tools', False):
-
-            args.append("--include-dev-tools")
-
-        result = self.run_script("analyze_error_handling", *args)
-
-        output = result.get('output', '')
-
-        data = None
-
-        if output:
-
-            try:
-
-                lines = output.split('\n')
-
-                json_start = -1
-
-                for i, line in enumerate(lines):
-
-                    if line.strip().startswith('{'):
-
-                        json_start = i
-
-                        break
-
-                if json_start >= 0:
-
-                    json_output = '\n'.join(lines[json_start:])
-
-                    data = json.loads(json_output)
-
-                else:
-
-                    data = json.loads(output)
-
-            except json.JSONDecodeError:
-
-                data = None
-
-        # If JSON parsing failed, try loading from standardized output storage
-        if data is None:
-
-            try:
-
-                    from ..output_storage import load_tool_result
-
-                    data = load_tool_result('analyze_error_handling', 'error_handling', project_root=self.project_root)
-
-            except (OSError, json.JSONDecodeError):
-
-                data = None
-
-        if data is not None:
-
-            result['data'] = data
-
-            try:
-
-                save_tool_result('analyze_error_handling', 'error_handling', data, project_root=self.project_root)
-
-            except Exception as e:
-
-                logger.warning(f"Failed to save analyze_error_handling result: {e}")
-
-            coverage = data.get('analyze_error_handling') or data.get('error_handling_coverage', 0)
-
-            missing_count = data.get('functions_missing_error_handling', 0)
-
-            result['issues_found'] = coverage < 80 or missing_count > 0
-
-            result['success'] = True
-
-            result['error'] = ''
-
-        else:
-
-            lowered = output.lower() if isinstance(output, str) else ''
-
-            if 'missing error handling' in lowered or 'coverage' in lowered:
-
-                result['issues_found'] = True
-
-                result['success'] = True
-
-                result['error'] = ''
-
-        return result
-
-    
-
-    def run_analyze_documentation_sync_legacy(self) -> Dict:
-
-        """Run analyze_documentation_sync with structured data handling."""
-
-        try:
-
-            if self._run_doc_sync_check('--check'):
-
-                summary = self.docs_sync_summary or {}
-
-                all_results = getattr(self, 'docs_sync_results', {}).get('all_results', {})
-
-                path_drift_files = summary.get('path_drift_files', [])
-
-                data = {
-
-                    'summary': {
-
-                        'total_issues': summary.get('total_issues', 0),
-
-                        'files_affected': len(path_drift_files) if isinstance(path_drift_files, list) else 0,
-
-                        'status': summary.get('status', 'UNKNOWN')
-
-                    },
-
-                    'details': {
-
-                        'paired_doc_issues': summary.get('paired_doc_issues', 0),
-
-                        'path_drift_issues': summary.get('path_drift_issues', 0),
-
-                        'ascii_compliance_issues': summary.get('ascii_issues', 0),
-
-                        'heading_numbering_issues': summary.get('heading_numbering_issues', 0),
-
-                        'missing_address_issues': summary.get('missing_address_issues', 0),
-
-                        'unconverted_link_issues': summary.get('unconverted_link_issues', 0),
-
-                        'path_drift_files': path_drift_files,
-
-                        'paired_docs': all_results.get('paired_docs', {}),
-
-                        'path_drift': all_results.get('path_drift', {}),
-
-                        'ascii_compliance': all_results.get('ascii_compliance', {}),
-
-                        'heading_numbering': all_results.get('heading_numbering', {}),
-
-                        'missing_addresses': all_results.get('missing_addresses', {}),
-
-                        'unconverted_links': all_results.get('unconverted_links', {})
-
-                    }
-
-                }
-
-                import io
-
-                import sys
-
-                output_buffer = io.StringIO()
-
-                original_stdout = sys.stdout
-
-                sys.stdout = output_buffer
-
-                try:
-
-                    from development_tools.docs.analyze_documentation_sync import DocumentationSyncChecker
-
-                    checker = DocumentationSyncChecker()
-
-                    results = {
-
-                        'summary': summary,
-
-                        'paired_docs': all_results.get('paired_docs', {}),
-
-                        'path_drift': all_results.get('path_drift', {}),
-
-                        'ascii_compliance': all_results.get('ascii_compliance', {}),
-
-                        'heading_numbering': all_results.get('heading_numbering', {})
-
-                    }
-
-                    checker.print_report(results)
-
-                    output = output_buffer.getvalue()
-
-                finally:
-
-                    sys.stdout = original_stdout
-
-                try:
-
-                    save_tool_result('analyze_documentation_sync', 'docs', data, project_root=self.project_root)
-
-                except Exception as e:
-
-                    logger.warning(f"Failed to save analyze_documentation_sync result: {e}")
-
-                return {
-
-                    'success': True,
-
-                    'output': output,
-
-                    'error': '',
-
-                    'returncode': 0,
-
-                    'data': data
-
-                }
-
-            else:
-
-                return {
-
-                    'success': False,
-
-                    'error': 'Documentation sync check failed',
-
-                    'output': '',
-
-                    'returncode': 1
-
-                }
-
-        except Exception as e:
-
-            logger.error(f"Error running documentation sync: {e}", exc_info=True)
-
-            return {
-
-                'success': False,
-
-                'error': str(e),
-
-                'output': '',
-
-                'returncode': 1
-
-            }
-
-    
-
-    def run_analyze_path_drift_legacy(self) -> Dict:
-
-        """Run analyze_path_drift with structured data handling."""
-
-        try:
-
-            from development_tools.docs.analyze_path_drift import PathDriftAnalyzer
-
-            analyzer = PathDriftAnalyzer()
-
-            structured_results = analyzer.run_analysis()
-
-            if 'summary' in structured_results:
-
-                summary = structured_results.get('summary', {})
-
-                data = {
-
-                    'files': structured_results.get('files', {}),
-
-                    'total_issues': summary.get('total_issues', 0),
-
-                    'detailed_issues': structured_results.get('details', {}).get('detailed_issues', {})
-
-                }
-
-            else:
-
-                logger.debug("analyze_path_drift: Using legacy format (backward compatibility)")
-
-                data = {
-
-                    'files': structured_results.get('files', {}),
-
-                    'total_issues': structured_results.get('total_issues', 0),
-
-                    'detailed_issues': structured_results.get('detailed_issues', {})
-
-                }
-
-            import io
-
-            import sys
-
-            output_buffer = io.StringIO()
-
-            original_stdout = sys.stdout
-
-            sys.stdout = output_buffer
-
-            try:
-
-                if data['total_issues'] > 0:
-
-                    print(f"\nPath Drift Issues:")
-
-                    print(f"   Total files with issues: {len(data['files'])}")
-
-                    print(f"   Total issues found: {data['total_issues']}")
-
-                    print(f"   Top files with most issues:")
-
-                    sorted_files = sorted(data['files'].items(), key=lambda x: x[1], reverse=True)
-
-                    for doc_file, issue_count in sorted_files[:5]:
-
-                        print(f"     {doc_file}: {issue_count} issues")
-
-                else:
-
-                    print("\nNo path drift issues found!")
-
-                output = output_buffer.getvalue()
-
-            finally:
-
-                sys.stdout = original_stdout
-
-            try:
-
-                save_tool_result('analyze_path_drift', 'docs', data, project_root=self.project_root)
-
-            except Exception as e:
-
-                logger.warning(f"Failed to save analyze_path_drift result: {e}")
-
-            return {
-
-                'success': True,
-
-                'output': output,
-
-                'error': '',
-
-                'returncode': 0,
-
-                'data': data
-
-            }
-
-        except Exception as e:
-
-            logger.error(f"Error running path drift analyzer: {e}", exc_info=True)
-
-            result = self.run_script("analyze_path_drift", '--json')
-
-            try:
-                def path_drift_converter(file_data: Dict[str, Any]) -> Dict[str, Any]:
-                    files_with_issues = {}
-                    detailed_issues = {}
-                    total_issues = 0
-                    for file_path, file_info in file_data.items():
-                        if isinstance(file_info, dict):
-                            results = file_info.get('results', [])
-                            if results:
-                                files_with_issues[file_path] = len(results)
-                                detailed_issues[file_path] = results
-                                total_issues += len(results)
-                    return {
-                        'files': files_with_issues,
-                        'total_issues': total_issues,
-                        'detailed_issues': detailed_issues
-                    }
-
-                data = self._load_mtime_cached_tool_results(
-                    'analyze_path_drift',
-                    'docs',
-                    result,
-                    self._parse_path_drift_output,
-                    path_drift_converter
-                )
-
-                if data:
-
-                    result['data'] = data
-
-                    result['success'] = True
-
-                    result['error'] = ''
-
-                else:
-
-                    result['success'] = False
-
-                    result['error'] = f'Failed to load path drift results: {e}'
-
-            except Exception as helper_error:
-
-                logger.debug(f"Failed to use unified helper for path drift fallback: {helper_error}")
-
-                output = result.get('output', '')
-
-                data = None
-
-                if output:
-
-                    try:
-
-                        data = json.loads(output)
-
-                    except json.JSONDecodeError:
-
-                        data = self._parse_path_drift_output(output)
-
-                if data:
-
-                    try:
-
-                        save_tool_result('analyze_path_drift', 'docs', data, project_root=self.project_root)
-
-                    except Exception as save_error:
-
-                        logger.warning(f"Failed to save analyze_path_drift result: {save_error}")
-
-                    result['data'] = data
-
-                    result['success'] = True
-
-                    result['error'] = ''
-
-                else:
-
-                    result['success'] = False
-
-                    result['error'] = f'Failed to parse path drift output: {e}'
-
-            return result
-
-    
-
-    def run_generate_legacy_reference_report_legacy(self) -> Dict:
-
-        """Run generate_legacy_reference_report to create LEGACY_REFERENCE_REPORT.md."""
-
-        # First, ensure we have legacy reference analysis results
-
-        legacy_data = None
-
-        if hasattr(self, 'legacy_cleanup_summary') and self.legacy_cleanup_summary:
-
-            legacy_data = self.legacy_cleanup_summary
-
-        else:
-
-            # Try to load from cache
-
-            try:
-
-                legacy_result = self._load_tool_data('analyze_legacy_references', 'legacy', log_source=False)
-
-                if legacy_result and isinstance(legacy_result, dict):
-
-                    legacy_data = legacy_result
-
-            except Exception as e:
-
-                logger.debug(f"Failed to load legacy data for report generation: {e}")
-
-        
-
-        if not legacy_data:
-
-            return {
-
-                'success': False,
-
-                'output': '',
-
-                'error': 'No legacy reference analysis data available. Run analyze_legacy_references first.',
-
-                'returncode': 1
-
-            }
-
-        
-
-        # Prepare findings file
-
-        import tempfile
-
-        import json
-
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False, encoding='utf-8') as f:
-
-            findings_file = f.name
-
-            # Extract findings from legacy_data - handle both standard format and old format
-
-            findings = {}
-
-            if 'findings' in legacy_data:
-
-                findings = legacy_data['findings']
-
-            elif 'details' in legacy_data and 'findings' in legacy_data['details']:
-
-                findings = legacy_data['details']['findings']
-
-            elif isinstance(legacy_data, dict):
-
-                # If no findings key, use the whole structure (might be in old format)
-
-                findings = legacy_data
-
-            
-
-            json.dump(findings, f, indent=2)
-
-        
-
-        try:
-
-            script_path = Path(__file__).resolve().parent.parent.parent / 'legacy' / 'generate_legacy_reference_report.py'
-
-            output_file = 'development_docs/LEGACY_REFERENCE_REPORT.md'
-
-            cmd = [sys.executable, str(script_path), '--findings-file', findings_file, '--output-file', output_file]
-
-            result_proc = subprocess.run(
-
-                cmd,
-
-                capture_output=True,
-
-                text=True,
-
-                cwd=str(self.project_root),
-
-                timeout=300
-
-            )
-
-            # Clean up temp file
-
-            try:
-
-                Path(findings_file).unlink()
-
-            except Exception:
-
-                pass
-
-            
-
-            return {
-
-                'success': result_proc.returncode == 0,
-
-                'output': result_proc.stdout,
-
-                'error': result_proc.stderr,
-
-                'returncode': result_proc.returncode
-
-            }
-
-        except subprocess.TimeoutExpired:
-
-            try:
-
-                Path(findings_file).unlink()
-
-            except Exception:
-
-                pass
-
-            return {
-
-                'success': False,
-
-                'output': '',
-
-                'error': 'generate_legacy_reference_report timed out after 5 minutes',
-
-                'returncode': None
-
-            }
-
-        except Exception as e:
-
-            try:
-
-                Path(findings_file).unlink()
-
-            except Exception:
-
-                pass
-
-            return {
-
-                'success': False,
-
-                'output': '',
-
-                'error': f'generate_legacy_reference_report failed: {e}',
-
-                'returncode': None
-
-            }
-
-    
-
-    def run_analyze_legacy_references_legacy(self) -> Dict:
-
-        """Run analyze_legacy_references with structured data handling."""
-
-        try:
-
-            from development_tools.legacy.analyze_legacy_references import LegacyReferenceAnalyzer
-
-            analyzer = LegacyReferenceAnalyzer(project_root=str(self.project_root))
-
-            findings = analyzer.scan_for_legacy_references()
-
-            total_files = sum(len(files) for files in findings.values())
-
-            total_markers = sum(len(matches) for files in findings.values() for _, _, matches in files)
-
-            serializable_findings = {}
-
-            for pattern_type, file_list in findings.items():
-
-                serializable_findings[pattern_type] = [
-
-                    [file_path, content, matches] for file_path, content, matches in file_list
-
-                ]
-
-            standard_format = {
-
-                'summary': {
-
-                    'total_issues': total_markers,
-
-                    'files_affected': total_files
-
-                },
-
-                'details': {
-
-                    'findings': serializable_findings,
-
-                    'files_with_issues': total_files,
-
-                    'legacy_markers': total_markers,
-
-                    'report_path': 'development_docs/LEGACY_REFERENCE_REPORT.md'
-
-                }
-
-            }
-
-            try:
-
-                save_tool_result('analyze_legacy_references', 'legacy', standard_format, project_root=self.project_root)
-
-            except Exception as e:
-
-                logger.warning(f"Failed to save analyze_legacy_references result: {e}")
-
-            # Store in legacy_cleanup_summary for report generation
-
-            self.legacy_cleanup_summary = standard_format
-
-            # Also store in results_cache
-
-            if not hasattr(self, 'results_cache'):
-
-                self.results_cache = {}
-
-            self.results_cache['analyze_legacy_references'] = standard_format
-
-            
-
-            return {
-
-                'success': True,
-
-                'output': f"Found {total_markers} legacy markers in {total_files} files",
-
-                'error': '',
-
-                'returncode': 0,
-
-                'data': standard_format
-
-            }
-
-        except Exception as e:
-
-            logger.error(f"Error running legacy references analyzer: {e}", exc_info=True)
-
-            return {
-
-                'success': False,
-
-                'error': str(e),
-
-                'output': '',
-
-                'returncode': 1
-
-            }

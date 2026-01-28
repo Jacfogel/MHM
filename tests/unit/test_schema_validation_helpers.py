@@ -58,8 +58,8 @@ def test_validate_preferences_dict_reports_errors_and_returns_original(monkeypat
 
 @pytest.mark.unit
 @pytest.mark.regression
-def test_validate_schedules_dict_normalizes_legacy_shape_and_invalid_fields():
-    legacy_shape = {
+def test_validate_schedules_dict_normalizes_compatibility_shape_and_invalid_fields():
+    compatibility_shape = {
         "general": {
             "morning": {
                 "days": ["Funday", "ALL"],
@@ -70,7 +70,7 @@ def test_validate_schedules_dict_normalizes_legacy_shape_and_invalid_fields():
         }
     }
 
-    normalized, errors = validate_schedules_dict(legacy_shape)
+    normalized, errors = validate_schedules_dict(compatibility_shape)
 
     assert errors == []
     assert set(normalized.keys()) == {"general"}

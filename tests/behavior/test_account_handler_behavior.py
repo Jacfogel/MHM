@@ -83,7 +83,10 @@ class TestAccountHandlerBehavior:
             entities={
                 'username': 'newtestuser',
                 'channel_identifier': discord_user_id,
-                'channel_type': 'discord'
+                'channel_type': 'discord',
+                'tasks_enabled': True,
+                'checkins_enabled': True,
+                'messages_enabled': False
             },
             confidence=0.9,
             original_message='create account'
@@ -159,8 +162,8 @@ class TestAccountHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.no_parallel
-    def test_handle_create_account_backward_compatibility_defaults(self, test_data_dir):
-        """Test: Create account without feature selection uses backward-compatible defaults."""
+    def test_handle_create_account_requires_feature_selection(self, test_data_dir):
+        """Test: Create account without feature selection prompts for required flags."""
         handler = AccountManagementHandler()
         
         # Clear any existing user
@@ -170,7 +173,7 @@ class TestAccountHandlerBehavior:
             from core.user_data_manager import delete_user_completely
             delete_user_completely(existing_user_id, create_backup=False)
         
-        # Create account without feature selection parameters (backward compatibility)
+        # Create account without feature selection parameters
         parsed_command = ParsedCommand(
             intent='create_account',
             entities={
@@ -185,22 +188,9 @@ class TestAccountHandlerBehavior:
         
         response = handler.handle(discord_user_id, parsed_command)
         
-        # Assert: Should create account successfully
-        assert response.completed is True, "Should complete account creation"
-        
-        # Verify user was created
-        created_user_id = get_user_id_by_identifier(discord_user_id)
-        assert created_user_id is not None, "User should be created"
-        
-        # Verify default feature flags (tasks=True, checkins=True, messages=False)
-        user_data = get_user_data(created_user_id, 'account')
-        account_data = user_data.get('account', {})
-        features = account_data.get('features', {})
-        
-        assert features.get('task_management') == 'enabled', "Task management should default to enabled"
-        assert features.get('checkins') == 'enabled', "Check-ins should default to enabled"
-        assert features.get('automated_messages') == 'disabled', "Automated messages should default to disabled"
-        assert account_data.get('timezone') == 'America/Regina', "Timezone should default to America/Regina"
+        # Assert: Should require explicit feature selection
+        assert response.completed is False, "Should not complete without feature selection"
+        assert 'feature' in response.message.lower(), "Should request feature settings"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -875,7 +865,10 @@ class TestAccountHandlerBehavior:
             entities={
                 'username': 'newemailuser',
                 'channel_identifier': email_address,
-                'channel_type': 'email'
+                'channel_type': 'email',
+                'tasks_enabled': True,
+                'checkins_enabled': True,
+                'messages_enabled': False
             },
             confidence=0.9,
             original_message='create account'
@@ -908,7 +901,10 @@ class TestAccountHandlerBehavior:
             entities={
                 'username': 'failuser',
                 'channel_identifier': 'fail@example.com',
-                'channel_type': 'email'
+                'channel_type': 'email',
+                'tasks_enabled': True,
+                'checkins_enabled': True,
+                'messages_enabled': False
             },
             confidence=0.9,
             original_message='create account'

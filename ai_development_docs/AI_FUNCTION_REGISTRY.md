@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-25 23:38:41
+> **Last Generated**: 2026-01-27 23:00:32
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 96.1% [OK] EXCELLENT**
-- **Total Functions**: 1536
-- **Total Methods**: 1154
-- **Documented**: 2584/2690
+- **Total Functions**: 1531
+- **Total Methods**: 1153
+- **Documented**: 2578/2684
 - **Files Scanned**: 109
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -22,14 +22,14 @@
 ```
 User Data Operations Decision Tree:
 +-- Core Data Access
-|   +-- `core/user_data_handlers.py` - Primary data access (53/54 functions)
+|   +-- `core/user_data_handlers.py` - Primary data access (52/53 functions)
 |   +-- `core/user_data_manager.py` - Data management (64 functions)
 |   `-- `core/user_data_validation.py` - Validation (8/11 functions)
 +-- User Context
 |   +-- `user/user_context.py` - User context management (20 functions)
 |   `-- `user/user_preferences.py` - User preferences (20 functions)
 `-- User Data Access
-    `-- `core/user_data_handlers.py` - Account operations (53/54 functions)
+    `-- `core/user_data_handlers.py` - Account operations (52/53 functions)
 ```
 
 ### **[AI] Need AI/Chatbot Functionality?**
@@ -79,7 +79,7 @@ UI Operations Decision Tree:
 ```
 Core System Decision Tree:
 +-- Configuration
-|   `-- `core/config.py` - System configuration (22 functions)
+|   `-- `core/config.py` - System configuration (19 functions)
 +-- Error Handling
 |   `-- `core/error_handling.py` - Error management (60/64 functions)
 +-- File Operations
@@ -88,7 +88,7 @@ Core System Decision Tree:
 +-- Logging
 |   `-- `core/logger.py` - Logging system (65 functions)
 `-- Scheduling
-    +-- `core/scheduler.py` - Task scheduling (81/82 functions)
+    +-- `core/scheduler.py` - Task scheduling (79/80 functions)
     `-- `core/schedule_management.py` - Schedule management (15/17 functions)
 ```
 
@@ -176,7 +176,7 @@ Core System Decision Tree:
 - [OK] `core/service.py::__init__()` - Initialization
 
 ### **Data Access Patterns**
-- **User Data**: `core/user_data_handlers.py` - User data operations (53/54 functions)
+- **User Data**: `core/user_data_handlers.py` - User data operations (52/53 functions)
 - **Validation**: `core/user_data_validation.py` - Data validation (8/11 functions)
 - **File Operations**: `core/file_operations.py` - File I/O (16 functions)
 
@@ -231,7 +231,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (27 files, 837 functions)
+- `core/` - System utilities and data management (27 files, 831 functions)
 - `communication/` - Communication channels and message processing (38 files, 782 functions)
 - `ai/` - AI chatbot functionality (7 files, 189 functions)
 - `ui/` - User interface components (28 files, 793 functions)
@@ -239,4 +239,4 @@ Most complex functions (may need refactoring):
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2026-01-25 23:38:41
+> **Last Updated**: 2026-01-27 23:00:32

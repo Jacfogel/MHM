@@ -54,12 +54,8 @@ class TestConfigKeySettings:
         # If not, it's OK for it to be empty (project-specific config required)
         if len(scan_dirs) == 0:
             # Check if external config file exists - if it does, it should have scan_directories
-            import os
             project_root = config.get_project_root()
-            # Check both new location and old location for backward compatibility
             config_file = project_root / 'development_tools' / 'config' / 'development_tools_config.json'
-            if not config_file.exists():
-                config_file = project_root / 'development_tools_config.json'
             if config_file.exists():
                 # Config file exists but scan_dirs is empty - this is a configuration issue
                 pytest.skip("External config file exists but scan_directories is empty (configuration issue)")
@@ -164,12 +160,8 @@ class TestConfigHelperFunctions:
         # If not, it's OK for it to be empty (project-specific config required)
         if len(result) == 0:
             # Check if external config file exists - if it does, it should have scan_directories
-            import os
             project_root = config.get_project_root()
-            # Check both new location and old location for backward compatibility
             config_file = project_root / 'development_tools' / 'config' / 'development_tools_config.json'
-            if not config_file.exists():
-                config_file = project_root / 'development_tools_config.json'
             if config_file.exists():
                 # Config file exists but scan_dirs is empty - this is a configuration issue
                 pytest.skip("External config file exists but scan_directories is empty (configuration issue)")
@@ -275,4 +267,3 @@ class TestConfigPaths:
             assert len(directory) > 0
             # Should not contain path separators in basic names
             assert '/' not in directory or directory.startswith('./')
-

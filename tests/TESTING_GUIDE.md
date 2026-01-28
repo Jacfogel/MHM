@@ -104,7 +104,7 @@ Tests are organized by real-world features and workflows to encourage integratio
   - `development_tools/docs/analyze_documentation_sync.py` - 12 tests for doc pairing validation
   - `development_tools/generate_function_registry.py` - 12 tests for function extraction and registry generation
   - `development_tools/imports/generate_module_dependencies.py` - 11 tests for dependency graph generation
-  - `development_tools/legacy/fix_legacy_references.py` - 10 tests for legacy pattern detection and cleanup
+  - `development_tools/legacy/fix_legacy_references.py` - 10 tests for legacy reference pattern detection and cleanup
   - `development_tools/tests/run_test_coverage.py` - 10 tests for coverage regeneration and reporting
 - Tests use a synthetic fixture project at `tests/fixtures/development_tools_demo/` for isolated testing.
 - For detailed guidance on development tools testing, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).

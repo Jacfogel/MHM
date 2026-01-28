@@ -152,7 +152,7 @@ class TestAccountCreatorDialogSignalHandlers:
                 )
             raise
         
-        # Also verify it works when called with no parameter (backward compatibility)
+        # Also verify it works when called with no parameter (compatibility fallback)
         try:
             dialog.on_username_changed()
         except TypeError as e:

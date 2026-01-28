@@ -700,7 +700,7 @@ def main():
     signals = analyzer.analyze_system_signals()
 
     if args.json:
-        output = json.dumps(signals, indent=2)
+        output = json.dumps(_build_standard_result(signals), indent=2)
     else:
         output = _format_human_readable(signals)
 
@@ -785,7 +785,7 @@ def _format_human_readable(signals: Dict[str, Any]) -> str:
         )
         lines.append("")
 
-    # Legacy warnings/errors (for backward compatibility)
+    # Warnings/errors
     if health.get("warnings") and not severity_levels.get("WARNING"):
         for warning in health["warnings"]:
             lines.append(f"  WARNING: {warning}")
@@ -822,6 +822,28 @@ def _format_human_readable(signals: Dict[str, Any]) -> str:
         lines.append("")
 
     return "\n".join(lines)
+
+
+def _build_standard_result(signals: Dict[str, Any]) -> Dict[str, Any]:
+    """Wrap signals in the standard format."""
+    system_health = signals.get("system_health", {}) if isinstance(signals, dict) else {}
+    core_files = system_health.get("core_files", {}) if isinstance(system_health, dict) else {}
+    key_dirs = system_health.get("key_directories", {}) if isinstance(system_health, dict) else {}
+    missing_core = sum(1 for status in core_files.values() if status == "MISSING")
+    missing_dirs = sum(1 for status in key_dirs.values() if status == "MISSING")
+    severity_levels = system_health.get("severity_levels", {}) if isinstance(system_health, dict) else {}
+    total_issues = len(signals.get("critical_alerts", [])) if isinstance(signals, dict) else 0
+    if isinstance(severity_levels, dict):
+        total_issues += len(severity_levels.get("CRITICAL", []))
+        total_issues += len(severity_levels.get("WARNING", []))
+    return {
+        "summary": {
+            "total_issues": total_issues,
+            "files_affected": missing_core + missing_dirs,
+            "status": system_health.get("overall_status", "UNKNOWN") if isinstance(system_health, dict) else "UNKNOWN",
+        },
+        "details": signals if isinstance(signals, dict) else {},
+    }
 
 
 if __name__ == "__main__":

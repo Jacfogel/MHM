@@ -461,51 +461,42 @@ class ModuleImportAnalyzer:
             return ensure_ascii(f"Module for {file_path}")
 
 
-# Convenience functions for backward compatibility
-def extract_imports_from_file(
-    file_path: str, local_prefixes: Optional[Tuple[str, ...]] = None
-) -> Dict[str, List[Dict]]:
-    """Extract all imports from a Python file with detailed information."""
-    analyzer = ModuleImportAnalyzer(local_prefixes=local_prefixes)
-    return analyzer.extract_imports_from_file(file_path)
-
-
-def scan_all_python_files(
-    local_prefixes: Optional[Tuple[str, ...]] = None,
-) -> Dict[str, Dict]:
-    """Scan all Python files in the project and extract import information."""
-    analyzer = ModuleImportAnalyzer(local_prefixes=local_prefixes)
-    return analyzer.scan_all_python_files()
+def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
+    """Module-level helper for tests and callers."""
+    return ModuleImportAnalyzer().extract_imports_from_file(file_path)
 
 
 def find_reverse_dependencies(
     target_module: str, all_modules: Dict[str, Dict]
 ) -> List[str]:
-    """Find all modules that import the target module."""
-    analyzer = ModuleImportAnalyzer()
-    return analyzer.find_reverse_dependencies(target_module, all_modules)
+    """Module-level helper for tests and callers."""
+    return ModuleImportAnalyzer().find_reverse_dependencies(target_module, all_modules)
 
 
 def analyze_dependency_changes(
     file_path: str, data: Dict, existing_content: str
 ) -> Dict:
-    """Analyze if dependencies have changed since last generation."""
-    analyzer = ModuleImportAnalyzer()
-    return analyzer.analyze_dependency_changes(file_path, data, existing_content)
+    """Module-level helper for tests and callers."""
+    return ModuleImportAnalyzer().analyze_dependency_changes(
+        file_path, data, existing_content
+    )
 
 
 def infer_module_purpose(
     file_path: str, data: Dict, all_modules: Dict[str, Dict]
 ) -> str:
-    """Infer a more detailed purpose based on dependencies and usage patterns."""
-    analyzer = ModuleImportAnalyzer()
-    return analyzer.infer_module_purpose(file_path, data, all_modules)
+    """Module-level helper for tests and callers."""
+    return ModuleImportAnalyzer().infer_module_purpose(file_path, data, all_modules)
 
 
 def format_import_details(import_info: Dict) -> str:
-    """Format import information for display - handles both list and set formats."""
-    analyzer = ModuleImportAnalyzer()
-    return analyzer.format_import_details(import_info)
+    """Module-level helper for tests and callers."""
+    return ModuleImportAnalyzer().format_import_details(import_info)
+
+
+def scan_all_python_files() -> Dict[str, Dict]:
+    """Module-level helper for tests and callers."""
+    return ModuleImportAnalyzer().scan_all_python_files()
 
 
 if __name__ == "__main__":

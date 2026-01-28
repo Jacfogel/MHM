@@ -129,7 +129,7 @@ python development_tools/run_development_tools.py help
   }
   ```
 - Tools can be run with `--json` flag to output standard format directly
-- Normalization layer in `result_format.py` handles backward compatibility for legacy formats
+- Results are expected to already be in standard format (strict validation)
 - Report generation code accesses data from `details` section when in standard format
 
 **Tool Output Storage**:

@@ -4,6 +4,7 @@ Command execution methods for AIToolsService.
 Contains methods for executing various CLI commands (docs, validate, config, etc.)
 """
 
+import json
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -64,7 +65,7 @@ class CommandsMixin:
         # Run documentation sync check
         try:
             logger.info("  - Checking documentation sync...")
-            if not self._run_doc_sync_check('--check'):
+            if not self._run_doc_sync_check():
                 success = False
         except Exception as exc:
             logger.error(f"  - Documentation sync check failed: {exc}")
@@ -265,27 +266,13 @@ class CommandsMixin:
                 from .. import config
                 status_config = config.get_status_config()
                 status_files_config = status_config.get('status_files', {})
-                # Use default from STATUS config if status_files_config is empty (matches default config)
-                if not status_files_config:
-                    # Fallback to default STATUS config values for backward compatibility
-                    from ...config.config import STATUS
-                    status_files_config = STATUS.get('status_files', {})
                 ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
                 ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
                 consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/consolidated_report.txt')
             except (ImportError, AttributeError, KeyError):
-                # Fallback to default STATUS config values for backward compatibility
-                try:
-                    from ...config.config import STATUS
-                    status_files_default = STATUS.get('status_files', {})
-                    ai_status_path = status_files_default.get('ai_status', 'development_tools/AI_STATUS.md')
-                    ai_priorities_path = status_files_default.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
-                    consolidated_report_path = status_files_default.get('consolidated_report', 'development_tools/consolidated_report.txt')
-                except (ImportError, AttributeError):
-                    # Last resort fallback
-                    ai_status_path = 'development_tools/AI_STATUS.md'
-                    ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
-                    consolidated_report_path = 'development_tools/consolidated_report.txt'
+                ai_status_path = 'development_tools/AI_STATUS.md'
+                ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
+                consolidated_report_path = 'development_tools/consolidated_report.txt'
             
             try:
                 ai_status = self._generate_ai_status_document()
@@ -318,7 +305,7 @@ class CommandsMixin:
         """Run documentation sync check"""
         logger.info("Running documentation sync check...")
         logger.info("=" * 50)
-        success = self._run_doc_sync_check('--check')
+        success = self._run_doc_sync_check()
         if success:
             logger.info("Documentation sync check completed!")
         else:
@@ -377,7 +364,6 @@ class CommandsMixin:
             # Use 20 minutes timeout (1200s) to allow pytest to complete
             # The script itself sets a 15-minute timeout for pytest, so we need
             # a bit more time for script overhead and pytest execution
-            # Note: --update-plan flag is kept for backward compatibility but does nothing
             result = self.run_script('run_test_coverage', timeout=1200)
             if result['success']:
                 
@@ -390,11 +376,16 @@ class CommandsMixin:
                         overall_coverage = coverage_data.get('overall', {}).get('coverage', 'N/A')
                         modules_count = len(coverage_data.get('modules', []))
                         logger.debug(f"Loaded coverage data: overall={overall_coverage}%, modules={modules_count}")
-                        from ..result_format import normalize_to_standard_format
                         from ..output_storage import save_tool_result
-                        # coverage_data from _load_coverage_summary() has 'overall', 'modules', 'worst_files'
-                        # This matches the format expected by normalize_to_standard_format for analyze_test_coverage
-                        standard_format = normalize_to_standard_format('analyze_test_coverage', coverage_data)
+                        overall = coverage_data.get('overall', {}) if isinstance(coverage_data, dict) else {}
+                        missed = overall.get('missed', 0) if isinstance(overall, dict) else 0
+                        standard_format = {
+                            'summary': {
+                                'total_issues': missed,
+                                'files_affected': 0,
+                            },
+                            'details': coverage_data
+                        }
                         save_tool_result('analyze_test_coverage', 'tests', standard_format, project_root=self.project_root)
                         logger.info(f"Saved analyze_test_coverage results to standardized storage (coverage: {overall_coverage}%)")
                     else:
@@ -428,7 +419,7 @@ class CommandsMixin:
         return success
     
     def run_cleanup(self, cache: bool = False, test_data: bool = False,
-                    reports: bool = False, all: bool = False,
+                    reports: bool = False,
                     coverage: bool = False, full: bool = False,
                     dry_run: bool = False):
         """Clean up generated files and caches"""
@@ -443,13 +434,6 @@ class CommandsMixin:
                 cache = True
                 test_data = True
                 coverage = True
-            # Legacy --all flag support (for backwards compatibility)
-            elif all:
-                cache = True
-                test_data = True
-                reports = True
-                coverage = True
-            
             cleanup = ProjectCleanup(self.project_root)
             results = cleanup.cleanup_all(
                 dry_run=dry_run,
@@ -501,6 +485,13 @@ class CommandsMixin:
                             data = json.loads(output)
                     else:
                         data = json.loads(output)
+                    if not (
+                        isinstance(data, dict)
+                        and isinstance(data.get('summary'), dict)
+                        and isinstance(data.get('details'), dict)
+                    ):
+                        logger.error("analyze_system_signals returned non-standard JSON (missing summary/details)")
+                        return False
                     self.system_signals = data
                     try:
                         save_tool_result('analyze_system_signals', 'reports', data, project_root=self.project_root)
@@ -509,6 +500,10 @@ class CommandsMixin:
                 except json.JSONDecodeError as e:
                     logger.warning(f"analyze_system_signals output could not be parsed as JSON: {e}")
                     logger.debug(f"analyze_system_signals raw output (first 500 chars): {output[:500]}")
+                    return False
+            else:
+                logger.error("analyze_system_signals returned empty output")
+                return False
             logger.info("System signals analysis completed!")
             return True
         else:
@@ -540,19 +535,41 @@ class CommandsMixin:
         if output:
             try:
                 import json
-                data = json.loads(output)
-                result['data'] = data
+                raw_data = json.loads(output)
+                from ..result_format import normalize_to_standard_format
+                normalized = normalize_to_standard_format("analyze_test_markers", raw_data)
+                details = normalized.get("details", {})
+                missing_items = details.get('missing', []) if isinstance(details, dict) else []
+                missing_count = details.get('missing_count')
+                if not isinstance(missing_count, int):
+                    missing_count = len(missing_items) if isinstance(missing_items, list) else 0
+                missing_files = set()
+                if isinstance(missing_items, list):
+                    for item in missing_items:
+                        if isinstance(item, dict):
+                            file_path = item.get('file')
+                            if file_path:
+                                missing_files.add(file_path)
+                        elif isinstance(item, (list, tuple)) and item:
+                            missing_files.add(item[0])
+                standard_result = self._create_standard_format_result(
+                    missing_count,
+                    len(missing_files),
+                    None,
+                    details
+                )
+                result['data'] = standard_result
                 result['success'] = True  # Mark as success if we got valid JSON
                 try:
-                    save_tool_result('analyze_test_markers', 'tests', data, project_root=self.project_root)
+                    save_tool_result('analyze_test_markers', 'tests', standard_result, project_root=self.project_root)
                 except Exception as e:
                     logger.debug(f"Failed to save analyze_test_markers result: {e}")
                 logger.info("Test markers analysis completed!")
-            except json.JSONDecodeError as e:
-                logger.error(f"Test markers analysis failed: Could not parse JSON output: {e}")
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.error(f"Test markers analysis failed: Invalid JSON output: {e}")
                 logger.debug(f"Output was: {output[:200]}")
                 result['success'] = False
-                result['error'] = f"Could not parse JSON output: {e}"
+                result['error'] = f"Invalid JSON output: {e}"
         elif result.get('error'):
             error_msg = result['error']
             logger.error(f"Test markers analysis failed: {error_msg}")
@@ -736,9 +753,15 @@ class CommandsMixin:
         
         # Run paired documentation sync
         # Note: analyze_documentation_sync.py logs this message itself, so we don't duplicate it here
-        result = self.run_script('analyze_documentation_sync', *args)
-        if result.get('output') or result.get('success'):
-            all_results['paired_docs'] = self._parse_documentation_sync_output(result.get('output', ''))
+        result = self.run_script('analyze_documentation_sync', '--json')
+        if result.get('output') and result.get('success'):
+            try:
+                parsed = json.loads(result.get('output', ''))
+                details = parsed.get('details', {}) if isinstance(parsed, dict) else {}
+                all_results['paired_docs'] = details.get('paired_docs', {})
+            except json.JSONDecodeError as e:
+                logger.warning(f"analyze_documentation_sync output could not be parsed as JSON: {e}")
+                all_results['paired_docs'] = {}
         else:
             logger.warning(f"analyze_documentation_sync failed: {result.get('error', 'Unknown error')}")
         

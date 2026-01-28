@@ -30,7 +30,7 @@ When you attach to MHM, do this first:
      - Running audits or status checks
      - Understanding tool tiers and trust levels
      - Working with generated reports (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt)
-     - Using commands like `audit`, `status`, `doc-sync`, `docs`, `legacy`, `coverage`
+    - Using commands like `audit`, `status`, `doc-sync`, `docs`, `legacy` (legacy reference scan), `coverage`
 
 3. **Stay within scope**  
    - Use only the files present in the current workspace (for example, those the user has uploaded or explicitly referenced).  
@@ -68,7 +68,7 @@ Use these AI docs as your primary routing table; they, in turn, point to detaile
 
 - **Legacy removal** - [AI_LEGACY_REMOVAL_GUIDE.md](AI_LEGACY_REMOVAL_GUIDE.md)  
   - Quick reference for using `development_tools/legacy/fix_legacy_references.py` and the `legacy` command.  
-  - Tightly coupled with [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) and the legacy reports described there.
+  - Tightly coupled with [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) and the legacy reference reports described there.
 
 ## 3. Safe Change Rules
 
@@ -91,7 +91,7 @@ Follow these high-level rules whenever you propose or describe changes:
    - Where appropriate, suggest re-running:
      - `python development_tools/run_development_tools.py audit`  
      - `python development_tools/run_development_tools.py status`  
-     - `python development_tools/run_development_tools.py legacy` (for legacy-related work).
+    - `python development_tools/run_development_tools.py legacy` (legacy-related cleanup work).
 
 ## 4. Typical Tasks and Where to Look
 
@@ -109,7 +109,7 @@ Use this as a routing table for common request types.
 
 - Start with [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md), especially section 1 "Safety First" and section 3 "Standard Development Cycle".  
 - Use [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) for commands to run audits and checks.  
-- For legacy-related refactors, also use [AI_LEGACY_REMOVAL_GUIDE.md](AI_LEGACY_REMOVAL_GUIDE.md) and the legacy tools described there.
+- For legacy-related cleanup, also use [AI_LEGACY_REMOVAL_GUIDE.md](AI_LEGACY_REMOVAL_GUIDE.md) and the related tools described there.
 
 ### 4.3. "Help me understand the system"
 

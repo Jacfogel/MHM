@@ -110,7 +110,7 @@ Preserve these patterns when generating or editing code:
   - Per-user instances: `data/users/{user_id}/messages/`.
 
 - Legacy and migration  
-  - Use explicit legacy branches and the logging pattern from section 7. "Legacy Compatibility Logging Standard" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
+  - Use explicit legacy compatibility branches and the logging pattern from section 7. "Legacy Compatibility Logging Standard" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
 
 If you need full rationale or examples, see section 3. Data Handling Patterns in [ARCHITECTURE.md](ARCHITECTURE.md).
 

@@ -1158,13 +1158,9 @@ def main():
             import json
             print(json.dumps(results, indent=2))
         else:
-            # Print summary (extract details if in standard format)
-            if 'summary' in results and 'details' in results:
-                # Standard format - use details for report generator
-                report_generator = ErrorHandlingReportGenerator(results['details'])
-            else:
-                # Legacy format
-                report_generator = ErrorHandlingReportGenerator(results)
+            if 'summary' not in results or 'details' not in results:
+                raise ValueError("Error handling results must use standard format.")
+            report_generator = ErrorHandlingReportGenerator(results['details'])
             report_generator.print_summary()
     except Exception as e:
         logger.error(f"Failed to generate or output report: {e}", exc_info=True)

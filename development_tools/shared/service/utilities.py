@@ -379,8 +379,27 @@ class UtilitiesMixin:
             metrics['critical_complexity_examples'] = critical_examples
         if high_examples:
             metrics['high_complexity_examples'] = high_examples
-        self.results_cache['decision_support_metrics'] = metrics
-        self.results_cache['decision_support'] = metrics
+
+        def _safe_int(value: Any) -> int:
+            if isinstance(value, int):
+                return value
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                return 0
+
+        total_issues = (
+            _safe_int(metrics.get('critical_complexity'))
+            + _safe_int(metrics.get('high_complexity'))
+            + _safe_int(metrics.get('undocumented'))
+        )
+        standard_result = create_standard_format_result(
+            total_issues,
+            0,
+            None,
+            metrics
+        )
+        self.results_cache['decision_support'] = standard_result
         if metrics:
             logger.debug(f"Extracted decision_support metrics: {list(metrics.keys())}")
         else:
@@ -451,7 +470,7 @@ class UtilitiesMixin:
     def _extract_key_metrics(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """Collect combined metrics for audit summary output."""
         combined: Dict[str, Any] = {}
-        for cache_key in ('analyze_functions', 'analyze_function_registry', 'decision_support_metrics', 'analyze_error_handling'):
+        for cache_key in ('analyze_functions', 'analyze_function_registry', 'analyze_error_handling'):
             cache = self.results_cache.get(cache_key)
             if isinstance(cache, dict):
                 for key, value in cache.items():

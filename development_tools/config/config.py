@@ -36,18 +36,14 @@ def load_external_config(config_path: Optional[str] = None) -> bool:
     if config_path:
         config_file = Path(config_path).resolve()
     else:
-        # Try to find config in development_tools/config/ first, then project root
+        # Try to find config in development_tools/config/
         project_root = _get_default_project_root()
-        # First check in development_tools/config/
         config_file = (
             project_root
             / "development_tools"
             / "config"
             / "development_tools_config.json"
         )
-        if not config_file.exists():
-            # Fallback to project root for backward compatibility
-            config_file = project_root / "development_tools_config.json"
 
     if not config_file.exists():
         _external_config = None
@@ -857,8 +853,6 @@ STATUS = {
     "check_audit_results": True,
     "generate_status_files": True,
     "status_files": {
-        # Default paths include development_tools/ for backward compatibility
-        # Projects can override via development_tools_config.json
         "ai_status": "development_tools/AI_STATUS.md",
         "ai_priorities": "development_tools/AI_PRIORITIES.md",
         "consolidated_report": "development_tools/consolidated_report.txt",

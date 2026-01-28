@@ -1327,9 +1327,8 @@ class SchedulerManager:
                     )
                     continue
 
-                # Use canonical keys with fallback to legacy keys for task reminder periods
-                start_time = period_data.get("start_time") or period_data.get("start")
-                end_time = period_data.get("end_time") or period_data.get("end")
+                start_time = period_data.get("start_time")
+                end_time = period_data.get("end_time")
 
                 if not start_time or not end_time:
                     logger.warning(
@@ -1668,14 +1667,6 @@ class SchedulerManager:
                 f"Error scheduling task reminder for user {user_id}, task {task_id}: {e}"
             )
             return False
-
-    @handle_errors("scheduling task reminder")
-    def schedule_task_reminder(self, user_id, task_id, reminder_time):
-        """
-        Legacy function for backward compatibility.
-        Schedule a reminder for a specific task at the specified time.
-        """
-        return self.schedule_task_reminder_at_time(user_id, task_id, reminder_time)
 
     @handle_errors("scheduling task reminder at specific datetime")
     def schedule_task_reminder_at_datetime(self, user_id, task_id, date_str, time_str):

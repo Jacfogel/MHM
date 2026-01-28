@@ -239,8 +239,11 @@ class ChannelModel(BaseModel):
                 pattern = re.compile(
                     r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                 )
-                # If invalid, keep as-is for backward compatibility (tests may set placeholders)
-                # Future: optionally warn rather than drop
+                if not pattern.match(self.contact):
+                    logger.warning(
+                        f"Invalid email contact '{self.contact}' for channel; dropping value"
+                    )
+                    self.contact = None
             elif self.type == "discord":
                 # Accept any non-empty string, including username#discriminator or IDs
                 if not (isinstance(self.contact, str) and self.contact):
@@ -492,8 +495,25 @@ def validate_account_dict(data: dict[str, Any]) -> tuple[dict[str, Any], list[st
             return model.model_dump(), errors
         except Exception as e:
             errors.append(str(e))
-            # Best effort normalization: coerce features
-            fixed = data.copy()
+            # Best effort normalization: coerce features and backfill defaults
+            fixed = data.copy() if isinstance(data, dict) else {}
+            # Backfill missing core fields with safe defaults
+            defaults = {
+                "internal_username": "",
+                "account_status": "active",
+                "chat_id": "",
+                "phone": "",
+                "email": "",
+                "discord_user_id": "",
+                "discord_username": "",
+                "timezone": "",
+                "created_at": "",
+                "updated_at": "",
+            }
+            for key, value in defaults.items():
+                if key not in fixed:
+                    fixed[key] = value
+
             feats = fixed.get("features") or {}
             for k in ("automated_messages", "checkins", "task_management"):
                 v = feats.get(k)

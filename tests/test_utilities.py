@@ -589,7 +589,7 @@ class TestUserFactory:
                     user_id, test_data_dir
                 )
             else:
-                # Use real user directory (for backward compatibility)
+                # Use real user directory (compatibility fallback)
                 return TestUserFactory.create_full_featured_user__impl(user_id)
 
         except Exception as e:
@@ -797,7 +797,7 @@ class TestUserFactory:
                     user_id, email, test_data_dir
                 )
             else:
-                # Use real user directory (for backward compatibility)
+                # Use real user directory (compatibility fallback)
                 return TestUserFactory.create_email_user__impl(user_id, email)
 
         except Exception as e:
@@ -967,7 +967,7 @@ class TestUserFactory:
                         user_id, custom_fields
                     )
             else:
-                # Use real user directory (for backward compatibility)
+                # Use real user directory (compatibility fallback)
                 return TestUserFactory.create_user_with_custom_fields__impl(
                     user_id, custom_fields
                 )
@@ -1092,7 +1092,7 @@ class TestUserFactory:
                         user_id, schedule_config
                     )
             else:
-                # Use real user directory (for backward compatibility)
+                # Use real user directory (compatibility fallback)
                 return TestUserFactory.create_user_with_schedules__impl(
                     user_id, schedule_config
                 )
@@ -1397,7 +1397,7 @@ class TestUserFactory:
                     user_id, test_data_dir
                 )
             else:
-                # Use real user directory (for backward compatibility)
+                # Use real user directory (compatibility fallback)
                 return TestUserFactory.create_minimal_user__impl(user_id)
 
         except Exception as e:
@@ -1425,7 +1425,7 @@ class TestUserFactory:
                     user_id, test_data_dir
                 )
             else:
-                # Use real user directory (for backward compatibility)
+                # Use real user directory (compatibility fallback)
                 actual_user_id = TestUserFactory.create_minimal_user__impl_and_get_id(
                     user_id
                 )
@@ -1639,7 +1639,7 @@ class TestUserFactory:
                     user_id, test_data_dir
                 )
             else:
-                # Use real user directory (for backward compatibility)
+                # Use real user directory (compatibility fallback)
                 return TestUserFactory.create_user_with_complex_checkins__impl(user_id)
 
         except Exception as e:
@@ -1828,7 +1828,7 @@ class TestUserFactory:
                     user_id, test_data_dir
                 )
             else:
-                # Use real user directory (for backward compatibility)
+                # Use real user directory (compatibility fallback)
                 return TestUserFactory.create_user_with_health_focus__impl(user_id)
 
         except Exception as e:
@@ -2018,7 +2018,7 @@ class TestUserFactory:
                     user_id, test_data_dir
                 )
             else:
-                # Use real user directory (for backward compatibility)
+                # Use real user directory (compatibility fallback)
                 return TestUserFactory.create_user_with_task_focus__impl(user_id)
 
         except Exception as e:
@@ -2186,7 +2186,7 @@ class TestUserFactory:
                     user_id, test_data_dir
                 )
             else:
-                # Use real user directory (for backward compatibility)
+                # Use real user directory (compatibility fallback)
                 return TestUserFactory.create_user_with_disabilities__impl(user_id)
 
         except Exception as e:
@@ -2359,7 +2359,7 @@ class TestUserFactory:
                     user_id, test_data_dir
                 )
             else:
-                # Use real user directory (for backward compatibility)
+                # Use real user directory (compatibility fallback)
                 return TestUserFactory.create_user_with_limited_data__impl(user_id)
 
         except Exception as e:
@@ -2516,7 +2516,7 @@ class TestUserFactory:
                     )
                 )
             else:
-                # Use real user directory (for backward compatibility)
+                # Use real user directory (compatibility fallback)
                 return TestUserFactory.create_user_with_inconsistent_data__impl(user_id)
 
         except Exception as e:
@@ -2997,7 +2997,7 @@ class TestUserDataFactory:
         return base_data
 
 
-# Convenience functions for backward compatibility
+# Convenience functions for compatibility fallback
 def create_test_user(
     user_id: str, user_type: str = "basic", test_data_dir: str = None, **kwargs
 ) -> bool:

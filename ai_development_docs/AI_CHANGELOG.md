@@ -27,6 +27,15 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-01-28 - Dev Tools Format Hardening and Account Defaults **COMPLETED**
+- Enforced strict dev-tools result formats across aggregation/report generation; legacy result parsing now only exists in the legacy cleanup tool flow (`development_tools/shared/service/*.py`).
+- Dropped legacy `system_signals_results.json` usage in favor of standard tool outputs (reports + aggregation paths).
+- Normalized account validation to backfill defaults and preserve `features` even when validation errors are present (`core/schemas.py`, `core/user_data_handlers.py`).
+- Refreshed generated audit outputs/docs (function/module registries, directory tree, legacy report, coverage report, unused imports, consolidated report, AI status/priorities) across `development_docs/*`, `development_tools/*`, and `ai_development_docs/*`.
+- Updated tests/helpers to reflect the stricter format and compatibility cleanup workflow (`tests/*`).
+- Updated planning hygiene (removed completed TODO checklist items; refreshed plan metadata).
+- Validation: `python run_tests.py`, `python development_tools/run_development_tools.py audit --full --clear-cache`
+
 ### 2026-01-26 - Check-in Analytics and Command Handling Overhaul **COMPLETED**
 - Rebuilt check-in analytics to be question-asked scoped with transparent category summaries, updated completion rules, and added habit/sleep/energy/mood analyses plus richer check-in history formatting.
 - Expanded analytics command parsing and slash/bang registry (hyphen/no-hyphen + show-* variants) with time-window support for days/weeks/months and "last N check-ins".

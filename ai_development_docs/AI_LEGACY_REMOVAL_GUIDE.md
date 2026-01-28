@@ -132,4 +132,5 @@ A legacy item is considered fully removed when:
 - There are zero active code/config references in the report.
 - Tests and config no longer mention the legacy path (except where deliberately archived).
 - The service starts and passes the agreed test suite.
-- Documentation and changelog entries reflect the new, non-legacy behavior.
+- Documentation reflects the current behavior.
+- Changelog entries are historical and should remain unchanged

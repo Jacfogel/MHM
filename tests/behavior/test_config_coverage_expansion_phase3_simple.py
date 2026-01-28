@@ -269,20 +269,25 @@ class TestConfigCoverageExpansionPhase3Simple:
             # The function might still succeed if it can create the directory
             assert isinstance(result, bool)
 
-    def test_validate_email_config(self, tmp_path):
-        """Test validate_email_config function"""
-        result = core.config.validate_email_config()
-        assert isinstance(result, bool)
+    def test_validate_communication_channels_returns_types(self, tmp_path):
+        """Test validate_communication_channels return types"""
+        valid, errors, warnings = core.config.validate_communication_channels()
+        assert isinstance(valid, bool)
+        assert isinstance(errors, list)
+        assert isinstance(warnings, list)
 
-    def test_validate_discord_config(self, tmp_path):
-        """Test validate_discord_config function"""
-        result = core.config.validate_discord_config()
-        assert isinstance(result, bool)
+    def test_validate_all_configuration_returns_types(self, tmp_path):
+        """Test validate_all_configuration return types"""
+        result = core.config.validate_all_configuration()
+        assert isinstance(result, dict)
+        assert isinstance(result.get('valid'), bool)
+        assert isinstance(result.get('errors'), list)
+        assert isinstance(result.get('warnings'), list)
+        assert isinstance(result.get('available_channels'), list)
 
-    def test_validate_minimum_config(self, tmp_path):
-        """Test validate_minimum_config function"""
-        result = core.config.validate_minimum_config()
-        # This function returns a list of available channels, not a boolean
+    def test_validate_and_raise_if_invalid_returns_list(self, tmp_path):
+        """Test validate_and_raise_if_invalid returns available channels"""
+        result = core.config.validate_and_raise_if_invalid()
         assert isinstance(result, list)
 
     def test_environment_variable_loading(self, tmp_path):

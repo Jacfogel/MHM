@@ -153,7 +153,7 @@
         
 #         # Verify Tier 3 tools were NOT called
 #         assert 'run_test_coverage' not in tools_called, "Tier 3 tool run_test_coverage should NOT be called in Tier 1"
-#         assert 'analyze_legacy_references' not in tools_called, "Tier 3 tool analyze_legacy_references should NOT be called in Tier 1"
+#         assert 'analyze_legacy_references' not in tools_called, "Tier 3 compatibility scan tool analyze_legacy_references should NOT be called in Tier 1"
         
 #         assert result, "Quick audit should complete successfully"
     
@@ -213,7 +213,7 @@
         
 #         # Verify Tier 3 tools were NOT called
 #         assert 'run_test_coverage' not in tools_called, "Tier 3 tool run_test_coverage should NOT be called in Tier 2"
-#         assert 'analyze_legacy_references' not in tools_called, "Tier 3 tool analyze_legacy_references should NOT be called in Tier 2"
+#         assert 'analyze_legacy_references' not in tools_called, "Tier 3 compatibility scan tool analyze_legacy_references should NOT be called in Tier 2"
         
 #         assert result, "Standard audit should complete successfully"
     
@@ -274,7 +274,7 @@
         
 #         # Verify Tier 3 tools were called
 #         assert 'run_test_coverage' in tools_called, "Tier 3 tool run_test_coverage should be called"
-#         assert 'analyze_legacy_references' in tools_called, "Tier 3 tool analyze_legacy_references should be called"
+#         assert 'analyze_legacy_references' in tools_called, "Tier 3 compatibility scan tool analyze_legacy_references should be called"
         
 #         assert result, "Full audit should complete successfully"
 
@@ -396,7 +396,7 @@
 #         # Verify Tier 3 tools were called
 #         assert 'run_test_coverage' in tools_called, "Tier 3 tool run_test_coverage should be called in Tier 3"
 #         assert 'generate_test_coverage_report' in tools_called, "Tier 3 tool generate_test_coverage_report should be called in Tier 3"
-#         assert 'analyze_legacy_references' in tools_called, "Tier 3 tool analyze_legacy_references should be called in Tier 3"
+#         assert 'analyze_legacy_references' in tools_called, "Tier 3 compatibility scan tool analyze_legacy_references should be called in Tier 3"
 
 
 # class TestAuditOutputFiles:
@@ -1006,4 +1006,5 @@
 #         service.run_analyze_functions.assert_called_once()
 #         service.run_analyze_documentation.assert_called_once()
 #         service.run_analyze_system_signals.assert_called_once()
+
 

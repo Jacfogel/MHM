@@ -363,8 +363,8 @@ class TestEmailBotBehavior:
         assert result is True, "Should shutdown successfully"
         assert self.email_bot.status == ChannelStatus.STOPPED, "Should be in STOPPED status"
     
-    def test_email_bot_legacy_start_method_behavior(self, test_data_dir):
-        """Test legacy start method behavior."""
+    def test_email_bot_compatibility_start_method_behavior(self, test_data_dir):
+        """Test compatibility start method behavior."""
         # Arrange - Mock email configuration
         with patch('communication.communication_channels.email.bot.EMAIL_SMTP_SERVER', 'smtp.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_IMAP_SERVER', 'imap.gmail.com'), \
@@ -388,8 +388,8 @@ class TestEmailBotBehavior:
                 assert result is True, "Should initialize successfully"
                 assert self.email_bot.status == ChannelStatus.READY, "Should be in READY status"
     
-    def test_email_bot_legacy_start_method_failure_behavior(self, test_data_dir):
-        """Test legacy start method failure behavior."""
+    def test_email_bot_compatibility_start_method_failure_behavior(self, test_data_dir):
+        """Test compatibility start method failure behavior."""
         # Arrange - Mock missing email configuration
         with patch('communication.communication_channels.email.bot.EMAIL_SMTP_SERVER', None), \
              patch('communication.communication_channels.email.bot.EMAIL_IMAP_SERVER', 'imap.gmail.com'), \

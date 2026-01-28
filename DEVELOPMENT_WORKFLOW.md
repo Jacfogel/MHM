@@ -364,3 +364,22 @@ git push origin main
 ```
 
 Pair Git operations with the backup and testing practices described earlier, especially before large merges or rebases.
+
+
+## 10. Standard Audit Recipe
+
+When to run AI development tools for codebase analysis and health checks:
+
+- **Quick health check / pre-commit**: Run `python development_tools/run_development_tools.py audit --quick` (Tier 1, ~30-60s) for core metrics: function discovery, documentation sync status, system signals, and quick status snapshot.
+
+- **Day-to-day checks**: Run `python development_tools/run_development_tools.py audit` (Tier 2, default, ~2-5min) for standard quality checks. Includes everything in Tier 1 plus: documentation analysis, error handling coverage, decision support insights, config validation, and AI work validation.
+
+- **Pre-merge / pre-release checks**: Run `python development_tools/run_development_tools.py audit --full` (Tier 3, ~10-30min) for comprehensive analysis. Includes everything in Tier 1 & 2 plus: full test coverage regeneration, unused import detection, legacy reference scanning, module dependency analysis, and improvement opportunity reports.
+
+- **Documentation work**:
+  - Run `python development_tools/run_development_tools.py doc-sync` to check documentation pairing and path drift.
+  - Run `python development_tools/run_development_tools.py docs` to regenerate static reference documentation (FUNCTION_REGISTRY, MODULE_DEPENDENCIES, DIRECTORY_TREE).
+
+- **Quick status snapshot**: Run `python development_tools/run_development_tools.py status` to view cached summaries from the most recent audit (rerun `audit` if cache is stale).
+
+Note: All three audit tiers update the same output files (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt, analysis_detailed_results.json). Each tier encompasses all functionality of lighter tiers, so Tier 2 includes all Tier 1 tools, and Tier 3 includes all Tier 1 & 2 tools.

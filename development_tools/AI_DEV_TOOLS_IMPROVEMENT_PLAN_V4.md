@@ -155,10 +155,11 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Consider progress indicators for long-running tools
 
 
-#### 2.7 
+#### 2.7 Remove duplicate last updated field at the bottom of AI_FUNCTION_REGISTRY.md
 
-Remove duplicate last updated field at the bottom of AI_FUNCTION_REGISTRY.md
-
+#### 2.8 retire unapproved docs
+- incorporate information from unapproved docs development_tools\shared\RESULT_FORMAT_STANDARD.md, development_tools\shared\OUTPUT_STORAGE_STANDARDS.md and development_tools\shared\EXCLUSION_RULES.md into development_tools\DEVELOPMENT_TOOLS_GUIDE.md and development_tools\AI_DEVELOPMENT_TOOLS_GUIDE.md
+- then remove docs
 
 ---
 
@@ -319,7 +320,7 @@ Remove duplicate last updated field at the bottom of AI_FUNCTION_REGISTRY.md
 
 These are surfaced by the tools and remain outstanding but are not tool-suite changes.
 
-- [ ] Retire legacy compatibility markers (38 files, 71 markers); update references and rerun `legacy`
+- [ ] Retire legacy reference markers (38 files, 71 markers); update references and rerun `legacy`
 - [ ] Reduce unused imports (358 in 124 files) and verify via `unused-imports-report`
 - [ ] Raise domain coverage for communication, ui, and core (below 80% target)
 - [ ] Refactor critical-complexity functions (145 critical, 147 high)
@@ -331,5 +332,5 @@ These are surfaced by the tools and remain outstanding but are not tool-suite ch
 - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` - Prior version with detailed history
 - `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` - AI-facing tool guide
 - `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` - Human-facing tool guide
-- `development_docs/LEGACY_REFERENCE_REPORT.md` - Current legacy marker inventory
+- `development_docs/LEGACY_REFERENCE_REPORT.md` - Current legacy reference marker inventory
 - `development_docs/TEST_COVERAGE_REPORT.md` - Coverage details

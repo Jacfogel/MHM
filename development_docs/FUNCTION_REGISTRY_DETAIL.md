@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-25 23:38:41
+> **Last Generated**: 2026-01-27 23:00:32
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 96.1% [OK] COMPLETED**
 - **Files Scanned**: 109
-- **Functions Found**: 1536
-- **Methods Found**: 1154
+- **Functions Found**: 1531
+- **Methods Found**: 1153
 - **Classes Found**: 154
-- **Total Items**: 2690
-- **Functions Documented**: 1470
-- **Methods Documented**: 1114
+- **Total Items**: 2684
+- **Functions Documented**: 1465
+- **Methods Documented**: 1113
 - **Classes Documented**: 120
-- **Total Documented**: 2584
+- **Total Documented**: 2578
 - **Template-Generated**: 4
-- **Last Updated**: 2026-01-25
+- **Last Updated**: 2026-01-27
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (564)
+### **Core System Functions** (559)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (411)
@@ -2769,24 +2769,9 @@ Raises:
     ConfigValidationError: If configuration is invalid with detailed error information.
 - [OK] `validate_communication_channels()` - Validate communication channel configurations.
 - [OK] `validate_core_paths()` - Validate that all core paths are accessible and can be created if needed.
-- [OK] `validate_discord_config()` - Validate Discord configuration settings.
-
-Returns:
-    bool: True if Discord configuration is valid
-    
-Raises:
-    ConfigurationError: If DISCORD_BOT_TOKEN is missing
-- [OK] `validate_email_config()` - Validate email configuration settings.
-
-Returns:
-    bool: True if email configuration is valid
-    
-Raises:
-    ConfigurationError: If required email configuration variables are missing
 - [OK] `validate_environment_variables()` - Check for common environment variable issues.
 - [OK] `validate_file_organization_settings()` - Validate file organization settings.
 - [OK] `validate_logging_configuration()` - Validate logging configuration.
-- [OK] `validate_minimum_config()` - Ensure at least one communication channel is configured
 - [OK] `validate_scheduler_configuration()` - Validate scheduler configuration.
 **Classes:**
 - [OK] `ConfigValidationError` - Custom exception for configuration validation errors with detailed information.
@@ -3917,8 +3902,6 @@ This method should be called after a new user is created to add them to the sche
 
 Args:
     user_id: The ID of the newly created user
-- [OK] `schedule_task_reminder(self, user_id, task_id, reminder_time)` - Legacy function for backward compatibility.
-Schedule a reminder for a specific task at the specified time.
 - [OK] `schedule_task_reminder_at_datetime(self, user_id, task_id, date_str, time_str)` - Schedule a reminder for a specific task at a specific date and time.
 - [OK] `schedule_task_reminder_at_time(self, user_id, task_id, reminder_time)` - Schedule a reminder for a specific task at the specified time (daily).
 - [MISSING] `scheduler_loop()` - No description
@@ -4012,8 +3995,6 @@ This method should be called after a new user is created to add them to the sche
 
 Args:
     user_id: The ID of the newly created user
-  - [OK] `SchedulerManager.schedule_task_reminder(self, user_id, task_id, reminder_time)` - Legacy function for backward compatibility.
-Schedule a reminder for a specific task at the specified time.
   - [OK] `SchedulerManager.schedule_task_reminder_at_datetime(self, user_id, task_id, date_str, time_str)` - Schedule a reminder for a specific task at a specific date and time.
   - [OK] `SchedulerManager.schedule_task_reminder_at_time(self, user_id, task_id, reminder_time)` - Schedule a reminder for a specific task at the specified time (daily).
   - [OK] `SchedulerManager.select_task_for_reminder(self, incomplete_tasks)` - Select a task for reminder using priority-based and due date proximity weighting.
@@ -4542,10 +4523,6 @@ Returns:
 - [OK] `_save_user_data__save_context(user_id, context_data)` - Save user context data to user_context.json.
 - [OK] `_save_user_data__save_preferences(user_id, preferences_data)` - Save user preferences data to preferences.json.
 - [OK] `_save_user_data__save_schedules(user_id, schedules_data)` - Save user schedules data to schedules.json.
-- [OK] `_save_user_data__save_single_type(user_id, dt, updates, auto_create)` - Save single data type with enhanced validation.
-
-Returns:
-    bool: True if successful, False if failed
 - [OK] `_save_user_data__save_tags(user_id, tags_data)` - Save user tags data to tags.json.
 - [OK] `_save_user_data__update_index(user_id, result, update_index)` - Update user index with validation.
 

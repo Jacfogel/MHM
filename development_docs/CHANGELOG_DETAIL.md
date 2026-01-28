@@ -37,6 +37,15 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-01-28 - Dev Tools Format Hardening and Account Defaults
+- **Feature**: Enforced strict dev-tools result shapes during load/aggregation/reporting so only standard `summary`/`details` JSON is accepted; legacy output parsing is removed outside the dedicated legacy cleanup tool paths. (See `development_tools/shared/service/{audit_orchestration,commands,data_loading,report_generation,tool_wrappers,utilities}.py`)
+- **Feature**: Standardized system-signals output consumption to rely solely on the current tool result format, eliminating the legacy `system_signals_results.json` artifact from aggregation. (See `development_tools/reports/*` and report generation paths)
+- **Feature**: Account schema validation now backfills required defaults and preserves normalized `features` even when validation reports errors, ensuring configuration flows remain stable. (See `core/schemas.py`, `core/user_data_handlers.py`)
+- **Maintenance**: Refreshed generated audit outputs and docs after the tooling changes (function/module registries, directory tree, legacy report, coverage report, unused imports, consolidated report, AI status/priorities). (See `development_docs/*`, `development_tools/*`, `ai_development_docs/*`)
+- **Tests/fixtures**: Updated coverage/behavior/dev-tools tests and helpers to align with the stricter format and compatibility cleanup workflow. (See `tests/conftest.py`, `tests/development_tools/*`, `tests/behavior/*`, `tests/unit/test_schema_validation_helpers.py`, `tests/test_utilities.py`)
+- **Maintenance**: Pruned completed checklist items from TODO and refreshed plan metadata for the session wrap-up. (See `TODO.md`, `development_docs/PLANS.md`)
+- **Testing**: `python run_tests.py`, `python development_tools/run_development_tools.py audit --full --clear-cache`
+
 ### 2026-01-26 - Check-in Analytics and Command Handling Overhaul
 - **Feature**: Rebuilt check-in analytics to be question-asked scoped with transparent category summaries, updated completion rules (all asked questions answered; skipped allowed; legacy check-ins counted as complete), and added habit/sleep/energy/mood analyses. (See `core/checkin_analytics.py`, `communication/command_handlers/analytics_handler.py`, `ui/dialogs/user_analytics_dialog.py`)
 - **Feature**: Expanded analytics command recognition and slash/bang registry with hyphen/no-hyphen and show-* variants for check-in, habit, sleep, energy, mood, trends, history, and graphs; added time-window parsing for days/weeks/months plus "last N check-ins". (See `communication/message_processing/command_parser.py`, `communication/message_processing/interaction_manager.py`)

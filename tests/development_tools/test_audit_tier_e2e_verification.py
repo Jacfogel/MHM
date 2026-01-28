@@ -387,7 +387,7 @@ class TestAuditTierE2E:
         
         # For Tier 3, verify that at least one Tier 3 tool was attempted
         # Note: Coverage tools may fail fast on demo project (no tests to cover),
-        # but legacy analysis should still run
+        # but compatibility analysis should still run
         all_tier3_tools = ['run_test_coverage', 'generate_dev_tools_coverage', 
                           'analyze_test_markers', 'generate_test_coverage_report',
                           'analyze_legacy_references', 'generate_legacy_reference_report']
@@ -405,4 +405,3 @@ class TestAuditTierE2E:
         # so we don't enforce timing requirements. The comprehensive tests verify
         # orchestration logic, and this E2E test verifies that actual execution works.
         # For full timing verification, run on the actual project.
-

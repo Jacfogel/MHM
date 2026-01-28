@@ -1038,8 +1038,6 @@ class CommunicationManager:
                     except RuntimeError:
                         # Event loop already running - try sync approach
                         logger.warning(f"Could not run async shutdown for {name} - event loop conflict")
-                elif hasattr(channel, 'stop'):
-                    channel.stop()  # Fallback for any remaining legacy channels
                 logger.debug(f"Channel {name} stopped")
             except Exception as e:
                 logger.error(f"Error stopping channel {name}: {e}")

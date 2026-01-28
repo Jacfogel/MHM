@@ -184,22 +184,10 @@ class MtimeFileCache:
                 )
                 if loaded_data:
                     # load_tool_cache already extracts data from metadata wrapper, so loaded_data is the cache content
-                    # Migrate old cache format (with 'issues' key) to new format (with 'results' key)
                     migrated_data = {}
                     for key, value in loaded_data.items():
-                        if isinstance(value, dict):
-                            # Check if it's old format with 'issues' key
-                            if "issues" in value and "results" not in value:
-                                migrated_data[key] = {
-                                    "mtime": value.get("mtime"),
-                                    "results": value.get("issues", []),
-                                }
-                            else:
-                                # Already in new format or has 'results' key
-                                migrated_data[key] = value
-                        else:
-                            # Invalid format, skip
-                            continue
+                        if isinstance(value, dict) and "results" in value:
+                            migrated_data[key] = value
                     self.cache_data = migrated_data
                     if logger:
                         logger.debug(

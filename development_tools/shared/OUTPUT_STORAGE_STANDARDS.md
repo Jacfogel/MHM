@@ -175,6 +175,5 @@ development_docs/
 
 - This is a living document - update as patterns evolve
 - Tools should be updated incrementally, not all at once
-- Maintain backward compatibility during transition
 - Document any exceptions to standards with rationale
 

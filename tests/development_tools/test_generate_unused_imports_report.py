@@ -85,8 +85,8 @@ class TestUnusedImportsReportGenerator:
         assert generator.findings_counts['obvious_unused'] == 5
     
     @pytest.mark.unit
-    def test_generator_initialization_with_legacy_format(self):
-        """Test generator initialization with legacy format (direct findings/stats)."""
+    def test_generator_initialization_with_nonstandard_format(self):
+        """Non-standard input should be rejected."""
         analysis_data = {
             'findings': {
                 'obvious_unused': [
@@ -99,12 +99,9 @@ class TestUnusedImportsReportGenerator:
                 'total_unused': 10
             }
         }
-        
-        generator = UnusedImportsReportGenerator(analysis_data)
-        
-        assert generator.stats['files_scanned'] == 100
-        assert len(generator.findings['obvious_unused']) == 1
-        assert generator.findings_counts is None
+
+        with pytest.raises(ValueError, match="details"):
+            UnusedImportsReportGenerator(analysis_data)
     
     @pytest.mark.unit
     def test_generate_report_with_full_findings(self):
@@ -375,4 +372,3 @@ class TestIntegrationWithAnalysis:
         assert '100' in report  # files_scanned
         assert '2' in report  # files_with_issues
         assert '3' in report  # total_unused
-

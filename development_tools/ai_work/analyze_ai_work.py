@@ -463,7 +463,6 @@ if __name__ == "__main__":
 
         print(json.dumps(result, indent=2))
     else:
-        # Print text output for backward compatibility
         output = result.get("details", {}).get("output", "")
         print(output)
         # Also log for debugging (but not the full output)

@@ -473,7 +473,6 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         cache=cache,
         test_data=test_data,
         reports=False,
-        all=False,  # Don't use --all flag, we handle it via --full
         coverage=coverage,
         full=args.full,
         dry_run=args.dry_run,

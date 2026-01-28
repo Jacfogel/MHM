@@ -297,8 +297,11 @@ def load_tool_result(
         # Normalize to standard format if requested
         if normalize and isinstance(data, dict):
             from .result_format import normalize_to_standard_format
-
-            data = normalize_to_standard_format(tool_name, data)
+            try:
+                data = normalize_to_standard_format(tool_name, data)
+            except ValueError as e:
+                logger.error(f"Invalid result format for {tool_name}: {e}")
+                return None
 
         return data
     except (json.JSONDecodeError, IOError) as e:

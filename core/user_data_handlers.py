@@ -7,7 +7,6 @@ across all data types (account, preferences, context, schedules, etc.).
 
 import os
 import time
-import traceback
 import uuid
 from pathlib import Path
 from typing import Any
@@ -1581,7 +1580,7 @@ def _save_user_data__normalize_data(dt: str, updated: dict[str, Any]) -> bool:
     try:
         if dt == "account":
             normalized, errors = validate_account_dict(updated)
-            if not errors and normalized:
+            if normalized:
                 updated.clear()
                 updated.update(normalized)
         elif dt == "preferences":
@@ -1729,56 +1728,6 @@ def _save_user_data__merge_single_type(
     except Exception as e:
         logger.error(f"Error merging {dt} data for user {user_id}: {e}")
         return None
-
-
-@handle_errors("saving single data type", default_return=False)
-def _save_user_data__save_single_type(
-    user_id: str, dt: str, updates: dict[str, Any], auto_create: bool
-) -> bool:
-    """
-    Save single data type with enhanced validation.
-
-    Returns:
-        bool: True if successful, False if failed
-    """
-    # Validate inputs
-    if not user_id or not isinstance(user_id, str):
-        logger.error(f"Invalid user_id: {user_id}")
-        return False
-
-    if not dt or not isinstance(dt, str):
-        logger.error(f"Invalid data type: {dt}")
-        return False
-
-    if not isinstance(updates, dict):
-        logger.error(f"Invalid updates: {type(updates)}")
-        return False
-    """Save a single data type for a user."""
-    try:
-        # Use merge function to get merged data
-        updated = _save_user_data__merge_single_type(user_id, dt, updates, auto_create)
-        if updated is None:
-            return False
-
-        # Note: Cross-file invariants are now handled in save_user_data() two-phase approach
-        # This function is kept for backward compatibility but should primarily be used
-        # through save_user_data() for proper invariant handling
-
-        logger.debug(f"Save {dt}: updates={updates}, merged={updated}")
-
-        from core.file_operations import save_json_data
-        from core.config import get_user_file_path
-
-        file_path = get_user_file_path(user_id, dt)
-        success = save_json_data(updated, file_path)
-        logger.debug(f"Saved {dt} data for user {user_id}: success={success}")
-        return success
-
-    except Exception as e:
-        logger.error(f"Error saving {dt} data for user {user_id}: {e}")
-        logger.error(f"Exception type: {type(e).__name__}")
-        logger.error(f"Exception traceback: {traceback.format_exc()}")
-        return False
 
 
 @handle_errors("updating user index", default_return=False)
@@ -2247,17 +2196,8 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
         "created_at": created_ts,
         "updated_at": created_ts,  # account schema uses updated_at
         "features": {
-            # Check for explicit messages_enabled flag first, then fall back to categories check (for backward compatibility)
             "automated_messages": (
-                "enabled"
-                if (
-                    user_data.get("messages_enabled", False)
-                    or (
-                        user_data.get("categories")
-                        and len(user_data.get("categories", [])) > 0
-                    )
-                )
-                else "disabled"
+                "enabled" if user_data.get("messages_enabled", False) else "disabled"
             ),
             "checkins": (
                 "enabled"

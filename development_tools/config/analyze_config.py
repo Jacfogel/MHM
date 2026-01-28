@@ -445,23 +445,16 @@ class ConfigValidator:
         logger.info("CONFIGURATION VALIDATION REPORT")
         logger.info("=" * 80)
 
-        # Handle both standard format and legacy format
-        if "details" in results and "summary" in results:
-            # Standard format - summary is at top level, details contain the nested data
-            top_summary = results["summary"]
-            details = results["details"]
-            nested_summary = details.get("summary", {})
-            tools_analysis = details.get("tools_analysis", {})
-            config_validation = details.get("validation", {})
-            completeness = details.get("completeness", {})
-            recommendations = details.get("recommendations", [])
-        else:
-            # Legacy format
-            nested_summary = results.get("summary", {})
-            tools_analysis = results.get("tools_analysis", {})
-            config_validation = results.get("config_validation", {})
-            completeness = results.get("completeness", {})
-            recommendations = results.get("recommendations", [])
+        if "details" not in results or "summary" not in results:
+            raise ValueError("Config validation results must use standard format.")
+
+        top_summary = results["summary"]
+        details = results["details"]
+        nested_summary = details.get("summary", {})
+        tools_analysis = details.get("tools_analysis", {})
+        config_validation = details.get("validation", {})
+        completeness = details.get("completeness", {})
+        recommendations = details.get("recommendations", [])
 
         logger.info(f"SUMMARY:")
         logger.info(

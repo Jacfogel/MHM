@@ -95,10 +95,22 @@ class AccountManagementHandler(InteractionHandler):
         channel_identifier = entities.get("channel_identifier", "")
         channel_type = entities.get("channel_type", "discord")
 
-        # Extract feature selection (default to True for backward compatibility)
-        tasks_enabled = entities.get("tasks_enabled", True)
-        checkins_enabled = entities.get("checkins_enabled", True)
-        messages_enabled = entities.get("messages_enabled", False)
+        required_feature_fields = ("tasks_enabled", "checkins_enabled", "messages_enabled")
+        missing_feature_fields = [
+            field for field in required_feature_fields if field not in entities
+        ]
+        if missing_feature_fields:
+            missing_list = ", ".join(missing_feature_fields)
+            return InteractionResponse(
+                "To create an account, please choose your feature settings first. "
+                f"Missing: {missing_list}.",
+                completed=False,
+                suggestions=["Enable tasks", "Enable check-ins", "Enable messages"],
+            )
+
+        tasks_enabled = entities["tasks_enabled"]
+        checkins_enabled = entities["checkins_enabled"]
+        messages_enabled = entities["messages_enabled"]
         timezone = entities.get("timezone", "America/Regina")
 
         try:

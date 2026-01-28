@@ -155,15 +155,18 @@ class DocumentationSyncChecker:
     def print_report(self, results: Dict[str, any]):
         """Print a formatted report of the results."""
         summary = results["summary"]
+        details = results["details"]
+        paired_docs = details.get("paired_docs", {})
+        paired_doc_issues = details.get("paired_doc_issues", 0)
         print(f"\nSUMMARY:")
         print(f"   Status: {summary['status']}")
         print(f"   Total Issues: {summary['total_issues']}")
-        print(f"   Paired Doc Issues: {summary['paired_doc_issues']}")
+        print(f"   Paired Doc Issues: {paired_doc_issues}")
 
         # Paired Documentation Issues
-        if results["paired_docs"]:
+        if paired_docs:
             print(f"\nPAIRED DOCUMENTATION ISSUES:")
-            for issue_type, issues in results["paired_docs"].items():
+            for issue_type, issues in paired_docs.items():
                 if issues:
                     print(f"   {issue_type}:")
                     for issue in issues:
@@ -187,11 +190,6 @@ def main():
         description="Check paired documentation synchronization"
     )
     parser.add_argument(
-        "--check",
-        action="store_true",
-        help="Run paired documentation checks (default: always runs)",
-    )
-    parser.add_argument(
         "--json", action="store_true", help="Output results as JSON in standard format"
     )
 
@@ -199,24 +197,13 @@ def main():
 
     checker = DocumentationSyncChecker()
 
-    # Always run checks by default (this is an analysis tool)
-    # The --check flag is maintained for backward compatibility but has no effect
     results = checker.run_checks()
 
     if args.json:
         # Output JSON in standard format
         print(json.dumps(results, indent=2))
     else:
-        # Convert to old format for print_report compatibility
-        legacy_results = {
-            "summary": {
-                "total_issues": results["summary"]["total_issues"],
-                "paired_doc_issues": results["details"]["paired_doc_issues"],
-                "status": results["summary"]["status"],
-            },
-            "paired_docs": results["details"]["paired_docs"],
-        }
-        checker.print_report(legacy_results)
+        checker.print_report(results)
 
 
 if __name__ == "__main__":

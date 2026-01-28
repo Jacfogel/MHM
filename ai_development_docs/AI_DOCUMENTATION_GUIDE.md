@@ -48,7 +48,7 @@ Do not mutate AI docs into pure routing lists. Keep them brief, but rule-heavy.
 
 ### 2.3. Generated and analytical documentation
 
-Generated docs are read-only inputs (registries, dependency maps, legacy reports).
+Generated docs are read-only inputs (registries, dependency maps, legacy reference reports).
 - Do not advise editing them directly.
 - If a generated file is stale or wrong, recommend fixing the generator and regenerating.
 

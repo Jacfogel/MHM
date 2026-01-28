@@ -163,14 +163,10 @@ class CoverageMetricsRegenerator:
         if coverage_config is not None:
             self.coverage_config_path = self.project_root / coverage_config
         else:
-            # Check for coverage.ini in development_tools/tests first (new location), then root (legacy)
             config_path = coverage_config_data.get(
                 "coverage_config", "development_tools/tests/coverage.ini"
             )
             self.coverage_config_path = self.project_root / config_path
-            if not self.coverage_config_path.exists():
-                # Fall back to root location for backward compatibility
-                self.coverage_config_path = self.project_root / "coverage.ini"
 
         # Artifact directories (from parameter, config, or defaults)
         if artifact_directories is not None:
@@ -224,7 +220,6 @@ class CoverageMetricsRegenerator:
             num_workers or "auto"
         )  # "auto" lets pytest-xdist decide, or specify a number
         self._configure_coverage_paths()
-        self._migrate_legacy_logs()
         self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
 
         # Core modules to track coverage for
@@ -234,7 +229,7 @@ class CoverageMetricsRegenerator:
         self.core_modules = list(CORE_MODULES)
 
         # Test-file-based caching (optional)
-        self.use_domain_cache = use_domain_cache  # Keep name for backward compatibility
+        self.use_domain_cache = use_domain_cache
         self.test_file_cache = None
         self.domain_mapper = None
         self.dev_tools_cache = None
@@ -398,37 +393,6 @@ class CoverageMetricsRegenerator:
                 )
 
         return env
-
-    def _migrate_legacy_logs(self) -> None:
-        """Move legacy coverage logs from the old location into the new directory."""
-        legacy_dir = self.project_root / "logs" / "coverage_regeneration"
-        if (
-            not legacy_dir.exists()
-            or legacy_dir.resolve() == self.coverage_logs_dir.resolve()
-        ):
-            return
-
-        self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
-        for item in legacy_dir.iterdir():
-            destination = self.coverage_logs_dir / item.name
-            try:
-                if destination.exists():
-                    # Preserve existing new-format logs by appending timestamp suffix
-                    suffix = datetime.now().strftime("%Y%m%d-%H%M%S")
-                    destination = (
-                        self.coverage_logs_dir
-                        / f"{destination.stem}_{suffix}{destination.suffix}"
-                    )
-                shutil.move(str(item), str(destination))
-            except Exception as exc:
-                if logger:
-                    logger.warning(f"Failed to migrate legacy log {item}: {exc}")
-
-        try:
-            legacy_dir.rmdir()
-        except OSError:
-            # Directory not empty (maybe concurrent process); leave it alone
-            pass
 
     def _merge_coverage_json(
         self, coverage_json_1: Dict[str, Any], coverage_json_2: Dict[str, Any]
@@ -1054,9 +1018,7 @@ class CoverageMetricsRegenerator:
             stdout_log_path = (
                 self.coverage_logs_dir / f"pytest_parallel_stdout_{timestamp}.log"
             )
-            self.pytest_stdout_log = (
-                stdout_log_path  # Keep variable name for backward compatibility
-            )
+            self.pytest_stdout_log = stdout_log_path
             self.pytest_stderr_log = None  # No longer creating stderr logs
 
             # Redirect output directly to files instead of capturing to avoid buffering/deadlock issues
@@ -3427,20 +3389,6 @@ class CoverageMetricsRegenerator:
                     if logger:
                         logger.warning(f"Failed to clean up {coverage_file}: {exc}")
 
-        # Clean up legacy files in root directory (old location)
-        if root_dir.exists():
-            for coverage_file in root_dir.glob(".coverage_dev_tools*"):
-                try:
-                    # Skip if it's a directory
-                    if coverage_file.is_file():
-                        coverage_file.unlink()
-                        cleanup_count += 1
-                except Exception as exc:
-                    if logger:
-                        logger.warning(
-                            f"Failed to clean up legacy file {coverage_file}: {exc}"
-                        )
-
         if cleanup_count > 0 and logger:
             logger.info(f"Cleaned up {cleanup_count} temporary coverage data file(s)")
 
@@ -3706,25 +3654,6 @@ class CoverageMetricsRegenerator:
         except Exception as e:
             if logger:
                 logger.debug(f"Failed to rotate log files: {e}")
-
-    def _record_pytest_output(self, result: subprocess.CompletedProcess) -> None:
-        """Persist pytest stdout/stderr for troubleshooting."""
-        # This method is deprecated - logs are now created directly in run_coverage_analysis
-        # Keeping for backward compatibility but it shouldn't be called
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
-
-        stdout_content = result.stdout or ""
-
-        stdout_path = self.coverage_logs_dir / f"pytest_parallel_stdout_{timestamp}.log"
-
-        stdout_path.write_text(stdout_content, encoding="utf-8", errors="ignore")
-
-        self.pytest_stdout_log = stdout_path
-        self.pytest_stderr_log = None  # No longer creating stderr logs
-
-        if logger:
-            logger.info(f"Saved pytest output to {stdout_path}")
 
     def _finalize_coverage_outputs_fallback(self) -> None:
         """Fallback method for finalizing coverage outputs if report generator is not available."""

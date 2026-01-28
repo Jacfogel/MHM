@@ -57,8 +57,6 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
   - [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
-  - [x] Consider inactivity-based expiration (30-60 minutes) in addition to outbound-triggered expiry (optional) - Added auto-expiration of stale check-ins after 45 minutes and prune on startup/new starts
-  - [x] Add behavior test for flow expiration after unrelated outbound message
   - [ ] **Test fixes with real Discord check-in flow and verify flow state persistence** - Restart service and test that check-in flows persist through scheduled message checks
   - [ ] **Monitor logs for MESSAGE_SELECTION debug info** - Understand why sometimes no messages match (review matching_periods, current_days, and message filtering)
 
@@ -69,8 +67,6 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [ ] Add behavior tests for dynamic Discord app commands (sync + callback wiring; registration already covered in `tests/behavior/test_discord_bot_behavior.py`)
   - [ ] Add behavior tests for classic dynamic commands (skip `help`, ensure mapping works)
-  - [x] Verify unknown `/` and `!` prefixes fall back to parser and contextual chat (covered in `tests/behavior/test_message_router_behavior.py`)
-  - [x] Ensure user-facing help uses in-app "commands"/slash-commands (no dev-doc references)
 
 ### AI & Chatbot
 
@@ -253,7 +249,6 @@ When adding new tasks, follow this format:
 - *Why it helps*: Prevents regressions of forbidden logging patterns.
 - *Estimated effort*: Small
 - *Subtasks*:
-  - [x] Add CI job step to run `scripts/static_checks/check_channel_loggers.py` (enforced via `run_tests.py` preflight)
   - [ ] Ensure job runs before test steps and fails the pipeline on violations
   - [ ] Document the check in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (contributor notes)
 

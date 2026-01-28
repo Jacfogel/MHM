@@ -333,7 +333,7 @@ def _split_generated_files() -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
 
 GENERATED_FILE_PATHS, GENERATED_FILE_PATTERNS = _split_generated_files()
 
-# For backward compatibility: ALL_GENERATED_FILES contains only exact paths
+# ALL_GENERATED_FILES contains only exact paths
 # (patterns are handled separately via should_exclude_file)
 ALL_GENERATED_FILES: Tuple[str, ...] = GENERATED_FILE_PATHS
 

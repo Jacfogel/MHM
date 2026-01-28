@@ -366,7 +366,7 @@ def _load_ascii_compliance_files() -> Tuple[str, ...]:
             if isinstance(ascii_files[0], str) and "note" in ascii_files[0].lower():
                 # Use DEFAULT_DOCS
                 return _load_default_docs()
-        # If it's a real list, use it (for backward compatibility)
+        # If it's a real list, use it
         if isinstance(ascii_files, list) and ascii_files:
             return tuple(ascii_files)
     # Default: use DEFAULT_DOCS

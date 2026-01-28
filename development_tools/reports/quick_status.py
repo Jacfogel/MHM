@@ -430,7 +430,7 @@ class QuickStatus:
         status = self.get_quick_status()
         logger.info("Running quick status...")
         # JSON output stays as print() for programmatic consumption
-        print(json.dumps(status, indent=2))
+        print(json.dumps(_build_standard_result(status), indent=2))
 
 
 def main():
@@ -455,6 +455,25 @@ def main():
         print(f"Unknown command: {command}")
         print("Use 'concise' or 'json'")
         sys.exit(1)
+
+
+def _build_standard_result(status: Dict) -> Dict[str, Dict]:
+    """Wrap quick status in the standard format."""
+    system_health = status.get("system_health", {}) if isinstance(status, dict) else {}
+    docs = status.get("documentation_status", {}) if isinstance(status, dict) else {}
+    core_files = system_health.get("core_files", {}) if isinstance(system_health, dict) else {}
+    key_files = docs.get("key_files", {}) if isinstance(docs, dict) else {}
+    missing_core = sum(1 for value in core_files.values() if value == "MISSING")
+    missing_docs = sum(1 for value in key_files.values() if value == "MISSING")
+    total_issues = len(status.get("critical_issues", [])) if isinstance(status, dict) else 0
+    return {
+        "summary": {
+            "total_issues": total_issues,
+            "files_affected": missing_core + missing_docs,
+            "status": system_health.get("overall_status", "UNKNOWN") if isinstance(system_health, dict) else "UNKNOWN",
+        },
+        "details": status if isinstance(status, dict) else {},
+    }
 
 
 if __name__ == "__main__":

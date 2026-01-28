@@ -33,32 +33,17 @@ def _get_status_file_mtimes(project_root: Path) -> Dict[str, float]:
         from .. import config
         status_config = config.get_status_config()
         status_files_config = status_config.get('status_files', {})
-        # Use default from STATUS config if status_files_config is empty (matches default config)
-        if not status_files_config:
-            from ...config.config import STATUS
-            status_files_config = STATUS.get('status_files', {})
         status_files = {
             'AI_STATUS.md': project_root / status_files_config.get('ai_status', 'development_tools/AI_STATUS.md'),
             'AI_PRIORITIES.md': project_root / status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md'),
             'consolidated_report.txt': project_root / status_files_config.get('consolidated_report', 'development_tools/consolidated_report.txt')
         }
     except (ImportError, AttributeError, KeyError):
-        # Fallback to default STATUS config values for backward compatibility
-        try:
-            from ...config.config import STATUS
-            status_files_default = STATUS.get('status_files', {})
-            status_files = {
-                'AI_STATUS.md': project_root / status_files_default.get('ai_status', 'development_tools/AI_STATUS.md'),
-                'AI_PRIORITIES.md': project_root / status_files_default.get('ai_priorities', 'development_tools/AI_PRIORITIES.md'),
-                'consolidated_report.txt': project_root / status_files_default.get('consolidated_report', 'development_tools/consolidated_report.txt')
-            }
-        except (ImportError, AttributeError):
-            # Last resort fallback
-            status_files = {
-                'AI_STATUS.md': project_root / 'development_tools' / 'AI_STATUS.md',
-                'AI_PRIORITIES.md': project_root / 'development_tools' / 'AI_PRIORITIES.md',
-                'consolidated_report.txt': project_root / 'development_tools' / 'consolidated_report.txt'
-            }
+        status_files = {
+            'AI_STATUS.md': project_root / 'development_tools' / 'AI_STATUS.md',
+            'AI_PRIORITIES.md': project_root / 'development_tools' / 'AI_PRIORITIES.md',
+            'consolidated_report.txt': project_root / 'development_tools' / 'consolidated_report.txt'
+        }
     mtimes = {}
     for name, path in status_files.items():
         if path.exists():
@@ -246,27 +231,13 @@ class AuditOrchestrationMixin:
                     from .. import config
                     status_config = config.get_status_config()
                     status_files_config = status_config.get('status_files', {})
-                    # Use default from STATUS config if status_files_config is empty (matches default config)
-                    if not status_files_config:
-                        # Fallback to default STATUS config values for backward compatibility
-                        from ...config.config import STATUS
-                        status_files_config = STATUS.get('status_files', {})
                     ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
                     ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
                     consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/consolidated_report.txt')
                 except (ImportError, AttributeError, KeyError):
-                    # Fallback to default STATUS config values for backward compatibility
-                    try:
-                        from ...config.config import STATUS
-                        status_files_default = STATUS.get('status_files', {})
-                        ai_status_path = status_files_default.get('ai_status', 'development_tools/AI_STATUS.md')
-                        ai_priorities_path = status_files_default.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
-                        consolidated_report_path = status_files_default.get('consolidated_report', 'development_tools/consolidated_report.txt')
-                    except (ImportError, AttributeError):
-                        # Last resort fallback
-                        ai_status_path = 'development_tools/AI_STATUS.md'
-                        ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
-                        consolidated_report_path = 'development_tools/consolidated_report.txt'
+                    ai_status_path = 'development_tools/AI_STATUS.md'
+                    ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
+                    consolidated_report_path = 'development_tools/consolidated_report.txt'
                 
                 try:
                     ai_status = self._generate_ai_status_document()
@@ -787,14 +758,6 @@ class AuditOrchestrationMixin:
                     'timestamp': datetime.now().isoformat()
                 }
             
-            decision_metrics = self.results_cache.get('decision_support_metrics', {})
-            if decision_metrics:
-                cached_data['results']['decision_support'] = {
-                    'success': True,
-                    'data': {'decision_support_metrics': decision_metrics},
-                    'timestamp': datetime.now().isoformat()
-                }
-            
             if hasattr(self, 'docs_sync_summary') and self.docs_sync_summary:
                 cached_data['results']['analyze_documentation_sync'] = {
                     'success': True,
@@ -881,10 +844,6 @@ class AuditOrchestrationMixin:
                     for tool_name, tool_data in cached_data['results'].items():
                         if tool_name not in self.results_cache and 'data' in tool_data:
                             self.results_cache[tool_name] = tool_data['data']
-                    if 'decision_support' in cached_data['results']:
-                        ds_data = cached_data['results']['decision_support']
-                        if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
-                            self.results_cache['decision_support_metrics'] = ds_data['data']['decision_support_metrics']
                 if not self.docs_sync_summary and 'analyze_documentation_sync' in cached_data.get('results', {}):
                     doc_sync_data = cached_data['results']['analyze_documentation_sync']
                     if 'data' in doc_sync_data:
@@ -992,6 +951,19 @@ class AuditOrchestrationMixin:
             for tool_name, result_data in all_results.items():
                 if isinstance(result_data, dict):
                     tool_data = result_data.get('data', result_data)
+                    # Enforce standard result format in the aggregation cache.
+                    try:
+                        from ..result_format import normalize_to_standard_format
+
+                        tool_data = normalize_to_standard_format(tool_name, tool_data)
+                    except ValueError as e:
+                        enhanced_results[tool_name] = {
+                            'success': False,
+                            'data': {},
+                            'error': str(e),
+                        }
+                        failed.append(tool_name)
+                        continue
                     enhanced_results[tool_name] = {
                         'success': True,
                         'data': tool_data,
@@ -1009,6 +981,12 @@ class AuditOrchestrationMixin:
             # Also include results_cache data (from current audit run)
             for tool_name, data in self.results_cache.items():
                 if tool_name not in enhanced_results:
+                    try:
+                        from ..result_format import normalize_to_standard_format
+
+                        data = normalize_to_standard_format(tool_name, data)
+                    except ValueError:
+                        continue
                     enhanced_results[tool_name] = {
                         'success': True,
                         'data': data,

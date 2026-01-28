@@ -1683,7 +1683,7 @@ def _consolidate_and_cleanup_main_logs():
     """DEPRECATED: No longer consolidates from app.log/errors.log.
 
     Component loggers now write directly to test_consolidated.log via environment variables.
-    This function is kept for backward compatibility but does nothing.
+    This function is a deprecated no-op placeholder.
     """
     # Component loggers write directly to consolidated log, no consolidation needed
     pass
@@ -3239,7 +3239,7 @@ def cleanup_test_users_after_session():
             if os.path.exists(file_path):
                 os.remove(file_path)
 
-        # Remove legacy nested directory
+        # Remove deprecated nested directory
         nested_dir = os.path.join(base_test_data_dir, "nested")
         if os.path.exists(nested_dir):
             shutil.rmtree(nested_dir, ignore_errors=True)

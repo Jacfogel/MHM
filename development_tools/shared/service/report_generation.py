@@ -35,7 +35,7 @@ class ReportGenerationMixin:
 
     def _get_results_file_path(self) -> Path:
         """Get the results file path from config."""
-        # Default matches development_tools_config.json for backward compatibility
+        # Default matches development_tools_config.json
         results_file_path = (self.audit_config or {}).get(
             "results_file", "development_tools/reports/analysis_detailed_results.json"
         )
@@ -104,6 +104,32 @@ class ReportGenerationMixin:
                 return json.load(f)
         except Exception:
             return None
+
+    def _get_decision_support_details(self, data: Any) -> Dict[str, Any]:
+        """Return decision_support details only when data is standard format."""
+        if not isinstance(data, dict):
+            return {}
+        try:
+            from ..result_format import normalize_to_standard_format
+
+            normalized = normalize_to_standard_format("decision_support", data)
+        except ValueError:
+            return {}
+        details = normalized.get("details", {})
+        return details if isinstance(details, dict) else {}
+
+    def _get_system_signals_details(self, data: Any) -> Dict[str, Any]:
+        """Return system_signals details only when data is standard format."""
+        if not isinstance(data, dict):
+            return {}
+        try:
+            from ..result_format import normalize_to_standard_format
+
+            normalized = normalize_to_standard_format("analyze_system_signals", data)
+        except ValueError:
+            return {}
+        details = normalized.get("details", {})
+        return details if isinstance(details, dict) else {}
 
     def _generate_ai_status_document(self) -> str:
         """Generate AI-optimized status document."""
@@ -283,26 +309,25 @@ class ReportGenerationMixin:
         if consolidation_recs is None:
             consolidation_recs = []
 
-        doc_coverage = doc_metrics.get(
-            "doc_coverage", metrics.get("doc_coverage", "Unknown")
+        doc_metrics_details = (
+            doc_metrics.get("details", {}) if isinstance(doc_metrics, dict) else {}
         )
-        missing_docs = doc_metrics.get("missing_docs") or doc_metrics.get(
-            "missing_items"
+        doc_coverage = doc_metrics_details.get(
+            "coverage", metrics.get("doc_coverage", "Unknown")
         )
+        missing_docs = doc_metrics_details.get("missing", {})
         missing_files = self._get_missing_doc_files(limit=4)
 
         def get_error_field(field_name, default=None):
             error_details = error_metrics.get("details", {})
-            return error_details.get(field_name, error_metrics.get(field_name, default))
+            return error_details.get(field_name, default)
 
         error_summary = error_metrics.get("summary", {})
         error_details = error_metrics.get("details", {})
         missing_error_handlers = to_int(error_summary.get("total_issues"))
         if missing_error_handlers is None:
             missing_error_handlers = (
-                to_int(error_details.get("functions_missing_error_handling"))
-                or to_int(error_metrics.get("functions_missing_error_handling"))
-                or 0
+                to_int(error_details.get("functions_missing_error_handling")) or 0
             )
         details_missing = to_int(error_details.get("functions_missing_error_handling"))
         if (
@@ -312,18 +337,11 @@ class ReportGenerationMixin:
         ):
             missing_error_handlers = details_missing
 
-        error_coverage = (
-            error_details.get("analyze_error_handling")
-            or error_details.get("error_handling_coverage")
-            or error_metrics.get("analyze_error_handling")
-            or error_metrics.get("error_handling_coverage")
+        error_coverage = error_details.get("analyze_error_handling") or error_details.get(
+            "error_handling_coverage"
         )
-        error_total = error_details.get("total_functions") or error_metrics.get(
-            "total_functions"
-        )
-        error_with_handling = error_details.get(
-            "functions_with_error_handling"
-        ) or error_metrics.get("functions_with_error_handling")
+        error_total = error_details.get("total_functions")
+        error_with_handling = error_details.get("functions_with_error_handling")
         canonical_total = metrics.get("total_functions")
 
         if error_total and error_with_handling:
@@ -333,11 +351,7 @@ class ReportGenerationMixin:
         elif error_coverage is None and error_total and error_with_handling:
             error_coverage = (error_with_handling / error_total) * 100
 
-        worst_error_modules = (
-            error_details.get("worst_modules")
-            or error_metrics.get("worst_modules")
-            or []
-        )
+        worst_error_modules = error_details.get("worst_modules") or []
         if worst_error_modules is None or not isinstance(
             worst_error_modules, (list, tuple)
         ):
@@ -407,23 +421,22 @@ class ReportGenerationMixin:
                     ) and "results" in cached_data:
                         if "decision_support" in cached_data["results"]:
                             ds_data = cached_data["results"]["decision_support"]
-                            if (
-                                "data" in ds_data
-                                and "decision_support_metrics" in ds_data["data"]
-                            ):
-                                ds_metrics = ds_data["data"]["decision_support_metrics"]
+                            ds_details = self._get_decision_support_details(
+                                ds_data.get("data") if isinstance(ds_data, dict) else None
+                            )
+                            if ds_details:
                                 if total_functions == "Unknown":
-                                    total_functions = ds_metrics.get(
+                                    total_functions = ds_details.get(
                                         "total_functions", "Unknown"
                                     )
                                 if moderate == "Unknown":
-                                    moderate = ds_metrics.get(
+                                    moderate = ds_details.get(
                                         "moderate_complexity", "Unknown"
                                     )
                                 if high == "Unknown":
-                                    high = ds_metrics.get("high_complexity", "Unknown")
+                                    high = ds_details.get("high_complexity", "Unknown")
                                 if critical == "Unknown":
-                                    critical = ds_metrics.get(
+                                    critical = ds_details.get(
                                         "critical_complexity", "Unknown"
                                     )
             except Exception as e:
@@ -455,10 +468,13 @@ class ReportGenerationMixin:
             if registry_coverage is not None:
                 doc_coverage = f"{registry_coverage:.2f}%"
                 # Calculate undocumented count from registry data
-                undocumented_handlers = registry_details.get(
+                registry_analysis = registry_details.get("analysis", {})
+                undocumented_handlers = registry_analysis.get(
                     "undocumented_handlers_total", 0
                 )
-                undocumented_other = registry_details.get("undocumented_other_total", 0)
+                undocumented_other = registry_analysis.get(
+                    "undocumented_other_total", 0
+                )
                 functions_without_docstrings = (
                     undocumented_handlers + undocumented_other
                 )
@@ -549,19 +565,7 @@ class ReportGenerationMixin:
 
             if isinstance(registry_data, dict):
                 registry_details = registry_data.get("details", {})
-                missing_docs_raw = (
-                    registry_details.get("missing_docs")
-                    or registry_details.get("missing_items")
-                    or registry_data.get("missing_docs")
-                    or registry_data.get("missing_items")
-                )
-                if not missing_docs_raw:
-                    data_section = registry_data.get("data", {})
-                    missing_docs_raw = (
-                        data_section.get("missing", {})
-                        if isinstance(data_section, dict)
-                        else {}
-                    )
+                missing_docs_raw = registry_details.get("missing", {})
                 if isinstance(missing_docs_raw, dict):
                     missing_docs = missing_docs_raw
                     missing_files = missing_docs_raw.get("missing_files", [])
@@ -582,11 +586,12 @@ class ReportGenerationMixin:
                         ]
                         if "data" in func_reg_data:
                             cached_metrics = func_reg_data["data"]
-                            missing_docs_raw = (
-                                cached_metrics.get("missing")
-                                or cached_metrics.get("missing_docs")
-                                or cached_metrics.get("missing_items")
+                            cached_details = (
+                                cached_metrics.get("details", {})
+                                if isinstance(cached_metrics, dict)
+                                else {}
                             )
+                            missing_docs_raw = cached_details.get("missing", {})
                             if missing_docs_raw:
                                 if isinstance(missing_docs_raw, dict):
                                     missing_docs = missing_docs_raw
@@ -594,7 +599,8 @@ class ReportGenerationMixin:
                                     missing_docs = {
                                         "count": to_int(missing_docs_raw) or 0
                                     }
-                            missing_files = cached_metrics.get("missing_files", [])
+                            if isinstance(missing_docs, dict):
+                                missing_files = missing_docs.get("missing_files", [])
             except Exception as e:
                 logger.debug(f"Failed to load registry missing data: {e}")
                 pass
@@ -693,42 +699,18 @@ class ReportGenerationMixin:
         )
 
         # Doc sync status
-        if not doc_sync_summary:
-            try:
-                cached_data = self._load_results_file_safe()
-                if (
-                    cached_data
-                    and "results" in cached_data
-                    and "analyze_documentation" in cached_data["results"]
-                ):
-                    doc_sync_data = cached_data["results"]["analyze_documentation"]
-                    if "data" in doc_sync_data:
-                        cached_metrics = doc_sync_data["data"]
-                        doc_sync_summary = {
-                            "status": (
-                                "GOOD"
-                                if not cached_metrics.get("artifacts")
-                                else "NEEDS REVIEW"
-                            ),
-                            "total_issues": len(cached_metrics.get("artifacts", [])),
-                        }
-            except Exception:
-                pass
-
         if doc_sync_summary:
 
             def get_doc_sync_field(data, field_name, default=None):
                 if not data or not isinstance(data, dict):
                     return default
-                if "summary" in data and isinstance(data.get("summary"), dict):
-                    if field_name == "status":
-                        return data["summary"].get("status", default)
-                    elif field_name == "total_issues":
-                        return data["summary"].get("total_issues", default)
-                    else:
-                        return data.get("details", {}).get(field_name, default)
-                else:
-                    return data.get(field_name, default)
+                summary = data.get("summary", {})
+                details = data.get("details", {})
+                if field_name == "status":
+                    return summary.get("status", default)
+                if field_name == "total_issues":
+                    return summary.get("total_issues", default)
+                return details.get(field_name, default)
 
             sync_status = get_doc_sync_field(doc_sync_summary, "status", "Unknown")
             total_issues = get_doc_sync_field(doc_sync_summary, "total_issues")
@@ -767,22 +749,17 @@ class ReportGenerationMixin:
         lines.append("")
         lines.append("## Documentation Signals")
 
-        # Helper to extract doc sync field (handles both standard and old format)
+        # Helper to extract doc sync field (standard format only)
         def get_doc_sync_field(data, field_name, default=None):
             if not data or not isinstance(data, dict):
                 return default
-            # Check standard format first
-            if "summary" in data and isinstance(data.get("summary"), dict):
-                # Standard format - check summary for status and total_issues, details for other fields
-                if field_name == "status":
-                    return data["summary"].get("status", default)
-                elif field_name == "total_issues":
-                    return data["summary"].get("total_issues", default)
-                else:
-                    return data.get("details", {}).get(field_name, default)
-            else:
-                # Old format - direct access
-                return data.get(field_name, default)
+            summary = data.get("summary", {})
+            details = data.get("details", {})
+            if field_name == "status":
+                return summary.get("status", default)
+            if field_name == "total_issues":
+                return summary.get("total_issues", default)
+            return details.get(field_name, default)
 
         # Use aggregated doc sync summary from current run first, then fall back to cache
         doc_sync_summary_for_signals = None
@@ -1161,7 +1138,7 @@ class ReportGenerationMixin:
                 lines.append(
                     f"- **Missing Error Handling**: {missing_error_handlers} functions lack protections"
                 )
-            # Get decorator count from details (standard format) or top-level (legacy format)
+            # Get decorator count from details
             decorated = get_error_field("functions_with_decorators")
             if decorated is not None:
                 lines.append(
@@ -1266,9 +1243,7 @@ class ReportGenerationMixin:
                         error_details = error_metrics.get("details", {})
 
                         def get_error_field(field_name, default=None):
-                            return error_details.get(
-                                field_name, error_metrics.get(field_name, default)
-                            )
+                            return error_details.get(field_name, default)
 
                         coverage = get_error_field(
                             "analyze_error_handling"
@@ -1464,86 +1439,35 @@ class ReportGenerationMixin:
         lines.append("")
         lines.append("## Legacy References")
 
-        if legacy_summary:
-            if "summary" in legacy_summary and isinstance(
-                legacy_summary.get("summary"), dict
-            ):
-                summary = legacy_summary["summary"]
-                legacy_issues = summary.get("files_affected", 0)
-                details = legacy_summary.get("details", {})
-                report_path = details.get("report_path") or legacy_summary.get(
-                    "report_path"
-                )
-            else:
-                legacy_issues = legacy_summary.get("files_with_issues")
-                report_path = legacy_summary.get("report_path")
+        legacy_summary = legacy_summary or legacy_data or {}
+        if (
+            legacy_summary
+            and "summary" in legacy_summary
+            and isinstance(legacy_summary.get("summary"), dict)
+        ):
+            summary = legacy_summary["summary"]
+            legacy_issues = summary.get("files_affected", 0)
+            details = legacy_summary.get("details", {})
+            report_path = details.get("report_path")
 
             if legacy_issues == 0:
                 lines.append("- **Legacy References**: CLEAN (0 files flagged)")
-            elif legacy_issues is not None:
+            else:
                 lines.append(
                     f"- **Legacy References**: {legacy_issues} files still reference legacy patterns"
                 )
 
             if report_path:
-                if isinstance(report_path, str):
-                    if not Path(report_path).is_absolute():
-                        report_path_obj = self.project_root / report_path
-                    else:
-                        report_path_obj = Path(report_path)
-                else:
-                    report_path_obj = report_path
-
+                report_path_obj = self._resolve_report_path(report_path)
                 if report_path_obj.exists():
                     rel_path = report_path_obj.relative_to(self.project_root)
                     lines.append(
                         f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})"
                     )
-                else:
-                    lines.append(f"- **Detailed Report**: {report_path}")
         else:
-            if not legacy_summary:
-                legacy_summary = legacy_data
-            if legacy_summary:
-                if "summary" in legacy_summary and isinstance(
-                    legacy_summary.get("summary"), dict
-                ):
-                    summary = legacy_summary["summary"]
-                    legacy_issues = summary.get("files_affected", 0)
-                    details = legacy_summary.get("details", {})
-                    report_path = (
-                        details.get("report_path")
-                        or "development_docs/LEGACY_REFERENCE_REPORT.md"
-                    )
-                else:
-                    legacy_issues = legacy_summary.get("files_with_issues")
-                    report_path = (
-                        legacy_summary.get("report_path")
-                        or "development_docs/LEGACY_REFERENCE_REPORT.md"
-                    )
-
-                if legacy_issues is not None:
-                    if legacy_issues == 0:
-                        lines.append("- **Legacy References**: CLEAN (0 files flagged)")
-                    else:
-                        lines.append(
-                            f"- **Legacy References**: {legacy_issues} files still reference legacy patterns"
-                        )
-                    if report_path:
-                        report_path_obj = self._resolve_report_path(report_path)
-                        if report_path_obj.exists():
-                            rel_path = report_path_obj.relative_to(self.project_root)
-                            lines.append(
-                                f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})"
-                            )
-                else:
-                    lines.append(
-                        "- Legacy reference data unavailable (run `audit --full` for latest scan)"
-                    )
-            else:
-                lines.append(
-                    "- Legacy reference data unavailable (run `audit --full` for latest scan)"
-                )
+            lines.append(
+                "- Legacy reference data unavailable (run `audit --full` for latest scan)"
+            )
 
         lines.append("")
         lines.append("## Duplicate Functions")
@@ -1640,7 +1564,8 @@ class ReportGenerationMixin:
         lines.append("## System Signals")
 
         if hasattr(self, "system_signals") and self.system_signals:
-            system_health = self.system_signals.get("system_health", {})
+            system_signals = self._get_system_signals_details(self.system_signals)
+            system_health = system_signals.get("system_health", {})
             overall_status = system_health.get("overall_status", "OK")
             lines.append(f"- **System Health**: {overall_status}")
 
@@ -1676,14 +1601,14 @@ class ReportGenerationMixin:
                     f"- **Core File Issues**: {self._format_list_for_display(missing_core, limit=3)}"
                 )
 
-            recent_activity = self.system_signals.get("recent_activity", {})
+            recent_activity = system_signals.get("recent_activity", {})
             recent_changes = recent_activity.get("recent_changes") or []
             if recent_changes:
                 lines.append(
                     f"- **Recent Changes**: {self._format_list_for_display(recent_changes, limit=3)}"
                 )
 
-            critical_alerts = self.system_signals.get("critical_alerts", [])
+            critical_alerts = system_signals.get("critical_alerts", [])
             if critical_alerts:
                 lines.append(
                     f"- **Critical Alerts**: {len(critical_alerts)} active alert(s)"
@@ -1710,9 +1635,13 @@ class ReportGenerationMixin:
 
                     if signals_data:
                         if "data" in signals_data:
-                            system_signals = signals_data["data"]
+                            system_signals = self._get_system_signals_details(
+                                signals_data["data"]
+                            )
                         else:
-                            system_signals = signals_data
+                            system_signals = self._get_system_signals_details(
+                                signals_data
+                            )
 
                         if system_signals:
                             signals_loaded = True
@@ -1942,9 +1871,7 @@ class ReportGenerationMixin:
         doc_metrics_details = doc_metrics.get("details", {})
         doc_coverage_value = metrics.get("doc_coverage")
         if doc_coverage_value is None or doc_coverage_value == "Unknown":
-            doc_coverage_value = doc_metrics_details.get(
-                "doc_coverage"
-            ) or doc_metrics.get("doc_coverage")
+            doc_coverage_value = doc_metrics_details.get("coverage")
 
         # Use analyze_functions for missing docstrings (checks code docstrings)
         # NOT analyze_function_registry (checks registry file coverage - different metric)
@@ -1961,21 +1888,7 @@ class ReportGenerationMixin:
             else 0
         )
 
-        data_section = (
-            doc_metrics.get("data", {}) if isinstance(doc_metrics, dict) else {}
-        )
-        missing_from_data = (
-            data_section.get("missing", {}) if isinstance(data_section, dict) else {}
-        )
-        missing_docs_raw = (
-            doc_metrics_details.get("missing_docs")
-            or doc_metrics_details.get("missing_items")
-            or doc_metrics.get("missing_docs")
-            or doc_metrics.get("missing_items")
-        )
-
-        if not missing_docs_raw and isinstance(missing_from_data, dict):
-            missing_docs_raw = missing_from_data
+        missing_docs_raw = doc_metrics_details.get("missing", {})
 
         if isinstance(missing_docs_raw, dict):
             missing_docs_count = missing_docs_raw.get("count", 0)
@@ -1983,10 +1896,12 @@ class ReportGenerationMixin:
             missing_docs_count = to_int(missing_docs_raw) or 0
 
         missing_doc_files = (
-            doc_metrics_details.get("missing_files")
-            or doc_metrics.get("missing_files")
-            or self._get_missing_doc_files(limit=5)
+            missing_docs_raw.get("missing_files")
+            if isinstance(missing_docs_raw, dict)
+            else self._get_missing_doc_files(limit=5)
         )
+        if not missing_doc_files:
+            missing_doc_files = self._get_missing_doc_files(limit=5)
 
         # Use analyze_functions data for missing docstrings (code docstrings, not registry file)
         # Calculate from function_metrics, not doc_metrics (registry)
@@ -2017,11 +1932,7 @@ class ReportGenerationMixin:
                 else:
                     # Last resort: use registry data (but this measures registry file, not code docstrings)
                     total_funcs = metrics.get("total_functions")
-                    doc_totals = (
-                        doc_metrics_details.get("totals")
-                        or doc_metrics.get("totals")
-                        or {}
-                    )
+                    doc_totals = doc_metrics_details.get("totals") or {}
                     documented_funcs = (
                         doc_totals.get("functions_documented")
                         if isinstance(doc_totals, dict)
@@ -2042,7 +1953,7 @@ class ReportGenerationMixin:
         error_details = error_metrics.get("details", {})
 
         def get_error_field(field_name, default=None):
-            return error_details.get(field_name, error_metrics.get(field_name, default))
+            return error_details.get(field_name, default)
 
         error_coverage = get_error_field("analyze_error_handling") or get_error_field(
             "error_handling_coverage"
@@ -2070,15 +1981,13 @@ class ReportGenerationMixin:
         def get_doc_sync_field(data, field_name, default=None):
             if not data or not isinstance(data, dict):
                 return default
-            if "summary" in data and isinstance(data.get("summary"), dict):
-                if field_name == "status":
-                    return data["summary"].get("status", default)
-                elif field_name == "total_issues":
-                    return data["summary"].get("total_issues", default)
-                else:
-                    return data.get("details", {}).get(field_name, default)
-            else:
-                return data.get(field_name, default)
+            if "summary" not in data or not isinstance(data.get("summary"), dict):
+                return default
+            if field_name == "status":
+                return data["summary"].get("status", default)
+            if field_name == "total_issues":
+                return data["summary"].get("total_issues", default)
+            return data.get("details", {}).get(field_name, default)
 
         path_drift_count = (
             to_int(get_doc_sync_field(doc_sync_summary, "path_drift_issues"))
@@ -2129,9 +2038,9 @@ class ReportGenerationMixin:
                 legacy_markers = to_int(legacy_details.get("legacy_markers", 0))
                 legacy_report = legacy_details.get("report_path")
             else:
-                legacy_files = to_int(legacy_summary.get("files_with_issues"))
-                legacy_markers = to_int(legacy_summary.get("legacy_markers"))
-                legacy_report = legacy_summary.get("report_path")
+                legacy_files = None
+                legacy_markers = None
+                legacy_report = None
         else:
             legacy_files = None
             legacy_markers = None
@@ -2171,7 +2080,9 @@ class ReportGenerationMixin:
         high_examples = function_metrics.get("high_complexity_examples") or []
 
         # Try loading from multiple sources, prioritizing in-memory cache, then tool data (may be cached)
-        decision_metrics = self.results_cache.get("decision_support_metrics", {})
+        decision_metrics = self._get_decision_support_details(
+            self.results_cache.get("decision_support")
+        )
         if decision_metrics:
             if (
                 not critical_examples or len(critical_examples) == 0
@@ -2196,10 +2107,9 @@ class ReportGenerationMixin:
                 "decision_support", "functions", log_source=False
             )
             if decision_data and isinstance(decision_data, dict):
-                decision_details = decision_data.get("details", {})
-                decision_metrics_from_tool = decision_details.get(
-                    "decision_support_metrics", {}
-                ) or decision_data.get("decision_support_metrics", {})
+                decision_metrics_from_tool = self._get_decision_support_details(
+                    decision_data
+                )
                 if decision_metrics_from_tool:
                     if not decision_metrics:
                         decision_metrics = decision_metrics_from_tool
@@ -2264,7 +2174,9 @@ class ReportGenerationMixin:
         critical_complex = to_int(metrics.get("critical"))
 
         if moderate_complex is None or high_complex is None or critical_complex is None:
-            decision_metrics = self.results_cache.get("decision_support_metrics", {})
+            decision_metrics = self._get_decision_support_details(
+                self.results_cache.get("decision_support")
+            )
             if decision_metrics:
                 if moderate_complex is None:
                     moderate_complex = to_int(
@@ -2496,22 +2408,9 @@ class ReportGenerationMixin:
         # Get missing_docs_list from doc_metrics (structure: missing_docs.missing_files)
         missing_docs_list = None
         if isinstance(doc_metrics, dict):
-            # Try multiple paths to find missing_files structure
-            missing_docs_raw_for_list = (
-                doc_metrics_details.get("missing_docs")
-                or doc_metrics.get("missing_docs")
-                or {}
-            )
+            missing_docs_raw_for_list = doc_metrics_details.get("missing", {})
             if isinstance(missing_docs_raw_for_list, dict):
-                missing_docs_list = missing_docs_raw_for_list.get("missing_files", {})
-            # Also try data.missing.missing_files
-            data_section_for_list = doc_metrics.get("data", {})
-            if not missing_docs_list and isinstance(data_section_for_list, dict):
-                missing_from_data_for_list = data_section_for_list.get("missing", {})
-                if isinstance(missing_from_data_for_list, dict):
-                    missing_docs_list = missing_from_data_for_list.get(
-                        "missing_files", {}
-                    )
+                missing_docs_list = missing_docs_raw_for_list.get("files", {})
 
         if missing_docs_count and missing_docs_count > 0:
             registry_bullets: List[str] = []
@@ -3007,22 +2906,10 @@ class ReportGenerationMixin:
 
         # Test markers priority
         if test_markers_data and isinstance(test_markers_data, dict):
-            # Handle both standard format (with summary/details) and legacy format (direct keys)
-            if "summary" in test_markers_data:
-                summary = test_markers_data.get("summary", {})
-                missing_count = summary.get("total_issues", 0)
-                details = test_markers_data.get("details", {})
-                missing_list = details.get("missing", [])
-            else:
-                # Legacy format or direct data structure
-                missing_count = test_markers_data.get("missing_count", 0)
-                missing_list = test_markers_data.get("missing", [])
-                # Also check if data is wrapped in 'data' key
-                if not missing_count and "data" in test_markers_data:
-                    data_wrapper = test_markers_data.get("data", {})
-                    if isinstance(data_wrapper, dict):
-                        missing_count = data_wrapper.get("missing_count", 0)
-                        missing_list = data_wrapper.get("missing", [])
+            summary = test_markers_data.get("summary", {})
+            details = test_markers_data.get("details", {})
+            missing_count = summary.get("total_issues", 0)
+            missing_list = details.get("missing", [])
 
             # Use missing_count if available, otherwise count from missing_list
             actual_count = (
@@ -3090,9 +2977,7 @@ class ReportGenerationMixin:
         if unused_imports_data and isinstance(unused_imports_data, dict):
             summary = unused_imports_data.get("summary", {})
             details = unused_imports_data.get("details", {})
-            by_category = details.get("by_category") or unused_imports_data.get(
-                "by_category", {}
-            )
+            by_category = details.get("by_category", {})
             obvious_unused = (
                 by_category.get("obvious_unused", 0)
                 if isinstance(by_category, dict)
@@ -3177,11 +3062,6 @@ class ReportGenerationMixin:
                     1 if obvious_unused > 50 else 2
                 )  # Critical if >50 obvious, High otherwise
 
-                # Count files with obvious unused (approximate - we show all files but note it's only obvious)
-                files_with_obvious = summary.get(
-                    "files_affected", 0
-                ) or unused_imports_data.get("files_with_issues", 0)
-
                 add_priority(
                     tier=tier,
                     title="Remove obvious unused imports",
@@ -3263,14 +3143,11 @@ class ReportGenerationMixin:
             complexity_bullets: List[str] = []
             # Ensure we have examples - try loading if not available
             if not critical_examples:
-                # Try loading from decision_support_metrics (may be cached)
-                decision_metrics = self.results_cache.get(
-                    "decision_support_metrics", {}
+                # Try loading from decision_support (standard format)
+                decision_metrics = self._get_decision_support_details(
+                    self.results_cache.get("decision_support")
                 )
-                if (
-                    decision_metrics
-                    and "critical_complexity_examples" in decision_metrics
-                ):
+                if decision_metrics and "critical_complexity_examples" in decision_metrics:
                     critical_examples = decision_metrics.get(
                         "critical_complexity_examples", []
                     )
@@ -3295,15 +3172,10 @@ class ReportGenerationMixin:
                                 "decision_support", "functions", log_source=False
                             )
                             if decision_data and isinstance(decision_data, dict):
-                                decision_details = decision_data.get("details", {})
-                                decision_metrics_from_tool = decision_details.get(
-                                    "decision_support_metrics", {}
-                                ) or decision_data.get("decision_support_metrics", {})
-                                if (
-                                    decision_metrics_from_tool
-                                    and "critical_complexity_examples"
-                                    in decision_metrics_from_tool
-                                ):
+                                decision_metrics_from_tool = self._get_decision_support_details(
+                                    decision_data
+                                )
+                                if decision_metrics_from_tool and "critical_complexity_examples" in decision_metrics_from_tool:
                                     critical_examples = decision_metrics_from_tool.get(
                                         "critical_complexity_examples", []
                                     )
@@ -3833,29 +3705,12 @@ class ReportGenerationMixin:
         doc_metrics = self._load_tool_data(
             "analyze_function_registry", "functions", log_source=True
         )
-        # Access doc_metrics - check details first (normalized), then top level (backward compat)
         doc_metrics_details = doc_metrics.get("details", {})
-        doc_coverage = doc_metrics_details.get("doc_coverage") or doc_metrics.get(
-            "doc_coverage", metrics.get("doc_coverage")
+        doc_coverage = doc_metrics_details.get(
+            "coverage", metrics.get("doc_coverage")
         )
 
-        # Try multiple paths to find missing_docs count
-        data_section = (
-            doc_metrics.get("data", {}) if isinstance(doc_metrics, dict) else {}
-        )
-        missing_from_data = (
-            data_section.get("missing", {}) if isinstance(data_section, dict) else {}
-        )
-
-        missing_docs_raw = (
-            doc_metrics_details.get("missing_docs")
-            or doc_metrics_details.get("missing_items")
-            or doc_metrics.get("missing_docs")
-            or doc_metrics.get("missing_items")
-        )
-
-        if not missing_docs_raw and isinstance(missing_from_data, dict):
-            missing_docs_raw = missing_from_data
+        missing_docs_raw = doc_metrics_details.get("missing", {})
 
         if isinstance(missing_docs_raw, dict):
             missing_docs_count = missing_docs_raw.get("count", 0)
@@ -3863,9 +3718,7 @@ class ReportGenerationMixin:
         else:
             missing_docs_count = to_int(missing_docs_raw) or 0
             missing_docs_list = {}
-        doc_totals = (
-            doc_metrics_details.get("totals") or doc_metrics.get("totals") or {}
-        )
+        doc_totals = doc_metrics_details.get("totals") or {}
         documented_functions = (
             doc_totals.get("functions_documented")
             if isinstance(doc_totals, dict)
@@ -3974,17 +3827,7 @@ class ReportGenerationMixin:
             self._load_dev_tools_coverage()
 
         legacy_data = self._load_tool_data("analyze_legacy_references", "legacy")
-        legacy_summary = (
-            getattr(self, "legacy_cleanup_summary", None) or legacy_data or {}
-        )
-        if not legacy_summary and isinstance(legacy_data, dict):
-            legacy_summary = {
-                "files_with_issues": legacy_data.get("files_with_issues", 0),
-                "legacy_markers": legacy_data.get("legacy_markers", 0),
-                "report_path": legacy_data.get(
-                    "report_path", "development_docs/LEGACY_REFERENCE_REPORT.md"
-                ),
-            }
+        legacy_summary = getattr(self, "legacy_cleanup_summary", None) or legacy_data or {}
 
         # Get missing docstrings count for consolidated report
         func_metrics_details_for_undoc = (
@@ -3992,11 +3835,7 @@ class ReportGenerationMixin:
             if isinstance(function_metrics, dict)
             else {}
         )
-        func_undocumented = func_metrics_details_for_undoc.get("undocumented", 0) or (
-            function_metrics.get("undocumented", 0)
-            if isinstance(function_metrics, dict)
-            else 0
-        )
+        func_undocumented = func_metrics_details_for_undoc.get("undocumented", 0)
 
         # Also get handler classes count for consolidated report
         function_patterns_data_for_report = self._load_tool_data(
@@ -4007,12 +3846,9 @@ class ReportGenerationMixin:
         if function_patterns_data_for_report and isinstance(
             function_patterns_data_for_report, dict
         ):
-            if "details" in function_patterns_data_for_report:
-                handlers = function_patterns_data_for_report["details"].get(
-                    "handlers", []
-                )
-            else:
-                handlers = function_patterns_data_for_report.get("handlers", [])
+            handlers = function_patterns_data_for_report.get("details", {}).get(
+                "handlers", []
+            )
             if handlers:
                 handler_classes_total = len(handlers)
                 handler_classes_no_doc = len(
@@ -4101,19 +3937,18 @@ class ReportGenerationMixin:
                     and "decision_support" in cached_data["results"]
                 ):
                     ds_data = cached_data["results"]["decision_support"]
-                    if (
-                        "data" in ds_data
-                        and "decision_support_metrics" in ds_data["data"]
-                    ):
-                        ds_metrics = ds_data["data"]["decision_support_metrics"]
+                    ds_details = self._get_decision_support_details(
+                        ds_data.get("data") if isinstance(ds_data, dict) else None
+                    )
+                    if ds_details:
                         if moderate == "Unknown":
-                            moderate = ds_metrics.get("moderate_complexity", "Unknown")
+                            moderate = ds_details.get("moderate_complexity", "Unknown")
                         if high == "Unknown":
-                            high = ds_metrics.get("high_complexity", "Unknown")
+                            high = ds_details.get("high_complexity", "Unknown")
                         if critical == "Unknown":
-                            critical = ds_metrics.get("critical_complexity", "Unknown")
+                            critical = ds_details.get("critical_complexity", "Unknown")
                         if total_funcs == "Unknown":
-                            total_funcs = ds_metrics.get("total_functions", "Unknown")
+                            total_funcs = ds_details.get("total_functions", "Unknown")
             except Exception as e:
                 logger.debug(
                     f"Failed to load complexity from cache in consolidated report: {e}"
@@ -4219,8 +4054,6 @@ class ReportGenerationMixin:
                 path_drift = doc_sync_summary.get("details", {}).get(
                     "path_drift_issues", 0
                 )
-            else:
-                path_drift = doc_sync_summary.get("path_drift_issues")
 
         if path_drift is not None:
             lines.append(
@@ -4234,8 +4067,6 @@ class ReportGenerationMixin:
                 legacy_summary.get("summary"), dict
             ):
                 legacy_issues = legacy_summary["summary"].get("files_affected", 0)
-            else:
-                legacy_issues = legacy_summary.get("files_with_issues")
 
         if legacy_issues is not None:
             lines.append(
@@ -4274,15 +4105,15 @@ class ReportGenerationMixin:
         if not doc_sync_summary_for_signals:
             doc_sync_result = self._load_tool_data("analyze_documentation_sync", "docs")
             if doc_sync_result:
-                cached_metrics = (
-                    doc_sync_result if isinstance(doc_sync_result, dict) else {}
-                )
+                cached_metrics = doc_sync_result if isinstance(doc_sync_result, dict) else {}
+                summary = cached_metrics.get("summary", {}) if isinstance(cached_metrics, dict) else {}
+                details = cached_metrics.get("details", {}) if isinstance(cached_metrics, dict) else {}
                 doc_sync_summary_for_signals = {
-                    "status": cached_metrics.get("status", "UNKNOWN"),
-                    "path_drift_issues": cached_metrics.get("path_drift_issues", 0),
-                    "paired_doc_issues": cached_metrics.get("paired_doc_issues", 0),
-                    "ascii_issues": cached_metrics.get("ascii_issues", 0),
-                    "path_drift_files": cached_metrics.get("path_drift_files", []),
+                    "status": summary.get("status", "UNKNOWN"),
+                    "path_drift_issues": details.get("path_drift_issues", 0),
+                    "paired_doc_issues": details.get("paired_doc_issues", 0),
+                    "ascii_issues": details.get("ascii_issues", 0),
+                    "path_drift_files": details.get("path_drift_files", []),
                 }
 
         effective_summary = (
@@ -4292,15 +4123,13 @@ class ReportGenerationMixin:
         def get_doc_sync_field(data, field_name, default=None):
             if not data or not isinstance(data, dict):
                 return default
-            if "summary" in data and isinstance(data.get("summary"), dict):
-                if field_name == "status":
-                    return data["summary"].get("status", default)
-                elif field_name == "total_issues":
-                    return data["summary"].get("total_issues", default)
-                else:
-                    return data.get("details", {}).get(field_name, default)
-            else:
-                return data.get(field_name, default)
+            if "summary" not in data or not isinstance(data.get("summary"), dict):
+                return default
+            if field_name == "status":
+                return data["summary"].get("status", default)
+            if field_name == "total_issues":
+                return data["summary"].get("total_issues", default)
+            return data.get("details", {}).get(field_name, default)
 
         def extract_files_with_issue_counts(tool_data):
             """Extract file paths with their issue counts from tool data."""
@@ -4366,16 +4195,12 @@ class ReportGenerationMixin:
                     effective_summary.get("summary"), dict
                 ):
                     count = effective_summary.get("details", {}).get(summary_key, 0)
-                else:
-                    count = effective_summary.get(summary_key, 0)
 
             if count == 0 and tool_data and isinstance(tool_data, dict):
                 if "summary" in tool_data and isinstance(
                     tool_data.get("summary"), dict
                 ):
                     count = tool_data["summary"].get("total_issues", 0)
-                elif "total_issues" in tool_data:
-                    count = tool_data.get("total_issues", 0)
                 elif "files" in tool_data:
                     files_dict = tool_data.get("files", {})
                     if isinstance(files_dict, dict):
@@ -4727,9 +4552,7 @@ class ReportGenerationMixin:
             error_details = error_metrics.get("details", {})
 
             def get_error_field(field_name, default=None):
-                return error_details.get(
-                    field_name, error_metrics.get(field_name, default)
-                )
+                return error_details.get(field_name, default)
 
             if missing_error_handlers is None:
                 missing_error_handlers = 0
@@ -5016,21 +4839,13 @@ class ReportGenerationMixin:
         if unused_imports_data:
             summary = unused_imports_data.get("summary", {})
             details = unused_imports_data.get("details", {})
-            total_unused = summary.get("total_issues", 0) or unused_imports_data.get(
-                "total_unused", 0
-            )
-            files_with_issues = summary.get(
-                "files_affected", 0
-            ) or unused_imports_data.get("files_with_issues", 0)
+            total_unused = summary.get("total_issues", 0)
+            files_with_issues = summary.get("files_affected", 0)
             if total_unused > 0 or files_with_issues > 0:
                 lines.append(
                     f"- **Total Unused**: {total_unused} imports across {files_with_issues} files"
                 )
-                by_category = (
-                    details.get("by_category")
-                    or unused_imports_data.get("by_category")
-                    or {}
-                )
+                by_category = details.get("by_category", {})
                 obvious = by_category.get("obvious_unused")
                 if obvious:
                     lines.append(f"    - **Obvious Removals**: {obvious} imports")
@@ -5125,8 +4940,6 @@ class ReportGenerationMixin:
                         summary = unused_imports_data.get("summary", {})
                         total_files_with_issues = summary.get(
                             "files_affected", 0
-                        ) or unused_imports_data.get(
-                            "files_with_issues", len(file_counts)
                         )
                     else:
                         total_files_with_issues = len(file_counts)
@@ -5154,55 +4967,17 @@ class ReportGenerationMixin:
         # Legacy References
         lines.append("## Legacy References")
 
-        if not legacy_summary and legacy_data:
-            if isinstance(legacy_data, dict):
-                findings = legacy_data.get("findings", {})
-                if findings:
-                    total_files = sum(len(file_list) for file_list in findings.values())
-                    total_markers = 0
-                    for pattern_type, file_list in findings.items():
-                        for file_entry in file_list:
-                            if len(file_entry) >= 3:
-                                matches = file_entry[2]
-                                if isinstance(matches, list):
-                                    total_markers += len(matches)
-
-                    legacy_issues = legacy_data.get("files_with_issues") or total_files
-                    legacy_markers = legacy_data.get("legacy_markers") or total_markers
-                else:
-                    legacy_issues = legacy_data.get("files_with_issues") or 0
-                    legacy_markers = legacy_data.get("legacy_markers") or 0
-
-                report_path = (
-                    legacy_data.get("report_path")
-                    or "development_docs/LEGACY_REFERENCE_REPORT.md"
-                )
-                if legacy_issues is not None:
-                    legacy_summary = {
-                        "files_with_issues": legacy_issues,
-                        "legacy_markers": legacy_markers,
-                        "report_path": report_path,
-                        "findings": findings,
-                    }
-
-        if legacy_summary:
-            if "summary" in legacy_summary and isinstance(
-                legacy_summary.get("summary"), dict
-            ):
-                legacy_issues = legacy_summary["summary"].get("files_affected", 0)
-                details = legacy_summary.get("details", {})
-                legacy_markers = details.get("legacy_markers", 0)
-                findings = details.get("findings", {})
-            else:
-                legacy_issues = legacy_summary.get("files_with_issues")
-                legacy_markers = legacy_summary.get("legacy_markers")
-                findings = legacy_summary.get("findings", {})
-
-            report_path = (
-                details.get("report_path")
-                if "details" in legacy_summary
-                else legacy_summary.get("report_path")
-            )
+        legacy_summary = legacy_summary or legacy_data or {}
+        if (
+            legacy_summary
+            and "summary" in legacy_summary
+            and isinstance(legacy_summary.get("summary"), dict)
+        ):
+            legacy_issues = legacy_summary["summary"].get("files_affected", 0)
+            details = legacy_summary.get("details", {})
+            legacy_markers = details.get("legacy_markers", 0)
+            findings = details.get("findings", {})
+            report_path = details.get("report_path")
 
             if legacy_issues is not None:
                 lines.append(f"- **Files with Legacy Markers**: {legacy_issues}")
@@ -5272,18 +5047,11 @@ class ReportGenerationMixin:
         )
 
         def get_function_field(field_name, default=None):
-            return function_metrics_details.get(
-                field_name,
-                (
-                    function_metrics.get(field_name, default)
-                    if isinstance(function_metrics, dict)
-                    else default
-                ),
-            )
+            return function_metrics_details.get(field_name, default)
 
         # Try to load complexity from decision_support if analyze_functions doesn't have it
-        decision_metrics = (
-            getattr(self, "results_cache", {}).get("decision_support_metrics", {}) or {}
+        decision_metrics = self._get_decision_support_details(
+            getattr(self, "results_cache", {}).get("decision_support")
         )
         # If not in cache, try loading from decision_support tool data
         if not decision_metrics:
@@ -5291,10 +5059,7 @@ class ReportGenerationMixin:
                 "decision_support", "functions", log_source=False
             )
             if decision_data and isinstance(decision_data, dict):
-                decision_details = decision_data.get("details", {})
-                decision_metrics = decision_details.get(
-                    "decision_support_metrics", {}
-                ) or decision_data.get("decision_support_metrics", {})
+                decision_metrics = self._get_decision_support_details(decision_data)
 
         high_complexity = get_function_field("high_complexity")
         if high_complexity == "Unknown" or high_complexity is None:
@@ -5346,11 +5111,10 @@ class ReportGenerationMixin:
                     and "decision_support" in cached_data["results"]
                 ):
                     ds_data = cached_data["results"]["decision_support"]
-                    if (
-                        "data" in ds_data
-                        and "decision_support_metrics" in ds_data["data"]
-                    ):
-                        ds_metrics = ds_data["data"]["decision_support_metrics"]
+                    ds_metrics = self._get_decision_support_details(
+                        ds_data.get("data") if isinstance(ds_data, dict) else None
+                    )
+                    if ds_metrics:
                         function_metrics_details["high_complexity"] = ds_metrics.get(
                             "high_complexity", "Unknown"
                         )
@@ -5385,13 +5149,9 @@ class ReportGenerationMixin:
         critical_examples = get_function_field("critical_complexity_examples", [])
         high_examples = get_function_field("high_complexity_examples", [])
 
-        # Try loading from decision_support_metrics (may be cached)
-        # decision_metrics should already be loaded above, but ensure we have examples
+        # Try loading from decision_support (standard format)
         if decision_metrics:
-            if (
-                not critical_examples
-                and "critical_complexity_examples" in decision_metrics
-            ):
+            if not critical_examples and "critical_complexity_examples" in decision_metrics:
                 critical_examples = decision_metrics.get(
                     "critical_complexity_examples", []
                 )
@@ -5404,10 +5164,9 @@ class ReportGenerationMixin:
                 "decision_support", "functions", log_source=False
             )
             if decision_data and isinstance(decision_data, dict):
-                decision_details = decision_data.get("details", {})
-                decision_metrics_from_tool = decision_details.get(
-                    "decision_support_metrics", {}
-                ) or decision_data.get("decision_support_metrics", {})
+                decision_metrics_from_tool = self._get_decision_support_details(
+                    decision_data
+                )
                 if decision_metrics_from_tool:
                     decision_metrics = decision_metrics_from_tool
                     if (
@@ -5449,10 +5208,9 @@ class ReportGenerationMixin:
                     "decision_support", "functions", log_source=False
                 )
                 if decision_data and isinstance(decision_data, dict):
-                    decision_details = decision_data.get("details", {})
-                    decision_metrics_from_tool = decision_details.get(
-                        "decision_support_metrics", {}
-                    ) or decision_data.get("decision_support_metrics", {})
+                    decision_metrics_from_tool = self._get_decision_support_details(
+                        decision_data
+                    )
                     if decision_metrics_from_tool:
                         if (
                             not critical_examples
@@ -6007,7 +5765,7 @@ class ReportGenerationMixin:
 
         system_signals_data = None
         if hasattr(self, "system_signals") and self.system_signals:
-            system_signals_data = self.system_signals
+            system_signals_data = self._get_system_signals_details(self.system_signals)
         else:
             try:
                 cached_data = self._load_results_file_safe()
@@ -6021,7 +5779,9 @@ class ReportGenerationMixin:
 
                     if signals_result:
                         if "data" in signals_result:
-                            system_signals_data = signals_result["data"]
+                            system_signals_data = self._get_system_signals_details(
+                                signals_result["data"]
+                            )
             except Exception as e:
                 logger.debug(f"Failed to load system signals from cache: {e}")
 
@@ -6029,9 +5789,6 @@ class ReportGenerationMixin:
         system_health = None
         if system_signals_data and isinstance(system_signals_data, dict):
             system_health = system_signals_data.get("system_health", {})
-        elif hasattr(self, "system_signals") and self.system_signals:
-            if isinstance(self.system_signals, dict):
-                system_health = self.system_signals.get("system_health", {})
 
         if system_health and isinstance(system_health, dict):
             overall_status = system_health.get("overall_status", "OK")
@@ -6067,11 +5824,7 @@ class ReportGenerationMixin:
             recent_activity = (
                 system_signals_data.get("recent_activity", {})
                 if system_signals_data
-                else (
-                    self.system_signals.get("recent_activity", {})
-                    if hasattr(self, "system_signals") and self.system_signals
-                    else {}
-                )
+                else {}
             )
             recent_changes = (
                 recent_activity.get("recent_changes") or []
@@ -6113,12 +5866,6 @@ class ReportGenerationMixin:
 
             status_config = config.get_status_config()
             status_files_config = status_config.get("status_files", {})
-            # Use default from STATUS config if status_files_config is empty (matches default config)
-            if not status_files_config:
-                # Fallback to default STATUS config values for backward compatibility
-                from ...config.config import STATUS
-
-                status_files_config = STATUS.get("status_files", {})
             ai_status_path = status_files_config.get(
                 "ai_status", "development_tools/AI_STATUS.md"
             )
@@ -6130,27 +5877,9 @@ class ReportGenerationMixin:
                 "development_tools/reports/analysis_detailed_results.json",
             )
         except (ImportError, AttributeError, KeyError):
-            # Fallback to default STATUS config values for backward compatibility
-            try:
-                from ...config.config import STATUS
-
-                status_files_default = STATUS.get("status_files", {})
-                ai_status_path = status_files_default.get(
-                    "ai_status", "development_tools/AI_STATUS.md"
-                )
-                ai_priorities_path = status_files_default.get(
-                    "ai_priorities", "development_tools/AI_PRIORITIES.md"
-                )
-                results_file_path = (
-                    "development_tools/reports/analysis_detailed_results.json"
-                )
-            except (ImportError, AttributeError):
-                # Last resort fallback
-                ai_status_path = "development_tools/AI_STATUS.md"
-                ai_priorities_path = "development_tools/AI_PRIORITIES.md"
-                results_file_path = (
-                    "development_tools/reports/analysis_detailed_results.json"
-                )
+            ai_status_path = "development_tools/AI_STATUS.md"
+            ai_priorities_path = "development_tools/AI_PRIORITIES.md"
+            results_file_path = "development_tools/reports/analysis_detailed_results.json"
 
         lines.append(f"- Latest AI status: [AI_STATUS.md]({ai_status_path})")
         lines.append(

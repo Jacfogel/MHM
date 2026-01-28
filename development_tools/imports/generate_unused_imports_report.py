@@ -61,54 +61,46 @@ class UnusedImportsReportGenerator:
 
         Args:
             analysis_data: Analysis results dict (from analyze_unused_imports_results.json)
-                          Should contain 'findings' and 'stats' keys, or be in standard format
-                          with 'details' containing the findings/stats
+                          Must be in standard format with 'details' containing findings/stats.
         """
-        # Handle both standard format and legacy format
-        if "details" in analysis_data:
-            # Standard format - extract from details
-            details = analysis_data.get("details", {})
-            # First try to get full findings (preferred)
-            self.findings = details.get("findings", {})
-            self.stats = details.get("stats", {})
+        details = analysis_data.get("details")
+        if not isinstance(details, dict):
+            raise ValueError("Unused imports analysis data must include 'details'.")
 
-            # Check if we have actual findings data (list of items) or just empty dicts
-            has_full_findings = (
-                self.findings
-                and isinstance(self.findings, dict)
-                and any(
-                    isinstance(items, list) and len(items) > 0
-                    for items in self.findings.values()
-                )
+        # Standard format - extract from details
+        self.findings = details.get("findings", {})
+        self.stats = details.get("stats", {})
+
+        # Check if we have actual findings data (list of items) or just empty dicts
+        has_full_findings = (
+            self.findings
+            and isinstance(self.findings, dict)
+            and any(
+                isinstance(items, list) and len(items) > 0
+                for items in self.findings.values()
             )
+        )
 
-            if not has_full_findings:
-                # Try to reconstruct findings from by_category (fallback - only counts available)
-                by_category = details.get("by_category", {})
-                self.findings = {
-                    cat: []
-                    for cat in [
-                        "obvious_unused",
-                        "type_hints_only",
-                        "re_exports",
-                        "conditional_imports",
-                        "star_imports",
-                        "test_mocking",
-                        "qt_testing",
-                        "test_infrastructure",
-                        "production_test_mocking",
-                        "ui_imports",
-                    ]
-                }
-                # Note: Only counts available, not full findings
-                self.findings_counts = by_category
-            else:
-                # We have full findings - use them
-                self.findings_counts = None
+        if not has_full_findings:
+            # Try to reconstruct findings from by_category (counts only)
+            by_category = details.get("by_category", {})
+            self.findings = {
+                cat: []
+                for cat in [
+                    "obvious_unused",
+                    "type_hints_only",
+                    "re_exports",
+                    "conditional_imports",
+                    "star_imports",
+                    "test_mocking",
+                    "qt_testing",
+                    "test_infrastructure",
+                    "production_test_mocking",
+                    "ui_imports",
+                ]
+            }
+            self.findings_counts = by_category
         else:
-            # Legacy format - direct access
-            self.findings = analysis_data.get("findings", {})
-            self.stats = analysis_data.get("stats", {})
             self.findings_counts = None
 
         # Ensure findings has all categories

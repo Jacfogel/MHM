@@ -247,7 +247,7 @@ def load_development_tools_module(module_name: str):
             sys.modules[full_name] = svc_module
             svc_spec.loader.exec_module(svc_module)
     
-    # Load legacy package if needed (for fix_legacy_references imports)
+    # Load compatibility cleanup package if needed (for fix_legacy_references imports)
     legacy_init = project_root / "development_tools" / "legacy" / "__init__.py"
     if legacy_init.exists() and "development_tools.legacy" not in sys.modules:
         legacy_spec = importlib.util.spec_from_file_location("development_tools.legacy", legacy_init)
@@ -255,7 +255,7 @@ def load_development_tools_module(module_name: str):
         sys.modules["development_tools.legacy"] = legacy_module
         legacy_spec.loader.exec_module(legacy_module)
     
-    # Load legacy submodules if needed (for fix_legacy_references)
+    # Load compatibility cleanup submodules if needed (for fix_legacy_references)
     if "development_tools.legacy" in sys.modules:
         legacy_modules = ["analyze_legacy_references", "generate_legacy_reference_report"]
         for legacy_mod_name in legacy_modules:

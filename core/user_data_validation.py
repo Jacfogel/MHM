@@ -330,11 +330,9 @@ def validate_user_update(
     # ACCOUNT ----------------------------------------------------------------
     if data_type == "account":
         # Account validation is now handled by Pydantic models in core/schemas.py
-        # This function is kept for backward compatibility but delegates to Pydantic
         from core.schemas import validate_account_dict
 
         try:
-            # This maintains backward compatibility with the old validation approach
             try:
                 from core.user_data_handlers import get_user_data
 
@@ -376,7 +374,6 @@ def validate_user_update(
     # PREFERENCES -------------------------------------------------------------
     elif data_type == "preferences":
         # Preferences validation is now handled by Pydantic models in core/schemas.py
-        # This function is kept for backward compatibility but delegates to Pydantic
         from core.schemas import validate_preferences_dict
 
         try:
@@ -435,7 +432,6 @@ def validate_user_update(
     # SCHEDULES ---------------------------------------------------------------
     elif data_type == "schedules":
         # Schedules validation is now handled by Pydantic models in core/schemas.py
-        # This function is kept for backward compatibility but delegates to Pydantic
         from core.schemas import validate_schedules_dict
 
         try:

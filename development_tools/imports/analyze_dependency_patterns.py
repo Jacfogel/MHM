@@ -529,21 +529,6 @@ class DependencyPatternAnalyzer:
         )
 
 
-# Convenience functions for backward compatibility
-def analyze_dependency_patterns(actual_imports: Dict[str, Dict]) -> Dict[str, Any]:
-    """Analyze dependency patterns for AI consumption."""
-    analyzer = DependencyPatternAnalyzer()
-    return analyzer.analyze_dependency_patterns(actual_imports)
-
-
-def detect_circular_dependencies(
-    actual_imports: Dict[str, Dict],
-) -> List[Tuple[str, str]]:
-    """Detect potential circular dependencies."""
-    analyzer = DependencyPatternAnalyzer()
-    return analyzer.detect_circular_dependencies(actual_imports)
-
-
 if __name__ == "__main__":
     import argparse
 
