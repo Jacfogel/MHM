@@ -508,6 +508,27 @@ def _export_code_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     return int(main(list(argv)))
 
 
+def _export_docs_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """
+    Generate a docs snapshot markdown bundle (similar to export_code_snapshot).
+
+    This intentionally delegates argument parsing to export_docs_snapshot.main()
+    so we only maintain the CLI flags in one place.
+    """
+    from development_tools.shared.export_docs_snapshot import (
+        main as export_docs_snapshot_main,
+    )
+
+    try:
+        return int(export_docs_snapshot_main(argv))
+    except SystemExit as e:
+        # argparse uses SystemExit; normalize to a CLI return code.
+        return int(e.code) if isinstance(e.code, int) else 2
+    except Exception as e:
+        logger.error(f"export-docs command failed: {e}", exc_info=True)
+        return 1
+
+
 def _trees_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     if argv:
         if any(arg not in ("-h", "--help") for arg in argv):
@@ -653,6 +674,14 @@ COMMAND_REGISTRY = OrderedDict(
                 "export-code",
                 _export_code_command,
                 "Export Python files into a single Markdown snapshot (LLM-friendly).",
+            ),
+        ),
+        (
+            "export-docs",
+            CommandRegistration(
+                "export-docs",
+                _export_docs_command,
+                "Export documentation files into a single Markdown snapshot (LLM-friendly).",
             ),
         ),
         (

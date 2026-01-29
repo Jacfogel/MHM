@@ -26,6 +26,12 @@ safely.
     See the "Quick Start (Recommended)" and "Environment Setup" sections
     in [HOW_TO_RUN.md](HOW_TO_RUN.md).
 
+-   **Configuration (.env and core/config.py)**  
+    See [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) for the canonical list of config values, what they do, and common failure modes.
+
+-   **User data persistence layout (data/users/{user_id}/...)**  
+    See [core/USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) for the canonical on-disk contract (files, subdirectories, and access rules).
+
 -   **Development workflow and safe changes**  
     See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for the
     standard development cycle and safe-change process.  
@@ -56,8 +62,6 @@ safely.
 
     -   Session constraints and guardrails:
         [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)  
-    -   AI navigation and patterns:
-        [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md)
 
 -   **Change history and priorities**
 
@@ -94,12 +98,14 @@ Examples:
     troubleshooting for starting services and the UI.
 -   [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md): Safe development
     cycle, preconditions, standard tasks, and emergency procedures.
--   [ARCHITECTURE.md](ARCHITECTURE.md): Directory layout, module
-    responsibilities, user data model, and UI patterns.
+-   [ARCHITECTURE.md](ARCHITECTURE.md): Directory layout, module responsibilities, and UI patterns.
+-   [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md): Canonical configuration reference for `.env` and `core/config.py`.
+-   [core/USER_DATA_MODEL.md](core/USER_DATA_MODEL.md): Canonical on-disk layout for `data/users/{user_id}/...`, persisted artifacts, and access/validation expectations.
 -   [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md): Logging design, logger
     hierarchy, log file locations, rotation, and analysis approaches.
 -   [TESTING_GUIDE.md](tests/TESTING_GUIDE.md): Testing philosophy,
     types, organization, commands, and manual testing procedures.
+-   [tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md): Automated system AI functionality suite guidance (how to run and interpret).
 -   [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md): Error
     handling architecture, patterns, recovery strategies, and error
     logging practices.
@@ -128,8 +134,6 @@ Key AI-facing docs:
 
 -   [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md):
     Session constraints, must-follow rules, and safety boundaries.
--   [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md): AI-oriented
-    troubleshooting, escalation patterns, and routing to other AI docs.
 -   [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md):
     Condensed workflow, with links to sections in
     [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
@@ -698,8 +702,6 @@ Useful supporting materials and locations:
     constraints.
 -   AI_SESSION_STARTER.md: Required reading for AI collaborators before
     performing code changes.
--   AI_REFERENCE.md: Central AI navigation and troubleshooting
-    reference.
 -   CHANGELOG_DETAIL.md and AI_CHANGELOG.md: Detailed and condensed
     histories of changes.
 -   AI_DEVELOPMENT_TOOLS_GUIDE.md and DEVELOPMENT_TOOLS_GUIDE.md:

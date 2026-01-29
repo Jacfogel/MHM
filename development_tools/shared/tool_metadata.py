@@ -356,6 +356,13 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="stable",
         description="Exports Python files from a directory into a single Markdown snapshot for LLM context.",
     ),
+    "export_docs_snapshot": ToolInfo(
+        name="export_docs_snapshot",
+        path="development_tools/shared/export_docs_snapshot.py",
+        tier="supporting",
+        trust="stable",
+        description="Exports documentation files into a single Markdown snapshot for LLM context.",
+    ),
     "file_rotation": ToolInfo(
         name="file_rotation",
         path="development_tools/shared/file_rotation.py",

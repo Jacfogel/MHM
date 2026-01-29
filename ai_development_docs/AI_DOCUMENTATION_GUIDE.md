@@ -99,7 +99,7 @@ Mark examples clearly so the path drift checker skips them:
 
 Primary rule: use full paths from project root for file references.
 
-- Prefer: `core/service.py`, `development_tools/run_development_tools.py`, and [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md).
+- Prefer: `core/service.py`, `development_tools/run_development_tools.py`, and [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md).
 - Avoid ambiguous short names unless directory context is 100% obvious.
 [AVOID] Ambiguous short names:
 - `config.py`
@@ -207,5 +207,4 @@ Do not invent command semantics; defer to [DEVELOPMENT_TOOLS_GUIDE.md](../develo
 
 - Cursor rules: `.cursor/rules/`
 - Required AI guardrails: [AI_SESSION_STARTER.md](AI_SESSION_STARTER.md)
-- AI navigation: [AI_REFERENCE.md](AI_REFERENCE.md)
 - Tools docs: [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)

@@ -38,12 +38,17 @@
       "ai_development_docs/AI_CHANGELOG.md",
       "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
       "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-      "ai_development_docs/AI_REFERENCE.md",
       "ai_development_docs/AI_SESSION_STARTER.md",
       "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md"
     ],
     "docs": [
+      "ai/SYSTEM_AI_GUIDE.md",
       "ARCHITECTURE.md",
+      "communication/COMMUNICATION_GUIDE.md",
+      "communication/communication_channels/discord/DISCORD_GUIDE.md",
+      "CONFIGURATION_REFERENCE.md",
+      "core/USER_DATA_MODEL.md",
+      "core/ERROR_HANDLING_GUIDE.md",
       "development_docs/BACKUP_GUIDE.md",
       "development_docs/CHANGELOG_DETAIL.md",
       "development_docs/PLANS.md",
@@ -53,16 +58,25 @@
       "HOW_TO_RUN.md",
       "PROJECT_VISION.md",
       "README.md",
+      "scripts/SCRIPTS_GUIDE.md",
+      "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+      "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+      "tests/MANUAL_TESTING_GUIDE.md",
+      "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md",
+      "tests/TESTING_GUIDE.md",
+      "ui/UI_GUIDE.md",
       "TODO.md"
     ],
     "cursor_rules": [
       ".cursor/rules/*.mdc"
     ],
     "communication_docs": [
-      "communication/communication_channels/discord/DISCORD_GUIDE.md"
+      "communication/communication_channels/discord/DISCORD_GUIDE.md",
+      "communication/COMMUNICATION_GUIDE.md"
     ],
     "core_docs": [
-      "core/ERROR_HANDLING_GUIDE.md"
+      "core/ERROR_HANDLING_GUIDE.md",
+      "core/USER_DATA_MODEL.md"
     ],
     "logs_docs": [
       "logs/LOGGING_GUIDE.md"
@@ -71,7 +85,11 @@
       "scripts/SCRIPTS_GUIDE.md"
     ],
     "tests_docs": [
-      "tests/TESTING_GUIDE.md"
+      "tests/TESTING_GUIDE.md",
+      "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md",
+      "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+      "tests/MANUAL_TESTING_GUIDE.md",
+      "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
     ],
     "documentation_patterns": [
       "*.md"
@@ -517,7 +535,8 @@
       "AI_CHANGELOG.md",
       "archive/",
       "CHANGELOG_DETAIL.md",
-      "logs/"
+      "logs/",
+      "development_docs/changelog_history/"
     ]
   },
   "constants": {
@@ -530,13 +549,14 @@
       "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
       "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
       "ai_development_docs/AI_LOGGING_GUIDE.md",
-      "ai_development_docs/AI_REFERENCE.md",
       "ai_development_docs/AI_SESSION_STARTER.md",
       "ai_development_docs/AI_TESTING_GUIDE.md",
       "ARCHITECTURE.md",
       "communication/communication_channels/discord/DISCORD_GUIDE.md",
       "communication/COMMUNICATION_GUIDE.md",
+      "CONFIGURATION_REFERENCE.md",
       "core/ERROR_HANDLING_GUIDE.md",
+      "core/USER_DATA_MODEL.md",
       "development_docs/BACKUP_GUIDE.md",
       "development_docs/CHANGELOG_DETAIL.md",
       "development_docs/PLANS.md",
@@ -552,7 +572,7 @@
       "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
       "tests/MANUAL_DISCORD_TEST_GUIDE.md",
       "tests/MANUAL_TESTING_GUIDE.md",
-      "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+      "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md",
       "tests/TESTING_GUIDE.md",
       "TODO.md",
       "ui/UI_GUIDE.md"
@@ -569,13 +589,12 @@
     },
     "local_module_prefixes": [
       "ai",
-      "bot",
       "communication",
       "core",
       "data",
       "development_tools",
+      "notebook",
       "scripts",
-      "services",
       "tasks",
       "tests",
       "ui",
@@ -586,6 +605,7 @@
       "ai",
       "communication",
       "core",
+      "notebook",
       "tasks",
       "tests",
       "ui",
@@ -595,6 +615,7 @@
       "ai",
       "communication",
       "core",
+      "notebook",
       "tasks",
       "ui",
       "user"
@@ -607,6 +628,7 @@
       "communication": "communication/",
       "ui": "ui/",
       "tests": "tests/",
+      "notebook": "notebook/",
       "logs": "logs/",
       "scripts": "scripts/",
       "data": "data/",

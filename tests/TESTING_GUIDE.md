@@ -672,7 +672,7 @@ Run these tests when:
 
 For AI conversation behavior, routing, and functionality tests, use:
 
-- [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md)
+- [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md)
   - Section 1. "Quick Start".
   - Section 2. "Test Suite Structure".
   - Section 6. "Test Features".

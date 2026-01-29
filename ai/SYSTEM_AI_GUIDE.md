@@ -272,44 +272,14 @@ When adding new concurrent behavior around AI calls, reuse these locks instead o
 
 ## 7. Configuration and Feature Flags
 
-All AI-related configuration lives in `core/config.py`. Key values include:
+Configuration semantics (env vars, defaults, failure modes) are defined in `CONFIGURATION_REFERENCE.md`.
 
-- **LM Studio / model parameters**
-  - `LM_STUDIO_BASE_URL`
-  - `LM_STUDIO_API_KEY`
-  - `LM_STUDIO_MODEL`
-  - `LM_STUDIO_AUTO_START`
-  - `LM_STUDIO_AUTO_LOAD_MODEL`
-  - `LM_STUDIO_STARTUP_TIMEOUT`
-  - `LM_STUDIO_MODEL_LOAD_TIMEOUT`
+All AI-related configuration is loaded in `core/config.py`. When changing AI behavior:
 
-- **AI behavior and performance**
-  - `AI_TIMEOUT_SECONDS`
-  - `AI_BATCH_SIZE`
-  - `AI_CUDA_WARMUP`
-  - `AI_CONNECTION_TEST_TIMEOUT`
-  - `AI_API_CALL_TIMEOUT`
-
-- **Caching**
-  - `AI_CACHE_RESPONSES`
-  - `AI_RESPONSE_CACHE_TTL`
-  - `CONTEXT_CACHE_TTL`
-
-- **Parsing thresholds and timeouts**
-  - `AI_RULE_BASED_HIGH_CONFIDENCE_THRESHOLD`
-  - `AI_AI_ENHANCED_CONFIDENCE_THRESHOLD`
-  - `AI_AI_PARSING_BASE_CONFIDENCE`
-  - `AI_AI_PARSING_PARTIAL_CONFIDENCE`
-  - `AI_COMMAND_PARSING_TIMEOUT`
-
-When changing AI behavior:
-
-1. Prefer updating these config values (or their environment variables) rather than hardcoding new constants.
-2. If you add new AI-related config, ensure it is:
+1. Prefer adjusting existing configuration values (or their environment variables) rather than hardcoding new constants.
+2. If you add new AI-related configuration, ensure it is:
    - Validated in `core/config.py`, and
-   - Documented in section 9. "Configuration" of this guide or the main configuration docs.
-
----
+   - Documented in `CONFIGURATION_REFERENCE.md` (and any relevant human guide sections that provide operational context).
 
 ## 8. Error Handling and Fallbacks
 
@@ -356,7 +326,7 @@ The AI subsystem is covered both by general tests and AI-specific functionality 
 - For overall testing strategy and layout, see:
   - Section 1. "Purpose and Scope" and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 - For AI-specific functional tests, see:
-  - [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md) for behavior-focused AI test flows.
+  - [tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md) for behavior-focused AI test flows.
   - [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md) and [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md) for channel-specific manual checks.
 
 These guides describe how to:

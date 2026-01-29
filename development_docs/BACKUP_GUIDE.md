@@ -106,6 +106,8 @@ This guide covers both how the systems work and how to restore from backups.
 **Backup Contents:**
 - All user data directories (`data/users/{user_id}/`)
 - Configuration files (`.env`, `requirements.txt`, `user_index.json`)
+> **Note:** Configuration semantics are canonically defined in `CONFIGURATION_REFERENCE.md` (source of truth: `.env.example`; loader/validation: `core/config.py`).
+> Avoid duplicating per-setting definitions outside that reference.
 - Optional: Log files (disabled by default)
 - Optional: Project code (via `include_code` parameter)
 

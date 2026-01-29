@@ -300,7 +300,7 @@ Routing:
     - Section 2. "Task Reminder Follow-up Flow Testing".
     - Section 7. "Quick Test Checklist".
 - For AI conversation and functionality testing:
-  - Use [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md), especially:
+  - Use [tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md), especially:
     - Section 1. "Quick Start".
     - Section 2. "Test Suite Structure".
     - Section 6. "Test Features".

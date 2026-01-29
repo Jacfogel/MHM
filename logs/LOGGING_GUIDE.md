@@ -144,6 +144,9 @@ when test logging is enabled (see `TEST_VERBOSE_LOGS` below).
 
 ## 5. Configuration (Environment Variables)
 
+> **Note:** Configuration semantics (env vars, defaults, failure modes) are canonically defined in `CONFIGURATION_REFERENCE.md`. Avoid duplicating per-setting definitions here.
+
+
 Logging is configured via environment variables loaded in `core/config.py`. From your `.env`:
 
 ### 5.1. Core locations

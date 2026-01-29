@@ -42,9 +42,14 @@ pip install -e .[ui]
 ```
 
 ### 1.4. Step 4: Configure Environment (Optional)
-The system uses sensible defaults, but you can customize settings in `.env`:
+The system uses sensible defaults, but you can customize settings in `.env`.
+
+For the canonical list of settings, what they do, and common failure modes, see:
+- [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md)
+
+Quick setup:
 ```powershell
-# Copy the example configuration (if it exists)
+# Copy the example configuration
 Copy-Item .env.example .env
 # Edit .env with your preferred settings
 ```

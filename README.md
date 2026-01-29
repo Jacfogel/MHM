@@ -116,6 +116,12 @@ High-level architecture (details in [ARCHITECTURE.md](ARCHITECTURE.md)):
   where these directories live via `BASE_DATA_DIR`, `USER_INFO_DIR_PATH`, and other
   settings in `core/config.py`.
 
+  settings in `core/config.py`. For the canonical list of settings, what they do, and what breaks when misconfigured,
+  see [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md).
+
+- Canonical user data layout and persistence guarantees are documented in [USER_DATA_MODEL.md](USER_DATA_MODEL.md).
+
+
 **Entry points at a glance:**
 - **UI-driven:** `python run_mhm.py` (human administration)
 - **Headless service:** `python run_headless_service.py` (automation / AI tools)

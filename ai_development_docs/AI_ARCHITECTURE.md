@@ -74,24 +74,9 @@ in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## 2. User Data Model
 
-Per-user directory: `data/users/{user_id}/`.
+Per-user persisted state layout, guarantees, and access rules are defined in `core/USER_DATA_MODEL.md`.
+This document describes only architectural relationships and AI-relevant constraints.
 
-Common files:
-
-- `account.json` - identity and channel identifiers.  
-- `preferences.json` - flat preference dictionary (no nested root key).  
-- `schedules.json` - time periods, categories, and frequencies.  
-- `user_context.json` - extra context for messaging and AI.  
-- `messages/` - per-category messages copied from `resources/default_messages/`.
-
-AI rules:
-
-- Always use `core/user_data_handlers.py` and `core/user_data_validation.py` for reads and writes.  
-- Treat preferences as flat; build nested structures in memory only.  
-- New per-user files must be documented in both this section and section 2. User Data Model in
-  [ARCHITECTURE.md](ARCHITECTURE.md).
-
----
 
 ## 3. Data Handling Patterns
 

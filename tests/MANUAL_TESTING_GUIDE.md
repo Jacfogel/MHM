@@ -59,7 +59,7 @@ Notes:
 
 Checklist:
 
-- [ ] Environment variables and `.env` configuration are loaded correctly (no missing mandatory settings).
+- [ ] Environment variables and `.env` configuration are loaded correctly (no missing mandatory settings). For detailed setting meanings and common failure modes, use [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md).
 - [ ] The app detects required external tools or services (for example, Discord API credentials if enabled).
 - [ ] Configuration error messages, if triggered, are clear and actionable.
 
@@ -233,7 +233,7 @@ Run AI behavior tests when you change:
 
 Automated AI-oriented tests are described in:
 
-   - [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md).
+   - [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md).
 
 For a system-level description of the AI behavior covered by AI functionality tests, see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md).
 
@@ -301,6 +301,6 @@ When in doubt:
 2. Decide which parts of this manual guide apply to your change.
 3. Run at least the relevant subsets of sections 2-7 here, plus any detailed steps in subordinate guides:
    - [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md).
-   - [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md).
+   - [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md).
 
 This manual guide is part of the testing surface. Any significant behavior change must remain compatible with the flows and expectations described here, or this guide must be updated alongside the code.

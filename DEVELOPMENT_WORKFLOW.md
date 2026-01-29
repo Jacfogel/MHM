@@ -157,6 +157,10 @@ deactivate
 
 ### 2.4. Configuration and .env
 
+> **Note:** Configuration semantics are canonically defined in `CONFIGURATION_REFERENCE.md` (source of truth: `.env.example`; loader/validation: `core/config.py`).
+> Avoid duplicating per-setting definitions outside that reference.
+
+
 MHM uses environment variables (loaded via `python-dotenv` in `core/config.py`) to control paths, logging, channels, and AI behavior.
 
 - The `.env` file in the project root is the primary place to configure the app for local development.  

@@ -33,16 +33,14 @@
 
 ## 2. User Data Backups
 
+User data persistence layout and backup scope expectations are defined in `core/USER_DATA_MODEL.md` (see §8 Backup scope expectations).
+
+Backup configuration semantics (paths, retention, feature flags) are defined in `CONFIGURATION_REFERENCE.md` (see §9 Backups and developer diagnostics).
+
 **Where to look:**
 - Implementation: `core/backup_manager.py` - `BackupManager`
-- Scheduler: `core/scheduler.py` - Weekly backup at 01:00
-- Location: `data/backups/*.zip`
-
-**Key rules:**
-- Backups created weekly (if 7+ days since last backup)
-- Retention: 30 days OR 10 files (whichever is stricter)
-- Includes: User data + config files (logs optional, code optional)
-- Verification: Automatic after creation
+- Scheduler integration: `core/scheduler.py`
+- Backup artifacts: `data/backups/*.zip`
 
 **AI usage:**
 - Use `BackupManager.create_backup()` for creating backups
@@ -51,8 +49,6 @@
 - Use `BackupManager.list_backups()` to see available backups
 
 **Restore:** See BACKUP_GUIDE.md section 2.3 for restore procedures.
-
----
 
 ## 3. Message Archives
 

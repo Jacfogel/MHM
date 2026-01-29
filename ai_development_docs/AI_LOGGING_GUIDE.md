@@ -77,25 +77,18 @@ When adding a new component:
 
 ## 5. Configuration (Environment Variables)
 
+Logging configuration semantics (env vars, defaults, failure modes) are defined in `CONFIGURATION_REFERENCE.md` (see §3 Logging and §10 Testing settings).
+
 Where behavior is configured:
 
-- Logging-related settings live in `core/config.py` and are usually driven by `.env` values.  
-- AI-focused configuration overview -> section 5. Configuration and Integration in [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) (for shared patterns).
-
-Key environment flags (refer to config and human logging guide for full list):
-
-- `LOG_LEVEL` - console verbosity; file logs always capture `DEBUG`.  
-- `LOGS_DIR`, `LOG_BACKUP_DIR`, `LOG_ARCHIVE_DIR` - directories for active, backup, and archived logs.  
-- `LOG_MAIN_FILE`, `LOG_ERRORS_FILE`, `LOG_AI_FILE`, etc. - per-component file paths.  
-- `MHM_TESTING` - switches logging into test mode (for example, `tests/logs`).  
-- `TEST_VERBOSE_LOGS` - controls test logging verbosity: `0` (quiet, component WARNING/test WARNING), `1` (medium, component WARNING/test INFO - focuses on test execution without component chatter), `2` (verbose, component DEBUG/test DEBUG).
+- Logging-related settings live in `core/config.py` and are usually driven by `.env` values.
+- For human-facing operational guidance and full variable list, see [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
 
 Do not introduce new logging environment variables without updating:
 
-- Section 5. Configuration (Environment Variables) in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).  
-- The constants in `core/config.py`.
-
----
+- `CONFIGURATION_REFERENCE.md`
+- Section 5. Configuration (Environment Variables) in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)
+- The constants in `core/config.py`
 
 ## 6. Log Rotation, Backups, and Archival
 
