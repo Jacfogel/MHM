@@ -649,7 +649,7 @@ def get_user_data_dir(user_id: str) -> str:
             logger.error(f"Invalid user_id: {user_id}")
             # Return empty string to prevent creating files in root
             return ""
-        return str(Path(BASE_DATA_DIR) / 'users' / user_id)
+        return str(Path(BASE_DATA_DIR) / "users" / user_id)
     except Exception as e:
         logger.error(f"Error getting user data directory for user {user_id}: {e}")
         return ""

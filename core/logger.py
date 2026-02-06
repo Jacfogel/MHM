@@ -228,11 +228,13 @@ class ComponentLogger:
         # Prevent propagation to root so component logs don't appear in app.log
         self.logger.propagate = False
 
-        # In consolidated test logging mode, don't create individual file handlers
-        if os.getenv("TEST_CONSOLIDATED_LOGGING") == "1":
+        # In consolidated test logging mode, don't create individual file handlers.
+        # Only use consolidated path when actually in a testing environment, so we never
+        # create logs/test_consolidated.log (that file must only exist under tests/logs/).
+        if os.getenv("TEST_CONSOLIDATED_LOGGING") == "1" and _is_testing_environment():
             # Create consolidated handler directly for this logger
             try:
-                # Get environment-specific log paths
+                # Get environment-specific log paths (testing => base_dir is tests/logs)
                 log_paths = _get_log_paths_for_environment()
                 consolidated_log_file = str(
                     Path(log_paths["base_dir"]) / "test_consolidated.log"
@@ -465,7 +467,8 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
             os.makedirs(log_file_dir, exist_ok=True)
 
         # Ensure backup directory exists (even during tests, as tests may need it)
-        os.makedirs(backup_dir, exist_ok=True)
+        backup_path = Path(backup_dir).resolve()
+        backup_path.mkdir(parents=True, exist_ok=True)
 
         # TimedRotatingFileHandler expects: filename, when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False, atTime=None
         super().__init__(

@@ -105,15 +105,8 @@ When adding new tasks, follow this format:
 
 ### Quality & Operations
 
-**Fix scheduler wake timer (Register-ScheduledTask failure)**
-- *What it means*: Investigate and resolve repeated `Register-ScheduledTask : The parameter is incorrect` (HRESULT 0x80070057) when the daily scheduler sets Windows wake timers at 01:00. Wake-from-sleep scheduled tasks are not being registered; in-process APScheduler and message delivery continue to work.
-- *Why it helps*: Restores wake-from-sleep behavior so reminders can fire when the machine was asleep; reduces error log noise.
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Reproduce failure (run daily scheduler or wake-timer path on Windows)
-  - [ ] Validate PowerShell `Register-ScheduledTask` parameters (e.g. task name length, arguments)
-  - [ ] Fix parameters or add fallback (e.g. disable wake timers if not required)
-  - [ ] Confirm errors.log no longer fills with wake timer errors after 01:00 run
+**Confirm wake timer fix in production**
+- [ ] After a 01:00 run, confirm errors.log no longer fills with wake timer (Register-ScheduledTask) errors.
 
 **Investigate sent_messages.json size and archiving**
 - *What it means*: Review `data/users/{user_id}/messages/sent_messages.json` growth (e.g. ~512KB observed). Confirm whether archiving or trimming of sent message history is needed and implement or document policy.
@@ -396,3 +389,26 @@ Deliverables
 Priority
 - Medium  
 - Blocker only if a real bug or undefined behavior is confirmed
+
+**fix duplicate logging during audit**
+- 2026-02-06 02:37:52 - mhm.development_tools - INFO - Analyzing legacy references...
+- 2026-02-06 02:37:52 - mhm.development_tools - INFO - Analyzing legacy references...
+
+**Test coverage variability**
+- investigate test coverage results varying considerably from run to run. At present last several run results were these:
+  - 64.4% (19230 of 29879 statements)
+  - 43.6% (12910 of 29598 statements)
+  - 71.3% (21306 of 29873 statements)
+  - 71.4% (21300 of 29823 statements)
+  - 71.4% (21300 of 29823 statements)
+  - 71.6% (21378 of 29861 statements)
+  - 59.4% (17572 of 29578 statements)
+- note that issue predates addition of caching, and isn't explained by test failures or caching issues
+
+**Test Coverage Caching**
+- Test file cached results should be invalidated if tests fail or error. Like it shouldn't cache results for test files that have failing or erroring tests. 
+
+**Email service not showing as active**
+- after running for some time, checking the UI will show the service discord and ngrok running, but email not running
+- logs don't indicate email service failure
+- investigate and resolve

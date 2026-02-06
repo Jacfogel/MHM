@@ -1123,16 +1123,27 @@ class SchedulerManager:
 
         # Adjust the schedule_time to wake the computer a few minutes earlier
         wake_time = schedule_time - timedelta(minutes=wake_ahead_minutes)
-        task_name = f"Wake_{user_id}_{category}_{period}_{format_timestamp(wake_time, TIME_ONLY_MINUTE)}"
+        # Task name must not contain : \ / * ? " < > | (Windows restriction; colon was causing 0x80070057)
+        time_part_name = wake_time.strftime("%H%M")  # HHMM, no colon
+        raw_name = f"Wake_{user_id}_{category}_{period}_{time_part_name}"
+        invalid_chars = r'\/*?"<>|:' + "'"
+        for char in invalid_chars:
+            raw_name = raw_name.replace(char, "_")
+        task_name = raw_name[:200] if len(raw_name) > 200 else raw_name  # Stay under path length limit
+
         task_time = format_timestamp(wake_time, TIME_ONLY_MINUTE)
         task_date = format_timestamp(wake_time, DATE_ONLY)
+        # Build trigger time as ISO string; PowerShell will parse as [DateTime] for -At
+        trigger_at_str = f"{task_date}T{task_time}:00"
 
         # PowerShell script to create the task with Wake computer enabled
+        # -At expects [DateTime]; parse explicitly to avoid locale/format issues
         ps_command = f"""
         $action = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument '/c exit'
-        $trigger = New-ScheduledTaskTrigger -Once -At "{task_date}T{task_time}:00"
+        $at = [DateTime]::ParseExact('{trigger_at_str}', 'yyyy-MM-ddTHH:mm:ss', $null)
+        $trigger = New-ScheduledTaskTrigger -Once -At $at
         $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -WakeToRun
-        Register-ScheduledTask -TaskName "{task_name}" -Action $action -Trigger $trigger -Settings $settings -Force
+        Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger -Settings $settings -Force
         """
 
         # Execute the PowerShell command and capture the output

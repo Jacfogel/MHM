@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-02-06 01:45:25",
+  "last_generated": "2026-02-06 02:43:06",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-02-06T01:45:25.223570",
+  "timestamp": "2026-02-06T02:43:06.385048",
   "successful": [
     "analyze_duplicate_functions",
     "analyze_functions",
@@ -47,8 +47,8 @@
           "total_functions": 1559,
           "cache": {
             "total_files": 108,
-            "cached_files": 0,
-            "scanned_files": 108
+            "cached_files": 107,
+            "scanned_files": 1
           },
           "pairs_considered": 20000,
           "pairs_reported": 59,
@@ -3307,7 +3307,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-06T01:34:26"
+      "timestamp": "2026-02-06T02:37:31"
     },
     "analyze_functions": {
       "success": true,
@@ -3318,8 +3318,8 @@
         },
         "details": {
           "total_functions": 1529,
-          "moderate_complexity": 158,
-          "high_complexity": 152,
+          "moderate_complexity": 157,
+          "high_complexity": 153,
           "critical_complexity": 144,
           "undocumented": 0,
           "undocumented_examples": [],
@@ -3438,7 +3438,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-06T01:34:26"
+      "timestamp": "2026-02-06T02:37:32"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -5396,7 +5396,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-06T01:34:20"
+      "timestamp": "2026-02-06T02:37:25"
     },
     "analyze_function_registry": {
       "success": true,
@@ -6061,7 +6061,7 @@
                 "name": "refresh_user_list"
               },
               {
-                "complexity": 709,
+                "complexity": 714,
                 "file": "core/logger.py",
                 "has_docstring": true,
                 "name": "__init__"
@@ -6859,6 +6859,12 @@
                 "name": "load_habits_data"
               },
               {
+                "complexity": 341,
+                "file": "core/scheduler.py",
+                "has_docstring": true,
+                "name": "set_wake_timer"
+              },
+              {
                 "complexity": 339,
                 "file": "core/backup_manager.py",
                 "has_docstring": true,
@@ -7109,12 +7115,6 @@
                 "file": "communication/command_handlers/analytics_handler.py",
                 "has_docstring": true,
                 "name": "_handle_quant_summary"
-              },
-              {
-                "complexity": 302,
-                "file": "communication/command_handlers/interaction_handlers.py",
-                "has_docstring": true,
-                "name": "get_interaction_handler"
               }
             ],
             "high_complexity_total": 1120,
@@ -7598,7 +7598,7 @@
           "total_issues": 20
         }
       },
-      "timestamp": "2026-02-06T01:34:29"
+      "timestamp": "2026-02-06T02:37:36"
     },
     "analyze_package_exports": {
       "success": true,
@@ -15160,7 +15160,7 @@
           }
         }
       },
-      "timestamp": "2026-02-06T01:34:52"
+      "timestamp": "2026-02-06T02:37:52"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -15175,7 +15175,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-06T01:34:39"
+      "timestamp": "2026-02-06T02:37:42"
     },
     "analyze_documentation": {
       "success": true,
@@ -15216,7 +15216,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19610440443603666,
+              "similarity_score": 0.19599872783834002,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -15411,7 +15411,7 @@
               ]
             },
             "TODO.md": {
-              "content_length": 27205,
+              "content_length": 27226,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
               "section_count": 13,
               "sections": [
@@ -15460,20 +15460,20 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 195477,
+              "content_length": 195913,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
-              "section_count": 234,
+              "section_count": 235,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-02-06 - Scheduler wake timer fix; custom-question test fix **COMPLETED**",
                 "2026-02-06 - Log rotation fix, logging noise reduction, backup/archive docs, dev-tools log isolation **COMPLETED**",
                 "2026-01-29 - Documentation drift cleanup **COMPLETED**",
                 "2026-01-28 - Dev Tools Format Hardening and Account Defaults **COMPLETED**",
-                "2026-01-26 - Check-in Analytics and Command Handling Overhaul **COMPLETED**",
-                "2026-01-24 - Expanded pytest coverage & flaky fixes **COMPLETED**"
+                "2026-01-26 - Check-in Analytics and Command Handling Overhaul **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -15679,9 +15679,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 108122,
+              "content_length": 109480,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 49,
+              "section_count": 50,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -15689,10 +15689,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-02-06 - Scheduler wake timer Register-ScheduledTask fix (0x80070057); custom-question test fix",
                 "2026-02-06 - Log rotation fix, logging noise reduction, backup/archive docs, dev-tools log isolation",
                 "2026-01-29 - Documentation drift cleanup (changelog archive alignment)",
-                "2026-01-29 Documentation normalization groundwork (reference alignment, process hardening)",
-                "2026-01-28 - Dev Tools Format Hardening and Account Defaults"
+                "2026-01-29 Documentation normalization groundwork (reference alignment, process hardening)"
               ]
             },
             "development_docs/PLANS.md": {
@@ -15963,7 +15963,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-06T01:34:18"
+      "timestamp": "2026-02-06T02:37:23"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -16037,7 +16037,7 @@
           }
         }
       },
-      "timestamp": "2026-02-06T01:34:51"
+      "timestamp": "2026-02-06T02:37:50"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -16052,7 +16052,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-06T01:34:41"
+      "timestamp": "2026-02-06T02:37:43"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -16067,7 +16067,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-06T01:34:47"
+      "timestamp": "2026-02-06T02:37:48"
     },
     "analyze_path_drift": {
       "success": true,
@@ -16080,7 +16080,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-06T01:34:36"
+      "timestamp": "2026-02-06T02:37:39"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -16095,7 +16095,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-06T01:34:51"
+      "timestamp": "2026-02-06T02:37:50"
     },
     "analyze_error_handling": {
       "success": true,
@@ -16123,12 +16123,12 @@
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "safe_file_operation": 1,
-            "CommunicationError": 2,
-            "FileOperationError": 8,
-            "handle_file_error": 3,
             "AIError": 2,
-            "MHMError": 2
+            "CommunicationError": 2,
+            "handle_file_error": 3,
+            "FileOperationError": 8,
+            "MHMError": 2,
+            "safe_file_operation": 1
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -16176,90 +16176,90 @@
           ]
         }
       },
-      "timestamp": "2026-02-06T01:34:27"
+      "timestamp": "2026-02-06T02:37:32"
     },
     "analyze_test_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 16688,
+          "total_issues": 10777,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "coverage": 43.6,
-            "statements": 29598,
-            "covered": 12910,
-            "missed": 16688,
-            "generated": "2026-02-06T01:45:15.857988"
+            "coverage": 63.9,
+            "statements": 29831,
+            "covered": 19054,
+            "missed": 10777,
+            "generated": null
           },
           "modules": [
             {
               "module": "ui",
-              "coverage": 36.3,
-              "missed": 4293
-            },
-            {
-              "module": "ai",
-              "coverage": 37.3,
-              "missed": 1079
+              "coverage": 56.1,
+              "missed": 2973
             },
             {
               "module": "communication",
-              "coverage": 40.7,
-              "missed": 5530
-            },
-            {
-              "module": "core",
-              "coverage": 49.7,
-              "missed": 5222
+              "coverage": 58.2,
+              "missed": 3957
             },
             {
               "module": "tasks",
-              "coverage": 60.0,
-              "missed": 217
+              "coverage": 65.3,
+              "missed": 189
             },
             {
-              "module": "user",
-              "coverage": 60.6,
-              "missed": 114
+              "module": "ai",
+              "coverage": 66.8,
+              "missed": 577
+            },
+            {
+              "module": "core",
+              "coverage": 72.0,
+              "missed": 2917
             },
             {
               "module": "notebook",
-              "coverage": 61.8,
-              "missed": 233
+              "coverage": 75.4,
+              "missed": 152
+            },
+            {
+              "module": "user",
+              "coverage": 95.9,
+              "missed": 12
             }
           ],
           "worst_files": [
             {
-              "path": "notebook/__init__.py",
-              "coverage": 0.0,
-              "missing": 0
+              "path": "ui/dialogs/user_analytics_dialog.py",
+              "coverage": 15.2,
+              "missing": 246
             },
             {
-              "path": "communication/communication_channels/discord/bot.py",
-              "coverage": 13.0,
-              "missing": 1100
+              "path": "ui/dialogs/task_crud_dialog.py",
+              "coverage": 17.6,
+              "missing": 178
             },
             {
-              "path": "ui/widgets/user_profile_settings_widget.py",
-              "coverage": 13.3,
-              "missing": 248
+              "path": "communication/communication_channels/discord/webhook_server.py",
+              "coverage": 20.2,
+              "missing": 103
             },
             {
-              "path": "core/headless_service.py",
-              "coverage": 13.7,
-              "missing": 182
+              "path": "ui/generate_ui_files.py",
+              "coverage": 21.2,
+              "missing": 52
             },
             {
-              "path": "ui/dialogs/task_edit_dialog.py",
-              "coverage": 14.5,
-              "missing": 337
+              "path": "ai/context_builder.py",
+              "coverage": 25.8,
+              "missing": 198
             }
           ]
         }
       },
-      "timestamp": "2026-02-06T01:45:19"
+      "timestamp": "2026-02-06T02:43:02"
     },
     "analyze_test_markers": {
       "success": true,
@@ -16273,7 +16273,7 @@
           "missing": []
         }
       },
-      "timestamp": "2026-02-06T01:45:24"
+      "timestamp": "2026-02-06T02:43:05"
     },
     "generate_dev_tools_coverage": {
       "success": false,
@@ -19339,7 +19339,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-06T01:34:38"
+      "timestamp": "2026-02-06T02:37:41"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -19359,7 +19359,7 @@
           "missing_sections": []
         }
       },
-      "timestamp": "2026-02-06T01:34:43"
+      "timestamp": "2026-02-06T02:37:45"
     },
     "analyze_module_imports": {
       "success": true,
@@ -31288,7 +31288,7 @@
           }
         }
       },
-      "timestamp": "2026-02-06T01:34:31"
+      "timestamp": "2026-02-06T02:37:36"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -34098,7 +34098,7 @@
             "files_scanned": 422,
             "files_with_issues": 135,
             "total_unused": 377,
-            "cache_hits": 0,
+            "cache_hits": 421,
             "cache_misses": 0
           },
           "by_category": {
@@ -34116,7 +34116,7 @@
           "files_scanned": 422
         }
       },
-      "timestamp": "2026-02-06T01:37:11"
+      "timestamp": "2026-02-06T02:37:44"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -34185,7 +34185,7 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2026-02-06T01:37:23"
+      "timestamp": "2026-02-06T02:38:05"
     },
     "analyze_config": {
       "success": true,
@@ -34268,20 +34268,20 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-02-06T01:34:18"
+      "timestamp": "2026-02-06T02:37:22"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 2,
+          "total_issues": 1,
           "files_affected": 0,
-          "status": "CRITICAL"
+          "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-02-06T01:34:16.850859",
+          "timestamp": "2026-02-06T02:37:21.347680",
           "system_health": {
-            "overall_status": "CRITICAL",
+            "overall_status": "ISSUES",
             "core_files": {
               "run_mhm.py": "OK",
               "core/service.py": "OK",
@@ -34298,47 +34298,47 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-02-06T01:32:40.228038",
+            "last_audit": "2026-02-06T02:29:49.249186",
             "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
-            "documentation_sync_status": "Synchronized",
+            "documentation_sync_status": "Minor Issues",
             "health_indicators": [
-              "Audit data is very recent (<1 hour)",
-              "Documentation is synchronized"
+              "Audit data is very recent (<1 hour)"
             ],
             "recommendations": [
-              "Review logs/errors.log for recent error details"
+              "Run `python development_tools/run_development_tools.py doc-sync` to check details",
+              "Check logs/errors.log for recent errors"
             ],
             "warnings": [],
             "errors": [],
             "severity_levels": {
-              "INFO": [],
-              "WARNING": [],
-              "CRITICAL": [
-                "Recent errors detected in logs/errors.log (last hour)"
-              ]
+              "INFO": [
+                "Documentation has 2 minor sync issue(s)"
+              ],
+              "WARNING": [
+                "Errors detected in logs/errors.log (last 24 hours)"
+              ],
+              "CRITICAL": []
             }
           },
           "recent_activity": {
             "recent_changes": [
-              "core/logger.py",
               "communication/message_processing/conversation_flow_manager.py",
+              "core/scheduler.py",
+              "core/config.py",
+              "development_tools/docs/fix_documentation_ascii.py",
+              "core/logger.py",
               "development_tools/docs/analyze_ascii_compliance.py",
               "ai/prompt_manager.py",
+              "tests/behavior/test_checkin_questions_enhancement.py",
               "development_tools/shared/service/tool_wrappers.py",
-              "development_tools/tests/run_test_coverage.py",
-              "core/scheduler.py",
-              "development_tools/docs/fix_documentation_ascii.py",
-              "development_docs/changelog_history/CHANGELOG_DETAIL_2025_11.md",
-              "development_docs/changelog_history/CHANGELOG_DETAIL_2025_10.md"
+              "development_tools/tests/run_test_coverage.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
             "uncommitted_changes": true
           },
-          "critical_alerts": [
-            "CRITICAL: Recent errors in logs/errors.log"
-          ],
+          "critical_alerts": [],
           "performance_indicators": {
             "log_file_sizes": {
               "ai.log": "0.0MB",
@@ -34360,19 +34360,19 @@
           }
         }
       },
-      "timestamp": "2026-02-06T01:34:17"
+      "timestamp": "2026-02-06T02:37:21"
     },
     "decision_support": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 301,
+          "total_issues": 302,
           "files_affected": 0
         },
         "details": {
           "total_functions": 1529,
-          "moderate_complexity": 158,
-          "high_complexity": 152,
+          "moderate_complexity": 157,
+          "high_complexity": 153,
           "critical_complexity": 144,
           "undocumented": 5,
           "decision_support_items": 5,
@@ -34495,7 +34495,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-06T01:34:21"
+      "timestamp": "2026-02-06T02:37:26"
     },
     "quick_status": {
       "success": true,
@@ -34506,7 +34506,7 @@
           "status": "OK"
         },
         "details": {
-          "timestamp": "2026-02-06T01:34:22.547785",
+          "timestamp": "2026-02-06T02:37:27.662105",
           "system_health": {
             "core_files": {
               "run_mhm.py": "OK",
@@ -34526,7 +34526,7 @@
           },
           "documentation_status": {
             "coverage": "Unknown",
-            "recent_audit": "2026-02-06T01:32:40.190459",
+            "recent_audit": "2026-02-06T02:29:49.210681",
             "key_files": {
               "README.md": "OK",
               "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -34539,10 +34539,11 @@
           "critical_issues": [],
           "action_items": [],
           "recent_activity": {
-            "last_audit": "2026-02-06T01:32:40.190459",
+            "last_audit": "2026-02-06T02:29:49.210681",
             "recent_changes": [
               "core/scheduler.py",
               "core/logger.py",
+              "core/config.py",
               "communication/message_processing/conversation_flow_manager.py",
               "ai_development_docs/AI_LOGGING_GUIDE.md",
               "ai_development_docs/AI_CHANGELOG.md",
@@ -34553,7 +34554,7 @@
           }
         }
       },
-      "timestamp": "2026-02-06T01:34:22"
+      "timestamp": "2026-02-06T02:37:27"
     }
   }
 }

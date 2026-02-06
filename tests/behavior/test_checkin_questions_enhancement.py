@@ -5,6 +5,7 @@ Tests new questions, time_pair validation, and custom question system.
 """
 
 import pytest
+from unittest.mock import patch
 from core.checkin_dynamic_manager import dynamic_checkin_manager
 from core.checkin_analytics import CheckinAnalytics
 from tests.test_utilities import (
@@ -204,151 +205,112 @@ class TestCustomQuestions:
     def teardown_method(self):
         cleanup_test_data_environment(self.test_dir)
 
-    def test_create_custom_question(self, monkeypatch):
+    def test_create_custom_question(self):
         """Test creating a custom question."""
-        # Set environment variables for test data directory
-        monkeypatch.setenv("TEST_DATA_DIR", self.test_data_dir)
-        monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
-        monkeypatch.setenv("MHM_TESTING", "1")
+        with patch("core.config.BASE_DATA_DIR", self.test_data_dir):
+            question_def = {
+                "type": "yes_no",
+                "question_text": "Did you use your CPAP machine last night? (yes/no)",
+                "ui_display_name": "CPAP use (yes/no)",
+                "category": "health",
+                "validation": {
+                    "error_message": "Please answer with yes/no, y/n, or similar."
+                },
+                "enabled": True,
+            }
+            result = dynamic_checkin_manager.save_custom_question(
+                self.user_id, "cpap_used", question_def
+            )
+            assert result is True
+            custom_questions = dynamic_checkin_manager.get_custom_questions(self.user_id)
+            assert "cpap_used" in custom_questions
+            assert custom_questions["cpap_used"]["type"] == "yes_no"
 
-        question_def = {
-            "type": "yes_no",
-            "question_text": "Did you use your CPAP machine last night? (yes/no)",
-            "ui_display_name": "CPAP use (yes/no)",
-            "category": "health",
-            "validation": {
-                "error_message": "Please answer with yes/no, y/n, or similar."
-            },
-            "enabled": True,
-        }
-
-        result = dynamic_checkin_manager.save_custom_question(
-            self.user_id, "cpap_used", question_def
-        )
-        assert result is True
-
-        # Verify it was saved
-        custom_questions = dynamic_checkin_manager.get_custom_questions(self.user_id)
-        assert "cpap_used" in custom_questions
-        assert custom_questions["cpap_used"]["type"] == "yes_no"
-
-    def test_get_custom_question(self, monkeypatch):
+    def test_get_custom_question(self):
         """Test retrieving a custom question."""
-        # Set environment variables for test data directory
-        monkeypatch.setenv("TEST_DATA_DIR", self.test_data_dir)
-        monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
-        monkeypatch.setenv("MHM_TESTING", "1")
+        with patch("core.config.BASE_DATA_DIR", self.test_data_dir):
+            question_def = {
+                "type": "scale_1_5",
+                "question_text": "How is your pain level today? (1-5)",
+                "ui_display_name": "Pain level (1-5 scale)",
+                "category": "health",
+                "validation": {"min": 1, "max": 5, "error_message": "Please enter 1-5."},
+                "enabled": True,
+            }
+            dynamic_checkin_manager.save_custom_question(
+                self.user_id, "pain_level", question_def
+            )
+            retrieved = dynamic_checkin_manager.get_question_definition(
+                "pain_level", self.user_id
+            )
+            assert retrieved is not None
+            assert retrieved["type"] == "scale_1_5"
+            assert retrieved["question_text"] == question_def["question_text"]
 
-        question_def = {
-            "type": "scale_1_5",
-            "question_text": "How is your pain level today? (1-5)",
-            "ui_display_name": "Pain level (1-5 scale)",
-            "category": "health",
-            "validation": {"min": 1, "max": 5, "error_message": "Please enter 1-5."},
-            "enabled": True,
-        }
-
-        dynamic_checkin_manager.save_custom_question(
-            self.user_id, "pain_level", question_def
-        )
-
-        # Get via get_question_definition
-        retrieved = dynamic_checkin_manager.get_question_definition(
-            "pain_level", self.user_id
-        )
-        assert retrieved is not None
-        assert retrieved["type"] == "scale_1_5"
-        assert retrieved["question_text"] == question_def["question_text"]
-
-    def test_custom_question_in_all_questions(self, monkeypatch):
+    def test_custom_question_in_all_questions(self):
         """Test that custom questions appear in get_all_questions."""
-        # Set environment variables for test data directory
-        monkeypatch.setenv("TEST_DATA_DIR", self.test_data_dir)
-        monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
-        monkeypatch.setenv("MHM_TESTING", "1")
+        with patch("core.config.BASE_DATA_DIR", self.test_data_dir):
+            question_def = {
+                "type": "yes_no",
+                "question_text": "Test question?",
+                "ui_display_name": "Test",
+                "category": "health",
+                "validation": {"error_message": "Please answer yes/no."},
+                "enabled": True,
+            }
+            dynamic_checkin_manager.save_custom_question(
+                self.user_id, "test_custom", question_def
+            )
+            all_questions = dynamic_checkin_manager.get_all_questions(self.user_id)
+            assert "test_custom" in all_questions
+            assert all_questions["test_custom"]["type"] == "yes_no"
 
-        question_def = {
-            "type": "yes_no",
-            "question_text": "Test question?",
-            "ui_display_name": "Test",
-            "category": "health",
-            "validation": {"error_message": "Please answer yes/no."},
-            "enabled": True,
-        }
-
-        dynamic_checkin_manager.save_custom_question(
-            self.user_id, "test_custom", question_def
-        )
-
-        all_questions = dynamic_checkin_manager.get_all_questions(self.user_id)
-        assert "test_custom" in all_questions
-        assert all_questions["test_custom"]["type"] == "yes_no"
-
-    def test_delete_custom_question(self, monkeypatch):
+    def test_delete_custom_question(self):
         """Test deleting a custom question."""
-        # Set environment variables for test data directory
-        monkeypatch.setenv("TEST_DATA_DIR", self.test_data_dir)
-        monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
-        monkeypatch.setenv("MHM_TESTING", "1")
+        with patch("core.config.BASE_DATA_DIR", self.test_data_dir):
+            question_def = {
+                "type": "yes_no",
+                "question_text": "Test question?",
+                "ui_display_name": "Test",
+                "category": "health",
+                "validation": {"error_message": "Please answer yes/no."},
+                "enabled": True,
+            }
+            dynamic_checkin_manager.save_custom_question(
+                self.user_id, "test_delete", question_def
+            )
+            custom_questions = dynamic_checkin_manager.get_custom_questions(self.user_id)
+            assert "test_delete" in custom_questions
+            result = dynamic_checkin_manager.delete_custom_question(
+                self.user_id, "test_delete"
+            )
+            assert result is True
+            custom_questions = dynamic_checkin_manager.get_custom_questions(self.user_id)
+            assert "test_delete" not in custom_questions
 
-        question_def = {
-            "type": "yes_no",
-            "question_text": "Test question?",
-            "ui_display_name": "Test",
-            "category": "health",
-            "validation": {"error_message": "Please answer yes/no."},
-            "enabled": True,
-        }
-
-        dynamic_checkin_manager.save_custom_question(
-            self.user_id, "test_delete", question_def
-        )
-
-        # Verify it exists
-        custom_questions = dynamic_checkin_manager.get_custom_questions(self.user_id)
-        assert "test_delete" in custom_questions
-
-        # Delete it
-        result = dynamic_checkin_manager.delete_custom_question(
-            self.user_id, "test_delete"
-        )
-        assert result is True
-
-        # Verify it's gone
-        custom_questions = dynamic_checkin_manager.get_custom_questions(self.user_id)
-        assert "test_delete" not in custom_questions
-
-    def test_custom_question_validation(self, monkeypatch):
+    def test_custom_question_validation(self):
         """Test that custom questions can be validated."""
-        # Set environment variables for test data directory
-        monkeypatch.setenv("TEST_DATA_DIR", self.test_data_dir)
-        monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
-        monkeypatch.setenv("MHM_TESTING", "1")
-
-        question_def = {
-            "type": "scale_1_5",
-            "question_text": "Rate your pain (1-5)",
-            "ui_display_name": "Pain level",
-            "category": "health",
-            "validation": {"min": 1, "max": 5, "error_message": "Please enter 1-5."},
-            "enabled": True,
-        }
-
-        dynamic_checkin_manager.save_custom_question(
-            self.user_id, "custom_pain", question_def
-        )
-
-        # Validate answer
-        is_valid, value, error = dynamic_checkin_manager.validate_answer(
-            "custom_pain", "4", self.user_id
-        )
-        assert is_valid is True
-        assert value == 4
-
-        is_valid, value, error = dynamic_checkin_manager.validate_answer(
-            "custom_pain", "6", self.user_id
-        )
-        assert is_valid is False
+        with patch("core.config.BASE_DATA_DIR", self.test_data_dir):
+            question_def = {
+                "type": "scale_1_5",
+                "question_text": "Rate your pain (1-5)",
+                "ui_display_name": "Pain level",
+                "category": "health",
+                "validation": {"min": 1, "max": 5, "error_message": "Please enter 1-5."},
+                "enabled": True,
+            }
+            dynamic_checkin_manager.save_custom_question(
+                self.user_id, "custom_pain", question_def
+            )
+            is_valid, value, error = dynamic_checkin_manager.validate_answer(
+                "custom_pain", "4", self.user_id
+            )
+            assert is_valid is True
+            assert value == 4
+            is_valid, value, error = dynamic_checkin_manager.validate_answer(
+                "custom_pain", "6", self.user_id
+            )
+            assert is_valid is False
 
 
 @pytest.mark.behavior

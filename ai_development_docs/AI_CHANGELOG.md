@@ -27,6 +27,11 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-06 - Scheduler wake timer fix; custom-question test fix; audit clean **COMPLETED**
+- Wake timer: Fixed 0x80070057 (task name no colon, HHMM + sanitize + length cap, [DateTime]::ParseExact in PowerShell). core/scheduler.py set_wake_timer.
+- Custom-question tests: test_checkin_questions_enhancement.py TestCustomQuestions now patch core.config.BASE_DATA_DIR to test temp dir instead of TEST_DATA_DIR; behavior suite (1733 tests) passes.
+- Audit clean: BackupDirectoryRotatingFileHandler now uses Path(backup_dir).resolve().mkdir() so backup dir is created reliably (fixes test_backup_directory_rotating_handler_creation_real_behavior). ASCII compliance: TODO.md and CHANGELOG_DETAIL.md non-ASCII replaced (em dash, arrow).
+
 ### 2026-02-06 - Log rotation fix, logging noise reduction, backup/archive docs, dev-tools log isolation **COMPLETED**
 - Log backup rotation: `BackupDirectoryRotatingFileHandler` now names backups from actual rotation time and updates `rolloverAt` so filenames match content and older backups are not overwritten (core/logger.py).
 - Logging noise: init and "Loaded custom system prompt" at DEBUG when from dev tools; FLOW_STATE_LOAD with 0 states at DEBUG; scheduler heartbeat at DEBUG. LOGGING_GUIDE Section 9.7 and AI_LOGGING_GUIDE updated.
