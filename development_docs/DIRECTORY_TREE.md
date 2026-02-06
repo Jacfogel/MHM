@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-27 23:00:38
+> **Last Generated**: 2026-01-29 04:18:38
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -12,6 +12,7 @@ Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
 |   ARCHITECTURE.md
+|   CONFIGURATION_REFERENCE.md
 |   create_backup.py
 |   DEVELOPMENT_WORKFLOW.md
 |   DOCUMENTATION_GUIDE.md
@@ -80,7 +81,6 @@ C:.
 |   |   AI_LEGACY_REMOVAL_GUIDE.md
 |   |   AI_LOGGING_GUIDE.md
 |   |   AI_MODULE_DEPENDENCIES.md
-|   |   AI_REFERENCE.md
 |   |   AI_SESSION_STARTER.md
 |   |   AI_TESTING_GUIDE.md
 |   |   
@@ -111,20 +111,20 @@ C:.
 |   |   |   |   rich_formatter.py
 |   |   |   |   
 |   |   +---discord
-|   |   |   |   account_flow_handler.py
-|   |   |   |   api_client.py
-|   |   |   |   bot.py
-|   |   |   |   checkin_view.py
-|   |   |   |   DISCORD_GUIDE.md
-|   |   |   |   event_handler.py
-|   |   |   |   task_reminder_view.py
-|   |   |   |   webhook_handler.py
-|   |   |   |   webhook_server.py
-|   |   |   |   welcome_handler.py
-|   |   |   |   
+|   |   |       account_flow_handler.py
+|   |   |       api_client.py
+|   |   |       bot.py
+|   |   |       checkin_view.py
+|   |   |       DISCORD_GUIDE.md
+|   |   |       event_handler.py
+|   |   |       task_reminder_view.py
+|   |   |       webhook_handler.py
+|   |   |       webhook_server.py
+|   |   |       welcome_handler.py
+|   |   |       
 |   |   +---email
-|   |   |   |   bot.py
-|   |   |   |   
+|   |   |       bot.py
+|   |   |       
 |   +---core
 |   |   |   channel_monitor.py
 |   |   |   channel_orchestrator.py
@@ -167,6 +167,7 @@ C:.
 |   |   ui_management.py
 |   |   user_data_handlers.py
 |   |   user_data_manager.py
+|   |   USER_DATA_MODEL.md
 |   |   user_data_validation.py
 |   |   __init__.py
 |   |   
@@ -185,6 +186,13 @@ C:.
 |   |   TEST_COVERAGE_REPORT.md
 |   |   UNUSED_IMPORTS_REPORT.md
 |   |   
+|   \---changelog_history
+|           CHANGELOG_DETAIL_2025_08.md
+|           CHANGELOG_DETAIL_2025_09.md
+|           CHANGELOG_DETAIL_2025_10.md
+|           CHANGELOG_DETAIL_2025_11.md
+|           CHANGELOG_DETAIL_2025_12.md
+|           
 +---development_tools
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
 |   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md
@@ -200,17 +208,17 @@ C:.
 |   |   |   analyze_ai_work.py
 |   |   |   __init__.py
 |   |   |   
-|   |   +---jsons
+|   |   \---jsons
     (JSON files created by development tools)
 +---logs
     (log files)
 +---notebook
-|   |   notebook_data_handlers.py
-|   |   notebook_data_manager.py
-|   |   notebook_validation.py
-|   |   schemas.py
-|   |   __init__.py
-|   |   
+|       notebook_data_handlers.py
+|       notebook_data_manager.py
+|       notebook_validation.py
+|       schemas.py
+|       __init__.py
+|       
 +---resources
 |   |   assistant_system_prompt.txt
 |   |   default_tags.json
@@ -242,7 +250,6 @@ C:.
 |   |   flaky_test_report.md
 |   |   MANUAL_DISCORD_TEST_GUIDE.md
 |   |   MANUAL_TESTING_GUIDE.md
-|   |   SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md
 |   |   TESTING_GUIDE.md
 |   |   test_error_handling_improvements.py
 |   |   test_isolation.py
@@ -254,6 +261,7 @@ C:.
 |   |   |   ai_response_validator.py
 |   |   |   ai_test_base.py
 |   |   |   run_ai_functionality_tests.py
+|   |   |   SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md
 |   |   |   test_ai_advanced.py
 |   |   |   test_ai_cache.py
 |   |   |   test_ai_core.py
@@ -266,97 +274,97 @@ C:.
 |   |   |   test_context_includes_recent_messages.py
 |   |   |   
 |   +---behavior
-|   |   |   test_account_handler_behavior.py
-|   |   |   test_account_management_real_behavior.py
-|   |   |   test_ai_chatbot_behavior.py
-|   |   |   test_ai_context_builder_behavior.py
-|   |   |   test_ai_context_builder_coverage_expansion.py
-|   |   |   test_ai_conversation_history_behavior.py
-|   |   |   test_analytics_handler_behavior.py
-|   |   |   test_auto_cleanup_behavior.py
-|   |   |   test_backup_manager_behavior.py
-|   |   |   test_base_handler_behavior.py
-|   |   |   test_chat_interaction_storage_real_scenarios.py
-|   |   |   test_checkin_analytics_behavior.py
-|   |   |   test_checkin_expiry_semantics.py
-|   |   |   test_checkin_handler_behavior.py
-|   |   |   test_checkin_questions_enhancement.py
-|   |   |   test_command_discovery_help.py
-|   |   |   test_command_parser_coverage_expansion_phase3_simple.py
-|   |   |   test_communication_behavior.py
-|   |   |   test_communication_command_parser_behavior.py
-|   |   |   test_communication_factory_coverage_expansion.py
-|   |   |   test_communication_interaction_manager_behavior.py
-|   |   |   test_communication_manager_behavior.py
-|   |   |   test_communication_manager_coverage_expansion.py
-|   |   |   test_comprehensive_quantitative_analytics.py
-|   |   |   test_config_coverage_expansion_phase3_simple.py
-|   |   |   test_conversation_behavior.py
-|   |   |   test_conversation_flow_manager_behavior.py
-|   |   |   test_core_message_management_coverage_expansion.py
-|   |   |   test_core_service_coverage_expansion.py
-|   |   |   test_discord_advanced_automation.py
-|   |   |   test_discord_automation_complete.py
-|   |   |   test_discord_bot_behavior.py
-|   |   |   test_discord_checkin_retry_behavior.py
-|   |   |   test_discord_task_reminder_followup.py
-|   |   |   test_dynamic_checkin_behavior.py
-|   |   |   test_email_bot_behavior.py
-|   |   |   test_enhanced_command_parser_behavior.py
-|   |   |   test_error_handling_coverage_expansion_phase3_final.py
-|   |   |   test_headless_service_behavior.py
-|   |   |   test_interaction_handlers_behavior.py
-|   |   |   test_interaction_handlers_coverage_expansion.py
-|   |   |   test_logger_behavior.py
-|   |   |   test_logger_coverage_expansion.py
-|   |   |   test_logger_coverage_expansion_phase3_simple.py
-|   |   |   test_message_analytics_behavior.py
-|   |   |   test_message_behavior.py
-|   |   |   test_message_router_behavior.py
-|   |   |   test_natural_language_command_detection.py
-|   |   |   test_notebook_handler_behavior.py
-|   |   |   test_observability_logging.py
-|   |   |   test_profile_display_formatting.py
-|   |   |   test_profile_handler_behavior.py
-|   |   |   test_quantitative_analytics_expansion.py
-|   |   |   test_response_tracking_behavior.py
-|   |   |   test_scheduler_behavior.py
-|   |   |   test_scheduler_coverage_expansion.py
-|   |   |   test_schedule_handler_behavior.py
-|   |   |   test_schedule_management_behavior.py
-|   |   |   test_schedule_suggestions.py
-|   |   |   test_service_behavior.py
-|   |   |   test_service_utilities_behavior.py
-|   |   |   test_static_logging_check.py
-|   |   |   test_task_behavior.py
-|   |   |   test_task_cleanup_bug.py
-|   |   |   test_task_crud_disambiguation.py
-|   |   |   test_task_error_handling.py
-|   |   |   test_task_handler_behavior.py
-|   |   |   test_task_management_coverage_expansion.py
-|   |   |   test_task_reminder_followup_behavior.py
-|   |   |   test_task_suggestion_relevance.py
-|   |   |   test_ui_app_behavior.py
-|   |   |   test_ui_automation_complete.py
-|   |   |   test_user_context_behavior.py
-|   |   |   test_user_data_flow_architecture.py
-|   |   |   test_user_management_coverage_expansion.py
-|   |   |   test_utilities_demo.py
-|   |   |   test_webhook_handler_behavior.py
-|   |   |   test_webhook_server_behavior.py
-|   |   |   test_welcome_handler_behavior.py
-|   |   |   test_welcome_manager_behavior.py
-|   |   |   
+|   |       test_account_handler_behavior.py
+|   |       test_account_management_real_behavior.py
+|   |       test_ai_chatbot_behavior.py
+|   |       test_ai_context_builder_behavior.py
+|   |       test_ai_context_builder_coverage_expansion.py
+|   |       test_ai_conversation_history_behavior.py
+|   |       test_analytics_handler_behavior.py
+|   |       test_auto_cleanup_behavior.py
+|   |       test_backup_manager_behavior.py
+|   |       test_base_handler_behavior.py
+|   |       test_chat_interaction_storage_real_scenarios.py
+|   |       test_checkin_analytics_behavior.py
+|   |       test_checkin_expiry_semantics.py
+|   |       test_checkin_handler_behavior.py
+|   |       test_checkin_questions_enhancement.py
+|   |       test_command_discovery_help.py
+|   |       test_command_parser_coverage_expansion_phase3_simple.py
+|   |       test_communication_behavior.py
+|   |       test_communication_command_parser_behavior.py
+|   |       test_communication_factory_coverage_expansion.py
+|   |       test_communication_interaction_manager_behavior.py
+|   |       test_communication_manager_behavior.py
+|   |       test_communication_manager_coverage_expansion.py
+|   |       test_comprehensive_quantitative_analytics.py
+|   |       test_config_coverage_expansion_phase3_simple.py
+|   |       test_conversation_behavior.py
+|   |       test_conversation_flow_manager_behavior.py
+|   |       test_core_message_management_coverage_expansion.py
+|   |       test_core_service_coverage_expansion.py
+|   |       test_discord_advanced_automation.py
+|   |       test_discord_automation_complete.py
+|   |       test_discord_bot_behavior.py
+|   |       test_discord_checkin_retry_behavior.py
+|   |       test_discord_task_reminder_followup.py
+|   |       test_dynamic_checkin_behavior.py
+|   |       test_email_bot_behavior.py
+|   |       test_enhanced_command_parser_behavior.py
+|   |       test_error_handling_coverage_expansion_phase3_final.py
+|   |       test_headless_service_behavior.py
+|   |       test_interaction_handlers_behavior.py
+|   |       test_interaction_handlers_coverage_expansion.py
+|   |       test_logger_behavior.py
+|   |       test_logger_coverage_expansion.py
+|   |       test_logger_coverage_expansion_phase3_simple.py
+|   |       test_message_analytics_behavior.py
+|   |       test_message_behavior.py
+|   |       test_message_router_behavior.py
+|   |       test_natural_language_command_detection.py
+|   |       test_notebook_handler_behavior.py
+|   |       test_observability_logging.py
+|   |       test_profile_display_formatting.py
+|   |       test_profile_handler_behavior.py
+|   |       test_quantitative_analytics_expansion.py
+|   |       test_response_tracking_behavior.py
+|   |       test_scheduler_behavior.py
+|   |       test_scheduler_coverage_expansion.py
+|   |       test_schedule_handler_behavior.py
+|   |       test_schedule_management_behavior.py
+|   |       test_schedule_suggestions.py
+|   |       test_service_behavior.py
+|   |       test_service_utilities_behavior.py
+|   |       test_static_logging_check.py
+|   |       test_task_behavior.py
+|   |       test_task_cleanup_bug.py
+|   |       test_task_crud_disambiguation.py
+|   |       test_task_error_handling.py
+|   |       test_task_handler_behavior.py
+|   |       test_task_management_coverage_expansion.py
+|   |       test_task_reminder_followup_behavior.py
+|   |       test_task_suggestion_relevance.py
+|   |       test_ui_app_behavior.py
+|   |       test_ui_automation_complete.py
+|   |       test_user_context_behavior.py
+|   |       test_user_data_flow_architecture.py
+|   |       test_user_management_coverage_expansion.py
+|   |       test_utilities_demo.py
+|   |       test_webhook_handler_behavior.py
+|   |       test_webhook_server_behavior.py
+|   |       test_welcome_handler_behavior.py
+|   |       test_welcome_manager_behavior.py
+|   |       
 |   +---communication
-|   |   |   test_channel_monitor.py
-|   |   |   test_retry_manager.py
-|   |   |   
+|   |       test_channel_monitor.py
+|   |       test_retry_manager.py
+|   |       
 |   +---core
-|   |   |   test_file_auditor.py
-|   |   |   test_message_management.py
-|   |   |   test_python_interpreter_selection.py
-|   |   |   test_schedule_utilities.py
-|   |   |   
+|   |       test_file_auditor.py
+|   |       test_message_management.py
+|   |       test_python_interpreter_selection.py
+|   |       test_schedule_utilities.py
+|   |       
 |   +---data
     (data files)
 +---ui
@@ -391,12 +399,12 @@ C:.
 |   |       
 |   +---dialogs
     (log files)
-+---user
-|   |   context_manager.py
-|   |   user_context.py
-|   |   user_preferences.py
-|   |   __init__.py
-|   |   
+\---user
+    |   context_manager.py
+    |   user_context.py
+    |   user_preferences.py
+    |   __init__.py
+    |   
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-27 23:00:35
+> **Last Generated**: 2026-01-29 04:18:36
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -15,8 +15,8 @@
 - **Files Scanned**: 108
 - **Total Imports**: 1449
 - **Standard Library**: 378 (26.1%)
-- **Third-Party**: 230 (15.9%)
-- **Local Imports**: 841 (58.0%)
+- **Third-Party**: 224 (15.5%)
+- **Local Imports**: 847 (58.5%)
 
 ## Dependency Decision Trees
 
@@ -55,7 +55,7 @@ Communication Dependencies:
   - communication/communication_channels/discord/account_flow_handler.py <- standard library (typing), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_handlers
   - communication/communication_channels/discord/api_client.py <- standard library (asyncio, dataclasses, time, typing), third-party (discord), logger, error_handling
 - Conversation Flow
-  - communication/message_processing/conversation_flow_manager.py <- standard library (datetime, json, pathlib, random), third-party (notebook.notebook_data_manager), chatbot, logger, user_data_handlers, response_tracking, error_handling (+12 more)
+  - communication/message_processing/conversation_flow_manager.py <- standard library (datetime, json, pathlib, random), chatbot, logger, user_data_handlers, response_tracking, error_handling (+13 more)
   - communication/communication_channels/discord/account_flow_handler.py <- standard library (typing), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_handlers
 
 ### Need UI Dependencies?
@@ -95,7 +95,7 @@ External libraries provide channel and UI support.
 - `ai/lm_studio_manager.py` -> requests
 - `ai/__init__.py` -> chatbot, cache_manager
 - `communication/__init__.py` -> communication_channels.base.base_channel, message_processing.command_parser
-- `communication/command_handlers/notebook_handler.py` -> notebook.notebook_data_manager, notebook.schemas
+- `communication/command_handlers/task_handler.py` -> base_handler
 
 
 ## Critical Dependencies for AI Context
@@ -119,8 +119,8 @@ External libraries provide channel and UI support.
 ### High Coupling
 - `ui/ui_app_qt.py` -> 44 local dependencies (heavy coupling)
 - `core/user_data_handlers.py` -> 43 local dependencies (heavy coupling)
+- `communication/message_processing/conversation_flow_manager.py` -> 37 local dependencies (heavy coupling)
 - `communication/command_handlers/analytics_handler.py` -> 34 local dependencies (heavy coupling)
-- `communication/message_processing/conversation_flow_manager.py` -> 34 local dependencies (heavy coupling)
 - `communication/core/channel_orchestrator.py` -> 32 local dependencies (heavy coupling)
 
 ### Third-Party Risks

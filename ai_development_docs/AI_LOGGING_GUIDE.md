@@ -77,7 +77,7 @@ When adding a new component:
 
 ## 5. Configuration (Environment Variables)
 
-Logging configuration semantics (env vars, defaults, failure modes) are defined in `CONFIGURATION_REFERENCE.md` (see §3 Logging and §10 Testing settings).
+Logging configuration semantics (env vars, defaults, failure modes) are defined in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) (see §3 Logging and §10 Testing settings).
 
 Where behavior is configured:
 
@@ -86,7 +86,7 @@ Where behavior is configured:
 
 Do not introduce new logging environment variables without updating:
 
-- `CONFIGURATION_REFERENCE.md`
+- [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md)
 - Section 5. Configuration (Environment Variables) in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)
 - The constants in `core/config.py`
 

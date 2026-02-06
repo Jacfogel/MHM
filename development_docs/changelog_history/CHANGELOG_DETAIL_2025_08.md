@@ -1,6 +1,6 @@
 # CHANGELOG_DETAIL_2025_08.md - Archived Detailed Changelog (2025-08)
 
-> **File**: `development_docs/changelog/CHANGELOG_DETAIL_2025_08.md`
+> **File**: `development_docs/changelog_history/CHANGELOG_DETAIL_2025_08.md`
 > **Audience**: Developers and contributors  
 > **Purpose**: Archived detailed changelog entries (moved out of the main changelog for usability)  
 > **Style**: Chronological, detailed, reference-oriented
@@ -3705,4 +3705,3 @@ Successfully completed a comprehensive pytest marker application project to impr
 ---
 
 ### 2025-08-04 - Fixed Task Response Formatting & Response Quality Issues
-

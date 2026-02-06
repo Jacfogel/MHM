@@ -33,9 +33,9 @@
 
 ## 2. User Data Backups
 
-User data persistence layout and backup scope expectations are defined in `core/USER_DATA_MODEL.md` (see §8 Backup scope expectations).
+User data persistence layout and backup scope expectations are defined in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) (see §8 Backup scope expectations).
 
-Backup configuration semantics (paths, retention, feature flags) are defined in `CONFIGURATION_REFERENCE.md` (see §9 Backups and developer diagnostics).
+Backup configuration semantics (paths, retention, feature flags) are defined in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) (see §9 Backups and developer diagnostics).
 
 **Where to look:**
 - Implementation: `core/backup_manager.py` - `BackupManager`

@@ -110,7 +110,7 @@ Rationale:
 - Fields may be normalized (for example, booleans coerced into `"enabled"` / `"disabled"` feature flags).
 - Validation issues should be logged and recovered from where possible, rather than crashing.
 
-**Do not** “tighten” schemas in a way that breaks existing real user data unless an explicit migration plan is in place.
+**Do not** "tighten" schemas in a way that breaks existing real user data unless an explicit migration plan is in place.
 
 ---
 
@@ -151,21 +151,21 @@ During tests, user data must be redirected into test-controlled directories (for
 If a test touches real `data/users/`, it is a defect.
 
 See:
-- `tests/TESTING_GUIDE.md`
+- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)
 - `core/config.py` (test-mode redirection controls)
 
 ---
 
-## 7. Quick “where is X stored?” map
+## 7. Quick "where is X stored?" map
 
-- Feature enablement → `account.json`
-- User preferences → `preferences.json`
-- Schedules/time windows → `schedules.json`
-- Sent-message tracking → `messages/sent_messages.json`
-- Check-ins → `checkins.json`
-- Tasks → `tasks/*.json`
-- Notebook entries → `notebook/entries.json`
-- AI/chat history (if enabled) → `chat_interactions.json` and/or `user_context.json` (implementation-defined)
+- Feature enablement -> `account.json`
+- User preferences -> `preferences.json`
+- Schedules/time windows -> `schedules.json`
+- Sent-message tracking -> `messages/sent_messages.json`
+- Check-ins -> `checkins.json`
+- Tasks -> `tasks/*.json`
+- Notebook entries -> `notebook/entries.json`
+- AI/chat history (if enabled) -> `chat_interactions.json` and/or `user_context.json` (implementation-defined)
 ## 8. Backup scope expectations
 
 Backups are expected to include the full per-user directory tree under `data/users/{user_id}/`, including:

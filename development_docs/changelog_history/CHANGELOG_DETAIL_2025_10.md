@@ -1,6 +1,6 @@
 # CHANGELOG_DETAIL_2025_10.md - Archived Detailed Changelog (2025-10)
 
-> **File**: `development_docs/changelog/CHANGELOG_DETAIL_2025_10.md`
+> **File**: `development_docs/changelog_history/CHANGELOG_DETAIL_2025_10.md`
 > **Audience**: Developers and contributors  
 > **Purpose**: Archived detailed changelog entries (moved out of the main changelog for usability)  
 > **Style**: Chronological, detailed, reference-oriented
@@ -2706,4 +2706,3 @@ except Exception as truncate_error:
 
 **Follow-up**:
 - Review the legacy compatibility markers called out in `development_docs/LEGACY_REFERENCE_REPORT.md` and decide when to retire them.
-

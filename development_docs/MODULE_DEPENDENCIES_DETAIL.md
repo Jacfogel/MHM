@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-27 23:00:35
+> **Last Generated**: 2026-01-29 04:18:36
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -19,9 +19,9 @@
 - **Total Imports Found**: 1449
 - **Dependencies Documented**: 108 (100% coverage)
 - **Standard Library Imports**: 378 (26.1%)
-- **Third-Party Imports**: 230 (15.9%)
-- **Local Imports**: 841 (58.0%)
-- **Last Updated**: 2026-01-27
+- **Third-Party Imports**: 224 (15.5%)
+- **Local Imports**: 847 (58.5%)
+- **Last Updated**: 2026-01-29
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -30,8 +30,8 @@
 ## Import Statistics
 
 - **Standard Library**: 378 imports (26.1%)
-- **Third-Party**: 230 imports (15.9%)
-- **Local**: 841 imports (58.0%)
+- **Third-Party**: 224 imports (15.5%)
+- **Local**: 847 imports (58.5%)
 
 ## Module Dependencies by Directory
 
@@ -411,18 +411,17 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.tags (parse_tags_from_text)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
-  - **Standard Library**:
-    - `typing (Any)`
-  - **Third-party**:
     - `notebook.notebook_data_manager (add_list_item, add_tags, append_to_entry_body, archive_entry, create_journal, create_list, create_note, get_entry, list_archived, list_by_group, list_by_tag, list_inbox, list_pinned, list_recent, pin_entry, remove_list_item, remove_tags, search_entries, set_entry_body, set_group, toggle_list_item_done)`
     - `notebook.notebook_validation (format_short_id)`
     - `notebook.schemas (Entry)`
+  - **Standard Library**:
+    - `typing (Any)`
 - **Used by**: 
   - `communication/command_handlers/interaction_handlers.py`
 
 **Dependency Changes**:
 - Added: communication.command_handlers.base_handler, communication.command_handlers.shared_types, communication.message_processing.conversation_flow_manager, core.error_handling, core.logger, core.tags, core.time_utilities
-- Removed: communication/command_handlers/interaction_handlers.py, notebook.notebook_data_manager, notebook.notebook_validation, notebook.schemas
+- Removed: communication/command_handlers/interaction_handlers.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -1104,6 +1103,7 @@
     - `core.tags (parse_tags_from_text)` (NEW)
     - `core.time_utilities (DATE_ONLY, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, now_timestamp_full, parse_date_and_time_minute, parse_date_only, parse_time_only_minute, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
+    - `notebook.notebook_data_manager (create_list, create_note)`
     - `tasks.task_management (get_task_by_id, update_task)` (NEW)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
@@ -1111,8 +1111,6 @@
     - `pathlib (Path)`
     - `random`
     - `re`
-  - **Third-party**:
-    - `notebook.notebook_data_manager (create_list, create_note)`
 - **Used by**: 
   - `communication/command_handlers/checkin_handler.py`
   - `communication/command_handlers/notebook_handler.py`
@@ -1123,7 +1121,7 @@
 
 **Dependency Changes**:
 - Added: communication.command_handlers.shared_types, core.checkin_dynamic_manager, core.config, core.error_handling, core.logger, core.response_tracking, core.tags, core.time_utilities, core.user_data_handlers, tasks.task_management
-- Removed: communication/command_handlers/checkin_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_orchestrator.py, communication/message_processing/interaction_manager.py, core/service.py, notebook.notebook_data_manager
+- Removed: communication/command_handlers/checkin_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_orchestrator.py, communication/message_processing/interaction_manager.py, core/service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Manages conversation flows and check-ins

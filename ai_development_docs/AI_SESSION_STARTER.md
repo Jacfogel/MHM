@@ -120,7 +120,7 @@ Use this as a routing table for common request types.
 
 ## 5. Troubleshooting Patterns and System Understanding
 
-### 1. Troubleshooting Patterns
+### 5.1. Troubleshooting Patterns
 
 #### 1.1. Documentation appears incomplete
 1. Run `python development_tools/run_development_tools.py audit` to refresh metrics.
@@ -142,13 +142,13 @@ Use this as a routing table for common request types.
 2. Highlight known limitations or stale data and propose validation steps.
 3. Ask what additional evidence or artifacts they want before continuing.
 
-### 2. Communication Patterns
+### 5.2. Communication Patterns
 - Ask about the user's goal and any risks they are worried about before suggesting work.
 - Offer constructive alternatives when a safer or more efficient option exists.
 - Explain why each recommendation matters and keep guidance focused on one concept.
 - Handy prompts: "What's your goal for this change?", "Have you considered <alternative>?", "What risks concern you most?"
 
-### 3. System Understanding
+### 5.3. System Understanding
 
 #### 3.1. Critical files (do not break)
 - `run_headless_service.py` - service entry point for collaborators.
@@ -159,12 +159,12 @@ Use this as a routing table for common request types.
 
 #### 3.2. Data flow patterns
 
-User data persistence guarantees and access rules are defined in `core/USER_DATA_MODEL.md`.
+User data persistence guarantees and access rules are defined in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md).
 
 - User data: `data/users/{user_id}/` -> helper APIs -> UI / communication surfaces.
 - Messages: `resources/default_messages/` -> per-user `messages/` directories.
 - Configuration: `.env` -> `core/config.py` -> runtime consumers.
-- Backups: see BACKUP_GUIDE.md for operational behavior and `CONFIGURATION_REFERENCE.md` for retention/diagnostic settings.
+- Backups: see BACKUP_GUIDE.md for operational behavior and [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) for retention/diagnostic settings.
 
 #### 3.3. Common issues to watch
 - Access data only through helper APIs; avoid direct file edits.
@@ -172,13 +172,13 @@ User data persistence guarantees and access rules are defined in `core/USER_DATA
 - Centralize configuration changes in `core/config.py`.
 - Monitor scheduler logs to ensure reminders and backups run as expected.
 
-### 4. Success Metrics
+### 5.4. Success Metrics
 - Documentation and plans reference the latest audit output.
 - Tests and service checks pass after each change.
 - The user understands trade-offs and agrees on next steps before continuing.
 - Work is logged in both changelog tracks with clear follow-up actions.
 
-### 5. Further Reading
+### 5.5. Further Reading
 - [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), [ARCHITECTURE.md](ARCHITECTURE.md), [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for deeper background.
 - [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) for AI subsystem architecture, modes, and runtime behavior.
 - [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) for focused playbooks.

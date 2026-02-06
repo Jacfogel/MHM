@@ -23,7 +23,7 @@ python tests\ai\run_ai_functionality_tests.py
 ```
 
 **Test Results Location**:
-- `tests/ai/results/ai_functionality_test_results_latest.md`
+- [ai_functionality_test_results_latest.md](tests/ai/results/ai_functionality_test_results_latest.md)
 
 ---
 
@@ -45,7 +45,7 @@ The AI functionality test suite is organized into focused, maintainable modules:
 
 ## 3. Prerequisites
 
-- LM Studio running (**optional** — tests should work with fallbacks)
+- LM Studio running (**optional** - tests should work with fallbacks)
 - Test user data scenarios available (created by the runner / fixtures as applicable)
 - Service running (if required by the suite): `python run_headless_service.py start`
 
@@ -65,7 +65,7 @@ Typical scenarios exercised by the suite:
 ## 5. Logging Behavior
 
 - **Consolidated Logging**: All logs are consolidated into two files:
-  - `tests/logs/test_consolidated.log` (component logs from `mhm.*` loggers — AI, communication, scheduler, etc.)
+  - `tests/logs/test_consolidated.log` (component logs from `mhm.*` loggers - AI, communication, scheduler, etc.)
   - `tests/logs/test_run.log` (test execution logs from the runner itself)
 - **No Individual Component Logs**: Individual component log files are NOT created; all component logs go to `test_consolidated.log`
 - **Test Isolation**:
@@ -107,7 +107,7 @@ The test suite covers categories such as:
 
 ## 8. Known Issues
 
-- **Unicode/Emoji**: Windows console encoding issues with emojis — the suite uses Unicode-safe characters instead.
+- **Unicode/Emoji**: Windows console encoding issues with emojis - the suite uses Unicode-safe characters instead.
 
 ---
 
@@ -121,5 +121,5 @@ The test suite covers categories such as:
 
 ## 10. Where to Track Active Work
 
-- Active work items should be tracked in `TODO.md` and `development_docs/PLANS.md`.
+- Active work items should be tracked in [TODO.md](TODO.md) and [PLANS.md](development_docs/PLANS.md).
 - This doc should stay focused on *running and interpreting* the AI functionality test suite (not long-term planning).

@@ -27,6 +27,10 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-01-29 - Documentation drift cleanup **COMPLETED**
+- Fixed changelog archive metadata paths and restored AI changelog H2 lockstep via Archive Notes.
+- Updated README to point at the canonical user data model and excluded changelog history from path-drift scans to avoid false positives.
+
 ### 2026-01-28 - Dev Tools Format Hardening and Account Defaults **COMPLETED**
 - Enforced strict dev-tools result formats across aggregation/report generation; legacy result parsing now only exists in the legacy cleanup tool flow (`development_tools/shared/service/*.py`).
 - Dropped legacy `system_signals_results.json` usage in favor of standard tool outputs (reports + aggregation paths).
@@ -1387,3 +1391,6 @@ Guidelines:
 ### 2025-12-08 - Message Stats Validation During Reads **COMPLETED**
 - Normalized message data while building user indices and summaries so counts rely on tolerant schemas instead of raw JSON.
 - Logged validation warnings when message files contain extras or invalid fields, and documented the completed TODO subtask for read-path normalization of message stats.
+
+## Archive Notes
+Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

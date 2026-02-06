@@ -19,7 +19,7 @@ This is the single canonical description of configuration for MHM.
 2. Settings are then read by the application and used to compute paths, logging behavior, channel credentials, and AI behavior.  
 3. During tests, configuration is expected to redirect user/data paths to test-safe locations (see `MHM_TESTING` and related settings).
 
-**Validation:** If you suspect config issues, prefer running configuration validation (where supported) instead of debugging “weird behavior” downstream.
+**Validation:** If you suspect config issues, prefer running configuration validation (where supported) instead of debugging "weird behavior" downstream.
 
 ---
 
@@ -29,7 +29,7 @@ These variables control where MHM reads/writes local state.
 
 - `BASE_DATA_DIR`  
   **Used for**: the base directory for `data/` storage (user directories, state, etc.).  
-  **Breaks if wrong**: user data can’t be found, schedules/messages appear “missing,” or new data is created in an unexpected location.
+  **Breaks if wrong**: user data can't be found, schedules/messages appear "missing," or new data is created in an unexpected location.
 
 - `USER_INFO_DIR_PATH`  
   **Used for**: the root folder where user directories live (for example `data/users`).  
@@ -78,7 +78,7 @@ Each of these controls where a specific component writes logs:
 - `LOG_FILE_OPS_FILE`
 - `LOG_SCHEDULER_FILE`
 
-**Breaks if wrong:** you may think “nothing is happening” because logs are going somewhere unexpected; or log file creation fails due to missing directories / permissions.
+**Breaks if wrong:** you may think "nothing is happening" because logs are going somewhere unexpected; or log file creation fails due to missing directories / permissions.
 
 ---
 
@@ -208,7 +208,7 @@ This flag is used to indicate test mode. In test mode, the project is expected t
 
 - When adding a new setting:
   - Add it to `.env.example` with a clear comment header.
-  - Add it to this doc with “used for” and “breaks if wrong” notes.
+  - Add it to this doc with "used for" and "breaks if wrong" notes.
   - Remove any duplicate explanation elsewhere and replace with a link to this doc.
 
 

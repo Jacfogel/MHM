@@ -226,7 +226,7 @@ Any changes to command behavior should be reflected in:
 
 ## 7. Configuration and Environment Variables
 
-> **Note:** Configuration semantics (env vars, defaults, failure modes) are canonically defined in `CONFIGURATION_REFERENCE.md`. Avoid duplicating per-setting definitions here.
+> **Note:** Configuration semantics (env vars, defaults, failure modes) are canonically defined in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md). Avoid duplicating per-setting definitions here.
 
 
 Discord-related configuration lives in `core.config` and `.env` keys. Key variables include:

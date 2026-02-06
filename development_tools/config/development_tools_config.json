@@ -483,7 +483,11 @@
       "ui/generated/",
       "venv/"
     ],
-    "tool_exclusions": {},
+    "tool_exclusions": {
+      "documentation": [
+        "development_docs/changelog_history/"
+      ]
+    },
     "context_exclusions": {
       "production": [
         "ai_development_docs/*",
@@ -536,7 +540,8 @@
       "archive/",
       "CHANGELOG_DETAIL.md",
       "logs/",
-      "development_docs/changelog_history/"
+      "development_docs/changelog_history/",
+      "CHANGELOG_*.md"
     ]
   },
   "constants": {

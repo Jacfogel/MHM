@@ -37,6 +37,10 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-01-29 - Documentation drift cleanup (changelog archive alignment)
+- **Feature**: Corrected changelog archive metadata paths to point at `development_docs/changelog_history/*` and added an AI changelog "Archive Notes" section to restore paired H2 heading lockstep. (See `development_docs/changelog_history/CHANGELOG_DETAIL_2025_08.md`, `development_docs/changelog_history/CHANGELOG_DETAIL_2025_09.md`, `development_docs/changelog_history/CHANGELOG_DETAIL_2025_10.md`, `development_docs/changelog_history/CHANGELOG_DETAIL_2025_11.md`, `development_docs/changelog_history/CHANGELOG_DETAIL_2025_12.md`, `ai_development_docs/AI_CHANGELOG.md`)
+- **Impact**: Eliminates doc-sync pairing drift and fixes broken metadata for archived changelog files.
+- **Maintenance**: Updated README to reference the canonical user data doc path and excluded `development_docs/changelog_history/` from doc path-drift scans to stop historical references from flagging as current drift. (See `README.md`, `development_tools/config/development_tools_config.json`)
 ### 2026-01-29 Documentation normalization groundwork (reference alignment, process hardening)
 **Summary:**  
 Began a repo-wide documentation normalization effort focused on eliminating duplication, clarifying canonical references, and updating AI testing guide naming. The session established a conservative, loss-averse workflow for documentation edits and clarified rules to prevent accidental content removal while working from combined documentation snapshots.
@@ -51,11 +55,11 @@ Began a repo-wide documentation normalization effort focused on eliminating dupl
   - These must be removed when producing in-repo documentation files.
 - Standardized the **AI functionality testing guide rename**:
   - `SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`  
-    → `tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md`
-- Updated `tests/TESTING_GUIDE.md` to reference the new AI testing guide name while preserving all existing content.
-- Confirmed that `tests/MANUAL_TESTING_GUIDE.md` required only reference updates and no deduplication.
-- Formalized a **“flag, don’t move” rule** for documentation:
-  - Content that appears better suited for `CONFIGURATION_REFERENCE.md` or `core/USER_DATA_MODEL.md` should be identified and proposed for relocation, not moved automatically.
+    -> [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md)
+- Updated [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) to reference the new AI testing guide name while preserving all existing content.
+- Confirmed that [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md) required only reference updates and no deduplication.
+- Formalized a **"flag, don't move" rule** for documentation:
+  - Content that appears better suited for [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) or [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) should be identified and proposed for relocation, not moved automatically.
 - Added a documentation snapshot-based workflow to safely review and normalize large doc sets within tooling and upload constraints.
 
 ### 2026-01-28 - Dev Tools Format Hardening and Account Defaults
@@ -64,7 +68,7 @@ Began a repo-wide documentation normalization effort focused on eliminating dupl
 - **Feature**: Account schema validation now backfills required defaults and preserves normalized `features` even when validation reports errors, ensuring configuration flows remain stable. (See `core/schemas.py`, `core/user_data_handlers.py`)
 - **Maintenance**: Refreshed generated audit outputs and docs after the tooling changes (function/module registries, directory tree, legacy report, coverage report, unused imports, consolidated report, AI status/priorities). (See `development_docs/*`, `development_tools/*`, `ai_development_docs/*`)
 - **Tests/fixtures**: Updated coverage/behavior/dev-tools tests and helpers to align with the stricter format and compatibility cleanup workflow. (See `tests/conftest.py`, `tests/development_tools/*`, `tests/behavior/*`, `tests/unit/test_schema_validation_helpers.py`, `tests/test_utilities.py`)
-- **Maintenance**: Pruned completed checklist items from TODO and refreshed plan metadata for the session wrap-up. (See `TODO.md`, `development_docs/PLANS.md`)
+- **Maintenance**: Pruned completed checklist items from TODO and refreshed plan metadata for the session wrap-up. (See [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md))
 - **Testing**: `python run_tests.py`, `python development_tools/run_development_tools.py audit --full --clear-cache`
 
 ### 2026-01-26 - Check-in Analytics and Command Handling Overhaul

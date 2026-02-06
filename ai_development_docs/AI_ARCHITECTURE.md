@@ -74,7 +74,7 @@ in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## 2. User Data Model
 
-Per-user persisted state layout, guarantees, and access rules are defined in `core/USER_DATA_MODEL.md`.
+Per-user persisted state layout, guarantees, and access rules are defined in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md).
 This document describes only architectural relationships and AI-relevant constraints.
 
 

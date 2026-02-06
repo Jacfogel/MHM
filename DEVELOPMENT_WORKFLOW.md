@@ -157,7 +157,7 @@ deactivate
 
 ### 2.4. Configuration and .env
 
-> **Note:** Configuration semantics are canonically defined in `CONFIGURATION_REFERENCE.md` (source of truth: `.env.example`; loader/validation: `core/config.py`).
+> **Note:** Configuration semantics are canonically defined in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) (source of truth: `.env.example`; loader/validation: `core/config.py`).
 > Avoid duplicating per-setting definitions outside that reference.
 
 

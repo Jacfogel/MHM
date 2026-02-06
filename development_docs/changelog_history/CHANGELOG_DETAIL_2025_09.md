@@ -1,6 +1,6 @@
 # CHANGELOG_DETAIL_2025_09.md - Archived Detailed Changelog (2025-09)
 
-> **File**: `development_docs/changelog/CHANGELOG_DETAIL_2025_09.md`
+> **File**: `development_docs/changelog_history/CHANGELOG_DETAIL_2025_09.md`
 > **Audience**: Developers and contributors  
 > **Purpose**: Archived detailed changelog entries (moved out of the main changelog for usability)  
 > **Style**: Chronological, detailed, reference-oriented

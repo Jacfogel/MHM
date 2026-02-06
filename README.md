@@ -114,12 +114,10 @@ High-level architecture (details in [ARCHITECTURE.md](ARCHITECTURE.md)):
 - All user data lives under `data/` and `resources/` on your local machine, using
   simple JSON and file-based storage (no remote database). Configuration controls
   where these directories live via `BASE_DATA_DIR`, `USER_INFO_DIR_PATH`, and other
-  settings in `core/config.py`.
-
   settings in `core/config.py`. For the canonical list of settings, what they do, and what breaks when misconfigured,
   see [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md).
 
-- Canonical user data layout and persistence guarantees are documented in [USER_DATA_MODEL.md](USER_DATA_MODEL.md).
+- Canonical user data layout and persistence guarantees are documented in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md).
 
 
 **Entry points at a glance:**

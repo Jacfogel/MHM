@@ -1,6 +1,6 @@
 # CHANGELOG_DETAIL_2025_11.md - Archived Detailed Changelog (2025-11)
 
-> **File**: `development_docs/changelog/CHANGELOG_DETAIL_2025_11.md`
+> **File**: `development_docs/changelog_history/CHANGELOG_DETAIL_2025_11.md`
 > **Audience**: Developers and contributors  
 > **Purpose**: Archived detailed changelog entries (moved out of the main changelog for usability)  
 > **Style**: Chronological, detailed, reference-oriented
@@ -3351,4 +3351,3 @@ if file_size < MIN_FILE_SIZE:
 - Manual cleanup performed for existing artifacts (`tests/data/pytest-of-Julie`, `tests/data/tmp`)
 
 **Outcome**: Test suite is now fully passing with robust cleanup mechanisms that prevent accumulation of test artifacts. All cleanup operations use Windows-compatible directory iteration for reliable artifact removal.
-
