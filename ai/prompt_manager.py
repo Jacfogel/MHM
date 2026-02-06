@@ -1,6 +1,7 @@
 # prompt_manager.py
 
 import os
+import sys
 from dataclasses import dataclass
 
 from core.logger import get_component_logger
@@ -186,7 +187,13 @@ class PromptManager:
             if os.path.exists(AI_SYSTEM_PROMPT_PATH):
                 with open(AI_SYSTEM_PROMPT_PATH, "r", encoding="utf-8") as f:
                     self._custom_prompt = f.read().strip()
-                logger.info(f"Loaded custom system prompt from {AI_SYSTEM_PROMPT_PATH}")
+                # Log at DEBUG when likely from tools/subprocesses to reduce app.log noise; INFO for main service
+                _is_tool = "development_tools" in " ".join(
+                    getattr(sys, "argv", [])
+                ) or "run_dev_tools" in " ".join(getattr(sys, "argv", []))
+                (logger.debug if _is_tool else logger.info)(
+                    f"Loaded custom system prompt from {AI_SYSTEM_PROMPT_PATH}"
+                )
             else:
                 logger.warning(
                     f"Custom system prompt file not found: {AI_SYSTEM_PROMPT_PATH}"

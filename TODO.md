@@ -105,6 +105,25 @@ When adding new tasks, follow this format:
 
 ### Quality & Operations
 
+**Fix scheduler wake timer (Register-ScheduledTask failure)**
+- *What it means*: Investigate and resolve repeated `Register-ScheduledTask : The parameter is incorrect` (HRESULT 0x80070057) when the daily scheduler sets Windows wake timers at 01:00. Wake-from-sleep scheduled tasks are not being registered; in-process APScheduler and message delivery continue to work.
+- *Why it helps*: Restores wake-from-sleep behavior so reminders can fire when the machine was asleep; reduces error log noise.
+- *Estimated effort*: Small/Medium
+- *Subtasks*:
+  - [ ] Reproduce failure (run daily scheduler or wake-timer path on Windows)
+  - [ ] Validate PowerShell `Register-ScheduledTask` parameters (e.g. task name length, arguments)
+  - [ ] Fix parameters or add fallback (e.g. disable wake timers if not required)
+  - [ ] Confirm errors.log no longer fills with wake timer errors after 01:00 run
+
+**Investigate sent_messages.json size and archiving**
+- *What it means*: Review `data/users/{user_id}/messages/sent_messages.json` growth (e.g. ~512KB observed). Confirm whether archiving or trimming of sent message history is needed and implement or document policy.
+- *Why it helps*: Prevents unbounded growth, keeps file_ops audit trail manageable, and may improve I/O and backup size.
+- *Estimated effort*: Small/Medium
+- *Subtasks*:
+  - [ ] Check existing archiving/trimming in message_management or message.log for sent_messages
+  - [ ] Define retention or max-size policy for sent_messages.json
+  - [ ] Implement archiving/trimming if needed; document in USER_DATA_MODEL or config
+
 **Nightly No-Shim Validation Runs**
 - *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
 - *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.

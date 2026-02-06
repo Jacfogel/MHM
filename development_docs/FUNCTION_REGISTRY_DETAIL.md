@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-29 04:18:34
+> **Last Generated**: 2026-02-06 01:33:20
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 96.1% [OK] COMPLETED**
 - **Files Scanned**: 109
-- **Functions Found**: 1531
+- **Functions Found**: 1532
 - **Methods Found**: 1153
 - **Classes Found**: 154
-- **Total Items**: 2684
-- **Functions Documented**: 1465
+- **Total Items**: 2685
+- **Functions Documented**: 1466
 - **Methods Documented**: 1113
 - **Classes Documented**: 120
-- **Total Documented**: 2578
+- **Total Documented**: 2579
 - **Template-Generated**: 4
-- **Last Updated**: 2026-01-29
+- **Last Updated**: 2026-02-06
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (559)
+### **Core System Functions** (560)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (411)
@@ -3268,6 +3268,7 @@ to keep test output clean when verbose logging is disabled.
 Args:
     name: Component name (e.g., 'discord', 'ai')
 - [OK] `_get_log_paths_for_environment()` - Get appropriate log paths based on the current environment.
+- [OK] `_is_dev_tools_run()` - True when entry point or env indicates development tools (audit, scripts, etc.).
 - [OK] `_is_testing_environment()` - Check if we're running in a testing environment.
 - [OK] `_log(self, level, message)` - Internal logging method with structured data support.
 - [OK] `apply_test_context_formatter_to_all_loggers()` - Apply PytestContextLogFormatter to all existing loggers when in test mode.

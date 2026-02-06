@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-29 04:18:34
+> **Last Generated**: 2026-02-06 01:33:20
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 96.1% [OK] EXCELLENT**
-- **Total Functions**: 1531
+- **Total Functions**: 1532
 - **Total Methods**: 1153
-- **Documented**: 2578/2684
+- **Documented**: 2579/2685
 - **Files Scanned**: 109
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -86,7 +86,7 @@ Core System Decision Tree:
 |   +-- `core/file_operations.py` - File I/O (16 functions)
 |   `-- `core/backup_manager.py` - Backup operations (53 functions)
 +-- Logging
-|   `-- `core/logger.py` - Logging system (65 functions)
+|   `-- `core/logger.py` - Logging system (66 functions)
 `-- Scheduling
     +-- `core/scheduler.py` - Task scheduling (79/80 functions)
     `-- `core/schedule_management.py` - Schedule management (15/17 functions)
@@ -231,7 +231,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (27 files, 831 functions)
+- `core/` - System utilities and data management (27 files, 832 functions)
 - `communication/` - Communication channels and message processing (38 files, 782 functions)
 - `ai/` - AI chatbot functionality (7 files, 189 functions)
 - `ui/` - User interface components (28 files, 793 functions)
@@ -239,4 +239,4 @@ Most complex functions (may need refactoring):
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2026-01-29 04:18:34
+> **Last Updated**: 2026-02-06 01:33:20

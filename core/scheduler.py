@@ -124,7 +124,7 @@ class SchedulerManager:
                                 elif job_func.func == self.handle_task_reminder:
                                     task_jobs += 1
 
-                        logger.info(
+                        logger.debug(
                             f"Scheduler running: {active_jobs} total jobs ({system_jobs} system, {user_message_jobs} message, {task_jobs} task)"
                         )
 

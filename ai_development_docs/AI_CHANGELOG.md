@@ -27,6 +27,12 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-06 - Log rotation fix, logging noise reduction, backup/archive docs, dev-tools log isolation **COMPLETED**
+- Log backup rotation: `BackupDirectoryRotatingFileHandler` now names backups from actual rotation time and updates `rolloverAt` so filenames match content and older backups are not overwritten (core/logger.py).
+- Logging noise: init and "Loaded custom system prompt" at DEBUG when from dev tools; FLOW_STATE_LOAD with 0 states at DEBUG; scheduler heartbeat at DEBUG. LOGGING_GUIDE Section 9.7 and AI_LOGGING_GUIDE updated.
+- Backup vs archive: LOGGING_GUIDE Section 6.1 and AI_LOGGING_GUIDE pointer added; message.log rotation confirmed. See AI_BACKUP_GUIDE.md and BACKUP_GUIDE.md Section 1.
+- Dev-tools log isolation: Audit and dev-tool runs (and their subprocesses) now write only to `logs/ai_dev_tools.log` and `tests/logs`; app.log is untouched. Implemented via `_is_dev_tools_run()` and main_file override in core/logger.py; tool_wrappers and run_test_coverage set `MHM_DEV_TOOLS_RUN=1` for subprocesses. LOGGING_GUIDE Section 5.5 and AI_LOGGING_GUIDE updated.
+
 ### 2026-01-29 - Documentation drift cleanup **COMPLETED**
 - Fixed changelog archive metadata paths and restored AI changelog H2 lockstep via Archive Notes.
 - Updated README to point at the canonical user data model and excluded changelog history from path-drift scans to avoid false positives.

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-29 04:18:36
+> **Last Generated**: 2026-02-06 01:33:23
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports Found**: 1449
+- **Total Imports Found**: 1450
 - **Dependencies Documented**: 108 (100% coverage)
-- **Standard Library Imports**: 378 (26.1%)
-- **Third-Party Imports**: 224 (15.5%)
-- **Local Imports**: 847 (58.5%)
-- **Last Updated**: 2026-01-29
+- **Standard Library Imports**: 379 (26.1%)
+- **Third-Party Imports**: 224 (15.4%)
+- **Local Imports**: 847 (58.4%)
+- **Last Updated**: 2026-02-06
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 378 imports (26.1%)
-- **Third-Party**: 224 imports (15.5%)
-- **Local**: 847 imports (58.5%)
+- **Standard Library**: 379 imports (26.1%)
+- **Third-Party**: 224 imports (15.4%)
+- **Local**: 847 imports (58.4%)
 
 ## Module Dependencies by Directory
 
@@ -193,6 +193,7 @@
   - **Standard Library**:
     - `dataclasses (dataclass)`
     - `os`
+    - `sys`
 - **Used by**: 
   - `ai/chatbot.py`
 

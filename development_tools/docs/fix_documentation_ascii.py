@@ -87,6 +87,7 @@ class DocumentationASCIIFixer:
             "\u2122": "(TM)",  # Trademark symbol (™)
             "\u00ae": "(R)",  # Registered trademark symbol (®)
             "\u00a9": "(C)",  # Copyright symbol (©)
+            "\u00a7": "Section ",  # Section sign (§)
             # Common emojis (standard replacements for documentation)
             "\u2705": "[OK]",  # Check mark button
             "\u274c": "[FAIL]",  # Cross mark

@@ -209,25 +209,30 @@ If unset, `core/logger.py` derives sensible defaults under `LOGS_DIR`.
   - `1` (medium): Component loggers WARNING, Test loggers INFO (test execution details without component chatter)  
   - `2` (verbose): Component loggers DEBUG, Test loggers DEBUG (full detail)
 
+### 5.5. Development tools isolation
+
+- `MHM_DEV_TOOLS_RUN`  
+  When set to `1`, or when the process entry point is a development-tools script (e.g. `run_development_tools.py`, `run_dev_tools.py`, or any script under `development_tools/`), logging that would normally go to `app.log` is routed to `logs/ai_dev_tools.log` instead. This keeps the main application log untouched when running audits, status, or other dev-tool commands. Subprocesses spawned by the development tools set this variable automatically so that all tool and script output is isolated to `ai_dev_tools.log` (and, when tests are run, to `tests/logs` as configured for test runs).
+
 Other diagnostic and backup environment variables (such as `BACKUP_RETENTION_DAYS` and file-auditor settings) may affect how long logs and backups are kept, but are not logging-exclusive.
 
 ---
 
 ## 6. Log Rotation, Backups, and Archival
 
-Rotation is typically implemented via rotating handlers configured in `core/logger.py`:
+Rotation is implemented by `BackupDirectoryRotatingFileHandler` in `core/logger.py`. All component loggers (including `main`, `discord`, `scheduler`, `message`, `communication_manager`, etc.) use this handler, so every component log file is rotated when it meets the size/age and midnight rules below.
 
-- When a log file reaches `LOG_MAX_BYTES`, it is rotated.
-- Up to `LOG_BACKUP_COUNT` rotated files are kept (for example `app.log.1`, `app.log.2`, ...).
-- If `LOG_COMPRESS_BACKUPS` is enabled, rotated logs may be gzipped or otherwise compressed.
+- When a log file reaches `LOG_MAX_BYTES` or at midnight (and meets minimum size 5KB and age 1 hour), it is rotated.
+- Rotated files are moved to `LOG_BACKUP_DIR` (default `logs/backups/`) with a date suffix (e.g. `app.log.2026-02-06`).
+- Up to `LOG_BACKUP_COUNT` backup files are kept (default 7).
+- A scheduled job (e.g. at 02:00) compresses backups older than 7 days into `LOG_ARCHIVE_DIR` (default `logs/archive/`) as `.gz` files, and removes archives older than 30 days.
 
-Supporting scripts and services (for example, `core/backup_manager.py`, `core/auto_cleanup.py`, and scheduled tasks) may:
+### 6.1. Backup vs archive
 
-- Move older logs into `LOG_ARCHIVE_DIR`
-- Enforce retention policies
-- Clean up stale or oversized log directories
+- **Backups** (`logs/backups/`): Recently rotated log files, one per rotation date per component (e.g. `app.log.2026-02-06`). The filename date is the calendar date of the log period that was rotated out. Low-activity logs (e.g. `message.log`, `ai.log`, `user_activity.log`) rotate less often, so they appear in backups only when they have grown enough and passed a midnight.
+- **Archive** (`logs/archive/`): Compressed older backups (e.g. `app.log.2026-01-30.gz`). Files are moved here after 7 days in backups; archives older than 30 days are deleted.
 
-Exact behavior is driven both by configuration and those scripts; always check the implementation when making changes to retention policies.
+For full backup/archive semantics, retention, and restore procedures, see [AI_BACKUP_GUIDE.md](../ai_development_docs/AI_BACKUP_GUIDE.md) and [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md) Section 1.
 
 ---
 
@@ -298,6 +303,16 @@ Most error paths should flow through the centralized error handling system; for 
 ### 9.6. Respect test settings
 
 When writing tests that assert on logs, use helpers/fixtures in `tests/test_utilities.py` rather than ad-hoc file manipulation.
+
+### 9.7. Reducing noise from tools and high-frequency events
+
+To keep production logs readable and avoid debug-level repetition at INFO:
+
+- **Logging init and prompt load**: When the process is a development-tools run or short-lived subprocess (e.g. `run_development_tools.py`, `run_dev_tools.py`), `setup_logging()` and the prompt-manager "Loaded custom system prompt" message log at DEBUG instead of INFO so app.log is not filled by many tool invocations.
+- **Flow state load**: When conversation flow state is loaded and the result is "0 user states", the message is logged at DEBUG; when there are active user states it remains INFO so flow activity is visible.
+- **Scheduler heartbeat**: The periodic "Scheduler running: N total jobs" message is logged at DEBUG. Use DEBUG level in scheduler.log (or temporarily raise scheduler logger level) when diagnosing job counts; normal operation keeps INFO for actual sends and schedule changes.
+
+See `core/logger.py` (setup_logging), `ai/prompt_manager.py` (_load_custom_prompt), `communication/message_processing/conversation_flow_manager.py` (_load_user_states), and `core/scheduler.py` (scheduler loop) for the current patterns.
 
 ---
 

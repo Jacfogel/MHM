@@ -77,7 +77,7 @@ When adding a new component:
 
 ## 5. Configuration (Environment Variables)
 
-Logging configuration semantics (env vars, defaults, failure modes) are defined in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) (see §3 Logging and §10 Testing settings).
+Logging configuration semantics (env vars, defaults, failure modes) are defined in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) (see Section 3 Logging and Section 10 Testing settings).
 
 Where behavior is configured:
 
@@ -90,13 +90,17 @@ Do not introduce new logging environment variables without updating:
 - Section 5. Configuration (Environment Variables) in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)
 - The constants in `core/config.py`
 
+**Development tools isolation** (see Section 5.5 in LOGGING_GUIDE.md): When the entry point is a development-tools script or `MHM_DEV_TOOLS_RUN=1`, logging that would go to `app.log` is routed to `logs/ai_dev_tools.log` so the main app log is untouched. Subprocesses spawned by development tools set this automatically.
+
 ## 6. Log Rotation, Backups, and Archival
 
 Core behavior is implemented by `BackupDirectoryRotatingFileHandler` and helpers in `core/logger.py`:
 
-- Time-based and size-based rotation ensure logs don't grow unbounded.  
-- Rotated files are moved into `LOG_BACKUP_DIR`.  
-- Older logs can be compressed and moved to `LOG_ARCHIVE_DIR` via maintenance helpers.
+- Time-based (midnight) and size-based rotation ensure logs don't grow unbounded.  
+- Rotated files are moved into `LOG_BACKUP_DIR` (e.g. `logs/backups/`) with a date suffix.  
+- Backups older than 7 days are compressed and moved to `LOG_ARCHIVE_DIR` (e.g. `logs/archive/`) as `.gz`; archives older than 30 days are removed.
+
+**Backup vs archive**: See section 6.1 in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and [AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md) for how backup filenames relate to content and when files move to archive.
 
 Where to look:
 
@@ -151,6 +155,7 @@ High-level rules:
 - Never log secrets, tokens, or PHI/PII.  
 - Make log messages line up with error categories from section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).  
 - Respect testing flags (`MHM_TESTING`, `TEST_VERBOSE_LOGS`) and don't force real log paths during tests.  
+- **Noise reduction**: Tools/short-lived processes log init and prompt load at DEBUG; FLOW_STATE_LOAD with 0 user states and scheduler heartbeat are at DEBUG. See section 9.7 in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
 
 Cross-doc routing:
 

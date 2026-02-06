@@ -124,9 +124,16 @@ class ConversationManager:
             with open(self._state_file, "r", encoding="utf-8") as f:
                 self.user_states = json.load(f)
 
-            logger.info(
-                f"FLOW_STATE_LOAD: Loaded {len(self.user_states)} user states from disk | File: {str(self._state_file)}"
-            )
+            # When no user states, log at DEBUG to reduce burst noise; INFO when there is state to track
+            count = len(self.user_states)
+            if count == 0:
+                logger.debug(
+                    f"FLOW_STATE_LOAD: Loaded 0 user states from disk | File: {str(self._state_file)}"
+                )
+            else:
+                logger.info(
+                    f"FLOW_STATE_LOAD: Loaded {count} user states from disk | File: {str(self._state_file)}"
+                )
 
             for user_id, state in self.user_states.items():
                 logger.info(
@@ -1991,7 +1998,8 @@ class ConversationManager:
                 return format_timestamp(dt, DATE_ONLY)
             except Exception as exc:
                 logger.error(
-                    f"Failed to format date for natural language parser: {exc}", exc_info=True
+                    f"Failed to format date for natural language parser: {exc}",
+                    exc_info=True,
                 )
                 return ""
 

@@ -960,6 +960,7 @@ class CoverageMetricsRegenerator:
                 )
 
             env = os.environ.copy()
+            env["MHM_DEV_TOOLS_RUN"] = "1"
             # Ensure PATH includes Python executable's directory for Windows DLL resolution
             env = self._ensure_python_path_in_env(env)
             if self.parallel:
@@ -1590,6 +1591,7 @@ class CoverageMetricsRegenerator:
                 # Use separate coverage data file for no_parallel tests
                 # Use absolute path to ensure coverage.py uses our specified location
                 no_parallel_env = os.environ.copy()
+                no_parallel_env["MHM_DEV_TOOLS_RUN"] = "1"
                 # Ensure PATH includes Python executable's directory for Windows DLL resolution
                 no_parallel_env = self._ensure_python_path_in_env(no_parallel_env)
                 no_parallel_env["COVERAGE_FILE"] = str(
@@ -2139,6 +2141,7 @@ class CoverageMetricsRegenerator:
                         # Use coverage combine to merge the coverage data files
                         # Set COVERAGE_FILE to the final combined file location
                         combine_env = os.environ.copy()
+                        combine_env["MHM_DEV_TOOLS_RUN"] = "1"
                         # Ensure PATH includes Python executable's directory for Windows DLL resolution
                         combine_env = self._ensure_python_path_in_env(combine_env)
                         combine_env["COVERAGE_FILE"] = str(
@@ -2814,6 +2817,7 @@ class CoverageMetricsRegenerator:
                             str(self.coverage_html_dir),
                         ]
                         env = os.environ.copy()
+                        env["MHM_DEV_TOOLS_RUN"] = "1"
                         env["COVERAGE_FILE"] = str(self.coverage_data_file)
                         if self.coverage_config_path.exists():
                             env["COVERAGE_RCFILE"] = str(self.coverage_config_path)
@@ -3063,6 +3067,7 @@ class CoverageMetricsRegenerator:
                 )
 
             env = os.environ.copy()
+            env["MHM_DEV_TOOLS_RUN"] = "1"
             # Ensure PATH includes Python executable's directory for Windows DLL resolution
             env = self._ensure_python_path_in_env(env)
             # Set COVERAGE_FILE to absolute path to ensure files are created in the correct location
