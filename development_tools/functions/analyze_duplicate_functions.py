@@ -6,6 +6,13 @@ Analyze possible duplicate/similar functions and methods across the codebase.
 
 This tool looks for functions with similar names, arguments, local variables,
 and imports. It reports possible duplicates using a weighted similarity score.
+
+- Records are deduplicated by (file, line, full_name) so the same function is
+  never compared with itself (avoids false-positive "self-pair" groups).
+- Groups containing only one unique function are filtered out.
+- Use --max-groups N to report more or fewer groups (default from config).
+- When the report is capped at max_groups, the human-readable output and
+  details.groups_capped in JSON indicate it.
 """
 
 from __future__ import annotations
@@ -385,6 +392,25 @@ def _build_candidate_pairs(
     return candidate_pairs, skipped_tokens, max_reached
 
 
+def _record_identity(record: FunctionRecord) -> Tuple[str, int, str]:
+    """Return (file_path, line, full_name) for deduplication. Path normalized for cross-platform consistency."""
+    path_key = (record.file_path or "").replace("\\", "/").strip()
+    return (path_key, record.line, record.full_name)
+
+
+def _deduplicate_records(records: List[FunctionRecord]) -> List[FunctionRecord]:
+    """Remove duplicate records (same file, line, full_name). Keeps first occurrence."""
+    seen: Set[Tuple[str, int, str]] = set()
+    result: List[FunctionRecord] = []
+    for r in records:
+        key = _record_identity(r)
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(r)
+    return result
+
+
 def _compute_similarity(
     a: FunctionRecord, b: FunctionRecord, weights: Dict[str, float]
 ) -> Tuple[float, Dict[str, float]]:
@@ -423,6 +449,11 @@ def _analyze_duplicates(
     max_token_group_size = int(config_values.get("max_token_group_size", 200))
     stop_tokens = set(config_values.get("stop_name_tokens", []))
 
+    # Deduplicate so the same function (file, line, full_name) is not compared with itself
+    original_count = len(records)
+    records = _deduplicate_records(records)
+    records_deduplicated = original_count - len(records)
+
     candidate_pairs, skipped_tokens, max_reached = _build_candidate_pairs(
         records,
         stop_tokens=stop_tokens,
@@ -457,7 +488,13 @@ def _analyze_duplicates(
         key=lambda item: float(item["overall_similarity"]), reverse=True
     )
 
-    groups = _group_pairs(pair_results, max_groups=max_groups)
+    # Build all groups (no cap yet), then keep only multi-function groups, then apply max_groups
+    # so we report the top max_groups *real* duplicate groups, not "top N then drop singles"
+    all_groups = _group_pairs(pair_results, max_groups=None)
+    groups_before_filter = len(all_groups)
+    multi_function_groups = [g for g in all_groups if len(g.get("functions", [])) >= 2]
+    groups_filtered_single_function = groups_before_filter - len(multi_function_groups)
+    groups = multi_function_groups[:max_groups]
 
     files_affected = {
         entry["file"]
@@ -473,6 +510,8 @@ def _analyze_duplicates(
         },
         "details": {
             "total_functions": len(records),
+            "records_deduplicated": records_deduplicated,
+            "groups_filtered_single_function": groups_filtered_single_function,
             "cache": cache_stats or {},
             "pairs_considered": len(candidate_pairs),
             "pairs_reported": len(pair_results),
@@ -486,6 +525,7 @@ def _analyze_duplicates(
             "max_groups": max_groups,
             "skipped_token_groups": skipped_tokens,
             "candidate_pair_cap_reached": max_reached,
+            "groups_capped": len(multi_function_groups) > max_groups and max_groups > 0,
             "top_pairs": pair_results[:max_pairs],
             "duplicate_groups": groups,
         },
@@ -515,7 +555,9 @@ def _normalize_path(path: str) -> str:
         return path.replace("\\", "/")
 
 
-def _group_pairs(pair_results: List[PairResult], max_groups: int) -> List[GroupSummary]:
+def _group_pairs(
+    pair_results: List[PairResult], max_groups: Optional[int] = None
+) -> List[GroupSummary]:
     if not pair_results:
         return []
 
@@ -585,7 +627,9 @@ def _group_pairs(pair_results: List[PairResult], max_groups: int) -> List[GroupS
     grouped.sort(
         key=lambda item: item["similarity_range"]["max"], reverse=True
     )
-    return grouped[:max_groups]
+    if max_groups is not None and max_groups > 0:
+        return grouped[:max_groups]
+    return grouped
 
 
 def _pair_key(summary: FunctionSummary) -> str:
@@ -619,6 +663,13 @@ def main() -> int:
         default=None,
         help="Override minimum name similarity threshold.",
     )
+    parser.add_argument(
+        "--max-groups",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Maximum number of duplicate groups to report (default from config, often 25).",
+    )
 
     args = parser.parse_args()
 
@@ -627,6 +678,8 @@ def main() -> int:
         analysis_config["min_overall_similarity"] = args.min_overall
     if args.min_name is not None:
         analysis_config["min_name_similarity"] = args.min_name
+    if args.max_groups is not None:
+        analysis_config["max_groups"] = args.max_groups
 
     records, cache_stats = _gather_function_records(
         include_tests=args.include_tests,
@@ -642,7 +695,13 @@ def main() -> int:
         print("Possible Duplicate Functions")
         print("=" * 30)
         print(f"Total functions analyzed: {details.get('total_functions', 0)}")
+        if details.get("records_deduplicated", 0) > 0:
+            print(f"Duplicate records removed: {details.get('records_deduplicated', 0)}")
+        if details.get("groups_filtered_single_function", 0) > 0:
+            print(f"Single-function groups filtered out: {details.get('groups_filtered_single_function', 0)}")
         print(f"Duplicate groups found: {summary.get('total_issues', 0)}")
+        if details.get("groups_capped", False):
+            print(f"(Report capped at max_groups={details.get('max_groups', 0)}; use --max-groups N for more.)")
         if summary.get("total_issues", 0) > 0:
             top_pairs = details.get("top_pairs", [])[:5]
             if top_pairs:

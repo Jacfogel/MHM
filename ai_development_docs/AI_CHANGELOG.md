@@ -27,6 +27,11 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-06 - Duplicate-functions investigation, tool improvements, planning doc **COMPLETED**
+- Duplicate-functions: investigated all reported groups; created development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md as a **temporary planning file** (verdicts and refactor recommendations; archive or remove when refactors are done).
+- Tool: analyze_duplicate_functions.py dedupes records, filters single-function groups first then applies max_groups (pipeline fix), adds --max-groups; config/default max_groups 50; development_tools_config.json synced; audit now reports 29 groups.
+- TODO.md: refactor tasks added for period row (2–3, 25), _get_user_data__load_* (20), find_task_by_identifier (16), _is_valid_intent (14), command parsing prompt (18).
+
 ### 2026-02-06 - Scheduler wake timer fix; custom-question test fix; audit clean **COMPLETED**
 - Wake timer: Fixed 0x80070057 (task name no colon, HHMM + sanitize + length cap, [DateTime]::ParseExact in PowerShell). core/scheduler.py set_wake_timer.
 - Custom-question tests: test_checkin_questions_enhancement.py TestCustomQuestions now patch core.config.BASE_DATA_DIR to test temp dir instead of TEST_DATA_DIR; behavior suite (1733 tests) passes.

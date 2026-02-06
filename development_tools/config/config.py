@@ -661,7 +661,7 @@ ANALYZE_DUPLICATE_FUNCTIONS = {
     "min_name_similarity": 0.6,
     "min_overall_similarity": 0.7,
     "max_pairs": 50,
-    "max_groups": 25,
+    "max_groups": 50,
     "max_candidate_pairs": 20000,
     "max_token_group_size": 200,
     "stop_name_tokens": [

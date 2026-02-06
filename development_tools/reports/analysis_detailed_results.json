@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-02-06 02:43:06",
+  "last_generated": "2026-02-06 16:24:10",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-02-06T02:43:06.385048",
+  "timestamp": "2026-02-06T16:24:10.980081",
   "successful": [
     "analyze_duplicate_functions",
     "analyze_functions",
@@ -40,19 +40,21 @@
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 25,
-          "files_affected": 16
+          "total_issues": 29,
+          "files_affected": 26
         },
         "details": {
           "total_functions": 1559,
+          "records_deduplicated": 0,
+          "groups_filtered_single_function": 11,
           "cache": {
             "total_files": 108,
-            "cached_files": 107,
-            "scanned_files": 1
+            "cached_files": 0,
+            "scanned_files": 108
           },
           "pairs_considered": 20000,
           "pairs_reported": 59,
-          "groups_reported": 25,
+          "groups_reported": 29,
           "min_name_similarity": 0.6,
           "min_overall_similarity": 0.7,
           "weights": {
@@ -64,9 +66,10 @@
           "max_candidate_pairs": 20000,
           "max_token_group_size": 200,
           "max_pairs": 50,
-          "max_groups": 25,
+          "max_groups": 50,
           "skipped_token_groups": {},
           "candidate_pair_cap_reached": true,
+          "groups_capped": false,
           "top_pairs": [
             {
               "overall_similarity": 1.0,
@@ -1479,444 +1482,6 @@
           "duplicate_groups": [
             {
               "similarity_range": {
-                "min": 1.0,
-                "max": 1.0
-              },
-              "functions": [
-                {
-                  "name": "send_message_sync__queue_failed_message",
-                  "full_name": "CommunicationManager.send_message_sync__queue_failed_message",
-                  "class": "CommunicationManager",
-                  "file": "communication/core/channel_orchestrator.py",
-                  "line": 151,
-                  "args": [
-                    "user_id",
-                    "category",
-                    "message",
-                    "recipient",
-                    "channel_name"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 1.0,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 1.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "send_message_sync__queue_failed_message",
-                    "full_name": "CommunicationManager.send_message_sync__queue_failed_message",
-                    "class": "CommunicationManager",
-                    "file": "communication/core/channel_orchestrator.py",
-                    "line": 151,
-                    "args": [
-                      "user_id",
-                      "category",
-                      "message",
-                      "recipient",
-                      "channel_name"
-                    ]
-                  },
-                  "b": {
-                    "name": "send_message_sync__queue_failed_message",
-                    "full_name": "CommunicationManager.send_message_sync__queue_failed_message",
-                    "class": "CommunicationManager",
-                    "file": "communication/core/channel_orchestrator.py",
-                    "line": 151,
-                    "args": [
-                      "user_id",
-                      "category",
-                      "message",
-                      "recipient",
-                      "channel_name"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 1.0,
-                "max": 1.0
-              },
-              "functions": [
-                {
-                  "name": "_get_user_id_by_identifier__by_chat_id",
-                  "full_name": "_get_user_id_by_identifier__by_chat_id",
-                  "class": null,
-                  "file": "core/user_data_handlers.py",
-                  "line": 2600,
-                  "args": [
-                    "chat_id"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 1.0,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 1.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "_get_user_id_by_identifier__by_chat_id",
-                    "full_name": "_get_user_id_by_identifier__by_chat_id",
-                    "class": null,
-                    "file": "core/user_data_handlers.py",
-                    "line": 2600,
-                    "args": [
-                      "chat_id"
-                    ]
-                  },
-                  "b": {
-                    "name": "_get_user_id_by_identifier__by_chat_id",
-                    "full_name": "_get_user_id_by_identifier__by_chat_id",
-                    "class": null,
-                    "file": "core/user_data_handlers.py",
-                    "line": 2600,
-                    "args": [
-                      "chat_id"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 1.0,
-                "max": 1.0
-              },
-              "functions": [
-                {
-                  "name": "_get_cleanup_status__format_next_cleanup_date",
-                  "full_name": "_get_cleanup_status__format_next_cleanup_date",
-                  "class": null,
-                  "file": "core/auto_cleanup.py",
-                  "line": 705,
-                  "args": [
-                    "last_date"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 1.0,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 1.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "_get_cleanup_status__format_next_cleanup_date",
-                    "full_name": "_get_cleanup_status__format_next_cleanup_date",
-                    "class": null,
-                    "file": "core/auto_cleanup.py",
-                    "line": 705,
-                    "args": [
-                      "last_date"
-                    ]
-                  },
-                  "b": {
-                    "name": "_get_cleanup_status__format_next_cleanup_date",
-                    "full_name": "_get_cleanup_status__format_next_cleanup_date",
-                    "class": null,
-                    "file": "core/auto_cleanup.py",
-                    "line": 705,
-                    "args": [
-                      "last_date"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 1.0,
-                "max": 1.0
-              },
-              "functions": [
-                {
-                  "name": "_get_user_id_by_identifier__by_internal_username",
-                  "full_name": "_get_user_id_by_identifier__by_internal_username",
-                  "class": null,
-                  "file": "core/user_data_handlers.py",
-                  "line": 2511,
-                  "args": [
-                    "internal_username"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 1.0,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 1.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "_get_user_id_by_identifier__by_internal_username",
-                    "full_name": "_get_user_id_by_identifier__by_internal_username",
-                    "class": null,
-                    "file": "core/user_data_handlers.py",
-                    "line": 2511,
-                    "args": [
-                      "internal_username"
-                    ]
-                  },
-                  "b": {
-                    "name": "_get_user_id_by_identifier__by_internal_username",
-                    "full_name": "_get_user_id_by_identifier__by_internal_username",
-                    "class": null,
-                    "file": "core/user_data_handlers.py",
-                    "line": 2511,
-                    "args": [
-                      "internal_username"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 1.0,
-                "max": 1.0
-              },
-              "functions": [
-                {
-                  "name": "_check_test_message_requests__get_message_content",
-                  "full_name": "MHMService._check_test_message_requests__get_message_content",
-                  "class": "MHMService",
-                  "file": "core/service.py",
-                  "line": 718,
-                  "args": [
-                    "user_id",
-                    "category"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 1.0,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 1.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "_check_test_message_requests__get_message_content",
-                    "full_name": "MHMService._check_test_message_requests__get_message_content",
-                    "class": "MHMService",
-                    "file": "core/service.py",
-                    "line": 718,
-                    "args": [
-                      "user_id",
-                      "category"
-                    ]
-                  },
-                  "b": {
-                    "name": "_check_test_message_requests__get_message_content",
-                    "full_name": "MHMService._check_test_message_requests__get_message_content",
-                    "class": "MHMService",
-                    "file": "core/service.py",
-                    "line": 718,
-                    "args": [
-                      "user_id",
-                      "category"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 1.0,
-                "max": 1.0
-              },
-              "functions": [
-                {
-                  "name": "_get_user_id_by_identifier__by_phone",
-                  "full_name": "_get_user_id_by_identifier__by_phone",
-                  "class": null,
-                  "file": "core/user_data_handlers.py",
-                  "line": 2572,
-                  "args": [
-                    "phone"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 1.0,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 1.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "_get_user_id_by_identifier__by_phone",
-                    "full_name": "_get_user_id_by_identifier__by_phone",
-                    "class": null,
-                    "file": "core/user_data_handlers.py",
-                    "line": 2572,
-                    "args": [
-                      "phone"
-                    ]
-                  },
-                  "b": {
-                    "name": "_get_user_id_by_identifier__by_phone",
-                    "full_name": "_get_user_id_by_identifier__by_phone",
-                    "class": null,
-                    "file": "core/user_data_handlers.py",
-                    "line": 2572,
-                    "args": [
-                      "phone"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 1.0,
-                "max": 1.0
-              },
-              "functions": [
-                {
-                  "name": "_get_cleanup_status__calculate_days_since_cleanup",
-                  "full_name": "_get_cleanup_status__calculate_days_since_cleanup",
-                  "class": null,
-                  "file": "core/auto_cleanup.py",
-                  "line": 690,
-                  "args": [
-                    "last_cleanup_timestamp"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 1.0,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 1.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "_get_cleanup_status__calculate_days_since_cleanup",
-                    "full_name": "_get_cleanup_status__calculate_days_since_cleanup",
-                    "class": null,
-                    "file": "core/auto_cleanup.py",
-                    "line": 690,
-                    "args": [
-                      "last_cleanup_timestamp"
-                    ]
-                  },
-                  "b": {
-                    "name": "_get_cleanup_status__calculate_days_since_cleanup",
-                    "full_name": "_get_cleanup_status__calculate_days_since_cleanup",
-                    "class": null,
-                    "file": "core/auto_cleanup.py",
-                    "line": 690,
-                    "args": [
-                      "last_cleanup_timestamp"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 1.0,
-                "max": 1.0
-              },
-              "functions": [
-                {
-                  "name": "_get_user_id_by_identifier__by_discord_user_id",
-                  "full_name": "_get_user_id_by_identifier__by_discord_user_id",
-                  "class": null,
-                  "file": "core/user_data_handlers.py",
-                  "line": 2615,
-                  "args": [
-                    "discord_user_id"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 1.0,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 1.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "_get_user_id_by_identifier__by_discord_user_id",
-                    "full_name": "_get_user_id_by_identifier__by_discord_user_id",
-                    "class": null,
-                    "file": "core/user_data_handlers.py",
-                    "line": 2615,
-                    "args": [
-                      "discord_user_id"
-                    ]
-                  },
-                  "b": {
-                    "name": "_get_user_id_by_identifier__by_discord_user_id",
-                    "full_name": "_get_user_id_by_identifier__by_discord_user_id",
-                    "class": null,
-                    "file": "core/user_data_handlers.py",
-                    "line": 2615,
-                    "args": [
-                      "discord_user_id"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 1.0,
-                "max": 1.0
-              },
-              "functions": [
-                {
-                  "name": "_get_user_id_by_identifier__by_email",
-                  "full_name": "_get_user_id_by_identifier__by_email",
-                  "class": null,
-                  "file": "core/user_data_handlers.py",
-                  "line": 2544,
-                  "args": [
-                    "email"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 1.0,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 1.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "_get_user_id_by_identifier__by_email",
-                    "full_name": "_get_user_id_by_identifier__by_email",
-                    "class": null,
-                    "file": "core/user_data_handlers.py",
-                    "line": 2544,
-                    "args": [
-                      "email"
-                    ]
-                  },
-                  "b": {
-                    "name": "_get_user_id_by_identifier__by_email",
-                    "full_name": "_get_user_id_by_identifier__by_email",
-                    "class": null,
-                    "file": "core/user_data_handlers.py",
-                    "line": 2544,
-                    "args": [
-                      "email"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
                 "min": 0.8,
                 "max": 0.943
               },
@@ -2735,100 +2300,6 @@
               },
               "functions": [
                 {
-                  "name": "_cleanup_test_message_requests__is_test_message_request_file",
-                  "full_name": "MHMService._cleanup_test_message_requests__is_test_message_request_file",
-                  "class": "MHMService",
-                  "file": "core/service.py",
-                  "line": 1062,
-                  "args": [
-                    "filename"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 0.8,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 0.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "_cleanup_test_message_requests__is_test_message_request_file",
-                    "full_name": "MHMService._cleanup_test_message_requests__is_test_message_request_file",
-                    "class": "MHMService",
-                    "file": "core/service.py",
-                    "line": 1062,
-                    "args": [
-                      "filename"
-                    ]
-                  },
-                  "b": {
-                    "name": "_cleanup_test_message_requests__is_test_message_request_file",
-                    "full_name": "MHMService._cleanup_test_message_requests__is_test_message_request_file",
-                    "class": "MHMService",
-                    "file": "core/service.py",
-                    "line": 1062,
-                    "args": [
-                      "filename"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 0.8,
-                "max": 0.8
-              },
-              "functions": [
-                {
-                  "name": "_create_user_files__update_user_references",
-                  "full_name": "_create_user_files__update_user_references",
-                  "class": null,
-                  "file": "core/file_operations.py",
-                  "line": 720,
-                  "args": [
-                    "user_id"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 0.8,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 0.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "_create_user_files__update_user_references",
-                    "full_name": "_create_user_files__update_user_references",
-                    "class": null,
-                    "file": "core/file_operations.py",
-                    "line": 720,
-                    "args": [
-                      "user_id"
-                    ]
-                  },
-                  "b": {
-                    "name": "_create_user_files__update_user_references",
-                    "full_name": "_create_user_files__update_user_references",
-                    "class": null,
-                    "file": "core/file_operations.py",
-                    "line": 720,
-                    "args": [
-                      "user_id"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 0.8,
-                "max": 0.8
-              },
-              "functions": [
-                {
                   "name": "update_message_references",
                   "full_name": "UserDataManager.update_message_references",
                   "class": "UserDataManager",
@@ -3303,11 +2774,1028 @@
                   }
                 }
               ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.8,
+                "max": 0.8
+              },
+              "functions": [
+                {
+                  "name": "update_user_index",
+                  "full_name": "UserDataManager.update_user_index",
+                  "class": "UserDataManager",
+                  "file": "core/user_data_manager.py",
+                  "line": 799,
+                  "args": [
+                    "user_id"
+                  ]
+                },
+                {
+                  "name": "update_user_index",
+                  "full_name": "update_user_index",
+                  "class": null,
+                  "file": "core/user_data_manager.py",
+                  "line": 1384,
+                  "args": [
+                    "user_id"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.8,
+                  "name_similarity": 1.0,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.0,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "update_user_index",
+                    "full_name": "UserDataManager.update_user_index",
+                    "class": "UserDataManager",
+                    "file": "core/user_data_manager.py",
+                    "line": 799,
+                    "args": [
+                      "user_id"
+                    ]
+                  },
+                  "b": {
+                    "name": "update_user_index",
+                    "full_name": "update_user_index",
+                    "class": null,
+                    "file": "core/user_data_manager.py",
+                    "line": 1384,
+                    "args": [
+                      "user_id"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.8,
+                "max": 0.8
+              },
+              "functions": [
+                {
+                  "name": "_get_user_data_summary__process_enabled_message_files",
+                  "full_name": "UserDataManager._get_user_data_summary__process_enabled_message_files",
+                  "class": "UserDataManager",
+                  "file": "core/user_data_manager.py",
+                  "line": 601,
+                  "args": [
+                    "user_id",
+                    "categories",
+                    "summary"
+                  ]
+                },
+                {
+                  "name": "_get_user_data_summary__process_orphaned_message_files",
+                  "full_name": "UserDataManager._get_user_data_summary__process_orphaned_message_files",
+                  "class": "UserDataManager",
+                  "file": "core/user_data_manager.py",
+                  "line": 625,
+                  "args": [
+                    "user_id",
+                    "categories",
+                    "message_files",
+                    "summary"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.8,
+                  "name_similarity": 0.778,
+                  "args_similarity": 0.75,
+                  "locals_similarity": 0.75,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "_get_user_data_summary__process_enabled_message_files",
+                    "full_name": "UserDataManager._get_user_data_summary__process_enabled_message_files",
+                    "class": "UserDataManager",
+                    "file": "core/user_data_manager.py",
+                    "line": 601,
+                    "args": [
+                      "user_id",
+                      "categories",
+                      "summary"
+                    ]
+                  },
+                  "b": {
+                    "name": "_get_user_data_summary__process_orphaned_message_files",
+                    "full_name": "UserDataManager._get_user_data_summary__process_orphaned_message_files",
+                    "class": "UserDataManager",
+                    "file": "core/user_data_manager.py",
+                    "line": 625,
+                    "args": [
+                      "user_id",
+                      "categories",
+                      "message_files",
+                      "summary"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.791,
+                "max": 0.791
+              },
+              "functions": [
+                {
+                  "name": "_handle_list_by_group",
+                  "full_name": "NotebookHandler._handle_list_by_group",
+                  "class": "NotebookHandler",
+                  "file": "communication/command_handlers/notebook_handler.py",
+                  "line": 738,
+                  "args": [
+                    "user_id",
+                    "entities"
+                  ]
+                },
+                {
+                  "name": "_handle_list_by_tag",
+                  "full_name": "NotebookHandler._handle_list_by_tag",
+                  "class": "NotebookHandler",
+                  "file": "communication/command_handlers/notebook_handler.py",
+                  "line": 859,
+                  "args": [
+                    "user_id",
+                    "entities"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.791,
+                  "name_similarity": 0.6,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.857,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "_handle_list_by_group",
+                    "full_name": "NotebookHandler._handle_list_by_group",
+                    "class": "NotebookHandler",
+                    "file": "communication/command_handlers/notebook_handler.py",
+                    "line": 738,
+                    "args": [
+                      "user_id",
+                      "entities"
+                    ]
+                  },
+                  "b": {
+                    "name": "_handle_list_by_tag",
+                    "full_name": "NotebookHandler._handle_list_by_tag",
+                    "class": "NotebookHandler",
+                    "file": "communication/command_handlers/notebook_handler.py",
+                    "line": 859,
+                    "args": [
+                      "user_id",
+                      "entities"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.764,
+                "max": 0.764
+              },
+              "functions": [
+                {
+                  "name": "keyPressEvent",
+                  "full_name": "AccountCreatorDialog.keyPressEvent",
+                  "class": "AccountCreatorDialog",
+                  "file": "ui/dialogs/account_creator_dialog.py",
+                  "line": 333,
+                  "args": [
+                    "event"
+                  ]
+                },
+                {
+                  "name": "keyPressEvent",
+                  "full_name": "UserProfileDialog.keyPressEvent",
+                  "class": "UserProfileDialog",
+                  "file": "ui/dialogs/user_profile_dialog.py",
+                  "line": 114,
+                  "args": [
+                    "event"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.764,
+                  "name_similarity": 1.0,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.333,
+                  "imports_similarity": 0.314,
+                  "a": {
+                    "name": "keyPressEvent",
+                    "full_name": "AccountCreatorDialog.keyPressEvent",
+                    "class": "AccountCreatorDialog",
+                    "file": "ui/dialogs/account_creator_dialog.py",
+                    "line": 333,
+                    "args": [
+                      "event"
+                    ]
+                  },
+                  "b": {
+                    "name": "keyPressEvent",
+                    "full_name": "UserProfileDialog.keyPressEvent",
+                    "class": "UserProfileDialog",
+                    "file": "ui/dialogs/user_profile_dialog.py",
+                    "line": 114,
+                    "args": [
+                      "event"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.753,
+                "max": 0.753
+              },
+              "functions": [
+                {
+                  "name": "get_entries_by_type",
+                  "full_name": "ResponseCache.get_entries_by_type",
+                  "class": "ResponseCache",
+                  "file": "ai/cache_manager.py",
+                  "line": 189,
+                  "args": [
+                    "prompt_type"
+                  ]
+                },
+                {
+                  "name": "remove_entries_by_type",
+                  "full_name": "ResponseCache.remove_entries_by_type",
+                  "class": "ResponseCache",
+                  "file": "ai/cache_manager.py",
+                  "line": 199,
+                  "args": [
+                    "prompt_type"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.753,
+                  "name_similarity": 0.6,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.667,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "get_entries_by_type",
+                    "full_name": "ResponseCache.get_entries_by_type",
+                    "class": "ResponseCache",
+                    "file": "ai/cache_manager.py",
+                    "line": 189,
+                    "args": [
+                      "prompt_type"
+                    ]
+                  },
+                  "b": {
+                    "name": "remove_entries_by_type",
+                    "full_name": "ResponseCache.remove_entries_by_type",
+                    "class": "ResponseCache",
+                    "file": "ai/cache_manager.py",
+                    "line": 199,
+                    "args": [
+                      "prompt_type"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.73,
+                "max": 0.743
+              },
+              "functions": [
+                {
+                  "name": "_get_user_data__load_account",
+                  "full_name": "_get_user_data__load_account",
+                  "class": null,
+                  "file": "core/user_data_handlers.py",
+                  "line": 203,
+                  "args": [
+                    "user_id",
+                    "auto_create"
+                  ]
+                },
+                {
+                  "name": "_get_user_data__load_context",
+                  "full_name": "_get_user_data__load_context",
+                  "class": null,
+                  "file": "core/user_data_handlers.py",
+                  "line": 445,
+                  "args": [
+                    "user_id",
+                    "auto_create"
+                  ]
+                },
+                {
+                  "name": "_get_user_data__load_preferences",
+                  "full_name": "_get_user_data__load_preferences",
+                  "class": null,
+                  "file": "core/user_data_handlers.py",
+                  "line": 330,
+                  "args": [
+                    "user_id",
+                    "auto_create"
+                  ]
+                },
+                {
+                  "name": "_get_user_data__load_schedules",
+                  "full_name": "_get_user_data__load_schedules",
+                  "class": null,
+                  "file": "core/user_data_handlers.py",
+                  "line": 561,
+                  "args": [
+                    "user_id",
+                    "auto_create"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.743,
+                  "name_similarity": 0.667,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.467,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "_get_user_data__load_account",
+                    "full_name": "_get_user_data__load_account",
+                    "class": null,
+                    "file": "core/user_data_handlers.py",
+                    "line": 203,
+                    "args": [
+                      "user_id",
+                      "auto_create"
+                    ]
+                  },
+                  "b": {
+                    "name": "_get_user_data__load_context",
+                    "full_name": "_get_user_data__load_context",
+                    "class": null,
+                    "file": "core/user_data_handlers.py",
+                    "line": 445,
+                    "args": [
+                      "user_id",
+                      "auto_create"
+                    ]
+                  }
+                },
+                {
+                  "overall_similarity": 0.743,
+                  "name_similarity": 0.667,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.467,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "_get_user_data__load_preferences",
+                    "full_name": "_get_user_data__load_preferences",
+                    "class": null,
+                    "file": "core/user_data_handlers.py",
+                    "line": 330,
+                    "args": [
+                      "user_id",
+                      "auto_create"
+                    ]
+                  },
+                  "b": {
+                    "name": "_get_user_data__load_schedules",
+                    "full_name": "_get_user_data__load_schedules",
+                    "class": null,
+                    "file": "core/user_data_handlers.py",
+                    "line": 561,
+                    "args": [
+                      "user_id",
+                      "auto_create"
+                    ]
+                  }
+                },
+                {
+                  "overall_similarity": 0.738,
+                  "name_similarity": 0.667,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.438,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "_get_user_data__load_account",
+                    "full_name": "_get_user_data__load_account",
+                    "class": null,
+                    "file": "core/user_data_handlers.py",
+                    "line": 203,
+                    "args": [
+                      "user_id",
+                      "auto_create"
+                    ]
+                  },
+                  "b": {
+                    "name": "_get_user_data__load_preferences",
+                    "full_name": "_get_user_data__load_preferences",
+                    "class": null,
+                    "file": "core/user_data_handlers.py",
+                    "line": 330,
+                    "args": [
+                      "user_id",
+                      "auto_create"
+                    ]
+                  }
+                },
+                {
+                  "overall_similarity": 0.738,
+                  "name_similarity": 0.667,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.438,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "_get_user_data__load_account",
+                    "full_name": "_get_user_data__load_account",
+                    "class": null,
+                    "file": "core/user_data_handlers.py",
+                    "line": 203,
+                    "args": [
+                      "user_id",
+                      "auto_create"
+                    ]
+                  },
+                  "b": {
+                    "name": "_get_user_data__load_schedules",
+                    "full_name": "_get_user_data__load_schedules",
+                    "class": null,
+                    "file": "core/user_data_handlers.py",
+                    "line": 561,
+                    "args": [
+                      "user_id",
+                      "auto_create"
+                    ]
+                  }
+                },
+                {
+                  "overall_similarity": 0.73,
+                  "name_similarity": 0.667,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.4,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "_get_user_data__load_preferences",
+                    "full_name": "_get_user_data__load_preferences",
+                    "class": null,
+                    "file": "core/user_data_handlers.py",
+                    "line": 330,
+                    "args": [
+                      "user_id",
+                      "auto_create"
+                    ]
+                  },
+                  "b": {
+                    "name": "_get_user_data__load_context",
+                    "full_name": "_get_user_data__load_context",
+                    "class": null,
+                    "file": "core/user_data_handlers.py",
+                    "line": 445,
+                    "args": [
+                      "user_id",
+                      "auto_create"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.737,
+                "max": 0.737
+              },
+              "functions": [
+                {
+                  "name": "_handle_task_stats",
+                  "full_name": "AnalyticsHandler._handle_task_stats",
+                  "class": "AnalyticsHandler",
+                  "file": "communication/command_handlers/analytics_handler.py",
+                  "line": 986,
+                  "args": [
+                    "user_id",
+                    "entities"
+                  ]
+                },
+                {
+                  "name": "_handle_task_stats",
+                  "full_name": "TaskManagementHandler._handle_task_stats",
+                  "class": "TaskManagementHandler",
+                  "file": "communication/command_handlers/task_handler.py",
+                  "line": 957,
+                  "args": [
+                    "user_id",
+                    "entities"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.737,
+                  "name_similarity": 1.0,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.292,
+                  "imports_similarity": 0.194,
+                  "a": {
+                    "name": "_handle_task_stats",
+                    "full_name": "AnalyticsHandler._handle_task_stats",
+                    "class": "AnalyticsHandler",
+                    "file": "communication/command_handlers/analytics_handler.py",
+                    "line": 986,
+                    "args": [
+                      "user_id",
+                      "entities"
+                    ]
+                  },
+                  "b": {
+                    "name": "_handle_task_stats",
+                    "full_name": "TaskManagementHandler._handle_task_stats",
+                    "class": "TaskManagementHandler",
+                    "file": "communication/command_handlers/task_handler.py",
+                    "line": 957,
+                    "args": [
+                      "user_id",
+                      "entities"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.733,
+                "max": 0.733
+              },
+              "functions": [
+                {
+                  "name": "clear",
+                  "full_name": "ResponseCache.clear",
+                  "class": "ResponseCache",
+                  "file": "ai/cache_manager.py",
+                  "line": 134,
+                  "args": []
+                },
+                {
+                  "name": "clear",
+                  "full_name": "ContextCache.clear",
+                  "class": "ContextCache",
+                  "file": "ai/cache_manager.py",
+                  "line": 268,
+                  "args": []
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.733,
+                  "name_similarity": 1.0,
+                  "args_similarity": 0.0,
+                  "locals_similarity": 0.667,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "clear",
+                    "full_name": "ResponseCache.clear",
+                    "class": "ResponseCache",
+                    "file": "ai/cache_manager.py",
+                    "line": 134,
+                    "args": []
+                  },
+                  "b": {
+                    "name": "clear",
+                    "full_name": "ContextCache.clear",
+                    "class": "ContextCache",
+                    "file": "ai/cache_manager.py",
+                    "line": 268,
+                    "args": []
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.727,
+                "max": 0.727
+              },
+              "functions": [
+                {
+                  "name": "get_welcome_message",
+                  "full_name": "get_welcome_message",
+                  "class": null,
+                  "file": "communication/core/welcome_manager.py",
+                  "line": 116,
+                  "args": [
+                    "channel_identifier",
+                    "channel_type",
+                    "username",
+                    "is_authorization"
+                  ]
+                },
+                {
+                  "name": "get_welcome_message",
+                  "full_name": "get_welcome_message",
+                  "class": null,
+                  "file": "communication/communication_channels/discord/welcome_handler.py",
+                  "line": 44,
+                  "args": [
+                    "discord_user_id",
+                    "discord_username",
+                    "is_authorization"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.727,
+                  "name_similarity": 1.0,
+                  "args_similarity": 0.167,
+                  "locals_similarity": 1.0,
+                  "imports_similarity": 0.294,
+                  "a": {
+                    "name": "get_welcome_message",
+                    "full_name": "get_welcome_message",
+                    "class": null,
+                    "file": "communication/core/welcome_manager.py",
+                    "line": 116,
+                    "args": [
+                      "channel_identifier",
+                      "channel_type",
+                      "username",
+                      "is_authorization"
+                    ]
+                  },
+                  "b": {
+                    "name": "get_welcome_message",
+                    "full_name": "get_welcome_message",
+                    "class": null,
+                    "file": "communication/communication_channels/discord/welcome_handler.py",
+                    "line": 44,
+                    "args": [
+                      "discord_user_id",
+                      "discord_username",
+                      "is_authorization"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.716,
+                "max": 0.716
+              },
+              "functions": [
+                {
+                  "name": "send_message",
+                  "full_name": "DiscordBot.send_message",
+                  "class": "DiscordBot",
+                  "file": "communication/communication_channels/discord/bot.py",
+                  "line": 1421,
+                  "args": [
+                    "recipient",
+                    "message"
+                  ]
+                },
+                {
+                  "name": "send_message",
+                  "full_name": "EmailBot.send_message",
+                  "class": "EmailBot",
+                  "file": "communication/communication_channels/email/bot.py",
+                  "line": 129,
+                  "args": [
+                    "recipient",
+                    "message"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.716,
+                  "name_similarity": 1.0,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.083,
+                  "imports_similarity": 0.326,
+                  "a": {
+                    "name": "send_message",
+                    "full_name": "DiscordBot.send_message",
+                    "class": "DiscordBot",
+                    "file": "communication/communication_channels/discord/bot.py",
+                    "line": 1421,
+                    "args": [
+                      "recipient",
+                      "message"
+                    ]
+                  },
+                  "b": {
+                    "name": "send_message",
+                    "full_name": "EmailBot.send_message",
+                    "class": "EmailBot",
+                    "file": "communication/communication_channels/email/bot.py",
+                    "line": 129,
+                    "args": [
+                      "recipient",
+                      "message"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.714,
+                "max": 0.714
+              },
+              "functions": [
+                {
+                  "name": "find_lowest_available_period_number",
+                  "full_name": "CheckinSettingsWidget.find_lowest_available_period_number",
+                  "class": "CheckinSettingsWidget",
+                  "file": "ui/widgets/checkin_settings_widget.py",
+                  "line": 673,
+                  "args": []
+                },
+                {
+                  "name": "find_lowest_available_period_number",
+                  "full_name": "TaskSettingsWidget.find_lowest_available_period_number",
+                  "class": "TaskSettingsWidget",
+                  "file": "ui/widgets/task_settings_widget.py",
+                  "line": 97,
+                  "args": []
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.714,
+                  "name_similarity": 1.0,
+                  "args_similarity": 0.0,
+                  "locals_similarity": 1.0,
+                  "imports_similarity": 0.429,
+                  "a": {
+                    "name": "find_lowest_available_period_number",
+                    "full_name": "CheckinSettingsWidget.find_lowest_available_period_number",
+                    "class": "CheckinSettingsWidget",
+                    "file": "ui/widgets/checkin_settings_widget.py",
+                    "line": 673,
+                    "args": []
+                  },
+                  "b": {
+                    "name": "find_lowest_available_period_number",
+                    "full_name": "TaskSettingsWidget.find_lowest_available_period_number",
+                    "class": "TaskSettingsWidget",
+                    "file": "ui/widgets/task_settings_widget.py",
+                    "line": 97,
+                    "args": []
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.711,
+                "max": 0.711
+              },
+              "functions": [
+                {
+                  "name": "get_user_summary",
+                  "full_name": "get_user_summary",
+                  "class": null,
+                  "file": "core/user_data_manager.py",
+                  "line": 1573,
+                  "args": [
+                    "user_id"
+                  ]
+                },
+                {
+                  "name": "get_user_analytics_summary",
+                  "full_name": "get_user_analytics_summary",
+                  "class": null,
+                  "file": "core/user_data_manager.py",
+                  "line": 1679,
+                  "args": [
+                    "user_id"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.711,
+                  "name_similarity": 0.75,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.118,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "get_user_summary",
+                    "full_name": "get_user_summary",
+                    "class": null,
+                    "file": "core/user_data_manager.py",
+                    "line": 1573,
+                    "args": [
+                      "user_id"
+                    ]
+                  },
+                  "b": {
+                    "name": "get_user_analytics_summary",
+                    "full_name": "get_user_analytics_summary",
+                    "class": null,
+                    "file": "core/user_data_manager.py",
+                    "line": 1679,
+                    "args": [
+                      "user_id"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.7,
+                "max": 0.7
+              },
+              "functions": [
+                {
+                  "name": "cleanup_task_reminders",
+                  "full_name": "SchedulerManager.cleanup_task_reminders",
+                  "class": "SchedulerManager",
+                  "file": "core/scheduler.py",
+                  "line": 1737,
+                  "args": [
+                    "user_id",
+                    "task_id"
+                  ]
+                },
+                {
+                  "name": "cleanup_task_reminders",
+                  "full_name": "cleanup_task_reminders",
+                  "class": null,
+                  "file": "tasks/task_management.py",
+                  "line": 760,
+                  "args": [
+                    "user_id",
+                    "task_id"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.7,
+                  "name_similarity": 1.0,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.0,
+                  "imports_similarity": 0.333,
+                  "a": {
+                    "name": "cleanup_task_reminders",
+                    "full_name": "SchedulerManager.cleanup_task_reminders",
+                    "class": "SchedulerManager",
+                    "file": "core/scheduler.py",
+                    "line": 1737,
+                    "args": [
+                      "user_id",
+                      "task_id"
+                    ]
+                  },
+                  "b": {
+                    "name": "cleanup_task_reminders",
+                    "full_name": "cleanup_task_reminders",
+                    "class": null,
+                    "file": "tasks/task_management.py",
+                    "line": 760,
+                    "args": [
+                      "user_id",
+                      "task_id"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.7,
+                "max": 0.7
+              },
+              "functions": [
+                {
+                  "name": "get_prompt",
+                  "full_name": "PromptManager.get_prompt",
+                  "class": "PromptManager",
+                  "file": "ai/prompt_manager.py",
+                  "line": 208,
+                  "args": [
+                    "prompt_type"
+                  ]
+                },
+                {
+                  "name": "get_prompt_template",
+                  "full_name": "PromptManager.get_prompt_template",
+                  "class": "PromptManager",
+                  "file": "ai/prompt_manager.py",
+                  "line": 241,
+                  "args": [
+                    "prompt_type"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.7,
+                  "name_similarity": 0.667,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.25,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "get_prompt",
+                    "full_name": "PromptManager.get_prompt",
+                    "class": "PromptManager",
+                    "file": "ai/prompt_manager.py",
+                    "line": 208,
+                    "args": [
+                      "prompt_type"
+                    ]
+                  },
+                  "b": {
+                    "name": "get_prompt_template",
+                    "full_name": "PromptManager.get_prompt_template",
+                    "class": "PromptManager",
+                    "file": "ai/prompt_manager.py",
+                    "line": 241,
+                    "args": [
+                      "prompt_type"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.7,
+                "max": 0.7
+              },
+              "functions": [
+                {
+                  "name": "edit_message_by_row",
+                  "full_name": "MessageEditorDialog.edit_message_by_row",
+                  "class": "MessageEditorDialog",
+                  "file": "ui/dialogs/message_editor_dialog.py",
+                  "line": 374,
+                  "args": [
+                    "row"
+                  ]
+                },
+                {
+                  "name": "delete_message_by_row",
+                  "full_name": "MessageEditorDialog.delete_message_by_row",
+                  "class": "MessageEditorDialog",
+                  "file": "ui/dialogs/message_editor_dialog.py",
+                  "line": 383,
+                  "args": [
+                    "row"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.7,
+                  "name_similarity": 0.6,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.4,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "edit_message_by_row",
+                    "full_name": "MessageEditorDialog.edit_message_by_row",
+                    "class": "MessageEditorDialog",
+                    "file": "ui/dialogs/message_editor_dialog.py",
+                    "line": 374,
+                    "args": [
+                      "row"
+                    ]
+                  },
+                  "b": {
+                    "name": "delete_message_by_row",
+                    "full_name": "MessageEditorDialog.delete_message_by_row",
+                    "class": "MessageEditorDialog",
+                    "file": "ui/dialogs/message_editor_dialog.py",
+                    "line": 383,
+                    "args": [
+                      "row"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         }
       },
-      "timestamp": "2026-02-06T02:37:31"
+      "timestamp": "2026-02-06T16:07:29"
     },
     "analyze_functions": {
       "success": true,
@@ -3438,7 +3926,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-06T02:37:32"
+      "timestamp": "2026-02-06T16:07:30"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -5396,7 +5884,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-06T02:37:25"
+      "timestamp": "2026-02-06T16:07:23"
     },
     "analyze_function_registry": {
       "success": true,
@@ -7598,7 +8086,7 @@
           "total_issues": 20
         }
       },
-      "timestamp": "2026-02-06T02:37:36"
+      "timestamp": "2026-02-06T16:07:34"
     },
     "analyze_package_exports": {
       "success": true,
@@ -15160,22 +15648,31 @@
           }
         }
       },
-      "timestamp": "2026-02-06T02:37:52"
+      "timestamp": "2026-02-06T16:08:01"
     },
     "analyze_ascii_compliance": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
-          "files_affected": 0
+          "total_issues": 3,
+          "files_affected": 3
         },
         "details": {
-          "files": {},
-          "file_count": 0,
-          "total_issues": 0
+          "files": {
+            "ai_development_docs/AI_CHANGELOG.md": 1,
+            "development_docs/CHANGELOG_DETAIL.md": 1,
+            "TODO.md": 1
+          },
+          "file_count": 3,
+          "total_issues": 3
+        },
+        "files": {
+          "ai_development_docs/AI_CHANGELOG.md": 1,
+          "development_docs/CHANGELOG_DETAIL.md": 1,
+          "TODO.md": 1
         }
       },
-      "timestamp": "2026-02-06T02:37:42"
+      "timestamp": "2026-02-06T16:07:43"
     },
     "analyze_documentation": {
       "success": true,
@@ -15216,7 +15713,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19599872783834002,
+              "similarity_score": 0.195901024675464,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -15411,7 +15908,7 @@
               ]
             },
             "TODO.md": {
-              "content_length": 27226,
+              "content_length": 30808,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
               "section_count": 13,
               "sections": [
@@ -15460,20 +15957,20 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 195913,
+              "content_length": 196965,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
-              "section_count": 235,
+              "section_count": 236,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
-                "2026-02-06 - Scheduler wake timer fix; custom-question test fix **COMPLETED**",
+                "2026-02-06 - Duplicate-functions investigation, tool improvements, planning doc **COMPLETED**",
+                "2026-02-06 - Scheduler wake timer fix; custom-question test fix; audit clean **COMPLETED**",
                 "2026-02-06 - Log rotation fix, logging noise reduction, backup/archive docs, dev-tools log isolation **COMPLETED**",
                 "2026-01-29 - Documentation drift cleanup **COMPLETED**",
-                "2026-01-28 - Dev Tools Format Hardening and Account Defaults **COMPLETED**",
-                "2026-01-26 - Check-in Analytics and Command Handling Overhaul **COMPLETED**"
+                "2026-01-28 - Dev Tools Format Hardening and Account Defaults **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -15679,9 +16176,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 109480,
+              "content_length": 111007,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 50,
+              "section_count": 51,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -15689,10 +16186,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-02-06 - Duplicate-functions investigation, tool improvements, and planning doc",
                 "2026-02-06 - Scheduler wake timer Register-ScheduledTask fix (0x80070057); custom-question test fix",
                 "2026-02-06 - Log rotation fix, logging noise reduction, backup/archive docs, dev-tools log isolation",
-                "2026-01-29 - Documentation drift cleanup (changelog archive alignment)",
-                "2026-01-29 Documentation normalization groundwork (reference alignment, process hardening)"
+                "2026-01-29 - Documentation drift cleanup (changelog archive alignment)"
               ]
             },
             "development_docs/PLANS.md": {
@@ -15963,22 +16460,22 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-06T02:37:23"
+      "timestamp": "2026-02-06T16:07:17"
     },
     "analyze_documentation_sync": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 4,
           "files_affected": 0,
-          "status": "PASS"
+          "status": "FAIL"
         },
         "details": {
           "paired_doc_issues": 0,
           "path_drift_issues": 0,
-          "ascii_compliance_issues": 0,
+          "ascii_compliance_issues": 3,
           "heading_numbering_issues": 0,
-          "missing_address_issues": 0,
+          "missing_address_issues": 1,
           "unconverted_link_issues": 0,
           "path_drift_files": [],
           "paired_docs": {},
@@ -15993,13 +16490,22 @@
           },
           "ascii_compliance": {
             "summary": {
-              "total_issues": 0,
-              "files_affected": 0
+              "total_issues": 3,
+              "files_affected": 3
             },
             "details": {
-              "files": {},
-              "file_count": 0,
-              "total_issues": 0
+              "files": {
+                "ai_development_docs/AI_CHANGELOG.md": 1,
+                "development_docs/CHANGELOG_DETAIL.md": 1,
+                "TODO.md": 1
+              },
+              "file_count": 3,
+              "total_issues": 3
+            },
+            "files": {
+              "ai_development_docs/AI_CHANGELOG.md": 1,
+              "development_docs/CHANGELOG_DETAIL.md": 1,
+              "TODO.md": 1
             }
           },
           "heading_numbering": {
@@ -16015,13 +16521,18 @@
           },
           "missing_addresses": {
             "summary": {
-              "total_issues": 0,
-              "files_affected": 0
+              "total_issues": 1,
+              "files_affected": 1
             },
             "details": {
-              "files": {},
-              "file_count": 0,
-              "total_issues": 0
+              "files": {
+                "development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md": 1
+              },
+              "file_count": 1,
+              "total_issues": 1
+            },
+            "files": {
+              "development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md": 1
             }
           },
           "unconverted_links": {
@@ -16037,7 +16548,7 @@
           }
         }
       },
-      "timestamp": "2026-02-06T02:37:50"
+      "timestamp": "2026-02-06T16:07:58"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -16052,22 +16563,27 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-06T02:37:43"
+      "timestamp": "2026-02-06T16:07:45"
     },
     "analyze_missing_addresses": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
-          "files_affected": 0
+          "total_issues": 1,
+          "files_affected": 1
         },
         "details": {
-          "files": {},
-          "file_count": 0,
-          "total_issues": 0
+          "files": {
+            "development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md": 1
+          },
+          "file_count": 1,
+          "total_issues": 1
+        },
+        "files": {
+          "development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md": 1
         }
       },
-      "timestamp": "2026-02-06T02:37:48"
+      "timestamp": "2026-02-06T16:07:54"
     },
     "analyze_path_drift": {
       "success": true,
@@ -16080,7 +16596,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-06T02:37:39"
+      "timestamp": "2026-02-06T16:07:41"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -16095,7 +16611,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-06T02:37:50"
+      "timestamp": "2026-02-06T16:07:58"
     },
     "analyze_error_handling": {
       "success": true,
@@ -16123,12 +16639,12 @@
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "AIError": 2,
+            "MHMError": 2,
             "CommunicationError": 2,
             "handle_file_error": 3,
-            "FileOperationError": 8,
-            "MHMError": 2,
-            "safe_file_operation": 1
+            "safe_file_operation": 1,
+            "AIError": 2,
+            "FileOperationError": 8
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -16176,90 +16692,90 @@
           ]
         }
       },
-      "timestamp": "2026-02-06T02:37:32"
+      "timestamp": "2026-02-06T16:07:30"
     },
     "analyze_test_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 10777,
+          "total_issues": 8262,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "coverage": 63.9,
-            "statements": 29831,
-            "covered": 19054,
-            "missed": 10777,
-            "generated": null
+            "coverage": 72.1,
+            "statements": 29605,
+            "covered": 21343,
+            "missed": 8262,
+            "generated": "2026-02-06T16:23:58.751710"
           },
           "modules": [
             {
-              "module": "ui",
-              "coverage": 56.1,
-              "missed": 2973
-            },
-            {
               "module": "communication",
-              "coverage": 58.2,
-              "missed": 3957
+              "coverage": 69.1,
+              "missed": 2880
             },
             {
-              "module": "tasks",
-              "coverage": 65.3,
-              "missed": 189
-            },
-            {
-              "module": "ai",
-              "coverage": 66.8,
-              "missed": 577
+              "module": "ui",
+              "coverage": 70.3,
+              "missed": 2000
             },
             {
               "module": "core",
-              "coverage": 72.0,
-              "missed": 2917
+              "coverage": 73.6,
+              "missed": 2742
             },
             {
               "module": "notebook",
-              "coverage": 75.4,
-              "missed": 152
+              "coverage": 75.7,
+              "missed": 148
+            },
+            {
+              "module": "ai",
+              "coverage": 78.0,
+              "missed": 378
+            },
+            {
+              "module": "tasks",
+              "coverage": 81.2,
+              "missed": 102
             },
             {
               "module": "user",
-              "coverage": 95.9,
+              "coverage": 95.8,
               "missed": 12
             }
           ],
           "worst_files": [
             {
-              "path": "ui/dialogs/user_analytics_dialog.py",
-              "coverage": 15.2,
-              "missing": 246
+              "path": "notebook/__init__.py",
+              "coverage": 0.0,
+              "missing": 0
             },
             {
-              "path": "ui/dialogs/task_crud_dialog.py",
-              "coverage": 17.6,
-              "missing": 178
+              "path": "ui/widgets/checkin_settings_widget.py",
+              "coverage": 43.8,
+              "missing": 372
             },
             {
-              "path": "communication/communication_channels/discord/webhook_server.py",
-              "coverage": 20.2,
-              "missing": 103
+              "path": "communication/communication_channels/discord/bot.py",
+              "coverage": 45.3,
+              "missing": 692
             },
             {
-              "path": "ui/generate_ui_files.py",
-              "coverage": 21.2,
-              "missing": 52
+              "path": "ui/ui_app_qt.py",
+              "coverage": 51.3,
+              "missing": 684
             },
             {
-              "path": "ai/context_builder.py",
-              "coverage": 25.8,
-              "missing": 198
+              "path": "communication/command_handlers/notebook_handler.py",
+              "coverage": 51.9,
+              "missing": 250
             }
           ]
         }
       },
-      "timestamp": "2026-02-06T02:43:02"
+      "timestamp": "2026-02-06T16:24:04"
     },
     "analyze_test_markers": {
       "success": true,
@@ -16273,7 +16789,7 @@
           "missing": []
         }
       },
-      "timestamp": "2026-02-06T02:43:05"
+      "timestamp": "2026-02-06T16:24:08"
     },
     "generate_dev_tools_coverage": {
       "success": false,
@@ -19339,7 +19855,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-06T02:37:41"
+      "timestamp": "2026-02-06T16:07:44"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -19359,7 +19875,7 @@
           "missing_sections": []
         }
       },
-      "timestamp": "2026-02-06T02:37:45"
+      "timestamp": "2026-02-06T16:07:50"
     },
     "analyze_module_imports": {
       "success": true,
@@ -31288,7 +31804,7 @@
           }
         }
       },
-      "timestamp": "2026-02-06T02:37:36"
+      "timestamp": "2026-02-06T16:07:37"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -34098,7 +34614,7 @@
             "files_scanned": 422,
             "files_with_issues": 135,
             "total_unused": 377,
-            "cache_hits": 421,
+            "cache_hits": 0,
             "cache_misses": 0
           },
           "by_category": {
@@ -34116,7 +34632,7 @@
           "files_scanned": 422
         }
       },
-      "timestamp": "2026-02-06T02:37:44"
+      "timestamp": "2026-02-06T16:12:21"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -34185,7 +34701,7 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2026-02-06T02:38:05"
+      "timestamp": "2026-02-06T16:15:14"
     },
     "analyze_config": {
       "success": true,
@@ -34253,7 +34769,7 @@
           }
         }
       },
-      "timestamp": "2026-02-06T01:39:58"
+      "timestamp": "2026-02-06T16:19:25"
     },
     "analyze_ai_work": {
       "success": true,
@@ -34268,18 +34784,18 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-02-06T02:37:22"
+      "timestamp": "2026-02-06T16:07:17"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 1,
+          "total_issues": 2,
           "files_affected": 0,
           "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-02-06T02:37:21.347680",
+          "timestamp": "2026-02-06T16:07:15.338840",
           "system_health": {
             "overall_status": "ISSUES",
             "core_files": {
@@ -34298,24 +34814,23 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-02-06T02:29:49.249186",
+            "last_audit": "2026-02-06T15:56:23.460127",
             "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
-            "documentation_sync_status": "Minor Issues",
+            "documentation_sync_status": "Issues",
             "health_indicators": [
               "Audit data is very recent (<1 hour)"
             ],
             "recommendations": [
-              "Run `python development_tools/run_development_tools.py doc-sync` to check details",
+              "Run `python development_tools/run_development_tools.py doc-fix` to address documentation issues",
               "Check logs/errors.log for recent errors"
             ],
             "warnings": [],
             "errors": [],
             "severity_levels": {
-              "INFO": [
-                "Documentation has 2 minor sync issue(s)"
-              ],
+              "INFO": [],
               "WARNING": [
+                "Documentation has 6 sync issue(s)",
                 "Errors detected in logs/errors.log (last 24 hours)"
               ],
               "CRITICAL": []
@@ -34323,16 +34838,16 @@
           },
           "recent_activity": {
             "recent_changes": [
-              "communication/message_processing/conversation_flow_manager.py",
+              "development_tools/functions/analyze_duplicate_functions.py",
               "core/scheduler.py",
-              "core/config.py",
-              "development_tools/docs/fix_documentation_ascii.py",
+              "development_tools/config/config.py",
               "core/logger.py",
-              "development_tools/docs/analyze_ascii_compliance.py",
-              "ai/prompt_manager.py",
+              "core/config.py",
               "tests/behavior/test_checkin_questions_enhancement.py",
-              "development_tools/shared/service/tool_wrappers.py",
-              "development_tools/tests/run_test_coverage.py"
+              "development_docs/CHANGELOG_DETAIL.md",
+              "ai_development_docs/AI_CHANGELOG.md",
+              "development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md",
+              "TODO.md"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -34342,7 +34857,7 @@
           "performance_indicators": {
             "log_file_sizes": {
               "ai.log": "0.0MB",
-              "ai_dev_tools.log": "0.2MB",
+              "ai_dev_tools.log": "0.4MB",
               "app.log": "0.0MB",
               "communication_manager.log": "0.0MB",
               "discord.log": "0.0MB",
@@ -34360,7 +34875,7 @@
           }
         }
       },
-      "timestamp": "2026-02-06T02:37:21"
+      "timestamp": "2026-02-06T16:07:15"
     },
     "decision_support": {
       "success": true,
@@ -34495,7 +35010,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-06T02:37:26"
+      "timestamp": "2026-02-06T16:07:23"
     },
     "quick_status": {
       "success": true,
@@ -34506,7 +35021,7 @@
           "status": "OK"
         },
         "details": {
-          "timestamp": "2026-02-06T02:37:27.662105",
+          "timestamp": "2026-02-06T16:07:24.368568",
           "system_health": {
             "core_files": {
               "run_mhm.py": "OK",
@@ -34526,7 +35041,7 @@
           },
           "documentation_status": {
             "coverage": "Unknown",
-            "recent_audit": "2026-02-06T02:29:49.210681",
+            "recent_audit": "2026-02-06T15:56:23.421274",
             "key_files": {
               "README.md": "OK",
               "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -34539,7 +35054,7 @@
           "critical_issues": [],
           "action_items": [],
           "recent_activity": {
-            "last_audit": "2026-02-06T02:29:49.210681",
+            "last_audit": "2026-02-06T15:56:23.421274",
             "recent_changes": [
               "core/scheduler.py",
               "core/logger.py",
@@ -34554,7 +35069,7 @@
           }
         }
       },
-      "timestamp": "2026-02-06T02:37:27"
+      "timestamp": "2026-02-06T16:07:24"
     }
   }
 }

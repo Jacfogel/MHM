@@ -105,6 +105,36 @@ When adding new tasks, follow this format:
 
 ### Quality & Operations
 
+**Refactor: Period row add/remove to shared helpers (Duplicate Groups 2–3, 25)**
+- *What it means*: Extract shared logic for `add_new_period`, `remove_period_row`, and `find_lowest_available_period_number` from CheckinSettingsWidget, TaskSettingsWidget, and ScheduleEditorDialog into helpers in `core/ui_management.py` (e.g. `add_period_row_to_layout`, `remove_period_row_from_layout`, `find_lowest_available_period_number`) with layout, guards, and default name prefix parameterized.
+- *Why it helps*: Single place for behavior and bug fixes; less copy-paste across three UIs.
+- *Estimated effort*: Medium (refactor + tests for all three UIs)
+- *Reference*: development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md
+
+**Refactor: _get_user_data__load_* shared loader pattern (Duplicate Group 20)**
+- *What it means*: In `core/user_data_handlers.py`, the four helpers `_get_user_data__load_account`, `_get_user_data__load_context`, `_get_user_data__load_preferences`, and `_get_user_data__load_schedules` are parallel loaders. Extract a shared loader pattern or small helper so the structure is in one place and only the data source/key differs.
+- *Why it helps*: Reduces duplication and keeps user-data loading consistent and easier to change.
+- *Estimated effort*: Small/Medium
+- *Reference*: development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md; core/user_data_handlers.py
+
+**Refactor: Task handler find_task_by_identifier wrappers (Duplicate Group 16)**
+- *What it means*: Replace the three one-liner methods `_handle_complete_task__find_task_by_identifier`, `_handle_delete_task__find_task_by_identifier`, and `_handle_update_task__find_task_by_identifier` in TaskManagementHandler with a single method (e.g. `_find_task_by_identifier(tasks, identifier, context="operation")`) and pass context into `@handle_errors` or use one decorator message.
+- *Why it helps*: Less noise and one place to change behavior.
+- *Estimated effort*: Small
+- *Reference*: development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md; communication/command_handlers/task_handler.py
+
+**Refactor: Shared _is_valid_intent helper (Duplicate Group 14)**
+- *What it means*: Extract the identical intent-validation logic from EnhancedCommandParser and InteractionManager (`_is_valid_intent`) into a small shared helper in message_processing (e.g. a module-level function or shared util) and have both classes use it.
+- *Why it helps*: Keeps intent validation in sync and avoids drift between the two call sites.
+- *Estimated effort*: Small
+- *Reference*: development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md; communication/message_processing/
+
+**Refactor: Merge command parsing prompt builders (Duplicate Group 18)**
+- *What it means*: Merge `_create_command_parsing_prompt` and `_create_command_parsing_with_clarification_prompt` in AIChatBotSingleton (chatbot.py) into one method with an optional parameter (e.g. `clarification: bool = False`) for docstring and default_return differences.
+- *Why it helps*: Removes near-duplicate prompt construction; lower priority as the two names currently document intent.
+- *Estimated effort*: Small
+- *Reference*: development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md; ai/chatbot.py
+
 **Confirm wake timer fix in production**
 - [ ] After a 01:00 run, confirm errors.log no longer fills with wake timer (Register-ScheduledTask) errors.
 
