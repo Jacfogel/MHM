@@ -1351,30 +1351,14 @@ class AIChatBotSingleton:
             {"role": "user", "content": ""},
         ],
     )
-    def _create_command_parsing_prompt(self, user_prompt: str) -> list:
-        """Create a prompt instructing the model to return strict JSON."""
-        system_message = {
-            "role": "system",
-            "content": prompt_manager.get_prompt("command"),
-        }
-
-        user_message = {"role": "user", "content": user_prompt}
-        return [system_message, user_message]
-
-    @handle_errors(
-        "creating command parsing with clarification prompt",
-        default_return=[
-            {
-                "role": "system",
-                "content": "You are a command parser. Your job is to extract the user's intent and return it as JSON. If the user's request is ambiguous or incomplete, you should ask for clarification. Available actions: create_task, list_tasks, complete_task, delete_task, update_task, task_stats, create_note, create_quick_note, create_list, create_journal, list_recent_entries, show_entry, append_to_entry, add_tags_to_entry, remove_tags_from_entry, search_entries, pin_entry, unpin_entry, archive_entry, start_checkin, checkin_status, show_profile, update_profile, profile_stats, show_schedule, schedule_status, add_schedule_period, show_analytics, mood_trends, habit_analysis, sleep_analysis, wellness_score, help, commands, examples, status, messages.",
-            },
-            {"role": "user", "content": "Hello"},
-        ],
-    )
-    def _create_command_parsing_with_clarification_prompt(
-        self, user_prompt: str
+    def _create_command_parsing_prompt(
+        self, user_prompt: str, *, clarification: bool = False
     ) -> list:
-        """Create a prompt instructing the model to return strict JSON and ask for clarification if ambiguous."""
+        """Create a prompt instructing the model to return strict JSON.
+
+        If clarification is True, the prompt encourages the model to ask for
+        clarification when the user's request is ambiguous or incomplete.
+        """
         system_message = {
             "role": "system",
             "content": prompt_manager.get_prompt("command"),
@@ -1493,8 +1477,8 @@ class AIChatBotSingleton:
             max_tokens = 60
             temperature = AI_COMMAND_TEMPERATURE
         elif mode == "command_with_clarification":
-            messages = self._create_command_parsing_with_clarification_prompt(
-                user_prompt
+            messages = self._create_command_parsing_prompt(
+                user_prompt, clarification=True
             )
             max_tokens = 120
             temperature = AI_CLARIFICATION_TEMPERATURE

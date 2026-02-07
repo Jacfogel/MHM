@@ -20,14 +20,17 @@ from ui.generated.checkin_settings_widget_pyqt import Ui_Form_checkin_settings
 from core.ui_management import (
     load_period_widgets_for_category,
     collect_period_data_from_widgets,
+    find_lowest_available_period_number,
+    add_period_row_to_layout,
+    remove_period_row_from_layout,
+    _number_after_prefix,
+    _DEFAULT_PERIOD_DATA,
 )
 from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
 
 # Import our period row widget
-from ui.widgets.period_row_widget import PeriodRowWidget
-
 setup_logging()
 logger = get_component_logger("ui")
 widget_logger = logger
@@ -672,106 +675,73 @@ class CheckinSettingsWidget(QWidget):
     @handle_errors("finding lowest available period number")
     def find_lowest_available_period_number(self):
         """Find the lowest available integer (2+) that's not currently used in period names."""
-        used_numbers = set()
-
-        # Check existing period widgets
-        for widget in self.period_widgets:
-            period_name = widget.get_period_data().get("name", "")
-            # Extract number from names like "Check-in Reminder 2", "Check-in Reminder 3", etc.
-            if "Check-in Reminder " in period_name:
-                try:
-                    number = int(period_name.split("Check-in Reminder ")[1])
-                    used_numbers.add(number)
-                except (ValueError, IndexError):
-                    pass
-
-        # Find the lowest available number starting from 2
-        number = 2
-        while number in used_numbers:
-            number += 1
-
-        return number
+        # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
+        def number_from_widget(w):
+            # error_handling_exclude: nested helper; caller find_lowest_available_period_number is decorated
+            name = w.get_period_data().get("name", "")
+            return _number_after_prefix(name, "Check-in Reminder ")
+        return find_lowest_available_period_number(
+            self.period_widgets, number_from_widget
+        )
 
     @handle_errors("adding new check-in period")
     def add_new_period(self, checked=None, period_name=None, period_data=None):
         """Add a new time period using the PeriodRowWidget."""
+        # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
         logger.info(
             f"CheckinSettingsWidget: add_new_period called with period_name={period_name}, period_data={period_data}"
         )
         if period_name is None:
-            # Use descriptive name for default periods (title case for consistency with task widget)
             if len(self.period_widgets) == 0:
                 period_name = "Check-in Reminder Default"
             else:
-                # Find the lowest available number for new periods
-                next_number = self.find_lowest_available_period_number()
-                period_name = f"Check-in Reminder {next_number}"
+                period_name = f"Check-in Reminder {self.find_lowest_available_period_number()}"
         if not isinstance(period_name, str):
             logger.warning(
                 f"CheckinSettingsWidget: period_name is not a string: {period_name} (type: {type(period_name)})"
             )
             period_name = str(period_name)
         if period_data is None:
-            period_data = {
-                "start_time": "18:00",
-                "end_time": "20:00",
-                "active": True,
-                "days": ["ALL"],
-            }
-        # Defensive: ensure period_data is a dict
+            period_data = dict(_DEFAULT_PERIOD_DATA)
         if not isinstance(period_data, dict):
             logger.warning(
                 f"CheckinSettingsWidget: period_data is not a dict: {period_data} (type: {type(period_data)})"
             )
-            period_data = {
-                "start_time": "18:00",
-                "end_time": "20:00",
-                "active": True,
-                "days": ["ALL"],
-            }
-        # Create the period row widget
-        period_widget = PeriodRowWidget(self, period_name, period_data)
-        # Connect the delete signal
-        period_widget.delete_requested.connect(self.remove_period_row)
-        # Add to the scroll area layout
+            period_data = dict(_DEFAULT_PERIOD_DATA)
         layout = self.ui.verticalLayout_scrollAreaWidgetContents_checkin_time_periods
-        layout.addWidget(period_widget)
-        # Store reference
-        self.period_widgets.append(period_widget)
-        return period_widget
+        return add_period_row_to_layout(
+            layout,
+            self.period_widgets,
+            period_name,
+            period_data,
+            self,
+            self.remove_period_row,
+        )
 
     @handle_errors("removing period row")
     def remove_period_row(self, row_widget):
         """Remove a period row and store it for undo."""
-        # Prevent deletion of the last period
-        if len(self.period_widgets) <= 1:
-            QMessageBox.warning(
-                self,
-                "Cannot Delete Last Period",
-                "You must have at least one time period. Please add another period before deleting this one.",
-            )
-            return
+        # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
+        def guard(_row_widget):
+            """Return True to abort removal (e.g. when only one period remains)."""
+            # error_handling_exclude: nested guard; caller remove_period_row is decorated
+            if len(self.period_widgets) <= 1:
+                QMessageBox.warning(
+                    self,
+                    "Cannot Delete Last Period",
+                    "You must have at least one time period. Please add another period before deleting this one.",
+                )
+                return True
+            return False
 
-        # Store the deleted period data for undo
-        if isinstance(row_widget, PeriodRowWidget):
-            period_data = row_widget.get_period_data()
-            deleted_data = {
-                "period_name": period_data["name"],
-                "start_time": period_data["start_time"],
-                "end_time": period_data["end_time"],
-                "active": period_data["active"],
-                "days": period_data["days"],
-            }
-            self.deleted_periods.append(deleted_data)
-
-        # Remove from layout and widget list
         layout = self.ui.verticalLayout_scrollAreaWidgetContents_checkin_time_periods
-        layout.removeWidget(row_widget)
-        row_widget.setParent(None)
-        row_widget.deleteLater()
-
-        if row_widget in self.period_widgets:
-            self.period_widgets.remove(row_widget)
+        remove_period_row_from_layout(
+            row_widget,
+            layout,
+            self.period_widgets,
+            self.deleted_periods,
+            guard_fn=guard,
+        )
 
     @handle_errors("undoing last time period delete")
     def undo_last_time_period_delete(self):

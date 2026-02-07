@@ -41,6 +41,7 @@ from communication.message_processing.conversation_flow_manager import (
     conversation_manager,
     FLOW_TASK_REMINDER,
 )
+from communication.message_processing.intent_validation import is_valid_intent
 
 logger = get_component_logger("communication_manager")
 interaction_logger = logger
@@ -1540,10 +1541,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
     @handle_errors("checking if intent is valid", default_return=False)
     def _is_valid_intent(self, intent: str) -> bool:
         """Check if intent is supported by any handler"""
-        for handler in self.interaction_handlers.values():
-            if handler.can_handle(intent):
-                return True
-        return False
+        return is_valid_intent(intent, self.interaction_handlers)
 
     @handle_errors("trying AI command parsing")
     def _try_ai_command_parsing(

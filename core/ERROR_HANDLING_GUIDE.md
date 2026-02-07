@@ -271,6 +271,11 @@ Error handling is tested in multiple ways:
     - **Phase 2**: Audits generic exception raises (ValueError, Exception, KeyError, TypeError) that should be replaced with specific `MHMError` subclasses
     - Results are integrated into [AI_STATUS.md](development_tools/AI_STATUS.md), [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), and `development_tools/consolidated_report.txt` for tracking progress on the Error Handling Quality Improvement Plan
 
+- **Excluding functions from the audit**  
+  When a function intentionally has no or minimal error handling (for example pure default-data factories called only from a decorated caller, or a small try/except that must not return a default), add a comment so the analyzer skips it:  
+  `# error_handling_exclude` or `# error handling exclude` (optionally with a reason, e.g. `# error_handling_exclude: caller is decorated`).  
+  The analyzer treats such functions as excluded and does not flag them as missing error handling or as Phase 1 decorator-replacement candidates. See `development_tools/error_handling/analyze_error_handling.py` (`_should_exclude_function`).
+
 Guidelines when adding or changing error handling:
 
 - Add or update tests for both the success path and the failure path.  

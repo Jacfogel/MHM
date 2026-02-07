@@ -27,10 +27,19 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-06 - Duplicate function refactors (Groups 2-3, 14, 16, 18, 20, 25) and AI_PRIORITIES **COMPLETED**
+- Task handler: single `_find_task_by_identifier_for_operation(tasks, identifier, context)`; tests updated.
+- Intent validation: new `communication/message_processing/intent_validation.py`; command_parser and interaction_manager use `is_valid_intent`.
+- Chatbot: merged command parsing prompt into one method with `clarification: bool`; tests updated.
+- User-data loaders: `_get_user_data__load_impl` in core/user_data_handlers.py; account, preferences, context, schedules delegate to it.
+- Period row: `find_lowest_available_period_number`, `add_period_row_to_layout`, `remove_period_row_from_layout` in core/ui_management.py; CheckinSettingsWidget, TaskSettingsWidget, ScheduleEditorDialog refactored to use them.
+- AI_PRIORITIES: docstring for guard; @handle_errors on is_valid_intent and _get_user_data__load_impl; try/except kept in _account_normalize_after_load; removed unused PeriodRowWidget imports; TODO.md trimmed. Audit exclusions: documented `# error_handling_exclude` in both ERROR_HANDLING_GUIDE.md; added marker to user_data_handlers default-data helpers and _account_normalize_after_load, nested guard/number_from_widget in checkin_settings_widget and schedule_editor_dialog, and later _after_add_period and number_from_widget in checkin/task_settings_widget so audit no longer flags them. Thin wrappers: DUPLICATE_FUNCTIONS_INVESTIGATION.md notes wrappers required for Qt/dialog API. Run locally: doc-fix --fix-ascii, doc-fix --add-addresses.
+- analyze_duplicate_functions.py: exclusion tag `# duplicate_functions_exclude`; doc in DEVELOPMENT_TOOLS_GUIDE.md; period-row wrappers (9) marked; record deduplication uses project-relative path (no self-pairs); details.functions_excluded; docstring notes future body/structural similarity. AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4: new §3.5 body/structural similarity task; renumbered 3.6–3.8.
+
 ### 2026-02-06 - Duplicate-functions investigation, tool improvements, planning doc **COMPLETED**
 - Duplicate-functions: investigated all reported groups; created development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md as a **temporary planning file** (verdicts and refactor recommendations; archive or remove when refactors are done).
 - Tool: analyze_duplicate_functions.py dedupes records, filters single-function groups first then applies max_groups (pipeline fix), adds --max-groups; config/default max_groups 50; development_tools_config.json synced; audit now reports 29 groups.
-- TODO.md: refactor tasks added for period row (2–3, 25), _get_user_data__load_* (20), find_task_by_identifier (16), _is_valid_intent (14), command parsing prompt (18).
+- TODO.md: refactor tasks added for period row (2-3, 25), _get_user_data__load_* (20), find_task_by_identifier (16), _is_valid_intent (14), command parsing prompt (18).
 
 ### 2026-02-06 - Scheduler wake timer fix; custom-question test fix; audit clean **COMPLETED**
 - Wake timer: Fixed 0x80070057 (task name no colon, HHMM + sanitize + length cap, [DateTime]::ParseExact in PowerShell). core/scheduler.py set_wake_timer.

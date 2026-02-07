@@ -4,11 +4,22 @@ UI management utilities for MHM.
 Contains functions for UI-specific operations like widget management and layout handling.
 """
 
+import re
+from typing import Any, Callable
+
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
 logger = get_component_logger("ui")
 ui_logger = get_component_logger("main")
+
+# Default period data for new rows (start_time, end_time, active, days)
+_DEFAULT_PERIOD_DATA = {
+    "start_time": "18:00",
+    "end_time": "20:00",
+    "active": True,
+    "days": ["ALL"],
+}
 
 
 @handle_errors("clearing period widgets from layout", default_return=None)
@@ -207,6 +218,135 @@ def collect_period_data_from_widgets(widget_list, category: str) -> dict:
 
     logger.info(f"Final collected periods for category {category}: {periods}")
     return periods
+
+
+def _number_after_prefix(name: str, prefix: str) -> int | None:
+    """Extract integer after prefix in name, or None."""
+    if prefix not in name:
+        return None
+    try:
+        return int(name.split(prefix, 1)[1].strip())
+    except (ValueError, IndexError):
+        return None
+
+
+def _number_from_regex(name: str, pattern: str) -> int | None:
+    """Extract first capture group as int from name using regex, or None."""
+    match = re.search(pattern, name)
+    if not match:
+        return None
+    try:
+        return int(match.group(1))
+    except (ValueError, IndexError):
+        return None
+
+
+@handle_errors("finding lowest available period number", default_return=2)
+def find_lowest_available_period_number(
+    period_widgets: list,
+    number_from_widget: Callable[[Any], int | None],
+) -> int:
+    """
+    Return the smallest integer >= 2 not used in period names.
+
+    Args:
+        period_widgets: List of period row widgets (e.g. PeriodRowWidget).
+        number_from_widget: Callable that takes a widget and returns the
+            number extracted from its name if it matches the pattern, else None.
+
+    Returns:
+        Lowest available number (>= 2).
+    """
+    used = set()
+    for widget in period_widgets:
+        num = number_from_widget(widget)
+        if num is not None:
+            used.add(num)
+    number = 2
+    while number in used:
+        number += 1
+    return number
+
+
+@handle_errors("adding period row to layout", default_return=None)
+def add_period_row_to_layout(
+    layout,
+    period_widgets: list,
+    period_name: str,
+    period_data: dict,
+    parent_widget,
+    delete_callback: Callable[[Any], None],
+    after_add_callback: Callable[[Any], None] | None = None,
+):
+    """
+    Create a period row widget, connect delete, add to layout and list.
+
+    Args:
+        layout: QVBoxLayout to add the widget to.
+        period_widgets: List to append the new widget to.
+        period_name: Display name for the period.
+        period_data: Dict with start_time, end_time, active, days.
+        parent_widget: Parent for the PeriodRowWidget.
+        delete_callback: Callback for delete_requested signal.
+        after_add_callback: Optional callback(widget) after adding (e.g. for sort).
+
+    Returns:
+        The created PeriodRowWidget or None on failure.
+    """
+    try:
+        from ui.widgets.period_row_widget import PeriodRowWidget
+
+        widget = PeriodRowWidget(parent_widget, period_name, period_data)
+        widget.delete_requested.connect(delete_callback)
+        layout.addWidget(widget)
+        period_widgets.append(widget)
+        if after_add_callback:
+            after_add_callback(widget)
+        return widget
+    except Exception as e:
+        logger.error(f"Error adding period row {period_name}: {e}")
+        return None
+
+
+@handle_errors("removing period row from layout", default_return=None)
+def remove_period_row_from_layout(
+    row_widget,
+    layout,
+    period_widgets: list,
+    deleted_periods: list,
+    guard_fn: Callable[[], bool] | None = None,
+) -> None:
+    """
+    Remove a period row from layout and list, store data for undo.
+
+    Args:
+        row_widget: The period row widget to remove.
+        layout: Layout to remove the widget from.
+        period_widgets: List to remove the widget from.
+        deleted_periods: List to append deleted data dict (period_name, start_time, end_time, active, days).
+        guard_fn: If provided, callable(row_widget) returning True to abort removal (e.g. show message and return).
+    """
+    if guard_fn and guard_fn(row_widget):
+        return
+    try:
+        from ui.widgets.period_row_widget import PeriodRowWidget
+
+        if isinstance(row_widget, PeriodRowWidget):
+            data = row_widget.get_period_data()
+            deleted_periods.append({
+                "period_name": data["name"],
+                "start_time": data["start_time"],
+                "end_time": data["end_time"],
+                "active": data["active"],
+                "days": data["days"],
+            })
+        layout.removeWidget(row_widget)
+        row_widget.setParent(None)
+        row_widget.deleteLater()
+        if row_widget in period_widgets:
+            period_widgets.remove(row_widget)
+    except Exception as e:
+        logger.error(f"Error removing period row: {e}")
 
 
 @handle_errors("converting period name for display", default_return="")

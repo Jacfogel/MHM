@@ -1104,25 +1104,11 @@ class TaskManagementHandler(InteractionHandler):
 
         return None
 
-    @handle_errors("finding task by identifier for completion")
-    def _handle_complete_task__find_task_by_identifier(
-        self, tasks: list[dict], identifier: str
+    @handle_errors("finding task by identifier")
+    def _find_task_by_identifier_for_operation(
+        self, tasks: list[dict], identifier: str, context: str = "operation"
     ) -> dict | None:
-        """Find a task by number, name, or task_id - delegates to shared method."""
-        return self._find_task_by_identifier(tasks, identifier)
-
-    @handle_errors("finding task by identifier for deletion")
-    def _handle_delete_task__find_task_by_identifier(
-        self, tasks: list[dict], identifier: str
-    ) -> dict | None:
-        """Find a task by number, name, or task_id - delegates to shared method."""
-        return self._find_task_by_identifier(tasks, identifier)
-
-    @handle_errors("finding task by identifier for update")
-    def _handle_update_task__find_task_by_identifier(
-        self, tasks: list[dict], identifier: str
-    ) -> dict | None:
-        """Find a task by number, name, or task_id - delegates to shared method."""
+        """Find a task by number, name, or task_id for a given operation context."""
         return self._find_task_by_identifier(tasks, identifier)
 
     @handle_errors("getting task candidates", default_return=[])

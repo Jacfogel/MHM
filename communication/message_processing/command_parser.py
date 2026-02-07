@@ -23,6 +23,7 @@ from core.config import (
 from ai.chatbot import get_ai_chatbot
 from communication.command_handlers.shared_types import ParsedCommand
 from communication.command_handlers.interaction_handlers import get_all_handlers
+from communication.message_processing.intent_validation import is_valid_intent
 
 parser_logger = get_component_logger('ai')
 logger = parser_logger
@@ -1573,10 +1574,7 @@ class EnhancedCommandParser:
     def _is_valid_intent(self, intent: str) -> bool:
         """Check if intent is supported by any handler"""
         try:
-            for handler in self.interaction_handlers.values():
-                if handler.can_handle(intent):
-                    return True
-            return False
+            return is_valid_intent(intent, self.interaction_handlers)
         except Exception as e:
             logger.error(f"Error checking if intent is valid: {e}")
             return False

@@ -14,6 +14,8 @@
 
 When you attach to MHM, do this first:
 
+- **Virtual environment**: The project venv is **`.venv`** (not `venv`). Activate it before running Python, tests, or development tools (e.g. PowerShell: `.\.venv\Scripts\Activate.ps1`). See [HOW_TO_RUN.md](../HOW_TO_RUN.md) for run modes.
+
 1. **Identify the user's focus**  
    - Read the latest user message carefully.  
    - If they mention a specific file or doc, open that file first.

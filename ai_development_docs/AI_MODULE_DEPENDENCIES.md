@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-06 01:33:23
+> **Last Generated**: 2026-02-06 19:43:23
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 108
-- **Total Imports**: 1450
-- **Standard Library**: 379 (26.1%)
-- **Third-Party**: 224 (15.4%)
-- **Local Imports**: 847 (58.4%)
+- **Files Scanned**: 109
+- **Total Imports**: 1454
+- **Standard Library**: 381 (26.2%)
+- **Third-Party**: 223 (15.3%)
+- **Local Imports**: 850 (58.5%)
 
 ## Dependency Decision Trees
 
@@ -69,7 +69,7 @@ UI Dependencies:
 - Widgets
   - ui/widgets/category_selection_widget.py <- third-party (PySide6.QtWidgets), category_selection_widget_pyqt, user_data_validation, error_handling, logger
   - ui/widgets/channel_selection_widget.py <- third-party (PySide6.QtWidgets), channel_selection_widget_pyqt, user_data_handlers, logger, error_handling
-  - ui/widgets/checkin_settings_widget.py <- standard library (re), third-party (PySide6.QtCore, PySide6.QtWidgets), checkin_settings_widget_pyqt, ui_management, user_data_handlers, error_handling, logger (+2 more)
+  - ui/widgets/checkin_settings_widget.py <- standard library (re), third-party (PySide6.QtCore, PySide6.QtWidgets), checkin_settings_widget_pyqt, ui_management, user_data_handlers, error_handling, logger (+1 more)
 
 
 ## Key Dependency Patterns
@@ -124,7 +124,7 @@ External libraries provide channel and UI support.
 - `communication/core/channel_orchestrator.py` -> 32 local dependencies (heavy coupling)
 
 ### Third-Party Risks
-- `ui/ui_app_qt.py` -> PySide6.QtWidgets (31 modules use this)
+- `ui/ui_app_qt.py` -> PySide6.QtWidgets (30 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (21 modules use this)
 - `communication/communication_channels/base/command_registry.py` -> discord (11 modules use this)
 - `ai/chatbot.py` -> psutil (7 modules use this)

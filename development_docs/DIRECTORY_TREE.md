@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-06 01:33:25
+> **Last Generated**: 2026-02-06 19:43:27
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -136,6 +136,7 @@ C:.
 |   +---message_processing
 |   |   |   command_parser.py
 |   |   |   conversation_flow_manager.py
+|   |   |   intent_validation.py
 |   |   |   interaction_manager.py
 |   |   |   message_router.py
 |   |   |   __init__.py
@@ -177,6 +178,7 @@ C:.
 |   |   BACKUP_GUIDE.md
 |   |   CHANGELOG_DETAIL.md
 |   |   DIRECTORY_TREE.md
+|   |   DUPLICATE_FUNCTIONS_INVESTIGATION.md
 |   |   FUNCTION_REGISTRY_DETAIL.md
 |   |   LEGACY_REFERENCE_REPORT.md
 |   |   MODULE_DEPENDENCIES_DETAIL.md

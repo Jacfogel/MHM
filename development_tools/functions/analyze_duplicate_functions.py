@@ -13,6 +13,19 @@ and imports. It reports possible duplicates using a weighted similarity score.
 - Use --max-groups N to report more or fewer groups (default from config).
 - When the report is capped at max_groups, the human-readable output and
   details.groups_capped in JSON indicate it.
+
+Exclusion: Functions can be excluded from duplicate detection by adding a
+comment inside the function (or in the few lines before it): 
+  # duplicate_functions_exclude
+  or
+  # duplicate functions exclude
+(optionally with a reason after a colon). Use this for intentional thin
+wrappers (e.g. same method name across classes that delegate to a shared
+helper) or other cases that are not actionable duplicates.
+
+Limitation: Pairing is driven by shared *name tokens*. Functions with
+different names but similar logic are not compared, so some real duplicates
+may be missed. A future body/structural similarity pass could improve recall.
 """
 
 from __future__ import annotations
@@ -102,6 +115,7 @@ class FunctionRecord:
     locals_used: Tuple[str, ...]
     imports_used: Tuple[str, ...]
     name_tokens: Tuple[str, ...]
+    excluded: bool = False  # True if # duplicate_functions_exclude (or variant) in function
 
 
 def _get_analysis_config() -> Dict:
@@ -176,10 +190,26 @@ class _LocalNameCollector(ast.NodeVisitor):
         self.generic_visit(node)
 
 
+def _function_has_exclude_comment(content: str, node: FunctionNode) -> bool:
+    """Return True if the function (or a few lines before it) contains duplicate_functions_exclude."""
+    if not content:
+        return False
+    lines = content.split("\n")
+    start_lineno = getattr(node, "lineno", 1) or 1
+    end_lineno = getattr(node, "end_lineno", start_lineno) or start_lineno
+    context_start = max(0, start_lineno - 4)
+    snippet = "\n".join(lines[context_start:end_lineno]).lower()
+    return (
+        "# duplicate_functions_exclude" in snippet
+        or "# duplicate functions exclude" in snippet
+    )
+
+
 class _FunctionCollector(ast.NodeVisitor):
-    def __init__(self, file_path: str, imports_used: Set[str]) -> None:
+    def __init__(self, file_path: str, imports_used: Set[str], content: str = "") -> None:
         self.file_path = file_path
         self.imports_used = tuple(sorted(imports_used))
+        self.content = content
         self.class_stack: List[str] = []
         self.records: List[FunctionRecord] = []
 
@@ -208,6 +238,7 @@ class _FunctionCollector(ast.NodeVisitor):
             }
         )
         name_tokens = _tokenize_name(node.name)
+        excluded = _function_has_exclude_comment(self.content, node)
 
         record = FunctionRecord(
             name=node.name,
@@ -219,6 +250,7 @@ class _FunctionCollector(ast.NodeVisitor):
             locals_used=tuple(locals_used),
             imports_used=self.imports_used,
             name_tokens=tuple(name_tokens),
+            excluded=excluded,
         )
         self.records.append(record)
 
@@ -238,7 +270,7 @@ def _scan_file(file_path: Path) -> List[FunctionRecord]:
         return []
 
     imports_used = _collect_imports(tree)
-    collector = _FunctionCollector(str(file_path), imports_used)
+    collector = _FunctionCollector(str(file_path), imports_used, content=content)
     collector.visit(tree)
     return collector.records
 
@@ -255,6 +287,7 @@ def _serialize_records(records: List[FunctionRecord]) -> List[Dict[str, object]]
             "locals_used": list(record.locals_used),
             "imports_used": list(record.imports_used),
             "name_tokens": list(record.name_tokens),
+            "excluded": getattr(record, "excluded", False),
         }
         for record in records
     ]
@@ -282,6 +315,7 @@ def _deserialize_records(data: List[Dict[str, object]]) -> List[FunctionRecord]:
                 name_tokens=tuple(
                     str(token) for token in item.get("name_tokens", []) or []
                 ),
+                excluded=bool(item.get("excluded", False)),
             )
         )
     return records
@@ -367,6 +401,8 @@ def _build_candidate_pairs(
 ) -> Tuple[Set[Tuple[int, int]], Dict[str, int], bool]:
     token_to_ids: Dict[str, List[int]] = {}
     for idx, record in enumerate(records):
+        if getattr(record, "excluded", False):
+            continue
         for token in record.name_tokens:
             if token in stop_tokens:
                 continue
@@ -392,18 +428,31 @@ def _build_candidate_pairs(
     return candidate_pairs, skipped_tokens, max_reached
 
 
-def _record_identity(record: FunctionRecord) -> Tuple[str, int, str]:
-    """Return (file_path, line, full_name) for deduplication. Path normalized for cross-platform consistency."""
-    path_key = (record.file_path or "").replace("\\", "/").strip()
+def _record_identity(
+    record: FunctionRecord, project_root: Optional[Path] = None
+) -> Tuple[str, int, str]:
+    """Return (file_path, line, full_name) for deduplication. Path normalized for cross-platform and project-relative consistency."""
+    raw = (record.file_path or "").strip()
+    if project_root is not None and raw:
+        try:
+            resolved = Path(raw).resolve()
+            root_resolved = Path(project_root).resolve()
+            path_key = resolved.relative_to(root_resolved).as_posix()
+        except (ValueError, OSError):
+            path_key = raw.replace("\\", "/")
+    else:
+        path_key = raw.replace("\\", "/")
     return (path_key, record.line, record.full_name)
 
 
-def _deduplicate_records(records: List[FunctionRecord]) -> List[FunctionRecord]:
-    """Remove duplicate records (same file, line, full_name). Keeps first occurrence."""
+def _deduplicate_records(
+    records: List[FunctionRecord], project_root: Optional[Path] = None
+) -> List[FunctionRecord]:
+    """Remove duplicate records (same file, line, full_name). Keeps first occurrence. Uses project-relative path when project_root given."""
     seen: Set[Tuple[str, int, str]] = set()
     result: List[FunctionRecord] = []
     for r in records:
-        key = _record_identity(r)
+        key = _record_identity(r, project_root)
         if key in seen:
             continue
         seen.add(key)
@@ -449,9 +498,11 @@ def _analyze_duplicates(
     max_token_group_size = int(config_values.get("max_token_group_size", 200))
     stop_tokens = set(config_values.get("stop_name_tokens", []))
 
-    # Deduplicate so the same function (file, line, full_name) is not compared with itself
+    # Deduplicate so the same function (file, line, full_name) is not compared with itself.
+    # Use project-relative path so the same file from different scan paths is deduplicated.
+    project_root = Path(config.get_project_root()).resolve()
     original_count = len(records)
-    records = _deduplicate_records(records)
+    records = _deduplicate_records(records, project_root=project_root)
     records_deduplicated = original_count - len(records)
 
     candidate_pairs, skipped_tokens, max_reached = _build_candidate_pairs(
@@ -502,6 +553,7 @@ def _analyze_duplicates(
         for entry in group.get("functions", [])
         if entry.get("file")
     }
+    functions_excluded = sum(1 for r in records if getattr(r, "excluded", False))
 
     return {
         "summary": {
@@ -510,6 +562,7 @@ def _analyze_duplicates(
         },
         "details": {
             "total_functions": len(records),
+            "functions_excluded": functions_excluded,
             "records_deduplicated": records_deduplicated,
             "groups_filtered_single_function": groups_filtered_single_function,
             "cache": cache_stats or {},

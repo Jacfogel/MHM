@@ -439,77 +439,79 @@ class TestTaskManagementHandlerHelpers:
         assert result == [], "Should return empty list for no matches"
 
     def test_find_task_by_identifier_exact_id(self):
-        """Test _handle_complete_task__find_task_by_identifier with exact task_id."""
+        """Test _find_task_by_identifier_for_operation with exact task_id."""
         tasks = [
             {"task_id": "abc123", "title": "Task 1"},
             {"task_id": "def456", "title": "Task 2"},
         ]
 
-        result = self.handler._handle_complete_task__find_task_by_identifier(
-            tasks, "abc123"
+        result = self.handler._find_task_by_identifier_for_operation(
+            tasks, "abc123", "completion"
         )
         assert result is not None, "Should find task"
         assert result["title"] == "Task 1", "Should return correct task"
 
     def test_find_task_by_identifier_short_id(self):
-        """Test _handle_complete_task__find_task_by_identifier with 8-character short id."""
+        """Test _find_task_by_identifier_for_operation with 8-character short id."""
         tasks = [
             {"task_id": "abcdef1234567890", "title": "Task 1"},
             {"task_id": "def4567890123456", "title": "Task 2"},
         ]
 
-        result = self.handler._handle_complete_task__find_task_by_identifier(
-            tasks, "abcdef12"
+        result = self.handler._find_task_by_identifier_for_operation(
+            tasks, "abcdef12", "completion"
         )
         assert result is not None, "Should find task"
         assert result["title"] == "Task 1", "Should return correct task"
 
     def test_find_task_by_identifier_number(self):
-        """Test _handle_complete_task__find_task_by_identifier with task number."""
+        """Test _find_task_by_identifier_for_operation with task number."""
         tasks = [
             {"task_id": "abc123", "title": "Task 1"},
             {"task_id": "def456", "title": "Task 2"},
         ]
 
-        result = self.handler._handle_complete_task__find_task_by_identifier(tasks, "2")
+        result = self.handler._find_task_by_identifier_for_operation(
+            tasks, "2", "completion"
+        )
         assert result is not None, "Should find task"
         assert result["title"] == "Task 2", "Should return correct task"
 
     def test_find_task_by_identifier_exact_title(self):
-        """Test _handle_complete_task__find_task_by_identifier with exact title."""
+        """Test _find_task_by_identifier_for_operation with exact title."""
         tasks = [
             {"task_id": "abc123", "title": "Buy groceries"},
             {"task_id": "def456", "title": "Call mom"},
         ]
 
-        result = self.handler._handle_complete_task__find_task_by_identifier(
-            tasks, "Buy groceries"
+        result = self.handler._find_task_by_identifier_for_operation(
+            tasks, "Buy groceries", "completion"
         )
         assert result is not None, "Should find task"
         assert result["title"] == "Buy groceries", "Should return correct task"
 
     def test_find_task_by_identifier_partial_title(self):
-        """Test _handle_complete_task__find_task_by_identifier with partial title."""
+        """Test _find_task_by_identifier_for_operation with partial title."""
         tasks = [
             {"task_id": "abc123", "title": "Buy groceries"},
             {"task_id": "def456", "title": "Call mom"},
         ]
 
-        result = self.handler._handle_complete_task__find_task_by_identifier(
-            tasks, "groceries"
+        result = self.handler._find_task_by_identifier_for_operation(
+            tasks, "groceries", "completion"
         )
         assert result is not None, "Should find task"
         assert result["title"] == "Buy groceries", "Should return correct task"
 
     def test_find_task_by_identifier_no_match(self):
-        """Test _handle_complete_task__find_task_by_identifier with no match."""
+        """Test _find_task_by_identifier_for_operation with no match."""
         tasks = [
             {"task_id": "abc123", "title": "Task 1"},
             {"task_id": "def456", "title": "Task 2"},
         ]
 
-        result = self.handler._handle_complete_task__find_task_by_identifier(
-            tasks, "nonexistent"
+        result = self.handler._find_task_by_identifier_for_operation(
+            tasks, "nonexistent", "completion"
         )
         assert result is None, "Should return None for no match"
 

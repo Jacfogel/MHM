@@ -266,7 +266,7 @@ class TestAIChatBotBehavior:
             mock_prompt = stack.enter_context(
                 patch.object(
                     chatbot,
-                    '_create_command_parsing_with_clarification_prompt',
+                    '_create_command_parsing_prompt',
                     return_value=sentinel_prompt,
                 )
             )
@@ -297,7 +297,7 @@ class TestAIChatBotBehavior:
                 user_id="clar_prompt_user",
             )
 
-        mock_prompt.assert_called_once_with("Can you add a task?")
+        mock_prompt.assert_called_once_with("Can you add a task?", clarification=True)
         assert mock_api.call_count == 1, "Clarification mode should invoke the API once"
         call_kwargs = mock_api.call_args.kwargs
         assert call_kwargs["messages"] == sentinel_prompt, "Clarification prompt should be used"
@@ -321,7 +321,7 @@ class TestAIChatBotBehavior:
             mock_prompt = stack.enter_context(
                 patch.object(
                     chatbot,
-                    '_create_command_parsing_with_clarification_prompt',
+                    '_create_command_parsing_prompt',
                     return_value=sentinel_prompt,
                 )
             )
@@ -351,7 +351,7 @@ class TestAIChatBotBehavior:
                 user_id="clar_detect_user",
             )
 
-        mock_prompt.assert_called_once_with(ambiguous_prompt)
+        mock_prompt.assert_called_once_with(ambiguous_prompt, clarification=True)
         call_kwargs = mock_api.call_args.kwargs
         assert call_kwargs["messages"] == sentinel_prompt, "Clarification prompt should be used for ambiguous requests"
         assert call_kwargs["temperature"] == AI_CLARIFICATION_TEMPERATURE, "Clarification temperature should be applied"

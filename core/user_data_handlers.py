@@ -9,7 +9,7 @@ import os
 import time
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import ensure_user_directory, get_user_file_path
@@ -199,6 +199,105 @@ def get_data_type_info(data_type: str) -> dict[str, Any] | None:
     return USER_DATA_LOADERS.get(data_type)
 
 
+@handle_errors("loading user data via shared loader", default_return=None)
+def _get_user_data__load_impl(
+    user_id: str,
+    auto_create: bool,
+    cache_key_prefix: str,
+    file_key: str,
+    cache_dict: dict,
+    default_data_factory: Callable[[str], dict[str, Any]],
+    validate_fn: Callable[..., tuple[dict[str, Any], list]] | None,
+    log_name: str,
+    normalize_after_load: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+) -> dict[str, Any] | None:
+    """Internal: common load flow for user data (cache, file, default, validate)."""
+    if not user_id:
+        return None
+
+    current_time = time.time()
+    cache_key = f"{cache_key_prefix}_{user_id}"
+    if cache_key in cache_dict:
+        cached_data, cache_time = cache_dict[cache_key]
+        if current_time - cache_time < _cache_timeout:
+            return cached_data
+
+    user_dir = os.path.dirname(get_user_file_path(user_id, file_key))
+    user_dir_exists = os.path.exists(user_dir)
+    file_path = get_user_file_path(user_id, file_key)
+
+    if not os.path.exists(file_path):
+        if not auto_create:
+            return None
+        if not user_dir_exists:
+            logger.debug(
+                f"User directory doesn't exist for {user_id}, not auto-creating {log_name} file"
+            )
+            return None
+        logger.info(
+            f"Auto-creating missing {log_name} file for user {user_id} (user directory exists)"
+        )
+        ensure_user_directory(user_id)
+        data = default_data_factory(user_id)
+        save_json_data(data, file_path)
+    else:
+        ensure_user_directory(user_id)
+        data = load_json_data(file_path)
+        if data is None and not auto_create:
+            return None
+        data = data or {}
+        if normalize_after_load and isinstance(data, dict):
+            data = normalize_after_load(data)
+
+    if validate_fn and isinstance(data, dict):
+        normalized, errors = validate_fn(data)
+        if errors:
+            logger.warning(
+                f"Validation issues in {log_name} for user {user_id}: {'; '.join(errors)}"
+            )
+        # Use normalized only if it is a non-empty dict (avoid overwriting with {} from decorator default on validation failure)
+        if normalized and isinstance(normalized, dict) and len(normalized) > 0:
+            data = normalized
+        # else keep existing data
+
+    cache_dict[cache_key] = (data, current_time)
+    return data
+
+
+def _account_default_data(user_id: str) -> dict[str, Any]:
+    """Default account data for auto-create (used only inside _get_user_data__load_impl)."""
+    # error_handling_exclude: caller _get_user_data__load_impl is decorated
+    current_time_str = now_timestamp_full()
+    return {
+        "user_id": user_id,
+        "internal_username": "",
+        "account_status": "active",
+        "chat_id": "",
+        "phone": "",
+        "email": "",
+        "discord_user_id": "",
+        "discord_username": "",
+        "created_at": current_time_str,
+        "updated_at": current_time_str,
+        "features": {
+            "automated_messages": "disabled",
+            "checkins": "disabled",
+            "task_management": "disabled",
+        },
+    }
+
+
+def _account_normalize_after_load(data: dict[str, Any]) -> dict[str, Any]:
+    """Ensure timezone exists on loaded account data."""
+    # error_handling_exclude: intentional try/except; @handle_errors default_return would break loader
+    try:
+        if isinstance(data, dict) and not data.get("timezone"):
+            data["timezone"] = "UTC"
+    except Exception:
+        pass
+    return data
+
+
 @handle_errors("loading user account data", default_return=None)
 def _get_user_data__load_account(
     user_id: str, auto_create: bool = True
@@ -207,85 +306,17 @@ def _get_user_data__load_account(
     if not user_id:
         logger.error("_get_user_data__load_account called with None user_id")
         return None
-
-    # Check cache first
-    current_time = time.time()
-    cache_key = f"account_{user_id}"
-
-    if cache_key in _user_account_cache:
-        cached_data, cache_time = _user_account_cache[cache_key]
-        if current_time - cache_time < _cache_timeout:
-            return cached_data
-
-    # Check if user directory exists (indicates user was created before)
-    user_dir = os.path.dirname(get_user_file_path(user_id, "account"))
-    user_dir_exists = os.path.exists(user_dir)
-
-    # Check if file exists before loading
-    account_file = get_user_file_path(user_id, "account")
-    if not os.path.exists(account_file):
-        if not auto_create:
-            if not user_dir_exists:
-                return None
-            else:
-                return None
-
-        # Only auto-create if user directory exists (user was created before)
-        if not user_dir_exists:
-            logger.debug(
-                f"User directory doesn't exist for {user_id}, not auto-creating account file"
-            )
-            return None
-
-        # Auto-create the file with default data
-        logger.info(
-            f"Auto-creating missing account file for user {user_id} (user directory exists)"
-        )
-        ensure_user_directory(user_id)
-        # Create default account data
-        # Canonical readable timestamp for metadata fields
-        current_time_str = now_timestamp_full()
-        default_account = {
-            "user_id": user_id,
-            "internal_username": "",
-            "account_status": "active",
-            "chat_id": "",
-            "phone": "",
-            "email": "",
-            "discord_user_id": "",
-            "discord_username": "",
-            "created_at": current_time_str,
-            "updated_at": current_time_str,
-            "features": {
-                "automated_messages": "disabled",
-                "checkins": "disabled",
-                "task_management": "disabled",
-            },
-        }
-        save_json_data(default_account, account_file)
-        account_data = default_account
-    else:
-        # Load from file
-        ensure_user_directory(user_id)
-        account_data = load_json_data(account_file)
-        try:
-            if isinstance(account_data, dict) and not account_data.get("timezone"):
-                account_data["timezone"] = "UTC"
-        except Exception:
-            pass
-
-    if isinstance(account_data, dict):
-        normalized_account, errors = validate_account_dict(account_data)
-        if errors:
-            logger.warning(
-                f"Validation issues in account data for user {user_id}: {'; '.join(errors)}"
-            )
-        account_data = normalized_account or account_data
-
-    # Cache the data
-    _user_account_cache[cache_key] = (account_data, current_time)
-
-    return account_data
+    return _get_user_data__load_impl(
+        user_id,
+        auto_create,
+        cache_key_prefix="account",
+        file_key="account",
+        cache_dict=_user_account_cache,
+        default_data_factory=_account_default_data,
+        validate_fn=validate_account_dict,
+        log_name="account",
+        normalize_after_load=_account_normalize_after_load,
+    )
 
 
 @handle_errors("saving user account data")
@@ -326,6 +357,17 @@ def _save_user_data__save_account(user_id: str, account_data: dict[str, Any]) ->
     return True
 
 
+def _preferences_default_data(user_id: str) -> dict[str, Any]:
+    """Default preferences data for auto-create (user_id unused but required by factory signature)."""
+    # error_handling_exclude: caller _get_user_data__load_impl is decorated
+    return {
+        "categories": [],
+        "channel": {"type": "email"},
+        "checkin_settings": {"enabled": False},
+        "task_settings": {"enabled": False},
+    }
+
+
 @handle_errors("loading user preferences data", default_return=None)
 def _get_user_data__load_preferences(
     user_id: str, auto_create: bool = True
@@ -334,74 +376,16 @@ def _get_user_data__load_preferences(
     if not user_id:
         logger.error("_get_user_data__load_preferences called with None user_id")
         return None
-
-    # Check cache first
-    current_time = time.time()
-    cache_key = f"preferences_{user_id}"
-
-    if cache_key in _user_preferences_cache:
-        cached_data, cache_time = _user_preferences_cache[cache_key]
-        if current_time - cache_time < _cache_timeout:
-            return cached_data
-
-    # Check if user directory exists (indicates user was created before)
-    user_dir = os.path.dirname(get_user_file_path(user_id, "preferences"))
-    user_dir_exists = os.path.exists(user_dir)
-
-    # Check if file exists before loading
-    preferences_file = get_user_file_path(user_id, "preferences")
-    if not os.path.exists(preferences_file):
-        if not auto_create:
-            if not user_dir_exists:
-                return None
-            else:
-                return None
-
-        # Only auto-create if user directory exists (user was created before)
-        if not user_dir_exists:
-            logger.debug(
-                f"User directory doesn't exist for {user_id}, not auto-creating preferences file"
-            )
-            return None
-
-        # Auto-create the file with default data
-        logger.info(
-            f"Auto-creating missing preferences file for user {user_id} (user directory exists)"
-        )
-        ensure_user_directory(user_id)
-        # Create default preferences data
-        default_preferences = {
-            "categories": [],
-            "channel": {"type": "email"},
-            "checkin_settings": {"enabled": False},
-            "task_settings": {"enabled": False},
-        }
-        save_json_data(default_preferences, preferences_file)
-        preferences_data = default_preferences
-    else:
-        # Load from file
-        ensure_user_directory(user_id)
-        preferences_data = load_json_data(preferences_file)
-
-        # If load_json_data returned None (corrupted file) and auto_create is False, return None
-        if preferences_data is None and not auto_create:
-            return None
-
-        # Use empty dict as fallback only when auto_create is True
-        preferences_data = preferences_data or {}
-
-    if isinstance(preferences_data, dict):
-        normalized_preferences, errors = validate_preferences_dict(preferences_data)
-        if errors:
-            logger.warning(
-                f"Validation issues in preferences for user {user_id}: {'; '.join(errors)}"
-            )
-        preferences_data = normalized_preferences or preferences_data
-
-    # Cache the data
-    _user_preferences_cache[cache_key] = (preferences_data, current_time)
-
-    return preferences_data
+    return _get_user_data__load_impl(
+        user_id,
+        auto_create,
+        cache_key_prefix="preferences",
+        file_key="preferences",
+        cache_dict=_user_preferences_cache,
+        default_data_factory=_preferences_default_data,
+        validate_fn=validate_preferences_dict,
+        log_name="preferences",
+    )
 
 
 @handle_errors("saving user preferences data")
@@ -441,6 +425,30 @@ def _save_user_data__save_preferences(
     return True
 
 
+def _context_default_data(user_id: str) -> dict[str, Any]:
+    """Default context data for auto-create."""
+    # error_handling_exclude: caller _get_user_data__load_impl is decorated
+    current_time_str = now_timestamp_full()
+    return {
+        "preferred_name": "",
+        "gender_identity": [],
+        "date_of_birth": "",
+        "custom_fields": {
+            "reminders_needed": [],
+            "health_conditions": [],
+            "medications_treatments": [],
+            "allergies_sensitivities": [],
+        },
+        "interests": [],
+        "goals": [],
+        "loved_ones": [],
+        "activities_for_encouragement": [],
+        "notes_for_ai": [],
+        "created_at": current_time_str,
+        "last_updated": current_time_str,
+    }
+
+
 @handle_errors("loading user context data", default_return=None)
 def _get_user_data__load_context(
     user_id: str, auto_create: bool = True
@@ -449,79 +457,16 @@ def _get_user_data__load_context(
     if not user_id:
         logger.error("_get_user_data__load_context called with None user_id")
         return None
-
-    # Check cache first
-    current_time = time.time()
-    cache_key = f"context_{user_id}"
-
-    if cache_key in _user_context_cache:
-        cached_data, cache_time = _user_context_cache[cache_key]
-        if current_time - cache_time < _cache_timeout:
-            return cached_data
-
-    # Check if user directory exists (indicates user was created before)
-    user_dir = os.path.dirname(get_user_file_path(user_id, "context"))
-    user_dir_exists = os.path.exists(user_dir)
-
-    # Check if file exists before loading
-    context_file = get_user_file_path(user_id, "context")
-    if not os.path.exists(context_file):
-        if not auto_create:
-            if not user_dir_exists:
-                return None
-            else:
-                return None
-
-        # Only auto-create if user directory exists (user was created before)
-        if not user_dir_exists:
-            logger.debug(
-                f"User directory doesn't exist for {user_id}, not auto-creating user context file"
-            )
-            return None
-
-        # Auto-create the file with default data
-        logger.info(
-            f"Auto-creating missing user context file for user {user_id} (user directory exists)"
-        )
-        ensure_user_directory(user_id)
-        # Create default context data
-        current_time_str = now_timestamp_full()
-        default_context = {
-            "preferred_name": "",
-            "gender_identity": [],
-            "date_of_birth": "",
-            "custom_fields": {
-                "reminders_needed": [],
-                "health_conditions": [],
-                "medications_treatments": [],
-                "allergies_sensitivities": [],
-            },
-            "interests": [],
-            "goals": [],
-            "loved_ones": [],
-            "activities_for_encouragement": [],
-            "notes_for_ai": [],
-            "created_at": current_time_str,
-            "last_updated": current_time_str,
-        }
-        save_json_data(default_context, context_file)
-        context_data = default_context
-    else:
-        # Load from file
-        ensure_user_directory(user_id)
-        context_data = load_json_data(context_file)
-
-        # If load_json_data returned None (corrupted file) and auto_create is False, return None
-        if context_data is None and not auto_create:
-            return None
-
-        # Use empty dict as fallback only when auto_create is True
-        context_data = context_data or {}
-
-    # Cache the data
-    _user_context_cache[cache_key] = (context_data, current_time)
-
-    return context_data
+    return _get_user_data__load_impl(
+        user_id,
+        auto_create,
+        cache_key_prefix="context",
+        file_key="context",
+        cache_dict=_user_context_cache,
+        default_data_factory=_context_default_data,
+        validate_fn=None,
+        log_name="user context",
+    )
 
 
 @handle_errors("saving user context data")
@@ -557,6 +502,12 @@ def _save_user_data__save_context(user_id: str, context_data: dict[str, Any]) ->
     return True
 
 
+def _schedules_default_data(user_id: str) -> dict[str, Any]:
+    """Default schedules data for auto-create (user_id unused)."""
+    # error_handling_exclude: caller _get_user_data__load_impl is decorated
+    return {}
+
+
 @handle_errors("loading user schedules data", default_return=None)
 def _get_user_data__load_schedules(
     user_id: str, auto_create: bool = True
@@ -565,56 +516,16 @@ def _get_user_data__load_schedules(
     if not user_id:
         logger.error("_get_user_data__load_schedules called with None user_id")
         return None
-
-    # Check cache first
-    current_time = time.time()
-    cache_key = f"schedules_{user_id}"
-
-    if cache_key in _user_schedules_cache:
-        cached_data, cache_time = _user_schedules_cache[cache_key]
-        if current_time - cache_time < _cache_timeout:
-            return cached_data
-
-    user_dir = os.path.dirname(get_user_file_path(user_id, "schedules"))
-    user_dir_exists = os.path.exists(user_dir)
-    schedules_file = get_user_file_path(user_id, "schedules")
-    if not os.path.exists(schedules_file):
-        if not auto_create:
-            if not user_dir_exists:
-                return None
-            else:
-                return None
-        if not user_dir_exists:
-            logger.debug(
-                f"User directory doesn't exist for {user_id}, not auto-creating schedules file"
-            )
-            return None
-        # Auto-create the file with default data
-        logger.info(
-            f"Auto-creating missing schedules file for user {user_id} (user directory exists)"
-        )
-        ensure_user_directory(user_id)
-        default_schedules = {}
-        save_json_data(default_schedules, schedules_file)
-        schedules_data = default_schedules
-    else:
-        ensure_user_directory(user_id)
-        schedules_data = load_json_data(schedules_file)
-        if schedules_data is None and not auto_create:
-            return None
-        schedules_data = schedules_data or {}
-    if isinstance(schedules_data, dict):
-        normalized_schedules, errors = validate_schedules_dict(schedules_data)
-        if errors:
-            logger.warning(
-                f"Validation issues in schedules for user {user_id}: {'; '.join(errors)}"
-            )
-        schedules_data = normalized_schedules or schedules_data
-
-    # Cache the data
-    _user_schedules_cache[cache_key] = (schedules_data, current_time)
-
-    return schedules_data
+    return _get_user_data__load_impl(
+        user_id,
+        auto_create,
+        cache_key_prefix="schedules",
+        file_key="schedules",
+        cache_dict=_user_schedules_cache,
+        default_data_factory=_schedules_default_data,
+        validate_fn=validate_schedules_dict,
+        log_name="schedules",
+    )
 
 
 @handle_errors("saving user schedules data")

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-06 01:33:20
+> **Last Generated**: 2026-02-06 19:43:18
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 96.1% [OK] EXCELLENT**
-- **Total Functions**: 1532
-- **Total Methods**: 1153
-- **Documented**: 2579/2685
-- **Files Scanned**: 109
+### **Documentation Coverage: 95.9% [OK] EXCELLENT**
+- **Total Functions**: 1547
+- **Total Methods**: 1151
+- **Documented**: 2588/2698
+- **Files Scanned**: 110
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -22,21 +22,21 @@
 ```
 User Data Operations Decision Tree:
 +-- Core Data Access
-|   +-- `core/user_data_handlers.py` - Primary data access (52/53 functions)
+|   +-- `core/user_data_handlers.py` - Primary data access (58/59 functions)
 |   +-- `core/user_data_manager.py` - Data management (64 functions)
 |   `-- `core/user_data_validation.py` - Validation (8/11 functions)
 +-- User Context
 |   +-- `user/user_context.py` - User context management (20 functions)
 |   `-- `user/user_preferences.py` - User preferences (20 functions)
 `-- User Data Access
-    `-- `core/user_data_handlers.py` - Account operations (52/53 functions)
+    `-- `core/user_data_handlers.py` - Account operations (58/59 functions)
 ```
 
 ### **[AI] Need AI/Chatbot Functionality?**
 ```
 AI Operations Decision Tree:
 +-- AI Chatbot
-|   +-- `ai/chatbot.py` - Main AI implementation (55 functions)
+|   +-- `ai/chatbot.py` - Main AI implementation (53 functions)
 |   `-- `user/context_manager.py` - Context for AI (24 functions)
 +-- Command Parsing
 |   +-- `communication/message_processing/command_parser.py` - Natural language parsing (31 functions)
@@ -68,10 +68,10 @@ UI Operations Decision Tree:
 |   +-- `ui/dialogs/account_creator_dialog.py` - Account creation (97/98 functions)
 |   +-- `ui/dialogs/user_profile_dialog.py` - User profiles (38 functions)
 |   +-- `ui/dialogs/task_management_dialog.py` - Task management (4/8 functions)
-|   `-- `ui/dialogs/schedule_editor_dialog.py` - Schedule editing (38 functions)
+|   `-- `ui/dialogs/schedule_editor_dialog.py` - Schedule editing (40/42 functions)
 `-- Widgets
     +-- `ui/widgets/tag_widget.py` - Tag management (30 functions)
-    +-- `ui/widgets/task_settings_widget.py` - Task settings (34/36 functions)
+    +-- `ui/widgets/task_settings_widget.py` - Task settings (34/37 functions)
     `-- `ui/widgets/user_profile_settings_widget.py` - Profile settings (28 functions)
 ```
 
@@ -176,7 +176,7 @@ Core System Decision Tree:
 - [OK] `core/service.py::__init__()` - Initialization
 
 ### **Data Access Patterns**
-- **User Data**: `core/user_data_handlers.py` - User data operations (52/53 functions)
+- **User Data**: `core/user_data_handlers.py` - User data operations (58/59 functions)
 - **Validation**: `core/user_data_validation.py` - Data validation (8/11 functions)
 - **File Operations**: `core/file_operations.py` - File I/O (16 functions)
 
@@ -231,12 +231,12 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (27 files, 832 functions)
-- `communication/` - Communication channels and message processing (38 files, 782 functions)
-- `ai/` - AI chatbot functionality (7 files, 189 functions)
-- `ui/` - User interface components (28 files, 793 functions)
+- `core/` - System utilities and data management (27 files, 843 functions)
+- `communication/` - Communication channels and message processing (39 files, 779 functions)
+- `ai/` - AI chatbot functionality (7 files, 187 functions)
+- `ui/` - User interface components (28 files, 800 functions)
 - `user/` - User context and preferences (4 files, 64 functions)
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2026-02-06 01:33:20
+> **Last Updated**: 2026-02-06 19:43:18

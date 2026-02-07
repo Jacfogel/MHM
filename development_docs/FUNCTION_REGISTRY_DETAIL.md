@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-06 01:33:20
+> **Last Generated**: 2026-02-06 19:43:18
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 96.1% [OK] COMPLETED**
-- **Files Scanned**: 109
-- **Functions Found**: 1532
-- **Methods Found**: 1153
+### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
+- **Files Scanned**: 110
+- **Functions Found**: 1547
+- **Methods Found**: 1151
 - **Classes Found**: 154
-- **Total Items**: 2685
-- **Functions Documented**: 1466
-- **Methods Documented**: 1113
+- **Total Items**: 2698
+- **Functions Documented**: 1477
+- **Methods Documented**: 1111
 - **Classes Documented**: 120
-- **Total Documented**: 2579
+- **Total Documented**: 2588
 - **Template-Generated**: 4
 - **Last Updated**: 2026-02-06
 
@@ -39,13 +39,13 @@
 
 ## Function Categories
 
-### **Core System Functions** (560)
+### **Core System Functions** (571)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (411)
+### **Communication Functions** (410)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (405)
+### **User Interface Functions** (411)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (32)
@@ -114,7 +114,9 @@ Test functions and testing utilities.
 - [OK] `_clean_system_prompt_leaks(self, response)` - Remove any leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:", "IMPORTANT - Feature availability:" from appearing in user-facing responses.
 - [OK] `_create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return strict JSON.
-- [OK] `_create_command_parsing_with_clarification_prompt(self, user_prompt)` - Create a prompt instructing the model to return strict JSON and ask for clarification if ambiguous.
+
+If clarification is True, the prompt encourages the model to ask for
+clarification when the user's request is ambiguous or incomplete.
 - [OK] `_create_comprehensive_context_prompt(self, user_id, user_prompt)` - Create a comprehensive context prompt with all user data for LM Studio.
 - [OK] `_detect_mode(self, user_prompt)` - Detect whether the prompt is a command or a chat query.
 - [OK] `_detect_resource_constraints(self)` - Detect if system is resource-constrained.
@@ -160,7 +162,9 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
   - [OK] `AIChatBotSingleton._clean_system_prompt_leaks(self, response)` - Remove any leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:", "IMPORTANT - Feature availability:" from appearing in user-facing responses.
   - [OK] `AIChatBotSingleton._create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return strict JSON.
-  - [OK] `AIChatBotSingleton._create_command_parsing_with_clarification_prompt(self, user_prompt)` - Create a prompt instructing the model to return strict JSON and ask for clarification if ambiguous.
+
+If clarification is True, the prompt encourages the model to ask for
+clarification when the user's request is ambiguous or incomplete.
   - [OK] `AIChatBotSingleton._create_comprehensive_context_prompt(self, user_id, user_prompt)` - Create a comprehensive context prompt with all user data for LM Studio.
   - [OK] `AIChatBotSingleton._detect_mode(self, user_prompt)` - Detect whether the prompt is a command or a chat query.
   - [OK] `AIChatBotSingleton._detect_resource_constraints(self)` - Detect if system is resource-constrained.
@@ -1042,14 +1046,13 @@ Args:
 
 Returns:
     Task dictionary if found, None otherwise
+- [OK] `_find_task_by_identifier_for_operation(self, tasks, identifier, context)` - Find a task by number, name, or task_id for a given operation context.
 - [OK] `_get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
 - [OK] `_handle_complete_task(self, user_id, entities)` - Handle task completion
 - [OK] `_handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
-- [OK] `_handle_complete_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id - delegates to shared method.
 - [OK] `_handle_create_task(self, user_id, entities)` - Handle task creation
 - [OK] `_handle_create_task__parse_relative_date(self, date_str)` - Convert relative date strings to proper dates
 - [OK] `_handle_delete_task(self, user_id, entities)` - Handle task deletion
-- [OK] `_handle_delete_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id - delegates to shared method.
 - [OK] `_handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
 - [OK] `_handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter)` - Apply filters to tasks and return filtered list.
 - [OK] `_handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter)` - Build filter information list.
@@ -1063,7 +1066,6 @@ Returns:
 - [OK] `_handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
 - [OK] `_handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
 - [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
-- [OK] `_handle_update_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id - delegates to shared method.
 - [OK] `_parse_time_string(self, time_str)` - Parse time string to HH:MM format
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_examples(self)` - Get example commands for task management.
@@ -1081,14 +1083,13 @@ Args:
 
 Returns:
     Task dictionary if found, None otherwise
+  - [OK] `TaskManagementHandler._find_task_by_identifier_for_operation(self, tasks, identifier, context)` - Find a task by number, name, or task_id for a given operation context.
   - [OK] `TaskManagementHandler._get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
   - [OK] `TaskManagementHandler._handle_complete_task(self, user_id, entities)` - Handle task completion
   - [OK] `TaskManagementHandler._handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
-  - [OK] `TaskManagementHandler._handle_complete_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id - delegates to shared method.
   - [OK] `TaskManagementHandler._handle_create_task(self, user_id, entities)` - Handle task creation
   - [OK] `TaskManagementHandler._handle_create_task__parse_relative_date(self, date_str)` - Convert relative date strings to proper dates
   - [OK] `TaskManagementHandler._handle_delete_task(self, user_id, entities)` - Handle task deletion
-  - [OK] `TaskManagementHandler._handle_delete_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id - delegates to shared method.
   - [OK] `TaskManagementHandler._handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
   - [OK] `TaskManagementHandler._handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter)` - Apply filters to tasks and return filtered list.
   - [OK] `TaskManagementHandler._handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter)` - Build filter information list.
@@ -1102,7 +1103,6 @@ Returns:
   - [OK] `TaskManagementHandler._handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
   - [OK] `TaskManagementHandler._handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
   - [OK] `TaskManagementHandler._handle_update_task(self, user_id, entities)` - Handle task updates
-  - [OK] `TaskManagementHandler._handle_update_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id - delegates to shared method.
   - [OK] `TaskManagementHandler._parse_time_string(self, time_str)` - Parse time string to HH:MM format
   - [OK] `TaskManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
   - [OK] `TaskManagementHandler.get_examples(self)` - Get example commands for task management.
@@ -2212,6 +2212,18 @@ Called by task handler after creating a task without a due date.
   - [OK] `ConversationManager.start_task_reminder_followup(self, user_id, task_id)` - Start a task reminder follow-up flow.
 Called by task handler after creating a task with a due date.
   - [OK] `ConversationManager.start_tasks_flow(self, user_id)` - Starter for a future tasks multi-step flow (placeholder).
+
+#### `communication/message_processing/intent_validation.py`
+**Functions:**
+- [OK] `is_valid_intent(intent, interaction_handlers)` - Return True if any handler can handle the given intent.
+
+Args:
+    intent: The intent string to validate.
+    interaction_handlers: Mapping of handler name to handler instance;
+        each value must have a can_handle(intent) method.
+
+Returns:
+    True if any handler's can_handle(intent) returns True, False otherwise.
 
 #### `communication/message_processing/interaction_manager.py`
 **Functions:**
@@ -4415,6 +4427,21 @@ Prefer parse_timestamp_full / parse_timestamp_minute for critical state.
 
 #### `core/ui_management.py`
 **Functions:**
+- [OK] `_number_after_prefix(name, prefix)` - Extract integer after prefix in name, or None.
+- [OK] `_number_from_regex(name, pattern)` - Extract first capture group as int from name using regex, or None.
+- [OK] `add_period_row_to_layout(layout, period_widgets, period_name, period_data, parent_widget, delete_callback, after_add_callback)` - Create a period row widget, connect delete, add to layout and list.
+
+Args:
+    layout: QVBoxLayout to add the widget to.
+    period_widgets: List to append the new widget to.
+    period_name: Display name for the period.
+    period_data: Dict with start_time, end_time, active, days.
+    parent_widget: Parent for the PeriodRowWidget.
+    delete_callback: Callback for delete_requested signal.
+    after_add_callback: Optional callback(widget) after adding (e.g. for sort).
+
+Returns:
+    The created PeriodRowWidget or None on failure.
 - [OK] `add_period_widget_to_layout(layout, period_name, period_data, category, parent_widget, widget_list, delete_callback)` - Add a period widget to a layout with proper display formatting.
 
 Args:
@@ -4444,6 +4471,15 @@ Args:
 
 Returns:
     Dictionary of period data with storage-formatted names, each with only 'active', 'days', 'start_time', 'end_time'.
+- [OK] `find_lowest_available_period_number(period_widgets, number_from_widget)` - Return the smallest integer >= 2 not used in period names.
+
+Args:
+    period_widgets: List of period row widgets (e.g. PeriodRowWidget).
+    number_from_widget: Callable that takes a widget and returns the
+        number extracted from its name if it matches the pattern, else None.
+
+Returns:
+    Lowest available number (>= 2).
 - [OK] `load_period_widgets_for_category(layout, user_id, category, parent_widget, widget_list, delete_callback)` - Load and display period widgets for a specific category.
 
 Args:
@@ -4472,12 +4508,24 @@ Args:
 
 Returns:
     Storage-formatted period name (preserve original case)
+- [OK] `remove_period_row_from_layout(row_widget, layout, period_widgets, deleted_periods, guard_fn)` - Remove a period row from layout and list, store data for undo.
+
+Args:
+    row_widget: The period row widget to remove.
+    layout: Layout to remove the widget from.
+    period_widgets: List to remove the widget from.
+    deleted_periods: List to append deleted data dict (period_name, start_time, end_time, active, days).
+    guard_fn: If provided, callable(row_widget) returning True to abort removal (e.g. show message and return).
 
 #### `core/user_data_handlers.py`
 **Functions:**
+- [OK] `_account_default_data(user_id)` - Default account data for auto-create (used only inside _get_user_data__load_impl).
+- [OK] `_account_normalize_after_load(data)` - Ensure timezone exists on loaded account data.
+- [OK] `_context_default_data(user_id)` - Default context data for auto-create.
 - [MISSING] `_ensure_default_loaders_once()` - No description
 - [OK] `_get_user_data__load_account(user_id, auto_create)` - Load user account data from account.json.
 - [OK] `_get_user_data__load_context(user_id, auto_create)` - Load user context data from user_context.json.
+- [OK] `_get_user_data__load_impl(user_id, auto_create, cache_key_prefix, file_key, cache_dict, default_data_factory, validate_fn, log_name, normalize_after_load)` - Internal: common load flow for user data (cache, file, default, validate).
 - [OK] `_get_user_data__load_preferences(user_id, auto_create)` - Load user preferences data from preferences.json.
 - [OK] `_get_user_data__load_schedules(user_id, auto_create)` - Load user schedules data from schedules.json.
 - [OK] `_get_user_data__load_tags(user_id, auto_create)` - Load user tags data from tags.json.
@@ -4487,6 +4535,7 @@ Returns:
 - [OK] `_get_user_id_by_identifier__by_internal_username(internal_username)` - Helper function: Get user ID by internal username using the user index for fast lookup.
 - [OK] `_get_user_id_by_identifier__by_phone(phone)` - Helper function: Get user ID by phone using the user index for fast lookup.
 - [OK] `_load_presets_json()` - Load presets from resources/presets.json (cached).
+- [OK] `_preferences_default_data(user_id)` - Default preferences data for auto-create (user_id unused but required by factory signature).
 - [OK] `_save_user_data__check_cross_file_invariants(user_id, merged_data, valid_types)` - Check and enforce cross-file invariants using in-memory merged data.
 
 Updates merged_data in-place to maintain invariants without nested saves.
@@ -4541,6 +4590,7 @@ Returns:
 
 Returns:
     Dict mapping data type to success status
+- [OK] `_schedules_default_data(user_id)` - Default schedules data for auto-create (user_id unused).
 - [OK] `clear_user_caches(user_id)` - Clear user data caches.
 - [OK] `create_default_schedule_periods(category)` - Create default schedule periods for a new category.
 - [OK] `create_new_user(user_data)` - Create a new user with the new data structure.
@@ -5189,6 +5239,7 @@ Args:
 #### `ui/dialogs/schedule_editor_dialog.py`
 **Functions:**
 - [OK] `__init__(self, parent, user_id, category, on_save)` - Initialize the object.
+- [OK] `_after_add_period(self, period_widget)` - Set creation order and resort after adding a period (for add_period_row_to_layout).
 - [OK] `_trigger_rescheduling(self)` - Trigger rescheduling for this user and category when schedule changes.
 - [OK] `accept(self)` - Override accept to prevent automatic dialog closing.
 - [OK] `add_new_period(self, period_name, period_data)` - Add a new period row using the PeriodRowWidget.
@@ -5198,8 +5249,10 @@ Args:
 - [OK] `collect_period_data(self)` - Collect period data using the new reusable function.
 - [OK] `find_lowest_available_period_number(self)` - Find the lowest available number for new period names.
 - [OK] `get_schedule_data(self)` - Get the current schedule data.
+- [MISSING] `guard(rw)` - No description
 - [OK] `handle_save(self)` - Handle save button click - prevents dialog closure on validation errors.
 - [OK] `load_existing_data(self)` - Load existing schedule data using the new reusable function.
+- [MISSING] `number_from_widget(w)` - No description
 - [OK] `open_schedule_editor(parent, user_id, category, on_save)` - Open the schedule editor dialog.
 - [OK] `remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
 - [OK] `resort_period_widgets(self)` - Re-sort the period widgets to maintain proper order (ALL at bottom).
@@ -5218,6 +5271,7 @@ Returns:
 **Classes:**
 - [OK] `ScheduleEditorDialog` - Dialog for editing schedules.
   - [OK] `ScheduleEditorDialog.__init__(self, parent, user_id, category, on_save)` - Initialize the object.
+  - [OK] `ScheduleEditorDialog._after_add_period(self, period_widget)` - Set creation order and resort after adding a period (for add_period_row_to_layout).
   - [OK] `ScheduleEditorDialog._trigger_rescheduling(self)` - Trigger rescheduling for this user and category when schedule changes.
   - [OK] `ScheduleEditorDialog.accept(self)` - Override accept to prevent automatic dialog closing.
   - [OK] `ScheduleEditorDialog.add_new_period(self, period_name, period_data)` - Add a new period row using the PeriodRowWidget.
@@ -5918,7 +5972,9 @@ Args:
 - [OK] `find_lowest_available_period_number(self)` - Find the lowest available integer (2+) that's not currently used in period names.
 - [OK] `get_checkin_settings(self)` - Get the current check-in settings.
 - [OK] `get_default_question_state(self, question_key)` - Get default enabled state for a question.
+- [OK] `guard(_row_widget)` - Return True to abort removal (e.g. when only one period remains).
 - [OK] `load_existing_data(self)` - Load existing check-in data.
+- [MISSING] `number_from_widget(w)` - No description
 - [OK] `on_question_toggled(self, checked)` - Handle question checkbox toggle.
 - [MISSING] `on_template_selected(index)` - No description
 - [OK] `remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
@@ -6160,6 +6216,7 @@ Args:
 - [OK] `get_task_settings(self)` - Get the current task settings.
 - [MISSING] `load_existing_data(self)` - No description
 - [OK] `load_recurring_task_settings(self)` - Load recurring task settings from user preferences.
+- [MISSING] `number_from_widget(w)` - No description
 - [OK] `refresh_tags(self)` - Refresh the tags in the tag widget.
 - [OK] `remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
 - [OK] `save_recurring_task_settings(self)` - Save recurring task settings to user preferences.

@@ -129,6 +129,8 @@ Logging constraints:
 
 For test coverage of error handling (see section 7. "Testing Error Handling" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and sections 1 and 3 of [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)).
 
+**Audit exclusions:** When a function intentionally has no or simpler error handling (e.g. pure default-data factories called only from a decorated caller, or a small try/except that must not return a default), add `# error_handling_exclude` or `# error handling exclude` (optionally with a reason). The error-handling analyzer then skips that function and does not flag it as missing error handling or as a Phase 1 candidate.
+
 AI routing:
 
 - When adding or changing error handling, also:

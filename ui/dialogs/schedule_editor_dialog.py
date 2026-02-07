@@ -18,6 +18,11 @@ from core.schedule_management import clear_schedule_periods_cache, set_schedule_
 from core.ui_management import (
     load_period_widgets_for_category,
     collect_period_data_from_widgets,
+    find_lowest_available_period_number,
+    add_period_row_to_layout,
+    remove_period_row_from_layout,
+    _number_from_regex,
+    _DEFAULT_PERIOD_DATA,
 )
 from core.error_handling import handle_errors
 from core.user_data_validation import _shared__title_case, validate_schedule_periods
@@ -130,44 +135,34 @@ class ScheduleEditorDialog(QDialog):
                 f"Error loading schedule data for user {self.user_id}, category {self.category}: {e}"
             )
 
+    def _after_add_period(self, period_widget):
+        """Set creation order and resort after adding a period (for add_period_row_to_layout)."""
+        # error_handling_exclude: nested callback; caller add_new_period is decorated
+        period_widget.creation_order = self.creation_counter
+        self.creation_counter += 1
+        self.resort_period_widgets()
+
     @handle_errors("adding new period", default_return=None)
     def add_new_period(self, period_name=None, period_data=None):
         """Add a new period row using the PeriodRowWidget."""
+        # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
         if period_name is None:
-            # Use descriptive name for default periods (title case for consistency)
-            # Replace underscores with spaces before applying title case
             category_display = self.category.replace("_", " ").title()
             if len(self.period_widgets) == 0:
                 period_name = f"{category_display} Message Default"
             else:
-                # Find the lowest available number for new periods
-                next_number = self.find_lowest_available_period_number()
-                period_name = f"{category_display} Message {next_number}"
+                period_name = f"{category_display} Message {self.find_lowest_available_period_number()}"
         if period_data is None:
-            period_data = {
-                "start_time": "18:00",
-                "end_time": "20:00",
-                "active": True,
-                "days": ["ALL"],
-            }
-
-        # Create the period row widget
-        period_widget = PeriodRowWidget(self, period_name, period_data)
-
-        # Connect the delete signal
-        period_widget.delete_requested.connect(self.remove_period_row)
-
-        # Assign creation order for sorting
-        period_widget.creation_order = self.creation_counter
-        self.creation_counter += 1
-
-        # Store reference first
-        self.period_widgets.append(period_widget)
-
-        # Re-sort the layout to maintain proper order (ALL at bottom)
-        self.resort_period_widgets()
-
-        return period_widget
+            period_data = dict(_DEFAULT_PERIOD_DATA)
+        return add_period_row_to_layout(
+            self.periods_layout,
+            self.period_widgets,
+            period_name,
+            period_data,
+            self,
+            self.remove_period_row,
+            after_add_callback=self._after_add_period,
+        )
 
     @handle_errors("resorting period widgets", default_return=None)
     def resort_period_widgets(self):
@@ -211,64 +206,43 @@ class ScheduleEditorDialog(QDialog):
     @handle_errors("finding lowest available period number", default_return=2)
     def find_lowest_available_period_number(self):
         """Find the lowest available number for new period names."""
-        try:
-            used_numbers = set()
-            for widget in self.period_widgets:
-                period_name = widget.get_period_name()
-                # Extract number from period name (e.g., "Category Message 2" -> 2)
-                import re
-
-                match = re.search(r"Message\s+(\d+)$", period_name)
-                if match:
-                    used_numbers.add(int(match.group(1)))
-
-            # Find the lowest available number starting from 2
-            number = 2
-            while number in used_numbers:
-                number += 1
-            return number
-        except Exception as e:
-            logger.error(f"Error finding lowest available period number: {e}")
-            return 2
+        # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
+        def number_from_widget(w):
+            # error_handling_exclude: nested helper; caller find_lowest_available_period_number is decorated
+            name = w.get_period_name()
+            return _number_from_regex(name, r"Message\s+(\d+)$")
+        return find_lowest_available_period_number(
+            self.period_widgets, number_from_widget
+        )
 
     @handle_errors("removing period row")
     def remove_period_row(self, row_widget):
         """Remove a period row and store it for undo."""
-        try:
-            # Prevent deletion of "ALL" periods for category messages
-            if isinstance(row_widget, PeriodRowWidget):
-                period_name = row_widget.get_period_name()
-                if period_name.upper() == "ALL" and self.category not in (
+        # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
+        def guard(rw):
+            # error_handling_exclude: nested guard; caller remove_period_row is decorated
+            if isinstance(rw, PeriodRowWidget):
+                name = rw.get_period_name()
+                if name.upper() == "ALL" and self.category not in (
                     "tasks",
                     "checkin",
                 ):
-                    from PySide6.QtWidgets import QMessageBox
-
                     QMessageBox.information(
                         self,
                         "Cannot Delete ALL Period",
                         "The 'ALL' period cannot be deleted as it is a system-managed period that ensures messages can always be sent.",
                     )
-                    return
+                    return True
+            return False
 
-            # Store the deleted period data for undo
-            if isinstance(row_widget, PeriodRowWidget):
-                period_data = row_widget.get_period_data()
-                deleted_data = {
-                    "period_name": period_data["name"],
-                    "start_time": period_data["start_time"],
-                    "end_time": period_data["end_time"],
-                    "active": period_data["active"],
-                    "days": period_data["days"],
-                }
-                self.deleted_periods.append(deleted_data)
-
-            self.periods_layout.removeWidget(row_widget)
-            row_widget.setParent(None)
-            row_widget.deleteLater()
-
-            if row_widget in self.period_widgets:
-                self.period_widgets.remove(row_widget)
+        try:
+            remove_period_row_from_layout(
+                row_widget,
+                self.periods_layout,
+                self.period_widgets,
+                self.deleted_periods,
+                guard_fn=guard,
+            )
         except Exception as e:
             logger.error(f"Error removing period row: {e}")
             raise

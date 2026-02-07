@@ -206,7 +206,14 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Update `_save_timing_data()` if location changes
 - [ ] Document the decision
 
-#### 3.5 Error handling coverage metric consistency
+#### 3.5 Expand analyze_duplicate_functions with body/structural similarity
+**Status**: PENDING  
+**Tasks**:
+- [ ] Extend `development_tools/functions/analyze_duplicate_functions.py` to improve recall: pairing is currently name-token only, so functions with different names but similar logic are never compared.
+- [ ] Add an optional body/structural similarity pass: e.g. normalize function body (or AST node-type sequence), compute similarity for candidate pairs (same file/module or expanded set), merge or report alongside name-based groups.
+- [ ] Consider config/CLI (e.g. `--consider-body-similarity`) or a separate script for structural duplicate detection; document cost (more pairs to score) and how to cap it.
+
+#### 3.6 Error handling coverage metric consistency
 **Status**: PENDING  
 **Tasks**:
 - [ ] Validate metrics when missing functions are non-zero
@@ -214,7 +221,7 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Standardize calculation if discrepancy appears
 - [ ] Ensure reports show consistent values
 
-#### 3.6 Pyright duplicate declaration investigation
+#### 3.7 Pyright duplicate declaration investigation
 **Status**: PENDING  
 **Tasks**:
 - [ ] Compare duplicate `generate_dependency_report()` implementations and merge/remove
@@ -222,7 +229,7 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Investigate duplicate methods in `tool_wrappers.py` and merge/remove
 - [ ] Document the decision and remove orphaned code
 
-#### 3.7 Rename generate_function_docstrings to fix_function_docstrings
+#### 3.8 Rename generate_function_docstrings to fix_function_docstrings
 **Status**: PENDING  
 **Tasks**:
 - [ ] Rename file: `development_tools/functions/generate_function_docstrings.py` -> `fix_function_docstrings.py`

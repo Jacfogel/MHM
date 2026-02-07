@@ -1,8 +1,10 @@
 # Duplicate Functions Investigation
 
+
+> **File**: `development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md`
 > **Temporary planning file.** This doc supports refactor planning and audit follow-up. It can be archived or removed once duplicate-group refactors are done and the duplicate-functions report is no longer in active use for prioritization. Do not treat as long-term project documentation.
 
-> **Context**: AI_PRIORITIES.md and `development_tools/functions/jsons/analyze_duplicate_functions_results.json` list duplicate groups from the duplicate-functions analyzer. This document covers all reported groups with verdicts.
+> **Context**: AI_PRIORITIES.md and `development_tools/functions/jsons/analyze_duplicate_functions_results.json` list duplicate groups from the duplicate-functions analyzer. This document covers all reported groups with verdicts. For exclusion and tool behavior, see [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) (Duplicate function analysis).
 
 ## Audit run (2026-02-06 full audit) and pipeline fix
 
@@ -57,6 +59,12 @@
 **Verdict: Not duplication — intentional polymorphism.**
 
 MessageFormatter is the abstract base; Text produces plain text (Markdown-style); Email produces HTML. Same structure (title, fields, footer), different output by design. No refactor needed.
+
+---
+
+## Thin wrappers (add_new_period, remove_period_row, find_lowest_available_period_number)
+
+The three UIs (CheckinSettingsWidget, TaskSettingsWidget, ScheduleEditorDialog) keep **public methods** with these names because: **Qt signals** (e.g. `pushButton_add_new_period.clicked.connect(lambda: self.add_new_period())`) and **dialog→widget API** (e.g. `task_management_dialog` calls `self.task_widget.add_new_period()`). Removing these wrappers would require changing all signal connections and dialog call sites to call shared helpers directly—a larger, API-breaking refactor. The current design keeps the public API stable and delegates implementation to `core/ui_management.py` helpers.
 
 ---
 
@@ -171,7 +179,7 @@ Same pattern as groups 21–24 for the first two. The third is an internal helpe
 ## Recommendations
 
 1. **No action (polymorphism or intentional pattern)**: Groups 1, 5, 13 (format_message, get_color_for_type, register_with_platform); 9–12, 15 (user_data_manager class+module); 7 (async vs sync); 14 (get_user_data_summary); 18 (keyPressEvent); 22 (cache clear); 23 (get_welcome_message core vs discord); 24 (DiscordBot/EmailBot send_message); 26–28.
-2. **Optional refactor (copy-paste or thin wrappers)**: Groups 2, 3, 25 (period row add/remove and find_lowest_available_period_number in Checkin/Task/Schedule UI); Group 4 (_is_valid_intent); Group 6 (find_task_by_identifier); Group 8 (command parsing prompt merge); Group 20 (_get_user_data__load_* in user_data_handlers).
+2. **Refactored 2026-02-06**: Groups 2, 3, 25 (period row helpers in core/ui_management.py); Group 4 (_is_valid_intent → intent_validation.is_valid_intent); Group 6 (find_task_by_identifier → _find_task_by_identifier_for_operation); Group 8 (command parsing prompt merged with clarification flag); Group 20 (_get_user_data__load_* → _get_user_data__load_impl).
 3. **Optional (similar structure, different ops)**: Groups 16, 19, 21, 29 — shared helper only if logic actually converges.
 4. **Single-function groups**: Filtered out by the tool (11 in this run).
 
