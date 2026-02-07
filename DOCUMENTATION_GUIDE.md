@@ -466,23 +466,29 @@ In body content, multiple links to the same file are allowed.
 This section defines how to keep doc pairs and related references
 synchronized.
 
-### 4.1. Paired documentation files
+### 4.1. Paired documentation files (canonical list)
 
-Paired human/AI docs must share the same H2 heading set. If you add,
-remove, rename, or reorder an H2 in one doc, you must do the same in the
-paired doc.
+Paired docs (first-line and detailed counterparts) must share the same
+H2 heading set. If you add, remove, rename, or reorder an H2 in one doc,
+you must do the same in the paired doc.
 
-Common pairs include:
+**Canonical list of paired documentation:**
 
+-   DEVELOPMENT_WORKFLOW.md and
+    ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md
+-   ARCHITECTURE.md and ai_development_docs/AI_ARCHITECTURE.md
 -   DOCUMENTATION_GUIDE.md and
     ai_development_docs/AI_DOCUMENTATION_GUIDE.md
--   ARCHITECTURE.md and ai_development_docs/AI_ARCHITECTURE.md
 -   logs/LOGGING_GUIDE.md and ai_development_docs/AI_LOGGING_GUIDE.md
 -   tests/TESTING_GUIDE.md and ai_development_docs/AI_TESTING_GUIDE.md
 -   core/ERROR_HANDLING_GUIDE.md and
     ai_development_docs/AI_ERROR_HANDLING_GUIDE.md
 -   development_docs/BACKUP_GUIDE.md and
     ai_development_docs/AI_BACKUP_GUIDE.md
+-   development_docs/CHANGELOG_DETAIL.md and
+    ai_development_docs/AI_CHANGELOG.md
+-   development_tools/DEVELOPMENT_TOOLS_GUIDE.md and
+    development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md
 
 ### 4.2. Synchronization workflow (practical)
 

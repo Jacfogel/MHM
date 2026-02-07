@@ -405,15 +405,7 @@ Priority
   - 59.4% (17572 of 29578 statements)
 - note that issue predates addition of caching, and isn't explained by test failures or caching issues
 
-**Test Coverage Caching**
-- Test file cached results should be invalidated if tests fail or error. Like it shouldn't cache results for test files that have failing or erroring tests. 
-
 **Email service not showing as active**
 - after running for some time, checking the UI will show the service discord and ngrok running, but email not running
 - logs don't indicate email service failure
 - investigate and resolve
-
-**development_tools\config\config.py is not portable**
-- development_tools\config\config.py says "This module is contains MHM-specific default values. For other projects, override these via development_tools_config.json in the project root.", but it shouldn't
-- it's supposed to contain default, non-project specific, values, development_tools_config.json should contain project specific values, such as those for the MHM project in which the development tools suite currently resides. 
-- Also development_tools_config.json does not live in the project root, it lives in development_tools\config\

@@ -4,8 +4,10 @@
 > **Purpose**: Lightweight summary of recent changes
 > **Style**: Concise, essential-only, scannable
 > **See [development_docs/CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the full history**
+
 ## Overview
 This file is a lightweight summary of recent changes for AI collaborators. It provides essential context without overwhelming detail. For the complete historical record, see [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md).
+
 ## How to Update This File
 1. Add a new entry at the top summarising the change in 2-4 bullets.
 2. Keep the title short: "YYYY-MM-DD - Brief Title **COMPLETED**".
@@ -27,6 +29,10 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-06 - Cursor rules and commands refresh **COMPLETED**
+- **Rules**: Refreshed all eight `.cursor/rules/*.mdc` to current project state (run_development_tools.py, .venv, doc paths, duplicate frontmatter removed); line-by-line review against AI_* docs (Tier 1/2/3, time_utilities, legacy path fix_legacy_references.py, testing markers, etc.). Renamed ai-tools.mdc -> dev_tools.mdc; added cache/cleanup and portability (development_tools_config.json, logs/ai_dev_tools.log). All audit levels rewrite AI_STATUS/AI_PRIORITIES/consolidated_report; paired docs list completed (Backup, Changelog, Dev Tools Guide); refs to standalone docs (for all audiences) added in applicable rules (CONFIGURATION_REFERENCE, USER_DATA_MODEL in core; HOW_TO_RUN in critical; README, PROJECT_VISION in context; UI_GUIDE in ui; test guides in testing). Framing: paired = first-line + detailed counterparts; AI uses rules and AI_* as first-line refs but consults any relevant doc.
+- **Commands**: Reviewed and updated `.cursor/commands/*.md` for accuracy (see CHANGELOG_DETAIL for file-level list). **Close-session follow-ups**: Removed `git.md` (user uses AI_CHANGELOG entry as commit message and runs audit/tests). **triage-issue.md**: step 1 "Check logs first" (`logs/errors.log`, AI_LOGGING_GUIDE). **review.md**: step 3 doc/test obligation (paired docs, DOCUMENTATION_GUIDE 4.1). **explore-options.md**: suggest `/audit` if AI_PRIORITIES/AI_STATUS stale. **critical.mdc**: changelog rule (one entry per session, edit existing). **backup.md**: new command (when to use, Copy-Item one-liner, AI_BACKUP_GUIDE). **close.md**: step 5 commit/push wording (no /git reference).
+
 ### 2026-02-06 - Duplicate function refactors (Groups 2-3, 14, 16, 18, 20, 25) and AI_PRIORITIES **COMPLETED**
 - Task handler: single `_find_task_by_identifier_for_operation(tasks, identifier, context)`; tests updated.
 - Intent validation: new `communication/message_processing/intent_validation.py`; command_parser and interaction_manager use `is_valid_intent`.
@@ -34,7 +40,7 @@ Guidelines:
 - User-data loaders: `_get_user_data__load_impl` in core/user_data_handlers.py; account, preferences, context, schedules delegate to it.
 - Period row: `find_lowest_available_period_number`, `add_period_row_to_layout`, `remove_period_row_from_layout` in core/ui_management.py; CheckinSettingsWidget, TaskSettingsWidget, ScheduleEditorDialog refactored to use them.
 - AI_PRIORITIES: docstring for guard; @handle_errors on is_valid_intent and _get_user_data__load_impl; try/except kept in _account_normalize_after_load; removed unused PeriodRowWidget imports; TODO.md trimmed. Audit exclusions: documented `# error_handling_exclude` in both ERROR_HANDLING_GUIDE.md; added marker to user_data_handlers default-data helpers and _account_normalize_after_load, nested guard/number_from_widget in checkin_settings_widget and schedule_editor_dialog, and later _after_add_period and number_from_widget in checkin/task_settings_widget so audit no longer flags them. Thin wrappers: DUPLICATE_FUNCTIONS_INVESTIGATION.md notes wrappers required for Qt/dialog API. Run locally: doc-fix --fix-ascii, doc-fix --add-addresses.
-- analyze_duplicate_functions.py: exclusion tag `# duplicate_functions_exclude`; doc in DEVELOPMENT_TOOLS_GUIDE.md; period-row wrappers (9) marked; record deduplication uses project-relative path (no self-pairs); details.functions_excluded; docstring notes future body/structural similarity. AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4: new §3.5 body/structural similarity task; renumbered 3.6–3.8.
+- analyze_duplicate_functions.py: exclusion tag `# duplicate_functions_exclude`; doc in DEVELOPMENT_TOOLS_GUIDE.md; period-row wrappers (9) marked; record deduplication uses project-relative path (no self-pairs); details.functions_excluded; docstring notes future body/structural similarity. AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4: new Section 3.5 body/structural similarity task; renumbered 3.6-3.8.
 
 ### 2026-02-06 - Duplicate-functions investigation, tool improvements, planning doc **COMPLETED**
 - Duplicate-functions: investigated all reported groups; created development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md as a **temporary planning file** (verdicts and refactor recommendations; archive or remove when refactors are done).

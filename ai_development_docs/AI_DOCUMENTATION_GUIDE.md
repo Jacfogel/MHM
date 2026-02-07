@@ -119,10 +119,11 @@ Metadata link deduplication rule (human doc behavior):
 
 ## 4. Documentation Synchronization Checklist
 
-### 4.1. Paired documentation files
+### 4.1. Paired documentation files (canonical list)
 
-- Paired human/AI docs must share the same H2 heading set.
+- Paired docs (first-line and detailed counterparts) must share the same H2 heading set.
 - Any H2 structural change in one doc must be mirrored in the other doc immediately.
+- For the full canonical list of paired docs, see [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md) section 4.1.
 
 ### 4.2. Synchronization workflow (practical)
 

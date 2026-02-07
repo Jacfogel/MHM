@@ -334,6 +334,24 @@ These are surfaced by the tools and remain outstanding but are not tool-suite ch
 
 ---
 
+## Added by human developer, to be properly incorporated into plan:
+
+**development_tools\config\config.py is not portable**
+- development_tools\config\config.py says "This module is contains MHM-specific default values. For other projects, override these via development_tools_config.json in the project root.", but it shouldn't
+- it's supposed to contain default, non-project specific, values, development_tools_config.json should contain project specific values, such as those for the MHM project in which the development tools suite currently resides. 
+- Also development_tools_config.json does not live in the project root, it lives in development_tools\config\
+
+**add --full and/or --all to applicable development tools**
+- ccurrently to my knowledge audit and cleanup accept --full, doc-fix accepts --all, and I don't know what other things other commands accept, but I'd like to take a look at the additional arguments and standardize thems omewhat, perhaps also incorporate common aliases like "clean-up" and "full-audit"
+
+**add/improve caching for development tools**
+- investigate whether there are any development tools that don't use caching but could benefit from it and add it
+- investigate how we might improve the quality and value of the caching for development tools, especially test coverage and other heavy components
+- investigate whether changes to development_tools\config\development_tools_config.json properly result in invalidation of caching for applicable tools and if not implement it
+- investigate whether changes to the development tools themselves invalidate cached data for those tools and if not implement it.
+- test file cached results should be invalidated if the tests or and of the covered domain(s) are changed
+- Test file cached results should be invalidated if tests fail or error. Like it shouldn't cache results for test files that have failing or erroring tests. 
+
 ## Related Documents
 
 - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` - Prior version with detailed history
