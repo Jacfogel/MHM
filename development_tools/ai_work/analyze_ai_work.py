@@ -29,6 +29,7 @@ if str(project_root) not in sys.path:
 # Handle both relative and absolute imports
 try:
     from . import config
+    from ..shared.standard_exclusions import should_exclude_file
 except ImportError:
     import sys
     from pathlib import Path
@@ -37,6 +38,7 @@ except ImportError:
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
+    from development_tools.shared.standard_exclusions import should_exclude_file
 
 from core.logger import get_component_logger
 
@@ -44,6 +46,45 @@ logger = get_component_logger("development_tools")
 
 # Load config at module level
 VALIDATE_AI_WORK_CONFIG = config.get_analyze_ai_work_config()
+
+
+def _should_exclude_path(
+    path_value: str, tool_type: str, context: str, require_exists: bool = False
+) -> bool:
+    """Apply standard exclusions only for paths under the project root.
+
+    This avoids excluding explicit temp/fixture paths outside the project root
+    (common in tests), while still honoring standard rules for in-project paths.
+    """
+    if not path_value:
+        return False
+
+    path_obj = Path(path_value)
+    if require_exists and not path_obj.exists():
+        return False
+
+    if path_obj.is_absolute():
+        try:
+            project_root = Path(config.get_project_root()).resolve()
+        except Exception:
+            return False
+
+        try:
+            rel_path = path_obj.resolve().relative_to(project_root)
+        except Exception:
+            return False
+
+        rel_path_str = str(rel_path).replace("\\", "/")
+        # Allow explicit test fixtures/temp paths used in unit tests.
+        if rel_path_str.startswith("tests/data/") or rel_path_str.startswith(
+            "tests/fixtures/"
+        ):
+            return False
+        return should_exclude_file(
+            rel_path_str, tool_type=tool_type, context=context
+        )
+
+    return should_exclude_file(path_value, tool_type=tool_type, context=context)
 
 
 def validate_documentation_completeness(doc_file: str, code_files: List[str]) -> Dict:
@@ -55,6 +96,15 @@ def validate_documentation_completeness(doc_file: str, code_files: List[str]) ->
         "extra_items": [],
         "warnings": [],
     }
+
+    # Skip excluded documentation files (only when under project root)
+    if _should_exclude_path(
+        doc_file, tool_type="documentation", context="development", require_exists=True
+    ):
+        results["warnings"].append(
+            f"Documentation file {doc_file} excluded by standard rules"
+        )
+        return results
 
     # Check if documentation file exists
     doc_path = Path(doc_file)
@@ -86,6 +136,10 @@ def validate_documentation_completeness(doc_file: str, code_files: List[str]) ->
     # Extract actual items from code files
     actual_items = set()
     for code_file in code_files:
+        if _should_exclude_path(
+            code_file, tool_type="analysis", context="development", require_exists=True
+        ):
+            continue
         code_path = Path(code_file)
         if code_path.exists():
             try:
@@ -137,6 +191,10 @@ def validate_code_consistency(changed_files: List[str]) -> Dict:
     # Check for consistent imports
     import_patterns = {}
     for file_path in changed_files:
+        if _should_exclude_path(
+            file_path, tool_type="analysis", context="development", require_exists=True
+        ):
+            continue
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
@@ -198,6 +256,10 @@ def validate_file_structure(
 
     # Check file locations
     for file_path in created_files + modified_files:
+        if _should_exclude_path(
+            file_path, tool_type="analysis", context="development", require_exists=True
+        ):
+            continue
         path = Path(file_path)
 
         # Check if file is in appropriate directory
@@ -214,6 +276,10 @@ def validate_file_structure(
 
     # Check naming conventions
     for file_path in created_files + modified_files:
+        if _should_exclude_path(
+            file_path, tool_type="analysis", context="development", require_exists=True
+        ):
+            continue
         path = Path(file_path)
 
         if path.suffix == ".py":

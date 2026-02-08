@@ -89,6 +89,11 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     return 0 if success else 1
 
 
+def _full_audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Alias for audit --full."""
+    return _audit_command(service, ["--full", *argv])
+
+
 def _docs_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     if argv:
         if any(arg not in ("-h", "--help") for arg in argv):
@@ -246,6 +251,11 @@ def _doc_fix_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     )
     parser.add_argument("--all", action="store_true", help="Apply all fix operations")
     parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Alias for --all (apply all fix operations).",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Show what would be changed without making changes",
@@ -267,7 +277,7 @@ def _doc_fix_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     if args.convert_links:
         fix_types.append("convert-links")
 
-    if args.all:
+    if args.all or args.full:
         fix_type = "all"
     elif len(fix_types) == 1:
         fix_type = fix_types[0]
@@ -400,6 +410,11 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         help="Clean everything including tool caches (default: only __pycache__ and temp test files)",
     )
     parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Alias for --full (clean everything including tool caches).",
+    )
+    parser.add_argument(
         "--cache",
         action="store_true",
         help="Clean cache directories (__pycache__, .pytest_cache) and standardized storage cache files",
@@ -420,11 +435,12 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
 
     if "-h" in argv or "--help" in argv:
         print(
-            "Usage: cleanup [--full] [--cache] [--test-data] [--coverage] [--dry-run]"
+            "Usage: cleanup [--full|--all] [--cache] [--test-data] [--coverage] [--dry-run]"
         )
         print(
             "  --full       Clean everything including tool caches (default: only __pycache__ and temp test files)"
         )
+        print("  --all        Alias for --full")
         print(
             "  --cache      Clean cache directories (__pycache__, .pytest_cache) and standardized storage cache files"
         )
@@ -444,15 +460,15 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         args, unknown = parser.parse_known_args(argv)
         if unknown:
             print(f"Unknown arguments: {unknown}")
-            print(
-                "Usage: cleanup [--full] [--cache] [--test-data] [--coverage] [--dry-run]"
-            )
-            return 2
+        print(
+            "Usage: cleanup [--full|--all] [--cache] [--test-data] [--coverage] [--dry-run]"
+        )
+        return 2
     except SystemExit:
         return 2
 
     # If --full is specified, clean everything
-    if args.full:
+    if args.full or args.all:
         cache = True
         test_data = True
         coverage = True
@@ -554,6 +570,14 @@ COMMAND_REGISTRY = OrderedDict(
                 "audit",
                 _audit_command,
                 "Run audit (Tier 2 - standard). Use --quick for Tier 1, --full for Tier 3.",
+            ),
+        ),
+        (
+            "full-audit",
+            CommandRegistration(
+                "full-audit",
+                _full_audit_command,
+                "Alias for `audit --full` (Tier 3 - comprehensive analysis).",
             ),
         ),
         (
@@ -666,6 +690,14 @@ COMMAND_REGISTRY = OrderedDict(
                 "cleanup",
                 _cleanup_command,
                 "Clean up project cache and temporary files.",
+            ),
+        ),
+        (
+            "clean-up",
+            CommandRegistration(
+                "clean-up",
+                _cleanup_command,
+                "Alias for `cleanup` (clean project cache and temporary files).",
             ),
         ),
         (

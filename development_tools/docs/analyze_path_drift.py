@@ -130,6 +130,7 @@ class PathDriftAnalyzer:
             use_cache=use_cache,
             tool_name="analyze_path_drift",
             domain="docs",
+            tool_paths=[Path(__file__)],
         )
 
     def _setup_enhanced_filters(self):

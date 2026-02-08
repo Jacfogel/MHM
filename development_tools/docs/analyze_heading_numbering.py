@@ -31,8 +31,10 @@ from core.logger import get_component_logger
 # Handle both relative and absolute imports
 if __name__ != "__main__" and __package__ and "." in __package__:
     from .. import config
+    from ..shared.standard_exclusions import should_exclude_file
 else:
     from development_tools import config
+    from development_tools.shared.standard_exclusions import should_exclude_file
 
 # Load external config on module import (if not already loaded)
 try:
@@ -81,6 +83,7 @@ class HeadingNumberingAnalyzer:
             use_cache=use_cache,
             tool_name="analyze_heading_numbering",
             domain="docs",
+            tool_paths=[Path(__file__)],
         )
 
     def check_heading_numbering(self) -> Dict[str, List[str]]:
@@ -113,6 +116,10 @@ class HeadingNumberingAnalyzer:
         for file_path in files_to_check:
             # Skip changelog files - they have their own structure
             if is_changelog_file(file_path):
+                continue
+            if should_exclude_file(
+                file_path, tool_type="documentation", context="development"
+            ):
                 continue
 
             full_path = self.project_root / file_path

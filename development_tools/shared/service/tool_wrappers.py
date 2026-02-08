@@ -1109,7 +1109,6 @@ class ToolWrappersMixin:
 
     def run_analyze_legacy_references(self) -> Dict:
         """Run analyze_legacy_references with structured data handling."""
-        logger.info("Analyzing legacy references...")
         try:
             from development_tools.legacy.analyze_legacy_references import (
                 LegacyReferenceAnalyzer,

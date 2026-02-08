@@ -336,6 +336,7 @@ def _gather_function_records(
         use_cache=use_cache,
         tool_name="analyze_duplicate_functions",
         domain="functions",
+        tool_paths=[Path(__file__)],
     )
 
     if include_tests and "tests" not in scan_dirs:

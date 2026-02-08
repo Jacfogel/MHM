@@ -30,9 +30,11 @@ from core.logger import get_component_logger
 try:
     from .. import config
     from ..shared.standard_exclusions import ALL_GENERATED_FILES
+    from ..shared.standard_exclusions import should_exclude_file
 except ImportError:
     from development_tools import config
     from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
+    from development_tools.shared.standard_exclusions import should_exclude_file
 
 # Ensure external config is loaded
 config.load_external_config()
@@ -80,6 +82,10 @@ class DocumentationAddressFixer:
             try:
                 rel_path = file_path.relative_to(self.project_root)
                 rel_path_str = str(rel_path).replace("\\", "/")
+                if should_exclude_file(
+                    rel_path_str, tool_type="documentation", context="development"
+                ):
+                    continue
                 if rel_path_str in generated_files:
                     continue
 

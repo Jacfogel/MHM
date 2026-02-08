@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-02-07 02:46:20",
+  "last_generated": "2026-02-08 04:20:35",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-02-07T02:46:20.352948",
+  "timestamp": "2026-02-08T04:20:35.585035",
   "successful": [
     "analyze_duplicate_functions",
     "analyze_functions",
@@ -50,8 +50,8 @@
           "groups_filtered_single_function": 11,
           "cache": {
             "total_files": 109,
-            "cached_files": 0,
-            "scanned_files": 109
+            "cached_files": 108,
+            "scanned_files": 1
           },
           "pairs_considered": 20000,
           "pairs_reported": 38,
@@ -83,7 +83,7 @@
                 "full_name": "_get_user_id_by_identifier__by_chat_id",
                 "class": null,
                 "file": "core/user_data_handlers.py",
-                "line": 2511,
+                "line": 2514,
                 "args": [
                   "chat_id"
                 ]
@@ -93,7 +93,7 @@
                 "full_name": "_get_user_id_by_identifier__by_chat_id",
                 "class": null,
                 "file": "core/user_data_handlers.py",
-                "line": 2511,
+                "line": 2514,
                 "args": [
                   "chat_id"
                 ]
@@ -110,7 +110,7 @@
                 "full_name": "_get_user_id_by_identifier__by_discord_user_id",
                 "class": null,
                 "file": "core/user_data_handlers.py",
-                "line": 2526,
+                "line": 2529,
                 "args": [
                   "discord_user_id"
                 ]
@@ -120,7 +120,7 @@
                 "full_name": "_get_user_id_by_identifier__by_discord_user_id",
                 "class": null,
                 "file": "core/user_data_handlers.py",
-                "line": 2526,
+                "line": 2529,
                 "args": [
                   "discord_user_id"
                 ]
@@ -137,7 +137,7 @@
                 "full_name": "_get_user_id_by_identifier__by_internal_username",
                 "class": null,
                 "file": "core/user_data_handlers.py",
-                "line": 2422,
+                "line": 2425,
                 "args": [
                   "internal_username"
                 ]
@@ -147,7 +147,7 @@
                 "full_name": "_get_user_id_by_identifier__by_internal_username",
                 "class": null,
                 "file": "core/user_data_handlers.py",
-                "line": 2422,
+                "line": 2425,
                 "args": [
                   "internal_username"
                 ]
@@ -255,7 +255,7 @@
                 "full_name": "_get_user_id_by_identifier__by_phone",
                 "class": null,
                 "file": "core/user_data_handlers.py",
-                "line": 2483,
+                "line": 2486,
                 "args": [
                   "phone"
                 ]
@@ -265,7 +265,7 @@
                 "full_name": "_get_user_id_by_identifier__by_phone",
                 "class": null,
                 "file": "core/user_data_handlers.py",
-                "line": 2483,
+                "line": 2486,
                 "args": [
                   "phone"
                 ]
@@ -309,7 +309,7 @@
                 "full_name": "_get_user_id_by_identifier__by_email",
                 "class": null,
                 "file": "core/user_data_handlers.py",
-                "line": 2455,
+                "line": 2458,
                 "args": [
                   "email"
                 ]
@@ -319,7 +319,7 @@
                 "full_name": "_get_user_id_by_identifier__by_email",
                 "class": null,
                 "file": "core/user_data_handlers.py",
-                "line": 2455,
+                "line": 2458,
                 "args": [
                   "email"
                 ]
@@ -2577,7 +2577,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-07T02:34:54"
+      "timestamp": "2026-02-08T04:15:18"
     },
     "analyze_functions": {
       "success": true,
@@ -2726,7 +2726,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-07T02:34:54"
+      "timestamp": "2026-02-08T04:15:17"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -3124,11 +3124,6 @@
               "has_doc": true
             },
             {
-              "file": "core/backup_manager.py",
-              "function": "__init__",
-              "has_doc": true
-            },
-            {
               "file": "core/checkin_analytics.py",
               "function": "__init__",
               "has_doc": true
@@ -3410,11 +3405,6 @@
             },
             {
               "file": "run_headless_service.py",
-              "function": "main",
-              "has_doc": true
-            },
-            {
-              "file": "run_mhm.py",
               "function": "main",
               "has_doc": true
             }
@@ -4689,7 +4679,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-07T02:34:47"
+      "timestamp": "2026-02-08T04:15:12"
     },
     "analyze_function_registry": {
       "success": true,
@@ -6917,7 +6907,7 @@
           "total_issues": 20
         }
       },
-      "timestamp": "2026-02-07T02:34:57"
+      "timestamp": "2026-02-08T04:15:20"
     },
     "analyze_package_exports": {
       "success": true,
@@ -14642,7 +14632,7 @@
           }
         }
       },
-      "timestamp": "2026-02-07T02:35:11"
+      "timestamp": "2026-02-08T04:15:37"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -14657,7 +14647,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-07T02:35:02"
+      "timestamp": "2026-02-08T04:15:26"
     },
     "analyze_documentation": {
       "success": true,
@@ -14681,7 +14671,6 @@
                 "communication/communication_channels/discord/DISCORD_GUIDE.md",
                 "communication/COMMUNICATION_GUIDE.md",
                 "core/ERROR_HANDLING_GUIDE.md",
-                "development_docs/BACKUP_GUIDE.md",
                 "development_docs/CHANGELOG_DETAIL.md",
                 "development_docs/PLANS.md",
                 "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
@@ -14689,7 +14678,6 @@
                 "DEVELOPMENT_WORKFLOW.md",
                 "DOCUMENTATION_GUIDE.md",
                 "logs/LOGGING_GUIDE.md",
-                "scripts/SCRIPTS_GUIDE.md",
                 "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
                 "tests/MANUAL_DISCORD_TEST_GUIDE.md",
                 "tests/MANUAL_TESTING_GUIDE.md",
@@ -14698,7 +14686,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19593004921826068,
+              "similarity_score": 0.19959578236608583,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -14713,16 +14701,6 @@
               "priority": "medium",
               "similarity_score": 0.2332993849089826,
               "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
-            },
-            {
-              "category": "High Section Overlap",
-              "files": [
-                "ai_development_docs/AI_BACKUP_GUIDE.md",
-                "development_docs/BACKUP_GUIDE.md"
-              ],
-              "overlap_count": 13,
-              "priority": "high",
-              "suggestion": "These files share 13 sections - consider consolidating or clearly differentiating their purposes"
             },
             {
               "category": "High Section Overlap",
@@ -14758,13 +14736,11 @@
             "communication/communication_channels/discord/DISCORD_GUIDE.md",
             "core/ERROR_HANDLING_GUIDE.md",
             "core/USER_DATA_MODEL.md",
-            "development_docs/BACKUP_GUIDE.md",
             "development_docs/CHANGELOG_DETAIL.md",
             "development_docs/PLANS.md",
             "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
             "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
             "logs/LOGGING_GUIDE.md",
-            "scripts/SCRIPTS_GUIDE.md",
             "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
             "tests/MANUAL_DISCORD_TEST_GUIDE.md",
             "tests/MANUAL_TESTING_GUIDE.md",
@@ -14893,7 +14869,7 @@
               ]
             },
             "TODO.md": {
-              "content_length": 28577,
+              "content_length": 26432,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
               "section_count": 13,
               "sections": [
@@ -14942,7 +14918,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 200019,
+              "content_length": 200595,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 238,
               "sections": [
@@ -15143,25 +15119,8 @@
                 "3.2. Validation and tolerance"
               ]
             },
-            "development_docs/BACKUP_GUIDE.md": {
-              "content_length": 20133,
-              "header_info": "# Backup and Archive System Guide\n\n> **File**: `development_docs/BACKUP_GUIDE.md`  \n> **Pair**: [AI_BACKUP_GUIDE.md](../ai_development_docs/AI_BACKUP_GUIDE.md)  \n> **Audience**: Developers and users  ",
-              "section_count": 46,
-              "sections": [
-                "Introduction",
-                "Overview",
-                "1. Log Rotation System",
-                "1.1. Location",
-                "1.2. How It Works",
-                "1.3. Restoring Log Files",
-                "2. User Data Backups",
-                "2.1. Location",
-                "2.2. How It Works",
-                "2.3. Restoring User Data from Backups"
-              ]
-            },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 117319,
+              "content_length": 118173,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
               "section_count": 53,
               "sections": [
@@ -15195,7 +15154,7 @@
               ]
             },
             "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 18319,
+              "content_length": 18606,
               "header_info": "# AI Development Tools Guide\n\n> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: AI collaborators and automated tooling  \n> **Purpose**: Routing and constraints for all AI",
               "section_count": 11,
               "sections": [
@@ -15212,7 +15171,7 @@
               ]
             },
             "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 32237,
+              "content_length": 32714,
               "header_info": "# Development Tools Guide\n\n> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`\n> **Audience**: Human maintainers and contributors\n> **Purpose**: Detailed reference for every development tool, i",
               "section_count": 17,
               "sections": [
@@ -15243,23 +15202,6 @@
                 "3.1. DEBUG",
                 "3.2. INFO",
                 "3.3. WARNING"
-              ]
-            },
-            "scripts/SCRIPTS_GUIDE.md": {
-              "content_length": 7268,
-              "header_info": "# Scripts Directory\n\n\n> **File**: `scripts/SCRIPTS_GUIDE.md`\n> **Audience**: Developers using MHM utility scripts and tools  \n> **Purpose**: Guide for utility scripts, migration tools, and testing scr",
-              "section_count": 14,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Structure",
-                "2. Available Scripts",
-                "2.1. Project Cleanup (`scripts/`)",
-                "2.2. Testing Tools (`testing/`)",
-                "2.3. AI Testing (`testing/ai/`)",
-                "2.4. Debug Tools (`debug/`)",
-                "2.5. Utilities (`utilities/`)",
-                "2.6. Cleanup Tools (`utilities/cleanup/`)"
               ]
             },
             "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
@@ -15364,10 +15306,6 @@
           "missing": [],
           "placeholders": [],
           "section_overlaps": {
-            "1. Log Rotation System": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
-            ],
             "1. Purpose and Scope": [
               "ai_development_docs/AI_LOGGING_GUIDE.md",
               "ai_development_docs/AI_TESTING_GUIDE.md",
@@ -15382,61 +15320,13 @@
               "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
               "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md"
             ],
-            "10. Best Practices": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
-            ],
-            "11. Related Documentation": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
-            ],
             "2. Test Suite Structure": [
               "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
               "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md"
             ],
-            "2. User Data Backups": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
-            ],
-            "3. Message Archives": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
-            ],
             "3. Prerequisites": [
               "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
               "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md"
-            ],
-            "4. Development Tools Rotation": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
-            ],
-            "5. External Archive Directory": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
-            ],
-            "6. Compression Files (.gz)": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
-            ],
-            "7. Unified Retention Policy": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
-            ],
-            "8. Safety Procedures": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
-            ],
-            "9.1. Logs Not Rotating": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
-            ],
-            "9.2. Backups Not Created": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
-            ],
-            "9.3. Message Archives Empty": [
-              "ai_development_docs/AI_BACKUP_GUIDE.md",
-              "development_docs/BACKUP_GUIDE.md"
             ]
           }
         },
@@ -15445,7 +15335,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-07T02:34:46"
+      "timestamp": "2026-02-08T04:15:09"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -15519,7 +15409,7 @@
           }
         }
       },
-      "timestamp": "2026-02-07T02:35:10"
+      "timestamp": "2026-02-08T04:15:37"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -15534,7 +15424,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-07T02:35:04"
+      "timestamp": "2026-02-08T04:15:27"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -15549,7 +15439,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-07T02:35:09"
+      "timestamp": "2026-02-08T04:15:36"
     },
     "analyze_path_drift": {
       "success": true,
@@ -15562,7 +15452,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-07T02:35:00"
+      "timestamp": "2026-02-08T04:15:24"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -15577,7 +15467,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-07T02:35:10"
+      "timestamp": "2026-02-08T04:15:37"
     },
     "analyze_error_handling": {
       "success": true,
@@ -15605,12 +15495,12 @@
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "MHMError": 2,
-            "CommunicationError": 2,
             "handle_file_error": 3,
-            "safe_file_operation": 1,
             "FileOperationError": 8,
-            "AIError": 2
+            "AIError": 2,
+            "MHMError": 2,
+            "safe_file_operation": 1,
+            "CommunicationError": 2
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -15658,66 +15548,61 @@
           ]
         }
       },
-      "timestamp": "2026-02-07T02:34:54"
+      "timestamp": "2026-02-08T04:15:17"
     },
     "analyze_test_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 8284,
+          "total_issues": 8325,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "coverage": 71.9,
-            "statements": 29516,
-            "covered": 21232,
-            "missed": 8284,
-            "generated": "2026-02-07T02:46:12.919993"
+            "coverage": 72.1,
+            "statements": 29799,
+            "covered": 21474,
+            "missed": 8325,
+            "generated": null
           },
           "modules": [
             {
               "module": "communication",
-              "coverage": 69.1,
-              "missed": 2880
+              "coverage": 69.5,
+              "missed": 2888
             },
             {
               "module": "ui",
               "coverage": 70.4,
-              "missed": 1976
+              "missed": 1987
             },
             {
               "module": "core",
               "coverage": 73.1,
-              "missed": 2787
+              "missed": 2813
             },
             {
               "module": "notebook",
-              "coverage": 75.7,
+              "coverage": 76.0,
               "missed": 148
             },
             {
               "module": "ai",
-              "coverage": 77.9,
-              "missed": 379
+              "coverage": 78.3,
+              "missed": 375
             },
             {
               "module": "tasks",
-              "coverage": 81.2,
+              "coverage": 81.3,
               "missed": 102
             },
             {
               "module": "user",
-              "coverage": 95.8,
+              "coverage": 95.9,
               "missed": 12
             }
           ],
           "worst_files": [
-            {
-              "path": "notebook/__init__.py",
-              "coverage": 0.0,
-              "missing": 0
-            },
             {
               "path": "ui/widgets/checkin_settings_widget.py",
               "coverage": 44.5,
@@ -15730,18 +15615,23 @@
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 51.0,
-              "missing": 688
+              "coverage": 50.4,
+              "missing": 698
             },
             {
               "path": "communication/command_handlers/notebook_handler.py",
-              "coverage": 51.9,
+              "coverage": 52.1,
               "missing": 250
+            },
+            {
+              "path": "communication/message_processing/conversation_flow_manager.py",
+              "coverage": 59.9,
+              "missing": 405
             }
           ]
         }
       },
-      "timestamp": "2026-02-07T02:46:16"
+      "timestamp": "2026-02-08T04:20:31"
     },
     "analyze_test_markers": {
       "success": true,
@@ -15755,7 +15645,7 @@
           "missing": []
         }
       },
-      "timestamp": "2026-02-07T02:46:18"
+      "timestamp": "2026-02-08T04:20:34"
     },
     "generate_dev_tools_coverage": {
       "success": false,
@@ -18843,7 +18733,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-07T02:34:59"
+      "timestamp": "2026-02-08T04:15:26"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -18863,7 +18753,7 @@
           "missing_sections": []
         }
       },
-      "timestamp": "2026-02-07T02:35:04"
+      "timestamp": "2026-02-08T04:15:30"
     },
     "analyze_module_imports": {
       "success": true,
@@ -30849,7 +30739,7 @@
           }
         }
       },
-      "timestamp": "2026-02-07T02:34:56"
+      "timestamp": "2026-02-08T04:15:22"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -33659,7 +33549,7 @@
             "files_scanned": 423,
             "files_with_issues": 135,
             "total_unused": 377,
-            "cache_hits": 0,
+            "cache_hits": 422,
             "cache_misses": 0
           },
           "by_category": {
@@ -33677,7 +33567,7 @@
           "files_scanned": 423
         }
       },
-      "timestamp": "2026-02-07T02:37:51"
+      "timestamp": "2026-02-08T04:15:35"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -33727,15 +33617,15 @@
               ],
               [
                 "development_tools\\shared\\mtime_cache.py",
-                "#!/usr/bin/env python3\n\"\"\"\nMtime-based File Cache Utility\n\nProvides a reusable caching mechanism for file-based analyzers that checks\nfile modification times (mtime) to determine if cached results are still valid.\n\nUsage:\n    from development_tools.shared.mtime_cache import MtimeFileCache\n\n    cache = MtimeFileCache(\n        project_root=project_root,\n        use_cache=True,\n        tool_name='my_tool',\n        domain='docs'\n    )\n\n    # Check if file is cached\n    cached_results = cache.get_cached(file_path)\n    if cached_results is not None:\n        # Use cached results\n        return cached_results\n\n    # Process file and cache results\n    results = process_file(file_path)\n    cache.cache_results(file_path, results)\n    cache.save_cache()\n\"\"\"\n\nfrom pathlib import Path\nfrom typing import Dict, Optional, Any, TypeVar\n\nT = TypeVar(\"T\")  # Generic type for cached results\n\ntry:\n    from core.logger import get_component_logger\n\n    logger = get_component_logger(\"development_tools\")\nexcept ImportError:\n    logger = None\n\n# Cache metadata key for config file mtime\n_CONFIG_MTIME_KEY = \"__config_mtime__\"\n\n\nclass MtimeFileCache:\n    \"\"\"\n    Mtime-based file cache for analyzer results.\n\n    Caches results keyed by file path, with validation based on file modification time.\n    Only re-processes files that have been modified since the last cache entry.\n    \"\"\"\n\n    def __init__(\n        self,\n        project_root: Path,\n        use_cache: bool = True,\n        tool_name: Optional[str] = None,\n        domain: Optional[str] = None,\n    ):\n        \"\"\"\n        Initialize the cache.\n\n        Args:\n            project_root: Root directory of the project (for relative path generation)\n            use_cache: Whether to use caching (if False, all operations are no-ops)\n            tool_name: Name of the tool (e.g., 'analyze_ascii_compliance') - required for standardized storage\n            domain: Domain directory (e.g., 'docs') - required for standardized storage\n        \"\"\"\n        if tool_name is None or domain is None:\n            raise ValueError(\"tool_name and domain are required for MtimeFileCache\")\n\n        self.project_root = project_root.resolve()\n        self.use_cache = use_cache\n        self.cache_data: Dict[str, Dict[str, Any]] = {}\n        self.tool_name = tool_name\n        self.domain = domain\n        self.use_standardized_storage = True\n\n        # Get config file path for cache invalidation\n        self.config_file_path = self._get_config_file_path()\n\n        if self.use_cache:\n            self._load_cache()\n            # Check if config file changed and invalidate cache if needed\n            self._check_config_staleness()\n\n    def _get_config_file_path(self) -> Optional[Path]:\n        \"\"\"\n        Get the path to the development_tools_config.json file.\n\n        Returns:\n            Path to config file if found, None otherwise\n        \"\"\"\n        try:\n            # Try to get the config file path that was actually loaded\n            import development_tools.config.config as config_module\n\n            if (\n                hasattr(config_module, \"_config_file_path\")\n                and config_module._config_file_path\n            ):\n                return config_module._config_file_path\n        except Exception:\n            pass\n\n        # Fallback: try to find it using the same logic as config loading\n        try:\n            config_file = (\n                self.project_root\n                / \"development_tools\"\n                / \"config\"\n                / \"development_tools_config.json\"\n            )\n            if not config_file.exists():\n                config_file = self.project_root / \"development_tools_config.json\"\n            if config_file.exists():\n                return config_file\n        except Exception:\n            pass\n\n        return None\n\n    def _check_config_staleness(self) -> None:\n        \"\"\"\n        Check if config file has changed since cache was created.\n        If so, clear the cache to force regeneration with new config.\n        \"\"\"\n        if not self.config_file_path or not self.config_file_path.exists():\n            return\n\n        try:\n            # Get current config file mtime\n            current_config_mtime = self.config_file_path.stat().st_mtime\n\n            # Check cached config mtime\n            cached_config_mtime = None\n            if _CONFIG_MTIME_KEY in self.cache_data:\n                cached_config_mtime = self.cache_data[_CONFIG_MTIME_KEY].get(\"mtime\")\n\n            # If config file is newer than cached mtime, clear cache\n            if (\n                cached_config_mtime is not None\n                and current_config_mtime > cached_config_mtime\n            ):\n                if logger:\n                    logger.info(\n                        f\"Config file changed (mtime: {current_config_mtime} > {cached_config_mtime}), \"\n                        f\"invalidating cache for {self.tool_name or 'tool'}\"\n                    )\n                self.clear_cache()\n                # Update config mtime in cache immediately\n                self._update_config_mtime_in_cache()\n            elif cached_config_mtime is None:\n                # No cached config mtime (first run or cache was cleared), store current mtime\n                self._update_config_mtime_in_cache()\n        except Exception as e:\n            if logger:\n                logger.debug(f\"Error checking config file staleness: {e}\")\n\n    def _update_config_mtime_in_cache(self) -> None:\n        \"\"\"Store current config file mtime in cache metadata.\"\"\"\n        if not self.config_file_path or not self.config_file_path.exists():\n            return\n\n        try:\n            config_mtime = self.config_file_path.stat().st_mtime\n            self.cache_data[_CONFIG_MTIME_KEY] = {\n                \"mtime\": config_mtime,\n                \"results\": {},  # Empty results, just storing mtime\n            }\n        except Exception:\n            pass\n\n    def _load_cache(self) -> None:\n        \"\"\"Load cache from disk if it exists.\"\"\"\n        if self.use_standardized_storage:\n            # Use standardized storage\n            try:\n                from .output_storage import load_tool_cache\n\n                loaded_data = load_tool_cache(\n                    self.tool_name, self.domain, project_root=self.project_root\n                )\n                if loaded_data:\n                    # load_tool_cache already extracts data from metadata wrapper, so loaded_data is the cache content\n                    migrated_data = {}\n                    for key, value in loaded_data.items():\n                        if isinstance(value, dict) and \"results\" in value:\n                            migrated_data[key] = value\n                    self.cache_data = migrated_data\n                    if logger:\n                        logger.debug(\n                            f\"Loaded cache from standardized storage ({self.tool_name}) with {len(self.cache_data)} entries\"\n                        )\n                    return\n            except Exception as e:\n                if logger:\n                    logger.warning(\n                        f\"Failed to load cache from standardized storage: {e}\"\n                    )\n                # If standardized storage fails, start with empty cache\n                # Tools will regenerate cache on next run\n                self.cache_data = {}\n\n    def save_cache(self) -> None:\n        \"\"\"Save cache to disk.\"\"\"\n        if not self.use_cache:\n            return\n\n        # Update config mtime in cache before saving\n        self._update_config_mtime_in_cache()\n\n        if self.use_standardized_storage:\n            # Use standardized storage\n            try:\n                from .output_storage import save_tool_cache\n\n                save_tool_cache(\n                    self.tool_name,\n                    self.domain,\n                    self.cache_data,\n                    project_root=self.project_root,\n                )\n                if logger:\n                    logger.debug(\n                        f\"Saved cache to standardized storage ({self.tool_name}) with {len(self.cache_data)} entries\"\n                    )\n                return\n            except Exception as e:\n                if logger:\n                    logger.warning(f\"Failed to save cache to standardized storage: {e}\")\n                # If standardized storage fails, log warning but don't fall back to legacy\n                # This ensures we fix standardized storage issues rather than silently using legacy paths\n\n    def _get_file_cache_key(self, file_path: Path) -> str:\n        \"\"\"Generate cache key for a file (relative path from project root).\"\"\"\n        try:\n            rel_path = file_path.resolve().relative_to(self.project_root)\n            return str(rel_path).replace(\"\\\\\", \"/\")\n        except ValueError:\n            # File is outside project root, use absolute path\n            return str(file_path.resolve())\n\n    def _is_file_cached(self, file_path: Path) -> bool:\n        \"\"\"Check if file results are cached and still valid (mtime matches).\"\"\"\n        if not self.use_cache:\n            return False\n\n        cache_key = self._get_file_cache_key(file_path)\n        if cache_key not in self.cache_data:\n            return False\n\n        cached_mtime = self.cache_data[cache_key].get(\"mtime\")\n        if cached_mtime is None:\n            return False\n\n        try:\n            current_mtime = file_path.stat().st_mtime\n            return current_mtime == cached_mtime\n        except OSError:\n            return False\n\n    def get_cached(self, file_path: Path) -> Optional[T]:\n        \"\"\"\n        Get cached results for a file if available and still valid.\n\n        Args:\n            file_path: Path to the file to check\n\n        Returns:\n            Cached results if available and valid, None otherwise\n        \"\"\"\n        if not self._is_file_cached(file_path):\n            return None\n\n        cache_key = self._get_file_cache_key(file_path)\n        cached_data = self.cache_data[cache_key].get(\"results\")\n        return cached_data\n\n    def cache_results(self, file_path: Path, results: T) -> None:\n        \"\"\"\n        Cache results for a file.\n\n        Args:\n            file_path: Path to the file being cached\n            results: Results to cache (must be JSON-serializable)\n        \"\"\"\n        if not self.use_cache:\n            return\n\n        try:\n            cache_key = self._get_file_cache_key(file_path)\n            mtime = file_path.stat().st_mtime\n            self.cache_data[cache_key] = {\"mtime\": mtime, \"results\": results}\n        except OSError:\n            # File doesn't exist or can't be accessed, skip caching\n            pass\n\n    def clear_cache(self) -> None:\n        \"\"\"Clear all cached data (in memory only, call save_cache() to persist).\"\"\"\n        self.cache_data = {}\n\n    def get_cache_stats(self) -> Dict[str, Any]:\n        \"\"\"\n        Get statistics about the cache.\n\n        Returns:\n            Dictionary with cache statistics (total_entries, tool_name, domain)\n        \"\"\"\n        return {\n            \"total_entries\": len(self.cache_data),\n            \"tool_name\": self.tool_name,\n            \"domain\": self.domain,\n        }\n",
+                "#!/usr/bin/env python3\n\"\"\"\nMtime-based File Cache Utility\n\nProvides a reusable caching mechanism for file-based analyzers that checks\nfile modification times (mtime) to determine if cached results are still valid.\n\nUsage:\n    from development_tools.shared.mtime_cache import MtimeFileCache\n\n    cache = MtimeFileCache(\n        project_root=project_root,\n        use_cache=True,\n        tool_name='my_tool',\n        domain='docs'\n    )\n\n    # Check if file is cached\n    cached_results = cache.get_cached(file_path)\n    if cached_results is not None:\n        # Use cached results\n        return cached_results\n\n    # Process file and cache results\n    results = process_file(file_path)\n    cache.cache_results(file_path, results)\n    cache.save_cache()\n\"\"\"\n\nfrom pathlib import Path\nfrom typing import Dict, Optional, Any, TypeVar, Iterable, Tuple\nimport hashlib\n\nT = TypeVar(\"T\")  # Generic type for cached results\n\ntry:\n    from core.logger import get_component_logger\n\n    logger = get_component_logger(\"development_tools\")\nexcept ImportError:\n    logger = None\n\n# Cache metadata key for config file mtime\n_CONFIG_MTIME_KEY = \"__config_mtime__\"\n_TOOL_HASH_KEY = \"__tool_hash__\"\n\n\nclass MtimeFileCache:\n    \"\"\"\n    Mtime-based file cache for analyzer results.\n\n    Caches results keyed by file path, with validation based on file modification time.\n    Only re-processes files that have been modified since the last cache entry.\n    \"\"\"\n\n    def __init__(\n        self,\n        project_root: Path,\n        use_cache: bool = True,\n        tool_name: Optional[str] = None,\n        domain: Optional[str] = None,\n        tool_paths: Optional[Iterable[Path]] = None,\n    ):\n        \"\"\"\n        Initialize the cache.\n\n        Args:\n            project_root: Root directory of the project (for relative path generation)\n            use_cache: Whether to use caching (if False, all operations are no-ops)\n            tool_name: Name of the tool (e.g., 'analyze_ascii_compliance') - required for standardized storage\n            domain: Domain directory (e.g., 'docs') - required for standardized storage\n        \"\"\"\n        if tool_name is None or domain is None:\n            raise ValueError(\"tool_name and domain are required for MtimeFileCache\")\n\n        self.project_root = project_root.resolve()\n        self.use_cache = use_cache\n        self.cache_data: Dict[str, Dict[str, Any]] = {}\n        self.tool_name = tool_name\n        self.domain = domain\n        self.use_standardized_storage = True\n        self.tool_paths = self._normalize_tool_paths(tool_paths)\n\n        # Get config file path for cache invalidation\n        self.config_file_path = self._get_config_file_path()\n\n        if self.use_cache:\n            self._load_cache()\n            # Check if config file changed and invalidate cache if needed\n            self._check_config_staleness()\n            # Check if tool code changed and invalidate cache if needed\n            self._check_tool_staleness()\n\n    def _normalize_tool_paths(\n        self, tool_paths: Optional[Iterable[Path]]\n    ) -> Tuple[Path, ...]:\n        \"\"\"Normalize tool paths to a tuple of resolved Path objects.\"\"\"\n        if not tool_paths:\n            return ()\n        normalized = []\n        for item in tool_paths:\n            try:\n                path = Path(item).resolve()\n                normalized.append(path)\n            except Exception:\n                continue\n        return tuple(normalized)\n\n    def _get_config_file_path(self) -> Optional[Path]:\n        \"\"\"\n        Get the path to the development_tools_config.json file.\n\n        Returns:\n            Path to config file if found, None otherwise\n        \"\"\"\n        try:\n            # Try to get the config file path that was actually loaded\n            import development_tools.config.config as config_module\n\n            if (\n                hasattr(config_module, \"_config_file_path\")\n                and config_module._config_file_path\n            ):\n                return config_module._config_file_path\n        except Exception:\n            pass\n\n        # Fallback: try to find it using the same logic as config loading\n        try:\n            config_file = (\n                self.project_root\n                / \"development_tools\"\n                / \"config\"\n                / \"development_tools_config.json\"\n            )\n            if not config_file.exists():\n                config_file = self.project_root / \"development_tools_config.json\"\n            if config_file.exists():\n                return config_file\n        except Exception:\n            pass\n\n        return None\n\n    def _check_config_staleness(self) -> None:\n        \"\"\"\n        Check if config file has changed since cache was created.\n        If so, clear the cache to force regeneration with new config.\n        \"\"\"\n        if not self.config_file_path or not self.config_file_path.exists():\n            return\n\n        try:\n            # Get current config file mtime\n            current_config_mtime = self.config_file_path.stat().st_mtime\n\n            # Check cached config mtime\n            cached_config_mtime = None\n            if _CONFIG_MTIME_KEY in self.cache_data:\n                cached_config_mtime = self.cache_data[_CONFIG_MTIME_KEY].get(\"mtime\")\n\n            # If config file is newer than cached mtime, clear cache\n            if (\n                cached_config_mtime is not None\n                and current_config_mtime > cached_config_mtime\n            ):\n                if logger:\n                    logger.info(\n                        f\"Config file changed (mtime: {current_config_mtime} > {cached_config_mtime}), \"\n                        f\"invalidating cache for {self.tool_name or 'tool'}\"\n                    )\n                self.clear_cache()\n                # Update config mtime in cache immediately\n                self._update_config_mtime_in_cache()\n            elif cached_config_mtime is None:\n                # No cached config mtime (first run or cache was cleared), store current mtime\n                self._update_config_mtime_in_cache()\n        except Exception as e:\n            if logger:\n                logger.debug(f\"Error checking config file staleness: {e}\")\n\n    def _update_config_mtime_in_cache(self) -> None:\n        \"\"\"Store current config file mtime in cache metadata.\"\"\"\n        if not self.config_file_path or not self.config_file_path.exists():\n            return\n\n        try:\n            config_mtime = self.config_file_path.stat().st_mtime\n            self.cache_data[_CONFIG_MTIME_KEY] = {\n                \"mtime\": config_mtime,\n                \"results\": {},  # Empty results, just storing mtime\n            }\n        except Exception:\n            pass\n\n    def _compute_tool_hash(self) -> Optional[str]:\n        \"\"\"Compute a hash for tool source files to detect code changes.\"\"\"\n        if not self.tool_paths:\n            return None\n        hasher = hashlib.sha256()\n        has_data = False\n        for path in self.tool_paths:\n            try:\n                if not path.exists() or not path.is_file():\n                    continue\n                hasher.update(path.read_bytes())\n                has_data = True\n            except Exception:\n                return None\n        return hasher.hexdigest() if has_data else None\n\n    def _check_tool_staleness(self) -> None:\n        \"\"\"Check if tool code has changed since cache was created.\"\"\"\n        if not self.tool_paths:\n            return\n        try:\n            current_hash = self._compute_tool_hash()\n            if not current_hash:\n                return\n\n            cached_hash = None\n            if _TOOL_HASH_KEY in self.cache_data:\n                cached_hash = self.cache_data[_TOOL_HASH_KEY].get(\"hash\")\n\n            if cached_hash is not None and cached_hash != current_hash:\n                if logger:\n                    logger.info(\n                        f\"Tool code changed (hash mismatch), invalidating cache for {self.tool_name or 'tool'}\"\n                    )\n                self.clear_cache()\n                self._update_tool_hash_in_cache(current_hash)\n            elif cached_hash is None:\n                self._update_tool_hash_in_cache(current_hash)\n        except Exception as e:\n            if logger:\n                logger.debug(f\"Error checking tool code staleness: {e}\")\n\n    def _update_tool_hash_in_cache(self, tool_hash: Optional[str] = None) -> None:\n        \"\"\"Store current tool code hash in cache metadata.\"\"\"\n        if not tool_hash:\n            tool_hash = self._compute_tool_hash()\n        if not tool_hash:\n            return\n        self.cache_data[_TOOL_HASH_KEY] = {\n            \"hash\": tool_hash,\n            \"results\": {},\n        }\n\n    def _load_cache(self) -> None:\n        \"\"\"Load cache from disk if it exists.\"\"\"\n        if self.use_standardized_storage:\n            # Use standardized storage\n            try:\n                from .output_storage import load_tool_cache\n\n                loaded_data = load_tool_cache(\n                    self.tool_name, self.domain, project_root=self.project_root\n                )\n                if loaded_data:\n                    # load_tool_cache already extracts data from metadata wrapper, so loaded_data is the cache content\n                    migrated_data = {}\n                    for key, value in loaded_data.items():\n                        if isinstance(value, dict) and \"results\" in value:\n                            migrated_data[key] = value\n                    self.cache_data = migrated_data\n                    if logger:\n                        logger.debug(\n                            f\"Loaded cache from standardized storage ({self.tool_name}) with {len(self.cache_data)} entries\"\n                        )\n                    return\n            except Exception as e:\n                if logger:\n                    logger.warning(\n                        f\"Failed to load cache from standardized storage: {e}\"\n                    )\n                # If standardized storage fails, start with empty cache\n                # Tools will regenerate cache on next run\n                self.cache_data = {}\n\n    def save_cache(self) -> None:\n        \"\"\"Save cache to disk.\"\"\"\n        if not self.use_cache:\n            return\n\n        # Update config mtime in cache before saving\n        self._update_config_mtime_in_cache()\n        # Update tool hash in cache before saving\n        self._update_tool_hash_in_cache()\n\n        if self.use_standardized_storage:\n            # Use standardized storage\n            try:\n                from .output_storage import save_tool_cache\n\n                save_tool_cache(\n                    self.tool_name,\n                    self.domain,\n                    self._sanitize_for_json(self.cache_data),\n                    project_root=self.project_root,\n                )\n                if logger:\n                    logger.debug(\n                        f\"Saved cache to standardized storage ({self.tool_name}) with {len(self.cache_data)} entries\"\n                    )\n                return\n            except Exception as e:\n                if logger:\n                    logger.warning(f\"Failed to save cache to standardized storage: {e}\")\n                # If standardized storage fails, log warning but don't fall back to legacy\n                # This ensures we fix standardized storage issues rather than silently using legacy paths\n\n    def _get_file_cache_key(self, file_path: Path) -> str:\n        \"\"\"Generate cache key for a file (relative path from project root).\"\"\"\n        try:\n            rel_path = file_path.resolve().relative_to(self.project_root)\n            return str(rel_path).replace(\"\\\\\", \"/\")\n        except ValueError:\n            # File is outside project root, use absolute path\n            return str(file_path.resolve())\n\n    def _is_file_cached(self, file_path: Path) -> bool:\n        \"\"\"Check if file results are cached and still valid (mtime matches).\"\"\"\n        if not self.use_cache:\n            return False\n\n        cache_key = self._get_file_cache_key(file_path)\n        if cache_key not in self.cache_data:\n            return False\n\n        cached_mtime = self.cache_data[cache_key].get(\"mtime\")\n        if cached_mtime is None:\n            return False\n\n        try:\n            current_mtime = file_path.stat().st_mtime\n            return current_mtime == cached_mtime\n        except OSError:\n            return False\n\n    def get_cached(self, file_path: Path) -> Optional[T]:\n        \"\"\"\n        Get cached results for a file if available and still valid.\n\n        Args:\n            file_path: Path to the file to check\n\n        Returns:\n            Cached results if available and valid, None otherwise\n        \"\"\"\n        if not self._is_file_cached(file_path):\n            return None\n\n        cache_key = self._get_file_cache_key(file_path)\n        cached_data = self.cache_data[cache_key].get(\"results\")\n        return cached_data\n\n    def cache_results(self, file_path: Path, results: T) -> None:\n        \"\"\"\n        Cache results for a file.\n\n        Args:\n            file_path: Path to the file being cached\n            results: Results to cache (must be JSON-serializable)\n        \"\"\"\n        if not self.use_cache:\n            return\n\n        try:\n            cache_key = self._get_file_cache_key(file_path)\n            mtime = file_path.stat().st_mtime\n            self.cache_data[cache_key] = {\"mtime\": mtime, \"results\": results}\n        except OSError:\n            # File doesn't exist or can't be accessed, skip caching\n            if logger:\n                logger.warning(\n                    f\"Failed to cache results for {file_path} (file missing or inaccessible)\"\n                )\n        except Exception as exc:\n            if logger:\n                logger.warning(f\"Failed to cache results for {file_path}: {exc}\")\n\n    def clear_cache(self) -> None:\n        \"\"\"Clear all cached data (in memory only, call save_cache() to persist).\"\"\"\n        self.cache_data = {}\n\n    def get_cache_stats(self) -> Dict[str, Any]:\n        \"\"\"\n        Get statistics about the cache.\n\n        Returns:\n            Dictionary with cache statistics (total_entries, tool_name, domain)\n        \"\"\"\n        return {\n            \"total_entries\": len(self.cache_data),\n            \"tool_name\": self.tool_name,\n            \"domain\": self.domain,\n        }\n\n    def _sanitize_for_json(self, value: Any) -> Any:\n        \"\"\"Convert non-serializable cache values into JSON-safe structures.\"\"\"\n        if isinstance(value, dict):\n            return {k: self._sanitize_for_json(v) for k, v in value.items()}\n        if isinstance(value, (list, tuple)):\n            return [self._sanitize_for_json(v) for v in value]\n        if isinstance(value, set):\n            return [self._sanitize_for_json(v) for v in sorted(value)]\n        if isinstance(value, Path):\n            return value.as_posix()\n        return value\n",
                 [
                   {
                     "pattern": "(?i)legacy path",
                     "match": "legacy path",
-                    "line": 234,
+                    "line": 310,
                     "line_content": "# This ensures we fix standardized storage issues rather than silently using legacy paths",
-                    "start": 8507,
-                    "end": 8518
+                    "start": 11391,
+                    "end": 11402
                   }
                 ]
               ]
@@ -33746,7 +33636,7 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2026-02-07T02:38:00"
+      "timestamp": "2026-02-08T04:15:58"
     },
     "analyze_config": {
       "success": true,
@@ -33814,7 +33704,7 @@
           }
         }
       },
-      "timestamp": "2026-02-07T02:41:17"
+      "timestamp": "2026-02-08T03:54:22"
     },
     "analyze_ai_work": {
       "success": true,
@@ -33829,20 +33719,20 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-02-07T02:34:46"
+      "timestamp": "2026-02-08T04:15:08"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 2,
+          "total_issues": 1,
           "files_affected": 0,
-          "status": "CRITICAL"
+          "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-02-07T02:34:44.932366",
+          "timestamp": "2026-02-08T04:15:07.482475",
           "system_health": {
-            "overall_status": "CRITICAL",
+            "overall_status": "ISSUES",
             "core_files": {
               "run_mhm.py": "OK",
               "core/service.py": "OK",
@@ -33859,51 +33749,49 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-02-06T19:45:11.932498",
-            "audit_freshness": "<24 hours",
+            "last_audit": "2026-02-08T03:59:21.698244",
+            "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
             "documentation_sync_status": "Synchronized",
             "health_indicators": [
-              "Audit data is recent (6 hours ago)",
+              "Audit data is very recent (<1 hour)",
               "Documentation is synchronized"
             ],
             "recommendations": [
-              "Review logs/errors.log for recent error details"
+              "Check logs/errors.log for recent errors"
             ],
             "warnings": [],
             "errors": [],
             "severity_levels": {
               "INFO": [],
-              "WARNING": [],
-              "CRITICAL": [
-                "Recent errors detected in logs/errors.log (last hour)"
-              ]
+              "WARNING": [
+                "Errors detected in logs/errors.log (last 24 hours)"
+              ],
+              "CRITICAL": []
             }
           },
           "recent_activity": {
             "recent_changes": [
-              "tests/unit/test_interaction_handlers_helpers.py",
-              "ui/widgets/task_settings_widget.py",
-              "communication/message_processing/intent_validation.py",
-              "communication/message_processing/interaction_manager.py",
-              "tests/behavior/test_task_handler_behavior.py",
-              "ai/chatbot.py",
-              "communication/command_handlers/task_handler.py",
-              "core/ui_management.py",
-              "development_tools/functions/analyze_duplicate_functions.py",
-              "ui/widgets/checkin_settings_widget.py"
+              "development_tools/imports/analyze_module_imports.py",
+              "development_tools/docs/fix_documentation_headings.py",
+              "development_tools/functions/analyze_functions.py",
+              "development_tools/shared/cli_interface.py",
+              "development_tools/imports/analyze_unused_imports.py",
+              "development_tools/shared/mtime_cache.py",
+              "development_tools/docs/fix_documentation_addresses.py",
+              "development_tools/docs/analyze_unconverted_links.py",
+              "core/service_utilities.py",
+              "development_tools/docs/fix_documentation_ascii.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
             "uncommitted_changes": true
           },
-          "critical_alerts": [
-            "CRITICAL: Recent errors in logs/errors.log"
-          ],
+          "critical_alerts": [],
           "performance_indicators": {
             "log_file_sizes": {
               "ai.log": "0.0MB",
-              "ai_dev_tools.log": "0.1MB",
+              "ai_dev_tools.log": "0.4MB",
               "app.log": "0.0MB",
               "communication_manager.log": "0.0MB",
               "discord.log": "0.0MB",
@@ -33912,6 +33800,7 @@
               "file_ops.log": "0.0MB",
               "message.log": "0.0MB",
               "scheduler.log": "0.0MB",
+              "test_consolidated.log": "0.0MB",
               "ui.log": "0.0MB",
               "user_activity.log": "0.0MB"
             },
@@ -33920,7 +33809,7 @@
           }
         }
       },
-      "timestamp": "2026-02-07T02:34:45"
+      "timestamp": "2026-02-08T04:15:07"
     },
     "decision_support": {
       "success": true,
@@ -34073,7 +33962,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-07T02:34:49"
+      "timestamp": "2026-02-08T04:15:12"
     },
     "quick_status": {
       "success": true,
@@ -34084,7 +33973,7 @@
           "status": "OK"
         },
         "details": {
-          "timestamp": "2026-02-07T02:34:50.268229",
+          "timestamp": "2026-02-08T04:15:13.475427",
           "system_health": {
             "core_files": {
               "run_mhm.py": "OK",
@@ -34104,7 +33993,7 @@
           },
           "documentation_status": {
             "coverage": "Unknown",
-            "recent_audit": "2026-02-06T19:45:11.894915",
+            "recent_audit": "2026-02-08T03:59:21.659651",
             "key_files": {
               "README.md": "OK",
               "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -34117,28 +34006,28 @@
           "critical_issues": [],
           "action_items": [],
           "recent_activity": {
-            "last_audit": "2026-02-06T19:45:11.894915",
+            "last_audit": "2026-02-08T03:59:21.659651",
             "recent_changes": [
               "core/user_data_handlers.py",
               "core/ui_management.py",
-              "core/scheduler.py",
-              "core/logger.py",
-              "core/config.py",
+              "core/service_utilities.py",
               "core/ERROR_HANDLING_GUIDE.md",
               "communication/message_processing/interaction_manager.py",
               "communication/message_processing/intent_validation.py",
-              "communication/message_processing/conversation_flow_manager.py",
               "communication/message_processing/command_parser.py",
               "communication/command_handlers/task_handler.py",
               "ai_development_docs/AI_SESSION_STARTER.md",
-              "ai_development_docs/AI_LOGGING_GUIDE.md",
               "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-              "ai_development_docs/AI_DOCUMENTATION_GUIDE.md"
+              "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+              "ai_development_docs/AI_CHANGELOG.md",
+              "ai/chatbot.py",
+              "TODO.md",
+              "DOCUMENTATION_GUIDE.md"
             ]
           }
         }
       },
-      "timestamp": "2026-02-07T02:34:50"
+      "timestamp": "2026-02-08T04:15:13"
     }
   }
 }

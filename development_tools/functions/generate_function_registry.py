@@ -570,8 +570,7 @@ def generate_ai_function_registry_content(actual_functions: Dict[str, Dict]) -> 
 ### **File Organization**
 {file_organization_section}
 
-> **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: {now_timestamp_full()}
+> **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**
 """
 
     return content

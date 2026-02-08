@@ -29,6 +29,12 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-08 - Dev tools cache/CLI standardization and test fixes **COMPLETED**
+- Standardized dev-tools CLI flags/aliases, removed `critical_issues.txt`, made config portable, and expanded `should_exclude_file` usage; guides and plan/priorities refreshed after audits.
+- Extended caching with tool-code/config invalidation and broader analyzer coverage; cache failures now log and corrupted cache files are cleaned up.
+- Fixed reschedule-request test path (removed `MHM_TESTING` bypass + pytz load) and backfilled missing account `email` on load to avoid user-data flow KeyErrors.
+- Validation: user ran full audit clean (`python development_tools/run_development_tools.py audit --full`).
+
 ### 2026-02-06 - Cursor rules and commands refresh **COMPLETED**
 - **Rules**: Refreshed all eight `.cursor/rules/*.mdc` to current project state (run_development_tools.py, .venv, doc paths, duplicate frontmatter removed); line-by-line review against AI_* docs (Tier 1/2/3, time_utilities, legacy path fix_legacy_references.py, testing markers, etc.). Renamed ai-tools.mdc -> dev_tools.mdc; added cache/cleanup and portability (development_tools_config.json, logs/ai_dev_tools.log). All audit levels rewrite AI_STATUS/AI_PRIORITIES/consolidated_report; paired docs list completed (Backup, Changelog, Dev Tools Guide); refs to standalone docs (for all audiences) added in applicable rules (CONFIGURATION_REFERENCE, USER_DATA_MODEL in core; HOW_TO_RUN in critical; README, PROJECT_VISION in context; UI_GUIDE in ui; test guides in testing). Framing: paired = first-line + detailed counterparts; AI uses rules and AI_* as first-line refs but consults any relevant doc.
 - **Commands**: Reviewed and updated `.cursor/commands/*.md` for accuracy (see CHANGELOG_DETAIL for file-level list). **Close-session follow-ups**: Removed `git.md` (user uses AI_CHANGELOG entry as commit message and runs audit/tests). **triage-issue.md**: step 1 "Check logs first" (`logs/errors.log`, AI_LOGGING_GUIDE). **review.md**: step 3 doc/test obligation (paired docs, DOCUMENTATION_GUIDE 4.1). **explore-options.md**: suggest `/audit` if AI_PRIORITIES/AI_STATUS stale. **critical.mdc**: changelog rule (one entry per session, edit existing). **backup.md**: new command (when to use, Copy-Item one-liner, AI_BACKUP_GUIDE). **close.md**: step 5 commit/push wording (no /git reference).

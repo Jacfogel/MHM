@@ -80,6 +80,7 @@ class MissingAddressAnalyzer:
             use_cache=use_cache,
             tool_name="analyze_missing_addresses",
             domain="docs",
+            tool_paths=[Path(__file__)],
         )
 
     def check_missing_addresses(self) -> Dict[str, List[str]]:

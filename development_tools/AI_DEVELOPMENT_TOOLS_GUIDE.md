@@ -35,23 +35,23 @@ python development_tools/run_development_tools.py help
 
 **Global Options**:
 - `--project-root <path>` - Override project root directory
-- `--config-path <path>` - Override config file path (default: `development_tools_config.json` in project root)
+- `--config-path <path>` - Override config file path (default: `development_tools/config/development_tools_config.json`)
 
 **Most commonly used commands**:
 - `audit` - Standard audit (Tier 2 - default, includes quality checks)
 - `audit --quick` - Quick audit (Tier 1 - core metrics only, ~30-60s)
-- `audit --full` - Full audit (Tier 3 - comprehensive analysis, ~10-30min)
+- `audit --full` - Full audit (Tier 3 - comprehensive analysis, ~10-30min). Alias: `full-audit`.
 - `status` - Quick system status (uses cached audit data)
 - `docs` - Regenerate static documentation artifacts (FUNCTION_REGISTRY, MODULE_DEPENDENCIES, DIRECTORY_TREE)
 - `doc-sync` - Check documentation synchronization
-- `doc-fix` - Fix documentation issues (addresses, ASCII, headings, links)
+- `doc-fix` - Fix documentation issues (addresses, ASCII, headings, links). Alias: `--full` == `--all`.
 - `legacy` - Scan for legacy references
 - `coverage` - Regenerate coverage metrics
 - `unused-imports` - Detect unused imports (analysis only)
 - `unused-imports-report` - Generate unused imports report from analysis results
 - `config` - Check configuration consistency
 
-**Additional commands**: `system-signals`, `validate`, `decision-support`, `unused-imports`, `duplicate-functions`, `workflow`, `trees`, `cleanup`, `export-code`, `version-sync` (experimental)
+**Additional commands**: `system-signals`, `validate`, `decision-support`, `unused-imports`, `duplicate-functions`, `workflow`, `trees`, `cleanup` (alias: `clean-up`), `export-code`, `version-sync` (experimental)
 
 **Note**: Test marker analysis is automatically run during `audit --full` when coverage is generated. For fixing markers, use `development_tools/tests/fix_test_markers.py` directly.
 
@@ -62,7 +62,7 @@ python development_tools/run_development_tools.py help
 - Honor `shared/standard_exclusions.py`
 - Avoid importing application modules directly
 
-**Configuration**: External config file `development_tools_config.json` (in project root) can override paths, project settings, audit behavior, and other configuration. See `development_tools/development_tools_config.json.example` for structure.
+**Configuration**: External config file `development_tools/config/development_tools_config.json` can override paths, project settings, audit behavior, and other configuration. See `development_tools/development_tools_config.json.example` for structure.
 
 ---
 
@@ -208,7 +208,7 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.m
 - Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `config/config.py`, `shared/mtime_cache.py`
 - Keep the standard exclusions + config aligned so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` are skipped by the majority of analyzer runs.
 - **Caching**: 
-  - **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The cache automatically invalidates when `development_tools_config.json` changes, ensuring config updates are immediately reflected. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching)
+  - **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The cache automatically invalidates when `development_tools/config/development_tools_config.json` or the tool's source file changes, ensuring config and code updates are immediately reflected. Currently used by: `imports/analyze_unused_imports.py`, `imports/analyze_module_imports.py`, `functions/analyze_functions.py`, `error_handling/analyze_error_handling.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching)
   - **Test Coverage Caching**: 
     - **Coverage Analysis Caching**: `tests/analyze_test_coverage.py` caches analysis results based on coverage JSON file mtime, saving ~2s on repeated analysis when coverage data hasn't changed
     - **Test-file coverage caching** (Integrated, enabled by default): `tests/test_file_coverage_cache.py` uses `tests/domain_mapper.py` (`DomainMapper`) to map source directories to test files. When a domain changes, only the test files that cover that domain are re-run, and cached coverage is merged for unchanged tests. Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json`. Enabled by default; disable with `--no-domain-cache`.
@@ -224,7 +224,7 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.m
 - Store tests under `tests/development_tools/` (with fixtures in `tests/fixtures/development_tools_demo/`)
 - For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
 
-- All core tools are portable via external configuration (`development_tools_config.json`). Tools can be used in other projects with minimal setup.
+- All core tools are portable via external configuration (`development_tools/config/development_tools_config.json`). Tools can be used in other projects with minimal setup.
 - Preserve the directory structure (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) to ease eventual extraction
 - Treat experimental tools cautiously (dry-run first, log outcomes)
 - Keep this guide paired with the human document; update both whenever commands, tiers, or workflows change

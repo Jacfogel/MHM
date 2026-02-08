@@ -73,6 +73,20 @@ class ErrorHandlingAnalyzer:
             'phase2_total': 0,
             'phase2_by_type': {}
         }
+
+        # Caching - use shared utility
+        try:
+            from development_tools.shared.mtime_cache import MtimeFileCache
+
+            self.cache = MtimeFileCache(
+                project_root=self.project_root,
+                use_cache=True,
+                tool_name="analyze_error_handling",
+                domain="error_handling",
+                tool_paths=[Path(__file__)],
+            )
+        except Exception:
+            self.cache = None
         
         # Initialize error_patterns and other attributes needed for analysis
         self._initialize_patterns()
@@ -921,8 +935,25 @@ class ErrorHandlingAnalyzer:
         # Analyze each file
         file_results = []
         for file_path in python_files:
+            if self.cache:
+                cached = self.cache.get_cached(file_path)
+                if cached is not None:
+                    file_results.append(cached)
+                    continue
             file_analysis = self.analyze_file(file_path)
+            # Cache-friendly: convert set to list for serialization
+            if isinstance(file_analysis, dict) and isinstance(
+                file_analysis.get("error_patterns_found"), set
+            ):
+                file_analysis["error_patterns_found"] = list(
+                    file_analysis["error_patterns_found"]
+                )
+            if self.cache:
+                self.cache.cache_results(file_path, file_analysis)
             file_results.append(file_analysis)
+
+        if self.cache:
+            self.cache.save_cache()
         
         # Aggregate results
         self._aggregate_results(file_results)

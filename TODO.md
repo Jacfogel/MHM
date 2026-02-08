@@ -242,10 +242,6 @@ When adding new tasks, follow this format:
 
 ### Testing
 
-**Coverage Expansion Tracking**
-- *What it means*: Track coverage priorities in [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md) and add specific module targets here only when they need explicit follow-up.
-- *Why it helps*: Keeps TODO.md focused while staying aligned with the latest audit-driven priorities.
-- *Estimated effort*: Small
 
 **Coverage audit follow-up - Category management & atomic operations**
 - *What it means*: Investigate why `tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_updates_account_features` and `tests/behavior/test_user_data_flow_architecture.py::TestAtomicOperations::test_atomic_operation_all_types_succeed` only fail during the coverage-driven audit run. 
@@ -326,16 +322,6 @@ When adding new tasks, follow this format:
 **headless service not working**
 - Investigate and fix
 
-**exclude .ruff_cache and mhm.egg-info frommost if not all  development tools**
-- also exclude scripts where appropriate
-- also exclude tests\ai\results where appropriate
-- also exclude tests\coverage_html where appropriate
-
-**investigate unused imports boom**
-- after recent changes, including running some automate ruff fixes these categories which were showing 0 now show
-  - *Obvious Unused*: 132 imports
-  - *Type Hints Only*: 30 imports
-
   **Unify derived command map semantics** - Remove/standardize the precomputed `slash_command_map` - see communication\message_processing\interaction_manager.py
 - *What it means*: Identify all usages of `InteractionManager.slash_command_map` and either (a) delete it and rely on `get_slash_command_map()`, or (b) standardize it to use unprefixed keys (e.g. `"tasks"`) and correct naming/comments.
 - *Why it helps*: Prevents mismatched expectations (`"/tasks"` vs `"tasks"`), reduces duplicate sources of truth, and makes command registration code less error-prone.
@@ -389,10 +375,6 @@ Deliverables
 Priority
 - Medium  
 - Blocker only if a real bug or undefined behavior is confirmed
-
-**fix duplicate logging during audit**
-- 2026-02-06 02:37:52 - mhm.development_tools - INFO - Analyzing legacy references...
-- 2026-02-06 02:37:52 - mhm.development_tools - INFO - Analyzing legacy references...
 
 **Test coverage variability**
 - investigate test coverage results varying considerably from run to run. At present last several run results were these:

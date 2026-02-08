@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-01-20
+> **Last Updated**: 2026-02-08
 
 This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -19,6 +19,8 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - Doc sync + doc hygiene: CLEAN (path drift, ASCII, headings, addresses, links)
 - System health: ISSUES (errors detected in logs/errors.log in last 24h)
 - Quick Wins: none reported
+
+**Note**: Latest full audit (2026-02-08) reported clean; see `development_tools/AI_STATUS.md` and `development_tools/AI_PRIORITIES.md` for current metrics.
 
 ---
 
@@ -41,6 +43,7 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 #### 1.1 Raise development tools coverage to 60%+
 **Status**: IN PROGRESS  
 **Tasks**:
+- [ ] Use `development_tools/AI_PRIORITIES.md` (audit-generated) to identify actionable coverage priorities; only mirror specific module targets here when they need explicit follow-up
 - [ ] Add tests for `development_tools/ai_work/analyze_ai_work.py` (currently 0.0%)
 - [ ] Add tests for `analyze_package_exports.py`, `run_dev_tools.py`, `data_freshness_audit.py` (0.0% per AI_PRIORITIES)
 - [ ] Investigate skipped test increase (1 -> 2 skipped)
@@ -86,7 +89,17 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Measure actual time savings of domain-based test execution
 - [ ] Compare full vs domain-filtered runs and document results in changelog
 - [ ] Add cross-domain dependency tracking (invalidate dependent domains)
-- [ ] Extend MtimeFileCache to high-cost analyzers (`analyze_error_handling`, `analyze_functions`, `analyze_module_imports`, `analyze_module_dependencies`)
+- [x] Extend MtimeFileCache to high-cost analyzers (`analyze_error_handling`, `analyze_functions`, `analyze_module_imports`, `analyze_module_dependencies`)
+- [ ] Ensure cached test results are invalidated when covered domains change
+- [ ] Do not cache results for test files that fail or error
+
+#### 1.7 Caching quality and invalidation rules (broader tools)
+**Status**: PENDING  
+**Tasks**:
+- [ ] Identify tools that lack caching but could benefit (heavy analyzers, coverage, docs)
+- [x] Define consistent invalidation rules for config changes in `development_tools/config/development_tools_config.json`
+- [x] Ensure tool code changes invalidate cached outputs (version/hash-based keying)
+- [ ] Review cache value: include config + tool version + domain inputs in cache keys
 
 #### 1.6 Fixture status file regeneration
 **Status**: PENDING  
@@ -114,6 +127,7 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 **Tasks**:
 - [ ] Standardize log levels across tools (INFO/DEBUG/WARNING)
 - [ ] Remove duplicate log entries and demote verbose enhancement logs
+- [x] Fix duplicate audit log lines (legacy analysis logged twice; remove wrapper log line)
 - [ ] Replace print statements with logging (except intentional audit progress prints)
 - [ ] Review noisy logs in config validation and package auditing
 - [ ] Add "Top offenders" list to Quick Wins in AI_PRIORITIES.md
@@ -126,19 +140,18 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Expand consolidated report with top circular chains and high-coupling modules
 - [ ] Keep all three outputs consistent and sourced from report_generation
 
-#### 2.4 Critical issues file creation decision
-**Status**: PENDING  
+#### 2.4 Critical issues summary decision
+**Status**: COMPLETED  
 **Tasks**:
-- [ ] Decide whether `critical_issues.txt` should exist
-- [ ] If yes: define contents, generation trigger, and write path
-- [ ] If no: remove misleading console message
+- [x] Decide whether to produce a standalone critical-issues summary (decision: no)
+- [x] Remove misleading console/message references
 - [ ] Consider alternatives (consolidated report or AI_PRIORITIES section)
 
 #### 2.5 System signals purpose and redundancy cleanup
 **Status**: PENDING  
 **Tasks**:
 - [ ] Identify unique value provided by `analyze_system_signals`
-- [ ] Remove redundant doc-sync statement from system signals section
+- [x] Remove redundant doc-sync statement from system signals section
 - [ ] Decide to keep, enhance, or eliminate system signals
 - [ ] Update report_generation to reflect decision
 
@@ -156,6 +169,7 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 
 
 #### 2.7 Remove duplicate last updated field at the bottom of AI_FUNCTION_REGISTRY.md
+- [x] Removed duplicate footer "Last Updated" line from AI function registry generator
 
 #### 2.8 retire unapproved docs
 - incorporate information from unapproved docs development_tools\shared\RESULT_FORMAT_STANDARD.md, development_tools\shared\OUTPUT_STORAGE_STANDARDS.md and development_tools\shared\EXCLUSION_RULES.md into development_tools\DEVELOPMENT_TOOLS_GUIDE.md and development_tools\AI_DEVELOPMENT_TOOLS_GUIDE.md
@@ -236,6 +250,36 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Update tool metadata and CLI wrappers to use new name
 - [ ] Update documentation references (AI + human guides)
 - [ ] Preserve experimental tier and any backward-compat wrapper if needed
+
+#### 3.9 Config portability and defaults
+**Status**: COMPLETED  
+**Tasks**:
+- [x] Make `development_tools/config/config.py` contain only non-project defaults
+- [x] Move MHM-specific defaults to `development_tools/config/development_tools_config.json`
+- [x] Updated `development_tools/config/config.py` header comment to remove MHM-specific claim and clarify default config path
+- [x] Updated docs/comments claiming config JSON lives in project root (it lives in `development_tools/config/`)
+
+#### 3.10 CLI argument standardization and aliases
+**Status**: PENDING  
+**Tasks**:
+- [x] Inventory CLI flags in `shared/cli_interface.py` and `run_development_tools.py` (audit: `--full/--quick/--include-tests/--include-dev-tools/--include-all/--overlap`, doc-fix: `--all/--dry-run/--add-addresses/--fix-ascii/--number-headings/--convert-links`, cleanup: `--full/--cache/--test-data/--coverage/--dry-run`, duplicate-functions: `--include-tests/--include-dev-tools/--include-all/--min-overall/--min-name`, version-sync: `scope`, workflow: `task_type`, global: `--project-root/--config-path/--clear-cache`)
+- [x] Inventory standalone script flags (analyze_package_exports: `--package/--all/--recommendations`, run_test_coverage: `--update-plan/--output-file/--no-parallel/--workers/--dev-tools-only/--no-domain-cache`, analyze_test_coverage: `--input/--json/--output`)
+- [ ] Inventory CLI flags across tools (e.g., `audit --full`, `cleanup --full`, `doc-fix --all`)
+- [x] Standardize "full/all" semantics in CLI handlers: add `--all` alias for `cleanup --full`, `--full` alias for `doc-fix --all`, and `full-audit` alias for `audit --full`
+ - [x] Add common aliases (e.g., `clean-up`, `full-audit`) and document them
+
+#### 3.11 Exclusion rules consistency
+**Status**: PENDING  
+**Tasks**:
+- [x] Verified base exclusions already include `.ruff_cache/`, `mhm.egg-info/`, `scripts/`, `tests/ai/results/`, `tests/coverage_html/` in `development_tools/shared/standard_exclusions.py`
+- [x] Audited tool usage: 17/43 tool-like scripts reference `standard_exclusions`/`should_exclude_file`; missing includes scanning tools (`docs/analyze_*`, `docs/fix_*`, `ai_work/analyze_ai_work.py`, `config/analyze_config.py`, `functions/analyze_function_patterns.py`) plus non-scanners (report generators, CLI runners)
+- [x] Added `should_exclude_file` to docs analyzers (`analyze_documentation`, `analyze_ascii_compliance`, `analyze_heading_numbering`)
+- [x] Added `should_exclude_file` to `ai_work/analyze_ai_work.py`, `config/analyze_config.py`, and `functions/analyze_function_patterns.py`
+- [x] Added `should_exclude_file` to doc fixers (`fix_documentation_ascii`, `fix_documentation_headings`, `fix_documentation_links`, `fix_documentation_addresses`)
+- [ ] Ensure `.ruff_cache/` and `mhm.egg-info/` are excluded across applicable tools
+- [ ] Exclude `scripts/` where appropriate
+- [ ] Exclude `tests/ai/results/` where appropriate
+- [ ] Exclude `tests/coverage_html/` where appropriate
 
 ---
 
@@ -333,24 +377,6 @@ These are surfaced by the tools and remain outstanding but are not tool-suite ch
 - [ ] Refactor critical-complexity functions (145 critical, 147 high)
 
 ---
-
-## Added by human developer, to be properly incorporated into plan:
-
-**development_tools\config\config.py is not portable**
-- development_tools\config\config.py says "This module is contains MHM-specific default values. For other projects, override these via development_tools_config.json in the project root.", but it shouldn't
-- it's supposed to contain default, non-project specific, values, development_tools_config.json should contain project specific values, such as those for the MHM project in which the development tools suite currently resides. 
-- Also development_tools_config.json does not live in the project root, it lives in development_tools\config\
-
-**add --full and/or --all to applicable development tools**
-- ccurrently to my knowledge audit and cleanup accept --full, doc-fix accepts --all, and I don't know what other things other commands accept, but I'd like to take a look at the additional arguments and standardize thems omewhat, perhaps also incorporate common aliases like "clean-up" and "full-audit"
-
-**add/improve caching for development tools**
-- investigate whether there are any development tools that don't use caching but could benefit from it and add it
-- investigate how we might improve the quality and value of the caching for development tools, especially test coverage and other heavy components
-- investigate whether changes to development_tools\config\development_tools_config.json properly result in invalidation of caching for applicable tools and if not implement it
-- investigate whether changes to the development tools themselves invalidate cached data for those tools and if not implement it.
-- test file cached results should be invalidated if the tests or and of the covered domain(s) are changed
-- Test file cached results should be invalidated if tests fail or error. Like it shouldn't cache results for test files that have failing or erroring tests. 
 
 ## Related Documents
 

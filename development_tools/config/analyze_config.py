@@ -26,6 +26,7 @@ except ImportError:
     from development_tools import config
 
 from core.logger import get_component_logger
+from development_tools.shared.standard_exclusions import should_exclude_file
 
 # Load external config on module import
 config.load_external_config()
@@ -60,6 +61,8 @@ class ConfigValidator:
         tools = {}
         for py_file in self.ai_tools_dir.glob("*.py"):
             if py_file.name == "config.py" or py_file.name == "analyze_config.py":
+                continue
+            if should_exclude_file(str(py_file), tool_type="analysis", context="development"):
                 continue
 
             tool_name = py_file.name

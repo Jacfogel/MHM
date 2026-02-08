@@ -73,6 +73,7 @@ def main():
         help="Convert file paths to markdown links",
     )
     parser.add_argument("--all", action="store_true", help="Apply all fix operations")
+    parser.add_argument("--full", action="store_true", help="Alias for --all")
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -84,7 +85,7 @@ def main():
     results = {}
     total_errors = 0
 
-    if args.add_addresses or args.all:
+    if args.add_addresses or args.all or args.full:
         fixer = DocumentationAddressFixer()
         result = fixer.fix_add_addresses(dry_run=args.dry_run)
         results["add_addresses"] = result
@@ -93,7 +94,7 @@ def main():
             f"\nAdd Addresses: Updated {result['updated']}, Skipped {result['skipped']}, Errors {result['errors']}"
         )
 
-    if args.fix_ascii or args.all:
+    if args.fix_ascii or args.all or args.full:
         fixer = DocumentationASCIIFixer()
         result = fixer.fix_ascii(dry_run=args.dry_run)
         results["fix_ascii"] = result
@@ -102,7 +103,7 @@ def main():
             f"\nFix ASCII: Updated {result['files_updated']} files, Made {result['replacements_made']} replacements, Errors {result['errors']}"
         )
 
-    if args.number_headings or args.all:
+    if args.number_headings or args.all or args.full:
         fixer = DocumentationHeadingFixer()
         result = fixer.fix_number_headings(dry_run=args.dry_run)
         results["number_headings"] = result
@@ -111,7 +112,7 @@ def main():
             f"\nNumber Headings: Updated {result['files_updated']} files, Fixed {result['issues_fixed']} issues, Errors {result['errors']}"
         )
 
-    if args.convert_links or args.all:
+    if args.convert_links or args.all or args.full:
         fixer = DocumentationLinkFixer()
         result = fixer.fix_convert_links(dry_run=args.dry_run)
         results["convert_links"] = result
@@ -126,6 +127,7 @@ def main():
         or args.number_headings
         or args.convert_links
         or args.all
+        or args.full
     ):
         parser.print_help()
         return 1

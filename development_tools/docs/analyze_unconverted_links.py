@@ -82,6 +82,7 @@ class UnconvertedLinkAnalyzer:
             use_cache=use_cache,
             tool_name="analyze_unconverted_links",
             domain="docs",
+            tool_paths=[Path(__file__)],
         )
 
     def _should_skip_generated_file(self, file_path: Path) -> bool:

@@ -358,8 +358,12 @@ def save_tool_cache(
 
     # Write cache file (no rotation for cache files)
     cache_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(cache_file, "w", encoding="utf-8") as f:
-        json.dump(cache_data, f, indent=2)
+    try:
+        with open(cache_file, "w", encoding="utf-8") as f:
+            json.dump(cache_data, f, indent=2)
+    except (TypeError, ValueError, IOError) as e:
+        logger.warning(f"Failed to write tool cache file {cache_file}: {e}")
+        raise
 
     logger.debug(f"Saved tool cache: {cache_file}")
     return cache_file
@@ -400,6 +404,11 @@ def load_tool_cache(
         return cache_data.get("data", cache_data)
     except (json.JSONDecodeError, IOError) as e:
         logger.warning(f"Failed to load tool cache from {cache_file}: {e}")
+        # Remove corrupted cache file to allow regeneration on next run.
+        try:
+            cache_file.unlink(missing_ok=True)
+        except Exception:
+            pass
         return None
 
 

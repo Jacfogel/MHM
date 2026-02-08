@@ -52,6 +52,18 @@ class ModuleImportAnalyzer:
         else:
             self.project_root = Path(config.get_project_root()).resolve()
         self.local_prefixes = local_prefixes
+        try:
+            from development_tools.shared.mtime_cache import MtimeFileCache
+
+            self.cache = MtimeFileCache(
+                project_root=self.project_root,
+                use_cache=True,
+                tool_name="analyze_module_imports",
+                domain="imports",
+                tool_paths=[Path(__file__)],
+            )
+        except Exception:
+            self.cache = None
 
     def extract_imports_from_file(self, file_path: str) -> Dict[str, List[Dict]]:
         """Extract all imports from a Python file with detailed information."""
@@ -198,14 +210,23 @@ class ModuleImportAnalyzer:
                 relative_path = py_file.relative_to(self.project_root)
                 file_key = str(relative_path).replace("\\", "/")
 
+                if self.cache:
+                    cached = self.cache.get_cached(py_file)
+                    if cached is not None:
+                        results[file_key] = cached
+                        continue
+
                 imports = self.extract_imports_from_file(str(py_file))
 
-                results[file_key] = {
+                file_result = {
                     "imports": imports,
                     "total_imports": sum(
                         len(imp_list) for imp_list in imports.values()
                     ),
                 }
+                results[file_key] = file_result
+                if self.cache:
+                    self.cache.cache_results(py_file, file_result)
 
         # Also scan root directory for .py files
         for py_file in self.project_root.glob("*.py"):
@@ -221,14 +242,26 @@ class ModuleImportAnalyzer:
 
                 file_key = py_file.name
 
+                if self.cache:
+                    cached = self.cache.get_cached(py_file)
+                    if cached is not None:
+                        results[file_key] = cached
+                        continue
+
                 imports = self.extract_imports_from_file(str(py_file))
 
-                results[file_key] = {
+                file_result = {
                     "imports": imports,
                     "total_imports": sum(
                         len(imp_list) for imp_list in imports.values()
                     ),
                 }
+                results[file_key] = file_result
+                if self.cache:
+                    self.cache.cache_results(py_file, file_result)
+
+        if self.cache:
+            self.cache.save_cache()
 
         return results
 

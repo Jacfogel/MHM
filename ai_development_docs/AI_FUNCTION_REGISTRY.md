@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-07 02:31:59
+> **Last Generated**: 2026-02-07 04:57:40
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -171,7 +171,6 @@ Core System Decision Tree:
 - [OK] `ui/generate_ui_files.py::main()` - Application entry point
 - [OK] `ui/ui_app_qt.py::main()` - Application entry point
 - [OK] `run_headless_service.py::main()` - Application entry point
-- [OK] `run_mhm.py::main()` - Application entry point
 - [OK] `core/config.py::__init__()` - Initialization
 - [OK] `core/service.py::__init__()` - Initialization
 
@@ -238,5 +237,4 @@ Most complex functions (may need refactoring):
 - `user/` - User context and preferences (4 files, 64 functions)
 - `tasks/` - Task management system (2 files, 21 functions)
 
-> **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2026-02-07 02:31:59
+> **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

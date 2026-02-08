@@ -28,7 +28,8 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Dict, Optional, Any, TypeVar
+from typing import Dict, Optional, Any, TypeVar, Iterable, Tuple
+import hashlib
 
 T = TypeVar("T")  # Generic type for cached results
 
@@ -41,6 +42,7 @@ except ImportError:
 
 # Cache metadata key for config file mtime
 _CONFIG_MTIME_KEY = "__config_mtime__"
+_TOOL_HASH_KEY = "__tool_hash__"
 
 
 class MtimeFileCache:
@@ -57,6 +59,7 @@ class MtimeFileCache:
         use_cache: bool = True,
         tool_name: Optional[str] = None,
         domain: Optional[str] = None,
+        tool_paths: Optional[Iterable[Path]] = None,
     ):
         """
         Initialize the cache.
@@ -76,6 +79,7 @@ class MtimeFileCache:
         self.tool_name = tool_name
         self.domain = domain
         self.use_standardized_storage = True
+        self.tool_paths = self._normalize_tool_paths(tool_paths)
 
         # Get config file path for cache invalidation
         self.config_file_path = self._get_config_file_path()
@@ -84,6 +88,23 @@ class MtimeFileCache:
             self._load_cache()
             # Check if config file changed and invalidate cache if needed
             self._check_config_staleness()
+            # Check if tool code changed and invalidate cache if needed
+            self._check_tool_staleness()
+
+    def _normalize_tool_paths(
+        self, tool_paths: Optional[Iterable[Path]]
+    ) -> Tuple[Path, ...]:
+        """Normalize tool paths to a tuple of resolved Path objects."""
+        if not tool_paths:
+            return ()
+        normalized = []
+        for item in tool_paths:
+            try:
+                path = Path(item).resolve()
+                normalized.append(path)
+            except Exception:
+                continue
+        return tuple(normalized)
 
     def _get_config_file_path(self) -> Optional[Path]:
         """
@@ -172,6 +193,59 @@ class MtimeFileCache:
         except Exception:
             pass
 
+    def _compute_tool_hash(self) -> Optional[str]:
+        """Compute a hash for tool source files to detect code changes."""
+        if not self.tool_paths:
+            return None
+        hasher = hashlib.sha256()
+        has_data = False
+        for path in self.tool_paths:
+            try:
+                if not path.exists() or not path.is_file():
+                    continue
+                hasher.update(path.read_bytes())
+                has_data = True
+            except Exception:
+                return None
+        return hasher.hexdigest() if has_data else None
+
+    def _check_tool_staleness(self) -> None:
+        """Check if tool code has changed since cache was created."""
+        if not self.tool_paths:
+            return
+        try:
+            current_hash = self._compute_tool_hash()
+            if not current_hash:
+                return
+
+            cached_hash = None
+            if _TOOL_HASH_KEY in self.cache_data:
+                cached_hash = self.cache_data[_TOOL_HASH_KEY].get("hash")
+
+            if cached_hash is not None and cached_hash != current_hash:
+                if logger:
+                    logger.info(
+                        f"Tool code changed (hash mismatch), invalidating cache for {self.tool_name or 'tool'}"
+                    )
+                self.clear_cache()
+                self._update_tool_hash_in_cache(current_hash)
+            elif cached_hash is None:
+                self._update_tool_hash_in_cache(current_hash)
+        except Exception as e:
+            if logger:
+                logger.debug(f"Error checking tool code staleness: {e}")
+
+    def _update_tool_hash_in_cache(self, tool_hash: Optional[str] = None) -> None:
+        """Store current tool code hash in cache metadata."""
+        if not tool_hash:
+            tool_hash = self._compute_tool_hash()
+        if not tool_hash:
+            return
+        self.cache_data[_TOOL_HASH_KEY] = {
+            "hash": tool_hash,
+            "results": {},
+        }
+
     def _load_cache(self) -> None:
         """Load cache from disk if it exists."""
         if self.use_standardized_storage:
@@ -210,6 +284,8 @@ class MtimeFileCache:
 
         # Update config mtime in cache before saving
         self._update_config_mtime_in_cache()
+        # Update tool hash in cache before saving
+        self._update_tool_hash_in_cache()
 
         if self.use_standardized_storage:
             # Use standardized storage
@@ -219,7 +295,7 @@ class MtimeFileCache:
                 save_tool_cache(
                     self.tool_name,
                     self.domain,
-                    self.cache_data,
+                    self._sanitize_for_json(self.cache_data),
                     project_root=self.project_root,
                 )
                 if logger:
@@ -295,7 +371,13 @@ class MtimeFileCache:
             self.cache_data[cache_key] = {"mtime": mtime, "results": results}
         except OSError:
             # File doesn't exist or can't be accessed, skip caching
-            pass
+            if logger:
+                logger.warning(
+                    f"Failed to cache results for {file_path} (file missing or inaccessible)"
+                )
+        except Exception as exc:
+            if logger:
+                logger.warning(f"Failed to cache results for {file_path}: {exc}")
 
     def clear_cache(self) -> None:
         """Clear all cached data (in memory only, call save_cache() to persist)."""
@@ -313,3 +395,15 @@ class MtimeFileCache:
             "tool_name": self.tool_name,
             "domain": self.domain,
         }
+
+    def _sanitize_for_json(self, value: Any) -> Any:
+        """Convert non-serializable cache values into JSON-safe structures."""
+        if isinstance(value, dict):
+            return {k: self._sanitize_for_json(v) for k, v in value.items()}
+        if isinstance(value, (list, tuple)):
+            return [self._sanitize_for_json(v) for v in value]
+        if isinstance(value, set):
+            return [self._sanitize_for_json(v) for v in sorted(value)]
+        if isinstance(value, Path):
+            return value.as_posix()
+        return value

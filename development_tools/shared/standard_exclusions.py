@@ -7,7 +7,8 @@ Standard Exclusion Patterns for Development Tools
 This module provides standardized exclusion patterns that can be reused
 across all development tools to ensure consistent file filtering.
 
-Exclusion patterns are loaded from external config file (development_tools_config.json)
+Exclusion patterns are loaded from external config file
+(`development_tools/config/development_tools_config.json`)
 if available, otherwise fall back to generic defaults. This makes the module portable
 across different projects.
 

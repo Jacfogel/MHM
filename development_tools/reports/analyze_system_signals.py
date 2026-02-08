@@ -271,9 +271,6 @@ class SystemSignalsAnalyzer:
                                     health["severity_levels"]["INFO"].append(
                                         f"Documentation has {total_issues} minor sync issue(s)"
                                     )
-                                    health["recommendations"].append(
-                                        "Run `python development_tools/run_development_tools.py doc-sync` to check details"
-                                    )
                                 else:
                                     health["documentation_sync_status"] = "Issues"
                                     health["severity_levels"]["WARNING"].append(

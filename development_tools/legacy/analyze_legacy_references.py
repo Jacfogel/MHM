@@ -115,6 +115,7 @@ class LegacyReferenceAnalyzer:
                     use_cache=True,
                     tool_name="analyze_legacy_references",
                     domain="legacy",
+                    tool_paths=[Path(__file__)],
                 )
             except ImportError:
                 logger.warning("MtimeFileCache not available, caching disabled")

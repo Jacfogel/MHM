@@ -31,10 +31,12 @@ try:
     from .. import config
     from ..shared.constants import DEFAULT_DOCS
     from .analyze_unconverted_links import UnconvertedLinkAnalyzer
+    from ..shared.standard_exclusions import should_exclude_file
 except ImportError:
     from development_tools import config
     from development_tools.shared.constants import DEFAULT_DOCS
     from development_tools.docs.analyze_unconverted_links import UnconvertedLinkAnalyzer
+    from development_tools.shared.standard_exclusions import should_exclude_file
 
 # Ensure external config is loaded
 config.load_external_config()
@@ -103,6 +105,10 @@ class DocumentationLinkFixer:
         }
 
         for file_path_str in DEFAULT_DOCS:
+            if should_exclude_file(
+                file_path_str, tool_type="documentation", context="development"
+            ):
+                continue
             file_path = self.project_root / file_path_str
             if not file_path.exists():
                 breakdown["files_skipped_not_found"] += 1

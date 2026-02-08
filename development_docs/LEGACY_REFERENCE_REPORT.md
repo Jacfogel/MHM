@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-07 02:38:02
+> **Last Generated**: 2026-02-08 04:16:00
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 3
 **Legacy Compatibility Markers Detected**: 4
@@ -21,7 +21,7 @@
 ### development_tools\shared\mtime_cache.py
 **Issues Found**: 1
 
-- **Line 234**: `legacy path`
+- **Line 310**: `legacy path`
   ```
   # This ensures we fix standardized storage issues rather than silently using legacy paths
   ```

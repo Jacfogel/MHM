@@ -31,6 +31,7 @@ try:
         DEFAULT_DOCS,
         PAIRED_DOCS,
     )
+    from ..shared.standard_exclusions import should_exclude_file
 except ImportError:
     import sys
     from pathlib import Path
@@ -52,6 +53,7 @@ except ImportError:
         DEFAULT_DOCS,
         PAIRED_DOCS,
     )
+    from development_tools.shared.standard_exclusions import should_exclude_file
 
 # Load external config on module import
 config.load_external_config()
@@ -127,6 +129,8 @@ def load_documents(paths: Sequence[str]) -> Tuple[Dict[str, str], List[str]]:
     docs: Dict[str, str] = {}
     missing: List[str] = []
     for rel in paths:
+        if should_exclude_file(rel, tool_type="documentation", context="development"):
+            continue
         absolute = (PATHS.root / rel).resolve()
         if not absolute.exists():
             missing.append(rel)

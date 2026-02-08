@@ -136,8 +136,9 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
         bool: True if request was created successfully
     """
     # First check if service is running - if not, no need to reschedule
-    # The service will pick up changes on next startup
-    if not is_service_running():
+    # The service will pick up changes on next startup.
+    service_running = is_service_running()
+    if not service_running:
         logger.debug(
             "Service not running - schedule changes will be picked up on next startup"
         )
@@ -146,11 +147,9 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
     # Canonical readable timestamp for JSON (preferred where humans might read it)
     requested_at_readable = now_timestamp_full()
 
-    # Use timezone-aware ISO 8601 so the timestamp is unambiguous and sortable across environments.
-    tz = pytz.timezone("America/Regina")
-    requested_at_iso = (
-        requested_at_readable  # Canonical timestamp; ISO helper not available
-    )
+    # Use a canonical timestamp for ISO; avoid timezone loading here to keep
+    # side effects minimal (notably during tests with mocked file I/O).
+    requested_at_iso = requested_at_readable
 
     request_data = {
         "user_id": user_id,

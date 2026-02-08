@@ -60,7 +60,6 @@
     "run_validation": true,
     "save_results": true,
     "results_file": "development_tools/reports/analysis_detailed_results.json",
-    "issues_file": "development_tools/critical_issues.txt",
     "audit_scripts": [],
     "concise_output": true,
     "prioritize_issues": true

@@ -74,6 +74,7 @@ class TestCoverageAnalyzer:
                 use_cache=True,
                 tool_name="analyze_test_coverage",
                 domain="tests",
+                tool_paths=[Path(__file__)],
             )
         else:
             self.cache = None

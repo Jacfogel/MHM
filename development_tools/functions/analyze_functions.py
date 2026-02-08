@@ -601,6 +601,19 @@ def scan_all_functions(
         List of function dictionaries
     """
     all_functions = []
+    cache = None
+    try:
+        from development_tools.shared.mtime_cache import MtimeFileCache
+
+        cache = MtimeFileCache(
+            project_root=(project_root if project_root else PROJECT_ROOT),
+            use_cache=True,
+            tool_name="analyze_functions",
+            domain="functions",
+            tool_paths=[Path(__file__)],
+        )
+    except Exception:
+        cache = None
 
     # Use provided project_root or config default
     root = project_root if project_root else PROJECT_ROOT
@@ -633,13 +646,32 @@ def scan_all_functions(
         for py_file in dir_path.rglob("*.py"):
             # Use context-based exclusions
             if not should_exclude_file(str(py_file), "analysis", context):
-                all_functions.extend(extract_functions(str(py_file)))
+                if cache:
+                    cached = cache.get_cached(py_file)
+                    if cached is not None:
+                        all_functions.extend(cached)
+                        continue
+                functions = extract_functions(str(py_file))
+                if cache:
+                    cache.cache_results(py_file, functions)
+                all_functions.extend(functions)
 
     # Also scan root directory
     for py_file in root.glob("*.py"):
         # Use context-based exclusions
         if not should_exclude_file(str(py_file), "analysis", context):
-            all_functions.extend(extract_functions(str(py_file)))
+            if cache:
+                cached = cache.get_cached(py_file)
+                if cached is not None:
+                    all_functions.extend(cached)
+                    continue
+            functions = extract_functions(str(py_file))
+            if cache:
+                cache.cache_results(py_file, functions)
+            all_functions.extend(functions)
+
+    if cache:
+        cache.save_cache()
 
     return all_functions
 

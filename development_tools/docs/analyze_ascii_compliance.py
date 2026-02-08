@@ -31,8 +31,10 @@ from core.logger import get_component_logger
 # Handle both relative and absolute imports
 if __name__ != "__main__" and __package__ and "." in __package__:
     from .. import config
+    from ..shared.standard_exclusions import should_exclude_file
 else:
     from development_tools import config
+    from development_tools.shared.standard_exclusions import should_exclude_file
 
 # Load external config on module import (if not already loaded)
 try:
@@ -81,6 +83,7 @@ class ASCIIComplianceAnalyzer:
             use_cache=use_cache,
             tool_name="analyze_ascii_compliance",
             domain="docs",
+            tool_paths=[Path(__file__)],
         )
 
     def check_ascii_compliance(self) -> Dict[str, List[str]]:
@@ -152,6 +155,10 @@ class ASCIIComplianceAnalyzer:
         files_to_check = list(ASCII_COMPLIANCE_FILES)
 
         for file_path in files_to_check:
+            if should_exclude_file(
+                file_path, tool_type="documentation", context="development"
+            ):
+                continue
             full_path = self.project_root / file_path
             if not full_path.exists():
                 continue

@@ -108,7 +108,6 @@
     "run_validation": true,
     "save_results": true,
     "results_file": "development_tools/reports/analysis_detailed_results.json",
-    "issues_file": "development_tools/critical_issues.txt",
     "audit_scripts": [
       "analyze_documentation.py",
       "analyze_documentation_sync.py",

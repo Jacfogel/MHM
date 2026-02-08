@@ -5845,21 +5845,6 @@ class ReportGenerationMixin:
         # Reference Files
         lines.append("## Reference Files")
 
-        # Default to generic path relative to project root (no development_tools/ assumption)
-        issues_file_str = getattr(self, "audit_config", {}).get(
-            "issues_file", "critical_issues.txt"
-        )
-        issues_file = (
-            self.project_root / issues_file_str
-            if isinstance(issues_file_str, str)
-            else Path(issues_file_str)
-        )
-        if issues_file.exists():
-            rel_path = issues_file.relative_to(self.project_root)
-            lines.append(
-                f"- Critical issues summary: [{rel_path.as_posix()}]({rel_path.as_posix()})"
-            )
-
         # Get status file paths from config for links
         try:
             from ... import config

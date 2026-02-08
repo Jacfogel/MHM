@@ -291,8 +291,11 @@ def _account_normalize_after_load(data: dict[str, Any]) -> dict[str, Any]:
     """Ensure timezone exists on loaded account data."""
     # error_handling_exclude: intentional try/except; @handle_errors default_return would break loader
     try:
-        if isinstance(data, dict) and not data.get("timezone"):
-            data["timezone"] = "UTC"
+        if isinstance(data, dict):
+            if "email" not in data:
+                data["email"] = ""
+            if not data.get("timezone"):
+                data["timezone"] = "UTC"
     except Exception:
         pass
     return data

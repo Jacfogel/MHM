@@ -315,12 +315,12 @@ class ProjectCleanup:
         # Remove pytest-of-* directories (created by pytest's tmpdir plugin)
         pytest_of_dirs = list(test_data_dir.glob("pytest-of-*"))
         for dir_path in pytest_of_dirs:
-            success, message = self.remove_path(dir_path, dry_run)
-            if success:
+            success, message = self._remove_test_temp_dir(dir_path, dry_run)
+            if success is True:
                 removed += 1
                 if not dry_run:
                     logger.info(f"  {message}")
-            else:
+            elif success is False:
                 failed += 1
                 if not dry_run:
                     logger.warning(f"  {message}")
@@ -328,12 +328,12 @@ class ProjectCleanup:
         # Remove pytest-tmp-* directories (created during parallel test execution)
         pytest_tmp_dirs = list(test_data_dir.glob("pytest-tmp-*"))
         for dir_path in pytest_tmp_dirs:
-            success, message = self.remove_path(dir_path, dry_run)
-            if success:
+            success, message = self._remove_test_temp_dir(dir_path, dry_run)
+            if success is True:
                 removed += 1
                 if not dry_run:
                     logger.info(f"  {message}")
-            else:
+            elif success is False:
                 failed += 1
                 if not dry_run:
                     logger.warning(f"  {message}")
@@ -343,12 +343,12 @@ class ProjectCleanup:
         if tmp_dir.exists():
             for item in tmp_dir.iterdir():
                 if item.is_dir():
-                    success, message = self.remove_path(item, dry_run)
-                    if success:
+                    success, message = self._remove_test_temp_dir(item, dry_run)
+                    if success is True:
                         removed += 1
                         if not dry_run:
                             logger.info(f"  {message}")
-                    else:
+                    elif success is False:
                         failed += 1
                         if not dry_run:
                             logger.warning(f"  {message}")
@@ -371,17 +371,42 @@ class ProjectCleanup:
             subdir = test_data_dir / subdir_name
             if subdir.exists():
                 for item in subdir.iterdir():
-                    success, message = self.remove_path(item, dry_run)
-                    if success:
+                    success, message = self._remove_test_temp_dir(item, dry_run)
+                    if success is True:
                         removed += 1
                         if not dry_run:
                             logger.info(f"  {message}")
-                    else:
+                    elif success is False:
                         failed += 1
                         if not dry_run:
                             logger.warning(f"  {message}")
 
         return removed, failed
+
+    def _remove_test_temp_dir(
+        self, path: Path, dry_run: bool = False
+    ) -> Tuple[Optional[bool], str]:
+        """Remove test temp directory with permission-safe handling.
+
+        Returns:
+            (True, message) if removed
+            (False, message) if failed
+            (None, message) if skipped due to permissions
+        """
+        if dry_run:
+            return self.remove_path(path, dry_run)
+        try:
+            if not path.exists():
+                return False, f"Does not exist: {path}"
+            if path.is_file():
+                path.unlink()
+                return True, f"Removed file: {path}"
+            shutil.rmtree(path)
+            return True, f"Removed directory: {path}"
+        except PermissionError as exc:
+            return None, f"Permission denied: {path} - {exc}"
+        except Exception as exc:
+            return False, f"Error removing {path}: {exc}"
 
     def cleanup_test_user_data(self, dry_run: bool = False) -> Tuple[int, int]:
         """Remove test user data directories."""

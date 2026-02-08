@@ -726,8 +726,6 @@ class CommandsMixin:
         # Default to generic path relative to project root (no development_tools/ assumption)
         results_file = (self.audit_config or {}).get('results_file', 'reports/analysis_detailed_results.json')
         print(f"\nDetailed results saved to: {results_file}")
-        if self.audit_config.get('prioritize_issues', False):
-            print(f"Critical issues saved to: {self.audit_config['issues_file']}")
     
     def _execute_documentation_task(self) -> bool:
         """Execute documentation update task"""

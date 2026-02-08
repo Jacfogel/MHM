@@ -2,12 +2,12 @@
 
 # AI Tools Configuration
 """
-Configuration settings for AI collaboration tools.
-Optimized for AI assistants to get concise, actionable information about the codebase.
+Configuration settings for the development tools suite.
+Defaults are intentionally generic and portable; project-specific values should be supplied
+via an external config file. All getter functions check external config first, then fall back
+to these defaults.
 
-NOTE: This module contains MHM-specific default values. For other projects, override these
-via development_tools_config.json in the project root. All getter functions check external
-config first, then fall back to these defaults.
+Default config path: development_tools/config/development_tools_config.json
 """
 
 from pathlib import Path
@@ -26,7 +26,7 @@ def load_external_config(config_path: Optional[str] = None) -> bool:
 
     Args:
         config_path: Path to config file (JSON format). If None, looks for
-                     'development_tools_config.json' in project root.
+                     'development_tools/config/development_tools_config.json'.
 
     Returns:
         True if config was loaded successfully, False otherwise.
@@ -244,7 +244,6 @@ QUICK_AUDIT = {
     "run_validation": True,
     "save_results": True,
     "results_file": "development_tools/reports/analysis_detailed_results.json",  # Generic path - override via config
-    "issues_file": "development_tools/critical_issues.txt",  # Generic path - override via config
     "audit_scripts": [],  # Empty by default - requires config file
     "concise_output": True,
     "prioritize_issues": True,
@@ -390,13 +389,7 @@ def get_project_core_system_files(default: Optional[list] = None) -> list:
     Checks project.core_system_files first, then falls back to project.key_files if not found.
     """
     if default is None:
-        default = [
-            "run_mhm.py",
-            "core/service.py",
-            "core/config.py",
-            "requirements.txt",
-            ".gitignore",
-        ]
+        default = ["README.md", "requirements.txt", ".gitignore"]
     core_files = _get_external_value("project.core_system_files", None)
     # If core_system_files is empty or invalid, fall back to key_files
     if not core_files or not isinstance(core_files, list) or len(core_files) == 0:

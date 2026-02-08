@@ -19,6 +19,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from core.logger import get_component_logger
+from development_tools.shared.standard_exclusions import should_exclude_file
 
 # Handle both relative and absolute imports
 try:
@@ -52,6 +53,8 @@ def analyze_function_patterns(actual_functions: Dict[str, Dict]) -> Dict[str, An
     }
 
     for file_path, data in actual_functions.items():
+        if should_exclude_file(file_path, tool_type="analysis", context="development"):
+            continue
         file_lower = file_path.lower()
 
         # Analyze classes for patterns

@@ -120,6 +120,7 @@ class UnusedImportsChecker:
             use_cache=use_cache,
             tool_name="analyze_unused_imports",
             domain="imports",
+            tool_paths=[Path(__file__)],
         )
 
         # Get config values
