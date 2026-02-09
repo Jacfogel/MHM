@@ -29,6 +29,13 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-09 - Coverage cache hardening + flake tracking cleanup **COMPLETED**
+- Extended coverage cache safety: test-file/dev-tools coverage caches now rely on tool/config/run-status metadata for invalidation and failed-run handling (`test_file_coverage_cache.py`, `dev_tools_coverage_cache.py`, `run_test_coverage.py`).
+- Added `run_tests.py` to dev-tools config key files and updated one behavior test module to use UUID-suffixed user IDs to reduce parallel collision risk (`tests/behavior/test_user_data_flow_architecture.py`).
+- Investigated latest Tier-3 failures and isolated two intermittent targets: cleanup TOCTOU path deletion in `test_fix_project_cleanup.py` and nondeterministic user-dir selection in `test_user_management.py`.
+- Removed duplicate flake planning from `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`; consolidated intermittent coverage-flake tracking in `TODO.md` as the single source.
+- Updated both dev-tools guides with failure-aware/tool-aware cache invalidation details, extended V4 plan cache-quality tasks, and refreshed generated audit artifacts/reports (AI_STATUS, AI_PRIORITIES, consolidated report, registry/dependency/coverage docs).
+
 ### 2026-02-08 - Dev tools cache/CLI standardization and test fixes **COMPLETED**
 - Standardized dev-tools CLI flags/aliases, removed `critical_issues.txt`, made config portable, and expanded `should_exclude_file` usage; guides and plan/priorities refreshed after audits.
 - Extended caching with tool-code/config invalidation and broader analyzer coverage; cache failures now log and corrupted cache files are cleaned up.

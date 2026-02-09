@@ -92,6 +92,10 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [x] Extend MtimeFileCache to high-cost analyzers (`analyze_error_handling`, `analyze_functions`, `analyze_module_imports`, `analyze_module_dependencies`)
 - [ ] Ensure cached test results are invalidated when covered domains change
 - [ ] Do not cache results for test files that fail or error
+- [ ] Add tool mtime/hash tracking to `TestFileCoverageCache` to invalidate coverage cache globally when test coverage tool code changes (e.g., `run_test_coverage.py`, `test_file_coverage_cache.py`, `dev_tools_coverage_cache.py`, `domain_mapper.py`)
+  - Implementation: store `tool_hash` + `tool_mtimes` in `test_file_coverage_cache.json`
+  - Invalidate all domains if tool hash changes; update hash on cache save
+  - Log explicit invalidation reason in `run_test_coverage.py` output
 
 #### 1.7 Caching quality and invalidation rules (broader tools)
 **Status**: PENDING  
@@ -100,6 +104,8 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [x] Define consistent invalidation rules for config changes in `development_tools/config/development_tools_config.json`
 - [x] Ensure tool code changes invalidate cached outputs (version/hash-based keying)
 - [ ] Review cache value: include config + tool version + domain inputs in cache keys
+- [ ] Verify each cached tool records tool hash/mtime in its cache payload and invalidates on change (add tests + log lines)
+- [ ] Add failure/error-aware cache invalidation across tools (store last run status in cache metadata and force recompute on failed runs)
 
 #### 1.6 Fixture status file regeneration
 **Status**: PENDING  

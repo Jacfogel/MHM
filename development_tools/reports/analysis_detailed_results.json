@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-02-08 04:20:35",
+  "last_generated": "2026-02-09 00:58:24",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-02-08T04:20:35.585035",
+  "timestamp": "2026-02-09T00:58:24.236878",
   "successful": [
     "analyze_duplicate_functions",
     "analyze_functions",
@@ -50,8 +50,8 @@
           "groups_filtered_single_function": 11,
           "cache": {
             "total_files": 109,
-            "cached_files": 108,
-            "scanned_files": 1
+            "cached_files": 109,
+            "scanned_files": 0
           },
           "pairs_considered": 20000,
           "pairs_reported": 38,
@@ -2577,7 +2577,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-08T04:15:18"
+      "timestamp": "2026-02-09T00:48:18"
     },
     "analyze_functions": {
       "success": true,
@@ -2726,7 +2726,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-08T04:15:17"
+      "timestamp": "2026-02-09T00:48:17"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -4679,7 +4679,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-08T04:15:12"
+      "timestamp": "2026-02-09T00:48:08"
     },
     "analyze_function_registry": {
       "success": true,
@@ -6710,204 +6710,31 @@
             ],
             "undocumented_other_total": 32
           },
-          "coverage": 94.13,
+          "coverage": 95.41,
           "errors": [],
           "extra": {
             "count": 0,
             "files": {}
           },
           "missing": {
-            "count": 20,
-            "files": {
-              "run_tests.py": [
-                "check_critical_resources",
-                "check_resource_warnings",
-                "cleanup_orphaned_pytest_processes",
-                "detect_stuck_process",
-                "extract_failures_from_junit_xml",
-                "extract_pytest_session_info",
-                "extract_results_from_output",
-                "interrupt_handler",
-                "kill_process_tree_windows",
-                "main",
-                "monitor_resources",
-                "parse_junit_xml",
-                "print_combined_summary",
-                "print_test_mode_info",
-                "read_output",
-                "run_command",
-                "run_static_logging_check",
-                "save_partial_results",
-                "setup_test_logger",
-                "signal_handler"
-              ]
-            },
-            "missing_files": [
-              "run_tests.py"
-            ]
+            "count": 0,
+            "files": {},
+            "missing_files": []
           },
-          "registry_sections": {
-            "run_tests.py": {
-              "classes": [],
-              "functions": [
-                {
-                  "args": [
-                    "pid"
-                  ],
-                  "docstring": "Kill a process and all its children on Windows.\n\n    Returns:\n        bool: True if taskkill succeeded, False otherwise",
-                  "name": "kill_process_tree_windows"
-                },
-                {
-                  "args": [],
-                  "docstring": "Find and kill any orphaned pytest worker processes on Windows.\n\n    Returns:\n        int: Number of orphaned processes found and killed",
-                  "name": "cleanup_orphaned_pytest_processes"
-                },
-                {
-                  "args": [
-                    "signum",
-                    "frame"
-                  ],
-                  "docstring": "Handle interrupt signals (Ctrl+C) gracefully.",
-                  "name": "interrupt_handler"
-                },
-                {
-                  "args": [],
-                  "docstring": "Monitor system resource usage and return metrics.",
-                  "name": "monitor_resources"
-                },
-                {
-                  "args": [
-                    "resources"
-                  ],
-                  "docstring": "Check if resources exceed warning thresholds.",
-                  "name": "check_resource_warnings"
-                },
-                {
-                  "args": [
-                    "resources"
-                  ],
-                  "docstring": "Check if resources exceed critical thresholds requiring termination.",
-                  "name": "check_critical_resources"
-                },
-                {
-                  "args": [
-                    "output_text"
-                  ],
-                  "docstring": "Extract test results from pytest output text when JUnit XML is unavailable.",
-                  "name": "extract_results_from_output"
-                },
-                {
-                  "args": [
-                    "output_text"
-                  ],
-                  "docstring": "Extract pytest session information from output text.",
-                  "name": "extract_pytest_session_info"
-                },
-                {
-                  "args": [
-                    "junit_xml_path",
-                    "interrupted",
-                    "output_text",
-                    "test_context"
-                  ],
-                  "docstring": "Save partial test results from JUnit XML, falling back to output text parsing.",
-                  "name": "save_partial_results"
-                },
-                {
-                  "args": [
-                    "last_output_time",
-                    "current_time",
-                    "threshold"
-                  ],
-                  "docstring": "Detect if process appears stuck (no output for extended period).",
-                  "name": "detect_stuck_process"
-                },
-                {
-                  "args": [
-                    "xml_path"
-                  ],
-                  "docstring": "Extract detailed failure information from JUnit XML.\n\n    Returns a list of dicts with 'test', 'message', and 'type' keys.",
-                  "name": "extract_failures_from_junit_xml"
-                },
-                {
-                  "args": [
-                    "xml_path"
-                  ],
-                  "docstring": "Parse JUnit XML report to extract test statistics.\n\n    Returns a dictionary with: passed, failed, skipped, warnings, errors, total",
-                  "name": "parse_junit_xml"
-                },
-                {
-                  "args": [
-                    "cmd",
-                    "description",
-                    "progress_interval",
-                    "capture_output",
-                    "test_context"
-                  ],
-                  "docstring": "Run a command and return results with periodic progress logs.\n\n    Args:\n        cmd: Command to run\n        description: Description for progress messages\n        progress_interval: Seconds between progress updates\n        capture_output: If True, capture results via JUnit XML (always True in practice)\n        test_context: Optional dict with test run context (mode, phase, config, etc.)\n\n    Returns:\n        dict with 'success', 'output', 'results', 'duration', 'warnings', 'failures' keys",
-                  "name": "run_command"
-                },
-                {
-                  "args": [],
-                  "docstring": "Set up logger for test duration logging.\n\n    Creates a logger for test run duration logging and ensures the tests/logs\n    directory exists. Returns a configured logger instance.\n\n    Returns:\n        logging.Logger: Configured logger instance for test runs",
-                  "name": "setup_test_logger"
-                },
-                {
-                  "args": [
-                    "parallel_results",
-                    "no_parallel_results",
-                    "description"
-                  ],
-                  "docstring": "Print a combined summary of test results from both parallel and serial runs.\n\n    Args:\n        parallel_results: Results dict from parallel test run (or None if not run)\n        no_parallel_results: Results dict from serial test run (or None if not run)\n        description: Test mode description",
-                  "name": "print_combined_summary"
-                },
-                {
-                  "args": [],
-                  "docstring": "Print helpful information about test modes.",
-                  "name": "print_test_mode_info"
-                },
-                {
-                  "args": [],
-                  "docstring": "Run the static logging enforcement script before executing tests.",
-                  "name": "run_static_logging_check"
-                },
-                {
-                  "args": [],
-                  "docstring": "Main entry point for MHM test runner.\n\n    Parses command-line arguments and executes pytest with appropriate configuration\n    based on the selected test mode (all, fast, unit, integration, behavior, ui, slow).\n\n    Returns:\n        int: Exit code (0 for success, 1 for failure)",
-                  "name": "main"
-                },
-                {
-                  "args": [
-                    "signum",
-                    "frame"
-                  ],
-                  "docstring": "",
-                  "name": "signal_handler"
-                },
-                {
-                  "args": [
-                    "pipe",
-                    "queue_obj"
-                  ],
-                  "docstring": "Read from pipe and put lines in queue, also write to terminal.",
-                  "name": "read_output"
-                }
-              ]
-            }
-          },
+          "registry_sections": {},
           "totals": {
             "classes_found": 154,
             "files_scanned": 111,
-            "functions_documented": 1475,
+            "functions_documented": 1495,
             "functions_found": 1567
           }
         },
         "summary": {
           "files_affected": 0,
-          "total_issues": 20
+          "total_issues": 0
         }
       },
-      "timestamp": "2026-02-08T04:15:20"
+      "timestamp": "2026-02-09T00:48:23"
     },
     "analyze_package_exports": {
       "success": true,
@@ -14632,7 +14459,7 @@
           }
         }
       },
-      "timestamp": "2026-02-08T04:15:37"
+      "timestamp": "2026-02-09T00:49:01"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -14647,7 +14474,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-08T04:15:26"
+      "timestamp": "2026-02-09T00:48:32"
     },
     "analyze_documentation": {
       "success": true,
@@ -14686,7 +14513,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19959578236608583,
+              "similarity_score": 0.1992263729101899,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -14869,7 +14696,7 @@
               ]
             },
             "TODO.md": {
-              "content_length": 26432,
+              "content_length": 26896,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
               "section_count": 13,
               "sections": [
@@ -14918,20 +14745,20 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 200595,
+              "content_length": 202456,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
-              "section_count": 238,
+              "section_count": 240,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-02-09 - Coverage cache hardening + flake tracking cleanup **COMPLETED**",
+                "2026-02-08 - Dev tools cache/CLI standardization and test fixes **COMPLETED**",
                 "2026-02-06 - Cursor rules and commands refresh **COMPLETED**",
                 "2026-02-06 - Duplicate function refactors (Groups 2-3, 14, 16, 18, 20, 25) and AI_PRIORITIES **COMPLETED**",
-                "2026-02-06 - Duplicate-functions investigation, tool improvements, planning doc **COMPLETED**",
-                "2026-02-06 - Scheduler wake timer fix; custom-question test fix; audit clean **COMPLETED**",
-                "2026-02-06 - Log rotation fix, logging noise reduction, backup/archive docs, dev-tools log isolation **COMPLETED**"
+                "2026-02-06 - Duplicate-functions investigation, tool improvements, planning doc **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -15018,7 +14845,7 @@
               ]
             },
             "ai_development_docs/AI_SESSION_STARTER.md": {
-              "content_length": 10888,
+              "content_length": 11131,
               "header_info": "# AI Session Starter\n\n> **File**: `ai_development_docs/AI_SESSION_STARTER.md`\n> **Audience**: AI collaborators working on the MHM codebase and docs\n> **Purpose**: Provide a compact starting point for ",
               "section_count": 14,
               "sections": [
@@ -15120,9 +14947,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 118173,
+              "content_length": 123329,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 53,
+              "section_count": 55,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -15130,10 +14957,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-02-09 - Coverage cache behavior hardening, flake tracking alignment, and session wrap-up",
+                "2026-02-08 - Dev tools cache/CLI standardization and test fixes",
                 "2026-02-06 - Cursor rules and commands refresh",
-                "2026-02-06 - Duplicate function refactors (Groups 2-3, 14, 16, 18, 20, 25) and AI_PRIORITIES follow-ups",
-                "2026-02-06 - Duplicate-functions investigation, tool improvements, and planning doc",
-                "2026-02-06 - Scheduler wake timer Register-ScheduledTask fix (0x80070057); custom-question test fix"
+                "2026-02-06 - Duplicate function refactors (Groups 2-3, 14, 16, 18, 20, 25) and AI_PRIORITIES follow-ups"
               ]
             },
             "development_docs/PLANS.md": {
@@ -15154,7 +14981,7 @@
               ]
             },
             "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 18606,
+              "content_length": 17980,
               "header_info": "# AI Development Tools Guide\n\n> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: AI collaborators and automated tooling  \n> **Purpose**: Routing and constraints for all AI",
               "section_count": 11,
               "sections": [
@@ -15171,7 +14998,7 @@
               ]
             },
             "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 32714,
+              "content_length": 33431,
               "header_info": "# Development Tools Guide\n\n> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`\n> **Audience**: Human maintainers and contributors\n> **Purpose**: Detailed reference for every development tool, i",
               "section_count": 17,
               "sections": [
@@ -15335,15 +15162,15 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-08T04:15:09"
+      "timestamp": "2026-02-09T00:48:03"
     },
     "analyze_documentation_sync": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 7,
           "files_affected": 0,
-          "status": "PASS"
+          "status": "FAIL"
         },
         "details": {
           "paired_doc_issues": 0,
@@ -15351,7 +15178,7 @@
           "ascii_compliance_issues": 0,
           "heading_numbering_issues": 0,
           "missing_address_issues": 0,
-          "unconverted_link_issues": 0,
+          "unconverted_link_issues": 7,
           "path_drift_files": [],
           "paired_docs": {},
           "path_drift": {
@@ -15398,18 +15225,25 @@
           },
           "unconverted_links": {
             "summary": {
-              "total_issues": 0,
-              "files_affected": 0
+              "total_issues": 7,
+              "files_affected": 2
             },
             "details": {
-              "files": {},
-              "file_count": 0,
-              "total_issues": 0
+              "files": {
+                "ai_development_docs/AI_CHANGELOG.md": 1,
+                "development_docs/CHANGELOG_DETAIL.md": 6
+              },
+              "file_count": 2,
+              "total_issues": 7
+            },
+            "files": {
+              "ai_development_docs/AI_CHANGELOG.md": 1,
+              "development_docs/CHANGELOG_DETAIL.md": 6
             }
           }
         }
       },
-      "timestamp": "2026-02-08T04:15:37"
+      "timestamp": "2026-02-09T00:49:05"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -15424,7 +15258,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-08T04:15:27"
+      "timestamp": "2026-02-09T00:48:35"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -15439,7 +15273,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-08T04:15:36"
+      "timestamp": "2026-02-09T00:49:03"
     },
     "analyze_path_drift": {
       "success": true,
@@ -15452,22 +15286,29 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-08T04:15:24"
+      "timestamp": "2026-02-09T00:48:29"
     },
     "analyze_unconverted_links": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
-          "files_affected": 0
+          "total_issues": 7,
+          "files_affected": 2
         },
         "details": {
-          "files": {},
-          "file_count": 0,
-          "total_issues": 0
+          "files": {
+            "ai_development_docs/AI_CHANGELOG.md": 1,
+            "development_docs/CHANGELOG_DETAIL.md": 6
+          },
+          "file_count": 2,
+          "total_issues": 7
+        },
+        "files": {
+          "ai_development_docs/AI_CHANGELOG.md": 1,
+          "development_docs/CHANGELOG_DETAIL.md": 6
         }
       },
-      "timestamp": "2026-02-08T04:15:37"
+      "timestamp": "2026-02-09T00:49:05"
     },
     "analyze_error_handling": {
       "success": true,
@@ -15495,11 +15336,11 @@
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "handle_file_error": 3,
-            "FileOperationError": 8,
-            "AIError": 2,
-            "MHMError": 2,
             "safe_file_operation": 1,
+            "handle_file_error": 3,
+            "AIError": 2,
+            "FileOperationError": 8,
+            "MHMError": 2,
             "CommunicationError": 2
           },
           "missing_error_handling": [],
@@ -15548,38 +15389,38 @@
           ]
         }
       },
-      "timestamp": "2026-02-08T04:15:17"
+      "timestamp": "2026-02-09T00:48:17"
     },
     "analyze_test_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 8325,
+          "total_issues": 8286,
           "files_affected": 0
         },
         "details": {
           "overall": {
             "coverage": 72.1,
-            "statements": 29799,
-            "covered": 21474,
-            "missed": 8325,
+            "statements": 29675,
+            "covered": 21389,
+            "missed": 8286,
             "generated": null
           },
           "modules": [
             {
               "module": "communication",
-              "coverage": 69.5,
-              "missed": 2888
+              "coverage": 69.2,
+              "missed": 2896
             },
             {
               "module": "ui",
-              "coverage": 70.4,
-              "missed": 1987
+              "coverage": 70.6,
+              "missed": 1971
             },
             {
               "module": "core",
-              "coverage": 73.1,
-              "missed": 2813
+              "coverage": 73.2,
+              "missed": 2789
             },
             {
               "module": "notebook",
@@ -15588,8 +15429,8 @@
             },
             {
               "module": "ai",
-              "coverage": 78.3,
-              "missed": 375
+              "coverage": 78.8,
+              "missed": 368
             },
             {
               "module": "tasks",
@@ -15598,7 +15439,7 @@
             },
             {
               "module": "user",
-              "coverage": 95.9,
+              "coverage": 95.8,
               "missed": 12
             }
           ],
@@ -15615,23 +15456,23 @@
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 50.4,
-              "missing": 698
+              "coverage": 51.3,
+              "missing": 686
             },
             {
               "path": "communication/command_handlers/notebook_handler.py",
-              "coverage": 52.1,
+              "coverage": 51.9,
               "missing": 250
             },
             {
               "path": "communication/message_processing/conversation_flow_manager.py",
-              "coverage": 59.9,
+              "coverage": 59.8,
               "missing": 405
             }
           ]
         }
       },
-      "timestamp": "2026-02-08T04:20:31"
+      "timestamp": "2026-02-09T00:58:18"
     },
     "analyze_test_markers": {
       "success": true,
@@ -15645,7 +15486,7 @@
           "missing": []
         }
       },
-      "timestamp": "2026-02-08T04:20:34"
+      "timestamp": "2026-02-09T00:58:23"
     },
     "generate_dev_tools_coverage": {
       "success": false,
@@ -18733,7 +18574,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-08T04:15:26"
+      "timestamp": "2026-02-09T00:48:36"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -18753,7 +18594,7 @@
           "missing_sections": []
         }
       },
-      "timestamp": "2026-02-08T04:15:30"
+      "timestamp": "2026-02-09T00:48:47"
     },
     "analyze_module_imports": {
       "success": true,
@@ -30739,7 +30580,7 @@
           }
         }
       },
-      "timestamp": "2026-02-08T04:15:22"
+      "timestamp": "2026-02-09T00:48:25"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -31073,7 +30914,7 @@
               },
               {
                 "file": "tests/behavior/test_user_data_flow_architecture.py",
-                "line": 11,
+                "line": 12,
                 "column": 0,
                 "message": "Unused MagicMock imported from unittest.mock",
                 "symbol": "unused-import"
@@ -33546,10 +33387,10 @@
             ]
           },
           "stats": {
-            "files_scanned": 423,
+            "files_scanned": 426,
             "files_with_issues": 135,
             "total_unused": 377,
-            "cache_hits": 422,
+            "cache_hits": 0,
             "cache_misses": 0
           },
           "by_category": {
@@ -33564,10 +33405,10 @@
             "production_test_mocking": 4,
             "ui_imports": 1
           },
-          "files_scanned": 423
+          "files_scanned": 426
         }
       },
-      "timestamp": "2026-02-08T04:15:35"
+      "timestamp": "2026-02-09T00:51:23"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -33636,7 +33477,7 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2026-02-08T04:15:58"
+      "timestamp": "2026-02-09T00:52:45"
     },
     "analyze_config": {
       "success": true,
@@ -33704,7 +33545,7 @@
           }
         }
       },
-      "timestamp": "2026-02-08T03:54:22"
+      "timestamp": "2026-02-09T00:54:10"
     },
     "analyze_ai_work": {
       "success": true,
@@ -33719,7 +33560,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-02-08T04:15:08"
+      "timestamp": "2026-02-09T00:48:03"
     },
     "analyze_system_signals": {
       "success": true,
@@ -33730,11 +33571,12 @@
           "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-02-08T04:15:07.482475",
+          "timestamp": "2026-02-09T00:48:01.603202",
           "system_health": {
             "overall_status": "ISSUES",
             "core_files": {
               "run_mhm.py": "OK",
+              "run_tests.py": "OK",
               "core/service.py": "OK",
               "core/config.py": "OK"
             },
@@ -33749,7 +33591,7 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-02-08T03:59:21.698244",
+            "last_audit": "2026-02-09T00:07:31.423176",
             "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
             "documentation_sync_status": "Synchronized",
@@ -33772,16 +33614,16 @@
           },
           "recent_activity": {
             "recent_changes": [
-              "development_tools/imports/analyze_module_imports.py",
-              "development_tools/docs/fix_documentation_headings.py",
-              "development_tools/functions/analyze_functions.py",
-              "development_tools/shared/cli_interface.py",
-              "development_tools/imports/analyze_unused_imports.py",
-              "development_tools/shared/mtime_cache.py",
+              "development_tools/config/config.py",
+              "development_tools/docs/analyze_path_drift.py",
+              "tests/development_tools/test_analyze_package_exports.py",
               "development_tools/docs/fix_documentation_addresses.py",
-              "development_tools/docs/analyze_unconverted_links.py",
-              "core/service_utilities.py",
-              "development_tools/docs/fix_documentation_ascii.py"
+              "development_tools/docs/fix_documentation_headings.py",
+              "development_tools/legacy/analyze_legacy_references.py",
+              "development_tools/ai_work/analyze_ai_work.py",
+              "tests/behavior/test_user_data_flow_architecture.py",
+              "development_tools/docs/fix_documentation.py",
+              "development_tools/shared/output_storage.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -33791,7 +33633,7 @@
           "performance_indicators": {
             "log_file_sizes": {
               "ai.log": "0.0MB",
-              "ai_dev_tools.log": "0.4MB",
+              "ai_dev_tools.log": "0.8MB",
               "app.log": "0.0MB",
               "communication_manager.log": "0.0MB",
               "discord.log": "0.0MB",
@@ -33809,7 +33651,7 @@
           }
         }
       },
-      "timestamp": "2026-02-08T04:15:07"
+      "timestamp": "2026-02-09T00:48:01"
     },
     "decision_support": {
       "success": true,
@@ -33962,7 +33804,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-08T04:15:12"
+      "timestamp": "2026-02-09T00:48:09"
     },
     "quick_status": {
       "success": true,
@@ -33973,10 +33815,11 @@
           "status": "OK"
         },
         "details": {
-          "timestamp": "2026-02-08T04:15:13.475427",
+          "timestamp": "2026-02-09T00:48:10.075344",
           "system_health": {
             "core_files": {
               "run_mhm.py": "OK",
+              "run_tests.py": "OK",
               "core/service.py": "OK",
               "core/config.py": "OK"
             },
@@ -33993,7 +33836,7 @@
           },
           "documentation_status": {
             "coverage": "Unknown",
-            "recent_audit": "2026-02-08T03:59:21.659651",
+            "recent_audit": "2026-02-09T00:07:31.382322",
             "key_files": {
               "README.md": "OK",
               "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -34006,28 +33849,18 @@
           "critical_issues": [],
           "action_items": [],
           "recent_activity": {
-            "last_audit": "2026-02-08T03:59:21.659651",
+            "last_audit": "2026-02-09T00:07:31.382322",
             "recent_changes": [
               "core/user_data_handlers.py",
-              "core/ui_management.py",
               "core/service_utilities.py",
-              "core/ERROR_HANDLING_GUIDE.md",
-              "communication/message_processing/interaction_manager.py",
-              "communication/message_processing/intent_validation.py",
-              "communication/message_processing/command_parser.py",
-              "communication/command_handlers/task_handler.py",
               "ai_development_docs/AI_SESSION_STARTER.md",
-              "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-              "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
               "ai_development_docs/AI_CHANGELOG.md",
-              "ai/chatbot.py",
-              "TODO.md",
-              "DOCUMENTATION_GUIDE.md"
+              "TODO.md"
             ]
           }
         }
       },
-      "timestamp": "2026-02-08T04:15:13"
+      "timestamp": "2026-02-09T00:48:10"
     }
   }
 }

@@ -5,11 +5,11 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-06
+> **Last Updated**: 2026-02-09
 
 ---
 
-**Note**: [TODO.md](TODO.md) is the canonical list for standalone tasks. Larger, scoped efforts live in dedicated plan files such as [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md).
+**Note**: [TODO.md](TODO.md) is the canonical list for standalone tasks. Larger, scoped efforts live in dedicated plan files such as [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
 
 ## [IN PROGRESS] **Plan Maintenance**
 

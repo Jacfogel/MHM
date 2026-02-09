@@ -2,12 +2,12 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-08 04:15:36
+> **Last Generated**: 2026-02-09 00:51:24
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 423
+- **Total Files Scanned**: 426
 - **Files with Unused Imports**: 135
 - **Total Unused Imports**: 377
 
@@ -150,7 +150,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 11**: Unused MagicMock imported from unittest.mock
+- **Line 12**: Unused MagicMock imported from unittest.mock
 
 ### `tests/behavior/test_webhook_server_behavior.py`
 

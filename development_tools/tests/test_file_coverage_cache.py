@@ -24,8 +24,9 @@ Usage:
 import json
 import os
 import time
+import hashlib
 from pathlib import Path
-from typing import Dict, Optional, Set, Any, List
+from typing import Dict, Optional, Set, Any, List, Iterable
 from datetime import datetime
 
 # Try to import file locking (Unix/Linux)
@@ -87,7 +88,9 @@ class TestFileCoverageCache:
 
         self.cache_file = self.cache_dir / "test_file_coverage_cache.json"
         self.cache_data: Dict[str, Any] = {}
+        self.tool_paths = self._get_default_tool_paths()
         self._load_cache()
+        self._cached_changed_domains: Optional[Set[str]] = None
 
         # Full coverage JSON cache (for when no domains change)
         self.full_coverage_cache_key = "_full_coverage_json"
@@ -96,6 +99,53 @@ class TestFileCoverageCache:
         self.excluded_test_dirs = [
             "tests/data",  # Test data directory - contains temporary test data files
         ]
+
+    def _get_default_tool_paths(self) -> tuple[Path, ...]:
+        """Return tool paths used to compute cache invalidation hash."""
+        tool_files = [
+            self.project_root / "development_tools" / "tests" / "run_test_coverage.py",
+            self.project_root
+            / "development_tools"
+            / "tests"
+            / "test_file_coverage_cache.py",
+            self.project_root
+            / "development_tools"
+            / "tests"
+            / "dev_tools_coverage_cache.py",
+            self.project_root
+            / "development_tools"
+            / "tests"
+            / "domain_mapper.py",
+        ]
+        return tuple(path for path in tool_files if path.exists())
+
+    def _compute_tool_hash(self) -> Optional[str]:
+        """Compute a hash for coverage tool source files."""
+        if not self.tool_paths:
+            return None
+        hasher = hashlib.sha256()
+        has_data = False
+        for path in self.tool_paths:
+            try:
+                if not path.exists() or not path.is_file():
+                    continue
+                hasher.update(path.read_bytes())
+                has_data = True
+            except Exception:
+                return None
+        return hasher.hexdigest() if has_data else None
+
+    def _get_tool_mtimes(self) -> Dict[str, float]:
+        """Return mtimes for tool source files."""
+        mtimes: Dict[str, float] = {}
+        for path in self.tool_paths:
+            try:
+                if not path.exists():
+                    continue
+                mtimes[str(path.relative_to(self.project_root))] = path.stat().st_mtime
+            except Exception:
+                continue
+        return mtimes
 
     def is_valid_test_file(self, test_file: Path) -> bool:
         """
@@ -173,12 +223,24 @@ class TestFileCoverageCache:
                 "cache_version": "2.0",
                 "source_files_mtime": {},  # domain -> {file_path: mtime}
                 "test_files": {},  # test_file_path -> {domains: [], coverage_data: {}, last_run: timestamp}
+                "config_mtime": None,
+                "tool_hash": None,
+                "tool_mtimes": {},
+                "last_run_ok": None,
+                "last_parallel_ok": None,
+                "last_no_parallel_ok": None,
+                "last_no_parallel_coverage_present": None,
+                "last_failed_domains": [],
+                "last_run_at": None,
                 "last_updated": None,
             }
 
     def _save_cache(self) -> None:
         """Save cache to disk with file locking and atomic write for thread safety."""
         try:
+            self._update_config_mtime()
+            self.cache_data["tool_hash"] = self._compute_tool_hash()
+            self.cache_data["tool_mtimes"] = self._get_tool_mtimes()
             timestamp_str = now_timestamp_full()
             timestamp_iso = now_timestamp_filename()
             self.cache_data["last_updated"] = timestamp_iso
@@ -238,6 +300,104 @@ class TestFileCoverageCache:
             if logger:
                 logger.warning(f"Failed to save test-file coverage cache: {e}")
 
+    def _get_config_file_path(self) -> Optional[Path]:
+        """Get the path to the development_tools_config.json file."""
+        try:
+            import development_tools.config.config as config_module
+
+            if (
+                hasattr(config_module, "_config_file_path")
+                and config_module._config_file_path
+            ):
+                return Path(config_module._config_file_path)
+        except Exception:
+            pass
+
+        try:
+            config_file = (
+                self.project_root
+                / "development_tools"
+                / "config"
+                / "development_tools_config.json"
+            )
+            if config_file.exists():
+                return config_file
+        except Exception:
+            pass
+        return None
+
+    def _update_config_mtime(self) -> None:
+        """Store current config file mtime in cache metadata."""
+        config_path = self._get_config_file_path()
+        if not config_path or not config_path.exists():
+            return
+        try:
+            self.cache_data["config_mtime"] = config_path.stat().st_mtime
+        except Exception:
+            pass
+
+    def _config_changed(self) -> bool:
+        """Return True if config file mtime differs from cached value."""
+        config_path = self._get_config_file_path()
+        if not config_path or not config_path.exists():
+            return False
+        try:
+            current_mtime = config_path.stat().st_mtime
+        except Exception:
+            return False
+        cached_mtime = self.cache_data.get("config_mtime")
+        if cached_mtime is None:
+            return True
+        return current_mtime != cached_mtime
+
+    def _tool_changed(self) -> bool:
+        """Return True if tool hash differs from cached value."""
+        current_hash = self._compute_tool_hash()
+        if not current_hash:
+            return False
+        cached_hash = self.cache_data.get("tool_hash")
+        if cached_hash is None:
+            return True
+        return current_hash != cached_hash
+
+    def update_run_status(
+        self,
+        *,
+        parallel_ok: Optional[bool] = None,
+        no_parallel_ok: Optional[bool] = None,
+        no_parallel_coverage_present: Optional[bool] = None,
+        failed_domains: Optional[Iterable[str]] = None,
+    ) -> None:
+        """Record the last test coverage run status."""
+        if parallel_ok is not None:
+            self.cache_data["last_parallel_ok"] = bool(parallel_ok)
+        if no_parallel_ok is not None:
+            self.cache_data["last_no_parallel_ok"] = bool(no_parallel_ok)
+        if no_parallel_coverage_present is not None:
+            self.cache_data["last_no_parallel_coverage_present"] = bool(
+                no_parallel_coverage_present
+            )
+        if failed_domains is not None:
+            self.cache_data["last_failed_domains"] = sorted(
+                {d for d in failed_domains if isinstance(d, str) and d}
+            )
+        if parallel_ok is not None or no_parallel_ok is not None:
+            self.cache_data["last_run_ok"] = bool(
+                (parallel_ok is True)
+                and (no_parallel_ok is None or no_parallel_ok is True)
+            )
+            self.cache_data["last_run_at"] = datetime.now().isoformat()
+        self._save_cache()
+
+    def _get_current_test_files(self) -> Set[str]:
+        """Return relative paths for all valid test files on disk."""
+        current_files = set()
+        for test_file in self.test_root.rglob("test_*.py"):
+            if not self.is_valid_test_file(test_file):
+                continue
+            current_files.add(str(test_file.relative_to(self.project_root)))
+        return current_files
+
     def get_source_file_mtimes(self, domain: str) -> Dict[str, float]:
         """
         Get current modification times for all source files in a domain.
@@ -276,7 +436,67 @@ class TestFileCoverageCache:
         Returns:
             Set of domain names with changes
         """
+        if self._cached_changed_domains is not None:
+            return set(self._cached_changed_domains)
+
         changed_domains = set()
+        if self._tool_changed():
+            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+            if logger:
+                logger.info(
+                    "Test coverage tool code changed - invalidating test-file coverage cache"
+                )
+            self._cached_changed_domains = set(all_domains)
+            return set(all_domains)
+        last_run_ok = self.cache_data.get("last_run_ok")
+        last_no_parallel_ok = self.cache_data.get("last_no_parallel_ok")
+        last_no_parallel_coverage_present = self.cache_data.get(
+            "last_no_parallel_coverage_present"
+        )
+        last_failed_domains = set(self.cache_data.get("last_failed_domains", []) or [])
+        if last_run_ok is False or last_no_parallel_ok is False:
+            if last_failed_domains:
+                if logger:
+                    logger.info(
+                        f"Previous test coverage run failed - invalidating failed domains only: {sorted(last_failed_domains)}"
+                    )
+                self._cached_changed_domains = set(last_failed_domains)
+                return set(last_failed_domains)
+            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+            if logger:
+                logger.info(
+                    "Previous test coverage run failed - invalidating test-file coverage cache"
+                )
+            self._cached_changed_domains = set(all_domains)
+            return set(all_domains)
+        if last_no_parallel_coverage_present is False:
+            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+            if logger:
+                logger.info(
+                    "No_parallel coverage missing from previous run - invalidating test-file coverage cache"
+                )
+            self._cached_changed_domains = set(all_domains)
+            return set(all_domains)
+
+        if self._config_changed():
+            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+            if logger:
+                logger.info(
+                    "Config file changed - invalidating test-file coverage cache"
+                )
+            self._cached_changed_domains = set(all_domains)
+            return set(all_domains)
+
+        current_test_files = self._get_current_test_files()
+        cached_test_files = set(self.cache_data.get("test_files", {}).keys())
+        if current_test_files != cached_test_files:
+            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+            if logger:
+                logger.info(
+                    "Test file set changed - invalidating test-file coverage cache"
+                )
+            self._cached_changed_domains = set(all_domains)
+            return set(all_domains)
         source_files_mtime = self.cache_data.get("source_files_mtime", {})
 
         # Check all known domains in cache
@@ -301,7 +521,8 @@ class TestFileCoverageCache:
                 # Domain is in cache - already checked above
                 pass
 
-        return changed_domains
+        self._cached_changed_domains = set(changed_domains)
+        return set(changed_domains)
 
     def get_test_files_to_run(self, changed_domains: Set[str]) -> List[Path]:
         """
@@ -601,6 +822,14 @@ class TestFileCoverageCache:
             "note": "This file is auto-generated. Do not edit manually.",
             "source_files_mtime": {},
             "test_files": {},
+            "tool_hash": None,
+            "tool_mtimes": {},
+            "last_run_ok": None,
+            "last_parallel_ok": None,
+            "last_no_parallel_ok": None,
+            "last_no_parallel_coverage_present": None,
+            "last_failed_domains": [],
+            "last_run_at": None,
             "last_updated": None,
             "last_updated_readable": None,
         }

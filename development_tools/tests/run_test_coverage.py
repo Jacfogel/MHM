@@ -1930,6 +1930,66 @@ class CoverageMetricsRegenerator:
                             f"No_parallel coverage file path: {no_parallel_coverage_file}, exists: {no_parallel_coverage_file.exists()}"
                         )
 
+                # Record run status for cache invalidation on the next run
+                if self.use_domain_cache and self.test_file_cache:
+                    try:
+                        parallel_ok = bool(pytest_ran and result.returncode == 0)
+                        no_parallel_ok = None
+                        no_parallel_coverage_present = None
+                        failed_domains = set()
+                        if test_results.get("failed_tests"):
+                            for test_name in test_results.get("failed_tests", []):
+                                if not isinstance(test_name, str):
+                                    continue
+                                test_path = test_name.split("::")[0]
+                                if test_path:
+                                    try:
+                                        test_file = self.project_root / test_path
+                                        failed_domains.update(
+                                            self.test_file_cache.get_test_files_domains(
+                                                test_file
+                                            )
+                                        )
+                                    except Exception:
+                                        continue
+                        if self.parallel and pytest_ran:
+                            no_parallel_ok = bool(
+                                no_parallel_result.returncode == 0
+                                and no_parallel_test_results.get("total_tests", 0) > 0
+                            )
+                            no_parallel_coverage_present = bool(
+                                no_parallel_coverage_file
+                                and no_parallel_coverage_file.exists()
+                            )
+                            if no_parallel_test_results.get("failed_tests"):
+                                for test_name in no_parallel_test_results.get(
+                                    "failed_tests", []
+                                ):
+                                    if not isinstance(test_name, str):
+                                        continue
+                                    test_path = test_name.split("::")[0]
+                                    if test_path:
+                                        try:
+                                            test_file = self.project_root / test_path
+                                            failed_domains.update(
+                                                self.test_file_cache.get_test_files_domains(
+                                                    test_file
+                                                )
+                                            )
+                                        except Exception:
+                                            continue
+                        self.test_file_cache.update_run_status(
+                            parallel_ok=parallel_ok,
+                            no_parallel_ok=no_parallel_ok,
+                            no_parallel_coverage_present=no_parallel_coverage_present,
+                            failed_domains=sorted(failed_domains),
+                        )
+                    except Exception as e:
+                        if logger:
+                            logger.debug(
+                                f"Failed to record test coverage run status: {e}"
+                            )
+
                 # Combine coverage data files using coverage combine
                 # Check if coverage files exist (they may be in tests/ directory due to coverage.ini)
                 # Also check for shard files from parallel execution (e.g., .coverage.worker0, .coverage.worker1, etc.)
@@ -2913,6 +2973,43 @@ class CoverageMetricsRegenerator:
 
         return mtimes
 
+    def _get_dev_tools_test_mtimes(self) -> Dict[str, float]:
+        """Get current mtimes for development_tools test files."""
+        mtimes = {}
+        tests_dir = self.project_root / "tests" / "development_tools"
+        if not tests_dir.exists():
+            return mtimes
+        for test_file in tests_dir.rglob("test_*.py"):
+            try:
+                rel_path = str(test_file.relative_to(self.project_root))
+                mtimes[rel_path] = test_file.stat().st_mtime
+            except OSError:
+                continue
+        return mtimes
+
+    def _get_config_mtime(self) -> Optional[float]:
+        """Get current development_tools_config.json mtime if available."""
+        try:
+            import development_tools.config.config as config_module
+
+            if (
+                hasattr(config_module, "_config_file_path")
+                and config_module._config_file_path
+            ):
+                config_path = Path(config_module._config_file_path)
+            else:
+                config_path = (
+                    self.project_root
+                    / "development_tools"
+                    / "config"
+                    / "development_tools_config.json"
+                )
+            if config_path.exists():
+                return config_path.stat().st_mtime
+        except Exception:
+            return None
+        return None
+
     def _check_dev_tools_changed(self) -> bool:
         """
         Check if development_tools source files have changed since last cache.
@@ -2922,6 +3019,32 @@ class CoverageMetricsRegenerator:
         """
         if not self.use_domain_cache or not self.dev_tools_cache:
             return True  # If caching disabled, always consider changed
+
+        # Check config file mtime (config changes must invalidate cache)
+        current_config_mtime = self._get_config_mtime()
+        cached_config_mtime = self.dev_tools_cache.get_cached_config_mtime()
+        if current_config_mtime is not None:
+            if cached_config_mtime is None:
+                if logger:
+                    logger.info(
+                        "Config mtime missing from dev tools coverage cache - invalidating cache"
+                    )
+                return True
+            if current_config_mtime != cached_config_mtime:
+                if logger:
+                    logger.info(
+                        "Config file changed - invalidating dev tools coverage cache"
+                    )
+                return True
+
+        # If the last dev tools coverage run failed, force rerun
+        last_run_ok = self.dev_tools_cache.get_last_run_ok()
+        if last_run_ok is False:
+            if logger:
+                logger.info(
+                    "Previous dev tools coverage run failed - invalidating dev tools coverage cache"
+                )
+            return True
 
         # Get current mtimes
         current_mtimes = self._get_dev_tools_source_mtimes()
@@ -2938,6 +3061,19 @@ class CoverageMetricsRegenerator:
         # Check if any files were removed
         for file_path in cached_mtimes.keys():
             if file_path not in current_mtimes:
+                return True
+
+        # Compare dev tools test file mtimes
+        current_test_mtimes = self._get_dev_tools_test_mtimes()
+        cached_test_mtimes = self.dev_tools_cache.get_cached_test_mtimes()
+        if not cached_test_mtimes:
+            return True
+        for file_path, current_mtime in current_test_mtimes.items():
+            cached_mtime = cached_test_mtimes.get(file_path)
+            if cached_mtime is None or current_mtime != cached_mtime:
+                return True
+        for file_path in cached_test_mtimes.keys():
+            if file_path not in current_test_mtimes:
                 return True
 
         return False
@@ -3168,6 +3304,17 @@ class CoverageMetricsRegenerator:
                     f"Saved dev tools pytest output to {dev_tools_stdout_log} ({log_size} bytes)"
                 )
 
+            # Record dev tools run status (even if coverage is missing)
+            if self.use_domain_cache and self.dev_tools_cache:
+                try:
+                    self.dev_tools_cache.update_run_status(
+                        last_run_ok=bool(result.returncode == 0),
+                        last_exit_code=result.returncode,
+                    )
+                except Exception as e:
+                    if logger:
+                        logger.debug(f"Failed to record dev tools run status: {e}")
+
             # Parse coverage results (even if pytest exited with non-zero code, coverage may still be available)
             if self.analyzer:
                 coverage_data = self.analyzer.parse_coverage_output(result.stdout)
@@ -3277,8 +3424,15 @@ class CoverageMetricsRegenerator:
                     with open(coverage_output, "r", encoding="utf-8") as f:
                         fresh_coverage_json = json.load(f)
                     source_mtimes = self._get_dev_tools_source_mtimes()
+                    test_mtimes = self._get_dev_tools_test_mtimes()
+                    config_mtime = self._get_config_mtime()
                     self.dev_tools_cache.update_cache(
-                        fresh_coverage_json, source_mtimes
+                        fresh_coverage_json,
+                        source_mtimes,
+                        test_mtimes=test_mtimes,
+                        config_mtime=config_mtime,
+                        last_run_ok=bool(result.returncode == 0),
+                        last_exit_code=result.returncode,
                     )
                     if logger:
                         logger.debug("Cached dev tools coverage data")

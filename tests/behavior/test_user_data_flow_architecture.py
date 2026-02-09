@@ -8,6 +8,7 @@ explicit processing order, atomic operations, and elimination of nested saves.
 import pytest
 import os
 import json
+import uuid
 from unittest.mock import patch, MagicMock
 from tests.test_utilities import TestUserFactory, TestUserDataFactory
 
@@ -211,7 +212,7 @@ class TestProcessingOrder:
         from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange: Create user
-        user_id = 'test-processing-order'
+        user_id = f"test-processing-order-{uuid.uuid4().hex[:8]}"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         # Act: Save data types in different order (context, preferences, account)
@@ -269,7 +270,7 @@ class TestProcessingOrder:
         from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange: Create user
-        user_id = 'test-order-account-first'
+        user_id = f"test-order-account-first-{uuid.uuid4().hex[:8]}"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         # Act: Save account and preferences together
@@ -640,4 +641,3 @@ class TestTwoPhaseSave:
         
         # Note: Invalid data would fail validation before backup, but testing that
         # would require invalid data which may be caught by Pydantic validation earlier
-

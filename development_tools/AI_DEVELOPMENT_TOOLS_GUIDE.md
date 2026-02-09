@@ -207,13 +207,19 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.m
 
 - Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `config/config.py`, `shared/mtime_cache.py`
 - Keep the standard exclusions + config aligned so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` are skipped by the majority of analyzer runs.
-- **Caching**: 
-  - **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The cache automatically invalidates when `development_tools/config/development_tools_config.json` or the tool's source file changes, ensuring config and code updates are immediately reflected. Currently used by: `imports/analyze_unused_imports.py`, `imports/analyze_module_imports.py`, `functions/analyze_functions.py`, `error_handling/analyze_error_handling.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching)
-  - **Test Coverage Caching**: 
-    - **Coverage Analysis Caching**: `tests/analyze_test_coverage.py` caches analysis results based on coverage JSON file mtime, saving ~2s on repeated analysis when coverage data hasn't changed
-    - **Test-file coverage caching** (Integrated, enabled by default): `tests/test_file_coverage_cache.py` uses `tests/domain_mapper.py` (`DomainMapper`) to map source directories to test files. When a domain changes, only the test files that cover that domain are re-run, and cached coverage is merged for unchanged tests. Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json`. Enabled by default; disable with `--no-domain-cache`.
-    - **Dev tools coverage caching** (Integrated, enabled by default): `tests/dev_tools_coverage_cache.py` caches `development_tools` coverage JSON keyed by dev tools source mtimes. Cache file: `development_tools/tests/jsons/dev_tools_coverage_cache.json`. Enabled by default; disable with `--no-domain-cache`.
-  - **Cache management**: Use `--clear-cache` flag to clear all development tools cache files before running commands: `python development_tools/run_development_tools.py --clear-cache audit`
+- **Caching**:
+  - **General analyzer caching (`shared/mtime_cache.py`)**: Caches file-based analyzer outputs by input mtimes and auto-invalidates when either `development_tools/config/development_tools_config.json` or the tool source changes. Used by high-cost analyzers across `imports/`, `functions/`, `docs/`, `legacy/`, and `tests/analyze_test_coverage.py`.
+  - **Coverage analysis cache**: `tests/analyze_test_coverage.py` caches coverage analysis from coverage JSON mtime.
+  - **Domain test coverage cache (`tests/test_file_coverage_cache.py`)**:
+    - Uses `tests/domain_mapper.py` to rerun only test files covering changed domains.
+    - Stores run status and failed domains for failure-aware invalidation.
+    - Stores tool hash/tool mtimes and config mtime for global invalidation when cache logic/config changes.
+    - Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json` (enabled by default; disable with `--no-domain-cache`).
+  - **Dev tools coverage cache (`tests/dev_tools_coverage_cache.py`)**:
+    - Caches `development_tools` coverage JSON keyed by dev-tools source/test/config mtimes.
+    - Stores last run success/exit code and invalidates after failed previous runs.
+    - Cache file: `development_tools/tests/jsons/dev_tools_coverage_cache.json` (enabled by default; disable with `--no-domain-cache`).
+  - **Cache management**: `python development_tools/run_development_tools.py --clear-cache audit`
 - **Parallel Execution**: Tools run in parallel where possible, with dependency-aware grouping:
   - **Tier 2**: Independent tools run in parallel; dependent groups (module imports, function patterns, decision support, function registry) run sequentially within groups but in parallel with each other
   - **Tier 3**: Coverage group runs sequentially; legacy and unused imports groups run in parallel with each other (tools within each group run sequentially)

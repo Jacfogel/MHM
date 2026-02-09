@@ -104,7 +104,12 @@ class DevToolsCoverageCache:
             self.cache_data = {
                 "cache_version": "1.0",
                 "source_files_mtime": {},
+                "test_files_mtime": {},
+                "config_mtime": None,
                 "coverage_json": None,
+                "last_run_ok": None,
+                "last_exit_code": None,
+                "last_run_at": None,
                 "last_updated": None,
             }
 
@@ -176,10 +181,49 @@ class DevToolsCoverageCache:
         """Return cached source file mtimes."""
         return self.cache_data.get("source_files_mtime", {}) or {}
 
+    def get_cached_test_mtimes(self) -> Dict[str, float]:
+        """Return cached test file mtimes."""
+        return self.cache_data.get("test_files_mtime", {}) or {}
+
+    def get_cached_config_mtime(self) -> Optional[float]:
+        """Return cached config file mtime."""
+        config_mtime = self.cache_data.get("config_mtime")
+        return config_mtime if isinstance(config_mtime, (int, float)) else None
+
+    def get_last_run_ok(self) -> Optional[bool]:
+        """Return whether the last dev tools coverage run succeeded."""
+        last_run_ok = self.cache_data.get("last_run_ok")
+        return last_run_ok if isinstance(last_run_ok, bool) else None
+
+    def update_run_status(self, last_run_ok: bool, last_exit_code: Optional[int]) -> None:
+        """Record dev tools coverage run status without modifying coverage data."""
+        self.cache_data["last_run_ok"] = bool(last_run_ok)
+        self.cache_data["last_exit_code"] = (
+            int(last_exit_code) if last_exit_code is not None else None
+        )
+        self.cache_data["last_run_at"] = now_timestamp_filename()
+        self._save_cache()
+
     def update_cache(
-        self, coverage_json: Dict[str, Any], source_mtimes: Dict[str, float]
+        self,
+        coverage_json: Dict[str, Any],
+        source_mtimes: Dict[str, float],
+        test_mtimes: Optional[Dict[str, float]] = None,
+        config_mtime: Optional[float] = None,
+        last_run_ok: Optional[bool] = None,
+        last_exit_code: Optional[int] = None,
     ) -> None:
         """Update cache with new coverage data and source mtimes."""
         self.cache_data["coverage_json"] = coverage_json
         self.cache_data["source_files_mtime"] = source_mtimes
+        if test_mtimes is not None:
+            self.cache_data["test_files_mtime"] = test_mtimes
+        if config_mtime is not None:
+            self.cache_data["config_mtime"] = config_mtime
+        if last_run_ok is not None:
+            self.cache_data["last_run_ok"] = bool(last_run_ok)
+        if last_exit_code is not None:
+            self.cache_data["last_exit_code"] = int(last_exit_code)
+        if last_run_ok is not None or last_exit_code is not None:
+            self.cache_data["last_run_at"] = now_timestamp_filename()
         self._save_cache()

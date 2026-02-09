@@ -41,6 +41,7 @@ When you attach to MHM, do this first:
 4. **Confirm expectations**  
    - If the task is ambiguous (for example, "fix this" without context), ask 1-2 pointed clarification questions.  
    - Once the scope is clear, follow the relevant AI guide(s) from step 2.
+   - If any ambiguity exists about file attribution, target scope, or intended outcome, ask a clarification question before editing.
 
 ## 2. Core AI References
 
@@ -87,6 +88,7 @@ Follow these high-level rules whenever you propose or describe changes:
 3. **Avoid partial or speculative edits**  
    - Do not describe or "fix" modules you cannot see.  
    - If a function or behavior is unclear, ask for the relevant file or an example before rewriting it.
+   - Prefer a short clarification question over assumptions whenever multiple interpretations are plausible.
 
 4. **Tie changes to tests and tools**  
   - When you propose code changes, also point to where tests should be added or updated (see [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md)).  

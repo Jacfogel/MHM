@@ -3,6 +3,7 @@
     "name": "MHM",
     "key_files": [
       "run_mhm.py",
+      "run_tests.py",
       "core/service.py",
       "core/config.py"
     ],

@@ -261,13 +261,15 @@ When adding new tasks, follow this format:
   - [ ] Document the check in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (contributor notes)
 
 **Investigate Intermittent Test Failures**
-- *What it means*: Investigate and fix test failures that appear intermittently; keep the suspect list current as flakes are confirmed or resolved.
+- *What it means*: Investigate and fix test failures that appear intermittently (including coverage-run flakes); keep the suspect list current as flakes are confirmed or resolved.
 - *Why it helps*: Ensures test suite reliability and prevents false negatives that can mask real issues
 - *Estimated effort*: Small/Medium
 - *Subtasks*:
   - [ ] Investigate `tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_feature_enablement_persistence_real_behavior` and ensure each worker has isolated `tests/data` state
   - [ ] Investigate `tests/behavior/test_logger_behavior.py::TestLoggerFileOperationsBehavior::test_get_log_file_info_real_behavior`
   - [ ] Investigate `tests/behavior/test_checkin_questions_enhancement.py::TestCustomQuestions::test_delete_custom_question`
+  - [ ] Investigate `tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success` flake in coverage runs (avoid nondeterministic "first directory" assumptions under shared `tests/data/users`)
+  - [ ] Investigate `tests/development_tools/test_fix_project_cleanup.py::TestProjectCleanup::test_cleanup_test_temp_dirs_no_directory` flake (TOCTOU race when temp dirs disappear during cleanup in parallel runs)
   - [ ] Investigate `tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized`
   - [ ] Investigate `tests/unit/test_schedule_management.py::TestScheduleManagement::test_schedule_period_lifecycle`
   - [ ] Investigate `tests/ui/test_task_management_dialog.py::TestTaskManagementDialogRealBehavior::test_save_task_settings_persists_after_reload`
