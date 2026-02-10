@@ -534,6 +534,8 @@ class ToolWrappersMixin:
                 standard_format,
                 project_root=self.project_root,
             )
+            # Cache for downstream tools in the same audit run (e.g., dependency patterns).
+            self.results_cache["analyze_module_imports"] = standard_format
             return {"success": True, "data": standard_format}
         except Exception as e:
             logger.warning(f"Failed to run analyze_module_imports: {e}")
@@ -549,9 +551,17 @@ class ToolWrappersMixin:
             from development_tools.imports.analyze_dependency_patterns import (
                 DependencyPatternAnalyzer,
             )
-
-            import_analyzer = ModuleImportAnalyzer(project_root=str(self.project_root))
-            actual_imports = import_analyzer.scan_all_python_files()
+            actual_imports = None
+            cached_module_imports = self.results_cache.get("analyze_module_imports")
+            if isinstance(cached_module_imports, dict):
+                details = cached_module_imports.get("details")
+                if isinstance(details, dict):
+                    actual_imports = details
+                elif cached_module_imports:
+                    actual_imports = cached_module_imports
+            if not actual_imports:
+                import_analyzer = ModuleImportAnalyzer(project_root=str(self.project_root))
+                actual_imports = import_analyzer.scan_all_python_files()
             pattern_analyzer = DependencyPatternAnalyzer()
             patterns = pattern_analyzer.analyze_dependency_patterns(actual_imports)
             standard_format = {
@@ -575,30 +585,60 @@ class ToolWrappersMixin:
         try:
             from development_tools.functions.analyze_package_exports import (
                 generate_audit_report,
+                analyze_imports_for_packages,
+                parse_function_registry_for_packages,
+                scan_package_modules_for_packages,
             )
+            from concurrent.futures import ThreadPoolExecutor, as_completed
 
             packages = ["core", "communication", "ui", "tasks", "ai", "user"]
             all_reports = {}
-            for package in packages:
-                try:
-                    report = generate_audit_report(package)
-                    if isinstance(report, dict):
-                        for key, value in report.items():
-                            if isinstance(value, set):
-                                report[key] = sorted(value)
-                            elif isinstance(value, dict):
-                                for nested_key, nested_value in value.items():
-                                    if isinstance(nested_value, set):
-                                        value[nested_key] = sorted(nested_value)
-                    all_reports[package] = report
-                except Exception as e:
-                    logger.warning(f"Failed to audit package {package}: {e}")
-                    all_reports[package] = {
-                        "package": package,
-                        "error": str(e),
-                        "missing_exports": [],
-                        "potentially_unnecessary": [],
-                    }
+            max_workers = min(6, len(packages))
+            import_usage_index = analyze_imports_for_packages(packages)
+            package_api_index = scan_package_modules_for_packages(packages)
+            registry_index = parse_function_registry_for_packages(packages)
+            logger.info(
+                f"Analyzing package exports with parallel package scanning ({len(packages)} packages, {max_workers} workers)..."
+            )
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_package = {
+                    executor.submit(
+                        generate_audit_report,
+                        package,
+                        False,
+                        import_usage_index,
+                        package_api_index,
+                        registry_index,
+                    ): package
+                    for package in packages
+                }
+                for future in as_completed(future_to_package):
+                    package = future_to_package[future]
+                    try:
+                        report = future.result()
+                        if isinstance(report, dict):
+                            for key, value in report.items():
+                                if isinstance(value, set):
+                                    report[key] = sorted(value)
+                                elif isinstance(value, dict):
+                                    for nested_key, nested_value in value.items():
+                                        if isinstance(nested_value, set):
+                                            value[nested_key] = sorted(nested_value)
+                        all_reports[package] = report
+                        if isinstance(report, dict):
+                            logger.info(
+                                f"Package export audit complete: {package} "
+                                f"(missing={len(report.get('missing_exports', []))}, "
+                                f"unnecessary={len(report.get('potentially_unnecessary', []))})"
+                            )
+                    except Exception as e:
+                        logger.warning(f"Failed to audit package {package}: {e}")
+                        all_reports[package] = {
+                            "package": package,
+                            "error": str(e),
+                            "missing_exports": [],
+                            "potentially_unnecessary": [],
+                        }
             total_missing = sum(
                 len(r.get("missing_exports", [])) for r in all_reports.values()
             )
@@ -1120,6 +1160,18 @@ class ToolWrappersMixin:
             total_markers = sum(
                 len(matches) for files in findings.values() for _, _, matches in files
             )
+            cache_stats = getattr(analyzer, "cache_stats", {}) or {}
+            cache_hits = int(cache_stats.get("hits", 0) or 0)
+            cache_misses = int(cache_stats.get("misses", 0) or 0)
+            total_cache_checks = cache_hits + cache_misses
+            if total_cache_checks == 0:
+                cache_mode = "unknown"
+            elif cache_hits > 0 and cache_misses == 0:
+                cache_mode = "cache_only"
+            elif cache_hits > 0 and cache_misses > 0:
+                cache_mode = "partial_cache"
+            else:
+                cache_mode = "cold_scan"
             serializable_findings = {}
             for pattern_type, file_list in findings.items():
                 serializable_findings[pattern_type] = [
@@ -1136,6 +1188,15 @@ class ToolWrappersMixin:
                     "files_with_issues": total_files,
                     "legacy_markers": total_markers,
                     "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
+                    "cache": {
+                        "cache_mode": cache_mode,
+                        "hits": cache_hits,
+                        "misses": cache_misses,
+                        "total_cache_checks": total_cache_checks,
+                        "hit_rate": round((cache_hits / total_cache_checks) * 100, 1)
+                        if total_cache_checks
+                        else 0.0,
+                    },
                 },
             }
             try:
@@ -1153,6 +1214,11 @@ class ToolWrappersMixin:
             if not hasattr(self, "results_cache"):
                 self.results_cache = {}
             self.results_cache["analyze_legacy_references"] = standard_format
+            if not hasattr(self, "_tool_cache_metadata"):
+                self._tool_cache_metadata = {}
+            self._tool_cache_metadata["analyze_legacy_references"] = (
+                standard_format.get("details", {}).get("cache", {})
+            )
 
             return {
                 "success": True,
@@ -1184,7 +1250,7 @@ class ToolWrappersMixin:
                 capture_output=True,
                 text=True,
                 cwd=str(self.project_root),
-                timeout=600,
+                timeout=1200,
                 env=env,
             )
             result = {
@@ -1197,7 +1263,7 @@ class ToolWrappersMixin:
             return {
                 "success": False,
                 "output": "",
-                "error": "Unused imports checker timed out after 10 minutes",
+                "error": "Unused imports checker timed out after 20 minutes",
                 "returncode": None,
                 "issues_found": False,
             }
@@ -1269,8 +1335,41 @@ class ToolWrappersMixin:
                 f"analyze_unused_imports returned empty output (returncode: {result.get('returncode')})"
             )
         if data is not None:
+            details = data.get("details", {}) if isinstance(data, dict) else {}
+            stats = details.get("stats", {}) if isinstance(details, dict) else {}
+            cache_hits = int(stats.get("cache_hits", 0) or 0)
+            cache_misses = int(stats.get("cache_misses", 0) or 0)
+            files_scanned = int(stats.get("files_scanned", 0) or 0)
+            # Some analyzer modes report cache_misses as 0; derive misses from files_scanned when possible.
+            if files_scanned > 0 and cache_misses == 0 and files_scanned >= cache_hits:
+                cache_misses = files_scanned - cache_hits
+            total_cache_checks = cache_hits + cache_misses
+            if total_cache_checks == 0:
+                cache_mode = "unknown"
+            elif cache_hits > 0 and cache_misses == 0:
+                cache_mode = "cache_only"
+            elif cache_hits > 0 and cache_misses > 0:
+                cache_mode = "partial_cache"
+            else:
+                cache_mode = "cold_scan"
+            cache_metadata = {
+                "cache_mode": cache_mode,
+                "hits": cache_hits,
+                "misses": cache_misses,
+                "total_cache_checks": total_cache_checks,
+                "hit_rate": round((cache_hits / total_cache_checks) * 100, 1)
+                if total_cache_checks
+                else 0.0,
+            }
+            if isinstance(details, dict):
+                details["_cache_metadata"] = cache_metadata
+            if isinstance(data, dict):
+                data["_cache_metadata"] = cache_metadata
             result["data"] = data
             self.results_cache["analyze_unused_imports"] = data
+            if not hasattr(self, "_tool_cache_metadata"):
+                self._tool_cache_metadata = {}
+            self._tool_cache_metadata["analyze_unused_imports"] = cache_metadata
             # Extract total_unused from standard format (summary.total_issues)
             total_unused = (
                 data.get("summary", {}).get("total_issues", 0)
@@ -1296,11 +1395,9 @@ class ToolWrappersMixin:
             logger.warning(
                 f"analyze_unused_imports: No data extracted, skipping save_tool_result()"
             )
-            lowered = output.lower() if isinstance(output, str) else ""
-            if "unused import" in lowered:
-                result["issues_found"] = True
-                result["success"] = True
-                result["error"] = ""
+            if not result.get("error"):
+                result["error"] = "No parseable JSON output from analyze_unused_imports"
+            result["success"] = False
         return result
 
     def run_generate_unused_imports_report(self) -> Dict:

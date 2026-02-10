@@ -16,6 +16,7 @@ from tests.conftest import ensure_qt_runtime
 ensure_qt_runtime()
 
 import pytest
+import uuid
 from unittest.mock import patch, Mock, MagicMock
 from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 from PySide6.QtCore import Qt
@@ -100,11 +101,10 @@ class TestCheckinManagementDialogInitialization:
     
     @pytest.mark.ui
     @pytest.mark.unit
-    @pytest.mark.no_parallel
     def test_initialization_loads_user_data(self, qapp, test_data_dir, mock_config):
         """Test: CheckinManagementDialog loads user data on initialization"""
         # Arrange
-        user_id = "test_checkin_dialog_load_user"
+        user_id = f"test_checkin_dialog_load_user_{uuid.uuid4().hex[:8]}"
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         from core.user_data_handlers import get_user_id_by_identifier
@@ -525,4 +525,3 @@ class TestCheckinManagementDialogSignals:
         # Assert
         assert hasattr(dialog, 'user_changed'), "Should have user_changed signal"
         assert dialog.user_changed is not None, "Should have user_changed signal instance"
-

@@ -140,7 +140,6 @@ class TestCheckinHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.checkins
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     @patch(
         "communication.message_processing.conversation_flow_manager.conversation_manager.start_checkin"
     )
@@ -150,8 +149,9 @@ class TestCheckinHandlerBehavior:
         self, mock_is_enabled, mock_get_recent, mock_start_checkin, test_data_dir
     ):
         """Test that CheckinHandler starts check-in successfully."""
+        import uuid
         handler = CheckinHandler()
-        user_id = "test_user_checkin_start"
+        user_id = f"test_user_checkin_start_{uuid.uuid4().hex[:8]}"
         assert self._create_test_user(
             user_id, enable_checkins=True, test_data_dir=test_data_dir
         ), "Failed to create test user"

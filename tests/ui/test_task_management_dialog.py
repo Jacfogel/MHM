@@ -16,6 +16,7 @@ ensure_qt_runtime()
 
 import pytest
 from unittest.mock import patch, Mock, MagicMock
+import uuid
 from PySide6.QtWidgets import QApplication, QMessageBox
 from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
@@ -40,8 +41,16 @@ def qapp():
 @pytest.fixture(name="test_user")
 def task_management_user(test_data_dir):
     """Create a test user for task management tests."""
-    user_id = "test_task_user"
+    import time
+    from core.user_data_handlers import get_user_id_by_identifier
+
+    user_id = f"test_task_user_{uuid.uuid4().hex[:8]}"
     TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
+    for _ in range(10):
+        resolved_user_id = get_user_id_by_identifier(user_id)
+        if resolved_user_id:
+            return resolved_user_id
+        time.sleep(0.05)
     return user_id
 
 
@@ -382,10 +391,19 @@ class TestTaskManagementDialogRealBehavior:
     
     @pytest.mark.ui
     @pytest.mark.behavior
-    @pytest.mark.no_parallel
     def test_save_task_settings_persists_to_disk(self, test_user, test_data_dir, qapp):
         """Test that save_task_settings actually saves data to disk."""
         # Arrange
+        from core.user_data_handlers import get_user_data, update_user_account
+        import time
+
+        # Ensure deterministic precondition: task_management starts disabled.
+        initial_account = get_user_data(test_user, 'account').get('account', {})
+        if 'features' not in initial_account:
+            initial_account['features'] = {}
+        initial_account['features']['task_management'] = 'disabled'
+        update_user_account(test_user, {'account': initial_account})
+
         dialog = TaskManagementDialog(parent=None, user_id=test_user)
         dialog.ui.groupBox_checkBox_enable_task_management.setChecked(True)
         
@@ -406,28 +424,25 @@ class TestTaskManagementDialogRealBehavior:
         with patch.object(dialog.task_widget, 'get_task_settings', return_value=valid_settings):
             with patch('ui.dialogs.task_management_dialog.validate_schedule_periods', return_value=(True, [])):
                 with patch('ui.dialogs.task_management_dialog.QMessageBox'):
-                    with patch('ui.dialogs.task_management_dialog.get_user_data') as mock_get_data:
-                        with patch('ui.dialogs.task_management_dialog.setup_default_task_tags'):
-                            with patch.object(dialog.task_widget, 'save_recurring_task_settings'):
-                                mock_get_data.return_value = {
-                                    'account': {
-                                        'features': {
-                                            'task_management': 'disabled'
-                                        }
-                                    }
-                                }
-                                
-                                # Act
-                                dialog.save_task_settings()
-                                
-                                # Assert - Verify data was saved
-                                from core.user_data_handlers import get_user_data
+                    with patch('ui.dialogs.task_management_dialog.setup_default_task_tags'):
+                        with patch.object(dialog.task_widget, 'save_recurring_task_settings'):
+                            # Act
+                            dialog.save_task_settings()
+                            
+                            # Assert - Verify data was saved
+                            saved_data = {}
+                            for attempt in range(5):
                                 saved_data = get_user_data(test_user, 'account')
-                                
-                                assert 'features' in saved_data.get('account', {}), \
-                                    "Account should have features"
-                                assert saved_data['account']['features'].get('task_management') == 'enabled', \
-                                    "Task management should be enabled in account"
+                                features = saved_data.get('account', {}).get('features', {})
+                                if features.get('task_management') == 'enabled':
+                                    break
+                                if attempt < 4:
+                                    time.sleep(0.1)
+                            
+                            assert 'features' in saved_data.get('account', {}), \
+                                "Account should have features"
+                            assert saved_data['account']['features'].get('task_management') == 'enabled', \
+                                "Task management should be enabled in account"
     
     @pytest.mark.ui
     @pytest.mark.behavior
@@ -552,6 +567,7 @@ class TestTaskManagementDialogRealBehavior:
     def test_save_task_settings_persists_after_reload(self, test_user, test_data_dir, qapp):
         """Test that saved task settings persist after dialog reload."""
         # Arrange
+        import time
         dialog = TaskManagementDialog(parent=None, user_id=test_user)
         dialog.ui.groupBox_checkBox_enable_task_management.setChecked(True)
         
@@ -580,20 +596,25 @@ class TestTaskManagementDialogRealBehavior:
         with patch.object(dialog.task_widget, 'get_task_settings', return_value=valid_settings):
             with patch('ui.dialogs.task_management_dialog.validate_schedule_periods', return_value=(True, [])):
                 with patch('ui.dialogs.task_management_dialog.QMessageBox'):
-                    with patch('ui.dialogs.task_management_dialog.setup_default_task_tags'):
-                        with patch.object(dialog.task_widget, 'save_recurring_task_settings'):
-                            # Act - Save settings (this will read real data, update it, and save)
-                            dialog.save_task_settings()
+                        with patch('ui.dialogs.task_management_dialog.setup_default_task_tags'):
+                            with patch.object(dialog.task_widget, 'save_recurring_task_settings'):
+                                # Act - Save settings (this will read real data, update it, and save)
+                                dialog.save_task_settings()
                             
                             # Create new dialog instance to simulate reload
                             new_dialog = TaskManagementDialog(parent=None, user_id=test_user)
                             
                             # Assert - Verify data persists (use real function)
-                            persisted_data = get_user_data(test_user, 'account')
+                            persisted_data = {}
+                            for attempt in range(5):
+                                persisted_data = get_user_data(test_user, 'account')
+                                features = persisted_data.get('account', {}).get('features', {})
+                                if features.get('task_management') == 'enabled':
+                                    break
+                                if attempt < 4:
+                                    time.sleep(0.1)
                             
                             assert 'features' in persisted_data.get('account', {}), \
                                 "Account should have features after reload"
                             assert persisted_data['account']['features'].get('task_management') == 'enabled', \
                                 "Task management should remain enabled after reload"
-
-

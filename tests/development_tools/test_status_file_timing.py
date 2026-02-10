@@ -20,7 +20,6 @@ from tests.development_tools.conftest import load_development_tools_module, temp
 
 
 @pytest.mark.integration
-@pytest.mark.no_parallel
 def test_status_files_written_only_at_end_of_audit(temp_project_copy):
     """
     Verify that status files are only written at the end of audit execution.
@@ -87,7 +86,6 @@ def test_status_files_written_only_at_end_of_audit(temp_project_copy):
 
 
 @pytest.mark.integration
-@pytest.mark.no_parallel
 def test_status_files_not_written_during_tool_execution(temp_project_copy):
     """
     Verify that status files are NOT written during individual tool execution.
@@ -122,4 +120,3 @@ def test_status_files_not_written_during_tool_execution(temp_project_copy):
     assert not ai_status_file.exists(), "AI_STATUS.md should not be created by individual tools"
     assert not ai_priorities_file.exists(), "AI_PRIORITIES.md should not be created by individual tools"
     assert not consolidated_file.exists(), "consolidated_report.txt should not be created by individual tools"
-

@@ -4,6 +4,7 @@ import subprocess
 import psutil
 import time
 import re
+import pathlib
 from pathlib import Path
 
 # Add parent directory to path so we can import from core
@@ -429,6 +430,12 @@ class MHMManagerUI(QMainWindow):
         """Load and apply the QSS theme from the styles directory"""
         # Path to the QSS theme file
         theme_path = Path(__file__).parent.parent / "styles" / "admin_theme.qss"
+
+        # Test code may monkeypatch Path with generic mocks. Guard against
+        # non-pathlike objects so we never pass file-descriptor-like values to open().
+        if not isinstance(theme_path, (str, bytes, pathlib.Path)):
+            logger.warning("Theme path is not path-like; skipping theme load")
+            return
 
         if theme_path.exists():
             with open(theme_path, "r", encoding="utf-8") as f:

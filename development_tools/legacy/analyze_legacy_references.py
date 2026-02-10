@@ -123,6 +123,7 @@ class LegacyReferenceAnalyzer:
                 self.cache = None
         else:
             self.cache = None
+        self.cache_stats: Dict[str, int] = {"hits": 0, "misses": 0}
 
     def should_skip_file(self, file_path: Path) -> bool:
         """Check if a file should be skipped from scanning."""
@@ -383,6 +384,7 @@ class LegacyReferenceAnalyzer:
                     f"Legacy reference cache: {cache_stats['hits']}/{total} hits ({hit_rate:.1f}% hit rate)"
                 )
 
+        self.cache_stats = cache_stats
         return findings
 
     def find_all_references(self, item_name: str) -> Dict[str, List[Dict[str, Any]]]:

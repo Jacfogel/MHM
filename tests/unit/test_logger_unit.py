@@ -10,6 +10,7 @@ import os
 import logging
 import time
 import json
+import uuid
 from unittest.mock import patch, Mock, MagicMock, mock_open
 from pathlib import Path
 
@@ -271,13 +272,14 @@ class TestComponentLogger:
     def test_component_logger_with_structured_data(self, temp_log_dir):
         """Test: ComponentLogger logs structured data"""
         log_file = str(temp_log_dir / "test.log")
+        component_name = f"test_component_{uuid.uuid4().hex[:8]}"
         
         # Ensure log file directory exists
         os.makedirs(os.path.dirname(log_file), exist_ok=True)
         
         # Disable test mode to get real logger
-        with patch.dict(os.environ, {'MHM_TESTING': '0', 'TEST_VERBOSE_LOGS': '1', 'TEST_CONSOLIDATED_LOGGING': '0'}):
-            logger = ComponentLogger("test_component", log_file)
+        with patch.dict(os.environ, {'MHM_TESTING': '0', 'TEST_VERBOSE_LOGS': '1', 'TEST_CONSOLIDATED_LOGGING': '0'}, clear=False):
+            logger = ComponentLogger(component_name, log_file)
             
             logger.info("Test message", key1="value1", key2="value2")
             
@@ -300,6 +302,10 @@ class TestComponentLogger:
                     assert "Test message" in content, "Should include message"
                     # Structured data may be formatted as JSON in the message
                     assert len(content) > 0, "Should have content in log file"
+
+            # Remove handlers from logger object to avoid cross-test handler leakage.
+            for handler in list(logger.logger.handlers):
+                logger.logger.removeHandler(handler)
 
 
 class TestBackupDirectoryRotatingFileHandler:
@@ -510,35 +516,29 @@ class TestEnsureLogsDirectory:
     """Test ensure_logs_directory function."""
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
     def test_ensure_logs_directory_creates_directories(self, test_data_dir):
         """Test: ensure_logs_directory creates directories"""
-        from tests.test_utilities import TestLogPathMocks
         import shutil
         
-        log_dir = Path(test_data_dir) / "logs"
-        with patch('core.logger._get_log_paths_for_environment') as mock_paths:
-            mock_paths_dict = TestLogPathMocks.create_complete_log_paths_mock(str(log_dir))
-            mock_paths.return_value = mock_paths_dict
-            
-            # Clean up any existing directories to ensure fresh test
-            backup_dir = mock_paths_dict['backup_dir']
-            archive_dir = mock_paths_dict['archive_dir']
-            base_dir = mock_paths_dict['base_dir']
-            if os.path.exists(backup_dir):
-                shutil.rmtree(backup_dir, ignore_errors=True)
-            if os.path.exists(archive_dir):
-                shutil.rmtree(archive_dir, ignore_errors=True)
+        log_dir = Path(test_data_dir) / f"logs_{uuid.uuid4().hex[:8]}"
+        with patch.dict(
+            os.environ,
+            {
+                "MHM_TESTING": "1",
+                "TEST_CONSOLIDATED_LOGGING": "0",
+                "LOGS_DIR": str(log_dir),
+            },
+            clear=False,
+        ):
+            base_dir = str(log_dir)
+            backup_dir = str(log_dir / "backups")
+            archive_dir = str(log_dir / "archive")
+
             if os.path.exists(base_dir):
                 shutil.rmtree(base_dir, ignore_errors=True)
-            
+
             ensure_logs_directory()
-            
-            # Small delay to ensure file system operations complete
-            import time
-            time.sleep(0.1)
-            
-            # Verify directories were created (use the dict directly to avoid any mock issues)
+
             assert os.path.exists(base_dir), f"Should create base directory at {base_dir}"
             assert os.path.exists(backup_dir), f"Should create backup directory at {backup_dir}"
             assert os.path.exists(archive_dir), f"Should create archive directory at {archive_dir}"
@@ -697,4 +697,3 @@ class TestClearLogFileLocks:
         
         # Verify environment variable was removed
         assert 'DISABLE_LOG_ROTATION' not in os.environ, "Should remove DISABLE_LOG_ROTATION env var"
-

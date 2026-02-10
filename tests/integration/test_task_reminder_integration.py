@@ -8,6 +8,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
 import time
+import uuid
 
 from tasks.task_management import (
     create_task,
@@ -272,7 +273,7 @@ class TestTaskReminderIntegration:
         self, test_data_dir
     ):
         """Test that completing a recurring task creates next instance and schedules its reminders."""
-        user_id = "test_user_recurring_reminders"
+        user_id = f"test_user_recurring_reminders_{uuid.uuid4().hex[:8]}"
         assert self._create_test_user(
             user_id, test_data_dir=test_data_dir
         ), "Failed to create test user"

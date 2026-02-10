@@ -153,14 +153,12 @@ class TestScanning:
     """Test file scanning functionality."""
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
     def test_scan_all_python_files_finds_files(self, demo_project_root, monkeypatch):
         """
         Test that all Python files in scan directories are found.
         
-        Note: Marked as no_parallel because this test patches module-level functions
-        (config.get_project_root, config.get_scan_directories, standard_exclusions.should_exclude_file)
-        which can interfere with other tests running in parallel workers.
+        This test patches module-level helpers via monkeypatch but remains safe under
+        xdist because each worker runs in a separate process.
         """
         # Mock config to point to our demo project
         import development_tools.config as config_module
@@ -236,14 +234,12 @@ class TestContentGeneration:
     """Test content generation."""
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
     def test_generate_function_registry_content_structure(self, demo_project_root, monkeypatch):
         """
         Test that generated content has expected structure.
         
-        Note: Marked as no_parallel because this test patches module-level functions
-        (config.get_project_root, config.get_scan_directories, standard_exclusions.should_exclude_file)
-        which can interfere with other tests running in parallel workers.
+        This test patches module-level helpers via monkeypatch but remains safe under
+        xdist because each worker runs in a separate process.
         """
         import development_tools.config as config_module
         from development_tools.shared import standard_exclusions
@@ -273,14 +269,12 @@ class TestContentGeneration:
         assert 'Overview' in content or 'overview' in content.lower()
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
     def test_generate_function_registry_content_includes_functions(self, demo_project_root, monkeypatch):
         """
         Test that known functions appear in output.
         
-        Note: Marked as no_parallel because this test patches module-level functions
-        (config.get_project_root, config.get_scan_directories, standard_exclusions.should_exclude_file)
-        which can interfere with other tests running in parallel workers.
+        This test patches module-level helpers via monkeypatch but remains safe under
+        xdist because each worker runs in a separate process.
         """
         import development_tools.config as config_module
         from development_tools.shared import standard_exclusions
@@ -315,14 +309,12 @@ class TestContentGeneration:
             f"Content should mention demo_module or simple_function. Content preview: {content[:500]}"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
     def test_generate_function_registry_content_categorizes_correctly(self, demo_project_root, monkeypatch):
         """
         Test that functions are categorized (handlers/tests/etc.).
         
-        Note: Marked as no_parallel because this test patches module-level functions
-        (config.get_project_root, config.get_scan_directories, standard_exclusions.should_exclude_file)
-        which can interfere with other tests running in parallel workers.
+        This test patches module-level helpers via monkeypatch but remains safe under
+        xdist because each worker runs in a separate process.
         """
         import development_tools.config as config_module
         from development_tools.shared import standard_exclusions
@@ -369,14 +361,12 @@ class TestFileGeneration:
     
     @pytest.mark.integration
     @pytest.mark.slow
-    @pytest.mark.no_parallel
     def test_update_function_registry_writes_files(self, temp_output_dir, demo_project_root, monkeypatch):
         """
         Test that registry files are written to correct locations.
         
-        Note: Marked as no_parallel because this test patches module-level functions
-        (config.get_project_root, config.get_scan_directories, standard_exclusions.should_exclude_file)
-        which can interfere with other tests running in parallel workers.
+        This test patches module-level helpers via monkeypatch but remains safe under
+        xdist because each worker runs in a separate process.
         """
         # This is an integration test that would actually write files
         # We'll mock the file writing to avoid side effects
@@ -421,4 +411,3 @@ class TestFileGeneration:
         assert len(written_files) > 0
         assert written_files[0].exists()
         assert written_files[0].stat().st_size > 0
-

@@ -42,6 +42,11 @@ def _clear_all_caches(project_root: Path) -> int:
     - Standardized storage cache files: development_tools/{domain}/jsons/.{tool}_cache.json
     - Test-file-based coverage cache: development_tools/tests/jsons/test_file_coverage_cache.json
     - Dev tools coverage cache: development_tools/tests/jsons/dev_tools_coverage_cache.json
+    - Derived coverage artifacts used as warm-run inputs:
+      development_tools/tests/jsons/coverage.json
+      development_tools/tests/jsons/coverage_dev_tools.json
+    - Documentation sync subcheck result artifacts used for mtime-based reuse:
+      development_tools/docs/jsons/analyze_*_results.json (subchecks + sync summary)
 
     Args:
         project_root: Project root directory
@@ -98,6 +103,42 @@ def _clear_all_caches(project_root: Path) -> int:
                 logger.warning(
                     f"Failed to clear dev tools coverage cache {dev_tools_cache_file}: {e}"
                 )
+
+        # Remove derived coverage artifacts so coverage prechecks cannot reuse stale files
+        for coverage_artifact in ("coverage.json", "coverage_dev_tools.json"):
+            coverage_artifact_path = jsons_dir / coverage_artifact
+            if coverage_artifact_path.exists():
+                try:
+                    coverage_artifact_path.unlink()
+                    cache_files_cleared += 1
+                    logger.debug(f"Cleared derived coverage artifact: {coverage_artifact_path}")
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to clear derived coverage artifact {coverage_artifact_path}: {e}"
+                    )
+
+    # Remove documentation subcheck result artifacts used for mtime-based reuse
+    docs_jsons_dir = dev_tools_dir / "docs" / "jsons"
+    if docs_jsons_dir.exists():
+        doc_result_files = [
+            "analyze_documentation_sync_results.json",
+            "analyze_path_drift_results.json",
+            "analyze_ascii_compliance_results.json",
+            "analyze_heading_numbering_results.json",
+            "analyze_missing_addresses_results.json",
+            "analyze_unconverted_links_results.json",
+        ]
+        for filename in doc_result_files:
+            result_path = docs_jsons_dir / filename
+            if result_path.exists():
+                try:
+                    result_path.unlink()
+                    cache_files_cleared += 1
+                    logger.debug(f"Cleared docs derived result artifact: {result_path}")
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to clear docs derived result artifact {result_path}: {e}"
+                    )
 
     return cache_files_cleared
 

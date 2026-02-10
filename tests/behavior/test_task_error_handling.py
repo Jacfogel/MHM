@@ -7,6 +7,7 @@ Tests various error conditions and edge cases.
 import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
+import uuid
 import json
 import os
 
@@ -402,7 +403,7 @@ class TestTaskEdgeCases:
     @pytest.mark.file_io
     def test_multiple_tasks_same_title(self, test_data_dir):
         """Test creating multiple tasks with the same title."""
-        user_id = "test_user_duplicate_titles"
+        user_id = f"test_user_duplicate_titles_{uuid.uuid4().hex[:8]}"
         assert self._create_test_user(
             user_id, test_data_dir=test_data_dir
         ), "Failed to create test user"

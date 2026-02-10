@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-09
+> **Last Updated**: 2026-02-10
 
 ---
 
@@ -45,6 +45,9 @@
   - Parallel tests: ~142-161s (3,178-3,195 tests)
   - Serial tests: ~75-84s (115-131 tests)
 - Recent run (2026-01-26): ~327s parallel (4,376 tests) + ~138s serial (159 tests).
+- Recent flaky-detector full-suite runs (2026-02-10) were typically ~207-255s, with rare timeout outliers at 600s; follow-up remains focused on timeout root cause and worker-log consolidation.
+- As of 2026-02-10 session close, serial `@pytest.mark.no_parallel` runs are passing in `run_tests.py` (no Windows crash observed in latest reruns); keep monitoring for regression.
+- Audit/report noise from pytest temp artifacts was reduced by excluding `.tmp_pytest_runner` and related temp/cache directories in dev-tools exclusions.
 - **Performance Investigation Results (2025-11-24)**:
   - Attempted optimizations (removed `no_parallel` markers, added `wait_until` helpers, reduced retry loops)
   - Performance did not improve; actually degraded in some cases

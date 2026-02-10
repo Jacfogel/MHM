@@ -28,6 +28,7 @@ try:
     from .. import config  # Go up one level from functions/ to development_tools/
     from ..shared.standard_exclusions import should_exclude_file
     from ..shared.exclusion_utilities import (
+        is_generated_file,
         is_generated_function,
         is_special_python_method,
         is_test_function,
@@ -36,6 +37,7 @@ except ImportError:
     from development_tools import config
     from development_tools.shared.standard_exclusions import should_exclude_file
     from development_tools.shared.exclusion_utilities import (
+        is_generated_file,
         is_generated_function,
         is_special_python_method,
         is_test_function,
@@ -236,7 +238,7 @@ def extract_functions(file_path: str) -> List[Dict]:
                 name = node.name
 
                 # Skip auto-generated code
-                if is_generated_function(file_path):
+                if is_generated_file(file_path) or is_generated_function(name):
                     continue
 
                 args = [arg.arg for arg in node.args.args]

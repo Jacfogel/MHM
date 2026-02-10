@@ -13,6 +13,7 @@ Test fixtures contain intentional issues that should be detected:
 import pytest
 from pathlib import Path
 from unittest.mock import patch
+import shutil
 
 from tests.development_tools.conftest import load_development_tools_module, demo_project_root, test_config_path
 
@@ -31,7 +32,6 @@ class TestFalseNegativeDetection:
         return demo_project_root / "docs" / "false_negative_test_doc.md"
     
     @pytest.mark.integration
-    @pytest.mark.no_parallel
     def test_error_handling_detects_missing_decorators(self, demo_project_root, false_negative_code_file):
         """Verify error handling analyzer detects functions missing decorators."""
         # Load error handling analyzer
@@ -73,7 +73,6 @@ class TestFalseNegativeDetection:
             f"Function details: {[{'name': f.get('name', ''), 'has_try_except': f.get('has_try_except', False), 'has_decorator': f.get('has_decorator', False)} for f in file_result['functions']]}"
     
     @pytest.mark.integration
-    @pytest.mark.no_parallel
     def test_documentation_detects_missing_docstrings(self, demo_project_root, false_negative_code_file):
         """Verify function registry detects functions missing docstrings."""
         # Load function registry analyzer functions
@@ -104,15 +103,20 @@ class TestFalseNegativeDetection:
             f"All functions: {[f.name for f in functions]}"
     
     @pytest.mark.integration
-    def test_path_drift_detects_broken_references(self, demo_project_root, test_config_path, false_negative_doc_file):
+    def test_path_drift_detects_broken_references(self, demo_project_root, test_config_path, false_negative_doc_file, tmp_path):
         """Verify path drift analyzer detects broken file references."""
+        # Use a per-test project copy to avoid cross-test interference on shared demo fixtures.
+        isolated_root = tmp_path / "demo_project_copy"
+        shutil.copytree(demo_project_root, isolated_root)
+        false_negative_doc_file = isolated_root / "docs" / "false_negative_test_doc.md"
+
         # Load path drift analyzer
         path_drift_module = load_development_tools_module("docs.analyze_path_drift")
         PathDriftAnalyzer = path_drift_module.PathDriftAnalyzer
         
         # Create analyzer
         analyzer = PathDriftAnalyzer(
-            project_root=str(demo_project_root),
+            project_root=str(isolated_root),
             config_path=test_config_path,
             use_cache=False
         )
@@ -124,7 +128,7 @@ class TestFalseNegativeDetection:
         assert isinstance(results, dict), "Results should be a dictionary"
         
         # Find our test file in results
-        test_file_path = str(false_negative_doc_file.relative_to(demo_project_root))
+        test_file_path = str(false_negative_doc_file.relative_to(isolated_root))
         test_file_path_win = test_file_path.replace('/', '\\')
         
         # Check if test file is in results
@@ -271,12 +275,14 @@ This references existing file:
         # Verify test file exists before running analysis
         assert test_doc.exists(), f"Test file should exist at {test_doc}"
         
-        # Check what files the analyzer would scan
-        doc_paths = analyzer.scan_documentation_paths()
-        scanned_files = list(doc_paths.keys())
-        
-        # Run analysis
-        results = analyzer.check_path_drift()
+        # Force inclusion of this synthetic doc fixture regardless of external exclusions.
+        with patch("development_tools.docs.analyze_path_drift.should_exclude_file", return_value=False):
+            # Check what files the analyzer would scan
+            doc_paths = analyzer.scan_documentation_paths()
+            scanned_files = list(doc_paths.keys())
+            
+            # Run analysis
+            results = analyzer.check_path_drift()
         
         # Find our test file in results
         test_file_path = str(test_doc.relative_to(project_dir))
@@ -337,4 +343,3 @@ This references existing file:
         
         assert len(found_broken_refs) > 0, \
             f"Expected to find broken references. Found issues: {issue_paths}"
-

@@ -2,10 +2,10 @@
 
 import sys
 import shutil
-import tempfile
 import importlib.util
 from pathlib import Path
 from datetime import datetime
+import uuid
 import pytest
 import logging
 
@@ -433,15 +433,24 @@ def demo_project_root():
 @pytest.fixture
 def temp_output_dir():
     """Create a temporary directory for generated files."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        yield Path(tmpdir)
+    tmp_root = project_root / "tests" / "data" / "tmp"
+    tmp_root.mkdir(parents=True, exist_ok=True)
+    tmpdir = tmp_root / f"devtools_output_{uuid.uuid4().hex}"
+    tmpdir.mkdir(parents=True, exist_ok=True)
+    try:
+        yield tmpdir
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 @pytest.fixture
 def temp_project_copy(demo_project_root):
     """Create a temporary copy of the demo project for destructive tests."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        copy_path = Path(tmpdir) / "demo_project"
+    tmp_root = project_root / "tests" / "data" / "tmp"
+    tmp_root.mkdir(parents=True, exist_ok=True)
+    base_dir = tmp_root / f"devtools_project_{uuid.uuid4().hex}"
+    copy_path = base_dir / "demo_project"
+    try:
         # Handle race conditions in parallel execution where files might be deleted
         # during copytree by retrying with error handling
         max_retries = 3
@@ -449,9 +458,8 @@ def temp_project_copy(demo_project_root):
             try:
                 shutil.copytree(demo_project_root, copy_path, dirs_exist_ok=True)
                 break
-            except (OSError, shutil.Error) as e:
+            except (OSError, shutil.Error):
                 if attempt == max_retries - 1:
-                    # Last attempt - re-raise the error
                     raise
                 # Wait a bit and retry (files might be locked or deleted in parallel)
                 import time
@@ -463,20 +471,34 @@ def temp_project_copy(demo_project_root):
                     except Exception:
                         pass
         yield copy_path
+    finally:
+        shutil.rmtree(base_dir, ignore_errors=True)
 
 
 @pytest.fixture
 def temp_docs_dir():
     """Create a temporary directory for test documentation pairs."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        yield Path(tmpdir)
+    tmp_root = project_root / "tests" / "data" / "tmp"
+    tmp_root.mkdir(parents=True, exist_ok=True)
+    tmpdir = tmp_root / f"devtools_docs_{uuid.uuid4().hex}"
+    tmpdir.mkdir(parents=True, exist_ok=True)
+    try:
+        yield tmpdir
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 @pytest.fixture
 def temp_coverage_dir():
     """Create a temporary directory for coverage artifacts."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        yield Path(tmpdir)
+    tmp_root = project_root / "tests" / "data" / "tmp"
+    tmp_root.mkdir(parents=True, exist_ok=True)
+    tmpdir = tmp_root / f"devtools_cov_{uuid.uuid4().hex}"
+    tmpdir.mkdir(parents=True, exist_ok=True)
+    try:
+        yield tmpdir
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 @pytest.fixture

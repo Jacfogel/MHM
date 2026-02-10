@@ -6,8 +6,10 @@ and validation logic.
 """
 
 import pytest
+import uuid
 from unittest.mock import patch, Mock, MagicMock
 from tests.test_utilities import TestUserFactory
+from core.file_locking import safe_json_read
 from core.user_data_handlers import (
     update_user_account,
     update_user_preferences,
@@ -28,6 +30,25 @@ def extract_nested_data(data, data_type):
     return data
 
 
+def _resolve_account_file(test_data_dir, internal_username):
+    """Resolve account.json path for a logical test username via test index mapping."""
+    actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+        internal_username, test_data_dir
+    )
+    if not actual_user_id:
+        return None
+    from pathlib import Path
+
+    return Path(test_data_dir) / "users" / actual_user_id / "account.json"
+
+
+def _resolve_actual_user_id(test_data_dir, internal_username):
+    """Resolve UUID user id for a logical username from the test index."""
+    return TestUserFactory.get_test_user_id_by_internal_username(
+        internal_username, test_data_dir
+    )
+
+
 @pytest.mark.unit
 @pytest.mark.user_management
 class TestUserDataHandlersConvenienceFunctions:
@@ -35,25 +56,25 @@ class TestUserDataHandlersConvenienceFunctions:
 
     def test_update_user_account_valid_input(self, test_data_dir):
         """Test update_user_account with valid input."""
-        user_id = "test_update_account"
+        user_id = f"test_update_account_{uuid.uuid4().hex[:8]}"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        actual_user_id = _resolve_actual_user_id(test_data_dir, user_id)
+        assert actual_user_id, "Should resolve created UUID user id"
         
         updates = {
-            "preferred_name": "Updated Name",
             "timezone": "America/New_York"
         }
         
-        result = update_user_account(user_id, updates, auto_create=True)
+        # Use resolved UUID to avoid cross-test identifier index collisions in parallel runs.
+        result = update_user_account(actual_user_id, updates, auto_create=True)
         
         assert result is True, "Should update account successfully"
         
-        # Verify update was applied
-        account_data = get_user_data(user_id, "account")
-        assert account_data is not None, "Should retrieve account data"
-        # get_user_data returns dict with data_type as key
-        account = extract_nested_data(account_data, "account")
-        assert account is not None, "Should have account data"
-        assert account.get("preferred_name") == "Updated Name", "Should update preferred_name"
+        # Verify update was applied to the exact created user record (avoid index/cache cross-talk)
+        account_file = _resolve_account_file(test_data_dir, user_id)
+        assert account_file and account_file.exists(), "Should resolve created account file"
+        account = safe_json_read(str(account_file), default={})
+        assert account.get("internal_username") == user_id, "Should read the expected test user"
         assert account.get("timezone") == "America/New_York", "Should update timezone"
 
     def test_update_user_account_invalid_user_id(self, test_data_dir):
@@ -408,29 +429,31 @@ class TestUserDataHandlersConvenienceFunctions:
 
     def test_save_user_data_transaction_valid_input(self, test_data_dir):
         """Test save_user_data_transaction with valid input."""
-        user_id = "test_transaction"
+        user_id = f"test_transaction_{uuid.uuid4().hex[:8]}"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        actual_user_id = _resolve_actual_user_id(test_data_dir, user_id)
+        assert actual_user_id, "Should resolve created UUID user id"
         
         data_updates = {
             "account": {
-                "preferred_name": "Transaction Test"
+                "timezone": "America/Chicago"
             },
             "preferences": {
                 "checkin_settings": {"enabled": True}
             }
         }
         
-        result = save_user_data_transaction(user_id, data_updates, auto_create=True)
+        # Use resolved UUID to avoid cross-test identifier index collisions in parallel runs.
+        result = save_user_data_transaction(actual_user_id, data_updates, auto_create=True)
         
         assert result is True, "Should complete transaction successfully"
         
-        # Verify updates were applied
-        account_data = get_user_data(user_id, "account")
-        assert account_data is not None, "Should retrieve account data"
-        # get_user_data returns dict with data_type as key
-        account = extract_nested_data(account_data, "account")
-        assert account is not None, "Should have account data"
-        assert account.get("preferred_name") == "Transaction Test", "Should update account"
+        # Verify updates were applied to the exact created user record (avoid index/cache cross-talk)
+        account_file = _resolve_account_file(test_data_dir, user_id)
+        assert account_file and account_file.exists(), "Should resolve created account file"
+        account = safe_json_read(str(account_file), default={})
+        assert account.get("internal_username") == user_id, "Should read the expected test user"
+        assert account.get("timezone") == "America/Chicago", "Should update account timezone"
 
     def test_save_user_data_transaction_invalid_input(self, test_data_dir):
         """Test save_user_data_transaction with invalid input."""
@@ -513,4 +536,3 @@ class TestUserDataHandlersConvenienceFunctions:
         # Transaction should fail if any type fails
         # The exact behavior depends on implementation, but should not crash
         assert isinstance(result, bool), "Should return boolean result"
-

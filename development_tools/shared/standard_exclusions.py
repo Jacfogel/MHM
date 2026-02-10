@@ -52,6 +52,11 @@ _DEFAULT_BASE_EXCLUSIONS = [
     "*.pyo",
     "*.pyi",
     ".ruff_cache",
+    ".pytest_tmp_cache",
+    ".pytest-tmp-*",
+    ".tmp_devtools_pyfiles",
+    ".tmp_pytest",
+    ".tmp_pytest_runner",
     # Virtual environments
     "venv",
     ".venv",
@@ -249,10 +254,8 @@ def should_exclude_file(
     # Explicitly check for pytest temp directories first (most common exclusion during scanning)
     # These are created during parallel test execution and should always be excluded
     if "pytest-tmp-" in normalized_path or "pytest-of-" in normalized_path:
-        # Only exclude if the path is in tests/data/ (where pytest creates these during parallel execution)
-        # This prevents excluding files explicitly passed to extraction functions (like test fixtures)
-        if "/tests/data/" in normalized_path:
-            return True
+        # These are pytest worker/temp directories and should not be scanned by audit tools.
+        return True
 
     # Check generated files patterns (ui/generated/*, etc.)
     for pattern in GENERATED_FILE_PATTERNS:

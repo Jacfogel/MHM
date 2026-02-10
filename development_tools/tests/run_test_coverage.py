@@ -982,14 +982,16 @@ class CoverageMetricsRegenerator:
             # Set unique pytest temp directory to avoid conflicts when running in parallel with dev tools coverage
             # Use a unique identifier based on process/coverage type to ensure isolation
             import uuid
+            import tempfile
 
             unique_id = f"main_{uuid.uuid4().hex[:8]}"
-            pytest_temp_base = (
-                self.project_root / "tests" / "data" / f"pytest-tmp-{unique_id}"
-            )
-            pytest_temp_base.mkdir(parents=True, exist_ok=True)
+            # Always use system temp for pytest base dir to avoid workspace ACL races on Windows.
+            pytest_temp_base = Path(tempfile.mkdtemp(prefix=f"mhm_pytest_tmp_{unique_id}_"))
             # Set PYTEST_CACHE_DIR to ensure pytest uses unique cache directory
-            env["PYTEST_CACHE_DIR"] = str(pytest_temp_base / ".pytest_cache")
+            pytest_cache_dir = pytest_temp_base / ".pytest_cache"
+            env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
+            # Force pytest cache provider to use writable temp cache directory.
+            cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
             # Also set basetemp via command line argument for tmpdir fixture
             cmd.append(f"--basetemp={pytest_temp_base}")
 
@@ -1599,16 +1601,16 @@ class CoverageMetricsRegenerator:
                 )
                 # Set unique pytest temp directory to avoid conflicts when running in parallel with dev tools coverage
                 import uuid
+                import tempfile
 
                 unique_id = f"no_parallel_{uuid.uuid4().hex[:8]}"
-                pytest_temp_base = (
-                    self.project_root / "tests" / "data" / f"pytest-tmp-{unique_id}"
-                )
-                pytest_temp_base.mkdir(parents=True, exist_ok=True)
+                # Always use system temp for pytest base dir to avoid workspace ACL races on Windows.
+                pytest_temp_base = Path(tempfile.mkdtemp(prefix=f"mhm_pytest_tmp_{unique_id}_"))
                 # Set PYTEST_CACHE_DIR to ensure pytest uses unique cache directory
-                no_parallel_env["PYTEST_CACHE_DIR"] = str(
-                    pytest_temp_base / ".pytest_cache"
-                )
+                pytest_cache_dir = pytest_temp_base / ".pytest_cache"
+                no_parallel_env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
+                # Force pytest cache provider to use writable temp cache directory.
+                no_parallel_cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
                 # Also set basetemp via command line argument for tmpdir fixture
                 no_parallel_cmd.append(f"--basetemp={pytest_temp_base}")
 
@@ -3213,14 +3215,16 @@ class CoverageMetricsRegenerator:
             # Set unique pytest temp directory to avoid conflicts when running in parallel with main coverage
             # Use a unique identifier based on process/coverage type to ensure isolation
             import uuid
+            import tempfile
 
             unique_id = f"dev_tools_{uuid.uuid4().hex[:8]}"
-            pytest_temp_base = (
-                self.project_root / "tests" / "data" / f"pytest-tmp-{unique_id}"
-            )
-            pytest_temp_base.mkdir(parents=True, exist_ok=True)
+            # Always use system temp for pytest base dir to avoid workspace ACL races on Windows.
+            pytest_temp_base = Path(tempfile.mkdtemp(prefix=f"mhm_pytest_tmp_{unique_id}_"))
             # Set PYTEST_CACHE_DIR to ensure pytest uses unique cache directory
-            env["PYTEST_CACHE_DIR"] = str(pytest_temp_base / ".pytest_cache")
+            pytest_cache_dir = pytest_temp_base / ".pytest_cache"
+            env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
+            # Force pytest cache provider to use writable temp cache directory.
+            cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
             # Also set basetemp via command line argument for tmpdir fixture
             cmd.append(f"--basetemp={pytest_temp_base}")
 

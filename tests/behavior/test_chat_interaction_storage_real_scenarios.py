@@ -6,6 +6,7 @@ Tests actual chat interaction storage with realistic user conversation patterns.
 import pytest
 import json
 import os
+import uuid
 from unittest.mock import patch
 from core.response_tracking import (
     store_chat_interaction,
@@ -21,7 +22,7 @@ class TestChatInteractionStorageRealScenarios:
     @pytest.mark.critical
     def test_real_user_conversation_flow_storage(self, test_data_dir, fix_user_data_loaders):
         """Test storing a complete real user conversation flow."""
-        user_id = "test-user-conversation"
+        user_id = f"test-user-conversation-{uuid.uuid4().hex[:8]}"
         
         # Arrange - Mock file path to use test directory (following existing behavior test pattern)
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")
@@ -84,7 +85,7 @@ class TestChatInteractionStorageRealScenarios:
     @pytest.mark.file_io
     def test_chat_interaction_context_building_integration(self, test_data_dir, fix_user_data_loaders):
         """Test that chat interactions are properly used for AI context building."""
-        user_id = "test-user-context"
+        user_id = f"test-user-context-{uuid.uuid4().hex[:8]}"
         
         # Arrange - Create chat interactions
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")
@@ -112,7 +113,7 @@ class TestChatInteractionStorageRealScenarios:
     @pytest.mark.file_io
     def test_mixed_message_types_storage(self, test_data_dir, fix_user_data_loaders):
         """Test storing different types of user messages and responses."""
-        user_id = "test-user-mixed"
+        user_id = f"test-user-mixed-{uuid.uuid4().hex[:8]}"
         
         # Arrange - Mock file paths
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")
@@ -170,7 +171,7 @@ class TestChatInteractionStorageRealScenarios:
     @pytest.mark.file_io
     def test_chat_interaction_timestamp_ordering(self, test_data_dir, fix_user_data_loaders):
         """Test that chat interactions are properly ordered by timestamp."""
-        user_id = "test-user-timestamps"
+        user_id = f"test-user-timestamps-{uuid.uuid4().hex[:8]}"
         
         # Arrange - Mock file path
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")
@@ -208,7 +209,7 @@ class TestChatInteractionStorageRealScenarios:
     @pytest.mark.file_io
     def test_chat_interaction_fallback_response_storage(self, test_data_dir):
         """Test storing fallback responses when AI context is not available."""
-        user_id = "test-user-fallback"
+        user_id = f"test-user-fallback-{uuid.uuid4().hex[:8]}"
         
         # Arrange - Mock file path
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")
@@ -262,10 +263,9 @@ class TestChatInteractionStorageRealScenarios:
     @pytest.mark.behavior
     @pytest.mark.file_io
     @pytest.mark.slow
-    @pytest.mark.no_parallel
     def test_chat_interaction_performance_with_large_history(self, test_data_dir, fix_user_data_loaders):
         """Test chat interaction storage performance with large conversation history."""
-        user_id = "test-user-performance"
+        user_id = f"test-user-performance-{uuid.uuid4().hex[:8]}"
         
         # Arrange - Mock file path
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")
@@ -345,7 +345,7 @@ class TestChatInteractionStorageRealScenarios:
     @pytest.mark.file_io
     def test_chat_interaction_error_handling_and_recovery(self, test_data_dir, fix_user_data_loaders):
         """Test chat interaction storage error handling and recovery."""
-        user_id = "test-user-error"
+        user_id = f"test-user-error-{uuid.uuid4().hex[:8]}"
         
         # Arrange - Mock file path
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")
@@ -386,7 +386,7 @@ class TestChatInteractionStorageRealScenarios:
     @pytest.mark.integration
     def test_chat_interaction_integration_with_conversation_history(self, test_data_dir, fix_user_data_loaders):
         """Test integration between chat interaction storage and conversation history system."""
-        user_id = "test-user-integration"
+        user_id = f"test-user-integration-{uuid.uuid4().hex[:8]}"
         
         # Arrange - Mock file path
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")
@@ -428,7 +428,7 @@ class TestChatInteractionStorageEdgeCases:
     @pytest.mark.file_io
     def test_chat_interaction_storage_with_missing_user_data(self, test_data_dir, fix_user_data_loaders):
         """Test chat interaction storage when user data is missing."""
-        user_id = "test-user-missing"
+        user_id = f"test-user-missing-{uuid.uuid4().hex[:8]}"
         
         # Arrange - Mock file path
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")
@@ -451,7 +451,7 @@ class TestChatInteractionStorageEdgeCases:
     @pytest.mark.file_io
     def test_chat_interaction_storage_with_corrupted_file(self, test_data_dir, fix_user_data_loaders):
         """Test chat interaction storage with corrupted existing file."""
-        user_id = "test-user-corrupted"
+        user_id = f"test-user-corrupted-{uuid.uuid4().hex[:8]}"
         
         # Arrange - Create corrupted file
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")
@@ -484,7 +484,7 @@ class TestChatInteractionStorageEdgeCases:
     @pytest.mark.file_io
     def test_chat_interaction_storage_concurrent_access(self, test_data_dir, fix_user_data_loaders):
         """Test chat interaction storage with concurrent access."""
-        user_id = "test-user-concurrent"
+        user_id = f"test-user-concurrent-{uuid.uuid4().hex[:8]}"
         
         # Arrange - Mock file path
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")

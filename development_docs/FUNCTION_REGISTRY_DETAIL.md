@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-08 04:35:41
+> **Last Generated**: 2026-02-10 06:25:40
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
 - **Files Scanned**: 111
-- **Functions Found**: 1567
+- **Functions Found**: 1569
 - **Methods Found**: 1151
 - **Classes Found**: 154
-- **Total Items**: 2718
-- **Functions Documented**: 1496
+- **Total Items**: 2720
+- **Functions Documented**: 1498
 - **Methods Documented**: 1111
 - **Classes Documented**: 120
-- **Total Documented**: 2607
+- **Total Documented**: 2609
 - **Template-Generated**: 4
-- **Last Updated**: 2026-02-08
+- **Last Updated**: 2026-02-10
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -4919,12 +4919,14 @@ Returns:
 
 #### `run_tests.py`
 **Functions:**
+- [OK] `build_windows_no_parallel_env()` - Return environment overrides for stable Windows serial UI/no_parallel runs.
 - [OK] `check_critical_resources(resources)` - Check if resources exceed critical thresholds requiring termination.
 - [OK] `check_resource_warnings(resources)` - Check if resources exceed warning thresholds.
 - [OK] `cleanup_orphaned_pytest_processes()` - Find and kill any orphaned pytest worker processes on Windows.
 
 Returns:
     int: Number of orphaned processes found and killed
+- [OK] `cleanup_stale_test_artifacts()` - Best-effort cleanup for stale pytest/build artifacts that commonly accumulate on Windows.
 - [OK] `detect_stuck_process(last_output_time, current_time, threshold)` - Detect if process appears stuck (no output for extended period).
 - [OK] `extract_failures_from_junit_xml(xml_path)` - Extract detailed failure information from JUnit XML.
 
@@ -4955,7 +4957,7 @@ Args:
     description: Test mode description
 - [OK] `print_test_mode_info()` - Print helpful information about test modes.
 - [OK] `read_output(pipe, queue_obj)` - Read from pipe and put lines in queue, also write to terminal.
-- [OK] `run_command(cmd, description, progress_interval, capture_output, test_context)` - Run a command and return results with periodic progress logs.
+- [OK] `run_command(cmd, description, progress_interval, capture_output, test_context, env_overrides)` - Run a command and return results with periodic progress logs.
 
 Args:
     cmd: Command to run

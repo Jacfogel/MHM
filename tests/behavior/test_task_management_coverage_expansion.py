@@ -17,6 +17,7 @@ Coverage Areas:
 
 import pytest
 import json
+import uuid
 from unittest.mock import Mock, patch
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -59,7 +60,7 @@ class TestTaskManagementCoverageExpansion:
     @pytest.fixture
     def user_id(self):
         """Create a test user ID."""
-        return "test-user-coverage-expansion"
+        return f"test-user-coverage-expansion-{uuid.uuid4().hex[:8]}"
 
     @pytest.fixture
     def mock_user_data_dir(self, temp_dir):
@@ -496,8 +497,8 @@ class TestTaskManagementCoverageExpansion:
         assert result is True  # Update should succeed despite invalid date format
 
         # Verify update was applied (invalid date is stored but warning was logged)
-        tasks = load_active_tasks(user_id)
-        task = tasks[0]
+        task = get_task_by_id(user_id, task_id)
+        assert task is not None, "Updated task should still exist"
         assert task["title"] == "Updated Title"
         assert task["due_date"] == "invalid-date-format"  # Invalid date is still stored
 

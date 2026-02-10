@@ -21,6 +21,7 @@ import pytest
 import json
 import tempfile
 import shutil
+import uuid
 from unittest.mock import patch, Mock, MagicMock
 from datetime import datetime, time
 from pathlib import Path
@@ -60,7 +61,7 @@ class TestTagWidgetBehavior:
     def widget(self, qapp, test_data_dir, mock_config):
         """Create TagWidget for testing."""
         # Create test user with task focus (includes task settings with tags)
-        user_id = "test_user_tag_widget"
+        user_id = f"test_user_tag_widget_{uuid.uuid4().hex[:8]}"
         success = TestUserFactory.create_user_with_task_focus(user_id, test_data_dir)
         assert success, f"Failed to create test user {user_id}"
         
@@ -85,7 +86,6 @@ class TestTagWidgetBehavior:
     @pytest.mark.user_management
     @pytest.mark.tasks
     @pytest.mark.checkins
-    @pytest.mark.no_parallel
     def test_widget_initialization_real_behavior(self, widget):
         """REAL BEHAVIOR TEST: Test widget initializes correctly with proper UI state."""
         #[OK] VERIFY INITIAL STATE: Check widget exists and is not visible during testing
@@ -135,7 +135,7 @@ class TestTagWidgetBehavior:
     def test_tag_selection_mode_real_behavior(self, qapp, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test widget works in selection mode."""
         # Create test user with task focus (includes task settings with tags)
-        user_id = "test_user_tag_selection"
+        user_id = f"test_user_tag_selection_{uuid.uuid4().hex[:8]}"
         success = TestUserFactory.create_user_with_task_focus(user_id, test_data_dir)
         assert success, f"Failed to create test user {user_id}"
         
@@ -161,7 +161,7 @@ class TestTaskSettingsWidgetBehavior:
     def widget(self, qapp, test_data_dir, mock_config):
         """Create TaskSettingsWidget for testing."""
         # Create test user with task focus
-        user_id = "test_user_task_settings"
+        user_id = f"test_user_task_settings_{uuid.uuid4().hex[:8]}"
         success = TestUserFactory.create_user_with_task_focus(user_id, test_data_dir)
         assert success, f"Failed to create test user {user_id}"
         

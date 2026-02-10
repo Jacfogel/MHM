@@ -6,6 +6,7 @@ Contains methods for executing various CLI commands (docs, validate, config, etc
 
 import json
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from core.logger import get_component_logger
@@ -18,6 +19,149 @@ from ..output_storage import save_tool_result
 
 class CommandsMixin:
     """Mixin class providing command execution methods to AIToolsService."""
+
+    def _infer_coverage_cache_mode_from_output(self, output: str) -> str:
+        """Infer cache mode from run_test_coverage script output text."""
+        text = (output or "").lower()
+        if "using cached coverage data only" in text:
+            return "cache_only"
+        if "merged cached and fresh coverage data" in text or "cache merge" in text:
+            return "partial_cache"
+        if "using cached coverage data" in text:
+            return "cache_only"
+        if "running all tests" in text or "source files changed" in text:
+            return "cold_scan"
+        return "unknown"
+
+    def _extract_coverage_invalidation_reason(self, output: str) -> str:
+        """Extract first cache invalidation or rerun reason from coverage output."""
+        if not output:
+            return "unknown"
+        reason_markers = (
+            "invalidating",
+            "source files changed",
+            "running all tests",
+            "no domains changed",
+            "using cached coverage data",
+            "using full coverage cache",
+        )
+        for raw_line in output.splitlines():
+            line = raw_line.strip()
+            lowered = line.lower()
+            if any(marker in lowered for marker in reason_markers):
+                return line
+        return "unknown"
+
+    def _extract_changed_domains(self, output: str) -> List[str]:
+        """Extract changed domains list from run_test_coverage output."""
+        if not output:
+            return []
+        marker = "domain(s) changed:"
+        for raw_line in output.splitlines():
+            line = raw_line.strip()
+            lowered = line.lower()
+            if marker in lowered:
+                value = line.split(":", 1)[1].strip() if ":" in line else ""
+                if value.startswith("[") and value.endswith("]"):
+                    try:
+                        parsed = json.loads(value.replace("'", '"'))
+                        if isinstance(parsed, list):
+                            return [str(item) for item in parsed]
+                    except Exception:
+                        pass
+                return [part.strip().strip("'\"") for part in value.strip("[]").split(",") if part.strip()]
+        return []
+
+    def _build_coverage_metadata(self, output: str, source: str) -> Dict[str, object]:
+        """Build normalized coverage cache metadata payload."""
+        cache_mode = self._infer_coverage_cache_mode_from_output(output)
+        reason = self._extract_coverage_invalidation_reason(output)
+        changed_domains = self._extract_changed_domains(output)
+        metadata: Dict[str, object] = {
+            "cache_mode": cache_mode,
+            "invalidation_reason": reason,
+            "source": source,
+        }
+        if changed_domains:
+            metadata["changed_domains"] = changed_domains
+        return metadata
+
+    def _latest_mtime_for_patterns(
+        self,
+        patterns: List[str],
+        exclude_prefixes: Optional[List[str]] = None,
+        exclude_paths: Optional[List[str]] = None,
+    ) -> float:
+        """Return latest mtime for files matching any glob pattern."""
+        latest = 0.0
+        exclude_prefixes = exclude_prefixes or []
+        exclude_paths = {path.replace("\\", "/") for path in (exclude_paths or [])}
+        for pattern in patterns:
+            for path in self.project_root.glob(pattern):
+                if not path.is_file():
+                    continue
+                normalized = str(path.relative_to(self.project_root)).replace("\\", "/")
+                if normalized in exclude_paths:
+                    continue
+                if any(normalized.startswith(prefix) for prefix in exclude_prefixes):
+                    continue
+                try:
+                    mtime = path.stat().st_mtime
+                except OSError:
+                    continue
+                if mtime > latest:
+                    latest = mtime
+        return latest
+
+    def _is_coverage_file_fresh(
+        self,
+        coverage_file: Path,
+        source_patterns: List[str],
+        exclude_prefixes: Optional[List[str]] = None,
+    ) -> bool:
+        """Check whether a coverage file is newer than all relevant source files."""
+        if not coverage_file.exists():
+            return False
+        try:
+            coverage_mtime = coverage_file.stat().st_mtime
+        except OSError:
+            return False
+        latest_source_mtime = self._latest_mtime_for_patterns(
+            source_patterns, exclude_prefixes=exclude_prefixes
+        )
+        return coverage_mtime >= latest_source_mtime
+
+    def _load_cached_result_if_available(self, tool_name: str, domain: str) -> Optional[Dict]:
+        """Load cached standardized tool result if it exists."""
+        try:
+            from ..output_storage import load_tool_result
+
+            data = load_tool_result(tool_name, domain, project_root=self.project_root)
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            return None
+        return None
+
+    def _to_standard_dev_tools_coverage_result(self, raw_data: Dict) -> Dict:
+        """Normalize dev-tools coverage payload to standard summary/details format."""
+        if (
+            isinstance(raw_data, dict)
+            and isinstance(raw_data.get("summary"), dict)
+            and isinstance(raw_data.get("details"), dict)
+        ):
+            return raw_data
+
+        overall = raw_data.get("overall", {}) if isinstance(raw_data, dict) else {}
+        total_missed = int(overall.get("total_missed", 0) or 0)
+        standard = {
+            "summary": {
+                "total_issues": total_missed,
+                "files_affected": 0,
+            },
+            "details": raw_data if isinstance(raw_data, dict) else {},
+        }
+        return standard
     
     def run_docs(self):
         """Update all documentation (OPTIONAL - not essential for audit)"""
@@ -181,6 +325,27 @@ class CommandsMixin:
     def run_dev_tools_coverage(self) -> Dict:
         """Run coverage analysis specifically for development_tools directory."""
         logger.info("Generating dev tools coverage...")
+        dev_tools_coverage_file = self.project_root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
+        dev_tools_patterns = [
+            "development_tools/**/*.py",
+            "tests/development_tools/**/*.py",
+        ]
+        if self._is_coverage_file_fresh(dev_tools_coverage_file, dev_tools_patterns):
+            cached_data = self._load_cached_result_if_available("generate_dev_tools_coverage", "tests")
+            cache_metadata = {
+                "cache_mode": "cache_only",
+                "invalidation_reason": "Precheck: dev tools/test sources unchanged since coverage_dev_tools.json",
+                "source": "orchestration_precheck",
+            }
+            if not hasattr(self, "_tool_cache_metadata"):
+                self._tool_cache_metadata = {}
+            self._tool_cache_metadata["generate_dev_tools_coverage"] = cache_metadata
+            if cached_data:
+                logger.info("Skipping dev tools coverage run - cached coverage is up to date")
+                normalized_cached = self._to_standard_dev_tools_coverage_result(cached_data)
+                normalized_cached.setdefault("_cache_metadata", {}).update(cache_metadata)
+                return {"success": True, "data": normalized_cached, "cache_metadata": cache_metadata}
+
         from .audit_orchestration import _AUDIT_LOCK_FILE
         # Use separate lock file for dev tools coverage to avoid conflicts when running in parallel with main coverage
         # Both lock files are checked by _is_audit_in_progress(), so this is safe
@@ -195,12 +360,26 @@ class CommandsMixin:
         
         try:
             result = self.run_script('run_test_coverage', '--dev-tools-only', timeout=720)
+            output_text = "\n".join(
+                [result.get("output", "") or "", result.get("error", "") or ""]
+            )
+            cache_metadata = self._build_coverage_metadata(
+                output_text, source="run_test_coverage --dev-tools-only"
+            )
+            if cache_metadata.get("cache_mode") == "unknown":
+                cache_metadata["cache_mode"] = "cold_scan"
+                if cache_metadata.get("invalidation_reason") in (None, "", "unknown"):
+                    cache_metadata["invalidation_reason"] = (
+                        "Coverage command executed (stdout mode markers unavailable)"
+                    )
+            if not hasattr(self, "_tool_cache_metadata"):
+                self._tool_cache_metadata = {}
+            self._tool_cache_metadata["generate_dev_tools_coverage"] = cache_metadata
             # Check if coverage was collected, not just if pytest succeeded
             # pytest can exit with non-zero code if tests fail, but coverage may still be collected
             coverage_collected = False
             
             # First check if coverage file exists (most reliable indicator)
-            dev_tools_coverage_file = self.project_root / 'development_tools' / 'tests' / 'jsons' / 'coverage_dev_tools.json'
             if dev_tools_coverage_file.exists():
                 coverage_collected = True
             
@@ -213,6 +392,11 @@ class CommandsMixin:
             # If script failed but coverage file exists, we still succeeded
             if coverage_collected:
                 self._load_dev_tools_coverage()
+                if hasattr(self, 'dev_tools_coverage_results') and isinstance(self.dev_tools_coverage_results, dict):
+                    normalized = self._to_standard_dev_tools_coverage_result(self.dev_tools_coverage_results)
+                    normalized.setdefault("_cache_metadata", {})
+                    normalized["_cache_metadata"].update(cache_metadata)
+                    self.dev_tools_coverage_results = normalized
                 # Save results to standardized storage
                 if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:
                     try:
@@ -221,7 +405,8 @@ class CommandsMixin:
                         logger.warning(f"Failed to save generate_dev_tools_coverage result: {e}")
                 return {
                     'success': True,
-                    'data': self.dev_tools_coverage_results
+                    'data': self.dev_tools_coverage_results,
+                    'cache_metadata': cache_metadata,
                 }
             else:
                 # Even if script failed, check one more time if coverage file was created
@@ -230,13 +415,18 @@ class CommandsMixin:
                     logger.info("Coverage file found despite script failure - loading coverage data")
                     self._load_dev_tools_coverage()
                     if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:
+                        normalized = self._to_standard_dev_tools_coverage_result(self.dev_tools_coverage_results)
+                        normalized.setdefault("_cache_metadata", {})
+                        normalized["_cache_metadata"].update(cache_metadata)
+                        self.dev_tools_coverage_results = normalized
                         try:
                             save_tool_result('generate_dev_tools_coverage', 'tests', self.dev_tools_coverage_results, project_root=self.project_root)
                         except Exception as e:
                             logger.warning(f"Failed to save generate_dev_tools_coverage result: {e}")
                         return {
                             'success': True,
-                            'data': self.dev_tools_coverage_results
+                            'data': self.dev_tools_coverage_results,
+                            'cache_metadata': cache_metadata,
                         }
                 
                 # No coverage collected
@@ -246,7 +436,8 @@ class CommandsMixin:
                 logger.warning(f"Dev tools coverage failed: {error_msg}")
                 return {
                     'success': False,
-                    'error': error_msg
+                    'error': error_msg,
+                    'cache_metadata': cache_metadata,
                 }
         finally:
             if coverage_lock_file.exists():
@@ -350,6 +541,50 @@ class CommandsMixin:
         """Regenerate test coverage data"""
         logger.info("Generating test coverage...")
         logger.info("=" * 50)
+        main_coverage_file = self.project_root / "development_tools" / "tests" / "jsons" / "coverage.json"
+        main_coverage_patterns = [
+            "*.py",
+            "core/**/*.py",
+            "communication/**/*.py",
+            "ui/**/*.py",
+            "tasks/**/*.py",
+            "ai/**/*.py",
+            "user/**/*.py",
+            "tests/**/*.py",
+        ]
+        if self._is_coverage_file_fresh(
+            main_coverage_file,
+            main_coverage_patterns,
+            exclude_prefixes=["development_tools/"],
+        ):
+            if not hasattr(self, "_tool_cache_metadata"):
+                self._tool_cache_metadata = {}
+            self._tool_cache_metadata["run_test_coverage"] = {
+                "cache_mode": "cache_only",
+                "invalidation_reason": "Precheck: core/test sources unchanged since coverage.json",
+                "source": "orchestration_precheck",
+            }
+            cached_summary = self._load_coverage_summary()
+            if cached_summary:
+                logger.info("Skipping test coverage run - cached coverage is up to date")
+                overall = cached_summary.get("overall", {}) if isinstance(cached_summary, dict) else {}
+                missed = overall.get("missed", 0) if isinstance(overall, dict) else 0
+                standard_format = {
+                    "summary": {"total_issues": missed, "files_affected": 0},
+                    "details": cached_summary,
+                    "_cache_metadata": self._tool_cache_metadata["run_test_coverage"],
+                }
+                try:
+                    save_tool_result(
+                        "analyze_test_coverage",
+                        "tests",
+                        standard_format,
+                        project_root=self.project_root,
+                    )
+                except Exception as save_error:
+                    logger.debug(f"Failed to save cached analyze_test_coverage result: {save_error}")
+                return True
+
         from .audit_orchestration import _AUDIT_LOCK_FILE
         # Use helper method if available, otherwise default location
         coverage_lock_file = self._get_coverage_lock_file_path() if hasattr(self, '_get_coverage_lock_file_path') else (self.project_root / 'development_tools' / '.coverage_in_progress.lock')
@@ -365,6 +600,19 @@ class CommandsMixin:
             # The script itself sets a 15-minute timeout for pytest, so we need
             # a bit more time for script overhead and pytest execution
             result = self.run_script('run_test_coverage', timeout=1200)
+            output_text = "\n".join(
+                [result.get("output", "") or "", result.get("error", "") or ""]
+            )
+            cache_metadata = self._build_coverage_metadata(output_text, source="run_test_coverage")
+            if cache_metadata.get("cache_mode") == "unknown":
+                cache_metadata["cache_mode"] = "cold_scan"
+                if cache_metadata.get("invalidation_reason") in (None, "", "unknown"):
+                    cache_metadata["invalidation_reason"] = (
+                        "Coverage command executed (stdout mode markers unavailable)"
+                    )
+            if not hasattr(self, '_tool_cache_metadata'):
+                self._tool_cache_metadata = {}
+            self._tool_cache_metadata['run_test_coverage'] = cache_metadata
             if result['success']:
                 
                 # Save coverage results to standardized storage
@@ -384,7 +632,8 @@ class CommandsMixin:
                                 'total_issues': missed,
                                 'files_affected': 0,
                             },
-                            'details': coverage_data
+                            'details': coverage_data,
+                            '_cache_metadata': cache_metadata,
                         }
                         save_tool_result('analyze_test_coverage', 'tests', standard_format, project_root=self.project_root)
                         logger.info(f"Saved analyze_test_coverage results to standardized storage (coverage: {overall_coverage}%)")
@@ -744,143 +993,254 @@ class CommandsMixin:
         logger.info("Updating module dependencies...")
         result = self.run_script('generate_module_dependencies')
         return result['success']
+
+    def _get_docs_tree_max_mtime(self) -> float:
+        """Return latest mtime across documentation files."""
+        patterns = [
+            "*.md",
+            "development_docs/**/*.md",
+            "ai_development_docs/**/*.md",
+        ]
+        generated_docs = [
+            "development_docs/UNUSED_IMPORTS_REPORT.md",
+            "development_docs/TEST_COVERAGE_REPORT.md",
+            "development_docs/LEGACY_REFERENCE_REPORT.md",
+        ]
+        return self._latest_mtime_for_patterns(patterns, exclude_paths=generated_docs)
+
+    def _is_doc_subcheck_cache_fresh(self, tool_name: str) -> bool:
+        """Check whether a documentation subcheck result file is up to date."""
+        result_file = (
+            self.project_root
+            / "development_tools"
+            / "docs"
+            / "jsons"
+            / f"{tool_name}_results.json"
+        )
+        if not result_file.exists():
+            return False
+        try:
+            result_mtime = result_file.stat().st_mtime
+        except OSError:
+            return False
+        return result_mtime >= self._get_docs_tree_max_mtime()
+
+    def _run_doc_subcheck_with_cache(
+        self,
+        tool_name: str,
+        log_label: str,
+        parser_func,
+        run_callable,
+    ) -> Dict:
+        """Run a docs subcheck only when stale; otherwise use cached result."""
+        from ..output_storage import load_tool_result
+
+        if self._is_doc_subcheck_cache_fresh(tool_name):
+            cached = load_tool_result(tool_name, "docs", project_root=self.project_root)
+            if isinstance(cached, dict):
+                logger.info(f"  - {log_label}: using cached result (mtime up to date)")
+                if hasattr(self, "_tool_cache_metadata"):
+                    self._tool_cache_metadata[tool_name] = {
+                        "cache_mode": "cache_only",
+                        "invalidation_reason": "Docs unchanged since last subcheck result",
+                        "source": "doc_subcheck_mtime",
+                    }
+                return cached
+
+        result = run_callable()
+        if hasattr(self, "_tools_run_in_current_tier"):
+            self._tools_run_in_current_tier.add(tool_name)
+        result_data = result.get("data") if isinstance(result, dict) else None
+        if (
+            isinstance(result_data, dict)
+            and isinstance(result_data.get("summary"), dict)
+            and isinstance(result_data.get("details"), dict)
+        ):
+            if hasattr(self, "results_cache"):
+                self.results_cache[tool_name] = result_data
+            if hasattr(self, "_tool_cache_metadata"):
+                self._tool_cache_metadata[tool_name] = {
+                    "cache_mode": "cold_scan",
+                    "invalidation_reason": "Subcheck executed and returned standard result",
+                    "source": "subcheck_direct_result",
+                }
+            return result_data
+        try:
+            parsed = self._load_mtime_cached_tool_results(
+                tool_name,
+                "docs",
+                result,
+                parser_func,
+            )
+            if hasattr(self, "_tool_cache_metadata"):
+                self._tool_cache_metadata[tool_name] = {
+                    "cache_mode": "cold_scan",
+                    "invalidation_reason": "Subcheck executed after stale or missing cache",
+                    "source": "doc_subcheck_execution",
+                }
+            return parsed
+        except Exception:
+            if result.get("output") or result.get("success"):
+                parsed = parser_func(result.get("output", ""))
+                try:
+                    save_tool_result(tool_name, "docs", parsed, project_root=self.project_root)
+                except Exception:
+                    pass
+                if hasattr(self, "_tool_cache_metadata"):
+                    self._tool_cache_metadata[tool_name] = {
+                        "cache_mode": "cold_scan",
+                        "invalidation_reason": "Fallback parse path used",
+                        "source": "doc_subcheck_fallback",
+                    }
+                return parsed
+            logger.warning(f"{tool_name} failed: {result.get('error', 'Unknown error')}")
+            return {}
     
     def _run_doc_sync_check(self, *args) -> bool:
         """Run all documentation sync checks and aggregate results."""
         all_results = {}
-        
-        # Run paired documentation sync
-        # Note: analyze_documentation_sync.py logs this message itself, so we don't duplicate it here
-        result = self.run_script('analyze_documentation_sync', '--json')
-        if result.get('output') and result.get('success'):
-            try:
-                parsed = json.loads(result.get('output', ''))
-                details = parsed.get('details', {}) if isinstance(parsed, dict) else {}
-                all_results['paired_docs'] = details.get('paired_docs', {})
-            except json.JSONDecodeError as e:
-                logger.warning(f"analyze_documentation_sync output could not be parsed as JSON: {e}")
-                all_results['paired_docs'] = {}
-        else:
-            logger.warning(f"analyze_documentation_sync failed: {result.get('error', 'Unknown error')}")
-        
-        # Run path drift analysis
+        subcheck_modes = {}
+        from ..output_storage import load_tool_result
+
+        paired_docs_cached = self._is_doc_subcheck_cache_fresh("analyze_documentation_sync")
+        if paired_docs_cached:
+            cached_sync = load_tool_result(
+                "analyze_documentation_sync",
+                "docs",
+                project_root=self.project_root,
+            )
+            if isinstance(cached_sync, dict):
+                details = cached_sync.get("details", {})
+                all_results["paired_docs"] = (
+                    details.get("paired_docs", {})
+                    if isinstance(details, dict)
+                    else {}
+                )
+                subcheck_modes["paired_docs"] = "cache_only"
+                logger.info("  - Paired docs: using cached result (mtime up to date)")
+            else:
+                paired_docs_cached = False
+
+        if not paired_docs_cached:
+            result = self.run_script("analyze_documentation_sync", "--json")
+            if result.get("output") and result.get("success"):
+                try:
+                    parsed = json.loads(result.get("output", ""))
+                    details = parsed.get("details", {}) if isinstance(parsed, dict) else {}
+                    all_results["paired_docs"] = details.get("paired_docs", {})
+                    subcheck_modes["paired_docs"] = "cold_scan"
+                except json.JSONDecodeError as e:
+                    logger.warning(f"analyze_documentation_sync output could not be parsed as JSON: {e}")
+                    all_results["paired_docs"] = {}
+                    subcheck_modes["paired_docs"] = "unknown"
+            else:
+                logger.warning(
+                    f"analyze_documentation_sync failed: {result.get('error', 'Unknown error')}"
+                )
+                all_results["paired_docs"] = {}
+                subcheck_modes["paired_docs"] = "unknown"
+
         logger.info("  - Analyzing path drift...")
-        result = self.run_analyze_path_drift()
-        if result.get('data'):
-            all_results['path_drift'] = result.get('data', {})
-        elif result.get('output') or result.get('success'):
-            all_results['path_drift'] = self._parse_path_drift_output(result.get('output', ''))
+        path_drift_result = self.run_analyze_path_drift()
+        path_drift_data = (
+            path_drift_result.get("data")
+            if isinstance(path_drift_result, dict)
+            else {}
+        )
+        if (
+            isinstance(path_drift_data, dict)
+            and isinstance(path_drift_data.get("summary"), dict)
+            and isinstance(path_drift_data.get("details"), dict)
+        ):
+            all_results["path_drift"] = path_drift_data
+            if hasattr(self, "_tool_cache_metadata"):
+                self._tool_cache_metadata["analyze_path_drift"] = {
+                    "cache_mode": "internal_mtime_cache",
+                    "invalidation_reason": "Path drift uses internal analyzer cache",
+                    "source": "run_analyze_path_drift",
+                }
         else:
-            logger.warning(f"analyze_path_drift failed: {result.get('error', 'Unknown error')}")
-        
-        # Run ASCII compliance check
+            all_results["path_drift"] = self._create_standard_format_result(0, 0, {})
+            logger.warning("Path drift result was non-standard; defaulting to empty result")
+        subcheck_modes["path_drift"] = (
+            self._tool_cache_metadata.get("analyze_path_drift", {}).get("cache_mode", "unknown")
+            if hasattr(self, "_tool_cache_metadata")
+            else "unknown"
+        )
+
         logger.info("  - Analyzing ASCII compliance...")
-        result = self.run_script('analyze_ascii_compliance', '--json')
-        # Track this sub-tool as run
-        if hasattr(self, '_tools_run_in_current_tier'):
-            self._tools_run_in_current_tier.add('analyze_ascii_compliance')
-        try:
-            ascii_result = self._load_mtime_cached_tool_results(
-                'analyze_ascii_compliance',
-                'docs',
-                result,
-                self._parse_ascii_compliance_output
-            )
-            all_results['ascii_compliance'] = ascii_result
-        except Exception as e:
-            logger.debug(f"Failed to load ASCII compliance: {e}, falling back to parsing output")
-            if result.get('output') or result.get('success'):
-                ascii_result = self._parse_ascii_compliance_output(result.get('output', ''))
-                all_results['ascii_compliance'] = ascii_result
-                try:
-                    save_tool_result('analyze_ascii_compliance', 'docs', ascii_result, project_root=self.project_root)
-                except Exception as save_error:
-                    logger.debug(f"Failed to save ASCII compliance results: {save_error}")
-            else:
-                logger.warning(f"analyze_ascii_compliance failed: {result.get('error', 'Unknown error')}")
-        
-        # Run heading numbering check
+        all_results["ascii_compliance"] = self._run_doc_subcheck_with_cache(
+            "analyze_ascii_compliance",
+            "ASCII compliance",
+            self._parse_ascii_compliance_output,
+            lambda: self.run_script("analyze_ascii_compliance", "--json"),
+        )
+        subcheck_modes["ascii_compliance"] = (
+            self._tool_cache_metadata.get("analyze_ascii_compliance", {}).get("cache_mode", "unknown")
+            if hasattr(self, "_tool_cache_metadata")
+            else "unknown"
+        )
+
         logger.info("  - Analyzing heading numbering...")
-        result = self.run_script('analyze_heading_numbering', '--json')
-        # Track this sub-tool as run
-        if hasattr(self, '_tools_run_in_current_tier'):
-            self._tools_run_in_current_tier.add('analyze_heading_numbering')
-        try:
-            heading_result = self._load_mtime_cached_tool_results(
-                'analyze_heading_numbering',
-                'docs',
-                result,
-                self._parse_heading_numbering_output
-            )
-            all_results['heading_numbering'] = heading_result
-        except Exception as e:
-            logger.debug(f"Failed to load heading numbering: {e}, falling back to parsing output")
-            if result.get('output') or result.get('success'):
-                heading_result = self._parse_heading_numbering_output(result.get('output', ''))
-                all_results['heading_numbering'] = heading_result
-                try:
-                    save_tool_result('analyze_heading_numbering', 'docs', heading_result, project_root=self.project_root)
-                except Exception as save_error:
-                    logger.debug(f"Failed to save heading numbering results: {save_error}")
-            else:
-                logger.warning(f"analyze_heading_numbering failed: {result.get('error', 'Unknown error')}")
-        
-        # Run missing addresses check
+        all_results["heading_numbering"] = self._run_doc_subcheck_with_cache(
+            "analyze_heading_numbering",
+            "Heading numbering",
+            self._parse_heading_numbering_output,
+            lambda: self.run_script("analyze_heading_numbering", "--json"),
+        )
+        subcheck_modes["heading_numbering"] = (
+            self._tool_cache_metadata.get("analyze_heading_numbering", {}).get("cache_mode", "unknown")
+            if hasattr(self, "_tool_cache_metadata")
+            else "unknown"
+        )
+
         logger.info("  - Analyzing missing addresses...")
-        result = self.run_script('analyze_missing_addresses', '--json')
-        # Track this sub-tool as run
-        if hasattr(self, '_tools_run_in_current_tier'):
-            self._tools_run_in_current_tier.add('analyze_missing_addresses')
-        try:
-            missing_result = self._load_mtime_cached_tool_results(
-                'analyze_missing_addresses',
-                'docs',
-                result,
-                self._parse_missing_addresses_output
-            )
-            all_results['missing_addresses'] = missing_result
-        except Exception as e:
-            logger.debug(f"Failed to load missing addresses: {e}, falling back to parsing output")
-            if result.get('output') or result.get('success'):
-                missing_result = self._parse_missing_addresses_output(result.get('output', ''))
-                all_results['missing_addresses'] = missing_result
-                try:
-                    save_tool_result('analyze_missing_addresses', 'docs', missing_result, project_root=self.project_root)
-                except Exception as save_error:
-                    logger.debug(f"Failed to save missing addresses results: {save_error}")
-            else:
-                logger.warning(f"analyze_missing_addresses failed: {result.get('error', 'Unknown error')}")
-        
-        # Run unconverted links check
+        all_results["missing_addresses"] = self._run_doc_subcheck_with_cache(
+            "analyze_missing_addresses",
+            "Missing addresses",
+            self._parse_missing_addresses_output,
+            lambda: self.run_script("analyze_missing_addresses", "--json"),
+        )
+        subcheck_modes["missing_addresses"] = (
+            self._tool_cache_metadata.get("analyze_missing_addresses", {}).get("cache_mode", "unknown")
+            if hasattr(self, "_tool_cache_metadata")
+            else "unknown"
+        )
+
         logger.info("  - Analyzing unconverted links...")
-        result = self.run_script('analyze_unconverted_links', '--json')
-        # Track this sub-tool as run
-        if hasattr(self, '_tools_run_in_current_tier'):
-            self._tools_run_in_current_tier.add('analyze_unconverted_links')
-        try:
-            links_result = self._load_mtime_cached_tool_results(
-                'analyze_unconverted_links',
-                'docs',
-                result,
-                self._parse_unconverted_links_output
-            )
-            all_results['unconverted_links'] = links_result
-        except Exception as e:
-            logger.debug(f"Failed to load unconverted links: {e}, falling back to parsing output")
-            if result.get('output') or result.get('success'):
-                links_result = self._parse_unconverted_links_output(result.get('output', ''))
-                all_results['unconverted_links'] = links_result
-                try:
-                    save_tool_result('analyze_unconverted_links', 'docs', links_result, project_root=self.project_root)
-                except Exception as save_error:
-                    logger.debug(f"Failed to save unconverted links results: {save_error}")
-            else:
-                logger.warning(f"analyze_unconverted_links failed: {result.get('error', 'Unknown error')}")
-        
-        # Aggregate all results
+        all_results["unconverted_links"] = self._run_doc_subcheck_with_cache(
+            "analyze_unconverted_links",
+            "Unconverted links",
+            self._parse_unconverted_links_output,
+            lambda: self.run_script("analyze_unconverted_links", "--json"),
+        )
+        subcheck_modes["unconverted_links"] = (
+            self._tool_cache_metadata.get("analyze_unconverted_links", {}).get("cache_mode", "unknown")
+            if hasattr(self, "_tool_cache_metadata")
+            else "unknown"
+        )
+
         summary = self._aggregate_doc_sync_results(all_results)
         self.docs_sync_results = {'success': True, 'summary': summary, 'all_results': all_results}
         self.docs_sync_summary = summary
+        if hasattr(self, "_tool_cache_metadata"):
+            cache_only_count = sum(1 for mode in subcheck_modes.values() if mode == "cache_only")
+            refresh_count = sum(1 for mode in subcheck_modes.values() if mode != "cache_only")
+            self._tool_cache_metadata["analyze_documentation_sync"] = {
+                "cache_mode": "cache_only" if refresh_count == 0 else "partial_cache",
+                "cache_hits": cache_only_count,
+                "cache_misses": refresh_count,
+                "subchecks": subcheck_modes,
+                "invalidation_reason": (
+                    "All doc subchecks served from cache"
+                    if refresh_count == 0
+                    else "One or more doc subchecks refreshed"
+                ),
+            }
+        logger.info(
+            f"Documentation sync subchecks cache summary: "
+            f"{', '.join(f'{name}={mode}' for name, mode in sorted(subcheck_modes.items()))}"
+        )
         logger.info(f"Documentation sync summary: {summary.get('status', 'UNKNOWN')} - {summary.get('total_issues', 0)} total issues")
         return True
     

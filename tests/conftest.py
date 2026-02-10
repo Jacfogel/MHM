@@ -10,7 +10,6 @@ This file provides:
 """
 
 import pytest
-import sys
 import os
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
@@ -46,6 +45,9 @@ warnings.simplefilter("ignore", DeprecationWarning)
 warnings.filterwarnings(
     "ignore", message=".*__package__.*", category=DeprecationWarning
 )
+
+# Strip ANSI escape sequences from pytest longrepr before writing to log files.
+ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 
 def ensure_qt_runtime():
@@ -171,25 +173,17 @@ def setup_logging_isolation():
     # Remove all handlers from root logger to prevent test logs from going to app.log
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:
-        if isinstance(handler, logging.StreamHandler) and handler.stream in (
-            sys.stdout,
-            sys.stderr,
-        ):
-            root_logger.removeHandler(handler)
-            continue
-        handler.close()
+        # Never close stream handlers during tests: closing captured stdio can
+        # break pytest output streams on Windows.
+        if isinstance(handler, logging.FileHandler):
+            handler.close()
         root_logger.removeHandler(handler)
 
     # Also clear any handlers from the main application logger if it exists
     main_logger = logging.getLogger("mhm")
     for handler in main_logger.handlers[:]:
-        if isinstance(handler, logging.StreamHandler) and handler.stream in (
-            sys.stdout,
-            sys.stderr,
-        ):
-            main_logger.removeHandler(handler)
-            continue
-        handler.close()
+        if isinstance(handler, logging.FileHandler):
+            handler.close()
         main_logger.removeHandler(handler)
 
     # Set propagate to False for main loggers to prevent test logs from bubbling up
@@ -1482,7 +1476,8 @@ def setup_consolidated_test_logging():
             # Clear existing handlers
             for h in logger_obj.handlers[:]:
                 try:
-                    h.close()
+                    if isinstance(h, logging.FileHandler):
+                        h.close()
                 except Exception:
                     pass
                 logger_obj.removeHandler(h)
@@ -1575,7 +1570,8 @@ def setup_consolidated_test_logging():
     # Clear any existing handlers on root logger first
     for handler in root_logger.handlers[:]:
         try:
-            handler.close()
+            if isinstance(handler, logging.FileHandler):
+                handler.close()
         except Exception:
             pass
         root_logger.removeHandler(handler)
@@ -1980,23 +1976,13 @@ def isolate_logging():
 
     # Remove all handlers from main loggers to prevent test logs from going to app.log
     for handler in root_logger.handlers[:]:
-        if isinstance(handler, logging.StreamHandler) and handler.stream in (
-            sys.stdout,
-            sys.stderr,
-        ):
-            root_logger.removeHandler(handler)
-            continue
-        handler.close()
+        if isinstance(handler, logging.FileHandler):
+            handler.close()
         root_logger.removeHandler(handler)
 
     for handler in main_logger.handlers[:]:
-        if isinstance(handler, logging.StreamHandler) and handler.stream in (
-            sys.stdout,
-            sys.stderr,
-        ):
-            main_logger.removeHandler(handler)
-            continue
-        handler.close()
+        if isinstance(handler, logging.FileHandler):
+            handler.close()
         main_logger.removeHandler(handler)
 
     # Set propagate to False for main loggers to prevent test logs from bubbling up
@@ -4082,7 +4068,8 @@ def pytest_runtest_logreport(report):
                 f"[TEST-RESULT] [{worker_id}] {timestamp} - FAILED: {report.nodeid}"
             )
             if report.longrepr:
-                test_logger.error(f"Error details: {report.longrepr}")
+                clean_longrepr = ANSI_ESCAPE_RE.sub("", str(report.longrepr))
+                test_logger.error(f"Error details: {clean_longrepr}")
         elif report.skipped:
             # Always log skips - these might indicate issues
             worker_id = os.environ.get("PYTEST_XDIST_WORKER", "main")

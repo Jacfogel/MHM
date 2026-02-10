@@ -17,6 +17,7 @@ import re
 import logging
 import signal
 import json
+import shutil
 from pathlib import Path
 from typing import Dict, Optional, List
 from core.error_handling import handle_errors
@@ -780,6 +781,39 @@ def parse_junit_xml(xml_path: str) -> dict[str, int]:
 
 
 @handle_errors(
+    "building Windows no-parallel test environment",
+    user_friendly=False,
+    default_return={},
+)
+def build_windows_no_parallel_env() -> dict[str, str]:
+    """Return environment overrides for stable Windows serial UI/no_parallel runs."""
+    if sys.platform != "win32":
+        return {}
+
+    env_overrides: dict[str, str] = {
+        # Avoid desktop/plugin initialization issues in headless test runs.
+        "QT_QPA_PLATFORM": "offscreen",
+    }
+
+    # Ensure venv and Qt bins are present early in PATH for DLL resolution.
+    path_parts: list[str] = []
+    scripts_dir = Path(sys.executable).resolve().parent
+    venv_root = scripts_dir.parent
+    pyqt_bin = venv_root / "Lib" / "site-packages" / "PyQt6" / "Qt6" / "bin"
+
+    if scripts_dir.exists():
+        path_parts.append(str(scripts_dir))
+    if pyqt_bin.exists():
+        path_parts.append(str(pyqt_bin))
+
+    existing_path = os.environ.get("PATH", "")
+    if path_parts:
+        env_overrides["PATH"] = os.pathsep.join(path_parts + [existing_path])
+
+    return env_overrides
+
+
+@handle_errors(
     "running test command",
     user_friendly=False,
     default_return={
@@ -797,6 +831,7 @@ def run_command(
     progress_interval: int = 30,
     capture_output: bool = True,
     test_context: dict = None,
+    env_overrides: dict | None = None,
 ):
     """
     Run a command and return results with periodic progress logs.
@@ -898,6 +933,10 @@ def run_command(
                 f"{GREEN}[PROCESS]{RESET} Creating process with CREATE_NEW_PROCESS_GROUP flag for tree termination"
             )
 
+        process_env = os.environ.copy()
+        if env_overrides:
+            process_env.update({k: str(v) for k, v in env_overrides.items()})
+
         process = subprocess.Popen(
             cmd_with_junit,
             stdout=subprocess.PIPE,  # Capture for parsing
@@ -905,6 +944,7 @@ def run_command(
             universal_newlines=True,
             bufsize=1,
             creationflags=creation_flags if sys.platform == "win32" else 0,
+            env=process_env,
         )
 
         if sys.platform == "win32":
@@ -1250,6 +1290,20 @@ def run_command(
 
         duration = time.time() - start_time
 
+        # Detect known pytest teardown false-negative on Windows where all tests pass,
+        # but pytest exits non-zero due cleanup_dead_symlinks PermissionError.
+        is_windows_teardown_permission_false_negative = (
+            process.returncode != 0
+            and "cleanup_dead_symlinks" in output_plain
+            and "PermissionError: [WinError 5] Access is denied" in output_plain
+            and results.get("failed", 0) == 0
+            and results.get("errors", 0) == 0
+            and results.get("passed", 0) > 0
+        )
+        effective_returncode = (
+            0 if is_windows_teardown_permission_false_negative else process.returncode
+        )
+
         # Print status message
         if _interrupt_requested:
             print(
@@ -1258,14 +1312,25 @@ def run_command(
             print(
                 f"{YELLOW}[INTERRUPTED]{RESET} Partial results saved to {_partial_results_file}"
             )
-        elif process.returncode == 0:
+        elif effective_returncode == 0:
             print(
                 f"\n{GREEN}[SUCCESS]{RESET} {description} completed successfully in {duration}s"
             )
+            if is_windows_teardown_permission_false_negative:
+                print(
+                    f"{YELLOW}[WARNING]{RESET} Pytest exited non-zero due Windows temp cleanup permissions, but test results were clean."
+                )
         else:
             print(
                 f"\n{RED}[FAILED]{RESET} {description} failed with exit code {process.returncode} after {duration}s"
             )
+            if process.returncode in (-1073741515, 3221226505):
+                print(
+                    f"{RED}[CRASH]{RESET} Windows process crash detected (0xC0000135 / STATUS_DLL_NOT_FOUND)."
+                )
+                print(
+                    f"{YELLOW}[CRASH]{RESET} This is typically an environment/DLL issue (often Qt platform plugin loading)."
+                )
             # Save partial results on failure
             save_partial_results(
                 junit_xml_path, interrupted=False, test_context=_current_test_context
@@ -1273,7 +1338,7 @@ def run_command(
 
         # Return dict with all information
         return {
-            "success": process.returncode == 0 and not _interrupt_requested,
+            "success": effective_returncode == 0 and not _interrupt_requested,
             "output": output,
             "results": results,
             "duration": duration,
@@ -1748,6 +1813,49 @@ def run_static_logging_check() -> bool:
     return True
 
 
+@handle_errors("cleaning stale test artifacts", user_friendly=False, default_return=None)
+def cleanup_stale_test_artifacts() -> None:
+    """Best-effort cleanup for stale pytest/build artifacts that commonly accumulate on Windows."""
+    root = Path(__file__).parent
+    removed = 0
+
+    exact_dirs = [
+        ".pytest_cache",
+        ".pytest_tmp",
+        ".tmp_devtools_pyfiles",
+        ".tmp_pytest",
+        "htmlcov",
+        "mhm.egg-info",
+    ]
+    glob_patterns = [
+        ".pytest-tmp-*",
+    ]
+
+    for rel in exact_dirs:
+        target = root / rel
+        if not target.exists():
+            continue
+        try:
+            shutil.rmtree(target)
+            removed += 1
+        except Exception:
+            # Locked files/directories are expected on Windows; skip safely.
+            pass
+
+    for pattern in glob_patterns:
+        for target in root.glob(pattern):
+            if not target.exists() or not target.is_dir():
+                continue
+            try:
+                shutil.rmtree(target)
+                removed += 1
+            except Exception:
+                pass
+
+    if removed:
+        print(f"[CLEANUP] Removed {removed} stale artifact directory(s) before test run")
+
+
 def main():
     """
     Main entry point for MHM test runner.
@@ -1876,6 +1984,9 @@ def main():
     # Enforce safe defaults for Windows console
     os.environ.setdefault("PYTHONUTF8", "1")
 
+    # Best-effort cleanup of stale pytest/build artifact directories.
+    cleanup_stale_test_artifacts()
+
     # Handle burn-in mode (combines --no-shim and --random-order)
     if args.burnin_mode:
         args.no_shim = True
@@ -1891,6 +2002,25 @@ def main():
 
     # Base pytest command
     cmd = [sys.executable, "-m", "pytest"]
+
+    # Force pytest temp/cache paths into repo-local directories to avoid
+    # Windows permission issues in %LOCALAPPDATA% Temp and stale global cache dirs.
+    run_id = now_timestamp_filename()
+    pytest_root = Path(".tmp_pytest_runner")
+    parallel_basetemp = pytest_root / run_id / "parallel"
+    serial_basetemp = pytest_root / run_id / "serial"
+    pytest_cache_dir = Path(".pytest_tmp_cache")
+    parallel_basetemp.mkdir(parents=True, exist_ok=True)
+    serial_basetemp.mkdir(parents=True, exist_ok=True)
+    pytest_cache_dir.mkdir(parents=True, exist_ok=True)
+    cmd.extend(
+        [
+            "--basetemp",
+            str(parallel_basetemp),
+            "-o",
+            f"cache_dir={pytest_cache_dir}",
+        ]
+    )
 
     # Track if we need to exclude no_parallel tests from parallel execution
     exclude_no_parallel = False
@@ -2095,6 +2225,14 @@ def main():
     if not args.no_parallel:
         # Create a separate command for no_parallel tests (serial execution)
         no_parallel_cmd = [sys.executable, "-m", "pytest"]
+        no_parallel_cmd.extend(
+            [
+                "--basetemp",
+                str(serial_basetemp),
+                "-o",
+                f"cache_dir={pytest_cache_dir}",
+            ]
+        )
 
         # Build marker filter: combine no_parallel with mode filter if present
         # Always exclude e2e tests (they are slow and should only run explicitly)
@@ -2162,6 +2300,7 @@ def main():
             "No-Parallel Tests (Serial)",
             progress_interval=args.progress_interval,
             test_context=no_parallel_test_context,
+            env_overrides=build_windows_no_parallel_env(),
         )
         no_parallel_success = no_parallel_results["success"]
 

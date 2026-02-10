@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-08 04:35:49
+> **Last Generated**: 2026-02-10 06:25:56
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -44,11 +44,6 @@ C:.
 |   |       triage-issue.md
 |   |       
 |   +---plans
-|   |   |   caching_exploration_for_development_tools_fb102ab8.plan.md
-|   |   |   command_handler_consolidation_19c82b25.plan.md
-|   |   |   notebook_feature_implementation_ce88ed1a.plan.md
-|   |   |   systematic_pyright_review_6d01910c.plan.md
-|   |   |   
 |   \---rules
 |           communication-guidelines.mdc
 |           context.mdc
@@ -59,7 +54,6 @@ C:.
 |           testing-guidelines.mdc
 |           ui-guidelines.mdc
 |           
-+---.pytest_tmp
 +---ai
 |   |   cache_manager.py
 |   |   chatbot.py
@@ -249,7 +243,6 @@ C:.
 |   |   conftest.py
 |   |   debug_file_paths.py
 |   |   DEVELOPMENT_TOOLS_TESTING_GUIDE.md
-|   |   flaky_test_report.md
 |   |   MANUAL_DISCORD_TEST_GUIDE.md
 |   |   MANUAL_TESTING_GUIDE.md
 |   |   TESTING_GUIDE.md

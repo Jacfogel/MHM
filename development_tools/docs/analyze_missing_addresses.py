@@ -99,6 +99,7 @@ class MissingAddressAnalyzer:
         from development_tools.shared.standard_exclusions import (
             ALL_GENERATED_FILES,
             HISTORICAL_PRESERVE_FILES,
+            should_exclude_file,
         )
 
         missing_addresses = defaultdict(list)
@@ -115,6 +116,10 @@ class MissingAddressAnalyzer:
             ".git",
             "node_modules",
             ".pytest_cache",
+            ".pytest_tmp_cache",
+            ".tmp_pytest_runner",
+            ".tmp_pytest",
+            ".tmp_devtools_pyfiles",
             "coverage_html",
             "archive",
         }
@@ -130,6 +135,11 @@ class MissingAddressAnalyzer:
             try:
                 rel_path = file_path.relative_to(self.project_root)
                 rel_path_str = str(rel_path).replace("\\", "/")
+
+                # Skip anything matching standardized exclusion rules.
+                # This keeps behavior consistent with other doc analyzers.
+                if should_exclude_file(rel_path_str, "documentation", "development"):
+                    continue
 
                 # Skip generated files (authoritative list fast-path)
                 if rel_path_str in generated_files:

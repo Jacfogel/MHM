@@ -386,7 +386,6 @@ class TestServiceUtilitiesBehavior:
                 # Should not raise exception
                 create_reschedule_request("test-user", "test-category")
 
-    @pytest.mark.no_parallel
     def test_service_utilities_performance_under_load(self, test_data_dir):
         """Test that service utilities perform well under load."""
         # Arrange - Create throttler with short interval

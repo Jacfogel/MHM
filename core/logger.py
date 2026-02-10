@@ -173,13 +173,16 @@ if os.getenv("MHM_TESTING") == "1":
     # Remove all handlers from root logger
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:
-        handler.close()
+        # Do not close stream handlers in test mode: pytest may own these streams.
+        if isinstance(handler, logging.FileHandler):
+            handler.close()
         root_logger.removeHandler(handler)
 
     # Remove all handlers from main logger (this module)
     main_logger = logging.getLogger(__name__)
     for handler in main_logger.handlers[:]:
-        handler.close()
+        if isinstance(handler, logging.FileHandler):
+            handler.close()
         main_logger.removeHandler(handler)
 
     # Clear any cached handlers
@@ -1620,7 +1623,8 @@ def force_restart_logging():
 
         # Remove all existing handlers
         for handler in root_logger.handlers[:]:
-            handler.close()
+            if isinstance(handler, logging.FileHandler):
+                handler.close()
             root_logger.removeHandler(handler)
 
         # Clear any cached loggers
@@ -1689,6 +1693,8 @@ def clear_log_file_locks():
         # Close all handlers that might be holding file locks
         root_logger = logging.getLogger()
         for handler in root_logger.handlers[:]:
+            if isinstance(handler, logging.StreamHandler):
+                continue
             if hasattr(handler, "stream") and handler.stream:
                 try:
                     handler.stream.close()
@@ -1699,6 +1705,8 @@ def clear_log_file_locks():
         # Clear component loggers too
         for component_name, component_logger in _component_loggers.items():
             for handler in component_logger.logger.handlers[:]:
+                if isinstance(handler, logging.StreamHandler):
+                    continue
                 if hasattr(handler, "stream") and handler.stream:
                     try:
                         handler.stream.close()

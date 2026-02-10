@@ -7,6 +7,8 @@ Tests function discovery, categorization, and complexity analysis functionality.
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
+import shutil
+import uuid
 
 from tests.development_tools.conftest import (
     load_development_tools_module,
@@ -32,6 +34,17 @@ categorize_functions = functions_module.categorize_functions
 print_summary = functions_module.print_summary
 validate_results = functions_module.validate_results
 main = functions_module.main
+
+
+@pytest.fixture
+def temp_python_workspace():
+    """Create an isolated writable workspace outside tests/ for file-based tests."""
+    base = Path(".tmp_devtools_pyfiles") / f"analyze_functions_{uuid.uuid4().hex}"
+    base.mkdir(parents=True, exist_ok=True)
+    try:
+        yield base
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
 
 
 class TestGeneratedDetection:
@@ -249,9 +262,9 @@ class TestExtractFunctions:
     """Test function extraction from files."""
 
     @pytest.mark.unit
-    def test_extract_simple_function(self, tmp_path):
+    def test_extract_simple_function(self, temp_python_workspace):
         """Test extraction of simple function."""
-        test_file = tmp_path / "test.py"
+        test_file = temp_python_workspace / "test.py"
         test_file.write_text(
             """def simple_function():
     \"\"\"A simple function.\"\"\"
@@ -269,9 +282,9 @@ class TestExtractFunctions:
         ), "Should extract docstring"
 
     @pytest.mark.unit
-    def test_extract_function_with_args(self, tmp_path):
+    def test_extract_function_with_args(self, temp_python_workspace):
         """Test extraction of function with arguments."""
-        test_file = tmp_path / "test.py"
+        test_file = temp_python_workspace / "test.py"
         test_file.write_text(
             """def function_with_args(arg1, arg2):
     pass
@@ -287,9 +300,9 @@ class TestExtractFunctions:
         ], "Should extract correct arguments"
 
     @pytest.mark.unit
-    def test_extract_function_with_decorator(self, tmp_path):
+    def test_extract_function_with_decorator(self, temp_python_workspace):
         """Test extraction of function with decorator."""
-        test_file = tmp_path / "test.py"
+        test_file = temp_python_workspace / "test.py"
         test_file.write_text(
             """@handle_errors('test')
 def decorated_function():
@@ -302,9 +315,9 @@ def decorated_function():
         assert len(functions[0]["decorators"]) > 0, "Should extract decorators"
 
     @pytest.mark.unit
-    def test_extract_multiple_functions(self, tmp_path):
+    def test_extract_multiple_functions(self, temp_python_workspace):
         """Test extraction of multiple functions."""
-        test_file = tmp_path / "test.py"
+        test_file = temp_python_workspace / "test.py"
         test_file.write_text(
             """def func1():
     pass
@@ -318,9 +331,11 @@ def func2():
         assert len(functions) == 2, "Should extract two functions"
 
     @pytest.mark.unit
-    def test_skip_auto_generated(self, tmp_path):
+    def test_skip_auto_generated(self, temp_python_workspace):
         """Test that auto-generated functions are skipped."""
-        test_file = tmp_path / "test_pyqt.py"
+        generated_dir = temp_python_workspace / "generated"
+        generated_dir.mkdir(parents=True, exist_ok=True)
+        test_file = generated_dir / "auto_ui.py"
         test_file.write_text(
             """def setupUi():
     pass
@@ -331,9 +346,9 @@ def func2():
         assert len(functions) == 0, "Should skip auto-generated functions"
 
     @pytest.mark.unit
-    def test_extract_complexity(self, tmp_path):
+    def test_extract_complexity(self, temp_python_workspace):
         """Test that complexity is calculated."""
-        test_file = tmp_path / "test.py"
+        test_file = temp_python_workspace / "test.py"
         test_file.write_text(
             """def complex_function():
     if True:
@@ -348,9 +363,9 @@ def func2():
         assert functions[0]["complexity"] > 0, "Should calculate complexity"
 
     @pytest.mark.unit
-    def test_extract_handler_detection(self, tmp_path):
+    def test_extract_handler_detection(self, temp_python_workspace):
         """Test handler function detection."""
-        test_file = tmp_path / "test.py"
+        test_file = temp_python_workspace / "test.py"
         test_file.write_text(
             """def handle_message():
     pass
@@ -366,9 +381,9 @@ class TestExtractFunctionsFromFile:
     """Test function extraction for registry format."""
 
     @pytest.mark.unit
-    def test_extract_with_line_numbers(self, tmp_path):
+    def test_extract_with_line_numbers(self, temp_python_workspace):
         """Test extraction includes line numbers."""
-        test_file = tmp_path / "test.py"
+        test_file = temp_python_workspace / "test.py"
         test_file.write_text(
             """def test_function():
     pass
@@ -381,9 +396,9 @@ class TestExtractFunctionsFromFile:
         assert functions[0]["line"] > 0, "Line number should be positive"
 
     @pytest.mark.unit
-    def test_extract_function_type(self, tmp_path):
+    def test_extract_function_type(self, temp_python_workspace):
         """Test extraction includes function type."""
-        test_file = tmp_path / "test.py"
+        test_file = temp_python_workspace / "test.py"
         test_file.write_text(
             """def test_something():
     pass
@@ -397,9 +412,9 @@ class TestExtractFunctionsFromFile:
         ), "Should detect function type"
 
     @pytest.mark.unit
-    def test_extract_has_docstring(self, tmp_path):
+    def test_extract_has_docstring(self, temp_python_workspace):
         """Test extraction detects docstrings."""
-        test_file = tmp_path / "test.py"
+        test_file = temp_python_workspace / "test.py"
         test_file.write_text(
             """def documented_function():
     \"\"\"Has a docstring.\"\"\"
@@ -416,9 +431,9 @@ class TestExtractClassesFromFile:
     """Test class extraction from files."""
 
     @pytest.mark.unit
-    def test_extract_simple_class(self, tmp_path):
+    def test_extract_simple_class(self, temp_python_workspace):
         """Test extraction of simple class."""
-        test_file = tmp_path / "test.py"
+        test_file = temp_python_workspace / "test.py"
         test_file.write_text(
             """class TestClass:
     def method1(self):
@@ -432,9 +447,9 @@ class TestExtractClassesFromFile:
         assert len(classes[0]["methods"]) == 1, "Should extract methods"
 
     @pytest.mark.unit
-    def test_extract_class_with_docstring(self, tmp_path):
+    def test_extract_class_with_docstring(self, temp_python_workspace):
         """Test extraction of class with docstring."""
-        test_file = tmp_path / "test.py"
+        test_file = temp_python_workspace / "test.py"
         test_file.write_text(
             """class TestClass:
     \"\"\"A test class.\"\"\"
@@ -667,7 +682,6 @@ class TestAnalyzeFunctionsMain:
     """Test main() function for CLI interface."""
 
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # Prevent hangs in parallel execution
     def test_main_json_output(self, demo_project_root, test_config_path):
         """Test main function with --json flag."""
         import sys
@@ -726,7 +740,6 @@ class TestAnalyzeFunctionsMain:
                     sys.stdout = old_stdout
 
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # Prevent hangs in parallel execution
     def test_main_include_tests(self, demo_project_root, test_config_path):
         """Test main function with --include-tests flag."""
         import sys

@@ -145,6 +145,7 @@ class TestPathDriftIntegration:
     @pytest.mark.integration
     def test_path_drift_appears_in_consolidated_report(self, temp_project_copy, monkeypatch):
         """Verify path drift issues appear in consolidated_report.txt."""
+        import time
         # Create documentation with broken paths
         docs_dir = temp_project_copy / "development_docs"
         docs_dir.mkdir(exist_ok=True)
@@ -179,6 +180,10 @@ class TestPathDriftIntegration:
         
         # Verify consolidated report was created
         report_file = temp_project_copy / "development_tools" / "consolidated_report.txt"
+        for _ in range(20):
+            if report_file.exists():
+                break
+            time.sleep(0.1)
         assert report_file.exists(), "consolidated_report.txt should exist after audit"
         
         # Read report content
@@ -233,4 +238,3 @@ class TestPathDriftIntegration:
         
         # At minimum, real doc should be found
         assert real_found, f"Expected real documentation to be in results. Got: {list(results.keys())}"
-

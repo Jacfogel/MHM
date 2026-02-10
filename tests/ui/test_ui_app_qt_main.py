@@ -294,7 +294,7 @@ class TestMHMManagerUI:
                     # Assert
                     assert ui.current_user_categories is not None, "Categories should be loaded"
     
-    def test_on_category_selected_handles_selection(self, test_data_dir):
+    def test_on_category_selected_handles_selection(self, test_data_dir, qapp):
         """Test that on_category_selected handles category selection."""
         from ui.ui_app_qt import MHMManagerUI
         from tests.test_utilities import TestUserFactory
@@ -439,7 +439,7 @@ class TestMHMManagerUI:
                             mock_msgbox.warning.assert_called()
     
     @pytest.mark.no_parallel
-    def test_refresh_user_list_loads_users(self, test_data_dir):
+    def test_refresh_user_list_loads_users(self, test_data_dir, qapp):
         """Test that refresh_user_list loads users correctly."""
         from ui.ui_app_qt import MHMManagerUI
         from tests.test_utilities import TestUserFactory
@@ -674,7 +674,7 @@ class TestMHMManagerUI:
                         mock_rebuild.assert_called_once()
     
     @pytest.mark.no_parallel
-    def test_toggle_logging_verbosity_toggles_logging(self):
+    def test_toggle_logging_verbosity_toggles_logging(self, qapp):
         """Test that toggle_logging_verbosity toggles logging."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -858,7 +858,7 @@ class TestMHMManagerUI:
                             mock_dialog.assert_called_once()
     
     @pytest.mark.no_parallel
-    def test_manage_categories_opens_dialog(self):
+    def test_manage_categories_opens_dialog(self, qapp):
         """Test that manage_categories opens dialog."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -908,7 +908,7 @@ class TestMHMManagerUI:
                         # Verify dialog was created
                         mock_dialog.assert_called_once()
     
-    def test_manage_tasks_opens_dialog(self):
+    def test_manage_tasks_opens_dialog(self, qapp):
         """Test that manage_tasks opens dialog."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -1117,42 +1117,17 @@ class TestMHMManagerUI:
                 mock_timer_instance = Mock()
                 mock_timer.return_value = mock_timer_instance
                 
-                # Create a mock Path that supports all operations needed
-                def create_path_mock(*args):
-                    """Create a mock Path that supports parent.parent / 'styles' / 'admin_theme.qss'"""
-                    mock = Mock(spec=Path)
-                    
-                    # Create parent chain: parent -> parent.parent
-                    parent_parent_mock = Mock(spec=Path)
-                    parent_parent_mock.exists.return_value = True
-                    parent_parent_mock.__truediv__ = lambda self, other: create_path_mock()
-                    
-                    parent_mock = Mock(spec=Path)
-                    parent_mock.exists.return_value = True
-                    parent_mock.parent = parent_parent_mock
-                    parent_mock.__truediv__ = lambda self, other: create_path_mock()
-                    
-                    # Set up the main mock
-                    mock.parent = parent_mock
-                    mock.exists.return_value = True
-                    mock.__truediv__ = lambda self, other: create_path_mock()
-                    
-                    return mock
-                
                 theme_content = "QWidget { background-color: white; }"
                 
                 # Patch setStyleSheet before creating the instance
                 with patch.object(MHMManagerUI, 'setStyleSheet') as mock_set_style:
-                    with patch('ui.ui_app_qt.Path', side_effect=create_path_mock):
+                    # Use a real Path object and patch exists/open behavior only.
+                    with patch.object(Path, "exists", return_value=True):
                         with patch('builtins.open', mock_open(read_data=theme_content)):
                             ui = MHMManagerUI()
-                            
-                            # load_theme is called during __init__, so verify it was called
-                            # Also call it explicitly to test the method directly
+
+                            # load_theme is called during __init__, and we call explicitly too.
                             ui.load_theme()
-                            
-                            # Verify theme was loaded (setStyleSheet should be called at least once)
-                            # It may be called twice (once during init, once explicitly)
+
                             assert mock_set_style.call_count >= 1
-                            # Verify it was called with the theme content
                             mock_set_style.assert_any_call(theme_content)

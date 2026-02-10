@@ -242,16 +242,6 @@ When adding new tasks, follow this format:
 
 ### Testing
 
-
-**Coverage audit follow-up - Category management & atomic operations**
-- *What it means*: Investigate why `tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_updates_account_features` and `tests/behavior/test_user_data_flow_architecture.py::TestAtomicOperations::test_atomic_operation_all_types_succeed` only fail during the coverage-driven audit run. 
-- *Why it helps*: Clearing these Tier-3 audit failures is required before the next explicit `datetime(` construction audit and keeps the audit output green.
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Reproduce the failures in the coverage environment to capture any extra instrumentation or timing dependencies.
-  - [ ] Adjust the tests or supporting data/setup so they succeed under coverage while maintaining their intended assertions.
-  - [ ] Re-run `development_tools/run_development_tools.py audit --full --clear-cache` to confirm the audit passes cleanly.
-
 **CI Guard for Logging Enforcement**
 - *What it means*: Wire the static logging check into CI to enforce ComponentLogger rules automatically.
 - *Why it helps*: Prevents regressions of forbidden logging patterns.
@@ -267,17 +257,34 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [ ] Investigate `tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_feature_enablement_persistence_real_behavior` and ensure each worker has isolated `tests/data` state
   - [ ] Investigate `tests/behavior/test_logger_behavior.py::TestLoggerFileOperationsBehavior::test_get_log_file_info_real_behavior`
+  - [ ] Investigate `tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_updates_account_features`; `tests/behavior/test_user_data_flow_architecture.py::TestAtomicOperations::test_atomic_operation_all_types_succeed` had a mitigation on 2026-02-09 (unique per-test user IDs), monitor for recurrence in coverage runs.
+  - [ ] Investigate `tests/behavior/test_user_data_flow_architecture.py::TestProcessingOrder::test_processing_order_deterministic_regardless_of_input_order`; mitigation applied on 2026-02-09 (stronger persisted-data readiness check + cache clears), monitor in coverage runs.
+  - [ ] Monitor Windows no-parallel stability (`0xC0000135` recurrence) after recent run_tests environment/isolation fixes; keep `run_tests.py` serial phase under observation.
   - [ ] Investigate `tests/behavior/test_checkin_questions_enhancement.py::TestCustomQuestions::test_delete_custom_question`
   - [ ] Investigate `tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success` flake in coverage runs (avoid nondeterministic "first directory" assumptions under shared `tests/data/users`)
   - [ ] Investigate `tests/development_tools/test_fix_project_cleanup.py::TestProjectCleanup::test_cleanup_test_temp_dirs_no_directory` flake (TOCTOU race when temp dirs disappear during cleanup in parallel runs)
   - [ ] Investigate `tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized`
   - [ ] Investigate `tests/unit/test_schedule_management.py::TestScheduleManagement::test_schedule_period_lifecycle`
   - [ ] Investigate `tests/ui/test_task_management_dialog.py::TestTaskManagementDialogRealBehavior::test_save_task_settings_persists_after_reload`
+  - [ ] Investigate `tests/unit/test_user_data_handlers.py::TestUserDataHandlersConvenienceFunctions::test_update_user_account_valid_input` intermittent parallel failure (cross-user write/read mismatch observed in flaky detector and targeted xdist runs)
+  - [ ] Investigate `tests/unit/test_user_data_handlers.py::TestUserDataHandlersConvenienceFunctions::test_save_user_data_transaction_valid_input` intermittent parallel failure (cross-user write/read mismatch observed in flaky detector and targeted xdist runs)
+  - [ ] Investigate `tests/behavior/test_user_management_coverage_expansion.py::TestUserManagementCoverageExpansion::test_load_account_data_auto_create_real_behavior` intermittent parallel failure (auto-created account occasionally returns empty `internal_username`)
   - [ ] Investigate `test_scan_all_python_files_demo_project`
   - [ ] Check for timing/race condition issues in test setup or teardown
   - [ ] Verify test isolation and data cleanup between test runs
   - [ ] Add retry logic or fix root cause if identified
   - [ ] Track `tests/development_tools/test_legacy_reference_cleanup.py::TestCleanupOperations::test_cleanup_legacy_references_dry_run` failures (PermissionError when copying `tests/fixtures/development_tools_demo` into `tests/data/tmp*/demo_project`) and ensure the temporary `tests/data/tmp*` directories remain writable before rerunning the suite.
+
+**Add Failure-Focused Detailed Reruns and Flake Classification to Normal Test Runs**
+- *What it means*: Enhance the standard test workflow so that when a run has failures, the suite automatically reruns only failing tests with high-detail logging and records whether failures look flaky, isolation-related, or race-condition-like.
+- *Why it helps*: Captures actionable debug data at failure time, improves flaky diagnosis, and avoids relying only on `--lf` behavior that can miss intermittent issues.
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Add optional post-failure rerun mode in test runner/flaky detector to rerun failed nodeids with `-vv -s --tb=long --show-capture=all`
+  - [ ] Persist per-failure artifacts (original run + rerun) in `tests/logs/` with run IDs and timestamps
+  - [ ] Add simple classification tags for failures (`stable`, `flaky`, `possible_isolation`, `possible_race`) based on rerun outcomes and patterns
+  - [ ] Include classification summary in flaky detector/report output
+  - [ ] Document the workflow and triage guidance for contributors
 
 **Review Communication Module Architecture**
 - *What it means*: Review all modules in `communication/` directory to ensure they follow channel-agnostic architecture principles
@@ -393,3 +400,241 @@ Priority
 - after running for some time, checking the UI will show the service discord and ngrok running, but email not running
 - logs don't indicate email service failure
 - investigate and resolve
+
+**Possible Duplicate Lists**
+- investigate documentation and code in detail for potential duplicate lists
+- whenever there are lists that may be used or referenced in multiple locations, they should have one canonical location
+  - that cannonical list location should be updated when there are changes and all other locations should, in the case of code, dynamically pull the list from the canonical location or in the case of documentation, primarily point to the canonical location  
+  - this will reduce drift and improve accuracy and completeness
+- I'm thinking lists like lists of docs, constants, commands, files, etc. etc. 
+- Perform some careful searches and sweeps to find any such duplicated or partially duplicated lists.
+- explore how we would go about setting a canonical location/source for each such list and implement it
+
+
+**Test Run Crashes and Failures Console Output**
+- currently output looks something like this: 
+  <!-- (.venv) PS C:\Users\Julie\projects\MHM\MHM> python run_tests.py
+  [INFO] Automatic termination enabled at 98.0% system memory
+  Static check passed: no forbidden logger usage detected
+  [INFO] Auto-detected 12 CPUs, using 4 workers to prevent OOM
+
+  MHM Test Runner
+  Mode: all
+  Description: All Tests (Unit, Integration, Behavior, UI)
+  Parallel: Yes (auto workers)
+  Note: Tests marked with @pytest.mark.no_parallel will run separately in serial mode
+
+  Pytest Configuration:
+    Platform: win32
+    Python: 3.12.6
+    Random Seed: 12345 (fixed for reproducibility)
+
+  Running: All Tests (Unit, Integration, Behavior, UI)...
+  [PROCESS] Creating process with CREATE_NEW_PROCESS_GROUP flag for tree termination
+  [PROCESS] Started pytest process PID 1884 (can kill tree)
+  ============================= test session starts =============================
+  platform win32 -- Python 3.12.6, pytest-8.4.1, pluggy-1.6.0
+  Using --randomly-seed=12345
+  rootdir: C:\Users\Julie\projects\MHM\MHM
+  configfile: pytest.ini
+  plugins: asyncio-1.1.0, cov-6.2.1, mock-3.14.1, randomly-3.16.0, timeout-2.4.0, xdist-3.8.0
+  asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+  created: 4/4 workers
+  4 workers [4423 items]
+
+  ........................................................................ [  1%]
+  ..............................s......................................... [  3%]
+  ........................................................................ [  4%]
+  ........................................................................ [  6%]
+  ........................................................................ [  8%]
+  ........................................................................ [  9%]
+  [PROGRESS] All Tests (Unit, Integration, Behavior, UI) running for 30s...
+  ........................................................................ [ 11%]
+  ........................................................................ [ 13%]
+  ........................................................................ [ 14%]
+  ........................................................................ [ 16%]
+  ........................................................................ [ 17%]
+  [PROGRESS] All Tests (Unit, Integration, Behavior, UI) running for 60s...
+  ........................................................................ [ 19%]
+  ........................................................................ [ 21%]
+  ........................................................................ [ 22%]
+  ........................................................................ [ 24%]
+  ........................................................................ [ 26%]
+  [PROGRESS] All Tests (Unit, Integration, Behavior, UI) running for 90s...
+  ........................................................................ [ 27%]
+  ........................................................................ [ 29%]
+  ........................................................................ [ 30%]
+  ........................................................................ [ 32%]
+  ........................................................................ [ 34%]
+  ........................................................................ [ 35%]
+  ........................................................................ [ 37%]
+  ........................................................................ [ 39%]
+  ........................................................................ [ 40%]
+  [PROGRESS] All Tests (Unit, Integration, Behavior, UI) running for 120s...
+  ........................................................................ [ 42%]
+  ........................................................................ [ 43%]
+  ........................................................................ [ 45%]
+  ........................................................................ [ 47%]
+  ........................................................................ [ 48%]
+  ........................................................................ [ 50%]
+  ........................................................................ [ 52%]
+  [PROGRESS] All Tests (Unit, Integration, Behavior, UI) running for 150s...
+  ........................................................................ [ 53%]
+  ........................................................................ [ 55%]
+  ........................................................................ [ 56%]
+  ........................................................................ [ 58%]
+  ........................................................................ [ 60%]
+  ........................................................................ [ 61%]
+  ........................................................................ [ 63%]
+  ........................................................................ [ 65%]
+  ........................................................................ [ 66%]
+  ........................................................................ [ 68%]
+  ........................................................................ [ 69%]
+  [PROGRESS] All Tests (Unit, Integration, Behavior, UI) running for 180s...
+  ........................................................................ [ 71%]
+  ........................................................................ [ 73%]
+  ........................................................................ [ 74%]
+  ........................................................................ [ 76%]
+  ........................................................................ [ 78%]
+  ........................................................................ [ 79%]
+  ........................................................................ [ 81%]
+  ........................................................................ [ 83%]
+  ........................................................................ [ 84%]
+  [PROGRESS] All Tests (Unit, Integration, Behavior, UI) running for 210s...
+  ........................................................................ [ 86%]
+  ........................................................................ [ 87%]
+  ........................................................................ [ 89%]
+  ........................................................................ [ 91%]
+  ........................................................................ [ 92%]
+  ........................................................................ [ 94%]
+  ........................................................................ [ 96%]
+  [PROGRESS] All Tests (Unit, Integration, Behavior, UI) running for 240s...
+  ........................................................................ [ 97%]
+  ........................................................................ [ 99%]
+  [PROGRESS] All Tests (Unit, Integration, Behavior, UI) running for 270s...
+  ...............................                                          [100%]Global QMessageBox patches applied to prevent popup dialogs
+
+  ---- generated xml file: C:\Users\Julie\AppData\Local\Temp\tmp5hw70n34.xml ----
+  ================= 4422 passed, 1 skipped in 278.78s (0:04:38) =================
+  [CLEANUP] Process 1884 not found (already terminated)
+  Global QMessageBox patches applied to prevent popup dialogs
+  [CLEANUP] Consolidating worker log files...
+  [CLEANUP] Worker log consolidation complete
+
+  [SUCCESS] All Tests (Unit, Integration, Behavior, UI) completed successfully in 283.08555150032043s
+
+  [NO_PARALLEL] Running tests marked with @pytest.mark.no_parallel in serial mode...
+
+  Running: No-Parallel Tests (Serial)...
+  [PROCESS] Creating process with CREATE_NEW_PROCESS_GROUP flag for tree termination
+  [PROCESS] Started pytest process PID 988 (can kill tree)
+  ============================= test session starts =============================
+  platform win32 -- Python 3.12.6, pytest-8.4.1, pluggy-1.6.0
+  Using --randomly-seed=12345
+  rootdir: C:\Users\Julie\projects\MHM\MHM
+  configfile: pytest.ini
+  plugins: asyncio-1.1.0, cov-6.2.1, mock-3.14.1, randomly-3.16.0, timeout-2.4.0, xdist-3.8.0
+  asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+  collected 4544 items / 4423 deselected / 121 selected
+
+  tests\unit\test_user_management.py ......                                [  5%]
+  tests\behavior\test_conversation_flow_manager_behavior.py ..             [  6%]
+  tests\behavior\test_discord_checkin_retry_behavior.py .                  [  7%]
+  tests\integration\test_account_management.py .                           [  8%]
+  tests\behavior\test_user_data_flow_architecture.py ........              [ 15%]
+  tests\behavior\test_discord_bot_behavior.py ...                          [ 17%]
+  tests\ui\test_account_creation_ui.py ..                                  [ 19%]
+  [PROGRESS] No-Parallel Tests (Serial) running for 30s...
+  tests\behavior\test_message_behavior.py ....                             [ 22%]
+  tests\behavior\test_task_error_handling.py .                             [ 23%]
+  tests\behavior\test_response_tracking_behavior.py .                      [ 24%]
+  tests\unit\test_file_operations.py ..                                    [ 25%]
+  tests\behavior\test_service_behavior.py .                                [ 26%]
+  tests\behavior\test_account_management_real_behavior.py ......           [ 31%]
+  tests\integration\test_orphaned_reminder_cleanup.py .                    [ 32%]
+  [PROGRESS] No-Parallel Tests (Serial) running for 60s...
+  tests\ui\test_ui_app_qt_main.py [CLEANUP] Process 988 not found (already terminated)
+  [CLEANUP] Consolidating worker log files...
+  [CLEANUP] Worker log consolidation complete
+
+  [FAILED] No-Parallel Tests (Serial) failed with exit code 3221226505 after 67.21692824363708s
+  [CRASH] Windows process crash detected (0xC0000135 / STATUS_DLL_NOT_FOUND).
+  [CRASH] This is typically an environment/DLL issue (often Qt platform plugin loading).
+
+  ================================================================================
+  COMBINED TEST RESULTS SUMMARY
+  ================================================================================
+  Mode: All Tests (Unit, Integration, Behavior, UI)
+
+  Test Statistics:
+    Total Tests:  4423
+    Passed:       4422
+    Failed:       0
+    Skipped:      1
+    Deselected:   0
+    Warnings:     0
+
+  Breakdown:
+    Parallel Tests:    4422 passed, 0 failed, 1 skipped, 0 deselected, 0 warnings (283.08555150032043s)
+    Serial Tests:      0 passed, 0 failed, 0 skipped, 0 deselected, 0 warnings (67.21692824363708s)
+
+  Total Duration: 350.3024797439575s
+    Passed:       4422
+    Failed:       0
+    Skipped:      1
+    Deselected:   0
+    Warnings:     0
+
+  Breakdown:
+    Parallel Tests:    4422 passed, 0 failed, 1 skipped, 0 deselected, 0 warnings (283.08555150032043s)
+    Passed:       4422
+    Failed:       0
+    Skipped:      1
+    Deselected:   0
+    Warnings:     0
+
+  Breakdown:
+    Passed:       4422
+    Failed:       0
+    Skipped:      1
+    Deselected:   0
+    Warnings:     0
+
+    Passed:       4422
+    Failed:       0
+    Skipped:      1
+    Deselected:   0
+    Warnings:     0
+    Passed:       4422
+    Failed:       0
+    Skipped:      1
+    Deselected:   0
+    Passed:       4422
+    Failed:       0
+    Skipped:      1
+    Passed:       4422
+    Passed:       4422
+    Failed:       0
+    Passed:       4422
+    Passed:       4422
+    Failed:       0
+    Skipped:      1
+    Passed:       4422
+    Failed:       0
+    Passed:       4422
+    Failed:       0
+    Passed:       4422
+    Failed:       0
+    Skipped:      1
+    Deselected:   0
+    Warnings:     0
+
+  Breakdown:
+    Parallel Tests:    4422 passed, 0 failed, 1 skipped, 0 deselected, 0 warnings (283.08555150032043s)
+    Serial Tests:      0 passed, 0 failed, 0 skipped, 0 deselected, 0 warnings (67.21692824363708s)
+
+  Total Duration: 350.3024797439575s
+
+  ========== 0 failed, 4422 passed, 1 skipped, 0 warnings, in 350.30s (0:05:50) ========== -->
+- this isn't ideal for a few reasons, but critically the crash/failed message is much too far from the bottom and so I miss it. Any critical messages like that should be at or near the very bottom, like within the last 8 lines say.
+- the crash issue itself has already been addressed, this task is solely for output formatting

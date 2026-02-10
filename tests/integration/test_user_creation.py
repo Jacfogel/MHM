@@ -83,7 +83,7 @@ class TestUserCreationScenarios:
             # Create test user using centralized utilities for consistent setup
             # Use a valid Discord ID format (numeric snowflake, 17-19 digits)
             from tests.test_utilities import TestUserFactory
-            discord_user_id = '123456789012345678'  # Valid Discord ID format (numeric snowflake)
+            discord_user_id = f"1234567890{uuid.uuid4().int % 10**8:08d}"  # Valid 18-digit numeric snowflake-like ID
             success = TestUserFactory.create_discord_user(user_id, discord_user_id=discord_user_id, test_data_dir=test_data_dir)
             assert success, "Test user should be created successfully"
             

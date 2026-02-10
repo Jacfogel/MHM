@@ -2,10 +2,10 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-09 00:52:46
+> **Last Generated**: 2026-02-10 06:35:18
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 3
-**Legacy Compatibility Markers Detected**: 4
+**Total Files with Issues**: 4
+**Legacy Compatibility Markers Detected**: 5
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
@@ -16,7 +16,7 @@
 3. Track the cleanup effort and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.
 
 ## Legacy Inventory Tracking
-**Files Affected**: 3
+**Files Affected**: 4
 
 ### development_tools\shared\mtime_cache.py
 **Issues Found**: 1
@@ -26,10 +26,18 @@
   # This ensures we fix standardized storage issues rather than silently using legacy paths
   ```
 
+### development_tools\shared\service\audit_orchestration.py
+**Issues Found**: 1
+
+- **Line 1441**: `Backward compatibility`
+  ```
+  # Backward compatibility: retained as sum of per-tool durations
+  ```
+
 ### run_tests.py
 **Issues Found**: 1
 
-- **Line 2172**: `backward compatibility`
+- **Line 2311**: `backward compatibility`
   ```
   # Handle case where parallel_results might be a bool (backward compatibility)
   ```

@@ -185,6 +185,140 @@ def scan_package_modules(package_name: str) -> Dict[str, List[str]]:
 
 def analyze_imports_for_package(package_name: str) -> Dict[str, UsageStats]:
     """Analyze what's actually imported from a package across the codebase."""
+    return analyze_imports_for_packages([package_name]).get(package_name, {})
+
+
+def analyze_imports_for_packages(package_names: List[str]) -> Dict[str, Dict[str, UsageStats]]:
+    """Analyze imports for multiple packages with one full-repo scan."""
+    package_set = set(package_names)
+    usage_stats_by_package: Dict[str, Dict[str, UsageStats]] = {
+        package: defaultdict(
+            lambda: {
+                "import_count": 0,
+                "import_locations": [],
+                "import_types": set(),
+                "module_path": None,
+            }
+        )
+        for package in package_set
+    }
+
+    # Scan all Python files once for all packages
+    for py_file in project_root.rglob("*.py"):
+        if should_exclude_file(str(py_file), "analysis", "production"):
+            continue
+
+        if "__pycache__" in str(py_file) or "pytest-of-" in str(py_file):
+            continue
+
+        imports = extract_imports_from_file(str(py_file))
+        rel_path = py_file.relative_to(project_root)
+        file_key = str(rel_path).replace("\\", "/")
+
+        for imp in imports["from_imports"]:
+            package_name = imp.get("package")
+            if package_name not in package_set:
+                continue
+
+            module_parts = imp["module"].split(".")
+            if len(module_parts) <= 1 or module_parts[0] != package_name:
+                continue
+
+            item_name = imp["asname"]
+            module_path = imp["module"]
+            package_stats = usage_stats_by_package[package_name]
+
+            if item_name not in package_stats:
+                package_stats[item_name]["module_path"] = module_path
+
+            package_stats[item_name]["import_count"] += 1
+            package_stats[item_name]["import_locations"].append(file_key)
+            package_stats[item_name]["import_types"].add("from_import")
+
+        for imp in imports["direct_imports"]:
+            package_name = imp.get("package")
+            if package_name not in package_set:
+                continue
+            if "." in imp["module"]:
+                continue
+
+            item_name = imp["asname"]
+            package_stats = usage_stats_by_package[package_name]
+            package_stats[item_name]["import_count"] += 1
+            package_stats[item_name]["import_locations"].append(file_key)
+            package_stats[item_name]["import_types"].add("direct_import")
+
+    result: Dict[str, Dict[str, UsageStats]] = {}
+    for package_name, stats_map in usage_stats_by_package.items():
+        result[package_name] = {}
+        for name, stats in stats_map.items():
+            result[package_name][name] = {
+                "import_count": stats["import_count"],
+                "import_locations": stats["import_locations"],
+                "import_types": list(stats["import_types"]),
+                "module_path": stats["module_path"],
+            }
+    return result
+
+
+def scan_package_modules_for_packages(package_names: List[str]) -> Dict[str, Dict[str, List[str]]]:
+    """Scan package modules for public API once per package and return an index."""
+    return {package_name: scan_package_modules(package_name) for package_name in package_names}
+
+
+def parse_function_registry_for_packages(package_names: List[str]) -> Dict[str, Set[str]]:
+    """Return function registry items for only the requested packages."""
+    registry = parse_function_registry()
+    return {package_name: registry.get(package_name, set()) for package_name in package_names}
+
+
+def _normalize_public_items(package_api: Dict[str, List[str]]) -> Set[str]:
+    """Flatten per-module public API into one set."""
+    all_package_items: Set[str] = set()
+    for module_items in package_api.values():
+        all_package_items.update(module_items)
+    return all_package_items
+
+
+def _build_should_export(
+    package_name: str,
+    import_usage: Dict[str, UsageStats],
+    all_package_items: Set[str],
+    registry_items: Set[str],
+) -> Set[str]:
+    """Build should-export set using usage, registry, and public module API."""
+    should_export = set()
+
+    registry_items_module_level = {
+        item for item in registry_items if item in all_package_items or item in import_usage
+    }
+    should_export.update(registry_items_module_level)
+    should_export.update(import_usage.keys())
+    should_export.update(all_package_items)
+    should_export = {item for item in should_export if not item.startswith("_")}
+
+    if package_name == "ui":
+        generated_ui_classes = {
+            item
+            for item in should_export
+            if item.startswith("Ui_")
+            or (
+                item in import_usage
+                and str(import_usage[item].get("module_path", "")).startswith("ui.generated")
+            )
+        }
+        should_export -= generated_ui_classes
+
+    if package_name == "core":
+        config_constants = {
+            item
+            for item in should_export
+            if item.startswith(("AI_", "BASE_", "DEFAULT_", "LOG_", "USER_", "MAX_", "MIN_"))
+            and item in import_usage
+        }
+        should_export -= config_constants
+
+    return should_export
     usage_stats: Dict[str, UsageStats] = defaultdict(
         lambda: {
             "import_count": 0,
@@ -328,40 +462,59 @@ def parse_function_registry() -> Dict[str, Set[str]]:
         return {}
 
 
-def generate_audit_report(package_name: str) -> Dict:
+def generate_audit_report(
+    package_name: str,
+    emit_progress_logs: bool = True,
+    import_usage_index: Optional[Dict[str, Dict[str, UsageStats]]] = None,
+    package_api_index: Optional[Dict[str, Dict[str, List[str]]]] = None,
+    registry_index: Optional[Dict[str, Set[str]]] = None,
+) -> Dict:
     """Generate comprehensive audit report for a package."""
-    logger.info(f"{'='*80}")
-    logger.info(f"AUDITING PACKAGE: {package_name}")
-    logger.info(f"{'='*80}")
+    if emit_progress_logs:
+        logger.info(f"{'='*80}")
+        logger.info(f"AUDITING PACKAGE: {package_name}")
+        logger.info(f"{'='*80}")
 
     # 1. Check current exports
     current_exports = check_current_exports(package_name)
-    logger.info(f"[1/5] Current exports: {len(current_exports)} items")
+    if emit_progress_logs:
+        logger.info(f"[1/5] Current exports: {len(current_exports)} items")
 
     # 2. Analyze actual imports
-    logger.info(f"[2/5] Analyzing imports across codebase...")
-    import_usage = analyze_imports_for_package(package_name)
-    logger.info(f"   Found {len(import_usage)} unique items imported")
+    if emit_progress_logs:
+        logger.info(f"[2/5] Analyzing imports across codebase...")
+    if import_usage_index and package_name in import_usage_index:
+        import_usage = import_usage_index.get(package_name, {})
+    else:
+        import_usage = analyze_imports_for_package(package_name)
+    if emit_progress_logs:
+        logger.info(f"   Found {len(import_usage)} unique items imported")
 
     # 3. Scan package modules for public API
-    logger.info(f"[3/5] Scanning package modules for public API...")
-    package_api = scan_package_modules(package_name)
-    all_package_items = set()
-    for module_items in package_api.values():
-        all_package_items.update(module_items)
-    logger.info(f"   Found {len(all_package_items)} public items in package")
+    if emit_progress_logs:
+        logger.info(f"[3/5] Scanning package modules for public API...")
+    if package_api_index and package_name in package_api_index:
+        package_api = package_api_index.get(package_name, {})
+    else:
+        package_api = scan_package_modules(package_name)
+    all_package_items = _normalize_public_items(package_api)
+    if emit_progress_logs:
+        logger.info(f"   Found {len(all_package_items)} public items in package")
 
     # 4. Check function registry
-    logger.info(f"[4/5] Checking FUNCTION_REGISTRY_DETAIL.md...")
-    registry_functions = parse_function_registry()
-    registry_items = registry_functions.get(package_name, set())
-    logger.info(f"   Found {len(registry_items)} items in registry")
+    if emit_progress_logs:
+        logger.info(f"[4/5] Checking FUNCTION_REGISTRY_DETAIL.md...")
+    if registry_index and package_name in registry_index:
+        registry_items = registry_index.get(package_name, set())
+    else:
+        registry_functions = parse_function_registry()
+        registry_items = registry_functions.get(package_name, set())
+    if emit_progress_logs:
+        logger.info(f"   Found {len(registry_items)} items in registry")
 
     # 5. Identify what should be exported
-    logger.info(f"[5/5] Identifying recommended exports...")
-
-    # Items that should be exported:
-    should_export = set()
+    if emit_progress_logs:
+        logger.info(f"[5/5] Identifying recommended exports...")
 
     # Items imported from multiple modules (cross-module usage)
     cross_module_items = {
@@ -370,57 +523,12 @@ def generate_audit_report(package_name: str) -> Dict:
         if stats["import_count"] >= 2
     }
 
-    # Items in function registry (documented public API)
-    # But only include items that are actually module-level (not instance methods)
-    # Filter registry items to only those that are module-level or actually imported
-    registry_items_module_level = {
-        item
-        for item in registry_items
-        if item in all_package_items or item in import_usage
-    }
-    should_export.update(registry_items_module_level)
-
-    # Items imported from package modules (actual usage) - these are clearly public API
-    should_export.update(import_usage.keys())
-
-    # Items defined in package modules (public API, not starting with _)
-    # These are part of the public API even if not used elsewhere
-    should_export.update(all_package_items)
-
-    # Filter out items starting with _ (private/internal)
-    should_export = {item for item in should_export if not item.startswith("_")}
-
-    # Filter out generated UI classes (ui.generated module)
-    # These are auto-generated from .ui files and not intended for direct import
-    if package_name == "ui":
-        # Exclude items that start with Ui_ (generated UI classes)
-        # and items that are imported from ui.generated modules
-        generated_ui_classes = {
-            item
-            for item in should_export
-            if item.startswith("Ui_")
-            or (
-                item in import_usage
-                and import_usage[item].get("module_path", "").startswith("ui.generated")
-            )
-        }
-        should_export -= generated_ui_classes
-
-    # Filter out config constants if we export config module (package-specific logic)
-    if package_name == "core":
-        # We export config as a module, not individual constants
-        # But keep functions/classes from config
-        config_constants = {
-            item
-            for item in should_export
-            if item.startswith(
-                ("AI_", "BASE_", "DEFAULT_", "LOG_", "USER_", "MAX_", "MIN_")
-            )
-            and item in import_usage  # Only if actually imported directly
-        }
-        # For core, we typically import config module, not constants directly
-        # So remove constants that are only imported directly (rare pattern)
-        should_export -= config_constants
+    should_export = _build_should_export(
+        package_name=package_name,
+        import_usage=import_usage,
+        all_package_items=all_package_items,
+        registry_items=registry_items,
+    )
 
     # Items currently exported
     already_exported = should_export & current_exports

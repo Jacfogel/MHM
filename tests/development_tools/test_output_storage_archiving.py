@@ -327,7 +327,6 @@ class TestOutputStorageArchiving:
             shutil.move = original_move
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # Concurrent saves might interfere with each other
     def test_concurrent_saves(self, temp_project_copy):
         """Verify that concurrent saves don't corrupt the final file.
         
@@ -394,4 +393,3 @@ class TestOutputStorageArchiving:
             archived_files = list(archive_dir.glob("test_concurrent_results_*.json"))
             # If multiple saves succeeded, we should have archived files
             # But don't fail if only one save succeeded (no archiving needed)
-

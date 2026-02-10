@@ -365,9 +365,8 @@ class TestSafeJsonWrite:
 
 @pytest.mark.unit
 @pytest.mark.file_io
-@pytest.mark.no_parallel
 class TestFileLockingConcurrency:
-    """Test file locking with concurrent access (requires no_parallel marker)."""
+    """Test file locking with concurrent access."""
 
     def test_file_lock_prevents_concurrent_writes(self, test_data_dir):
         """Test that file_lock prevents concurrent writes."""
@@ -425,4 +424,3 @@ class TestFileLockingConcurrency:
         assert len(final_data) == 5, "File should contain data from all threads"
         for i in range(5):
             assert f"thread_{i}" in final_data, f"Should contain data from thread {i}"
-

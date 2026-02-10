@@ -1,4 +1,5 @@
 import pytest
+import uuid
 from communication.message_processing.interaction_manager import handle_user_message
 from tasks.task_management import load_active_tasks, save_active_tasks
 from tests.test_utilities import setup_test_data_environment, cleanup_test_data_environment, create_test_user
@@ -33,7 +34,7 @@ class TestTaskCrudDisambiguation:
 
     def test_delete_by_number_succeeds(self, monkeypatch):
         monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
-        user_id = "user_task_delete"
+        user_id = f"user_task_delete_{uuid.uuid4().hex[:8]}"
         assert create_test_user(user_id, user_type="basic", test_data_dir=self.test_data_dir)
         tasks = load_active_tasks(user_id)
         tasks.append({"title": "Task A", "task_id": "taskaaaa"})
@@ -82,7 +83,7 @@ class TestTaskCrudDisambiguation:
         assert updated and updated[0].get('due_date') in ("2025-11-02", "Nov 2", "2025-11-02T00:00:00")
 
     def test_update_missing_field_prompts_with_suggestions(self, monkeypatch):
-        user_id = "user_task_update_prompt"
+        user_id = f"user_task_update_prompt_{uuid.uuid4().hex[:8]}"
         monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
         assert create_test_user(user_id, user_type="basic", test_data_dir=self.test_data_dir)
         tasks = load_active_tasks(user_id)

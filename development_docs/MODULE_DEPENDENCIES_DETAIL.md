@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-08 04:35:43
+> **Last Generated**: 2026-02-10 06:25:46
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 109
-- **Total Imports Found**: 1454
+- **Total Imports Found**: 1455
 - **Dependencies Documented**: 109 (100% coverage)
-- **Standard Library Imports**: 381 (26.2%)
+- **Standard Library Imports**: 382 (26.3%)
 - **Third-Party Imports**: 223 (15.3%)
-- **Local Imports**: 850 (58.5%)
-- **Last Updated**: 2026-02-08
+- **Local Imports**: 850 (58.4%)
+- **Last Updated**: 2026-02-10
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 381 imports (26.2%)
+- **Standard Library**: 382 imports (26.3%)
 - **Third-Party**: 223 imports (15.3%)
-- **Local**: 850 imports (58.5%)
+- **Local**: 850 imports (58.4%)
 
 ## Module Dependencies by Directory
 
@@ -2932,7 +2932,7 @@
     - `datetime`
     - `json`
     - `os`
-    - `pathlib (Path)`
+    - `pathlib (Path, pathlib)`
     - `re`
     - `subprocess`
     - `sys`

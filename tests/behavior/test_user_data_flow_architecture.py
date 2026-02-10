@@ -204,6 +204,7 @@ class TestProcessingOrder:
     @pytest.mark.behavior
     @pytest.mark.user_management
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_processing_order_deterministic_regardless_of_input_order(self, test_data_dir, mock_config):
         """
         Test: Processing order should be deterministic (account -> preferences -> schedules -> context)
@@ -241,16 +242,32 @@ class TestProcessingOrder:
         assert result.get('preferences') is True, "Preferences should be processed"
         assert result.get('context') is True, "Context should be processed"
         
-        # Verify data was saved correctly (order shouldn't matter)
-        # Retry in case of race conditions with file writes in parallel execution
+        # Verify data was saved correctly (order shouldn't matter).
+        # In parallel coverage runs, auto_create can briefly surface partial defaults,
+        # so wait for the fully persisted shape before asserting.
         import time
+        from core.user_data_handlers import clear_user_caches
+
         final_data = {}
-        for attempt in range(5):
+        max_attempts = 20
+        for attempt in range(max_attempts):
+            if attempt > 0 and attempt % 4 == 0:
+                clear_user_caches(user_id)
             final_data = get_user_data(user_id, 'all', auto_create=True)
-            if final_data and 'account' in final_data:
+            account = final_data.get('account', {}) if isinstance(final_data, dict) else {}
+            preferences = final_data.get('preferences', {}) if isinstance(final_data, dict) else {}
+            context = final_data.get('context', {}) if isinstance(final_data, dict) else {}
+            if (
+                isinstance(account, dict)
+                and account.get('email') == 'test@example.com'
+                and isinstance(preferences, dict)
+                and 'motivational' in (preferences.get('categories') or [])
+                and isinstance(context, dict)
+                and context.get('preferred_name') == 'Test User'
+            ):
                 break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+            if attempt < max_attempts - 1:
+                time.sleep(0.2)
         assert final_data and 'account' in final_data, f"Account data should be loaded. Got: {final_data}"
         assert final_data['account']['email'] == 'test@example.com', \
             "Account data should be saved correctly regardless of input order"
@@ -317,6 +334,7 @@ class TestAtomicOperations:
     @pytest.mark.behavior
     @pytest.mark.user_management
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_atomic_operation_all_types_succeed(self, test_data_dir, mock_config):
         """
         Test: When all types are valid, all should be written atomically in Phase 2.
@@ -324,7 +342,7 @@ class TestAtomicOperations:
         from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange: Create user
-        user_id = 'test-atomic-success'
+        user_id = f"test-atomic-success-{uuid.uuid4().hex[:8]}"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         # Act: Save multiple types
@@ -553,6 +571,7 @@ class TestTwoPhaseSave:
     @pytest.mark.behavior
     @pytest.mark.user_management
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_two_phase_save_merge_before_write(self, test_data_dir, mock_config):
         """
         Test: Phase 1 should merge/validate in-memory, Phase 2 should write to disk.
@@ -560,12 +579,15 @@ class TestTwoPhaseSave:
         from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange: Create user
-        user_id = 'test-two-phase-save'
-        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
+        user_id = f"test-two-phase-save-{uuid.uuid4().hex[:8]}"
+        created, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(
+            user_id, test_data_dir=test_data_dir
+        )
+        assert created and actual_user_id, "Test user should be created with a concrete UUID"
         
         # Act: Save multiple types
         account_data = TestUserDataFactory.create_account_data(
-            user_id=user_id,
+            user_id=actual_user_id,
             internal_username='testuser',
             email='test@example.com',
             channel_type='email',
@@ -578,12 +600,12 @@ class TestTwoPhaseSave:
         
         # Get initial account file modification time
         from core.config import get_user_data_dir
-        user_dir = get_user_data_dir(user_id)
+        user_dir = get_user_data_dir(actual_user_id)
         account_file = os.path.join(user_dir, 'account.json')
         import time
         time.sleep(0.1)  # Ensure time difference
         
-        result = save_user_data(user_id, {
+        result = save_user_data(actual_user_id, {
             'account': account_data,
             'preferences': preferences_data
         })
@@ -597,12 +619,12 @@ class TestTwoPhaseSave:
         import time
         final_data = {}
         for attempt in range(5):
-            final_data = get_user_data(user_id, 'all')
+            final_data = get_user_data(actual_user_id, 'all')
             if final_data and 'account' in final_data and 'preferences' in final_data:
                 break
             if attempt < 4:
                 time.sleep(0.1)  # Brief delay before retry
-        assert final_data and 'account' in final_data, f"Account data should be loaded for user {user_id}"
+        assert final_data and 'account' in final_data, f"Account data should be loaded for user {actual_user_id}"
         assert final_data['account']['email'] == 'test@example.com', \
             "Account should be written to disk in Phase 2"
         assert 'motivational' in final_data['preferences']['categories'], \

@@ -29,11 +29,20 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-10 - Flaky follow-up **COMPLETED**
+- Stabilized and revalidated targeted flaky user-data tests under xdist; user confirmed targeted parallel rerun now passes (`3 passed`).
+- Removed the obvious unused import in `development_tools/shared/service/commands.py` (`import os`).
+- Confirmed migration away from legacy `tests/flaky_test_report.md` to `tests/logs/flaky_test_report.md` (old path removed from repo state).
+- Added dev-tools exclusions for pytest temp artifacts (`.tmp_pytest_runner`, `.pytest_tmp_cache`, `.tmp_pytest`, `.tmp_devtools_pyfiles`, `.pytest-tmp-*`) in config + shared exclusions to prevent false-positive audit findings.
+- Fixed `analyze_missing_addresses.py` to use shared exclusion logic, eliminating the false "95 files missing addresses" recommendation from temp fixture paths.
+- Removed final obvious-unused import from `tests/conftest.py` (`import sys`) and regenerated `UNUSED_IMPORTS_REPORT.md` (`Obvious Unused: 0`).
+- Updated planning docs for next cycle: new outstanding flaky items in [TODO.md](TODO.md), timing/no-parallel stability note in [PLANS.md](development_docs/PLANS.md), and user-verified successful docs + full-audit reruns.
+
 ### 2026-02-09 - Coverage cache hardening + flake tracking cleanup **COMPLETED**
 - Extended coverage cache safety: test-file/dev-tools coverage caches now rely on tool/config/run-status metadata for invalidation and failed-run handling (`test_file_coverage_cache.py`, `dev_tools_coverage_cache.py`, `run_test_coverage.py`).
 - Added `run_tests.py` to dev-tools config key files and updated one behavior test module to use UUID-suffixed user IDs to reduce parallel collision risk (`tests/behavior/test_user_data_flow_architecture.py`).
 - Investigated latest Tier-3 failures and isolated two intermittent targets: cleanup TOCTOU path deletion in `test_fix_project_cleanup.py` and nondeterministic user-dir selection in `test_user_management.py`.
-- Removed duplicate flake planning from `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`; consolidated intermittent coverage-flake tracking in `TODO.md` as the single source.
+- Removed duplicate flake planning from `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`; consolidated intermittent coverage-flake tracking in [TODO.md](TODO.md) as the single source.
 - Updated both dev-tools guides with failure-aware/tool-aware cache invalidation details, extended V4 plan cache-quality tasks, and refreshed generated audit artifacts/reports (AI_STATUS, AI_PRIORITIES, consolidated report, registry/dependency/coverage docs).
 
 ### 2026-02-08 - Dev tools cache/CLI standardization and test fixes **COMPLETED**

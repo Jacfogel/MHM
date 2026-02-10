@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-02-08
+> **Last Updated**: 2026-02-10
 
 This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -173,6 +173,16 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Verify no raw dict/list dumps during audits
 - [ ] Consider progress indicators for long-running tools
 
+#### 2.9 Audit failure visibility and exit semantics for coverage/test stages
+**Status**: PENDING  
+**Tasks**:
+- [ ] Make Tier 3 audit output explicitly summarize pytest outcomes from both coverage tracks (parallel + no_parallel): passed/failed/skipped/crashed, plus failed node IDs
+- [ ] Add a clear "completed with test failures" state distinct from "completed successfully" when coverage was produced but any tests failed
+- [ ] Add explicit crash reporting for no_parallel subprocess failures (e.g., `3221226505` / `0xC0000135`) with actionable context in final audit summary
+- [ ] Add a strict/fail-fast mode so audit returns non-zero when Tier 3 test failures or no_parallel crashes occur
+- [ ] Add explicit reporting/handling for Windows pytest teardown cleanup errors (e.g., `cleanup_dead_symlinks` PermissionError) so false-negative non-zero exits are clearly classified and do not masquerade as test failures
+- [ ] Ensure AI_STATUS/AI_PRIORITIES/consolidated report carry the same failure state and do not imply a clean run
+
 
 #### 2.7 Remove duplicate last updated field at the bottom of AI_FUNCTION_REGISTRY.md
 - [x] Removed duplicate footer "Last Updated" line from AI function registry generator
@@ -287,6 +297,15 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Exclude `tests/ai/results/` where appropriate
 - [ ] Exclude `tests/coverage_html/` where appropriate
 
+#### 3.12 Integrate flaky detector into development tools suite
+**Status**: PENDING  
+**Tasks**:
+- [ ] Move `scripts/flaky_detector.py` to `development_tools/tests/` with clear ownership and module boundaries
+- [ ] Wire flaky detection into development tools CLI/tool metadata (standalone command + optional audit hook)
+- [ ] Standardize flaky detector logs/outputs with development tools conventions (`development_tools/tests/logs` + JSON/markdown result schema)
+- [ ] Add tests for flaky detector run-time metrics, timeout behavior, and worker-log consolidation on interrupted runs
+- [ ] Update documentation references (`AI_DEVELOPMENT_TOOLS_GUIDE.md`, `DEVELOPMENT_TOOLS_GUIDE.md`, and test workflow docs)
+
 ---
 
 ### 4. External Tool Evaluation and Integration (MEDIUM)
@@ -382,6 +401,14 @@ These are surfaced by the tools and remain outstanding but are not tool-suite ch
 - [ ] Raise domain coverage for communication, ui, and core (below 80% target)
 - [ ] Refactor critical-complexity functions (145 critical, 147 high)
 
+
+### 7. Additional items, added by human developer, to be incorporated where appropriate:
+
+#### 7.1 additional exclusions 
+- development_tools\legacy\analyze_legacy_references.py and 
+development_tools\legacy\generate_legacy_reference_report.py should exclude tests\data\.
+- honestly just about everything should exclude tests\data\. 
+- Review development_tools\shared\EXCLUSION_RULES.md and ensure development tools stay isolated from main MHM project using development_tools\config\development_tools_config.json
 ---
 
 ## Related Documents

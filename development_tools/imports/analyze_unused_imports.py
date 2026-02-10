@@ -880,6 +880,7 @@ class UnusedImportsChecker:
                     cached  # cached is already a list (possibly empty)
                 )
             else:
+                self.stats["cache_misses"] += 1
                 files_to_scan.append(file_path)
 
         # Process cached files first (fast)
@@ -924,9 +925,17 @@ class UnusedImportsChecker:
             # Prepare arguments for worker function
             worker_args = [(fp, str(self.project_root)) for fp in files_to_scan]
 
-            # Use multiprocessing Pool for parallel execution
-            with multiprocessing.Pool(processes=self.max_workers) as pool:
-                results = pool.map(_process_file_worker, worker_args)
+            # Use multiprocessing for performance; gracefully degrade if multiprocessing
+            # is unavailable (restricted sandbox/permissions environments).
+            try:
+                with multiprocessing.Pool(processes=self.max_workers) as pool:
+                    results = pool.map(_process_file_worker, worker_args)
+            except (PermissionError, OSError) as exc:
+                if logger:
+                    logger.warning(
+                        f"Multiprocessing unavailable ({exc}); falling back to sequential scan."
+                    )
+                results = [_process_file_worker(args) for args in worker_args]
 
             # Process results
             for file_path, issues in results:

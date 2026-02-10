@@ -38,6 +38,20 @@ from core.user_data_validation import (
     is_valid_email,
     validate_schedule_periods__validate_time_format,
 )
+
+
+def _resolve_user_id_with_retry(internal_username: str, attempts: int = 20, delay: float = 0.1):
+    """Resolve internal_username -> user_id with bounded retries for index consistency."""
+    from core.user_data_handlers import get_user_id_by_identifier
+    import time
+
+    for attempt in range(attempts):
+        user_id = get_user_id_by_identifier(internal_username)
+        if user_id:
+            return user_id
+        if attempt < attempts - 1:
+            time.sleep(delay)
+    return None
 from ui.dialogs.account_creator_dialog import AccountCreatorDialog
 from ui.widgets.category_selection_widget import CategorySelectionWidget
 from ui.widgets.channel_selection_widget import ChannelSelectionWidget
@@ -520,7 +534,6 @@ class TestAccountCreationDialogRealBehavior:
                 ), "Multiple categories with valid channel should pass validation"
 
     @pytest.mark.ui
-    @pytest.mark.no_parallel
     def test_account_creation_real_behavior(self, dialog, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test complete account creation workflow with real file operations."""
         # Set up basic required fields
@@ -882,11 +895,12 @@ class TestAccountManagementRealBehavior:
         """REAL BEHAVIOR TEST: Test user index integration with real file operations."""
         from core.user_data_handlers import save_user_data, get_user_data
         from core.user_data_manager import update_user_index, rebuild_user_index
+        import uuid
 
         # Create test users for index testing
         test_users = []
         for i in range(3):
-            user_id = f"indexuser{i}"
+            user_id = f"indexuser{i}_{uuid.uuid4().hex[:8]}"
             user_dir = os.path.join(test_data_dir, "users", user_id)
             os.makedirs(user_dir, exist_ok=True)
 
@@ -1053,13 +1067,14 @@ class TestAccountCreationErrorHandling:
     """Test error handling in account creation and management."""
 
     @pytest.mark.ui
-    @pytest.mark.no_parallel
     def test_duplicate_username_handling_real_behavior(
         self, test_data_dir, mock_config
     ):
         """REAL BEHAVIOR TEST: Test handling of duplicate usernames using enhanced test utilities."""
         # Create first user using enhanced centralized utilities
-        user_id_1 = "test-duplicate-1"
+        import uuid
+        suffix = uuid.uuid4().hex[:8]
+        user_id_1 = f"test-duplicate-1-{suffix}"
         from tests.test_utilities import TestUserFactory
 
         success_1 = TestUserFactory.create_basic_user(
@@ -1086,7 +1101,7 @@ class TestAccountCreationErrorHandling:
         assert loaded_data_1["account"]["user_id"] == actual_user_id_1
 
         # Test creating second user with same username using enhanced test utilities
-        user_id_2 = "test-duplicate-2"
+        user_id_2 = f"test-duplicate-2-{suffix}"
         success_2 = TestUserFactory.create_basic_user(
             user_id_2,
             enable_checkins=True,
@@ -1822,7 +1837,6 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
-    @pytest.mark.no_parallel
     def test_create_account_creates_user_files(self, dialog, test_data_dir):
         """Test that create_account actually creates user files on disk."""
         from core.user_data_handlers import get_user_data
@@ -1869,7 +1883,6 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
-    @pytest.mark.no_parallel
     def test_create_account_persists_categories(self, dialog, test_data_dir):
         """Test that create_account persists categories to disk."""
         from core.user_data_handlers import get_user_data
@@ -1912,7 +1925,6 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
-    @pytest.mark.no_parallel
     def test_create_account_persists_channel_info(self, dialog, test_data_dir):
         """Test that create_account persists channel information to disk."""
         from core.user_data_handlers import get_user_data
@@ -1939,11 +1951,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
 
         # Assert: Channel info should be persisted
-        from core.user_data_handlers import get_user_id_by_identifier
-        import time
-
-        time.sleep(0.1)  # Brief delay for index update
-        user_id = get_user_id_by_identifier(unique_username)
+        user_id = _resolve_user_id_with_retry(unique_username)
         assert user_id is not None, "User ID should be found"
 
         preferences_data = get_user_data(user_id, "preferences")
@@ -1960,7 +1968,6 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
-    @pytest.mark.no_parallel
     def test_create_account_persists_task_settings(self, dialog, test_data_dir):
         """Test that create_account persists task settings to disk."""
         from core.user_data_handlers import get_user_data
@@ -2021,7 +2028,6 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
-    @pytest.mark.no_parallel
     def test_create_account_persists_checkin_settings(self, dialog, test_data_dir):
         """Test that create_account persists check-in settings to disk."""
         from core.user_data_handlers import get_user_data
@@ -2056,11 +2062,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
 
         # Assert: Check-in settings should be persisted
-        from core.user_data_handlers import get_user_id_by_identifier
-        import time
-
-        time.sleep(0.1)  # Brief delay for index update
-        user_id = get_user_id_by_identifier(unique_username)
+        user_id = _resolve_user_id_with_retry(unique_username)
         assert user_id is not None, "User ID should be found"
 
         preferences_data = get_user_data(user_id, "preferences")
@@ -2081,7 +2083,6 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
-    @pytest.mark.no_parallel
     def test_create_account_updates_user_index(self, dialog, test_data_dir):
         """Test that create_account updates the user index."""
         from core.user_data_manager import build_user_index
@@ -2124,7 +2125,6 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
-    @pytest.mark.no_parallel
     def test_create_account_sets_up_default_tags_when_tasks_enabled(
         self, dialog, test_data_dir
     ):
@@ -2172,7 +2172,6 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
-    @pytest.mark.no_parallel
     def test_create_account_saves_custom_tags_when_provided(
         self, dialog, test_data_dir
     ):
@@ -2220,7 +2219,6 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
-    @pytest.mark.no_parallel
     def test_create_account_persists_feature_flags(self, dialog, test_data_dir):
         """Test that create_account persists feature flags correctly."""
         from core.user_data_handlers import get_user_data
@@ -2246,11 +2244,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
 
         # Assert: Feature flags should be persisted
-        from core.user_data_handlers import get_user_id_by_identifier
-        import time
-
-        time.sleep(0.1)  # Brief delay for index update
-        user_id = get_user_id_by_identifier(unique_username)
+        user_id = _resolve_user_id_with_retry(unique_username)
         assert user_id is not None, "User ID should be found"
 
         user_account_data = get_user_data(user_id, "account")

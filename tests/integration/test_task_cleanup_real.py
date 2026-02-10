@@ -157,7 +157,6 @@ class TestTaskCleanupReal:
     @pytest.mark.integration
     @pytest.mark.tasks
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_update_task_verifies_actual_changes_persist(self, test_data_dir):
         """
         Test: Updating a task modifies task data and persists to file system.
@@ -165,7 +164,8 @@ class TestTaskCleanupReal:
         Verifies actual system changes per testing guidelines.
         """
         # Arrange: Create user and task
-        user_id = "test_user_update_verify"
+        import uuid
+        user_id = f"test_user_update_verify_{uuid.uuid4().hex[:8]}"
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         task_id = create_task(
@@ -255,4 +255,3 @@ class TestTaskCleanupReal:
             pytest.skip(f"Could not import required modules: {e}")
         except Exception as e:
             pytest.fail(f"Unexpected error checking scheduler: {e}")
-

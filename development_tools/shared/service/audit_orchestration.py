@@ -9,14 +9,14 @@ import json
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 from core.logger import get_component_logger
 
 logger = get_component_logger("development_tools")
 
 # Import output storage
-from ..output_storage import save_tool_result, get_all_tool_results
+from ..output_storage import save_tool_result, get_all_tool_results, load_tool_result
 from ..file_rotation import create_output_file
 
 # Module-level flag to track if ANY audit is in progress
@@ -24,6 +24,16 @@ _AUDIT_IN_PROGRESS_GLOBAL = False
 
 # File-based lock for cross-process protection
 _AUDIT_LOCK_FILE = None
+
+
+class ToolExecutionError(RuntimeError):
+    """Raised when a tool execution fails while preserving elapsed timing."""
+
+    def __init__(self, tool_name: str, elapsed_time: float, original_exception: Exception):
+        super().__init__(str(original_exception))
+        self.tool_name = tool_name
+        self.elapsed_time = elapsed_time
+        self.original_exception = original_exception
 
 
 def _get_status_file_mtimes(project_root: Path) -> Dict[str, float]:
@@ -139,6 +149,12 @@ class AuditOrchestrationMixin:
         self._tools_run_in_current_tier = set()
         # Track timing for each tool
         self._tool_timings = {}
+        # Track execution status for each tool (success/failed)
+        self._tool_execution_status = {}
+        # Track cache metadata per tool for timing diagnostics
+        self._tool_cache_metadata = {}
+        # Track wall-clock runtime (accurate total audit duration with parallel execution)
+        self._audit_wall_clock_start = time.perf_counter()
         
         # Create file-based lock
         if _AUDIT_LOCK_FILE is None:
@@ -294,12 +310,29 @@ class AuditOrchestrationMixin:
                     timing_msg = f"Total tool execution time: {total_time:.2f}s"
                     print(f"  {timing_msg}")
                     logger.info(timing_msg)
+                    if hasattr(self, '_audit_wall_clock_start'):
+                        wall_clock_total = time.perf_counter() - self._audit_wall_clock_start
+                        wall_clock_msg = f"Total audit wall-clock time: {wall_clock_total:.2f}s"
+                        print(f"  {wall_clock_msg}")
+                        logger.info(wall_clock_msg)
                     # Log slowest tools
                     sorted_timings = sorted(self._tool_timings.items(), key=lambda x: x[1], reverse=True)
                     if len(sorted_timings) > 0:
                         slowest_msg = f"Slowest tools: {', '.join(f'{name} ({time:.2f}s)' for name, time in sorted_timings[:5])}"
                         print(f"  {slowest_msg}")
                         logger.info(slowest_msg)
+                    coverage_summary = self._format_coverage_mode_summary()
+                    if coverage_summary:
+                        coverage_msg = f"Coverage mode summary: {coverage_summary}"
+                        print(f"  {coverage_msg}")
+                        logger.info(coverage_msg)
+                    cache_summary = self._format_cache_mode_summary(
+                        ['analyze_unused_imports', 'analyze_legacy_references', 'analyze_documentation_sync']
+                    )
+                    if cache_summary:
+                        cache_msg = f"Cache mode summary: {cache_summary}"
+                        print(f"  {cache_msg}")
+                        logger.info(cache_msg)
                 print(f"  * AI Status: {ai_status_file}")
                 print(f"  * AI Priorities: {ai_priorities_file}")
                 print(f"  * Consolidated Report: {consolidated_file}")
@@ -323,7 +356,7 @@ class AuditOrchestrationMixin:
                 self.results_cache = {}
             # Save timing data for analysis
             if hasattr(self, '_tool_timings') and self._tool_timings:
-                self._save_timing_data(tier)
+                self._save_timing_data(tier=tier, audit_success=success)
             _AUDIT_IN_PROGRESS_GLOBAL = False
             if _AUDIT_LOCK_FILE and _AUDIT_LOCK_FILE.exists():
                 try:
@@ -373,9 +406,8 @@ class AuditOrchestrationMixin:
         
         # Run core tools first (analyze_functions must run before dependent tools)
         for tool_name, tool_func in tier1_core_tools:
+            start_time = time.time()
             try:
-                # Time tool execution
-                start_time = time.time()
                 # Note: Tools log their own execution, so no need to log here
                 result = tool_func()
                 elapsed_time = time.time() - start_time
@@ -387,15 +419,21 @@ class AuditOrchestrationMixin:
                         self._extract_key_info(tool_name, result)
                 else:
                     success = bool(result)
+                self._record_tool_cache_metadata(tool_name, result)
                 if success:
+                    self._tool_execution_status[tool_name] = 'success'
                     successful.append(tool_name)
                     self._tools_run_in_current_tier.add(tool_name)
                     # Note: Tools save their own results, so no need to save here
                     # Removed duplicate save_tool_result call to prevent duplicate logging
                 else:
+                    self._tool_execution_status[tool_name] = 'failed'
                     failed.append(tool_name)
                     logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
             except Exception as exc:
+                elapsed_time = time.time() - start_time
+                self._tool_timings[tool_name] = elapsed_time
+                self._tool_execution_status[tool_name] = 'failed'
                 failed.append(tool_name)
                 logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
                 logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
@@ -412,7 +450,8 @@ class AuditOrchestrationMixin:
                     group_results[tool_name] = (result, elapsed_time)
                 except Exception as exc:
                     logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
-                    group_results[tool_name] = ({'success': False, 'error': str(exc)}, 0.0)
+                    elapsed_time = exc.elapsed_time if isinstance(exc, ToolExecutionError) else 0.0
+                    group_results[tool_name] = ({'success': False, 'error': str(exc)}, elapsed_time)
             return group_results
         
         # Combine independent tools (as single-tool groups) and dependent groups
@@ -438,24 +477,27 @@ class AuditOrchestrationMixin:
                             self._extract_key_info(tool_name, result)
                     else:
                         success = bool(result)
+                    self._record_tool_cache_metadata(tool_name, result)
                     
                     if success:
+                        self._tool_execution_status[tool_name] = 'success'
                         successful.append(tool_name)
                         self._tools_run_in_current_tier.add(tool_name)
                     else:
+                        self._tool_execution_status[tool_name] = 'failed'
                         failed.append(tool_name)
                         logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
         
         # Run quick_status at the end of Tier 1 (after other tools have run and potentially created results)
         # This allows it to use fresh data from the current audit run, but it still works gracefully if data is missing
+        start_time = time.time()
         try:
-            # Time quick_status execution
-            start_time = time.time()
             # Note: quick_status logs its own execution ("Generating JSON status output")
             quick_status_result = self.run_script('quick_status', 'json')
             elapsed_time = time.time() - start_time
             self._tool_timings['quick_status'] = elapsed_time
             logger.debug(f"  - quick_status completed in {elapsed_time:.2f}s")
+            self._record_tool_cache_metadata('quick_status', quick_status_result)
             if quick_status_result.get('success'):
                 self.status_results = quick_status_result
                 output = quick_status_result.get('output', '')
@@ -468,16 +510,23 @@ class AuditOrchestrationMixin:
                             save_tool_result('quick_status', 'reports', parsed, project_root=self.project_root)
                         except Exception as e:
                             logger.debug(f"Failed to save quick_status result: {e}")
+                        self._tool_execution_status['quick_status'] = 'success'
                         successful.append('quick_status')
                         self._tools_run_in_current_tier.add('quick_status')
                     except json.JSONDecodeError:
+                        self._tool_execution_status['quick_status'] = 'failed'
                         logger.warning("  - quick_status output could not be parsed as JSON")
                         failed.append('quick_status')
                 else:
+                    self._tool_execution_status['quick_status'] = 'failed'
                     failed.append('quick_status')
             else:
+                self._tool_execution_status['quick_status'] = 'failed'
                 failed.append('quick_status')
         except Exception as exc:
+            elapsed_time = time.time() - start_time
+            self._tool_timings['quick_status'] = elapsed_time
+            self._tool_execution_status['quick_status'] = 'failed'
             failed.append('quick_status')
             logger.error(f"  - quick_status failed: {exc}")
         
@@ -539,7 +588,8 @@ class AuditOrchestrationMixin:
                     group_results[tool_name] = (result, elapsed_time)
                 except Exception as exc:
                     logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
-                    group_results[tool_name] = ({'success': False, 'error': str(exc)}, 0.0)
+                    elapsed_time = exc.elapsed_time if isinstance(exc, ToolExecutionError) else 0.0
+                    group_results[tool_name] = ({'success': False, 'error': str(exc)}, elapsed_time)
             return group_results
         
         # Combine independent tools (as single-tool groups) and dependent groups
@@ -570,11 +620,14 @@ class AuditOrchestrationMixin:
                     self._extract_key_info(tool_name, result)
             else:
                 success = bool(result)
+            self._record_tool_cache_metadata(tool_name, result)
             
             if success:
+                self._tool_execution_status[tool_name] = 'success'
                 successful.append(tool_name)
                 self._tools_run_in_current_tier.add(tool_name)
             else:
+                self._tool_execution_status[tool_name] = 'failed'
                 failed.append(tool_name)
                 logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
         
@@ -592,9 +645,176 @@ class AuditOrchestrationMixin:
             result = tool_func()
             elapsed_time = time.time() - start_time
             return result, elapsed_time
-        except Exception as e:
+        except Exception as exc:
             elapsed_time = time.time() - start_time
-            raise
+            raise ToolExecutionError(tool_name=tool_name, elapsed_time=elapsed_time, original_exception=exc) from exc
+
+    def _infer_cache_mode_from_hits_misses(self, hits: int, misses: int) -> str:
+        """Infer cache mode from cache hit/miss counters."""
+        total = hits + misses
+        if total <= 0:
+            return 'unknown'
+        if hits > 0 and misses == 0:
+            return 'cache_only'
+        if hits > 0 and misses > 0:
+            return 'partial_cache'
+        return 'cold_scan'
+
+    def _extract_coverage_cache_metadata(self, tool_name: str) -> Dict[str, str]:
+        """Extract cache mode metadata for coverage tools from coverage JSON metadata."""
+        if tool_name == 'run_test_coverage':
+            coverage_file = self.project_root / 'development_tools' / 'tests' / 'jsons' / 'coverage.json'
+        elif tool_name == 'generate_dev_tools_coverage':
+            coverage_file = self.project_root / 'development_tools' / 'tests' / 'jsons' / 'coverage_dev_tools.json'
+        else:
+            return {}
+        if not coverage_file.exists():
+            return {}
+        try:
+            with open(coverage_file, 'r', encoding='utf-8') as f:
+                coverage_data = json.load(f)
+            metadata = coverage_data.get('_metadata', {}) if isinstance(coverage_data, dict) else {}
+            generated_by = str(metadata.get('generated_by', ''))
+            generated_by_lower = generated_by.lower()
+            if 'cache (no test execution)' in generated_by_lower:
+                cache_mode = 'cache_only'
+            elif 'cache merge' in generated_by_lower:
+                cache_mode = 'partial_cache'
+            elif 'pytest-cov' in generated_by_lower:
+                cache_mode = 'cold_scan'
+            else:
+                cache_mode = 'unknown'
+            return {
+                'cache_mode': cache_mode,
+                'source': 'coverage_json_metadata',
+                'generated_by': generated_by,
+            }
+        except (OSError, json.JSONDecodeError):
+            return {}
+
+    def _record_tool_cache_metadata(self, tool_name: str, result=None) -> None:
+        """Capture cache-mode metadata for selected tools and store in timing payload."""
+        metadata = {}
+        runtime_metadata = getattr(self, '_tool_cache_metadata', {})
+        if isinstance(runtime_metadata, dict):
+            existing = runtime_metadata.get(tool_name)
+            if isinstance(existing, dict):
+                metadata.update(existing)
+
+        if isinstance(result, dict):
+            direct_metadata = result.get('cache_metadata')
+            if isinstance(direct_metadata, dict):
+                metadata.update(direct_metadata)
+            data = result.get('data')
+            if isinstance(data, dict):
+                cache_metadata = data.get('_cache_metadata') or data.get('cache_metadata')
+                if isinstance(cache_metadata, dict):
+                    metadata.update(cache_metadata)
+
+                if tool_name == 'analyze_unused_imports':
+                    details = data.get('details', {})
+                    stats = details.get('stats', {}) if isinstance(details, dict) else {}
+                    if isinstance(stats, dict):
+                        hits = int(stats.get('cache_hits', 0) or 0)
+                        misses = int(stats.get('cache_misses', 0) or 0)
+                        files_scanned = int(stats.get('files_scanned', 0) or 0)
+                        if files_scanned > 0 and misses == 0 and files_scanned >= hits:
+                            misses = files_scanned - hits
+                        metadata.setdefault('hits', hits)
+                        metadata.setdefault('misses', misses)
+                        metadata.setdefault('total_cache_checks', hits + misses)
+                        metadata.setdefault('cache_mode', self._infer_cache_mode_from_hits_misses(hits, misses))
+
+                if tool_name == 'analyze_legacy_references':
+                    details = data.get('details', {})
+                    cache_data = details.get('cache', {}) if isinstance(details, dict) else {}
+                    if isinstance(cache_data, dict):
+                        metadata.update(cache_data)
+
+        if tool_name in {'run_test_coverage', 'generate_dev_tools_coverage'}:
+            coverage_metadata = self._extract_coverage_cache_metadata(tool_name)
+            if coverage_metadata:
+                existing_mode = metadata.get('cache_mode')
+                extracted_mode = coverage_metadata.get('cache_mode')
+                if (
+                    existing_mode
+                    and existing_mode != 'unknown'
+                    and extracted_mode == 'unknown'
+                ):
+                    coverage_metadata = {
+                        key: value
+                        for key, value in coverage_metadata.items()
+                        if key != 'cache_mode'
+                    }
+                metadata.update(coverage_metadata)
+
+        if tool_name == 'analyze_unused_imports' and not metadata:
+            try:
+                cached_unused = load_tool_result(
+                    'analyze_unused_imports',
+                    'imports',
+                    project_root=self.project_root,
+                )
+                if isinstance(cached_unused, dict):
+                    details = cached_unused.get('details', {})
+                    stats = details.get('stats', {}) if isinstance(details, dict) else {}
+                    if isinstance(stats, dict):
+                        hits = int(stats.get('cache_hits', 0) or 0)
+                        misses = int(stats.get('cache_misses', 0) or 0)
+                        files_scanned = int(stats.get('files_scanned', 0) or 0)
+                        if files_scanned > 0 and misses == 0 and files_scanned >= hits:
+                            misses = files_scanned - hits
+                        metadata = {
+                            'cache_mode': self._infer_cache_mode_from_hits_misses(hits, misses),
+                            'hits': hits,
+                            'misses': misses,
+                            'total_cache_checks': hits + misses,
+                            'source': 'cached_tool_result',
+                        }
+            except Exception:
+                pass
+
+        if metadata:
+            self._tool_cache_metadata[tool_name] = metadata
+
+    def _format_coverage_mode_summary(self) -> str:
+        """Build concise coverage mode summary for final audit logs."""
+        entries = []
+        metadata = getattr(self, '_tool_cache_metadata', {})
+        if not isinstance(metadata, dict):
+            return ""
+        for tool_name in ('run_test_coverage', 'generate_dev_tools_coverage'):
+            tool_meta = metadata.get(tool_name, {})
+            if not isinstance(tool_meta, dict) or not tool_meta:
+                continue
+            cache_mode = tool_meta.get('cache_mode', 'unknown')
+            reason = tool_meta.get('invalidation_reason', 'unknown')
+            entries.append(f"{tool_name}={cache_mode} ({reason})")
+        return "; ".join(entries)
+
+    def _format_cache_mode_summary(self, tool_names: List[str]) -> str:
+        """Build concise cache mode summary for selected tools."""
+        metadata = getattr(self, '_tool_cache_metadata', {})
+        if not isinstance(metadata, dict):
+            return ""
+        parts = []
+        for tool_name in tool_names:
+            tool_meta = metadata.get(tool_name, {})
+            if not isinstance(tool_meta, dict):
+                continue
+            cache_mode = tool_meta.get('cache_mode')
+            if not cache_mode:
+                continue
+            details = []
+            if 'hits' in tool_meta and 'misses' in tool_meta:
+                details.append(f"hits={tool_meta.get('hits', 0)}")
+                details.append(f"misses={tool_meta.get('misses', 0)}")
+            elif 'cache_hits' in tool_meta and 'cache_misses' in tool_meta:
+                details.append(f"hits={tool_meta.get('cache_hits', 0)}")
+                details.append(f"misses={tool_meta.get('cache_misses', 0)}")
+            detail_suffix = f" [{', '.join(details)}]" if details else ""
+            parts.append(f"{tool_name}={cache_mode}{detail_suffix}")
+        return "; ".join(parts)
     
     def _run_full_audit_tools(self) -> bool:
         """Run Tier 3 tools: Full audit (comprehensive analysis, >10s per tool or groups with >10s tools).
@@ -654,7 +874,8 @@ class AuditOrchestrationMixin:
                         group_results[tool_name] = (result, elapsed_time)
                     except Exception as exc:
                         logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
-                        group_results[tool_name] = ({'success': False, 'error': str(exc)}, 0.0)
+                        elapsed_time = exc.elapsed_time if isinstance(exc, ToolExecutionError) else 0.0
+                        group_results[tool_name] = ({'success': False, 'error': str(exc)}, elapsed_time)
                 return group_results
             
             with ThreadPoolExecutor(max_workers=len(tier3_parallel_groups)) as executor:
@@ -679,10 +900,13 @@ class AuditOrchestrationMixin:
                                 self._extract_key_info(tool_name, result)
                         else:
                             success = bool(result)
+                        self._record_tool_cache_metadata(tool_name, result)
                         if success:
+                            self._tool_execution_status[tool_name] = 'success'
                             successful.append(tool_name)
                             self._tools_run_in_current_tier.add(tool_name)
                         else:
+                            self._tool_execution_status[tool_name] = 'failed'
                             failed.append(tool_name)
                             logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
             
@@ -697,8 +921,8 @@ class AuditOrchestrationMixin:
         # Run coverage-dependent tools sequentially (they depend on coverage data from both test suites)
         logger.debug("Running coverage-dependent tools (sequential, after coverage completion)...")
         for tool_name, tool_func in tier3_coverage_dependent_group:
+            start_time = time.time()
             try:
-                start_time = time.time()
                 result = tool_func()
                 elapsed_time = time.time() - start_time
                 self._tool_timings[tool_name] = elapsed_time
@@ -709,13 +933,19 @@ class AuditOrchestrationMixin:
                         self._extract_key_info(tool_name, result)
                 else:
                     success = bool(result)
+                self._record_tool_cache_metadata(tool_name, result)
                 if success:
+                    self._tool_execution_status[tool_name] = 'success'
                     successful.append(tool_name)
                     self._tools_run_in_current_tier.add(tool_name)
                 else:
+                    self._tool_execution_status[tool_name] = 'failed'
                     failed.append(tool_name)
                     logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
             except Exception as exc:
+                elapsed_time = time.time() - start_time
+                self._tool_timings[tool_name] = elapsed_time
+                self._tool_execution_status[tool_name] = 'failed'
                 failed.append(tool_name)
                 logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
                 logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
@@ -1129,7 +1359,45 @@ class AuditOrchestrationMixin:
         except Exception as exc:
             logger.warning(f"   ASCII compliance check failed: {exc}")
     
-    def _save_timing_data(self, tier: int) -> None:
+    def _get_expected_tools_for_tier(self, tier: int) -> List[str]:
+        """Return expected tool names for a given audit tier."""
+        tier1_tools = [
+            'analyze_system_signals',
+            'analyze_documentation',
+            'analyze_config',
+            'analyze_ai_work',
+            'analyze_function_patterns',
+            'decision_support',
+            'quick_status',
+        ]
+        tier2_additional_tools = [
+            'analyze_functions',
+            'analyze_error_handling',
+            'analyze_package_exports',
+            'analyze_duplicate_functions',
+            'analyze_module_imports',
+            'analyze_dependency_patterns',
+            'analyze_module_dependencies',
+            'analyze_function_registry',
+            'analyze_documentation_sync',
+            'analyze_unused_imports',
+            'generate_unused_imports_report',
+        ]
+        tier3_additional_tools = [
+            'run_test_coverage',
+            'generate_dev_tools_coverage',
+            'analyze_test_markers',
+            'generate_test_coverage_report',
+            'analyze_legacy_references',
+            'generate_legacy_reference_report',
+        ]
+        if tier <= 1:
+            return tier1_tools
+        if tier == 2:
+            return tier1_tools + tier2_additional_tools
+        return tier1_tools + tier2_additional_tools + tier3_additional_tools
+
+    def _save_timing_data(self, tier: int, audit_success: bool) -> None:
         """Save timing data to a JSON file for analysis."""
         try:
             timing_file = self.project_root / 'development_tools' / 'reports' / 'tool_timings.json'
@@ -1147,6 +1415,19 @@ class AuditOrchestrationMixin:
             # Add new timing entry
             timestamp = datetime.now().isoformat()
             tier_name = {1: 'quick', 2: 'standard', 3: 'full'}.get(tier, 'unknown')
+            tool_timings = self._tool_timings.copy()
+            expected_tools = self._get_expected_tools_for_tier(tier)
+            observed_tools = sorted(tool_timings.keys())
+            missing_expected_tools = sorted(set(expected_tools) - set(observed_tools))
+            failed_tools = sorted(
+                tool_name
+                for tool_name, status in getattr(self, '_tool_execution_status', {}).items()
+                if status == 'failed'
+            )
+            wall_clock_total = None
+            if hasattr(self, '_audit_wall_clock_start'):
+                wall_clock_total = time.perf_counter() - self._audit_wall_clock_start
+            sum_tool_times = sum(tool_timings.values())
             
             if 'runs' not in existing_data:
                 existing_data['runs'] = []
@@ -1155,8 +1436,19 @@ class AuditOrchestrationMixin:
                 'timestamp': timestamp,
                 'tier': tier_name,
                 'tier_number': tier,
-                'tool_timings': self._tool_timings.copy(),
-                'total_time': sum(self._tool_timings.values())
+                'audit_success': audit_success,
+                'tool_timings': tool_timings,
+                # Backward compatibility: retained as sum of per-tool durations
+                'total_time': sum_tool_times,
+                'sum_tool_durations_seconds': sum_tool_times,
+                'wall_clock_total_seconds': wall_clock_total,
+                'parallelism_gain_seconds': (sum_tool_times - wall_clock_total) if wall_clock_total is not None else None,
+                'expected_tools': expected_tools,
+                'observed_tools': observed_tools,
+                'missing_expected_tools': missing_expected_tools,
+                'failed_tools': failed_tools,
+                'tool_execution_status': getattr(self, '_tool_execution_status', {}).copy(),
+                'tool_cache_metadata': getattr(self, '_tool_cache_metadata', {}).copy(),
             })
             
             # Keep only last 50 runs

@@ -627,10 +627,12 @@ class TestEmailBotIntegration:
     async def test_email_bot_memory_behavior(self, test_data_dir):
         """Test memory usage behavior of email bot."""
         import gc
-        import sys
+        import tracemalloc
         
-        # Test that email bot doesn't leak memory
-        initial_objects = len(gc.get_objects())
+        # Force cleanup before sampling to reduce noise from unrelated tests.
+        gc.collect()
+        tracemalloc.start()
+        baseline_current, _ = tracemalloc.get_traced_memory()
         
         # Create and use email bot multiple times
         for _ in range(10):
@@ -648,14 +650,21 @@ class TestEmailBotIntegration:
                         f"test{i}@example.com", f"test message {i}", {}
                     )
         
-        # Force garbage collection
+        # Force garbage collection and measure memory delta.
         gc.collect()
+        final_current, peak_current = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
         
-        final_objects = len(gc.get_objects())
-        object_increase = final_objects - initial_objects
+        current_increase = final_current - baseline_current
+        peak_increase = peak_current - baseline_current
         
-        # Should not have excessive object creation
-        assert object_increase < 1000, f"Should not create excessive objects, increase: {object_increase}"
+        # Keep thresholds loose enough for parallel noise while still catching leaks.
+        assert current_increase < 8_000_000, (
+            f"Current traced memory increase too high: {current_increase} bytes"
+        )
+        assert peak_increase < 20_000_000, (
+            f"Peak traced memory increase too high: {peak_increase} bytes"
+        )
     
     @pytest.mark.asyncio
     async def test_email_bot_thread_safety_behavior(self, test_data_dir):

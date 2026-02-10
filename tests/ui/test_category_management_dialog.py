@@ -14,6 +14,7 @@ ensure_qt_runtime()
 
 import pytest
 from unittest.mock import patch, Mock, MagicMock
+import uuid
 from PySide6.QtWidgets import QApplication, QMessageBox
 from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
@@ -38,7 +39,7 @@ def qapp():
 @pytest.fixture(name="test_user")
 def category_user(test_data_dir):
     """Create a test user for category management tests."""
-    user_id = "test_category_user"
+    user_id = f"test_category_user_{uuid.uuid4().hex[:8]}"
     TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
     return user_id
 
@@ -460,29 +461,38 @@ class TestCategoryManagementDialogRealBehavior:
     def test_save_category_settings_updates_account_features(self, test_user, test_data_dir, qapp):
         """Test that save_category_settings updates account features on disk."""
         # Arrange
+        from core.user_data_handlers import get_user_data, update_user_account
+        user_data = get_user_data(test_user, 'account')
+        account = user_data.get('account', {})
+        if 'features' not in account:
+            account['features'] = {}
+        account['features']['checkins'] = 'enabled'
+        update_user_account(test_user, account)
+
         dialog = CategoryManagementDialog(parent=None, user_id=test_user)
         dialog.ui.groupBox_enable_automated_messages.setChecked(True)
         test_categories = ['motivational']
         
         with patch.object(dialog.category_widget, 'get_selected_categories', return_value=test_categories):
             with patch('ui.dialogs.category_management_dialog.QMessageBox'):
-                with patch('ui.dialogs.category_management_dialog.get_user_data') as mock_get_data:
-                    mock_get_data.side_effect = [
-                        {'account': {'features': {'checkins': 'enabled'}}},
-                        {'preferences': {}}
-                    ]
-                    
-                    # Act
-                    dialog.save_category_settings()
-                    
-                    # Assert - Verify account features were updated
-                    from core.user_data_handlers import get_user_data
+                # Act
+                dialog.save_category_settings()
+                
+                # Assert - Verify account features were updated
+                import time
+                saved_account = {}
+                for attempt in range(5):
                     saved_account = get_user_data(test_user, 'account')
-                    
-                    assert 'features' in saved_account.get('account', {}), \
-                        "Account should have features"
-                    assert saved_account['account']['features'].get('automated_messages') == 'enabled', \
-                        "Automated messages should be enabled in account"
+                    account_features = saved_account.get('account', {}).get('features', {})
+                    if account_features.get('automated_messages') == 'enabled':
+                        break
+                    if attempt < 4:
+                        time.sleep(0.1)
+                
+                assert 'features' in saved_account.get('account', {}), \
+                    "Account should have features"
+                assert saved_account['account']['features'].get('automated_messages') == 'enabled', \
+                    "Automated messages should be enabled in account"
     
     @pytest.mark.ui
     @pytest.mark.behavior
@@ -576,7 +586,6 @@ class TestCategoryManagementDialogRealBehavior:
     
     @pytest.mark.ui
     @pytest.mark.behavior
-    @pytest.mark.no_parallel
     def test_save_category_settings_persists_after_reload(self, test_user, test_data_dir, qapp):
         """Test that saved category settings persist after dialog reload."""
         # Arrange - Ensure user has checkins enabled so validation passes
@@ -621,4 +630,3 @@ class TestCategoryManagementDialogRealBehavior:
             # Categories may be saved in different order, so compare as sets
             assert set(persisted_data['preferences']['categories']) == set(test_categories), \
                 f"Persisted categories should match saved categories (order may differ). Got: {persisted_data['preferences']['categories']}, Expected: {test_categories}"
-

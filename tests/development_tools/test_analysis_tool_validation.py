@@ -37,7 +37,6 @@ class TestAnalysisToolValidation:
         return demo_project_root / "docs" / "analysis_validation"
     
     @pytest.mark.integration
-    @pytest.mark.no_parallel
     def test_validation_fixtures_heading_numbering(self, demo_project_root, test_config_path):
         """Test that heading_numbering_issues.md fixture is detected (replaces TEST_ANALYSIS.md validation)."""
         fixture_file = demo_project_root / "docs" / "analysis_validation" / "heading_numbering_issues.md"
@@ -46,7 +45,6 @@ class TestAnalysisToolValidation:
         fixture_rel_path = str(fixture_file.relative_to(demo_project_root)).replace('\\', '/')
         
         # Patch DEFAULT_DOCS using unittest.mock.patch for more reliable patching
-        # Note: @pytest.mark.no_parallel ensures this test runs serially
         with patch('development_tools.shared.constants.DEFAULT_DOCS', (fixture_rel_path,)):
             analyzer = HeadingNumberingAnalyzer(
                 project_root=str(demo_project_root),
@@ -73,7 +71,6 @@ class TestAnalysisToolValidation:
             assert len(issues) > 0, f"Expected heading numbering issues in fixture. Got: {issues}"
     
     @pytest.mark.integration
-    @pytest.mark.no_parallel
     def test_validation_fixtures_ascii_compliance(self, demo_project_root, test_config_path):
         """Test that ascii_compliance_issues.md fixture is detected (replaces TEST_ANALYSIS.md validation)."""
         fixture_file = demo_project_root / "docs" / "analysis_validation" / "ascii_compliance_issues.md"
@@ -82,7 +79,6 @@ class TestAnalysisToolValidation:
         fixture_rel_path = str(fixture_file.relative_to(demo_project_root)).replace('\\', '/')
         
         # Patch ASCII_COMPLIANCE_FILES using unittest.mock.patch for more reliable patching
-        # Note: @pytest.mark.no_parallel ensures this test runs serially
         with patch('development_tools.shared.constants.ASCII_COMPLIANCE_FILES', (fixture_rel_path,)):
             analyzer = ASCIIComplianceAnalyzer(
                 project_root=str(demo_project_root),
@@ -489,4 +485,3 @@ This subsection is properly numbered.
             # Restore originals
             monkeypatch.setattr(constants, 'DEFAULT_DOCS', original_default_docs)
             monkeypatch.setattr(constants, 'ASCII_COMPLIANCE_FILES', original_ascii_files)
-
