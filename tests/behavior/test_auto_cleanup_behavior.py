@@ -376,11 +376,12 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
-    @pytest.mark.no_parallel
     def test_calculate_cache_size_large_cache_scenario_real_behavior(
         self, temp_test_dir
     ):
         """REAL BEHAVIOR TEST: Test calculating cache size with large number of files."""
+        from tests.conftest import wait_until
+
         # [OK] VERIFY REAL BEHAVIOR: Create many cache files to simulate large cache
         large_cache_dir = temp_test_dir / "large_cache"
         large_cache_dir.mkdir(exist_ok=True)
@@ -403,20 +404,20 @@ class TestAutoCleanupFileDiscoveryBehavior:
             standalone_file.write_text(f"standalone cache {i}" * 5)
 
         # [OK] VERIFY REAL BEHAVIOR: Calculate size of large cache
-        # Retry in case of race conditions with directory creation in parallel execution
-        import time
+        assert wait_until(
+            lambda: len(find_pycache_dirs(large_cache_dir)) >= 8
+            and len(find_pyc_files(large_cache_dir)) >= 200,
+            timeout_seconds=3.0,
+            poll_seconds=0.05,
+        ), "Expected created large-cache files to be discoverable before size calculation"
 
-        pycache_dirs = []
-        pyc_files = []
-        for attempt in range(5):
-            pycache_dirs = find_pycache_dirs(large_cache_dir)
-            pyc_files = find_pyc_files(large_cache_dir)
-            if (
-                len(pycache_dirs) >= 8
-            ):  # Accept 8+ directories as success (80% success rate)
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+        pycache_dirs = find_pycache_dirs(large_cache_dir)
+        pyc_files = find_pyc_files(large_cache_dir)
+        # Fallback to direct glob if os.walk-based discovery is transiently empty on CI/xdist.
+        if not pycache_dirs:
+            pycache_dirs = [str(p) for p in large_cache_dir.rglob("__pycache__")]
+        if not pyc_files:
+            pyc_files = [str(p) for p in large_cache_dir.rglob("*.pyc")]
 
         total_size = calculate_cache_size(pycache_dirs, pyc_files)
 

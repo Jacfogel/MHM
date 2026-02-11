@@ -56,8 +56,11 @@ class TestUserDataHandlersConvenienceFunctions:
 
     def test_update_user_account_valid_input(self, test_data_dir):
         """Test update_user_account with valid input."""
+        from pathlib import Path
+        from tests.conftest import wait_until
+
         user_id = f"test_update_account_{uuid.uuid4().hex[:8]}"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        assert TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         actual_user_id = _resolve_actual_user_id(test_data_dir, user_id)
         assert actual_user_id, "Should resolve created UUID user id"
         
@@ -71,10 +74,15 @@ class TestUserDataHandlersConvenienceFunctions:
         assert result is True, "Should update account successfully"
         
         # Verify update was applied to the exact created user record (avoid index/cache cross-talk)
-        account_file = _resolve_account_file(test_data_dir, user_id)
-        assert account_file and account_file.exists(), "Should resolve created account file"
+        account_file = Path(test_data_dir) / "users" / actual_user_id / "account.json"
+        assert wait_until(
+            lambda: account_file.exists(), timeout_seconds=1.0, poll_seconds=0.01
+        ), "Should resolve created account file"
         account = safe_json_read(str(account_file), default={})
-        assert account.get("internal_username") == user_id, "Should read the expected test user"
+        assert (
+            account.get("internal_username") == user_id
+        ), "Should read the expected test user"
+        assert account.get("user_id") == actual_user_id, "Should update the expected UUID user"
         assert account.get("timezone") == "America/New_York", "Should update timezone"
 
     def test_update_user_account_invalid_user_id(self, test_data_dir):
@@ -121,8 +129,13 @@ class TestUserDataHandlersConvenienceFunctions:
 
     def test_update_user_preferences_valid_input(self, test_data_dir):
         """Test update_user_preferences with valid input."""
-        user_id = "test_update_prefs"
+        from pathlib import Path
+        from tests.conftest import wait_until
+
+        user_id = f"test_update_prefs_{uuid.uuid4().hex[:8]}"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        actual_user_id = _resolve_actual_user_id(test_data_dir, user_id)
+        assert actual_user_id, "Should resolve created UUID user id"
         
         updates = {
             "checkin_settings": {
@@ -131,16 +144,15 @@ class TestUserDataHandlersConvenienceFunctions:
             }
         }
         
-        result = update_user_preferences(user_id, updates, auto_create=True)
+        result = update_user_preferences(actual_user_id, updates, auto_create=True)
         
         assert result is True, "Should update preferences successfully"
-        
-        # Verify update was applied
-        prefs_data = get_user_data(user_id, "preferences")
-        assert prefs_data is not None, "Should retrieve preferences data"
-        # get_user_data returns dict with data_type as key
-        preferences = extract_nested_data(prefs_data, "preferences")
-        assert preferences is not None, "Should have preferences data"
+
+        prefs_file = Path(test_data_dir) / "users" / actual_user_id / "preferences.json"
+        assert wait_until(
+            lambda: prefs_file.exists(), timeout_seconds=1.0, poll_seconds=0.01
+        ), "Preferences file should exist for created user"
+        preferences = safe_json_read(str(prefs_file), default={})
         assert preferences.get("checkin_settings", {}).get("enabled") is True, "Should update checkin settings"
 
     def test_update_user_preferences_with_categories(self, test_data_dir):
@@ -429,13 +441,17 @@ class TestUserDataHandlersConvenienceFunctions:
 
     def test_save_user_data_transaction_valid_input(self, test_data_dir):
         """Test save_user_data_transaction with valid input."""
+        from pathlib import Path
+        from tests.conftest import wait_until
+
         user_id = f"test_transaction_{uuid.uuid4().hex[:8]}"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        assert TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         actual_user_id = _resolve_actual_user_id(test_data_dir, user_id)
         assert actual_user_id, "Should resolve created UUID user id"
         
         data_updates = {
             "account": {
+                "internal_username": user_id,
                 "timezone": "America/Chicago"
             },
             "preferences": {
@@ -449,10 +465,13 @@ class TestUserDataHandlersConvenienceFunctions:
         assert result is True, "Should complete transaction successfully"
         
         # Verify updates were applied to the exact created user record (avoid index/cache cross-talk)
-        account_file = _resolve_account_file(test_data_dir, user_id)
-        assert account_file and account_file.exists(), "Should resolve created account file"
+        account_file = Path(test_data_dir) / "users" / actual_user_id / "account.json"
+        assert wait_until(
+            lambda: account_file.exists(), timeout_seconds=1.0, poll_seconds=0.01
+        ), "Should resolve created account file"
         account = safe_json_read(str(account_file), default={})
         assert account.get("internal_username") == user_id, "Should read the expected test user"
+        assert account.get("user_id") == actual_user_id, "Should update the expected UUID user"
         assert account.get("timezone") == "America/Chicago", "Should update account timezone"
 
     def test_save_user_data_transaction_invalid_input(self, test_data_dir):

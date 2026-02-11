@@ -8,6 +8,7 @@ These tests verify that the flow actually works and produces expected side effec
 import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
+import uuid
 
 from communication.message_processing.conversation_flow_manager import (
     conversation_manager,
@@ -229,33 +230,44 @@ class TestTaskReminderFollowupBehavior:
         self, mock_get_scheduler, test_data_dir
     ):
         """Test parsing '1 to 2 days before' response."""
+        from tests.conftest import wait_until
+        from core.user_data_handlers import get_user_id_by_identifier
+
         # Arrange
         # Mock scheduler manager
         mock_scheduler = MagicMock()
         mock_get_scheduler.return_value = mock_scheduler
 
-        user_id = "test_days_before"
+        user_id = f"test_days_before_{uuid.uuid4().hex[:8]}"
         TestUserFactory.create_basic_user(
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
+        actual_user_id = get_user_id_by_identifier(user_id) or user_id
 
         due_date = format_timestamp(
             (now_datetime_full() + timedelta(days=3)), DATE_ONLY
         )
 
-        task_id = create_task(user_id=user_id, title="Test task", due_date=due_date)
-        conversation_manager.start_task_reminder_followup(user_id, task_id)
+        task_id = create_task(user_id=actual_user_id, title="Test task", due_date=due_date)
+        conversation_manager.start_task_reminder_followup(actual_user_id, task_id)
 
         # Act - User says "1 to 2 days before"
         reply, completed = conversation_manager._handle_task_reminder_followup(
-            user_id, conversation_manager.user_states[user_id], "1 to 2 days before"
+            actual_user_id,
+            conversation_manager.user_states[actual_user_id],
+            "1 to 2 days before",
         )
 
         # Assert
         assert completed, "Flow should be completed"
 
         # Verify reminder periods
-        task = get_task_by_id(user_id, task_id)
+        assert wait_until(
+            lambda: get_task_by_id(actual_user_id, task_id) is not None,
+            timeout_seconds=1.0,
+            poll_seconds=0.01,
+        ), "Task should remain retrievable after follow-up save"
+        task = get_task_by_id(actual_user_id, task_id)
         assert "reminder_periods" in task, "Task should have reminder_periods"
         reminder = task["reminder_periods"][0]
 

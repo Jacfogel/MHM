@@ -280,13 +280,13 @@ def get_key_directories():
     return VERSION_SYNC_DIRECTORIES
 
 
-def validate_referenced_paths():
+def validate_referenced_paths(project_root=None):
     """Validate that all referenced paths in documentation exist."""
     try:
         # Import the path drift analyzer (path drift was decomposed into separate tool)
         from ..docs.analyze_path_drift import PathDriftAnalyzer
 
-        analyzer = PathDriftAnalyzer()
+        analyzer = PathDriftAnalyzer(project_root=project_root)
         path_issues = analyzer.check_path_drift()
         total_issues = sum(len(issues) for issues in path_issues.values())
 

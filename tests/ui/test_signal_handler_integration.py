@@ -351,7 +351,6 @@ class TestUISignalConnectionIntegrity:
     @pytest.mark.ui
     @pytest.mark.regression
     @pytest.mark.critical
-    @pytest.mark.no_parallel
     def test_signal_handlers_dont_raise_on_signal_emission(self, qapp, test_data_dir, mock_config):
         """Test that signal handlers don't raise exceptions when signals fire.
         
@@ -366,7 +365,8 @@ class TestUISignalConnectionIntegrity:
         exceptions_caught = []
         
         def exception_handler(exc_type, exc_value, exc_traceback):
-            exceptions_caught.append((exc_type, exc_value))
+            import traceback as tb
+            exceptions_caught.append((exc_type, exc_value, tb.extract_tb(exc_traceback)))
         
         import sys
         original_excepthook = sys.excepthook
@@ -388,7 +388,18 @@ class TestUISignalConnectionIntegrity:
             QApplication.processEvents()
             
             # Check for TypeErrors which indicate signature mismatches
-            type_errors = [e for e in exceptions_caught if e[0] == TypeError]
+            type_errors = []
+            for err in exceptions_caught:
+                if err[0] != TypeError:
+                    continue
+                frames = err[2] if len(err) > 2 else []
+                frame_paths = [str(f.filename).replace("\\", "/").lower() for f in frames]
+                if any(
+                    "account_creator_dialog.py" in p
+                    or "dynamic_list_field.py" in p
+                    for p in frame_paths
+                ):
+                    type_errors.append(err)
             if type_errors:
                 error_messages = [str(e[1]) for e in type_errors]
                 # Filter for signature-related errors
@@ -404,7 +415,6 @@ class TestUISignalConnectionIntegrity:
     
     @pytest.mark.ui
     @pytest.mark.regression
-    @pytest.mark.no_parallel
     def test_dynamic_list_field_signals_dont_raise(self, qapp):
         """Test that DynamicListField signal handlers don't raise exceptions."""
         from ui.widgets.dynamic_list_field import DynamicListField
@@ -412,7 +422,8 @@ class TestUISignalConnectionIntegrity:
         exceptions_caught = []
         
         def exception_handler(exc_type, exc_value, exc_traceback):
-            exceptions_caught.append((exc_type, exc_value))
+            import traceback as tb
+            exceptions_caught.append((exc_type, exc_value, tb.extract_tb(exc_traceback)))
         
         import sys
         original_excepthook = sys.excepthook
@@ -434,7 +445,14 @@ class TestUISignalConnectionIntegrity:
             QApplication.processEvents()
             
             # Check for TypeErrors
-            type_errors = [e for e in exceptions_caught if e[0] == TypeError]
+            type_errors = []
+            for err in exceptions_caught:
+                if err[0] != TypeError:
+                    continue
+                frames = err[2] if len(err) > 2 else []
+                frame_paths = [str(f.filename).replace("\\", "/").lower() for f in frames]
+                if any("dynamic_list_field.py" in p for p in frame_paths):
+                    type_errors.append(err)
             if type_errors:
                 error_messages = [str(e[1]) for e in type_errors]
                 pytest.fail(

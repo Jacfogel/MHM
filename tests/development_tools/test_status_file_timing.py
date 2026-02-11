@@ -9,6 +9,7 @@ written once at the end, not during tool execution.
 import sys
 import time
 from pathlib import Path
+from unittest.mock import patch
 import pytest
 
 # Add project root to path
@@ -56,7 +57,13 @@ def test_status_files_written_only_at_end_of_audit(temp_project_copy):
     
     # Run a quick audit
     service = AIToolsService(project_root=str(project_root))
-    result = service.run_audit(quick=True)
+    # Keep this test focused on status-file write timing rather than expensive tool internals.
+    with patch.object(
+        service,
+        "run_script",
+        return_value={"success": True, "output": "{}", "data": {}},
+    ):
+        result = service.run_audit(quick=True)
     
     # Verify audit completed (even if with errors, status files should still be written)
     assert result is not None, "Audit should complete and return a result"

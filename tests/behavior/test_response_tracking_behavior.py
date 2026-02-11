@@ -610,15 +610,13 @@ class TestResponseTrackingIntegration:
         # The file should be created successfully (the exact data structure may vary)
         # The main point is that error recovery works and creates a valid file
     
-    @pytest.mark.no_parallel
     def test_response_tracking_concurrent_access_safety(self, test_data_dir):
         """Test that response tracking handles concurrent access safely.
-
-        Marked as no_parallel because it modifies shared checkins.json file.
         """
         import time
         import os
-        user_id = "test-user-concurrent"
+        import uuid
+        user_id = f"test-user-concurrent-{uuid.uuid4().hex[:8]}"
 
         # Arrange - Mock file path to use test directory
         checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")

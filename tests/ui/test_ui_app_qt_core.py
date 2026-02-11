@@ -177,12 +177,17 @@ class TestServiceManagerCore:
     @pytest.mark.slow
     def test_stop_service_success(self, service_manager):
         """Test stopping service successfully."""
-        with patch.object(service_manager, 'is_service_running', return_value=(True, 12345)):
+        # Simulate immediate graceful shutdown to avoid waiting through the full poll loop.
+        with patch.object(
+            service_manager,
+            'is_service_running',
+            side_effect=[(True, 12345), (False, None)],
+        ):
             with patch('ui.ui_app_qt.psutil.process_iter', return_value=[]):
-                with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
-                    result = service_manager.stop_service()
-                    
-                    assert result is True
+                with patch('ui.ui_app_qt.time.sleep', return_value=None):
+                    with patch('ui.ui_app_qt.QMessageBox'):
+                        result = service_manager.stop_service()
+                        assert result is True
     
     def test_stop_service_no_process(self, service_manager):
         """Test stopping service when no process."""

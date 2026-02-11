@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-10 06:25:40
+> **Last Generated**: 2026-02-11 03:12:29
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
-- **Files Scanned**: 111
-- **Functions Found**: 1569
+- **Files Scanned**: 110
+- **Functions Found**: 1570
 - **Methods Found**: 1151
 - **Classes Found**: 154
-- **Total Items**: 2720
-- **Functions Documented**: 1498
+- **Total Items**: 2721
+- **Functions Documented**: 1499
 - **Methods Documented**: 1111
 - **Classes Documented**: 120
-- **Total Documented**: 2609
+- **Total Documented**: 2610
 - **Template-Generated**: 4
-- **Last Updated**: 2026-02-10
+- **Last Updated**: 2026-02-11
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -4882,8 +4882,6 @@ Returns:
 
 ### `root/` - Root Files
 
-#### `create_backup.py`
-
 #### `run_headless_service.py`
 **Functions:**
 - [OK] `main()` - Main entry point for headless service launcher.
@@ -4919,6 +4917,7 @@ Returns:
 
 #### `run_tests.py`
 **Functions:**
+- [OK] `_persist_captured_output()` - Persist captured pytest output with ANSI stripping to latest and timestamped logs.
 - [OK] `build_windows_no_parallel_env()` - Return environment overrides for stable Windows serial UI/no_parallel runs.
 - [OK] `check_critical_resources(resources)` - Check if resources exceed critical thresholds requiring termination.
 - [OK] `check_resource_warnings(resources)` - Check if resources exceed warning thresholds.

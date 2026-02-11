@@ -7,6 +7,7 @@ side effects rather than just returning values.
 """
 
 import pytest
+import uuid
 
 # Import the modules we're testing
 from communication.command_handlers.task_handler import TaskManagementHandler
@@ -198,9 +199,14 @@ class TestInteractionHandlersBehavior:
 
         # Resolve to the internal UUID to match the rest of the system.
         from core.user_data_handlers import get_user_id_by_identifier
-        from core.user_data_manager import rebuild_user_index
+        from tests.conftest import wait_until
 
-        rebuild_user_index()
+        # Poll for index visibility instead of forcing a full index rebuild.
+        assert wait_until(
+            lambda: get_user_id_by_identifier(user_id) is not None,
+            timeout_seconds=1.0,
+            poll_seconds=0.01,
+        ), "Should resolve user UUID for created user"
         internal_user_id = get_user_id_by_identifier(user_id)
         assert internal_user_id is not None, "Should be able to get UUID for created user"
         
@@ -223,11 +229,10 @@ class TestInteractionHandlersBehavior:
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
         assert "Task 1" in response.message or "Task 2" in response.message, "Should list created tasks"
     
-    @pytest.mark.no_parallel
     def test_task_management_handler_completes_actual_task(self, test_data_dir):
         """Test that TaskManagementHandler actually completes a task in the system."""
         handler = TaskManagementHandler()
-        user_id = "test_user_789"
+        user_id = f"test_user_789_{uuid.uuid4().hex[:8]}"
 
         # Create test user with tasks enabled
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
@@ -235,10 +240,18 @@ class TestInteractionHandlersBehavior:
         # Get the actual UUID for the created user
         from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
+        from tests.conftest import wait_until
         
-        # Rebuild index to ensure user is discoverable (modifies user_index.json)
-        rebuild_user_index()
+        # Resolve UUID with a short poll first; rebuild index only as fallback.
         actual_user_id = get_user_id_by_identifier(user_id)
+        if actual_user_id is None:
+            rebuild_user_index()
+            assert wait_until(
+                lambda: get_user_id_by_identifier(user_id) is not None,
+                timeout_seconds=1.0,
+                poll_seconds=0.01,
+            ), "Should resolve user UUID after index rebuild"
+            actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "Should be able to get UUID for created user"
 
         # Create a test task first
@@ -294,23 +307,29 @@ class TestInteractionHandlersBehavior:
         # Check-in might complete immediately if no questions are configured, or start a flow
         assert "check" in response.message.lower() or "feeling" in response.message.lower() or "mood" in response.message.lower(), "Should mention check-in related content"
     
-    @pytest.mark.no_parallel
     def test_profile_handler_shows_actual_profile(self, test_data_dir):
         """Test that ProfileHandler shows actual user profile data."""
         handler = ProfileHandler()
-        user_id = "test_user_profile"
+        user_id = f"test_user_profile_{uuid.uuid4().hex[:8]}"
         
         # Create test user using centralized utilities
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
+        from tests.conftest import wait_until
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Failed to create test user"
         
         # Get the actual UUID for the created user
-        # Rebuild index to ensure user is discoverable (modifies user_index.json)
-        rebuild_user_index()
         actual_user_id = get_user_id_by_identifier(user_id)
+        if actual_user_id is None:
+            rebuild_user_index()
+            assert wait_until(
+                lambda: get_user_id_by_identifier(user_id) is not None,
+                timeout_seconds=1.0,
+                poll_seconds=0.01,
+            ), "Should resolve user UUID after index rebuild"
+            actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "Should be able to get UUID for created user"
         
         # Update user context with profile-specific data
@@ -321,10 +340,6 @@ class TestInteractionHandlersBehavior:
         })
         assert update_success, "User context should be updated successfully"
         
-        # Ensure context data is persisted (race condition fix for parallel execution)
-        import time
-        time.sleep(0.1)
-
         # Create a parsed command for showing profile
         parsed_command = ParsedCommand(
             intent="show_profile",
@@ -338,10 +353,12 @@ class TestInteractionHandlersBehavior:
 
         # Verify response
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
-        # Retry check in case profile data hasn't loaded yet
         if "Test User" not in response.message:
-            # Wait and try again
-            time.sleep(0.1)
+            assert wait_until(
+                lambda: "Test User" in handler.handle(actual_user_id, parsed_command).message,
+                timeout_seconds=1.0,
+                poll_seconds=0.01,
+            ), "Profile response should include updated preferred name"
             response = handler.handle(actual_user_id, parsed_command)
         assert "Test User" in response.message, f"Should show user name. Response: {response.message}"
         assert "they/them" in response.message, "Should show pronouns"

@@ -1300,7 +1300,7 @@ class AuditOrchestrationMixin:
         """Validate that all referenced paths in documentation exist."""
         try:
             from development_tools.docs.fix_version_sync import validate_referenced_paths
-            result = validate_referenced_paths()
+            result = validate_referenced_paths(project_root=str(self.project_root))
             status = result.get('status') if isinstance(result, dict) else None
             message = result.get('message') if isinstance(result, dict) else None
             if isinstance(result, dict):

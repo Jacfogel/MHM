@@ -65,7 +65,12 @@ class TestCheckinManagementDialogInitialization:
         user_id = "test_checkin_dialog_user"
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core.user_data_handlers import (
+            get_user_id_by_identifier,
+            get_user_data,
+            update_user_account,
+            clear_user_caches,
+        )
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -104,13 +109,44 @@ class TestCheckinManagementDialogInitialization:
     def test_initialization_loads_user_data(self, qapp, test_data_dir, mock_config):
         """Test: CheckinManagementDialog loads user data on initialization"""
         # Arrange
+        from tests.conftest import wait_until
+
         user_id = f"test_checkin_dialog_load_user_{uuid.uuid4().hex[:8]}"
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
-        from core.user_data_handlers import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
-        if actual_user_id is None:
-            actual_user_id = user_id
+        from core.user_data_handlers import (
+            get_user_id_by_identifier,
+            get_user_data,
+            update_user_account,
+            clear_user_caches,
+        )
+        actual_user_id = None
+        for _ in range(40):
+            actual_user_id = get_user_id_by_identifier(user_id)
+            if actual_user_id is None:
+                actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+                    user_id, test_data_dir
+                )
+            if actual_user_id:
+                break
+            import time
+            time.sleep(0.05)
+        assert actual_user_id, "Expected test user id resolution before dialog init"
+        update_user_account(
+            actual_user_id, {"features": {"checkins": "enabled"}}, auto_create=True
+        )
+        assert wait_until(
+            lambda: (
+                get_user_data(actual_user_id, "account", normalize_on_read=True)
+                .get("account", {})
+                .get("features", {})
+                .get("checkins")
+                == "enabled"
+            ),
+            timeout_seconds=6.0,
+            poll_seconds=0.02,
+        ), "Expected checkins feature to be enabled for created user"
+        clear_user_caches()
         
         # Act
         dialog = CheckinManagementDialog(user_id=actual_user_id)

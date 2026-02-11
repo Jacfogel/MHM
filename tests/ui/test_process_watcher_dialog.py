@@ -914,7 +914,6 @@ class TestProcessWatcherIntegration:
     @pytest.mark.ui
     @pytest.mark.ui
     @pytest.mark.integration
-    @pytest.mark.no_parallel
     def test_auto_refresh_workflow(self, dialog):
         """Test auto-refresh workflow: enable -> timer active -> refresh on timeout."""
         # Arrange: Set up mock processes

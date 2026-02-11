@@ -292,7 +292,16 @@ class TestCommandParserCoverageExpansionPhase3Simple:
             "create\ta\ttask",  # Tabs
             "create\na\ntask",  # Newlines
         ]
-        
+
+        # Keep this test focused on pattern robustness, not AI fallback latency.
+        self.parser._ai_enhanced_parse = Mock(
+            return_value=ParsingResult(
+                ParsedCommand("unknown", {}, 0.0, ""),
+                0.0,
+                "fallback",
+            )
+        )
+
         for case in edge_cases:
             # Should not raise exceptions
             result = self.parser.parse(case)

@@ -284,7 +284,6 @@ class TestOrphanedReminderCleanup:
     @pytest.mark.integration
     @pytest.mark.scheduler
     @pytest.mark.tasks
-    @pytest.mark.no_parallel
     @patch("core.service.get_scheduler_manager")
     @patch("core.scheduler.SchedulerManager.set_wake_timer")
     def test_cleanup_handles_multiple_users(
@@ -292,8 +291,11 @@ class TestOrphanedReminderCleanup:
     ):
         """Test that cleanup handles reminders for multiple users correctly."""
         # Arrange
-        user1_id = "test_cleanup_user1"
-        user2_id = "test_cleanup_user2"
+        import uuid
+
+        suffix = uuid.uuid4().hex[:8]
+        user1_id = f"test_cleanup_user1_{suffix}"
+        user2_id = f"test_cleanup_user2_{suffix}"
         TestUserFactory.create_basic_user(
             user1_id, enable_tasks=True, test_data_dir=test_data_dir
         )

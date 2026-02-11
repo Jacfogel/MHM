@@ -6,7 +6,35 @@ Tests focus on actual side effects and system changes rather than just return va
 
 import pytest
 from communication.message_processing.interaction_manager import InteractionManager
+from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
+from communication.message_processing.command_parser import ParsingResult
 from tests.test_utilities import TestUserFactory
+
+
+def _create_fast_interaction_manager():
+    """Create an interaction manager with deterministic fast-path parsing/chat for tests."""
+    interaction_manager = InteractionManager()
+    parser = interaction_manager.command_parser
+
+    def _fast_parse(message, user_id=None):
+        text = "" if message is None else str(message)
+        if not text.strip():
+            return ParsingResult(
+                ParsedCommand("unknown", {}, 0.0, text),
+                0.0,
+                "fallback",
+            )
+        return parser._rule_based_parse(text)
+
+    interaction_manager.command_parser.parse = _fast_parse
+    interaction_manager.enable_ai_enhancement = False
+    interaction_manager._handle_contextual_chat = (
+        lambda user_id, message, channel_type: InteractionResponse(
+            "I can help with tasks, check-ins, profile, and schedules.",
+            True,
+        )
+    )
+    return interaction_manager
 
 
 @pytest.mark.behavior
@@ -17,7 +45,7 @@ class TestInteractionManagerBehavior:
     def test_interaction_manager_initialization_creates_components(self, test_data_dir):
         """Test that interaction manager initialization creates required components."""
         # Arrange & Act
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Assert - Verify actual component creation
         assert interaction_manager is not None, "Interaction manager should be created"
@@ -31,7 +59,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "help", "discord")
@@ -46,7 +74,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "/tasks", "discord")
@@ -60,7 +88,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "Hello, how are you?", "discord")
@@ -74,7 +102,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "What's the weather like?", "discord")
@@ -88,7 +116,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "show my profile", "discord")
@@ -102,7 +130,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "/tasks", "discord")
@@ -116,7 +144,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "/schedule", "discord")
@@ -130,7 +158,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "/checkin", "discord")
@@ -144,7 +172,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "/profile", "discord")
@@ -158,7 +186,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "/help", "discord")
@@ -172,7 +200,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "/unknown_command", "discord")
@@ -186,7 +214,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "", "discord")
@@ -200,7 +228,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "   ", "discord")
@@ -214,7 +242,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "test message", "discord")
@@ -228,7 +256,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "test message", "discord")
@@ -242,7 +270,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         long_message = "This is a very long message " * 100
         
         # Act
@@ -257,7 +285,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         special_message = "Message with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"
         
         # Act
@@ -272,7 +300,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         unicode_message = "Message with unicode: 🚀🌟🎉你好世界"
         
         # Act
@@ -287,7 +315,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         mixed_message = "Mixed content: /tasks and regular chat 🚀"
         
         # Act
@@ -302,7 +330,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act - Send multiple messages to test context
         response1 = interaction_manager.handle_message(user_id, "Hello", "discord")
@@ -319,7 +347,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act - Test with None message
         response = interaction_manager.handle_message(user_id, None, "discord")
@@ -333,7 +361,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act - Simulate concurrent access
         response1 = interaction_manager.handle_message(user_id, "Message 1", "discord")
@@ -350,7 +378,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act - Send multiple rapid messages
         responses = []
@@ -369,7 +397,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "show my preferences", "discord")
@@ -383,7 +411,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "show my features", "discord")
@@ -395,7 +423,7 @@ class TestInteractionManagerBehavior:
     def test_get_slash_command_map_returns_valid_map(self, test_data_dir):
         """Test that get_slash_command_map returns a valid command map."""
         # Arrange
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         command_map = interaction_manager.get_slash_command_map()
@@ -409,7 +437,7 @@ class TestInteractionManagerBehavior:
     def test_get_command_definitions_returns_valid_definitions(self, test_data_dir):
         """Test that get_command_definitions returns valid command definitions."""
         # Arrange
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         definitions = interaction_manager.get_command_definitions()
@@ -427,7 +455,7 @@ class TestInteractionManagerBehavior:
     def test_get_commands_response_returns_valid_response(self, test_data_dir):
         """Test that _get_commands_response returns a valid response."""
         # Arrange
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager._get_commands_response()
@@ -444,7 +472,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         commands = interaction_manager.get_available_commands(user_id)
@@ -458,7 +486,7 @@ class TestInteractionManagerBehavior:
         # Arrange
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         suggestions = interaction_manager.get_user_suggestions(user_id)
@@ -470,7 +498,7 @@ class TestInteractionManagerBehavior:
     def test_is_ai_command_response_detects_json_commands(self, test_data_dir):
         """Test that _is_ai_command_response detects JSON command responses."""
         # Arrange
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act & Assert - Test JSON command detection
         json_command = '{"action": "create_task", "intent": "create_task"}'
@@ -485,7 +513,7 @@ class TestInteractionManagerBehavior:
     def test_parse_ai_command_response_parses_json(self, test_data_dir):
         """Test that _parse_ai_command_response parses JSON command responses."""
         # Arrange
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         original_message = "create a task"
         
         # Act - Test JSON parsing
@@ -500,7 +528,7 @@ class TestInteractionManagerBehavior:
     def test_is_clarification_request_detects_clarification(self, test_data_dir):
         """Test that _is_clarification_request detects clarification requests."""
         # Arrange
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act & Assert - Test clarification detection
         clarification = "Could you clarify what you mean?"
@@ -515,7 +543,7 @@ class TestInteractionManagerBehavior:
     def test_extract_intent_from_text_extracts_intent(self, test_data_dir):
         """Test that _extract_intent_from_text extracts intent from text."""
         # Arrange
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act & Assert - Test intent extraction
         text = "I want to create a task"
@@ -532,7 +560,7 @@ class TestInteractionManagerBehavior:
     def test_is_valid_intent_checks_intent_validity(self, test_data_dir):
         """Test that _is_valid_intent checks if intent is valid."""
         # Arrange
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act & Assert - Test intent validation
         valid_intent = "list_tasks"
@@ -547,7 +575,7 @@ class TestInteractionManagerBehavior:
         """Test that _augment_suggestions adds suggestions to response."""
         # Arrange
         from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act - Test suggestion augmentation for multiple matching tasks
         parsed_cmd = ParsedCommand("complete_task", {}, 0.9, "complete task")
@@ -570,7 +598,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "Hello", "discord")
@@ -587,7 +615,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act - Send multiple messages
         response1 = interaction_manager.handle_message(user_id, "Hello", "discord")
@@ -606,7 +634,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "!tasks", "discord")
@@ -621,7 +649,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act - Test flow command
         response = interaction_manager.handle_message(user_id, "/checkin", "discord")
@@ -636,7 +664,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "confirm delete", "discord")
@@ -651,7 +679,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         response = interaction_manager.handle_message(user_id, "complete task", "discord")
@@ -666,7 +694,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act - Test schedule edit shortcut
         response = interaction_manager.handle_message(user_id, "edit schedule period morning tasks", "discord")
@@ -681,7 +709,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act - Test update task coercion
         response = interaction_manager.handle_message(user_id, "update task test_task title New Title", "discord")
@@ -694,7 +722,7 @@ class TestInteractionManagerRealBehavior:
     def test_get_slash_command_map_returns_actual_map(self, test_data_dir):
         """Test that get_slash_command_map returns actual command map."""
         # Arrange
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         command_map = interaction_manager.get_slash_command_map()
@@ -710,7 +738,7 @@ class TestInteractionManagerRealBehavior:
     def test_get_command_definitions_returns_actual_definitions(self, test_data_dir):
         """Test that get_command_definitions returns actual command definitions."""
         # Arrange
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         definitions = interaction_manager.get_command_definitions()
@@ -731,7 +759,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         commands = interaction_manager.get_available_commands(user_id)
@@ -746,7 +774,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = InteractionManager()
+        interaction_manager = _create_fast_interaction_manager()
         
         # Act
         suggestions = interaction_manager.get_user_suggestions(user_id)

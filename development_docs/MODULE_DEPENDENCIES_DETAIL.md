@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-10 06:25:46
+> **Last Generated**: 2026-02-11 03:12:30
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 109
-- **Total Imports Found**: 1455
-- **Dependencies Documented**: 109 (100% coverage)
+- **Files Scanned**: 108
+- **Total Imports Found**: 1454
+- **Dependencies Documented**: 108 (100% coverage)
 - **Standard Library Imports**: 382 (26.3%)
 - **Third-Party Imports**: 223 (15.3%)
-- **Local Imports**: 850 (58.4%)
-- **Last Updated**: 2026-02-10
+- **Local Imports**: 849 (58.4%)
+- **Last Updated**: 2026-02-11
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 382 imports (26.3%)
 - **Third-Party**: 223 imports (15.3%)
-- **Local**: 850 imports (58.4%)
+- **Local**: 849 imports (58.4%)
 
 ## Module Dependencies by Directory
 
@@ -1292,11 +1292,10 @@
     - `zipfile`
 - **Used by**: 
   - `core/scheduler.py`
-  - `create_backup.py`
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.logger, core.time_utilities, core.user_data_handlers
-- Removed: core/scheduler.py, create_backup.py
+- Removed: core/scheduler.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Manages automatic backups and rollback operations
@@ -2330,20 +2329,6 @@
 <!-- MANUAL_ENHANCEMENT_END -->
 
 ### `root/` - Project root files
-
-#### `create_backup.py`
-- **Purpose**: Core system module with heavy core dependencies
-- **Dependencies**: 
-  - **Local**:
-    - `core.backup_manager (BackupManager)` (NEW)
-- **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Added: core.backup_manager
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
 
 #### `run_headless_service.py`
 - **Purpose**: Main entry point for the application

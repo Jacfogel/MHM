@@ -36,7 +36,7 @@
 **Priority**: Medium  
 **Effort**: Medium  
 **Date**: 2025-11-23  
-**Last Updated**: 2026-01-26
+**Last Updated**: 2026-02-11
 
 **Objective**: Optimize test suite execution time from ~265 seconds (4.4 minutes) to ~205-225 seconds (3.4-3.7 minutes) by reducing unnecessary delays, optimizing expensive operations, and improving test efficiency.
 
@@ -48,6 +48,7 @@
 - Recent flaky-detector full-suite runs (2026-02-10) were typically ~207-255s, with rare timeout outliers at 600s; follow-up remains focused on timeout root cause and worker-log consolidation.
 - As of 2026-02-10 session close, serial `@pytest.mark.no_parallel` runs are passing in `run_tests.py` (no Windows crash observed in latest reruns); keep monitoring for regression.
 - Audit/report noise from pytest temp artifacts was reduced by excluding `.tmp_pytest_runner` and related temp/cache directories in dev-tools exclusions.
+- 2026-02-11 profiling runs show improved full parallel-suite runtime when using temp-isolated pytest dirs (`--basetemp` and `cache_dir` under `%TEMP%`), with a clean sample at `4457 passed, 1 skipped in 209.25s`.
 - **Performance Investigation Results (2025-11-24)**:
   - Attempted optimizations (removed `no_parallel` markers, added `wait_until` helpers, reduced retry loops)
   - Performance did not improve; actually degraded in some cases
@@ -88,6 +89,7 @@
 - Replace remaining manual retry loops with `wait_until()` where safe.
 - Audit `no_parallel` markers for additional safe removals.
 - Consider caching expensive test helpers and batching file operations.
+- Add a lightweight wrapper to archive `parallel_profile_*.log/.xml` outputs into `development_tools/tests/logs/archive/` with 7-version consolidated retention.
 
 **Success Criteria**:
 - [ ] Test suite runs in ~205-225 seconds (15-23% improvement)
@@ -112,6 +114,97 @@
 - **Reverted Changes**: All optimization attempts reverted after determining performance variability is due to system load
 - **Current Status**: Plan on hold - baseline performance (~3.8-4 minutes) is acceptable. Future optimizations should focus on reducing expensive operations (like `rebuild_user_index()`) rather than test execution patterns.
 - **2026-01-26 Update**: Short-circuited heavy UI startup work in `MHM_TESTING` mode to reduce long-running parallel UI tests; re-baseline after next full run.
+
+### **No-Parallel Marker Reduction Plan** **IN PROGRESS**
+
+**Status**: **IN PROGRESS**
+**Priority**: High
+**Effort**: Medium
+**Date**: 2026-02-10
+**Last Updated**: 2026-02-10
+
+**Objective**: Reduce `@pytest.mark.no_parallel` usage by making targeted tests parallel-safe through deterministic test data isolation, unique IDs, fixture-scoped paths, and explicit state cleanup.
+
+**Current Baseline**:
+- Active `@pytest.mark.no_parallel` markers remaining: 86 across 12 test files (updated 2026-02-10 after Wave 1 execution; baseline was 95 across 17 files).
+- Recent progress included successful reintegration of several isolated tests by removing fixed IDs/shared file collisions.
+
+**Approach**:
+- Prioritize easiest wins first: single-marker files and two-marker files with fixed IDs or shared file constants.
+- Convert tests to per-test unique user IDs and per-test data paths.
+- Patch module-level file constants in tests where shared state is unavoidable.
+- Keep marker only when real cross-process invariants cannot be safely isolated.
+
+**Execution Waves**:
+- [x] **Wave 1 (easiest wins)**: Single/low-count marker files
+  - [x] `tests/unit/test_file_operations.py` (`test_save_large_json_data`)
+  - [x] `tests/behavior/test_welcome_manager_behavior.py` (2 tests)
+  - [x] `tests/behavior/test_webhook_handler_behavior.py` (2 tests)
+  - [x] `tests/behavior/test_conversation_flow_manager_behavior.py` (2 tests)
+  - [x] `tests/behavior/test_interaction_handlers_behavior.py` (2 tests)
+- [ ] **Wave 2 (moderate)**: Small clusters with shared message/account state
+  - [ ] `tests/behavior/test_message_behavior.py` (4 tests)
+  - [ ] `tests/behavior/test_discord_bot_behavior.py` (3 tests)
+  - [ ] `tests/ui/test_ui_app_qt_main.py` (5 tests)
+- [ ] **Wave 3 (larger clusters)**: High-touch modules
+  - [ ] `tests/behavior/test_account_management_real_behavior.py` (6 tests)
+  - [ ] `tests/unit/test_user_management.py` (6 tests)
+  - [ ] `tests/integration/test_account_lifecycle.py` (7 tests)
+  - [ ] `tests/integration/test_user_creation.py` (7 tests)
+  - [ ] `tests/behavior/test_backup_manager_behavior.py` (8 tests)
+  - [ ] `tests/behavior/test_user_data_flow_architecture.py` (8 tests)
+  - [ ] `tests/unit/test_user_data_manager.py` (14 tests)
+  - [ ] `tests/behavior/test_account_handler_behavior.py` (15 tests)
+
+**Per-Test Conversion Checklist**:
+- [ ] Replace fixed identifiers with unique per-test IDs (worker-safe suffixes)
+- [ ] Route all filesystem writes to fixture-provided per-test paths
+- [ ] Patch module-level file constants used by the test target
+- [ ] Remove marker and run targeted loop (`pytest -n auto`) for that test/module
+- [ ] Add/adjust assertions so data is validated via isolated test-owned files
+- [ ] Document residual reason if marker must remain
+
+**Validation Checklist**:
+- [ ] Targeted repeated parallel runs pass for each converted test
+- [ ] Module-level parallel run passes after each batch
+- [ ] Full-suite flaky detector trend improves after each wave
+- [ ] Remaining marker count tracked in changelog/session notes
+
+**Success Criteria**:
+- [ ] Reduce active no-parallel markers by at least 50% from the 2026-02-10 baseline
+- [ ] No increase in flaky failure rate in `flaky_detector` targeted reruns
+- [ ] Every remaining marker has a documented technical reason
+
+### **Investigate Intermittent Test Failures** **IN PROGRESS**
+
+**Status**: **IN PROGRESS**
+**Priority**: Medium
+**Effort**: Small/Medium
+**Date**: 2026-02-10
+
+- *What it means*: Investigate and fix test failures that appear intermittently (including coverage-run flakes); keep the suspect list current as flakes are confirmed or resolved.
+- *Why it helps*: Ensures test suite reliability and prevents false negatives that can mask real issues
+- *Estimated effort*: Small/Medium
+- *Subtasks*:
+  - [ ] Investigate `tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_feature_enablement_persistence_real_behavior` and ensure each worker has isolated `tests/data` state
+  - [ ] Investigate `tests/behavior/test_logger_behavior.py::TestLoggerFileOperationsBehavior::test_get_log_file_info_real_behavior`
+  - [ ] Investigate `tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_updates_account_features`; `tests/behavior/test_user_data_flow_architecture.py::TestAtomicOperations::test_atomic_operation_all_types_succeed` had a mitigation on 2026-02-09 (unique per-test user IDs), monitor for recurrence in coverage runs.
+  - [ ] Investigate `tests/behavior/test_user_data_flow_architecture.py::TestProcessingOrder::test_processing_order_deterministic_regardless_of_input_order`; mitigation applied on 2026-02-09 (stronger persisted-data readiness check + cache clears), monitor in coverage runs.
+  - [ ] Monitor Windows no-parallel stability (`0xC0000135` recurrence) after recent run_tests environment/isolation fixes; keep `run_tests.py` serial phase under observation.
+  - [ ] Investigate `tests/behavior/test_checkin_questions_enhancement.py::TestCustomQuestions::test_delete_custom_question`
+  - [ ] Investigate `tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success` flake in coverage runs (avoid nondeterministic "first directory" assumptions under shared `tests/data/users`)
+  - [ ] Investigate `tests/development_tools/test_fix_project_cleanup.py::TestProjectCleanup::test_cleanup_test_temp_dirs_no_directory` flake (TOCTOU race when temp dirs disappear during cleanup in parallel runs)
+  - [ ] Investigate `tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized`
+  - [ ] Investigate `tests/unit/test_schedule_management.py::TestScheduleManagement::test_schedule_period_lifecycle`
+  - [ ] Investigate `tests/ui/test_task_management_dialog.py::TestTaskManagementDialogRealBehavior::test_save_task_settings_persists_after_reload`
+  - [ ] Investigate `tests/unit/test_user_data_handlers.py::TestUserDataHandlersConvenienceFunctions::test_update_user_account_valid_input` intermittent parallel failure (cross-user write/read mismatch observed in flaky detector and targeted xdist runs)
+  - [ ] Investigate `tests/unit/test_user_data_handlers.py::TestUserDataHandlersConvenienceFunctions::test_save_user_data_transaction_valid_input` intermittent parallel failure (cross-user write/read mismatch observed in flaky detector and targeted xdist runs)
+  - [ ] Investigate `tests/behavior/test_user_management_coverage_expansion.py::TestUserManagementCoverageExpansion::test_load_account_data_auto_create_real_behavior` intermittent parallel failure (auto-created account occasionally returns empty `internal_username`)
+  - [ ] Investigate `test_scan_all_python_files_demo_project`
+  - [ ] Check for timing/race condition issues in test setup or teardown
+  - [ ] Verify test isolation and data cleanup between test runs
+  - [ ] Add retry logic or fix root cause if identified
+  - [ ] Track `tests/development_tools/test_legacy_reference_cleanup.py::TestCleanupOperations::test_cleanup_legacy_references_dry_run` failures (PermissionError when copying `tests/fixtures/development_tools_demo` into `tests/data/tmp*/demo_project`) and ensure the temporary `tests/data/tmp*` directories remain writable before rerunning the suite.
 
 ### **Error Handling Quality Improvement Plan** **IN PROGRESS**
 

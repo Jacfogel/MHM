@@ -10,6 +10,7 @@ Verifies:
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
+import uuid
 
 from tests.test_utilities import TestUserFactory, TestDataManager
 
@@ -30,7 +31,7 @@ class TestDiscordCheckinRetryBehavior:
     @pytest.fixture
     def user_id(self, test_data_dir):
         """Create test user with Discord channel."""
-        user_id = "test_discord_retry_user"
+        user_id = f"test_discord_retry_user_{uuid.uuid4().hex[:8]}"
         # Create basic user with check-ins enabled
         TestUserFactory.create_basic_user(
             user_id,
@@ -39,7 +40,13 @@ class TestDiscordCheckinRetryBehavior:
             enable_tasks=False,
         )
         # Set Discord channel in preferences
-        from core.user_data_handlers import get_user_data, save_user_data
+        from core.user_data_handlers import (
+            get_user_data,
+            save_user_data,
+            update_user_account,
+            update_user_preferences,
+            clear_user_caches,
+        )
 
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
             user_id, test_data_dir
@@ -49,7 +56,7 @@ class TestDiscordCheckinRetryBehavior:
                 actual_user_id, "preferences", normalize_on_read=True
             ).get("preferences", {})
             prefs["channel"] = {"type": "discord", "discord_username": "testuser#1234"}
-            save_user_data(actual_user_id, "preferences", prefs)
+            save_user_data(actual_user_id, {"preferences": prefs})
         return user_id
 
     @pytest.fixture
@@ -60,13 +67,19 @@ class TestDiscordCheckinRetryBehavior:
         manager = CommunicationManager()
         return manager
 
-    @pytest.mark.no_parallel
     def test_checkin_message_queued_on_discord_disconnect(
         self, comm_manager, user_id, test_data_dir
     ):
         """Test that check-in messages are queued when Discord disconnects during send."""
+        from tests.conftest import wait_until
+
         # Arrange: Get actual user ID (UUID) for the test user
-        from core.user_data_handlers import get_user_data, save_user_data
+        from core.user_data_handlers import (
+            get_user_data,
+            update_user_account,
+            update_user_preferences,
+            clear_user_caches,
+        )
 
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
             user_id, test_data_dir
@@ -84,21 +97,38 @@ class TestDiscordCheckinRetryBehavior:
             if user_data and ("account" in user_data or "preferences" in user_data):
                 break
             if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+                time.sleep(0.1)
 
-        if "account" in user_data:
-            user_data["account"].setdefault("features", {})["checkins"] = "enabled"
-        if "preferences" in user_data:
-            user_data["preferences"].setdefault("checkin_settings", {})[
-                "enabled"
-            ] = True
-            user_data["preferences"]["checkin_settings"]["frequency"] = "daily"
-            # Set up Discord channel for messaging
-            user_data["preferences"].setdefault("channel", {})["type"] = "discord"
+        update_user_account(
+            actual_user_id,
+            {"features": {"checkins": "enabled"}},
+            auto_create=True,
+        )
+        prefs_updates = dict(user_data.get("preferences", {}))
+        prefs_updates.setdefault("checkin_settings", {})["enabled"] = True
+        prefs_updates["checkin_settings"]["frequency"] = "daily"
+        prefs_updates.setdefault("channel", {})["type"] = "discord"
+        update_user_preferences(actual_user_id, prefs_updates, auto_create=True)
+        clear_user_caches()
+        assert wait_until(
+            lambda: (
+                get_user_data(actual_user_id, "preferences", normalize_on_read=True)
+                .get("preferences", {})
+                .get("channel", {})
+                .get("type")
+                == "discord"
+                and get_user_data(actual_user_id, "account", normalize_on_read=True)
+                .get("account", {})
+                .get("features", {})
+                .get("checkins")
+                == "enabled"
+            ),
+            timeout_seconds=4.0,
+            poll_seconds=0.01,
+        ), "User should have persisted discord channel + enabled checkins before send"
 
-        save_result = save_user_data(actual_user_id, user_data)
-        # Ensure save completed (race condition fix)
-        time.sleep(0.1)
+        # Ensure clean retry-manager state in case singleton carries over from other tests.
+        comm_manager.retry_manager.stop_retry_thread()
 
         # Clear retry queue to ensure clean state
         while not comm_manager.retry_manager._failed_message_queue.empty():
@@ -114,9 +144,15 @@ class TestDiscordCheckinRetryBehavior:
         comm_manager._channels_dict["discord"] = mock_discord_bot
 
         # Act: Try to send check-in - should queue because channel not ready
-        comm_manager.handle_message_sending(actual_user_id, "checkin")
+        with patch.object(comm_manager, "_should_send_checkin_prompt", return_value=True):
+            comm_manager.handle_message_sending(actual_user_id, "checkin")
 
         # Assert: Verify message was queued for retry
+        assert wait_until(
+            lambda: comm_manager.retry_manager.get_queue_size() > 0,
+            timeout_seconds=3.0,
+            poll_seconds=0.02,
+        ), "Failed check-in message should be queued for retry"
         queue_size = comm_manager.retry_manager.get_queue_size()
         assert (
             queue_size > 0

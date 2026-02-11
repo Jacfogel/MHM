@@ -122,18 +122,18 @@ def test_account_management_functions():
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.file_io
-@pytest.mark.no_parallel
 def test_account_management_data_structures(test_data_dir, mock_config):
     """Test that account management can handle the expected data structures"""
     import logging
+    import uuid
     logging.getLogger("mhm_tests").debug("Testing Account Management Data Structures...")
     
     try:
-        from core.user_data_handlers import get_user_data, save_user_data
+        from core.user_data_handlers import get_user_data, save_user_data, update_user_account
         from tests.test_utilities import TestUserFactory
         
         # Create a test user first (minimal user since we only need basic structure for data structure testing)
-        test_user_id = "test-user"
+        test_user_id = f"test-user-{uuid.uuid4().hex[:8]}"
         success = TestUserFactory.create_minimal_user(test_user_id, test_data_dir=test_data_dir)
         assert success, "Failed to create test user"
         
@@ -147,7 +147,32 @@ def test_account_management_data_structures(test_data_dir, mock_config):
         # Test account data structure
         try:
             from tests.conftest import materialize_user_minimal_via_public_apis
+            from tests.conftest import wait_until
             materialize_user_minimal_via_public_apis(test_user)
+            assert wait_until(
+                lambda: "features"
+                in (get_user_data(test_user, "account") or {}).get("account", {}),
+                timeout_seconds=4.0,
+                poll_seconds=0.01,
+            ), "Timed out waiting for account.features to materialize"
+            account_probe = get_user_data(test_user, "account")
+            if "features" not in (account_probe or {}).get("account", {}):
+                update_user_account(
+                    test_user,
+                    {
+                        "features": {
+                            "automated_messages": "enabled",
+                            "task_management": "disabled",
+                            "checkins": "disabled",
+                        }
+                    },
+                )
+                assert wait_until(
+                    lambda: "features"
+                    in (get_user_data(test_user, "account") or {}).get("account", {}),
+                    timeout_seconds=4.0,
+                    poll_seconds=0.01,
+                ), "Timed out waiting for account.features after explicit update"
             account_data = get_user_data(test_user, 'account')
             if account_data and 'account' in account_data:
                 account = account_data['account']

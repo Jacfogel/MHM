@@ -8,6 +8,7 @@ These tests verify that welcome manager actually works and produces expected sid
 import pytest
 import json
 import os
+import uuid
 from pathlib import Path
 from unittest.mock import patch
 from communication.core.welcome_manager import (
@@ -17,37 +18,18 @@ from communication.core.welcome_manager import (
     get_welcome_message
 )
 
-pytestmark = pytest.mark.no_parallel
-
-
 class TestWelcomeManagerBehavior:
     """Test welcome manager real behavior and side effects."""
     
     @pytest.fixture(autouse=True)
     def setup_welcome_tracking(self, test_data_dir):
-        """Set up welcome tracking file for tests."""
-        # Patch BASE_DATA_DIR to use test directory
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            # Ensure tracking file doesn't exist at start
-            tracking_file = Path(test_data_dir) / "welcome_tracking.json"
-            if tracking_file.exists():
-                try:
-                    tracking_file.unlink()
-                except (PermissionError, OSError):
-                    # File might be locked by another test in parallel execution
-                    # This is OK - the test will work with existing file
-                    pass
-            
+        """Set up an isolated welcome tracking file for each test."""
+        tracking_file = Path(test_data_dir) / f"welcome_tracking_{uuid.uuid4().hex[:8]}.json"
+        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir), patch(
+            'communication.core.welcome_manager.WELCOME_TRACKING_FILE',
+            tracking_file,
+        ):
             yield
-            
-            # Cleanup: remove tracking file after test
-            if tracking_file.exists():
-                try:
-                    tracking_file.unlink()
-                except (PermissionError, OSError):
-                    # File might be locked by another test in parallel execution
-                    # This is OK - cleanup will happen later
-                    pass
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -73,7 +55,8 @@ class TestWelcomeManagerBehavior:
             assert result is True, "Should mark as welcomed successfully"
             
             # Verify file was created
-            tracking_file = Path(test_data_dir) / "welcome_tracking.json"
+            from communication.core import welcome_manager
+            tracking_file = welcome_manager.WELCOME_TRACKING_FILE
             assert tracking_file.exists(), "Tracking file should be created"
             
             # Verify data was saved
@@ -123,7 +106,8 @@ class TestWelcomeManagerBehavior:
             assert not has_been_welcomed(channel_identifier, channel_type='discord'), "Should no longer be welcomed"
             
             # Verify file still exists but user is removed
-            tracking_file = Path(test_data_dir) / "welcome_tracking.json"
+            from communication.core import welcome_manager
+            tracking_file = welcome_manager.WELCOME_TRACKING_FILE
             if tracking_file.exists():
                 with open(tracking_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
@@ -174,12 +158,11 @@ class TestWelcomeManagerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_welcome_tracking_supports_multiple_users(self, test_data_dir):
         """Test: Welcome tracking supports multiple users."""
         with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            user1 = 'user_1'
-            user2 = 'user_2'
+            user1 = f'user_1_{uuid.uuid4().hex[:8]}'
+            user2 = f'user_2_{uuid.uuid4().hex[:8]}'
             
             # Mark both as welcomed
             mark_as_welcomed(user1, channel_type='discord')
@@ -252,11 +235,10 @@ class TestWelcomeManagerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_mark_as_welcomed_persists_across_calls(self, test_data_dir):
         """Test: mark_as_welcomed persists data across multiple calls."""
         with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            channel_identifier = 'persistent_user'
+            channel_identifier = f'persistent_user_{uuid.uuid4().hex[:8]}'
             
             # Mark as welcomed
             mark_as_welcomed(channel_identifier, channel_type='discord')
@@ -271,10 +253,11 @@ class TestWelcomeManagerBehavior:
             assert has_been_welcomed(channel_identifier, channel_type='discord'), "Should still be welcomed after second mark"
             
             # Verify file has updated data
-            tracking_file = Path(test_data_dir) / "welcome_tracking.json"
+            from communication.core import welcome_manager
+            tracking_file = welcome_manager.WELCOME_TRACKING_FILE
             with open(tracking_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            key = "discord:persistent_user"
+            key = f"discord:{channel_identifier}"
             assert key in data, "User should still be in tracking"
             assert data[key]['welcomed'] is True, "Should still be marked as welcomed"
     
@@ -284,7 +267,8 @@ class TestWelcomeManagerBehavior:
     def test_welcome_tracking_handles_missing_file_gracefully(self, test_data_dir):
         """Test: Welcome tracking handles missing file gracefully."""
         with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            tracking_file = Path(test_data_dir) / "welcome_tracking.json"
+            from communication.core import welcome_manager
+            tracking_file = welcome_manager.WELCOME_TRACKING_FILE
             
             # Ensure file doesn't exist (handle file locking in parallel execution)
             if tracking_file.exists():
@@ -309,7 +293,8 @@ class TestWelcomeManagerBehavior:
     def test_welcome_tracking_handles_corrupted_file_gracefully(self, test_data_dir):
         """Test: Welcome tracking handles corrupted file gracefully."""
         with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            tracking_file = Path(test_data_dir) / "welcome_tracking.json"
+            from communication.core import welcome_manager
+            tracking_file = welcome_manager.WELCOME_TRACKING_FILE
             
             # Create corrupted file
             tracking_file.parent.mkdir(parents=True, exist_ok=True)
@@ -329,4 +314,3 @@ class TestWelcomeManagerBehavior:
             with open(tracking_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             assert isinstance(data, dict), "File should be valid JSON"
-

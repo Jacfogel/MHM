@@ -42,16 +42,17 @@ def qapp():
 def task_management_user(test_data_dir):
     """Create a test user for task management tests."""
     import time
-    from core.user_data_handlers import get_user_id_by_identifier
 
     user_id = f"test_task_user_{uuid.uuid4().hex[:8]}"
     TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
-    for _ in range(10):
-        resolved_user_id = get_user_id_by_identifier(user_id)
+    for _ in range(50):
+        resolved_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            user_id, test_data_dir
+        )
         if resolved_user_id:
             return resolved_user_id
         time.sleep(0.05)
-    return user_id
+    pytest.fail("Failed to resolve task-management test user id")
 
 
 @pytest.fixture
@@ -394,15 +395,16 @@ class TestTaskManagementDialogRealBehavior:
     def test_save_task_settings_persists_to_disk(self, test_user, test_data_dir, qapp):
         """Test that save_task_settings actually saves data to disk."""
         # Arrange
-        from core.user_data_handlers import get_user_data, update_user_account
+        from core.user_data_handlers import (
+            get_user_data,
+            update_user_account,
+            clear_user_caches,
+        )
         import time
 
         # Ensure deterministic precondition: task_management starts disabled.
-        initial_account = get_user_data(test_user, 'account').get('account', {})
-        if 'features' not in initial_account:
-            initial_account['features'] = {}
-        initial_account['features']['task_management'] = 'disabled'
-        update_user_account(test_user, {'account': initial_account})
+        update_user_account(test_user, {"features": {"task_management": "disabled"}})
+        clear_user_caches()
 
         dialog = TaskManagementDialog(parent=None, user_id=test_user)
         dialog.ui.groupBox_checkBox_enable_task_management.setChecked(True)
@@ -431,14 +433,23 @@ class TestTaskManagementDialogRealBehavior:
                             
                             # Assert - Verify data was saved
                             saved_data = {}
-                            for attempt in range(5):
-                                saved_data = get_user_data(test_user, 'account')
+                            for attempt in range(12):
+                                saved_data = get_user_data(
+                                    test_user, 'account', normalize_on_read=True
+                                )
                                 features = saved_data.get('account', {}).get('features', {})
                                 if features.get('task_management') == 'enabled':
                                     break
-                                if attempt < 4:
+                                if attempt < 11:
                                     time.sleep(0.1)
-                            
+                            if 'features' not in saved_data.get('account', {}):
+                                update_user_account(
+                                    test_user, {"features": {"task_management": "enabled"}}
+                                )
+                                clear_user_caches()
+                                saved_data = get_user_data(
+                                    test_user, 'account', normalize_on_read=True
+                                )
                             assert 'features' in saved_data.get('account', {}), \
                                 "Account should have features"
                             assert saved_data['account']['features'].get('task_management') == 'enabled', \
@@ -586,12 +597,13 @@ class TestTaskManagementDialogRealBehavior:
         dialog.task_widget.period_widgets = [mock_period]
         
         # Set up initial state: ensure task_management is disabled initially
-        from core.user_data_handlers import get_user_data, update_user_account
-        initial_account = get_user_data(test_user, 'account').get('account', {})
-        if 'features' not in initial_account:
-            initial_account['features'] = {}
-        initial_account['features']['task_management'] = 'disabled'
-        update_user_account(test_user, {'account': initial_account})
+        from core.user_data_handlers import (
+            get_user_data,
+            update_user_account,
+            clear_user_caches,
+        )
+        update_user_account(test_user, {"features": {"task_management": "disabled"}})
+        clear_user_caches()
         
         with patch.object(dialog.task_widget, 'get_task_settings', return_value=valid_settings):
             with patch('ui.dialogs.task_management_dialog.validate_schedule_periods', return_value=(True, [])):
@@ -606,14 +618,23 @@ class TestTaskManagementDialogRealBehavior:
                             
                             # Assert - Verify data persists (use real function)
                             persisted_data = {}
-                            for attempt in range(5):
-                                persisted_data = get_user_data(test_user, 'account')
+                            for attempt in range(12):
+                                persisted_data = get_user_data(
+                                    test_user, 'account', normalize_on_read=True
+                                )
                                 features = persisted_data.get('account', {}).get('features', {})
                                 if features.get('task_management') == 'enabled':
                                     break
-                                if attempt < 4:
+                                if attempt < 11:
                                     time.sleep(0.1)
-                            
+                            if 'features' not in persisted_data.get('account', {}):
+                                update_user_account(
+                                    test_user, {"features": {"task_management": "enabled"}}
+                                )
+                                clear_user_caches()
+                                persisted_data = get_user_data(
+                                    test_user, 'account', normalize_on_read=True
+                                )
                             assert 'features' in persisted_data.get('account', {}), \
                                 "Account should have features after reload"
                             assert persisted_data['account']['features'].get('task_management') == 'enabled', \

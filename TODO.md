@@ -250,31 +250,6 @@ When adding new tasks, follow this format:
   - [ ] Ensure job runs before test steps and fails the pipeline on violations
   - [ ] Document the check in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (contributor notes)
 
-**Investigate Intermittent Test Failures**
-- *What it means*: Investigate and fix test failures that appear intermittently (including coverage-run flakes); keep the suspect list current as flakes are confirmed or resolved.
-- *Why it helps*: Ensures test suite reliability and prevents false negatives that can mask real issues
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Investigate `tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_feature_enablement_persistence_real_behavior` and ensure each worker has isolated `tests/data` state
-  - [ ] Investigate `tests/behavior/test_logger_behavior.py::TestLoggerFileOperationsBehavior::test_get_log_file_info_real_behavior`
-  - [ ] Investigate `tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_updates_account_features`; `tests/behavior/test_user_data_flow_architecture.py::TestAtomicOperations::test_atomic_operation_all_types_succeed` had a mitigation on 2026-02-09 (unique per-test user IDs), monitor for recurrence in coverage runs.
-  - [ ] Investigate `tests/behavior/test_user_data_flow_architecture.py::TestProcessingOrder::test_processing_order_deterministic_regardless_of_input_order`; mitigation applied on 2026-02-09 (stronger persisted-data readiness check + cache clears), monitor in coverage runs.
-  - [ ] Monitor Windows no-parallel stability (`0xC0000135` recurrence) after recent run_tests environment/isolation fixes; keep `run_tests.py` serial phase under observation.
-  - [ ] Investigate `tests/behavior/test_checkin_questions_enhancement.py::TestCustomQuestions::test_delete_custom_question`
-  - [ ] Investigate `tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success` flake in coverage runs (avoid nondeterministic "first directory" assumptions under shared `tests/data/users`)
-  - [ ] Investigate `tests/development_tools/test_fix_project_cleanup.py::TestProjectCleanup::test_cleanup_test_temp_dirs_no_directory` flake (TOCTOU race when temp dirs disappear during cleanup in parallel runs)
-  - [ ] Investigate `tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized`
-  - [ ] Investigate `tests/unit/test_schedule_management.py::TestScheduleManagement::test_schedule_period_lifecycle`
-  - [ ] Investigate `tests/ui/test_task_management_dialog.py::TestTaskManagementDialogRealBehavior::test_save_task_settings_persists_after_reload`
-  - [ ] Investigate `tests/unit/test_user_data_handlers.py::TestUserDataHandlersConvenienceFunctions::test_update_user_account_valid_input` intermittent parallel failure (cross-user write/read mismatch observed in flaky detector and targeted xdist runs)
-  - [ ] Investigate `tests/unit/test_user_data_handlers.py::TestUserDataHandlersConvenienceFunctions::test_save_user_data_transaction_valid_input` intermittent parallel failure (cross-user write/read mismatch observed in flaky detector and targeted xdist runs)
-  - [ ] Investigate `tests/behavior/test_user_management_coverage_expansion.py::TestUserManagementCoverageExpansion::test_load_account_data_auto_create_real_behavior` intermittent parallel failure (auto-created account occasionally returns empty `internal_username`)
-  - [ ] Investigate `test_scan_all_python_files_demo_project`
-  - [ ] Check for timing/race condition issues in test setup or teardown
-  - [ ] Verify test isolation and data cleanup between test runs
-  - [ ] Add retry logic or fix root cause if identified
-  - [ ] Track `tests/development_tools/test_legacy_reference_cleanup.py::TestCleanupOperations::test_cleanup_legacy_references_dry_run` failures (PermissionError when copying `tests/fixtures/development_tools_demo` into `tests/data/tmp*/demo_project`) and ensure the temporary `tests/data/tmp*` directories remain writable before rerunning the suite.
-
 **Add Failure-Focused Detailed Reruns and Flake Classification to Normal Test Runs**
 - *What it means*: Enhance the standard test workflow so that when a run has failures, the suite automatically reruns only failing tests with high-detail logging and records whether failures look flaky, isolation-related, or race-condition-like.
 - *Why it helps*: Captures actionable debug data at failure time, improves flaky diagnosis, and avoids relying only on `--lf` behavior that can miss intermittent issues.
@@ -409,7 +384,6 @@ Priority
 - I'm thinking lists like lists of docs, constants, commands, files, etc. etc. 
 - Perform some careful searches and sweeps to find any such duplicated or partially duplicated lists.
 - explore how we would go about setting a canonical location/source for each such list and implement it
-
 
 **Test Run Crashes and Failures Console Output**
 - currently output looks something like this: 
@@ -638,3 +612,25 @@ Priority
   ========== 0 failed, 4422 passed, 1 skipped, 0 warnings, in 350.30s (0:05:50) ========== -->
 - this isn't ideal for a few reasons, but critically the crash/failed message is much too far from the bottom and so I miss it. Any critical messages like that should be at or near the very bottom, like within the last 8 lines say.
 - the crash issue itself has already been addressed, this task is solely for output formatting
+
+
+**reappearing file in wrong place**
+- logs\test_consolidated.log keeps reappearing, but it shouldn't exist. tests\logs\test_consolidated.log also exists and should.
+
+**directory with single .py file that should be elsewhere**
+- tests\scripts exists and I don't know why, I don't think it should. We need to determine whether the one script in it, tests\scripts\cleanup_old_test_dirs.py, is connected to/called by anything else and if it is then we should integrate the logic into the test stuff properly, not sure where that would be but it's not tests\scripts. if tests\scripts\cleanup_old_test_dirs.py is not connected to/called by anything else then we shoulddetermine if it contains anything that should be incorporated into the main test stuff, do so, and then clean it up/move it to the top level scripts/ directory.
+
+
+**Improve existing test runner**
+   - set process priority during testing
+   - optionally pause LM Studio model server if not required by tests
+   - avoid creating new runner, extend run_tests.py
+
+**Audit MHM project for duplicate, outdated, unnecessary backups and archive copies**
+  - implement structured regular local backups with compression and rotation 
+
+**Review RAM usage and caching behavior during development**
+   - Python worker memory usage
+   - LM Studio model residency in RAM
+   - Windows file cache behavior during large test runs
+   - Identify safe optimizations without reducing usability

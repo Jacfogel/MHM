@@ -147,8 +147,7 @@ tests/fixtures/development_tools_demo/AI_PRIORITIES.md
 tests/fixtures/development_tools_demo/consolidated_report.txt
 tmp_test_data/
 pyright-report.json
-.tmp_pytest_runner/
-.pytest_tmp_cache/
+**pytest**
 
 # ============================
 # Development tools cache and result files

@@ -9,6 +9,8 @@ side effects rather than just returning values.
 import pytest
 import json
 import os
+import uuid
+from pathlib import Path
 from unittest.mock import patch, MagicMock
 from datetime import datetime
 
@@ -229,14 +231,17 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_conversation_manager_clear_all_states(self, test_data_dir):
         """Test that ConversationManager clears all states correctly."""
         manager = ConversationManager()
+        manager._state_file = Path(test_data_dir) / f"conversation_states_{uuid.uuid4().hex[:8]}.json"
+        manager.user_states = {}
         
         # Create some user states
-        manager.user_states['user1'] = {'flow': FLOW_CHECKIN, 'state': CHECKIN_MOOD, 'data': {}}
-        manager.user_states['user2'] = {'flow': FLOW_NONE, 'state': 0, 'data': {}}
+        user1 = f"user1_{uuid.uuid4().hex[:8]}"
+        user2 = f"user2_{uuid.uuid4().hex[:8]}"
+        manager.user_states[user1] = {'flow': FLOW_CHECKIN, 'state': CHECKIN_MOOD, 'data': {}}
+        manager.user_states[user2] = {'flow': FLOW_NONE, 'state': 0, 'data': {}}
         
         assert len(manager.user_states) == 2, "Should have 2 user states"
         
@@ -343,13 +348,14 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     @patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled')
     @patch('communication.message_processing.conversation_flow_manager.get_user_data')
     def test_conversation_manager_expire_checkin_flow(self, mock_get_user_data, mock_is_enabled, test_data_dir):
         """Test that ConversationManager expires check-in flow correctly."""
         manager = ConversationManager()
-        user_id = "test_user_expire_flow"
+        manager._state_file = Path(test_data_dir) / f"conversation_states_{uuid.uuid4().hex[:8]}.json"
+        manager.user_states = {}
+        user_id = f"test_user_expire_flow_{uuid.uuid4().hex[:8]}"
         assert self._create_test_user(user_id, enable_checkins=True, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Mock check-ins enabled
@@ -532,4 +538,3 @@ class TestConversationFlowManagerBehavior:
             
             # Should eventually complete
             # The exact flow depends on implementation, but we verify it handles completion
-

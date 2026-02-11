@@ -8,6 +8,8 @@ These tests verify that webhook handlers actually work and produce expected side
 import pytest
 import json
 import asyncio
+import uuid
+from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock
 from tests.test_utilities import TestUserFactory
 from core.user_data_handlers import get_user_id_by_identifier
@@ -15,6 +17,16 @@ from core.user_data_handlers import get_user_id_by_identifier
 
 class TestWebhookHandlerBehavior:
     """Test webhook handler real behavior and side effects."""
+
+    @pytest.fixture(autouse=True)
+    def isolate_welcome_tracking(self, test_data_dir):
+        """Isolate welcome tracking file to avoid cross-worker collisions."""
+        tracking_file = Path(test_data_dir) / f"welcome_tracking_{uuid.uuid4().hex[:8]}.json"
+        with patch(
+            'communication.core.welcome_manager.WELCOME_TRACKING_FILE',
+            tracking_file,
+        ):
+            yield
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -179,14 +191,13 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_application_authorized_with_existing_user(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event skips welcome for already-welcomed user."""
         from communication.communication_channels.discord.webhook_handler import handle_application_authorized
         from communication.core.welcome_manager import mark_as_welcomed
         
         # Arrange: Create existing user and mark as already welcomed
-        discord_user_id = "111222333444555666"
+        discord_user_id = f"111222333444{uuid.uuid4().hex[:6]}"
         TestUserFactory.create_discord_user(discord_user_id, test_data_dir=test_data_dir)
         
         # Mark user as already welcomed (simulating they were welcomed before)
@@ -400,7 +411,6 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_deauthorize_then_reauthorize_sends_welcome(self, test_data_dir):
         """Test: User who deauthorizes then reauthorizes should receive welcome message."""
         from communication.communication_channels.discord.webhook_handler import (
@@ -413,7 +423,7 @@ class TestWebhookHandlerBehavior:
         from unittest.mock import MagicMock, AsyncMock
         
         # Arrange: Create existing user and mark as welcomed
-        discord_user_id = "555666777888999000"
+        discord_user_id = f"555666777888{uuid.uuid4().hex[:6]}"
         TestUserFactory.create_discord_user(discord_user_id, test_data_dir=test_data_dir)
         mark_as_welcomed(discord_user_id, channel_type='discord')
         assert has_been_welcomed(discord_user_id, channel_type='discord'), "User should be welcomed initially"
@@ -807,4 +817,3 @@ class TestWebhookHandlerBehavior:
         # Assert: Should handle empty username (user ID is what matters)
         # The function should still work if user ID is present
         assert isinstance(result, bool), "Should return boolean result"
-

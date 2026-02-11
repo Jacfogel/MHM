@@ -142,7 +142,6 @@ def test_generated_files_exist():
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.slow
-@pytest.mark.no_parallel
 def test_user_data_access(test_data_dir, mock_config, mock_user_data):
     """Test that we can access user data for testing - READ ONLY"""
     logger = logging.getLogger("mhm_tests")
@@ -160,20 +159,20 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
         logger.debug(f"Testing with user: {test_user}")
 
         # Resolve UUID if test_user is an internal username (mock_user_data creates users with internal usernames)
-        from core.user_data_handlers import get_user_id_by_identifier
         from tests.test_utilities import TestUserFactory as TUF
-        actual_user_id = get_user_id_by_identifier(test_user) or TUF.get_test_user_id_by_internal_username(test_user, test_data_dir) or test_user
-        
-        # Rebuild index to ensure user is indexed (race condition fix)
-        from core.user_data_manager import rebuild_user_index
-        rebuild_user_index()
+        actual_user_id = (
+            TUF.get_test_user_id_by_internal_username(test_user, test_data_dir)
+            or test_user
+        )
         
         # Retry to get actual_user_id if not found
         import time
         for attempt in range(3):
             if actual_user_id and actual_user_id != test_user:
                 break
-            resolved_id = get_user_id_by_identifier(test_user) or TUF.get_test_user_id_by_internal_username(test_user, test_data_dir)
+            resolved_id = TUF.get_test_user_id_by_internal_username(
+                test_user, test_data_dir
+            )
             if resolved_id:
                 actual_user_id = resolved_id
                 if actual_user_id != test_user:
@@ -190,15 +189,12 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
 
         # Test account data (read-only)
         try:
-            # Ensure user directory exists and user is indexed before materialization
+            # Ensure user directory exists before materialization
             from core.config import get_user_data_dir
-            from core.user_data_manager import update_user_index
             import os
             user_dir = get_user_data_dir(actual_user_id)
             if not os.path.exists(user_dir):
                 os.makedirs(user_dir, exist_ok=True)
-                # Update index if user directory was just created
-                update_user_index(actual_user_id)
             
             from tests.conftest import materialize_user_minimal_via_public_apis
             materialize_user_minimal_via_public_apis(actual_user_id)

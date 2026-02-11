@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-11 - Parallel profiling baseline reset and profile-artifact archive handling
+- **Feature**: Re-baselined full parallel profiling runs with temp-isolated pytest paths (`--basetemp` + `cache_dir` under `%TEMP%`) to avoid cross-run contamination from shared `tests/data` temp/cache directories. User-validated clean run: `4457 passed, 1 skipped in 209.25s (0:03:29)`.
+- **Fix**: Applied backup-guide handling to recent parallel profile artifacts by moving `tests/logs/parallel_profile_20260211_*.log` and `.xml` files into `development_tools/tests/logs/archive/` (standard test-log archive location), leaving active `tests/logs/` clear of those historical profiles.
+- **Documentation/Planning**: Added follow-up tracking for profile artifact automation in [TODO.md](TODO.md) and updated [PLANS.md](development_docs/PLANS.md) with the new runtime baseline and retention follow-up (`parallel_profile_*` archive + 7-version cap).
+- **Impact**: Parallel profiling is now running from a cleaner baseline, recent runtime measurements are more trustworthy, and profiling artifacts are aligned with documented archive standards instead of accumulating in active test logs.
+
 ### 2026-02-10 - Flaky-test stabilization follow-up, report path cleanup
 - **Feature**: Continued the no-parallel reduction effort by stabilizing targeted flaky tests in user-data flows and validating targeted parallel reruns. Updated assertions/fixtures around account-file verification paths so worker cross-talk is reduced in `tests/unit/test_user_data_handlers.py` and `tests/behavior/test_user_management_coverage_expansion.py`.
 - **Fix**: Removed one obvious unused import flagged by dev-tools reporting (`import os` in `development_tools/shared/service/commands.py`) and verified the legacy report path cleanup state: `tests/flaky_test_report.md` is removed in favor of `tests/logs/flaky_test_report.md` with archive/backup rotation flow.

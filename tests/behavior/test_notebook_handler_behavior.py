@@ -8,6 +8,7 @@ Tests all notebook functionality including notes, lists, flows, and command vari
 import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime
+import uuid
 
 from core.time_utilities import now_datetime_full
 
@@ -834,7 +835,7 @@ class TestNotebookCommandParsing:
     @pytest.mark.file_io
     def test_recent_command_variations(self, test_data_dir):
         """Test various recent command patterns."""
-        user_id = "test_user_recent_variations"
+        user_id = f"test_user_recent_variations_{uuid.uuid4().hex[:8]}"
         assert self._create_test_user(
             user_id, test_data_dir=test_data_dir
         ), "Failed to create test user"
@@ -855,37 +856,37 @@ class TestNotebookCommandParsing:
             ("/recent", True),
         ]
 
-        for command, should_complete in command_patterns:
-            response = manager.handle_message(user_id, command, "discord")
-            assert isinstance(
-                response, InteractionResponse
-            ), f"Should return InteractionResponse for '{command}'"
-            # Some commands may not be recognized and fall through to AI chat
-            # This is acceptable behavior - the command parser may not recognize all variations
-            # We only assert if the command was actually recognized (completed=True)
-            # If it falls through to chat (completed=False or generic greeting), that's OK for now
-            if response.completed:
-                message_lower = response.message.lower()
-                # Check if it's a recent entries response or a generic greeting (fallback)
-                is_recent_response = (
-                    "recent" in message_lower
-                    or "entries" in message_lower
-                    or "notes" in message_lower
-                    or "note 1" in message_lower
-                    or "note 2" in message_lower
-                    or "no recent" in message_lower
-                    or "no entries" in message_lower
-                )
-                is_generic_greeting = (
-                    "hello" in message_lower
-                    or "how are you" in message_lower
-                    or "support" in message_lower
-                    or "encouragement" in message_lower
-                )
-                # Accept either recent response OR generic greeting (command not recognized)
-                assert (
-                    is_recent_response or is_generic_greeting
-                ), f"Should show recent entries or be generic greeting for '{command}', got: {response.message}"
+        with patch.object(
+            manager.ai_chatbot,
+            "generate_response",
+            return_value="Hello! I can help with notes and support.",
+        ):
+            for command, should_complete in command_patterns:
+                response = manager.handle_message(user_id, command, "discord")
+                assert isinstance(
+                    response, InteractionResponse
+                ), f"Should return InteractionResponse for '{command}'"
+                # Some commands may not be recognized and can fall back to AI chat.
+                # Keep fallback deterministic by stubbing AI response above.
+                if response.completed:
+                    message_lower = response.message.lower()
+                    is_recent_response = (
+                        "recent" in message_lower
+                        or "entries" in message_lower
+                        or "notes" in message_lower
+                        or "note 1" in message_lower
+                        or "note 2" in message_lower
+                        or "no recent" in message_lower
+                        or "no entries" in message_lower
+                    )
+                    is_generic_fallback = (
+                        "hello" in message_lower
+                        or "support" in message_lower
+                        or "help" in message_lower
+                    )
+                    assert (
+                        is_recent_response or is_generic_fallback
+                    ), f"Should show recent entries or deterministic fallback for '{command}', got: {response.message}"
 
     @pytest.mark.file_io
     def test_list_command_variations(self, test_data_dir):

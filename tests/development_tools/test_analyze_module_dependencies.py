@@ -58,6 +58,8 @@ class TestScanAllPythonFiles:
     def test_scan_all_python_files_demo_project(self, demo_project_root, monkeypatch):
         """Test scanning demo project."""
         import development_tools.config as config_module
+        import development_tools.imports.analyze_module_dependencies as amd_module
+        import development_tools.imports.analyze_module_imports as ami_module
         from development_tools.shared import standard_exclusions
         
         def mock_get_project_root():
@@ -75,6 +77,10 @@ class TestScanAllPythonFiles:
         
         monkeypatch.setattr(config_module, 'get_project_root', mock_get_project_root)
         monkeypatch.setattr(config_module, 'get_scan_directories', mock_get_scan_directories)
+        monkeypatch.setattr(amd_module.config, 'get_project_root', mock_get_project_root)
+        monkeypatch.setattr(amd_module.config, 'get_scan_directories', mock_get_scan_directories)
+        monkeypatch.setattr(ami_module.config, 'get_project_root', mock_get_project_root)
+        monkeypatch.setattr(ami_module.config, 'get_scan_directories', mock_get_scan_directories)
         monkeypatch.setattr(standard_exclusions, 'should_exclude_file', mock_should_exclude_file)
         
         results = scan_all_python_files()
@@ -333,4 +339,3 @@ TODO: Add detailed purpose description
         
         assert isinstance(result, dict)
         assert result.get('nonexistent.py') == 'not_in_codebase'
-

@@ -7,6 +7,8 @@ These tests verify that welcome handler actually works and produces expected sid
 
 import pytest
 from unittest.mock import patch, MagicMock
+from pathlib import Path
+import uuid
 from communication.communication_channels.discord.welcome_handler import (
     has_been_welcomed,
     mark_as_welcomed,
@@ -62,8 +64,10 @@ class TestWelcomeHandlerBehavior:
     @pytest.mark.file_io
     def test_clear_welcomed_status_delegates_to_manager(self, test_data_dir):
         """Test: clear_welcomed_status delegates to welcome_manager with discord channel type."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            discord_user_id = 'discord_user_789'
+        tracking_file = Path(test_data_dir) / "welcome_tracking.json"
+        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir), \
+             patch('communication.core.welcome_manager.WELCOME_TRACKING_FILE', tracking_file):
+            discord_user_id = f'discord_user_789_{uuid.uuid4().hex[:8]}'
             
             # Mark as welcomed first
             mark_as_welcomed(discord_user_id)
@@ -191,4 +195,3 @@ class TestWelcomeHandlerBehavior:
             
             # 6. Verify cleared
             assert not has_been_welcomed(discord_user_id), "Should no longer be welcomed"
-

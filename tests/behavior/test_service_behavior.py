@@ -140,11 +140,8 @@ class TestMHMService:
     
     @pytest.mark.behavior
     @pytest.mark.slow
-    @pytest.mark.no_parallel
     def test_check_and_fix_logging_real_behavior(self, temp_dir, service):
         """REAL BEHAVIOR TEST: Test logging health check with real file operations.
-        
-        Marked as no_parallel because it modifies log files that may conflict with other tests.
         """
         # Create real log file
         log_file = os.path.join(temp_dir, 'test.log')
@@ -546,6 +543,10 @@ class TestMHMService:
              patch.object(service, 'initialize_paths', return_value=['/test/path']), \
              patch.object(service, 'check_and_fix_logging'), \
              patch('core.service.verify_file_access'), \
+             patch('core.auto_cleanup.auto_cleanup_if_needed', return_value=False), \
+             patch('core.auto_cleanup.cleanup_data_directory'), \
+             patch('core.auto_cleanup.cleanup_tests_data_directory'), \
+             patch('core.service.time.sleep', return_value=None), \
              patch.object(service, 'run_service_loop'):
             
             # Start service

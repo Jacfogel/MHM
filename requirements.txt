@@ -11,7 +11,6 @@ PyNaCl>=1.5.0  # For Discord webhook signature verification (ed25519)
 # AI/ML dependencies  
 requests>=2.31.0  # For LM Studio HTTP API calls
 pydantic>=2.7.0  # For JSON schema validation and parsing
-# gpt4all  # Removed - replaced with LM Studio API
 
 # UI dependencies
 
@@ -26,6 +25,7 @@ pytest-asyncio>=0.24.0  # For async test support
 pytest-randomly>=3.15.0  # For order randomization to enforce determinism
 pytest-xdist>=3.5.0  # For parallel test execution
 pytest-timeout>=2.1.0  # For test timeout enforcement to prevent hanging
+py-spy>=0.4.1  # For timeout stack diagnostics in flaky_detector
 
 # Optional but recommended for development
 black>=23.0.0  # For code formatting

@@ -170,20 +170,21 @@ class TestHeadlessServiceManagerBehavior:
                     with patch('core.headless_service.os.path.exists', return_value=True):
                         with patch('core.headless_service.os.environ.copy', return_value={}):
                             with patch('core.headless_service.os.name', 'nt'):
-                                mock_process = Mock()
-                                mock_process.pid = 12345
-                                mock_process.poll.return_value = None  # Process is running
-                                mock_popen.return_value = mock_process
-                                
-                                # Mock get_headless_service_status to return True after start
-                                with patch.object(manager, 'get_headless_service_status', return_value=(True, 12345)):
-                                    result = manager.start_headless_service()
-                                
-                                # Verify side effects
-                                assert result is True, "Should return True on success"
-                                assert manager.running is True, "Should set running to True"
-                                assert manager.service_process == mock_process, "Should store service process"
-                                mock_popen.assert_called_once()
+                                with patch('core.headless_service.time.sleep', return_value=None):
+                                    mock_process = Mock()
+                                    mock_process.pid = 12345
+                                    mock_process.poll.return_value = None  # Process is running
+                                    mock_popen.return_value = mock_process
+                                    
+                                    # Mock get_headless_service_status to return True after start
+                                    with patch.object(manager, 'get_headless_service_status', return_value=(True, 12345)):
+                                        result = manager.start_headless_service()
+                                    
+                                    # Verify side effects
+                                    assert result is True, "Should return True on success"
+                                    assert manager.running is True, "Should set running to True"
+                                    assert manager.service_process == mock_process, "Should store service process"
+                                    mock_popen.assert_called_once()
     
     @pytest.mark.behavior
     @pytest.mark.behavior
@@ -497,4 +498,3 @@ class TestHeadlessServiceManagerBehavior:
             mock_manager_class.assert_called_once()
             mock_manager.get_service_info.assert_called_once()
             assert mock_print.call_count >= 5, "Should print multiple info lines"
-

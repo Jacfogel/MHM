@@ -513,18 +513,38 @@ class TestExecute:
             include_dev_tools=False
         )
         
-        # Should execute without error (may fail if registry doesn't exist, which is OK)
-        try:
+        # Keep this test focused on execute orchestration, not full repo scanning cost.
+        inventory = {
+            "file1.py": {
+                "functions": [
+                    FunctionRecord(
+                        name="func1",
+                        line=1,
+                        args=(),
+                        decorators=(),
+                        docstring="",
+                        is_test=False,
+                        is_main=False,
+                        is_handler=False,
+                        has_docstring=False,
+                        complexity=1,
+                    )
+                ],
+                "classes": [],
+                "total_functions": 1,
+                "total_classes": 0,
+            }
+        }
+        with patch.object(registry_module, "collect_project_inventory", return_value=inventory), patch.object(
+            registry_module, "parse_registry_document", return_value={"file1.py": {"func1"}}
+        ):
             exit_code, summary, payload = execute(args, project_root=tmp_path)
             assert isinstance(exit_code, int)
             assert isinstance(summary, str)
             assert isinstance(payload, dict)
             assert 'summary' in payload
             assert 'details' in payload
-        except Exception:
-            # If it fails due to missing registry, that's acceptable for this test
-            pass
-    
+
     @pytest.mark.integration
     def test_execute_demo_project(self, demo_project_root, test_config_path):
         """Test execute with demo project."""
@@ -538,17 +558,35 @@ class TestExecute:
             include_dev_tools=False
         )
         
-        # Execute returns tuple (exit_code, summary, payload)
-        try:
-            exit_code, summary, payload = execute(args, project_root=demo_project_root, config_path=test_config_path)
-            # If successful, should return tuple with dict payload
+        inventory = {
+            "demo.py": {
+                "functions": [
+                    FunctionRecord(
+                        name="demo_func",
+                        line=1,
+                        args=(),
+                        decorators=(),
+                        docstring="",
+                        is_test=False,
+                        is_main=False,
+                        is_handler=False,
+                        has_docstring=False,
+                        complexity=1,
+                    )
+                ],
+                "classes": [],
+                "total_functions": 1,
+                "total_classes": 0,
+            }
+        }
+        with patch.object(registry_module, "collect_project_inventory", return_value=inventory), patch.object(
+            registry_module, "parse_registry_document", return_value={"demo.py": {"demo_func"}}
+        ):
+            exit_code, summary, payload = execute(
+                args, project_root=demo_project_root, config_path=test_config_path
+            )
             assert isinstance(exit_code, int)
             assert isinstance(summary, str)
             assert isinstance(payload, dict)
             assert 'summary' in payload
             assert 'details' in payload
-        except Exception:
-            # If it fails due to missing registry or other issues, that's acceptable
-            # The test verifies the function can be called with demo project
-            pass
-

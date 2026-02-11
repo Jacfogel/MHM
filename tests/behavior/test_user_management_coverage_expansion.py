@@ -225,8 +225,9 @@ class TestUserManagementCoverageExpansion:
 
             with patch('core.user_data_handlers.os.path.exists', side_effect=exists_side_effect):
                 with patch('core.user_data_handlers.ensure_user_directory'):
-                    with patch('core.user_data_handlers.save_json_data') as mock_save:
-                        result = _get_user_data__load_account(self.test_user_id, auto_create=True)
+                    with patch('core.user_data_handlers.load_json_data', return_value=None):
+                        with patch('core.user_data_handlers.save_json_data') as mock_save:
+                            result = _get_user_data__load_account(self.test_user_id, auto_create=True)
         
         # Assert
         assert result is not None, "Should return created account data"
@@ -235,9 +236,10 @@ class TestUserManagementCoverageExpansion:
         # Default auto-created account uses empty internal_username until account setup.
         assert "internal_username" in result, "Should include internal_username field"
         assert result["account_status"] == "active", "Should have default status"
-        assert "created_at" in result, "Should have created_at timestamp"
-        assert "updated_at" in result, "Should have updated_at timestamp"
         assert mock_save.called, "Should save the created account data"
+        saved_account = mock_save.call_args[0][0] if mock_save.call_args else {}
+        assert saved_account.get("created_at"), "Saved account should have created_at timestamp"
+        assert saved_account.get("updated_at"), "Saved account should have updated_at timestamp"
     
     def test_load_account_data_no_auto_create_real_behavior(self):
         """Test loading account data without auto-creation."""
@@ -728,13 +730,19 @@ class TestUserManagementIntegration:
     @pytest.fixture(autouse=True)
     def _setup(self, test_path_factory):
         """Set up test environment."""
+        from core.user_data_handlers import clear_user_caches
+
         self.test_dir = test_path_factory
-        self.test_user_id = "integration_test_user"
+        self.test_user_id = f"integration_test_user_{uuid.uuid4().hex[:8]}"
         self.test_user_dir = os.path.join(self.test_dir, "data", "users", self.test_user_id)
         os.makedirs(self.test_user_dir, exist_ok=True)
+        clear_user_caches()
     
     def teardown_method(self):
         """Clean up test environment."""
+        from core.user_data_handlers import clear_user_caches
+
+        clear_user_caches()
         if os.path.exists(self.test_dir):
             import shutil
             try:
@@ -896,9 +904,10 @@ class TestUserManagementIntegration:
     def test_user_data_concurrent_access_real_behavior(self):
         """Test user data concurrent access behavior."""
         # Arrange
+        concurrent_username = f"concurrent_user_{uuid.uuid4().hex[:8]}"
         test_account = {
             "user_id": self.test_user_id,
-            "internal_username": "concurrent_user",
+            "internal_username": concurrent_username,
             "account_status": "active"
         }
         

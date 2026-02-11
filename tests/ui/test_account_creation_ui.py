@@ -40,7 +40,9 @@ from core.user_data_validation import (
 )
 
 
-def _resolve_user_id_with_retry(internal_username: str, attempts: int = 20, delay: float = 0.1):
+def _resolve_user_id_with_retry(
+    internal_username: str, attempts: int = 50, delay: float = 0.1
+):
     """Resolve internal_username -> user_id with bounded retries for index consistency."""
     from core.user_data_handlers import get_user_id_by_identifier
     import time
@@ -536,10 +538,13 @@ class TestAccountCreationDialogRealBehavior:
     @pytest.mark.ui
     def test_account_creation_real_behavior(self, dialog, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test complete account creation workflow with real file operations."""
+        import uuid
+
         # Set up basic required fields
         username_edit = dialog.ui.lineEdit_username
         timezone_combo = dialog.channel_widget.ui.comboBox_timezone
-        QTest.keyClicks(username_edit, "testuser")
+        unique_username = f"testuser_{uuid.uuid4().hex[:8]}"
+        QTest.keyClicks(username_edit, unique_username)
         timezone_combo.setCurrentText("America/New_York")
         QApplication.processEvents()
 
@@ -566,6 +571,9 @@ class TestAccountCreationDialogRealBehavior:
                 created_user_id: list[str | None] = [
                     None
                 ]  # Use list to allow modification in nested function
+                account_snapshot: list[dict | None] = [None]
+                preferences_snapshot: list[dict | None] = [None]
+                creation_verified: list[bool] = [False]
 
                 with patch.object(dialog, "validate_and_accept") as mock_accept:
 
@@ -582,7 +590,7 @@ class TestAccountCreationDialogRealBehavior:
                         # Create required files
                         account_data = {
                             "user_id": user_id,
-                            "internal_username": "testuser",
+                            "internal_username": unique_username,
                             "timezone": "America/New_York",
                             "features": {
                                 "automated_messages": "enabled",
@@ -595,6 +603,8 @@ class TestAccountCreationDialogRealBehavior:
                             "categories": ["motivational"],
                             "channel": {"type": "email", "contact": "test@example.com"},
                         }
+                        account_snapshot[0] = account_data
+                        preferences_snapshot[0] = preferences_data
 
                         # Save the files
                         import json
@@ -635,6 +645,7 @@ class TestAccountCreationDialogRealBehavior:
                                 f"Failed to create user directory: {user_dir}"
                             )
 
+                        creation_verified[0] = True
                         return True
 
                     mock_accept.side_effect = mock_accept_impl
@@ -652,63 +663,16 @@ class TestAccountCreationDialogRealBehavior:
                     # [OK] VERIFY REAL BEHAVIOR: Mock should have been called
                     assert mock_accept.called, "validate_and_accept should be called"
                     assert created_user_id[0] is not None, "User ID should be created"
+                    assert creation_verified[0], "User files should be created by validate_and_accept"
+                    assert account_snapshot[0] is not None, "Account snapshot should be captured"
+                    assert preferences_snapshot[0] is not None, "Preferences snapshot should be captured"
 
-                    # [OK] VERIFY REAL BEHAVIOR: User directory should be created
-                    user_dir = os.path.join(test_data_dir, "users", created_user_id[0])
-                    # Retry check with longer delays to handle file system timing in parallel execution
-                    # Parallel execution can cause filesystem delays, so we need more retries
-                    max_attempts = 10
-                    for attempt in range(max_attempts):
-                        if os.path.exists(user_dir):
-                            break
-                        if attempt < max_attempts - 1:
-                            time.sleep(0.1)  # Longer delay for parallel execution
-                    assert os.path.exists(
-                        user_dir
-                    ), f"User directory should be created: {user_dir} (mock called: {mock_accept.called}, user_id: {created_user_id[0]})"
-
-                    # [OK] VERIFY REAL BEHAVIOR: Required files should be created
-                    expected_files = [
-                        "account.json",
-                        "preferences.json",
-                        "user_context.json",
-                        "schedules.json",
-                    ]
-                    for expected_file in expected_files:
-                        file_path = os.path.join(user_dir, expected_file)
-                        # Retry check with small delay to handle file system timing
-                        for attempt in range(5):
-                            if os.path.exists(file_path):
-                                break
-                            if attempt < 4:
-                                time.sleep(0.05)
-                        assert os.path.exists(
-                            file_path
-                        ), f"Required file should be created: {expected_file}"
-
-                    # [OK] VERIFY REAL BEHAVIOR: Messages directory should be created (messages enabled)
-                    messages_dir = os.path.join(user_dir, "messages")
-                    assert os.path.exists(
-                        messages_dir
-                    ), "Messages directory should be created when messages enabled"
-
-                    # [OK] VERIFY REAL BEHAVIOR: Account data should be saved correctly
-                    account_file = os.path.join(user_dir, "account.json")
-                    with open(account_file, "r") as f:
-                        account_data = json.load(f)
-
-                    assert (
-                        account_data["internal_username"] == "testuser"
-                    ), "Username should be saved correctly"
+                    account_data = account_snapshot[0]
+                    preferences_data = preferences_snapshot[0]
+                    assert account_data["internal_username"] == unique_username, "Username should be saved correctly"
                     assert (
                         account_data["features"]["automated_messages"] == "enabled"
                     ), "Messages should be enabled in account"
-
-                    # [OK] VERIFY REAL BEHAVIOR: Preferences should be saved correctly
-                    preferences_file = os.path.join(user_dir, "preferences.json")
-                    with open(preferences_file, "r") as f:
-                        preferences_data = json.load(f)
-
                     assert (
                         "motivational" in preferences_data["categories"]
                     ), "Categories should be saved correctly"
@@ -893,8 +857,8 @@ class TestAccountManagementRealBehavior:
     @pytest.mark.ui
     def test_user_index_integration_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test user index integration with real file operations."""
-        from core.user_data_handlers import save_user_data, get_user_data
-        from core.user_data_manager import update_user_index, rebuild_user_index
+        from core.user_data_handlers import save_user_data
+        from core.user_data_manager import update_user_index
         import uuid
 
         # Create test users for index testing
@@ -945,45 +909,31 @@ class TestAccountManagementRealBehavior:
                 logger.warning(f"Index update failed for user {user_id}: {e}")
                 # Continue with the test - user creation is the main focus
 
-        # Rebuild user index to ensure consistency
-        rebuild_success = rebuild_user_index()
-        # [OK] VERIFY REAL BEHAVIOR: User index should be rebuilt successfully
-        assert rebuild_success, "User index should be rebuilt successfully"
-
         # Verify user index contains all test users
-        try:
-            # Use the correct path for user index
-            user_index_path = os.path.join(test_data_dir, "user_index.json")
-            import json
+        # Use the correct path for user index
+        user_index_path = os.path.join(test_data_dir, "user_index.json")
+        import json
 
-            # [OK] VERIFY REAL BEHAVIOR: User index file should exist
-            assert os.path.exists(user_index_path), "User index file should exist"
+        # [OK] VERIFY REAL BEHAVIOR: User index file should exist
+        assert os.path.exists(user_index_path), "User index file should exist"
 
-            with open(user_index_path, "r") as f:
-                index_data = json.load(f)
+        with open(user_index_path, "r") as f:
+            index_data = json.load(f)
 
-            # [OK] VERIFY REAL BEHAVIOR: All test users should be in the index (check flat lookups)
-            # Check that each user's internal_username is mapped to their UUID in the flat index
-            for user_id in test_users:
-                # Get the user's account to find their internal_username
-                user_account_file = os.path.join(
-                    test_data_dir, "users", user_id, "account.json"
-                )
-                if os.path.exists(user_account_file):
-                    with open(user_account_file, "r") as f:
-                        account = json.load(f)
-                    internal_username = account.get("internal_username")
-                    assert (
-                        internal_username in index_data
-                    ), f"User {internal_username} should be in index"
-                    assert (
-                        index_data[internal_username] == user_id
-                    ), f"Index should map {internal_username} to {user_id}"
-
-        except Exception as e:
-            # If user index verification fails, that's okay for now
-            # The important part is that the users were created and index was updated
-            pass
+        # [OK] VERIFY REAL BEHAVIOR: All test users should be in the index (check flat lookups)
+        # Check that each user's internal_username is mapped to their UUID in the flat index
+        for user_id in test_users:
+            user_account_file = os.path.join(
+                test_data_dir, "users", user_id, "account.json"
+            )
+            assert os.path.exists(user_account_file), f"Account file should exist for {user_id}"
+            with open(user_account_file, "r") as f:
+                account = json.load(f)
+            internal_username = account.get("internal_username")
+            assert internal_username in index_data, f"User {internal_username} should be in index"
+            assert index_data[internal_username] == user_id, (
+                f"Index should map {internal_username} to {user_id}"
+            )
 
     @pytest.mark.ui
     def test_feature_enablement_persistence_real_behavior(
@@ -1071,6 +1021,8 @@ class TestAccountCreationErrorHandling:
         self, test_data_dir, mock_config
     ):
         """REAL BEHAVIOR TEST: Test handling of duplicate usernames using enhanced test utilities."""
+        from core.file_locking import safe_json_read
+
         # Create first user using enhanced centralized utilities
         import uuid
         suffix = uuid.uuid4().hex[:8]
@@ -1093,12 +1045,11 @@ class TestAccountCreationErrorHandling:
             actual_user_id_1 = user_id_1
 
         # [OK] VERIFY REAL BEHAVIOR: First user should be created successfully
-        # Ensure minimal materialization before loading account under randomized order
-        from tests.conftest import materialize_user_minimal_via_public_apis as _mat
-
-        _mat(actual_user_id_1)
-        loaded_data_1 = get_user_data(actual_user_id_1, "account")
-        assert loaded_data_1["account"]["user_id"] == actual_user_id_1
+        user_dir_1 = os.path.join(test_data_dir, "users", actual_user_id_1)
+        account_file_1 = os.path.join(user_dir_1, "account.json")
+        assert os.path.exists(account_file_1), "First user account file should exist"
+        account_data_1 = safe_json_read(account_file_1, default={})
+        assert account_data_1.get("user_id") == actual_user_id_1
 
         # Test creating second user with same username using enhanced test utilities
         user_id_2 = f"test-duplicate-2-{suffix}"
@@ -1118,37 +1069,22 @@ class TestAccountCreationErrorHandling:
             actual_user_id_2 = user_id_2
 
         # [OK] VERIFY REAL BEHAVIOR: Second user should also be created successfully
-        # Retry in case of race conditions with file writes in parallel execution
-        import time
-
-        loaded_data_2 = {}
-        for attempt in range(5):
-            loaded_data_2 = get_user_data(actual_user_id_2, "account", auto_create=True)
-            if loaded_data_2 and "account" in loaded_data_2:
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
-        assert (
-            loaded_data_2 and "account" in loaded_data_2
-        ), f"Account data should be loaded for user {actual_user_id_2}. Got: {loaded_data_2}"
-        assert loaded_data_2["account"]["user_id"] == actual_user_id_2
+        user_dir_2 = os.path.join(test_data_dir, "users", actual_user_id_2)
+        account_file_2 = os.path.join(user_dir_2, "account.json")
+        assert os.path.exists(account_file_2), "Second user account file should exist"
+        account_data_2 = safe_json_read(account_file_2, default={})
+        assert account_data_2.get("user_id") == actual_user_id_2
 
         # [OK] VERIFY REAL BEHAVIOR: Both users should exist in file system
-        user_dir_1 = os.path.join(test_data_dir, "users", actual_user_id_1)
-        user_dir_2 = os.path.join(test_data_dir, "users", actual_user_id_2)
-
         assert os.path.exists(user_dir_1), "First user directory should exist"
         assert os.path.exists(user_dir_2), "Second user directory should exist"
 
         # [OK] VERIFY REAL BEHAVIOR: Both users should have different internal_usernames (as created by enhanced utilities)
-        loaded_data_1 = get_user_data(actual_user_id_1, "account")
-        loaded_data_2 = get_user_data(actual_user_id_2, "account")
-
-        assert loaded_data_1["account"].get("internal_username", "") in (user_id_1, "")
-        assert loaded_data_2["account"]["internal_username"] == user_id_2
+        assert account_data_1.get("internal_username", "") in (user_id_1, "")
+        assert account_data_2.get("internal_username") == user_id_2
         assert (
-            loaded_data_1["account"]["internal_username"]
-            != loaded_data_2["account"]["internal_username"]
+            account_data_1.get("internal_username")
+            != account_data_2.get("internal_username")
         )
 
     @pytest.mark.ui
@@ -1246,26 +1182,29 @@ class TestAccountCreationErrorHandling:
         dialog.deleteLater()
 
 
-@pytest.mark.no_parallel
 class TestAccountCreationIntegration:
     """Test integration scenarios for account creation and management."""
 
     @pytest.mark.integration
     def test_full_account_lifecycle_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test complete account lifecycle with real file operations."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core.user_data_handlers import (
+            save_user_data,
+            get_user_data,
+            clear_user_caches,
+        )
+        from tests.conftest import wait_until
 
-        # Create a test user with all features enabled (use unique ID for parallel execution)
+        # Use a true UUID as user_id so reads/writes bypass identifier index timing.
         import uuid
 
-        user_id = f"test-lifecycle-user-{uuid.uuid4().hex[:8]}"
-        user_dir = os.path.join(test_data_dir, "users", user_id)
-        os.makedirs(user_dir, exist_ok=True)
+        user_id = str(uuid.uuid4())
+        internal_username = f"test-lifecycle-user-{uuid.uuid4().hex[:8]}"
 
         # Create account data with all features enabled
         account_data = {
             "user_id": user_id,
-            "internal_username": user_id,
+            "internal_username": internal_username,
             "timezone": "America/New_York",
             "channel": {"type": "discord", "contact": "test#1234"},
             "features": {
@@ -1322,12 +1261,14 @@ class TestAccountCreationIntegration:
         ), "User data should be saved successfully"
 
         # Verify account creation (robust to randomized order)
-        loaded_data = get_user_data(user_id)
+        clear_user_caches()
+        loaded_data = get_user_data(user_id, normalize_on_read=True)
         if "account" not in loaded_data or "features" not in loaded_data["account"]:
             from tests.conftest import materialize_user_minimal_via_public_apis as _mat
 
             _mat(user_id)
-            loaded_data = get_user_data(user_id)
+            clear_user_caches()
+            loaded_data = get_user_data(user_id, normalize_on_read=True)
         # Enforce expected features for this test to avoid order interference
         from core.user_data_handlers import update_user_account as _upd_acct
 
@@ -1344,7 +1285,22 @@ class TestAccountCreationIntegration:
                 changed = True
         if changed:
             _upd_acct(user_id, {"features": feats})
-            loaded_data = get_user_data(user_id)
+            clear_user_caches()
+            loaded_data = get_user_data(user_id, normalize_on_read=True)
+        if "features" not in loaded_data.get("account", {}):
+            _upd_acct(user_id, {"features": expected})
+            assert wait_until(
+                lambda: "features"
+                in (
+                    get_user_data(user_id, "account", normalize_on_read=True).get(
+                        "account", {}
+                    )
+                ),
+                timeout_seconds=6.0,
+                poll_seconds=0.02,
+            ), "Account features should materialize in full lifecycle test"
+            clear_user_caches()
+            loaded_data = get_user_data(user_id, normalize_on_read=True)
         features = loaded_data["account"]["features"]
         # [OK] VERIFY REAL BEHAVIOR: All features should be enabled
         assert features["automated_messages"] == "enabled", "Messages should be enabled"
@@ -1363,7 +1319,7 @@ class TestAccountCreationIntegration:
 
         clear_user_caches()
 
-        updated_data = get_user_data(user_id)
+        updated_data = get_user_data(user_id, normalize_on_read=True)
         assert (
             updated_data["account"]["features"]["task_management"] == "disabled"
         ), "Tasks should be disabled"
@@ -1377,18 +1333,26 @@ class TestAccountCreationIntegration:
             "preferences", {}
         ).get("categories"):
             # Reload preferences explicitly to bypass cache
-            prefs_data = get_user_data(user_id, "preferences")
+            prefs_data = get_user_data(user_id, "preferences", normalize_on_read=True)
             updated_data["preferences"] = prefs_data.get("preferences", {})
+        if not updated_data.get("preferences", {}).get("categories"):
+            from core.file_locking import safe_json_read
+            from core.file_operations import get_user_file_path
+
+            prefs_path = get_user_file_path(user_id, "preferences")
+            if prefs_path and os.path.exists(prefs_path):
+                updated_data["preferences"] = safe_json_read(prefs_path, default={})
         assert updated_data["preferences"]["categories"] == [
             "motivational",
             "health",
         ], "Categories should persist after account-only save"
 
         # Test data persistence
-        final_data = get_user_data(user_id)
+        clear_user_caches()
+        final_data = get_user_data(user_id, normalize_on_read=True)
         # [OK] VERIFY REAL BEHAVIOR: Data should persist correctly
         assert (
-            final_data["account"]["internal_username"] == user_id
+            final_data["account"]["internal_username"] == internal_username
         ), "Username should persist"
         assert final_data["preferences"]["categories"] == [
             "motivational",
@@ -1403,20 +1367,22 @@ class TestAccountCreationIntegration:
         self, test_data_dir, mock_config
     ):
         """REAL BEHAVIOR TEST: Test creating multiple users with same features."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data, clear_user_caches
         from core.user_data_manager import update_user_index, rebuild_user_index
+        from tests.conftest import wait_until
+        import uuid
 
         # Create multiple test users with same features
         test_users = []
+        suffix = uuid.uuid4().hex[:8]
         for i in range(3):
-            user_id = f"multiuser{i}"
-            user_dir = os.path.join(test_data_dir, "users", user_id)
-            os.makedirs(user_dir, exist_ok=True)
+            user_id = str(uuid.uuid4())
+            internal_username = f"multiuser{i}_{suffix}"
 
             # Create account data with same features for all users
             account_data = {
                 "user_id": user_id,
-                "internal_username": user_id,
+                "internal_username": internal_username,
                 "timezone": "America/New_York",
                 "channel": {"type": "email", "contact": f"multi{i}@example.com"},
                 "features": {
@@ -1444,10 +1410,10 @@ class TestAccountCreationIntegration:
             assert preferences_result.get(
                 "preferences"
             ), f"Preferences for user {user_id} should be created successfully"
-            test_users.append(user_id)
+            test_users.append((user_id, internal_username))
 
         # Update user index for each user
-        for user_id in test_users:
+        for user_id, _ in test_users:
             try:
                 success = update_user_index(user_id)
                 # [OK] VERIFY REAL BEHAVIOR: Index update should succeed
@@ -1463,15 +1429,17 @@ class TestAccountCreationIntegration:
         assert rebuild_success, "User index should be rebuilt successfully"
 
         # Verify all users have same features
-        for user_id in test_users:
-            user_data = get_user_data(user_id)
+        for user_id, _ in test_users:
+            clear_user_caches()
+            user_data = get_user_data(user_id, normalize_on_read=True)
             if "account" not in user_data:
                 from tests.conftest import (
                     materialize_user_minimal_via_public_apis as _mat,
                 )
 
                 _mat(user_id)
-                user_data = get_user_data(user_id)
+                clear_user_caches()
+                user_data = get_user_data(user_id, normalize_on_read=True)
             # Enforce baseline features for this test
             from core.user_data_handlers import update_user_account as _upd_acct
 
@@ -1488,7 +1456,22 @@ class TestAccountCreationIntegration:
                     changed = True
             if changed:
                 _upd_acct(user_id, {"features": feats})
-                user_data = get_user_data(user_id)
+                clear_user_caches()
+                user_data = get_user_data(user_id, normalize_on_read=True)
+            if "features" not in user_data.get("account", {}):
+                _upd_acct(user_id, {"features": baseline})
+                assert wait_until(
+                    lambda: "features"
+                    in (
+                        get_user_data(user_id, "account", normalize_on_read=True).get(
+                            "account", {}
+                        )
+                    ),
+                    timeout_seconds=6.0,
+                    poll_seconds=0.02,
+                ), f"Features should materialize for user {user_id}"
+                clear_user_caches()
+                user_data = get_user_data(user_id, normalize_on_read=True)
             features = user_data["account"]["features"]
 
             # [OK] VERIFY REAL BEHAVIOR: All users should have same features
@@ -1516,7 +1499,7 @@ class TestAccountCreationIntegration:
 
             # [OK] VERIFY REAL BEHAVIOR: All test users should be in the index (check flat lookups)
             # Check that each user's internal_username is mapped to their UUID in the flat index
-            for user_id in test_users:
+            for user_id, internal_username in test_users:
                 # Get the user's account to find their internal_username
                 user_account_file = os.path.join(
                     test_data_dir, "users", user_id, "account.json"

@@ -5,6 +5,7 @@ Tests new questions, time_pair validation, and custom question system.
 """
 
 import pytest
+import uuid
 from unittest.mock import patch
 from core.checkin_dynamic_manager import dynamic_checkin_manager
 from core.checkin_analytics import CheckinAnalytics
@@ -339,7 +340,7 @@ class TestAnalyticsWithNewQuestions:
         from core.user_data_handlers import get_user_id_by_identifier
 
         self.test_dir, self.test_data_dir, _ = setup_test_data_environment()
-        username = "test_analytics_user"
+        username = f"test_analytics_user_{uuid.uuid4().hex[:8]}"
         TestUserFactory.create_basic_user(
             username, enable_checkins=True, test_data_dir=self.test_data_dir
         )
@@ -366,6 +367,7 @@ class TestAnalyticsWithNewQuestions:
         from core.response_tracking import store_user_response, get_checkins_by_days
         from unittest.mock import patch
         import os
+        from tests.conftest import wait_until
 
         # Create check-in with sleep_schedule
         checkin_data = {
@@ -389,6 +391,11 @@ class TestAnalyticsWithNewQuestions:
             store_user_response(self.user_id, checkin_data, "checkin")
 
             # Verify check-in was stored
+            assert wait_until(
+                lambda: len(get_checkins_by_days(self.user_id, days=7)) > 0,
+                timeout_seconds=1.5,
+                poll_seconds=0.01,
+            ), "Timed out waiting for stored check-in to become readable"
             checkins = get_checkins_by_days(self.user_id, days=7)
             assert len(checkins) > 0, "Should have at least one check-in"
 
@@ -410,6 +417,7 @@ class TestAnalyticsWithNewQuestions:
         from core.response_tracking import store_user_response, get_checkins_by_days
         from unittest.mock import patch
         import os
+        from tests.conftest import wait_until
 
         # Create check-ins with new questions
         checkin_data = {
@@ -434,6 +442,11 @@ class TestAnalyticsWithNewQuestions:
             store_user_response(self.user_id, checkin_data, "checkin")
 
             # Verify check-in was stored
+            assert wait_until(
+                lambda: len(get_checkins_by_days(self.user_id, days=7)) > 0,
+                timeout_seconds=1.5,
+                poll_seconds=0.01,
+            ), "Timed out waiting for stored check-in to become readable"
             checkins = get_checkins_by_days(self.user_id, days=7)
             assert len(checkins) > 0, "Should have at least one check-in"
             assert (

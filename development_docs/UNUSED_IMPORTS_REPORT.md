@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-10 06:34:39
+> **Last Generated**: 2026-02-11 03:19:56
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 426
+- **Total Files Scanned**: 425
 - **Files with Unused Imports**: 134
-- **Total Unused Imports**: 374
+- **Total Unused Imports**: 372
 
 ## Breakdown by Category
 
@@ -18,7 +18,7 @@
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 147 imports
+- **Test Mocking**: 145 imports
 - **Qt Testing**: 54 imports
 - **Test Infrastructure**: 162 imports
 - **Production Test Mocking**: 4 imports
@@ -98,8 +98,8 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 21**: Unused get_user_data imported from core.user_data_handlers
-- **Line 21**: Unused save_user_data imported from core.user_data_handlers
+- **Line 22**: Unused get_user_data imported from core.user_data_handlers
+- **Line 22**: Unused save_user_data imported from core.user_data_handlers
 
 ### `tests/behavior/test_logger_coverage_expansion.py`
 
@@ -116,9 +116,8 @@
 
 ### `tests/behavior/test_notebook_handler_behavior.py`
 
-**Count**: 2 unused import(s)
+**Count**: 1 unused import(s)
 
-- **Line 9**: Unused patch imported from unittest.mock
 - **Line 9**: Unused MagicMock imported from unittest.mock
 
 ### `tests/behavior/test_profile_handler_behavior.py`
@@ -199,9 +198,8 @@
 
 ### `tests/development_tools/test_analyze_function_registry.py`
 
-**Count**: 2 unused import(s)
+**Count**: 1 unused import(s)
 
-- **Line 11**: Unused patch imported from unittest.mock
 - **Line 11**: Unused MagicMock imported from unittest.mock
 
 ### `tests/development_tools/test_analyze_functions.py`
@@ -794,7 +792,7 @@
 
 - **Line 10**: Unused import json
 - **Line 11**: Unused import os
-- **Line 13**: Unused datetime imported from datetime
+- **Line 15**: Unused datetime imported from datetime
 
 ### `tests/behavior/test_discord_checkin_retry_behavior.py`
 
@@ -1154,7 +1152,7 @@
 **Count**: 2 unused import(s)
 
 - **Line 10**: Unused import time
-- **Line 19**: Unused temp_project_copy imported from tests.development_tools.conftest
+- **Line 20**: Unused temp_project_copy imported from tests.development_tools.conftest
 
 ### `tests/integration/test_account_management.py`
 
@@ -1222,10 +1220,10 @@
 - **Line 21**: Unused import shutil
 - **Line 23**: Unused datetime imported from datetime
 - **Line 24**: Unused Path imported from pathlib
-- **Line 56**: Unused CategorySelectionWidget imported from ui.widgets.category_selection_widget
-- **Line 57**: Unused ChannelSelectionWidget imported from ui.widgets.channel_selection_widget
-- **Line 58**: Unused TaskSettingsWidget imported from ui.widgets.task_settings_widget
-- **Line 59**: Unused CheckinSettingsWidget imported from ui.widgets.checkin_settings_widget
+- **Line 58**: Unused CategorySelectionWidget imported from ui.widgets.category_selection_widget
+- **Line 59**: Unused ChannelSelectionWidget imported from ui.widgets.channel_selection_widget
+- **Line 60**: Unused TaskSettingsWidget imported from ui.widgets.task_settings_widget
+- **Line 61**: Unused CheckinSettingsWidget imported from ui.widgets.checkin_settings_widget
 
 ### `tests/ui/test_dialog_behavior.py`
 

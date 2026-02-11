@@ -313,13 +313,12 @@ class TestTaskEdgeCases:
     @pytest.mark.tasks
     @pytest.mark.regression
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_task_with_past_due_date(self, test_data_dir):
         """Test creating a task with a past due_date.
-
-        Marked as no_parallel because it creates task files that may conflict with other tests.
         """
-        user_id = "test_user_past_due"
+        import uuid
+
+        user_id = f"test_user_past_due_{uuid.uuid4().hex[:8]}"
         assert self._create_test_user(
             user_id, test_data_dir=test_data_dir
         ), "Failed to create test user"

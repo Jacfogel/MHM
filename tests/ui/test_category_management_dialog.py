@@ -39,8 +39,17 @@ def qapp():
 @pytest.fixture(name="test_user")
 def category_user(test_data_dir):
     """Create a test user for category management tests."""
+    import time
+
     user_id = f"test_category_user_{uuid.uuid4().hex[:8]}"
     TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+    for _ in range(10):
+        resolved_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            user_id, test_data_dir
+        )
+        if resolved_user_id:
+            return resolved_user_id
+        time.sleep(0.05)
     return user_id
 
 
@@ -461,13 +470,11 @@ class TestCategoryManagementDialogRealBehavior:
     def test_save_category_settings_updates_account_features(self, test_user, test_data_dir, qapp):
         """Test that save_category_settings updates account features on disk."""
         # Arrange
-        from core.user_data_handlers import get_user_data, update_user_account
-        user_data = get_user_data(test_user, 'account')
-        account = user_data.get('account', {})
-        if 'features' not in account:
-            account['features'] = {}
-        account['features']['checkins'] = 'enabled'
-        update_user_account(test_user, account)
+        from core.user_data_handlers import (
+            get_user_data,
+            update_user_account,
+        )
+        update_user_account(test_user, {"features": {"checkins": "enabled"}})
 
         dialog = CategoryManagementDialog(parent=None, user_id=test_user)
         dialog.ui.groupBox_enable_automated_messages.setChecked(True)
@@ -481,12 +488,12 @@ class TestCategoryManagementDialogRealBehavior:
                 # Assert - Verify account features were updated
                 import time
                 saved_account = {}
-                for attempt in range(5):
-                    saved_account = get_user_data(test_user, 'account')
+                for attempt in range(8):
+                    saved_account = get_user_data(test_user, 'account', normalize_on_read=True)
                     account_features = saved_account.get('account', {}).get('features', {})
                     if account_features.get('automated_messages') == 'enabled':
                         break
-                    if attempt < 4:
+                    if attempt < 7:
                         time.sleep(0.1)
                 
                 assert 'features' in saved_account.get('account', {}), \

@@ -369,6 +369,7 @@ class TestConversationManagerBehavior:
         # Arrange
         manager = ConversationManager()
         test_user_ids = [f"user-{i}" for i in range(100)]
+        baseline_user_ids = set(manager.user_states.keys())
         
         # Mock AI chatbot for performance testing
         with patch('communication.message_processing.conversation_flow_manager.get_ai_chatbot') as mock_get_ai_chatbot:
@@ -383,8 +384,12 @@ class TestConversationManagerBehavior:
                 responses.append((reply, completed))
             
             # Assert - Verify performance under load
-            # Note: Regular messages don't create user states, only flows do
-            assert len(manager.user_states) == 0, "Should not create states for regular messages"
+            # Note: regular messages should not create *new* states for these users.
+            created_for_test_users = [uid for uid in test_user_ids if uid in manager.user_states]
+            assert not created_for_test_users, "Should not create states for regular messages"
+            assert set(manager.user_states.keys()) == baseline_user_ids, (
+                "Should not add extra conversation state entries"
+            )
             # Verify all messages were processed successfully
             assert all(reply is not None for reply, completed in responses), "Should process all messages"
     

@@ -29,6 +29,12 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-11 - Parallel profiling + archive hygiene **Progressed**
+- Re-baselined full parallel profiling using temp-isolated pytest dirs (`--basetemp` and `cache_dir` under `%TEMP%`) to avoid cross-run contamination from shared test temp/cache paths.
+- Confirmed improved clean sample run: `4457 passed, 1 skipped in 209.25s`.
+- Moved recent `parallel_profile_20260211_*.log/.xml` artifacts from `tests/logs/` to `development_tools/tests/logs/archive/` to match backup-guide archive handling.
+- Added follow-up tracking for automating profile artifact rotation/retention (7-version consolidated policy) in [TODO.md](TODO.md) and reflected the updated baseline in [PLANS.md](development_docs/PLANS.md).
+
 ### 2026-02-10 - Flaky follow-up **COMPLETED**
 - Stabilized and revalidated targeted flaky user-data tests under xdist; user confirmed targeted parallel rerun now passes (`3 passed`).
 - Removed the obvious unused import in `development_tools/shared/service/commands.py` (`import os`).

@@ -47,7 +47,7 @@ RED = "\033[31m"
 YELLOW = "\033[33m"
 RESET = "\033[0m"
 
-ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*m")
+ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 # Global state for interrupt handling
 _interrupt_requested = False
@@ -63,6 +63,7 @@ _resource_warnings_enabled = True
 _critical_memory_limit = 98.0
 _auto_terminate_enabled = True
 _captured_output_lines = []  # Store captured output for partial results extraction
+_current_console_output_file: Optional[Path] = None
 
 # Global variable to store current test context
 _current_test_context = None
@@ -242,14 +243,7 @@ def interrupt_handler(signum, frame):
         )
 
     # Also save captured output for worker test assignment extraction (even on interrupt)
-    if _captured_output_lines:
-        output_file = Path("tests/logs/pytest_console_output.txt")
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            with open(output_file, "w", encoding="utf-8", errors="replace") as f:
-                f.write("".join(_captured_output_lines))
-        except Exception:
-            pass  # Non-critical
+    _persist_captured_output()
 
     # Terminate current process and all child processes (especially pytest-xdist workers)
     if _current_process and _current_process.poll() is None:
@@ -408,6 +402,34 @@ def check_critical_resources(resources: dict) -> bool:
             return True
 
     return False
+
+
+@handle_errors(
+    "persisting captured pytest console output", user_friendly=False, default_return=None
+)
+def _persist_captured_output() -> None:
+    """Persist captured pytest output with ANSI stripping to latest and timestamped logs."""
+    global _captured_output_lines, _current_console_output_file
+
+    if not _captured_output_lines:
+        return
+
+    logs_dir = Path("tests/logs")
+    logs_dir.mkdir(parents=True, exist_ok=True)
+
+    if _current_console_output_file is None:
+        timestamp = now_timestamp_filename()
+        _current_console_output_file = logs_dir / f"pytest_console_output_{timestamp}.txt"
+
+    raw_output = "".join(_captured_output_lines)
+    clean_output = ANSI_ESCAPE_RE.sub("", raw_output)
+
+    with open(_current_console_output_file, "w", encoding="utf-8", errors="replace") as f:
+        f.write(clean_output)
+
+    latest_output_file = logs_dir / "pytest_console_output.txt"
+    with open(latest_output_file, "w", encoding="utf-8", errors="replace") as f:
+        f.write(clean_output)
 
 
 @handle_errors(
@@ -846,7 +868,7 @@ def run_command(
     Returns:
         dict with 'success', 'output', 'results', 'duration', 'warnings', 'failures' keys
     """
-    global _interrupt_requested, _current_process, _current_junit_xml, _last_output_time, _captured_output_lines, _current_test_context
+    global _interrupt_requested, _current_process, _current_junit_xml, _last_output_time, _captured_output_lines, _current_test_context, _current_console_output_file
 
     # Store test context globally for interrupt handler
     _current_test_context = test_context
@@ -855,6 +877,10 @@ def run_command(
     _interrupt_requested = False
     _last_output_time = None
     _captured_output_lines = []
+    _current_console_output_file = (
+        Path("tests/logs")
+        / f"pytest_console_output_{now_timestamp_filename()}.txt"
+    )
 
     # Register signal handlers for graceful shutdown
     @handle_errors("signal handler", default_return=None)
@@ -1117,16 +1143,7 @@ def run_command(
 
                 # Also save captured output for worker test assignment extraction
                 # This helps identify which tests each worker ran (for memory leak debugging)
-                if _captured_output_lines:
-                    output_file = Path("tests/logs/pytest_console_output.txt")
-                    output_file.parent.mkdir(parents=True, exist_ok=True)
-                    try:
-                        with open(
-                            output_file, "w", encoding="utf-8", errors="replace"
-                        ) as f:
-                            f.write("".join(_captured_output_lines))
-                    except Exception:
-                        pass  # Non-critical, don't fail on this
+                _persist_captured_output()
 
             if now >= next_tick:
                 elapsed_int = int(elapsed)
@@ -1142,14 +1159,7 @@ def run_command(
 
         # Save final captured output for worker test assignment extraction
         # This helps identify which tests each worker ran (for memory leak debugging)
-        if _captured_output_lines:
-            output_file = Path("tests/logs/pytest_console_output.txt")
-            output_file.parent.mkdir(parents=True, exist_ok=True)
-            try:
-                with open(output_file, "w", encoding="utf-8", errors="replace") as f:
-                    f.write("".join(_captured_output_lines))
-            except Exception:
-                pass  # Non-critical, don't fail on this
+        _persist_captured_output()
 
         # CRITICAL: On Windows, ensure all child processes (pytest-xdist workers) are terminated
         # Even if the main process exited, workers might still be running

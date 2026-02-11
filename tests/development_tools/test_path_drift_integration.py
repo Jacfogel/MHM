@@ -97,10 +97,13 @@ class TestPathDriftIntegration:
             assert 'status' in result or 'message' in result, "Path validation result should have status or message"
     
     @pytest.mark.integration
-    def test_path_drift_appears_in_ai_status(self, temp_project_copy, monkeypatch):
+    def test_path_drift_appears_in_ai_status(self, tmp_path, monkeypatch):
         """Run audit with path drift issues and verify they appear in AI_STATUS.md."""
+        project_root = tmp_path / "test_project"
+        project_root.mkdir()
+
         # Create documentation with broken paths
-        docs_dir = temp_project_copy / "development_docs"
+        docs_dir = project_root / "development_docs"
         docs_dir.mkdir(exist_ok=True)
         
         test_doc = docs_dir / "test_drift.md"
@@ -108,9 +111,9 @@ class TestPathDriftIntegration:
             "# Test Drift\n\n"
             "This references a missing file: `core/missing.py`\n"
         )
-        
+
         # Create service instance
-        service = AIToolsService(project_root=str(temp_project_copy))
+        service = AIToolsService(project_root=str(project_root))
         
         # Mock tool execution to avoid running actual tools
         def mock_tool(*args, **kwargs):
@@ -130,9 +133,9 @@ class TestPathDriftIntegration:
         # Run quick audit
         with patch('time.sleep'):
             service.run_audit(quick=True)
-        
+
         # Verify status file was created
-        status_file = temp_project_copy / "development_tools" / "AI_STATUS.md"
+        status_file = project_root / "development_tools" / "AI_STATUS.md"
         assert status_file.exists(), "AI_STATUS.md should exist after audit"
         
         # Read status content
@@ -143,11 +146,13 @@ class TestPathDriftIntegration:
         # Note: With all tools mocked, status generation may produce minimal content
     
     @pytest.mark.integration
-    def test_path_drift_appears_in_consolidated_report(self, temp_project_copy, monkeypatch):
+    def test_path_drift_appears_in_consolidated_report(self, tmp_path, monkeypatch):
         """Verify path drift issues appear in consolidated_report.txt."""
-        import time
+        project_root = tmp_path / "test_project"
+        project_root.mkdir()
+
         # Create documentation with broken paths
-        docs_dir = temp_project_copy / "development_docs"
+        docs_dir = project_root / "development_docs"
         docs_dir.mkdir(exist_ok=True)
         
         test_doc = docs_dir / "test_drift2.md"
@@ -155,9 +160,9 @@ class TestPathDriftIntegration:
             "# Test Drift 2\n\n"
             "This references a missing file: `tests/missing_test.py`\n"
         )
-        
+
         # Create service instance
-        service = AIToolsService(project_root=str(temp_project_copy))
+        service = AIToolsService(project_root=str(project_root))
         
         # Mock tool execution
         def mock_tool(*args, **kwargs):
@@ -177,13 +182,9 @@ class TestPathDriftIntegration:
         # Run quick audit
         with patch('time.sleep'):
             service.run_audit(quick=True)
-        
+
         # Verify consolidated report was created
-        report_file = temp_project_copy / "development_tools" / "consolidated_report.txt"
-        for _ in range(20):
-            if report_file.exists():
-                break
-            time.sleep(0.1)
+        report_file = project_root / "development_tools" / "consolidated_report.txt"
         assert report_file.exists(), "consolidated_report.txt should exist after audit"
         
         # Read report content
