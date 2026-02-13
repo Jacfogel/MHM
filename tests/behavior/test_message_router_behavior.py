@@ -7,7 +7,6 @@ routing results rather than just returning values.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
 
 # Import the modules we're testing
 from communication.message_processing.message_router import (
@@ -117,7 +116,7 @@ class TestMessageRouterBehavior:
             assert result.message_type == expected_type, f"Should return {expected_type} for {message}"
             assert result.command_name == expected_cmd, f"Should have command name {expected_cmd}"
             assert result.mapped_message == expected_mapped, f"Should map to {expected_mapped}"
-            assert result.should_continue_parsing == True, "Should continue parsing for regular commands"
+            assert result.should_continue_parsing, "Should continue parsing for regular commands"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -131,8 +130,8 @@ class TestMessageRouterBehavior:
         assert result.message_type == MessageType.FLOW_COMMAND, "Should be FLOW_COMMAND"
         assert result.command_name == "checkin", "Should have command name"
         assert result.mapped_message == "start checkin", "Should map correctly"
-        assert result.should_continue_parsing == False, "Should not continue parsing for flow commands"
-        assert result.flow_command == True, "Should be marked as flow command"
+        assert not result.should_continue_parsing, "Should not continue parsing for flow commands"
+        assert result.flow_command, "Should be marked as flow command"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -145,8 +144,8 @@ class TestMessageRouterBehavior:
         assert result.message_type == MessageType.FLOW_COMMAND, "Should be FLOW_COMMAND"
         assert result.command_name == "cancel", "Should have command name"
         assert result.mapped_message == "/cancel", "Should map correctly"
-        assert result.should_continue_parsing == False, "Should not continue parsing"
-        assert result.flow_command == True, "Should be marked as flow command"
+        assert not result.should_continue_parsing, "Should not continue parsing"
+        assert result.flow_command, "Should be marked as flow command"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -157,7 +156,7 @@ class TestMessageRouterBehavior:
         result = router.route_message("/unknown_command")
         assert isinstance(result, RoutingResult), "Should return RoutingResult"
         assert result.message_type == MessageType.SLASH_COMMAND, "Should be SLASH_COMMAND"
-        assert result.should_continue_parsing == True, "Should continue parsing for unknown commands"
+        assert result.should_continue_parsing, "Should continue parsing for unknown commands"
         assert result.command_name is None or result.command_name != "unknown_command", "Should not have unknown command name"
     
     @pytest.mark.behavior
@@ -180,7 +179,7 @@ class TestMessageRouterBehavior:
             assert result.message_type == expected_type, f"Should return {expected_type} for {message}"
             assert result.command_name == expected_cmd, f"Should have command name {expected_cmd}"
             assert result.mapped_message == expected_mapped, f"Should map to {expected_mapped}"
-            assert result.should_continue_parsing == True, "Should continue parsing for regular commands"
+            assert result.should_continue_parsing, "Should continue parsing for regular commands"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -194,8 +193,8 @@ class TestMessageRouterBehavior:
         assert result.message_type == MessageType.FLOW_COMMAND, "Should be FLOW_COMMAND"
         assert result.command_name == "checkin", "Should have command name"
         assert result.mapped_message == "start checkin", "Should map correctly"
-        assert result.should_continue_parsing == False, "Should not continue parsing for flow commands"
-        assert result.flow_command == True, "Should be marked as flow command"
+        assert not result.should_continue_parsing, "Should not continue parsing for flow commands"
+        assert result.flow_command, "Should be marked as flow command"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -206,7 +205,7 @@ class TestMessageRouterBehavior:
         result = router.route_message("!unknown_command")
         assert isinstance(result, RoutingResult), "Should return RoutingResult"
         assert result.message_type == MessageType.BANG_COMMAND, "Should be BANG_COMMAND"
-        assert result.should_continue_parsing == True, "Should continue parsing for unknown commands"
+        assert result.should_continue_parsing, "Should continue parsing for unknown commands"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -226,7 +225,7 @@ class TestMessageRouterBehavior:
             result = router.route_message(message)
             assert isinstance(result, RoutingResult), f"Should return RoutingResult for {message}"
             assert result.message_type == MessageType.STRUCTURED_COMMAND, f"Should be STRUCTURED_COMMAND for {message}"
-            assert result.should_continue_parsing == True, "Should continue parsing"
+            assert result.should_continue_parsing, "Should continue parsing"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -235,15 +234,15 @@ class TestMessageRouterBehavior:
         router = MessageRouter()
         
         # Test flow command
-        assert router.is_flow_command("checkin") == True, "checkin should be flow command"
+        assert router.is_flow_command("checkin"), "checkin should be flow command"
         
         # Test non-flow commands
-        assert router.is_flow_command("tasks") == False, "tasks should not be flow command"
-        assert router.is_flow_command("profile") == False, "profile should not be flow command"
-        assert router.is_flow_command("schedule") == False, "schedule should not be flow command"
+        assert not router.is_flow_command("tasks"), "tasks should not be flow command"
+        assert not router.is_flow_command("profile"), "profile should not be flow command"
+        assert not router.is_flow_command("schedule"), "schedule should not be flow command"
         
         # Test unknown command
-        assert router.is_flow_command("unknown") == False, "unknown should not be flow command"
+        assert not router.is_flow_command("unknown"), "unknown should not be flow command"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -253,15 +252,15 @@ class TestMessageRouterBehavior:
         
         # Test None
         result = router.is_flow_command(None)
-        assert result == False, "Should return False for None"
+        assert not result, "Should return False for None"
         
         # Test empty string
         result = router.is_flow_command("")
-        assert result == False, "Should return False for empty string"
+        assert not result, "Should return False for empty string"
         
         # Test whitespace
         result = router.is_flow_command("   ")
-        assert result == False, "Should return False for whitespace"
+        assert not result, "Should return False for whitespace"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -375,7 +374,7 @@ class TestMessageRouterBehavior:
         result = router.route_message("/")
         assert isinstance(result, RoutingResult), "Should return RoutingResult"
         assert result.message_type == MessageType.SLASH_COMMAND, "Should be SLASH_COMMAND"
-        assert result.should_continue_parsing == True, "Should continue parsing"
+        assert result.should_continue_parsing, "Should continue parsing"
         
         # Test slash with spaces
         result = router.route_message("/ tasks")
@@ -392,7 +391,7 @@ class TestMessageRouterBehavior:
         result = router.route_message("!")
         assert isinstance(result, RoutingResult), "Should return RoutingResult"
         assert result.message_type == MessageType.BANG_COMMAND, "Should be BANG_COMMAND"
-        assert result.should_continue_parsing == True, "Should continue parsing"
+        assert result.should_continue_parsing, "Should continue parsing"
         
         # Test bang with spaces
         result = router.route_message("! tasks")

@@ -440,7 +440,7 @@ class ProfileHandler(InteractionHandler):
             try:
                 loved_ones = context_data.get("loved_ones", [])
                 if loved_ones:
-                    response += f"- Support Network:\n"
+                    response += "- Support Network:\n"
                     for person in loved_ones[:3]:  # Show first 3
                         if isinstance(person, dict):
                             name = person.get("name", "Unknown")
@@ -470,7 +470,7 @@ class ProfileHandler(InteractionHandler):
                 features = account_data.get("features", {}) or {}
                 checkins_enabled = features.get("checkins") == "enabled"
                 tasks_enabled = features.get("task_management") == "enabled"
-                response += f"\n**Account Features:**\n"
+                response += "\n**Account Features:**\n"
                 response += (
                     f"- Check-ins: {'Enabled' if checkins_enabled else 'Disabled'}\n"
                 )
@@ -478,9 +478,9 @@ class ProfileHandler(InteractionHandler):
             except Exception as e:
                 logger.warning(f"Error formatting account features: {e}")
                 # Ensure we still show account features section even on error
-                response += f"\n**Account Features:**\n"
-                response += f"- Check-ins: Unknown\n"
-                response += f"- Tasks: Unknown\n"
+                response += "\n**Account Features:**\n"
+                response += "- Check-ins: Unknown\n"
+                response += "- Tasks: Unknown\n"
 
             return response
         except Exception as e:
@@ -488,13 +488,13 @@ class ProfileHandler(InteractionHandler):
             # Return at least the header and basic fields even on error
             try:
                 fallback = "**Your Profile:**\n"
-                fallback += f"- Name: Not set\n"
-                fallback += f"- Gender Identity: Not set\n"
-                fallback += f"- Email: Not set\n"
-                fallback += f"- Status: Unknown\n"
-                fallback += f"\n**Account Features:**\n"
-                fallback += f"- Check-ins: Unknown\n"
-                fallback += f"- Tasks: Unknown\n"
+                fallback += "- Name: Not set\n"
+                fallback += "- Gender Identity: Not set\n"
+                fallback += "- Email: Not set\n"
+                fallback += "- Status: Unknown\n"
+                fallback += "\n**Account Features:**\n"
+                fallback += "- Check-ins: Unknown\n"
+                fallback += "- Tasks: Unknown\n"
                 return fallback
             except Exception:
                 return "**Your Profile:**\nError loading profile information."

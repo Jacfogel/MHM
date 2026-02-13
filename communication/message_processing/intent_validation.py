@@ -4,7 +4,8 @@ Used by EnhancedCommandParser and InteractionManager to check whether
 an intent is supported by any registered handler.
 """
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from core.error_handling import handle_errors
 
@@ -21,7 +22,4 @@ def is_valid_intent(intent: str, interaction_handlers: Mapping[str, Any]) -> boo
     Returns:
         True if any handler's can_handle(intent) returns True, False otherwise.
     """
-    for handler in interaction_handlers.values():
-        if handler.can_handle(intent):
-            return True
-    return False
+    return any(handler.can_handle(intent) for handler in interaction_handlers.values())

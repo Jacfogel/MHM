@@ -18,6 +18,7 @@ Usage:
 
 import json
 from pathlib import Path
+from contextlib import suppress
 from datetime import datetime, timedelta
 from ai.chatbot import get_ai_chatbot
 from core.logger import get_component_logger
@@ -121,7 +122,7 @@ class ConversationManager:
     def _load_user_states(self) -> None:
         """Load user states from disk with comprehensive logging"""
         if self._state_file.exists():
-            with open(self._state_file, "r", encoding="utf-8") as f:
+            with open(self._state_file, encoding="utf-8") as f:
                 self.user_states = json.load(f)
 
             # When no user states, log at DEBUG to reduce burst noise; INFO when there is state to track
@@ -452,7 +453,7 @@ class ConversationManager:
             self._save_user_states()
             logger.info(f"Cleared stuck flow {flow_type} for user {user_id}")
             return (
-                f"Cleared stuck flow state. You can now use commands normally.",
+                "Cleared stuck flow state. You can now use commands normally.",
                 True,
             )
         else:
@@ -756,17 +757,16 @@ class ConversationManager:
                 # last_activity is internal persisted state (string timestamp).
                 # Parse strictly using canonical helper.
                 last_dt = parse_timestamp_full(last_ts)
-                if last_dt is not None:
-                    if now_datetime_full() - last_dt > timedelta(
-                        minutes=CHECKIN_INACTIVITY_MINUTES
-                    ):
-                        # Expire flow due to inactivity
-                        self._cache_expired_checkin_order(user_id, user_state)
-                        self._save_user_states()
-                        return (
-                            "The previous check-in expired due to inactivity. You can start a new one with /checkin.",
-                            True,
-                        )
+                if last_dt is not None and now_datetime_full() - last_dt > timedelta(
+                    minutes=CHECKIN_INACTIVITY_MINUTES
+                ):
+                    # Expire flow due to inactivity
+                    self._cache_expired_checkin_order(user_id, user_state)
+                    self._save_user_states()
+                    return (
+                        "The previous check-in expired due to inactivity. You can start a new one with /checkin.",
+                        True,
+                    )
         except Exception:
             pass
 
@@ -870,10 +870,8 @@ class ConversationManager:
 
         # Move to next question and update activity
         user_state["current_question_index"] = current_index + 1
-        try:
+        with suppress(Exception):
             user_state["last_activity"] = now_timestamp_full()
-        except Exception:
-            pass
 
         self._save_user_states()
 
@@ -1124,7 +1122,6 @@ class ConversationManager:
         """
         try:
             import random
-            from datetime import datetime, timedelta
 
             # Get user's check-in preferences for min/max settings
             prefs_result = get_user_data(user_id, "preferences")
@@ -1842,7 +1839,7 @@ class ConversationManager:
         self, user_id: str, user_state: dict, message_text: str
     ) -> tuple[str, bool]:
         """Handle continuation of task due date/time flow."""
-        from tasks.task_management import get_task_by_id, update_task
+        from tasks.task_management import update_task
 
         message_lower = message_text.lower().strip()
 
@@ -1875,7 +1872,7 @@ class ConversationManager:
             self.user_states.pop(user_id, None)
             self._save_user_states()
             return (
-                f"❌ Due date setting cancelled. Task was created without a due date.",
+                "❌ Due date setting cancelled. Task was created without a due date.",
                 True,
             )
 
@@ -1888,7 +1885,7 @@ class ConversationManager:
             self.user_states.pop(user_id, None)
             self._save_user_states()
             return (
-                f"✅ Task created without a due date. You can add one later by updating the task.",
+                "✅ Task created without a due date. You can add one later by updating the task.",
                 True,
             )
 
@@ -1953,9 +1950,7 @@ class ConversationManager:
 
             # Now ask about reminder periods with context-aware options
             self.start_task_reminder_followup(user_id, task_id)
-            reminder_suggestions = self._generate_context_aware_reminder_suggestions(
-                user_id, task_id
-            )
+            self._generate_context_aware_reminder_suggestions(user_id, task_id)
 
             due_text = parsed_date
             if parsed_time:

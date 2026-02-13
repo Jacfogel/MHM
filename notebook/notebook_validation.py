@@ -343,8 +343,7 @@ def validate_entry_content(
         return False, f"Invalid entry body (max {MAX_BODY_LENGTH} characters)"
 
     # For notes and journals, at least title or body should be present
-    if kind in ["note", "journal"]:
-        if not title and not body:
-            return False, "Note or journal entries must have at least a title or body"
+    if kind in ["note", "journal"] and not title and not body:
+        return False, "Note or journal entries must have at least a title or body"
 
     return True, None

@@ -354,7 +354,7 @@ class TestEnhancedCommandParserIntegration:
         valid_intents = ["create_task", "list_tasks", "complete_task", "start_checkin", "help"]
         for intent in valid_intents:
             # This tests the _is_valid_intent method indirectly
-            result = self.parser.parse(f"test {intent} command")
+            self.parser.parse(f"test {intent} command")
             # Should not crash when validating intent
     
     @pytest.mark.ai
@@ -407,7 +407,6 @@ class TestEnhancedCommandParserIntegration:
     def test_enhanced_command_parser_memory_behavior(self, test_data_dir):
         """Test memory usage behavior of parser."""
         import gc
-        import sys
         
         # Test that parser doesn't leak memory
         initial_objects = len(gc.get_objects())
@@ -430,7 +429,6 @@ class TestEnhancedCommandParserIntegration:
     def test_enhanced_command_parser_thread_safety_behavior(self, test_data_dir):
         """Test thread safety behavior of parser."""
         import threading
-        import time
         
         # Test concurrent parsing
         results = []

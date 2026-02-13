@@ -7,7 +7,7 @@ side effects rather than just returning values.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from datetime import datetime, timedelta
 
 # Import the modules we're testing

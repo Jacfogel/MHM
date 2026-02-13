@@ -235,9 +235,16 @@ os.environ["LOG_SCHEDULER_FILE"] = consolidated_log_placeholder
 tests_data_dir = (Path(__file__).parent / "data").resolve()
 tests_data_dir.mkdir(exist_ok=True)
 (tests_data_dir / "users").mkdir(parents=True, exist_ok=True)
+tests_data_tmp_dir = tests_data_dir / "tmp"
+tests_data_tmp_dir.mkdir(parents=True, exist_ok=True)
 os.environ["TEST_DATA_DIR"] = os.environ.get("TEST_DATA_DIR", str(tests_data_dir))
 # Also set BASE_DATA_DIR for any code that reads it directly
 os.environ["BASE_DATA_DIR"] = str(tests_data_dir)
+# Keep pytest temp/cache helper artifacts under tests/data/tmp when possible.
+os.environ.setdefault("PYTEST_DEBUG_TEMPROOT", str(tests_data_tmp_dir))
+os.environ.setdefault(
+    "PYTEST_CACHE_DIR", str(tests_data_tmp_dir / "pytest_cache")
+)
 # Route service flags to tests/data/flags in test mode
 flags_dir = tests_data_dir / "flags"
 flags_dir.mkdir(parents=True, exist_ok=True)
@@ -1819,15 +1826,29 @@ def _cleanup_pytest_cache_temp_dirs(project_root_path: Path, data_dir: Path) -> 
     Keep cleanup best-effort and never fail tests for cleanup issues.
     """
     removed = 0
+
+    def _rmtree_with_retries(path: Path, attempts: int = 3) -> bool:
+        for _ in range(attempts):
+            try:
+                shutil.rmtree(path, ignore_errors=False)
+                return True
+            except Exception:
+                time.sleep(0.05)
+        try:
+            shutil.rmtree(path, ignore_errors=True)
+        except Exception:
+            pass
+        return not path.exists()
+
     try:
-        for root in (project_root_path, data_dir / "tmp"):
+        for root in (project_root_path, data_dir, data_dir / "tmp"):
             if not root.exists():
                 continue
             for entry in root.glob("pytest-cache-files-*"):
                 if entry.is_dir():
                     try:
-                        shutil.rmtree(entry, ignore_errors=True)
-                        removed += 1
+                        if _rmtree_with_retries(entry):
+                            removed += 1
                     except Exception:
                         pass
     except Exception:
@@ -3041,7 +3062,8 @@ def force_test_data_directory():
     """Route all system temp usage into tests/data for the entire session."""
     import tempfile
 
-    root = str(tests_data_dir)
+    root = str(tests_data_tmp_dir)
+    os.makedirs(root, exist_ok=True)
     # Set common env vars so any native/library lookups resolve under tests/data
     os.environ["TMPDIR"] = root
     os.environ["TEMP"] = root

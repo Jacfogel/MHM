@@ -59,7 +59,7 @@ class TestChatInteractionStorageRealScenarios:
         # Assert - Verify all interactions are stored correctly
         assert os.path.exists(chat_file), "Chat interactions file should be created"
         
-        with open(chat_file, 'r', encoding='utf-8') as f:
+        with open(chat_file, encoding='utf-8') as f:
             stored_data = json.load(f)
         
         assert len(stored_data) == 3, "Should store all 3 conversation interactions"
@@ -152,7 +152,7 @@ class TestChatInteractionStorageRealScenarios:
                 )
         
         # Assert - Verify all message types are stored
-        with open(chat_file, 'r', encoding='utf-8') as f:
+        with open(chat_file, encoding='utf-8') as f:
             stored_data = json.load(f)
         
         assert len(stored_data) == 4, "Should store all message types"
@@ -246,7 +246,7 @@ class TestChatInteractionStorageRealScenarios:
                 )
         
         # Assert - Verify fallback scenarios are stored correctly
-        with open(chat_file, 'r', encoding='utf-8') as f:
+        with open(chat_file, encoding='utf-8') as f:
             stored_data = json.load(f)
         
         assert len(stored_data) == 3, "Should store all fallback scenarios"
@@ -320,7 +320,7 @@ class TestChatInteractionStorageRealScenarios:
         all_data = []
         for attempt in range(5):
             if os.path.exists(chat_file):
-                with open(chat_file, 'r', encoding='utf-8') as f:
+                with open(chat_file, encoding='utf-8') as f:
                     all_data = json.load(f)
                 if len(all_data) >= 50:  # Allow for some tolerance in parallel execution
                     break
@@ -364,7 +364,7 @@ class TestChatInteractionStorageRealScenarios:
             store_chat_interaction(user_id, special_message, "I can see you're feeling happy! I'd be glad to help with your tasks.", True)
         
         # Assert - Verify error handling works correctly
-        with open(chat_file, 'r', encoding='utf-8') as f:
+        with open(chat_file, encoding='utf-8') as f:
             stored_data = json.load(f)
         
         assert len(stored_data) == 3, "Should store all interactions despite edge cases"
@@ -440,7 +440,7 @@ class TestChatInteractionStorageEdgeCases:
         # Assert - Should still store interaction
         assert os.path.exists(chat_file), "Should create file even without user data"
         
-        with open(chat_file, 'r', encoding='utf-8') as f:
+        with open(chat_file, encoding='utf-8') as f:
             stored_data = json.load(f)
         
         assert len(stored_data) == 1, "Should store interaction"
@@ -466,7 +466,7 @@ class TestChatInteractionStorageEdgeCases:
             store_chat_interaction(user_id, "Hello", "Hi there!", False)
         
         # Assert - Should handle corruption and create valid file
-        with open(chat_file, 'r', encoding='utf-8') as f:
+        with open(chat_file, encoding='utf-8') as f:
             stored_data = json.load(f)
         
         # Should create valid structure (exact format may vary based on error handling)
@@ -497,7 +497,7 @@ class TestChatInteractionStorageEdgeCases:
             store_chat_interaction(user_id, "Message 3", "Response 3", True)
         
         # Assert - All interactions should be stored
-        with open(chat_file, 'r', encoding='utf-8') as f:
+        with open(chat_file, encoding='utf-8') as f:
             stored_data = json.load(f)
         
         assert len(stored_data) == 3, "Should store all concurrent interactions"

@@ -305,11 +305,14 @@ class AIChatBotSingleton:
                         )
 
                 # Check for questions about mood/energy
-                if any(
-                    word in prompt_lower
-                    for word in ["mood", "feeling", "how have i been", "lately"]
+                if (
+                    any(
+                        word in prompt_lower
+                        for word in ["mood", "feeling", "how have i been", "lately"]
+                    )
+                    and avg_mood
+                    and avg_energy
                 ):
-                    if avg_mood and avg_energy:
                         if avg_mood >= 4 and avg_energy >= 4:
                             return (
                                 f"{name_prefix}Looking at your recent check-ins, you've been doing really well! "
@@ -410,13 +413,12 @@ class AIChatBotSingleton:
             "my trends",
         ]
 
-        if any(phrase in prompt_lower for phrase in context_requiring_prompts):
-            if is_new_user:
-                return (
-                    f"{name_prefix}I don't have enough information about how you're doing today, but we can figure it out together! "
-                    f"How about you tell me about your day so far? How are you feeling right now? "
-                    f"Once you start using check-ins, I'll be able to give you more specific insights!"
-                )
+        if any(phrase in prompt_lower for phrase in context_requiring_prompts) and is_new_user:
+            return (
+                f"{name_prefix}I don't have enough information about how you're doing today, but we can figure it out together! "
+                f"How about you tell me about your day so far? How are you feeling right now? "
+                f"Once you start using check-ins, I'll be able to give you more specific insights!"
+            )
 
         # Fall back to keyword-based responses if no data analysis possible
 
@@ -1039,7 +1041,7 @@ class AIChatBotSingleton:
                 tasks_due_soon = get_tasks_due_soon(user_id, days_ahead=7)
 
                 if task_stats.get("total_count", 0) > 0:
-                    context_parts.append(f"Their task information:")
+                    context_parts.append("Their task information:")
                     context_parts.append(
                         f"  - They have {task_stats.get('active_count', 0)} active task{'s' if task_stats.get('active_count', 0) != 1 else ''}"
                     )
@@ -1073,7 +1075,7 @@ class AIChatBotSingleton:
                             t for t in active_tasks if t not in tasks_due_soon[:3]
                         ][:3]
                         if other_active:
-                            context_parts.append(f"  - Other active tasks:")
+                            context_parts.append("  - Other active tasks:")
                             for task in other_active:
                                 title = task.get("title", "Untitled task")
                                 context_parts.append(f'    * "{title}"')
@@ -1094,7 +1096,7 @@ class AIChatBotSingleton:
                 ).get("schedules", {})
 
                 if schedules_data:
-                    context_parts.append(f"Their active schedules:")
+                    context_parts.append("Their active schedules:")
                     for schedule_name in active_schedules[:5]:  # Limit to 5 schedules
                         # Find schedule in data structure
                         schedule_info = None
@@ -1325,11 +1327,7 @@ class AIChatBotSingleton:
 
         needs_clarification = False
 
-        if len(words) <= 3:
-            needs_clarification = True
-        elif stripped_prompt in minimal_command_prompts:
-            needs_clarification = True
-        elif any(phrase in prompt_lower for phrase in clarification_phrases):
+        if len(words) <= 3 or stripped_prompt in minimal_command_prompts or any(phrase in prompt_lower for phrase in clarification_phrases):
             needs_clarification = True
         else:
             has_question_request = "?" in prompt_lower and any(
@@ -1980,7 +1978,7 @@ class AIChatBotSingleton:
             "conversational and helpful",
         ]
 
-        for i, line in enumerate(lines):
+        for _i, line in enumerate(lines):
             line_lower = line.strip().lower()
 
             # Skip lines that are pure metadata markers
@@ -2011,9 +2009,12 @@ class AIChatBotSingleton:
 
             # Skip lines that look like bullet-point instructions (starts with -, *, or • followed by instruction keywords)
             line_stripped = line.strip()
-            if line_stripped and line_stripped[0] in ["-", "*", "•"]:
-                if any(keyword in line_lower for keyword in instruction_keywords):
-                    continue
+            if (
+                line_stripped
+                and line_stripped[0] in ["-", "*", "•"]
+                and any(keyword in line_lower for keyword in instruction_keywords)
+            ):
+                continue
 
             # Skip lines immediately after metadata markers (they might be continuation)
             if skip_next:
@@ -2078,7 +2079,6 @@ class AIChatBotSingleton:
         Returns clean structured format for parser.
         """
         import json
-        import re
 
         if not response:
             return response

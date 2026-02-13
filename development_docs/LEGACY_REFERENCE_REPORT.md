@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-12 23:54:03
+> **Last Generated**: 2026-02-13 13:59:41
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 4
 **Legacy Compatibility Markers Detected**: 5
@@ -37,7 +37,7 @@
 ### run_tests.py
 **Issues Found**: 1
 
-- **Line 2456**: `backward compatibility`
+- **Line 2485**: `backward compatibility`
   ```
   # Handle case where parallel_results might be a bool (backward compatibility)
   ```

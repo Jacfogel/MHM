@@ -376,7 +376,7 @@ class TestContextBuilderBehavior:
 
         # Act - Make rapid successive calls
         contexts = []
-        for i in range(10):
+        for _i in range(10):
             context = context_builder.build_user_context(user_id)
             contexts.append(context)
 

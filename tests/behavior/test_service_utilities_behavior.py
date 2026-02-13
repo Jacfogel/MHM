@@ -141,10 +141,10 @@ class TestServiceUtilitiesBehavior:
         category = "checkin"
 
         # Act - Create reschedule request when service is not running
-        with patch("core.service_utilities.is_service_running", return_value=False):
-            with patch("builtins.open", mock_open()) as mock_file:
-                with patch("json.dump") as mock_json_dump:
-                    result = create_reschedule_request(user_id, category)
+        with patch("core.service_utilities.is_service_running", return_value=False), \
+             patch("builtins.open", mock_open()) as mock_file, \
+             patch("json.dump") as mock_json_dump:
+            result = create_reschedule_request(user_id, category)
 
         # Assert - Verify file operations were NOT called
         mock_file.assert_not_called()
@@ -388,10 +388,10 @@ class TestServiceUtilitiesBehavior:
             assert result is False, "Should handle process iteration error gracefully"
 
         # Test 3: File creation error
-        with patch("core.service_utilities.is_service_running", return_value=True):
-            with patch("builtins.open", side_effect=OSError("File creation error")):
-                # Should not raise exception
-                create_reschedule_request("test-user", "test-category")
+        with patch("core.service_utilities.is_service_running", return_value=True), \
+             patch("builtins.open", side_effect=OSError("File creation error")):
+            # Should not raise exception
+            create_reschedule_request("test-user", "test-category")
 
     def test_service_utilities_performance_under_load(self, test_data_dir):
         """Test that service utilities perform well under load."""
@@ -453,25 +453,25 @@ class TestServiceUtilitiesIntegration:
         category = "checkin"
 
         # Arrange - Mock all dependencies
-        with patch("core.service_utilities.is_service_running", return_value=True):
-            with patch("builtins.open", mock_open()) as mock_file:
-                with patch("json.dump") as mock_json_dump:
-                    # Act - Complete reschedule workflow
-                    create_reschedule_request(user_id, category)
+        with patch("core.service_utilities.is_service_running", return_value=True), \
+             patch("builtins.open", mock_open()) as mock_file, \
+             patch("json.dump") as mock_json_dump:
+            # Act - Complete reschedule workflow
+            create_reschedule_request(user_id, category)
 
-                    # Verify service check was called
-                    from core.service_utilities import is_service_running
+            # Verify service check was called
+            from core.service_utilities import is_service_running
 
-                    is_service_running.assert_called_once()
+            is_service_running.assert_called_once()
 
-                    # Verify file creation was called
-                    mock_file.assert_called_once()
-                    mock_json_dump.assert_called_once()
+            # Verify file creation was called
+            mock_file.assert_called_once()
+            mock_json_dump.assert_called_once()
 
-                    # Verify request data structure
-                    call_args = mock_json_dump.call_args[0][0]
-                    assert call_args["user_id"] == user_id, "Should include user_id"
-                    assert call_args["category"] == category, "Should include category"
+            # Verify request data structure
+            call_args = mock_json_dump.call_args[0][0]
+            assert call_args["user_id"] == user_id, "Should include user_id"
+            assert call_args["category"] == category, "Should include category"
 
     @pytest.mark.slow
     def test_service_utilities_error_recovery_with_real_operations(self, test_data_dir):
@@ -519,7 +519,7 @@ class TestServiceUtilitiesIntegration:
 
         # Act - Simulate concurrent access
         results = []
-        for i in range(5):
+        for _i in range(5):
             results.append(throttler.should_run())
 
         # Assert - Should handle concurrent access safely
@@ -538,7 +538,7 @@ class TestServiceUtilitiesIntegration:
         # Test title case thread safety (should be stateless)
         test_text = "ai chatbot"
         results = []
-        for i in range(5):
+        for _i in range(5):
             results.append(_shared__title_case(test_text))
 
         # Assert - All results should be identical

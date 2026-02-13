@@ -4,6 +4,8 @@ Account Management Handler
 Channel-agnostic handler for account creation and linking operations.
 """
 
+import secrets
+import string
 from typing import Any
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
@@ -221,16 +223,16 @@ class AccountManagementHandler(InteractionHandler):
             existing_discord_id = account_data.get("discord_user_id", "")
             if existing_discord_id and existing_discord_id != channel_identifier:
                 return InteractionResponse(
-                    f"❌ This account is already linked to a different Discord account.\n"
-                    f"If this is your account, please contact support.",
+                    "❌ This account is already linked to a different Discord account.\n"
+                    "If this is your account, please contact support.",
                     completed=False,
                 )
         elif channel_type == "email":
             existing_email = account_data.get("email", "")
             if existing_email and existing_email.lower() != channel_identifier.lower():
                 return InteractionResponse(
-                    f"❌ This account is already linked to a different email address.\n"
-                    f"If this is your account, please contact support.",
+                    "❌ This account is already linked to a different email address.\n"
+                    "If this is your account, please contact support.",
                     completed=False,
                 )
 
@@ -267,9 +269,9 @@ class AccountManagementHandler(InteractionHandler):
 
             if code_sent:
                 return InteractionResponse(
-                    f"✅ **Confirmation code sent!**\n\n"
-                    f"A confirmation code has been sent to the email address associated with your MHM account.\n"
-                    f"Please check your email and enter the code here to complete the linking process.",
+                    "✅ **Confirmation code sent!**\n\n"
+                    "A confirmation code has been sent to the email address associated with your MHM account.\n"
+                    "Please check your email and enter the code here to complete the linking process.",
                     completed=False,
                     rich_data={
                         "type": "confirmation_code_sent",
@@ -280,8 +282,8 @@ class AccountManagementHandler(InteractionHandler):
                 )
             else:
                 return InteractionResponse(
-                    f"❌ Could not send confirmation code. This account may not have an email address configured.\n"
-                    f"Please contact support for assistance.",
+                    "❌ Could not send confirmation code. This account may not have an email address configured.\n"
+                    "Please contact support for assistance.",
                     completed=False,
                 )
 
@@ -415,10 +417,6 @@ class AccountManagementHandler(InteractionHandler):
         """Get example commands for account management."""
         return ["create account", "link account", "check account status"]
 
-
-# Module-level utilities for account management
-import secrets
-import string
 
 # Store pending account operations (confirmation codes, etc.)
 # Format: {channel_identifier: {operation_type: str, username: str, user_id: str, confirmation_code: str, timestamp: float}}

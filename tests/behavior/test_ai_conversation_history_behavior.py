@@ -96,7 +96,7 @@ class TestConversationHistoryBehavior:
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         history = ConversationHistory()
-        session_id = history.start_session(user_id)
+        history.start_session(user_id)
         
         # Add some messages
         history.add_message(user_id, "user", "Message 1")
@@ -277,7 +277,7 @@ class TestConversationHistoryBehavior:
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         history = ConversationHistory()
-        session_id = history.start_session(user_id)
+        history.start_session(user_id)
         
         # Add some messages
         history.add_message(user_id, "user", "Test message")
@@ -295,7 +295,7 @@ class TestConversationHistoryBehavior:
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         history = ConversationHistory()
-        session_id = history.start_session(user_id)
+        history.start_session(user_id)
         
         # Act - Simulate concurrent access
         import threading
@@ -324,7 +324,7 @@ class TestConversationHistoryBehavior:
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         history = ConversationHistory()
-        session_id = history.start_session(user_id)
+        history.start_session(user_id)
         
         # Act - Make rapid successive calls
         for i in range(20):
@@ -398,7 +398,7 @@ class TestConversationHistoryBehavior:
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         history = ConversationHistory()
-        session_id = history.start_session(user_id)
+        history.start_session(user_id)
         
         # Verify active session exists
         active_session = history.get_active_session(user_id)
@@ -420,7 +420,7 @@ class TestConversationHistoryBehavior:
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         history = ConversationHistory()
-        session_id = history.start_session(user_id)
+        history.start_session(user_id)
         
         # Add some messages
         history.add_message(user_id, "user", "Message 1")

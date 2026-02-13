@@ -23,7 +23,7 @@ def _load_welcome_tracking() -> dict[str, dict[str, Any]]:
     if not WELCOME_TRACKING_FILE.exists():
         return {}
 
-    with open(WELCOME_TRACKING_FILE, "r", encoding="utf-8") as f:
+    with open(WELCOME_TRACKING_FILE, encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -133,7 +133,7 @@ def get_welcome_message(
     """
     if is_authorization:
         # User just authorized/connected the app
-        message = f"""👋 **Welcome to MHM (Motivational Health Messages)!**
+        message = """👋 **Welcome to MHM (Motivational Health Messages)!**
 
 Thank you for connecting MHM! I'm your personal motivational health assistant, and I'm here to send you encouraging messages, help you manage tasks, check-in with yourself and analyse trends, and provide personalized support.
 
@@ -158,7 +158,7 @@ Use the buttons below to create a new account or link to an existing one.
 Feel free to ask me anything! I'm here to help. 🚀"""
     else:
         # General welcome message
-        message = f"""👋 **Welcome to MHM (Motivational Health Messages)!**
+        message = """👋 **Welcome to MHM (Motivational Health Messages)!**
 
 I'm your motivational health assistant, and I'm here to help you manage tasks, check-ins, and more.
 

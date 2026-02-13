@@ -7,10 +7,9 @@ These tests verify that webhook server actually works and produces expected side
 
 import pytest
 import json
-import threading
 import time
 import socket
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import patch, MagicMock
 from communication.communication_channels.discord.webhook_server import (
     DiscordWebhookHandler,
     WebhookServer
@@ -194,10 +193,10 @@ class TestWebhookServerBehavior:
         )
         handler.bot_instance = None
         
-        with patch('core.config.DISCORD_PUBLIC_KEY', None):
-            with patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
-                mock_handle.return_value = True
-                handler.do_POST()
+        with patch('core.config.DISCORD_PUBLIC_KEY', None), \
+             patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
+            mock_handle.return_value = True
+            handler.do_POST()
         
         # Assert: Should handle event and return 200
         assert handler._response_code == 200, "Should return 200 for successful handling"
@@ -235,10 +234,10 @@ class TestWebhookServerBehavior:
         )
         handler.bot_instance = None
         
-        with patch('core.config.DISCORD_PUBLIC_KEY', None):
-            with patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
-                mock_handle.return_value = False
-                handler.do_POST()
+        with patch('core.config.DISCORD_PUBLIC_KEY', None), \
+             patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
+            mock_handle.return_value = False
+            handler.do_POST()
         
         # Assert: Should return 500 for handling failure
         assert handler._response_code == 500, "Should return 500 for handling failure"
@@ -435,10 +434,10 @@ class TestWebhookServerBehavior:
         )
         handler.bot_instance = None
         
-        with patch('core.config.DISCORD_PUBLIC_KEY', None):
-            with patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
-                mock_handle.return_value = True
-                handler.do_POST()
+        with patch('core.config.DISCORD_PUBLIC_KEY', None), \
+             patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
+            mock_handle.return_value = True
+            handler.do_POST()
         
         # Assert: Should normalize to uppercase
         assert mock_handle.called, "Should call handle_webhook_event"
@@ -541,13 +540,13 @@ class TestWebhookServerBehavior:
         mock_nacl.signing = mock_signing
         mock_nacl.exceptions = mock_exceptions
         
-        with patch('core.config.DISCORD_PUBLIC_KEY', 'test_public_key_hex'):
-            with patch.dict(sys.modules, {
-                'nacl': mock_nacl,
-                'nacl.signing': mock_signing, 
-                'nacl.exceptions': mock_exceptions
-            }):
-                handler.do_POST()
+        with patch('core.config.DISCORD_PUBLIC_KEY', 'test_public_key_hex'), \
+             patch.dict(sys.modules, {
+                 'nacl': mock_nacl,
+                 'nacl.signing': mock_signing, 
+                 'nacl.exceptions': mock_exceptions
+             }):
+            handler.do_POST()
         
         # Assert: Should reject invalid signature
         assert handler._response_code == 401, "Should return 401 for invalid signature"
@@ -640,13 +639,13 @@ class TestWebhookServerBehavior:
         mock_nacl.signing = mock_signing
         mock_nacl.exceptions = mock_exceptions
         
-        with patch('core.config.DISCORD_PUBLIC_KEY', 'test_public_key'):
-            with patch.dict(sys.modules, {
-                'nacl': mock_nacl,
-                'nacl.signing': mock_signing, 
-                'nacl.exceptions': mock_exceptions
-            }):
-                handler.do_POST()
+        with patch('core.config.DISCORD_PUBLIC_KEY', 'test_public_key'), \
+             patch.dict(sys.modules, {
+                 'nacl': mock_nacl,
+                 'nacl.signing': mock_signing, 
+                 'nacl.exceptions': mock_exceptions
+             }):
+            handler.do_POST()
         
         # Assert: Should reject on verification error
         assert handler._response_code == 401, "Should return 401 on verification error"
@@ -694,10 +693,10 @@ class TestWebhookServerBehavior:
         )
         handler.bot_instance = None
         
-        with patch('core.config.DISCORD_PUBLIC_KEY', None):
-            with patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
-                mock_handle.return_value = True
-                handler.do_POST()
+        with patch('core.config.DISCORD_PUBLIC_KEY', None), \
+             patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
+            mock_handle.return_value = True
+            handler.do_POST()
         
         # Assert: Should use fallback event type
         assert mock_handle.called, "Should call handle_webhook_event with fallback type"
@@ -743,4 +742,3 @@ class TestWebhookServerBehavior:
             assert DiscordWebhookHandler.bot_instance == bot_instance, "Should update handler bot instance"
         finally:
             server.stop()
-

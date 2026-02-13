@@ -1,10 +1,23 @@
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.config import get_available_channels, get_channel_class_mapping
+import core.config
 
 factory_logger = get_component_logger('communication_manager')
 logger = factory_logger
+
+
+@handle_errors("getting available channels", default_return=[])
+def get_available_channels() -> list[str]:
+    """Compatibility wrapper so tests can patch either module or core.config path."""
+    return core.config.get_available_channels()
+
+
+@handle_errors("getting channel class mapping", default_return={})
+def get_channel_class_mapping() -> dict[str, str]:
+    """Compatibility wrapper so tests can patch either module or core.config path."""
+    return core.config.get_channel_class_mapping()
+
 
 class ChannelFactory:
     """Factory for creating communication channels using config-based discovery"""
@@ -18,32 +31,42 @@ class ChannelFactory:
         """Initialize the channel registry from configuration"""
         if cls._initialized:
             return
-            
-        from core.config import get_available_channels, get_channel_class_mapping
-        
-        # Use configured channels for auto-registration
-        available_channels = get_available_channels()
-        channel_mapping = get_channel_class_mapping()
-        
-        for channel_name in available_channels:
-            if channel_name in channel_mapping:
-                try:
-                    # Dynamic import of channel class
-                    class_path = channel_mapping[channel_name]
-                    module_name, class_name = class_path.rsplit('.', 1)
-                    
-                    import importlib
-                    module = importlib.import_module(module_name)
-                    channel_class = getattr(module, class_name)
-                    
-                    cls._channel_registry[channel_name] = channel_class
-                    logger.debug(f"Auto-registered channel type: {channel_name}")
-                    
-                except (ImportError, AttributeError) as e:
-                    logger.error(f"Failed to import channel class for {channel_name}: {e}")
-        
-        cls._initialized = True
-        logger.info(f"Channel factory initialized with {len(cls._channel_registry)} channels: {list(cls._channel_registry.keys())}")
+
+        try:
+            # Use configured channels for auto-registration
+            available_channels = get_available_channels()
+            channel_mapping = get_channel_class_mapping()
+
+            for channel_name in available_channels:
+                if channel_name in channel_mapping:
+                    try:
+                        # Dynamic import of channel class
+                        class_path = channel_mapping[channel_name]
+                        module_name, class_name = class_path.rsplit('.', 1)
+
+                        import importlib
+
+                        module = importlib.import_module(module_name)
+                        channel_class = getattr(module, class_name)
+                        if channel_class is None:
+                            raise AttributeError(
+                                f"{class_name} is None in module {module_name}"
+                            )
+
+                        cls._channel_registry[channel_name] = channel_class
+                        logger.debug(f"Auto-registered channel type: {channel_name}")
+
+                    except (ImportError, AttributeError) as e:
+                        logger.error(
+                            f"Failed to import channel class for {channel_name}: {e}"
+                        )
+        except Exception as e:
+            logger.error(f"Failed to initialize channel registry: {e}")
+        finally:
+            cls._initialized = True
+            logger.info(
+                f"Channel factory initialized with {len(cls._channel_registry)} channels: {list(cls._channel_registry.keys())}"
+            )
     
     @classmethod
     @handle_errors("creating channel", default_return=None)

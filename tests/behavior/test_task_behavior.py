@@ -111,7 +111,7 @@ class TestTaskManagement:
         assert os.path.exists(task_file)
 
         # Verify content
-        with open(task_file, "r") as f:
+        with open(task_file) as f:
             saved_data = json.load(f)
         assert saved_data["tasks"] == test_tasks
 
@@ -145,7 +145,7 @@ class TestTaskManagement:
         task_dir = os.path.join(temp_dir, "tasks")
         task_file = os.path.join(task_dir, "active_tasks.json")
         assert os.path.exists(task_file)
-        with open(task_file, "r") as f:
+        with open(task_file) as f:
             data = json.load(f)
         assert any(t["task_id"] == task_id for t in data["tasks"])
 
@@ -175,7 +175,7 @@ class TestTaskManagement:
         # Verify file content
         task_dir = os.path.join(temp_dir, "tasks")
         task_file = os.path.join(task_dir, "active_tasks.json")
-        with open(task_file, "r") as f:
+        with open(task_file) as f:
             data = json.load(f)
         assert any(
             t["task_id"] == task_id and t["title"] == "Updated Title"
@@ -209,7 +209,7 @@ class TestTaskManagement:
         task_dir = os.path.join(temp_dir, "tasks")
         completed_file = os.path.join(task_dir, "completed_tasks.json")
         assert os.path.exists(completed_file)
-        with open(completed_file, "r") as f:
+        with open(completed_file) as f:
             data = json.load(f)
         assert any(
             t["task_id"] == task_id and t["completed"] for t in data["completed_tasks"]
@@ -233,7 +233,7 @@ class TestTaskManagement:
         # Verify file content
         task_dir = os.path.join(temp_dir, "tasks")
         task_file = os.path.join(task_dir, "active_tasks.json")
-        with open(task_file, "r") as f:
+        with open(task_file) as f:
             data = json.load(f)
         assert all(t["task_id"] != task_id for t in data["tasks"])
 
@@ -254,7 +254,7 @@ class TestTaskManagement:
         # Verify file content
         task_dir = os.path.join(temp_dir, "tasks")
         task_file = os.path.join(task_dir, "active_tasks.json")
-        with open(task_file, "r") as f:
+        with open(task_file) as f:
             data = json.load(f)
         assert any(t["task_id"] == task_id for t in data["tasks"])
 
@@ -293,7 +293,7 @@ class TestTaskManagement:
         # Verify file content
         task_dir = os.path.join(temp_dir, "tasks")
         task_file = os.path.join(task_dir, "active_tasks.json")
-        with open(task_file, "r") as f:
+        with open(task_file) as f:
             data = json.load(f)
 
         assert any(t["task_id"] == id_soon for t in data["tasks"])
@@ -338,9 +338,9 @@ class TestTaskManagement:
         task_dir = os.path.join(temp_dir, "tasks")
         active_file = os.path.join(task_dir, "active_tasks.json")
         completed_file = os.path.join(task_dir, "completed_tasks.json")
-        with open(active_file, "r") as f:
+        with open(active_file) as f:
             active_data = json.load(f)
-        with open(completed_file, "r") as f:
+        with open(completed_file) as f:
             completed_data = json.load(f)
         assert any(t["task_id"] == id2 for t in active_data["tasks"])
         assert any(t["task_id"] == id1 for t in completed_data["completed_tasks"])

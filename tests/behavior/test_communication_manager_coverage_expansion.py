@@ -549,7 +549,7 @@ class TestCommunicationManagerCoverageExpansion:
         # Mock get_user_data to return preferences
         with patch('communication.core.channel_orchestrator.get_user_data', return_value={'preferences': {'discord_id': 'test_discord_id'}}):
             # Test getting recipient
-            result = comm_manager._get_recipient_for_service(user_id, 'discord', {})
+            comm_manager._get_recipient_for_service(user_id, 'discord', {})
             
             # Verify recipient was retrieved (may be None if logic doesn't match expected)
             # The method handles missing data gracefully, so we just verify it doesn't crash
@@ -639,7 +639,6 @@ class TestCommunicationManagerCoverageExpansion:
         
         # Create test message file
         import json
-        import os
         message_dir = os.path.join(test_data_dir, 'users', user_id, 'messages')
         os.makedirs(message_dir, exist_ok=True)
         message_file = os.path.join(message_dir, 'motivational.json')
@@ -667,7 +666,6 @@ class TestCommunicationManagerCoverageExpansion:
         
         # Create test task file
         import json
-        import os
         task_dir = os.path.join(test_data_dir, 'users', user_id, 'tasks')
         os.makedirs(task_dir, exist_ok=True)
         task_file = os.path.join(task_dir, 'tasks.json')

@@ -48,7 +48,7 @@ class TestResponseTrackingBehavior:
         # Assert - Verify file was created with data
         assert os.path.exists(checkins_file), "checkins file should be created"
         
-        with open(checkins_file, 'r', encoding='utf-8') as f:
+        with open(checkins_file, encoding='utf-8') as f:
             data = json.load(f)
         
         assert len(data) == 1, "Should have one response entry"
@@ -79,7 +79,7 @@ class TestResponseTrackingBehavior:
             store_user_response(user_id, response2, "checkin")
         
         # Assert - Verify both entries are stored
-        with open(checkins_file, 'r', encoding='utf-8') as f:
+        with open(checkins_file, encoding='utf-8') as f:
             data = json.load(f)
         
         assert len(data) == 2, "Should have two response entries"
@@ -111,7 +111,7 @@ class TestResponseTrackingBehavior:
         # Assert - Verify chat interactions file was created
         assert os.path.exists(chat_file), "Chat interactions file should be created"
         
-        with open(chat_file, 'r', encoding='utf-8') as f:
+        with open(chat_file, encoding='utf-8') as f:
             data = json.load(f)
         
         assert len(data) == 1, "Should have one chat interaction entry"
@@ -496,7 +496,7 @@ class TestResponseTrackingBehavior:
             store_user_response(user_id, additional_data, "checkin")
         
         # Assert - Verify both entries are preserved
-        with open(checkins_file, 'r', encoding='utf-8') as f:
+        with open(checkins_file, encoding='utf-8') as f:
             data = json.load(f)
         
         assert len(data) == 2, "Should preserve all entries"
@@ -543,30 +543,30 @@ class TestResponseTrackingIntegration:
             json.dump({"preferences": test_preferences}, f)
         
         # Act - Test complete workflow with mocked file paths and user data functions
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
-            with patch('core.response_tracking.get_user_data') as mock_get_user_data:
-                # Mock get_user_data to return our test data
-                mock_get_user_data.side_effect = [
-                    {"account": test_account},  # For is_user_checkins_enabled
-                    {"preferences": test_preferences},  # For get_user_checkin_preferences
-                    {"account": test_account},  # For get_user_checkin_preferences (second call)
-                    {"preferences": test_preferences}   # For get_user_checkin_preferences (third call)
-                ]
-                
-                # 1. Check if checkins are enabled
-                enabled = is_user_checkins_enabled(user_id)
-                
-                # 2. Get checkin preferences
-                prefs_result = mock_get_user_data(user_id, 'preferences')
-                prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
-                
-                # 3. Store a checkin response
-                if enabled:
-                    from core.response_tracking import store_user_response
-                    store_user_response(user_id, {"mood": 6, "energy": 7}, "checkin")
-                
-                # 4. Get recent checkins
-                recent = get_recent_checkins(user_id, limit=1)
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file), \
+             patch('core.response_tracking.get_user_data') as mock_get_user_data:
+            # Mock get_user_data to return our test data
+            mock_get_user_data.side_effect = [
+                {"account": test_account},  # For is_user_checkins_enabled
+                {"preferences": test_preferences},  # For get_user_checkin_preferences
+                {"account": test_account},  # For get_user_checkin_preferences (second call)
+                {"preferences": test_preferences}   # For get_user_checkin_preferences (third call)
+            ]
+
+            # 1. Check if checkins are enabled
+            enabled = is_user_checkins_enabled(user_id)
+
+            # 2. Get checkin preferences
+            prefs_result = mock_get_user_data(user_id, 'preferences')
+            prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
+
+            # 3. Store a checkin response
+            if enabled:
+                from core.response_tracking import store_user_response
+                store_user_response(user_id, {"mood": 6, "energy": 7}, "checkin")
+
+            # 4. Get recent checkins
+            recent = get_recent_checkins(user_id, limit=1)
         
         # Assert - Verify complete workflow works
         assert enabled is True, "Checkins should be enabled"
@@ -600,7 +600,7 @@ class TestResponseTrackingIntegration:
             store_user_response(user_id, {"mood": 5}, "checkin")
         
         # Assert - Should create new valid file with improved error handling
-        with open(checkins_file, 'r', encoding='utf-8') as f:
+        with open(checkins_file, encoding='utf-8') as f:
             data = json.load(f)
         
         # With improved error handling, checkins files are simple lists

@@ -7,7 +7,7 @@ method doesn't exist in SchedulerManager.
 
 import pytest
 from unittest.mock import patch, MagicMock
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 from tasks.task_management import create_task, cleanup_task_reminders
@@ -70,7 +70,7 @@ class TestTaskCleanupBug:
 
             # BUG FIXED: cleanup_task_reminders method now exists in SchedulerManager
             # MagicMock will have the method because it's called, so we verify it's called correctly
-            result = cleanup_task_reminders(user_id, task_id)
+            cleanup_task_reminders(user_id, task_id)
             # Cleanup should call the method (even if it's mocked)
             scheduler_manager.cleanup_task_reminders.assert_called_once_with(
                 user_id, task_id

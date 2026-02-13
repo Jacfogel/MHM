@@ -595,7 +595,7 @@ class TestErrorHandlingCoverageExpansionPhase3Final:
         """Test error handler with IOError"""
         handler = ErrorHandler()
         
-        error = IOError("io error")
+        error = OSError("io error")
         context = {"test": "context"}
         
         result = handler.handle_error(error, context, "test operation")

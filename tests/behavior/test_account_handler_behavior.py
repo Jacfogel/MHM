@@ -813,7 +813,7 @@ class TestAccountHandlerBehavior:
         
         # Create existing user
         existing_username = 'invalidpendinguser'
-        user_id = TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
+        TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
 
         # Rebuild user index to ensure user is discoverable
         from core.user_data_manager import rebuild_user_index
@@ -958,13 +958,13 @@ class TestAccountHandlerBehavior:
         )
         
         # Mock update_user_account to succeed, but update_user_index to raise exception
-        with patch('communication.command_handlers.account_handler.update_user_index') as mock_index:
+        with patch('communication.command_handlers.account_handler.update_user_index') as mock_index, \
+             patch('communication.command_handlers.account_handler._send_confirmation_code'), \
+             patch('communication.command_handlers.account_handler.update_user_account') as mock_update:
             mock_index.side_effect = Exception("Index update failed")
-            with patch('communication.command_handlers.account_handler._send_confirmation_code'):
-                # Mock update_user_account to return True (linking succeeds)
-                with patch('communication.command_handlers.account_handler.update_user_account') as mock_update:
-                    mock_update.return_value = True
-                    response = handler.handle(discord_user_id, parsed_command)
+            # Mock update_user_account to return True (linking succeeds)
+            mock_update.return_value = True
+            response = handler.handle(discord_user_id, parsed_command)
         
         # Assert: Should still complete linking (index failure is non-critical, but update_user_account failure is)
         # The actual implementation may fail if update_user_account fails, which is expected

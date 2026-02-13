@@ -277,7 +277,7 @@ class ContextCache:
         expired_keys = []
 
         with self._lock:
-            for user_id, (context, timestamp) in self.cache.items():
+            for user_id, (_context, timestamp) in self.cache.items():
                 if current_time - timestamp >= self.ttl:
                     expired_keys.append(user_id)
 

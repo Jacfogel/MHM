@@ -136,14 +136,14 @@ class TestTaskCrudDisambiguation:
         assert save_active_tasks(user_id, tasks)
 
         # Update priority
-        resp1 = handle_user_message(user_id, "update task rename me priority high", "discord")
+        handle_user_message(user_id, "update task rename me priority high", "discord")
         tasks1 = load_active_tasks(user_id)
         t1 = [t for t in tasks1 if t.get('task_id') == 'rename01'][0]
         assert t1.get('priority') == 'high'
 
         # Update title (rename) and ensure it is not misread as completion
         # Use a title that doesn't contain "done" to avoid parser confusion
-        resp2 = handle_user_message(user_id, "update task rename me title \"Completed project\"", "discord")
+        handle_user_message(user_id, "update task rename me title \"Completed project\"", "discord")
         tasks_after = load_active_tasks(user_id)
         # Task should still exist (not completed) and either title updated or awaiting clarification
         still_exists = any(t.get('task_id') == 'rename01' for t in tasks_after)

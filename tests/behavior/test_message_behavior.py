@@ -123,25 +123,24 @@ class TestDefaultMessages:
         
         # Temporarily patch DEFAULT_MESSAGES_DIR_PATH to use test directory
         from unittest.mock import patch
-        from core.config import DEFAULT_MESSAGES_DIR_PATH
         
-        with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', test_default_messages_dir):
-            with patch('core.message_management.DEFAULT_MESSAGES_DIR_PATH', test_default_messages_dir):
-                # Create test default messages file with invalid JSON
-                invalid_file = os.path.join(test_default_messages_dir, f'{category}.json')
-                with open(invalid_file, 'w') as f:
-                    f.write("invalid json content")
-                
-                # Load default messages - should handle invalid JSON gracefully
-                messages = load_default_messages(category)
-                assert messages == []
-                
-                # Clean up test file
-                try:
-                    if os.path.exists(invalid_file):
-                        os.remove(invalid_file)
-                except Exception:
-                    pass  # Best effort cleanup
+        with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', test_default_messages_dir), \
+             patch('core.message_management.DEFAULT_MESSAGES_DIR_PATH', test_default_messages_dir):
+            # Create test default messages file with invalid JSON
+            invalid_file = os.path.join(test_default_messages_dir, f'{category}.json')
+            with open(invalid_file, 'w') as f:
+                f.write("invalid json content")
+
+            # Load default messages - should handle invalid JSON gracefully
+            messages = load_default_messages(category)
+            assert messages == []
+
+            # Clean up test file
+            try:
+                if os.path.exists(invalid_file):
+                    os.remove(invalid_file)
+            except Exception:
+                pass  # Best effort cleanup
 
 
 @pytest.mark.behavior
@@ -195,7 +194,7 @@ class TestMessageCRUD:
                 raise AssertionError(f"Message file was not created: {message_file}. Files in directory: {files_in_dir}")
             assert os.path.exists(message_file)
             
-            with open(message_file, 'r', encoding='utf-8') as f:
+            with open(message_file, encoding='utf-8') as f:
                 data = json.load(f)
                 assert 'messages' in data
                 assert len(data['messages']) == 1
@@ -262,7 +261,7 @@ class TestMessageCRUD:
                     time.sleep(0.1)  # Brief delay before retry
             
             assert file_exists, f"Message file should exist: {message_file}. Files in messages dir: {os.listdir(messages_dir) if os.path.exists(messages_dir) else 'N/A'}"
-            with open(message_file, 'r', encoding='utf-8') as f:
+            with open(message_file, encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 1
                 assert data['messages'][0]['message'] == "Updated message"
@@ -385,7 +384,7 @@ class TestMessageCRUD:
             # Verify the message was deleted from the file
             # File should still exist (delete_message keeps empty file)
             assert os.path.exists(message_file), f"Message file should still exist after delete: {message_file}"
-            with open(message_file, 'r', encoding='utf-8') as f:
+            with open(message_file, encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 1
                 assert data['messages'][0]['message_id'] == "test-msg-2"
@@ -721,7 +720,7 @@ class TestIntegration:
             if not os.path.exists(messages_dir):
                 raise AssertionError(f"Messages directory was not created: {messages_dir}")
             assert os.path.exists(message_file), f"Message file should exist: {message_file}"
-            with open(message_file, 'r', encoding='utf-8') as f:
+            with open(message_file, encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 1
                 assert data['messages'][0]['message'] == "Test message"
@@ -733,7 +732,7 @@ class TestIntegration:
             
             # Verify message was updated - ensure file exists and is readable
             assert os.path.exists(message_file), f"Message file should exist after edit: {message_file}"
-            with open(message_file, 'r', encoding='utf-8') as f:
+            with open(message_file, encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 1
                 assert data['messages'][0]['message'] == "Updated test message"
@@ -745,6 +744,6 @@ class TestIntegration:
             
             # Verify message was deleted - ensure file still exists but is empty
             assert os.path.exists(message_file), f"Message file should exist after delete: {message_file}"
-            with open(message_file, 'r', encoding='utf-8') as f:
+            with open(message_file, encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 0 

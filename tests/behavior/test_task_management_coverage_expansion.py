@@ -19,7 +19,7 @@ import pytest
 import json
 import uuid
 from unittest.mock import Mock, patch
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 
 # Import task management functions
@@ -95,7 +95,7 @@ class TestTaskManagementCoverageExpansion:
             assert file_path.is_file()
 
             # Verify files contain valid JSON
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 data = json.load(f)
                 assert isinstance(data, dict)
 
@@ -142,7 +142,7 @@ class TestTaskManagementCoverageExpansion:
 
         # Verify existing data was preserved
         active_file = task_dir / "active_tasks.json"
-        with open(active_file, "r") as f:
+        with open(active_file) as f:
             data = json.load(f)
             assert data["tasks"] == [{"existing": "task"}]
 
@@ -214,7 +214,7 @@ class TestTaskManagementCoverageExpansion:
         active_file = task_dir / "active_tasks.json"
         assert active_file.exists()
 
-        with open(active_file, "r") as f:
+        with open(active_file) as f:
             data = json.load(f)
             assert data["tasks"] == test_tasks
 
@@ -265,7 +265,7 @@ class TestTaskManagementCoverageExpansion:
         completed_file = task_dir / "completed_tasks.json"
         assert completed_file.exists()
 
-        with open(completed_file, "r") as f:
+        with open(completed_file) as f:
             data = json.load(f)
             assert data["completed_tasks"] == test_tasks
 
@@ -1361,8 +1361,8 @@ class TestTaskManagementCoverageExpansion:
         """Test getting user task statistics."""
         # Create some tasks
         task_id1 = create_task(user_id, "Task 1")
-        task_id2 = create_task(user_id, "Task 2")
-        task_id3 = create_task(user_id, "Task 3")
+        create_task(user_id, "Task 2")
+        create_task(user_id, "Task 3")
 
         # Complete one task
         complete_task(user_id, task_id1)

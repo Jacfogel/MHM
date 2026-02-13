@@ -15,6 +15,7 @@ import core.config
 
 from communication.communication_channels.discord.bot import DiscordBot, DiscordConnectionStatus
 from communication.communication_channels.base.base_channel import ChannelStatus, ChannelType
+import contextlib
 
 
 @pytest.mark.behavior
@@ -94,17 +95,18 @@ class TestDiscordBotBehavior:
         """Test that DNS resolution fallback actually tries alternative DNS servers"""
         bot = DiscordBot()
         
-        with patch('socket.gethostbyname', side_effect=socket.gaierror("DNS resolution failed")):
-            with patch('dns.resolver.Resolver', create=True) as mock_resolver_class:
-                mock_resolver = MagicMock()
-                mock_resolver_class.return_value = mock_resolver
-                mock_resolver.resolve.return_value = [MagicMock()]
-                
-                result = bot._check_dns_resolution("discord.com")
-                
-                assert result is True, "DNS resolution should succeed with alternative server"
-                assert mock_resolver_class.called, "Alternative DNS resolver should be used"
-                assert "dns_error" in bot._detailed_error_info, "DNS error info should be stored"
+        with patch(
+            'socket.gethostbyname', side_effect=socket.gaierror("DNS resolution failed")
+        ), patch('dns.resolver.Resolver', create=True) as mock_resolver_class:
+            mock_resolver = MagicMock()
+            mock_resolver_class.return_value = mock_resolver
+            mock_resolver.resolve.return_value = [MagicMock()]
+
+            result = bot._check_dns_resolution("discord.com")
+
+            assert result is True, "DNS resolution should succeed with alternative server"
+            assert mock_resolver_class.called, "Alternative DNS resolver should be used"
+            assert "dns_error" in bot._detailed_error_info, "DNS error info should be stored"
 
     @pytest.mark.communication
     def test_network_connectivity_check_tests_multiple_endpoints(self, test_data_dir):
@@ -135,7 +137,6 @@ class TestDiscordBotBehavior:
     def test_connection_status_update_actually_changes_state(self, test_data_dir):
         """Test that connection status update actually changes internal state"""
         bot = DiscordBot()
-        initial_status = bot._connection_status
         
         error_info = {"test": "error"}
         bot._shared__update_connection_status(DiscordConnectionStatus.CONNECTED, error_info)
@@ -162,15 +163,15 @@ class TestDiscordBotBehavior:
         """Test that Discord bot initialization actually creates bot instance with valid token"""
         bot = DiscordBot()
         
-        with patch.object(core.config, 'DISCORD_BOT_TOKEN', 'valid_token'):
-            with patch.object(bot, '_check_dns_resolution', return_value=True):
-                with patch.object(bot, '_check_network_connectivity', return_value=True):
-                    # Use asyncio.run for async testing
-                    result = asyncio.run(bot.initialize())
-                    
-                    assert result is True, "Initialization should succeed with valid token"
-                    assert bot.bot is not None, "Bot instance should be created"
-                    assert bot.get_status() == ChannelStatus.READY, "Status should be READY"
+        with patch.object(core.config, 'DISCORD_BOT_TOKEN', 'valid_token'), patch.object(
+            bot, '_check_dns_resolution', return_value=True
+        ), patch.object(bot, '_check_network_connectivity', return_value=True):
+            # Use asyncio.run for async testing
+            result = asyncio.run(bot.initialize())
+
+            assert result is True, "Initialization should succeed with valid token"
+            assert bot.bot is not None, "Bot instance should be created"
+            assert bot.get_status() == ChannelStatus.READY, "Status should be READY"
 
     @pytest.mark.communication
     @pytest.mark.slow
@@ -184,13 +185,13 @@ class TestDiscordBotBehavior:
             mock_bot.is_ready.return_value = True
             mock_bot.is_closed.return_value = False
             mock_bot.latency = 0.1
-            with patch.object(core.config, 'DISCORD_BOT_TOKEN', None):
-                with patch.object(bot, '_check_dns_resolution', return_value=False):
-                    with patch.object(bot, '_check_network_connectivity', return_value=False):
-                        result = asyncio.run(bot.initialize())
-                        
-                        # Should fail gracefully without token and network connectivity
-                        assert isinstance(result, bool), "Initialization should return boolean"
+            with patch.object(core.config, 'DISCORD_BOT_TOKEN', None), patch.object(
+                bot, '_check_dns_resolution', return_value=False
+            ), patch.object(bot, '_check_network_connectivity', return_value=False):
+                result = asyncio.run(bot.initialize())
+
+                # Should fail gracefully without token and network connectivity
+                assert isinstance(result, bool), "Initialization should return boolean"
 
     @pytest.mark.communication
     @pytest.mark.slow
@@ -198,16 +199,17 @@ class TestDiscordBotBehavior:
         """Test that Discord bot initialization handles DNS failures gracefully"""
         bot = DiscordBot()
         
-        with patch.object(core.config, 'DISCORD_BOT_TOKEN', 'valid_token'):
-            with patch.object(bot, '_check_dns_resolution', return_value=False):
-                with patch.object(bot, '_check_network_connectivity', return_value=False):
-                    with patch('discord.ext.commands.Bot') as mock_bot_class:
-                        mock_bot = MagicMock()
-                        mock_bot_class.return_value = mock_bot
-                        result = asyncio.run(bot.initialize())
-                        
-                        # Should handle DNS failure gracefully
-                        assert isinstance(result, bool), "Initialization should return boolean"
+        with patch.object(core.config, 'DISCORD_BOT_TOKEN', 'valid_token'), patch.object(
+            bot, '_check_dns_resolution', return_value=False
+        ), patch.object(
+            bot, '_check_network_connectivity', return_value=False
+        ), patch('discord.ext.commands.Bot') as mock_bot_class:
+            mock_bot = MagicMock()
+            mock_bot_class.return_value = mock_bot
+            result = asyncio.run(bot.initialize())
+
+            # Should handle DNS failure gracefully
+            assert isinstance(result, bool), "Initialization should return boolean"
 
     @pytest.mark.communication
     @pytest.mark.critical
@@ -406,7 +408,6 @@ class TestDiscordBotBehavior:
         # Answer questions until check-in completes
         # The user has 5 questions enabled: mood, energy, ate_breakfast, medication_taken, sleep_quality
         # Question order is randomized, so we need to detect question type from response and answer appropriately
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
         
         responses = []
         max_responses = 15  # Safety limit (5 questions + retries)
@@ -605,7 +606,6 @@ class TestDiscordBotIntegration:
     @pytest.mark.regression
     def test_discord_bot_integration_with_conversation_manager(self, test_data_dir, test_user_setup):
         """Test that Discord bot integrates properly with conversation manager"""
-        from communication.message_processing.conversation_flow_manager import conversation_manager
         
         bot = DiscordBot()
         
@@ -737,7 +737,7 @@ class TestDiscordBotIntegration:
         # Test multiple rapid operations
         start_time = time.time()
         
-        for i in range(10):
+        for _i in range(10):
             asyncio.run(bot.health_check())
         
         end_time = time.time()
@@ -763,7 +763,6 @@ class TestDiscordBotIntegration:
     @pytest.mark.regression
     def test_discord_bot_with_real_user_data(self, test_data_dir, test_user_setup):
         """Test Discord bot with real user data"""
-        user_id = test_user_setup
         
         bot = DiscordBot()
         
@@ -792,11 +791,11 @@ class TestDiscordBotIntegration:
                 assert isinstance(result, bool), "Should return boolean result"
                 
                 # Test recovery
-                with patch.object(core.config, 'DISCORD_BOT_TOKEN', 'valid_token'):
-                    with patch.object(bot, '_check_dns_resolution', return_value=True):
-                        with patch.object(bot, '_check_network_connectivity', return_value=True):
-                            result = asyncio.run(bot.manual_reconnect())
-                            assert isinstance(result, bool), "Reconnect should return boolean"
+                with patch.object(core.config, 'DISCORD_BOT_TOKEN', 'valid_token'), patch.object(
+                    bot, '_check_dns_resolution', return_value=True
+                ), patch.object(bot, '_check_network_connectivity', return_value=True):
+                    result = asyncio.run(bot.manual_reconnect())
+                    assert isinstance(result, bool), "Reconnect should return boolean"
 
     @pytest.mark.communication
     @pytest.mark.regression
@@ -806,7 +805,7 @@ class TestDiscordBotIntegration:
         
         # Test multiple sequential health checks instead of concurrent
         results = []
-        for i in range(5):
+        for _i in range(5):
             result = asyncio.run(bot.health_check())
             results.append(result)
         
@@ -884,12 +883,13 @@ class TestDiscordBotIntegration:
             time_counter[0] += seconds
         
         # Make network recovery happen on first check to avoid long waits
-        with patch.object(bot, '_check_dns_resolution', return_value=True):
-            with patch.object(bot, '_check_network_connectivity', return_value=True):
-                with patch('time.sleep', side_effect=mock_sleep):
-                    with patch('time.time', side_effect=get_time):
-                        result = bot._wait_for_network_recovery(20)
-                        assert result is True, "Should return True when network recovers"
+        with patch.object(bot, '_check_dns_resolution', return_value=True), patch.object(
+            bot, '_check_network_connectivity', return_value=True
+        ), patch('time.sleep', side_effect=mock_sleep), patch(
+            'time.time', side_effect=get_time
+        ):
+            result = bot._wait_for_network_recovery(20)
+            assert result is True, "Should return True when network recovers"
 
     @pytest.mark.communication
     @pytest.mark.asyncio
@@ -940,21 +940,23 @@ class TestDiscordBotIntegration:
         async def mock_wait_for(coro, timeout):
             return await coro
         
-        with patch.object(bot, '_cleanup_session_with_timeout', side_effect=mock_cleanup_session):
-            with patch('asyncio.gather', side_effect=mock_gather):
-                with patch('asyncio.wait_for', side_effect=mock_wait_for):
-                    # Test context manager
-                    async with bot.shutdown__session_cleanup_context() as sessions:
-                        sessions.append(mock_session1)
-                        sessions.append(mock_session2)
-                    
-                    # Verify cleanup was called for both sessions
-                    assert len(cleanup_called) == 2, f"Should call cleanup for both sessions, got {len(cleanup_called)}"
-                    assert mock_session1 in cleanup_called, "Session1 should be cleaned up"
-                    assert mock_session2 in cleanup_called, "Session2 should be cleaned up"
-                    # Verify sessions were closed
-                    assert len(close_calls1) == 1, "Session1 close should be called once"
-                    assert len(close_calls2) == 1, "Session2 close should be called once"
+        with patch.object(
+            bot, '_cleanup_session_with_timeout', side_effect=mock_cleanup_session
+        ), patch('asyncio.gather', side_effect=mock_gather), patch(
+            'asyncio.wait_for', side_effect=mock_wait_for
+        ):
+            # Test context manager
+            async with bot.shutdown__session_cleanup_context() as sessions:
+                sessions.append(mock_session1)
+                sessions.append(mock_session2)
+
+            # Verify cleanup was called for both sessions
+            assert len(cleanup_called) == 2, f"Should call cleanup for both sessions, got {len(cleanup_called)}"
+            assert mock_session1 in cleanup_called, "Session1 should be cleaned up"
+            assert mock_session2 in cleanup_called, "Session2 should be cleaned up"
+            # Verify sessions were closed
+            assert len(close_calls1) == 1, "Session1 close should be called once"
+            assert len(close_calls2) == 1, "Session2 close should be called once"
 
     @pytest.mark.communication
     @pytest.mark.asyncio
@@ -969,10 +971,8 @@ class TestDiscordBotIntegration:
         # Mock asyncio.wait_for to raise TimeoutError (simulating timeout)
         async def mock_wait_for(coro, timeout):
             # Await the coroutine to avoid un-awaited warnings, then raise timeout
-            try:
+            with contextlib.suppress(Exception):
                 await coro
-            except Exception:
-                pass
             raise asyncio.TimeoutError()
         
         with patch('asyncio.wait_for', side_effect=mock_wait_for):
@@ -1013,32 +1013,33 @@ class TestDiscordBotIntegration:
         async def mock_cleanup_aiohttp():
             return True
         
-        with patch('asyncio.all_tasks', return_value=[mock_task1, mock_task2]):
-            with patch('asyncio.gather', side_effect=mock_gather):
-                with patch('asyncio.wait_for', side_effect=mock_wait_for):
-                    with patch.object(bot, '_cleanup_aiohttp_sessions', side_effect=mock_cleanup_aiohttp):
-                        # Clean up aiohttp sessions first to prevent cleanup warnings
-                        await bot._cleanup_aiohttp_sessions()
-                        # Then clean up event loop
-                        result = await bot._cleanup_event_loop_safely(mock_loop)
-                        assert result is True, "Should return True after cleanup"
-                        mock_task1.cancel.assert_called_once()
-                        mock_task2.cancel.assert_called_once()
-                        
-                        # Force garbage collection to clean up any aiohttp objects before test ends
-                        import gc
-                        gc.collect()
+        with patch(
+            'asyncio.all_tasks', return_value=[mock_task1, mock_task2]
+        ), patch('asyncio.gather', side_effect=mock_gather), patch(
+            'asyncio.wait_for', side_effect=mock_wait_for
+        ), patch.object(bot, '_cleanup_aiohttp_sessions', side_effect=mock_cleanup_aiohttp):
+            # Clean up aiohttp sessions first to prevent cleanup warnings
+            await bot._cleanup_aiohttp_sessions()
+            # Then clean up event loop
+            result = await bot._cleanup_event_loop_safely(mock_loop)
+            assert result is True, "Should return True after cleanup"
+            mock_task1.cancel.assert_called_once()
+            mock_task2.cancel.assert_called_once()
+
+            # Force garbage collection to clean up any aiohttp objects before test ends
+            import gc
+            gc.collect()
 
     @pytest.mark.communication
     def test_check_network_health_checks_all_components(self, test_data_dir):
         """Test that check network health checks all components"""
         bot = DiscordBot()
         
-        with patch.object(bot, '_check_dns_resolution', return_value=True):
-            with patch.object(bot, '_check_network_connectivity', return_value=True):
-                with patch.object(bot, 'bot', None):
-                    result = bot._check_network_health()
-                    assert result is True, "Should return True when all checks pass"
+        with patch.object(bot, '_check_dns_resolution', return_value=True), patch.object(
+            bot, '_check_network_connectivity', return_value=True
+        ), patch.object(bot, 'bot', None):
+            result = bot._check_network_health()
+            assert result is True, "Should return True when all checks pass"
         
         # Test with DNS failure
         with patch.object(bot, '_check_dns_resolution', return_value=False):
@@ -1059,17 +1060,19 @@ class TestDiscordBotIntegration:
         
         bot.bot = mock_bot
         
-        with patch.object(bot, '_check_dns_resolution', return_value=True):
-            with patch.object(bot, '_check_network_connectivity', return_value=True):
-                result = bot._check_network_health()
-                assert result is True, "Should return True with good latency"
+        with patch.object(bot, '_check_dns_resolution', return_value=True), patch.object(
+            bot, '_check_network_connectivity', return_value=True
+        ):
+            result = bot._check_network_health()
+            assert result is True, "Should return True with good latency"
         
         # Test with high latency
         mock_bot.latency = 2.0
-        with patch.object(bot, '_check_dns_resolution', return_value=True):
-            with patch.object(bot, '_check_network_connectivity', return_value=True):
-                result = bot._check_network_health()
-                assert result is False, "Should return False with high latency"
+        with patch.object(bot, '_check_dns_resolution', return_value=True), patch.object(
+            bot, '_check_network_connectivity', return_value=True
+        ):
+            result = bot._check_network_health()
+            assert result is False, "Should return False with high latency"
         
         # Clean up to avoid warnings - ensure no async operations are triggered
         # Suppress warnings from async cleanup that might happen after event loop closes
@@ -1239,14 +1242,14 @@ class TestDiscordBotIntegration:
                 pass
         
         # Mock discord.ui.View to avoid event loop requirement and aiohttp cleanup issues
-        with patch('communication.communication_channels.discord.bot.discord.ui.View', MockView):
-            # Mock discord.ui.Button
-            with patch('communication.communication_channels.discord.bot.discord.ui.Button', MockButton):
-                view = bot._create_action_row(suggestions)
-                
-                assert view is not None, "Should create view"
-                assert isinstance(view, MockView), "Should create View instance"
-                assert len(view.children) == len(suggestions), f"Should have {len(suggestions)} buttons, got {len(view.children)}"
+        with patch(
+            'communication.communication_channels.discord.bot.discord.ui.View', MockView
+        ), patch('communication.communication_channels.discord.bot.discord.ui.Button', MockButton):
+            view = bot._create_action_row(suggestions)
+
+            assert view is not None, "Should create view"
+            assert isinstance(view, MockView), "Should create View instance"
+            assert len(view.children) == len(suggestions), f"Should have {len(suggestions)} buttons, got {len(view.children)}"
 
 
 @pytest.mark.behavior
@@ -1302,7 +1305,7 @@ class TestDiscordBotAdditionalBehavior:
         
         # Arrange: Set initial status
         bot._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
-        initial_error_info = bot._detailed_error_info.copy()
+        bot._detailed_error_info.copy()
         
         # Act: Update with same status but different error info
         new_error_info = {'new_error': 'new error'}
@@ -1547,12 +1550,10 @@ class TestDiscordBotAdditionalBehavior:
         bot.bot = AsyncMock()
         bot._command_queue.put(("send_message", ("user123", "Test message")))
         
-        with patch.object(bot, '_send_message_internal', new_callable=AsyncMock, return_value=True) as mock_send:
+        with patch.object(bot, '_send_message_internal', new_callable=AsyncMock, return_value=True):
             # Act: Process command queue (with timeout to prevent infinite loop)
-            try:
+            with contextlib.suppress(asyncio.TimeoutError):
                 await asyncio.wait_for(bot.initialize__process_command_queue(), timeout=0.5)
-            except asyncio.TimeoutError:
-                pass  # Expected - queue processing runs in loop
             
             # Assert: Should process send_message command
             # Note: Due to async nature, we check that the method was called
@@ -1632,15 +1633,19 @@ class TestDiscordBotAdditionalBehavior:
         mock_im = MagicMock()
         mock_im.get_command_definitions = MagicMock(return_value=mock_cmd_defs)
         
-        with patch('communication.message_processing.interaction_manager.get_interaction_manager', return_value=mock_im):
-            with patch('communication.communication_channels.discord.bot.app_commands.Command') as mock_cmd_class:
-                mock_cmd = MagicMock()
-                mock_cmd_class.return_value = mock_cmd
-                
-                # Act: Register commands
-                bot.initialize__register_commands()
-                
-                # Assert: Should register commands
-                assert bot._commands_registered is True, "Commands should be registered"
-                # Verify command registration (tree.add_command should be called)
-                assert mock_bot.tree.add_command.called, "Should register commands" 
+        with patch(
+            'communication.message_processing.interaction_manager.get_interaction_manager',
+            return_value=mock_im,
+        ), patch(
+            'communication.communication_channels.discord.bot.app_commands.Command'
+        ) as mock_cmd_class:
+            mock_cmd = MagicMock()
+            mock_cmd_class.return_value = mock_cmd
+
+            # Act: Register commands
+            bot.initialize__register_commands()
+
+            # Assert: Should register commands
+            assert bot._commands_registered is True, "Commands should be registered"
+            # Verify command registration (tree.add_command should be called)
+            assert mock_bot.tree.add_command.called, "Should register commands"

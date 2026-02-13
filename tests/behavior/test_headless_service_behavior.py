@@ -7,15 +7,11 @@ side effects rather than just returning values.
 """
 
 import pytest
-import os
-import json
 import time
 from unittest.mock import patch, Mock, MagicMock
-from pathlib import Path
 
 # Import the modules we're testing
 from core.headless_service import HeadlessServiceManager
-from tests.test_utilities import TestUserFactory
 
 
 @pytest.mark.behavior
@@ -164,27 +160,26 @@ class TestHeadlessServiceManagerBehavior:
     @pytest.mark.file_io
     def test_start_headless_service_success(self, manager, test_data_dir):
         """Test starting headless service successfully."""
-        with patch('core.headless_service.get_service_processes', return_value=[]):
-            with patch('core.headless_service.is_ui_service_running', return_value=False):
-                with patch('core.headless_service.subprocess.Popen') as mock_popen:
-                    with patch('core.headless_service.os.path.exists', return_value=True):
-                        with patch('core.headless_service.os.environ.copy', return_value={}):
-                            with patch('core.headless_service.os.name', 'nt'):
-                                with patch('core.headless_service.time.sleep', return_value=None):
-                                    mock_process = Mock()
-                                    mock_process.pid = 12345
-                                    mock_process.poll.return_value = None  # Process is running
-                                    mock_popen.return_value = mock_process
-                                    
-                                    # Mock get_headless_service_status to return True after start
-                                    with patch.object(manager, 'get_headless_service_status', return_value=(True, 12345)):
-                                        result = manager.start_headless_service()
-                                    
-                                    # Verify side effects
-                                    assert result is True, "Should return True on success"
-                                    assert manager.running is True, "Should set running to True"
-                                    assert manager.service_process == mock_process, "Should store service process"
-                                    mock_popen.assert_called_once()
+        with patch('core.headless_service.get_service_processes', return_value=[]), \
+             patch('core.headless_service.is_ui_service_running', return_value=False), \
+             patch('core.headless_service.subprocess.Popen') as mock_popen, \
+             patch('core.headless_service.os.path.exists', return_value=True), \
+             patch('core.headless_service.os.environ.copy', return_value={}), \
+             patch('core.headless_service.os.name', 'nt'), \
+             patch('core.headless_service.time.sleep', return_value=None), \
+             patch.object(manager, 'get_headless_service_status', return_value=(True, 12345)):
+            mock_process = Mock()
+            mock_process.pid = 12345
+            mock_process.poll.return_value = None  # Process is running
+            mock_popen.return_value = mock_process
+
+            result = manager.start_headless_service()
+
+            # Verify side effects
+            assert result is True, "Should return True on success"
+            assert manager.running is True, "Should set running to True"
+            assert manager.service_process == mock_process, "Should store service process"
+            mock_popen.assert_called_once()
     
     @pytest.mark.behavior
     @pytest.mark.behavior
@@ -207,19 +202,19 @@ class TestHeadlessServiceManagerBehavior:
                 # First call (in can_start_headless_service): returns (True, 12345)
                 # Second call (in start_headless_service): returns (True, 12345) to trigger stop
                 # Third call (after stop): returns (False, None) to indicate stopped
-                with patch.object(manager, 'get_headless_service_status', side_effect=[(True, 12345), (True, 12345), (False, None)]):
-                    with patch.object(manager, 'stop_headless_service', return_value=True) as mock_stop_headless:
-                        with patch('core.headless_service.subprocess.Popen') as mock_popen:
-                            with patch('core.headless_service.os.path.exists', return_value=True):
-                                with patch('core.headless_service.os.environ.copy', return_value={}):
-                                    with patch('core.headless_service.os.name', 'nt'):
-                                        with patch('core.headless_service.time.sleep'):  # Skip sleep delays
-                                            mock_process = Mock()
-                                            mock_process.pid = 12346
-                                            mock_process.poll.return_value = None
-                                            mock_popen.return_value = mock_process
-                                            
-                                            manager.start_headless_service()
+                with patch.object(manager, 'get_headless_service_status', side_effect=[(True, 12345), (True, 12345), (False, None)]), \
+                     patch.object(manager, 'stop_headless_service', return_value=True) as mock_stop_headless, \
+                     patch('core.headless_service.subprocess.Popen') as mock_popen, \
+                     patch('core.headless_service.os.path.exists', return_value=True), \
+                     patch('core.headless_service.os.environ.copy', return_value={}), \
+                     patch('core.headless_service.os.name', 'nt'), \
+                     patch('core.headless_service.time.sleep'):  # Skip sleep delays
+                    mock_process = Mock()
+                    mock_process.pid = 12346
+                    mock_process.poll.return_value = None
+                    mock_popen.return_value = mock_process
+
+                    manager.start_headless_service()
                 
                 # Verify that stop was called
                 mock_stop_headless.assert_called_once()
@@ -235,18 +230,18 @@ class TestHeadlessServiceManagerBehavior:
         mock_get_processes.return_value = []
         mock_is_ui_running.return_value = True
         
-        with patch.object(manager, 'get_headless_service_status', return_value=(False, None)):
-            with patch.object(manager, 'stop_ui_services', return_value=True) as mock_stop_ui:
-                with patch('core.headless_service.subprocess.Popen') as mock_popen:
-                    with patch('core.headless_service.os.path.exists', return_value=True):
-                        with patch('core.headless_service.os.environ.copy', return_value={}):
-                            with patch('core.headless_service.os.name', 'nt'):
-                                mock_process = Mock()
-                                mock_process.pid = 12345
-                                mock_process.poll.return_value = None
-                                mock_popen.return_value = mock_process
-                                
-                                manager.start_headless_service()
+        with patch.object(manager, 'get_headless_service_status', return_value=(False, None)), \
+             patch.object(manager, 'stop_ui_services', return_value=True) as mock_stop_ui, \
+             patch('core.headless_service.subprocess.Popen') as mock_popen, \
+             patch('core.headless_service.os.path.exists', return_value=True), \
+             patch('core.headless_service.os.environ.copy', return_value={}), \
+             patch('core.headless_service.os.name', 'nt'):
+            mock_process = Mock()
+            mock_process.pid = 12345
+            mock_process.poll.return_value = None
+            mock_popen.return_value = mock_process
+
+            manager.start_headless_service()
         
         # Verify that stop_ui_services was called
         mock_stop_ui.assert_called_once()
@@ -280,7 +275,7 @@ class TestHeadlessServiceManagerBehavior:
         mock_dirname.return_value = '/test/project'
         
         with patch.object(manager, 'get_headless_service_status', side_effect=[(True, 12345), (False, None)]):
-            result = manager.stop_headless_service()
+            manager.stop_headless_service()
         
         # Verify shutdown file was created
         assert mock_open.called, "Should create shutdown request file"

@@ -111,7 +111,7 @@ class TestAutoCleanupTimestampBehavior:
         assert temp_tracker_file.exists(), "Tracker file should be created"
 
         # [OK] VERIFY REAL BEHAVIOR: File contains correct data structure
-        with open(temp_tracker_file, "r") as f:
+        with open(temp_tracker_file) as f:
             data = json.load(f)
 
         assert "last_cleanup_timestamp" in data, "Should contain timestamp"
@@ -462,7 +462,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
         pycache_dirs = find_pycache_dirs(temp_test_dir)
         pyc_files = find_pyc_files(temp_test_dir)
 
-        with patch("core.auto_cleanup.logger") as mock_logger:
+        with patch("core.auto_cleanup.logger"):
             total_size = calculate_cache_size(pycache_dirs, pyc_files)
 
         # [OK] VERIFY REAL BEHAVIOR: Should calculate size of accessible files
@@ -499,7 +499,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
             str(real_standalone),  # This one exists
         ]
 
-        with patch("core.auto_cleanup.logger") as mock_logger:
+        with patch("core.auto_cleanup.logger"):
             total_size = calculate_cache_size(
                 nonexistent_pycache_dirs, nonexistent_pyc_files
             )
@@ -521,7 +521,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
         assert total_size == 0, "Should return 0 for empty inputs"
 
         # [OK] VERIFY REAL BEHAVIOR: Test with None inputs (should be handled gracefully)
-        with patch("core.auto_cleanup.logger") as mock_logger:
+        with patch("core.auto_cleanup.logger"):
             total_size = calculate_cache_size(None, None)
         assert total_size == 0, "Should return 0 for None inputs"
 

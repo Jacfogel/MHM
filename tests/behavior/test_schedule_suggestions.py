@@ -36,7 +36,7 @@ class TestScheduleSuggestions:
         # With improved parser, this should hit the curated suggestions path
         assert not resp.completed
         msg = resp.message.lower()
-        assert "what times should" in msg or "from" in " ".join((resp.suggestions or [])).lower()
+        assert "what times should" in msg or "from" in " ".join(resp.suggestions or []).lower()
         assert resp.suggestions is not None and any(sugg.lower().startswith("from ") for sugg in resp.suggestions)
 
 

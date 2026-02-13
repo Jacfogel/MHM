@@ -236,13 +236,14 @@ class TestConfigCoverageExpansionPhase3Simple:
 
     def test_get_backups_dir_production_mode(self, tmp_path):
         """Test get_backups_dir function in production mode"""
-        with patch.dict(os.environ, {'MHM_TESTING': '0'}, clear=True):
-            with patch('core.config.BASE_DATA_DIR', '/test/data'):
-                result = core.config.get_backups_dir()
-                # Path normalizes paths, so compare normalized versions
-                from pathlib import Path
-                expected = str(Path('/test/data') / 'backups')
-                assert result == expected
+        with patch.dict(os.environ, {'MHM_TESTING': '0'}, clear=True), patch(
+            'core.config.BASE_DATA_DIR', '/test/data'
+        ):
+            result = core.config.get_backups_dir()
+            # Path normalizes paths, so compare normalized versions
+            from pathlib import Path
+            expected = str(Path('/test/data') / 'backups')
+            assert result == expected
 
     def test_get_user_file_path(self, tmp_path):
         """Test get_user_file_path function"""

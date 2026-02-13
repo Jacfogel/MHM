@@ -76,13 +76,12 @@ class CheckinHandler(InteractionHandler):
 
             # Parse the timestamp to check if it's from today
             last_checkin_dt = parse_timestamp_full(last_checkin_timestamp)
-            if last_checkin_dt is not None:
-                if last_checkin_dt.date() == today:
-                    return InteractionResponse(
-                        f"You've already completed a check-in today at {last_checkin_timestamp}. "
-                        "You can start a new check-in tomorrow!",
-                        True,
-                    )
+            if last_checkin_dt is not None and last_checkin_dt.date() == today:
+                return InteractionResponse(
+                    f"You've already completed a check-in today at {last_checkin_timestamp}. "
+                    "You can start a new check-in tomorrow!",
+                    True,
+                )
 
         # Delegate to conversation manager for proper check-in flow (modern API)
         from communication.message_processing.conversation_flow_manager import (

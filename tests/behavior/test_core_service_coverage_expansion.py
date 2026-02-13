@@ -4,6 +4,7 @@ import pytest
 import os
 import signal
 import time
+import contextlib
 from datetime import datetime, timedelta
 import json
 from pathlib import Path
@@ -91,7 +92,7 @@ class TestCoreServiceCoverageExpansion:
         """Test configuration validation failure."""
         with (
             patch("core.service.validate_and_raise_if_invalid") as mock_validate,
-            patch("core.service.print_configuration_report") as mock_report,
+            patch("core.service.print_configuration_report"),
         ):
 
             # Mock validation failure
@@ -148,7 +149,7 @@ class TestCoreServiceCoverageExpansion:
             mock_get_dir.return_value = "/test/users/user1"
 
             # [OK] VERIFY REAL BEHAVIOR: None user IDs are handled gracefully
-            paths = service.initialize_paths()
+            service.initialize_paths()
 
             # Verify the method was called
             mock_get_users.assert_called_once()
@@ -292,7 +293,7 @@ class TestCoreServiceCoverageExpansion:
         """Test successful service startup."""
         with (
             patch("core.service.verify_file_access") as mock_verify,
-            patch("core.service.signal.signal") as mock_signal,
+            patch("core.service.signal.signal"),
         ):
 
             # Mock successful operations
@@ -351,14 +352,14 @@ class TestCoreServiceCoverageExpansion:
             # Mock communication manager failure
             mock_cm = Mock()
             mock_cm_class.return_value = mock_cm
-            mock_cm.start.side_effect = Exception(
+            mock_cm.start.side_effect = RuntimeError(
                 "Communication manager failed to start"
             )
 
             # [OK] VERIFY REAL BEHAVIOR: Communication manager failure is handled
             # Test the communication manager creation without actually starting the service
             cm = mock_cm_class()
-            with pytest.raises(Exception):
+            with pytest.raises(RuntimeError):
                 cm.start()
 
     @pytest.mark.behavior
@@ -377,12 +378,14 @@ class TestCoreServiceCoverageExpansion:
             # Mock scheduler manager failure
             mock_sm = Mock()
             mock_sm_class.return_value = mock_sm
-            mock_sm.start.side_effect = Exception("Scheduler manager failed to start")
+            mock_sm.start.side_effect = RuntimeError(
+                "Scheduler manager failed to start"
+            )
 
             # [OK] VERIFY REAL BEHAVIOR: Scheduler manager failure is handled
             # Test the scheduler manager creation without actually starting the service
             sm = mock_sm_class()
-            with pytest.raises(Exception):
+            with pytest.raises(RuntimeError):
                 sm.start()
 
     @pytest.mark.behavior
@@ -581,12 +584,12 @@ class TestCoreServiceCoverageExpansion:
             # Mock communication manager failure on first attempt, success on second
             mock_cm = Mock()
             mock_cm_class.return_value = mock_cm
-            mock_cm.start.side_effect = [Exception("First attempt failed"), True]
+            mock_cm.start.side_effect = [RuntimeError("First attempt failed"), True]
 
             # [OK] VERIFY REAL BEHAVIOR: Service retry mechanism works
             # Test the retry mechanism without actually starting the service
             cm = mock_cm_class()
-            with pytest.raises(Exception):
+            with pytest.raises(RuntimeError):
                 cm.start()  # First attempt should fail
 
     @pytest.mark.behavior
@@ -756,17 +759,14 @@ class TestCoreServiceCoverageExpansion:
                 "pathlib.Path.iterdir",
                 side_effect=PermissionError("Cannot access directory"),
             ),
-            patch("core.service.logger") as mock_logger,
+            patch("core.service.logger"),
+            contextlib.suppress(PermissionError),
         ):
 
             # [OK] VERIFY REAL BEHAVIOR: Should handle directory access error gracefully
             # The function should not crash even if directory listing fails
-            try:
-                service.cleanup_test_message_requests()
-                # If we get here, the function handled the error gracefully
-            except PermissionError:
-                # This is also acceptable - the error should bubble up
-                pass
+            service.cleanup_test_message_requests()
+            # If we get here, the function handled the error gracefully
 
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_mixed_file_types_real_behavior(
@@ -1071,7 +1071,7 @@ class TestCoreServiceCoverageExpansion:
             patch("core.service.logger") as mock_logger,
             patch("core.service.logging.getLogger") as mock_get_logger,
             patch("core.service.os.path.exists", return_value=False),
-            patch("builtins.open", mock_open()) as mock_file,
+            patch("builtins.open", mock_open()),
             patch("core.service.LOG_MAIN_FILE", "/test/logs/missing.log"),
         ):
 
@@ -1123,7 +1123,7 @@ class TestCoreServiceCoverageExpansion:
             patch("core.service.LOG_MAIN_FILE", "/test/logs/app.log"),
             patch(
                 "core.logger.force_restart_logging", return_value=True
-            ) as mock_restart,
+            ),
         ):
 
             # Mock root logger with handlers
@@ -1172,7 +1172,7 @@ class TestCoreServiceCoverageExpansion:
     def test_check_reschedule_requests_no_files(self, service):
         """Test reschedule requests when no files exist."""
         with (
-            patch("core.service.logger") as mock_logger,
+            patch("core.service.logger"),
             patch("core.service.os.path.dirname", return_value="/test/dir"),
             patch("core.service.os.listdir", return_value=[]),
         ):
@@ -1302,7 +1302,7 @@ class TestCoreServiceCoverageExpansion:
     def test_check_test_message_requests_no_files(self, service):
         """Test test message requests when no files exist."""
         with (
-            patch("core.service.logger") as mock_logger,
+            patch("core.service.logger"),
             patch("core.service.os.path.dirname", return_value="/test/dir"),
             patch("core.service.os.listdir", return_value=[]),
         ):
@@ -1566,7 +1566,7 @@ class TestCoreServiceCoverageExpansion:
             patch("builtins.open", return_value=mock_file),
         ):
 
-            result = service._check_and_fix_logging__read_recent_log_content()
+            service._check_and_fix_logging__read_recent_log_content()
 
             # Should seek to position 500 (1500 - 1000) for large file
             mock_file.seek.assert_called_with(500)
@@ -1590,7 +1590,7 @@ class TestCoreServiceCoverageExpansion:
             patch("builtins.open", return_value=mock_file),
         ):
 
-            result = service._check_and_fix_logging__read_recent_log_content()
+            service._check_and_fix_logging__read_recent_log_content()
 
             # Should seek to beginning for small file
             mock_file.seek.assert_called_with(0)
@@ -1757,7 +1757,7 @@ class TestCoreServiceCoverageExpansion:
 
         with (
             patch("core.service.logger") as mock_logger,
-            patch("core.service.os.remove") as mock_remove,
+            patch("core.service.os.remove"),
         ):
 
             result = service._check_reschedule_requests__validate_request_data(

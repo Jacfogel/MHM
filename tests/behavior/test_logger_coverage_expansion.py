@@ -16,7 +16,8 @@ Focuses on expanding coverage from 55% to 70% by testing:
 import pytest
 import os
 import logging
-from unittest.mock import patch, mock_open
+import contextlib
+from unittest.mock import patch
 import shutil
 
 # Import logger components
@@ -65,19 +66,13 @@ class TestLoggerCoverageExpansion:
                 # File might be locked, try to remove individual files
                 for root, dirs, files in os.walk(self.test_dir, topdown=False):
                     for file in files:
-                        try:
+                        with contextlib.suppress(PermissionError, OSError):
                             os.unlink(os.path.join(root, file))
-                        except (PermissionError, OSError):
-                            pass
                     for dir in dirs:
-                        try:
+                        with contextlib.suppress(PermissionError, OSError):
                             os.rmdir(os.path.join(root, dir))
-                        except (PermissionError, OSError):
-                            pass
-                try:
+                with contextlib.suppress(PermissionError, OSError):
                     os.rmdir(self.test_dir)
-                except (PermissionError, OSError):
-                    pass
     
     def test_component_logger_initialization_real_behavior(self):
         """Test that component logger initializes with proper structure."""
@@ -116,7 +111,7 @@ class TestLoggerCoverageExpansion:
         # Assert - Verify log file was created and contains messages
         assert os.path.exists(self.log_file), "Log file should be created"
         
-        with open(self.log_file, 'r', encoding='utf-8') as f:
+        with open(self.log_file, encoding='utf-8') as f:
             content = f.read()
             assert "Debug message" in content, "Should contain debug message"
             assert "Info message" in content, "Should contain info message"
@@ -133,7 +128,7 @@ class TestLoggerCoverageExpansion:
         logger.info("User action", user_id="123", action="login", timestamp="2024-01-01")
         
         # Assert - Verify structured data is included
-        with open(self.log_file, 'r', encoding='utf-8') as f:
+        with open(self.log_file, encoding='utf-8') as f:
             content = f.read()
             assert "User action" in content, "Should contain base message"
             assert "user_id" in content, "Should contain structured data"
@@ -185,7 +180,7 @@ class TestLoggerCoverageExpansion:
         if len(backup_files) > 0:
             # If backup files were created, verify content
             backup_file = os.path.join(self.backup_dir, backup_files[0])
-            with open(backup_file, 'r', encoding='utf-8') as f:
+            with open(backup_file, encoding='utf-8') as f:
                 content = f.read()
                 assert "Test log content" in content, "Backup should contain original content"
     
@@ -387,7 +382,7 @@ class TestLoggerCoverageExpansion:
         
         # Act - Should handle gracefully
         try:
-            logger = ComponentLogger('test_component', invalid_log_file)
+            ComponentLogger('test_component', invalid_log_file)
             # If it doesn't crash, that's also valid behavior
             assert True, "Should handle invalid path gracefully"
         except Exception:
@@ -413,14 +408,13 @@ class TestLoggerCoverageExpansion:
         assert total_time < 5.0, f"Should complete logging quickly, took {total_time:.2f} seconds"
         
         # Verify all messages were logged
-        with open(self.log_file, 'r', encoding='utf-8') as f:
+        with open(self.log_file, encoding='utf-8') as f:
             content = f.read()
             assert content.count("Performance test message") == 1000, "Should log all messages"
     
     def test_logger_memory_behavior(self):
         """Test memory usage behavior of logger."""
         import gc
-        import sys
         
         # Test that logger doesn't leak memory
         initial_objects = len(gc.get_objects())
@@ -443,7 +437,6 @@ class TestLoggerCoverageExpansion:
     def test_logger_thread_safety_behavior(self):
         """Test thread safety behavior of logger."""
         import threading
-        import time
         
         # Test concurrent logging
         results = []
@@ -521,7 +514,7 @@ class TestLoggerCoverageExpansion:
             logger.info(message)
         
         # Assert - Verify all messages were logged correctly
-        with open(self.log_file, 'r', encoding='utf-8') as f:
+        with open(self.log_file, encoding='utf-8') as f:
             content = f.read()
             for message in special_messages:
                 assert message in content, f"Should contain message: {message}"
@@ -533,7 +526,6 @@ class TestLoggerCoverageExpansion:
         
         # Act - Multiple threads writing simultaneously
         import threading
-        import time
         
         def write_logs(thread_id):
             for i in range(50):
@@ -551,7 +543,7 @@ class TestLoggerCoverageExpansion:
             thread.join()
         
         # Assert - Verify all messages were logged
-        with open(self.log_file, 'r', encoding='utf-8') as f:
+        with open(self.log_file, encoding='utf-8') as f:
             content = f.read()
             # Should have messages from all threads
             for i in range(3):
@@ -564,7 +556,7 @@ class TestLoggerCoverageExpansion:
             shutil.rmtree(self.backup_dir)
         
         # Act - Create handler (should create backup directory)
-        handler = BackupDirectoryRotatingFileHandler(
+        BackupDirectoryRotatingFileHandler(
             self.log_file,
             backup_dir=self.backup_dir,
             when='midnight',
@@ -586,7 +578,7 @@ class TestLoggerCoverageExpansion:
         logger.error("Error message")
         
         # Assert - Verify formatting
-        with open(self.log_file, 'r', encoding='utf-8') as f:
+        with open(self.log_file, encoding='utf-8') as f:
             content = f.read()
             lines = content.strip().split('\n')
             
@@ -609,7 +601,7 @@ class TestLoggerCoverageExpansion:
         logger.error("Error message")
         
         # Assert - Only WARNING and above should be logged
-        with open(self.log_file, 'r', encoding='utf-8') as f:
+        with open(self.log_file, encoding='utf-8') as f:
             content = f.read()
             assert "Debug message" not in content, "Debug message should not be logged"
             assert "Info message" not in content, "Info message should not be logged"
@@ -686,19 +678,13 @@ class TestLoggerIntegration:
                 # File might be locked, try to remove individual files
                 for root, dirs, files in os.walk(self.test_dir, topdown=False):
                     for file in files:
-                        try:
+                        with contextlib.suppress(PermissionError, OSError):
                             os.unlink(os.path.join(root, file))
-                        except (PermissionError, OSError):
-                            pass
                     for dir in dirs:
-                        try:
+                        with contextlib.suppress(PermissionError, OSError):
                             os.rmdir(os.path.join(root, dir))
-                        except (PermissionError, OSError):
-                            pass
-                try:
+                with contextlib.suppress(PermissionError, OSError):
                     os.rmdir(self.test_dir)
-                except (PermissionError, OSError):
-                    pass
     
     def test_logger_integration_with_multiple_components(self):
         """Test logger integration with multiple components."""
@@ -719,7 +705,7 @@ class TestLoggerIntegration:
             log_file = os.path.join(self.test_dir, f'component_{i}.log')
             assert os.path.exists(log_file), f"Log file for component {i} should exist"
             
-            with open(log_file, 'r', encoding='utf-8') as f:
+            with open(log_file, encoding='utf-8') as f:
                 content = f.read()
                 assert f"Message from component {i}" in content, f"Should contain message from component {i}"
                 assert f"Error from component {i}" in content, f"Should contain error from component {i}"
@@ -747,7 +733,6 @@ class TestLoggerIntegration:
         
         # Act - Simulate concurrent access using threading instead of asyncio
         import threading
-        import time
         
         def log_messages(thread_id):
             for i in range(10):
@@ -765,7 +750,7 @@ class TestLoggerIntegration:
             thread.join()
         
         # Assert - Verify all messages were logged
-        with open(self.log_file, 'r', encoding='utf-8') as f:
+        with open(self.log_file, encoding='utf-8') as f:
             content = f.read()
             for i in range(3):
                 assert f"Thread {i} message" in content, f"Should contain messages from thread {i}"
@@ -773,7 +758,6 @@ class TestLoggerIntegration:
     def test_logger_memory_behavior(self):
         """Test memory usage behavior of logger."""
         import gc
-        import sys
         
         # Test that logger doesn't leak memory
         initial_objects = len(gc.get_objects())
@@ -796,7 +780,6 @@ class TestLoggerIntegration:
     def test_logger_thread_safety_behavior(self):
         """Test thread safety behavior of logger."""
         import threading
-        import time
         
         # Test concurrent operations
         results = []

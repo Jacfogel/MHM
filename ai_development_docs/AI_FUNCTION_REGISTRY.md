@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-12 23:52:39
+> **Last Generated**: 2026-02-13 05:30:39
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 95.9% [OK] EXCELLENT**
-- **Total Functions**: 1573
+- **Total Functions**: 1575
 - **Total Methods**: 1151
-- **Documented**: 2613/2724
+- **Documented**: 2615/2726
 - **Files Scanned**: 110
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -51,7 +51,7 @@ Communication Decision Tree:
 +-- Channel Management
 |   +-- `communication/core/channel_orchestrator.py` - Main communication (81/83 functions)
 |   +-- `communication/communication_channels/base/base_channel.py` - Channel base class (14 functions)
-|   `-- `communication/core/factory.py` - Channel creation (6 functions)
+|   `-- `communication/core/factory.py` - Channel creation (8 functions)
 +-- Specific Channels
 |   +-- `communication/communication_channels/discord/bot.py` - Discord integration (40 functions)
 |   `-- `communication/communication_channels/email/bot.py` - Email integration (14/16 functions)
@@ -218,9 +218,9 @@ Core System Decision Tree:
 Most complex functions (may need refactoring):
 1. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2662
 2. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2625
-3. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2576
+3. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2554
 4. [OK] `run_tests.py::run_command()` - Complexity: 2278
-5. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2208
+5. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2205
 
 
 ### **Pattern Recognition**
@@ -231,7 +231,7 @@ Most complex functions (may need refactoring):
 
 ### **File Organization**
 - `core/` - System utilities and data management (27 files, 843 functions)
-- `communication/` - Communication channels and message processing (39 files, 779 functions)
+- `communication/` - Communication channels and message processing (39 files, 781 functions)
 - `ai/` - AI chatbot functionality (7 files, 187 functions)
 - `ui/` - User interface components (28 files, 800 functions)
 - `user/` - User context and preferences (4 files, 64 functions)

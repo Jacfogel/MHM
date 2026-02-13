@@ -8,7 +8,6 @@ side effects rather than just returning values.
 
 import pytest
 from abc import ABC
-from unittest.mock import patch, MagicMock
 
 # Import the modules we're testing
 from communication.command_handlers.base_handler import InteractionHandler
@@ -51,7 +50,7 @@ class TestBaseHandlerBehavior:
     def test_base_handler_cannot_be_instantiated_directly(self):
         """Test that InteractionHandler cannot be instantiated directly (abstract class)."""
         with pytest.raises(TypeError, match="Can't instantiate abstract class"):
-            handler = InteractionHandler()  # pyright: ignore[reportAbstractUsage]
+            InteractionHandler()  # pyright: ignore[reportAbstractUsage]
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -485,4 +484,3 @@ class TestBaseHandlerBehavior:
         assert callable(handler._validate_user_id), "_validate_user_id should be callable"
         assert callable(handler._validate_parsed_command), "_validate_parsed_command should be callable"
         assert callable(handler._create_error_response), "_create_error_response should be callable"
-

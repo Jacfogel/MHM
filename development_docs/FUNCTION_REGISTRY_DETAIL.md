@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-12 23:52:39
+> **Last Generated**: 2026-02-13 05:30:39
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1573
+- **Functions Found**: 1575
 - **Methods Found**: 1151
 - **Classes Found**: 154
-- **Total Items**: 2724
-- **Functions Documented**: 1502
+- **Total Items**: 2726
+- **Functions Documented**: 1504
 - **Methods Documented**: 1111
 - **Classes Documented**: 120
-- **Total Documented**: 2613
+- **Total Documented**: 2615
 - **Template-Generated**: 4
-- **Last Updated**: 2026-02-12
+- **Last Updated**: 2026-02-13
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (571)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (410)
+### **Communication Functions** (412)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (411)
@@ -1876,6 +1876,8 @@ Returns:
 **Functions:**
 - [OK] `_initialize_registry(cls)` - Initialize the channel registry from configuration
 - [OK] `create_channel(cls, name, config)` - Create a channel instance
+- [OK] `get_available_channels()` - Compatibility wrapper so tests can patch either module or core.config path.
+- [OK] `get_channel_class_mapping()` - Compatibility wrapper so tests can patch either module or core.config path.
 - [OK] `get_registered_channels(cls)` - Get list of registered channel types
 **Classes:**
 - [OK] `ChannelFactory` - Factory for creating communication channels using config-based discovery

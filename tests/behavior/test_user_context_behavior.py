@@ -518,7 +518,7 @@ class TestUserContextManagerBehavior:
             
             # Act
             context = manager.get_ai_context(test_user_id)
-            formatted_context = manager.format_context_for_ai(context)
+            manager.format_context_for_ai(context)
             
             # Assert - Verify AI integration
             assert 'conversation_history' in context, "Should include conversation history"
@@ -677,7 +677,7 @@ class TestUserContextManagerIntegration:
         # For now, we'll test that the manager can handle rapid successive calls
         for i in range(10):
             manager.add_conversation_exchange(test_user_id, f"Concurrent message {i}", f"Concurrent response {i}")
-            context = manager.get_ai_context(test_user_id)
+            manager.get_ai_context(test_user_id)
         
         # Assert - Verify concurrent access safety
         assert test_user_id in manager.conversation_history, "User should still be in conversation history"

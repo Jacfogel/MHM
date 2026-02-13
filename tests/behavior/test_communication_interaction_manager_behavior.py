@@ -568,7 +568,6 @@ class TestInteractionManagerBehavior:
             "Should recognize valid intent"
         
         # Test invalid intent
-        invalid_intent = "invalid_intent_xyz"
         # May return True or False depending on handler availability, both are valid
     
     def test_augment_suggestions_adds_suggestions(self, test_data_dir):

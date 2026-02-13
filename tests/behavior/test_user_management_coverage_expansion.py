@@ -38,6 +38,7 @@ from core.user_data_handlers import (
     update_user_schedules,
     create_default_schedule_periods,
 )
+import contextlib
 
 
 @pytest.mark.behavior
@@ -63,10 +64,8 @@ class TestUserManagementCoverageExpansion:
         """Clean up test environment."""
         if os.path.exists(self.test_dir):
             import shutil
-            try:
+            with contextlib.suppress(Exception):
                 shutil.rmtree(self.test_dir)
-            except Exception:
-                pass
     
     def test_register_data_loader_real_behavior(self):
         """Test data loader registration with real behavior."""
@@ -181,10 +180,10 @@ class TestUserManagementCoverageExpansion:
             json.dump(test_account, f)
         
         # Act
-        with patch('core.user_data_handlers.get_user_file_path', return_value=account_file):
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.load_json_data', return_value=test_account):
-                    result = _get_user_data__load_account(self.test_user_id)
+        with patch('core.user_data_handlers.get_user_file_path', return_value=account_file), \
+             patch('core.user_data_handlers.ensure_user_directory'), \
+             patch('core.user_data_handlers.load_json_data', return_value=test_account):
+            result = _get_user_data__load_account(self.test_user_id)
         
         # Assert
         assert result is not None, "Should return account data"
@@ -223,11 +222,11 @@ class TestUserManagementCoverageExpansion:
                     return True
                 return real_exists(path)
 
-            with patch('core.user_data_handlers.os.path.exists', side_effect=exists_side_effect):
-                with patch('core.user_data_handlers.ensure_user_directory'):
-                    with patch('core.user_data_handlers.load_json_data', return_value=None):
-                        with patch('core.user_data_handlers.save_json_data') as mock_save:
-                            result = _get_user_data__load_account(self.test_user_id, auto_create=True)
+            with patch('core.user_data_handlers.os.path.exists', side_effect=exists_side_effect), \
+                 patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.load_json_data', return_value=None), \
+                 patch('core.user_data_handlers.save_json_data') as mock_save:
+                result = _get_user_data__load_account(self.test_user_id, auto_create=True)
         
         # Assert
         assert result is not None, "Should return created account data"
@@ -274,11 +273,11 @@ class TestUserManagementCoverageExpansion:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.save_json_data') as mock_save:
-                    with patch('core.user_data_handlers.validate_account_dict') as mock_validate:
-                        mock_validate.return_value = (test_account, [])
-                        result = _save_user_data__save_account(self.test_user_id, test_account)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.save_json_data') as mock_save, \
+                 patch('core.user_data_handlers.validate_account_dict') as mock_validate:
+                mock_validate.return_value = (test_account, [])
+                result = _save_user_data__save_account(self.test_user_id, test_account)
         
         # Assert
         assert result is True, "Should return True on successful save"
@@ -306,10 +305,10 @@ class TestUserManagementCoverageExpansion:
             json.dump(test_preferences, f)
         
         # Act
-        with patch('core.user_data_handlers.get_user_file_path', return_value=preferences_file):
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.load_json_data', return_value=test_preferences):
-                    result = _get_user_data__load_preferences(self.test_user_id)
+        with patch('core.user_data_handlers.get_user_file_path', return_value=preferences_file), \
+             patch('core.user_data_handlers.ensure_user_directory'), \
+             patch('core.user_data_handlers.load_json_data', return_value=test_preferences):
+            result = _get_user_data__load_preferences(self.test_user_id)
         
         # Assert
         assert result is not None, "Should return preferences data"
@@ -328,9 +327,9 @@ class TestUserManagementCoverageExpansion:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.save_json_data') as mock_save:
-                    result = _get_user_data__load_preferences(self.test_user_id, auto_create=True)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.save_json_data') as mock_save:
+                result = _get_user_data__load_preferences(self.test_user_id, auto_create=True)
         
         # Assert
         assert result is not None, "Should return created preferences data"
@@ -355,11 +354,11 @@ class TestUserManagementCoverageExpansion:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.save_json_data') as mock_save:
-                    with patch('core.user_data_handlers.validate_preferences_dict') as mock_validate:
-                        mock_validate.return_value = (test_preferences, [])
-                        result = _save_user_data__save_preferences(self.test_user_id, test_preferences)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.save_json_data') as mock_save, \
+                 patch('core.user_data_handlers.validate_preferences_dict') as mock_validate:
+                mock_validate.return_value = (test_preferences, [])
+                result = _save_user_data__save_preferences(self.test_user_id, test_preferences)
         
         # Assert
         assert result is True, "Should return True on successful save"
@@ -380,10 +379,10 @@ class TestUserManagementCoverageExpansion:
             json.dump(test_context, f)
         
         # Act
-        with patch('core.user_data_handlers.get_user_file_path', return_value=context_file):
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.load_json_data', return_value=test_context):
-                    result = _get_user_data__load_context(self.test_user_id)
+        with patch('core.user_data_handlers.get_user_file_path', return_value=context_file), \
+             patch('core.user_data_handlers.ensure_user_directory'), \
+             patch('core.user_data_handlers.load_json_data', return_value=test_context):
+            result = _get_user_data__load_context(self.test_user_id)
         
         # Assert
         assert result is not None, "Should return context data"
@@ -403,9 +402,9 @@ class TestUserManagementCoverageExpansion:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.save_json_data') as mock_save:
-                    result = _get_user_data__load_context(self.test_user_id, auto_create=True)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.save_json_data') as mock_save:
+                result = _get_user_data__load_context(self.test_user_id, auto_create=True)
         
         # Assert
         assert result is not None, "Should return created context data"
@@ -434,10 +433,10 @@ class TestUserManagementCoverageExpansion:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.save_json_data') as mock_save:
-                    with patch('core.user_data_manager.update_user_index') as mock_update_index:
-                        result = _save_user_data__save_context(self.test_user_id, test_context)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.save_json_data') as mock_save, \
+                 patch('core.user_data_manager.update_user_index'):
+                result = _save_user_data__save_context(self.test_user_id, test_context)
         
         # Assert
         assert result is True, "Should return True on successful save"
@@ -461,10 +460,10 @@ class TestUserManagementCoverageExpansion:
             json.dump(test_schedules, f)
         
         # Act
-        with patch('core.user_data_handlers.get_user_file_path', return_value=schedules_file):
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.load_json_data', return_value=test_schedules):
-                    result = _get_user_data__load_schedules(self.test_user_id)
+        with patch('core.user_data_handlers.get_user_file_path', return_value=schedules_file), \
+             patch('core.user_data_handlers.ensure_user_directory'), \
+             patch('core.user_data_handlers.load_json_data', return_value=test_schedules):
+            result = _get_user_data__load_schedules(self.test_user_id)
         
         # Assert
         assert result is not None, "Should return schedules data"
@@ -484,9 +483,9 @@ class TestUserManagementCoverageExpansion:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.save_json_data') as mock_save:
-                    result = _get_user_data__load_schedules(self.test_user_id, auto_create=True)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.save_json_data') as mock_save:
+                result = _get_user_data__load_schedules(self.test_user_id, auto_create=True)
         
         # Assert
         assert result is not None, "Should return created schedules data"
@@ -508,9 +507,9 @@ class TestUserManagementCoverageExpansion:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.save_json_data') as mock_save:
-                    result = _save_user_data__save_schedules(self.test_user_id, test_schedules)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.save_json_data') as mock_save:
+                result = _save_user_data__save_schedules(self.test_user_id, test_schedules)
         
         # Assert
         assert result is True, "Should return True on successful save"
@@ -607,13 +606,13 @@ class TestUserManagementCoverageExpansion:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.load_json_data', return_value=test_account):
-                    # First load - should populate cache
-                    result1 = _get_user_data__load_account(self.test_user_id)
-                    
-                    # Second load - should use cache
-                    result2 = _get_user_data__load_account(self.test_user_id)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.load_json_data', return_value=test_account):
+                # First load - should populate cache
+                result1 = _get_user_data__load_account(self.test_user_id)
+
+                # Second load - should use cache
+                result2 = _get_user_data__load_account(self.test_user_id)
         
         # Assert
         assert result1 is not None, "First load should succeed"
@@ -630,15 +629,15 @@ class TestUserManagementCoverageExpansion:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.load_json_data', return_value=test_account):
-                    # First load - should populate cache
-                    result1 = _get_user_data__load_account(self.test_user_id)
-                    
-                    # Mock time to simulate cache timeout
-                    with patch('time.time', return_value=time.time() + 400):  # 6+ minutes
-                        # Second load - should reload from file
-                        result2 = _get_user_data__load_account(self.test_user_id)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.load_json_data', return_value=test_account):
+                # First load - should populate cache
+                result1 = _get_user_data__load_account(self.test_user_id)
+
+                # Mock time to simulate cache timeout
+                with patch('time.time', return_value=time.time() + 400):  # 6+ minutes
+                    # Second load - should reload from file
+                    result2 = _get_user_data__load_account(self.test_user_id)
         
         # Assert
         assert result1 is not None, "First load should succeed"
@@ -678,12 +677,12 @@ class TestUserManagementCoverageExpansion:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.save_json_data') as mock_save:
-                    with patch('core.user_data_handlers.validate_account_dict') as mock_validate:
-                        # Mock validation to return errors
-                        mock_validate.return_value = (invalid_account, ["validation error"])
-                        result = _save_user_data__save_account(self.test_user_id, invalid_account)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.save_json_data') as mock_save, \
+                 patch('core.user_data_handlers.validate_account_dict') as mock_validate:
+                # Mock validation to return errors
+                mock_validate.return_value = (invalid_account, ["validation error"])
+                result = _save_user_data__save_account(self.test_user_id, invalid_account)
         
         # Assert
         assert result is True, "Should still save data even with validation errors"
@@ -701,13 +700,13 @@ class TestUserManagementCoverageExpansion:
         account_file = os.path.join(self.test_user_dir, "account.json")
         
         # Act
-        with patch('core.user_data_handlers.get_user_file_path', return_value=account_file):
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.save_json_data') as mock_save:
-                    with patch('core.user_data_handlers.validate_account_dict') as mock_validate:
-                        with patch('core.user_data_manager.update_user_index') as mock_update_index:
-                            mock_validate.return_value = (test_account, [])
-                            result = _save_user_data__save_account(self.test_user_id, test_account)
+        with patch('core.user_data_handlers.get_user_file_path', return_value=account_file), \
+             patch('core.user_data_handlers.ensure_user_directory'), \
+             patch('core.user_data_handlers.save_json_data') as mock_save, \
+             patch('core.user_data_handlers.validate_account_dict') as mock_validate, \
+             patch('core.user_data_manager.update_user_index'):
+            mock_validate.return_value = (test_account, [])
+            result = _save_user_data__save_account(self.test_user_id, test_account)
         
         # Assert
         assert result is True, "Should return True on successful save"
@@ -745,10 +744,8 @@ class TestUserManagementIntegration:
         clear_user_caches()
         if os.path.exists(self.test_dir):
             import shutil
-            try:
+            with contextlib.suppress(Exception):
                 shutil.rmtree(self.test_dir)
-            except Exception:
-                pass
     
     def test_user_data_lifecycle_real_behavior(self):
         """Test complete user data lifecycle."""
@@ -781,19 +778,19 @@ class TestUserManagementIntegration:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.save_json_data') as mock_save:
-                    with patch('core.user_data_handlers.validate_account_dict') as mock_validate_account:
-                        with patch('core.user_data_handlers.validate_preferences_dict') as mock_validate_prefs:
-                            with patch('core.user_data_manager.update_user_index') as mock_update_index:
-                                mock_validate_account.return_value = (test_account, [])
-                                mock_validate_prefs.return_value = (test_preferences, [])
-                                
-                                # Save all data types
-                                account_result = _save_user_data__save_account(self.test_user_id, test_account)
-                                prefs_result = _save_user_data__save_preferences(self.test_user_id, test_preferences)
-                                context_result = _save_user_data__save_context(self.test_user_id, test_context)
-                                schedules_result = _save_user_data__save_schedules(self.test_user_id, test_schedules)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.save_json_data') as mock_save, \
+                 patch('core.user_data_handlers.validate_account_dict') as mock_validate_account, \
+                 patch('core.user_data_handlers.validate_preferences_dict') as mock_validate_prefs, \
+                 patch('core.user_data_manager.update_user_index'):
+                mock_validate_account.return_value = (test_account, [])
+                mock_validate_prefs.return_value = (test_preferences, [])
+
+                # Save all data types
+                account_result = _save_user_data__save_account(self.test_user_id, test_account)
+                prefs_result = _save_user_data__save_preferences(self.test_user_id, test_preferences)
+                context_result = _save_user_data__save_context(self.test_user_id, test_context)
+                schedules_result = _save_user_data__save_schedules(self.test_user_id, test_schedules)
         
         # Assert
         assert account_result is True, "Account save should succeed"
@@ -819,18 +816,18 @@ class TestUserManagementIntegration:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.save_json_data') as mock_save:
-                    with patch('core.user_data_handlers.load_json_data') as mock_load:
-                        with patch('core.user_data_handlers.validate_account_dict') as mock_validate:
-                            mock_validate.return_value = (original_account, [])
-                            mock_load.return_value = original_account
-                            
-                            # Save the data
-                            save_result = _save_user_data__save_account(self.test_user_id, original_account)
-                            
-                            # Load the data
-                            load_result = _get_user_data__load_account(self.test_user_id)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.save_json_data'), \
+                 patch('core.user_data_handlers.load_json_data') as mock_load, \
+                 patch('core.user_data_handlers.validate_account_dict') as mock_validate:
+                mock_validate.return_value = (original_account, [])
+                mock_load.return_value = original_account
+
+                # Save the data
+                save_result = _save_user_data__save_account(self.test_user_id, original_account)
+
+                # Load the data
+                load_result = _get_user_data__load_account(self.test_user_id)
         
         # Assert
         assert save_result is True, "Save should succeed"
@@ -850,11 +847,11 @@ class TestUserManagementIntegration:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.load_json_data', return_value=corrupted_data):
-                    with patch('core.user_data_handlers.save_json_data') as mock_save:
-                        # Try to load corrupted preferences
-                        result = _get_user_data__load_preferences(self.test_user_id, auto_create=True)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.load_json_data', return_value=corrupted_data), \
+                 patch('core.user_data_handlers.save_json_data') as mock_save:
+                # Try to load corrupted preferences
+                result = _get_user_data__load_preferences(self.test_user_id, auto_create=True)
         
         # Assert
         assert result is not None, "Should recover from corrupted data"
@@ -879,17 +876,17 @@ class TestUserManagementIntegration:
                 return os.path.join(self.test_user_dir, f"{file_type}.json")
             mock_get_path.side_effect = mock_path
             
-            with patch('core.user_data_handlers.ensure_user_directory'):
-                with patch('core.user_data_handlers.save_json_data') as mock_save:
-                    with patch('core.user_data_handlers.load_json_data', return_value=test_account):
-                        with patch('core.user_data_handlers.validate_account_dict') as mock_validate:
-                            with patch('core.user_data_manager.update_user_index'):  # Mock the side effect
-                                mock_validate.return_value = (test_account, [])
-                                
-                                # Perform multiple operations
-                                for i in range(100):
-                                    _get_user_data__load_account(self.test_user_id)
-                                    _save_user_data__save_account(self.test_user_id, test_account)
+            with patch('core.user_data_handlers.ensure_user_directory'), \
+                 patch('core.user_data_handlers.save_json_data') as mock_save, \
+                 patch('core.user_data_handlers.load_json_data', return_value=test_account), \
+                 patch('core.user_data_handlers.validate_account_dict') as mock_validate, \
+                 patch('core.user_data_manager.update_user_index'):  # Mock the side effect
+                mock_validate.return_value = (test_account, [])
+
+                # Perform multiple operations
+                for _i in range(100):
+                    _get_user_data__load_account(self.test_user_id)
+                    _save_user_data__save_account(self.test_user_id, test_account)
         
         end_time = time.time()
         total_time = end_time - start_time
@@ -913,7 +910,6 @@ class TestUserManagementIntegration:
         
         # Act - Simulate concurrent access
         import threading
-        import time
         
         results = []
         errors = []
@@ -925,18 +921,18 @@ class TestUserManagementIntegration:
                         return os.path.join(self.test_user_dir, f"{file_type}.json")
                     mock_get_path.side_effect = mock_path
                     
-                    with patch('core.user_data_handlers.ensure_user_directory'):
-                        with patch('core.user_data_handlers.save_json_data') as mock_save:
-                            with patch('core.user_data_handlers.load_json_data', return_value=test_account):
-                                with patch('core.user_data_handlers.validate_account_dict') as mock_validate:
-                                    mock_validate.return_value = (test_account, [])
-                                    
-                                    # Perform operations
-                                    for i in range(10):
-                                        _get_user_data__load_account(self.test_user_id)
-                                        _save_user_data__save_account(self.test_user_id, test_account)
-                                    
-                                    results.append(True)
+                    with patch('core.user_data_handlers.ensure_user_directory'), \
+                         patch('core.user_data_handlers.save_json_data'), \
+                         patch('core.user_data_handlers.load_json_data', return_value=test_account), \
+                         patch('core.user_data_handlers.validate_account_dict') as mock_validate:
+                        mock_validate.return_value = (test_account, [])
+
+                        # Perform operations
+                        for _i in range(10):
+                            _get_user_data__load_account(self.test_user_id)
+                            _save_user_data__save_account(self.test_user_id, test_account)
+
+                        results.append(True)
             except Exception as e:
                 errors.append(e)
         

@@ -8,14 +8,13 @@ Focuses on data analysis, trend detection, and wellness scoring.
 import pytest
 from unittest.mock import patch
 from datetime import datetime, timedelta
+from core.checkin_analytics import CheckinAnalytics
 
 
 # Deterministic anchor for test data generation.
 # These timestamps are parsed/processed by production logic, so we avoid wall-clock time.
 TEST_ANCHOR_DT = datetime(2026, 1, 15, 12, 0, 0)
 # Do not modify sys.path; rely on package imports
-
-from core.checkin_analytics import CheckinAnalytics
 
 
 @pytest.mark.behavior

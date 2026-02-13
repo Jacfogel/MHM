@@ -19,7 +19,6 @@ from communication.command_handlers.interaction_handlers import (
     HelpHandler, get_interaction_handler, get_all_handlers
 )
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
-from core.user_data_handlers import get_user_data, save_user_data
 from tasks.task_management import create_task, load_active_tasks
 from tests.test_utilities import TestUserFactory
 
@@ -332,13 +331,22 @@ class TestInteractionHandlersBehavior:
             actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "Should be able to get UUID for created user"
         
-        # Update user context with profile-specific data
-        from core.user_data_handlers import update_user_context
-        update_success = update_user_context(actual_user_id, {
+        # Update user context with profile-specific data.
+        # In parallel runs, user index/files can lag briefly after creation.
+        from core.user_data_handlers import update_user_context, clear_user_caches
+        payload = {
             'preferred_name': 'Test User',
             'gender_identity': ['they/them']
-        })
-        assert update_success, "User context should be updated successfully"
+        }
+        update_success = update_user_context(actual_user_id, payload)
+        if not update_success:
+            rebuild_user_index()
+            clear_user_caches(actual_user_id)
+            assert wait_until(
+                lambda: update_user_context(actual_user_id, payload),
+                timeout_seconds=1.5,
+                poll_seconds=0.02,
+            ), "User context should be updated successfully"
         
         # Create a parsed command for showing profile
         parsed_command = ParsedCommand(

@@ -11,6 +11,7 @@ This module provides sophisticated command parsing by combining:
 
 import re
 import json
+from contextlib import suppress
 from typing import Any
 from dataclasses import dataclass
 from core.logger import get_component_logger
@@ -990,7 +991,7 @@ class EnhancedCommandParser:
                 # Details might be a JSON string or key-value pairs
                 try:
                     entities.update(json.loads(value))
-                except:
+                except Exception:
                     # If not JSON, just store as string
                     entities['details'] = value
         
@@ -1182,7 +1183,6 @@ class EnhancedCommandParser:
                 # Check if this is the "titled ... with body ..." format (has 2 capture groups)
                 # The patterns with "titled" have 2 groups: title and optional body
                 # Check if the pattern that matched is one of the "titled" patterns by checking group count
-                num_groups = len([g for g in match.groups() if g is not None])
                 if len(match.groups()) >= 2:
                     # Pattern: create note titled "X" with body "Y" (or just "X" without body)
                     entities['title'] = match.group(1).strip() if match.group(1) else None
@@ -1339,10 +1339,8 @@ class EnhancedCommandParser:
         elif intent in ['toggle_list_item_done', 'toggle_list_item_undone']:
             if len(match.groups()) >= 2:
                 entities['entry_ref'] = match.group(1).strip()
-                try:
+                with suppress(ValueError, TypeError):
                     entities['item_index'] = int(match.group(2))
-                except (ValueError, TypeError):
-                    pass
                 # For undone, set done=False
                 if intent == 'toggle_list_item_undone':
                     entities['done'] = False
@@ -1350,10 +1348,8 @@ class EnhancedCommandParser:
         elif intent == 'remove_list_item':
             if len(match.groups()) >= 2:
                 entities['entry_ref'] = match.group(1).strip()
-                try:
+                with suppress(ValueError, TypeError):
                     entities['item_index'] = int(match.group(2))
-                except (ValueError, TypeError):
-                    pass
         
         elif intent == 'set_entry_group':
             if len(match.groups()) >= 2:
@@ -1402,22 +1398,25 @@ class EnhancedCommandParser:
             
             for i, pattern in enumerate(due_patterns):
                 match = re.search(pattern, title, re.IGNORECASE)
-                if match:
+                if match and (
+                    best_match is None
+                    or len(match.group(0)) > len(best_match.group(0))
+                    or i < best_pattern_index
+                ):
                     # Prefer earlier patterns (more specific) and longer matches
-                    if best_match is None or len(match.group(0)) > len(best_match.group(0)) or i < best_pattern_index:
-                        best_match = match
-                        best_pattern_index = i
+                    best_match = match
+                    best_pattern_index = i
             
             if best_match:
                 entities['due_date'] = best_match.group(0)
                 # If pattern has time component (day of week + time), extract time separately
                 # Check if this is a "next [day] at [time]" or "[day] at [time]" pattern
-                if len(best_match.groups()) >= 2:
+                if len(best_match.groups()) >= 2 and best_match.group(2):
                     # Pattern like "next Tuesday at 11:00" - group(1) is day, group(2) is time
                     # Pattern like "Friday at noon" - group(1) is day, group(2) is time
-                    if best_match.group(2):  # Time component exists
-                        time_str = best_match.group(2).strip()
-                        entities['due_time'] = time_str
+                    # Time component exists.
+                    time_str = best_match.group(2).strip()
+                    entities['due_time'] = time_str
             
             # Extract priority
             priority_patterns = {

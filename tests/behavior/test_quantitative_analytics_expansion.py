@@ -31,7 +31,7 @@ class TestQuantitativeAnalyticsExpansion:
         user_id = "test-user-analytics"
 
         # Arrange - Create user with comprehensive check-in settings
-        test_user = TestUserFactory.create_basic_user(
+        TestUserFactory.create_basic_user(
             user_id, test_data_dir=test_data_dir
         )
 
@@ -61,7 +61,7 @@ class TestQuantitativeAnalyticsExpansion:
         save_user_data(actual_user_id, "preferences", user_data)
 
         # Create sample check-in data with all quantitative fields (use recent dates)
-        from datetime import datetime, timedelta
+        from datetime import timedelta
 
         now = now_datetime_full()
         sample_checkins = [
@@ -195,7 +195,7 @@ class TestQuantitativeAnalyticsExpansion:
         user_id = "test-user-selective"
 
         # Arrange - Create user with selective check-in settings
-        test_user = TestUserFactory.create_basic_user(
+        TestUserFactory.create_basic_user(
             user_id, test_data_dir=test_data_dir
         )
 
@@ -222,7 +222,7 @@ class TestQuantitativeAnalyticsExpansion:
         save_user_data(actual_user_id, "preferences", user_data)
 
         # Create sample check-in data (use recent date)
-        from datetime import datetime, timedelta
+        from datetime import timedelta
 
         now = now_datetime_full()
         sample_checkins = [
@@ -277,7 +277,7 @@ class TestQuantitativeAnalyticsExpansion:
         user_id = "test-user-missing-fields"
 
         # Arrange - Create user with check-in data missing some fields
-        test_user = TestUserFactory.create_basic_user(
+        TestUserFactory.create_basic_user(
             user_id, test_data_dir=test_data_dir
         )
 
@@ -304,7 +304,7 @@ class TestQuantitativeAnalyticsExpansion:
         save_user_data(actual_user_id, "preferences", user_data)
 
         # Create check-in data with missing fields (use recent dates)
-        from datetime import datetime, timedelta
+        from datetime import timedelta
 
         now = now_datetime_full()
         sample_checkins = [
@@ -389,7 +389,7 @@ class TestQuantitativeAnalyticsExpansion:
         user_id = "test-user-responses-dict"
 
         # Arrange - Create user with check-in data in top-level format
-        test_user = TestUserFactory.create_basic_user(
+        TestUserFactory.create_basic_user(
             user_id, test_data_dir=test_data_dir
         )
 
@@ -412,7 +412,7 @@ class TestQuantitativeAnalyticsExpansion:
         save_user_data(actual_user_id, "preferences", user_data)
 
         # Create check-in data with top-level format (use recent dates)
-        from datetime import datetime, timedelta
+        from datetime import timedelta
 
         now = now_datetime_full()
         sample_checkins = [
@@ -479,7 +479,7 @@ class TestQuantitativeAnalyticsExpansion:
         user_id = "test-user-error-handling"
 
         # Arrange - Create user with invalid data
-        test_user = TestUserFactory.create_basic_user(
+        TestUserFactory.create_basic_user(
             user_id, test_data_dir=test_data_dir
         )
 
@@ -512,7 +512,7 @@ class TestQuantitativeAnalyticsExpansion:
         save_user_data(actual_user_id, "preferences", user_data)
 
         # Create check-in data with invalid values (use recent dates)
-        from datetime import datetime, timedelta
+        from datetime import timedelta
 
         now = now_datetime_full()
         sample_checkins = [

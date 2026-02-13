@@ -63,7 +63,6 @@ def _find_entry_by_ref(entries: list[Entry], ref: str) -> Entry | None:
     short_fragment = ref_lower
     if len(ref_lower) > 1 and ref_lower[0] in ["n", "l", "j"]:
         # Format without dash (e.g., 'n3f2a9c')
-        prefix = ref_lower[0]
         short_fragment = ref_lower[1:]
 
     if len(short_fragment) >= 6:  # Minimum length for short ID lookup
@@ -456,9 +455,10 @@ def search_entries(user_id: str, query: str, limit: int = 100) -> list[Entry]:
             continue  # Skip other checks to avoid duplicates
 
         # Check list items
-        if entry.kind == "list" and entry.items:
-            if any(query_lower in item.text.lower() for item in entry.items):
-                matching_entries.append(entry)
+        if entry.kind == "list" and entry.items and any(
+            query_lower in item.text.lower() for item in entry.items
+        ):
+            matching_entries.append(entry)
 
     # Remove duplicates by ID (preserves order)
     seen_ids = set()

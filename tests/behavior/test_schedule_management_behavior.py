@@ -90,9 +90,10 @@ class TestScheduleManagementBehavior:
         }
         
         # Act - Mock the update_user_schedules function that's actually called
-        with patch('core.schedule_management.get_user_data', return_value=initial_schedule) as mock_get:
-            with patch('core.user_data_handlers.update_user_schedules') as mock_update:
-                result = set_schedule_period_active(user_id, category, period_name, True)
+        with patch(
+            'core.schedule_management.get_user_data', return_value=initial_schedule
+        ), patch('core.user_data_handlers.update_user_schedules') as mock_update:
+            result = set_schedule_period_active(user_id, category, period_name, True)
         
         # Assert - Verify update was called with updated data
         assert result is True, "Function should return True on success"
@@ -200,17 +201,18 @@ class TestScheduleManagementBehavior:
         }
         
         # Act - Complete workflow: check initial state, activate, verify
-        with patch('core.schedule_management.get_user_data', return_value=initial_schedule) as mock_get:
-            with patch('core.user_data_handlers.update_user_schedules') as mock_update:
-                mock_update.return_value = True
-                # Check initial state
-                initial_active = is_schedule_period_active(user_id, category, period_name)
-                
-                # Activate period
-                activation_result = set_schedule_period_active(user_id, category, period_name, True)
-                
-                # Check final state
-                final_active = is_schedule_period_active(user_id, category, period_name)
+        with patch(
+            'core.schedule_management.get_user_data', return_value=initial_schedule
+        ), patch('core.user_data_handlers.update_user_schedules') as mock_update:
+            mock_update.return_value = True
+            # Check initial state
+            initial_active = is_schedule_period_active(user_id, category, period_name)
+
+            # Activate period
+            activation_result = set_schedule_period_active(user_id, category, period_name, True)
+
+            # Check final state
+            final_active = is_schedule_period_active(user_id, category, period_name)
         
         # Assert - Verify complete workflow
         assert initial_active is False, "Period should initially be inactive"
@@ -227,20 +229,6 @@ class TestScheduleManagementBehavior:
         category = "messages"
         
         # Set up initial schedule
-        initial_schedule = {
-            "schedules": {
-                "messages": {
-                    "periods": {
-                        "Morning": {
-                            "start_time": "08:00",
-                            "end_time": "12:00",
-                            "active": True,
-                            "days": ["Monday"]
-                        }
-                    }
-                }
-            }
-        }
         
         # Materialize Morning period and then exercise cache
         set_schedule_periods(user_id, category, {
@@ -340,9 +328,10 @@ class TestScheduleManagementBehavior:
         new_days = ["Wednesday", "Thursday", "Friday"]
         
         # Act - Mock the update_user_schedules function that's actually called
-        with patch('core.schedule_management.get_user_data', return_value=initial_schedule) as mock_get:
-            with patch('core.user_data_handlers.update_user_schedules') as mock_update:
-                result = set_schedule_days(user_id, category, new_days)
+        with patch(
+            'core.schedule_management.get_user_data', return_value=initial_schedule
+        ), patch('core.user_data_handlers.update_user_schedules') as mock_update:
+            result = set_schedule_days(user_id, category, new_days)
         
         # Assert - Verify update was called with updated days
         # Note: set_schedule_days doesn't return anything (None)
@@ -383,37 +372,42 @@ class TestScheduleManagementBehavior:
         mock_user_context.get_internal_username.return_value = user_id
         
         # Act - Complete CRUD workflow with UserContext mocking
-        with patch('core.schedule_management.UserContext', return_value=mock_user_context):
-            with patch('core.schedule_management.get_user_data', return_value=user_data):
-                with patch('core.user_data_handlers.update_user_schedules') as mock_update:
-                    # Create
-                    create_result = add_schedule_period(category, period_name, "08:00", "12:00")
-                    
-                    # Update - need to update user_data to include the created period
-                    updated_user_data = {
-                        "account": {
-                            "internal_username": user_id,
-                            "enabled_features": ["messages"]
-                        },
-                        "schedules": {
-                            "messages": {
-                                "periods": {
-                                    period_name: {
-                                        "start_time": "08:00",
-                                        "end_time": "12:00",
-                                        "active": True,
-                                        "days": ["Monday"]
-                                    }
-                                }
+        with patch(
+            'core.schedule_management.UserContext', return_value=mock_user_context
+        ), patch(
+            'core.schedule_management.get_user_data', return_value=user_data
+        ), patch('core.user_data_handlers.update_user_schedules') as mock_update:
+            # Create
+            add_schedule_period(category, period_name, "08:00", "12:00")
+
+            # Update - need to update user_data to include the created period
+            updated_user_data = {
+                "account": {
+                    "internal_username": user_id,
+                    "enabled_features": ["messages"]
+                },
+                "schedules": {
+                    "messages": {
+                        "periods": {
+                            period_name: {
+                                "start_time": "08:00",
+                                "end_time": "12:00",
+                                "active": True,
+                                "days": ["Monday"]
                             }
                         }
                     }
-                    
-                    with patch('core.schedule_management.get_user_data', return_value=updated_user_data):
-                        update_result = edit_schedule_period(category, period_name, "09:00", "13:00")
-                        
-                        # Delete
-                        delete_result = delete_schedule_period(category, period_name)
+                }
+            }
+
+            with patch(
+                'core.schedule_management.get_user_data',
+                return_value=updated_user_data,
+            ):
+                edit_schedule_period(category, period_name, "09:00", "13:00")
+
+                # Delete
+                delete_schedule_period(category, period_name)
         
         # Assert - Verify UserContext was called correctly
         assert mock_user_context.get_user_id.call_count >= 3, "UserContext.get_user_id should be called for each operation"
@@ -424,7 +418,6 @@ class TestScheduleManagementBehavior:
     def test_schedule_period_operations_with_error_handling(self, test_data_dir):
         """Test that schedule operations handle errors gracefully."""
         # Arrange
-        user_id = "test-user"
         category = "messages"
         period_name = "TestPeriod"
         
@@ -478,11 +471,14 @@ class TestScheduleManagementBehavior:
         }
         
         # Act - Test adding duplicate period
-        with patch('core.schedule_management.UserContext', return_value=mock_user_context):
-            with patch('core.schedule_management.get_user_data', return_value=existing_schedule):
-                # The function doesn't actually raise ValueError, it returns None
-                result = add_schedule_period(category, period_name, "09:00", "13:00")
-                assert result is None, "Should return None when period already exists"
+        with patch(
+            'core.schedule_management.UserContext', return_value=mock_user_context
+        ), patch(
+            'core.schedule_management.get_user_data', return_value=existing_schedule
+        ):
+            # The function doesn't actually raise ValueError, it returns None
+            result = add_schedule_period(category, period_name, "09:00", "13:00")
+            assert result is None, "Should return None when period already exists"
 
     @pytest.mark.scheduler
     @pytest.mark.file_io
@@ -502,13 +498,14 @@ class TestScheduleManagementBehavior:
         mock_scheduler = Mock()
         
         # Act - Test operations with scheduler manager
-        with patch('core.schedule_management.UserContext', return_value=mock_user_context):
-            with patch('core.user_data_handlers.update_user_schedules'):
-                # Test add with scheduler
-                add_schedule_period(category, period_name, "08:00", "12:00", mock_scheduler)
-                
-                # Test delete with scheduler
-                delete_schedule_period(category, period_name, mock_scheduler)
+        with patch(
+            'core.schedule_management.UserContext', return_value=mock_user_context
+        ), patch('core.user_data_handlers.update_user_schedules'):
+            # Test add with scheduler
+            add_schedule_period(category, period_name, "08:00", "12:00", mock_scheduler)
+
+            # Test delete with scheduler
+            delete_schedule_period(category, period_name, mock_scheduler)
         
         # Assert - Verify scheduler was called
         assert mock_scheduler.reset_and_reschedule_daily_messages.call_count >= 1, "Scheduler should be called"
@@ -541,20 +538,22 @@ class TestScheduleManagementBehavior:
         mock_user_context.get_internal_username.return_value = user_id
         
         # Act - Test with realistic user data
-        with patch('core.schedule_management.UserContext', return_value=mock_user_context):
-            with patch('core.schedule_management.get_user_data', return_value=user_data) as mock_get:
-                with patch('core.user_data_handlers.update_user_schedules') as mock_update:
-                    # Create a period
-                    create_result = add_schedule_period(category, period_name, "08:00", "12:00")
-                    
-                    # Verify the period was added
-                    assert create_result is None, "Create should return None"
-                    assert mock_update.called, "User data should be updated"
-                    
-                    # Verify the update call contained the new period
-                    call_args = mock_update.call_args
-                    saved_data = call_args[0][1]  # Second argument is the data
-                    assert period_name in saved_data[category]["periods"], "Period should be added to data"
+        with patch(
+            'core.schedule_management.UserContext', return_value=mock_user_context
+        ), patch(
+            'core.schedule_management.get_user_data', return_value=user_data
+        ), patch('core.user_data_handlers.update_user_schedules') as mock_update:
+            # Create a period
+            create_result = add_schedule_period(category, period_name, "08:00", "12:00")
+
+            # Verify the period was added
+            assert create_result is None, "Create should return None"
+            assert mock_update.called, "User data should be updated"
+
+            # Verify the update call contained the new period
+            call_args = mock_update.call_args
+            saved_data = call_args[0][1]  # Second argument is the data
+            assert period_name in saved_data[category]["periods"], "Period should be added to data"
 
     @pytest.mark.scheduler
     @pytest.mark.regression
@@ -570,16 +569,17 @@ class TestScheduleManagementBehavior:
         mock_user_context.get_internal_username.return_value = user_id
         
         # Test edge cases
-        with patch('core.schedule_management.UserContext', return_value=mock_user_context):
-            with patch('core.user_data_handlers.update_user_schedules'):
-                # Test with empty periods
-                result = set_schedule_periods(user_id, category, {})
-                assert result is True, "Empty periods should be handled and return True on success"
-                
-                # Test with non-string period names (should be converted)
-                result = set_schedule_periods(user_id, category, {123: {"start_time": "08:00", "end_time": "12:00"}})
-                assert result is True, "Non-string period names should be converted and return True on success"
-                
-                # Test with missing period data fields
-                result = set_schedule_periods(user_id, category, {"Test": {}})
-                assert result is True, "Missing period data should use defaults and return True on success" 
+        with patch(
+            'core.schedule_management.UserContext', return_value=mock_user_context
+        ), patch('core.user_data_handlers.update_user_schedules'):
+            # Test with empty periods
+            result = set_schedule_periods(user_id, category, {})
+            assert result is True, "Empty periods should be handled and return True on success"
+
+            # Test with non-string period names (should be converted)
+            result = set_schedule_periods(user_id, category, {123: {"start_time": "08:00", "end_time": "12:00"}})
+            assert result is True, "Non-string period names should be converted and return True on success"
+
+            # Test with missing period data fields
+            result = set_schedule_periods(user_id, category, {"Test": {}})
+            assert result is True, "Missing period data should use defaults and return True on success"

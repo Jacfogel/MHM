@@ -7,12 +7,9 @@ side effects rather than just returning values.
 """
 
 import pytest
-import json
-import os
 import uuid
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from datetime import datetime
 
 # Import the modules we're testing
 from communication.message_processing.conversation_flow_manager import (
@@ -63,7 +60,7 @@ class TestConversationFlowManagerBehavior:
         
         # Verify response
         assert isinstance(message, str), "Should return message string"
-        assert completed == True, "Should be completed"
+        assert completed, "Should be completed"
         assert "not enabled" in message.lower(), "Should indicate check-ins are not enabled"
         assert user_id not in manager.user_states, "Should not create user state"
     
@@ -98,7 +95,7 @@ class TestConversationFlowManagerBehavior:
         
         # Verify response
         assert isinstance(message, str), "Should return message string"
-        assert completed == False, "Should not be completed (flow in progress)"
+        assert not completed, "Should not be completed (flow in progress)"
         assert "check-in" in message.lower() or "checkin" in message.lower(), "Should mention check-in"
         assert user_id in manager.user_states, "Should create user state"
         
@@ -143,7 +140,7 @@ class TestConversationFlowManagerBehavior:
         
         # Verify response
         assert isinstance(message2, str), "Should return message string"
-        assert completed2 == False, "Should not be completed"
+        assert not completed2, "Should not be completed"
         assert "already" in message2.lower() or "in progress" in message2.lower(), "Should indicate check-in already active"
     
     @pytest.mark.behavior
@@ -181,7 +178,7 @@ class TestConversationFlowManagerBehavior:
         
         # Verify response
         assert isinstance(message2, str), "Should return message string"
-        assert completed2 == False, "Should not be completed (new flow started)"
+        assert not completed2, "Should not be completed (new flow started)"
         assert "check-in" in message2.lower() or "checkin" in message2.lower(), "Should mention check-in"
         assert user_id in manager.user_states, "Should still have user state"
     
@@ -208,7 +205,7 @@ class TestConversationFlowManagerBehavior:
         
         # Verify response
         assert isinstance(message, str), "Should return message string"
-        assert completed == True, "Should be completed"
+        assert completed, "Should be completed"
         assert "cleared" in message.lower(), "Should indicate flow cleared"
         assert user_id not in manager.user_states, "Should remove user state"
     
@@ -225,7 +222,7 @@ class TestConversationFlowManagerBehavior:
         
         # Verify response
         assert isinstance(message, str), "Should return message string"
-        assert completed == True, "Should be completed"
+        assert completed, "Should be completed"
         assert "no active" in message.lower() or "not found" in message.lower(), "Should indicate no active flow"
     
     @pytest.mark.behavior
@@ -272,7 +269,7 @@ class TestConversationFlowManagerBehavior:
         
         # Verify response
         assert isinstance(message, str), "Should return message string"
-        assert completed == True, "Should be completed"
+        assert completed, "Should be completed"
         assert len(message) > 0, "Should have response message"
         mock_bot.generate_contextual_response.assert_called_once_with(user_id, "Hello, how are you?", timeout=10)
     
@@ -306,7 +303,7 @@ class TestConversationFlowManagerBehavior:
         
         # Verify response
         assert isinstance(message, str), "Should return message string"
-        assert completed == False, "Should not be completed (flow started)"
+        assert not completed, "Should not be completed (flow started)"
         assert "check-in" in message.lower() or "checkin" in message.lower(), "Should mention check-in"
         assert user_id in manager.user_states, "Should create user state"
     
@@ -324,7 +321,7 @@ class TestConversationFlowManagerBehavior:
         
         # Verify response
         assert isinstance(message, str), "Should return message string"
-        assert completed == True, "Should be completed"
+        assert completed, "Should be completed"
         assert "nothing to cancel" in message.lower() or "not in" in message.lower(), "Should indicate no flow to cancel"
     
     @pytest.mark.behavior
@@ -342,7 +339,7 @@ class TestConversationFlowManagerBehavior:
         
         # Verify response
         assert isinstance(message, str), "Should return message string"
-        assert completed == True, "Should be completed"
+        assert completed, "Should be completed"
         assert len(message) > 0, "Should have response message"
     
     @pytest.mark.behavior
@@ -474,7 +471,7 @@ class TestConversationFlowManagerBehavior:
         
         # Start check-in
         message1, completed1 = manager.start_checkin(user_id)
-        assert completed1 == False, "Should not be completed"
+        assert not completed1, "Should not be completed"
         
         # Get initial state
         user_state = manager.user_states[user_id]

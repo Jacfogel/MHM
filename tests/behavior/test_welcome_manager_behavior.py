@@ -7,8 +7,8 @@ These tests verify that welcome manager actually works and produces expected sid
 
 import pytest
 import json
-import os
 import uuid
+import contextlib
 from pathlib import Path
 from unittest.mock import patch
 from communication.core.welcome_manager import (
@@ -60,7 +60,7 @@ class TestWelcomeManagerBehavior:
             assert tracking_file.exists(), "Tracking file should be created"
             
             # Verify data was saved
-            with open(tracking_file, 'r', encoding='utf-8') as f:
+            with open(tracking_file, encoding='utf-8') as f:
                 data = json.load(f)
             
             key = "discord:test_user_456"
@@ -109,7 +109,7 @@ class TestWelcomeManagerBehavior:
             from communication.core import welcome_manager
             tracking_file = welcome_manager.WELCOME_TRACKING_FILE
             if tracking_file.exists():
-                with open(tracking_file, 'r', encoding='utf-8') as f:
+                with open(tracking_file, encoding='utf-8') as f:
                     data = json.load(f)
                 key = "discord:test_user_clear"
                 assert key not in data, "User should be removed from tracking"
@@ -255,7 +255,7 @@ class TestWelcomeManagerBehavior:
             # Verify file has updated data
             from communication.core import welcome_manager
             tracking_file = welcome_manager.WELCOME_TRACKING_FILE
-            with open(tracking_file, 'r', encoding='utf-8') as f:
+            with open(tracking_file, encoding='utf-8') as f:
                 data = json.load(f)
             key = f"discord:{channel_identifier}"
             assert key in data, "User should still be in tracking"
@@ -272,11 +272,9 @@ class TestWelcomeManagerBehavior:
             
             # Ensure file doesn't exist (handle file locking in parallel execution)
             if tracking_file.exists():
-                try:
+                # File might be locked by another test - that's OK for this test
+                with contextlib.suppress(PermissionError, OSError):
                     tracking_file.unlink()
-                except (PermissionError, OSError):
-                    # File might be locked by another test - that's OK for this test
-                    pass
             
             # Should return False for nonexistent file
             result = has_been_welcomed('any_user', channel_type='discord')
@@ -311,6 +309,6 @@ class TestWelcomeManagerBehavior:
             assert mark_result is True, "Should recover and save successfully"
             
             # Verify file is now valid
-            with open(tracking_file, 'r', encoding='utf-8') as f:
+            with open(tracking_file, encoding='utf-8') as f:
                 data = json.load(f)
             assert isinstance(data, dict), "File should be valid JSON"

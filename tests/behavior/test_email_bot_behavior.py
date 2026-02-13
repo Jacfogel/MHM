@@ -65,12 +65,10 @@ class TestEmailBotBehavior:
         with patch('communication.communication_channels.email.bot.EMAIL_SMTP_SERVER', 'smtp.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_IMAP_SERVER', 'imap.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_USERNAME', 'test@example.com'), \
-             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'):
-            
-            # Mock SMTP and IMAP connections
-            with patch('smtplib.SMTP_SSL') as mock_smtp, \
-                 patch('imaplib.IMAP4_SSL') as mock_imap:
-                
+             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'), \
+             patch('smtplib.SMTP_SSL') as mock_smtp, \
+             patch('imaplib.IMAP4_SSL') as mock_imap:
+
                 mock_smtp_instance = MagicMock()
                 mock_smtp.return_value.__enter__.return_value = mock_smtp_instance
                 
@@ -109,18 +107,16 @@ class TestEmailBotBehavior:
         with patch('communication.communication_channels.email.bot.EMAIL_SMTP_SERVER', 'smtp.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_IMAP_SERVER', 'imap.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_USERNAME', 'test@example.com'), \
-             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'):
-            
-            # Mock SMTP connection failure
-            with patch('smtplib.SMTP_SSL') as mock_smtp:
-                mock_smtp.side_effect = smtplib.SMTPAuthenticationError(535, "Authentication failed")
-                
-                # Act
-                result = await self.email_bot.initialize()
-                
-                # Assert - Test actual behavior rather than expected behavior
-                assert isinstance(result, bool), "Should return boolean result"
-                # The actual behavior may vary due to error handling implementation
+             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'), \
+             patch('smtplib.SMTP_SSL') as mock_smtp:
+            mock_smtp.side_effect = smtplib.SMTPAuthenticationError(535, "Authentication failed")
+
+            # Act
+            result = await self.email_bot.initialize()
+
+            # Assert - Test actual behavior rather than expected behavior
+            assert isinstance(result, bool), "Should return boolean result"
+            # The actual behavior may vary due to error handling implementation
     
     @pytest.mark.asyncio
     async def test_email_bot_initialization_failure_imap_error(self, test_data_dir):
@@ -129,12 +125,10 @@ class TestEmailBotBehavior:
         with patch('communication.communication_channels.email.bot.EMAIL_SMTP_SERVER', 'smtp.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_IMAP_SERVER', 'imap.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_USERNAME', 'test@example.com'), \
-             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'):
-            
-            # Mock SMTP success but IMAP failure
-            with patch('smtplib.SMTP_SSL') as mock_smtp, \
-                 patch('imaplib.IMAP4_SSL') as mock_imap:
-                
+             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'), \
+             patch('smtplib.SMTP_SSL') as mock_smtp, \
+             patch('imaplib.IMAP4_SSL') as mock_imap:
+
                 mock_smtp_instance = MagicMock()
                 mock_smtp.return_value.__enter__.return_value = mock_smtp_instance
                 
@@ -316,12 +310,10 @@ class TestEmailBotBehavior:
         with patch('communication.communication_channels.email.bot.EMAIL_SMTP_SERVER', 'smtp.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_IMAP_SERVER', 'imap.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_USERNAME', 'test@example.com'), \
-             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'):
-            
-            # Mock SMTP and IMAP connections
-            with patch('smtplib.SMTP_SSL') as mock_smtp, \
-                 patch('imaplib.IMAP4_SSL') as mock_imap:
-                
+             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'), \
+             patch('smtplib.SMTP_SSL') as mock_smtp, \
+             patch('imaplib.IMAP4_SSL') as mock_imap:
+
                 mock_smtp_instance = MagicMock()
                 mock_smtp.return_value.__enter__.return_value = mock_smtp_instance
                 
@@ -369,12 +361,10 @@ class TestEmailBotBehavior:
         with patch('communication.communication_channels.email.bot.EMAIL_SMTP_SERVER', 'smtp.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_IMAP_SERVER', 'imap.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_USERNAME', 'test@example.com'), \
-             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'):
-            
-            # Mock SMTP and IMAP connections
-            with patch('smtplib.SMTP_SSL') as mock_smtp, \
-                 patch('imaplib.IMAP4_SSL') as mock_imap:
-                
+             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'), \
+             patch('smtplib.SMTP_SSL') as mock_smtp, \
+             patch('imaplib.IMAP4_SSL') as mock_imap:
+
                 mock_smtp_instance = MagicMock()
                 mock_smtp.return_value.__enter__.return_value = mock_smtp_instance
                 
@@ -538,12 +528,10 @@ class TestEmailBotIntegration:
         with patch('communication.communication_channels.email.bot.EMAIL_SMTP_SERVER', 'smtp.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_IMAP_SERVER', 'imap.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_USERNAME', 'test@example.com'), \
-             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'):
-            
-            # Mock SMTP and IMAP connections
-            with patch('smtplib.SMTP_SSL') as mock_smtp, \
-                 patch('imaplib.IMAP4_SSL') as mock_imap:
-                
+             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'), \
+             patch('smtplib.SMTP_SSL') as mock_smtp, \
+             patch('imaplib.IMAP4_SSL') as mock_imap:
+
                 mock_smtp_instance = MagicMock()
                 mock_smtp.return_value.__enter__.return_value = mock_smtp_instance
                 
@@ -572,24 +560,22 @@ class TestEmailBotIntegration:
         with patch('communication.communication_channels.email.bot.EMAIL_SMTP_SERVER', 'smtp.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_IMAP_SERVER', 'imap.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_USERNAME', 'test@example.com'), \
-             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'):
-            
-            # Test 1: SMTP failure then recovery
-            with patch('smtplib.SMTP_SSL') as mock_smtp:
-                # First call fails, second call succeeds
-                mock_smtp.side_effect = [
-                    smtplib.SMTPAuthenticationError(535, "Auth failed"),
-                    MagicMock().__enter__.return_value
-                ]
-                
-                # Act
-                result1 = await self.email_bot.initialize()
-                result2 = await self.email_bot.initialize()
-                
-                # Assert - Error handling decorator may affect the behavior
-                # This tests the actual behavior rather than expected behavior
-                assert isinstance(result1, bool), "First initialization should return boolean"
-                assert isinstance(result2, bool), "Second initialization should return boolean"
+             patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'), \
+             patch('smtplib.SMTP_SSL') as mock_smtp:
+            # First call fails, second call succeeds
+            mock_smtp.side_effect = [
+                smtplib.SMTPAuthenticationError(535, "Auth failed"),
+                MagicMock().__enter__.return_value
+            ]
+
+            # Act
+            result1 = await self.email_bot.initialize()
+            result2 = await self.email_bot.initialize()
+
+            # Assert - Error handling decorator may affect the behavior
+            # This tests the actual behavior rather than expected behavior
+            assert isinstance(result1, bool), "First initialization should return boolean"
+            assert isinstance(result2, bool), "Second initialization should return boolean"
     
     @pytest.mark.asyncio
     async def test_email_bot_concurrent_access_safety(self, test_data_dir):
@@ -604,7 +590,6 @@ class TestEmailBotIntegration:
             
             # Act - Simulate concurrent access
             import asyncio
-            import concurrent.futures
             
             async def send_email(recipient, message):
                 return await self.email_bot.send_message(recipient, message)
@@ -670,7 +655,6 @@ class TestEmailBotIntegration:
     async def test_email_bot_thread_safety_behavior(self, test_data_dir):
         """Test thread safety behavior of email bot."""
         import threading
-        import time
         
         # Test concurrent operations
         results = []

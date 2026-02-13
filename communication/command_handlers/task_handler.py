@@ -137,7 +137,7 @@ class TaskManagementHandler(InteractionHandler):
                     recurrence_interval = recurring_settings.get(
                         "default_recurrence_interval", 1
                     )
-            except Exception as e:
+            except Exception:
                 # If there's an error loading preferences, continue without defaults
                 pass
 
@@ -232,7 +232,7 @@ class TaskManagementHandler(InteractionHandler):
                 task_data["repeat_after_completion"] = recurring_settings.get(
                     "default_repeat_after_completion", True
                 )
-            except Exception as e:
+            except Exception:
                 # Default to True if there's an error loading preferences
                 task_data["repeat_after_completion"] = True
 
@@ -775,7 +775,7 @@ class TaskManagementHandler(InteractionHandler):
                 task_id = suggested_task.get("task_id", "")
                 short_id = task_id[:8] if task_id else ""
 
-                response = f"💡 **Did you want to complete this task?**\n\n"
+                response = "💡 **Did you want to complete this task?**\n\n"
                 response += f"**{task_title}**\n"
 
                 # Add task details
@@ -784,10 +784,10 @@ class TaskManagementHandler(InteractionHandler):
                 if suggested_task.get("priority"):
                     response += f"⚡ Priority: {suggested_task['priority'].title()}\n"
 
-                response += f"\n**To complete it:**\n"
+                response += "\n**To complete it:**\n"
                 response += f"• Reply: `complete task {short_id}`\n"
                 response += f'• Or: `complete task "{task_title}"`\n'
-                response += f"• Or: `list tasks` to see all your tasks"
+                response += "• Or: `list tasks` to see all your tasks"
 
                 return InteractionResponse(response, completed=False)
             else:
@@ -961,7 +961,6 @@ class TaskManagementHandler(InteractionHandler):
         # Get time period information
         days = entities.get("days", 7)
         period_name = entities.get("period_name", "this week")
-        offset = entities.get("offset", 0)
 
         try:
             from core.checkin_analytics import CheckinAnalytics
@@ -1008,7 +1007,7 @@ class TaskManagementHandler(InteractionHandler):
 
             if total_tasks > 0:
                 overall_completion_rate = (completed_tasks / total_tasks) * 100
-                response += f"**Overall Task Progress:**\n"
+                response += "**Overall Task Progress:**\n"
                 response += f"📋 **Active Tasks:** {active_tasks}\n"
                 response += f"✅ **Completed Tasks:** {completed_tasks}\n"
                 response += f"📊 **Completion Rate:** {overall_completion_rate:.1f}%\n"
@@ -1098,9 +1097,11 @@ class TaskManagementHandler(InteractionHandler):
         for task in tasks:
             task_lower = task["title"].lower()
             for variation_key, variations in common_variations.items():
-                if identifier_lower in variations or identifier_lower == variation_key:
-                    if any(var in task_lower for var in variations + [variation_key]):
-                        return task
+                if (
+                    (identifier_lower in variations or identifier_lower == variation_key)
+                    and any(var in task_lower for var in variations + [variation_key])
+                ):
+                    return task
 
         return None
 

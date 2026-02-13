@@ -443,7 +443,7 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return InteractionResponse(
-                f"❌ Failed to append. Entry not found or invalid.", True
+                "❌ Failed to append. Entry not found or invalid.", True
             )
 
     @handle_errors("handling set entry body")
@@ -468,7 +468,7 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return InteractionResponse(
-                f"❌ Failed to update. Entry not found or invalid.", True
+                "❌ Failed to update. Entry not found or invalid.", True
             )
 
     @handle_errors("handling add tags")
@@ -493,7 +493,7 @@ class NotebookHandler(InteractionHandler):
                 True,
             )
         else:
-            return InteractionResponse(f"❌ Failed to add tags. Entry not found.", True)
+            return InteractionResponse("❌ Failed to add tags. Entry not found.", True)
 
     @handle_errors("handling remove tags")
     def _handle_remove_tags(
@@ -517,7 +517,7 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return InteractionResponse(
-                f"❌ Failed to remove tags. Entry not found.", True
+                "❌ Failed to remove tags. Entry not found.", True
             )
 
     @handle_errors("handling search entries")
@@ -556,7 +556,6 @@ class NotebookHandler(InteractionHandler):
         suggestions = []
         if has_more:
             # Add "Show More" button with pagination info
-            next_offset = offset + limit
             suggestions.append(f"Show More ({min(limit, remaining)} more)")
 
         return InteractionResponse(
@@ -588,7 +587,7 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return InteractionResponse(
-                f"❌ Failed to pin/unpin. Entry not found.", True
+                "❌ Failed to pin/unpin. Entry not found.", True
             )
 
     @handle_errors("handling archive entry")
@@ -614,7 +613,7 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return InteractionResponse(
-                f"❌ Failed to archive/unarchive. Entry not found.", True
+                "❌ Failed to archive/unarchive. Entry not found.", True
             )
 
     # List item handlers
@@ -640,7 +639,7 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return InteractionResponse(
-                f"❌ Failed to add item. List not found or invalid.", True
+                "❌ Failed to add item. List not found or invalid.", True
             )
 
     @handle_errors("handling toggle list item done")
@@ -673,7 +672,7 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return InteractionResponse(
-                f"❌ Failed to toggle item. List not found or invalid.", True
+                "❌ Failed to toggle item. List not found or invalid.", True
             )
 
     @handle_errors("handling remove list item")
@@ -704,7 +703,7 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return InteractionResponse(
-                f"❌ Failed to remove item. List not found or invalid.", True
+                "❌ Failed to remove item. List not found or invalid.", True
             )
 
     # Organization handlers
@@ -731,7 +730,7 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return InteractionResponse(
-                f"❌ Failed to set group. Entry not found.", True
+                "❌ Failed to set group. Entry not found.", True
             )
 
     @handle_errors("handling list by group")

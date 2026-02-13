@@ -1871,6 +1871,7 @@ def run_static_logging_check() -> bool:
 def cleanup_stale_test_artifacts() -> None:
     """Best-effort cleanup for stale pytest/build artifacts that commonly accumulate on Windows."""
     root = Path(__file__).parent
+    data_tmp = root / "tests" / "data" / "tmp"
     removed = 0
 
     exact_dirs = [
@@ -1885,6 +1886,7 @@ def cleanup_stale_test_artifacts() -> None:
     ]
     glob_patterns = [
         ".pytest-tmp-*",
+        "pytest-cache-files-*",
     ]
 
     for rel in exact_dirs:
@@ -1907,6 +1909,17 @@ def cleanup_stale_test_artifacts() -> None:
                 removed += 1
             except Exception:
                 pass
+
+    # Clear pytest-specific temp/cache trees under tests/data/tmp to avoid
+    # ACL-locked leftovers causing AccessDenied on later runs.
+    if data_tmp.exists():
+        for rel in ("pytest_runner", "pytest_cache"):
+            target = data_tmp / rel
+            if target.exists() and remove_tree_with_retries(target):
+                removed += 1
+        for target in data_tmp.glob("pytest-cache-files-*"):
+            if target.is_dir() and remove_tree_with_retries(target):
+                removed += 1
 
     if removed:
         print(f"[CLEANUP] Removed {removed} stale artifact directory(s) before test run")
@@ -1940,6 +1953,7 @@ def cleanup_post_run_test_artifacts() -> None:
     """
     root = Path(__file__).parent
     data_dir = root / "tests" / "data"
+    data_tmp = data_dir / "tmp"
 
     # Remove root-level transient artifact directories that may be created by ad-hoc pytest runs.
     for rel in [
@@ -1956,6 +1970,21 @@ def cleanup_post_run_test_artifacts() -> None:
                 shutil.rmtree(target, ignore_errors=True)
         except Exception:
             pass
+
+    for target in root.glob("pytest-cache-files-*"):
+        try:
+            if target.exists() and target.is_dir():
+                shutil.rmtree(target, ignore_errors=True)
+        except Exception:
+            pass
+
+    if data_tmp.exists():
+        for target in data_tmp.glob("pytest-cache-files-*"):
+            try:
+                if target.is_dir():
+                    shutil.rmtree(target, ignore_errors=True)
+            except Exception:
+                pass
 
     # Remove transient tests/data directories/files that often accumulate during runs.
     if not data_dir.exists():

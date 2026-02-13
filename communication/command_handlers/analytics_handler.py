@@ -762,20 +762,20 @@ class AnalyticsHandler(InteractionHandler):
 
             # Mood Analysis
             if "error" not in mood_data:
-                response += f"**😊 Mood Trends:**\n"
+                response += "**😊 Mood Trends:**\n"
                 response += f"• Average: {mood_data.get('average_mood', 0):.1f}/5\n"
                 response += f"• Range: {mood_data.get('min_mood', 0)} - {mood_data.get('max_mood', 0)}/5\n"
                 response += f"• Trend: {mood_data.get('trend', 'Stable')}\n\n"
             else:
-                response += f"**😊 Mood Data:** Not enough mood data for analysis\n\n"
+                response += "**😊 Mood Data:** Not enough mood data for analysis\n\n"
 
             # Check-in Patterns
-            response += f"**📅 Check-in Patterns:**\n"
+            response += "**📅 Check-in Patterns:**\n"
             response += f"• Total check-ins: {len(checkins)}\n"
             response += f"• Average per day: {len(checkins)/days:.1f}\n"
 
             # Response Analysis
-            response += f"\n**💬 Response Analysis:**\n"
+            response += "\n**💬 Response Analysis:**\n"
 
             # Analyze common responses
             all_responses = {}
@@ -807,7 +807,7 @@ class AnalyticsHandler(InteractionHandler):
                 response += "• No detailed responses found\n"
 
             # Insights
-            response += f"\n**💡 Insights:**\n"
+            response += "\n**💡 Insights:**\n"
             if len(checkins) >= 7:
                 response += "• You've been consistent with check-ins\n"
             if "error" not in mood_data and mood_data.get("trend") == "improving":
@@ -815,10 +815,10 @@ class AnalyticsHandler(InteractionHandler):
             elif "error" not in mood_data and mood_data.get("trend") == "declining":
                 response += "• Your mood has been declining - consider reaching out for support\n"
 
-            response += f"\n💡 **Try these commands for more details:**\n"
-            response += f"• 'mood trends' - Detailed mood analysis\n"
-            response += f"• 'checkin history' - View all your check-ins\n"
-            response += f"• 'habit analysis' - Analyze your habits\n"
+            response += "\n💡 **Try these commands for more details:**\n"
+            response += "• 'mood trends' - Detailed mood analysis\n"
+            response += "• 'checkin history' - View all your check-ins\n"
+            response += "• 'habit analysis' - Analyze your habits\n"
 
             # Truncate response if too long for Discord
             response = self._truncate_response(response)
@@ -901,8 +901,8 @@ class AnalyticsHandler(InteractionHandler):
 
             # Get basic task statistics
             task_stats = get_user_task_stats(user_id)
-            active_tasks = load_active_tasks(user_id)
-            completed_tasks = load_completed_tasks(user_id)
+            load_active_tasks(user_id)
+            load_completed_tasks(user_id)
 
             analytics = CheckinAnalytics()
             task_weekly_stats = analytics.get_task_weekly_stats(user_id, days)
@@ -910,7 +910,7 @@ class AnalyticsHandler(InteractionHandler):
             response = f"**📋 Task Analytics (Last {days} days):**\n\n"
 
             # Overall Task Statistics
-            response += f"**📊 Overall Task Status:**\n"
+            response += "**📊 Overall Task Status:**\n"
             response += f"• Active Tasks: {task_stats.get('active_count', 0)}\n"
             response += f"• Completed Tasks: {task_stats.get('completed_count', 0)}\n"
             response += f"• Total Tasks: {task_stats.get('total_count', 0)}\n"
@@ -926,7 +926,7 @@ class AnalyticsHandler(InteractionHandler):
 
             # Task Completion Patterns
             if task_weekly_stats and "error" not in task_weekly_stats:
-                response += f"**📅 Task Completion Patterns:**\n"
+                response += "**📅 Task Completion Patterns:**\n"
                 for task_name, stats in task_weekly_stats.items():
                     completion_rate = stats.get("completion_rate", 0)
                     completed_days = stats.get("completed_days", 0)
@@ -940,13 +940,13 @@ class AnalyticsHandler(InteractionHandler):
                     )
                     response += f"• {emoji} {task_name}: {completion_rate:.1f}% ({completed_days}/{total_days} days)\n"
             else:
-                response += f"**📅 Task Completion Patterns:**\n"
+                response += "**📅 Task Completion Patterns:**\n"
                 response += "• No detailed task completion data available\n"
 
             response += "\n"
 
             # Task Insights
-            response += f"**💡 Task Insights:**\n"
+            response += "**💡 Task Insights:**\n"
             if task_stats.get("active_count", 0) > 5:
                 response += "• You have many active tasks - consider prioritizing or breaking them down\n"
             elif task_stats.get("active_count", 0) == 0:
@@ -956,11 +956,11 @@ class AnalyticsHandler(InteractionHandler):
                 response += "• You're making good progress on task completion\n"
 
             # Add recommendations
-            response += f"\n💡 **Try these commands for more details:**\n"
-            response += f"• 'task stats' - Detailed task statistics\n"
-            response += f"• 'show my tasks' - View all your tasks\n"
+            response += "\n💡 **Try these commands for more details:**\n"
+            response += "• 'task stats' - Detailed task statistics\n"
+            response += "• 'show my tasks' - View all your tasks\n"
             response += (
-                f"• 'habit analysis' - See how your habits relate to task completion\n"
+                "• 'habit analysis' - See how your habits relate to task completion\n"
             )
 
             # Truncate response if too long
@@ -995,7 +995,6 @@ class AnalyticsHandler(InteractionHandler):
                 load_active_tasks,
                 load_completed_tasks,
             )
-            from core.checkin_analytics import CheckinAnalytics
 
             # Get task statistics
             task_stats = get_user_task_stats(user_id)
@@ -1005,7 +1004,7 @@ class AnalyticsHandler(InteractionHandler):
             response = f"**📊 Task Statistics (Last {days} days):**\n\n"
 
             # Basic Statistics
-            response += f"**📋 Task Overview:**\n"
+            response += "**📋 Task Overview:**\n"
             response += f"• Active Tasks: {task_stats.get('active_count', 0)}\n"
             response += f"• Completed Tasks: {task_stats.get('completed_count', 0)}\n"
             response += f"• Total Tasks: {task_stats.get('total_count', 0)}\n"
@@ -1021,7 +1020,7 @@ class AnalyticsHandler(InteractionHandler):
 
             # Priority Breakdown
             if active_tasks:
-                response += f"**🎯 Active Task Priorities:**\n"
+                response += "**🎯 Active Task Priorities:**\n"
                 priority_counts = {}
                 for task in active_tasks:
                     priority = task.get("priority", "medium")
@@ -1039,7 +1038,7 @@ class AnalyticsHandler(InteractionHandler):
 
             # Recent Completions
             if completed_tasks:
-                response += f"**✅ Recently Completed:**\n"
+                response += "**✅ Recently Completed:**\n"
                 recent_completed = completed_tasks[:5]  # Show last 5
                 for task in recent_completed:
                     title = task.get("title", "Unknown Task")

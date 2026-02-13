@@ -7,7 +7,7 @@ side effects rather than just returning values.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 # Import the modules we're testing
 from communication.command_handlers.profile_handler import ProfileHandler

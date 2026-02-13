@@ -185,7 +185,7 @@ class PromptManager:
 
         try:
             if os.path.exists(AI_SYSTEM_PROMPT_PATH):
-                with open(AI_SYSTEM_PROMPT_PATH, "r", encoding="utf-8") as f:
+                with open(AI_SYSTEM_PROMPT_PATH, encoding="utf-8") as f:
                     self._custom_prompt = f.read().strip()
                 # Log at DEBUG when likely from tools/subprocesses to reduce app.log noise; INFO for main service
                 _is_tool = "development_tools" in " ".join(

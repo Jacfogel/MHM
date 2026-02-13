@@ -8,15 +8,14 @@ Focuses on frequency analysis, delivery success tracking, and message patterns.
 import pytest
 from unittest.mock import patch
 from datetime import datetime, timedelta
+from core.message_analytics import MessageAnalytics
+from core.time_utilities import TIMESTAMP_FULL, format_timestamp
 
 # Deterministic anchor for test data generation.
 # These timestamps are consumed by production analytics parsing/logic, so avoid datetime.now().
 TEST_ANCHOR_DT = datetime(2026, 1, 20, 12, 0, 0)
 
 # Do not modify sys.path; rely on package imports
-
-from core.message_analytics import MessageAnalytics
-from core.time_utilities import TIMESTAMP_FULL, format_timestamp
 
 
 @pytest.mark.behavior
@@ -135,7 +134,7 @@ class TestMessageAnalyticsFrequencyBehavior:
             motivational_messages
         ), "Should have correct filtered count"
         assert all(
-            cat == "motivational" for cat in result["category_counts"].keys()
+            cat == "motivational" for cat in result["category_counts"]
         ), "Should only have motivational category"
 
 

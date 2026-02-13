@@ -58,18 +58,18 @@ class TestAIChatBotBehavior:
 
         try:
             # Mock the AI_SYSTEM_PROMPT_PATH to use our temp file
-            with patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', prompt_file):
-                with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True):
-                    from ai.prompt_manager import PromptManager
-                    manager = PromptManager()
-                    
-                    # Test that custom prompt is loaded
-                    prompt = manager.get_prompt('wellness')
-                    assert "Custom test prompt content" in prompt, "Custom prompt should be loaded"
-                    
-                    # Test fallback prompts work
-                    command_prompt = manager.get_prompt('command')
-                    assert "extract the user's intent" in command_prompt.lower(), "Command prompt should be used"
+            with patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', prompt_file), \
+                 patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True):
+                from ai.prompt_manager import PromptManager
+                manager = PromptManager()
+
+                # Test that custom prompt is loaded
+                prompt = manager.get_prompt('wellness')
+                assert "Custom test prompt content" in prompt, "Custom prompt should be loaded"
+
+                # Test fallback prompts work
+                command_prompt = manager.get_prompt('command')
+                assert "extract the user's intent" in command_prompt.lower(), "Command prompt should be used"
                     
         finally:
             # Cleanup
@@ -162,7 +162,7 @@ class TestAIChatBotBehavior:
     @pytest.mark.slow
     def test_ai_chatbot_tracks_conversation_history(self, test_data_dir):
         """Test that AI chatbot actually tracks conversation history."""
-        chatbot = AIChatBotSingleton()
+        AIChatBotSingleton()
         user_id = "test_user_conv"
         
         # Create user directory and data first
@@ -215,23 +215,23 @@ class TestAIChatBotBehavior:
         chatbot = AIChatBotSingleton()
         
         # Test resource constraint detection
-        with patch('psutil.cpu_percent', return_value=90.0):  # High CPU
-            with patch('psutil.virtual_memory') as mock_memory:
-                mock_memory.return_value.percent = 85.0  # High memory
-                mock_memory.return_value.available = 1024 * 1024 * 1024  # 1GB available
-                
-                timeout = chatbot._get_adaptive_timeout(15)
-                # Note: The function might return the same timeout due to error handling
-                assert isinstance(timeout, int), "Timeout should be an integer"
+        with patch('psutil.cpu_percent', return_value=90.0), \
+             patch('psutil.virtual_memory') as mock_memory:  # High CPU
+            mock_memory.return_value.percent = 85.0  # High memory
+            mock_memory.return_value.available = 1024 * 1024 * 1024  # 1GB available
+
+            timeout = chatbot._get_adaptive_timeout(15)
+            # Note: The function might return the same timeout due to error handling
+            assert isinstance(timeout, int), "Timeout should be an integer"
         
         # Test normal resource conditions
-        with patch('psutil.cpu_percent', return_value=30.0):  # Normal CPU
-            with patch('psutil.virtual_memory') as mock_memory:
-                mock_memory.return_value.percent = 50.0  # Normal memory
-                mock_memory.return_value.available = 4 * 1024 * 1024 * 1024  # 4GB available
-                
-                timeout = chatbot._get_adaptive_timeout(15)
-                assert isinstance(timeout, int), "Timeout should be an integer"
+        with patch('psutil.cpu_percent', return_value=30.0), \
+             patch('psutil.virtual_memory') as mock_memory:  # Normal CPU
+            mock_memory.return_value.percent = 50.0  # Normal memory
+            mock_memory.return_value.available = 4 * 1024 * 1024 * 1024  # 4GB available
+
+            timeout = chatbot._get_adaptive_timeout(15)
+            assert isinstance(timeout, int), "Timeout should be an integer"
     
     @pytest.mark.ai
     @pytest.mark.regression
@@ -524,7 +524,7 @@ class TestAIChatBotBehavior:
         mock_response.json.return_value = {"choices": [{"message": {"content": "Cached response"}}]}
         mock_response.status_code = 200
         
-        with patch('requests.post', return_value=mock_response) as mock_post:
+        with patch('requests.post', return_value=mock_response):
             # First request - should call API
             response1 = chatbot.generate_response("Cached test", user_id="cache_user")
             
@@ -653,7 +653,6 @@ class TestAIChatBotIntegration:
     def test_ai_chatbot_concurrent_access_safety(self, test_data_dir):
         """Test that AI chatbot handles concurrent access safely."""
         import threading
-        import time
         
         chatbot = AIChatBotSingleton()
         results = []

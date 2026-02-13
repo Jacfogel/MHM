@@ -6,10 +6,8 @@ Tests various error conditions and edge cases.
 
 import pytest
 from unittest.mock import patch, MagicMock
-from datetime import datetime, timedelta
+from datetime import timedelta
 import uuid
-import json
-import os
 
 from tasks.task_management import (
     create_task,

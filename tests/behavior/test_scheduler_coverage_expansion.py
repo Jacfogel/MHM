@@ -11,7 +11,6 @@ import json
 import time
 from unittest.mock import patch, Mock
 from datetime import datetime, timedelta
-from core.user_data_handlers import get_user_categories, get_user_data
 from core.scheduler import (
     SchedulerManager,
     schedule_all_task_reminders,
@@ -85,7 +84,7 @@ class TestSchedulerManagerLifecycle:
                     # CRITICAL: Mock set_wake_timer to prevent creating real Windows tasks
                     with patch.object(
                         scheduler_manager, "set_wake_timer"
-                    ) as mock_wake_timer:
+                    ):
                         # Start the scheduler
                         scheduler_manager.run_daily_scheduler()
 
@@ -120,7 +119,7 @@ class TestSchedulerManagerLifecycle:
                     # CRITICAL: Mock set_wake_timer to prevent creating real Windows tasks
                     with patch.object(
                         scheduler_manager, "set_wake_timer"
-                    ) as mock_wake_timer:
+                    ):
                         # Start the scheduler
                         scheduler_manager.run_daily_scheduler()
 
@@ -229,25 +228,25 @@ class TestMessageScheduling:
                 {"checkin": {"periods": {"morning": {"active": True}}}},
             ]
 
-            with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
+            with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods, \
+                 patch.object(
+                     scheduler_manager, "schedule_daily_message_job"
+                 ) as mock_schedule, \
+                 patch.object(
+                     scheduler_manager, "schedule_all_task_reminders"
+                 ) as mock_task_schedule:
                 mock_get_periods.return_value = {"morning": {"active": True}}
 
-                with patch.object(
-                    scheduler_manager, "schedule_daily_message_job"
-                ) as mock_schedule:
-                    with patch.object(
-                        scheduler_manager, "schedule_all_task_reminders"
-                    ) as mock_task_schedule:
-                        # Test real behavior: function should schedule the new user
-                        scheduler_manager.schedule_new_user(user_id)
+                # Test real behavior: function should schedule the new user
+                scheduler_manager.schedule_new_user(user_id)
 
-                        # Verify side effects: should have called scheduling methods
-                        # The method should call schedule_daily_message_job for each category and checkins
-                        # With our mock data, it should call it at least twice (motivational + checkin)
-                        assert (
-                            mock_schedule.call_count >= 2
-                        ), f"Expected at least 2 calls, got {mock_schedule.call_count}"
-                        mock_task_schedule.assert_called_once_with(user_id)
+                # Verify side effects: should have called scheduling methods
+                # The method should call schedule_daily_message_job for each category and checkins
+                # With our mock data, it should call it at least twice (motivational + checkin)
+                assert (
+                    mock_schedule.call_count >= 2
+                ), f"Expected at least 2 calls, got {mock_schedule.call_count}"
+                mock_task_schedule.assert_called_once_with(user_id)
 
     @pytest.mark.behavior
     @pytest.mark.scheduler
@@ -275,18 +274,17 @@ class TestMessageScheduling:
 
             with patch.object(
                 scheduler_manager, "schedule_message_for_period"
-            ) as mock_schedule_period:
-                with patch.object(
-                    scheduler_manager, "cleanup_old_tasks"
-                ) as mock_cleanup:
-                    # Test real behavior: function should schedule active periods
-                    scheduler_manager.schedule_daily_message_job(user_id, category)
+            ) as mock_schedule_period, patch.object(
+                scheduler_manager, "cleanup_old_tasks"
+            ) as mock_cleanup:
+                # Test real behavior: function should schedule active periods
+                scheduler_manager.schedule_daily_message_job(user_id, category)
 
-                    # Verify side effects
-                    mock_cleanup.assert_called_once_with(user_id, category)
-                    mock_schedule_period.assert_called_once_with(
-                        user_id, category, "morning"
-                    )
+                # Verify side effects
+                mock_cleanup.assert_called_once_with(user_id, category)
+                mock_schedule_period.assert_called_once_with(
+                    user_id, category, "morning"
+                )
 
     @pytest.mark.behavior
     @pytest.mark.scheduler
@@ -468,17 +466,17 @@ class TestTaskReminderScheduling:
         with patch("tasks.task_management.are_tasks_enabled") as mock_tasks_enabled:
             mock_tasks_enabled.return_value = False
 
-            with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
-                with patch(
-                    "tasks.task_management.load_active_tasks"
-                ) as mock_load_tasks:
-                    # Test real behavior: function should exit early when tasks disabled
-                    scheduler_manager.schedule_all_task_reminders(user_id)
+            with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods, \
+                 patch(
+                     "tasks.task_management.load_active_tasks"
+                 ) as mock_load_tasks:
+                # Test real behavior: function should exit early when tasks disabled
+                scheduler_manager.schedule_all_task_reminders(user_id)
 
-                    # Verify side effects: should not proceed with scheduling
-                    mock_tasks_enabled.assert_called_once_with(user_id)
-                    mock_get_periods.assert_not_called()
-                    mock_load_tasks.assert_not_called()
+                # Verify side effects: should not proceed with scheduling
+                mock_tasks_enabled.assert_called_once_with(user_id)
+                mock_get_periods.assert_not_called()
+                mock_load_tasks.assert_not_called()
 
     @pytest.mark.behavior
     @pytest.mark.scheduler
@@ -1101,7 +1099,7 @@ class TestSchedulerLoopCoverage:
         )
 
         # CRITICAL: Mock set_wake_timer to prevent creating real Windows tasks
-        with patch.object(scheduler_manager, "set_wake_timer") as mock_wake_timer:
+        with patch.object(scheduler_manager, "set_wake_timer"):
             # Test that scheduler can be started and stopped without errors
             try:
                 scheduler_manager.run_daily_scheduler()
@@ -1140,14 +1138,14 @@ class TestSchedulerLoopCoverage:
         """Test scheduler loop error handling when scheduling fails."""
         with (
             patch("core.scheduler.get_all_user_ids") as mock_get_users,
-            patch("core.scheduler.get_user_data") as mock_get_data,
+            patch("core.scheduler.get_user_data"),
         ):
 
             # Mock error during scheduling - this will be called in schedule_all_users_immediately()
             mock_get_users.side_effect = Exception("Database connection failed")
 
             # CRITICAL: Mock set_wake_timer to prevent creating real Windows tasks
-            with patch.object(scheduler_manager, "set_wake_timer") as mock_wake_timer:
+            with patch.object(scheduler_manager, "set_wake_timer"):
                 # Test real behavior: scheduler should handle errors gracefully
                 # The error is caught by the error handler, so we test that it doesn't crash
                 try:
@@ -1177,14 +1175,14 @@ class TestSchedulerLoopCoverage:
         """Test scheduler loop properly responds to stop events."""
         with (
             patch("core.scheduler.get_all_user_ids") as mock_get_users,
-            patch("core.scheduler.schedule.run_pending") as mock_run_pending,
+            patch("core.scheduler.schedule.run_pending"),
             patch("core.scheduler.schedule.jobs", []),
         ):
 
             mock_get_users.return_value = []
 
             # CRITICAL: Mock set_wake_timer to prevent creating real Windows tasks
-            with patch.object(scheduler_manager, "set_wake_timer") as mock_wake_timer:
+            with patch.object(scheduler_manager, "set_wake_timer"):
                 # Start scheduler
                 scheduler_manager.run_daily_scheduler()
                 time.sleep(0.1)

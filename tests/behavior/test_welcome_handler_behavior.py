@@ -6,7 +6,7 @@ These tests verify that welcome handler actually works and produces expected sid
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from pathlib import Path
 import uuid
 from communication.communication_channels.discord.welcome_handler import (

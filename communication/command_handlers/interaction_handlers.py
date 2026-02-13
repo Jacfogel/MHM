@@ -10,18 +10,18 @@ all communication channels (Discord, email, etc.).
 
 from typing import Any
 
-# Pending confirmations (simple in-memory store)
-PENDING_DELETIONS: dict[str, str] = {}
-
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.user_data_handlers import get_user_data, save_user_data
+from core.user_data_handlers import get_user_data
 
 from communication.command_handlers.shared_types import (
     InteractionResponse,
     ParsedCommand,
 )
 from communication.command_handlers.base_handler import InteractionHandler
+
+# Pending confirmations (simple in-memory store)
+PENDING_DELETIONS: dict[str, str] = {}
 
 logger = get_component_logger("communication_manager")
 handlers_logger = logger
@@ -325,7 +325,7 @@ class HelpHandler(InteractionHandler):
         # Account status
         response += "👤 **Account Status:**\n"
         response += f"• Username: {username}\n"
-        response += f"• Account: Active ✅\n"
+        response += "• Account: Active ✅\n"
         response += f"• Timezone: {account_data.get('timezone', 'Not set')}\n\n"
 
         # Features status
@@ -341,7 +341,7 @@ class HelpHandler(InteractionHandler):
         response += (
             f"• Check-ins: {'Enabled ✅' if checkins_enabled else 'Disabled ❌'}\n"
         )
-        response += f"• System: Running smoothly ✅\n\n"
+        response += "• System: Running smoothly ✅\n\n"
 
         # Quick actions
         response += "🚀 **Quick Actions:**\n"

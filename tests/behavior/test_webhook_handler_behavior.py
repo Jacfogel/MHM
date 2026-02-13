@@ -137,7 +137,7 @@ class TestWebhookHandlerBehavior:
     def test_handle_application_authorized_with_new_user(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event creates welcome for new user."""
         from communication.communication_channels.discord.webhook_handler import handle_application_authorized
-        from communication.core.welcome_manager import has_been_welcomed, clear_welcomed_status
+        from communication.core.welcome_manager import clear_welcomed_status
         
         # Arrange: New user event data
         discord_user_id = "987654321098765432"
@@ -416,8 +416,7 @@ class TestWebhookHandlerBehavior:
         from communication.communication_channels.discord.webhook_handler import (
             handle_webhook_event,
             handle_application_authorized,
-            EVENT_APPLICATION_DEAUTHORIZED,
-            EVENT_APPLICATION_AUTHORIZED
+            EVENT_APPLICATION_DEAUTHORIZED
         )
         from communication.core.welcome_manager import mark_as_welcomed, has_been_welcomed
         from unittest.mock import MagicMock, AsyncMock

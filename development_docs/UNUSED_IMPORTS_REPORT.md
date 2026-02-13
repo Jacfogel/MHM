@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-12 23:53:57
+> **Last Generated**: 2026-02-13 05:34:04
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 425
-- **Files with Unused Imports**: 134
-- **Total Unused Imports**: 371
+- **Files with Unused Imports**: 107
+- **Total Unused Imports**: 327
 
 ## Breakdown by Category
 
@@ -18,10 +18,10 @@
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 145 imports
+- **Test Mocking**: 127 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 161 imports
-- **Production Test Mocking**: 4 imports
+- **Test Infrastructure**: 138 imports
+- **Production Test Mocking**: 1 imports
 - **Ui Imports**: 1 imports
 
 ## Type Hints Only
@@ -74,94 +74,6 @@
 **Count**: 1 unused import(s)
 
 - **Line 7**: Unused Mock imported from unittest.mock
-
-### `tests/behavior/test_base_handler_behavior.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 11**: Unused patch imported from unittest.mock
-- **Line 11**: Unused MagicMock imported from unittest.mock
-
-### `tests/behavior/test_checkin_handler_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused MagicMock imported from unittest.mock
-
-### `tests/behavior/test_communication_manager_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 8**: Unused MagicMock imported from unittest.mock
-
-### `tests/behavior/test_interaction_handlers_behavior.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 22**: Unused get_user_data imported from core.user_data_handlers
-- **Line 22**: Unused save_user_data imported from core.user_data_handlers
-
-### `tests/behavior/test_logger_coverage_expansion.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 19**: Unused mock_open imported from unittest.mock
-
-### `tests/behavior/test_message_router_behavior.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 10**: Unused patch imported from unittest.mock
-- **Line 10**: Unused MagicMock imported from unittest.mock
-
-### `tests/behavior/test_notebook_handler_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 9**: Unused MagicMock imported from unittest.mock
-
-### `tests/behavior/test_profile_handler_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused MagicMock imported from unittest.mock
-
-### `tests/behavior/test_schedule_handler_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused MagicMock imported from unittest.mock
-
-### `tests/behavior/test_scheduler_coverage_expansion.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 14**: Unused get_user_categories imported from core.user_data_handlers
-- **Line 14**: Unused get_user_data imported from core.user_data_handlers
-
-### `tests/behavior/test_task_handler_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused MagicMock imported from unittest.mock
-
-### `tests/behavior/test_user_data_flow_architecture.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 12**: Unused MagicMock imported from unittest.mock
-
-### `tests/behavior/test_webhook_server_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 13**: Unused Mock imported from unittest.mock
-
-### `tests/behavior/test_welcome_handler_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 9**: Unused MagicMock imported from unittest.mock
 
 ### `tests/core/test_file_auditor.py`
 
@@ -767,104 +679,6 @@
 
 - **Line 1**: Unused import os
 
-### `tests/behavior/test_backup_manager_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 15**: Unused datetime imported from datetime
-
-### `tests/behavior/test_checkin_expiry_semantics.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 1**: Unused import os
-- **Line 2**: Unused datetime imported from datetime
-
-### `tests/behavior/test_communication_manager_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused import time
-
-### `tests/behavior/test_conversation_flow_manager_behavior.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 10**: Unused import json
-- **Line 11**: Unused import os
-- **Line 15**: Unused datetime imported from datetime
-
-### `tests/behavior/test_discord_checkin_retry_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 12**: Unused datetime imported from datetime
-
-### `tests/behavior/test_discord_task_reminder_followup.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 9**: Unused datetime imported from datetime
-
-### `tests/behavior/test_headless_service_behavior.py`
-
-**Count**: 4 unused import(s)
-
-- **Line 10**: Unused import os
-- **Line 11**: Unused import json
-- **Line 14**: Unused Path imported from pathlib
-- **Line 18**: Unused TestUserFactory imported from tests.test_utilities
-
-### `tests/behavior/test_notebook_handler_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused datetime imported from datetime
-
-### `tests/behavior/test_task_cleanup_bug.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused datetime imported from datetime
-
-### `tests/behavior/test_task_error_handling.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 9**: Unused datetime imported from datetime
-- **Line 11**: Unused import json
-- **Line 12**: Unused import os
-
-### `tests/behavior/test_task_management_coverage_expansion.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 22**: Unused datetime imported from datetime
-
-### `tests/behavior/test_task_reminder_followup_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused datetime imported from datetime
-
-### `tests/behavior/test_user_data_flow_architecture.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused import json
-
-### `tests/behavior/test_webhook_server_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused import threading
-
-### `tests/behavior/test_welcome_manager_behavior.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused import os
-
 ### `tests/communication/test_channel_monitor.py`
 
 **Count**: 1 unused import(s)
@@ -1339,24 +1153,11 @@
 
 **Recommendation**: These imports are required in production code for test mocking. Keep them.
 
-### `communication/command_handlers/interaction_handlers.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 18**: Unused save_user_data imported from core.user_data_handlers
-
 ### `communication/core/channel_orchestrator.py`
 
 **Count**: 1 unused import(s)
 
 - **Line 19**: Unused determine_file_path imported from core.file_operations
-
-### `communication/core/factory.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 4**: Unused get_available_channels imported from core.config
-- **Line 4**: Unused get_channel_class_mapping imported from core.config
 
 ## Ui Imports
 

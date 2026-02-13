@@ -104,7 +104,7 @@ class Entry(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def validate_kind_specific_fields(self) -> "Entry":
+    def validate_kind_specific_fields(self) -> Entry:
         """Validate that kind-specific fields are correct."""
         if self.kind != "list" and self.items is not None:
             raise ValueError(f"Entry kind '{self.kind}' cannot have 'items'.")

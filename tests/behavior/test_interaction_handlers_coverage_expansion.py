@@ -123,7 +123,7 @@ class TestTaskManagementHandlerCoverage:
             original_message="create task Test task",
         )
 
-        response = handler.handle(user_id, parsed_command)
+        handler.handle(user_id, parsed_command)
 
         # Should default to medium priority
         tasks = load_active_tasks(user_id)
@@ -306,7 +306,7 @@ class TestTaskManagementHandlerCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Create a task
-        task_id = create_task(user_id, "Task to Complete", "2024-12-25")
+        create_task(user_id, "Task to Complete", "2024-12-25")
 
         parsed_command = ParsedCommand(
             intent="complete_task",
@@ -371,7 +371,7 @@ class TestTaskManagementHandlerCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Create a task
-        task_id = create_task(user_id, "Task to Delete", "2024-12-25")
+        create_task(user_id, "Task to Delete", "2024-12-25")
 
         parsed_command = ParsedCommand(
             intent="delete_task",
@@ -417,7 +417,7 @@ class TestTaskManagementHandlerCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Create a task
-        task_id = create_task(user_id, "Task to Update", "2024-12-25", priority="low")
+        create_task(user_id, "Task to Update", "2024-12-25", priority="low")
 
         parsed_command = ParsedCommand(
             intent="update_task",
@@ -449,7 +449,7 @@ class TestTaskManagementHandlerCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Create a task
-        task_id = create_task(user_id, "Task to Update", "2024-12-25")
+        create_task(user_id, "Task to Update", "2024-12-25")
 
         parsed_command = ParsedCommand(
             intent="update_task",
@@ -908,7 +908,6 @@ class TestAnalyticsHandlerCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Patch analytics to return deterministic data
-        import types
         from core import checkin_analytics as ca
 
         class _MockAnalytics:

@@ -7,9 +7,8 @@ explicit processing order, atomic operations, and elimination of nested saves.
 
 import pytest
 import os
-import json
 import uuid
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from tests.test_utilities import TestUserFactory, TestUserDataFactory
 
 
@@ -177,11 +176,14 @@ class TestCrossFileInvariants:
                     time.sleep(0.1)  # Brief delay after cache clear
                 
                 final_data = get_user_data(user_id, 'all')
-                if final_data and 'account' in final_data and 'preferences' in final_data:
-                    # Verify the invariant worked - account should have automated_messages enabled
-                    if final_data['account'].get('features', {}).get('automated_messages') == 'enabled':
-                        break
-            except Exception as e:
+                if (
+                    final_data
+                    and 'account' in final_data
+                    and 'preferences' in final_data
+                    and final_data['account'].get('features', {}).get('automated_messages') == 'enabled'
+                ):
+                    break
+            except Exception:
                 # Continue retrying on exceptions
                 pass
             if attempt < max_attempts - 1:
@@ -432,11 +434,11 @@ class TestAtomicOperations:
         
         # Get user directory
         user_dir = get_user_data_dir(user_id)
-        account_file = os.path.join(user_dir, 'account.json')
+        os.path.join(user_dir, 'account.json')
         
         # Count existing backups before save
         backup_pattern = os.path.join(user_dir, 'account.json.backup.*')
-        backups_before = len(glob.glob(backup_pattern))
+        len(glob.glob(backup_pattern))
         
         # Act: Save account data
         account_data = TestUserDataFactory.create_account_data(
@@ -449,7 +451,7 @@ class TestAtomicOperations:
         result = save_user_data(user_id, {'account': account_data})
         
         # Assert: Backup should be created (backup count should increase)
-        backups_after = len(glob.glob(backup_pattern))
+        len(glob.glob(backup_pattern))
         # Note: Backup cleanup may remove old backups, so we check that save succeeded
         # and backup mechanism exists (backup file may be cleaned up immediately)
         assert result.get('account') is True, "Account should be saved successfully"
@@ -601,7 +603,7 @@ class TestTwoPhaseSave:
         # Get initial account file modification time
         from core.config import get_user_data_dir
         user_dir = get_user_data_dir(actual_user_id)
-        account_file = os.path.join(user_dir, 'account.json')
+        os.path.join(user_dir, 'account.json')
         import time
         time.sleep(0.1)  # Ensure time difference
         

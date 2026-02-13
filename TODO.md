@@ -105,6 +105,16 @@ When adding new tasks, follow this format:
 
 ### Quality & Operations
 
+**Continue Ruff Remediation Outside Tests**
+- *What it means*: Continue fixing Ruff issues in non-test modules (core runtime, communication handlers, AI modules, tooling) in small batches, prioritizing rule classes with low behavior risk first.
+- *Why it helps*: Reduces lint debt and keeps production code consistency high without destabilizing the test suite.
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Run Ruff on non-test paths and group findings by safe autofix vs manual refactor
+  - [ ] Apply fixes in small batches with focused behavior validation between batches
+  - [ ] Track any behavior-impacting lint fixes separately from style-only cleanups
+  - [ ] Re-baseline remaining Ruff counts after each batch
+
 **Confirm wake timer fix in production**
 - [ ] After a 01:00 run, confirm errors.log no longer fills with wake timer (Register-ScheduledTask) errors.
 
@@ -121,6 +131,15 @@ When adding new tasks, follow this format:
 - *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
 - *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
 - *Estimated effort*: Small
+
+**Stabilize Windows pytest temp/cache ACL hygiene**
+- *What it means*: Ensure transient pytest temp/cache directories (including `pytest-cache-files-*`) stay under `tests/data/tmp`, are writable, and are reliably removed between runs on Windows.
+- *Why it helps*: Prevents intermittent `Access is denied` warnings/failures and root-level temp artifact drift.
+- *Estimated effort*: Small/Medium
+- *Subtasks*:
+  - [ ] Reproduce and confirm no `PytestCacheWarning` or `PermissionError` for `pytest-cache-files-*` in repeated local runs
+  - [ ] Add/validate ownership/ACL reset fallback for stale locked temp artifacts when standard cleanup fails
+  - [ ] Verify both `python run_tests.py` and `python development_tools/run_development_tools.py audit --full --clear-cache` keep temp artifacts under `tests/data/tmp`
 
 ### Documentation
 

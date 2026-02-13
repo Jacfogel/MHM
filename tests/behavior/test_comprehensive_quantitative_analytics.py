@@ -31,9 +31,9 @@ class TestComprehensiveQuantitativeAnalytics:
         user_id = "test-user-comprehensive"
 
         # Arrange - Create user with all quantitative questions enabled
-        test_user = TestUserFactory.create_basic_user(
+        assert TestUserFactory.create_basic_user(
             user_id, test_data_dir=test_data_dir
-        )
+        ), "Failed to create test user"
 
         # Get the actual UUID for the user
         actual_user_id = get_user_id_by_identifier(user_id)
@@ -69,7 +69,7 @@ class TestComprehensiveQuantitativeAnalytics:
         save_user_data(actual_user_id, "preferences", user_data)
 
         # Create sample check-in data with all quantitative fields (use recent dates)
-        from datetime import datetime, timedelta
+        from datetime import timedelta
 
         now = now_datetime_full()
         sample_checkins = [
@@ -223,16 +223,16 @@ class TestComprehensiveQuantitativeAnalytics:
         user_id = "test-user-yes-no"
 
         # Arrange - Create user with yes/no questions
-        test_user = TestUserFactory.create_basic_user(
+        assert TestUserFactory.create_basic_user(
             user_id, test_data_dir=test_data_dir
-        )
+        ), "Failed to create test user"
 
         # Get the actual UUID for the user
         actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "User should be created and resolvable"
 
         # Create check-in data with various yes/no formats (use recent dates)
-        from datetime import datetime, timedelta
+        from datetime import timedelta
 
         now = now_datetime_full()
         sample_checkins = [
@@ -315,16 +315,16 @@ class TestComprehensiveQuantitativeAnalytics:
         user_id = "test-user-responses-yes-no"
 
         # Arrange - Create user with top-level format
-        test_user = TestUserFactory.create_basic_user(
+        assert TestUserFactory.create_basic_user(
             user_id, test_data_dir=test_data_dir
-        )
+        ), "Failed to create test user"
 
         # Get the actual UUID for the user
         actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "User should be created and resolvable"
 
         # Create check-in data with top-level format (use recent dates)
-        from datetime import datetime, timedelta
+        from datetime import timedelta
 
         now = now_datetime_full()
         sample_checkins = [

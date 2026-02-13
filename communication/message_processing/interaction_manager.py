@@ -1135,7 +1135,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
                     response.message = enhanced_text.strip()
                 else:
                     logger.debug(
-                        f"AI enhancement returned system content, keeping original response"
+                        "AI enhancement returned system content, keeping original response"
                     )
 
         except Exception as e:

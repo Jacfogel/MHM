@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-12 23:52:40
+> **Last Generated**: 2026-02-13 05:30:40
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports Found**: 1454
+- **Total Imports Found**: 1453
 - **Dependencies Documented**: 108 (100% coverage)
-- **Standard Library Imports**: 382 (26.3%)
+- **Standard Library Imports**: 383 (26.4%)
 - **Third-Party Imports**: 223 (15.3%)
-- **Local Imports**: 849 (58.4%)
-- **Last Updated**: 2026-02-12
+- **Local Imports**: 847 (58.3%)
+- **Last Updated**: 2026-02-13
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 382 imports (26.3%)
+- **Standard Library**: 383 imports (26.4%)
 - **Third-Party**: 223 imports (15.3%)
-- **Local**: 849 imports (58.4%)
+- **Local**: 847 imports (58.3%)
 
 ## Module Dependencies by Directory
 
@@ -384,7 +384,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (get_recent_checkins, is_user_checkins_enabled)` (NEW)
-    - `core.user_data_handlers (get_user_data, save_user_data)` (NEW)
+    - `core.user_data_handlers (get_user_data)` (NEW)
     - `tasks.task_management (load_active_tasks)` (NEW)
   - **Standard Library**:
     - `typing (Any)`
@@ -461,7 +461,7 @@
     - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)`
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.schedule_management (add_schedule_period, get_schedule_time_periods, set_schedule_periods)` (NEW)
+    - `core.schedule_management (get_schedule_time_periods, set_schedule_periods)` (NEW)
     - `core.user_data_handlers (get_user_categories)` (NEW)
   - **Standard Library**:
     - `typing (Any)`
@@ -981,7 +981,7 @@
 - **Dependencies**: 
   - **Local**:
     - `communication.communication_channels.base.base_channel (BaseChannel, ChannelConfig)`
-    - `core.config (get_available_channels, get_channel_class_mapping)` (NEW)
+    - `core.config` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
@@ -1070,6 +1070,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.tags (parse_tags_from_text)` (NEW)
   - **Standard Library**:
+    - `contextlib (suppress)`
     - `dataclasses (dataclass)`
     - `json`
     - `re`
@@ -1108,6 +1109,7 @@
     - `notebook.notebook_data_manager (create_list, create_note)`
     - `tasks.task_management (get_task_by_id, update_task)` (NEW)
   - **Standard Library**:
+    - `contextlib (suppress)`
     - `datetime (datetime, timedelta)`
     - `json`
     - `pathlib (Path)`
@@ -1135,14 +1137,15 @@
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
   - **Standard Library**:
-    - `typing (Any, Mapping)`
+    - `collections.abc (Mapping)`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/message_processing/command_parser.py`
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: communication/message_processing/command_parser.py, communication/message_processing/interaction_manager.py
+- Removed: collections.abc, communication/message_processing/command_parser.py, communication/message_processing/interaction_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

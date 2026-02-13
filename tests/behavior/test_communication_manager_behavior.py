@@ -5,9 +5,8 @@ Tests focus on actual side effects and system changes rather than just return va
 """
 
 import pytest
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, Mock
 import threading
-import time
 
 from communication.core.channel_orchestrator import CommunicationManager
 from communication.communication_channels.base.base_channel import ChannelStatus
@@ -111,7 +110,9 @@ class TestCommunicationManagerBehavior:
         comm_manager._channels_dict = {'discord': mock_channel}
         
         # Act - send_message_sync signature: (channel_name, recipient, message, **kwargs)
-        result = comm_manager.send_message_sync('discord', user_id, 'test message', category='motivational')
+        comm_manager.send_message_sync(
+            'discord', user_id, 'test message', category='motivational'
+        )
         
         # Assert - Verify message was sent
         # The exact behavior depends on channel implementation, but we verify it doesn't crash
@@ -248,4 +249,3 @@ class TestCommunicationManagerBehavior:
         assert all(results), "All accesses should succeed"
         # All should return the same instance
         assert all(CommunicationManager() is comm_manager for _ in range(5)), "Should return same singleton instance"
-

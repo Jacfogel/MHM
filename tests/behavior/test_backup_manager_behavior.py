@@ -12,7 +12,7 @@ import os
 import json
 import zipfile
 import shutil
-from datetime import datetime, timedelta
+from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
@@ -25,6 +25,7 @@ from core.backup_manager import (
 )
 from tests.test_utilities import TestUserFactory, TestDataFactory
 import core.config
+import contextlib
 
 
 @pytest.mark.behavior
@@ -78,10 +79,8 @@ class TestBackupManagerBehavior:
         finally:
             # Stop all patches (restores original values)
             for p in self.patches:
-                try:
+                with contextlib.suppress(Exception):
                     p.stop()
-                except Exception:
-                    pass  # Best effort cleanup
 
             # Cleanup test files
             self._cleanup_test_files()
@@ -340,7 +339,7 @@ class TestBackupManagerBehavior:
                         file_exists
                     ), f"Backup {i} should be created at {backup_path} with size > 0 (got {file_size}). Backup dir exists: {os.path.exists(self.backup_manager.backup_dir)}, Files: {os.listdir(self.backup_manager.backup_dir) if os.path.exists(self.backup_manager.backup_dir) else 'N/A'}"
                 else:
-                    assert False, f"Backup {i} creation returned None"
+                    raise AssertionError(f"Backup {i} creation returned None")
 
             # Small delay to ensure file system operations complete (race condition fix)
             import time
@@ -438,7 +437,6 @@ class TestBackupManagerBehavior:
                         "manifest.json" in zipf.namelist()
                     ), "Manifest missing in backup"
                 is_valid = True
-                errors = []
             except Exception:
                 pass
         # Verify validation passes
@@ -568,18 +566,19 @@ class TestBackupManagerBehavior:
             f.write("MODIFIED_ENV_VAR=modified_value\n")
 
         # Restore backup with config
-        with patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir):
-            with patch.object(core.config, "USER_INFO_DIR_PATH", self.user_data_dir):
-                success = self.backup_manager.restore_backup(
-                    backup_path, restore_users=True, restore_config=True
-                )
+        with patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir), patch.object(
+            core.config, "USER_INFO_DIR_PATH", self.user_data_dir
+        ):
+            success = self.backup_manager.restore_backup(
+                backup_path, restore_users=True, restore_config=True
+            )
 
         # Verify restoration succeeded
         assert success is True
 
         # Verify config was restored (the .env file may not exist in test environment)
         assert os.path.exists(env_path)
-        with open(env_path, "r") as f:
+        with open(env_path) as f:
             content = f.read()
         assert len(content) > 0
 
@@ -601,19 +600,13 @@ class TestBackupManagerBehavior:
                 # On Windows the file may be in use; try removing files first
                 for root, dirs, files in os.walk(self.backup_dir, topdown=False):
                     for fname in files:
-                        try:
+                        with contextlib.suppress(Exception):
                             os.remove(os.path.join(root, fname))
-                        except Exception:
-                            pass
                     for dname in dirs:
-                        try:
+                        with contextlib.suppress(Exception):
                             os.rmdir(os.path.join(root, dname))
-                        except Exception:
-                            pass
-                try:
+                with contextlib.suppress(Exception):
                     os.rmdir(self.backup_dir)
-                except Exception:
-                    pass
 
         # Ensure directory exists
         success = self.backup_manager.ensure_backup_directory()
@@ -645,10 +638,8 @@ class TestBackupManagerBehavior:
         """Test system state validation with missing user directory."""
         # Remove user directory (robustly under parallel runs on Windows)
         if os.path.exists(self.user_data_dir):
-            try:
+            with contextlib.suppress(Exception):
                 shutil.rmtree(self.user_data_dir, ignore_errors=True)
-            except Exception:
-                pass
 
         # Validate system state
         is_valid = validate_system_state()
@@ -683,10 +674,8 @@ class TestBackupManagerBehavior:
         # Verify test file was created under tmp and then clean it up
         test_file = os.path.join(self.test_data_dir, "tmp", "operation_test.txt")
         assert os.path.exists(test_file)
-        try:
+        with contextlib.suppress(Exception):
             os.remove(test_file)
-        except Exception:
-            pass
 
     def test_perform_safe_operation_with_failure_real_behavior(self):
         """Test safe operation with failure and rollback."""
@@ -880,19 +869,13 @@ class TestBackupManagerBehavior:
             except Exception:
                 for root, dirs, files in os.walk(self.user_data_dir, topdown=False):
                     for fname in files:
-                        try:
+                        with contextlib.suppress(Exception):
                             os.remove(os.path.join(root, fname))
-                        except Exception:
-                            pass
                     for dname in dirs:
-                        try:
+                        with contextlib.suppress(Exception):
                             os.rmdir(os.path.join(root, dname))
-                        except Exception:
-                            pass
-                try:
+                with contextlib.suppress(Exception):
                     os.rmdir(self.user_data_dir)
-                except Exception:
-                    pass
         os.makedirs(self.user_data_dir, exist_ok=True)
 
         # Create backup

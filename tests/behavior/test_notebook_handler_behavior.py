@@ -6,8 +6,7 @@ Tests all notebook functionality including notes, lists, flows, and command vari
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
-from datetime import datetime
+from unittest.mock import patch
 import uuid
 
 from core.time_utilities import now_datetime_full
@@ -861,7 +860,7 @@ class TestNotebookCommandParsing:
             "generate_response",
             return_value="Hello! I can help with notes and support.",
         ):
-            for command, should_complete in command_patterns:
+            for command, _should_complete in command_patterns:
                 response = manager.handle_message(user_id, command, "discord")
                 assert isinstance(
                     response, InteractionResponse
@@ -1311,7 +1310,7 @@ class TestNotebookFlowStateEdgeCases:
         ), f"Should indicate list was created, got: {reply_text}"
 
         # Verify all items were added
-        from notebook.notebook_data_manager import list_recent, get_entry
+        from notebook.notebook_data_manager import list_recent
 
         entries = list_recent(user_id, n=5)
         list_entry = next(
@@ -1387,7 +1386,7 @@ class TestNotebookFlowStateEdgeCases:
         assert not response.completed, "Should prompt for body"
 
         # Simulate timeout by setting started_at to 11 minutes ago
-        from datetime import datetime, timedelta
+        from datetime import timedelta
 
         user_state = conversation_manager.user_states.get(user_id, {})
         user_state["started_at"] = (

@@ -9,12 +9,13 @@ import sys
 import os
 import json
 import logging
+import contextlib
 import pytest
-
-TEST_LOGGER = logging.getLogger("mhm_tests")
 
 from tests.conftest import materialize_user_minimal_via_public_apis
 from tests.test_utilities import TestUserFactory
+
+TEST_LOGGER = logging.getLogger("mhm_tests")
 
 # Do not modify sys.path; rely on package imports
 
@@ -24,7 +25,6 @@ def setup_test_environment():
     """Create isolated test environment with temporary directories"""
     from tests.test_utilities import TestDataManager
     
-    import logging
     TEST_LOGGER.debug("Setting up test environment...")
     return TestDataManager.setup_test_environment()
 
@@ -384,7 +384,7 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
                     logging.getLogger("mhm_tests").debug("Category 'fun_facts' added successfully")
                 else:
                     logging.getLogger("mhm_tests").error("Failed to add category")
-                    assert False, "Failed to add category"
+                    raise AssertionError("Failed to add category")
             else:
                 logging.getLogger("mhm_tests").warning("Category 'fun_facts' already exists")
             
@@ -400,7 +400,7 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
                     logging.getLogger("mhm_tests").debug("Category 'health' removed successfully")
                 else:
                     logging.getLogger("mhm_tests").error("Failed to remove category")
-                    assert False, "Failed to remove category"
+                    raise AssertionError("Failed to remove category")
             else:
                 logging.getLogger("mhm_tests").warning("Category 'health' not found to remove")
             
@@ -415,7 +415,7 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
                         logging.getLogger("mhm_tests").debug(f"Message file created for category: {category}")
                     else:
                         logging.getLogger("mhm_tests").error(f"Failed to create message file for category: {category}")
-                        assert False, f"Failed to create message file for category: {category}"
+                        raise AssertionError(f"Failed to create message file for category: {category}")
             except Exception as e:
                 logging.getLogger("mhm_tests").error(f"Error creating message files: {e}")
                 raise
@@ -426,7 +426,7 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
             
         else:
             logging.getLogger("mhm_tests").error("Failed to save user data")
-            assert False, "Failed to save user data"
+            raise AssertionError("Failed to save user data")
             
     except Exception as e:
         logging.getLogger("mhm_tests").error(f"Error in category management test: {e}")
@@ -821,7 +821,7 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
         # Verify user index still exists and is valid
         assert os.path.exists(user_index_file), "User index should still exist"
         
-        with open(user_index_file, "r") as f:
+        with open(user_index_file) as f:
             user_index = json.load(f)
         
         logging.getLogger("mhm_tests").debug(f"User index content: {user_index}")
@@ -901,10 +901,8 @@ def main():
         run_test("test_integration_scenarios_real_behavior", test_integration_scenarios_real_behavior, test_data_dir)
         run_test("test_data_consistency_real_behavior", test_data_consistency_real_behavior, test_data_dir, None)
     finally:
-        try:
+        with contextlib.suppress(StopIteration):
             next(mock_config_ctx)
-        except StopIteration:
-            pass
     
     # Cleanup
     cleanup_test_environment(test_dir)

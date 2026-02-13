@@ -29,11 +29,13 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
-### 2026-02-13 - Retention protocol expansion + parallel flake fixes **Progressed**
-- Extended test-log retention in `tests/conftest.py` to nested directories: `tests/logs/flaky_detector_runs/*` and `tests/logs/worker_logs_backup/*` now follow `current / 7 backups / archive / 30-day prune`.
-- Stabilized two parallel-sensitive tests: unique per-test cache directory in `tests/behavior/test_auto_cleanup_behavior.py` and stronger precondition/retry handling in `tests/ui/test_category_management_dialog.py`.
-- Cleaned completed follow-ups from [TODO.md](TODO.md) (stray `logs/test_consolidated.log` item and `tests/scripts` cleanup task) and refreshed [PLANS.md](development_docs/PLANS.md) with latest `run_tests.py` baseline.
-- User validation confirms green full run: `python run_tests.py` -> `3737 passed, 0 failed` (total `189.36s`).
+### 2026-02-13 - Ruff cleanup + retention expansion + flake hardening **Progressed**
+- Extended test-log retention in `tests/conftest.py` to nested families: `tests/logs/flaky_detector_runs/*` and `tests/logs/worker_logs_backup/*` now use `current / 7 backups / archive / 30-day prune`.
+- Applied Ruff cleanup across many `tests/behavior/*` modules plus light runtime cleanup in `ai/chatbot.py`, `ai/cache_manager.py`, `ai/prompt_manager.py`, `communication/command_handlers/account_handler.py`, and `communication/command_handlers/analytics_handler.py` (unused imports/variables, simplified conditionals/strings, flatter test patch contexts).
+- Hardened pytest temp/cache routing and cleanup for Windows artifacts: `pytest.ini`, `tests/conftest.py`, and `run_tests.py` now keep `pytest-cache-files-*`/pytest temp trees under `tests/data/tmp` with stronger stale cleanup behavior.
+- Added test-hardening for parallel instability in `tests/behavior/test_interaction_handlers_behavior.py` (`test_profile_handler_shows_actual_profile`) with rebuild/cache-clear + short retry fallback for delayed context updates.
+- Updated planning docs for next steps: [TODO.md](TODO.md) now tracks non-test Ruff remediation plus Windows pytest temp/cache ACL hygiene; [PLANS.md](development_docs/PLANS.md) tracks monitoring of intermittent parallel failures and temp/cache permission stability.
+- User-reported repeated `python run_tests.py` reruns now converge to green: `3737 passed, 0 failed` (recent successful totals roughly ~187-208s).
 
 ### 2026-02-11 - Parallel profiling + archive hygiene **Progressed**
 - Re-baselined full parallel profiling using temp-isolated pytest dirs (`--basetemp` and `cache_dir` under `%TEMP%`) to avoid cross-run contamination from shared test temp/cache paths.

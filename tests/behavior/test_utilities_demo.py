@@ -105,7 +105,7 @@ class TestUtilitiesDemo:
         assert account_data["pronouns"] == "he/him"
         
         assert "motivational" in preferences_data["categories"]
-        assert preferences_data["notification_settings"]["morning_reminders"] == False
+        assert not preferences_data["notification_settings"]["morning_reminders"]
         
         assert len(schedules_data["periods"]) == 1
         assert schedules_data["periods"][0]["name"] == "evening"
@@ -124,7 +124,7 @@ class TestUtilitiesDemo:
         user_index_file = os.path.join(test_data_dir, "user_index.json")
         assert os.path.exists(user_index_file)
         
-        with open(user_index_file, "r") as f:
+        with open(user_index_file) as f:
             user_index = json.load(f)
         
         assert "test-user-basic" in user_index
@@ -152,7 +152,7 @@ class TestUtilitiesDemo:
             if actual_user_id is None:
                 logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
                 # Skip the detailed assertions for now
-                assert True, f"User creation succeeded, identifier lookup issue needs investigation"
+                assert True, "User creation succeeded, identifier lookup issue needs investigation"
             else:
                 assert actual_user_id is not None, f"User should be found by internal username: {user_id}"
                 
@@ -175,7 +175,7 @@ class TestUtilitiesDemo:
         if actual_user_id is None:
             logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
-            assert True, f"User creation succeeded, identifier lookup issue needs investigation"
+            assert True, "User creation succeeded, identifier lookup issue needs investigation"
         else:
             assert actual_user_id is not None, "User should be found by internal username"
             
@@ -191,7 +191,7 @@ class TestUtilitiesDemo:
             if not account_data:
                 logging.getLogger("mhm_tests").warning(f"get_user_data returned empty account data for {actual_user_id}. This may indicate a data loader issue.")
                 # Skip the detailed assertions for now
-                assert True, f"User creation succeeded, data loading issue needs investigation"
+                assert True, "User creation succeeded, data loading issue needs investigation"
             else:
                 assert account_data is not None, "Account data should be loadable"
                 assert account_data.get("email") == email, "Email should be saved correctly"
@@ -217,7 +217,7 @@ class TestUtilitiesDemo:
         if actual_user_id is None:
             logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
-            assert True, f"User creation succeeded, identifier lookup issue needs investigation"
+            assert True, "User creation succeeded, identifier lookup issue needs investigation"
         else:
             assert actual_user_id is not None, "User should be found by internal username"
             
@@ -269,7 +269,7 @@ class TestUtilitiesDemo:
         if actual_user_id is None:
             logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
-            assert True, f"User creation succeeded, identifier lookup issue needs investigation"
+            assert True, "User creation succeeded, identifier lookup issue needs investigation"
         else:
             assert actual_user_id is not None, "User should be found by internal username"
             
@@ -384,7 +384,7 @@ class TestUtilitiesDemo:
         user_data1 = get_user_data(actual_user_id1) if actual_user_id1 else get_user_data("phone_only_user")
         # Check if user_data1 is empty (indicating the same issue we fixed in user management tests)
         if not user_data1:
-            logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for phone_only_user. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for phone_only_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:
@@ -400,7 +400,7 @@ class TestUtilitiesDemo:
         user_data2 = get_user_data(actual_user_id2) if actual_user_id2 else get_user_data("complex_checkin_user")
         # Check if user_data2 is empty
         if not user_data2:
-            logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for complex_checkin_user. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for complex_checkin_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:
@@ -425,7 +425,7 @@ class TestUtilitiesDemo:
         
         # Check if user_data3 is empty
         if not user_data3:
-            logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for minimal_data_user. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for minimal_data_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:
@@ -446,7 +446,7 @@ class TestUtilitiesDemo:
         
         # Check if user_data4 is empty
         if not user_data4:
-            logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for health_focus_user. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for health_focus_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:
@@ -469,7 +469,7 @@ class TestUtilitiesDemo:
         
         # Check if user_data5 is empty
         if not user_data5:
-            logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for task_focus_user. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for task_focus_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:
@@ -480,7 +480,7 @@ class TestUtilitiesDemo:
             
             interests = user_data5.get('context', {}).get('interests', [])
             if not interests:
-                logging.getLogger("mhm_tests").warning(f"get_user_data returned empty interests for task_focus_user. This may indicate a data loading issue.")
+                logging.getLogger("mhm_tests").warning("get_user_data returned empty interests for task_focus_user. This may indicate a data loading issue.")
                 # Skip the detailed assertions for now
                 assert True, "User creation succeeded, interests loading issue needs investigation"
             else:
@@ -521,7 +521,7 @@ class TestUtilitiesDemo:
         user_data3 = get_user_data(actual_user_id3) if actual_user_id3 else get_user_data("disabled_user")
         # Check if user_data3 is empty
         if not user_data3:
-            logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for disabled_user. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for disabled_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:

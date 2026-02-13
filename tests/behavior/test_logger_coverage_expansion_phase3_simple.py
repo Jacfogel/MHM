@@ -86,7 +86,7 @@ class TestLoggerCoverageExpansionPhase3Simple:
     def test_verbose_mode_functions_simple(self, tmp_path):
         """Test verbose mode setting and getting functions"""
         # Test initial state
-        initial_verbose = get_verbose_mode()
+        get_verbose_mode()
         
         # Test setting verbose mode
         set_verbose_mode(True)
@@ -157,10 +157,12 @@ class TestLoggerCoverageExpansionPhase3Simple:
             }
             
             # Clear any existing loggers
-            if hasattr(get_component_logger, '__globals__'):
-                if '_component_loggers' in get_component_logger.__globals__:
-                    if 'communication_manager' in get_component_logger.__globals__['_component_loggers']:
-                        del get_component_logger.__globals__['_component_loggers']['communication_manager']
+            if (
+                hasattr(get_component_logger, '__globals__')
+                and '_component_loggers' in get_component_logger.__globals__
+                and 'communication_manager' in get_component_logger.__globals__['_component_loggers']
+            ):
+                del get_component_logger.__globals__['_component_loggers']['communication_manager']
             
             # Create logger with 'channels' name
             channels_logger = get_component_logger('channels')
@@ -201,10 +203,12 @@ class TestLoggerCoverageExpansionPhase3Simple:
             }
             
             # Clear any existing loggers
-            if hasattr(get_component_logger, '__globals__'):
-                if '_component_loggers' in get_component_logger.__globals__:
-                    if 'unknown_component' in get_component_logger.__globals__['_component_loggers']:
-                        del get_component_logger.__globals__['_component_loggers']['unknown_component']
+            if (
+                hasattr(get_component_logger, '__globals__')
+                and '_component_loggers' in get_component_logger.__globals__
+                and 'unknown_component' in get_component_logger.__globals__['_component_loggers']
+            ):
+                del get_component_logger.__globals__['_component_loggers']['unknown_component']
             
             # Create logger with unknown component name
             unknown_logger = get_component_logger('unknown_component')
@@ -409,7 +413,7 @@ class TestLoggerCoverageExpansionPhase3Simple:
         with patch('os.makedirs', side_effect=OSError("Permission denied")):
             # This should not crash
             try:
-                logger = ComponentLogger('test', str(log_file))
+                ComponentLogger('test', str(log_file))
                 # If it doesn't crash, that's good
                 assert True
             except Exception:
