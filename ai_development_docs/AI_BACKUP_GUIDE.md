@@ -15,13 +15,14 @@
 **Where to look:**
 - Implementation: `core/logger.py` - `BackupDirectoryRotatingFileHandler`
 - Configuration: `core/config.py` - `LOG_BACKUP_COUNT`, `LOG_MAX_BYTES`
-- Retention: 7 backups (standardized), 30 days for archives
+- Retention protocol: 1 current + 7 backups + up to 7 archive copies; archive entries older than 30 days are deleted
 
 **Key rules:**
 - Rotation happens at midnight (time-based) or when file exceeds 5MB (size-based)
 - Files under 5KB won't rotate (intentional to prevent rotating tiny files)
 - Files under 1 hour old won't rotate (intentional to prevent rotating new files)
 - Rotated files go to `logs/backups/`, compressed archives go to `logs/archive/`
+- Standard protocol: keep the current active file, keep 7 previous copies in backups, move older rotated copies to archive, keep up to 7 archive copies, and prune archive copies older than 30 days
 
 **AI usage:**
 - Don't reimplement rotation - use existing handlers
@@ -80,7 +81,7 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 - Tool results: 7 versions (standardized)
 - Generated docs: 7 versions
 - Coverage JSON: 5 versions
-- Test logs: 7 versions total (consolidated)
+- Test logs: current 1 + 7 backups + up to 7 archive copies (archive >30 days removed)
 
 **AI usage:**
 - Use `create_output_file()` for status files and generated docs
@@ -130,14 +131,21 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 ## 7. Unified Retention Policy
 
 **Standardized policies:**
-- Logs: 7 backups
+- Logs: current 1 + 7 backups + up to 7 archive copies (archive >30 days deleted)
 - User backups: 30 days OR 10 files
 - Message archives: 90 days
 - Dev tools (status): 7 versions
 - Dev tools (results): 7 versions
 - Generated docs: 7 versions
 - Coverage JSON: 5 versions
-- Test logs: 7 versions total
+- Test logs: current 1 + 7 backups + up to 7 archive copies (archive >30 days deleted)
+
+**Global rotation protocol (default):**
+- Keep `1` current active file
+- Keep `7` previous versions in `backups/`
+- Move older rotated copies to `archive/` and keep up to `7`
+- Delete archived copies older than `30` days
+- Effective target: up to `15` most recent copies retained (1 current + 7 backups + 7 archive)
 
 **AI usage:**
 - Follow these policies consistently

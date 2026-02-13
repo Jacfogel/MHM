@@ -6,7 +6,9 @@
 """Command-line interface for AI development tools."""
 
 import argparse
+import shutil
 import sys
+import time
 from pathlib import Path
 
 # Add project root to path FIRST - this allows development_tools to be imported as a package
@@ -32,6 +34,86 @@ except ImportError as e:
 from core.logger import get_component_logger
 
 logger = get_component_logger("development_tools")
+
+
+def _remove_path_with_retries(path: Path, retries: int = 10, delay_seconds: float = 0.2) -> None:
+    """Best-effort Windows-friendly path removal."""
+    if not path.exists():
+        return
+
+    for _ in range(retries):
+        try:
+            if path.is_dir():
+                shutil.rmtree(path, ignore_errors=False)
+            else:
+                path.unlink(missing_ok=True)
+            return
+        except Exception:
+            try:
+                for child in path.rglob("*"):
+                    try:
+                        child.chmod(0o700)
+                    except Exception:
+                        pass
+                path.chmod(0o700)
+            except Exception:
+                pass
+            time.sleep(delay_seconds)
+
+    # Final best-effort
+    try:
+        if path.is_dir():
+            shutil.rmtree(path, ignore_errors=True)
+        else:
+            path.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+
+def _cleanup_transient_runtime_artifacts(project_root: Path) -> None:
+    """Best-effort cleanup of transient artifacts created by audit/test subprocesses."""
+    root_dirs = [
+        ".pytest_cache",
+        ".pytest_tmp_cache",
+        ".tmp_devtools_pyfiles",
+        ".tmp_pytest",
+        ".tmp_pytest_runner",
+        "htmlcov",
+    ]
+
+    for rel in root_dirs:
+        target = project_root / rel
+        _remove_path_with_retries(target)
+
+    data_dir = project_root / "tests" / "data"
+    if not data_dir.exists():
+        return
+
+    dir_prefixes = (
+        "logs_",
+        "mhm_pytest_tmp_main_",
+        "pytest-of-",
+        "tmp_",
+    )
+    file_prefixes = (
+        "conversation_states_",
+        "welcome_tracking_",
+    )
+
+    for item in data_dir.iterdir():
+        try:
+            if item.is_dir():
+                if (
+                    item.name in {"flags", "requests", "tag-tests"}
+                    or item.name.startswith(dir_prefixes)
+                    or (item.name.startswith("tmp") and item.name != "tmp")
+                ):
+                    _remove_path_with_retries(item)
+            elif item.is_file():
+                if item.suffix == ".json" and item.name.startswith(file_prefixes):
+                    item.unlink(missing_ok=True)
+        except Exception:
+            pass
 
 
 def _clear_all_caches(project_root: Path) -> int:
@@ -266,6 +348,8 @@ def main(argv=None) -> int:
         logger.error(f"Error executing command '{command_name}': {e}", exc_info=True)
         print(f"Error executing command '{command_name}': {e}")
         return 1
+    finally:
+        _cleanup_transient_runtime_artifacts(project_root_path)
 
 
 if __name__ == "__main__":

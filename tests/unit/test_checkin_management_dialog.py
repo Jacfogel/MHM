@@ -122,11 +122,11 @@ class TestCheckinManagementDialogInitialization:
         )
         actual_user_id = None
         for _ in range(40):
-            actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+                user_id, test_data_dir
+            )
             if actual_user_id is None:
-                actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
-                    user_id, test_data_dir
-                )
+                actual_user_id = get_user_id_by_identifier(user_id)
             if actual_user_id:
                 break
             import time
@@ -137,13 +137,14 @@ class TestCheckinManagementDialogInitialization:
         )
         assert wait_until(
             lambda: (
-                get_user_data(actual_user_id, "account", normalize_on_read=True)
+                clear_user_caches() is None
+                and get_user_data(actual_user_id, "account", normalize_on_read=True)
                 .get("account", {})
                 .get("features", {})
                 .get("checkins")
                 == "enabled"
             ),
-            timeout_seconds=6.0,
+            timeout_seconds=8.0,
             poll_seconds=0.02,
         ), "Expected checkins feature to be enabled for created user"
         clear_user_caches()

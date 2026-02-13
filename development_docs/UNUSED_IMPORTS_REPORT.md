@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-11 03:19:56
+> **Last Generated**: 2026-02-12 23:53:57
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 425
 - **Files with Unused Imports**: 134
-- **Total Unused Imports**: 372
+- **Total Unused Imports**: 371
 
 ## Breakdown by Category
 
@@ -20,7 +20,7 @@
 - **Star Imports**: 0 imports
 - **Test Mocking**: 145 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 162 imports
+- **Test Infrastructure**: 161 imports
 - **Production Test Mocking**: 4 imports
 - **Ui Imports**: 1 imports
 
@@ -1215,15 +1215,14 @@
 
 ### `tests/ui/test_account_creation_ui.py`
 
-**Count**: 7 unused import(s)
+**Count**: 6 unused import(s)
 
 - **Line 21**: Unused import shutil
 - **Line 23**: Unused datetime imported from datetime
-- **Line 24**: Unused Path imported from pathlib
-- **Line 58**: Unused CategorySelectionWidget imported from ui.widgets.category_selection_widget
-- **Line 59**: Unused ChannelSelectionWidget imported from ui.widgets.channel_selection_widget
-- **Line 60**: Unused TaskSettingsWidget imported from ui.widgets.task_settings_widget
-- **Line 61**: Unused CheckinSettingsWidget imported from ui.widgets.checkin_settings_widget
+- **Line 80**: Unused CategorySelectionWidget imported from ui.widgets.category_selection_widget
+- **Line 81**: Unused ChannelSelectionWidget imported from ui.widgets.channel_selection_widget
+- **Line 82**: Unused TaskSettingsWidget imported from ui.widgets.task_settings_widget
+- **Line 83**: Unused CheckinSettingsWidget imported from ui.widgets.checkin_settings_widget
 
 ### `tests/ui/test_dialog_behavior.py`
 

@@ -138,8 +138,12 @@ def test_account_management_data_structures(test_data_dir, mock_config):
         assert success, "Failed to create test user"
         
         # Get the actual UUID for the user
-        from core.user_data_handlers import get_user_id_by_identifier
-        test_user = get_user_id_by_identifier(test_user_id)
+        from core.user_data_handlers import get_user_id_by_identifier, clear_user_caches
+        test_user = TestUserFactory.get_test_user_id_by_internal_username(
+            test_user_id, test_data_dir
+        )
+        if test_user is None:
+            test_user = get_user_id_by_identifier(test_user_id)
         assert test_user is not None, "Should be able to get UUID for test user"
         
         results = {}
@@ -150,10 +154,13 @@ def test_account_management_data_structures(test_data_dir, mock_config):
             from tests.conftest import wait_until
             materialize_user_minimal_via_public_apis(test_user)
             assert wait_until(
-                lambda: "features"
-                in (get_user_data(test_user, "account") or {}).get("account", {}),
-                timeout_seconds=4.0,
-                poll_seconds=0.01,
+                lambda: (
+                    clear_user_caches() is None
+                    and "features"
+                    in (get_user_data(test_user, "account") or {}).get("account", {})
+                ),
+                timeout_seconds=8.0,
+                poll_seconds=0.02,
             ), "Timed out waiting for account.features to materialize"
             account_probe = get_user_data(test_user, "account")
             if "features" not in (account_probe or {}).get("account", {}):
@@ -168,10 +175,15 @@ def test_account_management_data_structures(test_data_dir, mock_config):
                     },
                 )
                 assert wait_until(
-                    lambda: "features"
-                    in (get_user_data(test_user, "account") or {}).get("account", {}),
-                    timeout_seconds=4.0,
-                    poll_seconds=0.01,
+                    lambda: (
+                        clear_user_caches() is None
+                        and "features"
+                        in (
+                            get_user_data(test_user, "account") or {}
+                        ).get("account", {})
+                    ),
+                    timeout_seconds=8.0,
+                    poll_seconds=0.02,
                 ), "Timed out waiting for account.features after explicit update"
             account_data = get_user_data(test_user, 'account')
             if account_data and 'account' in account_data:

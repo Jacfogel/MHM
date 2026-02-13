@@ -233,8 +233,10 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.fixture
     def temp_test_dir(self, test_data_dir):
         """Create temporary test directory with cache files."""
-        test_dir = Path(test_data_dir) / "cache_test"
-        test_dir.mkdir(exist_ok=True)
+        import uuid
+
+        test_dir = Path(test_data_dir) / f"cache_test_{uuid.uuid4().hex[:8]}"
+        test_dir.mkdir(parents=True, exist_ok=True)
 
         # Create some __pycache__ directories
         pycache1 = test_dir / "__pycache__"

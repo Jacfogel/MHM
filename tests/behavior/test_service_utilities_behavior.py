@@ -100,17 +100,24 @@ class TestServiceUtilitiesBehavior:
     @pytest.mark.critical
     def test_create_reschedule_request_creates_actual_file(self, test_data_dir):
         """Test that creating reschedule request actually creates flag file."""
-        user_id = "test-user-reschedule"
+        import uuid
+
+        user_id = f"test-user-reschedule-{uuid.uuid4().hex[:8]}"
         category = "checkin"
 
         base_flags = Path(test_data_dir) / "flags"
-        existing = set(base_flags.iterdir())
+        # Pre-clean stale files for this test key from interrupted runs.
+        pattern = f"reschedule_request_{user_id}_{category}_*.flag"
+        for stale in base_flags.glob(pattern):
+            stale.unlink(missing_ok=True)
+
         with patch("core.service_utilities.is_service_running", return_value=True):
             result = create_reschedule_request(user_id, category)
 
         assert result is True
 
-        new_files = [p for p in base_flags.iterdir() if p not in existing]
+        # Filter by this test's unique user/category instead of global "exactly one new file".
+        new_files = list(base_flags.glob(pattern))
         assert len(new_files) == 1, "Should create exactly one new reschedule file"
         new_file = new_files[0]
         assert (

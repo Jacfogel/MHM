@@ -1719,6 +1719,249 @@ def _prune_old_files(
     return removed_count
 
 
+def _apply_versioned_retention_protocol(
+    logs_dir: Path,
+    backups_dir: Path,
+    archive_dir: Path,
+    pattern: str,
+    keep_backups: int = 7,
+    archive_retention_days: int = 30,
+    current_file_name: str | None = None,
+) -> int:
+    """Apply the standard protocol to versioned test artifacts.
+
+    Protocol:
+    - Keep 1 current file in logs dir.
+    - Keep up to 7 previous versions in backups dir.
+    - Move older versions to archive dir.
+    - Delete archived versions older than retention period.
+
+    For patterns with a dedicated current filename (e.g. pytest_console_output.txt),
+    all matching versioned files are treated as historical versions.
+    """
+    moved_count = 0
+    try:
+        backups_dir.mkdir(parents=True, exist_ok=True)
+        archive_dir.mkdir(parents=True, exist_ok=True)
+
+        candidates = []
+        for base in (logs_dir, backups_dir, archive_dir):
+            candidates.extend(list(base.glob(pattern)))
+
+        # Deduplicate by resolved path string for stability across directories.
+        unique: dict[str, Path] = {}
+        for path in candidates:
+            unique[str(path.resolve())] = path
+        files = sorted(unique.values(), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not files:
+            return 0
+
+        current_is_fixed = (
+            current_file_name is not None and (logs_dir / current_file_name).exists()
+        )
+
+        if current_is_fixed:
+            current_file = None
+            backup_slice = files[:keep_backups]
+            archive_slice = files[keep_backups:]
+        else:
+            current_file = files[0]
+            backup_slice = files[1 : 1 + keep_backups]
+            archive_slice = files[1 + keep_backups :]
+
+        # Ensure current file is in logs dir.
+        if current_file is not None and current_file.parent != logs_dir:
+            target = logs_dir / current_file.name
+            if target.exists():
+                target.unlink(missing_ok=True)
+            shutil.move(str(current_file), str(target))
+            moved_count += 1
+
+        # Ensure backup versions are in backups dir.
+        for item in backup_slice:
+            if item.parent == backups_dir:
+                continue
+            target = backups_dir / item.name
+            if target.exists():
+                target.unlink(missing_ok=True)
+            shutil.move(str(item), str(target))
+            moved_count += 1
+
+        # Ensure older versions are in archive dir.
+        for item in archive_slice:
+            if item.parent == archive_dir:
+                continue
+            target = archive_dir / item.name
+            if target.exists():
+                target.unlink(missing_ok=True)
+            shutil.move(str(item), str(target))
+            moved_count += 1
+
+        # Prune archived versions older than retention window.
+        cutoff = now_datetime_full().timestamp() - (
+            archive_retention_days * 24 * 60 * 60
+        )
+        for archived in archive_dir.glob(pattern):
+            try:
+                if archived.stat().st_mtime < cutoff:
+                    archived.unlink(missing_ok=True)
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return moved_count
+
+
+def _cleanup_pytest_cache_temp_dirs(project_root_path: Path, data_dir: Path) -> int:
+    """Remove stray pytest-cache-files-* temp directories.
+
+    These are transient atomic-write temp dirs created by pytest cache writes.
+    Keep cleanup best-effort and never fail tests for cleanup issues.
+    """
+    removed = 0
+    try:
+        for root in (project_root_path, data_dir / "tmp"):
+            if not root.exists():
+                continue
+            for entry in root.glob("pytest-cache-files-*"):
+                if entry.is_dir():
+                    try:
+                        shutil.rmtree(entry, ignore_errors=True)
+                        removed += 1
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+    return removed
+
+
+def _apply_flaky_run_group_retention(
+    runs_dir: Path,
+    backups_dir: Path,
+    archive_dir: Path,
+    keep_backups: int = 7,
+    archive_retention_days: int = 30,
+) -> int:
+    """Apply current/7/archive/30d protocol to flaky detector run files."""
+    moved_count = 0
+    try:
+        if not runs_dir.exists():
+            return 0
+
+        backups_dir.mkdir(parents=True, exist_ok=True)
+        archive_dir.mkdir(parents=True, exist_ok=True)
+
+        run_groups: dict[int, list[Path]] = {}
+        for path in runs_dir.glob("run_*_*"):
+            if not path.is_file():
+                continue
+            match = re.match(r"run_(\d+)_", path.name)
+            if not match:
+                continue
+            run_id = int(match.group(1))
+            run_groups.setdefault(run_id, []).append(path)
+
+        if not run_groups:
+            return 0
+
+        def _group_mtime(paths: list[Path]) -> float:
+            return max(p.stat().st_mtime for p in paths)
+
+        ordered_run_ids = sorted(
+            run_groups.keys(),
+            key=lambda run_id: _group_mtime(run_groups[run_id]),
+            reverse=True,
+        )
+
+        # Keep the newest run group in-place as the "current 1".
+        backup_run_ids = set(ordered_run_ids[1 : 1 + keep_backups])
+        archive_run_ids = set(ordered_run_ids[1 + keep_backups :])
+
+        for run_id in backup_run_ids:
+            for path in run_groups[run_id]:
+                target = backups_dir / path.name
+                if target.exists():
+                    target.unlink(missing_ok=True)
+                shutil.move(str(path), str(target))
+                moved_count += 1
+
+        for run_id in archive_run_ids:
+            for path in run_groups[run_id]:
+                target = archive_dir / path.name
+                if target.exists():
+                    target.unlink(missing_ok=True)
+                shutil.move(str(path), str(target))
+                moved_count += 1
+
+        cutoff = now_datetime_full().timestamp() - (
+            archive_retention_days * 24 * 60 * 60
+        )
+        for archived in archive_dir.glob("run_*_*"):
+            try:
+                if archived.is_file() and archived.stat().st_mtime < cutoff:
+                    archived.unlink(missing_ok=True)
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return moved_count
+
+
+def _snapshot_worker_logs_with_retention(
+    worker_logs_dir: Path,
+    backups_root: Path,
+    archive_root: Path,
+    keep_backups: int = 7,
+    archive_retention_days: int = 30,
+) -> int:
+    """Snapshot worker log set and retain 7 backups plus 30-day archive."""
+    snapshot_count = 0
+    try:
+        if not worker_logs_dir.exists():
+            return 0
+
+        source_files = sorted(p for p in worker_logs_dir.iterdir() if p.is_file())
+        if not source_files:
+            return 0
+
+        backups_root.mkdir(parents=True, exist_ok=True)
+        archive_root.mkdir(parents=True, exist_ok=True)
+
+        snapshot_name = (
+            f"worker_logs_backup_{now_datetime_full().strftime('%Y-%m-%d_%H-%M-%S')}"
+        )
+        snapshot_dir = backups_root / snapshot_name
+        snapshot_dir.mkdir(parents=True, exist_ok=True)
+
+        for file_path in source_files:
+            shutil.copy2(file_path, snapshot_dir / file_path.name)
+            snapshot_count += 1
+
+        snapshots = sorted(
+            [p for p in backups_root.glob("worker_logs_backup_*") if p.is_dir()],
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        for old_snapshot in snapshots[keep_backups:]:
+            target = archive_root / old_snapshot.name
+            if target.exists():
+                shutil.rmtree(target, ignore_errors=True)
+            shutil.move(str(old_snapshot), str(target))
+
+        cutoff = now_datetime_full().timestamp() - (
+            archive_retention_days * 24 * 60 * 60
+        )
+        for archived in archive_root.glob("worker_logs_backup_*"):
+            try:
+                if archived.is_dir() and archived.stat().st_mtime < cutoff:
+                    shutil.rmtree(archived, ignore_errors=True)
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return snapshot_count
+
+
 @pytest.fixture(scope="session", autouse=True)
 def clear_test_user_factory_cache():
     """Clear test user factory cache at the end of the test session."""
@@ -1739,12 +1982,31 @@ def prune_test_artifacts_before_and_after_session():
     Defaults: logs older than 14 days, test backups older than 7 days.
     Override via TEST_LOG_RETENTION_DAYS and TEST_BACKUP_RETENTION_DAYS env vars.
     """
+    # In xdist, each worker has its own session lifecycle. Running shared
+    # filesystem cleanup in every worker causes races (workers deleting each
+    # other's tmp trees like popen-gw*). Restrict destructive cleanup to the
+    # controller process only.
+    if os.environ.get("PYTEST_XDIST_WORKER"):
+        yield
+        return
+
     project_root_path = Path(project_root)
     logs_dir = project_root_path / "tests" / "logs"
+    logs_archive_dir = logs_dir / "archive"
+    logs_backups_dir = logs_dir / "backups"
+    flaky_runs_dir = logs_dir / "flaky_detector_runs"
+    flaky_runs_backups_dir = logs_backups_dir / "flaky_detector_runs"
+    flaky_runs_archive_dir = logs_archive_dir / "flaky_detector_runs"
+    worker_logs_dir = logs_dir / "worker_logs_backup"
+    worker_logs_backups_dir = logs_backups_dir / "worker_logs_backup"
+    worker_logs_archive_dir = logs_archive_dir / "worker_logs_backup"
     test_backups_dir = project_root_path / "tests" / "data" / "backups"
+    data_dir = project_root_path / "tests" / "data"
 
     log_retention_days = int(os.getenv("TEST_LOG_RETENTION_DAYS", "14"))
     backup_retention_days = int(os.getenv("TEST_BACKUP_RETENTION_DAYS", "7"))
+    profile_keep_versions = int(os.getenv("TEST_PROFILE_KEEP_VERSIONS", "7"))
+    test_archive_retention_days = int(os.getenv("TEST_LOG_ARCHIVE_RETENTION_DAYS", "30"))
 
     # Prune before tests
     if logs_dir.exists():
@@ -1754,6 +2016,57 @@ def prune_test_artifacts_before_and_after_session():
             older_than_days=log_retention_days,
         )
         # Don't log cleanup operations - focus on test results
+
+        _apply_versioned_retention_protocol(
+            logs_dir,
+            logs_backups_dir,
+            logs_archive_dir,
+            pattern="parallel_profile_*.log",
+            keep_backups=profile_keep_versions,
+            archive_retention_days=test_archive_retention_days,
+        )
+        _apply_versioned_retention_protocol(
+            logs_dir,
+            logs_backups_dir,
+            logs_archive_dir,
+            pattern="parallel_profile_*.xml",
+            keep_backups=profile_keep_versions,
+            archive_retention_days=test_archive_retention_days,
+        )
+        _apply_versioned_retention_protocol(
+            logs_dir,
+            logs_backups_dir,
+            logs_archive_dir,
+            pattern="pytest_console_output_*.txt",
+            keep_backups=7,
+            archive_retention_days=test_archive_retention_days,
+            current_file_name="pytest_console_output.txt",
+        )
+        _apply_versioned_retention_protocol(
+            logs_dir,
+            logs_backups_dir,
+            logs_archive_dir,
+            pattern="flaky_test_report_*.md",
+            keep_backups=7,
+            archive_retention_days=test_archive_retention_days,
+            current_file_name="flaky_test_report.md",
+        )
+        _apply_versioned_retention_protocol(
+            logs_dir,
+            logs_backups_dir,
+            logs_archive_dir,
+            pattern="flaky_test_report_timeout_smoke_*.md",
+            keep_backups=7,
+            archive_retention_days=test_archive_retention_days,
+            current_file_name="flaky_test_report_timeout_smoke.md",
+        )
+        _apply_flaky_run_group_retention(
+            flaky_runs_dir,
+            flaky_runs_backups_dir,
+            flaky_runs_archive_dir,
+            keep_backups=7,
+            archive_retention_days=test_archive_retention_days,
+        )
 
     if test_backups_dir.exists():
         removed = _prune_old_files(
@@ -1765,9 +2078,9 @@ def prune_test_artifacts_before_and_after_session():
 
     # Clean up excessive test log files to prevent accumulation
     _cleanup_test_log_files()
+    _cleanup_pytest_cache_temp_dirs(project_root_path, data_dir)
 
     # Pre-run purge of stray pytest-of-* under tests/data and leftover tmp children
-    data_dir = project_root_path / "tests" / "data"
     try:
         # Clean up conversation_states.json before tests
         conversation_states_file = data_dir / "conversation_states.json"
@@ -1807,8 +2120,13 @@ def prune_test_artifacts_before_and_after_session():
             except Exception:
                 pass
 
-        # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking.json)
-        test_json_patterns = ["test_", ".tmp_", "welcome_tracking.json"]
+        # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking*.json, conversation_states*.json)
+        test_json_patterns = [
+            "test_",
+            ".tmp_",
+            "welcome_tracking",
+            "conversation_states",
+        ]
         for item in data_dir.iterdir():
             try:
                 if item.is_file() and item.suffix == ".json":
@@ -1846,6 +2164,64 @@ def prune_test_artifacts_before_and_after_session():
         )
         # Don't log cleanup operations - focus on test results (removed logging to prevent hangs)
 
+        _apply_versioned_retention_protocol(
+            logs_dir,
+            logs_backups_dir,
+            logs_archive_dir,
+            pattern="parallel_profile_*.log",
+            keep_backups=profile_keep_versions,
+            archive_retention_days=test_archive_retention_days,
+        )
+        _apply_versioned_retention_protocol(
+            logs_dir,
+            logs_backups_dir,
+            logs_archive_dir,
+            pattern="parallel_profile_*.xml",
+            keep_backups=profile_keep_versions,
+            archive_retention_days=test_archive_retention_days,
+        )
+        _apply_versioned_retention_protocol(
+            logs_dir,
+            logs_backups_dir,
+            logs_archive_dir,
+            pattern="pytest_console_output_*.txt",
+            keep_backups=7,
+            archive_retention_days=test_archive_retention_days,
+            current_file_name="pytest_console_output.txt",
+        )
+        _apply_versioned_retention_protocol(
+            logs_dir,
+            logs_backups_dir,
+            logs_archive_dir,
+            pattern="flaky_test_report_*.md",
+            keep_backups=7,
+            archive_retention_days=test_archive_retention_days,
+            current_file_name="flaky_test_report.md",
+        )
+        _apply_versioned_retention_protocol(
+            logs_dir,
+            logs_backups_dir,
+            logs_archive_dir,
+            pattern="flaky_test_report_timeout_smoke_*.md",
+            keep_backups=7,
+            archive_retention_days=test_archive_retention_days,
+            current_file_name="flaky_test_report_timeout_smoke.md",
+        )
+        _apply_flaky_run_group_retention(
+            flaky_runs_dir,
+            flaky_runs_backups_dir,
+            flaky_runs_archive_dir,
+            keep_backups=7,
+            archive_retention_days=test_archive_retention_days,
+        )
+        _snapshot_worker_logs_with_retention(
+            worker_logs_dir,
+            worker_logs_backups_dir,
+            worker_logs_archive_dir,
+            keep_backups=7,
+            archive_retention_days=test_archive_retention_days,
+        )
+
     if test_backups_dir.exists():
         removed = _prune_old_files(
             test_backups_dir,
@@ -1853,6 +2229,8 @@ def prune_test_artifacts_before_and_after_session():
             older_than_days=backup_retention_days,
         )
         # Don't log cleanup operations - focus on test results (removed logging to prevent hangs)
+
+    _cleanup_pytest_cache_temp_dirs(project_root_path, data_dir)
 
     # Session-end purge: flags, tmp children, pytest-of-* directories, and tmp_* directories
     try:
@@ -1874,12 +2252,13 @@ def prune_test_artifacts_before_and_after_session():
                             shutil.rmtree(item, ignore_errors=True)
                             # Don't log cleanup operations - focus on test results
                     elif item.is_file():
-                        # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking.json)
+                        # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking*.json, conversation_states*.json)
                         if item.suffix == ".json":
                             test_json_patterns = [
                                 "test_",
                                 ".tmp_",
-                                "welcome_tracking.json",
+                                "welcome_tracking",
+                                "conversation_states",
                             ]
                             if any(
                                 item.name.startswith(pattern)
@@ -2593,27 +2972,28 @@ def enforce_user_dir_locations():
     """Ensure tests only create user dirs under tests/data/users.
 
     - Fails if a top-level tests/data/test-user* directory appears.
-    - Fails if any test-user* directory is created under tests/data/tmp.
     Cleans stray dirs to keep workspace tidy before failing.
+
+    NOTE:
+    Do not scan tests/data/tmp per test. That directory can contain thousands of
+    entries during long parallel runs, and repeated setup/teardown scans become
+    a dominant runtime cost. tmp hygiene is handled by session-end cleanup.
     """
     base = tests_data_dir
     users_dir = base / "users"
-    tmp_dir = base / "tmp"
     try:
         pre_top = set(x.name for x in base.iterdir() if x.is_dir())
-        pre_tmp_children = set(
-            x.name
-            for x in (tmp_dir.iterdir() if tmp_dir.exists() else [])
-            if x.is_dir()
-        )
     except Exception:
-        pre_top, pre_tmp_children = set(), set()
+        pre_top = set()
 
     yield
 
-    # Check for misplaced top-level test users
+    # Check for misplaced top-level test users created during this test only.
     try:
-        for entry in base.iterdir():
+        post_top = set(x.name for x in base.iterdir() if x.is_dir())
+        new_top_dirs = post_top - pre_top
+        for name in new_top_dirs:
+            entry = base / name
             if not entry.is_dir():
                 continue
             if (
@@ -2632,38 +3012,14 @@ def enforce_user_dir_locations():
         # Do not mask test results if scan fails
         pass
 
-    # Check for user-like dirs directly under tmp (non-recursive for performance)
-    try:
-        if tmp_dir.exists():
-            for child in tmp_dir.iterdir():
-                if not child.is_dir():
-                    continue
-                # Heuristics: tmp dir is a misplaced user dir if it has user-signature files
-                # or looks like a test-user name
-                looks_like_user = (
-                    child.name.startswith("test-user")
-                    or (child / "account.json").exists()
-                    or (child / "preferences.json").exists()
-                    or (child / "user_context.json").exists()
-                    or (child / "checkins.json").exists()
-                    or (child / "schedules.json").exists()
-                    or (child / "messages").is_dir()
-                )
-                if looks_like_user:
-                    try:
-                        shutil.rmtree(child, ignore_errors=True)
-                    finally:
-                        pytest.fail(
-                            f"User directory artifacts detected under tmp: {child}. "
-                            f"All user data must be created under {users_dir}."
-                        )
-    except Exception:
-        pass
-
-
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_tmp_at_session_end():
     """Clear tests/data/tmp contents at session end to keep the workspace tidy."""
+    # Avoid xdist worker races on shared tmp directory.
+    if os.environ.get("PYTEST_XDIST_WORKER"):
+        yield
+        return
+
     yield
     try:
         tmp_dir = tests_data_dir / "tmp"
@@ -3127,12 +3483,13 @@ def cleanup_test_users_after_session():
                         ):
                             shutil.rmtree(item_path, ignore_errors=True)
                     elif os.path.isfile(item_path):
-                        # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking.json)
+                        # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking*.json, conversation_states*.json)
                         if item.endswith(".json"):
                             test_json_patterns = [
                                 "test_",
                                 ".tmp_",
-                                "welcome_tracking.json",
+                                "welcome_tracking",
+                                "conversation_states",
                             ]
                             if any(
                                 item.startswith(pattern)
@@ -3196,12 +3553,13 @@ def cleanup_test_users_after_session():
                         ):
                             shutil.rmtree(item_path, ignore_errors=True)
                     elif os.path.isfile(item_path):
-                        # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking.json)
+                        # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking*.json, conversation_states*.json)
                         if item.endswith(".json"):
                             test_json_patterns = [
                                 "test_",
                                 ".tmp_",
-                                "welcome_tracking.json",
+                                "welcome_tracking",
+                                "conversation_states",
                             ]
                             if any(
                                 item.startswith(pattern)
@@ -3489,13 +3847,18 @@ def pytest_collection_modifyitems(config, items):
 
 
 def pytest_ignore_collect(collection_path, config):
-    """Ignore temp directories created by parallel coverage runs to prevent collection errors."""
-    path_str = str(collection_path)
-    # Ignore temp directories created by coverage runs
+    """Ignore transient test data trees so pytest never collects generated test_*.py artifacts."""
+    path_str = str(collection_path).replace("\\", "/")
+
+    # Any file under tests/data is fixture/runtime state, never source tests.
+    if "/tests/data/" in path_str:
+        return True
+
+    # Defensive fallback for older temp naming schemes.
     if "pytest-tmp-" in path_str or "pytest-of-" in path_str:
-        # Only ignore if it's under tests/data (our temp directory location)
-        if "tests" + os.sep + "data" in path_str:
+        if "/tests/data/" in path_str:
             return True
+
     return None  # Let other ignore rules handle it
 
 

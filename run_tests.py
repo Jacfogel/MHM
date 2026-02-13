@@ -68,6 +68,10 @@ _current_console_output_file: Optional[Path] = None
 # Global variable to store current test context
 _current_test_context = None
 
+# Console output retention policy (AI_BACKUP_GUIDE.md / BACKUP_GUIDE.md)
+CONSOLE_OUTPUT_KEEP_LAST = 7
+CONSOLE_OUTPUT_ARCHIVE_RETENTION_DAYS = 30
+
 
 @handle_errors(
     "killing process tree on Windows", user_friendly=False, default_return=False
@@ -416,10 +420,15 @@ def _persist_captured_output() -> None:
 
     logs_dir = Path("tests/logs")
     logs_dir.mkdir(parents=True, exist_ok=True)
+    console_backups_dir = logs_dir / "backups"
+    console_backups_dir.mkdir(parents=True, exist_ok=True)
 
     if _current_console_output_file is None:
         timestamp = now_timestamp_filename()
-        _current_console_output_file = logs_dir / f"pytest_console_output_{timestamp}.txt"
+        _current_console_output_file = (
+            console_backups_dir / f"pytest_console_output_{timestamp}.txt"
+        )
+        _rotate_console_output_files(console_backups_dir, logs_dir / "archive")
 
     raw_output = "".join(_captured_output_lines)
     clean_output = ANSI_ESCAPE_RE.sub("", raw_output)
@@ -430,6 +439,41 @@ def _persist_captured_output() -> None:
     latest_output_file = logs_dir / "pytest_console_output.txt"
     with open(latest_output_file, "w", encoding="utf-8", errors="replace") as f:
         f.write(clean_output)
+
+
+@handle_errors(
+    "rotating pytest console output logs", user_friendly=False, default_return=None
+)
+def _rotate_console_output_files(backups_dir: Path, archive_dir: Path) -> None:
+    """Keep only recent timestamped console outputs in backups and archive older ones."""
+    backups_dir.mkdir(parents=True, exist_ok=True)
+    archive_dir.mkdir(parents=True, exist_ok=True)
+
+    pattern = "pytest_console_output_*.txt"
+    files = sorted(backups_dir.glob(pattern), key=lambda p: p.stat().st_mtime)
+
+    overflow_count = len(files) - CONSOLE_OUTPUT_KEEP_LAST
+    if overflow_count > 0:
+        for old_file in files[:overflow_count]:
+            if not old_file.is_file():
+                continue
+            archived_path = archive_dir / old_file.name
+            try:
+                shutil.move(str(old_file), str(archived_path))
+            except Exception:
+                # If a name collision happens, suffix with current timestamp.
+                fallback_name = (
+                    f"{old_file.stem}_{now_timestamp_filename()}{old_file.suffix}"
+                )
+                shutil.move(str(old_file), str(archive_dir / fallback_name))
+
+    cutoff_ts = time.time() - (CONSOLE_OUTPUT_ARCHIVE_RETENTION_DAYS * 24 * 60 * 60)
+    for archived_file in archive_dir.glob(pattern):
+        try:
+            if archived_file.is_file() and archived_file.stat().st_mtime < cutoff_ts:
+                archived_file.unlink()
+        except Exception:
+            pass
 
 
 @handle_errors(
@@ -1831,9 +1875,11 @@ def cleanup_stale_test_artifacts() -> None:
 
     exact_dirs = [
         ".pytest_cache",
+        ".pytest_tmp_cache",
         ".pytest_tmp",
         ".tmp_devtools_pyfiles",
         ".tmp_pytest",
+        ".tmp_pytest_runner",
         "htmlcov",
         "mhm.egg-info",
     ]
@@ -1864,6 +1910,82 @@ def cleanup_stale_test_artifacts() -> None:
 
     if removed:
         print(f"[CLEANUP] Removed {removed} stale artifact directory(s) before test run")
+
+
+@handle_errors("removing directory tree with retries", user_friendly=False, default_return=False)
+def remove_tree_with_retries(path: Path, retries: int = 20, delay_seconds: float = 0.25) -> bool:
+    """Best-effort directory removal with short retries for Windows file-handle lag."""
+    if not path.exists():
+        return True
+    for _ in range(retries):
+        try:
+            shutil.rmtree(path, ignore_errors=False)
+            return True
+        except Exception:
+            time.sleep(delay_seconds)
+    # Final best-effort
+    try:
+        shutil.rmtree(path, ignore_errors=True)
+    except Exception:
+        pass
+    return not path.exists()
+
+
+@handle_errors("cleaning post-run test artifacts", user_friendly=False, default_return=None)
+def cleanup_post_run_test_artifacts() -> None:
+    """Best-effort cleanup of transient artifacts after a run.
+
+    Keeps outputs that are intentionally useful (e.g., tests/logs, tests/coverage_html),
+    while removing transient tmp/cache files and common per-run JSON/directories in tests/data.
+    """
+    root = Path(__file__).parent
+    data_dir = root / "tests" / "data"
+
+    # Remove root-level transient artifact directories that may be created by ad-hoc pytest runs.
+    for rel in [
+        ".pytest_cache",
+        ".pytest_tmp_cache",
+        ".tmp_devtools_pyfiles",
+        ".tmp_pytest",
+        ".tmp_pytest_runner",
+        "htmlcov",
+    ]:
+        target = root / rel
+        try:
+            if target.exists():
+                shutil.rmtree(target, ignore_errors=True)
+        except Exception:
+            pass
+
+    # Remove transient tests/data directories/files that often accumulate during runs.
+    if not data_dir.exists():
+        return
+
+    dir_prefixes = (
+        "logs_",
+        "mhm_pytest_tmp_main_",
+        "pytest-of-",
+        "tmp_",
+    )
+    file_prefixes = (
+        "conversation_states_",
+        "welcome_tracking_",
+    )
+
+    for item in data_dir.iterdir():
+        try:
+            if item.is_dir():
+                if (
+                    item.name in {"flags", "requests", "tag-tests"}
+                    or item.name.startswith(dir_prefixes)
+                    or (item.name.startswith("tmp") and item.name != "tmp")
+                ):
+                    shutil.rmtree(item, ignore_errors=True)
+            elif item.is_file():
+                if item.suffix == ".json" and item.name.startswith(file_prefixes):
+                    item.unlink(missing_ok=True)
+        except Exception:
+            pass
 
 
 def main():
@@ -2013,13 +2135,13 @@ def main():
     # Base pytest command
     cmd = [sys.executable, "-m", "pytest"]
 
-    # Force pytest temp/cache paths into repo-local directories to avoid
-    # Windows permission issues in %LOCALAPPDATA% Temp and stale global cache dirs.
+    # Force pytest temp/cache paths into tests/data/tmp so transient artifacts
+    # stay under the test-data sandbox rather than repo root.
     run_id = now_timestamp_filename()
-    pytest_root = Path(".tmp_pytest_runner")
+    pytest_root = Path("tests/data/tmp/pytest_runner")
     parallel_basetemp = pytest_root / run_id / "parallel"
     serial_basetemp = pytest_root / run_id / "serial"
-    pytest_cache_dir = Path(".pytest_tmp_cache")
+    pytest_cache_dir = Path("tests/data/tmp/pytest_cache")
     parallel_basetemp.mkdir(parents=True, exist_ok=True)
     serial_basetemp.mkdir(parents=True, exist_ok=True)
     pytest_cache_dir.mkdir(parents=True, exist_ok=True)
@@ -2029,6 +2151,9 @@ def main():
             str(parallel_basetemp),
             "-o",
             f"cache_dir={pytest_cache_dir}",
+            "--ignore=tests/data",
+            "--ignore=tests/data/tmp",
+            "--ignore-glob=tests/data/tmp/**",
         ]
     )
 
@@ -2151,13 +2276,13 @@ def main():
 
     elif args.mode == "slow":
         # Slow tests only
-        cmd.extend(["tests/"])
+        cmd.extend(["tests/unit/", "tests/integration/", "tests/behavior/", "tests/ui/"])
         mode_marker_filter = "slow"
         description = "Slow Tests Only"
 
     elif args.mode == "all":
         # All tests
-        cmd.extend(["tests/"])
+        cmd.extend(["tests/unit/", "tests/integration/", "tests/behavior/", "tests/ui/"])
         description = "All Tests (Unit, Integration, Behavior, UI)"
 
     # Add marker filters (combine mode filter with no_parallel and e2e exclusion if needed)
@@ -2233,6 +2358,13 @@ def main():
     # If parallel execution was enabled, also run no_parallel tests separately in serial mode
     no_parallel_results = None
     if not args.no_parallel:
+        # Remove the completed parallel basetemp tree so the serial phase
+        # cannot accidentally collect transient test_*.py files generated there.
+        try:
+            remove_tree_with_retries(parallel_basetemp)
+        except Exception:
+            pass
+
         # Create a separate command for no_parallel tests (serial execution)
         no_parallel_cmd = [sys.executable, "-m", "pytest"]
         no_parallel_cmd.extend(
@@ -2241,6 +2373,9 @@ def main():
                 str(serial_basetemp),
                 "-o",
                 f"cache_dir={pytest_cache_dir}",
+                "--ignore=tests/data",
+                "--ignore=tests/data/tmp",
+                "--ignore-glob=tests/data/tmp/**",
             ]
         )
 
@@ -2268,9 +2403,9 @@ def main():
         elif args.mode == "ui":
             no_parallel_cmd.extend(["tests/ui/"])
         elif args.mode == "slow":
-            no_parallel_cmd.extend(["tests/"])
+            no_parallel_cmd.extend(["tests/unit/", "tests/integration/", "tests/behavior/", "tests/ui/"])
         elif args.mode == "all":
-            no_parallel_cmd.extend(["tests/"])
+            no_parallel_cmd.extend(["tests/unit/", "tests/integration/", "tests/behavior/", "tests/ui/"])
 
         # Copy other options
         if args.verbose:
@@ -2328,6 +2463,9 @@ def main():
             "output": "",
         }
     print_combined_summary(parallel_results, no_parallel_results, description)
+
+    # Best-effort post-run cleanup for transient artifacts.
+    cleanup_post_run_test_artifacts()
 
     # Final status message (summary already printed above)
     if success:

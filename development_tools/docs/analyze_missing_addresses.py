@@ -128,12 +128,16 @@ class MissingAddressAnalyzer:
         historical_preserve_files = set(HISTORICAL_PRESERVE_FILES)
 
         for file_path in files_to_check:
-            parts = file_path.parts
-            if any(ignore in parts for ignore in ignore_dirs):
-                continue
-
             try:
                 rel_path = file_path.relative_to(self.project_root)
+                rel_parts = rel_path.parts
+
+                # Apply directory ignores relative to the selected project root.
+                # Using absolute path parts incorrectly excludes temp test roots
+                # such as .tmp_pytest_runner/<run>/... during unit tests.
+                if any(ignore in rel_parts for ignore in ignore_dirs):
+                    continue
+
                 rel_path_str = str(rel_path).replace("\\", "/")
 
                 # Skip anything matching standardized exclusion rules.
@@ -154,7 +158,7 @@ class MissingAddressAnalyzer:
                     continue
 
                 # Skip .cursor/ directory files (plans, rules, etc.) - they have their own metadata format
-                if ".cursor" in parts:
+                if ".cursor" in rel_parts:
                     continue
 
                 if "tests" in rel_path.parts:

@@ -2,6 +2,7 @@
 
 import pytest
 from unittest.mock import patch
+import uuid
 
 from core.schedule_management import (
     add_schedule_period,
@@ -50,7 +51,7 @@ class TestScheduleManagement:
     def test_schedule_period_lifecycle(self, mock_user_data, mock_config):
         """Add, edit, deactivate, and delete a schedule period."""
         user_id = mock_user_data["user_id"]
-        category = "motivational"
+        category = f"motivational_{uuid.uuid4().hex[:8]}"
         clear_schedule_periods_cache(user_id, category)
 
         with patch("core.schedule_management.UserContext") as MockUserContext, \

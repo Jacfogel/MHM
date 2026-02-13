@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-10
+> **Last Updated**: 2026-02-13
 
 ---
 
@@ -36,19 +36,23 @@
 **Priority**: Medium  
 **Effort**: Medium  
 **Date**: 2025-11-23  
-**Last Updated**: 2026-02-11
+**Last Updated**: 2026-02-13
 
 **Objective**: Optimize test suite execution time from ~265 seconds (4.4 minutes) to ~205-225 seconds (3.4-3.7 minutes) by reducing unnecessary delays, optimizing expensive operations, and improving test efficiency.
 
 **Current Performance**:
-- Total Duration: ~226-235 seconds (3.8-3.9 minutes) - **Baseline performance**
-  - Parallel tests: ~142-161s (3,178-3,195 tests)
-  - Serial tests: ~75-84s (115-131 tests)
+- Latest `run_tests.py` full run (2026-02-13): `3737 passed, 0 failed` in **189.36s total** (parallel segment: `3652 passed` in 135.65s; serial no-parallel segment: `85 passed` in 44.60s).
+- Total Duration: **~147.43 seconds (2.45 minutes)** on latest full parallel profile (`4457 passed, 1 skipped`) - **significant improvement**
+  - Parallel tests: ~129-147s in recent stable runs
+  - Serial no-parallel phase remains stable in recent reruns
+- Target range (~205-225s) is now exceeded in recent runs; focus has shifted from broad optimization to stability monitoring and targeted hotspot cleanup.
 - Recent run (2026-01-26): ~327s parallel (4,376 tests) + ~138s serial (159 tests).
 - Recent flaky-detector full-suite runs (2026-02-10) were typically ~207-255s, with rare timeout outliers at 600s; follow-up remains focused on timeout root cause and worker-log consolidation.
 - As of 2026-02-10 session close, serial `@pytest.mark.no_parallel` runs are passing in `run_tests.py` (no Windows crash observed in latest reruns); keep monitoring for regression.
 - Audit/report noise from pytest temp artifacts was reduced by excluding `.tmp_pytest_runner` and related temp/cache directories in dev-tools exclusions.
 - 2026-02-11 profiling runs show improved full parallel-suite runtime when using temp-isolated pytest dirs (`--basetemp` and `cache_dir` under `%TEMP%`), with a clean sample at `4457 passed, 1 skipped in 209.25s`.
+- 2026-02-12 updates reduced major overhead from test temp-directory guardrails and improved flaky assertions in high-churn UI/Discord tests.
+- Environment note: occasional Windows ACL/cache permission issues (`.pytest_cache`, `pytest-of-*`, `pytest-cache-files-*`) can still distort runtime and should be treated as environment hygiene, not baseline suite cost.
 - **Performance Investigation Results (2025-11-24)**:
   - Attempted optimizations (removed `no_parallel` markers, added `wait_until` helpers, reduced retry loops)
   - Performance did not improve; actually degraded in some cases
@@ -114,6 +118,7 @@
 - **Reverted Changes**: All optimization attempts reverted after determining performance variability is due to system load
 - **Current Status**: Plan on hold - baseline performance (~3.8-4 minutes) is acceptable. Future optimizations should focus on reducing expensive operations (like `rebuild_user_index()`) rather than test execution patterns.
 - **2026-01-26 Update**: Short-circuited heavy UI startup work in `MHM_TESTING` mode to reduce long-running parallel UI tests; re-baseline after next full run.
+- **2026-02-13 Update**: Current baseline is materially improved (~2.5 minutes in latest full parallel run). Plan remains on hold pending new regressions; next work should target top cumulative hotspots (`tests/ui/test_account_creation_ui.py`, `tests/unit/test_user_data_manager.py`) only if runtime drifts again.
 
 ### **No-Parallel Marker Reduction Plan** **IN PROGRESS**
 

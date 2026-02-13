@@ -434,6 +434,7 @@ class TestTaskManagementDialogRealBehavior:
                             # Assert - Verify data was saved
                             saved_data = {}
                             for attempt in range(12):
+                                clear_user_caches()
                                 saved_data = get_user_data(
                                     test_user, 'account', normalize_on_read=True
                                 )
@@ -619,6 +620,7 @@ class TestTaskManagementDialogRealBehavior:
                             # Assert - Verify data persists (use real function)
                             persisted_data = {}
                             for attempt in range(12):
+                                clear_user_caches()
                                 persisted_data = get_user_data(
                                     test_user, 'account', normalize_on_read=True
                                 )

@@ -23,6 +23,11 @@ def test_scripts_directory_excluded_from_test_discovery():
         pytest.skip("scripts/ directory does not exist; policy satisfied.")
     
     # Run pytest collection limited to scripts/ for faster, deterministic results
+    test_tmp_root = project_root / "tests" / "data" / "tmp" / "scripts_exclusion_policy"
+    test_tmp_root.mkdir(parents=True, exist_ok=True)
+    basetemp = test_tmp_root / "pytest_runner"
+    cache_dir = test_tmp_root / "pytest_cache"
+
     result = subprocess.run(
         [
             sys.executable,
@@ -32,6 +37,10 @@ def test_scripts_directory_excluded_from_test_discovery():
             "--collect-only",
             "-q",
             "--disable-warnings",
+            "--basetemp",
+            str(basetemp),
+            "-o",
+            f"cache_dir={cache_dir}",
         ],
         cwd=project_root,
         capture_output=True,
@@ -84,4 +93,3 @@ def test_scripts_directory_has_no_test_files():
         + "\n".join(test_files)
         + "\n\nTest files should be in tests/ directory, not scripts/."
     )
-

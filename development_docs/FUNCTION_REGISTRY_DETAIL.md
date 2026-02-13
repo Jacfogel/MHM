@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-11 03:12:29
+> **Last Generated**: 2026-02-12 23:52:39
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1570
+- **Functions Found**: 1573
 - **Methods Found**: 1151
 - **Classes Found**: 154
-- **Total Items**: 2721
-- **Functions Documented**: 1499
+- **Total Items**: 2724
+- **Functions Documented**: 1502
 - **Methods Documented**: 1111
 - **Classes Documented**: 120
-- **Total Documented**: 2610
+- **Total Documented**: 2613
 - **Template-Generated**: 4
-- **Last Updated**: 2026-02-11
+- **Last Updated**: 2026-02-12
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -4918,6 +4918,7 @@ Returns:
 #### `run_tests.py`
 **Functions:**
 - [OK] `_persist_captured_output()` - Persist captured pytest output with ANSI stripping to latest and timestamped logs.
+- [OK] `_rotate_console_output_files(backups_dir, archive_dir)` - Keep only recent timestamped console outputs in backups and archive older ones.
 - [OK] `build_windows_no_parallel_env()` - Return environment overrides for stable Windows serial UI/no_parallel runs.
 - [OK] `check_critical_resources(resources)` - Check if resources exceed critical thresholds requiring termination.
 - [OK] `check_resource_warnings(resources)` - Check if resources exceed warning thresholds.
@@ -4925,6 +4926,10 @@ Returns:
 
 Returns:
     int: Number of orphaned processes found and killed
+- [OK] `cleanup_post_run_test_artifacts()` - Best-effort cleanup of transient artifacts after a run.
+
+Keeps outputs that are intentionally useful (e.g., tests/logs, tests/coverage_html),
+while removing transient tmp/cache files and common per-run JSON/directories in tests/data.
 - [OK] `cleanup_stale_test_artifacts()` - Best-effort cleanup for stale pytest/build artifacts that commonly accumulate on Windows.
 - [OK] `detect_stuck_process(last_output_time, current_time, threshold)` - Detect if process appears stuck (no output for extended period).
 - [OK] `extract_failures_from_junit_xml(xml_path)` - Extract detailed failure information from JUnit XML.
@@ -4956,6 +4961,7 @@ Args:
     description: Test mode description
 - [OK] `print_test_mode_info()` - Print helpful information about test modes.
 - [OK] `read_output(pipe, queue_obj)` - Read from pipe and put lines in queue, also write to terminal.
+- [OK] `remove_tree_with_retries(path, retries, delay_seconds)` - Best-effort directory removal with short retries for Windows file-handle lag.
 - [OK] `run_command(cmd, description, progress_interval, capture_output, test_context, env_overrides)` - Run a command and return results with periodic progress logs.
 
 Args:

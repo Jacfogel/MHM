@@ -39,12 +39,14 @@ This guide covers both how the systems work and how to restore from backups.
 - Files must be at least **5KB** to rotate (prevents rotating tiny files)
 - Files must be at least **1 hour old** to rotate (prevents rotating newly created files)
 - Rotated files are moved to `logs/backups/` with date suffix
+- When backups exceed 7, older rotated copies move to `logs/archive/`
 - Old backups are compressed to `.gz` format after 7 days
-- Compressed archives older than 30 days are deleted
+- Archived copies older than 30 days are deleted
 
 **Retention:**
-- **All loggers**: Keep 7 backup files (standardized)
-- **Archives**: 30 days retention
+- **Protocol (default)**: Keep 1 current active file + 7 backup files + up to 7 archive copies
+- **Archive pruning**: Delete archived copies older than 30 days
+- **Effective target**: Up to 15 most recent copies retained (1 current + 7 backups + 7 archive)
 
 **Configuration:**
 - `LOG_MAX_BYTES`: Maximum file size before rotation (default: 5242880 = 5MB)
@@ -263,7 +265,7 @@ This guide covers both how the systems work and how to restore from backups.
 **Retention:**
 - **Status files**: 7 versions (default)
 - **Tool results**: 7 versions (default, standardized retention)
-- **Test logs**: 7 versions total (consolidated)
+- **Test logs**: 1 current + 7 backups + up to 7 archive copies (archive >30 days deleted)
 - **Generated docs**: 7 versions
 - **Coverage JSON**: 5 versions
 
@@ -418,13 +420,13 @@ All retention policies have been standardized for consistency. This is the autho
 
 | System | Retention | Archive Location | Compression | Notes |
 |--------|-----------|------------------|-------------|-------|
-| **Logs (all)** | 7 backups | `logs/backups/` -> `logs/archive/` | After 7 days | Standardized |
-| **Log archives** | 30 days | `logs/archive/` | Yes (.gz) | Compressed after 7 days |
+| **Logs (all)** | 1 current + 7 backups + up to 7 archive | `logs/backups/` -> `logs/archive/` | After 7 days | Archive >30 days deleted |
+| **Log archives** | 30 days (plus max 7 archive copies) | `logs/archive/` | Yes (.gz) | Compressed after 7 days |
 | **User backups** | 30 days OR 10 files | `data/backups/` | Yes (ZIP) | Whichever is stricter |
 | **Message archives** | 90 days | `data/users/{id}/messages/archives/` | No | Only messages >365 days |
 | **Dev tools (status)** | 7 versions | `development_tools/reports/archive/` | No | AI_STATUS.md, AI_PRIORITIES.md, etc. |
 | **Dev tools (results)** | 7 versions | `{domain}/jsons/archive/` | No | Tool JSON results |
-| **Test logs** | 7 versions total | `development_tools/tests/logs/archive/` | No | Consolidated |
+| **Test logs** | 1 current + 7 backups + up to 7 archive | `tests/logs/archive/` | No | Archive >30 days deleted |
 | **Generated docs** | 7 versions | `{doc_dir}/archive/` | No | FUNCTION_REGISTRY_DETAIL.md, etc. |
 | **Coverage JSON** | 5 versions | `development_tools/tests/jsons/archive/` | No | coverage.json, coverage_dev_tools.json |
 | **External Archive** | Manual | `c:\Users\Julie\projects\MHM\Archive\` | Optional | No cleanup policy |
@@ -436,6 +438,16 @@ Retention policies are configured in:
 - **User backups**: `core/backup_manager.py` - `max_backups` (10), `backup_retention_days` (30)
 - **Message archives**: `core/auto_cleanup.py` - `archive_retention_days` (90)
 - **Dev tools**: `development_tools/shared/file_rotation.py` - `max_versions` (varies by type)
+
+### 7.3.1. Default Rotation Protocol
+
+For backup/archive-managed files, the default protocol is:
+1. Keep `1` current active file
+2. Keep `7` previous copies in `backups/`
+3. Move older rotated copies to `archive/` and keep up to `7`
+4. Delete archive copies older than `30` days
+
+This keeps recent history immediately accessible while enforcing 30-day archive cleanup and a practical ceiling of 15 recent retained copies.
 
 ### 7.4. Policy Rationale
 

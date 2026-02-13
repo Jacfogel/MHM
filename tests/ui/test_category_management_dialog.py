@@ -470,11 +470,27 @@ class TestCategoryManagementDialogRealBehavior:
     def test_save_category_settings_updates_account_features(self, test_user, test_data_dir, qapp):
         """Test that save_category_settings updates account features on disk."""
         # Arrange
+        import time
+
         from core.user_data_handlers import (
             get_user_data,
             update_user_account,
+            clear_user_caches,
         )
-        update_user_account(test_user, {"features": {"checkins": "enabled"}})
+        # Prime account data with retries to reduce parallel filesystem/index timing races.
+        update_ok = False
+        for attempt in range(8):
+            if update_user_account(test_user, {"features": {"checkins": "enabled"}}):
+                clear_user_caches()
+                baseline = get_user_data(
+                    test_user, "account", normalize_on_read=True
+                )
+                if "account" in baseline and baseline.get("account"):
+                    update_ok = True
+                    break
+            if attempt < 7:
+                time.sleep(0.1)
+        assert update_ok, "Failed to initialize account data for category settings test"
 
         dialog = CategoryManagementDialog(parent=None, user_id=test_user)
         dialog.ui.groupBox_enable_automated_messages.setChecked(True)
@@ -486,14 +502,14 @@ class TestCategoryManagementDialogRealBehavior:
                 dialog.save_category_settings()
                 
                 # Assert - Verify account features were updated
-                import time
                 saved_account = {}
-                for attempt in range(8):
+                for attempt in range(20):
+                    clear_user_caches()
                     saved_account = get_user_data(test_user, 'account', normalize_on_read=True)
                     account_features = saved_account.get('account', {}).get('features', {})
                     if account_features.get('automated_messages') == 'enabled':
                         break
-                    if attempt < 7:
+                    if attempt < 19:
                         time.sleep(0.1)
                 
                 assert 'features' in saved_account.get('account', {}), \

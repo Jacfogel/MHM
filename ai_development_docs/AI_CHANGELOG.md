@@ -29,6 +29,12 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-13 - Retention protocol expansion + parallel flake fixes **Progressed**
+- Extended test-log retention in `tests/conftest.py` to nested directories: `tests/logs/flaky_detector_runs/*` and `tests/logs/worker_logs_backup/*` now follow `current / 7 backups / archive / 30-day prune`.
+- Stabilized two parallel-sensitive tests: unique per-test cache directory in `tests/behavior/test_auto_cleanup_behavior.py` and stronger precondition/retry handling in `tests/ui/test_category_management_dialog.py`.
+- Cleaned completed follow-ups from [TODO.md](TODO.md) (stray `logs/test_consolidated.log` item and `tests/scripts` cleanup task) and refreshed [PLANS.md](development_docs/PLANS.md) with latest `run_tests.py` baseline.
+- User validation confirms green full run: `python run_tests.py` -> `3737 passed, 0 failed` (total `189.36s`).
+
 ### 2026-02-11 - Parallel profiling + archive hygiene **Progressed**
 - Re-baselined full parallel profiling using temp-isolated pytest dirs (`--basetemp` and `cache_dir` under `%TEMP%`) to avoid cross-run contamination from shared test temp/cache paths.
 - Confirmed improved clean sample run: `4457 passed, 1 skipped in 209.25s`.

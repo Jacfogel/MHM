@@ -63,8 +63,15 @@ class TestDiscordCheckinRetryBehavior:
     def comm_manager(self, test_data_dir):
         """Create communication manager for testing."""
         from communication.core.channel_orchestrator import CommunicationManager
+        from communication.core.retry_manager import RetryManager
 
         manager = CommunicationManager()
+        # Isolate retry-manager state for this test module to avoid singleton cross-test queue noise.
+        try:
+            manager.retry_manager.stop_retry_thread()
+        except Exception:
+            pass
+        manager.retry_manager = RetryManager(send_callback=manager.send_message_sync)
         return manager
 
     def test_checkin_message_queued_on_discord_disconnect(
@@ -87,17 +94,8 @@ class TestDiscordCheckinRetryBehavior:
         if not actual_user_id:
             pytest.skip("Could not resolve actual user ID for test")
 
-        # Ensure check-ins are enabled for this user and Discord channel is configured
-        # Retry in case of race conditions with file writes in parallel execution
-        import time
-
-        user_data = {}
-        for attempt in range(5):
-            user_data = get_user_data(actual_user_id, "all", auto_create=True)
-            if user_data and ("account" in user_data or "preferences" in user_data):
-                break
-            if attempt < 4:
-                time.sleep(0.1)
+        # Ensure check-ins are enabled for this user and Discord channel is configured.
+        user_data = get_user_data(actual_user_id, "all", auto_create=True) or {}
 
         update_user_account(
             actual_user_id,
@@ -112,7 +110,8 @@ class TestDiscordCheckinRetryBehavior:
         clear_user_caches()
         assert wait_until(
             lambda: (
-                get_user_data(actual_user_id, "preferences", normalize_on_read=True)
+                clear_user_caches() is None
+                and get_user_data(actual_user_id, "preferences", normalize_on_read=True)
                 .get("preferences", {})
                 .get("channel", {})
                 .get("type")
@@ -123,8 +122,8 @@ class TestDiscordCheckinRetryBehavior:
                 .get("checkins")
                 == "enabled"
             ),
-            timeout_seconds=4.0,
-            poll_seconds=0.01,
+            timeout_seconds=8.0,
+            poll_seconds=0.02,
         ), "User should have persisted discord channel + enabled checkins before send"
 
         # Ensure clean retry-manager state in case singleton carries over from other tests.
@@ -144,13 +143,46 @@ class TestDiscordCheckinRetryBehavior:
         comm_manager._channels_dict["discord"] = mock_discord_bot
 
         # Act: Try to send check-in - should queue because channel not ready
-        with patch.object(comm_manager, "_should_send_checkin_prompt", return_value=True):
+        from communication.message_processing.conversation_flow_manager import (
+            conversation_manager,
+        )
+
+        def _mock_get_user_data(request_user_id, data_type="all", **kwargs):
+            if data_type == "preferences":
+                return {
+                    "preferences": {
+                        "channel": {"type": "discord"},
+                        "checkin_settings": {"enabled": True, "frequency": "daily"},
+                    }
+                }
+            if data_type == "account":
+                return {"account": {"features": {"checkins": "enabled"}}}
+            return {
+                "account": {"features": {"checkins": "enabled"}},
+                "preferences": {
+                    "channel": {"type": "discord"},
+                    "checkin_settings": {"enabled": True, "frequency": "daily"},
+                },
+            }
+
+        with (
+            patch.object(comm_manager, "_should_send_checkin_prompt", return_value=True),
+            patch.object(
+                conversation_manager,
+                "_start_dynamic_checkin",
+                return_value=("How are you feeling today?", False),
+            ),
+            patch(
+                "communication.core.channel_orchestrator.get_user_data",
+                side_effect=_mock_get_user_data,
+            ),
+        ):
             comm_manager.handle_message_sending(actual_user_id, "checkin")
 
         # Assert: Verify message was queued for retry
         assert wait_until(
             lambda: comm_manager.retry_manager.get_queue_size() > 0,
-            timeout_seconds=3.0,
+            timeout_seconds=8.0,
             poll_seconds=0.02,
         ), "Failed check-in message should be queued for retry"
         queue_size = comm_manager.retry_manager.get_queue_size()

@@ -237,11 +237,23 @@ class ComponentLogger:
         if os.getenv("TEST_CONSOLIDATED_LOGGING") == "1" and _is_testing_environment():
             # Create consolidated handler directly for this logger
             try:
-                # Get environment-specific log paths (testing => base_dir is tests/logs)
+                # Get environment-specific log paths.
                 log_paths = _get_log_paths_for_environment()
-                consolidated_log_file = str(
-                    Path(log_paths["base_dir"]) / "test_consolidated.log"
-                )
+
+                # Hard guardrail: consolidated test log must always be under tests/logs.
+                # If LOGS_DIR is misconfigured in a subprocess/environment, force the
+                # known-safe test logs location so we never create logs/test_consolidated.log.
+                base_dir_path = Path(log_paths["base_dir"])
+                base_dir_norm = str(base_dir_path).replace("\\", "/").lower()
+                if "/tests/logs" not in base_dir_norm and not base_dir_norm.endswith(
+                    "/tests/logs"
+                ):
+                    base_dir_path = Path(
+                        os.getenv("TEST_LOGS_DIR", str(Path("tests") / "logs"))
+                    )
+
+                base_dir_path.mkdir(parents=True, exist_ok=True)
+                consolidated_log_file = str(base_dir_path / "test_consolidated.log")
 
                 # Create consolidated handler
                 consolidated_handler = logging.FileHandler(

@@ -43,10 +43,25 @@ def _resolve_account_file(test_data_dir, internal_username):
 
 
 def _resolve_actual_user_id(test_data_dir, internal_username):
-    """Resolve UUID user id for a logical username from the test index."""
-    return TestUserFactory.get_test_user_id_by_internal_username(
-        internal_username, test_data_dir
-    )
+    """Resolve UUID user id for a logical username using on-disk account data first."""
+    from pathlib import Path
+    import time
+
+    users_dir = Path(test_data_dir) / "users"
+    for _ in range(40):
+        if users_dir.exists():
+            for account_file in users_dir.glob("*/account.json"):
+                account = safe_json_read(str(account_file), default={})
+                if account.get("internal_username") == internal_username:
+                    return account_file.parent.name
+        # Fallback to index mapping if direct scan does not find it yet.
+        mapped = TestUserFactory.get_test_user_id_by_internal_username(
+            internal_username, test_data_dir
+        )
+        if mapped:
+            return mapped
+        time.sleep(0.05)
+    return None
 
 
 @pytest.mark.unit

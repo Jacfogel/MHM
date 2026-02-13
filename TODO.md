@@ -614,13 +614,6 @@ Priority
 - the crash issue itself has already been addressed, this task is solely for output formatting
 
 
-**reappearing file in wrong place**
-- logs\test_consolidated.log keeps reappearing, but it shouldn't exist. tests\logs\test_consolidated.log also exists and should.
-
-**directory with single .py file that should be elsewhere**
-- tests\scripts exists and I don't know why, I don't think it should. We need to determine whether the one script in it, tests\scripts\cleanup_old_test_dirs.py, is connected to/called by anything else and if it is then we should integrate the logic into the test stuff properly, not sure where that would be but it's not tests\scripts. if tests\scripts\cleanup_old_test_dirs.py is not connected to/called by anything else then we shoulddetermine if it contains anything that should be incorporated into the main test stuff, do so, and then clean it up/move it to the top level scripts/ directory.
-
-
 **Improve existing test runner**
    - set process priority during testing
    - optionally pause LM Studio model server if not required by tests
@@ -634,3 +627,6 @@ Priority
    - LM Studio model residency in RAM
    - Windows file cache behavior during large test runs
    - Identify safe optimizations without reducing usability
+
+**cleanup/simplify test artifact cleanup**
+- everything in tests/data/ should be cleaned up between test runs

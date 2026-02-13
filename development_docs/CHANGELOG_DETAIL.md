@@ -33,6 +33,16 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-13 - Test artifact retention protocol expansion and parallel flake stabilization
+- **Feature**: Extended the explicit test-log retention protocol to nested log families in `tests/conftest.py`, applying `current/7 backups/archive/30-day prune` behavior to `tests/logs/flaky_detector_runs/*` and `tests/logs/worker_logs_backup/*` in addition to existing top-level rotating artifacts.
+- **Fix**: Hardened two parallel-sensitive tests:
+  - `tests/behavior/test_auto_cleanup_behavior.py`: switched `temp_test_dir` fixture from shared `tests/data/cache_test` to UUID-scoped per-test directory to remove cross-worker directory races.
+  - `tests/ui/test_category_management_dialog.py`: strengthened account precondition initialization and extended verification retry window for `test_save_category_settings_updates_account_features` to reduce transient parallel read/write/index timing failures.
+- **Planning/Tracking**: Removed completed TODO items for the stale `logs/test_consolidated.log` location issue and `tests/scripts/cleanup_old_test_dirs.py` follow-up from [TODO.md](TODO.md); updated performance baseline notes in [PLANS.md](development_docs/PLANS.md) with the latest full `run_tests.py` result.
+- **Validation**:
+  - Targeted checks: both patched tests passed in local targeted pytest runs.
+  - User-validated full run: `python run_tests.py` -> `3737 passed, 0 failed` (parallel: `3652 passed`, serial no-parallel: `85 passed`), total `189.36s`.
+
 ### 2026-02-11 - Parallel profiling baseline reset and profile-artifact archive handling
 - **Feature**: Re-baselined full parallel profiling runs with temp-isolated pytest paths (`--basetemp` + `cache_dir` under `%TEMP%`) to avoid cross-run contamination from shared `tests/data` temp/cache directories. User-validated clean run: `4457 passed, 1 skipped in 209.25s (0:03:29)`.
 - **Fix**: Applied backup-guide handling to recent parallel profile artifacts by moving `tests/logs/parallel_profile_20260211_*.log` and `.xml` files into `development_tools/tests/logs/archive/` (standard test-log archive location), leaving active `tests/logs/` clear of those historical profiles.

@@ -80,6 +80,15 @@ def _should_exclude_path(
             "tests/fixtures/"
         ):
             return False
+        # Allow ephemeral pytest temp roots used by test runner isolation.
+        # These are explicit test inputs and should not be filtered by global
+        # development exclusions.
+        if (
+            rel_path_str.startswith(".tmp_pytest_runner/")
+            or rel_path_str.startswith(".tmp_pytest/")
+            or rel_path_str.startswith(".tmp_devtools_pyfiles/")
+        ):
+            return False
         return should_exclude_file(
             rel_path_str, tool_type=tool_type, context=context
         )
