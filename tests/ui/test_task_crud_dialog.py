@@ -32,7 +32,9 @@ class TestTaskCrudDialog:
         app = QApplication.instance()
         if app is None:
             app = QApplication([])
-            app.setAttribute(Qt.AA_ShareOpenGLContexts, False)
+            attr = getattr(Qt, "AA_ShareOpenGLContexts", None)
+            if attr is not None:
+                app.setAttribute(attr, False)
         yield app
         # Don't quit the app here as it might be used by other tests
     
@@ -121,13 +123,17 @@ class TestTaskCrudDialog:
                         assert dialog.ui.tableWidget_completed_tasks.columnCount() == 6
                         
                         # Verify headers
-                        active_headers = [dialog.ui.tableWidget_active_tasks.horizontalHeaderItem(i).text() 
-                                        for i in range(dialog.ui.tableWidget_active_tasks.columnCount())]
+                        active_headers = [
+                            (h.text() if (h := dialog.ui.tableWidget_active_tasks.horizontalHeaderItem(i)) else "")
+                            for i in range(dialog.ui.tableWidget_active_tasks.columnCount())
+                        ]
                         expected_active = ["Title", "Description", "Due Date", "Due Time", "Priority", "Category", "Created"]
                         assert active_headers == expected_active
                         
-                        completed_headers = [dialog.ui.tableWidget_completed_tasks.horizontalHeaderItem(i).text() 
-                                           for i in range(dialog.ui.tableWidget_completed_tasks.columnCount())]
+                        completed_headers = [
+                            (h.text() if (h := dialog.ui.tableWidget_completed_tasks.horizontalHeaderItem(i)) else "")
+                            for i in range(dialog.ui.tableWidget_completed_tasks.columnCount())
+                        ]
                         expected_completed = ["Title", "Description", "Due Date", "Priority", "Category", "Completed"]
                         assert completed_headers == expected_completed
                         
@@ -208,7 +214,7 @@ class TestTaskCrudDialog:
                         
                         # Verify table content
                         first_row = dialog.ui.tableWidget_active_tasks.item(0, 0)
-                        assert first_row.text() == 'Test Task 1'
+                        assert first_row is not None and first_row.text() == 'Test Task 1'
                         
                     finally:
                         dialog.deleteLater()
@@ -239,7 +245,7 @@ class TestTaskCrudDialog:
                         
                         # Verify table content
                         first_row = dialog.ui.tableWidget_completed_tasks.item(0, 0)
-                        assert first_row.text() == 'Completed Task 1'
+                        assert first_row is not None and first_row.text() == 'Completed Task 1'
                         
                     finally:
                         dialog.deleteLater()

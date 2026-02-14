@@ -288,7 +288,7 @@ class TestSchedulerFunctions:
             prefs = {"enabled": False}
         # Ensure defaults for deterministic assertions
         if "reminder_time" not in prefs:
-            prefs["reminder_time"] = "10:00"
+            prefs["reminder_time"] = "10:00"  # pyright: ignore[reportArgumentType]
 
         # Test real behavior: function returns the task_settings dict
         assert isinstance(prefs, dict)
@@ -319,7 +319,7 @@ class TestSchedulerFunctions:
             prefs = {"enabled": False}
         # Ensure defaults for deterministic assertions
         if "frequency" not in prefs:
-            prefs["frequency"] = "daily"
+            prefs["frequency"] = "daily"  # pyright: ignore[reportArgumentType]
 
         assert isinstance(prefs, dict)
         # Note: mock_user_data has checkin_settings.enabled = False by default

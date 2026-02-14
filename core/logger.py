@@ -3,11 +3,12 @@
 import logging
 import os
 import shutil
+import sys
 import time
 import json
 import gzip
-import sys
 from pathlib import Path
+from typing import Any
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from core.error_handling import handle_errors
 
@@ -19,7 +20,7 @@ def _is_testing_environment():
         os.getenv("MHM_TESTING") == "1"
         or os.getenv("PYTEST_CURRENT_TEST") is not None
         or "pytest" in os.getenv("PYTHONPATH", "")
-        or any("test" in arg.lower() for arg in os.sys.argv if arg.startswith("-"))
+        or any("test" in arg.lower() for arg in sys.argv if arg.startswith("-"))
     )
 
 
@@ -450,6 +451,8 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
     Custom rotating file handler that moves rotated files to a backup directory.
     Supports both time-based and size-based rotation.
     """
+
+    stream: Any  # Set by base; we assign None in doRollover
 
     # ERROR_HANDLING_EXCLUDE: Logger infrastructure constructor
     def __init__(
@@ -1707,9 +1710,10 @@ def clear_log_file_locks():
         for handler in root_logger.handlers[:]:
             if isinstance(handler, logging.StreamHandler):
                 continue
-            if hasattr(handler, "stream") and handler.stream:
+            stream = getattr(handler, "stream", None)
+            if stream:
                 try:
-                    handler.stream.close()
+                    stream.close()
                 except Exception:
                     pass
             handler.close()
@@ -1719,9 +1723,10 @@ def clear_log_file_locks():
             for handler in component_logger.logger.handlers[:]:
                 if isinstance(handler, logging.StreamHandler):
                     continue
-                if hasattr(handler, "stream") and handler.stream:
+                stream = getattr(handler, "stream", None)
+                if stream:
                     try:
-                        handler.stream.close()
+                        stream.close()
                     except Exception:
                         pass
                 handler.close()

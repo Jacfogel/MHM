@@ -24,7 +24,7 @@ class TestTaskHandlerBehavior:
     """Test task handler real behavior and side effects."""
 
     def _create_test_user(
-        self, user_id: str, enable_checkins: bool = True, test_data_dir: str = None
+        self, user_id: str, enable_checkins: bool = True, test_data_dir: str | None = None
     ) -> bool:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(

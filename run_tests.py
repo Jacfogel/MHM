@@ -316,14 +316,16 @@ def interrupt_handler(signum, frame):
 @handle_errors("monitoring system resources", user_friendly=False, default_return={})
 def monitor_resources():
     """Monitor system resource usage and return metrics."""
-    if not PSUTIL_AVAILABLE:
+    if not PSUTIL_AVAILABLE or psutil is None:
         return {}
+    assert psutil is not None  # narrow for type checker after optional import
 
     try:
         process = psutil.Process()
         mem_info = process.memory_info()
         num_threads = process.num_threads()
-        num_fds = process.num_fds() if hasattr(process, "num_fds") else None
+        _num_fds_fn = getattr(process, "num_fds", None)
+        num_fds = _num_fds_fn() if callable(_num_fds_fn) else None
 
         # Get system-wide memory info
         sys_mem = psutil.virtual_memory()
@@ -590,8 +592,8 @@ def extract_pytest_session_info(output_text: str) -> dict:
 def save_partial_results(
     junit_xml_path: str,
     interrupted: bool = False,
-    output_text: str = None,
-    test_context: dict = None,
+    output_text: str | None = None,
+    test_context: dict | None = None,
 ):
     """Save partial test results from JUnit XML, falling back to output text parsing."""
     global _captured_output_lines
@@ -896,7 +898,7 @@ def run_command(
     description,
     progress_interval: int = 30,
     capture_output: bool = True,
-    test_context: dict = None,
+    test_context: dict | None = None,
     env_overrides: dict | None = None,
 ):
     """

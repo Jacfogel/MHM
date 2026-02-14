@@ -79,7 +79,7 @@ class ResponseCache:
         response: str,
         user_id: str | None = None,
         prompt_type: str = "default",
-        metadata: dict[str, Any] = None,
+        metadata: dict[str, Any] | None = None,
     ):
         """Cache a response"""
         if not AI_CACHE_RESPONSES:
@@ -98,7 +98,7 @@ class ResponseCache:
                 timestamp=current_time,
                 prompt_type=prompt_type,
                 user_id=user_id,
-                metadata=metadata,
+                metadata=metadata if metadata is not None else {},
             )
 
             self.cache[key] = entry
@@ -234,7 +234,7 @@ class ContextCache:
     """Cache for user context information"""
 
     @handle_errors("initializing context cache", default_return=None)
-    def __init__(self, ttl: int = None):
+    def __init__(self, ttl: int | None = None):
         """Initialize the context cache"""
         self.cache: dict[str, tuple[dict[str, Any], float]] = {}
         self.ttl = ttl or CONTEXT_CACHE_TTL

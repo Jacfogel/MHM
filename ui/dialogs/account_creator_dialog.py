@@ -1,4 +1,7 @@
-# account_creator_dialog.py - Account creator dialog implementation
+# account_creator_dialog.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""Account Creator Dialog"""
 
 import uuid
 from typing import Dict, Any

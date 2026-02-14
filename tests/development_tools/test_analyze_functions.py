@@ -149,6 +149,7 @@ class TestExtractDecoratorDocumentation:
         code = "@handle_errors('test description')\ndef test_func(): pass"
         tree = ast.parse(code)
         func_node = tree.body[0]
+        assert isinstance(func_node, ast.FunctionDef), "expected FunctionDef"
 
         result = extract_decorator_documentation(func_node.decorator_list)
         assert (
@@ -166,6 +167,7 @@ class TestExtractDecoratorDocumentation:
         code = "@error_handler('test description')\ndef test_func(): pass"
         tree = ast.parse(code)
         func_node = tree.body[0]
+        assert isinstance(func_node, ast.FunctionDef), "expected FunctionDef"
 
         result = extract_decorator_documentation(func_node.decorator_list)
         # Current implementation bug: elif never executes because first if matches all Call nodes
@@ -182,6 +184,7 @@ class TestExtractDecoratorDocumentation:
         code = "def test_func(): pass"
         tree = ast.parse(code)
         func_node = tree.body[0]
+        assert isinstance(func_node, ast.FunctionDef), "expected FunctionDef"
 
         result = extract_decorator_documentation(func_node.decorator_list)
         assert result == "", "Should return empty string for no decorators"

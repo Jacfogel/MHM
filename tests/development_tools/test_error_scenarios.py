@@ -144,6 +144,8 @@ class TestInvalidInputHandling:
         spec = importlib.util.spec_from_file_location(
             "development_tools.shared.standard_exclusions", exclusions_path
         )
+        if spec is None or spec.loader is None:
+            pytest.skip("Could not load standard_exclusions spec")
         exclusions_module = importlib.util.module_from_spec(spec)
         sys.modules["development_tools.shared.standard_exclusions"] = exclusions_module
         spec.loader.exec_module(exclusions_module)
@@ -167,6 +169,8 @@ class TestInvalidInputHandling:
         spec = importlib.util.spec_from_file_location(
             "development_tools.shared.constants", constants_path
         )
+        if spec is None or spec.loader is None:
+            pytest.skip("Could not load constants spec")
         constants_module = importlib.util.module_from_spec(spec)
         sys.modules["development_tools.shared.constants"] = constants_module
         spec.loader.exec_module(constants_module)

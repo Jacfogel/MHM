@@ -1,4 +1,11 @@
-# period_row_widget.py - Reusable period row widget for schedules, check-ins, and tasks
+# period_row_widget.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""
+Period Row Widget
+
+Reusable period row widget for schedules, check-ins, and tasks.
+"""
 
 from typing import Any
 

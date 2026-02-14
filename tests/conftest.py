@@ -500,8 +500,8 @@ def setup_qmessagebox_patches():
                 return QMessageBox.StandardButton.Yes
 
             @staticmethod
-            def about(*args, **kwargs):
-                return QMessageBox.StandardButton.Ok
+            def about(*args, **kwargs) -> None:
+                pass  # Real QMessageBox.about returns None
 
         # Apply the patch globally
         QMessageBox.information = MockQMessageBox.information
@@ -540,17 +540,21 @@ except (ImportError, ModuleNotFoundError):
 
 # Global flag to prevent multiple test logging setups
 _test_logging_setup_done = False
-_test_logger_global = None
-_test_log_file_global = None
+_test_logger_global: logging.Logger | None = None
+_test_log_file_global: Path | None = None
+
+# Counter for periodic_memory_cleanup (avoids attaching to fixture function object)
+_periodic_cleanup_test_count = 0
 
 
 # Set up dedicated testing logging
-def setup_test_logging():
+def setup_test_logging() -> tuple[logging.Logger, Path]:
     """Set up dedicated logging for tests with complete isolation from main app logging."""
     global _test_logging_setup_done, _test_logger_global, _test_log_file_global
 
     # Prevent multiple setup calls
     if _test_logging_setup_done:
+        assert _test_logger_global is not None and _test_log_file_global is not None
         return _test_logger_global, _test_log_file_global
 
     _test_logging_setup_done = True
@@ -1459,7 +1463,7 @@ def setup_consolidated_test_logging():
         from core.scheduler import SchedulerManager
         from core.service import MHMService
         from communication.core.channel_orchestrator import CommunicationManager
-        from ai.chatbot import AIChatbot
+        from ai.chatbot import AIChatBotSingleton
     except ImportError:
         pass  # Some modules might not be available during tests
 
@@ -4486,6 +4490,7 @@ def cleanup_communication_manager():
             from communication.core.channel_orchestrator import CommunicationManager
 
             if CommunicationManager._instance is not None:
+                cm_instance = CommunicationManager._instance
                 test_logger.debug("Cleaning up CommunicationManager singleton...")
                 # Add timeout wrapper to prevent hanging
                 import signal
@@ -4497,7 +4502,7 @@ def cleanup_communication_manager():
 
                 def stop_worker():
                     try:
-                        CommunicationManager._instance.stop_all()
+                        cm_instance.stop_all()
                     except Exception as e:
                         stop_error[0] = e
                     finally:
@@ -4513,9 +4518,9 @@ def cleanup_communication_manager():
                     )
                     # Force cleanup even if stop_all didn't complete
                     try:
-                        CommunicationManager._instance._running = False
-                        if hasattr(CommunicationManager._instance, "_channels_dict"):
-                            CommunicationManager._instance._channels_dict.clear()
+                        cm_instance._running = False
+                        if hasattr(cm_instance, "_channels_dict"):
+                            cm_instance._channels_dict.clear()
                     except Exception:
                         pass
                 elif stop_error[0]:
@@ -4748,13 +4753,14 @@ def periodic_memory_cleanup(request):
     Performs garbage collection every N tests to help prevent memory accumulation.
     This is especially important for long-running test suites and parallel execution.
     """
+    global _periodic_cleanup_test_count
     yield
 
     # Run garbage collection more frequently to prevent memory accumulation
     # Reduced from every 100 tests to every 20 tests for better memory management
     # This is especially important for parallel test execution with pytest-xdist
-    test_count = getattr(periodic_memory_cleanup, "_test_count", 0) + 1
-    periodic_memory_cleanup._test_count = test_count
+    _periodic_cleanup_test_count += 1
+    test_count = _periodic_cleanup_test_count
 
     # More frequent GC for parallel runs, less frequent for sequential
     import os

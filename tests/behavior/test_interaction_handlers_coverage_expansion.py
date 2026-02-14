@@ -128,6 +128,7 @@ class TestTaskManagementHandlerCoverage:
         # Should default to medium priority
         tasks = load_active_tasks(user_id)
         task = next((t for t in tasks if t.get("title") == "Test task"), None)
+        assert task is not None, "Expected to find created task"
         assert task.get("priority") == "medium"
 
     def test_parse_relative_date_today(self):

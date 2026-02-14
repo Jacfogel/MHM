@@ -38,8 +38,8 @@ class TestUserFactory:
 
     @staticmethod
     def _get_cache_key(
-        enable_checkins: bool = None,
-        enable_tasks: bool = None,
+        enable_checkins: bool | None = None,
+        enable_tasks: bool | None = None,
         user_type: str = "basic",
         **kwargs,
     ) -> str:
@@ -82,7 +82,7 @@ class TestUserFactory:
         user_id: str,
         enable_checkins: bool = True,
         enable_tasks: bool = True,
-        test_data_dir: str = None,
+        test_data_dir: str | None = None,
     ) -> bool:
         """
         Create a test user with basic functionality enabled
@@ -284,8 +284,8 @@ class TestUserFactory:
         test_data_dir: str,
         user_id: str,
         actual_user_id: str,
-        discord_user_id: str = None,
-        email: str = None,
+        discord_user_id: str | None = None,
+        email: str | None = None,
     ):
         """Update user index to map internal_username to UUID.
 
@@ -383,9 +383,11 @@ class TestUserFactory:
         user_id: str,
         enable_checkins: bool = True,
         enable_tasks: bool = True,
-        test_data_dir: str = None,
+        test_data_dir: str | None = None,
     ) -> bool:
         """Create basic user with test directory by directly saving files"""
+        if not test_data_dir:
+            return False
         try:
             # Check cache first to avoid recreating identical user data structures
             # Cache key excludes user_id to allow reuse across tests with same configuration
@@ -461,7 +463,9 @@ class TestUserFactory:
 
     @staticmethod
     def create_discord_user(
-        user_id: str, discord_user_id: str = None, test_data_dir: str = None
+        user_id: str,
+        discord_user_id: str | None = None,
+        test_data_dir: str | None = None,
     ) -> bool:
         """
         Create a test user specifically configured for Discord testing
@@ -490,9 +494,13 @@ class TestUserFactory:
 
     @staticmethod
     def create_discord_user__with_test_dir(
-        user_id: str, discord_user_id: str = None, test_data_dir: str = None
+        user_id: str,
+        discord_user_id: str | None = None,
+        test_data_dir: str | None = None,
     ) -> bool:
         """Create discord user with test directory by directly saving files"""
+        if not test_data_dir:
+            return False
         try:
             if discord_user_id is None:
                 discord_user_id = user_id
@@ -571,7 +579,9 @@ class TestUserFactory:
             return False
 
     @staticmethod
-    def create_full_featured_user(user_id: str, test_data_dir: str = None) -> bool:
+    def create_full_featured_user(
+        user_id: str, test_data_dir: str | None = None
+    ) -> bool:
         """
         Create a test user with all features enabled and comprehensive data
 
@@ -598,9 +608,11 @@ class TestUserFactory:
 
     @staticmethod
     def create_full_featured_user__with_test_dir(
-        user_id: str, test_data_dir: str = None
+        user_id: str, test_data_dir: str | None = None
     ) -> bool:
         """Create full featured user with test directory by directly saving files"""
+        if not test_data_dir:
+            return False
         try:
             # Check cache first to avoid recreating identical user data structures
             cache_key = TestUserFactory._get_cache_key(user_type="full")
@@ -777,7 +789,9 @@ class TestUserFactory:
 
     @staticmethod
     def create_email_user(
-        user_id: str, email: str = None, test_data_dir: str = None
+        user_id: str,
+        email: str | None = None,
+        test_data_dir: str | None = None,
     ) -> str:
         """
         Create a test user specifically configured for email testing
@@ -806,9 +820,13 @@ class TestUserFactory:
 
     @staticmethod
     def create_email_user__with_test_dir(
-        user_id: str, email: str = None, test_data_dir: str = None
+        user_id: str,
+        email: str | None = None,
+        test_data_dir: str | None = None,
     ) -> str:
         """Create email user with test directory by directly saving files"""
+        if not test_data_dir:
+            return ""
         try:
             if email is None:
                 email = f"{user_id}@example.com"
@@ -879,7 +897,9 @@ class TestUserFactory:
             return None
 
     @staticmethod
-    def create_email_user__impl(user_id: str, email: str = None) -> str:
+    def create_email_user__impl(
+        user_id: str, email: str | None = None
+    ) -> str:
         """Internal implementation of email user creation"""
         try:
             if email is None:
@@ -935,7 +955,9 @@ class TestUserFactory:
 
     @staticmethod
     def create_user_with_custom_fields(
-        user_id: str, custom_fields: dict[str, Any] = None, test_data_dir: str = None
+        user_id: str,
+        custom_fields: dict[str, Any] | None = None,
+        test_data_dir: str | None = None,
     ) -> bool:
         """
         Create a test user with custom fields for testing custom field functionality
@@ -978,7 +1000,7 @@ class TestUserFactory:
 
     @staticmethod
     def create_user_with_custom_fields__impl(
-        user_id: str, custom_fields: dict[str, Any] = None
+        user_id: str, custom_fields: dict[str, Any] | None = None
     ) -> bool:
         """Internal implementation of custom fields user creation"""
         try:
@@ -1060,7 +1082,9 @@ class TestUserFactory:
 
     @staticmethod
     def create_user_with_schedules(
-        user_id: str, schedule_config: dict[str, Any] = None, test_data_dir: str = None
+        user_id: str,
+        schedule_config: dict[str, Any] | None = None,
+        test_data_dir: str | None = None,
     ) -> bool:
         """
         Create a test user with comprehensive schedule configuration
@@ -1103,7 +1127,7 @@ class TestUserFactory:
 
     @staticmethod
     def create_user_with_schedules__impl(
-        user_id: str, schedule_config: dict[str, Any] = None
+        user_id: str, schedule_config: dict[str, Any] | None = None
     ) -> bool:
         """Internal implementation of schedules user creation"""
         try:
@@ -1379,7 +1403,9 @@ class TestUserFactory:
             return False
 
     @staticmethod
-    def create_minimal_user(user_id: str, test_data_dir: str = None) -> bool:
+    def create_minimal_user(
+        user_id: str, test_data_dir: str | None = None
+    ) -> bool:
         """
         Create a minimal test user with only basic messaging enabled
 
@@ -1406,7 +1432,7 @@ class TestUserFactory:
 
     @staticmethod
     def create_minimal_user_and_get_id(
-        user_id: str, test_data_dir: str = None
+        user_id: str, test_data_dir: str | None = None
     ) -> tuple[bool, str]:
         """
         Create a minimal test user and return the actual UUID
@@ -1437,9 +1463,11 @@ class TestUserFactory:
 
     @staticmethod
     def create_minimal_user__with_test_dir(
-        user_id: str, test_data_dir: str = None
+        user_id: str, test_data_dir: str | None = None
     ) -> bool:
         """Create minimal user with test directory by directly saving files"""
+        if not test_data_dir:
+            return False
         try:
             # Check cache first to avoid recreating identical user data structures
             cache_key = TestUserFactory._get_cache_key(user_type="minimal")
@@ -1508,9 +1536,11 @@ class TestUserFactory:
 
     @staticmethod
     def create_minimal_user__with_test_dir_and_get_id(
-        user_id: str, test_data_dir: str = None
+        user_id: str, test_data_dir: str | None = None
     ) -> tuple[bool, str]:
         """Create minimal user with test directory and return the actual UUID"""
+        if not test_data_dir:
+            return (False, "")
         try:
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -1619,8 +1649,53 @@ class TestUserFactory:
             return False
 
     @staticmethod
+    def create_minimal_user__impl_and_get_id(user_id: str) -> str | None:
+        """Create minimal user via real user directory and return the actual UUID."""
+        try:
+            from core.user_data_handlers import create_new_user
+
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": f"{user_id}@example.com",
+                "discord_user_id": "",
+                "timezone": "UTC",
+                "categories": ["motivational"],
+                "channel": {"type": "email"},
+                "checkin_settings": {
+                    "enabled": False,
+                    "frequency": "daily",
+                    "reminder_time": "09:00",
+                },
+                "task_settings": {
+                    "enabled": False,
+                    "default_priority": "medium",
+                    "reminder_enabled": True,
+                },
+                "preferred_name": f"Minimal User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": [],
+                "custom_fields": {
+                    "health_conditions": [],
+                    "medications_treatments": [],
+                    "allergies_sensitivities": [],
+                },
+                "interests": [],
+                "goals": [],
+                "loved_ones": [],
+                "activities_for_encouragement": [],
+                "notes_for_ai": [],
+            }
+            return create_new_user(user_data)
+        except Exception as e:
+            logger.error(f"Error creating minimal user {user_id}: {e}")
+            return None
+
+    @staticmethod
     def create_user_with_complex_checkins(
-        user_id: str, test_data_dir: str = None
+        user_id: str, test_data_dir: str | None = None
     ) -> bool:
         """
         Create a test user with complex check-in configurations
@@ -1648,9 +1723,11 @@ class TestUserFactory:
 
     @staticmethod
     def create_user_with_complex_checkins__with_test_dir(
-        user_id: str, test_data_dir: str = None
+        user_id: str, test_data_dir: str | None = None
     ) -> bool:
         """Create complex checkins user with test directory by directly saving files"""
+        if not test_data_dir:
+            return False
         try:
             # Check cache first to avoid recreating identical user data structures
             cache_key = TestUserFactory._get_cache_key(user_type="complex_checkins")
@@ -1810,7 +1887,9 @@ class TestUserFactory:
             return False
 
     @staticmethod
-    def create_user_with_health_focus(user_id: str, test_data_dir: str = None) -> bool:
+    def create_user_with_health_focus(
+        user_id: str, test_data_dir: str | None = None
+    ) -> bool:
         """
         Create a test user with health-focused features and data
 
@@ -1837,9 +1916,11 @@ class TestUserFactory:
 
     @staticmethod
     def create_user_with_health_focus__with_test_dir(
-        user_id: str, test_data_dir: str = None
+        user_id: str, test_data_dir: str | None = None
     ) -> bool:
         """Create health focus user with test directory by directly saving files"""
+        if not test_data_dir:
+            return False
         try:
             # Check cache first to avoid recreating identical user data structures
             cache_key = TestUserFactory._get_cache_key(user_type="health")
@@ -2000,7 +2081,9 @@ class TestUserFactory:
             return False
 
     @staticmethod
-    def create_user_with_task_focus(user_id: str, test_data_dir: str = None) -> bool:
+    def create_user_with_task_focus(
+        user_id: str, test_data_dir: str | None = None
+    ) -> bool:
         """
         Create a test user with task management focus
 
@@ -2027,9 +2110,11 @@ class TestUserFactory:
 
     @staticmethod
     def create_user_with_task_focus__with_test_dir(
-        user_id: str, test_data_dir: str = None
+        user_id: str, test_data_dir: str | None = None
     ) -> bool:
         """Create task focus user with test directory by directly saving files"""
+        if not test_data_dir:
+            return False
         try:
             # Check cache first to avoid recreating identical user data structures
             cache_key = TestUserFactory._get_cache_key(user_type="task")
@@ -2168,7 +2253,9 @@ class TestUserFactory:
             return False
 
     @staticmethod
-    def create_user_with_disabilities(user_id: str, test_data_dir: str = None) -> bool:
+    def create_user_with_disabilities(
+        user_id: str, test_data_dir: str | None = None
+    ) -> bool:
         """
         Create a test user with disability-focused features and data
 
@@ -2195,9 +2282,11 @@ class TestUserFactory:
 
     @staticmethod
     def create_user_with_disabilities__with_test_dir(
-        user_id: str, test_data_dir: str = None
+        user_id: str, test_data_dir: str | None = None
     ) -> bool:
         """Create disability user with test directory by directly saving files"""
+        if not test_data_dir:
+            return False
         try:
             # Check cache first to avoid recreating identical user data structures
             cache_key = TestUserFactory._get_cache_key(user_type="disability")
@@ -2341,7 +2430,9 @@ class TestUserFactory:
             return False
 
     @staticmethod
-    def create_user_with_limited_data(user_id: str, test_data_dir: str = None) -> bool:
+    def create_user_with_limited_data(
+        user_id: str, test_data_dir: str | None = None
+    ) -> bool:
         """
         Create a test user with minimal data for testing edge cases
 
@@ -2368,9 +2459,11 @@ class TestUserFactory:
 
     @staticmethod
     def create_user_with_limited_data__with_test_dir(
-        user_id: str, test_data_dir: str = None
+        user_id: str, test_data_dir: str | None = None
     ) -> bool:
         """Create limited data user with test directory by directly saving files"""
+        if not test_data_dir:
+            return False
         try:
             # Check cache first to avoid recreating identical user data structures
             cache_key = TestUserFactory._get_cache_key(user_type="limited_data")
@@ -2495,7 +2588,7 @@ class TestUserFactory:
 
     @staticmethod
     def create_user_with_inconsistent_data(
-        user_id: str, test_data_dir: str = None
+        user_id: str, test_data_dir: str | None = None
     ) -> bool:
         """
         Create a test user with inconsistent data for testing edge cases
@@ -2525,9 +2618,11 @@ class TestUserFactory:
 
     @staticmethod
     def create_user_with_inconsistent_data__with_test_dir(
-        user_id: str, test_data_dir: str = None
+        user_id: str, test_data_dir: str | None = None
     ) -> bool:
         """Create inconsistent data user with test directory by directly saving files"""
+        if not test_data_dir:
+            return False
         try:
             # Check cache first to avoid recreating identical user data structures
             cache_key = TestUserFactory._get_cache_key(user_type="inconsistent")
@@ -2774,7 +2869,10 @@ class TestUserFactory:
 
     @staticmethod
     def verify_email_user_creation__with_test_dir(
-        user_id: str, actual_user_id: str, test_data_dir: str, email: str = None
+        user_id: str,
+        actual_user_id: str,
+        test_data_dir: str,
+        email: str | None = None,
     ) -> str:
         """Helper function to verify email user creation with proper configuration patching"""
         # CRITICAL: Ensure user index is updated FIRST so get_user_id_by_identifier can find the user
@@ -2999,7 +3097,10 @@ class TestUserDataFactory:
 
 # Convenience functions for compatibility fallback
 def create_test_user(
-    user_id: str, user_type: str = "basic", test_data_dir: str = None, **kwargs
+    user_id: str,
+    user_type: str = "basic",
+    test_data_dir: str | None = None,
+    **kwargs: Any,
 ) -> bool:
     """
     Convenience function to create test users with different configurations
@@ -3170,7 +3271,9 @@ class TestDataFactory:
             return False
 
     @staticmethod
-    def create_test_schedule_data(categories: list[str] = None) -> dict[str, Any]:
+    def create_test_schedule_data(
+        categories: list[str] | None = None,
+    ) -> dict[str, Any]:
         """
         Create test schedule data for testing schedule management
 

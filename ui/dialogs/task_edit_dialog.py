@@ -1,3 +1,8 @@
+# task_edit_dialog.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""Task Edit Dialog"""
+
 from PySide6.QtWidgets import (
     QDialog,
     QMessageBox,

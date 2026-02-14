@@ -29,6 +29,13 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-13 - Pyright type fixes (fixes over ignores) **Progressed**
+- **tests/conftest.py**: Removed file-level pyright ignore. Fixed: (1) `setup_test_logging()` return type and assert so `test_logger`/`test_log_file` are always `Logger`/`Path`; (2) `QMessageBox.about` mock return type to `None` to match real API; (3) wrong import `AIChatbot` -> `AIChatBotSingleton`; (4) `periodic_memory_cleanup` uses module-level `_periodic_cleanup_test_count` instead of attaching to fixture function; (5) `CommunicationManager` cleanup uses local `cm_instance` so closure and later code see non-optional type.
+- **tests/development_tools/conftest.py**: Removed file-level pyright ignore. Fixed: all `importlib.util.spec_from_file_location` / `module_from_spec` / `loader.exec_module` usages now guard on `spec is not None and spec.loader is not None` (or raise for final load); dynamic module attributes set via `setattr(module, "config", ...)` for loader-injected config.
+- **tests/test_utilities.py** (from earlier): Optional params typed as `str | None` etc.; early `if not test_data_dir` guards in `*__with_test_dir`; added `create_minimal_user__impl_and_get_id`.
+- **Audit test fixes**: Marked `test_get_user_data_account_with_discord_id` and `test_checkin_handler_start_checkin_with_old_checkin` with `@pytest.mark.no_parallel` so they run in serial during audit/coverage and avoid shared-state interference. Added `@handle_errors` to `_parse_time_period` in `communication/message_processing/command_parser.py` (AI_PRIORITIES).
+- **Pyright in tests**: Reduced pyright warnings in `tests/` via typing (`str | None` for `test_data_dir` params), guards/asserts for optional members, `getattr`/`cast(Any)` for mocks, unused-expression fixes, and targeted ignores for intentional invalid-argument tests. Remaining warnings are mainly in `ui/` (dialogs/widgets).
+
 ### 2026-02-13 - Ruff cleanup + retention expansion + flake hardening **Progressed**
 - Extended test-log retention in `tests/conftest.py` to nested families: `tests/logs/flaky_detector_runs/*` and `tests/logs/worker_logs_backup/*` now use `current / 7 backups / archive / 30-day prune`.
 - Applied Ruff cleanup across many `tests/behavior/*` modules plus light runtime cleanup in `ai/chatbot.py`, `ai/cache_manager.py`, `ai/prompt_manager.py`, `communication/command_handlers/account_handler.py`, and `communication/command_handlers/analytics_handler.py` (unused imports/variables, simplified conditionals/strings, flatter test patch contexts).

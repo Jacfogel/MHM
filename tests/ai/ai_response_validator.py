@@ -6,6 +6,7 @@ Used in manual AI functionality tests to automatically flag issues.
 """
 
 import re
+from typing import Any
 
 
 class AIResponseValidator:
@@ -55,7 +56,7 @@ class AIResponseValidator:
         prompt: str = "",
         test_type: str = "",
         context_info: dict | None = None,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Validate an AI response for quality issues.
 

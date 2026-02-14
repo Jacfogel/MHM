@@ -1,4 +1,11 @@
-# tag_widget.py - Flexible tag widget for both management and selection
+# tag_widget.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""
+Tag Widget
+
+Flexible tag widget for both management and selection
+"""
 
 from PySide6.QtWidgets import QWidget, QListWidgetItem, QInputDialog, QMessageBox
 from PySide6.QtCore import Qt, Signal

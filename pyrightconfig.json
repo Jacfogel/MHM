@@ -3,7 +3,6 @@
   // "off" = no type checking, "basic" = basic checks, "standard" = more strict, "strict" = very strict
   // Note: Pyright (type checking) and development tools (code quality) check different things and are complementary
   "typeCheckingMode": "basic",
-  
   // Disable specific noisy checks that are mostly type annotation mismatches
   // These are still useful but can be overwhelming for beginners
   "reportReturnType": "none",
@@ -12,18 +11,24 @@
   "reportAttributeAccessIssue": "warning",
   "reportGeneralTypeIssues": "warning",
   "reportUnboundVariable": "error",
-  
   // Exclude noisy __all__ definition issues (Category C)
   // These are often intentional for backward compatibility or dynamic exports
   "reportUnsupportedDunderAll": "none",
-  
-  // Exclude paths - directories that shouldn't be type-checked
+  // To suppress only stub/library false positives without hiding future issues:
+  // - Prefer code fixes (getattr/setattr, guards) so the checker is satisfied.
+  // - For a single line: add at end of line: # type: ignore[reportAttributeAccessIssue]
+  // - For one file only: add "overrides" with "path": "path/to/file.py" and
+  //   "reportAttributeAccessIssue": "none" (use sparingly; new issues in that file won't show).
+  // ignore = suppress diagnostics; empty = no path-based suppression (UI and tests are type-checked).
+  "ignore": [],
+  // exclude = not type-checked. Can hide issues; see comments below.
   "exclude": [
-    // Temporary exclusions (revisit later)
+    // Temporary (revisit later). Hides type issues in dev tooling only.
     "development_tools",
     "development_tools/**",
-    "tests",
-    "tests/**",
+    // Hides type issues in scripts (e.g. bad imports). Per-project choice.
+    "scripts",
+    "scripts/**",
     // Permanent exclusions / standard noise
     "ui/generated",
     "ui/generated/**",

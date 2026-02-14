@@ -22,7 +22,9 @@ from core.time_utilities import (
 from tasks.task_management import (
     create_task,
     load_active_tasks,
+    load_completed_tasks,
     complete_task,
+    restore_task,
     delete_task,
     update_task,
     get_user_task_stats,
@@ -86,6 +88,18 @@ class TaskManagementHandler(InteractionHandler):
                 f"I don't understand that task command. Try: {', '.join(self.get_examples())}",
                 True,
             )
+
+    @handle_errors(
+        "listing tasks",
+        default_return=InteractionResponse(
+            "I'm having trouble listing your tasks. Please try again.", True
+        ),
+    )
+    def handle_list_tasks(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Public entry point for /tasks (list tasks)."""
+        return self._handle_list_tasks(user_id, entities)
 
     @handle_errors(
         "handling task creation",
@@ -822,6 +836,62 @@ class TaskManagementHandler(InteractionHandler):
                 "❌ Failed to complete task. Please try again.", True
             )
 
+    @handle_errors(
+        "handling task uncomplete (restore)",
+        default_return=InteractionResponse(
+            "I'm having trouble restoring that task. Please try again.", True
+        ),
+    )
+    def _handle_uncomplete_task(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Handle uncomplete/restore: move a completed task back to active."""
+        task_identifier = entities.get("task_identifier")
+        if not task_identifier:
+            completed_tasks = load_completed_tasks(user_id)
+            if not completed_tasks:
+                return InteractionResponse(
+                    "You have no completed tasks to restore.", True
+                )
+            return InteractionResponse(
+                "Which task would you like to restore? Specify the task number or name, or use 'list tasks' to see completed ones.",
+                completed=False,
+            )
+        completed_tasks = load_completed_tasks(user_id)
+        candidates = [
+            t
+            for t in completed_tasks
+            if str(task_identifier).strip().lower()
+            in (
+                str(t.get("task_id", "")).lower(),
+                str(t.get("id", "")).lower(),
+                (t.get("title") or "").lower(),
+            )
+            or (
+                str(task_identifier).isdigit()
+                and str(t.get("task_id", "")) == str(task_identifier)
+            )
+        ]
+        if not candidates:
+            by_title = [
+                t
+                for t in completed_tasks
+                if task_identifier.lower() in (t.get("title") or "").lower()
+            ]
+            candidates = by_title if by_title else []
+        task = candidates[0] if candidates else None
+        if not task:
+            return InteractionResponse(
+                "❌ Completed task not found. Please check the task number or name.",
+                True,
+            )
+        task_id = task.get("task_id", task.get("id"))
+        if restore_task(user_id, task_id):
+            return InteractionResponse(
+                f"✅ Restored to active: {task.get('title', 'Task')}", True
+            )
+        return InteractionResponse("❌ Failed to restore task. Please try again.", True)
+
     @handle_errors("handling task deletion")
     def _handle_delete_task(
         self, user_id: str, entities: dict[str, Any]
@@ -1098,9 +1168,8 @@ class TaskManagementHandler(InteractionHandler):
             task_lower = task["title"].lower()
             for variation_key, variations in common_variations.items():
                 if (
-                    (identifier_lower in variations or identifier_lower == variation_key)
-                    and any(var in task_lower for var in variations + [variation_key])
-                ):
+                    identifier_lower in variations or identifier_lower == variation_key
+                ) and any(var in task_lower for var in variations + [variation_key]):
                     return task
 
         return None

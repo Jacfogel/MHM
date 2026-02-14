@@ -1,3 +1,8 @@
+# task_completion_dialog.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""Task Completion Dialog"""
+
 from PySide6.QtWidgets import QDialog, QButtonGroup
 from PySide6.QtCore import QDate, QTime
 from ui.generated.task_completion_dialog_pyqt import Ui_Dialog_task_completion

@@ -1,3 +1,5 @@
+# message_editor_dialog.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
 """
 Message Editor Dialog
 

@@ -140,7 +140,7 @@ class ConversationHistory:
 
     @handle_errors("adding message to conversation", default_return=False)
     def add_message(
-        self, user_id: str, role: str, content: str, metadata: dict[str, Any] = None
+        self, user_id: str, role: str, content: str, metadata: dict[str, Any] | None = None
     ) -> bool:
         """
         Add a message to the active conversation session
@@ -220,7 +220,7 @@ class ConversationHistory:
                 if session.messages is None:
                     continue
                 for message in session.messages:
-                    msg_dict = {
+                    msg_dict: dict[str, Any] = {
                         "role": message.role,
                         "content": message.content,
                         # NOTE: This uses ISO-8601 via datetime.isoformat().
@@ -456,7 +456,9 @@ class ConversationHistory:
         try:
             sessions = self._sessions.get(user_id, [])
 
-            total_messages = sum(len(session.messages) for session in sessions)
+            total_messages = sum(
+                len(s.messages) if s.messages is not None else 0 for s in sessions
+            )
             total_sessions = len(sessions)
 
             # Count messages by role

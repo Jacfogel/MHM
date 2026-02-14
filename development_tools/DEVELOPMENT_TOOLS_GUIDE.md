@@ -91,7 +91,18 @@ python development_tools/run_development_tools.py config
 **Experimental Commands** (high-risk, run only with approval):
 - `version-sync` - synchronizes version metadata across files (fragile, use with caution).
 
-### 2.4. Entry Point Expectations
+### 2.4. Seeing all type-check issues (Pyright)
+
+The Problems panel in the editor may only show issues for open files. To see **all** type-check issues for the project in one run (respecting `pyrightconfig.json`):
+
+```powershell
+# From project root, with venv activated
+python -m pyright
+```
+
+Ensure `pyright` is installed in the venv (`pip install pyright` or `requirements.txt`). Exit code 1 means errors or warnings were reported; the summary line at the end shows error/warning counts. This is the same checker used by the basedpyright/Pyright extension, so results match what the language server would report for the full codebase.
+
+### 2.5. Entry Point Expectations
 
 Regardless of command:
 - Respect shared configuration from `development_tools/config/config.py` (with external config file support via `development_tools/config/development_tools_config.json`).
@@ -107,7 +118,7 @@ Regardless of command:
 
 **Portability**: All tools are portable and can be used in other projects. Create a `development_tools/config/development_tools_config.json` file (see `development_tools/development_tools_config.json.example` for a template) to customize paths, exclusions, constants, and other project-specific settings.
 
-### 2.5. Service Architecture
+### 2.6. Service Architecture
 
 The development tools suite uses a modular service architecture. The main `AIToolsService` class is composed from mixin classes located in `development_tools/shared/service/`:
 

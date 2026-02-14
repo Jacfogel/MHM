@@ -157,10 +157,11 @@ def load_development_tools_module(module_name: str):
     dt_init = project_root / "development_tools" / "__init__.py"
     if dt_init.exists() and "development_tools" not in sys.modules:
         dt_spec = importlib.util.spec_from_file_location("development_tools", dt_init)
-        dt_module = importlib.util.module_from_spec(dt_spec)
-        sys.modules["development_tools"] = dt_module
-        dt_spec.loader.exec_module(dt_module)
-    
+        if dt_spec is not None and dt_spec.loader is not None:
+            dt_module = importlib.util.module_from_spec(dt_spec)
+            sys.modules["development_tools"] = dt_module
+            dt_spec.loader.exec_module(dt_module)
+
     # Load config module FIRST (before shared modules that depend on it)
     # Config is at development_tools/config/config.py
     config_path = project_root / "development_tools" / "config" / "config.py"
@@ -169,30 +170,32 @@ def load_development_tools_module(module_name: str):
         config_init = project_root / "development_tools" / "config" / "__init__.py"
         if config_init.exists() and "development_tools.config" not in sys.modules:
             config_pkg_spec = importlib.util.spec_from_file_location("development_tools.config", config_init)
-            config_pkg = importlib.util.module_from_spec(config_pkg_spec)
-            sys.modules["development_tools.config"] = config_pkg
-            config_pkg_spec.loader.exec_module(config_pkg)
-        
+            if config_pkg_spec is not None and config_pkg_spec.loader is not None:
+                config_pkg = importlib.util.module_from_spec(config_pkg_spec)
+                sys.modules["development_tools.config"] = config_pkg
+                config_pkg_spec.loader.exec_module(config_pkg)
+
         # Load config module
         if "development_tools.config.config" not in sys.modules:
             config_spec = importlib.util.spec_from_file_location("development_tools.config.config", config_path)
-            config_module = importlib.util.module_from_spec(config_spec)
-            sys.modules["development_tools.config.config"] = config_module
-            config_spec.loader.exec_module(config_module)
-            # Make config available as development_tools.config for imports like "from development_tools.config import config"
-            if "development_tools.config" in sys.modules:
-                sys.modules["development_tools.config"].config = config_module
-            # Also add to development_tools package for "from development_tools import config"
-            if "development_tools" in sys.modules:
-                sys.modules["development_tools"].config = config_module
+            if config_spec is not None and config_spec.loader is not None:
+                config_module = importlib.util.module_from_spec(config_spec)
+                sys.modules["development_tools.config.config"] = config_module
+                config_spec.loader.exec_module(config_module)
+                # Make config available for "from development_tools.config import config" and "from development_tools import config"
+                if "development_tools.config" in sys.modules:
+                    setattr(sys.modules["development_tools.config"], "config", config_module)
+                if "development_tools" in sys.modules:
+                    setattr(sys.modules["development_tools"], "config", config_module)
     
     # Load shared package if needed (after config)
     shared_init = project_root / "development_tools" / "shared" / "__init__.py"
     if shared_init.exists() and "development_tools.shared" not in sys.modules:
         shared_spec = importlib.util.spec_from_file_location("development_tools.shared", shared_init)
-        shared_module = importlib.util.module_from_spec(shared_spec)
-        sys.modules["development_tools.shared"] = shared_module
-        shared_spec.loader.exec_module(shared_module)
+        if shared_spec is not None and shared_spec.loader is not None:
+            shared_module = importlib.util.module_from_spec(shared_spec)
+            sys.modules["development_tools.shared"] = shared_module
+            shared_spec.loader.exec_module(shared_module)
     
     # Load service package if needed (after shared)
     # IMPORTANT: Load service submodules BEFORE __init__.py (since __init__.py imports them)
@@ -203,37 +206,37 @@ def load_development_tools_module(module_name: str):
             shared_init = project_root / "development_tools" / "shared" / "__init__.py"
             if shared_init.exists():
                 shared_spec = importlib.util.spec_from_file_location("development_tools.shared", shared_init)
-                shared_module = importlib.util.module_from_spec(shared_spec)
-                shared_module.__package__ = "development_tools"
-                sys.modules["development_tools.shared"] = shared_module
-                if shared_spec.loader:
+                if shared_spec is not None and shared_spec.loader is not None:
+                    shared_module = importlib.util.module_from_spec(shared_spec)
+                    shared_module.__package__ = "development_tools"
+                    sys.modules["development_tools.shared"] = shared_module
                     shared_spec.loader.exec_module(shared_module)
-        
+
         # Create the service package module first (needed for relative imports to work)
         service_spec = importlib.util.spec_from_file_location("development_tools.shared.service", service_init)
-        service_module = importlib.util.module_from_spec(service_spec)
-        service_module.__package__ = "development_tools.shared.service"
-        service_module.__path__ = [str(project_root / "development_tools" / "shared" / "service")]
-        sys.modules["development_tools.shared.service"] = service_module
-        
-        # Load submodules in dependency order BEFORE executing __init__.py
-        # Load order: utilities (no deps), data_loading (uses utilities), 
-        # tool_wrappers (needs core for SCRIPT_REGISTRY), then core (uses all mixins), then others
-        service_submodules = ["utilities", "data_loading", "tool_wrappers", "audit_orchestration", "report_generation", "commands", "core"]
-        for submod_name in service_submodules:
-            submod_path = project_root / "development_tools" / "shared" / "service" / f"{submod_name}.py"
-            if submod_path.exists():
-                full_submod_name = f"development_tools.shared.service.{submod_name}"
-                if full_submod_name not in sys.modules:
-                    submod_spec = importlib.util.spec_from_file_location(full_submod_name, submod_path)
-                    submod = importlib.util.module_from_spec(submod_spec)
-                    submod.__package__ = "development_tools.shared.service"
-                    sys.modules[full_submod_name] = submod
-                    if submod_spec.loader:
-                        submod_spec.loader.exec_module(submod)
-        
-        # Now execute __init__.py (which imports from the submodules that are now loaded)
-        if service_spec.loader:
+        if service_spec is not None and service_spec.loader is not None:
+            service_module = importlib.util.module_from_spec(service_spec)
+            service_module.__package__ = "development_tools.shared.service"
+            service_module.__path__ = [str(project_root / "development_tools" / "shared" / "service")]
+            sys.modules["development_tools.shared.service"] = service_module
+
+            # Load submodules in dependency order BEFORE executing __init__.py
+            # Load order: utilities (no deps), data_loading (uses utilities),
+            # tool_wrappers (needs core for SCRIPT_REGISTRY), then core (uses all mixins), then others
+            service_submodules = ["utilities", "data_loading", "tool_wrappers", "audit_orchestration", "report_generation", "commands", "core"]
+            for submod_name in service_submodules:
+                submod_path = project_root / "development_tools" / "shared" / "service" / f"{submod_name}.py"
+                if submod_path.exists():
+                    full_submod_name = f"development_tools.shared.service.{submod_name}"
+                    if full_submod_name not in sys.modules:
+                        submod_spec = importlib.util.spec_from_file_location(full_submod_name, submod_path)
+                        if submod_spec is not None and submod_spec.loader is not None:
+                            submod = importlib.util.module_from_spec(submod_spec)
+                            submod.__package__ = "development_tools.shared.service"
+                            sys.modules[full_submod_name] = submod
+                            submod_spec.loader.exec_module(submod)
+
+            # Now execute __init__.py (which imports from the submodules that are now loaded)
             service_spec.loader.exec_module(service_module)
     
     # Load required shared modules that tools depend on
@@ -243,18 +246,20 @@ def load_development_tools_module(module_name: str):
         full_name = f"development_tools.shared.{svc_name}"
         if svc_path.exists() and full_name not in sys.modules:
             svc_spec = importlib.util.spec_from_file_location(full_name, svc_path)
-            svc_module = importlib.util.module_from_spec(svc_spec)
-            sys.modules[full_name] = svc_module
-            svc_spec.loader.exec_module(svc_module)
-    
+            if svc_spec is not None and svc_spec.loader is not None:
+                svc_module = importlib.util.module_from_spec(svc_spec)
+                sys.modules[full_name] = svc_module
+                svc_spec.loader.exec_module(svc_module)
+
     # Load compatibility cleanup package if needed (for fix_legacy_references imports)
     legacy_init = project_root / "development_tools" / "legacy" / "__init__.py"
     if legacy_init.exists() and "development_tools.legacy" not in sys.modules:
         legacy_spec = importlib.util.spec_from_file_location("development_tools.legacy", legacy_init)
-        legacy_module = importlib.util.module_from_spec(legacy_spec)
-        sys.modules["development_tools.legacy"] = legacy_module
-        legacy_spec.loader.exec_module(legacy_module)
-    
+        if legacy_spec is not None and legacy_spec.loader is not None:
+            legacy_module = importlib.util.module_from_spec(legacy_spec)
+            sys.modules["development_tools.legacy"] = legacy_module
+            legacy_spec.loader.exec_module(legacy_module)
+
     # Load compatibility cleanup submodules if needed (for fix_legacy_references)
     if "development_tools.legacy" in sys.modules:
         legacy_modules = ["analyze_legacy_references", "generate_legacy_reference_report"]
@@ -263,56 +268,61 @@ def load_development_tools_module(module_name: str):
             full_legacy_name = f"development_tools.legacy.{legacy_mod_name}"
             if legacy_mod_path.exists() and full_legacy_name not in sys.modules:
                 legacy_mod_spec = importlib.util.spec_from_file_location(full_legacy_name, legacy_mod_path)
-                legacy_mod = importlib.util.module_from_spec(legacy_mod_spec)
-                sys.modules[full_legacy_name] = legacy_mod
-                legacy_mod_spec.loader.exec_module(legacy_mod)
-    
+                if legacy_mod_spec is not None and legacy_mod_spec.loader is not None:
+                    legacy_mod = importlib.util.module_from_spec(legacy_mod_spec)
+                    sys.modules[full_legacy_name] = legacy_mod
+                    legacy_mod_spec.loader.exec_module(legacy_mod)
+
     # Load imports package if needed (for generate_module_dependencies imports)
     imports_init = project_root / "development_tools" / "imports" / "__init__.py"
     if imports_init.exists() and "development_tools.imports" not in sys.modules:
         imports_spec = importlib.util.spec_from_file_location("development_tools.imports", imports_init)
-        imports_module = importlib.util.module_from_spec(imports_spec)
-        sys.modules["development_tools.imports"] = imports_module
-        imports_spec.loader.exec_module(imports_module)
-        # Make config available for "from . import config" imports
-        if "development_tools.config" in sys.modules:
-            imports_module.config = sys.modules["development_tools.config"]
-        elif "development_tools.config.config" in sys.modules:
-            imports_module.config = sys.modules["development_tools.config.config"]
-    
+        if imports_spec is not None and imports_spec.loader is not None:
+            imports_module = importlib.util.module_from_spec(imports_spec)
+            sys.modules["development_tools.imports"] = imports_module
+            imports_spec.loader.exec_module(imports_module)
+            # Make config available for "from . import config" imports
+            if "development_tools.config" in sys.modules:
+                setattr(imports_module, "config", sys.modules["development_tools.config"])
+            elif "development_tools.config.config" in sys.modules:
+                setattr(imports_module, "config", sys.modules["development_tools.config.config"])
+
     # Load reports package if needed (for system_signals and quick_status imports)
     reports_init = project_root / "development_tools" / "reports" / "__init__.py"
     if reports_init.exists() and "development_tools.reports" not in sys.modules:
         reports_spec = importlib.util.spec_from_file_location("development_tools.reports", reports_init)
-        reports_module = importlib.util.module_from_spec(reports_spec)
-        sys.modules["development_tools.reports"] = reports_module
-        reports_spec.loader.exec_module(reports_module)
-        # Make config available for "from . import config" imports
-        if "development_tools.config" in sys.modules:
-            reports_module.config = sys.modules["development_tools.config"]
-        elif "development_tools.config.config" in sys.modules:
-            reports_module.config = sys.modules["development_tools.config.config"]
-    
+        if reports_spec is not None and reports_spec.loader is not None:
+            reports_module = importlib.util.module_from_spec(reports_spec)
+            sys.modules["development_tools.reports"] = reports_module
+            reports_spec.loader.exec_module(reports_module)
+            # Make config available for "from . import config" imports
+            if "development_tools.config" in sys.modules:
+                setattr(reports_module, "config", sys.modules["development_tools.config"])
+            elif "development_tools.config.config" in sys.modules:
+                setattr(reports_module, "config", sys.modules["development_tools.config.config"])
+
     # Load functions package if needed (for generate_function_registry imports)
     functions_init = project_root / "development_tools" / "functions" / "__init__.py"
     if functions_init.exists() and "development_tools.functions" not in sys.modules:
         functions_spec = importlib.util.spec_from_file_location("development_tools.functions", functions_init)
-        functions_module = importlib.util.module_from_spec(functions_spec)
-        sys.modules["development_tools.functions"] = functions_module
-        functions_spec.loader.exec_module(functions_module)
-        # Make config available for "from . import config" imports
-        if "development_tools.config" in sys.modules:
-            functions_module.config = sys.modules["development_tools.config"]
-        elif "development_tools.config.config" in sys.modules:
-            functions_module.config = sys.modules["development_tools.config.config"]
-    
+        if functions_spec is not None and functions_spec.loader is not None:
+            functions_module = importlib.util.module_from_spec(functions_spec)
+            sys.modules["development_tools.functions"] = functions_module
+            functions_spec.loader.exec_module(functions_module)
+            # Make config available for "from . import config" imports
+            if "development_tools.config" in sys.modules:
+                setattr(functions_module, "config", sys.modules["development_tools.config"])
+            elif "development_tools.config.config" in sys.modules:
+                setattr(functions_module, "config", sys.modules["development_tools.config.config"])
+
     # Load docs package if needed (for analyze_path_drift and other docs tools)
     docs_init = project_root / "development_tools" / "docs" / "__init__.py"
     if docs_init.exists() and "development_tools.docs" not in sys.modules:
         docs_spec = importlib.util.spec_from_file_location("development_tools.docs", docs_init)
-        docs_module = importlib.util.module_from_spec(docs_spec)
-        sys.modules["development_tools.docs"] = docs_module
-        docs_spec.loader.exec_module(docs_module)
+        if docs_spec is not None and docs_spec.loader is not None:
+            docs_module = importlib.util.module_from_spec(docs_spec)
+            sys.modules["development_tools.docs"] = docs_module
+            docs_spec.loader.exec_module(docs_module)
     
     # Special handling for service package (needs submodules loaded first)
     if module_name == "shared.service":
@@ -348,37 +358,37 @@ def load_development_tools_module(module_name: str):
                     shared_init = project_root / "development_tools" / "shared" / "__init__.py"
                     if shared_init.exists():
                         shared_spec = importlib.util.spec_from_file_location("development_tools.shared", shared_init)
-                        shared_module = importlib.util.module_from_spec(shared_spec)
-                        shared_module.__package__ = "development_tools"
-                        sys.modules["development_tools.shared"] = shared_module
-                        if shared_spec.loader:
+                        if shared_spec is not None and shared_spec.loader is not None:
+                            shared_module = importlib.util.module_from_spec(shared_spec)
+                            shared_module.__package__ = "development_tools"
+                            sys.modules["development_tools.shared"] = shared_module
                             shared_spec.loader.exec_module(shared_module)
-                
+
                 # Create service package module
                 service_spec = importlib.util.spec_from_file_location("development_tools.shared.service", package_init)
-                service_module = importlib.util.module_from_spec(service_spec)
-                service_module.__package__ = "development_tools.shared.service"
-                service_module.__path__ = [str(package_dir)]
-                sys.modules["development_tools.shared.service"] = service_module
-                
-                # Load submodules first
-                service_submodules = ["utilities", "data_loading", "tool_wrappers", "audit_orchestration", "report_generation", "commands", "core"]
-                for submod_name in service_submodules:
-                    submod_path = package_dir / f"{submod_name}.py"
-                    if submod_path.exists():
-                        full_submod_name = f"development_tools.shared.service.{submod_name}"
-                        if full_submod_name not in sys.modules:
-                            submod_spec = importlib.util.spec_from_file_location(full_submod_name, submod_path)
-                            submod = importlib.util.module_from_spec(submod_spec)
-                            submod.__package__ = "development_tools.shared.service"
-                            sys.modules[full_submod_name] = submod
-                            if submod_spec.loader:
-                                submod_spec.loader.exec_module(submod)
-                
-                # Now execute __init__.py
-                if service_spec.loader:
+                if service_spec is not None and service_spec.loader is not None:
+                    service_module = importlib.util.module_from_spec(service_spec)
+                    service_module.__package__ = "development_tools.shared.service"
+                    service_module.__path__ = [str(package_dir)]
+                    sys.modules["development_tools.shared.service"] = service_module
+
+                    # Load submodules first
+                    service_submodules = ["utilities", "data_loading", "tool_wrappers", "audit_orchestration", "report_generation", "commands", "core"]
+                    for submod_name in service_submodules:
+                        submod_path = package_dir / f"{submod_name}.py"
+                        if submod_path.exists():
+                            full_submod_name = f"development_tools.shared.service.{submod_name}"
+                            if full_submod_name not in sys.modules:
+                                submod_spec = importlib.util.spec_from_file_location(full_submod_name, submod_path)
+                                if submod_spec is not None and submod_spec.loader is not None:
+                                    submod = importlib.util.module_from_spec(submod_spec)
+                                    submod.__package__ = "development_tools.shared.service"
+                                    sys.modules[full_submod_name] = submod
+                                    submod_spec.loader.exec_module(submod)
+
+                    # Now execute __init__.py
                     service_spec.loader.exec_module(service_module)
-                return service_module
+                    return service_module
             
             # It's a package - load the __init__.py
             module_path = package_init
@@ -408,6 +418,8 @@ def load_development_tools_module(module_name: str):
             full_module_name = f"development_tools.{module_name}"
     
     spec = importlib.util.spec_from_file_location(full_module_name, module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not load spec for module '{full_module_name}' at {module_path}")
     module = importlib.util.module_from_spec(spec)
     # Set package correctly based on module location
     if "." in full_module_name:
@@ -417,9 +429,8 @@ def load_development_tools_module(module_name: str):
     else:
         module.__package__ = "development_tools"
     sys.modules[full_module_name] = module
-    if spec.loader:
-        spec.loader.exec_module(module)
-    
+    spec.loader.exec_module(module)
+
     return module
 
 

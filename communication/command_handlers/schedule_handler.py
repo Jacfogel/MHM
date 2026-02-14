@@ -65,6 +65,18 @@ class ScheduleManagementHandler(InteractionHandler):
             "I'm having trouble showing your schedule. Please try again.", True
         ),
     )
+    def handle_show_schedule(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Public entry point for /schedule."""
+        return self._handle_show_schedule(user_id, entities)
+
+    @handle_errors(
+        "showing schedule",
+        default_return=InteractionResponse(
+            "I'm having trouble showing your schedule. Please try again.", True
+        ),
+    )
     def _handle_show_schedule(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:

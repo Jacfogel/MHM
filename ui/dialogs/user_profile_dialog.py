@@ -1,4 +1,6 @@
 # user_profile_dialog.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
 """
 Personalization dialog for user account creation and management (PySide6-based).
 Provides a comprehensive interface for collecting and editing user personalization data.

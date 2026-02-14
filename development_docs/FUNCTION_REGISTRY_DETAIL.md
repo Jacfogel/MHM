@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-13 05:30:39
+> **Last Generated**: 2026-02-13 18:20:44
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1575
-- **Methods Found**: 1151
+- **Functions Found**: 1582
+- **Methods Found**: 1158
 - **Classes Found**: 154
-- **Total Items**: 2726
-- **Functions Documented**: 1504
-- **Methods Documented**: 1111
+- **Total Items**: 2740
+- **Functions Documented**: 1511
+- **Methods Documented**: 1118
 - **Classes Documented**: 120
-- **Total Documented**: 2615
+- **Total Documented**: 2629
 - **Template-Generated**: 4
 - **Last Updated**: 2026-02-13
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (571)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (412)
+### **Communication Functions** (419)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (411)
@@ -742,6 +742,8 @@ Returns:
 - [OK] `get_examples(self)` - Get example commands for analytics.
 - [OK] `get_help(self)` - Get help text for analytics commands.
 - [OK] `handle(self, user_id, parsed_command)` - Handle analytics and insights interactions.
+- [OK] `handle_show_analytics(self, user_id, entities)` - Public entry point for /analytics and similar.
+- [OK] `handle_show_status(self, user_id, entities)` - Public entry point for /status (same as analytics overview).
 **Classes:**
 - [OK] `AnalyticsHandler` - Handler for analytics and insights interactions
   - [OK] `AnalyticsHandler._build_trend_graph(self, recent_data, value_key, label, max_points)` - Build a simple ASCII trend graph for recent check-in values.
@@ -774,6 +776,8 @@ Returns:
   - [OK] `AnalyticsHandler.get_examples(self)` - Get example commands for analytics.
   - [OK] `AnalyticsHandler.get_help(self)` - Get help text for analytics commands.
   - [OK] `AnalyticsHandler.handle(self, user_id, parsed_command)` - Handle analytics and insights interactions.
+  - [OK] `AnalyticsHandler.handle_show_analytics(self, user_id, entities)` - Public entry point for /analytics and similar.
+  - [OK] `AnalyticsHandler.handle_show_status(self, user_id, entities)` - Public entry point for /status (same as analytics overview).
 
 #### `communication/command_handlers/base_handler.py`
 **Functions:**
@@ -965,6 +969,7 @@ Returns:
 - [OK] `get_examples(self)` - Get example commands for profile management.
 - [OK] `get_help(self)` - Get help text for profile management commands.
 - [OK] `handle(self, user_id, parsed_command)` - Handle profile management interactions.
+- [OK] `handle_show_profile(self, user_id, entities)` - Public entry point for /profile.
 **Classes:**
 - [OK] `ProfileHandler` - Handler for profile management interactions
   - [OK] `ProfileHandler._format_profile_text(self, account_data, context_data, preferences_data)` - Create a clean, readable profile string for channels like Discord.
@@ -975,6 +980,7 @@ Returns:
   - [OK] `ProfileHandler.get_examples(self)` - Get example commands for profile management.
   - [OK] `ProfileHandler.get_help(self)` - Get help text for profile management commands.
   - [OK] `ProfileHandler.handle(self, user_id, parsed_command)` - Handle profile management interactions.
+  - [OK] `ProfileHandler.handle_show_profile(self, user_id, entities)` - Public entry point for /profile.
 
 #### `communication/command_handlers/schedule_handler.py`
 **Functions:**
@@ -1002,6 +1008,7 @@ Output examples:
 - [OK] `get_examples(self)` - Get example commands for schedule management.
 - [OK] `get_help(self)` - Get help text for schedule management commands.
 - [OK] `handle(self, user_id, parsed_command)` - Handle schedule management interactions.
+- [OK] `handle_show_schedule(self, user_id, entities)` - Public entry point for /schedule.
 **Classes:**
 - [OK] `ScheduleManagementHandler` - Handler for schedule management interactions
   - [OK] `ScheduleManagementHandler._handle_add_schedule_period(self, user_id, entities)` - Add a new schedule period with enhanced options
@@ -1028,6 +1035,7 @@ Output examples:
   - [OK] `ScheduleManagementHandler.get_examples(self)` - Get example commands for schedule management.
   - [OK] `ScheduleManagementHandler.get_help(self)` - Get help text for schedule management commands.
   - [OK] `ScheduleManagementHandler.handle(self, user_id, parsed_command)` - Handle schedule management interactions.
+  - [OK] `ScheduleManagementHandler.handle_show_schedule(self, user_id, entities)` - Public entry point for /schedule.
 
 #### `communication/command_handlers/shared_types.py`
 **Classes:**
@@ -1065,12 +1073,14 @@ Returns:
 - [OK] `_handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter)` - Get appropriate response when no tasks match filters.
 - [OK] `_handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
 - [OK] `_handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
+- [OK] `_handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
 - [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
 - [OK] `_parse_time_string(self, time_str)` - Parse time string to HH:MM format
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_examples(self)` - Get example commands for task management.
 - [OK] `get_help(self)` - Get help text for task management commands.
 - [OK] `handle(self, user_id, parsed_command)` - Handle task management interactions.
+- [OK] `handle_list_tasks(self, user_id, entities)` - Public entry point for /tasks (list tasks).
 **Classes:**
 - [OK] `TaskManagementHandler` - Handler for task management interactions
   - [OK] `TaskManagementHandler._find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id.
@@ -1102,12 +1112,14 @@ Returns:
   - [OK] `TaskManagementHandler._handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter)` - Get appropriate response when no tasks match filters.
   - [OK] `TaskManagementHandler._handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
   - [OK] `TaskManagementHandler._handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
+  - [OK] `TaskManagementHandler._handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
   - [OK] `TaskManagementHandler._handle_update_task(self, user_id, entities)` - Handle task updates
   - [OK] `TaskManagementHandler._parse_time_string(self, time_str)` - Parse time string to HH:MM format
   - [OK] `TaskManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
   - [OK] `TaskManagementHandler.get_examples(self)` - Get example commands for task management.
   - [OK] `TaskManagementHandler.get_help(self)` - Get help text for task management commands.
   - [OK] `TaskManagementHandler.handle(self, user_id, parsed_command)` - Handle task management interactions.
+  - [OK] `TaskManagementHandler.handle_list_tasks(self, user_id, entities)` - Public entry point for /tasks (list tasks).
 
 #### `communication/communication_channels/__init__.py`
 
@@ -1974,6 +1986,7 @@ and initializes rule-based intent patterns for common commands.
 - [OK] `_match_message(message_for_match)` - Attempt to match intents against the provided message.
 - [OK] `_parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
+- [OK] `_parse_time_period(self, time_period)` - Parse a time period string (e.g. 'this week', 'last week', '3 days') into days and period_name.
 - [OK] `_rule_based_parse(self, message)` - Parse using rule-based patterns
 - [OK] `get_enhanced_command_parser()` - Get the global enhanced command parser instance
 - [OK] `get_suggestions(self, partial_message)` - Get command suggestions based on partial input
@@ -1999,6 +2012,7 @@ and initializes rule-based intent patterns for common commands.
   - [OK] `EnhancedCommandParser._is_valid_intent(self, intent)` - Check if intent is supported by any handler
   - [OK] `EnhancedCommandParser._parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
+  - [OK] `EnhancedCommandParser._parse_time_period(self, time_period)` - Parse a time period string (e.g. 'this week', 'last week', '3 days') into days and period_name.
   - [OK] `EnhancedCommandParser._rule_based_parse(self, message)` - Parse using rule-based patterns
   - [OK] `EnhancedCommandParser.get_suggestions(self, partial_message)` - Get command suggestions based on partial input
   - [OK] `EnhancedCommandParser.parse(self, message, user_id)` - Parse a user message into a structured command.

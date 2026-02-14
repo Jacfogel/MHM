@@ -435,7 +435,9 @@ class TestPeriodRowWidgetBehavior:
             },
             parent=parent
         )
-        parent.layout().addWidget(widget)
+        layout = parent.layout()
+        if layout is not None:
+            layout.addWidget(widget)
         # parent.show()  # Removed - widgets should not be shown during automated testing
         
         yield widget

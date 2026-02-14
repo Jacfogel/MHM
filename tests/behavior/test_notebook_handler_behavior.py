@@ -32,7 +32,7 @@ from tests.test_utilities import TestUserFactory
 class TestNotebookHandlerBehavior:
     """Test notebook handler real behavior and side effects."""
 
-    def _create_test_user(self, user_id: str, test_data_dir: str = None) -> bool:
+    def _create_test_user(self, user_id: str, test_data_dir: str | None = None) -> bool:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
@@ -695,7 +695,7 @@ class TestNotebookHandlerBehavior:
 class TestNotebookCommandParsing:
     """Test notebook command parsing through command parser and InteractionManager."""
 
-    def _create_test_user(self, user_id: str, test_data_dir: str = None) -> bool:
+    def _create_test_user(self, user_id: str, test_data_dir: str | None = None) -> bool:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
@@ -977,7 +977,7 @@ class TestNotebookCommandParsing:
 class TestNotebookEntityExtraction:
     """Test entity extraction from user messages."""
 
-    def _create_test_user(self, user_id: str, test_data_dir: str = None) -> bool:
+    def _create_test_user(self, user_id: str, test_data_dir: str | None = None) -> bool:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
@@ -1125,7 +1125,7 @@ class TestNotebookEntityExtraction:
 class TestNotebookFlowStateEdgeCases:
     """Test flow state edge cases and error conditions."""
 
-    def _create_test_user(self, user_id: str, test_data_dir: str = None) -> bool:
+    def _create_test_user(self, user_id: str, test_data_dir: str | None = None) -> bool:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
@@ -1414,7 +1414,7 @@ class TestNotebookFlowStateEdgeCases:
 class TestNotebookErrorHandling:
     """Test error handling in notebook operations."""
 
-    def _create_test_user(self, user_id: str, test_data_dir: str = None) -> bool:
+    def _create_test_user(self, user_id: str, test_data_dir: str | None = None) -> bool:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 

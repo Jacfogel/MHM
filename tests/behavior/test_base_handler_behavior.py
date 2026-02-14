@@ -213,11 +213,11 @@ class TestBaseHandlerBehavior:
         """Test that _validate_parsed_command rejects invalid intent types."""
         handler = ConcreteTestHandler()
         
-        # Test invalid intent types
+        # Test invalid intent types (intentionally wrong types for validation testing)
         invalid_intent_commands = [
-            ParsedCommand(intent=None, entities={}, confidence=0.9, original_message="test"),
-            ParsedCommand(intent=123, entities={}, confidence=0.9, original_message="test"),
-            ParsedCommand(intent=[], entities={}, confidence=0.9, original_message="test"),
+            ParsedCommand(intent=None, entities={}, confidence=0.9, original_message="test"),  # pyright: ignore[reportArgumentType]
+            ParsedCommand(intent=123, entities={}, confidence=0.9, original_message="test"),  # pyright: ignore[reportArgumentType]
+            ParsedCommand(intent=[], entities={}, confidence=0.9, original_message="test"),  # pyright: ignore[reportArgumentType]
         ]
         
         for command in invalid_intent_commands:
@@ -410,7 +410,7 @@ class TestBaseHandlerBehavior:
         # Test non-falsy invalid type - this will pass the check and be handled by concrete implementation
         # The concrete implementation will handle it gracefully
         invalid_command = 123
-        response = handler.handle(valid_user_id, invalid_command)
+        response = handler.handle(valid_user_id, invalid_command)  # pyright: ignore[reportArgumentType]
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
         # The concrete implementation may handle this differently, so we just check it returns a response
     
@@ -442,7 +442,7 @@ class TestBaseHandlerBehavior:
         handler = ConcreteTestHandler()
         
         # Test that can_handle returns False for None
-        result = handler.can_handle(None)
+        result = handler.can_handle(None)  # pyright: ignore[reportArgumentType]
         assert result is False, "Should return False for None"
     
     @pytest.mark.behavior

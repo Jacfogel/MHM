@@ -32,7 +32,7 @@ from tests.test_utilities import TestUserFactory
 class TestNotebookValidationIntegration:
     """Test validation integration with data manager operations."""
     
-    def _create_test_user(self, user_id: str, test_data_dir: str = None) -> bool:
+    def _create_test_user(self, user_id: str, test_data_dir: str | None = None) -> bool:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
     
@@ -262,7 +262,7 @@ class TestNotebookValidationIntegration:
 class TestNotebookValidationEdgeCases:
     """Test validation edge cases in integration scenarios."""
     
-    def _create_test_user(self, user_id: str, test_data_dir: str = None) -> bool:
+    def _create_test_user(self, user_id: str, test_data_dir: str | None = None) -> bool:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
     

@@ -55,11 +55,12 @@ class FeatureSelectionView(discord.ui.View):
     async def on_timeout(self):
         """Handle view timeout."""
         for item in self.children:
-            item.disabled = True
-        if hasattr(self, "message"):
+            setattr(item, "disabled", True)
+        message = getattr(self, "message", None)
+        if message is not None:
             try:
-                await self.message.edit(view=self)
-            except:
+                await message.edit(view=self)
+            except Exception:
                 pass
 
 
@@ -249,7 +250,7 @@ class CreateAccountButton(discord.ui.Button):
         """Create the account with selected features."""
         # Disable all items to prevent double-submission
         for item in self.parent_view.children:
-            item.disabled = True
+            setattr(item, "disabled", True)
 
         await interaction.response.defer()
 

@@ -512,7 +512,7 @@ class TestErrorHandlingImprovements:
         log_capture = []
         handler = logging.StreamHandler()
         handler.setLevel(logging.ERROR)
-        handler.stream = log_capture
+        setattr(handler, "stream", log_capture)  # test-only: capture to list
         
         logger.addHandler(handler)
         

@@ -97,18 +97,19 @@ class ChannelMonitor:
                 # Check if channel is in a failed state
                 if hasattr(channel, "status") and channel.status == "failed":
                     self._attempt_channel_restart(channel_name)
-                elif hasattr(channel, "is_healthy"):
-                    # Wrap is_healthy() call in try/except to handle exceptions gracefully
-                    # This ensures other channels are still processed even if one raises an exception
-                    try:
-                        if not channel.is_healthy():
+                else:
+                    is_healthy_fn = getattr(channel, "is_healthy", None)
+                    if callable(is_healthy_fn):
+                        # Wrap is_healthy() call in try/except to handle exceptions gracefully
+                        try:
+                            if not is_healthy_fn():
+                                self._attempt_channel_restart(channel_name)
+                        except Exception as e:
+                            # If is_healthy() raises an exception, treat it as unhealthy
+                            logger.warning(
+                                f"Exception checking health of channel {channel_name}: {e}"
+                            )
                             self._attempt_channel_restart(channel_name)
-                    except Exception as e:
-                        # If is_healthy() raises an exception, treat it as unhealthy
-                        logger.warning(
-                            f"Exception checking health of channel {channel_name}: {e}"
-                        )
-                        self._attempt_channel_restart(channel_name)
             except Exception as e:
                 # Log error but continue processing other channels
                 logger.error(f"Error checking channel {channel_name}: {e}")
@@ -141,9 +142,10 @@ class ChannelMonitor:
 
             # Attempt restart
             channel = self._channels_dict.get(channel_name)
-            if channel and hasattr(channel, "restart"):
+            restart_fn = getattr(channel, "restart", None) if channel else None
+            if channel and callable(restart_fn):
                 try:
-                    channel.restart()
+                    restart_fn()
                     logger.info(f"Successfully restarted channel {channel_name}")
                     # Reset failure count on successful restart
                     self._channel_failure_counts[channel_name] = 0
@@ -202,8 +204,10 @@ class ChannelMonitor:
                 if hasattr(channel, "status"):
                     channel_status["status"] = channel.status
                     channel_status["is_healthy"] = channel.status != "failed"
-                elif hasattr(channel, "is_healthy"):
-                    channel_status["is_healthy"] = channel.is_healthy()
+                else:
+                    is_healthy_fn = getattr(channel, "is_healthy", None)
+                    if callable(is_healthy_fn):
+                        channel_status["is_healthy"] = is_healthy_fn()
 
                 status[channel_name] = channel_status
 

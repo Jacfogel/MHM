@@ -261,7 +261,11 @@ class DiscordAPIClient:
 
             if not self.bot.user:
                 return {perm: False for perm in permissions}
-            bot_member = channel.guild.get_member(self.bot.user.id)
+            # DMs (PrivateChannel) have no guild; only guild channels have permissions
+            guild = getattr(channel, "guild", None)
+            if not guild:
+                return {perm: False for perm in permissions}
+            bot_member = guild.get_member(self.bot.user.id)
             if not bot_member:
                 return {perm: False for perm in permissions}
 

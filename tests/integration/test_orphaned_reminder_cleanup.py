@@ -92,15 +92,14 @@ class TestOrphanedReminderCleanup:
         reminder_jobs = [
             job
             for job in schedule.jobs
-            if hasattr(job.job_func, "func")
-            and job.job_func.func == scheduler.handle_task_reminder
+            if getattr(job.job_func, "func", None) == scheduler.handle_task_reminder
         ]
 
         # Should not find a job for the deleted task
         found_deleted_task_job = False
         for job in reminder_jobs:
-            if hasattr(job.job_func, "keywords"):
-                kwargs = job.job_func.keywords
+            kwargs = getattr(job.job_func, "keywords", None)
+            if kwargs is not None:
                 if (
                     kwargs.get("user_id") == user_id
                     and kwargs.get("task_id") == task_id
@@ -180,15 +179,14 @@ class TestOrphanedReminderCleanup:
         reminder_jobs = [
             job
             for job in schedule.jobs
-            if hasattr(job.job_func, "func")
-            and job.job_func.func == scheduler.handle_task_reminder
+            if getattr(job.job_func, "func", None) == scheduler.handle_task_reminder
         ]
 
         # Should not find a job for the completed task
         found_completed_task_job = False
         for job in reminder_jobs:
-            if hasattr(job.job_func, "keywords"):
-                kwargs = job.job_func.keywords
+            kwargs = getattr(job.job_func, "keywords", None)
+            if kwargs is not None:
                 if (
                     kwargs.get("user_id") == user_id
                     and kwargs.get("task_id") == task_id
@@ -249,14 +247,13 @@ class TestOrphanedReminderCleanup:
         assert not task.get("completed", False), "Task should not be completed"
 
         # Count reminder jobs before cleanup
+        _kw = lambda j: getattr(j.job_func, "keywords", None)
         reminder_jobs_before = [
             job
             for job in schedule.jobs
-            if hasattr(job.job_func, "func")
-            and job.job_func.func == scheduler.handle_task_reminder
-            and hasattr(job.job_func, "keywords")
-            and job.job_func.keywords.get("user_id") == user_id
-            and job.job_func.keywords.get("task_id") == task_id
+            if getattr(job.job_func, "func", None) == scheduler.handle_task_reminder
+            and (_kw(job) or {}).get("user_id") == user_id
+            and (_kw(job) or {}).get("task_id") == task_id
         ]
         assert len(reminder_jobs_before) > 0, "Should have reminder job before cleanup"
 
@@ -267,11 +264,9 @@ class TestOrphanedReminderCleanup:
         reminder_jobs_after = [
             job
             for job in schedule.jobs
-            if hasattr(job.job_func, "func")
-            and job.job_func.func == scheduler.handle_task_reminder
-            and hasattr(job.job_func, "keywords")
-            and job.job_func.keywords.get("user_id") == user_id
-            and job.job_func.keywords.get("task_id") == task_id
+            if getattr(job.job_func, "func", None) == scheduler.handle_task_reminder
+            and (_kw(job) or {}).get("user_id") == user_id
+            and (_kw(job) or {}).get("task_id") == task_id
         ]
 
         assert (
@@ -353,23 +348,19 @@ class TestOrphanedReminderCleanup:
         reminder_jobs = [
             job
             for job in schedule.jobs
-            if hasattr(job.job_func, "func")
-            and job.job_func.func == scheduler.handle_task_reminder
+            if getattr(job.job_func, "func", None) == scheduler.handle_task_reminder
         ]
+        _kw = lambda j: getattr(j.job_func, "keywords", None) or {}
 
         found_task1_job = any(
-            hasattr(job.job_func, "keywords")
-            and job.job_func.keywords.get("user_id") == user1_id
-            and job.job_func.keywords.get("task_id") == task1_id
+            _kw(job).get("user_id") == user1_id and _kw(job).get("task_id") == task1_id
             for job in reminder_jobs
         )
         assert not found_task1_job, "Reminder for deleted task1 should be removed"
 
         # Task2 reminder should be preserved (task still exists)
         found_task2_job = any(
-            hasattr(job.job_func, "keywords")
-            and job.job_func.keywords.get("user_id") == user2_id
-            and job.job_func.keywords.get("task_id") == task2_id
+            _kw(job).get("user_id") == user2_id and _kw(job).get("task_id") == task2_id
             for job in reminder_jobs
         )
         assert found_task2_job, "Reminder for active task2 should be preserved"
@@ -377,9 +368,8 @@ class TestOrphanedReminderCleanup:
         # Cleanup: Remove jobs we added
         jobs_to_remove = []
         for job in schedule.jobs:
-            if hasattr(job.job_func, "keywords"):
-                kwargs = job.job_func.keywords
-                if kwargs.get("user_id") in (user1_id, user2_id) and kwargs.get(
+            kwargs = getattr(job.job_func, "keywords", None)
+            if kwargs is not None and kwargs.get("user_id") in (user1_id, user2_id) and kwargs.get(
                     "task_id"
                 ) in (task1_id, task2_id):
                     jobs_to_remove.append(job)

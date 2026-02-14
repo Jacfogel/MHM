@@ -51,7 +51,7 @@ def _patch_should_exclude_file(monkeypatch, mock_func):
     module_name = 'development_tools.shared.standard_exclusions'
     if module_name in sys.modules:
         # Ensure the patched function is what gets imported
-        sys.modules[module_name].should_exclude_file = mock_func
+        sys.modules[module_name].should_exclude_file = mock_func  # pyright: ignore[reportAttributeAccessIssue]
 
 
 class TestFunctionExtraction:

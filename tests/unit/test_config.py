@@ -268,6 +268,7 @@ class TestConfigValidation:
                                     if exception_type_name == 'ConfigValidationError' or isinstance(e, ConfigValidationError):
                                         # Verify the exception was raised correctly
                                         assert e is not None
+                                        assert isinstance(e, ConfigValidationError)
                                         # Verify the exception contains the error in missing_configs
                                         assert len(e.missing_configs) > 0
                                         # The error should be prefixed with "AI Configuration:"

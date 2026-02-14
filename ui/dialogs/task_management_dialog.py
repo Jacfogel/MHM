@@ -1,3 +1,8 @@
+# task_management_dialog.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""Task Management Dialog"""
+
 from PySide6.QtWidgets import QDialog, QMessageBox, QWidget
 from ui.generated.task_management_dialog_pyqt import Ui_Dialog_task_management
 from ui.widgets.task_settings_widget import TaskSettingsWidget

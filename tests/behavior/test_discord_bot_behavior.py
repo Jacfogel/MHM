@@ -1080,8 +1080,13 @@ class TestDiscordBotIntegration:
             warnings.simplefilter("ignore", RuntimeWarning)
             # Suppress PytestUnraisableExceptionWarning from async cleanup
             try:
-                from _pytest.unraisableexception import PytestUnraisableExceptionWarning
-                warnings.simplefilter("ignore", PytestUnraisableExceptionWarning)
+                PytestUnraisableExceptionWarning = getattr(
+                    __import__("pytest", fromlist=["PytestUnraisableExceptionWarning"]),
+                    "PytestUnraisableExceptionWarning",
+                    None,
+                )
+                if PytestUnraisableExceptionWarning is not None:
+                    warnings.simplefilter("ignore", PytestUnraisableExceptionWarning)
             except ImportError:
                 # If pytest version doesn't have this, just ignore RuntimeWarning
                 pass
@@ -1100,7 +1105,7 @@ class TestDiscordBotIntegration:
         
         # Test with cooldown active
         bot._reconnect_attempts = 0
-        bot._last_reconnect_time = time.time()
+        bot._last_reconnect_time = int(time.time())
         result = bot._should_attempt_reconnection()
         assert result is False, "Should return False when cooldown is active"
         

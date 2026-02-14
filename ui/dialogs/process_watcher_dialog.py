@@ -1,4 +1,7 @@
-# process_watcher_dialog.py - Process Watcher Dialog
+# process_watcher_dialog.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""Process Watcher Dialog"""
 
 from PySide6.QtWidgets import (
     QDialog,

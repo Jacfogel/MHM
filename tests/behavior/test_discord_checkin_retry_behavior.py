@@ -17,6 +17,7 @@ import contextlib
 
 
 @pytest.mark.behavior
+@pytest.mark.no_parallel
 class TestDiscordCheckinRetryBehavior:
     """Test Discord check-in retry behavior and logging."""
 

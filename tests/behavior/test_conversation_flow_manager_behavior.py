@@ -26,7 +26,7 @@ from tests.test_utilities import TestUserFactory
 class TestConversationFlowManagerBehavior:
     """Test conversation flow manager real behavior and side effects."""
     
-    def _create_test_user(self, user_id: str, enable_checkins: bool = True, test_data_dir: str = None) -> bool:
+    def _create_test_user(self, user_id: str, enable_checkins: bool = True, test_data_dir: str | None = None) -> bool:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(user_id, enable_checkins=enable_checkins, test_data_dir=test_data_dir)
     

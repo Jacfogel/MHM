@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-13 05:30:39
+> **Last Generated**: 2026-02-13 18:20:44
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 95.9% [OK] EXCELLENT**
-- **Total Functions**: 1575
-- **Total Methods**: 1151
-- **Documented**: 2615/2726
+- **Total Functions**: 1582
+- **Total Methods**: 1158
+- **Documented**: 2629/2740
 - **Files Scanned**: 110
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -39,7 +39,7 @@ AI Operations Decision Tree:
 |   +-- `ai/chatbot.py` - Main AI implementation (53 functions)
 |   `-- `user/context_manager.py` - Context for AI (24 functions)
 +-- Command Parsing
-|   +-- `communication/message_processing/command_parser.py` - Natural language parsing (31 functions)
+|   +-- `communication/message_processing/command_parser.py` - Natural language parsing (33 functions)
 |   `-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
 `-- Interaction Management
     `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (40/42 functions)
@@ -216,11 +216,11 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2662
-2. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2625
+1. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2758
+2. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2627
 3. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2554
-4. [OK] `run_tests.py::run_command()` - Complexity: 2278
-5. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2205
+4. [OK] `run_tests.py::run_command()` - Complexity: 2281
+5. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2212
 
 
 ### **Pattern Recognition**
@@ -231,7 +231,7 @@ Most complex functions (may need refactoring):
 
 ### **File Organization**
 - `core/` - System utilities and data management (27 files, 843 functions)
-- `communication/` - Communication channels and message processing (39 files, 781 functions)
+- `communication/` - Communication channels and message processing (39 files, 795 functions)
 - `ai/` - AI chatbot functionality (7 files, 187 functions)
 - `ui/` - User interface components (28 files, 800 functions)
 - `user/` - User context and preferences (4 files, 64 functions)

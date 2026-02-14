@@ -501,27 +501,34 @@ class MHMService:
                 status_metrics.append(f"{loop_minutes}m uptime")
 
                 # Active scheduler jobs (scheduled tasks, not schedule.jobs)
-                if hasattr(self, "scheduler_manager") and self.scheduler_manager:
+                scheduler_mgr = getattr(self, "scheduler_manager", None)
+                if scheduler_mgr:
                     try:
-                        # Get actual scheduler jobs from the scheduler manager
-                        active_jobs = (
-                            len(self.scheduler_manager.get_active_jobs())
-                            if hasattr(self.scheduler_manager, "get_active_jobs")
-                            else 0
+                        get_active_jobs_fn = getattr(
+                            scheduler_mgr, "get_active_jobs", None
                         )
+                        if callable(get_active_jobs_fn):
+                            jobs_result = get_active_jobs_fn()
+                            active_jobs = (
+                                len(jobs_result)
+                                if isinstance(jobs_result, (list, tuple))
+                                else 0
+                            )
+                        else:
+                            active_jobs = 0
                         status_metrics.append(f"{active_jobs} active jobs")
-                    except:
+                    except Exception:
                         status_metrics.append("jobs: unknown")
 
                 # User count (total registered users in the system)
                 try:
-                    user_count = (
-                        len(self.user_manager.get_all_user_ids())
-                        if hasattr(self, "user_manager")
-                        else 0
-                    )
+                    user_mgr = getattr(self, "user_manager", None)
+                    if user_mgr is not None:
+                        user_count = len(user_mgr.get_all_user_ids())
+                    else:
+                        user_count = 0
                     status_metrics.append(f"{user_count} users")
-                except:
+                except Exception:
                     status_metrics.append("users: unknown")
 
                 # Memory usage (current process memory consumption in MB)
@@ -537,9 +544,13 @@ class MHMService:
                 # Communication channel status
                 if self.communication_manager:
                     try:
-                        channels = self.communication_manager.get_available_channels()
+                        get_channels = getattr(
+                            self.communication_manager, "get_available_channels", None
+                        )
+                        raw = get_channels() if callable(get_channels) else []
+                        channels = list(raw) if isinstance(raw, (list, tuple)) else []
                         status_metrics.append(f"{len(channels)} channels")
-                    except:
+                    except Exception:
                         pass
 
                 # Log enhanced status

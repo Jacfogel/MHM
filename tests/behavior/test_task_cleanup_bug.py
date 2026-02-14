@@ -17,7 +17,7 @@ from tests.test_utilities import TestUserFactory
 class TestTaskCleanupBug:
     """Test to demonstrate cleanup_task_reminders bug."""
 
-    def _create_test_user(self, user_id: str, test_data_dir: str = None) -> bool:
+    def _create_test_user(self, user_id: str, test_data_dir: str | None = None) -> bool:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(
             user_id, enable_checkins=False, test_data_dir=test_data_dir

@@ -438,7 +438,7 @@ class TestErrorHandlingCoverageExpansionPhase3Final:
         context = {"file_path": str(tmp_path / "test.json")}
         
         # This should handle gracefully
-        result = handler.handle_error(None, context, "test operation")
+        result = handler.handle_error(None, context, "test operation")  # pyright: ignore[reportArgumentType]
         assert result is False
 
     def test_error_handler_with_none_context_and_error(self, tmp_path):
@@ -446,7 +446,7 @@ class TestErrorHandlingCoverageExpansionPhase3Final:
         handler = ErrorHandler()
         
         # This should handle gracefully
-        result = handler.handle_error(None, None, "test operation")
+        result = handler.handle_error(None, None, "test operation")  # pyright: ignore[reportArgumentType]
         assert result is False
 
     def test_file_not_found_recovery_strategy_without_file_path(self, tmp_path):

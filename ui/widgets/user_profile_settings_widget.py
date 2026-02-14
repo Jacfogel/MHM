@@ -1,4 +1,9 @@
-# user_profile_settings_widget.py - User profile settings widget implementation
+# user_profile_settings_widget.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""
+User Profile Settings Widget
+"""
 
 from typing import Any
 

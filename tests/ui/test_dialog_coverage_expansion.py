@@ -250,7 +250,7 @@ class TestScheduleEditorDialogBehavior:
     def test_open_schedule_editor_function_real_behavior(self, qapp, test_user_data, test_data_dir):
         """Test open_schedule_editor function creates and shows dialog."""
         with patch('ui.dialogs.schedule_editor_dialog.ScheduleEditorDialog.exec') as mock_exec:
-            mock_exec.return_value = QDialog.Accepted
+            mock_exec.return_value = getattr(QDialog, "Accepted", 1)
             
             # Call the function
             result = open_schedule_editor(
@@ -261,7 +261,7 @@ class TestScheduleEditorDialogBehavior:
             
             # Verify dialog was created and shown
             mock_exec.assert_called_once()
-            assert result == QDialog.Accepted
+            assert result == getattr(QDialog, "Accepted", 1)
 
 
 class TestTaskEditDialogBehavior:

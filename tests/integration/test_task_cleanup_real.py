@@ -24,7 +24,7 @@ from tests.test_utilities import TestUserFactory
 class TestTaskCleanupReal:
     """Test task cleanup with real system calls - verifies actual behavior."""
     
-    def _create_test_user(self, user_id: str, test_data_dir: str = None) -> bool:
+    def _create_test_user(self, user_id: str, test_data_dir: str | None = None) -> bool:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(user_id, enable_checkins=False, test_data_dir=test_data_dir)
     

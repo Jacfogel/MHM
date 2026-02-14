@@ -71,6 +71,7 @@ def is_schedule_active(
     # Be explicit: only default when caller provided nothing.
     if current_time is None:
         current_time = now_datetime_full()
+    assert current_time is not None  # type narrow for checker
 
     if not schedule_data or not isinstance(schedule_data, dict):
         logger.warning(f"Invalid schedule data provided: {schedule_data}")

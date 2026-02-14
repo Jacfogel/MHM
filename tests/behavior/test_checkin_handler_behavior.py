@@ -24,7 +24,7 @@ class TestCheckinHandlerBehavior:
     """Test checkin handler real behavior and side effects."""
 
     def _create_test_user(
-        self, user_id: str, enable_checkins: bool = True, test_data_dir: str = None
+        self, user_id: str, enable_checkins: bool = True, test_data_dir: str | None = None
     ) -> bool:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(
@@ -548,6 +548,7 @@ class TestCheckinHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.checkins
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     @patch("communication.command_handlers.checkin_handler.get_recent_checkins")
     @patch("communication.command_handlers.checkin_handler.is_user_checkins_enabled")
     def test_checkin_handler_start_checkin_with_old_checkin(

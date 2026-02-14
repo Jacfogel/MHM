@@ -438,8 +438,8 @@ class HelpHandler(InteractionHandler):
         ]
 
 
-# Registry of all interaction handlers
-INTERACTION_HANDLERS = {
+# Registry of all interaction handlers (values may be None until lazy-loaded)
+INTERACTION_HANDLERS: dict[str, InteractionHandler | None] = {
     "TaskManagementHandler": None,  # Lazy import
     "CheckinHandler": None,  # Lazy import
     "ProfileHandler": None,  # Lazy import

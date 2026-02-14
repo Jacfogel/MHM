@@ -193,7 +193,7 @@ class AIChatBotSingleton:
         messages: list,
         max_tokens: int = 100,
         temperature: float = 0.2,
-        timeout: int = None,
+        timeout: int | None = None,
     ) -> str | None:
         """Make an API call to LM Studio using OpenAI-compatible format."""
         if timeout is None:
@@ -946,7 +946,7 @@ class AIChatBotSingleton:
                             from core.time_utilities import parse_timestamp_full
 
                             dt = parse_timestamp_full(ts)
-                            if dt.date() == date.today():
+                            if dt is not None and dt.date() == date.today():
                                 completed_today = True
 
                                 # Display-only: use canonical formatting helper (no inline strftime usage).
@@ -2048,7 +2048,7 @@ class AIChatBotSingleton:
 
     @handle_errors("smart truncating response", default_return="...")
     def _smart_truncate_response(
-        self, text: str, max_chars: int, max_words: int = None
+        self, text: str, max_chars: int, max_words: int | None = None
     ) -> str:
         """
         Smartly truncate response to avoid mid-sentence cuts.

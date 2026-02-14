@@ -314,7 +314,7 @@ def remove_period_row_from_layout(
     layout,
     period_widgets: list,
     deleted_periods: list,
-    guard_fn: Callable[[], bool] | None = None,
+    guard_fn: Callable[[object], bool] | None = None,
 ) -> None:
     """
     Remove a period row from layout and list, store data for undo.
@@ -333,13 +333,15 @@ def remove_period_row_from_layout(
 
         if isinstance(row_widget, PeriodRowWidget):
             data = row_widget.get_period_data()
-            deleted_periods.append({
-                "period_name": data["name"],
-                "start_time": data["start_time"],
-                "end_time": data["end_time"],
-                "active": data["active"],
-                "days": data["days"],
-            })
+            deleted_periods.append(
+                {
+                    "period_name": data["name"],
+                    "start_time": data["start_time"],
+                    "end_time": data["end_time"],
+                    "active": data["active"],
+                    "days": data["days"],
+                }
+            )
         layout.removeWidget(row_widget)
         row_widget.setParent(None)
         row_widget.deleteLater()

@@ -507,9 +507,8 @@ class TestTaskManagementDialogRealBehavior:
                                             # Assert - Verify schedule periods were updated
                                             mock_set_periods.assert_called_once_with(
                                                 test_user, "tasks", valid_settings['time_periods']
-                                            ), "Should save schedule periods to disk"
-                                            mock_clear_cache.assert_called_once_with(test_user, "tasks"), \
-                                                "Should clear schedule cache after saving"
+                                            )
+                                            mock_clear_cache.assert_called_once_with(test_user, "tasks")
     
     @pytest.mark.ui
     @pytest.mark.behavior
@@ -554,8 +553,7 @@ class TestTaskManagementDialogRealBehavior:
                                             dialog.save_task_settings()
                                             
                                             # Assert - Should setup default tags when enabling
-                                            mock_setup_tags.assert_called_once_with(test_user), \
-                                                "Should setup default tags when enabling task management"
+                                            mock_setup_tags.assert_called_once_with(test_user)
     
     @pytest.mark.ui
     @pytest.mark.behavior
@@ -571,8 +569,7 @@ class TestTaskManagementDialogRealBehavior:
             
             # Assert - Should add default period if none exist
             if len(dialog.task_widget.period_widgets) == 0:
-                mock_add.assert_called_once(), \
-                    "Should add default period when enabling task management with no periods"
+                mock_add.assert_called_once()
     
     @pytest.mark.ui
     @pytest.mark.behavior

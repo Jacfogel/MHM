@@ -17,6 +17,8 @@ if not config_path.exists():
     # Fallback to config.py if __init__.py doesn't exist
     config_path = project_root / "development_tools" / "config" / "config.py"
 spec = importlib.util.spec_from_file_location("development_tools.config", config_path)
+if spec is None or spec.loader is None:
+    raise RuntimeError("Could not load development_tools.config spec")
 config = importlib.util.module_from_spec(spec)
 sys.modules["development_tools.config"] = config
 spec.loader.exec_module(config)
@@ -25,9 +27,10 @@ if config_path.name == "__init__.py":
     config_config_path = project_root / "development_tools" / "config" / "config.py"
     if config_config_path.exists() and "development_tools.config.config" not in sys.modules:
         config_config_spec = importlib.util.spec_from_file_location("development_tools.config.config", config_config_path)
-        config_config_module = importlib.util.module_from_spec(config_config_spec)
-        sys.modules["development_tools.config.config"] = config_config_module
-        config_config_spec.loader.exec_module(config_config_module)
+        if config_config_spec is not None and config_config_spec.loader is not None:
+            config_config_module = importlib.util.module_from_spec(config_config_spec)
+            sys.modules["development_tools.config.config"] = config_config_module
+            config_config_spec.loader.exec_module(config_config_module)
 
 
 class TestConfigKeySettings:

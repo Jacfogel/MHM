@@ -23,147 +23,146 @@ class TestAIIntegration(AITestBase):
     __test__ = False  # Not a pytest test class - run via custom runner
     """Test AI integration with other system components"""
 
+    def test_context_with_checkins(self):
+        """Test 4: Context Building with Check-in Data"""
+        print("=" * 60)
+        print("TEST CATEGORY 4: Context Building with Check-in Data")
+        print("=" * 60)
 
-def test_context_with_checkins(self):
-    """Test 4: Context Building with Check-in Data"""
-    print("=" * 60)
-    print("TEST CATEGORY 4: Context Building with Check-in Data")
-    print("=" * 60)
+        user_id = "test_checkin_user"
 
-    user_id = "test_checkin_user"
-
-    try:
-        success = TestUserFactory.create_basic_user(
-            user_id, enable_checkins=True, test_data_dir=self.test_data_dir
-        )
-
-        if not success:
-            self.log_test(
-                "T-4.0",
-                "Create user for check-in tests",
-                "FAIL",
-                "",
-                "Failed to create test user",
-            )
-            return
-
-        import core.config
-
-        with (
-            patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-            patch.object(
-                core.config,
-                "USER_INFO_DIR_PATH",
-                os.path.join(self.test_data_dir, "users"),
-            ),
-        ):
-            actual_user_id = get_user_id_by_identifier(user_id)
-
-        if not actual_user_id:
-            self.log_test(
-                "T-4.0",
-                "Get user UUID for check-in tests",
-                "FAIL",
-                "",
-                "Could not get user UUID",
-            )
-            return
-
-        # Test 4.1: Context includes check-in data
         try:
-            context = user_context_manager.get_ai_context(
-                actual_user_id, include_conversation_history=False
-            )
-            has_checkins = (
-                "recent_activity" in context or "checkins" in str(context).lower()
+            success = TestUserFactory.create_basic_user(
+                user_id, enable_checkins=True, test_data_dir=self.test_data_dir
             )
 
-            # Get check-in status information
-            from core.response_tracking import get_recent_checkins
-            from core.time_utilities import format_timestamp  # canonical helper
+            if not success:
+                self.log_test(
+                    "T-4.0",
+                    "Create user for check-in tests",
+                    "FAIL",
+                    "",
+                    "Failed to create test user",
+                )
+                return
 
-            recent_checkins = (
-                get_recent_checkins(actual_user_id, limit=10) if actual_user_id else []
-            )  # get_recent_checkins uses limit, not days
+            import core.config
 
-            # Canonical formatting: avoid inline strftime in tests.
-            today_prefix = format_timestamp(now_datetime_full(), DATE_ONLY)
-
-            checkins_today = [
-                c
-                for c in recent_checkins
-                if c.get("timestamp", "").startswith(today_prefix)
-            ]
-
-            prompt = "How have I been doing with my check-ins?"
-            response = self.chatbot.generate_contextual_response(actual_user_id, prompt)
-
-            # Build context info for report
-            context_info = {
-                "has_checkin_data": has_checkins,
-                "checkins_today": len(checkins_today),
-                "recent_checkins_count": len(recent_checkins),
-                "context_keys": (
-                    list(context.keys()) if isinstance(context, dict) else []
+            with (
+                patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
+                patch.object(
+                    core.config,
+                    "USER_INFO_DIR_PATH",
+                    os.path.join(self.test_data_dir, "users"),
                 ),
-            }
+            ):
+                actual_user_id = get_user_id_by_identifier(user_id)
 
-            # Validate that AI doesn't claim check-ins exist when there are none
-            has_incorrect_claim = False
-            if len(recent_checkins) == 0 and len(checkins_today) == 0:
-                # Check if AI incorrectly claims they've been checking in
-                incorrect_phrases = [
-                    "you've been checking in",
-                    "checking in consistently",
-                    "your check-ins",
-                    "been doing check-ins",
+            if not actual_user_id:
+                self.log_test(
+                    "T-4.0",
+                    "Get user UUID for check-in tests",
+                    "FAIL",
+                    "",
+                    "Could not get user UUID",
+                )
+                return
+
+            # Test 4.1: Context includes check-in data
+            try:
+                context = user_context_manager.get_ai_context(
+                    actual_user_id, include_conversation_history=False
+                )
+                has_checkins = (
+                    "recent_activity" in context or "checkins" in str(context).lower()
+                )
+
+                # Get check-in status information
+                from core.response_tracking import get_recent_checkins
+                from core.time_utilities import format_timestamp  # canonical helper
+
+                recent_checkins = (
+                    get_recent_checkins(actual_user_id, limit=10) if actual_user_id else []
+                )  # get_recent_checkins uses limit, not days
+
+                # Canonical formatting: avoid inline strftime in tests.
+                today_prefix = format_timestamp(now_datetime_full(), DATE_ONLY)
+
+                checkins_today = [
+                    c
+                    for c in recent_checkins
+                    if c.get("timestamp", "").startswith(today_prefix)
                 ]
-                response_lower = response.lower() if response else ""
-                has_incorrect_claim = any(
-                    phrase in response_lower for phrase in incorrect_phrases
+
+                prompt = "How have I been doing with my check-ins?"
+                response = self.chatbot.generate_contextual_response(actual_user_id, prompt)
+
+                # Build context info for report
+                context_info = {
+                    "has_checkin_data": has_checkins,
+                    "checkins_today": len(checkins_today),
+                    "recent_checkins_count": len(recent_checkins),
+                    "context_keys": (
+                        list(context.keys()) if isinstance(context, dict) else []
+                    ),
+                }
+
+                # Validate that AI doesn't claim check-ins exist when there are none
+                has_incorrect_claim = False
+                if len(recent_checkins) == 0 and len(checkins_today) == 0:
+                    # Check if AI incorrectly claims they've been checking in
+                    incorrect_phrases = [
+                        "you've been checking in",
+                        "checking in consistently",
+                        "your check-ins",
+                        "been doing check-ins",
+                    ]
+                    response_lower = response.lower() if response else ""
+                    has_incorrect_claim = any(
+                        phrase in response_lower for phrase in incorrect_phrases
+                    )
+
+                # Test passes if context structure includes check-in fields, but fails if AI makes incorrect claims
+                if has_incorrect_claim:
+                    status = "FAIL"
+                    notes = (
+                        f"AI incorrectly claims check-ins exist when there are none "
+                        f"(0 recent, 0 today). Check-in context structure exists: {has_checkins}"
+                    )
+                else:
+                    status = "PASS" if has_checkins else "PARTIAL"
+                    notes = (
+                        f"Check-in context structure: {has_checkins}. "
+                        f"Today's check-ins: {len(checkins_today)}, Recent: {len(recent_checkins)}"
+                    )
+
+                self.log_test(
+                    "T-4.1",
+                    "Context includes check-in data",
+                    status,
+                    notes,
+                    prompt=prompt,
+                    response=response,
+                    test_type="contextual",
+                    context_info=context_info,
+                )
+            except Exception as e:
+                self.log_test(
+                    "T-4.1",
+                    "Context includes check-in data",
+                    "FAIL",
+                    "",
+                    f"Exception: {str(e)}",
                 )
 
-            # Test passes if context structure includes check-in fields, but fails if AI makes incorrect claims
-            if has_incorrect_claim:
-                status = "FAIL"
-                notes = (
-                    f"AI incorrectly claims check-ins exist when there are none "
-                    f"(0 recent, 0 today). Check-in context structure exists: {has_checkins}"
-                )
-            else:
-                status = "PASS" if has_checkins else "PARTIAL"
-                notes = (
-                    f"Check-in context structure: {has_checkins}. "
-                    f"Today's check-ins: {len(checkins_today)}, Recent: {len(recent_checkins)}"
-                )
-
-            self.log_test(
-                "T-4.1",
-                "Context includes check-in data",
-                status,
-                notes,
-                prompt=prompt,
-                response=response,
-                test_type="contextual",
-                context_info=context_info,
-            )
         except Exception as e:
             self.log_test(
-                "T-4.1",
-                "Context includes check-in data",
+                "T-4.0",
+                "Check-in context setup",
                 "FAIL",
                 "",
-                f"Exception: {str(e)}",
+                f"Exception during setup: {str(e)}",
             )
-
-    except Exception as e:
-        self.log_test(
-            "T-4.0",
-            "Check-in context setup",
-            "FAIL",
-            "",
-            f"Exception during setup: {str(e)}",
-        )
 
     def test_conversation_history_in_context(self):
         """Test 7: Conversation History Integration in Context"""

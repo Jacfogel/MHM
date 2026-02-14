@@ -1,3 +1,7 @@
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""Task CRUD Dialog"""
+
 from PySide6.QtWidgets import QDialog, QMessageBox, QTableWidgetItem, QHeaderView
 from PySide6.QtCore import Qt
 from ui.generated.task_crud_dialog_pyqt import Ui_Dialog_task_crud

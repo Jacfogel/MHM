@@ -159,19 +159,19 @@ class ContextBuilder:
             )
 
             # Analyze mood trends
-            moods = [
-                float(entry.get("mood"))
-                for entry in recent_checkins
-                if entry.get("mood") is not None
-            ]
+            moods: list[float] = []
+            for entry in recent_checkins:
+                m = entry.get("mood")
+                if m is not None:
+                    moods.append(float(m))
             avg_mood = sum(moods) / len(moods) if moods else None
 
             # Analyze energy trends
-            energies = [
-                float(entry.get("energy"))
-                for entry in recent_checkins
-                if entry.get("energy") is not None
-            ]
+            energies: list[float] = []
+            for entry in recent_checkins:
+                e = entry.get("energy")
+                if e is not None:
+                    energies.append(float(e))
             avg_energy = sum(energies) / len(energies) if energies else None
 
             # Analyze teeth brushing
@@ -342,7 +342,7 @@ class ContextBuilder:
 
     @handle_errors("creating context prompt", default_return="")
     def create_context_prompt(
-        self, context_data: ContextData, analysis: ContextAnalysis = None
+        self, context_data: ContextData, analysis: ContextAnalysis | None = None
     ) -> str:
         """
         Create a context prompt string for AI interactions
@@ -357,8 +357,9 @@ class ContextBuilder:
         try:
             logger.debug("Creating context prompt for AI interaction")
 
-            if analysis is None:
-                analysis = self.analyze_context(context_data)
+            effective_analysis = (
+                analysis if analysis is not None else self.analyze_context(context_data)
+            )
 
             context_parts = []
 
@@ -425,31 +426,31 @@ class ContextBuilder:
                     f"Recent check-in data (last {total_entries} entries):"
                 )
                 context_parts.append(
-                    f"- Breakfast eaten: {analysis.breakfast_rate:.0f}% of the time"
+                    f"- Breakfast eaten: {effective_analysis.breakfast_rate:.0f}% of the time"
                 )
-                if analysis.avg_mood:
+                if effective_analysis.avg_mood:
                     context_parts.append(
-                        f"- Average mood: {analysis.avg_mood:.1f}/5 ({analysis.mood_trend})"
+                        f"- Average mood: {effective_analysis.avg_mood:.1f}/5 ({effective_analysis.mood_trend})"
                     )
-                if analysis.avg_energy:
+                if effective_analysis.avg_energy:
                     context_parts.append(
-                        f"- Average energy: {analysis.avg_energy:.1f}/5 ({analysis.energy_trend})"
+                        f"- Average energy: {effective_analysis.avg_energy:.1f}/5 ({effective_analysis.energy_trend})"
                     )
                 context_parts.append(
-                    f"- Teeth brushed: {analysis.teeth_brushing_rate:.0f}% of the time"
+                    f"- Teeth brushed: {effective_analysis.teeth_brushing_rate:.0f}% of the time"
                 )
                 context_parts.append(
-                    f"- Overall wellness score: {analysis.overall_wellness_score:.1f}/100"
+                    f"- Overall wellness score: {effective_analysis.overall_wellness_score:.1f}/100"
                 )
 
                 # Add insights
-                if analysis.insights:
+                if effective_analysis.insights:
                     context_parts.append(
-                        f"Key insights: {', '.join(analysis.insights)}"
+                        f"Key insights: {', '.join(effective_analysis.insights)}"
                     )
 
                 logger.debug(
-                    f"Added check-in analysis to context: {total_entries} entries, wellness_score={analysis.overall_wellness_score:.1f}"
+                    f"Added check-in analysis to context: {total_entries} entries, wellness_score={effective_analysis.overall_wellness_score:.1f}"
                 )
 
             context_prompt = "\n".join(context_parts)

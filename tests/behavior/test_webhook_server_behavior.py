@@ -9,6 +9,7 @@ import pytest
 import json
 import time
 import socket
+from typing import Any, cast
 from unittest.mock import patch, MagicMock
 from communication.communication_channels.discord.webhook_server import (
     DiscordWebhookHandler,
@@ -43,8 +44,8 @@ def create_mock_handler(method='POST', headers=None, body=None):
     mock_server = MagicMock()
     mock_server.server_address = ('127.0.0.1', 8080)
     
-    # Create handler with proper request setup
-    handler = DiscordWebhookHandler.__new__(DiscordWebhookHandler)
+    # Create handler with proper request setup (cast to Any for test-only attributes)
+    handler = cast(Any, DiscordWebhookHandler.__new__(DiscordWebhookHandler))
     handler.client_address = mock_client_address
     handler.server = mock_server
     handler.rfile = BytesIO(body or b'')
@@ -524,10 +525,10 @@ class TestWebhookServerBehavior:
         class MockBadSignatureError(Exception):
             pass
         
-        # Create proper mock modules
-        mock_nacl = ModuleType('nacl')
-        mock_signing = ModuleType('nacl.signing')
-        mock_exceptions = ModuleType('nacl.exceptions')
+        # Create proper mock modules (cast to Any for dynamic attributes)
+        mock_nacl = cast(Any, ModuleType('nacl'))
+        mock_signing = cast(Any, ModuleType('nacl.signing'))
+        mock_exceptions = cast(Any, ModuleType('nacl.exceptions'))
         
         class MockVerifyKey:
             def __init__(self, *args, **kwargs):
@@ -623,10 +624,10 @@ class TestWebhookServerBehavior:
         import sys
         from types import ModuleType
         
-        # Create proper mock modules
-        mock_nacl = ModuleType('nacl')
-        mock_signing = ModuleType('nacl.signing')
-        mock_exceptions = ModuleType('nacl.exceptions')
+        # Create proper mock modules (cast to Any for dynamic attributes)
+        mock_nacl = cast(Any, ModuleType('nacl'))
+        mock_signing = cast(Any, ModuleType('nacl.signing'))
+        mock_exceptions = cast(Any, ModuleType('nacl.exceptions'))
         
         class MockVerifyKey:
             def __init__(self, *args, **kwargs):

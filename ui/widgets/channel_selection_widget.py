@@ -1,3 +1,8 @@
+# channel_selection_widget.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""Channel Selection Widget"""
+
 from PySide6.QtWidgets import QWidget
 from ui.generated.channel_selection_widget_pyqt import Ui_Form_channel_selection
 

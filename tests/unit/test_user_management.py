@@ -289,6 +289,7 @@ class TestUserManagement:
     @pytest.mark.unit
     @pytest.mark.user_management
     @pytest.mark.smoke
+    @pytest.mark.no_parallel
     def test_get_user_data_account_with_discord_id(self, mock_user_data, mock_config):
         """Test getting user account with discord_user_id field."""
         import time

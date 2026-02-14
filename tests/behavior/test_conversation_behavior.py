@@ -334,7 +334,7 @@ class TestConversationManagerBehavior:
             # Assert - Verify AI integration
             assert response is not None, "Should return a response"
             assert "doing great" in response, "Should include AI-generated content"
-            mock_chatbot.generate_contextual_response.assert_called_once(), "Should call AI chatbot"
+            mock_chatbot.generate_contextual_response.assert_called_once()
     
     @pytest.mark.communication
     @pytest.mark.file_io
@@ -472,7 +472,7 @@ class TestConversationManagerBehavior:
                 
                 # Assert - Verify integration
                 assert completed, "Should complete check-in"
-                mock_store.assert_called(), "Should store check-in response"
+                mock_store.assert_called()
     
     @pytest.mark.communication
     @pytest.mark.file_io

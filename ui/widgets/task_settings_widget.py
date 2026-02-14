@@ -1,4 +1,12 @@
-# task_settings_widget.py - Task settings widget implementation
+# task_settings_widget.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""
+Task Settings Widget
+
+Task settings widget implementation.
+"""
+
 
 from PySide6.QtWidgets import QWidget, QMessageBox
 from ui.generated.task_settings_widget_pyqt import Ui_Form_task_settings
@@ -100,11 +108,13 @@ class TaskSettingsWidget(QWidget):
     @handle_errors("finding lowest available period number")
     def find_lowest_available_period_number(self):
         """Find the lowest available integer (2+) that's not currently used in period names."""
+
         # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
         def number_from_widget(w):
             # error_handling_exclude: nested helper; caller find_lowest_available_period_number is decorated
             name = w.get_period_data().get("name", "")
             return _number_after_prefix(name, "Task Reminder ")
+
         return find_lowest_available_period_number(
             self.period_widgets, number_from_widget
         )
@@ -120,7 +130,9 @@ class TaskSettingsWidget(QWidget):
             if len(self.period_widgets) == 0:
                 period_name = "Task Reminder Default"
             else:
-                period_name = f"Task Reminder {self.find_lowest_available_period_number()}"
+                period_name = (
+                    f"Task Reminder {self.find_lowest_available_period_number()}"
+                )
         if not isinstance(period_name, str):
             logger.warning(
                 f"TaskSettingsWidget: period_name is not a string: {period_name} (type: {type(period_name)})"

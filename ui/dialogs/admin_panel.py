@@ -1,4 +1,7 @@
-# admin_panel.py - Admin panel dialog implementation
+# admin_panel.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""Admin Panel Dialog"""
 
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QWidget
 from PySide6.QtCore import Qt

@@ -1027,8 +1027,21 @@ class ConversationManager:
             )
 
             handler = get_interaction_handler("messages")
-            response = handler.handle_show_messages(user_id, {})
-            return (response.message, False)
+            if handler is None:
+                return (
+                    "I couldn't load the messages handler. Please try again.",
+                    False,
+                )
+            show_fn = getattr(handler, "handle_show_messages", None)
+            if not callable(show_fn):
+                return ("Messages command is not available right now.", False)
+            response = show_fn(user_id, {})
+            msg = (
+                getattr(response, "message", str(response))
+                if response is not None
+                else ""
+            )
+            return (msg, False)
 
         # Unknown command
         else:

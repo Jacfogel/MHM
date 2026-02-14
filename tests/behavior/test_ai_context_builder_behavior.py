@@ -63,8 +63,8 @@ class TestContextBuilderBehavior:
         context = context_builder.build_user_context(user_id)
 
         # Assert - Verify actual data inclusion
-        assert isinstance(context.user_profile, dict), "User profile should be included"
-        assert isinstance(context.user_context, dict), "User context should be included"
+        assert isinstance(getattr(context, "user_profile"), dict), "User profile should be included"
+        assert isinstance(getattr(context, "user_context"), dict), "User context should be included"
 
     def test_build_user_context_includes_conversation_history(self, test_data_dir):
         """Test that build_user_context includes actual conversation history."""
@@ -99,10 +99,10 @@ class TestContextBuilderBehavior:
             context, object
         ), "Should return valid context even with missing user"
         assert isinstance(
-            context.user_profile, dict
+            getattr(context, "user_profile"), dict
         ), "Should include empty user profile"
         assert isinstance(
-            context.user_context, dict
+            getattr(context, "user_context"), dict
         ), "Should include empty user context"
 
     def test_build_user_context_includes_current_time(self, test_data_dir):
@@ -168,10 +168,10 @@ class TestContextBuilderBehavior:
             context, object
         ), "Should return valid context even with errors"
         assert isinstance(
-            context.user_profile, dict
+            getattr(context, "user_profile"), dict
         ), "Should include empty user profile"
         assert isinstance(
-            context.user_context, dict
+            getattr(context, "user_context"), dict
         ), "Should include empty user context"
 
     def test_build_user_context_creates_fresh_timestamp(self, test_data_dir):
@@ -217,10 +217,10 @@ class TestContextBuilderBehavior:
         # Assert - Verify empty data handling
         assert isinstance(context, object), "Should return valid context"
         assert isinstance(
-            context.user_profile, dict
+            getattr(context, "user_profile"), dict
         ), "Should include empty user profile"
         assert isinstance(
-            context.user_context, dict
+            getattr(context, "user_context"), dict
         ), "Should include empty user context"
 
     def test_build_user_context_handles_corrupted_user_data(self, test_data_dir):
@@ -239,10 +239,10 @@ class TestContextBuilderBehavior:
             context, object
         ), "Should return valid context even with corrupted data"
         assert isinstance(
-            context.user_profile, dict
+            getattr(context, "user_profile"), dict
         ), "Should include empty user profile"
         assert isinstance(
-            context.user_context, dict
+            getattr(context, "user_context"), dict
         ), "Should include empty user context"
 
     def test_build_user_context_handles_missing_files(self, test_data_dir):
@@ -261,10 +261,10 @@ class TestContextBuilderBehavior:
             context, object
         ), "Should return valid context even with missing files"
         assert isinstance(
-            context.user_profile, dict
+            getattr(context, "user_profile"), dict
         ), "Should include empty user profile"
         assert isinstance(
-            context.user_context, dict
+            getattr(context, "user_context"), dict
         ), "Should include empty user context"
 
     def test_build_user_context_handles_empty_files(self, test_data_dir):
@@ -283,10 +283,10 @@ class TestContextBuilderBehavior:
             context, object
         ), "Should return valid context even with empty files"
         assert isinstance(
-            context.user_profile, dict
+            getattr(context, "user_profile"), dict
         ), "Should include empty user profile"
         assert isinstance(
-            context.user_context, dict
+            getattr(context, "user_context"), dict
         ), "Should include empty user context"
 
     def test_build_user_context_handles_long_user_id(self, test_data_dir):
@@ -301,7 +301,7 @@ class TestContextBuilderBehavior:
 
         # Assert - Verify long user ID handling
         assert isinstance(context, object), "Should handle long user IDs"
-        assert isinstance(context.user_profile, dict), "Should include user profile"
+        assert isinstance(getattr(context, "user_profile"), dict), "Should include user profile"
 
     def test_build_user_context_handles_special_characters_in_user_id(
         self, test_data_dir
@@ -319,7 +319,7 @@ class TestContextBuilderBehavior:
         assert isinstance(
             context, object
         ), "Should handle special characters in user ID"
-        assert isinstance(context.user_profile, dict), "Should include user profile"
+        assert isinstance(getattr(context, "user_profile"), dict), "Should include user profile"
 
     def test_build_user_context_handles_unicode_user_id(self, test_data_dir):
         """Test that build_user_context handles unicode characters in user IDs."""
@@ -335,7 +335,7 @@ class TestContextBuilderBehavior:
         assert isinstance(
             context, object
         ), "Should handle unicode characters in user ID"
-        assert isinstance(context.user_profile, dict), "Should include user profile"
+        assert isinstance(getattr(context, "user_profile"), dict), "Should include user profile"
 
     def test_build_user_context_handles_concurrent_access(self, test_data_dir):
         """Test that build_user_context handles concurrent access safely."""
@@ -364,7 +364,7 @@ class TestContextBuilderBehavior:
         for context in results:
             assert isinstance(context, object), "Each result should be valid"
             assert isinstance(
-                context.user_profile, dict
+                getattr(context, "user_profile"), dict
             ), "Each result should include user profile"
 
     def test_build_user_context_handles_rapid_calls(self, test_data_dir):
@@ -385,7 +385,7 @@ class TestContextBuilderBehavior:
         for context in contexts:
             assert isinstance(context, object), "Each result should be valid"
             assert isinstance(
-                context.user_profile, dict
+                getattr(context, "user_profile"), dict
             ), "Each result should include user profile"
 
     def test_build_user_context_handles_large_user_data(self, test_data_dir):

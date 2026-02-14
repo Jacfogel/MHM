@@ -537,7 +537,7 @@ class TestUtilitiesDemo:
         
         # Edge case 5: User with None user_id (should fail gracefully)
         try:
-            success5 = TestUserFactory.create_basic_user(None, test_data_dir=test_data_dir)
+            success5 = TestUserFactory.create_basic_user(None, test_data_dir=test_data_dir)  # pyright: ignore[reportArgumentType]
             logging.getLogger("mhm_tests").info(f"None user ID creation result: {success5}")
         except Exception as e:
             logging.getLogger("mhm_tests").info(f"None user ID creation failed as expected: {e}")

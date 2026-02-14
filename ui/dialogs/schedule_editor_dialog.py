@@ -1,4 +1,11 @@
 # schedule_editor_dialog.py - Schedule editor dialog implementation using generated UI class (no QUiLoader)
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""
+Schedule Editor Dialog
+
+Implementation using generated UI class (no QUiLoader).
+"""
 
 from typing import Dict, Any, Optional, Callable
 from pathlib import Path
@@ -206,11 +213,13 @@ class ScheduleEditorDialog(QDialog):
     @handle_errors("finding lowest available period number", default_return=2)
     def find_lowest_available_period_number(self):
         """Find the lowest available number for new period names."""
+
         # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
         def number_from_widget(w):
             # error_handling_exclude: nested helper; caller find_lowest_available_period_number is decorated
             name = w.get_period_name()
             return _number_from_regex(name, r"Message\s+(\d+)$")
+
         return find_lowest_available_period_number(
             self.period_widgets, number_from_widget
         )
@@ -218,6 +227,7 @@ class ScheduleEditorDialog(QDialog):
     @handle_errors("removing period row")
     def remove_period_row(self, row_widget):
         """Remove a period row and store it for undo."""
+
         # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
         def guard(rw):
             # error_handling_exclude: nested guard; caller remove_period_row is decorated

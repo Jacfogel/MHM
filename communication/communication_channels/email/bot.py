@@ -2,11 +2,13 @@
 
 import smtplib
 import imaplib
-import email
 import asyncio
 import time
 from email.mime.text import MIMEText
 from email.header import decode_header
+from email.message import EmailMessage
+from email.parser import BytesParser
+from email.policy import default as email_policy_default
 from typing import Any
 
 from core.config import (
@@ -244,7 +246,9 @@ class EmailBot(BaseChannel):
 
                     for response_part in msg_data:
                         if isinstance(response_part, tuple):
-                            msg = email.message_from_bytes(response_part[1])
+                            msg = BytesParser(policy=email_policy_default).parsebytes(
+                                response_part[1]
+                            )
                             email_subject = decode_header(msg["subject"])[0][0]
                             if isinstance(email_subject, bytes):
                                 email_subject = email_subject.decode()
@@ -329,7 +333,7 @@ class EmailBot(BaseChannel):
         )
 
     @handle_errors("extracting email body text", default_return="")
-    def _receive_emails_sync__extract_body(self, msg: email.message.Message) -> str:
+    def _receive_emails_sync__extract_body(self, msg: EmailMessage) -> str:
         """Extract plain text body from email message"""
         body_text = ""
 
@@ -348,7 +352,11 @@ class EmailBot(BaseChannel):
                         payload = part.get_payload(decode=True)
                         if payload:
                             charset = part.get_content_charset() or "utf-8"
-                            body_text = payload.decode(charset, errors="ignore")
+                            body_text = (
+                                payload.decode(charset, errors="ignore")
+                                if isinstance(payload, bytes)
+                                else str(payload)
+                            )
                             break  # Prefer plain text
                     except Exception as e:
                         logger.debug(f"Error decoding plain text part: {e}")
@@ -358,7 +366,11 @@ class EmailBot(BaseChannel):
                         payload = part.get_payload(decode=True)
                         if payload:
                             charset = part.get_content_charset() or "utf-8"
-                            html_text = payload.decode(charset, errors="ignore")
+                            html_text = (
+                                payload.decode(charset, errors="ignore")
+                                if isinstance(payload, bytes)
+                                else str(payload)
+                            )
                             # Simple HTML stripping (remove tags)
                             import re
 
@@ -374,7 +386,11 @@ class EmailBot(BaseChannel):
                     payload = msg.get_payload(decode=True)
                     if payload:
                         charset = msg.get_content_charset() or "utf-8"
-                        body_text = payload.decode(charset, errors="ignore")
+                        body_text = (
+                            payload.decode(charset, errors="ignore")
+                            if isinstance(payload, bytes)
+                            else str(payload)
+                        )
                         if content_type == "text/html":
                             # Simple HTML stripping
                             import re

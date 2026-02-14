@@ -491,9 +491,7 @@ class TestNoNestedSaves:
             result = update_user_preferences(user_id, {'categories': ['motivational', 'health']})
             
             # Assert: update_user_account should NOT be called (no nested saves)
-            mock_update_account.assert_not_called(), \
-                "update_user_preferences should not call update_user_account (no nested saves)"
-            
+            mock_update_account.assert_not_called()
             assert result is True, "Preferences should be updated successfully"
         
         # Verify cross-file invariant still worked (account updated via in-memory data)
@@ -546,9 +544,7 @@ class TestNoNestedSaves:
             result = save_user_data(user_id, {'preferences': preferences_data})
             
             # Assert: update_user_account should NOT be called (no nested saves)
-            mock_update_account.assert_not_called(), \
-                "save_user_data should not call update_user_account when cross-file invariants update data"
-            
+            mock_update_account.assert_not_called()
             assert result.get('preferences') is True, "Preferences should be saved"
             assert result.get('account') is True, "Account should be updated via cross-file invariant"
         

@@ -19,7 +19,7 @@ class TestChannelOrchestratorHelpers:
         """Set up test environment."""
         # Reset singleton instance for each test
         CommunicationManager._instance = None
-        CommunicationManager._initialized = False
+        setattr(CommunicationManager, "_initialized", False)
         self.manager = CommunicationManager()
 
     def test_get_active_channels_returns_list(self):

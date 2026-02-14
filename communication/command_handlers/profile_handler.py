@@ -56,6 +56,18 @@ class ProfileHandler(InteractionHandler):
                 True,
             )
 
+    @handle_errors(
+        "showing profile",
+        default_return=InteractionResponse(
+            "I'm having trouble loading your profile. Please try again.", True
+        ),
+    )
+    def handle_show_profile(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Public entry point for /profile."""
+        return self._handle_show_profile(user_id)
+
     @handle_errors("handling show profile")
     def _handle_show_profile(self, user_id: str) -> InteractionResponse:
         """Handle showing user profile with comprehensive personalization data"""

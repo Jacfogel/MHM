@@ -1,4 +1,7 @@
-# checkin_settings_widget.py - Check-in settings widget implementation
+# checkin_settings_widget.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""Checkin Settings Widget"""
 
 from PySide6.QtWidgets import (
     QWidget,
@@ -675,11 +678,13 @@ class CheckinSettingsWidget(QWidget):
     @handle_errors("finding lowest available period number")
     def find_lowest_available_period_number(self):
         """Find the lowest available integer (2+) that's not currently used in period names."""
+
         # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
         def number_from_widget(w):
             # error_handling_exclude: nested helper; caller find_lowest_available_period_number is decorated
             name = w.get_period_data().get("name", "")
             return _number_after_prefix(name, "Check-in Reminder ")
+
         return find_lowest_available_period_number(
             self.period_widgets, number_from_widget
         )
@@ -695,7 +700,9 @@ class CheckinSettingsWidget(QWidget):
             if len(self.period_widgets) == 0:
                 period_name = "Check-in Reminder Default"
             else:
-                period_name = f"Check-in Reminder {self.find_lowest_available_period_number()}"
+                period_name = (
+                    f"Check-in Reminder {self.find_lowest_available_period_number()}"
+                )
         if not isinstance(period_name, str):
             logger.warning(
                 f"CheckinSettingsWidget: period_name is not a string: {period_name} (type: {type(period_name)})"
@@ -721,6 +728,7 @@ class CheckinSettingsWidget(QWidget):
     @handle_errors("removing period row")
     def remove_period_row(self, row_widget):
         """Remove a period row and store it for undo."""
+
         # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
         def guard(_row_widget):
             """Return True to abort removal (e.g. when only one period remains)."""

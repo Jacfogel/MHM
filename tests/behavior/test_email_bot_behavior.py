@@ -192,7 +192,7 @@ class TestEmailBotBehavior:
         
         # Mock SMTP connection failure
         with patch('smtplib.SMTP_SSL') as mock_smtp:
-            mock_smtp.side_effect = smtplib.SMTPRecipientsRefused({"test@example.com": (550, "User not found")})
+            mock_smtp.side_effect = smtplib.SMTPRecipientsRefused({"test@example.com": (550, "User not found")})  # pyright: ignore[reportArgumentType]
             
             # Act
             result = await self.email_bot.send_message(

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-13 05:30:45
+> **Last Generated**: 2026-02-13 18:20:49
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,17 +13,17 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports**: 1453
-- **Standard Library**: 383 (26.4%)
+- **Total Imports**: 1457
+- **Standard Library**: 387 (26.6%)
 - **Third-Party**: 223 (15.3%)
-- **Local Imports**: 847 (58.3%)
+- **Local Imports**: 847 (58.1%)
 
 ## Dependency Decision Trees
 
 ### Need Core System Access?
 Core System Dependencies:
 - Configuration and Setup
-  - core/config.py <- standard library (os, pathlib), third-party (dotenv), error_handling, logger
+  - core/config.py <- standard library (os, pathlib, typing), third-party (dotenv), error_handling, logger
   - core/logger.py <- standard library (glob, gzip, json, logging), error_handling, config
 - Data Management
   - core/file_operations.py <- standard library (json, os, pathlib, re), logger, config, error_handling, time_utilities, file_auditor (+2 more)

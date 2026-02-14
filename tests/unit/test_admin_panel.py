@@ -97,10 +97,12 @@ class TestAdminPanelDialogInitialization:
         try:
             # Assert
             layout = dialog.layout()
-            # Find title label (first widget should be the title)
-            title_widget = layout.itemAt(0).widget()
+            assert layout is not None, "Dialog should have a layout"
+            item = layout.itemAt(0)
+            assert item is not None, "Layout should have at least one item"
+            title_widget = item.widget()
             assert title_widget is not None, "Should create title widget"
-            assert title_widget.text() == "Admin Panel", "Should set correct title text"
+            assert getattr(title_widget, "text", lambda: "")() == "Admin Panel", "Should set correct title text"
         finally:
             dialog.deleteLater()
 

@@ -80,6 +80,30 @@ class AnalyticsHandler(InteractionHandler):
             )
 
     @handle_errors(
+        "showing analytics",
+        default_return=InteractionResponse(
+            "I'm having trouble showing your analytics. Please try again.", True
+        ),
+    )
+    def handle_show_analytics(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Public entry point for /analytics and similar."""
+        return self._handle_show_analytics(user_id, entities)
+
+    @handle_errors(
+        "showing status",
+        default_return=InteractionResponse(
+            "I'm having trouble showing your status. Please try again.", True
+        ),
+    )
+    def handle_show_status(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Public entry point for /status (same as analytics overview)."""
+        return self._handle_show_analytics(user_id, entities)
+
+    @handle_errors(
         "showing analytics overview",
         default_return=InteractionResponse(
             "I'm having trouble showing your analytics. Please try again.", True
@@ -491,9 +515,7 @@ class AnalyticsHandler(InteractionHandler):
                 if recent_checkins:
                     last_timestamp = recent_checkins[0].get("timestamp")
                     last_dt = (
-                        parse_timestamp_full(last_timestamp)
-                        if last_timestamp
-                        else None
+                        parse_timestamp_full(last_timestamp) if last_timestamp else None
                     )
                     last_date = (
                         last_dt.date().isoformat() if last_dt else "an earlier date"
@@ -509,7 +531,9 @@ class AnalyticsHandler(InteractionHandler):
 
             if limit:
                 header_label = (
-                    f"Last {limit} check-in" if limit == 1 else f"Last {limit} check-ins"
+                    f"Last {limit} check-in"
+                    if limit == 1
+                    else f"Last {limit} check-ins"
                 )
             else:
                 header_label = f"Last {days} days"
@@ -519,7 +543,9 @@ class AnalyticsHandler(InteractionHandler):
 
             for checkin in checkin_history[:5]:  # Show last 5 check-ins
                 timestamp = checkin.get("timestamp", "")
-                date = checkin.get("date") or (timestamp[:10] if timestamp else "Unknown date")
+                date = checkin.get("date") or (
+                    timestamp[:10] if timestamp else "Unknown date"
+                )
                 responses = self._extract_checkin_responses(checkin, question_keys)
                 ordered_keys = self._get_ordered_checkin_keys(checkin, responses)
 
@@ -636,8 +662,10 @@ class AnalyticsHandler(InteractionHandler):
             validation = question_def.get("validation") or {}
             qtype = question_def.get("type")
             max_value = validation.get("max")
-            if qtype and str(qtype).startswith("scale_") and isinstance(
-                max_value, (int, float)
+            if (
+                qtype
+                and str(qtype).startswith("scale_")
+                and isinstance(max_value, (int, float))
             ):
                 if isinstance(max_value, float) and max_value.is_integer():
                     max_value = int(max_value)

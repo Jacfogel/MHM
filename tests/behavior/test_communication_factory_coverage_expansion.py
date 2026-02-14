@@ -372,8 +372,8 @@ class TestCommunicationFactoryCoverageExpansion:
             ChannelFactory._initialize_registry()
 
             # Assert
-            mock_logger.info.assert_called(), "Should log initialization info"
-            mock_logger.debug.assert_called(), "Should log channel registration"
+            mock_logger.info.assert_called()
+            mock_logger.debug.assert_called()
 
     def test_factory_singleton_behavior(self, test_data_dir):
         """Test factory singleton-like behavior."""

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-13 05:34:04
+> **Last Generated**: 2026-02-13 20:28:08
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
@@ -1157,7 +1157,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 19**: Unused determine_file_path imported from core.file_operations
+- **Line 26**: Unused determine_file_path imported from core.file_operations
 
 ## Ui Imports
 
@@ -1167,7 +1167,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 3**: Unused QComboBox imported from PySide6.QtWidgets
+- **Line 6**: Unused QComboBox imported from PySide6.QtWidgets
 
 ## Overall Recommendations
 

@@ -219,7 +219,7 @@ class AITestBase:
         return None
 
     def _build_context_info(
-        self, user_id: str = None, include_history: bool = False
+        self, user_id: str | None = None, include_history: bool = False
     ) -> dict:
         """
         Build comprehensive context information for test reporting.

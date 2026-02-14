@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-13 05:30:40
+> **Last Generated**: 2026-02-13 18:20:46
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports Found**: 1453
+- **Total Imports Found**: 1457
 - **Dependencies Documented**: 108 (100% coverage)
-- **Standard Library Imports**: 383 (26.4%)
+- **Standard Library Imports**: 387 (26.6%)
 - **Third-Party Imports**: 223 (15.3%)
-- **Local Imports**: 847 (58.3%)
+- **Local Imports**: 847 (58.1%)
 - **Last Updated**: 2026-02-13
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 383 imports (26.4%)
+- **Standard Library**: 387 imports (26.6%)
 - **Third-Party**: 223 imports (15.3%)
-- **Local**: 847 imports (58.3%)
+- **Local**: 847 imports (58.1%)
 
 ## Module Dependencies by Directory
 
@@ -514,7 +514,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, parse_date_only)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
-    - `tasks.task_management (complete_task, create_task, delete_task, get_tasks_due_soon, get_user_task_stats, load_active_tasks, update_task)` (NEW)
+    - `tasks.task_management (complete_task, create_task, delete_task, get_tasks_due_soon, get_user_task_stats, load_active_tasks, load_completed_tasks, restore_task, update_task)` (NEW)
   - **Standard Library**:
     - `datetime (timedelta)`
     - `re`
@@ -702,7 +702,7 @@
     - `subprocess`
     - `threading`
     - `time`
-    - `typing (Any)`
+    - `typing (Any, Awaitable, cast)`
   - **Third-party**:
     - `aiohttp`
     - `discord (app_commands, discord)`
@@ -875,9 +875,11 @@
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
     - `asyncio`
-    - `email`
     - `email.header (decode_header)`
+    - `email.message (EmailMessage)`
     - `email.mime.text (MIMEText)`
+    - `email.parser (BytesParser)`
+    - `email.policy (default)`
     - `imaplib`
     - `re`
     - `smtplib`
@@ -888,7 +890,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.logger
-- Removed: email.header, email.mime.text
+- Removed: email.header, email.message, email.mime.text, email.parser, email.policy
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Email communication channel implementation
@@ -1367,6 +1369,7 @@
   - **Standard Library**:
     - `os`
     - `pathlib (Path)`
+    - `typing (Any)`
   - **Third-party**:
     - `dotenv (load_dotenv)`
 - **Used by**: 
@@ -1666,6 +1669,7 @@
     - `shutil`
     - `sys`
     - `time`
+    - `typing (Any)`
 - **Used by**: 
   - `ai/cache_manager.py`
   - `ai/chatbot.py`

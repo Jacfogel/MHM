@@ -83,8 +83,8 @@ class TestUIAppBehavior:
         
         # Assert
         assert result is True, "Should return True for valid configuration"
-        mock_critical.assert_not_called(), "Should not show critical error for valid config"
-        mock_warning.assert_called(), "Should show warning for configuration warnings"
+        mock_critical.assert_not_called()
+        mock_warning.assert_called()
     
     @pytest.mark.behavior
     @pytest.mark.ui
@@ -108,8 +108,8 @@ class TestUIAppBehavior:
         
         # Assert
         assert result is False, "Should return False for invalid configuration"
-        mock_critical.assert_called(), "Should show critical error for invalid config"
-        mock_warning.assert_not_called(), "Should not show warning for invalid config"
+        mock_critical.assert_called()  # raises if not called
+        mock_warning.assert_not_called()  # raises if called
     
     def test_service_manager_service_status_check_checks_actual_processes(self, test_data_dir):
         """Test that service status check checks actual system processes."""

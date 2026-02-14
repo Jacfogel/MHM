@@ -10,7 +10,7 @@ import pytest
 def test_run_dev_tools_invokes_main_and_exits(monkeypatch):
     """run_dev_tools should call run_development_tools.main and exit with its code."""
     fake_module = types.ModuleType("development_tools.run_development_tools")
-    fake_module.main = lambda: 7
+    fake_module.main = lambda: 7  # pyright: ignore[reportAttributeAccessIssue]
     monkeypatch.setitem(
         __import__("sys").modules, "development_tools.run_development_tools", fake_module
     )

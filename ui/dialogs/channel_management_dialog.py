@@ -1,3 +1,8 @@
+# channel_management_dialog.py
+# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+
+"""Channel Management Dialog"""
+
 from PySide6.QtWidgets import QDialog, QMessageBox
 from ui.generated.channel_management_dialog_pyqt import Ui_Dialog
 from ui.widgets.channel_selection_widget import ChannelSelectionWidget

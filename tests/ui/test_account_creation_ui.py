@@ -654,8 +654,9 @@ class TestAccountCreationDialogRealBehavior:
                         # and files are written before returning
                         import os as os_module
 
-                        if hasattr(os_module, "sync"):
-                            os_module.sync()
+                        sync_fn = getattr(os_module, "sync", None)
+                        if callable(sync_fn):
+                            sync_fn()
 
                         # Create messages directory
                         messages_dir = os.path.join(user_dir, "messages")

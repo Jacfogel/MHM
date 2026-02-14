@@ -537,8 +537,7 @@ class TestCategoryManagementDialogRealBehavior:
                     # The cache clearing happens only if validation passes
                     # Verify the method was called if validation passed
                     if mock_clear_cache.called:
-                        mock_clear_cache.assert_called_once_with(test_user), \
-                            "Should clear schedule cache when messages disabled"
+                        mock_clear_cache.assert_called_once_with(test_user)
                     else:
                         # If validation failed, cache clearing wouldn't happen
                         # This is still valid behavior

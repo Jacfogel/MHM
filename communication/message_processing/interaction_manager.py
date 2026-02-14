@@ -384,7 +384,11 @@ class InteractionManager:
                 starter_name = f"start_{cmd_name}_flow"
                 starter_fn = getattr(conversation_manager, starter_name, None)
                 if callable(starter_fn):
-                    reply_text, completed = starter_fn(user_id)
+                    result = starter_fn(user_id)
+                    if isinstance(result, (list, tuple)) and len(result) >= 2:
+                        reply_text, completed = result[0], result[1]
+                    else:
+                        reply_text, completed = "", True
                     return InteractionResponse(reply_text, completed)
                 else:
                     return InteractionResponse(
@@ -477,7 +481,11 @@ class InteractionManager:
                 starter_name = f"start_{cmd_name}_flow"
                 starter_fn = getattr(conversation_manager, starter_name, None)
                 if callable(starter_fn):
-                    reply_text, completed = starter_fn(user_id)
+                    result = starter_fn(user_id)
+                    if isinstance(result, (list, tuple)) and len(result) >= 2:
+                        reply_text, completed = result[0], result[1]
+                    else:
+                        reply_text, completed = "", True
                     return InteractionResponse(reply_text, completed)
                 else:
                     return InteractionResponse(
@@ -1645,10 +1653,10 @@ def get_interaction_manager() -> InteractionManager:
 
 
 @handle_errors(
-    "handling user message",
+    operation="handling user message",
     default_return=InteractionResponse(
-        "I'm having trouble processing your request right now. Please try again in a moment.",
-        True,
+        message="I'm having trouble processing your request right now. Please try again in a moment.",
+        completed=True,
     ),
 )
 def handle_user_message(

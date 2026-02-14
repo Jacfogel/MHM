@@ -13,6 +13,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 constants_path = project_root / "development_tools" / "shared" / "constants.py"
 spec = importlib.util.spec_from_file_location("development_tools.shared.constants", constants_path)
+if spec is None or spec.loader is None:
+    raise RuntimeError("Could not load development_tools.shared.constants spec")
 constants = importlib.util.module_from_spec(spec)
 sys.modules["development_tools.shared.constants"] = constants
 spec.loader.exec_module(constants)
