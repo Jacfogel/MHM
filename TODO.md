@@ -261,14 +261,6 @@ When adding new tasks, follow this format:
 
 ### Testing
 
-**CI Guard for Logging Enforcement**
-- *What it means*: Wire the static logging check into CI to enforce ComponentLogger rules automatically.
-- *Why it helps*: Prevents regressions of forbidden logging patterns.
-- *Estimated effort*: Small
-- *Subtasks*:
-  - [ ] Ensure job runs before test steps and fails the pipeline on violations
-  - [ ] Document the check in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (contributor notes)
-
 **Add Failure-Focused Detailed Reruns and Flake Classification to Normal Test Runs**
 - *What it means*: Enhance the standard test workflow so that when a run has failures, the suite automatically reruns only failing tests with high-detail logging and records whether failures look flaky, isolation-related, or race-condition-like.
 - *Why it helps*: Captures actionable debug data at failure time, improves flaky diagnosis, and avoids relying only on `--lf` behavior that can miss intermittent issues.

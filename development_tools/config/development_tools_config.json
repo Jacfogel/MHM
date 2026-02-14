@@ -489,6 +489,7 @@
       "resources/",
       "scripts/",
       "tests/ai/results/",
+      "tests/data/",
       "tests/coverage_html/",
       "ui/generated/",
       "venv/"
@@ -515,12 +516,14 @@
         "*/tests/*"
       ],
       "development": [
+        "tests/data/*",
         "*/data/*",
         "*/logs/*",
         "*/backup*",
         "*/backups/*"
       ],
       "testing": [
+        "tests/data/*",
         "*/generated/*",
         "*/data/*",
         "*/logs/*",

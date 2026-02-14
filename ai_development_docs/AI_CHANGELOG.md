@@ -29,6 +29,14 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-14 - Logging guard + coverage pipeline hardening **COMPLETED**
+- Added CI logging-enforcement workflow (`.github/workflows/logging-enforcement.yml`) to run `check_channel_loggers.py` as a gate before downstream test steps; documented behavior in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and removed the completed TODO task.
+- Tuned legacy scan/report filtering so `run_tests.py` remains included for legacy findings while `tests/data/*` remains excluded from analyzer/report noise.
+- Hardened development-tools coverage merge/report flow (`run_test_coverage.py`, `generate_test_coverage_report.py`) with expected-shard detection, wait/retry combine logic, and missing-shard validation warnings.
+- Completed test-file coverage cache hardening (`test_file_coverage_cache.py`, `domain_mapper.py`, `run_test_coverage.py`): cross-domain dependency invalidation, test-file mtime/domain invalidation, explicit tool-change invalidation reasons, and skip-cache-on-failure/partial-run safeguards.
+- Added focused regression tests in `tests/development_tools/test_test_file_coverage_cache.py` (tool hash/mtime persistence, all-domain invalidation on hash mismatch, dependency expansion) and enforced scratch test data under `tests/data/tmp` with explicit cleanup.
+- Standardized coverage scope/artifact reporting in generated outputs (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`, `TEST_COVERAGE_REPORT.md`) and aligned artifact exclusions/ignore rules for `development_tools/tests/.coverage*` and `development_tools/tests/coverage_html/`.
+
 ### 2026-02-13 - Pyright type fixes (fixes over ignores) **Progressed**
 - **tests/conftest.py**: Removed file-level pyright ignore. Fixed: (1) `setup_test_logging()` return type and assert so `test_logger`/`test_log_file` are always `Logger`/`Path`; (2) `QMessageBox.about` mock return type to `None` to match real API; (3) wrong import `AIChatbot` -> `AIChatBotSingleton`; (4) `periodic_memory_cleanup` uses module-level `_periodic_cleanup_test_count` instead of attaching to fixture function; (5) `CommunicationManager` cleanup uses local `cm_instance` so closure and later code see non-optional type.
 - **tests/development_tools/conftest.py**: Removed file-level pyright ignore. Fixed: all `importlib.util.spec_from_file_location` / `module_from_spec` / `loader.exec_module` usages now guard on `spec is not None and spec.loader is not None` (or raise for final load); dynamic module attributes set via `setattr(module, "config", ...)` for loader-injected config.

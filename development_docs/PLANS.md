@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-13
+> **Last Updated**: 2026-02-14
 
 ---
 
@@ -36,7 +36,7 @@
 **Priority**: Medium  
 **Effort**: Medium  
 **Date**: 2025-11-23  
-**Last Updated**: 2026-02-13
+**Last Updated**: 2026-02-14
 
 **Objective**: Optimize test suite execution time from ~265 seconds (4.4 minutes) to ~205-225 seconds (3.4-3.7 minutes) by reducing unnecessary delays, optimizing expensive operations, and improving test efficiency.
 
@@ -186,7 +186,7 @@
 **Priority**: Medium
 **Effort**: Small/Medium
 **Date**: 2026-02-10
-**Last Updated**: 2026-02-13
+**Last Updated**: 2026-02-14
 
 - *What it means*: Investigate and fix test failures that appear intermittently (including coverage-run flakes); keep the suspect list current as flakes are confirmed or resolved.
 - *Why it helps*: Ensures test suite reliability and prevents false negatives that can mask real issues
@@ -208,6 +208,7 @@
   - [ ] Investigate `tests/behavior/test_user_management_coverage_expansion.py::TestUserManagementCoverageExpansion::test_load_account_data_auto_create_real_behavior` intermittent parallel failure (auto-created account occasionally returns empty `internal_username`)
   - [ ] Monitor `tests/behavior/test_interaction_handlers_behavior.py::TestInteractionHandlersBehavior::test_profile_handler_shows_actual_profile` in parallel runs (intermittent context-update lag observed on 2026-02-13; test-side retry/index-refresh mitigation added, continue monitoring)
   - [ ] Monitor `tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_user_index_integration_real_behavior` intermittent parallel failure ("account.json should exist" race under worker churn observed on 2026-02-13; reruns passed, root-cause hardening still pending if it recurs)
+  - [ ] Investigate intermittent no-parallel failure `tests/behavior/test_discord_checkin_retry_behavior.py::TestDiscordCheckinRetryBehavior::test_checkin_message_queued_on_discord_disconnect` (failed in serial no-parallel phase on 2026-02-14 in `ai_dev_tools.log`; reruns usually pass, so classify as potential flake and capture repro conditions)
   - [ ] Monitor and harden Windows temp/cache ACL behavior for pytest (`pytest-cache-files-*`, `pytest_runner`, `pytest_cache`) so reruns do not hit `Access is denied` warnings and temp artifacts remain isolated under `tests/data/tmp`
   - [ ] Investigate `test_scan_all_python_files_demo_project`
   - [ ] Check for timing/race condition issues in test setup or teardown

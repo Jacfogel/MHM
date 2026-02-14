@@ -28,6 +28,8 @@ These patterns apply to all tools and contexts:
 - Test artifacts: `.pytest_cache`, `tests/__pycache__`, `tests/.pytest_cache`, `tests/logs/`, `tests/data/`, `tests/temp/`, `tests/fixtures/`, `tests/ai/results`, `tests/coverage_html`
 - Generated files: `*/generated/*`, `*/ui/generated/*`, `*/pyscript*`, `*/shibokensupport/*`, `*/signature_bootstrap.py`
 
+`tests/data/` is treated as excluded-by-default for analyzer-style tooling to keep development tools isolated from mutable test artifacts unless a tool is explicitly designed to inspect that directory.
+
 ### Context-Specific Exclusions
 
 #### Production Context
@@ -145,6 +147,18 @@ Exclusion patterns can be customized via `development_tools_config.json`:
   }
 }
 ```
+
+## Coverage Artifact Locations
+
+Coverage tooling uses dedicated paths under `development_tools/tests/` to avoid mixing runtime artifacts with project root files:
+
+- Main app coverage data file: `development_tools/tests/.coverage`
+- Dev-tools coverage data file: `development_tools/tests/.coverage_dev_tools`
+- Main app coverage JSON: `development_tools/tests/jsons/coverage.json`
+- Dev-tools coverage JSON: `development_tools/tests/jsons/coverage_dev_tools.json`
+- HTML coverage output: `development_tools/tests/coverage_html/`
+
+Transient shard files such as `.coverage_parallel.*` and `.coverage_dev_tools.*` can appear during parallel/worker execution and are expected to be cleaned up after report generation.
 
 ## Usage
 

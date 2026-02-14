@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-13 18:20:51
+> **Last Generated**: 2026-02-14 03:45:14
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -205,6 +205,136 @@ C:.
 |   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
+|   +---config
+|   |   |   analyze_config.py
+|   |   |   config.py
+|   |   |   development_tools_config.json
+|   |   |   development_tools_config.json.example
+|   |   |   __init__.py
+|   |   |   
+|   |   +---jsons
+    (JSON files created by development tools)
+|   +---docs
+|   |   |   analyze_ascii_compliance.py
+|   |   |   analyze_documentation.py
+|   |   |   analyze_documentation_sync.py
+|   |   |   analyze_heading_numbering.py
+|   |   |   analyze_missing_addresses.py
+|   |   |   analyze_path_drift.py
+|   |   |   analyze_unconverted_links.py
+|   |   |   fix_documentation.py
+|   |   |   fix_documentation_addresses.py
+|   |   |   fix_documentation_ascii.py
+|   |   |   fix_documentation_headings.py
+|   |   |   fix_documentation_links.py
+|   |   |   fix_version_sync.py
+|   |   |   generate_directory_tree.py
+|   |   |   __init__.py
+|   |   |   
+|   |   +---jsons
+    (JSON files created by development tools)
+|   +---error_handling
+|   |   |   analyze_error_handling.py
+|   |   |   generate_error_handling_report.py
+|   |   |   __init__.py
+|   |   |   
+|   |   +---jsons
+    (JSON files created by development tools)
+|   +---functions
+|   |   |   analyze_duplicate_functions.py
+|   |   |   analyze_functions.py
+|   |   |   analyze_function_patterns.py
+|   |   |   analyze_function_registry.py
+|   |   |   analyze_package_exports.py
+|   |   |   generate_function_docstrings.py
+|   |   |   generate_function_registry.py
+|   |   |   __init__.py
+|   |   |   
+|   |   +---jsons
+    (JSON files created by development tools)
+|   +---imports
+|   |   |   analyze_dependency_patterns.py
+|   |   |   analyze_module_dependencies.py
+|   |   |   analyze_module_imports.py
+|   |   |   analyze_unused_imports.py
+|   |   |   generate_module_dependencies.py
+|   |   |   generate_unused_imports_report.py
+|   |   |   __init__.py
+|   |   |   
+|   |   +---jsons
+    (JSON files created by development tools)
+|   +---legacy
+|   |   |   analyze_legacy_references.py
+|   |   |   fix_legacy_references.py
+|   |   |   generate_legacy_reference_report.py
+|   |   |   __init__.py
+|   |   |   
+|   |   +---jsons
+    (JSON files created by development tools)
+|   +---reports
+|   |   |   analysis_detailed_results.json
+|   |   |   analyze_system_signals.py
+|   |   |   decision_support.py
+|   |   |   generate_consolidated_report.py
+|   |   |   quick_status.py
+|   |   |   tool_timings.json
+|   |   |   __init__.py
+|   |   |   
+|   |   +---jsons
+    (JSON files created by development tools)
+|   +---shared
+|   |   |   cli_interface.py
+|   |   |   common.py
+|   |   |   constants.py
+|   |   |   EXCLUSION_RULES.md
+|   |   |   exclusion_utilities.py
+|   |   |   export_code_snapshot.py
+|   |   |   export_docs_snapshot.py
+|   |   |   file_rotation.py
+|   |   |   fix_project_cleanup.py
+|   |   |   mtime_cache.py
+|   |   |   output_storage.py
+|   |   |   OUTPUT_STORAGE_STANDARDS.md
+|   |   |   result_format.py
+|   |   |   RESULT_FORMAT_STANDARD.md
+|   |   |   standard_exclusions.py
+|   |   |   tool_guide.py
+|   |   |   tool_metadata.py
+|   |   |   __init__.py
+|   |   |   
+|   |   +---data
+    (data files)
+|   |   +---logs
+    (log files)
+|   |   +---service
+|   |   |   |   audit_orchestration.py
+|   |   |   |   commands.py
+|   |   |   |   core.py
+|   |   |   |   data_freshness_audit.py
+|   |   |   |   data_loading.py
+|   |   |   |   report_generation.py
+|   |   |   |   tool_wrappers.py
+|   |   |   |   utilities.py
+|   |   |   |   __init__.py
+|   |   |   |   
+|   +---tests
+|   |   |   .coverage
+|   |   |   analyze_test_coverage.py
+|   |   |   analyze_test_markers.py
+|   |   |   coverage.ini
+|   |   |   coverage_dev_tools.ini
+|   |   |   dev_tools_coverage_cache.py
+|   |   |   domain_mapper.py
+|   |   |   fix_test_markers.py
+|   |   |   generate_test_coverage_report.py
+|   |   |   run_test_coverage.py
+|   |   |   test_file_coverage_cache.py
+|   |   |   __init__.py
+|   |   |   
+|   |   +---jsons
+    (JSON files created by development tools)
+|   |   +---logs
+    (log files)
 +---logs
     (log files)
 +---notebook
@@ -214,6 +344,13 @@ C:.
 |   |   schemas.py
 |   |   __init__.py
 |   |   
++---pytest-cache-files-rh452t5w
++---pytest-cache-files-s4llmpw7
++---pytest-cache-files-w3m0m6qy
++---pytest-cache-files-wk2t6rt9
++---pytest-cache-files-xa_n7cvn
++---pytest-cache-files-xwsxioqb
++---pytest-cache-files-_hajjaph
 +---resources
 |   |   assistant_system_prompt.txt
 |   |   default_tags.json
@@ -359,6 +496,162 @@ C:.
 |   |   |   
 |   +---data
     (data files)
+|   +---development_tools
+|   |   |   conftest.py
+|   |   |   test_analysis_tool_validation.py
+|   |   |   test_analysis_validation_framework.py
+|   |   |   test_analyze_ai_work.py
+|   |   |   test_analyze_ascii_compliance.py
+|   |   |   test_analyze_documentation.py
+|   |   |   test_analyze_duplicate_functions.py
+|   |   |   test_analyze_error_handling.py
+|   |   |   test_analyze_functions.py
+|   |   |   test_analyze_function_registry.py
+|   |   |   test_analyze_heading_numbering.py
+|   |   |   test_analyze_missing_addresses.py
+|   |   |   test_analyze_module_dependencies.py
+|   |   |   test_analyze_package_exports.py
+|   |   |   test_analyze_unconverted_links.py
+|   |   |   test_analyze_unused_imports.py
+|   |   |   test_audit_status_updates.py
+|   |   |   test_audit_tier_comprehensive.py
+|   |   |   test_audit_tier_e2e_verification.py
+|   |   |   test_config.json
+|   |   |   test_config.py
+|   |   |   test_constants.py
+|   |   |   test_decision_support.py
+|   |   |   test_documentation_sync_checker.py
+|   |   |   test_error_scenarios.py
+|   |   |   test_exclusion_utilities.py
+|   |   |   test_false_negative_detection.py
+|   |   |   test_fix_documentation.py
+|   |   |   test_fix_documentation_addresses.py
+|   |   |   test_fix_documentation_ascii.py
+|   |   |   test_fix_documentation_headings.py
+|   |   |   test_fix_documentation_links.py
+|   |   |   test_fix_project_cleanup.py
+|   |   |   test_fix_version_sync_todo_sync.py
+|   |   |   test_generate_consolidated_report.py
+|   |   |   test_generate_directory_tree.py
+|   |   |   test_generate_error_handling_recommendations.py
+|   |   |   test_generate_error_handling_report.py
+|   |   |   test_generate_function_docstrings.py
+|   |   |   test_generate_function_registry.py
+|   |   |   test_generate_module_dependencies.py
+|   |   |   test_generate_unused_imports_report.py
+|   |   |   test_integration_workflows.py
+|   |   |   test_legacy_reference_cleanup.py
+|   |   |   test_output_storage_archiving.py
+|   |   |   test_path_drift_detection.py
+|   |   |   test_path_drift_integration.py
+|   |   |   test_path_drift_verification_comprehensive.py
+|   |   |   test_regenerate_coverage_metrics.py
+|   |   |   test_run_development_tools.py
+|   |   |   test_run_dev_tools.py
+|   |   |   test_standard_exclusions.py
+|   |   |   test_status_file_timing.py
+|   |   |   test_supporting_tools.py
+|   |   |   test_verification_summary.py
+|   |   |   __init__.py
+|   |   |   
+|   +---fixtures
+|   +---integration
+|   |   |   test_account_lifecycle.py
+|   |   |   test_account_management.py
+|   |   |   test_notebook_validation_integration.py
+|   |   |   test_orphaned_reminder_cleanup.py
+|   |   |   test_task_cleanup_real.py
+|   |   |   test_task_cleanup_real_bug_verification.py
+|   |   |   test_task_cleanup_silent_failure.py
+|   |   |   test_task_reminder_integration.py
+|   |   |   test_user_creation.py
+|   |   |   
+|   +---logs
+    (log files)
+|   +---notebook
+|   |       __init__.py
+|   |       
+|   +---ui
+|   |   |   test_account_creation_ui.py
+|   |   |   test_account_creator_dialog_validation.py
+|   |   |   test_category_management_dialog.py
+|   |   |   test_channel_management_dialog_coverage_expansion.py
+|   |   |   test_dialogs.py
+|   |   |   test_dialog_behavior.py
+|   |   |   test_dialog_coverage_expansion.py
+|   |   |   test_message_editor_dialog.py
+|   |   |   test_process_watcher_dialog.py
+|   |   |   test_signal_handler_integration.py
+|   |   |   test_task_crud_dialog.py
+|   |   |   test_task_management_dialog.py
+|   |   |   test_task_settings_widget.py
+|   |   |   test_ui_app_qt_core.py
+|   |   |   test_ui_app_qt_main.py
+|   |   |   test_ui_button_verification.py
+|   |   |   test_ui_components_headless.py
+|   |   |   test_ui_generation.py
+|   |   |   test_ui_widgets_coverage_expansion.py
+|   |   |   test_user_analytics_dialog.py
+|   |   |   test_user_profile_dialog_coverage_expansion.py
+|   |   |   test_widget_behavior.py
+|   |   |   test_widget_behavior_simple.py
+|   |   |   
+|   +---unit
+|   |   |   test_admin_panel.py
+|   |   |   test_ai_chatbot_helpers.py
+|   |   |   test_ai_deterministic.py
+|   |   |   test_analytics_handler.py
+|   |   |   test_auto_cleanup_logic.py
+|   |   |   test_auto_cleanup_paths.py
+|   |   |   test_channel_orchestrator.py
+|   |   |   test_checkin_analytics_conversion.py
+|   |   |   test_checkin_management_dialog.py
+|   |   |   test_checkin_view.py
+|   |   |   test_cleanup.py
+|   |   |   test_command_parser_helpers.py
+|   |   |   test_command_parser_notebook_entities_expansion.py
+|   |   |   test_command_parser_rule_based_patterns_expansion.py
+|   |   |   test_command_parser_task_entities_expansion.py
+|   |   |   test_command_registry.py
+|   |   |   test_communication_core_init.py
+|   |   |   test_communication_init.py
+|   |   |   test_config.py
+|   |   |   test_discord_api_client.py
+|   |   |   test_discord_event_handler.py
+|   |   |   test_email_bot_body_extraction.py
+|   |   |   test_enhanced_checkin_responses.py
+|   |   |   test_error_categorization.py
+|   |   |   test_error_handling.py
+|   |   |   test_file_locking.py
+|   |   |   test_file_operations.py
+|   |   |   test_interaction_handlers_helpers.py
+|   |   |   test_lm_studio_manager.py
+|   |   |   test_logger_unit.py
+|   |   |   test_logging_components.py
+|   |   |   test_message_formatter.py
+|   |   |   test_notebook_validation.py
+|   |   |   test_notebook_validation_error_handling.py
+|   |   |   test_no_prints_policy.py
+|   |   |   test_profile_handler.py
+|   |   |   test_prompt_manager.py
+|   |   |   test_recurring_tasks.py
+|   |   |   test_rich_formatter.py
+|   |   |   test_schedule_management.py
+|   |   |   test_schemas_validation.py
+|   |   |   test_schema_validation_helpers.py
+|   |   |   test_service_utilities_network.py
+|   |   |   test_tags.py
+|   |   |   test_tags_expansion.py
+|   |   |   test_ui_management.py
+|   |   |   test_user_context.py
+|   |   |   test_user_data_handlers.py
+|   |   |   test_user_data_loader_idempotency.py
+|   |   |   test_user_data_loader_order_insensitivity.py
+|   |   |   test_user_data_manager.py
+|   |   |   test_user_management.py
+|   |   |   test_user_preferences.py
+|   |   |   test_validation.py
+|   |   |   
 +---ui
 |   |   generate_ui_files.py
 |   |   ui_app_qt.py
@@ -391,6 +684,19 @@ C:.
 |   |       
 |   +---dialogs
     (log files)
+|   +---generated
+|   +---widgets
+|   |   |   category_selection_widget.py
+|   |   |   channel_selection_widget.py
+|   |   |   checkin_settings_widget.py
+|   |   |   dynamic_list_container.py
+|   |   |   dynamic_list_field.py
+|   |   |   period_row_widget.py
+|   |   |   tag_widget.py
+|   |   |   task_settings_widget.py
+|   |   |   user_profile_settings_widget.py
+|   |   |   __init__.py
+|   |   |   
 +---user
 |   |   context_manager.py
 |   |   user_context.py

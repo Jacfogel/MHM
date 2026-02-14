@@ -324,7 +324,7 @@ class CommandsMixin:
     
     def run_dev_tools_coverage(self) -> Dict:
         """Run coverage analysis specifically for development_tools directory."""
-        logger.info("Generating dev tools coverage...")
+        logger.info("Generating dev tools coverage (development_tools/tests)...")
         dev_tools_coverage_file = self.project_root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
         dev_tools_patterns = [
             "development_tools/**/*.py",
@@ -341,7 +341,9 @@ class CommandsMixin:
                 self._tool_cache_metadata = {}
             self._tool_cache_metadata["generate_dev_tools_coverage"] = cache_metadata
             if cached_data:
-                logger.info("Skipping dev tools coverage run - cached coverage is up to date")
+                logger.info(
+                    "Skipping dev tools coverage run - cached dev tools coverage is up to date"
+                )
                 normalized_cached = self._to_standard_dev_tools_coverage_result(cached_data)
                 normalized_cached.setdefault("_cache_metadata", {}).update(cache_metadata)
                 return {"success": True, "data": normalized_cached, "cache_metadata": cache_metadata}
@@ -539,7 +541,7 @@ class CommandsMixin:
     
     def run_coverage_regeneration(self):
         """Regenerate test coverage data"""
-        logger.info("Generating test coverage...")
+        logger.info("Generating test coverage (main project tests)...")
         logger.info("=" * 50)
         main_coverage_file = self.project_root / "development_tools" / "tests" / "jsons" / "coverage.json"
         main_coverage_patterns = [
@@ -566,7 +568,9 @@ class CommandsMixin:
             }
             cached_summary = self._load_coverage_summary()
             if cached_summary:
-                logger.info("Skipping test coverage run - cached coverage is up to date")
+                logger.info(
+                    "Skipping test coverage run - cached main project coverage is up to date"
+                )
                 overall = cached_summary.get("overall", {}) if isinstance(cached_summary, dict) else {}
                 missed = overall.get("missed", 0) if isinstance(overall, dict) else 0
                 standard_format = {

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-13 18:20:44
+> **Last Generated**: 2026-02-14 03:45:07
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1582
-- **Methods Found**: 1158
+- **Functions Found**: 1581
+- **Methods Found**: 1157
 - **Classes Found**: 154
-- **Total Items**: 2740
-- **Functions Documented**: 1511
-- **Methods Documented**: 1118
+- **Total Items**: 2738
+- **Functions Documented**: 1510
+- **Methods Documented**: 1117
 - **Classes Documented**: 120
-- **Total Documented**: 2629
+- **Total Documented**: 2627
 - **Template-Generated**: 4
-- **Last Updated**: 2026-02-13
+- **Last Updated**: 2026-02-14
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (571)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (419)
+### **Communication Functions** (418)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (411)
@@ -1054,7 +1054,6 @@ Args:
 
 Returns:
     Task dictionary if found, None otherwise
-- [OK] `_find_task_by_identifier_for_operation(self, tasks, identifier, context)` - Find a task by number, name, or task_id for a given operation context.
 - [OK] `_get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
 - [OK] `_handle_complete_task(self, user_id, entities)` - Handle task completion
 - [OK] `_handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
@@ -1093,7 +1092,6 @@ Args:
 
 Returns:
     Task dictionary if found, None otherwise
-  - [OK] `TaskManagementHandler._find_task_by_identifier_for_operation(self, tasks, identifier, context)` - Find a task by number, name, or task_id for a given operation context.
   - [OK] `TaskManagementHandler._get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
   - [OK] `TaskManagementHandler._handle_complete_task(self, user_id, entities)` - Handle task completion
   - [OK] `TaskManagementHandler._handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date

@@ -246,6 +246,35 @@ directory = htmlcov
             if shard2.exists():
                 shard2.unlink()
 
+    @pytest.mark.unit
+    def test_report_generator_uses_coverage_ini_paths(self, demo_project_root):
+        """Report generator should honor data_file/html directory from coverage.ini."""
+        config_file = demo_project_root / "coverage.ini"
+        config_content = """[run]
+data_file = development_tools/tests/.coverage
+
+[html]
+directory = development_tools/tests/coverage_html
+"""
+        config_file.write_text(config_content, encoding="utf-8")
+
+        try:
+            generator = TestCoverageReportGenerator(
+                str(demo_project_root),
+                coverage_config="coverage.ini",
+            )
+            assert (
+                str(generator.coverage_data_file).replace("\\", "/")
+                .endswith("development_tools/tests/.coverage")
+            )
+            assert (
+                str(generator.coverage_html_dir).replace("\\", "/")
+                .endswith("development_tools/tests/coverage_html")
+            )
+        finally:
+            if config_file.exists():
+                config_file.unlink()
+
 
 class TestCoverageJSON:
     """Test coverage JSON loading."""
@@ -326,4 +355,3 @@ class TestCoveragePlanUpdate:
         # File should contain summary content
         content = regenerator.coverage_plan_file.read_text(encoding='utf-8')
         assert 'Overall Coverage' in content or '75' in content
-

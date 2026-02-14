@@ -135,6 +135,20 @@ class LegacyReferenceAnalyzer:
             # File is outside project root, use absolute path
             rel_path_str = str(file_path).replace("\\", "/")
 
+        # Keep key runtime entry points visible to legacy scanning even when
+        # broad exclusions are enabled in shared tooling config.
+        if rel_path_str.endswith("run_tests.py"):
+            return False
+
+        # Apply standard exclusion logic first to keep behavior consistent
+        # across development tools and ensure test data stays isolated.
+        from development_tools.shared.standard_exclusions import should_exclude_file
+
+        if should_exclude_file(
+            rel_path_str, tool_type="analysis", context="development"
+        ):
+            return True
+
         # Skip the analyzer's own file to avoid false positives
         if "analyze_legacy_references.py" in rel_path_str:
             return True

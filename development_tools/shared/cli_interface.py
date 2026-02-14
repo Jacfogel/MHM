@@ -460,10 +460,10 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         args, unknown = parser.parse_known_args(argv)
         if unknown:
             print(f"Unknown arguments: {unknown}")
-        print(
-            "Usage: cleanup [--full|--all] [--cache] [--test-data] [--coverage] [--dry-run]"
-        )
-        return 2
+            print(
+                "Usage: cleanup [--full|--all] [--cache] [--test-data] [--coverage] [--dry-run]"
+            )
+            return 2
     except SystemExit:
         return 2
 

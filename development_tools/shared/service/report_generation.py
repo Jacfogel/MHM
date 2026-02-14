@@ -1332,6 +1332,9 @@ class ReportGenerationMixin:
                 f"- **Overall Coverage**: {percent_text(overall.get('coverage'), 1)} "
                 f"({overall.get('covered')} of {overall.get('statements')} statements)"
             )
+            lines.append(
+                "    - **Coverage Scope**: Main project domains (`core`, `communication`, `ui`, `tasks`, `user`, `ai`) only; `development_tools/` is tracked separately."
+            )
             coverage_report_path = (
                 self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
             )
@@ -1861,6 +1864,9 @@ class ReportGenerationMixin:
         )
         test_markers_data = self._load_tool_data("analyze_test_markers", "tests")
         unused_imports_data = self._load_tool_data("analyze_unused_imports", "imports")
+        dependency_patterns_data = self._load_tool_data(
+            "analyze_dependency_patterns", "imports"
+        )
         duplicate_functions_data = self._load_tool_data(
             "analyze_duplicate_functions", "functions"
         )
@@ -3526,6 +3532,58 @@ class ReportGenerationMixin:
             detail = f"Development tools coverage is {percent_text(dev_pct, 1)} (target 60%+)."
             watch_list.append(detail)
 
+        registry_doc_coverage_value = (
+            doc_metrics_details.get("coverage")
+            if isinstance(doc_metrics_details, dict)
+            else None
+        )
+        registry_analysis = (
+            doc_metrics_details.get("analysis", {})
+            if isinstance(doc_metrics_details, dict)
+            else {}
+        )
+        registry_missing_docstrings = (
+            to_int(registry_analysis.get("undocumented_handlers_total", 0)) or 0
+        ) + (to_int(registry_analysis.get("undocumented_other_total", 0)) or 0)
+        if missing_docs_count_for_priority is not None and registry_doc_coverage_value is not None:
+            watch_list.append(
+                "Docstring metrics: "
+                f"code-docstrings={missing_docs_count_for_priority} missing, "
+                f"registry-docstrings={registry_missing_docstrings} missing "
+                f"({percent_text(registry_doc_coverage_value, 2)} coverage)."
+            )
+            if registry_missing_docstrings != missing_docs_count_for_priority:
+                watch_list.append(
+                    "Docstring count mismatch is expected when registry/handler docs and code docstrings diverge; review both before prioritizing."
+                )
+
+        dependency_details = (
+            dependency_patterns_data.get("details", {})
+            if isinstance(dependency_patterns_data, dict)
+            else {}
+        )
+        dependency_payload = (
+            dependency_details.get("data", dependency_details)
+            if isinstance(dependency_details, dict)
+            else {}
+        )
+        if (
+            isinstance(dependency_payload, dict)
+            and not dependency_payload
+            and isinstance(dependency_patterns_data, dict)
+        ):
+            dependency_payload = dependency_patterns_data.get("data", dependency_patterns_data)
+        if isinstance(dependency_payload, dict):
+            circular_dependency_count = len(
+                dependency_payload.get("circular_dependencies", []) or []
+            )
+            high_coupling_count = len(dependency_payload.get("high_coupling", []) or [])
+            watch_list.append(
+                "Dependency patterns: "
+                f"{circular_dependency_count} circular chain(s), "
+                f"{high_coupling_count} high-coupling module(s)."
+            )
+
         if high_examples:
             high_focus = [
                 f"{entry['function']} ({entry['file']})" for entry in high_examples[:3]
@@ -4714,6 +4772,9 @@ class ReportGenerationMixin:
             overall = coverage_summary.get("overall") or {}
             lines.append(
                 f"- **Overall Coverage**: {percent_text(overall.get('coverage'), 1)} ({overall.get('covered')} of {overall.get('statements')} statements)"
+            )
+            lines.append(
+                "    - **Coverage Scope**: Main project domains (`core`, `communication`, `ui`, `tasks`, `user`, `ai`) only; `development_tools/` is tracked separately."
             )
 
             # Domains with Lowest Coverage

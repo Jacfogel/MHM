@@ -57,6 +57,17 @@ class LegacyReferenceReportGenerator:
         """
         self.project_root = Path(project_root).resolve()
 
+    def _should_exclude_report_path(self, file_path: str) -> bool:
+        """Apply shared exclusion rules before rendering file-level findings."""
+        from development_tools.shared.standard_exclusions import should_exclude_file
+
+        normalized = str(file_path).replace("\\", "/")
+        if normalized.endswith("run_tests.py"):
+            return False
+        return should_exclude_file(
+            normalized, tool_type="analysis", context="development"
+        )
+
     def generate_cleanup_report(
         self, findings: Dict[str, List[Tuple[str, str, List[Dict[str, Any]]]]]
     ) -> str:
@@ -83,13 +94,27 @@ class LegacyReferenceReportGenerator:
             "> **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator"
         )
 
+        filtered_findings: Dict[str, List[Tuple[str, str, List[Dict[str, Any]]]]] = {}
+        for pattern_type, files in findings.items():
+            kept = [
+                item
+                for item in files
+                if not self._should_exclude_report_path(item[0])
+            ]
+            if kept:
+                filtered_findings[pattern_type] = kept
+
         affected_files = {
-            file_path for files in findings.values() for file_path, _, _ in files
+            file_path
+            for files in filtered_findings.values()
+            for file_path, _, _ in files
         }
         report_lines.append(f"**Total Files with Issues**: {len(affected_files)}")
 
         total_markers = sum(
-            len(matches) for files in findings.values() for _, _, matches in files
+            len(matches)
+            for files in filtered_findings.values()
+            for _, _, matches in files
         )
         report_lines.append(
             f"**Legacy Compatibility Markers Detected**: {total_markers}"
@@ -101,7 +126,7 @@ class LegacyReferenceReportGenerator:
         if affected_files:
             report_lines.append("- Scan mode only: no automated fixes were applied.")
 
-            legacy_entries = findings.get("legacy_compatibility_markers", [])
+            legacy_entries = filtered_findings.get("legacy_compatibility_markers", [])
             if legacy_entries:
                 legacy_marker_count = sum(
                     len(matches) for _, _, matches in legacy_entries
@@ -147,8 +172,8 @@ class LegacyReferenceReportGenerator:
         )
         report_lines.append("")
 
-        for pattern_type in sorted(findings.keys()):
-            files = findings[pattern_type]
+        for pattern_type in sorted(filtered_findings.keys()):
+            files = filtered_findings[pattern_type]
             if not files:
                 continue
 

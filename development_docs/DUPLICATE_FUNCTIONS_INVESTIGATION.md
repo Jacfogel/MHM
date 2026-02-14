@@ -179,7 +179,7 @@ Same pattern as groups 21–24 for the first two. The third is an internal helpe
 ## Recommendations
 
 1. **No action (polymorphism or intentional pattern)**: Groups 1, 5, 13 (format_message, get_color_for_type, register_with_platform); 9–12, 15 (user_data_manager class+module); 7 (async vs sync); 14 (get_user_data_summary); 18 (keyPressEvent); 22 (cache clear); 23 (get_welcome_message core vs discord); 24 (DiscordBot/EmailBot send_message); 26–28.
-2. **Refactored 2026-02-06**: Groups 2, 3, 25 (period row helpers in core/ui_management.py); Group 4 (_is_valid_intent → intent_validation.is_valid_intent); Group 6 (find_task_by_identifier → _find_task_by_identifier_for_operation); Group 8 (command parsing prompt merged with clarification flag); Group 20 (_get_user_data__load_* → _get_user_data__load_impl).
+2. **Refactored 2026-02-06**: Groups 2, 3, 25 (period row helpers in core/ui_management.py); Group 4 (_is_valid_intent → intent_validation.is_valid_intent); Group 6 (task identifier lookup consolidated to `_find_task_by_identifier` shared helper; wrapper removed after callers/tests were migrated); Group 8 (command parsing prompt merged with clarification flag); Group 20 (_get_user_data__load_* → _get_user_data__load_impl).
 3. **Optional (similar structure, different ops)**: Groups 16, 19, 21, 29 — shared helper only if logic actually converges.
 4. **Single-function groups**: Filtered out by the tool (11 in this run).
 

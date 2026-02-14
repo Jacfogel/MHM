@@ -1462,7 +1462,7 @@ class AuditOrchestrationMixin:
             logger.debug(f"Failed to save timing data: {e}")
     
     def _sync_todo_with_changelog(self) -> None:
-        """Sync TODO.md with AI_CHANGELOG.md to move completed entries."""
+        """Analyze TODO.md for completed entries and report dry-run cleanup data."""
         try:
             from development_tools.docs.fix_version_sync import sync_todo_with_changelog
             result = sync_todo_with_changelog()
@@ -1470,11 +1470,20 @@ class AuditOrchestrationMixin:
                 self.todo_sync_result = result
                 status = result.get('status')
                 if status == 'ok':
-                    moved = result.get('moved_entries', 0)
-                    if moved > 0:
-                        logger.info(f"   TODO sync: Moved {moved} completed entries to changelog")
+                    completed_count = result.get('completed_entries', 0) or 0
+                    summary = result.get('summary', {}) if isinstance(result.get('summary'), dict) else {}
+                    auto_count = summary.get('auto_cleanable_count', 0)
+                    manual_count = summary.get('manual_review_count', 0)
+                    if completed_count > 0:
+                        logger.info(
+                            f"   TODO sync: {completed_count} completed entries detected "
+                            f"({auto_count} auto-cleanable, {manual_count} manual review)"
+                        )
+                        dry_run_report = result.get('dry_run_report')
+                        if isinstance(dry_run_report, str) and dry_run_report.strip():
+                            logger.info(f"   {dry_run_report}")
                     else:
-                        logger.info("   TODO sync: No completed entries to move")
+                        logger.info("   TODO sync: No completed entries detected")
                 else:
                     message = result.get('message', 'Unknown error')
                     logger.warning(f"   TODO sync: {message}")

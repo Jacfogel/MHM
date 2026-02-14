@@ -314,6 +314,15 @@ To keep production logs readable and avoid debug-level repetition at INFO:
 
 See `core/logger.py` (setup_logging), `ai/prompt_manager.py` (_load_custom_prompt), `communication/message_processing/conversation_flow_manager.py` (_load_user_states), and `core/scheduler.py` (scheduler loop) for the current patterns.
 
+### 9.8. CI enforcement for logging rules
+
+Logging style rules are enforced in CI via:
+
+- `scripts/static_checks/check_channel_loggers.py`
+- `.github/workflows/logging-enforcement.yml`
+
+The workflow runs the static check in a dedicated gate job before test steps. If the check finds forbidden patterns (for example direct `logging.getLogger(...)` usage in application code), the job fails and downstream test jobs do not run.
+
 ---
 
 ## 10. Usage Examples

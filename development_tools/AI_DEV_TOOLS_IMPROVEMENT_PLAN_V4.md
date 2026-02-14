@@ -63,39 +63,39 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Re-enable `tests/development_tools/test_audit_tier_comprehensive.py` if possible
 
 #### 1.3 Investigate intermittent low coverage warning
-**Status**: PENDING  
+**Status**: IN PROGRESS  
 **Tasks**:
-- [ ] Review coverage merge flow in `run_test_coverage.py`
-- [ ] Verify timing of coverage merge vs analysis
-- [ ] Investigate shard file detection and naming
-- [ ] Add detailed logging for coverage file detection and merge steps
+- [x] Review coverage merge flow in `run_test_coverage.py`
+- [x] Verify timing of coverage merge vs analysis
+- [x] Investigate shard file detection and naming
+- [x] Add detailed logging for coverage file detection and merge steps
 - [ ] Reproduce with controlled parallel runs and identify correlation patterns
-- [ ] Implement fix (wait/retry, improved detection, path resolution, or merge ordering)
-- [ ] Add validation to ensure all expected coverage files exist before analysis
+- [x] Implement fix (wait/retry, improved detection, path resolution, or merge ordering)
+- [x] Add validation to ensure all expected coverage files exist before analysis
 
 #### 1.4 Coverage pipeline consistency and file locations
-**Status**: PENDING  
+**Status**: COMPLETED  
 **Tasks**:
-- [ ] Confirm whether overall coverage includes or excludes `development_tools/`
-- [ ] Ensure consistent policy across AI_STATUS, consolidated report, TEST_COVERAGE_REPORT
-- [ ] Investigate why `htmlcov/` is recreated empty and fix root cause
-- [ ] Standardize `.coverage` file location (root vs `development_tools/tests/`)
-- [ ] Investigate `.coverage_dev_tools.*` and `.coverage_parallel.*` creation in `development_tools/tests/`
-- [ ] Update `.gitignore` and documentation to match intended locations
+- [x] Confirm whether overall coverage includes or excludes `development_tools/`
+- [x] Ensure consistent policy across AI_STATUS, consolidated report, TEST_COVERAGE_REPORT
+- [x] Investigate why `htmlcov/` is recreated empty and fix root cause
+- [x] Standardize `.coverage` file location (root vs `development_tools/tests/`)
+- [x] Investigate `.coverage_dev_tools.*` and `.coverage_parallel.*` creation in `development_tools/tests/`
+- [x] Update `.gitignore` and documentation to match intended locations
 
 #### 1.5 Coverage caching follow-ups (test-file cache)
-**Status**: PENDING  
+**Status**: IN PROGRESS  
 **Tasks**:
 - [ ] Measure actual time savings of domain-based test execution
 - [ ] Compare full vs domain-filtered runs and document results in changelog
-- [ ] Add cross-domain dependency tracking (invalidate dependent domains)
+- [x] Add cross-domain dependency tracking (invalidate dependent domains)
 - [x] Extend MtimeFileCache to high-cost analyzers (`analyze_error_handling`, `analyze_functions`, `analyze_module_imports`, `analyze_module_dependencies`)
-- [ ] Ensure cached test results are invalidated when covered domains change
-- [ ] Do not cache results for test files that fail or error
-- [ ] Add tool mtime/hash tracking to `TestFileCoverageCache` to invalidate coverage cache globally when test coverage tool code changes (e.g., `run_test_coverage.py`, `test_file_coverage_cache.py`, `dev_tools_coverage_cache.py`, `domain_mapper.py`)
-  - Implementation: store `tool_hash` + `tool_mtimes` in `test_file_coverage_cache.json`
-  - Invalidate all domains if tool hash changes; update hash on cache save
-  - Log explicit invalidation reason in `run_test_coverage.py` output
+- [x] Ensure cached test results are invalidated when covered domains change
+- [x] Do not cache results for test files that fail or error
+- [x] Add tool mtime/hash tracking to `TestFileCoverageCache` to invalidate coverage cache globally when test coverage tool code changes (e.g., `run_test_coverage.py`, `test_file_coverage_cache.py`, `dev_tools_coverage_cache.py`, `domain_mapper.py`)
+  - [x] Implementation: store `tool_hash` + `tool_mtimes` in `test_file_coverage_cache.json`
+  - [x] Invalidate all domains if tool hash changes; update hash on cache save
+  - [x] Log explicit invalidation reason in `run_test_coverage.py` output
 
 #### 1.7 Caching quality and invalidation rules (broader tools)
 **Status**: PENDING  
@@ -358,10 +358,10 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 #### 5.4 TODO sync cleanup automation
 **Status**: PENDING  
 **Tasks**:
-- [ ] Review current TODO sync logic
-- [ ] Improve detection of completed entries
+- [x] Review current TODO sync logic
+- [x] Improve detection of completed entries
 - [ ] Add auto-clean with dry-run option
-- [ ] Improve reporting of manual vs auto-cleanable items
+- [x] Improve reporting of manual vs auto-cleanable items
 - [ ] Document workflow and best practices
 
 #### 5.5 New tool creation based on gap analysis
@@ -409,6 +409,12 @@ These are surfaced by the tools and remain outstanding but are not tool-suite ch
 development_tools\legacy\generate_legacy_reference_report.py should exclude tests\data\.
 - honestly just about everything should exclude tests\data\. 
 - Review development_tools\shared\EXCLUSION_RULES.md and ensure development tools stay isolated from main MHM project using development_tools\config\development_tools_config.json
+- [x] `analyze_legacy_references.py` now applies `standard_exclusions.should_exclude_file(...)` before scanning files
+- [x] `generate_legacy_reference_report.py` now filters excluded paths before computing totals/rendering sections
+- [x] `development_tools_config.json` exclusions now explicitly include `tests/data/` in `base_exclusion_shortlist` and `tests/data/*` in development/testing context exclusions
+- [x] `EXCLUSION_RULES.md` updated to document `tests/data/` as excluded-by-default for analyzer-style tooling
+
+## 7.2 Integrate pyright and ruff into development tools, they can run in parallel as part of the full audit and contribute towards development_tools\AI_PRIORITIES.md, development_tools\AI_STATUS.md and development_tools\consolidated_report.txt
 ---
 
 ## Related Documents

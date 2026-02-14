@@ -154,6 +154,8 @@ pyright-report.json
 # ============================
 development_tools/**/jsons/
 development_tools/tests/coverage_dev_tools.json
+development_tools/tests/coverage_html/
+development_tools/tests/.coverage*
 *.lock
 *.backup_*
 

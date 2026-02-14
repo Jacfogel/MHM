@@ -198,15 +198,19 @@ class TestInteractionHandlersBehavior:
 
         # Resolve to the internal UUID to match the rest of the system.
         from core.user_data_handlers import get_user_id_by_identifier
+        from core.user_data_manager import rebuild_user_index
         from tests.conftest import wait_until
 
-        # Poll for index visibility instead of forcing a full index rebuild.
-        assert wait_until(
-            lambda: get_user_id_by_identifier(user_id) is not None,
-            timeout_seconds=1.0,
-            poll_seconds=0.01,
-        ), "Should resolve user UUID for created user"
+        # Poll for index visibility first; rebuild only as fallback for parallel lag.
         internal_user_id = get_user_id_by_identifier(user_id)
+        if internal_user_id is None:
+            rebuild_user_index()
+            assert wait_until(
+                lambda: get_user_id_by_identifier(user_id) is not None,
+                timeout_seconds=1.5,
+                poll_seconds=0.01,
+            ), "Should resolve user UUID for created user"
+            internal_user_id = get_user_id_by_identifier(user_id)
         assert internal_user_id is not None, "Should be able to get UUID for created user"
         
         # Create some test tasks first

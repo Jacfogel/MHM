@@ -353,7 +353,8 @@ class MissingMarkerFinder:
 
     def analyze_file(self, file_path):
         try:
-            tree = ast.parse(file_path.read_text(encoding="utf-8"))
+            # Use utf-8-sig so BOM-prefixed files do not trigger SyntaxError.
+            tree = ast.parse(file_path.read_text(encoding="utf-8-sig"))
         except SyntaxError as exc:
             logger.warning(f"Skipping {file_path} due to syntax error: {exc}")
             return

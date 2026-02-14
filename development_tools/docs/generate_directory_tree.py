@@ -137,7 +137,7 @@ class DirectoryTreeGenerator:
 
         # Process lines
         processed_lines = []
-        skip_until_next_dir = False
+        placeholder_skip_indent: Optional[int] = None
         skip_exclusion_indent: Optional[int] = None
         path_stack: List[str] = []
 
@@ -150,13 +150,9 @@ class DirectoryTreeGenerator:
                 else:
                     continue
 
-            if skip_until_next_dir:
-                stripped_line = line.strip()
-                if stripped_line and (
-                    stripped_line.startswith("+---")
-                    or stripped_line.startswith("\\---")
-                ):
-                    skip_until_next_dir = False
+            if placeholder_skip_indent is not None:
+                if indent is not None and indent <= placeholder_skip_indent:
+                    placeholder_skip_indent = None
                 else:
                     continue
 
@@ -197,7 +193,7 @@ class DirectoryTreeGenerator:
                 processed_lines.append(line)
                 # Add the placeholder
                 processed_lines.append(replacement)
-                skip_until_next_dir = True
+                placeholder_skip_indent = indent if indent is not None else 0
             else:
                 processed_lines.append(line)
 

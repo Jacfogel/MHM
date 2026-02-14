@@ -15,6 +15,7 @@ import re
 import shutil
 import subprocess
 import sys
+import configparser
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
@@ -103,17 +104,29 @@ class TestCoverageReportGenerator:
             )
 
         # Ensure directories exist
+        self.coverage_data_file = self.project_root / ".coverage"
+        self._configure_paths_from_coverage_ini()
         self.coverage_html_dir.parent.mkdir(parents=True, exist_ok=True)
         self.archive_root.mkdir(parents=True, exist_ok=True)
         self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
-
-        # Coverage data file
-        self.coverage_data_file = self.project_root / ".coverage"
 
         # Coverage plan file (TEST_COVERAGE_REPORT.md)
         self.coverage_plan_file = (
             self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
         )
+
+    def _configure_paths_from_coverage_ini(self) -> None:
+        """Override default coverage paths when coverage.ini explicitly sets them."""
+        if not self.coverage_config_path.exists():
+            return
+        parser = configparser.ConfigParser()
+        parser.read(self.coverage_config_path)
+        data_file = parser.get("run", "data_file", fallback="").strip()
+        if data_file:
+            self.coverage_data_file = (self.project_root / data_file).resolve()
+        html_directory = parser.get("html", "directory", fallback="").strip()
+        if html_directory:
+            self.coverage_html_dir = (self.project_root / html_directory).resolve()
 
     def generate_coverage_summary(
         self, coverage_data: Dict[str, Dict[str, any]], overall_data: Dict[str, any]
@@ -138,6 +151,9 @@ class TestCoverageReportGenerator:
         )
         summary_lines.append(
             f"- **Uncovered Statements**: {overall_data['total_missed']:,}"
+        )
+        summary_lines.append(
+            "- **Coverage Scope**: Main project domains only (`core`, `communication`, `ui`, `tasks`, `user`, `ai`); `development_tools/` coverage is tracked separately."
         )
         summary_lines.append(
             f"- **Goal**: Expand to **80%+ coverage** for comprehensive reliability\n"

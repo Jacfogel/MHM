@@ -359,6 +359,7 @@ def _load_base_exclusion_shortlist() -> Tuple[str, ...]:
     return (
         "logs/",
         "data/",
+        "tests/data/",
         "coverage_html/",
         "__pycache__/",
         ".pytest_cache/",

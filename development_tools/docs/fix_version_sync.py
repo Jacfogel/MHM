@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # TOOL_TIER: experimental
 
 """
@@ -312,8 +312,70 @@ def validate_referenced_paths(project_root=None):
         }
 
 
+def _find_todo_scan_start(lines: list[str]) -> int:
+    """Find the first actionable TODO section and skip front-matter metadata."""
+    for i, line in enumerate(lines):
+        if re.match(r"^\s*##\s+", line):
+            return i
+    return 0
+
+
+def _classify_completed_todo_line(line: str) -> tuple[bool, str]:
+    """Classify completed TODO lines as auto-cleanable or manual-review."""
+    stripped = line.strip()
+    if not stripped:
+        return False, ""
+
+    # Safe auto-clean candidates for future automation: completed checklist items.
+    if re.match(r"^\s*[-*]\s+\[[xX]\]\s+", line):
+        return True, "checklist_checked"
+
+    # Manual-review markers.
+    if re.search(r"~~.+~~", stripped):
+        return True, "strikethrough"
+    if re.search(r"\*\*(COMPLETE|COMPLETED|DONE)\*\*", stripped, re.IGNORECASE):
+        return True, "bold_status_marker"
+    if re.search(r"[✅☑]", stripped) and re.search(
+        r"\b(COMPLETE|COMPLETED|DONE)\b", stripped, re.IGNORECASE
+    ):
+        return True, "emoji_status_marker"
+    if re.search(
+        r"[-:]\s*(COMPLETE|COMPLETED|DONE)\s*$", stripped, re.IGNORECASE
+    ):
+        return True, "trailing_status_marker"
+    if re.search(
+        r"\((COMPLETE|COMPLETED|DONE)\)\s*$", stripped, re.IGNORECASE
+    ):
+        return True, "trailing_status_marker"
+
+    return False, ""
+
+
+def _build_todo_sync_dry_run_report(
+    total_completed: int,
+    auto_cleanable_entries: list[dict],
+    manual_review_entries: list[dict],
+) -> str:
+    """Create a concise dry-run summary for TODO sync analysis."""
+    auto_lines = [str(entry.get("line_number")) for entry in auto_cleanable_entries][:5]
+    manual_lines = [str(entry.get("line_number")) for entry in manual_review_entries][:5]
+
+    auto_line_text = ", ".join(auto_lines) if auto_lines else "none"
+    manual_line_text = ", ".join(manual_lines) if manual_lines else "none"
+
+    return (
+        "TODO sync dry-run summary:\n"
+        f"- completed entries detected: {total_completed}\n"
+        f"- auto-cleanable checklist items: {len(auto_cleanable_entries)}"
+        f" (lines: {auto_line_text})\n"
+        f"- manual-review items: {len(manual_review_entries)}"
+        f" (lines: {manual_line_text})\n"
+        "- no automatic cleanup was performed"
+    )
+
+
 def sync_todo_with_changelog():
-    """Check for completed entries in TODO.md that should be reviewed for changelog documentation."""
+    """Detect completed TODO entries and report dry-run cleanup candidates."""
     todo_path = "TODO.md"
     changelog_path = "ai_development_docs/AI_CHANGELOG.md"
 
@@ -322,94 +384,102 @@ def sync_todo_with_changelog():
             "status": "ok",
             "message": "TODO.md or AI_CHANGELOG.md not found",
             "completed_entries": 0,
+            "entries": [],
+            "summary": {
+                "total_completed": 0,
+                "auto_cleanable_count": 0,
+                "manual_review_count": 0,
+            },
+            "dry_run_report": "TODO sync dry-run summary:\n- required files not found",
         }
 
     try:
-        # Read TODO.md
         with open(todo_path, "r", encoding="utf-8") as f:
             todo_content = f.read()
 
-        # Find completed entries in TODO.md
-        # Skip first 33 lines (header/metadata section)
-        completed_entries = []
         lines = todo_content.split("\n")
+        scan_start = _find_todo_scan_start(lines)
+        completed_entries: list[dict] = []
+        auto_cleanable_entries: list[dict] = []
+        manual_review_entries: list[dict] = []
 
-        for i, line in enumerate(lines):
-            # Skip first 33 lines (0-indexed, so lines 0-32)
-            if i < 33:
+        for i in range(scan_start, len(lines)):
+            line = lines[i]
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if stripped.startswith("## "):
                 continue
 
-            # Check if this line is a header line (starts with **, ##, ###, or is preceded by newline/empty line)
-            is_header_line = False
-            if i > 0:
-                prev_line = lines[i - 1].strip() if i > 0 else ""
-                # Header if: starts with markdown heading, starts with **, or preceded by empty line
-                if line.strip().startswith(("##", "###", "**")) or (
-                    prev_line == "" and line.strip()
-                ):
-                    is_header_line = True
+            is_completed, detection_type = _classify_completed_todo_line(line)
+            if not is_completed:
+                continue
 
-            # Only flag entries where completion marker is in the header line
-            if is_header_line:
-                # Look for lines with completion markers AFTER the task title:
-                # - ✅ COMPLETE or ✅ COMPLETED (with checkmark emoji - always after title)
-                # - **COMPLETE** or **COMPLETED** (in bold after task title)
-                # - COMPLETE/COMPLETED/DONE after closing ** of task title (to avoid matching "Complete" in title)
-                # Pattern: **Task Title** [optional dash/space] COMPLETE/COMPLETED/DONE
-                if (
-                    re.search(r"✅\s*(COMPLETE|COMPLETED|DONE)", line, re.IGNORECASE)
-                    or re.search(
-                        r"\*\*.*\*\*.*\*\*(COMPLETE|COMPLETED|DONE)\*\*",
-                        line,
-                        re.IGNORECASE,
-                    )
-                    or (
-                        line.strip().startswith("**")
-                        and re.search(
-                            r"\*\*[^*]+\*\*.*\b(COMPLETE|COMPLETED|DONE)\b",
-                            line,
-                            re.IGNORECASE,
-                        )
-                    )
-                    or (
-                        line.strip().startswith(("##", "###"))
-                        and re.search(
-                            r"\b(COMPLETE|COMPLETED|DONE)\b", line, re.IGNORECASE
-                        )
-                    )
-                ):
+            entry = {
+                "line_number": i + 1,
+                "title": stripped,
+                "context": lines[max(0, i - 2) : i + 3],
+                "detection_type": detection_type,
+                "auto_cleanable": detection_type == "checklist_checked",
+            }
+            completed_entries.append(entry)
+            if entry["auto_cleanable"]:
+                auto_cleanable_entries.append(entry)
+            else:
+                manual_review_entries.append(entry)
 
-                    # Extract the task title and context
-                    task_title = line.strip()
-                    completed_entries.append(
-                        {
-                            "line_number": i + 1,
-                            "title": task_title,
-                            "context": lines[
-                                max(0, i - 2) : i + 3
-                            ],  # Include 2 lines before and after for context
-                        }
-                    )
+        total_completed = len(completed_entries)
+        dry_run_report = _build_todo_sync_dry_run_report(
+            total_completed, auto_cleanable_entries, manual_review_entries
+        )
 
-        if completed_entries:
+        if total_completed > 0:
             return {
                 "status": "ok",
-                "message": f"Found {len(completed_entries)} completed entries in TODO.md that need review",
-                "completed_entries": len(completed_entries),
+                "message": (
+                    f"Found {total_completed} completed entries in TODO.md "
+                    f"({len(auto_cleanable_entries)} auto-cleanable, "
+                    f"{len(manual_review_entries)} manual review)"
+                ),
+                "completed_entries": total_completed,
                 "entries": completed_entries,
+                "auto_cleanable_entries": auto_cleanable_entries,
+                "manual_review_entries": manual_review_entries,
+                "summary": {
+                    "total_completed": total_completed,
+                    "auto_cleanable_count": len(auto_cleanable_entries),
+                    "manual_review_count": len(manual_review_entries),
+                },
+                "dry_run_report": dry_run_report,
             }
-        else:
-            return {
-                "status": "ok",
-                "message": "No completed entries found in TODO.md",
-                "completed_entries": 0,
-            }
+
+        return {
+            "status": "ok",
+            "message": "No completed entries found in TODO.md",
+            "completed_entries": 0,
+            "entries": [],
+            "auto_cleanable_entries": [],
+            "manual_review_entries": [],
+            "summary": {
+                "total_completed": 0,
+                "auto_cleanable_count": 0,
+                "manual_review_count": 0,
+            },
+            "dry_run_report": dry_run_report,
+        }
 
     except Exception as e:
         return {
             "status": "error",
             "message": f"Error checking TODO entries: {str(e)}",
             "completed_entries": 0,
+            "entries": [],
+            "summary": {
+                "total_completed": 0,
+                "auto_cleanable_count": 0,
+                "manual_review_count": 0,
+            },
+            "dry_run_report": "TODO sync dry-run summary:\n- analysis failed",
         }
 
 
@@ -986,3 +1056,4 @@ if __name__ == "__main__":
             "   core        - Core system files (main entry points, core modules, etc.)"
         )
         print("   all         - All files (use with caution)")
+

@@ -1174,13 +1174,6 @@ class TaskManagementHandler(InteractionHandler):
 
         return None
 
-    @handle_errors("finding task by identifier")
-    def _find_task_by_identifier_for_operation(
-        self, tasks: list[dict], identifier: str, context: str = "operation"
-    ) -> dict | None:
-        """Find a task by number, name, or task_id for a given operation context."""
-        return self._find_task_by_identifier(tasks, identifier)
-
     @handle_errors("getting task candidates", default_return=[])
     def _get_task_candidates(self, tasks: list[dict], identifier: str) -> list[dict]:
         """Return candidate tasks matching identifier by id, number, or name."""

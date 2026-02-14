@@ -567,6 +567,107 @@ class CoverageMetricsRegenerator:
 
         return merged
 
+    def _detect_expected_parallel_workers(self, pytest_output: str) -> Optional[int]:
+        """Extract expected xdist worker count from pytest output when available."""
+        if not pytest_output:
+            return None
+        matches = re.findall(r"created:\s*(\d+)\s*/\s*(\d+)\s*workers", pytest_output)
+        if not matches:
+            return None
+        try:
+            created, configured = matches[-1]
+            created_int = int(created)
+            configured_int = int(configured)
+            # Prefer created worker count; fallback to configured.
+            return created_int if created_int > 0 else configured_int
+        except (TypeError, ValueError):
+            return None
+
+    def _discover_parallel_coverage_artifacts(
+        self, coverage_dir: Path
+    ) -> Dict[str, List[Path]]:
+        """Discover coverage files that should exist before combine."""
+        artifacts: Dict[str, List[Path]] = {
+            "parallel_shards": [],
+            "project_root_shards": [],
+        }
+        if not coverage_dir.exists():
+            return artifacts
+
+        artifacts["parallel_shards"].extend(coverage_dir.glob(".coverage_parallel.worker*"))
+        artifacts["parallel_shards"].extend(
+            [
+                f
+                for f in coverage_dir.glob(".coverage.worker*")
+                if f.name != ".coverage"
+            ]
+        )
+        artifacts["parallel_shards"] = [
+            f
+            for f in artifacts["parallel_shards"]
+            if f.name not in {".coverage_parallel", ".coverage_no_parallel", ".coverage"}
+        ]
+
+        artifacts["project_root_shards"].extend(
+            self.project_root.glob(".coverage_parallel.worker*")
+        )
+        artifacts["project_root_shards"].extend(
+            [
+                f
+                for f in self.project_root.glob(".coverage.worker*")
+                if f.name != ".coverage"
+            ]
+        )
+        return artifacts
+
+    def _wait_for_parallel_coverage_artifacts(
+        self,
+        coverage_dir: Path,
+        expected_workers: Optional[int],
+        timeout_seconds: float = 5.0,
+        poll_seconds: float = 0.25,
+    ) -> Dict[str, Any]:
+        """Wait briefly for shard files to appear before combine on slower filesystems."""
+        import time
+
+        start = time.time()
+        discovered: Dict[str, List[Path]] = {"parallel_shards": [], "project_root_shards": []}
+        while time.time() - start < timeout_seconds:
+            discovered = self._discover_parallel_coverage_artifacts(coverage_dir)
+            shard_count = len(discovered["parallel_shards"])
+            if expected_workers and shard_count >= expected_workers:
+                break
+            # If workers are unknown, any shard is enough to proceed early.
+            if expected_workers is None and shard_count > 0:
+                break
+            time.sleep(poll_seconds)
+
+        elapsed = round(time.time() - start, 2)
+        if logger:
+            logger.info(
+                "Coverage shard detection: "
+                f"expected_workers={expected_workers if expected_workers is not None else 'unknown'}, "
+                f"found_in_coverage_dir={len(discovered['parallel_shards'])}, "
+                f"found_in_project_root={len(discovered['project_root_shards'])}, "
+                f"waited={elapsed}s"
+            )
+            if discovered["parallel_shards"]:
+                logger.debug(
+                    "Coverage shard files (coverage dir): "
+                    f"{[p.name for p in discovered['parallel_shards'][:12]]}"
+                )
+            if discovered["project_root_shards"]:
+                logger.warning(
+                    "Coverage shard files found in project root (unexpected): "
+                    f"{[p.name for p in discovered['project_root_shards'][:12]]}"
+                )
+        return {
+            "expected_workers": expected_workers,
+            "waited_seconds": elapsed,
+            "parallel_shards": discovered["parallel_shards"],
+            "project_root_shards": discovered["project_root_shards"],
+        }
+
     def run_coverage_analysis(self) -> Dict[str, Dict[str, any]]:
         """Run pytest coverage analysis and extract metrics."""
         if logger:
@@ -584,6 +685,13 @@ class CoverageMetricsRegenerator:
         if self.use_domain_cache and self.test_file_cache:
             # Get changed domains
             changed_domains = self.test_file_cache.get_changed_domains()
+            invalidation_reason = getattr(
+                self.test_file_cache, "last_invalidation_reason", None
+            )
+            if logger and invalidation_reason:
+                logger.info(
+                    f"Test-file cache invalidation reason: {invalidation_reason}"
+                )
 
             # Get test files that need to be re-run (those covering changed domains)
             test_files_to_run = self.test_file_cache.get_test_files_to_run(
@@ -1382,7 +1490,32 @@ class CoverageMetricsRegenerator:
                     else fresh_coverage_json
                 )
 
-                if self.use_domain_cache and self.test_file_cache and coverage_to_cache:
+                cache_write_allowed_pre_no_parallel = (
+                    result.returncode == 0
+                    and test_results.get("failed_count", 0) == 0
+                    and not test_results.get("maxfail_reached", False)
+                )
+
+                # In parallel mode, defer cache writes until no_parallel has completed.
+                # This prevents persisting partial coverage cache state when serial phase fails.
+                if (
+                    self.parallel
+                    and self.use_domain_cache
+                    and self.test_file_cache
+                    and coverage_to_cache
+                ):
+                    if logger:
+                        logger.info(
+                            "Deferring test-file coverage cache write until no_parallel phase completes"
+                        )
+
+                if (
+                    self.use_domain_cache
+                    and self.test_file_cache
+                    and coverage_to_cache
+                    and (not self.parallel)
+                    and cache_write_allowed_pre_no_parallel
+                ):
                     if not test_files_to_run:
                         # This was a full run (no domains changed or first run)
                         # Cache the full coverage JSON once (not per test file)
@@ -1448,6 +1581,17 @@ class CoverageMetricsRegenerator:
                             logger.info(
                                 f"Cached merged coverage as full coverage cache and updated mappings for {len(test_files_to_run)} test files"
                             )
+                elif (
+                    self.use_domain_cache
+                    and self.test_file_cache
+                    and coverage_to_cache
+                    and (not self.parallel)
+                    and (not cache_write_allowed_pre_no_parallel)
+                ):
+                    if logger:
+                        logger.info(
+                            "Skipping test-file coverage cache write because tests failed or maxfail was reached"
+                        )
 
             # Enhanced error detection and reporting
             if result.returncode != 0:
@@ -1599,6 +1743,10 @@ class CoverageMetricsRegenerator:
                 no_parallel_env["COVERAGE_FILE"] = str(
                     no_parallel_coverage_file.resolve()
                 )
+                if self.coverage_config_path.exists():
+                    no_parallel_env["COVERAGE_RCFILE"] = str(
+                        self.coverage_config_path.resolve()
+                    )
                 # Set unique pytest temp directory to avoid conflicts when running in parallel with dev tools coverage
                 import uuid
                 import tempfile
@@ -1996,6 +2144,9 @@ class CoverageMetricsRegenerator:
                 # Check if coverage files exist (they may be in tests/ directory due to coverage.ini)
                 # Also check for shard files from parallel execution (e.g., .coverage.worker0, .coverage.worker1, etc.)
                 coverage_dir = self.coverage_data_file.parent
+                expected_parallel_workers = self._detect_expected_parallel_workers(
+                    log_content if log_content else (result.stdout or "")
+                )
                 parallel_exists = (
                     parallel_coverage_file and parallel_coverage_file.exists()
                 )
@@ -2003,48 +2154,22 @@ class CoverageMetricsRegenerator:
                     no_parallel_coverage_file and no_parallel_coverage_file.exists()
                 )
 
-                # Check for shard files from parallel execution (pytest-xdist creates these)
-                # When COVERAGE_FILE is set to .coverage_parallel, workers create .coverage_parallel.worker0, etc.
-                # Shard files should be in the coverage directory (where COVERAGE_FILE points)
-                parallel_shard_files = []
-                if coverage_dir.exists():
-                    # Look for shard files: .coverage_parallel.worker0, .coverage_parallel.worker1, etc.
-                    parallel_shard_files.extend(
-                        list(coverage_dir.glob(".coverage_parallel.worker*"))
-                    )
-                    # Also check for .coverage.worker* files (in case COVERAGE_FILE wasn't set correctly)
-                    parallel_shard_files.extend(
-                        [
-                            f
-                            for f in coverage_dir.glob(".coverage.worker*")
-                            if f.name not in [".coverage"]
-                        ]
-                    )
-                    # Log all .coverage* files found for debugging
-                    if logger:
-                        all_coverage_files = list(coverage_dir.glob(".coverage*"))
-                        logger.debug(
-                            f"All .coverage* files in {coverage_dir}: {[f.name for f in all_coverage_files]}"
-                        )
-                        # Check if .coverage exists (might have been auto-combined)
-                        coverage_file = coverage_dir / ".coverage"
-                        if coverage_file.exists():
-                            file_size = coverage_file.stat().st_size
-                            logger.debug(
-                                f"Found .coverage file ({file_size} bytes) - shard files may have been auto-combined"
-                            )
-                # Filter out the main parallel coverage file (we want shard files, not the combined one)
-                parallel_shard_files = [
-                    f
-                    for f in parallel_shard_files
-                    if f.name != ".coverage_parallel"
-                    and f.name != ".coverage_no_parallel"
-                    and f.name != ".coverage"
-                ]
-                if logger:
+                shard_detection = self._wait_for_parallel_coverage_artifacts(
+                    coverage_dir=coverage_dir,
+                    expected_workers=expected_parallel_workers,
+                )
+                parallel_shard_files = shard_detection["parallel_shards"]
+                if logger and coverage_dir.exists():
+                    all_coverage_files = list(coverage_dir.glob(".coverage*"))
                     logger.debug(
-                        f"Found {len(parallel_shard_files)} shard files after filtering: {[f.name for f in parallel_shard_files]}"
+                        f"All .coverage* files in {coverage_dir}: {[f.name for f in all_coverage_files]}"
                     )
+                    coverage_file = coverage_dir / ".coverage"
+                    if coverage_file.exists():
+                        file_size = coverage_file.stat().st_size
+                        logger.debug(
+                            f"Found .coverage file ({file_size} bytes) - shard files may have been auto-combined"
+                        )
 
                 # If no shard files found but .coverage exists, it might contain the parallel coverage
                 # Check if we should use .coverage as the parallel coverage source
@@ -2054,25 +2179,15 @@ class CoverageMetricsRegenerator:
                     and not parallel_exists
                     and coverage_file.exists()
                     and logger
-                ):
-                    logger.warning(
-                        f"No shard files found and .coverage_parallel doesn't exist, but .coverage exists. "
-                        f"This suggests pytest-cov may have auto-combined shard files into .coverage. "
-                        f"Will attempt to use .coverage as parallel coverage source."
-                    )
+                    ):
+                        logger.warning(
+                            f"No shard files found and .coverage_parallel doesn't exist, but .coverage exists. "
+                            f"This suggests pytest-cov may have auto-combined shard files into .coverage. "
+                            f"Will attempt to use .coverage as parallel coverage source."
+                        )
 
-                # Check project root for shard files (shouldn't be there, but log if found)
-                project_root_shards = []
-                project_root_shards.extend(
-                    [f for f in self.project_root.glob(".coverage_parallel.worker*")]
-                )
-                project_root_shards.extend(
-                    [
-                        f
-                        for f in self.project_root.glob(".coverage.worker*")
-                        if f.name != ".coverage"
-                    ]
-                )
+                # Check project root for shard files (shouldn't be there, but copy if found)
+                project_root_shards = shard_detection["project_root_shards"]
                 if project_root_shards and logger:
                     logger.warning(
                         f"Found {len(project_root_shards)} shard files in project root (should be in {coverage_dir}). "
@@ -2095,6 +2210,19 @@ class CoverageMetricsRegenerator:
                                 logger.warning(
                                     f"Failed to copy misplaced shard file {shard_file.name}: {copy_error}"
                                 )
+
+                if (
+                    expected_parallel_workers is not None
+                    and len(parallel_shard_files) < expected_parallel_workers
+                    and not parallel_exists
+                    and not coverage_file.exists()
+                    and logger
+                ):
+                    logger.warning(
+                        "Coverage validation warning: expected at least "
+                        f"{expected_parallel_workers} parallel shard file(s), found {len(parallel_shard_files)}. "
+                        "Will continue with available artifacts, but coverage may be incomplete."
+                    )
 
                 if parallel_exists or no_parallel_exists or parallel_shard_files:
                     if logger:
@@ -2236,14 +2364,39 @@ class CoverageMetricsRegenerator:
                                 )
 
                         # Run combine from the coverage directory so it finds the .coverage.* files
-                        combine_result = subprocess.run(
-                            combine_cmd,
-                            capture_output=True,
-                            text=True,
-                            cwd=coverage_dir,
-                            env=combine_env,
-                            timeout=60,  # Combine should be fast
-                        )
+                        combine_result = None
+                        max_combine_attempts = 2
+                        for attempt in range(1, max_combine_attempts + 1):
+                            combine_result = subprocess.run(
+                                combine_cmd,
+                                capture_output=True,
+                                text=True,
+                                cwd=coverage_dir,
+                                env=combine_env,
+                                timeout=60,  # Combine should be fast
+                            )
+                            combined_exists = self.coverage_data_file.exists()
+                            combined_size = (
+                                self.coverage_data_file.stat().st_size
+                                if combined_exists
+                                else 0
+                            )
+                            if (
+                                combine_result.returncode == 0
+                                and combined_exists
+                                and combined_size > 0
+                            ):
+                                break
+                            if logger:
+                                logger.warning(
+                                    "Coverage combine attempt "
+                                    f"{attempt}/{max_combine_attempts} produced incomplete output "
+                                    f"(returncode={combine_result.returncode}, exists={combined_exists}, size={combined_size})."
+                                )
+                            if attempt < max_combine_attempts:
+                                import time
+
+                                time.sleep(0.5)
 
                         if combine_result.returncode != 0:
                             if logger:
@@ -2708,6 +2861,25 @@ class CoverageMetricsRegenerator:
                                                 f"Shard files found: {shard_files_count}"
                                             )
 
+                                        final_cache_write_allowed = (
+                                            test_results.get("failed_count", 0) == 0
+                                            and not test_results.get(
+                                                "maxfail_reached", False
+                                            )
+                                        )
+                                        if self.parallel:
+                                            final_cache_write_allowed = (
+                                                final_cache_write_allowed
+                                                and no_parallel_test_results.get(
+                                                    "failed_count", 0
+                                                )
+                                                == 0
+                                                and no_parallel_test_results.get(
+                                                    "total_tests", 0
+                                                )
+                                                > 0
+                                            )
+
                                         # Update cache with coverage (parallel mode)
                                         # On selective runs, fresh_coverage_json_parallel should already be the merged coverage
                                         # (set on line 1749 if merge occurred, or original fresh if no merge)
@@ -2715,6 +2887,7 @@ class CoverageMetricsRegenerator:
                                             self.use_domain_cache
                                             and self.test_file_cache
                                             and fresh_coverage_json_parallel
+                                            and final_cache_write_allowed
                                         ):
                                             # Determine if this is a full run:
                                             # - No cached coverage (cache cleared or first run) = full run
@@ -2823,6 +2996,16 @@ class CoverageMetricsRegenerator:
                                                     logger.info(
                                                         f"Cached merged coverage as full coverage cache and updated mappings for {len(test_files_to_run)} test files (parallel mode)"
                                                     )
+                                        elif (
+                                            self.use_domain_cache
+                                            and self.test_file_cache
+                                            and fresh_coverage_json_parallel
+                                            and (not final_cache_write_allowed)
+                                            and logger
+                                        ):
+                                            logger.info(
+                                                "Skipping test-file coverage cache write because parallel/no_parallel test results were not fully successful"
+                                            )
                                     else:
                                         coverage_data = {}
                                         overall_coverage = {}

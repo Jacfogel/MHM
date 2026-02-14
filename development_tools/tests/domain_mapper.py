@@ -48,6 +48,19 @@ class DomainMapper:
         "development_tools": (["tests/development_tools/"], []),
     }
 
+    # Cross-domain coverage dependencies:
+    # if a source domain changes, domains in this list should also be revalidated.
+    DOMAIN_DEPENDENCIES: Dict[str, List[str]] = {
+        "core": ["communication", "ui", "tasks", "ai", "user", "notebook"],
+        "communication": ["ui", "tasks", "ai", "user"],
+        "tasks": ["communication", "ui"],
+        "user": ["communication", "ui", "ai"],
+        "ai": ["communication", "ui"],
+        "ui": [],
+        "notebook": ["communication", "ui"],
+        "development_tools": [],
+    }
+
     def __init__(self, project_root: Path):
         """
         Initialize domain mapper.
@@ -257,7 +270,29 @@ class DomainMapper:
             domain = self.get_source_domain(file_path)
             if domain:
                 changed_domains.add(domain)
-        return changed_domains
+        return self.expand_domains_with_dependencies(changed_domains)
+
+    def expand_domains_with_dependencies(self, domains: Set[str]) -> Set[str]:
+        """
+        Expand domains to include transitive cross-domain dependencies.
+
+        Args:
+            domains: Initial changed domains
+
+        Returns:
+            Expanded domain set including dependent domains
+        """
+        expanded = set(domains)
+        queue = list(domains)
+
+        while queue:
+            domain = queue.pop(0)
+            for dependent_domain in self.DOMAIN_DEPENDENCIES.get(domain, []):
+                if dependent_domain not in expanded:
+                    expanded.add(dependent_domain)
+                    queue.append(dependent_domain)
+
+        return expanded
 
     def get_pytest_marker_filter(self, domains: Set[str]) -> Optional[str]:
         """

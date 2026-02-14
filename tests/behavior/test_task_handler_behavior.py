@@ -753,9 +753,7 @@ class TestTaskHandlerBehavior:
             {"title": "Task 3", "task_id": "task_3"},
         ]
 
-        task = handler._find_task_by_identifier_for_operation(
-            tasks, "2", "completion"
-        )
+        task = handler._find_task_by_identifier(tasks, "2")
         assert task is not None, "Should find task by number"
         assert task["title"] == "Task 2", "Should find correct task"
 
@@ -770,9 +768,7 @@ class TestTaskHandlerBehavior:
             {"title": "Wash Dishes", "task_id": "task_2"},
         ]
 
-        task = handler._find_task_by_identifier_for_operation(
-            tasks, "Brush Teeth", "completion"
-        )
+        task = handler._find_task_by_identifier(tasks, "Brush Teeth")
         assert task is not None, "Should find task by name"
         assert task["title"] == "Brush Teeth", "Should find correct task"
 
@@ -787,9 +783,7 @@ class TestTaskHandlerBehavior:
             {"title": "Wash Dishes After Dinner", "task_id": "task_2"},
         ]
 
-        task = handler._find_task_by_identifier_for_operation(
-            tasks, "teeth", "completion"
-        )
+        task = handler._find_task_by_identifier(tasks, "teeth")
         assert task is not None, "Should find task by partial name"
         assert "Teeth" in task["title"], "Should find correct task"
 
@@ -804,9 +798,7 @@ class TestTaskHandlerBehavior:
             {"title": "Task 2", "task_id": "task_456"},
         ]
 
-        task = handler._find_task_by_identifier_for_operation(
-            tasks, "task_123", "completion"
-        )
+        task = handler._find_task_by_identifier(tasks, "task_123")
         assert task is not None, "Should find task by task_id"
         assert task["task_id"] == "task_123", "Should find correct task"
 
@@ -912,3 +904,4 @@ class TestTaskHandlerBehavior:
 
         assert "due" in result.lower(), "Should indicate future date"
         assert tomorrow in result, "Should include the date"
+

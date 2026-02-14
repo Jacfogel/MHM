@@ -445,9 +445,7 @@ class TestTaskManagementHandlerHelpers:
             {"task_id": "def456", "title": "Task 2"},
         ]
 
-        result = self.handler._find_task_by_identifier_for_operation(
-            tasks, "abc123", "completion"
-        )
+        result = self.handler._find_task_by_identifier(tasks, "abc123")
         assert result is not None, "Should find task"
         assert result["title"] == "Task 1", "Should return correct task"
 
@@ -458,9 +456,7 @@ class TestTaskManagementHandlerHelpers:
             {"task_id": "def4567890123456", "title": "Task 2"},
         ]
 
-        result = self.handler._find_task_by_identifier_for_operation(
-            tasks, "abcdef12", "completion"
-        )
+        result = self.handler._find_task_by_identifier(tasks, "abcdef12")
         assert result is not None, "Should find task"
         assert result["title"] == "Task 1", "Should return correct task"
 
@@ -471,9 +467,7 @@ class TestTaskManagementHandlerHelpers:
             {"task_id": "def456", "title": "Task 2"},
         ]
 
-        result = self.handler._find_task_by_identifier_for_operation(
-            tasks, "2", "completion"
-        )
+        result = self.handler._find_task_by_identifier(tasks, "2")
         assert result is not None, "Should find task"
         assert result["title"] == "Task 2", "Should return correct task"
 
@@ -484,9 +478,7 @@ class TestTaskManagementHandlerHelpers:
             {"task_id": "def456", "title": "Call mom"},
         ]
 
-        result = self.handler._find_task_by_identifier_for_operation(
-            tasks, "Buy groceries", "completion"
-        )
+        result = self.handler._find_task_by_identifier(tasks, "Buy groceries")
         assert result is not None, "Should find task"
         assert result["title"] == "Buy groceries", "Should return correct task"
 
@@ -497,9 +489,7 @@ class TestTaskManagementHandlerHelpers:
             {"task_id": "def456", "title": "Call mom"},
         ]
 
-        result = self.handler._find_task_by_identifier_for_operation(
-            tasks, "groceries", "completion"
-        )
+        result = self.handler._find_task_by_identifier(tasks, "groceries")
         assert result is not None, "Should find task"
         assert result["title"] == "Buy groceries", "Should return correct task"
 
@@ -510,9 +500,7 @@ class TestTaskManagementHandlerHelpers:
             {"task_id": "def456", "title": "Task 2"},
         ]
 
-        result = self.handler._find_task_by_identifier_for_operation(
-            tasks, "nonexistent", "completion"
-        )
+        result = self.handler._find_task_by_identifier(tasks, "nonexistent")
         assert result is None, "Should return None for no match"
 
     def test_find_most_urgent_task_overdue(self):
@@ -642,7 +630,7 @@ class TestTaskManagementHandlerHelpers:
         assert isinstance(result, list), "Should return list"
         assert len(result) == 1, "Should format one task"
         assert "Task 1" in result[0], "Should include task title"
-        assert "🔴" in result[0], "Should include priority emoji"
+        assert "\U0001F534" in result[0], "Should include priority emoji"
 
     def test_format_list_with_tags(self):
         """Test _handle_list_tasks__format_list includes tags."""
@@ -682,3 +670,4 @@ class TestTaskManagementHandlerHelpers:
 
         result = self.handler._handle_list_tasks__format_list(tasks)
         assert len(result) == 10, "Should limit to 10 tasks"
+
