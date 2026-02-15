@@ -132,15 +132,6 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
 - *Estimated effort*: Small
 
-**Stabilize Windows pytest temp/cache ACL hygiene**
-- *What it means*: Ensure transient pytest temp/cache directories (including `pytest-cache-files-*`) stay under `tests/data/tmp`, are writable, and are reliably removed between runs on Windows.
-- *Why it helps*: Prevents intermittent `Access is denied` warnings/failures and root-level temp artifact drift.
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Reproduce and confirm no `PytestCacheWarning` or `PermissionError` for `pytest-cache-files-*` in repeated local runs
-  - [ ] Add/validate ownership/ACL reset fallback for stale locked temp artifacts when standard cleanup fails
-  - [ ] Verify both `python run_tests.py` and `python development_tools/run_development_tools.py audit --full --clear-cache` keep temp artifacts under `tests/data/tmp`
-
 ### Documentation
 
 **Update Inter-Documentation References to Include Section Numbers**

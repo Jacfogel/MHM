@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-14 03:45:07
+> **Last Generated**: 2026-02-14 16:28:10
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1581
+- **Functions Found**: 1582
 - **Methods Found**: 1157
 - **Classes Found**: 154
-- **Total Items**: 2738
-- **Functions Documented**: 1510
+- **Total Items**: 2739
+- **Functions Documented**: 1511
 - **Methods Documented**: 1117
 - **Classes Documented**: 120
-- **Total Documented**: 2627
+- **Total Documented**: 2628
 - **Template-Generated**: 4
 - **Last Updated**: 2026-02-14
 
@@ -48,7 +48,7 @@ Bot implementations, channel management, and communication utilities.
 ### **User Interface Functions** (411)
 UI dialogs, widgets, and user interaction functions.
 
-### **User Management Functions** (32)
+### **User Management Functions** (33)
 User context, preferences, and data management functions.
 
 ### **Task Management Functions** (21)
@@ -6378,6 +6378,8 @@ Args:
 ### `user/` - User Data and Context
 
 #### `user/__init__.py`
+**Functions:**
+- [OK] `__getattr__(name)` - Lazy-load user package exports to avoid import cycles during module init.
 
 #### `user/context_manager.py`
 **Functions:**

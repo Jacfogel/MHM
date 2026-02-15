@@ -22,6 +22,10 @@ Use it when you change AI-related behavior (prompts, context building, caching, 
 python tests\ai\run_ai_functionality_tests.py
 ```
 
+Notes:
+- This is the canonical runner for the AI functionality suite.
+- Default `python run_tests.py` does not run the full AI functionality suite from this guide.
+
 **Test Results Location**:
 - [ai_functionality_test_results_latest.md](tests/ai/results/ai_functionality_test_results_latest.md)
 

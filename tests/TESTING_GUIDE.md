@@ -47,6 +47,10 @@ tests/
 |-- integration/                         # Integration tests by feature
 |-- behavior/                            # Real behavior tests by system
 |-- ui/                                  # UI-specific tests
+|-- core/                                # Core subsystem tests
+|-- communication/                       # Communication subsystem tests
+|-- notebook/                            # Notebook subsystem tests
+|-- ai/                                  # AI-focused pytest tests + dedicated AI functionality suite
 |-- development_tools/                   # Infrastructure tests for development tools
 ```
 
@@ -257,6 +261,15 @@ Common commands:
   ```bash
   python run_tests.py
   ```
+  Default `run_tests.py` (`--mode all`) runs:
+  `tests/unit/`, `tests/integration/`, `tests/behavior/`, `tests/ui/`,
+  `tests/core/`, `tests/communication/`, and `tests/notebook/`.
+
+- Run full `tests/` tree (including `tests/development_tools/` and other test dirs):
+
+  ```bash
+  python run_tests.py --mode all --full
+  ```
 
 - Run only unit tests:
 
@@ -300,6 +313,7 @@ Common commands:
 Typical options:
 
 - `--mode unit` / `--mode integration` / (any future modes).
+- `--full` (with `--mode all`, expands selection to the full `tests/` tree).
 - `--no-parallel` (force serial execution).
 - `--workers N` (explicit worker count).
 - `--coverage` (enable coverage collection).
@@ -386,7 +400,7 @@ Guidelines:
 - Keep the number of `no_parallel` tests as small as possible.
 - Consider refactoring or adding isolation fixtures before resorting to this marker.
 
-`run_tests.py` can be configured (now or later) to run `no_parallel` tests in a separate serial phase if needed.
+`run_tests.py` runs `no_parallel` tests in a separate serial phase after the parallel phase.
 
 ### 5.3. Coverage
 

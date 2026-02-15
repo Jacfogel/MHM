@@ -38,6 +38,10 @@ Test locations (must not change without updating this file and [TESTING_GUIDE.md
 - `tests/integration/` - interactions between modules and services.
 - `tests/behavior/` - end-to-end flows approximating real usage.
 - `tests/ui/` - Qt dialogs, widgets, and UI workflows.
+- `tests/core/` - core subsystem tests.
+- `tests/communication/` - communication subsystem tests.
+- `tests/notebook/` - notebook subsystem tests.
+- `tests/ai/` - AI-focused pytest tests and the dedicated AI functionality suite.
 - `tests/development_tools/` - infrastructure tests for development tools (config, CLI, exclusions, core analysis tools).
 - `tests/conftest.py` - fixtures, hooks, and global configuration.
 
@@ -110,6 +114,15 @@ Preferred commands (via `run_tests.py`):
 
   ```bash
   python run_tests.py
+  ```
+  Default `run_tests.py` (`--mode all`) includes:
+  `tests/unit/`, `tests/integration/`, `tests/behavior/`, `tests/ui/`,
+  `tests/core/`, `tests/communication/`, and `tests/notebook/`.
+
+- Run full `tests/` tree (includes `tests/development_tools/` and other test dirs):
+
+  ```bash
+  python run_tests.py --mode all --full
   ```
 
 - Run only unit tests:
@@ -300,7 +313,7 @@ Routing:
     - Section 2. "Task Reminder Follow-up Flow Testing".
     - Section 7. "Quick Test Checklist".
 - For AI conversation and functionality testing:
-  - Use [tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md), especially:
+  - Use [tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md), especially:
     - Section 1. "Quick Start".
     - Section 2. "Test Suite Structure".
     - Section 6. "Test Features".

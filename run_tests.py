@@ -2037,6 +2037,11 @@ def main():
         help="Test execution mode (default: all)",
     )
     parser.add_argument(
+        "--full",
+        action="store_true",
+        help="For --mode all, run full tests/ tree (includes tests/development_tools and other test dirs)",
+    )
+    parser.add_argument(
         "--no-parallel",
         action="store_true",
         help="Disable parallel test execution (parallel is enabled by default)",
@@ -2277,44 +2282,72 @@ def main():
     mode_marker_filter = None
 
     # Add test selection based on mode
+    selected_test_paths: list[str] = []
     if args.mode == "fast":
         # Fast tests: unit tests only
-        cmd.extend(["tests/unit/"])
+        selected_test_paths = ["tests/unit/"]
+        cmd.extend(selected_test_paths)
         mode_marker_filter = "not slow"
         description = "Fast Tests (Unit tests only, excluding slow tests)"
 
     elif args.mode == "unit":
         # Unit tests
-        cmd.extend(["tests/unit/"])
+        selected_test_paths = ["tests/unit/"]
+        cmd.extend(selected_test_paths)
         description = "Unit Tests"
 
     elif args.mode == "integration":
         # Integration tests
-        cmd.extend(["tests/integration/"])
+        selected_test_paths = ["tests/integration/"]
+        cmd.extend(selected_test_paths)
         description = "Integration Tests"
 
     elif args.mode == "behavior":
         # Behavior tests
-        cmd.extend(["tests/behavior/"])
+        selected_test_paths = ["tests/behavior/"]
+        cmd.extend(selected_test_paths)
         mode_marker_filter = "not slow"
         description = "Behavior Tests (excluding slow tests)"
 
     elif args.mode == "ui":
         # UI tests
-        cmd.extend(["tests/ui/"])
+        selected_test_paths = ["tests/ui/"]
+        cmd.extend(selected_test_paths)
         mode_marker_filter = "not slow"
         description = "UI Tests (excluding slow tests)"
 
     elif args.mode == "slow":
         # Slow tests only
-        cmd.extend(["tests/unit/", "tests/integration/", "tests/behavior/", "tests/ui/"])
+        selected_test_paths = [
+            "tests/unit/",
+            "tests/integration/",
+            "tests/behavior/",
+            "tests/ui/",
+            "tests/core/",
+            "tests/communication/",
+            "tests/notebook/",
+        ]
+        cmd.extend(selected_test_paths)
         mode_marker_filter = "slow"
         description = "Slow Tests Only"
 
     elif args.mode == "all":
-        # All tests
-        cmd.extend(["tests/unit/", "tests/integration/", "tests/behavior/", "tests/ui/"])
-        description = "All Tests (Unit, Integration, Behavior, UI)"
+        # "all" defaults to core suites; --full expands to the full tests/ tree.
+        if args.full:
+            selected_test_paths = ["tests/"]
+            description = "Full Test Suite (all tests/ directories)"
+        else:
+            selected_test_paths = [
+                "tests/unit/",
+                "tests/integration/",
+                "tests/behavior/",
+                "tests/ui/",
+                "tests/core/",
+                "tests/communication/",
+                "tests/notebook/",
+            ]
+            description = "All Tests (Unit, Integration, Behavior, UI, Core, Communication, Notebook)"
+        cmd.extend(selected_test_paths)
 
     # Add marker filters (combine mode filter with no_parallel and e2e exclusion if needed)
     marker_parts = []
@@ -2422,21 +2455,8 @@ def main():
                 ["-m", "no_parallel and not e2e"]
             )  # Only run no_parallel tests, exclude e2e
 
-        # Copy test selection from main command (directory paths)
-        if args.mode == "fast":
-            no_parallel_cmd.extend(["tests/unit/"])
-        elif args.mode == "unit":
-            no_parallel_cmd.extend(["tests/unit/"])
-        elif args.mode == "integration":
-            no_parallel_cmd.extend(["tests/integration/"])
-        elif args.mode == "behavior":
-            no_parallel_cmd.extend(["tests/behavior/"])
-        elif args.mode == "ui":
-            no_parallel_cmd.extend(["tests/ui/"])
-        elif args.mode == "slow":
-            no_parallel_cmd.extend(["tests/unit/", "tests/integration/", "tests/behavior/", "tests/ui/"])
-        elif args.mode == "all":
-            no_parallel_cmd.extend(["tests/unit/", "tests/integration/", "tests/behavior/", "tests/ui/"])
+        # Copy selected test paths from main command.
+        no_parallel_cmd.extend(selected_test_paths)
 
         # Copy other options
         if args.verbose:

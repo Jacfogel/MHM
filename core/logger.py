@@ -1374,13 +1374,19 @@ def get_log_file_info():
         current_log_size = 0
         current_log_info = None
         if os.path.exists(log_paths["main_file"]):
-            current_log_size = os.path.getsize(log_paths["main_file"])
-            current_log_info = {
-                "name": os.path.basename(log_paths["main_file"]),
-                "location": "current",
-                "size_bytes": current_log_size,
-                "size_mb": round(current_log_size / (1024 * 1024), 2),
-            }
+            try:
+                current_log_size = os.path.getsize(log_paths["main_file"])
+                current_log_info = {
+                    "name": os.path.basename(log_paths["main_file"]),
+                    "location": "current",
+                    "size_bytes": current_log_size,
+                    "size_mb": round(current_log_size / (1024 * 1024), 2),
+                }
+            except (OSError, FileNotFoundError):
+                # File may be rotated/removed between exists() and getsize().
+                # Treat as no current log file for this snapshot.
+                current_log_size = 0
+                current_log_info = None
 
         # Get backup log files
         backup_file_paths = []

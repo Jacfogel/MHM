@@ -351,11 +351,28 @@ class TestDiscordBotBehavior:
     @pytest.mark.communication
     def test_interaction_manager_single_response(self, test_data_dir):
         """Ensure a single inbound message yields one main response (no duplicates)."""
+        import uuid
+        import time
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
-        created = TestUserFactory.create_basic_user("dup_user", enable_tasks=True, test_data_dir=test_data_dir)
+        from core.user_data_manager import rebuild_user_index
+
+        username = f"dup_user_{uuid.uuid4().hex[:8]}"
+        created = TestUserFactory.create_basic_user(
+            username, enable_tasks=True, test_data_dir=test_data_dir
+        )
         assert created
-        internal_uid = get_user_id_by_identifier("dup_user")
+        rebuild_user_index()
+        internal_uid = get_user_id_by_identifier(username)
+        if not internal_uid:
+            # In parallel/randomized runs, index writes can lag briefly.
+            for _ in range(20):
+                internal_uid = TestUserFactory.get_test_user_id_by_internal_username(
+                    username, test_data_dir
+                )
+                if internal_uid:
+                    break
+                time.sleep(0.05)
         assert internal_uid
 
         # Call handle_user_message twice with the same content to simulate separate messages

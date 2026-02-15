@@ -1827,9 +1827,10 @@ def _cleanup_pytest_cache_temp_dirs(project_root_path: Path, data_dir: Path) -> 
     """Remove stray pytest-cache-files-* temp directories.
 
     These are transient atomic-write temp dirs created by pytest cache writes.
-    Keep cleanup best-effort and never fail tests for cleanup issues.
+    Hard-fail if root-level leftovers remain so stale/permission issues are explicit.
     """
     removed = 0
+    failed_paths: list[tuple[Path, str]] = []
 
     def _rmtree_with_retries(path: Path, attempts: int = 3) -> bool:
         for _ in range(attempts):
@@ -1853,10 +1854,34 @@ def _cleanup_pytest_cache_temp_dirs(project_root_path: Path, data_dir: Path) -> 
                     try:
                         if _rmtree_with_retries(entry):
                             removed += 1
+                        else:
+                            failed_paths.append((entry, "directory still exists after retries"))
                     except Exception:
-                        pass
+                        failed_paths.append((entry, "exception during cleanup"))
     except Exception:
         pass
+
+    # Hard-fail if any root-level stale cache temp dirs remain.
+    root_leftovers = [
+        p
+        for p in project_root_path.glob("pytest-cache-files-*")
+        if p.is_dir()
+    ]
+    if root_leftovers:
+        details = ", ".join(str(p) for p in root_leftovers[:8])
+        if len(root_leftovers) > 8:
+            details += f", ... (+{len(root_leftovers) - 8} more)"
+        if failed_paths:
+            failed_details = "; ".join(
+                f"{path}: {reason}" for path, reason in failed_paths[:8]
+            )
+            test_logger.error(
+                "pytest cache temp cleanup failures encountered: %s", failed_details
+            )
+        raise RuntimeError(
+            "Stale root pytest cache temp directories detected after cleanup: "
+            f"{details}. Fix filesystem permissions or remove these directories before running tests."
+        )
     return removed
 
 
@@ -3920,6 +3945,31 @@ def pytest_configure(config):
     # Only log from main process to avoid duplicate messages in parallel mode
     if not os.environ.get("PYTEST_XDIST_WORKER"):
         test_logger.debug("Configuring pytest for MHM testing")
+
+    # Disable pytest cacheprovider explicitly for all normal pytest runs.
+    # addopts-based disabling can be too late in some environments/plugins.
+    class _NoopCache:
+        def __init__(self):
+            self._store = {}
+
+        def get(self, key, default=None):
+            return self._store.get(key, default)
+
+        def set(self, key, value):
+            self._store[key] = value
+
+        def makedir(self, name):
+            d = tests_data_dir / "tmp" / "pytest_cache" / str(name)
+            d.mkdir(parents=True, exist_ok=True)
+            return d
+
+    try:
+        cache_plugin = config.pluginmanager.getplugin("cacheprovider")
+        if cache_plugin is not None:
+            config.pluginmanager.unregister(cache_plugin)
+        config.cache = _NoopCache()
+    except Exception as exc:
+        test_logger.warning(f"Failed to disable pytest cacheprovider cleanly: {exc}")
 
     # Configure pytest tmpdir to use tests/data/tmp instead of creating pytest-of-* directories
     # This ensures all temporary files stay within tests/data

@@ -25,6 +25,7 @@ import re
 import shutil
 import subprocess
 import sys
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -672,6 +673,7 @@ class CoverageMetricsRegenerator:
         """Run pytest coverage analysis and extract metrics."""
         if logger:
             logger.info("Running pytest coverage analysis...")
+        self._cleanup_stray_pytest_cache_temp_dirs()
 
         # Load coverage configuration from external config
         coverage_config_data = config.get_external_value("coverage", {})
@@ -977,6 +979,8 @@ class CoverageMetricsRegenerator:
                 sys.executable,
                 "-m",
                 "pytest",
+                "-p",
+                "no:cacheprovider",
             ]
 
             # Add parallel execution if enabled
@@ -1089,15 +1093,18 @@ class CoverageMetricsRegenerator:
 
             # Set unique pytest temp directory to avoid conflicts when running in parallel with dev tools coverage
             # Use a unique identifier based on process/coverage type to ensure isolation
-            import uuid
-            import tempfile
-
             unique_id = f"main_{uuid.uuid4().hex[:8]}"
-            # Always use system temp for pytest base dir to avoid workspace ACL races on Windows.
-            pytest_temp_base = Path(tempfile.mkdtemp(prefix=f"mhm_pytest_tmp_{unique_id}_"))
+            pytest_temp_root = self.project_root / "tests" / "data" / "tmp"
+            pytest_temp_root.mkdir(parents=True, exist_ok=True)
+            pytest_temp_base = pytest_temp_root / f"mhm_pytest_tmp_{unique_id}"
+            pytest_temp_base.mkdir(parents=True, exist_ok=True)
             # Set PYTEST_CACHE_DIR to ensure pytest uses unique cache directory
             pytest_cache_dir = pytest_temp_base / ".pytest_cache"
             env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
+            env["PYTEST_DEBUG_TEMPROOT"] = str(pytest_temp_root)
+            env["TMPDIR"] = str(pytest_temp_base)
+            env["TEMP"] = str(pytest_temp_base)
+            env["TMP"] = str(pytest_temp_base)
             # Force pytest cache provider to use writable temp cache directory.
             cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
             # Also set basetemp via command line argument for tmpdir fixture
@@ -1629,6 +1636,21 @@ class CoverageMetricsRegenerator:
                                     f"  See {self.pytest_stdout_log} for detailed test failure information"
                                 )
 
+                    # Report test errors (collection/setup/runtime) explicitly
+                    if test_results.get("error_count", 0) > 0:
+                        logger.warning(
+                            f"Test errors: {test_results.get('error_count', 0)} error(s)"
+                        )
+                        error_tests = test_results.get("error_tests", [])
+                        if error_tests:
+                            logger.warning("Errored tests:")
+                            for test_name in error_tests:
+                                logger.warning(f"  - {test_name}")
+                        else:
+                            logger.warning(
+                                f"  See {self.pytest_stdout_log} for detailed error information"
+                            )
+
                     # Log skipped tests at info level
                     if test_results["skipped_count"] > 0:
                         if logger:
@@ -1705,8 +1727,10 @@ class CoverageMetricsRegenerator:
             no_parallel_test_results = {
                 "passed_count": 0,
                 "failed_count": 0,
+                "error_count": 0,
                 "skipped_count": 0,
                 "test_summary": "",
+                "error_tests": [],
             }
             if self.parallel and pytest_ran:
                 if logger:
@@ -1719,6 +1743,8 @@ class CoverageMetricsRegenerator:
                     sys.executable,
                     "-m",
                     "pytest",
+                    "-p",
+                    "no:cacheprovider",
                     "-m",
                     "no_parallel and not e2e",  # Only run tests marked with no_parallel, but exclude e2e
                     *cov_args,
@@ -1748,15 +1774,18 @@ class CoverageMetricsRegenerator:
                         self.coverage_config_path.resolve()
                     )
                 # Set unique pytest temp directory to avoid conflicts when running in parallel with dev tools coverage
-                import uuid
-                import tempfile
-
                 unique_id = f"no_parallel_{uuid.uuid4().hex[:8]}"
-                # Always use system temp for pytest base dir to avoid workspace ACL races on Windows.
-                pytest_temp_base = Path(tempfile.mkdtemp(prefix=f"mhm_pytest_tmp_{unique_id}_"))
+                pytest_temp_root = self.project_root / "tests" / "data" / "tmp"
+                pytest_temp_root.mkdir(parents=True, exist_ok=True)
+                pytest_temp_base = pytest_temp_root / f"mhm_pytest_tmp_{unique_id}"
+                pytest_temp_base.mkdir(parents=True, exist_ok=True)
                 # Set PYTEST_CACHE_DIR to ensure pytest uses unique cache directory
                 pytest_cache_dir = pytest_temp_base / ".pytest_cache"
                 no_parallel_env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
+                no_parallel_env["PYTEST_DEBUG_TEMPROOT"] = str(pytest_temp_root)
+                no_parallel_env["TMPDIR"] = str(pytest_temp_base)
+                no_parallel_env["TEMP"] = str(pytest_temp_base)
+                no_parallel_env["TMP"] = str(pytest_temp_base)
                 # Force pytest cache provider to use writable temp cache directory.
                 no_parallel_cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
                 # Also set basetemp via command line argument for tmpdir fixture
@@ -2009,6 +2038,9 @@ class CoverageMetricsRegenerator:
                 test_results["failed_count"] += no_parallel_test_results.get(
                     "failed_count", 0
                 )
+                test_results["error_count"] += no_parallel_test_results.get(
+                    "error_count", 0
+                )
                 test_results["skipped_count"] += no_parallel_test_results.get(
                     "skipped_count", 0
                 )
@@ -2030,7 +2062,11 @@ class CoverageMetricsRegenerator:
                         )
                     else:
                         logger.warning(
-                            f"No_parallel tests had failures: {no_parallel_test_results.get('failed_count', 0)} failed, {no_parallel_test_results.get('passed_count', 0)} passed, {no_parallel_test_results.get('skipped_count', 0)} skipped"
+                            "No_parallel tests had failures/errors: "
+                            f"{no_parallel_test_results.get('failed_count', 0)} failed, "
+                            f"{no_parallel_test_results.get('error_count', 0)} errors, "
+                            f"{no_parallel_test_results.get('passed_count', 0)} passed, "
+                            f"{no_parallel_test_results.get('skipped_count', 0)} skipped"
                         )
 
                     # Check if maxfail was reached
@@ -2061,6 +2097,17 @@ class CoverageMetricsRegenerator:
                                 f"  ... and {len(no_parallel_test_results.get('failed_tests', [])) - 10} more (see log for full list)"
                             )
 
+                    if no_parallel_test_results.get("error_count", 0) > 0:
+                        logger.warning("No_parallel test errors:")
+                        for test_name in no_parallel_test_results.get(
+                            "error_tests", []
+                        )[:10]:
+                            logger.warning(f"  - {test_name}")
+                        if len(no_parallel_test_results.get("error_tests", [])) > 10:
+                            logger.warning(
+                                f"  ... and {len(no_parallel_test_results.get('error_tests', [])) - 10} more (see log for full list)"
+                            )
+
                 # Check if coverage files were created and log their locations
                 if logger:
                     if parallel_coverage_file:
@@ -2087,8 +2134,12 @@ class CoverageMetricsRegenerator:
                         no_parallel_ok = None
                         no_parallel_coverage_present = None
                         failed_domains = set()
-                        if test_results.get("failed_tests"):
-                            for test_name in test_results.get("failed_tests", []):
+                        failed_or_error_tests = list(test_results.get("failed_tests", []))
+                        failed_or_error_tests.extend(
+                            test_results.get("error_tests", [])
+                        )
+                        if failed_or_error_tests:
+                            for test_name in failed_or_error_tests:
                                 if not isinstance(test_name, str):
                                     continue
                                 test_path = test_name.split("::")[0]
@@ -2111,10 +2162,14 @@ class CoverageMetricsRegenerator:
                                 no_parallel_coverage_file
                                 and no_parallel_coverage_file.exists()
                             )
-                            if no_parallel_test_results.get("failed_tests"):
-                                for test_name in no_parallel_test_results.get(
-                                    "failed_tests", []
-                                ):
+                            no_parallel_failed_or_error = list(
+                                no_parallel_test_results.get("failed_tests", [])
+                            )
+                            no_parallel_failed_or_error.extend(
+                                no_parallel_test_results.get("error_tests", [])
+                            )
+                            if no_parallel_failed_or_error:
+                                for test_name in no_parallel_failed_or_error:
                                     if not isinstance(test_name, str):
                                         continue
                                     test_path = test_name.split("::")[0]
@@ -3205,6 +3260,14 @@ class CoverageMetricsRegenerator:
         if not self.use_domain_cache or not self.dev_tools_cache:
             return True  # If caching disabled, always consider changed
 
+        tool_change_reason = self.dev_tools_cache.get_tool_change_reason()
+        if tool_change_reason:
+            if logger:
+                logger.info(
+                    f"Dev tools coverage cache invalidation: {tool_change_reason}"
+                )
+            return True
+
         # Check config file mtime (config changes must invalidate cache)
         current_config_mtime = self._get_config_mtime()
         cached_config_mtime = self.dev_tools_cache.get_cached_config_mtime()
@@ -3267,6 +3330,7 @@ class CoverageMetricsRegenerator:
         """Run pytest coverage analysis specifically for development_tools directory."""
         if logger:
             logger.info("Running pytest coverage analysis for development_tools...")
+        self._cleanup_stray_pytest_cache_temp_dirs()
 
         # Dev tools coverage caching: check if dev tools have changed
         dev_tools_changed = True
@@ -3366,6 +3430,8 @@ class CoverageMetricsRegenerator:
                 sys.executable,
                 "-m",
                 "pytest",
+                "-p",
+                "no:cacheprovider",
                 "-m",
                 "not e2e",  # Exclude e2e tests (slow, excluded from regular runs per pytest.ini)
                 "--cov=development_tools",
@@ -3397,15 +3463,18 @@ class CoverageMetricsRegenerator:
                 env["COVERAGE_RCFILE"] = str(dev_cov_config.resolve())
             # Set unique pytest temp directory to avoid conflicts when running in parallel with main coverage
             # Use a unique identifier based on process/coverage type to ensure isolation
-            import uuid
-            import tempfile
-
             unique_id = f"dev_tools_{uuid.uuid4().hex[:8]}"
-            # Always use system temp for pytest base dir to avoid workspace ACL races on Windows.
-            pytest_temp_base = Path(tempfile.mkdtemp(prefix=f"mhm_pytest_tmp_{unique_id}_"))
+            pytest_temp_root = self.project_root / "tests" / "data" / "tmp"
+            pytest_temp_root.mkdir(parents=True, exist_ok=True)
+            pytest_temp_base = pytest_temp_root / f"mhm_pytest_tmp_{unique_id}"
+            pytest_temp_base.mkdir(parents=True, exist_ok=True)
             # Set PYTEST_CACHE_DIR to ensure pytest uses unique cache directory
             pytest_cache_dir = pytest_temp_base / ".pytest_cache"
             env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
+            env["PYTEST_DEBUG_TEMPROOT"] = str(pytest_temp_root)
+            env["TMPDIR"] = str(pytest_temp_base)
+            env["TEMP"] = str(pytest_temp_base)
+            env["TMP"] = str(pytest_temp_base)
             # Force pytest cache provider to use writable temp cache directory.
             cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
             # Also set basetemp via command line argument for tmpdir fixture
@@ -3738,14 +3807,58 @@ class CoverageMetricsRegenerator:
         if cleanup_count > 0 and logger:
             logger.info(f"Cleaned up {cleanup_count} temporary coverage data file(s)")
 
+    def _cleanup_stray_pytest_cache_temp_dirs(self) -> None:
+        """Best-effort cleanup for stray pytest cache temp directories."""
+        removed = 0
+        failed_paths: list[tuple[Path, str]] = []
+        roots = [
+            self.project_root,
+            self.project_root / "tests" / "data",
+            self.project_root / "tests" / "data" / "tmp",
+        ]
+        for root in roots:
+            if not root.exists():
+                continue
+            for entry in root.glob("pytest-cache-files-*"):
+                if not entry.is_dir():
+                    continue
+                try:
+                    shutil.rmtree(entry, ignore_errors=False)
+                    removed += 1
+                except Exception as exc:
+                    failed_paths.append((entry, str(exc)))
+                    continue
+        if removed > 0 and logger:
+            logger.info(f"Removed {removed} stray pytest-cache-files-* directory(s)")
+        root_leftovers = [
+            p for p in self.project_root.glob("pytest-cache-files-*") if p.is_dir()
+        ]
+        if root_leftovers:
+            detail = ", ".join(str(p) for p in root_leftovers[:8])
+            if len(root_leftovers) > 8:
+                detail += f", ... (+{len(root_leftovers) - 8} more)"
+            if logger and failed_paths:
+                fail_detail = "; ".join(
+                    f"{path}: {reason}" for path, reason in failed_paths[:8]
+                )
+                logger.error(
+                    "pytest cache temp cleanup failures encountered: %s", fail_detail
+                )
+            raise RuntimeError(
+                "Stale root pytest cache temp directories detected before coverage run: "
+                f"{detail}. Remove these directories or fix permissions first."
+            )
+
     def _parse_pytest_test_results(self, stdout: str) -> Dict[str, Any]:
         """Parse pytest output to extract test results, failures, and random seed."""
         results = {
             "random_seed": None,
             "test_summary": None,
             "failed_tests": [],
+            "error_tests": [],
             "passed_count": 0,
             "failed_count": 0,
+            "error_count": 0,
             "skipped_count": 0,
             "warnings_count": 0,
             "total_tests": 0,
@@ -3786,6 +3899,7 @@ class CoverageMetricsRegenerator:
                 results["failed_count"]
                 + results["passed_count"]
                 + results["skipped_count"]
+                + results["error_count"]
             )
             results["test_summary"] = (
                 f"{results['failed_count']} failed, {results['passed_count']} passed, {results['skipped_count']} skipped, {results['warnings_count']} warnings"
@@ -3794,12 +3908,16 @@ class CoverageMetricsRegenerator:
             # Try simpler format (e.g., "145 passed, 3439 deselected" or "1 failed, 3437 passed, 1 skipped")
             # Look for patterns like "X passed, Y deselected" or "X failed, Y passed, Z skipped"
             # Search for all number-label pairs in the summary line
-            simple_pattern = r"(\d+)\s+(failed|passed|skipped|deselected|warnings)"
+            simple_pattern = (
+                r"(\d+)\s+(failed|error|errors|passed|skipped|deselected|warnings)"
+            )
             matches = re.findall(simple_pattern, stdout)
             for count_str, label in matches:
                 count = int(count_str)
                 if label == "failed":
                     results["failed_count"] = count
+                elif label in ("error", "errors"):
+                    results["error_count"] = count
                 elif label == "passed":
                     results["passed_count"] = count
                 elif label == "skipped":
@@ -3839,6 +3957,7 @@ class CoverageMetricsRegenerator:
             if not results.get("test_summary"):
                 results["total_tests"] = (
                     results["failed_count"]
+                    + results["error_count"]
                     + results["passed_count"]
                     + results["skipped_count"]
                 )
@@ -3846,6 +3965,8 @@ class CoverageMetricsRegenerator:
                     parts = []
                     if results["failed_count"] > 0:
                         parts.append(f"{results['failed_count']} failed")
+                    if results["error_count"] > 0:
+                        parts.append(f"{results['error_count']} errors")
                     if results["passed_count"] > 0:
                         parts.append(f"{results['passed_count']} passed")
                     if results["skipped_count"] > 0:
@@ -3869,6 +3990,13 @@ class CoverageMetricsRegenerator:
                     test_match = re.search(r"FAILED\s+(.+)", line)
                     if test_match:
                         results["failed_tests"].append(test_match.group(1).strip())
+                elif line.strip().startswith("ERROR"):
+                    test_match = re.search(r"ERROR\s+(.+)", line)
+                    if test_match:
+                        results["error_tests"].append(test_match.group(1).strip())
+
+        if results["error_tests"]:
+            results["error_count"] = max(results["error_count"], len(results["error_tests"]))
 
         return results
 

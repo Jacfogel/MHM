@@ -43,6 +43,8 @@ except ImportError:
 # Cache metadata key for config file mtime
 _CONFIG_MTIME_KEY = "__config_mtime__"
 _TOOL_HASH_KEY = "__tool_hash__"
+_TOOL_MTIMES_KEY = "__tool_mtimes__"
+_RUN_STATUS_KEY = "__run_status__"
 
 
 class MtimeFileCache:
@@ -83,6 +85,7 @@ class MtimeFileCache:
 
         # Get config file path for cache invalidation
         self.config_file_path = self._get_config_file_path()
+        self._cache_namespace = self._build_cache_namespace()
 
         if self.use_cache:
             self._load_cache()
@@ -90,6 +93,8 @@ class MtimeFileCache:
             self._check_config_staleness()
             # Check if tool code changed and invalidate cache if needed
             self._check_tool_staleness()
+            # Check if previous run failed and invalidate cache
+            self._check_previous_failure_staleness()
 
     def _normalize_tool_paths(
         self, tool_paths: Optional[Iterable[Path]]
@@ -179,6 +184,30 @@ class MtimeFileCache:
             if logger:
                 logger.debug(f"Error checking config file staleness: {e}")
 
+    def _compute_config_signature(self) -> str:
+        """
+        Compute a stable signature for config file content.
+
+        Falls back to file mtime when content hashing fails.
+        """
+        if not self.config_file_path or not self.config_file_path.exists():
+            return "no_config"
+
+        try:
+            config_hash = hashlib.sha256(self.config_file_path.read_bytes()).hexdigest()
+            return config_hash[:16]
+        except Exception:
+            try:
+                return f"mtime:{self.config_file_path.stat().st_mtime}"
+            except Exception:
+                return "config_unavailable"
+
+    def _build_cache_namespace(self) -> str:
+        """Build namespace that scopes cache keys to tool/domain/config/tool-code inputs."""
+        config_sig = self._compute_config_signature()
+        tool_hash = self._compute_tool_hash() or "no_tool_hash"
+        return f"{self.tool_name}|{self.domain}|cfg:{config_sig}|tool:{tool_hash[:16]}"
+
     def _update_config_mtime_in_cache(self) -> None:
         """Store current config file mtime in cache metadata."""
         if not self.config_file_path or not self.config_file_path.exists():
@@ -209,6 +238,19 @@ class MtimeFileCache:
                 return None
         return hasher.hexdigest() if has_data else None
 
+    def _get_tool_mtimes(self) -> Dict[str, float]:
+        """Return mtimes for tool source files for debug/traceability."""
+        mtimes: Dict[str, float] = {}
+        for path in self.tool_paths:
+            try:
+                if not path.exists():
+                    continue
+                key = str(path.relative_to(self.project_root)).replace("\\", "/")
+                mtimes[key] = path.stat().st_mtime
+            except Exception:
+                continue
+        return mtimes
+
     def _check_tool_staleness(self) -> None:
         """Check if tool code has changed since cache was created."""
         if not self.tool_paths:
@@ -228,22 +270,49 @@ class MtimeFileCache:
                         f"Tool code changed (hash mismatch), invalidating cache for {self.tool_name or 'tool'}"
                     )
                 self.clear_cache()
-                self._update_tool_hash_in_cache(current_hash)
+                self._update_tool_metadata_in_cache(current_hash)
             elif cached_hash is None:
-                self._update_tool_hash_in_cache(current_hash)
+                self._update_tool_metadata_in_cache(current_hash)
         except Exception as e:
             if logger:
                 logger.debug(f"Error checking tool code staleness: {e}")
 
-    def _update_tool_hash_in_cache(self, tool_hash: Optional[str] = None) -> None:
-        """Store current tool code hash in cache metadata."""
+    def _update_tool_metadata_in_cache(self, tool_hash: Optional[str] = None) -> None:
+        """Store current tool code hash and mtimes in cache metadata."""
         if not tool_hash:
             tool_hash = self._compute_tool_hash()
-        if not tool_hash:
-            return
-        self.cache_data[_TOOL_HASH_KEY] = {
-            "hash": tool_hash,
+        if tool_hash:
+            self.cache_data[_TOOL_HASH_KEY] = {
+                "hash": tool_hash,
+                "results": {},
+            }
+        self.cache_data[_TOOL_MTIMES_KEY] = {
+            "mtimes": self._get_tool_mtimes(),
             "results": {},
+        }
+
+    def _check_previous_failure_staleness(self) -> None:
+        """Invalidate cache when previous run status indicates failure."""
+        run_status = self.cache_data.get(_RUN_STATUS_KEY, {})
+        if not isinstance(run_status, dict):
+            return
+        status = run_status.get("status")
+        if status != "failed":
+            return
+
+        reason = run_status.get("error") or "previous run failed"
+        if logger:
+            logger.info(
+                f"Previous cached run failed for {self.tool_name}; invalidating cache ({reason})"
+            )
+        self.clear_cache()
+        self.mark_run_result(success=True)
+
+    def mark_run_result(self, success: bool, error: Optional[str] = None) -> None:
+        """Persist last run status for failure-aware invalidation."""
+        self.cache_data[_RUN_STATUS_KEY] = {
+            "status": "success" if success else "failed",
+            "error": (error or "")[:500] if not success else "",
         }
 
     def _load_cache(self) -> None:
@@ -260,7 +329,9 @@ class MtimeFileCache:
                     # load_tool_cache already extracts data from metadata wrapper, so loaded_data is the cache content
                     migrated_data = {}
                     for key, value in loaded_data.items():
-                        if isinstance(value, dict) and "results" in value:
+                        if isinstance(value, dict) and (
+                            "results" in value or key.startswith("__")
+                        ):
                             migrated_data[key] = value
                     self.cache_data = migrated_data
                     if logger:
@@ -285,7 +356,10 @@ class MtimeFileCache:
         # Update config mtime in cache before saving
         self._update_config_mtime_in_cache()
         # Update tool hash in cache before saving
-        self._update_tool_hash_in_cache()
+        self._update_tool_metadata_in_cache()
+        # If run status has not been set explicitly, default to success on save.
+        if _RUN_STATUS_KEY not in self.cache_data:
+            self.mark_run_result(success=True)
 
         if self.use_standardized_storage:
             # Use standardized storage
@@ -313,10 +387,11 @@ class MtimeFileCache:
         """Generate cache key for a file (relative path from project root)."""
         try:
             rel_path = file_path.resolve().relative_to(self.project_root)
-            return str(rel_path).replace("\\", "/")
+            rel_path_str = str(rel_path).replace("\\", "/")
         except ValueError:
             # File is outside project root, use absolute path
-            return str(file_path.resolve())
+            rel_path_str = str(file_path.resolve())
+        return f"{self._cache_namespace}|{rel_path_str}"
 
     def _is_file_cached(self, file_path: Path) -> bool:
         """Check if file results are cached and still valid (mtime matches)."""

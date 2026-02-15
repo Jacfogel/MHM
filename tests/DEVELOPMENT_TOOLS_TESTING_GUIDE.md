@@ -20,6 +20,15 @@ Use it when you change development tools behavior (analysis, reporting, CLI rout
 pytest tests/development_tools/
 ```
 
+**Run via project test runner (full tree)**:
+```powershell
+python run_tests.py --mode all --full
+```
+
+Note:
+- Default `python run_tests.py` (`--mode all`) does not include `tests/development_tools/`.
+- Use `--full` when you want development tools tests included in the same run.
+
 **Test Results Location**: Test output appears in console; logs go to `tests/logs/` if configured.
 
 ## 2. Test Suite Structure
@@ -217,6 +226,28 @@ pytest --cov=development_tools tests/development_tools/
 - **Parallel execution**: Some tests use `@pytest.mark.no_parallel` for tests that modify shared resources
 - **Audit lock files**: CLI tests check for `.audit_in_progress.lock` to avoid mid-audit writes
 - **Module loading**: Tests use `load_development_tools_module()` helper to properly load modules with dependencies
+
+## 11. Fixture Status File Regeneration
+
+Fixture status snapshots live in:
+- `tests/fixtures/development_tools_demo/AI_STATUS.md`
+- `tests/fixtures/development_tools_demo/AI_PRIORITIES.md`
+- `tests/fixtures/development_tools_demo/consolidated_report.txt`
+
+These files should be regenerated when:
+- Status file format/headers change (metadata fields, section names, report structure)
+- Consolidated report generation logic changes
+- Fixture project content changes in ways that affect status/priorities outputs
+
+Regeneration process:
+```powershell
+& c:/Users/Julie/projects/MHM/MHM/.venv/Scripts/Activate.ps1
+python tests/development_tools/regenerate_fixture_status_files.py
+```
+
+Notes:
+- Development tools tests should not depend on exact fixture timestamps; only structure/content shape.
+- `temp_project_copy` fixture deletes status snapshots before test execution to avoid stale-data coupling.
 
 ---
 

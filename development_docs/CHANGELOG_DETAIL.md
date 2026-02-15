@@ -33,7 +33,27 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
-### 2026-02-14 - Logging guard, legacy-scan exclusions, and coverage pipeline hardening
+### 2026-02-14 - Pytest cache isolation hardening and flaky-test stabilization follow-up
+- **Fix**: Enforced zero-tolerance handling for stale root `pytest-cache-files-*` directories and stronger cleanup behavior in test infrastructure (`tests/conftest.py`) and coverage tooling (`development_tools/tests/run_test_coverage.py`), including explicit hard-fail/logging when cleanup cannot complete.
+- **Fix**: Disabled pytest cacheprovider in normal test runs as well as coverage subprocesses (`pytest.ini`, `tests/conftest.py`, `development_tools/tests/run_test_coverage.py`) to prevent root-level cache temp artifacts and improve run determinism.
+- **Fix**: Improved coverage-run diagnostics by surfacing pytest errors (not only failures) in `logs/ai_dev_tools.log` and applying error-aware cache-write guardrails (`development_tools/tests/run_test_coverage.py`).
+- **Fix**: Stabilized intermittent parallel failures with targeted test hardening in `tests/behavior/test_discord_bot_behavior.py` and `tests/ui/test_account_creation_ui.py`; also hardened `core/logger.py` log-size race handling and `user/__init__.py` lazy export loading to avoid import-cycle init issues.
+- **Feature**: Expanded `run_tests.py` suite selection:
+  - default `--mode all` now includes `tests/core/`, `tests/communication/`, and `tests/notebook/` in addition to `unit/integration/behavior/ui`.
+  - new `--full` flag runs the full `tests/` tree, including `tests/development_tools/` and other directories not included in base `--mode all`.
+- **Docs**: Updated testing docs to reflect runner behavior and routing changes:
+  - `tests/TESTING_GUIDE.md` (default/all vs full scope, `--full`, no-parallel phase behavior, test layout updates)
+  - `ai_development_docs/AI_TESTING_GUIDE.md` (scope updates and corrected AI functionality guide path)
+  - `tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md` (how to include dev-tools tests via `run_tests.py --mode all --full`)
+  - `tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md` (canonical AI functionality runner note)
+- **Feature**: Completed fixture status regeneration follow-up by documenting regeneration in `tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md` and preventing stale snapshot coupling in `tests/development_tools/conftest.py`.
+- **Maintenance**: Session closeout updates applied: removed completed pytest temp/cache stabilization task from `TODO.md`, removed resolved logger flake item from `development_docs/PLANS.md`, and synchronized detailed + AI changelog records for this session.
+- **Validation**: User-validated runs passed:
+  - `python run_tests.py` -> `3737 passed, 0 failed`
+  - `python run_tests.py --full` -> `4556 passed, 0 failed, 1 skipped`
+- **Impact**: Test/coverage runs are stricter and more transparent around temp-cache cleanup failures, parallel flake pressure is reduced, and session planning/changelog artifacts now reflect completed work and remaining follow-ups cleanly.
+
+### 2026-02-14 - Logging guard, coverage hardening, and pytest temp/cache stabilization
 - **Feature**: Added a dedicated GitHub Actions workflow at `.github/workflows/logging-enforcement.yml` to run `scripts/static_checks/check_channel_loggers.py` as a fail-fast CI gate before downstream test steps. Added contributor-facing logging enforcement notes in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) section 9.8.
 - **Maintenance**: Removed the completed `CI Guard for Logging Enforcement` task block from [TODO.md](TODO.md) after documenting the change in changelogs.
 - **Fix**: Updated legacy analysis/report filtering to keep `run_tests.py` visible for legacy-marker findings while still excluding `tests/data/*` artifacts (`development_tools/legacy/analyze_legacy_references.py`, `development_tools/legacy/generate_legacy_reference_report.py`).

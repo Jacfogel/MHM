@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-14 03:45:14
+> **Last Generated**: 2026-02-14 16:28:23
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -344,13 +344,6 @@ C:.
 |   |   schemas.py
 |   |   __init__.py
 |   |   
-+---pytest-cache-files-rh452t5w
-+---pytest-cache-files-s4llmpw7
-+---pytest-cache-files-w3m0m6qy
-+---pytest-cache-files-wk2t6rt9
-+---pytest-cache-files-xa_n7cvn
-+---pytest-cache-files-xwsxioqb
-+---pytest-cache-files-_hajjaph
 +---resources
 |   |   assistant_system_prompt.txt
 |   |   default_tags.json
@@ -498,6 +491,7 @@ C:.
     (data files)
 |   +---development_tools
 |   |   |   conftest.py
+|   |   |   regenerate_fixture_status_files.py
 |   |   |   test_analysis_tool_validation.py
 |   |   |   test_analysis_validation_framework.py
 |   |   |   test_analyze_ai_work.py
@@ -520,10 +514,12 @@ C:.
 |   |   |   test_config.py
 |   |   |   test_constants.py
 |   |   |   test_decision_support.py
+|   |   |   test_dev_tools_coverage_cache.py
 |   |   |   test_documentation_sync_checker.py
 |   |   |   test_error_scenarios.py
 |   |   |   test_exclusion_utilities.py
 |   |   |   test_false_negative_detection.py
+|   |   |   test_fixture_status_files.py
 |   |   |   test_fix_documentation.py
 |   |   |   test_fix_documentation_addresses.py
 |   |   |   test_fix_documentation_ascii.py
@@ -541,6 +537,7 @@ C:.
 |   |   |   test_generate_unused_imports_report.py
 |   |   |   test_integration_workflows.py
 |   |   |   test_legacy_reference_cleanup.py
+|   |   |   test_mtime_cache.py
 |   |   |   test_output_storage_archiving.py
 |   |   |   test_path_drift_detection.py
 |   |   |   test_path_drift_integration.py
@@ -551,6 +548,7 @@ C:.
 |   |   |   test_standard_exclusions.py
 |   |   |   test_status_file_timing.py
 |   |   |   test_supporting_tools.py
+|   |   |   test_test_file_coverage_cache.py
 |   |   |   test_verification_summary.py
 |   |   |   __init__.py
 |   |   |   
@@ -569,8 +567,16 @@ C:.
 |   +---logs
     (log files)
 |   +---notebook
-|   |       __init__.py
-|   |       
+|   |   |   __init__.py
+|   |   |   
+|   +---runtime_tmp
+|   |   +---pytest_basetemp_0de5c257
+|   |   +---pytest_basetemp_3b0770d4
+|   |   +---pytest_basetemp_5e7da455
+|   |   +---pytest_basetemp_7dca5d76
+|   |   +---pytest_basetemp_a2e77ec0
+|   |   +---pytest_cache
+|   |   \---pytest_temproot
 |   +---ui
 |   |   |   test_account_creation_ui.py
 |   |   |   test_account_creator_dialog_validation.py

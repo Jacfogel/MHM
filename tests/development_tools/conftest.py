@@ -481,6 +481,11 @@ def temp_project_copy(demo_project_root):
                         shutil.rmtree(copy_path, ignore_errors=True)
                     except Exception:
                         pass
+        # Ensure tests start from a clean fixture snapshot and don't rely on stale status files.
+        for status_file in ["AI_STATUS.md", "AI_PRIORITIES.md", "consolidated_report.txt"]:
+            (copy_path / status_file).unlink(missing_ok=True)
+            (copy_path / "development_tools" / status_file).unlink(missing_ok=True)
+
         yield copy_path
     finally:
         shutil.rmtree(base_dir, ignore_errors=True)

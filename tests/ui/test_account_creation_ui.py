@@ -1535,9 +1535,12 @@ class TestAccountCreationIntegration:
                 # Continue with the test - user creation is the main focus
 
         # Rebuild user index to ensure consistency
-        rebuild_success = rebuild_user_index()
-        # [OK] VERIFY REAL BEHAVIOR: User index should be rebuilt successfully
-        assert rebuild_success, "User index should be rebuilt successfully"
+        # Parallel runs can contend on index file writes; retry briefly.
+        assert wait_until(
+            rebuild_user_index,
+            timeout_seconds=3.0,
+            poll_seconds=0.1,
+        ), "User index should be rebuilt successfully"
 
         # Verify all users have same features
         for user_id, _ in test_users:

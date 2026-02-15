@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-14 11:43:40
+> **Last Generated**: 2026-02-14 18:40:41
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 4
 **Legacy Compatibility Markers Detected**: 5
@@ -21,7 +21,7 @@
 ### development_tools\shared\mtime_cache.py
 **Issues Found**: 1
 
-- **Line 310**: `legacy path`
+- **Line 384**: `legacy path`
   ```
   # This ensures we fix standardized storage issues rather than silently using legacy paths
   ```
@@ -37,7 +37,7 @@
 ### run_tests.py
 **Issues Found**: 1
 
-- **Line 2487**: `backward compatibility`
+- **Line 2507**: `backward compatibility`
   ```
   # Handle case where parallel_results might be a bool (backward compatibility)
   ```

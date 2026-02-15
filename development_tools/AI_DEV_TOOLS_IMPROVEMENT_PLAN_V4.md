@@ -98,22 +98,31 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
   - [x] Log explicit invalidation reason in `run_test_coverage.py` output
 
 #### 1.7 Caching quality and invalidation rules (broader tools)
-**Status**: PENDING  
+**Status**: COMPLETED  
 **Tasks**:
-- [ ] Identify tools that lack caching but could benefit (heavy analyzers, coverage, docs)
+- [x] Identify tools that lack caching but could benefit (heavy analyzers, coverage, docs)
 - [x] Define consistent invalidation rules for config changes in `development_tools/config/development_tools_config.json`
 - [x] Ensure tool code changes invalidate cached outputs (version/hash-based keying)
-- [ ] Review cache value: include config + tool version + domain inputs in cache keys
-- [ ] Verify each cached tool records tool hash/mtime in its cache payload and invalidates on change (add tests + log lines)
-- [ ] Add failure/error-aware cache invalidation across tools (store last run status in cache metadata and force recompute on failed runs)
+- [x] Review cache value: include config + tool version + domain inputs in cache keys
+- [x] Verify each cached tool records tool hash/mtime in its cache payload and invalidates on change (add tests + log lines)
+- [x] Add failure/error-aware cache invalidation across tools (store last run status in cache metadata and force recompute on failed runs)
+  - [x] Added cache-key namespace in `shared/mtime_cache.py` using tool/domain + config signature + tool hash
+  - [x] Added tool mtime metadata + run-status metadata in `shared/mtime_cache.py` cache payload
+  - [x] Added tool hash/mtime metadata to `tests/dev_tools_coverage_cache.py` and explicit invalidation reason logging in `tests/run_test_coverage.py`
+  - [x] Added tests: `tests/development_tools/test_mtime_cache.py`, `tests/development_tools/test_dev_tools_coverage_cache.py`
+  - [x] Cache opportunities identified (currently uncached): `ai_work/analyze_ai_work.py`, `config/analyze_config.py`, `docs/analyze_documentation.py`, `docs/analyze_documentation_sync.py`, `functions/analyze_function_patterns.py`, `functions/analyze_function_registry.py`, `imports/analyze_dependency_patterns.py`, `imports/analyze_module_dependencies.py`, `tests/analyze_test_markers.py`
 
 #### 1.6 Fixture status file regeneration
-**Status**: PENDING  
+**Status**: COMPLETED  
 **Tasks**:
-- [ ] Check timestamps of fixture status files under `tests/fixtures/development_tools_demo/`
-- [ ] Determine when regeneration should occur (format changes, fixture updates)
-- [ ] Add or document a regeneration process
-- [ ] Ensure tests are not relying on stale fixture data
+- [x] Check timestamps of fixture status files under `tests/fixtures/development_tools_demo/`
+- [x] Determine when regeneration should occur (format changes, fixture updates)
+- [x] Add or document a regeneration process
+- [x] Ensure tests are not relying on stale fixture data
+  - [x] Added regeneration script: `tests/development_tools/regenerate_fixture_status_files.py`
+  - [x] Added documentation: section 11 in `tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md`
+  - [x] Hardened fixtures to avoid stale coupling: `tests/development_tools/conftest.py` now removes status snapshots from temp fixture copies before tests
+  - [x] Added metadata-shape test for fixture snapshots: `tests/development_tools/test_fixture_status_files.py`
 
 ---
 
