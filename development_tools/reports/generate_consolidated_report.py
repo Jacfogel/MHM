@@ -4,7 +4,7 @@
 """
 Consolidated Report Generator
 
-Generates AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.txt
+Generates AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.md
 in the development_tools root directory.
 
 This module provides a simple interface to generate all consolidated reports
@@ -36,7 +36,7 @@ def generate_consolidated_reports(
     project_root: str = None, config_path: str = None
 ) -> dict:
     """
-    Generate all consolidated reports (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt).
+    Generate all consolidated reports (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.md).
 
     Args:
         project_root: Optional project root directory
@@ -60,13 +60,13 @@ def generate_consolidated_reports(
     # Generate consolidated report
     consolidated_report = service._generate_consolidated_report()
     consolidated_file = create_output_file(
-        "development_tools/consolidated_report.txt", consolidated_report
+        "development_tools/consolidated_report.md", consolidated_report
     )
 
     logger.info(f"Generated consolidated reports:")
     logger.info(f"  - AI_STATUS.md: {ai_status_file}")
     logger.info(f"  - AI_PRIORITIES.md: {ai_priorities_file}")
-    logger.info(f"  - consolidated_report.txt: {consolidated_file}")
+    logger.info(f"  - consolidated_report.md: {consolidated_file}")
 
     return {
         "ai_status": str(ai_status_file),
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Generate consolidated reports (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt)"
+        description="Generate consolidated reports (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.md)"
     )
     parser.add_argument(
         "--project-root",

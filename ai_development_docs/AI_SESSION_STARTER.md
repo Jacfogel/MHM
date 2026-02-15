@@ -31,8 +31,8 @@ When you attach to MHM, do this first:
    - **For development tools, audits, or reports**: When the user's task touches dev tools, audits, coverage, or analysis, route to [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) as the primary reference. This includes:
      - Running audits or status checks
      - Understanding tool tiers and trust levels
-     - Working with generated reports (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt)
-     - Using commands like `audit`, `status`, `doc-sync`, `docs`, `legacy`, `coverage`
+     - Working with generated reports (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.md)
+     - Using commands like `audit`, `audit --strict`, `status`, `doc-sync`, `docs`, `legacy`, `coverage`
 
 3. **Stay within scope**  
    - Use only the files present in the current workspace (for example, those the user has uploaded or explicitly referenced).  

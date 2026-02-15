@@ -120,15 +120,11 @@ def _clear_all_caches(project_root: Path) -> int:
     """
     Clear all development tools cache files.
 
-    Includes:
-    - Standardized storage cache files: development_tools/{domain}/jsons/.{tool}_cache.json
-    - Test-file-based coverage cache: development_tools/tests/jsons/test_file_coverage_cache.json
-    - Dev tools coverage cache: development_tools/tests/jsons/dev_tools_coverage_cache.json
-    - Derived coverage artifacts used as warm-run inputs:
-      development_tools/tests/jsons/coverage.json
-      development_tools/tests/jsons/coverage_dev_tools.json
-    - Documentation sync subcheck result artifacts used for mtime-based reuse:
-      development_tools/docs/jsons/analyze_*_results.json (subchecks + sync summary)
+    Includes development-tools cache artifacts only (tool json caches/results
+    used for cache reuse and freshness checks). It intentionally does NOT clean:
+    - Python interpreter caches (__pycache__)
+    - pytest runtime caches (.pytest_cache)
+    - unrelated non-tool cache directories
 
     Args:
         project_root: Project root directory
@@ -137,90 +133,32 @@ def _clear_all_caches(project_root: Path) -> int:
         Number of cache files cleared
     """
     cache_files_cleared = 0
-    dev_tools_dir = project_root / "development_tools"
+    try:
+        from development_tools.shared.fix_project_cleanup import ProjectCleanup
 
-    # Find all cache files in standardized storage: development_tools/{domain}/jsons/.{tool}_cache.json
-    if dev_tools_dir.exists():
-        for domain_dir in dev_tools_dir.iterdir():
-            if domain_dir.is_dir():
-                jsons_dir = domain_dir / "jsons"
-                if jsons_dir.exists():
-                    for cache_file in jsons_dir.glob(".*_cache.json"):
-                        try:
-                            cache_file.unlink()
-                            cache_files_cleared += 1
-                            logger.debug(f"Cleared cache file: {cache_file}")
-                        except Exception as e:
-                            logger.warning(
-                                f"Failed to clear cache file {cache_file}: {e}"
-                            )
-
-    # Clear test-file-based coverage cache (now in jsons/ directory)
-    jsons_dir = dev_tools_dir / "tests" / "jsons"
-    if jsons_dir.exists():
-        # New test-file-based cache
-        test_file_cache_file = jsons_dir / "test_file_coverage_cache.json"
-        if test_file_cache_file.exists():
-            try:
-                test_file_cache_file.unlink()
-                cache_files_cleared += 1
-                logger.debug(
-                    f"Cleared test-file-based coverage cache: {test_file_cache_file}"
-                )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to clear test-file-based coverage cache {test_file_cache_file}: {e}"
-                )
-
-        # Dev tools coverage cache
-        dev_tools_cache_file = jsons_dir / "dev_tools_coverage_cache.json"
-        if dev_tools_cache_file.exists():
-            try:
-                dev_tools_cache_file.unlink()
-                cache_files_cleared += 1
-                logger.debug(
-                    f"Cleared dev tools coverage cache: {dev_tools_cache_file}"
-                )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to clear dev tools coverage cache {dev_tools_cache_file}: {e}"
-                )
-
-        # Remove derived coverage artifacts so coverage prechecks cannot reuse stale files
-        for coverage_artifact in ("coverage.json", "coverage_dev_tools.json"):
-            coverage_artifact_path = jsons_dir / coverage_artifact
-            if coverage_artifact_path.exists():
+        cleanup = ProjectCleanup(project_root=project_root)
+        # --clear-cache for audit should be scoped to development-tools caches only.
+        removed, failed = cleanup.cleanup_tool_cache_artifacts(dry_run=False)
+        cache_files_cleared += removed
+        if failed:
+            logger.warning(f"Failed to clear {failed} development-tools cache artifact(s)")
+    except Exception as e:
+        logger.warning(f"Fallback cache clear path activated due to error: {e}")
+        # Fail-safe: clear core standardized cache files.
+        dev_tools_dir = project_root / "development_tools"
+        if dev_tools_dir.exists():
+            for cache_file in dev_tools_dir.glob("**/jsons/.*_cache.json"):
                 try:
-                    coverage_artifact_path.unlink()
+                    cache_file.unlink()
                     cache_files_cleared += 1
-                    logger.debug(f"Cleared derived coverage artifact: {coverage_artifact_path}")
-                except Exception as e:
-                    logger.warning(
-                        f"Failed to clear derived coverage artifact {coverage_artifact_path}: {e}"
-                    )
-
-    # Remove documentation subcheck result artifacts used for mtime-based reuse
-    docs_jsons_dir = dev_tools_dir / "docs" / "jsons"
-    if docs_jsons_dir.exists():
-        doc_result_files = [
-            "analyze_documentation_sync_results.json",
-            "analyze_path_drift_results.json",
-            "analyze_ascii_compliance_results.json",
-            "analyze_heading_numbering_results.json",
-            "analyze_missing_addresses_results.json",
-            "analyze_unconverted_links_results.json",
-        ]
-        for filename in doc_result_files:
-            result_path = docs_jsons_dir / filename
-            if result_path.exists():
+                except Exception:
+                    pass
+            for cache_file in dev_tools_dir.glob("**/jsons/*_cache.json"):
                 try:
-                    result_path.unlink()
+                    cache_file.unlink()
                     cache_files_cleared += 1
-                    logger.debug(f"Cleared docs derived result artifact: {result_path}")
-                except Exception as e:
-                    logger.warning(
-                        f"Failed to clear docs derived result artifact {result_path}: {e}"
-                    )
+                except Exception:
+                    pass
 
     return cache_files_cleared
 

@@ -20,7 +20,7 @@ def print_verification_summary():
     verifications = [
         ("[PASS] Tier Independence", "Each tier (1, 2, 3) can run independently"),
         ("[PASS] Tier Inheritance", "Tier 2 includes Tier 1 tools, Tier 3 includes Tier 1 and 2"),
-        ("[PASS] Output File Generation", "All 4 files generated: AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt, analysis_detailed_results.json"),
+        ("[PASS] Output File Generation", "All 4 files generated: AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.md, analysis_detailed_results.json"),
         ("[PASS] Tool Result Storage", "Individual tool results stored in domain-organized JSON files"),
         ("[PASS] Central Aggregation", "All results aggregated in analysis_detailed_results.json"),
         ("[PASS] File Rotation", "Output files rotate on subsequent runs"),

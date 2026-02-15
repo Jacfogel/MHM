@@ -118,18 +118,51 @@ class CommandsMixin:
         coverage_file: Path,
         source_patterns: List[str],
         exclude_prefixes: Optional[List[str]] = None,
+        tool_names: Optional[List[str]] = None,
+        config_paths: Optional[List[str]] = None,
     ) -> bool:
-        """Check whether a coverage file is newer than all relevant source files."""
+        """Check whether a coverage file is newer than all relevant inputs."""
         if not coverage_file.exists():
             return False
         try:
             coverage_mtime = coverage_file.stat().st_mtime
         except OSError:
             return False
-        latest_source_mtime = self._latest_mtime_for_patterns(
+        latest_input_mtime = self._latest_mtime_for_patterns(
             source_patterns, exclude_prefixes=exclude_prefixes
         )
-        return coverage_mtime >= latest_source_mtime
+
+        # Invalidate when coverage runner implementation changes.
+        if tool_names:
+            try:
+                from ..script_registry import SCRIPT_REGISTRY
+
+                for tool_name in tool_names:
+                    script_entry = SCRIPT_REGISTRY.get(tool_name, {})
+                    script_path_str = script_entry.get("script")
+                    if not script_path_str:
+                        continue
+                    script_path = self.project_root / script_path_str
+                    if not script_path.exists():
+                        continue
+                    latest_input_mtime = max(
+                        latest_input_mtime, script_path.stat().st_mtime
+                    )
+            except Exception:
+                pass
+
+        # Invalidate when config changes.
+        for rel in (config_paths or []):
+            try:
+                config_path = self.project_root / rel
+                if config_path.exists():
+                    latest_input_mtime = max(
+                        latest_input_mtime, config_path.stat().st_mtime
+                    )
+            except Exception:
+                continue
+
+        return coverage_mtime >= latest_input_mtime
 
     def _load_cached_result_if_available(self, tool_name: str, domain: str) -> Optional[Dict]:
         """Load cached standardized tool result if it exists."""
@@ -330,7 +363,16 @@ class CommandsMixin:
             "development_tools/**/*.py",
             "tests/development_tools/**/*.py",
         ]
-        if self._is_coverage_file_fresh(dev_tools_coverage_file, dev_tools_patterns):
+        if self._is_coverage_file_fresh(
+            dev_tools_coverage_file,
+            dev_tools_patterns,
+            tool_names=["run_test_coverage"],
+            config_paths=[
+                "development_tools/tests/coverage_dev_tools.ini",
+                "development_tools/config/development_tools_config.json",
+                "development_tools_config.json",
+            ],
+        ):
             cached_data = self._load_cached_result_if_available("generate_dev_tools_coverage", "tests")
             cache_metadata = {
                 "cache_mode": "cache_only",
@@ -341,6 +383,23 @@ class CommandsMixin:
                 self._tool_cache_metadata = {}
             self._tool_cache_metadata["generate_dev_tools_coverage"] = cache_metadata
             if cached_data:
+                existing_tier3 = (
+                    self.tier3_test_outcome
+                    if isinstance(getattr(self, "tier3_test_outcome", None), dict)
+                    else {}
+                )
+                merged_tier3 = dict(existing_tier3)
+                merged_tier3["development_tools"] = {
+                    "state": "skipped",
+                    "return_code": None,
+                    "passed_count": 0,
+                    "failed_count": 0,
+                    "error_count": 0,
+                    "skipped_count": 0,
+                    "failed_node_ids": [],
+                    "from_cache": True,
+                }
+                self.tier3_test_outcome = merged_tier3
                 logger.info(
                     "Skipping dev tools coverage run - cached dev tools coverage is up to date"
                 )
@@ -361,10 +420,57 @@ class CommandsMixin:
             logger.warning(f"Failed to create coverage lock file: {e}")
         
         try:
-            result = self.run_script('run_test_coverage', '--dev-tools-only', timeout=720)
+            dev_tools_output_file = (
+                self.project_root
+                / "development_tools"
+                / "tests"
+                / "jsons"
+                / "run_test_coverage_dev_tools_results.json"
+            )
+            result = self.run_script(
+                'run_test_coverage',
+                '--dev-tools-only',
+                '--output-file',
+                str(dev_tools_output_file),
+                timeout=720,
+            )
             output_text = "\n".join(
                 [result.get("output", "") or "", result.get("error", "") or ""]
             )
+            initial_dev_tools_state = "unknown"
+            if result.get("returncode") not in (None, 0):
+                initial_dev_tools_state = "failed"
+            dev_tools_outcome = {
+                "state": initial_dev_tools_state,
+                "return_code": result.get("returncode"),
+                "passed_count": 0,
+                "failed_count": 0,
+                "error_count": 0,
+                "skipped_count": 0,
+                "failed_node_ids": [],
+            }
+            if dev_tools_output_file.exists():
+                try:
+                    with open(dev_tools_output_file, "r", encoding="utf-8") as f:
+                        dev_tools_payload = json.load(f)
+                    if isinstance(dev_tools_payload, dict):
+                        parsed_outcome = dev_tools_payload.get("dev_tools_test_outcome", {})
+                        if isinstance(parsed_outcome, dict):
+                            dev_tools_outcome = {
+                                "state": parsed_outcome.get("state", "unknown"),
+                                "return_code": parsed_outcome.get("return_code"),
+                                "passed_count": parsed_outcome.get("passed_count", 0),
+                                "failed_count": parsed_outcome.get("failed_count", 0),
+                                "error_count": parsed_outcome.get("error_count", 0),
+                                "skipped_count": parsed_outcome.get("skipped_count", 0),
+                                "failed_node_ids": parsed_outcome.get(
+                                    "failed_node_ids", []
+                                ),
+                            }
+                except Exception as parse_error:
+                    logger.debug(
+                        f"Failed to parse dev tools structured coverage output: {parse_error}"
+                    )
             cache_metadata = self._build_coverage_metadata(
                 output_text, source="run_test_coverage --dev-tools-only"
             )
@@ -377,6 +483,14 @@ class CommandsMixin:
             if not hasattr(self, "_tool_cache_metadata"):
                 self._tool_cache_metadata = {}
             self._tool_cache_metadata["generate_dev_tools_coverage"] = cache_metadata
+            existing_tier3 = (
+                self.tier3_test_outcome
+                if isinstance(getattr(self, "tier3_test_outcome", None), dict)
+                else {}
+            )
+            merged_tier3 = dict(existing_tier3)
+            merged_tier3["development_tools"] = dev_tools_outcome
+            self.tier3_test_outcome = merged_tier3
             # Check if coverage was collected, not just if pytest succeeded
             # pytest can exit with non-zero code if tests fail, but coverage may still be collected
             coverage_collected = False
@@ -398,6 +512,9 @@ class CommandsMixin:
                     normalized = self._to_standard_dev_tools_coverage_result(self.dev_tools_coverage_results)
                     normalized.setdefault("_cache_metadata", {})
                     normalized["_cache_metadata"].update(cache_metadata)
+                    normalized.setdefault("details", {})
+                    if isinstance(normalized.get("details"), dict):
+                        normalized["details"]["dev_tools_test_outcome"] = dev_tools_outcome
                     self.dev_tools_coverage_results = normalized
                 # Save results to standardized storage
                 if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:
@@ -420,6 +537,9 @@ class CommandsMixin:
                         normalized = self._to_standard_dev_tools_coverage_result(self.dev_tools_coverage_results)
                         normalized.setdefault("_cache_metadata", {})
                         normalized["_cache_metadata"].update(cache_metadata)
+                        normalized.setdefault("details", {})
+                        if isinstance(normalized.get("details"), dict):
+                            normalized["details"]["dev_tools_test_outcome"] = dev_tools_outcome
                         self.dev_tools_coverage_results = normalized
                         try:
                             save_tool_result('generate_dev_tools_coverage', 'tests', self.dev_tools_coverage_results, project_root=self.project_root)
@@ -447,6 +567,11 @@ class CommandsMixin:
                     coverage_lock_file.unlink()
                 except Exception as e:
                     logger.warning(f"Failed to remove coverage lock file: {e}")
+            if 'dev_tools_output_file' in locals() and dev_tools_output_file.exists():
+                try:
+                    dev_tools_output_file.unlink()
+                except OSError:
+                    pass
     
     def run_status(self, skip_status_files: bool = False):
         """Generate status snapshot (cached data, no audit)"""
@@ -461,11 +586,11 @@ class CommandsMixin:
                 status_files_config = status_config.get('status_files', {})
                 ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
                 ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
-                consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/consolidated_report.txt')
+                consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/consolidated_report.md')
             except (ImportError, AttributeError, KeyError):
                 ai_status_path = 'development_tools/AI_STATUS.md'
                 ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
-                consolidated_report_path = 'development_tools/consolidated_report.txt'
+                consolidated_report_path = 'development_tools/consolidated_report.md'
             
             try:
                 ai_status = self._generate_ai_status_document()
@@ -558,6 +683,12 @@ class CommandsMixin:
             main_coverage_file,
             main_coverage_patterns,
             exclude_prefixes=["development_tools/"],
+            tool_names=["run_test_coverage"],
+            config_paths=[
+                "development_tools/tests/coverage.ini",
+                "development_tools/config/development_tools_config.json",
+                "development_tools_config.json",
+            ],
         ):
             if not hasattr(self, "_tool_cache_metadata"):
                 self._tool_cache_metadata = {}
@@ -587,6 +718,20 @@ class CommandsMixin:
                     )
                 except Exception as save_error:
                     logger.debug(f"Failed to save cached analyze_test_coverage result: {save_error}")
+                existing_tier3 = (
+                    self.tier3_test_outcome
+                    if isinstance(getattr(self, "tier3_test_outcome", None), dict)
+                    else {}
+                )
+                self.tier3_test_outcome = {
+                    "state": "clean",
+                    "parallel": {"state": "unknown"},
+                    "no_parallel": {"state": "unknown"},
+                    "failed_node_ids": [],
+                    "development_tools": existing_tier3.get(
+                        "development_tools", {"state": "unknown"}
+                    ),
+                }
                 return True
 
         from .audit_orchestration import _AUDIT_LOCK_FILE
@@ -603,7 +748,19 @@ class CommandsMixin:
             # Use 20 minutes timeout (1200s) to allow pytest to complete
             # The script itself sets a 15-minute timeout for pytest, so we need
             # a bit more time for script overhead and pytest execution
-            result = self.run_script('run_test_coverage', timeout=1200)
+            coverage_output_file = (
+                self.project_root
+                / "development_tools"
+                / "tests"
+                / "jsons"
+                / "run_test_coverage_results.json"
+            )
+            result = self.run_script(
+                'run_test_coverage',
+                '--output-file',
+                str(coverage_output_file),
+                timeout=1200,
+            )
             output_text = "\n".join(
                 [result.get("output", "") or "", result.get("error", "") or ""]
             )
@@ -617,6 +774,48 @@ class CommandsMixin:
             if not hasattr(self, '_tool_cache_metadata'):
                 self._tool_cache_metadata = {}
             self._tool_cache_metadata['run_test_coverage'] = cache_metadata
+            structured_outcome = {
+                "state": "coverage_failed",
+                "parallel": {"state": "unknown"},
+                "no_parallel": {"state": "unknown"},
+                "failed_node_ids": [],
+            }
+            if coverage_output_file.exists():
+                try:
+                    with open(coverage_output_file, "r", encoding="utf-8") as f:
+                        coverage_payload = json.load(f)
+                    if isinstance(coverage_payload, dict):
+                        structured = coverage_payload.get("coverage_outcome", {})
+                        if isinstance(structured, dict):
+                            structured_outcome = {
+                                "state": structured.get("state", "coverage_failed"),
+                                "parallel": structured.get("parallel", {}),
+                                "no_parallel": structured.get("no_parallel", {}),
+                                "failed_node_ids": structured.get(
+                                    "failed_node_ids", []
+                                ),
+                            }
+                except Exception as parse_error:
+                    logger.debug(
+                        f"Failed to parse run_test_coverage structured output: {parse_error}"
+                    )
+            existing_tier3 = (
+                self.tier3_test_outcome
+                if isinstance(getattr(self, "tier3_test_outcome", None), dict)
+                else {}
+            )
+            self.tier3_test_outcome = {
+                **structured_outcome,
+                "development_tools": existing_tier3.get(
+                    "development_tools", {"state": "unknown"}
+                ),
+            }
+            tier3_state = structured_outcome.get("state", "coverage_failed")
+            if tier3_state == "coverage_failed":
+                logger.error(
+                    "Tier 3 coverage outcome is coverage_failed; treating run_test_coverage as failed"
+                )
+                return False
             if result['success']:
                 
                 # Save coverage results to standardized storage
@@ -636,7 +835,10 @@ class CommandsMixin:
                                 'total_issues': missed,
                                 'files_affected': 0,
                             },
-                            'details': coverage_data,
+                            'details': {
+                                **coverage_data,
+                                'tier3_test_outcome': self.tier3_test_outcome,
+                            },
                             '_cache_metadata': cache_metadata,
                         }
                         save_tool_result('analyze_test_coverage', 'tests', standard_format, project_root=self.project_root)
@@ -651,6 +853,9 @@ class CommandsMixin:
                 
                 return True
             else:
+                logger.warning(
+                    f"Tier 3 coverage outcome: {structured_outcome.get('state', 'coverage_failed')}"
+                )
                 logger.error(f"Test coverage regeneration failed: {result['error']}")
                 return False
         finally:
@@ -659,6 +864,11 @@ class CommandsMixin:
                     coverage_lock_file.unlink()
                 except Exception as e:
                     logger.warning(f"Failed to remove coverage lock file: {e}")
+            if 'coverage_output_file' in locals() and coverage_output_file.exists():
+                try:
+                    coverage_output_file.unlink()
+                except OSError:
+                    pass
     
     def run_legacy_cleanup(self):
         """Run legacy reference cleanup"""
@@ -674,7 +884,8 @@ class CommandsMixin:
     def run_cleanup(self, cache: bool = False, test_data: bool = False,
                     reports: bool = False,
                     coverage: bool = False, full: bool = False,
-                    dry_run: bool = False):
+                    dry_run: bool = False,
+                    include_tool_caches: bool = False):
         """Clean up generated files and caches"""
         try:
             from development_tools.shared.fix_project_cleanup import ProjectCleanup
@@ -682,18 +893,19 @@ class CommandsMixin:
             logger.info("Starting cleanup...")
             logger.info("=" * 50)
             
-            # If --full is specified, clean everything including tool caches
+            # If --full is specified, clean everything including tool caches.
             if full:
                 cache = True
                 test_data = True
                 coverage = True
+                include_tool_caches = True
             cleanup = ProjectCleanup(self.project_root)
             results = cleanup.cleanup_all(
                 dry_run=dry_run,
                 cache=cache,
                 test_data=test_data,
                 coverage=coverage,
-                include_tool_caches=full  # Only include tool caches when --full is specified
+                include_tool_caches=include_tool_caches
             )
             
             if dry_run:
@@ -1027,7 +1239,41 @@ class CommandsMixin:
             result_mtime = result_file.stat().st_mtime
         except OSError:
             return False
-        return result_mtime >= self._get_docs_tree_max_mtime()
+        docs_mtime = self._get_docs_tree_max_mtime()
+
+        # Invalidate doc-subcheck cache when tool implementation changes.
+        tool_mtime = 0.0
+        try:
+            from .tool_wrappers import SCRIPT_REGISTRY
+
+            script_rel = SCRIPT_REGISTRY.get(tool_name)
+            if script_rel:
+                script_path = (
+                    Path(__file__).resolve().parent.parent.parent / script_rel
+                )
+                if script_path.exists():
+                    tool_mtime = script_path.stat().st_mtime
+        except Exception:
+            tool_mtime = 0.0
+
+        # Invalidate when development-tools config changes.
+        config_mtime = 0.0
+        try:
+            config_path = (
+                self.project_root
+                / "development_tools"
+                / "config"
+                / "development_tools_config.json"
+            )
+            if not config_path.exists():
+                config_path = self.project_root / "development_tools_config.json"
+            if config_path.exists():
+                config_mtime = config_path.stat().st_mtime
+        except OSError:
+            config_mtime = 0.0
+
+        latest_input_mtime = max(docs_mtime, tool_mtime, config_mtime)
+        return result_mtime >= latest_input_mtime
 
     def _run_doc_subcheck_with_cache(
         self,
@@ -1069,6 +1315,31 @@ class CommandsMixin:
                     "source": "subcheck_direct_result",
                 }
             return result_data
+
+        # Prefer standardized stdout parsing over cache reconstruction.
+        # This keeps report payloads aligned with the tool's current output.
+        if result.get("output") or result.get("success"):
+            parsed = parser_func(result.get("output", ""))
+            if (
+                isinstance(parsed, dict)
+                and isinstance(parsed.get("summary"), dict)
+                and isinstance(parsed.get("details"), dict)
+            ):
+                try:
+                    save_tool_result(
+                        tool_name, "docs", parsed, project_root=self.project_root
+                    )
+                except Exception:
+                    pass
+                if hasattr(self, "results_cache") and isinstance(self.results_cache, dict):
+                    self.results_cache[tool_name] = parsed
+                if hasattr(self, "_tool_cache_metadata"):
+                    self._tool_cache_metadata[tool_name] = {
+                        "cache_mode": "cold_scan",
+                        "invalidation_reason": "Parsed standardized stdout from subcheck",
+                        "source": "doc_subcheck_stdout",
+                    }
+                return parsed
         try:
             parsed = self._load_mtime_cached_tool_results(
                 tool_name,
@@ -1225,8 +1496,34 @@ class CommandsMixin:
         )
 
         summary = self._aggregate_doc_sync_results(all_results)
-        self.docs_sync_results = {'success': True, 'summary': summary, 'all_results': all_results}
-        self.docs_sync_summary = summary
+        path_drift_files = summary.get("path_drift_files", [])
+        doc_sync_standard = {
+            "summary": {
+                "total_issues": summary.get("total_issues", 0),
+                "files_affected": (
+                    len(path_drift_files) if isinstance(path_drift_files, list) else 0
+                ),
+                "status": summary.get("status", "UNKNOWN"),
+            },
+            "details": {
+                "paired_doc_issues": summary.get("paired_doc_issues", 0),
+                "path_drift_issues": summary.get("path_drift_issues", 0),
+                "ascii_issues": summary.get("ascii_issues", 0),
+                "heading_numbering_issues": summary.get("heading_numbering_issues", 0),
+                "missing_address_issues": summary.get("missing_address_issues", 0),
+                "unconverted_link_issues": summary.get("unconverted_link_issues", 0),
+                "path_drift_files": path_drift_files
+                if isinstance(path_drift_files, list)
+                else [],
+            },
+        }
+        self.docs_sync_results = {
+            'success': True,
+            'summary': summary,
+            'all_results': all_results,
+            'standard': doc_sync_standard,
+        }
+        self.docs_sync_summary = doc_sync_standard
         if hasattr(self, "_tool_cache_metadata"):
             cache_only_count = sum(1 for mode in subcheck_modes.values() if mode == "cache_only")
             refresh_count = sum(1 for mode in subcheck_modes.values() if mode != "cache_only")

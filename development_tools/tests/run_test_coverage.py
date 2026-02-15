@@ -25,6 +25,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -1094,20 +1095,16 @@ class CoverageMetricsRegenerator:
             # Set unique pytest temp directory to avoid conflicts when running in parallel with dev tools coverage
             # Use a unique identifier based on process/coverage type to ensure isolation
             unique_id = f"main_{uuid.uuid4().hex[:8]}"
-            pytest_temp_root = self.project_root / "tests" / "data" / "tmp"
+            pytest_temp_root = Path(tempfile.gettempdir()) / "mhm_pytest_tmp"
             pytest_temp_root.mkdir(parents=True, exist_ok=True)
             pytest_temp_base = pytest_temp_root / f"mhm_pytest_tmp_{unique_id}"
             pytest_temp_base.mkdir(parents=True, exist_ok=True)
-            # Set PYTEST_CACHE_DIR to ensure pytest uses unique cache directory
+            # Use unique cache/basetemp directories per run to avoid cross-run collisions.
             pytest_cache_dir = pytest_temp_base / ".pytest_cache"
             env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
-            env["PYTEST_DEBUG_TEMPROOT"] = str(pytest_temp_root)
-            env["TMPDIR"] = str(pytest_temp_base)
-            env["TEMP"] = str(pytest_temp_base)
-            env["TMP"] = str(pytest_temp_base)
             # Force pytest cache provider to use writable temp cache directory.
             cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
-            # Also set basetemp via command line argument for tmpdir fixture
+            # Keep tmpdir fixtures isolated from tests/data/tmp cleanup logic.
             cmd.append(f"--basetemp={pytest_temp_base}")
 
             # Log the full command for debugging (single log entry instead of truncated + full)
@@ -1730,8 +1727,12 @@ class CoverageMetricsRegenerator:
                 "error_count": 0,
                 "skipped_count": 0,
                 "test_summary": "",
+                "failed_tests": [],
                 "error_tests": [],
+                "total_tests": 0,
             }
+            no_parallel_return_code = None
+            no_parallel_output = ""
             if self.parallel and pytest_ran:
                 if logger:
                     logger.debug(
@@ -1775,20 +1776,16 @@ class CoverageMetricsRegenerator:
                     )
                 # Set unique pytest temp directory to avoid conflicts when running in parallel with dev tools coverage
                 unique_id = f"no_parallel_{uuid.uuid4().hex[:8]}"
-                pytest_temp_root = self.project_root / "tests" / "data" / "tmp"
+                pytest_temp_root = Path(tempfile.gettempdir()) / "mhm_pytest_tmp"
                 pytest_temp_root.mkdir(parents=True, exist_ok=True)
                 pytest_temp_base = pytest_temp_root / f"mhm_pytest_tmp_{unique_id}"
                 pytest_temp_base.mkdir(parents=True, exist_ok=True)
-                # Set PYTEST_CACHE_DIR to ensure pytest uses unique cache directory
+                # Use unique cache/basetemp directories per run to avoid cross-run collisions.
                 pytest_cache_dir = pytest_temp_base / ".pytest_cache"
                 no_parallel_env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
-                no_parallel_env["PYTEST_DEBUG_TEMPROOT"] = str(pytest_temp_root)
-                no_parallel_env["TMPDIR"] = str(pytest_temp_base)
-                no_parallel_env["TEMP"] = str(pytest_temp_base)
-                no_parallel_env["TMP"] = str(pytest_temp_base)
                 # Force pytest cache provider to use writable temp cache directory.
                 no_parallel_cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
-                # Also set basetemp via command line argument for tmpdir fixture
+                # Keep tmpdir fixtures isolated from tests/data/tmp cleanup logic.
                 no_parallel_cmd.append(f"--basetemp={pytest_temp_base}")
 
                 # Create log file for no_parallel run (only stdout, stderr merged)
@@ -1854,6 +1851,7 @@ class CoverageMetricsRegenerator:
                 # Parse no_parallel test results
                 # Read from log file if stdout is empty (can happen with quiet mode)
                 no_parallel_output = no_parallel_result.stdout or ""
+                no_parallel_return_code = no_parallel_result.returncode
                 if not no_parallel_output and no_parallel_stdout_log.exists():
                     no_parallel_output = no_parallel_stdout_log.read_text(
                         encoding="utf-8", errors="ignore"
@@ -3148,13 +3146,41 @@ class CoverageMetricsRegenerator:
                         f"Failed to finalize coverage artefacts: {finalize_error}"
                     )
 
+            parallel_outcome = self._build_track_outcome(
+                return_code=result.returncode if "result" in locals() else None,
+                parsed_results=test_results if isinstance(test_results, dict) else {},
+                output=test_output if isinstance(test_output, str) else "",
+            )
+            no_parallel_outcome = self._build_track_outcome(
+                return_code=no_parallel_return_code,
+                parsed_results=(
+                    no_parallel_test_results
+                    if isinstance(no_parallel_test_results, dict)
+                    else {}
+                ),
+                output=no_parallel_output if isinstance(no_parallel_output, str) else "",
+            )
+            combined_failed_nodes = list(parallel_outcome.get("failed_node_ids", []))
+            combined_failed_nodes.extend(no_parallel_outcome.get("failed_node_ids", []))
+            coverage_outcome = {
+                "state": self._classify_coverage_outcome(
+                    parallel_outcome,
+                    no_parallel_outcome,
+                    bool(coverage_collected),
+                ),
+                "parallel": parallel_outcome,
+                "no_parallel": no_parallel_outcome,
+                "failed_node_ids": combined_failed_nodes,
+            }
+
             return {
                 "modules": coverage_data,
                 "overall": overall_coverage,
                 "test_results": test_results,
-                "coverage_collected": coverage_collected
-                and pytest_ran,  # Only true if pytest actually ran
+                # Coverage availability should be independent of test pass/fail state.
+                "coverage_collected": coverage_collected,
                 "pytest_ran": pytest_ran,  # Track whether pytest actually executed
+                "coverage_outcome": coverage_outcome,
                 "logs": {
                     "stdout": (
                         str(self.pytest_stdout_log) if self.pytest_stdout_log else None
@@ -3184,6 +3210,12 @@ class CoverageMetricsRegenerator:
                 "modules": {},
                 "overall": {},
                 "coverage_collected": False,
+                "coverage_outcome": {
+                    "state": "coverage_failed",
+                    "parallel": {"state": "unknown"},
+                    "no_parallel": {"state": "unknown"},
+                    "failed_node_ids": [],
+                },
             }
 
     def _get_dev_tools_source_mtimes(self) -> Dict[str, float]:
@@ -3411,6 +3443,16 @@ class CoverageMetricsRegenerator:
                     "overall": overall_coverage,
                     "coverage_collected": True,
                     "from_cache": True,
+                    "dev_tools_test_outcome": {
+                        "state": "skipped",
+                        "return_code": None,
+                        "passed_count": 0,
+                        "failed_count": 0,
+                        "error_count": 0,
+                        "skipped_count": 0,
+                        "failed_node_ids": [],
+                        "from_cache": True,
+                    },
                 }
 
             # Coverage only for development_tools directory
@@ -3464,20 +3506,16 @@ class CoverageMetricsRegenerator:
             # Set unique pytest temp directory to avoid conflicts when running in parallel with main coverage
             # Use a unique identifier based on process/coverage type to ensure isolation
             unique_id = f"dev_tools_{uuid.uuid4().hex[:8]}"
-            pytest_temp_root = self.project_root / "tests" / "data" / "tmp"
+            pytest_temp_root = Path(tempfile.gettempdir()) / "mhm_pytest_tmp"
             pytest_temp_root.mkdir(parents=True, exist_ok=True)
             pytest_temp_base = pytest_temp_root / f"mhm_pytest_tmp_{unique_id}"
             pytest_temp_base.mkdir(parents=True, exist_ok=True)
-            # Set PYTEST_CACHE_DIR to ensure pytest uses unique cache directory
+            # Use unique cache/basetemp directories per run to avoid cross-run collisions.
             pytest_cache_dir = pytest_temp_base / ".pytest_cache"
             env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
-            env["PYTEST_DEBUG_TEMPROOT"] = str(pytest_temp_root)
-            env["TMPDIR"] = str(pytest_temp_base)
-            env["TEMP"] = str(pytest_temp_base)
-            env["TMP"] = str(pytest_temp_base)
             # Force pytest cache provider to use writable temp cache directory.
             cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
-            # Also set basetemp via command line argument for tmpdir fixture
+            # Keep tmpdir fixtures isolated from tests/data/tmp cleanup logic.
             cmd.append(f"--basetemp={pytest_temp_base}")
 
             # Set up stdout logging for dev tools coverage (similar to main coverage)
@@ -3709,6 +3747,26 @@ class CoverageMetricsRegenerator:
                 else:
                     logger.warning("Dev tools coverage data not available")
 
+            parsed_dev_tools_results = self._parse_pytest_test_results(
+                result.stdout if hasattr(result, "stdout") and result.stdout else ""
+            )
+            dev_tools_test_outcome = self._build_track_outcome(
+                return_code=(
+                    result.returncode if hasattr(result, "returncode") else None
+                ),
+                parsed_results=(
+                    parsed_dev_tools_results
+                    if isinstance(parsed_dev_tools_results, dict)
+                    else {}
+                ),
+                output="\n".join(
+                    [
+                        result.stdout if hasattr(result, "stdout") and result.stdout else "",
+                        result.stderr if hasattr(result, "stderr") and result.stderr else "",
+                    ]
+                ),
+            )
+
             return {
                 "modules": coverage_data,
                 "overall": overall_coverage,
@@ -3720,6 +3778,7 @@ class CoverageMetricsRegenerator:
                     if self.use_domain_cache and self.dev_tools_cache
                     else False
                 ),
+                "dev_tools_test_outcome": dev_tools_test_outcome,
             }
 
         except Exception as e:
@@ -3999,6 +4058,80 @@ class CoverageMetricsRegenerator:
             results["error_count"] = max(results["error_count"], len(results["error_tests"]))
 
         return results
+
+    def _is_windows_crash_return_code(self, return_code: Optional[int]) -> bool:
+        """Check whether return code matches a known Windows crash code."""
+        if return_code is None:
+            return False
+        return return_code in {3221226505, 3221225477}
+
+    def _is_infra_cleanup_error(self, output: str) -> bool:
+        """Detect pytest teardown cleanup errors that are infra failures, not test failures."""
+        if not output:
+            return False
+        lowered = output.lower()
+        return (
+            "cleanup_dead_symlinks" in lowered and "permissionerror" in lowered
+        )
+
+    def _build_track_outcome(
+        self,
+        return_code: Optional[int],
+        parsed_results: Dict[str, Any],
+        output: str,
+    ) -> Dict[str, Any]:
+        """Build normalized per-track outcome details for report generation."""
+        failed_tests = list(parsed_results.get("failed_tests", []))
+        error_tests = list(parsed_results.get("error_tests", []))
+        failed_node_ids = failed_tests + error_tests
+        total_tests = int(parsed_results.get("total_tests", 0) or 0)
+        failed_count = int(parsed_results.get("failed_count", 0) or 0)
+        error_count = int(parsed_results.get("error_count", 0) or 0)
+        passed_count = int(parsed_results.get("passed_count", 0) or 0)
+        skipped_count = int(parsed_results.get("skipped_count", 0) or 0)
+
+        state = "unknown"
+        if self._is_infra_cleanup_error(output):
+            state = "infra_cleanup_error"
+        elif self._is_windows_crash_return_code(return_code):
+            state = "crashed"
+        elif return_code is None and total_tests == 0 and not (output or "").strip():
+            state = "skipped"
+        elif return_code not in (0, None) and total_tests == 0 and not failed_node_ids:
+            state = "crashed"
+        elif failed_count > 0 or error_count > 0 or failed_node_ids:
+            state = "failed"
+        elif return_code == 0 and total_tests > 0:
+            state = "passed"
+        elif return_code == 0 and total_tests == 0:
+            state = "skipped"
+        elif return_code is None:
+            state = "crashed"
+
+        return {
+            "state": state,
+            "return_code": return_code,
+            "passed_count": passed_count,
+            "failed_count": failed_count,
+            "error_count": error_count,
+            "skipped_count": skipped_count,
+            "failed_node_ids": failed_node_ids,
+        }
+
+    def _classify_coverage_outcome(
+        self, parallel: Dict[str, Any], no_parallel: Dict[str, Any], coverage_collected: bool
+    ) -> str:
+        """Compute aggregate coverage/test outcome state for Tier 3 reporting."""
+        if not coverage_collected:
+            return "coverage_failed"
+        states = [parallel.get("state"), no_parallel.get("state")]
+        if "infra_cleanup_error" in states:
+            return "infra_cleanup_error"
+        if "crashed" in states:
+            return "crashed"
+        if "failed" in states:
+            return "test_failures"
+        return "clean"
 
     def _rotate_log_files(self, base_name: str, max_versions: int = 7) -> None:
         """Rotate log files, keeping only the last max_versions copies total (consolidated)."""
@@ -4292,6 +4425,11 @@ def main():
         update_plan=args.update_plan, dev_tools_only=args.dev_tools_only
     )
 
+    # Treat missing/invalid coverage results as command failure.
+    # This ensures orchestration gets a non-zero exit and can classify Tier 3 correctly.
+    if not results or not results.get("coverage_collected", False):
+        sys.exit(1)
+
     if args.output_file and results:
         # Save detailed results to JSON file
         output_path = Path(args.output_file)
@@ -4299,7 +4437,7 @@ def main():
             import json
 
             json.dump(results, f, indent=2)
-        print(f"\n📊 Detailed coverage data saved to: {output_path}")
+        print(f"\nDetailed coverage data saved to: {output_path}")
 
 
 if __name__ == "__main__":

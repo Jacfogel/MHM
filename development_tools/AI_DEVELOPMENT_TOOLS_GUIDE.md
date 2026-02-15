@@ -41,6 +41,7 @@ python development_tools/run_development_tools.py help
 - `audit` - Standard audit (Tier 2 - default, includes quality checks)
 - `audit --quick` - Quick audit (Tier 1 - core metrics only, ~30-60s)
 - `audit --full` - Full audit (Tier 3 - comprehensive analysis, ~10-30min). Alias: `full-audit`.
+- `audit --full --strict` - Full audit with fail-fast exit semantics for Tier 3 test failures/crashes.
 - `status` - Quick system status (uses cached audit data)
 - `docs` - Regenerate static documentation artifacts (FUNCTION_REGISTRY, MODULE_DEPENDENCIES, DIRECTORY_TREE)
 - `doc-sync` - Check documentation synchronization
@@ -103,16 +104,18 @@ python development_tools/run_development_tools.py help
     - `generate_legacy_reference_report` - Legacy report generation (~1s, but part of legacy group)
 - **Execution**: Coverage tools and legacy group run in parallel; coverage-dependent tools run sequentially after coverage completes
 - **Use case**: Comprehensive analysis, pre-release checks, periodic deep audits
+- **Tier 3 outcome states**: `clean`, `test_failures`, `crashed`, `infra_cleanup_error`, `coverage_failed`.
+- **Strict mode behavior**: `audit --strict` returns non-zero for Tier 3 `test_failures` or `crashed`; default audit mode remains non-strict.
 
 **Note**: All three tiers update the same output files:
-- AI-facing (root): `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`
+- AI-facing (root): `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`
 - Central aggregation: `development_tools/reports/analysis_detailed_results.json`
 - Domain-specific JSON: Individual tool results in `development_tools/{domain}/jsons/{tool}_results.json` (with automatic archiving)
 
 **Report Format Standards**:
 - **AI_STATUS.md**: High-level summary including Function Docstring Coverage (with missing count) and Registry Gaps (separate metrics)
 - **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ", ... +N" format when there are more items
-- **consolidated_report.txt**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
+- **consolidated_report.md**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
 
 **Tool Output Format (Standard Format)**:
 - Analysis tools that participate in audit aggregation emit or are normalized to a standardized JSON structure:
@@ -220,7 +223,9 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.m
     - Stores tool hash/tool mtimes for invalidation when coverage tooling code changes.
     - Stores last run success/exit code and invalidates after failed previous runs.
     - Cache file: `development_tools/tests/jsons/dev_tools_coverage_cache.json` (enabled by default; disable with `--no-domain-cache`).
-  - **Cache management**: `python development_tools/run_development_tools.py --clear-cache audit`
+  - **Cache management**:
+    - `python development_tools/run_development_tools.py audit --clear-cache` clears development-tools cache artifacts only (tool cache/result artifacts used by development-tools freshness logic).
+    - `python development_tools/run_development_tools.py cleanup --cache` clears all cache categories (tool caches/results + `__pycache__` + `.pytest_cache` + coverage cache artifacts).
 - **Parallel Execution**: Tools run in parallel where possible, with dependency-aware grouping:
   - **Tier 2**: Independent tools run in parallel; dependent groups (module imports, function patterns, decision support, function registry) run sequentially within groups but in parallel with each other
   - **Tier 3**: Coverage group runs sequentially; legacy and unused imports groups run in parallel with each other (tools within each group run sequentially)

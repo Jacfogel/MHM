@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-02-10
+> **Last Updated**: 2026-02-15
 
 This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -129,13 +129,13 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 ### 2. Reporting, Recommendations, and Output Quality (HIGH/MEDIUM)
 
 #### 2.1 Enhance Quick Wins with file details
-**Status**: PENDING  
+**Status**: COMPLETED  
 **Tasks**:
-- [ ] Extract file paths for ASCII compliance issues in `report_generation.py`
-- [ ] Extract file paths for missing addresses in `report_generation.py`
-- [ ] Include top files with issue counts, fix command, and verification guidance
-- [ ] Validate with real data to ensure file lists are correct
-- [ ] Apply consistent format for ASCII, addresses, headings, and links
+- [x] Extract file paths for ASCII compliance issues in `report_generation.py`
+- [x] Extract file paths for missing addresses in `report_generation.py`
+- [x] Include top files with issue counts, fix command, and verification guidance
+- [x] Validate with real data to ensure file lists are correct
+- [x] Apply consistent format for ASCII, addresses, headings, and links
 
 #### 2.2 Standardize logging and surface top offenders
 **Status**: PENDING  
@@ -155,13 +155,6 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Expand consolidated report with top circular chains and high-coupling modules
 - [ ] Keep all three outputs consistent and sourced from report_generation
 
-#### 2.4 Critical issues summary decision
-**Status**: COMPLETED  
-**Tasks**:
-- [x] Decide whether to produce a standalone critical-issues summary (decision: no)
-- [x] Remove misleading console/message references
-- [ ] Consider alternatives (consolidated report or AI_PRIORITIES section)
-
 #### 2.5 System signals purpose and redundancy cleanup
 **Status**: PENDING  
 **Tasks**:
@@ -171,10 +164,10 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Update report_generation to reflect decision
 
 #### 2.6 Consolidated report improvements
-**Status**: PENDING  
+**Status**: COMPLETED  
 **Tasks**:
-- [ ] Convert `consolidated_report.txt` to `.md`
-- [ ] Expand consolidated report detail to at least AI_STATUS level
+- [x] Standardize consolidated report filename to `consolidated_report.md`
+- [x] Expand consolidated report detail to at least AI_STATUS level
 
 #### 2.7 Console output polish (optional)
 **Status**: PENDING  
@@ -183,14 +176,30 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Consider progress indicators for long-running tools
 
 #### 2.9 Audit failure visibility and exit semantics for coverage/test stages
-**Status**: PENDING  
+**Status**: IN PROGRESS  
 **Tasks**:
-- [ ] Make Tier 3 audit output explicitly summarize pytest outcomes from both coverage tracks (parallel + no_parallel): passed/failed/skipped/crashed, plus failed node IDs
-- [ ] Add a clear "completed with test failures" state distinct from "completed successfully" when coverage was produced but any tests failed
+- [x] Make Tier 3 audit output explicitly summarize pytest outcomes from both coverage tracks (parallel + no_parallel): passed/failed/skipped/crashed, plus failed node IDs
+- [x] Add a clear "completed with test failures" state distinct from "completed successfully" when coverage was produced but any tests failed
 - [ ] Add explicit crash reporting for no_parallel subprocess failures (e.g., `3221226505` / `0xC0000135`) with actionable context in final audit summary
-- [ ] Add a strict/fail-fast mode so audit returns non-zero when Tier 3 test failures or no_parallel crashes occur
+- [x] Add a strict/fail-fast mode so audit returns non-zero when Tier 3 test failures or no_parallel crashes occur
 - [ ] Add explicit reporting/handling for Windows pytest teardown cleanup errors (e.g., `cleanup_dead_symlinks` PermissionError) so false-negative non-zero exits are clearly classified and do not masquerade as test failures
-- [ ] Ensure AI_STATUS/AI_PRIORITIES/consolidated report carry the same failure state and do not imply a clean run
+- [x] Ensure AI_STATUS/AI_PRIORITIES/consolidated report carry the same failure state and do not imply a clean run
+- [x] Include development-tools test track in Tier 3 outcome state handling and strict-exit decisioning
+
+#### 2.10 Cache and cleanup semantics alignment
+**Status**: COMPLETED  
+**Tasks**:
+- [x] Scope `audit --clear-cache` to development-tools cache artifacts only
+- [x] Ensure `cleanup --cache`, `cleanup --full`, and `cleanup --all` clear all cache categories
+- [x] Make default `cleanup` clear most generated artifacts (cache + temp test data)
+- [x] Drive tool-cache cleanup dynamically from canonical tool metadata with fallback discovery
+
+#### 2.11 Docstring metric sourcing parity across reports
+**Status**: COMPLETED  
+**Tasks**:
+- [x] Use one explicit metric source for "Function Docstring Coverage" across `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.md`
+- [x] Keep registry-derived docstring signals explicitly labeled as registry/doc-index metrics (not code-docstring metrics)
+- [x] Remove mixed-source rendering paths that could show inconsistent missing-count values in different sections
 
 
 #### 2.7 Remove duplicate last updated field at the bottom of AI_FUNCTION_REGISTRY.md
@@ -423,7 +432,11 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 - [x] `development_tools_config.json` exclusions now explicitly include `tests/data/` in `base_exclusion_shortlist` and `tests/data/*` in development/testing context exclusions
 - [x] `EXCLUSION_RULES.md` updated to document `tests/data/` as excluded-by-default for analyzer-style tooling
 
-## 7.2 Integrate pyright and ruff into development tools, they can run in parallel as part of the full audit and contribute towards development_tools\AI_PRIORITIES.md, development_tools\AI_STATUS.md and development_tools\consolidated_report.txt
+## 7.2 Integrate pyright and ruff into development tools, they can run in parallel as part of the full audit and contribute towards development_tools\AI_PRIORITIES.md, development_tools\AI_STATUS.md and development_tools\consolidated_report.md
+
+## 7.3 Dev Tools coverage sometimes is missing from AI_PRIORITIES.md
+- [x] Investigated and fixed loading/reporting so dev-tools coverage appears consistently when available
+
 ---
 
 ## Related Documents

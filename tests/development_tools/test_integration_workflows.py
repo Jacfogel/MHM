@@ -20,7 +20,9 @@ class TestCommandRouting:
         monkeypatch.setattr(runner, "AIToolsService", lambda project_root=None, config_path=None: mock_service)
 
         assert runner.main(["audit"]) == 0
-        mock_service.run_audit.assert_called_once_with(quick=False, full=False, include_overlap=False)
+        mock_service.run_audit.assert_called_once_with(
+            quick=False, full=False, include_overlap=False, strict=False
+        )
 
     @pytest.mark.integration
     def test_audit_command_failure(self, monkeypatch):
@@ -29,6 +31,19 @@ class TestCommandRouting:
         monkeypatch.setattr(runner, "AIToolsService", lambda project_root=None, config_path=None: mock_service)
 
         assert runner.main(["audit"]) == 1
+
+    @pytest.mark.integration
+    def test_audit_command_strict_passthrough(self, monkeypatch):
+        mock_service = MagicMock()
+        mock_service.run_audit.return_value = True
+        monkeypatch.setattr(
+            runner, "AIToolsService", lambda project_root=None, config_path=None: mock_service
+        )
+
+        assert runner.main(["audit", "--full", "--strict"]) == 0
+        mock_service.run_audit.assert_called_once_with(
+            quick=False, full=True, include_overlap=False, strict=True
+        )
 
     @pytest.mark.integration
     def test_docs_command_invokes_service(self, monkeypatch):

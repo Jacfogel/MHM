@@ -33,6 +33,26 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-15 - Dev-tools audit/report consistency, cache semantics alignment, and session closeout
+- **Feature**: Standardized Tier 3 test outcome reporting and severity semantics across generated outputs. Development-tools test track is now included alongside parallel/no-parallel tracks, and Tier 3 priority sections only surface when there is actionable failure/error state (clean outcomes stay in status-style reports instead of priority noise). (See `development_tools/shared/service/report_generation.py`, `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/tool_wrappers.py`, `tests/development_tools/test_audit_strict_mode.py`, `tests/development_tools/test_report_generation_quick_wins.py`)
+- **Feature**: Completed cache/cleanup behavior alignment:
+  - `audit --clear-cache` now targets development-tools cache artifacts only.
+  - `cleanup --cache`, `cleanup --full`, and `cleanup --all` clear full cache categories.
+  - default `cleanup` clears most generated cache/temp artifacts.
+  - cache discovery is driven dynamically from canonical tool metadata with fallback discovery (no hardcoded static cache list drift). (See `development_tools/run_development_tools.py`, `development_tools/shared/fix_project_cleanup.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/tool_metadata.py`)
+- **Feature**: Removed remaining non-historical `consolidated_report.txt` usage and standardized report generation/links on `development_tools/consolidated_report.md`. (See `development_tools/reports/generate_consolidated_report.py`, [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md), [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md))
+- **Fix**: Standardized ASCII compliance output to strict `summary/details` consumption and removed stale/legacy fallback dependency in report rendering; addressed stale payload behavior by enforcing fresher cache-invalidated reads in audit/report flow. (See `development_tools/docs/analyze_ascii_compliance.py`, `development_tools/shared/service/data_freshness_audit.py`, `development_tools/shared/service/report_generation.py`)
+- **Fix**: Unified "Function Docstring Coverage" metric sourcing to one explicit canonical path (`analyze_functions`, code-docstring metric) across generated reports; registry-based docstring signals remain explicitly treated as registry-gap/index metrics to prevent mixed-source count mismatches between `AI_STATUS.md` and `consolidated_report.md`. (See `development_tools/shared/service/report_generation.py`)
+- **Maintenance**: Removed unnecessary legacy/flat report-summary compatibility branch from report-generation paths now that tools use standardized `summary/details` format.
+- **Docs/Planning**: Updated planning artifacts for this closeout:
+  - [TODO.md](TODO.md): recorded that no new standalone TODOs were added and dev-tools follow-ups stay centralized in V4 plan.
+  - [PLANS.md](development_docs/PLANS.md): added 2026-02-15 session follow-up pointers.
+  - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md): added completed item for docstring metric parity.
+- **Validation**:
+  - User-validated full runs in-session: `python development_tools/run_development_tools.py audit --full --clear-cache` (Tier 3 successful) with refreshed generated outputs.
+  - Additional local validation for this closeout edit: `python -m py_compile development_tools/shared/service/report_generation.py`.
+- **Impact**: Audit/report outputs are now more internally consistent, less noisy in priorities, and less prone to stale or mixed-source metrics; cache-clearing semantics are clearer and scale with tool growth.
+
 ### 2026-02-14 - Pytest cache isolation hardening and flaky-test stabilization follow-up
 - **Fix**: Enforced zero-tolerance handling for stale root `pytest-cache-files-*` directories and stronger cleanup behavior in test infrastructure (`tests/conftest.py`) and coverage tooling (`development_tools/tests/run_test_coverage.py`), including explicit hard-fail/logging when cleanup cannot complete.
 - **Fix**: Disabled pytest cacheprovider in normal test runs as well as coverage subprocesses (`pytest.ini`, `tests/conftest.py`, `development_tools/tests/run_test_coverage.py`) to prevent root-level cache temp artifacts and improve run determinism.
@@ -42,12 +62,12 @@ When adding new changes, follow this format:
   - default `--mode all` now includes `tests/core/`, `tests/communication/`, and `tests/notebook/` in addition to `unit/integration/behavior/ui`.
   - new `--full` flag runs the full `tests/` tree, including `tests/development_tools/` and other directories not included in base `--mode all`.
 - **Docs**: Updated testing docs to reflect runner behavior and routing changes:
-  - `tests/TESTING_GUIDE.md` (default/all vs full scope, `--full`, no-parallel phase behavior, test layout updates)
-  - `ai_development_docs/AI_TESTING_GUIDE.md` (scope updates and corrected AI functionality guide path)
-  - `tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md` (how to include dev-tools tests via `run_tests.py --mode all --full`)
-  - `tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md` (canonical AI functionality runner note)
-- **Feature**: Completed fixture status regeneration follow-up by documenting regeneration in `tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md` and preventing stale snapshot coupling in `tests/development_tools/conftest.py`.
-- **Maintenance**: Session closeout updates applied: removed completed pytest temp/cache stabilization task from `TODO.md`, removed resolved logger flake item from `development_docs/PLANS.md`, and synchronized detailed + AI changelog records for this session.
+  - [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) (default/all vs full scope, `--full`, no-parallel phase behavior, test layout updates)
+  - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) (scope updates and corrected AI functionality guide path)
+  - [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md) (how to include dev-tools tests via `run_tests.py --mode all --full`)
+  - [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md) (canonical AI functionality runner note)
+- **Feature**: Completed fixture status regeneration follow-up by documenting regeneration in [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md) and preventing stale snapshot coupling in `tests/development_tools/conftest.py`.
+- **Maintenance**: Session closeout updates applied: removed completed pytest temp/cache stabilization task from [TODO.md](TODO.md), removed resolved logger flake item from [PLANS.md](development_docs/PLANS.md), and synchronized detailed + AI changelog records for this session.
 - **Validation**: User-validated runs passed:
   - `python run_tests.py` -> `3737 passed, 0 failed`
   - `python run_tests.py --full` -> `4556 passed, 0 failed, 1 skipped`

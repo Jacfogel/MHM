@@ -67,6 +67,7 @@ python development_tools/run_development_tools.py config
 - `audit` - Standard audit (Tier 2, default); regenerates quality checks and cached signals.
 - `audit --quick` - Quick audit (Tier 1); core metrics only (~30-60s).
 - `audit --full` - Full audit (Tier 3); comprehensive analysis including coverage (~10-30min, alias: full-audit).
+- `audit --full --strict` - Full audit with fail-fast exit semantics for Tier 3 test failures/crashes.
 - `docs` - regenerates registries, dependency maps, and doc-signals.
 - `doc-sync` - verifies paired doc headings, path drift, ASCII compliance.
 - `doc-fix` - fixes documentation issues (addresses, ASCII, headings, links). Alias: `--full` == `--all`.
@@ -169,11 +170,13 @@ The modular structure provides clear separation of concerns, making the codebase
 - Legacy reference scanning (~62s, >10s)
 - Reference report generation (~1s, but part of the legacy reference group)
 - Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_REPORT.md, UNUSED_IMPORTS_REPORT.md)
+- Tier 3 outcome states are explicit: `clean`, `test_failures`, `crashed`, `infra_cleanup_error`, `coverage_failed`
+- In strict mode (`audit --strict`), Tier 3 returns non-zero for `test_failures` or `crashed`; default mode remains non-strict.
 
 **Performance**: Total full audit time: ~6-7 minutes (coverage tools run in parallel, reducing total time from ~460s to ~365s)
 
 Pipeline artifacts:
-- AI-facing (root): [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `consolidated_report.txt`
+- AI-facing (root): [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `consolidated_report.md`
 - Domain-specific JSON: `reports/analysis_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/jsons/coverage_dev_tools.json`, `config/analyze_config_results.json`, `imports/.unused_imports_cache.json`
 - `reports/analysis_detailed_results.json` caches complexity metrics, validation results, and system signals for `status` command
 - `AI_PRIORITIES.md` includes complexity refactoring priority when critical/high complexity functions exist
@@ -181,7 +184,7 @@ Pipeline artifacts:
 **Report Format Standards**:
 - **AI_STATUS.md**: High-level summary including Function Docstring Coverage (with missing count) and Registry Gaps (separate metrics)
 - **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ",... +N" format when there are more items
-- **consolidated_report.txt**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
+- **consolidated_report.md**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
 - Human-facing: [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md), [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md), [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md), [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)
 - Coverage: `development_tools/tests/jsons/coverage.json`, `development_tools/tests/jsons/coverage_dev_tools.json`, `development_tools/tests/coverage_html/`, `development_tools/reports/archive/coverage_artifacts/<timestamp>/`
 - Cached snapshots: `status` loads data from `reports/analysis_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting
@@ -395,7 +398,7 @@ All generated Markdown files must use this standardized metadata format at the b
 - `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 - `development_tools/AI_STATUS.md`
 - `development_tools/AI_PRIORITIES.md`
-- `development_tools/consolidated_report.txt`
+- `development_tools/consolidated_report.md`
 
 ### 6.2. JSON Files (.json)
 

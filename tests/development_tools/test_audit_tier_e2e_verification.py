@@ -143,12 +143,12 @@
 #         # Verify all 4 output files exist
 #         ai_status_file = dev_tools_dir / "AI_STATUS.md"
 #         ai_priorities_file = dev_tools_dir / "AI_PRIORITIES.md"
-#         consolidated_report_file = dev_tools_dir / "consolidated_report.txt"
+#         consolidated_report_file = dev_tools_dir / "consolidated_report.md"
 #         analysis_results_file = reports_dir / "analysis_detailed_results.json"
 
 #         assert ai_status_file.exists(), "AI_STATUS.md should be generated"
 #         assert ai_priorities_file.exists(), "AI_PRIORITIES.md should be generated"
-#         assert consolidated_report_file.exists(), "consolidated_report.txt should be generated"
+#         assert consolidated_report_file.exists(), "consolidated_report.md should be generated"
 #         assert analysis_results_file.exists(), "analysis_detailed_results.json should be generated"
 
 #         # Verify files have meaningful content
@@ -160,7 +160,7 @@
 #         assert len(priorities_content) > 50, "AI_PRIORITIES.md should have content"
 
 #         consolidated_content = consolidated_report_file.read_text()
-#         assert len(consolidated_content) > 100, "consolidated_report.txt should have substantial content"
+#         assert len(consolidated_content) > 100, "consolidated_report.md should have substantial content"
 
 #         # Verify analysis_detailed_results.json structure and tier
 #         with open(analysis_results_file, 'r', encoding='utf-8') as f:
@@ -213,12 +213,12 @@
 #         # Verify all 4 output files exist
 #         ai_status_file = dev_tools_dir / "AI_STATUS.md"
 #         ai_priorities_file = dev_tools_dir / "AI_PRIORITIES.md"
-#         consolidated_report_file = dev_tools_dir / "consolidated_report.txt"
+#         consolidated_report_file = dev_tools_dir / "consolidated_report.md"
 #         analysis_results_file = reports_dir / "analysis_detailed_results.json"
 
 #         assert ai_status_file.exists(), "AI_STATUS.md should be generated"
 #         assert ai_priorities_file.exists(), "AI_PRIORITIES.md should be generated"
-#         assert consolidated_report_file.exists(), "consolidated_report.txt should be generated"
+#         assert consolidated_report_file.exists(), "consolidated_report.md should be generated"
 #         assert analysis_results_file.exists(), "analysis_detailed_results.json should be generated"
 
 #         # Verify analysis_detailed_results.json indicates Tier 2
@@ -295,12 +295,12 @@
 #         # Verify all 4 output files exist
 #         ai_status_file = dev_tools_dir / "AI_STATUS.md"
 #         ai_priorities_file = dev_tools_dir / "AI_PRIORITIES.md"
-#         consolidated_report_file = dev_tools_dir / "consolidated_report.txt"
+#         consolidated_report_file = dev_tools_dir / "consolidated_report.md"
 #         analysis_results_file = reports_dir / "analysis_detailed_results.json"
 
 #         assert ai_status_file.exists(), "AI_STATUS.md should be generated"
 #         assert ai_priorities_file.exists(), "AI_PRIORITIES.md should be generated"
-#         assert consolidated_report_file.exists(), "consolidated_report.txt should be generated"
+#         assert consolidated_report_file.exists(), "consolidated_report.md should be generated"
 #         assert analysis_results_file.exists(), "analysis_detailed_results.json should be generated"
 
 #         # Load analysis results once

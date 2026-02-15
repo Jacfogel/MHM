@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-14
+> **Last Updated**: 2026-02-15
 
 ---
 
@@ -29,6 +29,13 @@
 ---
 
 ## [ACTIVE] **Current Active Plans**
+
+### **Session Follow-ups (2026-02-15)**
+- Keep tracking development-tools implementation items in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), especially:
+  - Tier 3 failure semantics remaining items in section 2.9 (no-parallel crash classification and teardown/cleanup error classification).
+  - Coverage uplift work in section 1.1 (raise development tools coverage toward 60%+).
+  - Logging normalization and verbosity cleanup in section 2.2.
+- No additional multi-step non-dev-tools plans were added in this wrap-up.
 
 ### **Test Suite Performance Optimization Plan** **ON HOLD**
 
@@ -283,7 +290,7 @@
 - **Tooling Complete**: Phase 1 and Phase 2 auditing fully integrated into `analyze_error_handling.py` and AI tools
 - **Current Metrics**: See latest counts in [AI_STATUS.md](development_tools/AI_STATUS.md) and [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md)
 - **Next Priority**: Execute Phase 3 improvements, then Phase 4-6 hardening
-- **Tracking**: Progress visible in [AI_STATUS.md](development_tools/AI_STATUS.md), [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), and [consolidated_report.txt](development_tools/consolidated_report.txt) after each audit
+- **Tracking**: Progress visible in [AI_STATUS.md](development_tools/AI_STATUS.md), [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), and [consolidated_report.md](development_tools/consolidated_report.md) after each audit
 
 **Notes**:
 - Coverage is already at 100%, so this plan focuses on quality improvements

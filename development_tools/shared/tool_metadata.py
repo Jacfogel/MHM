@@ -396,7 +396,7 @@ _TOOLS: Dict[str, ToolInfo] = {
         path="development_tools/reports/generate_consolidated_report.py",
         tier="supporting",
         trust="stable",
-        description="Generates AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.txt.",
+        description="Generates AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.md.",
     ),
 }
 

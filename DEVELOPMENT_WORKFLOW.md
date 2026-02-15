@@ -386,4 +386,4 @@ When to run AI development tools for codebase analysis and health checks:
 
 - **Quick status snapshot**: Run `python development_tools/run_development_tools.py status` to view cached summaries from the most recent audit (rerun `audit` if cache is stale).
 
-Note: All three audit tiers update the same output files (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt, analysis_detailed_results.json). Each tier encompasses all functionality of lighter tiers, so Tier 2 includes all Tier 1 tools, and Tier 3 includes all Tier 1 & 2 tools.
+Note: All three audit tiers update the same output files (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.md, analysis_detailed_results.json). Each tier encompasses all functionality of lighter tiers, so Tier 2 includes all Tier 1 tools, and Tier 3 includes all Tier 1 & 2 tools.

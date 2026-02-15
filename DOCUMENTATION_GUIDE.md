@@ -638,7 +638,7 @@ Examples of generated Markdown files include:
 -   ai_development_docs/AI_MODULE_DEPENDENCIES.md
 -   development_tools/AI_STATUS.md
 -   development_tools/AI_PRIORITIES.md
--   development_tools/consolidated_report.txt
+-   development_tools/consolidated_report.md
 
 #### 6.1.2. JSON files (.json)
 

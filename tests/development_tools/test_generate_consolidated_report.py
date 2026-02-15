@@ -2,7 +2,7 @@
 Tests for generate_consolidated_report.py.
 
 Tests consolidated report generation functionality including AI_STATUS.md,
-AI_PRIORITIES.md, and consolidated_report.txt generation.
+AI_PRIORITIES.md, and consolidated_report.md generation.
 """
 
 import pytest
@@ -119,7 +119,7 @@ class TestGenerateConsolidatedReport:
                 # Verify correct paths were used
                 assert "development_tools/AI_STATUS.md" in call_paths, "Should create AI_STATUS.md"
                 assert "development_tools/AI_PRIORITIES.md" in call_paths, "Should create AI_PRIORITIES.md"
-                assert "development_tools/consolidated_report.txt" in call_paths, "Should create consolidated_report.txt"
+                assert "development_tools/consolidated_report.md" in call_paths, "Should create consolidated_report.md"
                 
                 # Verify result paths are strings
                 assert isinstance(result['ai_status'], str), "ai_status path should be string"
@@ -237,7 +237,7 @@ class TestGenerateConsolidatedReport:
                 # Find each call by path
                 status_call = next((c for c in call_contents if "AI_STATUS.md" in c[0]), None)
                 priorities_call = next((c for c in call_contents if "AI_PRIORITIES.md" in c[0]), None)
-                consolidated_call = next((c for c in call_contents if "consolidated_report.txt" in c[0]), None)
+                consolidated_call = next((c for c in call_contents if "consolidated_report.md" in c[0]), None)
                 
                 assert status_call is not None, "Should have AI_STATUS.md call"
                 assert status_call[1] == status_content, "Status content should match"
@@ -245,7 +245,7 @@ class TestGenerateConsolidatedReport:
                 assert priorities_call is not None, "Should have AI_PRIORITIES.md call"
                 assert priorities_call[1] == priorities_content, "Priorities content should match"
                 
-                assert consolidated_call is not None, "Should have consolidated_report.txt call"
+                assert consolidated_call is not None, "Should have consolidated_report.md call"
                 assert consolidated_call[1] == consolidated_content, "Consolidated content should match"
     
     @pytest.mark.integration
@@ -283,4 +283,3 @@ class TestGenerateConsolidatedReport:
                 assert isinstance(result, dict), "Result should be a dictionary"
                 assert all(key in result for key in ['ai_status', 'ai_priorities', 'consolidated_report']), \
                     "Result should have all required keys"
-

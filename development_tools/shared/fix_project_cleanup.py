@@ -150,26 +150,89 @@ class ProjectCleanup:
                 if not dry_run:
                     logger.warning(f"  {message}")
 
-        # Only clean standardized storage cache files if explicitly requested (--full)
+        # Only clean standardized/tool cache files if explicitly requested.
         if include_tool_caches:
-            dev_tools_dir = self.project_root / "development_tools"
-            if dev_tools_dir.exists():
-                for domain_dir in dev_tools_dir.iterdir():
-                    if domain_dir.is_dir():
-                        jsons_dir = domain_dir / "jsons"
-                        if jsons_dir.exists():
-                            for cache_file in jsons_dir.glob(".*_cache.json"):
-                                success, message = self.remove_path(cache_file, dry_run)
-                                if success:
-                                    removed += 1
-                                    if not dry_run:
-                                        logger.info(f"  {message}")
-                                else:
-                                    failed += 1
-                                    if not dry_run:
-                                        logger.warning(f"  {message}")
+            tool_removed, tool_failed = self.cleanup_tool_cache_artifacts(dry_run=dry_run)
+            removed += tool_removed
+            failed += tool_failed
 
         return removed, failed
+
+    def cleanup_tool_cache_artifacts(self, dry_run: bool = False) -> Tuple[int, int]:
+        """Remove development-tools cache/result artifacts used for cache reuse."""
+        removed = 0
+        failed = 0
+        for cache_file in self._iter_tool_cache_artifacts():
+            success, message = self.remove_path(cache_file, dry_run)
+            if success:
+                removed += 1
+                if not dry_run:
+                    logger.info(f"  {message}")
+            else:
+                failed += 1
+                if not dry_run:
+                    logger.warning(f"  {message}")
+        return removed, failed
+
+    def _iter_tool_cache_artifacts(self) -> List[Path]:
+        """Return cache/artifact files used for cache-style reuse."""
+        artifacts: List[Path] = []
+        dev_tools_dir = self.project_root / "development_tools"
+        if not dev_tools_dir.exists():
+            return artifacts
+
+        # Canonical tool list: derive cache and result files from central metadata.
+        try:
+            from development_tools.shared.tool_metadata import iter_tools
+
+            for tool_info in iter_tools():
+                path_parts = tool_info.path.replace("\\", "/").split("/")
+                # Expected form: development_tools/<domain>/<tool>.py
+                if len(path_parts) < 3 or path_parts[0] != "development_tools":
+                    continue
+                domain = path_parts[1]
+                jsons_dir = dev_tools_dir / domain / "jsons"
+                if not jsons_dir.exists():
+                    continue
+                artifacts.append(jsons_dir / f".{tool_info.name}_cache.json")
+
+                # Result payloads are also used as freshness inputs for some domains.
+                if domain in {"docs", "tests"}:
+                    artifacts.append(jsons_dir / f"{tool_info.name}_results.json")
+        except Exception:
+            # Fall back to generic globbing if metadata is unavailable.
+            pass
+
+        # Generic discovery catches current and future cache files (including unregistered tools).
+        for cache_file in dev_tools_dir.glob("**/jsons/.*_cache.json"):
+            if cache_file.is_file():
+                artifacts.append(cache_file)
+        for cache_file in dev_tools_dir.glob("**/jsons/*_cache.json"):
+            if cache_file.is_file():
+                artifacts.append(cache_file)
+
+        # Coverage JSON artifacts used as warm-run inputs.
+        tests_jsons = dev_tools_dir / "tests" / "jsons"
+        if tests_jsons.exists():
+            for file_path in tests_jsons.glob("coverage*.json"):
+                if file_path.is_file():
+                    artifacts.append(file_path)
+            for file_path in tests_jsons.glob("run_test_coverage*_results.json"):
+                if file_path.is_file():
+                    artifacts.append(file_path)
+
+        # Deduplicate while preserving order.
+        unique: List[Path] = []
+        seen = set()
+        for artifact in artifacts:
+            if not artifact.is_file():
+                continue
+            normalized = str(artifact.resolve()).lower()
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            unique.append(artifact)
+        return unique
 
     def cleanup_pytest_cache(self, dry_run: bool = False) -> Tuple[int, int]:
         """Remove .pytest_cache directories."""
@@ -455,7 +518,7 @@ class ProjectCleanup:
             coverage: Clean coverage files, logs, and test-file-based coverage cache
             keep_vscode: Keep VSCode cache directories (not implemented)
             keep_cursor: Keep Cursor cache directories (not implemented)
-            include_tool_caches: If True, also clean standardized storage cache files (only with --full)
+            include_tool_caches: If True, also clean standardized storage/tool cache artifacts
 
         Returns:
             Dictionary with cleanup results for each category

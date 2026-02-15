@@ -66,6 +66,11 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         action="store_true",
         help="Include overlap analysis in documentation analysis (section overlaps and consolidation recommendations).",
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="For Tier 3, return non-zero when tests fail or crash even if coverage data is produced.",
+    )
 
     if any(arg in ("-h", "--help") for arg in argv):
         _print_command_help(parser)
@@ -84,7 +89,10 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     )
 
     success = service.run_audit(
-        quick=quick_mode, full=full_mode, include_overlap=ns.overlap
+        quick=quick_mode,
+        full=full_mode,
+        include_overlap=ns.overlap,
+        strict=ns.strict,
     )
     return 0 if success else 1
 
@@ -407,17 +415,17 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     parser.add_argument(
         "--full",
         action="store_true",
-        help="Clean everything including tool caches (default: only __pycache__ and temp test files)",
+        help="Clean everything including tool caches, pytest/coverage caches, and test temp data",
     )
     parser.add_argument(
         "--all",
         action="store_true",
-        help="Alias for --full (clean everything including tool caches).",
+        help="Alias for --full.",
     )
     parser.add_argument(
         "--cache",
         action="store_true",
-        help="Clean cache directories (__pycache__, .pytest_cache) and standardized storage cache files",
+        help="Clean all cache files (tool caches/results + __pycache__ + .pytest_cache + coverage cache artifacts)",
     )
     parser.add_argument(
         "--test-data", action="store_true", help="Clean test data directories"
@@ -438,11 +446,11 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
             "Usage: cleanup [--full|--all] [--cache] [--test-data] [--coverage] [--dry-run]"
         )
         print(
-            "  --full       Clean everything including tool caches (default: only __pycache__ and temp test files)"
+            "  --full       Clean everything including tool caches, pytest/coverage caches, and test temp data"
         )
         print("  --all        Alias for --full")
         print(
-            "  --cache      Clean cache directories (__pycache__, .pytest_cache) and standardized storage cache files"
+            "  --cache      Clean all cache files (tool caches/results + __pycache__ + .pytest_cache + coverage cache artifacts)"
         )
         print("  --test-data  Clean test data directories")
         print(
@@ -451,9 +459,9 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         print("  --dry-run    Show what would be removed without making changes")
         print()
         print(
-            "Default behavior (no flags): Clean __pycache__ directories and temp test files only"
+            "Default behavior (no flags): Clean most artifacts (all cache files + temp test files)"
         )
-        print("Use --full to clean everything including tool caches")
+        print("Use --full to include all cleanup categories explicitly")
         return 0
 
     try:
@@ -467,23 +475,22 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     except SystemExit:
         return 2
 
-    # If --full is specified, clean everything
+    # If --full is specified, clean everything.
     if args.full or args.all:
         cache = True
         test_data = True
         coverage = True
     else:
-        # Default: only clean __pycache__ and temp test files (light cleanup)
-        # If no flags specified, default to minimal cleanup (cache + test_data only)
+        # Default: clean most generated artifacts.
         if not any([args.cache, args.test_data, args.coverage]):
-            cache = True  # Clean __pycache__ directories
-            test_data = True  # Clean temp test files
-            coverage = False  # Don't clean coverage or tool caches by default
+            cache = True
+            test_data = True
+            coverage = True
         else:
-            # Use explicit flags if provided
+            # --cache should include coverage-related cache artifacts as well.
             cache = args.cache
             test_data = args.test_data
-            coverage = args.coverage
+            coverage = args.coverage or args.cache
 
     result = service.run_cleanup(
         cache=cache,
@@ -492,6 +499,7 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         coverage=coverage,
         full=args.full,
         dry_run=args.dry_run,
+        include_tool_caches=(args.cache or args.full or args.all or (not any([args.cache, args.test_data, args.coverage]))),
     )
 
     if result.get("success"):

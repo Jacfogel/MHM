@@ -142,7 +142,7 @@ AI routing:
 - **Phase 1 and Phase 2 Auditing**: The coverage tool now provides specialized analysis for quality improvements:
   - **Phase 1**: Identifies functions with basic try-except blocks that should use `@handle_errors` decorator, with priority categorization (high/medium/low)
   - **Phase 2**: Audits generic exception raises that should be replaced with specific `MHMError` subclasses
-  - Results appear in audit reports ([AI_STATUS.md](development_tools/AI_STATUS.md), [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), `development_tools/consolidated_report.txt`) for tracking progress
+  - Results appear in audit reports ([AI_STATUS.md](development_tools/AI_STATUS.md), [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), `development_tools/consolidated_report.md`) for tracking progress
   - See [PLANS.md](development_docs/PLANS.md) for the Error Handling Quality Improvement Plan details
 
 Do not design new error mechanisms that are hard or impossible to test.

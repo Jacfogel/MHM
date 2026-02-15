@@ -224,7 +224,7 @@ When to run AI development tools for codebase analysis and health checks:
 
 - **Day-to-day checks**: Run `python development_tools/run_development_tools.py audit` (Tier 2, default, ~2-5min) for standard quality checks. Includes everything in Tier 1 plus: documentation analysis, error handling coverage, decision support insights, config validation, and AI work validation.
 
-- **Pre-merge / pre-release checks**: Run `python development_tools/run_development_tools.py audit --full` (Tier 3, ~10-30min) for comprehensive analysis. Includes everything in Tier 1 & 2 plus: full test coverage regeneration, unused import detection, legacy reference scanning, module dependency analysis, and improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_EXPANSION_PLAN.md, UNUSED_IMPORTS_REPORT.md).
+- **Pre-merge / pre-release checks**: Run `python development_tools/run_development_tools.py audit --full` (Tier 3, ~10-30min) for comprehensive analysis. Includes everything in Tier 1 & 2 plus: full test coverage regeneration, unused import detection, legacy reference scanning, module dependency analysis, and improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_REPORT.md, UNUSED_IMPORTS_REPORT.md).
 
 - **Documentation work**: 
   - Run `python development_tools/run_development_tools.py doc-sync` to check documentation pairing and path drift.
@@ -232,6 +232,6 @@ When to run AI development tools for codebase analysis and health checks:
 
 - **Quick status snapshot**: Run `python development_tools/run_development_tools.py status` to view cached summaries from the most recent audit (rerun `audit` if cache is stale).
 
-**Note**: All three audit tiers update the same output files (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt, analysis_detailed_results.json). Each tier encompasses all functionality of lighter tiers, so Tier 2 includes all Tier 1 tools, and Tier 3 includes all Tier 1 & 2 tools.
+**Note**: All three audit tiers update the same output files (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.md, analysis_detailed_results.json). Each tier encompasses all functionality of lighter tiers, so Tier 2 includes all Tier 1 tools, and Tier 3 includes all Tier 1 & 2 tools.
 
 For detailed tool usage and output locations, see [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md).

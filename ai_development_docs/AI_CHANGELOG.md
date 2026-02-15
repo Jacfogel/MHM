@@ -29,6 +29,14 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-15 - Dev-tools report/cache consistency pass **COMPLETED**
+- Tier 3 outcomes are now consistently represented with all three tracks (parallel, no-parallel, development-tools), and AI_PRIORITIES only includes Tier 3 test/coverage items when failures/errors are actionable (clean outcomes remain status-only).
+- Standardized away remaining `consolidated_report.txt` references to `development_tools/consolidated_report.md` (non-historical paths) and aligned generated report links/messages.
+- Tightened cache semantics: `audit --clear-cache` now clears dev-tools cache artifacts only, while cleanup variants (`cleanup --cache`, `--full`, `--all`, and default cleanup) cover broader cache/temp artifact scopes dynamically from canonical tool metadata.
+- ASCII analysis/report consumption now uses standardized `summary/details` paths without legacy flat fallback dependency; stale payload handling was hardened via freshness checks.
+- Unified "Function Docstring Coverage" reporting to one explicit source (`analyze_functions`, code-docstrings) to eliminate cross-report mismatches; registry docstring signals remain labeled separately as registry-index metrics.
+- Updated session planning docs and roadmap tracking ([TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)); user-validated full `audit --full --clear-cache` runs succeeded in-session.
+
 ### 2026-02-14 - Pytest cache isolation + flake follow-up **COMPLETED**
 - Added strict cleanup/hard-fail behavior for stale root `pytest-cache-files-*` temp dirs and clearer cleanup diagnostics in test/coverage paths (`tests/conftest.py`, `development_tools/tests/run_test_coverage.py`).
 - Disabled pytest cacheprovider for normal runs too (`pytest.ini`, `tests/conftest.py`) and kept it disabled in coverage subprocesses to enforce zero root cache-temp dirs.
@@ -37,8 +45,8 @@ Guidelines:
 - Updated `run_tests.py` scope:
   - default `--mode all` now includes `tests/core/`, `tests/communication/`, and `tests/notebook/`.
   - new `--full` flag runs full `tests/` tree (including `tests/development_tools/`).
-- Updated testing docs (`tests/TESTING_GUIDE.md`, `ai_development_docs/AI_TESTING_GUIDE.md`, `tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md`, `tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md`) and fixed an AI guide path typo.
-- Closed related planning/tasks (`TODO.md`, `development_docs/PLANS.md`) and documented fixture-status regeneration handling (`tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md`, `tests/development_tools/conftest.py`).
+- Updated testing docs ([TESTING_GUIDE.md](tests/TESTING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md), [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md)) and fixed an AI guide path typo.
+- Closed related planning/tasks ([TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md)) and documented fixture-status regeneration handling ([DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md), `tests/development_tools/conftest.py`).
 - Final validation: user full run passed (`python run_tests.py` -> `3737 passed, 0 failed`).
 - Additional validation: `python run_tests.py --full` -> `4556 passed, 0 failed, 1 skipped`.
 

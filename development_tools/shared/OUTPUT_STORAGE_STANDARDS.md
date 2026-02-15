@@ -9,7 +9,7 @@
 ### Pattern 1: Using `create_output_file()` (Recommended)
 **Location**: `development_tools/shared/file_rotation.py`
 **Used by**: 
-- Status files: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`
+- Status files: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`
 - `analysis_detailed_results.json` (via `_save_additional_tool_results()`)
 
 **Benefits**:
@@ -64,7 +64,7 @@
    - Format: Markdown (`.md`) or Text (`.txt`)
    - Location: `development_tools/`
    - Method: `create_output_file()`
-   - Examples: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`
+   - Examples: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`
 
 2. **Analysis Results** (JSON, domain-specific)
    - Format: JSON (`.json`)
@@ -100,7 +100,7 @@
 development_tools/
 ├── AI_STATUS.md                    # Status report (root: development_tools/)
 ├── AI_PRIORITIES.md                # Status report (root: development_tools/)
-├── consolidated_report.txt          # Status report (root: development_tools/)
+├── consolidated_report.md          # Status report (root: development_tools/)
 ├── reports/
 │   ├── analysis_detailed_results.json  # Consolidated analysis cache
 │   └── archive/                    # Archived reports

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-14 16:28:23
+> **Last Generated**: 2026-02-15 04:11:04
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -193,7 +193,7 @@ C:.
 |   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md
 |   |   AI_PRIORITIES.md
 |   |   AI_STATUS.md
-|   |   consolidated_report.txt
+|   |   consolidated_report.md
 |   |   DEVELOPMENT_TOOLS_GUIDE.md
 |   |   run_development_tools.py
 |   |   run_dev_tools.py
@@ -508,6 +508,7 @@ C:.
 |   |   |   test_analyze_unconverted_links.py
 |   |   |   test_analyze_unused_imports.py
 |   |   |   test_audit_status_updates.py
+|   |   |   test_audit_strict_mode.py
 |   |   |   test_audit_tier_comprehensive.py
 |   |   |   test_audit_tier_e2e_verification.py
 |   |   |   test_config.json
@@ -543,6 +544,7 @@ C:.
 |   |   |   test_path_drift_integration.py
 |   |   |   test_path_drift_verification_comprehensive.py
 |   |   |   test_regenerate_coverage_metrics.py
+|   |   |   test_report_generation_quick_wins.py
 |   |   |   test_run_development_tools.py
 |   |   |   test_run_dev_tools.py
 |   |   |   test_standard_exclusions.py
@@ -569,14 +571,6 @@ C:.
 |   +---notebook
 |   |   |   __init__.py
 |   |   |   
-|   +---runtime_tmp
-|   |   +---pytest_basetemp_0de5c257
-|   |   +---pytest_basetemp_3b0770d4
-|   |   +---pytest_basetemp_5e7da455
-|   |   +---pytest_basetemp_7dca5d76
-|   |   +---pytest_basetemp_a2e77ec0
-|   |   +---pytest_cache
-|   |   \---pytest_temproot
 |   +---ui
 |   |   |   test_account_creation_ui.py
 |   |   |   test_account_creator_dialog_validation.py

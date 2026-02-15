@@ -46,13 +46,13 @@ def _get_status_file_mtimes(project_root: Path) -> Dict[str, float]:
         status_files = {
             'AI_STATUS.md': project_root / status_files_config.get('ai_status', 'development_tools/AI_STATUS.md'),
             'AI_PRIORITIES.md': project_root / status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md'),
-            'consolidated_report.txt': project_root / status_files_config.get('consolidated_report', 'development_tools/consolidated_report.txt')
+            'consolidated_report.md': project_root / status_files_config.get('consolidated_report', 'development_tools/consolidated_report.md')
         }
     except (ImportError, AttributeError, KeyError):
         status_files = {
             'AI_STATUS.md': project_root / 'development_tools' / 'AI_STATUS.md',
             'AI_PRIORITIES.md': project_root / 'development_tools' / 'AI_PRIORITIES.md',
-            'consolidated_report.txt': project_root / 'development_tools' / 'consolidated_report.txt'
+            'consolidated_report.md': project_root / 'development_tools' / 'consolidated_report.md'
         }
     mtimes = {}
     for name, path in status_files.items():
@@ -100,6 +100,31 @@ class AuditOrchestrationMixin:
     def run_analyze_duplicate_functions(self, *args, **kwargs):
         """Stub for mixin typing; implemented in ToolWrappersMixin."""
         raise NotImplementedError
+
+    def _effective_tier3_state(self) -> str:
+        """Return Tier 3 state including development-tools track impact."""
+        outcome = (
+            self.tier3_test_outcome
+            if isinstance(getattr(self, "tier3_test_outcome", None), dict)
+            else {}
+        )
+        state = outcome.get("state", "") or ""
+        dev_tools = outcome.get("development_tools", {})
+        dev_state = dev_tools.get("state", "") if isinstance(dev_tools, dict) else ""
+
+        if state == "coverage_failed":
+            return "coverage_failed"
+        if state in {"crashed", "infra_cleanup_error"}:
+            return state
+        if dev_state in {"crashed", "infra_cleanup_error"}:
+            return dev_state
+        if state == "test_failures" or dev_state == "failed":
+            return "test_failures"
+        if state:
+            return state
+        if dev_state == "passed":
+            return "clean"
+        return "unknown"
     
     def _get_audit_lock_file_path(self) -> Path:
         """Get audit lock file path (configurable via config, defaults to .audit_in_progress.lock relative to project root)."""
@@ -121,7 +146,13 @@ class AuditOrchestrationMixin:
         except (ImportError, AttributeError):
             return self.project_root / 'development_tools' / '.coverage_in_progress.lock'
     
-    def run_audit(self, quick: bool = False, full: bool = False, include_overlap: bool = False):
+    def run_audit(
+        self,
+        quick: bool = False,
+        full: bool = False,
+        include_overlap: bool = False,
+        strict: bool = False,
+    ):
         """Run audit workflow with three-tier structure."""
         global _AUDIT_IN_PROGRESS_GLOBAL, _AUDIT_LOCK_FILE
         
@@ -153,6 +184,7 @@ class AuditOrchestrationMixin:
         self._tool_execution_status = {}
         # Track cache metadata per tool for timing diagnostics
         self._tool_cache_metadata = {}
+        self.tier3_test_outcome = {}
         # Track wall-clock runtime (accurate total audit duration with parallel execution)
         self._audit_wall_clock_start = time.perf_counter()
         
@@ -220,6 +252,22 @@ class AuditOrchestrationMixin:
         except Exception as e:
             logger.warning(f"Path validation failed (non-blocking): {e}")
         
+        # Final quality checks (must run before report generation so findings appear in reports)
+        try:
+            self._check_and_trim_changelog_entries()
+        except Exception as e:
+            logger.warning(f"Changelog trim check failed (non-blocking): {e}")
+
+        try:
+            self._check_documentation_quality()
+        except Exception as e:
+            logger.warning(f"Documentation quality check failed (non-blocking): {e}")
+
+        try:
+            self._check_ascii_compliance()
+        except Exception as e:
+            logger.warning(f"ASCII compliance check failed (non-blocking): {e}")
+
         # Generate status files
         if self.current_audit_tier is None:
             logger.warning(f"current_audit_tier is None at end of audit! Setting to tier {tier}")
@@ -249,11 +297,11 @@ class AuditOrchestrationMixin:
                     status_files_config = status_config.get('status_files', {})
                     ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
                     ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
-                    consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/consolidated_report.txt')
+                    consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/consolidated_report.md')
                 except (ImportError, AttributeError, KeyError):
                     ai_status_path = 'development_tools/AI_STATUS.md'
                     ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
-                    consolidated_report_path = 'development_tools/consolidated_report.txt'
+                    consolidated_report_path = 'development_tools/consolidated_report.md'
                 
                 try:
                     ai_status = self._generate_ai_status_document()
@@ -283,27 +331,29 @@ class AuditOrchestrationMixin:
             finally:
                 _AUDIT_IN_PROGRESS_GLOBAL = was_audit_in_progress
             
-            # Additional checks
-            try:
-                self._check_and_trim_changelog_entries()
-            except Exception as e:
-                logger.warning(f"Changelog trim check failed (non-blocking): {e}")
-            
-            try:
-                self._check_documentation_quality()
-            except Exception as e:
-                logger.warning(f"Documentation quality check failed (non-blocking): {e}")
-            
-            try:
-                self._check_ascii_compliance()
-            except Exception as e:
-                logger.warning(f"ASCII compliance check failed (non-blocking): {e}")
-            
             print("=" * 50)
             logger.info("=" * 50)
+            tier3_state = ""
+            if tier >= 3:
+                tier3_state = self._effective_tier3_state()
+            if strict and tier >= 3 and tier3_state in {"test_failures", "crashed"}:
+                success = False
+                logger.warning(
+                    f"Strict mode forcing non-zero exit for Tier 3 outcome: {tier3_state}"
+                )
+
             if success:
-                print(f"Completed {operation_name} successfully!")
-                logger.info(f"Completed {operation_name} successfully!")
+                if tier >= 3 and tier3_state == "test_failures":
+                    print(f"Completed {operation_name} with test failures")
+                    logger.warning(f"Completed {operation_name} with test failures")
+                elif tier >= 3 and tier3_state in {"crashed", "infra_cleanup_error"}:
+                    print(f"Completed {operation_name} with crashes/infrastructure issues")
+                    logger.warning(
+                        f"Completed {operation_name} with crashes/infrastructure issues"
+                    )
+                else:
+                    print(f"Completed {operation_name} successfully!")
+                    logger.info(f"Completed {operation_name} successfully!")
                 # Log timing summary
                 if self._tool_timings:
                     total_time = sum(self._tool_timings.values())
@@ -340,8 +390,14 @@ class AuditOrchestrationMixin:
                 logger.info(f"* AI Priorities: {ai_priorities_file}")
                 logger.info(f"* Consolidated Report: {consolidated_file}")
             else:
-                print(f"Completed {operation_name} with some errors")
-                logger.warning(f"Completed {operation_name} with some errors")
+                if strict and tier >= 3 and tier3_state in {"test_failures", "crashed"}:
+                    print(f"Completed {operation_name} with strict-mode test failures/crashes")
+                    logger.warning(
+                        f"Completed {operation_name} with strict-mode test failures/crashes"
+                    )
+                else:
+                    print(f"Completed {operation_name} with tool failures")
+                    logger.warning(f"Completed {operation_name} with tool failures")
         except Exception as e:
             print(f"ERROR: Error generating status files: {e}")
             logger.error(f"Error generating status files: {e}", exc_info=True)
@@ -953,7 +1009,17 @@ class AuditOrchestrationMixin:
         if failed:
             logger.warning(f"Tier 3 completed with {len(failed)} failure(s): {', '.join(failed)}")
         else:
-            logger.info(f"Tier 3 completed successfully ({len(successful)} tools)")
+            tier3_state = self._effective_tier3_state()
+            if tier3_state == "test_failures":
+                logger.warning(
+                    f"Tier 3 completed with test failures ({len(successful)} tools)"
+                )
+            elif tier3_state in {"crashed", "infra_cleanup_error"}:
+                logger.warning(
+                    f"Tier 3 completed with crashes/infrastructure issues ({len(successful)} tools)"
+                )
+            else:
+                logger.info(f"Tier 3 completed successfully ({len(successful)} tools)")
         
         return len(failed) == 0
     
@@ -1339,23 +1405,73 @@ class AuditOrchestrationMixin:
             logger.warning(f"   Documentation quality check failed: {exc}")
     
     def _check_ascii_compliance(self) -> None:
-        """Check for non-ASCII characters in documentation files."""
+        """Check for non-ASCII characters using standardized tool output."""
         try:
-            from development_tools.docs.analyze_ascii_compliance import ASCIIComplianceAnalyzer
-            analyzer = ASCIIComplianceAnalyzer()
-            results = analyzer.check_ascii_compliance()
-            total_issues = sum(len(issues) for issues in results.values())
-            files_with_issues = len(results)
+            result = self.run_script("analyze_ascii_compliance", "--json")
+            parsed = self._parse_ascii_compliance_output(result.get("output", ""))
+            if (
+                not isinstance(parsed, dict)
+                or not isinstance(parsed.get("summary"), dict)
+                or not isinstance(parsed.get("details"), dict)
+            ):
+                logger.warning("   ASCII compliance check returned non-standard data")
+                return
+
+            # Keep cache/storage in sync with the final quality check.
+            try:
+                save_tool_result(
+                    "analyze_ascii_compliance",
+                    "docs",
+                    parsed,
+                    project_root=self.project_root,
+                )
+            except Exception as exc:
+                logger.debug(f"Failed to persist ascii compliance result: {exc}")
+
+            if hasattr(self, "results_cache") and isinstance(self.results_cache, dict):
+                self.results_cache["analyze_ascii_compliance"] = parsed
+
+            summary = parsed.get("summary", {})
+            total_issues = int(summary.get("total_issues", 0) or 0)
+            files_with_issues = int(summary.get("files_affected", 0) or 0)
+            current_doc_sync = (
+                self.docs_sync_summary
+                if isinstance(getattr(self, "docs_sync_summary", None), dict)
+                else {}
+            )
+            doc_sync_summary = (
+                current_doc_sync.get("summary", {})
+                if isinstance(current_doc_sync.get("summary"), dict)
+                else {}
+            )
+            doc_sync_details = (
+                current_doc_sync.get("details", {})
+                if isinstance(current_doc_sync.get("details"), dict)
+                else {}
+            )
             if total_issues == 0:
                 logger.info("   ASCII compliance: All documentation files use ASCII-only characters")
-                if not hasattr(self, 'docs_sync_summary') or not self.docs_sync_summary:
-                    self.docs_sync_summary = {}
-                self.docs_sync_summary['ascii_issues'] = 0
+                doc_sync_details["ascii_issues"] = 0
             else:
                 logger.info(f"   ASCII compliance: Found {total_issues} non-ASCII characters in {files_with_issues} files")
-                if not hasattr(self, 'docs_sync_summary') or not self.docs_sync_summary:
-                    self.docs_sync_summary = {}
-                self.docs_sync_summary['ascii_issues'] = files_with_issues
+                doc_sync_details["ascii_issues"] = files_with_issues
+            recalculated_total = (
+                int(doc_sync_details.get("paired_doc_issues", 0) or 0)
+                + int(doc_sync_details.get("path_drift_issues", 0) or 0)
+                + int(doc_sync_details.get("ascii_issues", 0) or 0)
+                + int(doc_sync_details.get("heading_numbering_issues", 0) or 0)
+                + int(doc_sync_details.get("missing_address_issues", 0) or 0)
+                + int(doc_sync_details.get("unconverted_link_issues", 0) or 0)
+            )
+            doc_sync_summary["total_issues"] = recalculated_total
+            doc_sync_summary["status"] = "FAIL" if recalculated_total > 0 else "PASS"
+            doc_sync_summary["files_affected"] = int(
+                doc_sync_summary.get("files_affected", 0) or 0
+            )
+            self.docs_sync_summary = {
+                "summary": doc_sync_summary,
+                "details": doc_sync_details,
+            }
         except Exception as exc:
             logger.warning(f"   ASCII compliance check failed: {exc}")
     

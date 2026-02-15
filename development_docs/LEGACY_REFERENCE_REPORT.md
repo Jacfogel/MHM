@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-14 18:40:41
+> **Last Generated**: 2026-02-15 15:20:13
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 4
 **Legacy Compatibility Markers Detected**: 5
@@ -29,7 +29,7 @@
 ### development_tools\shared\service\audit_orchestration.py
 **Issues Found**: 1
 
-- **Line 1441**: `Backward compatibility`
+- **Line 1557**: `Backward compatibility`
   ```
   # Backward compatibility: retained as sum of per-tool durations
   ```

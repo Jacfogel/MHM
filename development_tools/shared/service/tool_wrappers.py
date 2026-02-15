@@ -118,6 +118,8 @@ class ToolWrappersMixin:
         # Before running, check if we have cached overlap data to preserve
         cached_overlap_data = None
         cached_overlap_in_details = False
+        cached_has_section_overlaps = False
+        cached_has_consolidation = False
         if not include_overlap:
             try:
                 from ..output_storage import load_tool_result
@@ -140,6 +142,8 @@ class ToolWrappersMixin:
                         or "consolidation_recommendations" in details
                     )
                     if has_section_overlaps or has_consolidation:
+                        cached_has_section_overlaps = has_section_overlaps
+                        cached_has_consolidation = has_consolidation
                         cached_overlap_in_details = (
                             "section_overlaps" in details
                             or "consolidation_recommendations" in details
@@ -183,23 +187,27 @@ class ToolWrappersMixin:
                     if cached_overlap_in_details:
                         if "details" not in data:
                             data["details"] = {}
-                        if cached_overlap_data.get("section_overlaps"):
-                            data["details"]["section_overlaps"] = cached_overlap_data[
-                                "section_overlaps"
-                            ]
-                        if cached_overlap_data.get("consolidation_recommendations"):
-                            data["details"]["consolidation_recommendations"] = (
-                                cached_overlap_data["consolidation_recommendations"]
+                        if cached_has_section_overlaps:
+                            data["details"]["section_overlaps"] = cached_overlap_data.get(
+                                "section_overlaps", {}
                             )
+                        if cached_has_consolidation:
+                            data["details"]["consolidation_recommendations"] = (
+                                cached_overlap_data.get("consolidation_recommendations", [])
+                            )
+                        data["details"]["overlap_data_source"] = "cached"
                     else:
-                        if cached_overlap_data.get("section_overlaps"):
-                            data["section_overlaps"] = cached_overlap_data[
-                                "section_overlaps"
-                            ]
-                        if cached_overlap_data.get("consolidation_recommendations"):
-                            data["consolidation_recommendations"] = cached_overlap_data[
-                                "consolidation_recommendations"
-                            ]
+                        if cached_has_section_overlaps:
+                            data["section_overlaps"] = cached_overlap_data.get(
+                                "section_overlaps", {}
+                            )
+                        if cached_has_consolidation:
+                            data["consolidation_recommendations"] = cached_overlap_data.get(
+                                "consolidation_recommendations", []
+                            )
+                        if "details" not in data:
+                            data["details"] = {}
+                        data["details"]["overlap_data_source"] = "cached"
                     logger.debug(
                         "Preserved cached overlap analysis data in new results"
                     )
@@ -759,11 +767,21 @@ class ToolWrappersMixin:
         """Run analyze_documentation_sync with structured data handling."""
         try:
             if self._run_doc_sync_check():
-                summary = self.docs_sync_summary or {}
+                summary_payload = self.docs_sync_summary or {}
+                summary = (
+                    summary_payload.get("summary", {})
+                    if isinstance(summary_payload, dict)
+                    else {}
+                )
+                details = (
+                    summary_payload.get("details", {})
+                    if isinstance(summary_payload, dict)
+                    else {}
+                )
                 all_results = getattr(self, "docs_sync_results", {}).get(
                     "all_results", {}
                 )
-                path_drift_files = summary.get("path_drift_files", [])
+                path_drift_files = details.get("path_drift_files", [])
                 data = {
                     "summary": {
                         "total_issues": summary.get("total_issues", 0),
@@ -775,16 +793,16 @@ class ToolWrappersMixin:
                         "status": summary.get("status", "UNKNOWN"),
                     },
                     "details": {
-                        "paired_doc_issues": summary.get("paired_doc_issues", 0),
-                        "path_drift_issues": summary.get("path_drift_issues", 0),
-                        "ascii_compliance_issues": summary.get("ascii_issues", 0),
-                        "heading_numbering_issues": summary.get(
+                        "paired_doc_issues": details.get("paired_doc_issues", 0),
+                        "path_drift_issues": details.get("path_drift_issues", 0),
+                        "ascii_compliance_issues": details.get("ascii_issues", 0),
+                        "heading_numbering_issues": details.get(
                             "heading_numbering_issues", 0
                         ),
-                        "missing_address_issues": summary.get(
+                        "missing_address_issues": details.get(
                             "missing_address_issues", 0
                         ),
-                        "unconverted_link_issues": summary.get(
+                        "unconverted_link_issues": details.get(
                             "unconverted_link_issues", 0
                         ),
                         "path_drift_files": path_drift_files,

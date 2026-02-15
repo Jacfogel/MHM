@@ -355,3 +355,62 @@ class TestCoveragePlanUpdate:
         # File should contain summary content
         content = regenerator.coverage_plan_file.read_text(encoding='utf-8')
         assert 'Overall Coverage' in content or '75' in content
+
+
+class TestCoverageCliOutput:
+    """Test CLI output formatting for run_test_coverage.py."""
+
+    @pytest.mark.unit
+    def test_main_output_file_message_is_ascii(self, monkeypatch, temp_output_dir):
+        """Output-file success message should be ASCII-safe for cp1252 consoles."""
+        output_file = temp_output_dir / "coverage_results.json"
+
+        class _FakeRegenerator:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def run(self, update_plan: bool = False, dev_tools_only: bool = False):
+                return {"coverage_collected": True, "overall": {"overall_coverage": 80.0}}
+
+        monkeypatch.setattr(
+            coverage_module,
+            "CoverageMetricsRegenerator",
+            _FakeRegenerator,
+        )
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "run_test_coverage.py",
+                "--output-file",
+                str(output_file),
+            ],
+        )
+
+        coverage_module.main()
+
+        message = f"Detailed coverage data saved to: {output_file}"
+        assert output_file.exists()
+        assert message.encode("cp1252")
+
+    @pytest.mark.unit
+    def test_main_exits_non_zero_when_no_coverage_results(self, monkeypatch):
+        """CLI should exit non-zero when coverage execution produced no usable results."""
+
+        class _FakeRegenerator:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def run(self, update_plan: bool = False, dev_tools_only: bool = False):
+                return {}
+
+        monkeypatch.setattr(
+            coverage_module,
+            "CoverageMetricsRegenerator",
+            _FakeRegenerator,
+        )
+        monkeypatch.setattr("sys.argv", ["run_test_coverage.py"])
+
+        with pytest.raises(SystemExit) as exc:
+            coverage_module.main()
+
+        assert exc.value.code == 1

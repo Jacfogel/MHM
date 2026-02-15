@@ -1,7 +1,7 @@
 """
 Report generation methods for AIToolsService.
 
-Contains methods for generating AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.txt.
+Contains methods for generating AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.md.
 These methods are large (~4,300 lines total) and generate comprehensive status reports.
 """
 
@@ -130,6 +130,160 @@ class ReportGenerationMixin:
             return {}
         details = normalized.get("details", {})
         return details if isinstance(details, dict) else {}
+
+    def _extract_file_issue_counts(self, tool_data: Any) -> Dict[str, int]:
+        """Extract per-file issue counts from standardized tool payload."""
+        if not isinstance(tool_data, dict):
+            return {}
+        file_counts: Dict[str, int] = {}
+        files_section = tool_data.get("files", {})
+        if isinstance(files_section, dict):
+            for file_path, value in files_section.items():
+                try:
+                    file_counts[str(file_path)] = int(value)
+                except (TypeError, ValueError):
+                    continue
+        if file_counts:
+            return file_counts
+        details = tool_data.get("details", {})
+        detailed_issues = details.get("detailed_issues", {}) if isinstance(details, dict) else {}
+        if isinstance(detailed_issues, dict):
+            for file_path, issues in detailed_issues.items():
+                if isinstance(issues, list):
+                    file_counts[str(file_path)] = len(issues)
+                elif isinstance(issues, int):
+                    file_counts[str(file_path)] = issues
+        return file_counts
+
+    def _coerce_int(self, value: Any, default: int = 0) -> int:
+        """Best-effort int coercion for report metrics."""
+        try:
+            if value is None:
+                return default
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+
+    def _get_code_docstring_metrics(
+        self, function_data: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Return code-docstring metrics from analyze_functions (canonical source)."""
+        data = function_data
+        if not isinstance(data, dict):
+            data = self._load_tool_data("analyze_functions", "functions", log_source=False)
+        if not isinstance(data, dict):
+            return {"total": 0, "undocumented": 0, "documented": 0, "coverage": None}
+        details = data.get("details", {})
+        if not isinstance(details, dict):
+            details = {}
+        total = self._coerce_int(details.get("total_functions", data.get("total_functions", 0)))
+        undocumented = self._coerce_int(details.get("undocumented", data.get("undocumented", 0)))
+        if total < 0:
+            total = 0
+        if undocumented < 0:
+            undocumented = 0
+        if total and undocumented > total:
+            undocumented = total
+        documented = max(total - undocumented, 0)
+        coverage = ((documented / total) * 100) if total > 0 else None
+        return {
+            "total": total,
+            "undocumented": undocumented,
+            "documented": documented,
+            "coverage": coverage,
+        }
+
+    def _get_tier3_test_outcome(self) -> Dict[str, Any]:
+        """Load Tier 3 test outcome state from in-memory or cached results."""
+        in_memory = getattr(self, "tier3_test_outcome", None)
+        if isinstance(in_memory, dict) and in_memory.get("state"):
+            return in_memory
+        coverage_result = self._load_tool_data("analyze_test_coverage", "tests", log_source=False)
+        if not isinstance(coverage_result, dict):
+            return {}
+        details = coverage_result.get("details", {})
+        if isinstance(details, dict):
+            outcome = details.get("tier3_test_outcome", {})
+            if isinstance(outcome, dict):
+                if not isinstance(outcome.get("development_tools"), dict):
+                    dev_tools_result = self._load_tool_data(
+                        "generate_dev_tools_coverage", "tests", log_source=False
+                    )
+                    if isinstance(dev_tools_result, dict):
+                        dev_details = dev_tools_result.get("details", {})
+                        if isinstance(dev_details, dict):
+                            dev_outcome = dev_details.get("dev_tools_test_outcome", {})
+                            if isinstance(dev_outcome, dict):
+                                outcome = {**outcome, "development_tools": dev_outcome}
+                return outcome
+        return {}
+
+    def _effective_tier3_state_from_outcome(self, outcome: Dict[str, Any]) -> str:
+        """Return effective Tier 3 state including development-tools test outcome."""
+        state = outcome.get("state", "") if isinstance(outcome, dict) else ""
+        dev_tools = outcome.get("development_tools", {}) if isinstance(outcome, dict) else {}
+        dev_state = dev_tools.get("state", "") if isinstance(dev_tools, dict) else ""
+
+        if state == "coverage_failed":
+            return "coverage_failed"
+        if state in {"crashed", "infra_cleanup_error"}:
+            return state
+        if dev_state in {"crashed", "infra_cleanup_error"}:
+            return dev_state
+        if state == "test_failures" or dev_state == "failed":
+            return "test_failures"
+        if state:
+            return state
+        if dev_state == "passed":
+            return "clean"
+        return "unknown"
+
+    def _append_tier3_test_outcome_lines(
+        self, lines: List[str], actionable_only: bool = False
+    ) -> None:
+        """Append a consistent Tier 3 test outcome summary to report lines."""
+        outcome = self._get_tier3_test_outcome()
+        if not outcome:
+            return
+        state = self._effective_tier3_state_from_outcome(outcome)
+        actionable_states = {
+            "test_failures",
+            "coverage_failed",
+            "crashed",
+            "infra_cleanup_error",
+        }
+        if actionable_only and state not in actionable_states:
+            return
+        parallel = outcome.get("parallel", {}) if isinstance(outcome.get("parallel"), dict) else {}
+        no_parallel = outcome.get("no_parallel", {}) if isinstance(outcome.get("no_parallel"), dict) else {}
+        dev_tools = outcome.get("development_tools", {}) if isinstance(outcome.get("development_tools"), dict) else {}
+        failed_nodes = outcome.get("failed_node_ids", [])
+
+        lines.append("## Tier 3 Test Outcome")
+        lines.append(f"- **State**: {state}")
+        lines.append(
+            f"- **Parallel Track**: {parallel.get('state', 'unknown')} "
+            f"(passed={parallel.get('passed_count', 0)}, failed={parallel.get('failed_count', 0)}, "
+            f"errors={parallel.get('error_count', 0)}, skipped={parallel.get('skipped_count', 0)}, "
+            f"return={parallel.get('return_code')})"
+        )
+        lines.append(
+            f"- **No-Parallel Track**: {no_parallel.get('state', 'unknown')} "
+            f"(passed={no_parallel.get('passed_count', 0)}, failed={no_parallel.get('failed_count', 0)}, "
+            f"errors={no_parallel.get('error_count', 0)}, skipped={no_parallel.get('skipped_count', 0)}, "
+            f"return={no_parallel.get('return_code')})"
+        )
+        lines.append(
+            f"- **Development Tools Track**: {dev_tools.get('state', 'unknown')} "
+            f"(passed={dev_tools.get('passed_count', 0)}, failed={dev_tools.get('failed_count', 0)}, "
+            f"errors={dev_tools.get('error_count', 0)}, skipped={dev_tools.get('skipped_count', 0)}, "
+            f"return={dev_tools.get('return_code')})"
+        )
+        if isinstance(failed_nodes, list) and failed_nodes:
+            lines.append(
+                f"- **Failed/Error Node IDs**: {self._format_list_for_display(failed_nodes, limit=10)}"
+            )
+        lines.append("")
 
     def _generate_ai_status_document(self) -> str:
         """Generate AI-optimized status document."""
@@ -288,6 +442,7 @@ class ReportGenerationMixin:
             or "section_overlaps" in details
             or "consolidation_recommendations" in details
         )
+        overlap_data_source = details.get("overlap_data_source", "fresh")
         section_overlaps = (
             (
                 analyze_docs_data.get("section_overlaps")
@@ -452,51 +607,22 @@ class ReportGenerationMixin:
                 f"- **Total Functions**: {total_functions} (Moderate: {moderate}, High: {high}, Critical: {critical})"
             )
 
-        # Use registry data for accurate docstring coverage (includes handlers)
-        # Registry data is more accurate because it includes all functions, not just non-handlers
-        doc_coverage = metrics.get("doc_coverage", "Unknown")
-        functions_without_docstrings = None
+        # Canonical docstring metric source: analyze_functions (code docstrings).
+        code_doc_metrics = self._get_code_docstring_metrics()
+        code_doc_coverage = code_doc_metrics.get("coverage")
+        doc_coverage = (
+            f"{code_doc_coverage:.2f}%"
+            if isinstance(code_doc_coverage, (int, float))
+            else "Unknown"
+        )
+        functions_without_docstrings = code_doc_metrics.get("undocumented")
         missing_docs = None
         missing_files = []
 
-        # First, try to get coverage from registry (most accurate)
+        # Registry data is used for registry-gaps reporting only.
         registry_data = self._load_tool_data("analyze_function_registry", "functions")
-        if isinstance(registry_data, dict):
-            registry_details = registry_data.get("details", {})
-            # Check for coverage percentage directly
-            registry_coverage = registry_details.get("coverage")
-            if registry_coverage is not None:
-                doc_coverage = f"{registry_coverage:.2f}%"
-                # Calculate undocumented count from registry data
-                registry_analysis = registry_details.get("analysis", {})
-                undocumented_handlers = registry_analysis.get(
-                    "undocumented_handlers_total", 0
-                )
-                undocumented_other = registry_analysis.get(
-                    "undocumented_other_total", 0
-                )
-                functions_without_docstrings = (
-                    undocumented_handlers + undocumented_other
-                )
-
-        # Fallback to analyze_functions if registry data not available
-        if doc_coverage == "Unknown" or functions_without_docstrings is None:
-            function_data = self._load_tool_data("analyze_functions", "functions")
-            if isinstance(function_data, dict):
-                func_details = function_data.get("details", {})
-                func_total = func_details.get("total_functions") or function_data.get(
-                    "total_functions"
-                )
-                func_undocumented = func_details.get(
-                    "undocumented", 0
-                ) or function_data.get("undocumented", 0)
-                if func_total is not None and func_total > 0:
-                    func_documented = func_total - func_undocumented
-                    coverage_pct = (func_documented / func_total) * 100
-                    doc_coverage = f"{coverage_pct:.2f}%"
-                    functions_without_docstrings = (
-                        int(func_undocumented) if func_undocumented else 0
-                    )
+        if not isinstance(registry_data, dict):
+            registry_data = self._load_tool_data("analyze_function_registry", "functions")
 
         # Fallback to cached results
         if (
@@ -524,7 +650,9 @@ class ReportGenerationMixin:
                                 func_documented = func_total - func_undocumented
                                 coverage_pct = (func_documented / func_total) * 100
                                 doc_coverage = f"{coverage_pct:.2f}%"
-                                functions_without_docstrings = func_undocumented
+                                functions_without_docstrings = self._coerce_int(
+                                    func_undocumented, 0
+                                )
             except Exception as e:
                 logger.debug(f"Failed to load doc_coverage from cache in status: {e}")
                 pass
@@ -552,7 +680,7 @@ class ReportGenerationMixin:
                     func_documented = total_functions - func_undocumented
                     coverage_pct = (func_documented / total_functions) * 100
                     doc_coverage = f"{coverage_pct:.2f}%"
-                    functions_without_docstrings = int(func_undocumented)
+                    functions_without_docstrings = self._coerce_int(func_undocumented, 0)
 
         # Check registry for missing items (if not already loaded above)
         if not isinstance(registry_data, dict) or missing_docs is None:
@@ -1098,10 +1226,16 @@ class ReportGenerationMixin:
                     )
         else:
             if overlap_analysis_ran:
-                lines.append("- **Status**: No overlaps detected (analysis performed)")
-                lines.append(
-                    "  - Overlap analysis ran but found no section overlaps or consolidation opportunities"
-                )
+                if overlap_data_source == "cached":
+                    lines.append("- **Status**: No overlaps detected (cached overlap data)")
+                    lines.append(
+                        "  - Using cached overlap data (run `audit --full` or `--overlap` flag for latest validation)"
+                    )
+                else:
+                    lines.append("- **Status**: No overlaps detected (analysis performed)")
+                    lines.append(
+                        "  - Overlap analysis ran but found no section overlaps or consolidation opportunities"
+                    )
             else:
                 lines.append(
                     "- **Status**: Overlap analysis not run (use `audit --full` or `--overlap` flag)"
@@ -1718,6 +1852,7 @@ class ReportGenerationMixin:
                 )
 
         lines.append("")
+        self._append_tier3_test_outcome_lines(lines)
         lines.append("## Quick Commands")
         lines.append(
             "- `python development_tools/run_development_tools.py status` - Refresh this snapshot"
@@ -1871,8 +2006,17 @@ class ReportGenerationMixin:
             "analyze_duplicate_functions", "functions"
         )
 
-        section_overlaps = analyze_data.get("section_overlaps", {})
-        consolidation_recs = analyze_data.get("consolidation_recommendations", [])
+        analyze_details = analyze_data.get("details", {}) if isinstance(analyze_data, dict) else {}
+        section_overlaps = analyze_data.get("section_overlaps")
+        if section_overlaps is None and isinstance(analyze_details, dict):
+            section_overlaps = analyze_details.get("section_overlaps", {})
+        consolidation_recs = analyze_data.get("consolidation_recommendations")
+        if consolidation_recs is None and isinstance(analyze_details, dict):
+            consolidation_recs = analyze_details.get("consolidation_recommendations", [])
+        if section_overlaps is None:
+            section_overlaps = {}
+        if consolidation_recs is None:
+            consolidation_recs = []
 
         doc_metrics_details = doc_metrics.get("details", {})
         doc_coverage_value = metrics.get("doc_coverage")
@@ -3312,10 +3456,6 @@ class ReportGenerationMixin:
                     }
 
         quick_wins: List[str] = []
-        if ascii_issues is not None and ascii_issues > 0:
-            quick_wins.append(
-                f"Normalize {ascii_issues} file(s) with non-ASCII characters via doc-fix."
-            )
 
         # Add dependency documentation refresh to Quick Wins
         dependency_summary = getattr(self, "module_dependency_summary", None) or (
@@ -3416,51 +3556,124 @@ class ReportGenerationMixin:
                 f"Replace {len(analyze_placeholders)} placeholder section(s) flagged by docs scan."
             )
 
-        # Add documentation analysis quick wins
-        if ascii_data and isinstance(ascii_data, dict):
-            summary = ascii_data.get("summary", {})
-            ascii_total = summary.get("total_issues", 0)
-            ascii_file_count = summary.get("files_affected", 0)
-            if ascii_total > 0:
-                quick_wins.append(
-                    f"Fix {ascii_total} ASCII compliance issue(s) in {ascii_file_count} file(s) - run `python development_tools/run_development_tools.py doc-fix --fix-ascii`"
-                )
+        def add_doc_quick_win(
+            label: str, tool_data: Dict[str, Any], fix_command: str
+        ) -> None:
+            if not isinstance(tool_data, dict):
+                return
+            summary = tool_data.get("summary", {})
+            total_issues = to_int(summary.get("total_issues")) or 0
+            files_affected = to_int(summary.get("files_affected")) or 0
+            if total_issues <= 0:
+                return
+            file_counts = self._extract_file_issue_counts(tool_data)
+            top_files = sorted(
+                file_counts.items(), key=lambda item: item[1], reverse=True
+            )[:3]
+            top_files_text = (
+                ", ".join(f"{path} ({count})" for path, count in top_files)
+                if top_files
+                else "No file-level details available"
+            )
+            quick_wins.append(
+                f"{label}: {total_issues} issue(s) across {files_affected} file(s). "
+                f"Top offenders: {top_files_text}. "
+                f"Fix: `{fix_command}`. "
+                f"Verify: `python development_tools/run_development_tools.py doc-sync`."
+            )
 
-        if heading_data and isinstance(heading_data, dict):
-            summary = heading_data.get("summary", {})
-            heading_total = summary.get("total_issues", 0)
-            heading_file_count = summary.get("files_affected", 0)
-            if heading_total > 0:
-                quick_wins.append(
-                    f"Fix {heading_total} heading numbering issue(s) in {heading_file_count} file(s) - run `python development_tools/run_development_tools.py doc-fix --number-headings`"
-                )
-
-        if missing_addresses_data and isinstance(missing_addresses_data, dict):
-            summary = missing_addresses_data.get("summary", {})
-            missing_total = summary.get("total_issues", 0)
-            missing_file_count = summary.get("files_affected", 0)
-            if missing_total > 0:
-                quick_wins.append(
-                    f"Add file address metadata to {missing_file_count} file(s) missing addresses - run `python development_tools/run_development_tools.py doc-fix --add-addresses`"
-                )
-
-        if unconverted_links_data and isinstance(unconverted_links_data, dict):
-            summary = unconverted_links_data.get("summary", {})
-            links_total = summary.get("total_issues", 0)
-            links_file_count = summary.get("files_affected", 0)
-            if links_total > 0:
-                quick_wins.append(
-                    f"Convert {links_total} unconverted link(s) in {links_file_count} file(s) - run `python development_tools/run_development_tools.py doc-fix --convert-links`"
-                )
+        add_doc_quick_win(
+            "ASCII compliance",
+            ascii_data,
+            "python development_tools/run_development_tools.py doc-fix --fix-ascii",
+        )
+        # Fallback: if final audit summary recorded ASCII issues but the ASCII tool payload
+        # was not refreshed in this tier, still surface an actionable quick win.
+        if (to_int(ascii_issues) or 0) > 0 and not any(
+            isinstance(win, str) and win.startswith("ASCII compliance:")
+            for win in quick_wins
+        ):
+            quick_wins.append(
+                "ASCII compliance: non-ASCII characters detected in documentation. "
+                "Fix: `python development_tools/run_development_tools.py doc-fix --fix-ascii`. "
+                "Verify: `python development_tools/run_development_tools.py doc-sync`."
+            )
+        add_doc_quick_win(
+            "Heading numbering",
+            heading_data,
+            "python development_tools/run_development_tools.py doc-fix --number-headings",
+        )
+        add_doc_quick_win(
+            "Missing addresses",
+            missing_addresses_data,
+            "python development_tools/run_development_tools.py doc-fix --add-addresses",
+        )
+        add_doc_quick_win(
+            "Unconverted links",
+            unconverted_links_data,
+            "python development_tools/run_development_tools.py doc-fix --convert-links",
+        )
 
         lines.append("## Quick Wins")
         if quick_wins:
+            quick_wins = list(dict.fromkeys(quick_wins))
             for win in quick_wins:
                 lines.append(f"- {win}")
         else:
             lines.append(
                 "- No immediate quick wins identified. Re-run doc-sync after tackling focus items."
             )
+        tier3_outcome = self._get_tier3_test_outcome()
+        tier3_state = self._effective_tier3_state_from_outcome(tier3_outcome)
+        actionable_tier3_states = {
+            "test_failures",
+            "coverage_failed",
+            "crashed",
+            "infra_cleanup_error",
+        }
+        if tier3_state in actionable_tier3_states:
+            tier3_bullets: List[str] = []
+            parallel_outcome = tier3_outcome.get("parallel", {}) if isinstance(tier3_outcome.get("parallel"), dict) else {}
+            no_parallel_outcome = tier3_outcome.get("no_parallel", {}) if isinstance(tier3_outcome.get("no_parallel"), dict) else {}
+            dev_tools_outcome = tier3_outcome.get("development_tools", {}) if isinstance(tier3_outcome.get("development_tools"), dict) else {}
+            failed_nodes = tier3_outcome.get("failed_node_ids", [])
+            if tier3_state == "coverage_failed":
+                tier3_title = "Fix Tier 3 coverage run failures"
+                tier3_reason = "Tier 3 coverage orchestration reported a coverage failure outcome."
+                tier3_bullets.append(
+                    f"Parallel: {parallel_outcome.get('state', 'unknown')}, no-parallel: {no_parallel_outcome.get('state', 'unknown')}, dev-tools: {dev_tools_outcome.get('state', 'unknown')}."
+                )
+            elif tier3_state in {"crashed", "infra_cleanup_error"}:
+                tier3_title = "Investigate Tier 3 test infrastructure errors"
+                tier3_reason = f"Tier 3 test pipeline reported `{tier3_state}`."
+                tier3_bullets.append(
+                    f"Parallel return={parallel_outcome.get('return_code')}, no-parallel return={no_parallel_outcome.get('return_code')}, dev-tools return={dev_tools_outcome.get('return_code')}."
+                )
+            else:
+                tier3_title = "Fix Tier 3 failing/erroring tests"
+                tier3_reason = "Tier 3 test outcomes include failed and/or errored tracks."
+                tier3_bullets.append(
+                    f"Parallel failed={parallel_outcome.get('failed_count', 0)}, errors={parallel_outcome.get('error_count', 0)}."
+                )
+                tier3_bullets.append(
+                    f"No-parallel failed={no_parallel_outcome.get('failed_count', 0)}, errors={no_parallel_outcome.get('error_count', 0)}."
+                )
+                tier3_bullets.append(
+                    f"Development tools failed={dev_tools_outcome.get('failed_count', 0)}, errors={dev_tools_outcome.get('error_count', 0)}."
+                )
+            if isinstance(failed_nodes, list) and failed_nodes:
+                tier3_bullets.append(
+                    f"Failed/error node ids: {self._format_list_for_display(failed_nodes, limit=10)}"
+                )
+            add_priority(
+                tier=1,
+                title=tier3_title,
+                reason=tier3_reason,
+                bullets=tier3_bullets,
+            )
+
+        lines.append("")
+        self._append_tier3_test_outcome_lines(lines, actionable_only=True)
 
         # Add overlap analysis information only if there are issues to prioritize
         consolidation_count = len(consolidation_recs) if consolidation_recs else 0
@@ -3663,11 +3876,11 @@ class ReportGenerationMixin:
         audit_tier = getattr(self, "current_audit_tier", None)
         if audit_tier:
             logger.info(
-                f"[REPORT GENERATION] Generating consolidated_report.txt using data from Tier {audit_tier} audit"
+                f"[REPORT GENERATION] Generating consolidated_report.md using data from Tier {audit_tier} audit"
             )
         else:
             logger.info(
-                f"[REPORT GENERATION] Generating consolidated_report.txt using cached data (no active audit)"
+                f"[REPORT GENERATION] Generating consolidated_report.md using cached data (no active audit)"
             )
 
         # Check if this is a mid-audit write
@@ -3764,9 +3977,10 @@ class ReportGenerationMixin:
             "analyze_function_registry", "functions", log_source=True
         )
         doc_metrics_details = doc_metrics.get("details", {})
-        doc_coverage = doc_metrics_details.get(
+        registry_doc_coverage = doc_metrics_details.get(
             "coverage", metrics.get("doc_coverage")
         )
+        doc_coverage = registry_doc_coverage
 
         missing_docs_raw = doc_metrics_details.get("missing", {})
 
@@ -3813,6 +4027,9 @@ class ReportGenerationMixin:
             "analyze_functions", "functions", log_source=True
         )
         function_metrics_details = function_metrics.get("details", {})
+        code_doc_metrics = self._get_code_docstring_metrics(function_metrics)
+        if isinstance(code_doc_metrics.get("coverage"), (int, float)):
+            doc_coverage = f"{code_doc_metrics['coverage']:.2f}%"
 
         doc_artifacts = (
             analyze_docs_data.get("artifacts")
@@ -3828,6 +4045,7 @@ class ReportGenerationMixin:
             or "section_overlaps" in details
             or "consolidation_recommendations" in details
         )
+        overlap_data_source = details.get("overlap_data_source", "fresh")
 
         section_overlaps = (
             (
@@ -3888,12 +4106,7 @@ class ReportGenerationMixin:
         legacy_summary = getattr(self, "legacy_cleanup_summary", None) or legacy_data or {}
 
         # Get missing docstrings count for consolidated report
-        func_metrics_details_for_undoc = (
-            function_metrics.get("details", {})
-            if isinstance(function_metrics, dict)
-            else {}
-        )
-        func_undocumented = func_metrics_details_for_undoc.get("undocumented", 0)
+        func_undocumented = self._coerce_int(code_doc_metrics.get("undocumented"), 0)
 
         # Also get handler classes count for consolidated report
         function_patterns_data_for_report = self._load_tool_data(
@@ -3913,38 +4126,10 @@ class ReportGenerationMixin:
                     [h for h in handlers if not h.get("has_doc", True)]
                 )
 
-        # Recalculate doc_coverage if Unknown
+        # Recalculate doc_coverage if Unknown using canonical code metric source.
         if doc_coverage == "Unknown" or doc_coverage is None:
-            function_data_for_coverage = self._load_tool_data(
-                "analyze_functions", "functions"
-            )
-            if isinstance(function_data_for_coverage, dict):
-                func_details_for_coverage = function_data_for_coverage.get(
-                    "details", {}
-                )
-                func_total_for_coverage = func_details_for_coverage.get(
-                    "total_functions"
-                ) or function_data_for_coverage.get("total_functions")
-                func_undocumented_for_coverage = func_details_for_coverage.get(
-                    "undocumented", 0
-                ) or function_data_for_coverage.get("undocumented", 0)
-                if (
-                    func_total_for_coverage
-                    and isinstance(func_total_for_coverage, (int, float))
-                    and func_total_for_coverage > 0
-                ):
-                    func_documented_for_coverage = (
-                        func_total_for_coverage - func_undocumented_for_coverage
-                    )
-                    coverage_pct = (
-                        func_documented_for_coverage / func_total_for_coverage
-                    ) * 100
-                    if 0 <= coverage_pct <= 100:
-                        doc_coverage = f"{coverage_pct:.2f}%"
-                    else:
-                        doc_coverage = "Unknown"
-                else:
-                    doc_coverage = "Unknown"
+            if isinstance(code_doc_metrics.get("coverage"), (int, float)):
+                doc_coverage = f"{code_doc_metrics['coverage']:.2f}%"
             else:
                 doc_coverage = "Unknown"
 
@@ -4143,21 +4328,32 @@ class ReportGenerationMixin:
             and self.docs_sync_summary
             and isinstance(self.docs_sync_summary, dict)
         ):
+            docs_sync_summary = self.docs_sync_summary
+            docs_sync_summary_summary = (
+                docs_sync_summary.get("summary", {})
+                if isinstance(docs_sync_summary.get("summary"), dict)
+                else {}
+            )
+            docs_sync_summary_details = (
+                docs_sync_summary.get("details", {})
+                if isinstance(docs_sync_summary.get("details"), dict)
+                else {}
+            )
             doc_sync_summary_for_signals = {
-                "status": self.docs_sync_summary.get("status", "UNKNOWN"),
-                "path_drift_issues": self.docs_sync_summary.get("path_drift_issues", 0),
-                "paired_doc_issues": self.docs_sync_summary.get("paired_doc_issues", 0),
-                "ascii_issues": self.docs_sync_summary.get("ascii_issues", 0),
-                "heading_numbering_issues": self.docs_sync_summary.get(
+                "status": docs_sync_summary_summary.get("status", "UNKNOWN"),
+                "path_drift_issues": docs_sync_summary_details.get("path_drift_issues", 0),
+                "paired_doc_issues": docs_sync_summary_details.get("paired_doc_issues", 0),
+                "ascii_issues": docs_sync_summary_details.get("ascii_issues", 0),
+                "heading_numbering_issues": docs_sync_summary_details.get(
                     "heading_numbering_issues", 0
                 ),
-                "missing_address_issues": self.docs_sync_summary.get(
+                "missing_address_issues": docs_sync_summary_details.get(
                     "missing_address_issues", 0
                 ),
-                "unconverted_link_issues": self.docs_sync_summary.get(
+                "unconverted_link_issues": docs_sync_summary_details.get(
                     "unconverted_link_issues", 0
                 ),
-                "path_drift_files": self.docs_sync_summary.get("path_drift_files", []),
+                "path_drift_files": docs_sync_summary_details.get("path_drift_files", []),
             }
 
         if not doc_sync_summary_for_signals:
@@ -4249,7 +4445,9 @@ class ReportGenerationMixin:
             """Get issue count from summary, or calculate from tool data."""
             count = 0
             if effective_summary:
-                if "summary" in effective_summary and isinstance(
+                if summary_key in effective_summary:
+                    count = effective_summary.get(summary_key, 0) or 0
+                elif "summary" in effective_summary and isinstance(
                     effective_summary.get("summary"), dict
                 ):
                     count = effective_summary.get("details", {}).get(summary_key, 0)
@@ -4516,23 +4714,9 @@ class ReportGenerationMixin:
                 lines.append("  - 0 completed entries detected")
 
             # Function Docstring Coverage
-            # Use function_metrics already loaded at start of function (line 1232)
-            func_metrics_details_for_docstatus = (
-                function_metrics.get("details", {})
-                if isinstance(function_metrics, dict)
-                else {}
-            )
-            total_funcs_docstatus = (
-                func_metrics_details_for_docstatus.get("total_functions")
-                or function_metrics.get("total_functions")
-                if isinstance(function_metrics, dict)
-                else None
-            )
-            undocumented_funcs_docstatus = (
-                func_metrics_details_for_docstatus.get("undocumented", 0)
-                or function_metrics.get("undocumented", 0)
-                if isinstance(function_metrics, dict)
-                else 0
+            total_funcs_docstatus = self._coerce_int(code_doc_metrics.get("total"), 0)
+            undocumented_funcs_docstatus = self._coerce_int(
+                code_doc_metrics.get("undocumented"), 0
             )
 
             if total_funcs_docstatus and total_funcs_docstatus > 0:
@@ -4589,10 +4773,16 @@ class ReportGenerationMixin:
                         )
         else:
             if overlap_analysis_ran:
-                lines.append("- **Status**: No overlaps detected (analysis performed)")
-                lines.append(
-                    "  - Overlap analysis ran but found no section overlaps or consolidation opportunities"
-                )
+                if overlap_data_source == "cached":
+                    lines.append("- **Status**: No overlaps detected (cached overlap data)")
+                    lines.append(
+                        "  - Using cached overlap data (run `audit --full` or `--overlap` flag for latest validation)"
+                    )
+                else:
+                    lines.append("- **Status**: No overlaps detected (analysis performed)")
+                    lines.append(
+                        "  - Overlap analysis ran but found no section overlaps or consolidation opportunities"
+                    )
             else:
                 lines.append(
                     "- **Status**: Overlap analysis not run (use `audit --full` or `--overlap` flag)"
@@ -5902,6 +6092,7 @@ class ReportGenerationMixin:
             )
 
         lines.append("")
+        self._append_tier3_test_outcome_lines(lines)
 
         # Reference Files
         lines.append("## Reference Files")

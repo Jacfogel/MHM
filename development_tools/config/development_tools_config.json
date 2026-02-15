@@ -311,7 +311,7 @@
     "status_files": {
       "ai_status": "development_tools/AI_STATUS.md",
       "ai_priorities": "development_tools/AI_PRIORITIES.md",
-      "consolidated_report": "development_tools/consolidated_report.txt"
+      "consolidated_report": "development_tools/consolidated_report.md"
     }
   },
   "coverage": {
@@ -541,7 +541,7 @@
       "development_docs/UNUSED_IMPORTS_REPORT.md",
       "development_tools/AI_PRIORITIES.md",
       "development_tools/AI_STATUS.md",
-      "development_tools/consolidated_report.txt",
+      "development_tools/consolidated_report.md",
       "development_tools/reports/analysis_detailed_results.json",
       "ui/generated/*"
     ],

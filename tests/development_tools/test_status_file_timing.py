@@ -2,7 +2,7 @@
 Test to verify status files are only written at the end of audit, not mid-audit.
 
 This test monitors file modification times during audit execution to confirm
-that AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.txt are only
+that AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.md are only
 written once at the end, not during tool execution.
 """
 
@@ -41,7 +41,7 @@ def test_status_files_written_only_at_end_of_audit(temp_project_copy):
     # Create status file paths
     ai_status_file = project_root / "development_tools" / "AI_STATUS.md"
     ai_priorities_file = project_root / "development_tools" / "AI_PRIORITIES.md"
-    consolidated_file = project_root / "development_tools" / "consolidated_report.txt"
+    consolidated_file = project_root / "development_tools" / "consolidated_report.md"
     
     # Remove any existing status files
     for f in [ai_status_file, ai_priorities_file, consolidated_file]:
@@ -52,7 +52,7 @@ def test_status_files_written_only_at_end_of_audit(temp_project_copy):
     initial_mtimes = {
         'AI_STATUS.md': 0,
         'AI_PRIORITIES.md': 0,
-        'consolidated_report.txt': 0
+        'consolidated_report.md': 0
     }
     
     # Run a quick audit
@@ -71,13 +71,13 @@ def test_status_files_written_only_at_end_of_audit(temp_project_copy):
     # Verify files exist (they should be created even if audit had some failures)
     assert ai_status_file.exists(), f"AI_STATUS.md should exist after audit. Path: {ai_status_file}"
     assert ai_priorities_file.exists(), f"AI_PRIORITIES.md should exist after audit. Path: {ai_priorities_file}"
-    assert consolidated_file.exists(), f"consolidated_report.txt should exist after audit. Path: {consolidated_file}"
+    assert consolidated_file.exists(), f"consolidated_report.md should exist after audit. Path: {consolidated_file}"
     
     # Get final modification times
     final_mtimes = {
         'AI_STATUS.md': ai_status_file.stat().st_mtime,
         'AI_PRIORITIES.md': ai_priorities_file.stat().st_mtime,
-        'consolidated_report.txt': consolidated_file.stat().st_mtime
+        'consolidated_report.md': consolidated_file.stat().st_mtime
     }
     
     # Verify all files were written (mtime > 0)
@@ -110,7 +110,7 @@ def test_status_files_not_written_during_tool_execution(temp_project_copy):
     # Create status file paths
     ai_status_file = project_root / "development_tools" / "AI_STATUS.md"
     ai_priorities_file = project_root / "development_tools" / "AI_PRIORITIES.md"
-    consolidated_file = project_root / "development_tools" / "consolidated_report.txt"
+    consolidated_file = project_root / "development_tools" / "consolidated_report.md"
     
     # Remove any existing status files
     for f in [ai_status_file, ai_priorities_file, consolidated_file]:
@@ -126,4 +126,4 @@ def test_status_files_not_written_during_tool_execution(temp_project_copy):
     # Verify status files were NOT created by individual tools
     assert not ai_status_file.exists(), "AI_STATUS.md should not be created by individual tools"
     assert not ai_priorities_file.exists(), "AI_PRIORITIES.md should not be created by individual tools"
-    assert not consolidated_file.exists(), "consolidated_report.txt should not be created by individual tools"
+    assert not consolidated_file.exists(), "consolidated_report.md should not be created by individual tools"

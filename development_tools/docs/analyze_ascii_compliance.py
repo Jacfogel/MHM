@@ -255,7 +255,12 @@ class ASCIIComplianceAnalyzer:
                 "status": status,
             },
             "files": files,
-            "details": {"detailed_issues": dict(ascii_issues)},
+            "details": {
+                "files": files,
+                "file_count": len(files),
+                "total_issues": total_issues,
+                "detailed_issues": dict(ascii_issues),
+            },
         }
 
 

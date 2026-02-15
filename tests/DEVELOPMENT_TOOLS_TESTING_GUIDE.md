@@ -232,7 +232,7 @@ pytest --cov=development_tools tests/development_tools/
 Fixture status snapshots live in:
 - `tests/fixtures/development_tools_demo/AI_STATUS.md`
 - `tests/fixtures/development_tools_demo/AI_PRIORITIES.md`
-- `tests/fixtures/development_tools_demo/consolidated_report.txt`
+- `tests/fixtures/development_tools_demo/consolidated_report.md`
 
 These files should be regenerated when:
 - Status file format/headers change (metadata fields, section names, report structure)

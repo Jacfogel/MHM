@@ -214,6 +214,40 @@ class TestProjectCleanup:
         # Directories should still exist
         assert (temp_project_copy / "module1" / "__pycache__").exists(), \
             "Directory should still exist in dry run"
+
+    @pytest.mark.unit
+    def test_cleanup_cache_directories_include_tool_caches(self, temp_project_copy):
+        """Tool cache cleanup should remove both standardized cache forms and derived cache artifacts."""
+        cleanup = ProjectCleanup(project_root=temp_project_copy)
+
+        docs_jsons = temp_project_copy / "development_tools" / "docs" / "jsons"
+        tests_jsons = temp_project_copy / "development_tools" / "tests" / "jsons"
+        docs_jsons.mkdir(parents=True, exist_ok=True)
+        tests_jsons.mkdir(parents=True, exist_ok=True)
+
+        # Hidden standardized cache.
+        hidden_cache = docs_jsons / ".analyze_ascii_compliance_cache.json"
+        hidden_cache.write_text("{}")
+        # Non-hidden cache (coverage caches use this form).
+        regular_cache = tests_jsons / "test_file_coverage_cache.json"
+        regular_cache.write_text("{}")
+        # Derived cache artifact used by freshness checks.
+        derived_cache = tests_jsons / "coverage.json"
+        derived_cache.write_text("{}")
+        # Docs subcheck result used by mtime cache freshness.
+        docs_result = docs_jsons / "analyze_ascii_compliance_results.json"
+        docs_result.write_text("{}")
+
+        removed, failed = cleanup.cleanup_cache_directories(
+            dry_run=False, include_tool_caches=True
+        )
+
+        assert removed >= 4, "Should remove tool cache artifacts"
+        assert failed == 0, "Should not fail tool cache cleanup"
+        assert not hidden_cache.exists(), "Hidden cache should be removed"
+        assert not regular_cache.exists(), "Regular cache should be removed"
+        assert not derived_cache.exists(), "Derived cache should be removed"
+        assert not docs_result.exists(), "Docs result cache artifact should be removed"
     
     @pytest.mark.unit
     def test_cleanup_pytest_cache(self, temp_project_copy):
@@ -477,4 +511,3 @@ class TestProjectCleanupMain:
                 result = main()
             
             assert result == 1, "Should exit with error code when failures occur"
-

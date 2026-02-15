@@ -17,7 +17,7 @@ def test_fixture_status_files_have_valid_metadata() -> None:
     files = [
         fixture_root / "AI_STATUS.md",
         fixture_root / "AI_PRIORITIES.md",
-        fixture_root / "consolidated_report.txt",
+        fixture_root / "consolidated_report.md",
     ]
 
     for file_path in files:
