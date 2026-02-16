@@ -29,6 +29,15 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-16 - Static logging check migration + docs/plans refresh **COMPLETED**
+- Relocated static logging enforcement script usage to `development_tools/static_checks/check_channel_loggers.py` and updated all active references (`.github/workflows/logging-enforcement.yml`, `run_tests.py`, `tests/behavior/test_static_logging_check.py`, [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)).
+- Updated planning/ownership docs for script migration and backup confidence work: [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md); removed stale retired-script mention from [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md).
+- Explicitly captured that `scripts/` is intentionally untracked (temporary/one-off workspace), so script-related work this session was recorded through tracked docs/plans and reference updates rather than relying on script-file git diffs.
+- Applied doc drift fixes raised in-session ([TODO.md](TODO.md) path/update cleanup and [SCRIPTS_GUIDE.md](scripts/SCRIPTS_GUIDE.md) unconverted link conversion).
+- Refreshed generated audit/report outputs in current diff: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`, `development_tools/reports/analysis_detailed_results.json`, `development_tools/reports/tool_timings.json`, plus updated generated docs (`development_docs/TEST_COVERAGE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`).
+- Full tree diff was reviewed (`git diff --stat`, `git diff --name-only`) and this entry now reflects the entire current-session diff.
+- `doc-fix/doc-sync` automation was attempted but blocked by missing `python-dotenv` in this environment; targeted doc edits were applied manually.
+
 ### 2026-02-16 - Test runner diagnostics/output pass **COMPLETED**
 - `run_tests.py` was enhanced with bounded default post-failure reruns, per-failure artifacts, cleaner startup/phase output, and process-priority + LM Studio pause/resume controls.
 - Failure-output semantics were cleaned up (non-zero-only classification display, less recap noise for routine `exit code 1`, clearer split-run deselection semantics).

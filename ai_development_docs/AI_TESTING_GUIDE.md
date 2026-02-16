@@ -361,7 +361,6 @@ During parallel test execution, system memory usage can reach 95-98%, which is n
 **Tools:**
 - `scripts/testing/memory_profiler.py` - Profile memory usage per test
 - `scripts/testing/verify_process_cleanup.py` - Verify process cleanup works
-- `scripts/testing/read_backup_results.py` - Read backup test results
 
 **Recommendations:**
 - Monitor but don't panic - high memory is expected during parallel tests

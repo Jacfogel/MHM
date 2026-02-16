@@ -21,7 +21,7 @@ jobs:
           python-version: "3.11"
 
       - name: Enforce component logger rules
-        run: python scripts/static_checks/check_channel_loggers.py
+        run: python development_tools/static_checks/check_channel_loggers.py
 
   tests-smoke:
     name: Test Smoke

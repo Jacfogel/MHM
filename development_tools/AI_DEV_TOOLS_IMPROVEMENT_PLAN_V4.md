@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-02-15
+> **Last Updated**: 2026-02-16
 
 This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -323,6 +323,42 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Standardize flaky detector logs/outputs with development tools conventions (`development_tools/tests/logs` + JSON/markdown result schema)
 - [ ] Add tests for flaky detector run-time metrics, timeout behavior, and worker-log consolidation on interrupted runs
 - [ ] Update documentation references (`AI_DEVELOPMENT_TOOLS_GUIDE.md`, `DEVELOPMENT_TOOLS_GUIDE.md`, and test workflow docs)
+
+#### 3.13 Scripts-to-development-tools migration (persistent scripts)
+**Status**: PENDING  
+**Tasks**:
+- [ ] Build a definitive migration inventory from current tracked references to `scripts/` (exclude changelog-history-only references)
+- [x] Moved static logging checker to `development_tools/static_checks/check_channel_loggers.py` and updated references (`run_tests.py`, CI workflow, tests, and logging docs)
+- [x] Retired one-time schedule/user-index scripts: `scripts/utilities/add_checkin_schedules.py`, `scripts/utilities/check_checkin_schedules.py`, `scripts/utilities/fix_user_schedules.py`, `scripts/utilities/rebuild_index.py`
+- [x] Retired one-time cleanup scripts: `scripts/utilities/cleanup/cleanup_backups.py`, `scripts/utilities/cleanup/cleanup_data_test_users.py`, `scripts/utilities/cleanup/cleanup_real_test_users.py`
+- [x] Retired legacy/manual validation scripts: `scripts/testing/ai/script_test_new_modules.py`, `scripts/testing/script_test_utils_functions.py`
+- [x] Retired superseded docs-fix helpers: `scripts/number_documentation_headings.py`, `scripts/fix_non_ascii_chars.py`, `scripts/verify_ascii_fix.py`
+- [x] Retire `scripts/testing/consolidate_worker_logs.py` wrapper and remove residual references; keep consolidation via `tests.conftest` only
+- [ ] Move repeatable test diagnostic `scripts/testing/verify_process_cleanup.py` to `development_tools/tests/` only if we want to keep it as a maintained diagnostic utility; otherwise retire and remove doc references
+- [x] Retired `scripts/testing/read_backup_results.py` and removed active test-guide references
+- [ ] Add/adjust tests for migrated scripts where behavior is non-trivial (argument parsing, output paths, failure codes)
+- [ ] Remove stale `scripts/` references from active docs after migration completes
+- [ ] Track project-specific script ownership decisions in `TODO.md` (not in this development-tools portability plan)
+- [ ] Keep existing dedicated tasks as-is and avoid duplication:
+  - flaky detector migration remains in `3.12`
+  - memory profiler integration remains in `5.6`
+
+#### 3.14 Scripts review candidates (evaluate value before retire/migrate)
+**Status**: PENDING  
+**Tasks**:
+- [ ] Review `scripts/utilities/cleanup/cleanup_test_data.py` for reusable behavior; migrate only durable logic, otherwise retire
+- [ ] Review `scripts/utilities/cleanup/cleanup_user_message_files.py` for reusable behavior; migrate only durable logic, otherwise retire
+- [ ] Review `scripts/cleanup_project.py` for remaining unique behavior versus `development_tools/shared/fix_project_cleanup.py`; retire if fully redundant
+- [ ] Review AI/manual smoke scripts for durable checks versus tests/dev-tools analyzers: `scripts/testing/ai/script_test_ai_with_clear_cache.py`, `scripts/testing/ai/script_test_comprehensive_ai.py`, `scripts/testing/ai/script_test_data_integrity.py`, `scripts/testing/ai/script_test_lm_studio.py`, `scripts/testing/script_test_user_data_analysis.py`
+- [ ] Review worker-assignment/memory investigation scripts for consolidation into one maintained diagnostic toolset or retire after incident closure: `scripts/testing/parse_worker_from_terminal.py`, `scripts/testing/extract_worker_test_assignments.py`, `scripts/testing/extract_worker_tests_from_profiler_output.py`, `scripts/testing/cross_reference_worker_runs.py`, `scripts/testing/debug_memory_leak.py`, `scripts/testing/investigate_memory_leak.py`, `scripts/testing/analyze_memory_leak.py`, `scripts/testing/cleanup_old_test_dirs.py`
+- [ ] Review `scripts/testing/validate_config.py` to decide whether config-validation entrypoint should live in runtime/admin tooling or be retired
+- [ ] Review ad-hoc diagnostics/demo scripts and retire unless a repeatable owner/use-case is defined: `scripts/debug/*.py` and `scripts/demo_dynamic_checkin.py`
+
+#### 3.15 Gap tasks from retired scripts (development-tools scope)
+**Status**: PENDING  
+**Tasks**:
+- [ ] Evaluate whether to incorporate `scripts/cleanup_unused_imports.py` report-text categorization heuristics (missing logging/error-handling/type-hints) into `development_tools/imports/analyze_unused_imports.py` and/or `development_tools/imports/generate_unused_imports_report.py`
+- [ ] Evaluate whether to add a dedicated per-function AST helper/fixer for try-except to decorator migration (inspired by `scripts/replace_try_except_with_decorator.py`) to complement `development_tools/error_handling/analyze_error_handling.py` recommendations
 
 ---
 

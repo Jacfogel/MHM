@@ -318,7 +318,7 @@ See `core/logger.py` (setup_logging), `ai/prompt_manager.py` (_load_custom_promp
 
 Logging style rules are enforced in CI via:
 
-- `scripts/static_checks/check_channel_loggers.py`
+- `development_tools/static_checks/check_channel_loggers.py`
 - `.github/workflows/logging-enforcement.yml`
 
 The workflow runs the static check in a dedicated gate job before test steps. If the check finds forbidden patterns (for example direct `logging.getLogger(...)` usage in application code), the job fails and downstream test jobs do not run.

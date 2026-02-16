@@ -11,7 +11,12 @@ def test_repo_static_logging_check_passes():
     """Ensure the repository logging static check passes in CI/test runs."""
     # Run the static check script; it should exit 0
     repo_root = Path(__file__).resolve().parents[2]
-    script = repo_root / 'scripts' / 'static_checks' / 'check_channel_loggers.py'
+    script = (
+        repo_root
+        / 'development_tools'
+        / 'static_checks'
+        / 'check_channel_loggers.py'
+    )
     assert script.exists(), "static check script missing"
 
     result = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)

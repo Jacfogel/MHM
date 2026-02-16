@@ -336,9 +336,7 @@ def interrupt_handler(signum, frame):
             print(
                 f"{YELLOW}[CLEANUP]{RESET} Could not consolidate worker logs automatically: {e}"
             )
-            print(
-                f"{YELLOW}[CLEANUP]{RESET} Run manually: python development_tools/consolidate_worker_logs.py"
-            )
+            print(f"{YELLOW}[CLEANUP]{RESET} Worker logs may remain unconsolidated")
 
 
 @handle_errors("monitoring system resources", user_friendly=False, default_return={})
@@ -1856,9 +1854,7 @@ def run_command(
                 print(
                     f"{YELLOW}[CLEANUP]{RESET} Could not consolidate worker logs: {e}"
                 )
-                print(
-                    f"{YELLOW}[CLEANUP]{RESET} Run manually: python scripts/testing/consolidate_worker_logs.py"
-                )
+                print(f"{YELLOW}[CLEANUP]{RESET} Worker logs may remain unconsolidated")
 
         # Clear global process reference
         _current_process = None
@@ -2568,7 +2564,10 @@ def print_test_mode_info():
 def run_static_logging_check() -> bool:
     """Run the static logging enforcement script before executing tests."""
     script_path = (
-        Path(__file__).parent / "scripts" / "static_checks" / "check_channel_loggers.py"
+        Path(__file__).parent
+        / "development_tools"
+        / "static_checks"
+        / "check_channel_loggers.py"
     )
     if not script_path.exists():
         print(f"[STATIC CHECK] Missing script: {script_path}")

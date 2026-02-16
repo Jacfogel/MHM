@@ -119,6 +119,15 @@ When adding new tasks, follow this format:
 **Confirm wake timer fix in production**
 - [ ] After a 01:00 run, confirm errors.log no longer fills with wake timer (Register-ScheduledTask) errors.
 
+**Script Ownership and Retirement Decisions (project-specific, not development-tools portability)**
+- *What it means*: Resolve ownership for persistent project scripts currently under untracked `scripts/`, retire obsolete ones, and migrate any still-needed functionality into tracked runtime locations.
+- *Why it helps*: Prevents drift between docs and reality, reduces maintenance risk, and keeps `development_tools/` project-agnostic.
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Decide destination for `scripts/utilities/user_data_cli.py` (migrate to tracked runtime ownership such as `core/`/`user/`/app-tools, or retire if superseded).
+  - [ ] Decide destination for project-maintenance scripts `scripts/create_project_snapshot.py` and `scripts/cleanup_windows_tasks.py` (tracked runtime ownership, not `development_tools/`).
+  - [ ] Evaluate renaming/refactoring `scripts/create_project_snapshot.py` to match behavior (full restorable backup semantics) and define whether a separate generalized development-tools variant is needed.
+
 **Investigate sent_messages.json size and archiving**
 - *What it means*: Review `data/users/{user_id}/messages/sent_messages.json` growth (e.g. ~512KB observed). Confirm whether archiving or trimming of sent message history is needed and implement or document policy.
 - *Why it helps*: Prevents unbounded growth, keeps file_ops audit trail manageable, and may improve I/O and backup size.

@@ -853,26 +853,7 @@ This script verifies:
 
 If orphaned processes are found, the script displays their PIDs and command lines for investigation.
 
-### 9.5. Reading Backup Test Results
-
-When tests are interrupted or fail, partial results are saved. To read backup test results:
-
-```powershell
-# List all backup files
-python scripts/testing/read_backup_results.py
-
-# Read specific backup file
-python scripts/testing/read_backup_results.py backups/junit_results_20260101_044613.xml
-
-# Read latest backup
-python scripts/testing/read_backup_results.py --latest
-```
-
-Backup files are stored in `tests/logs/backups/`:
-- **JUnit XML files:** `junit_results_YYYYMMDD_HHMMSS.xml` - Complete test results
-- **Partial results:** `partial_results_{phase}_{mode}_{timestamp}.json` - Interrupted test run data
-
-### 9.6. Recommendations
+### 9.5. Recommendations
 
 When memory usage gets high (>95%):
 

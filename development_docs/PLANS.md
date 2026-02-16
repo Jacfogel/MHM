@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-15
+> **Last Updated**: 2026-02-16
 
 ---
 
@@ -36,6 +36,29 @@
   - Coverage uplift work in section 1.1 (raise development tools coverage toward 60%+).
   - Logging normalization and verbosity cleanup in section 2.2.
 - No additional multi-step non-dev-tools plans were added in this wrap-up.
+
+### **Backup Reliability and Restore Confidence Plan** **PLANNING**
+
+**Status**: **PLANNING**  
+**Priority**: High  
+**Effort**: Medium  
+**Date**: 2026-02-16  
+**Last Updated**: 2026-02-16
+
+**Objective**: Verify that existing backup mechanisms are reliably producing restorable artifacts and define improvements where gaps are found.
+
+**Scope**:
+- [ ] Inventory all active backup producers (scheduled and manual), including what each one backs up, where outputs are written, and retention behavior.
+- [ ] Confirm whether weekly/user-data backups are consistently created by `core/scheduler.py` + `core/backup_manager.py` in real runs.
+- [ ] Run a controlled restore drill from recent backup artifacts into an isolated location and verify critical data integrity.
+- [ ] Validate backup logging/health visibility (what failures surface where, and whether alerts are actionable).
+- [ ] Evaluate whether useful parts of `scripts/utilities/user_data_cli.py` should be migrated into tracked runtime/admin tooling.
+- [ ] Define canonical backup/restore runbooks and update backup guides after verification.
+
+**Success Criteria**:
+- [ ] At least one recent backup set is proven restorable end-to-end in an isolated test restore.
+- [ ] Backup ownership map is documented (which module/script is authoritative for each backup type).
+- [ ] Known gaps are converted into prioritized implementation tasks with clear owners.
 
 ### **Test Suite Performance Optimization Plan** **ON HOLD**
 

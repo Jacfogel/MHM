@@ -33,6 +33,32 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-16 - Static logging check migration, script governance planning, and audit artifact refresh
+- **Feature/Fix (static logging check relocation)**: Migrated static logging-enforcement execution path from `scripts/static_checks/check_channel_loggers.py` to `development_tools/static_checks/check_channel_loggers.py` and updated all active callsites/references:
+  - CI workflow: `.github/workflows/logging-enforcement.yml`
+  - test runner precheck + cleanup messaging: `run_tests.py`
+  - behavior validation test: `tests/behavior/test_static_logging_check.py`
+  - logging docs reference: [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)
+- **Docs/Planning (scripts ownership + retirement follow-up)**:
+  - Explicitly tracked `scripts/` as intentionally untracked workspace scope (temporary/one-off usage) and captured migration/retirement decisions in tracked docs so script-related work is recorded even when script-file edits are not represented in git.
+  - Added project-owned script migration/retirement tasks to [TODO.md](TODO.md) (including project-specific ownership for `scripts/utilities/user_data_cli.py`, `scripts/create_project_snapshot.py`, and `scripts/cleanup_windows_tasks.py`).
+  - Added a new multi-step backup reliability/restore-confidence plan to [PLANS.md](development_docs/PLANS.md).
+  - Expanded [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) with explicit scripts-to-dev-tools migration tracking, script review candidates, and gap-analysis tasks from retired helpers.
+  - Removed stale test-guide reference to retired `scripts/testing/read_backup_results.py` from [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md).
+- **Fix (doc-sync drift items from this session)**:
+  - Corrected stale script path reference in [TODO.md](TODO.md): `create_project_snapshot.py` -> `scripts/create_project_snapshot.py`.
+  - Removed completed retirement checklist items from [TODO.md](TODO.md) so it remains outstanding-only.
+  - Updated [SCRIPTS_GUIDE.md](scripts/SCRIPTS_GUIDE.md) unconverted link to `[TESTING_GUIDE.md](tests/TESTING_GUIDE.md)`.
+- **Generated artifact refresh (audit/report outputs in current diff)**:
+  - Refreshed generated status/priority/report outputs: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`.
+  - Refreshed generated analysis artifacts: `development_tools/reports/analysis_detailed_results.json`, `development_tools/reports/tool_timings.json`.
+  - Refreshed generated supporting docs: `development_docs/TEST_COVERAGE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`.
+  - These refreshed outputs reflected current-session findings including doc-sync issues (path drift + unconverted link + TODO completed entries), updated coverage metrics, and current Tier 3 test outcome state.
+- **Validation/Review**:
+  - Reviewed full working tree with `git diff --stat` and `git diff --name-only` and incorporated all listed file changes into this session entry.
+  - Attempted doc automation (`python development_tools/run_development_tools.py doc-fix --convert-links`, `python development_tools/run_development_tools.py doc-sync`), but environment dependency `python-dotenv` was missing (`ModuleNotFoundError: No module named 'dotenv'`), so doc fixes were applied manually.
+- **Impact**: Session documentation now accurately captures the complete diff footprint (runtime/CI, planning, and generated audit artifacts), with explicit tracking for remaining script-migration and backup-reliability follow-up work.
+
 ### 2026-02-16 - Test runner failure diagnostics, output cleanup, and follow-up tracking
 - **Feature (test runner reliability/diagnostics)**: Extended `run_tests.py` with default post-failure reruns (bounded by failure-count threshold), per-failure artifacts, rerun classification tags, and consolidated end-of-run failure reporting. Added process-priority profiles (`default|low|high`) and LM Studio pause/resume integration for non-AI runs, plus startup/output readability cleanup (phase labels, durations, summary formatting, and bottom-of-console critical signal emphasis).
 - **Fix (test runner output semantics)**: Cleaned duplicate/ambiguous failure output patterns and aligned summary semantics:
