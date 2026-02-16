@@ -149,6 +149,24 @@ Preferred commands (via `run_tests.py`):
   python run_tests.py --coverage
   ```
 
+- Disable post-failure detailed reruns/classification (enabled by default; auto-skips when failures >10):
+
+  ```bash
+  python run_tests.py --no-post-failure-rerun
+  ```
+
+- Run with lower process priority profile:
+
+  ```bash
+  python run_tests.py --process-priority low
+  ```
+
+- Disable LM Studio pause (pause is enabled by default for run_tests.py modes):
+
+  ```bash
+  python run_tests.py --no-pause-lm-studio
+  ```
+
 When focusing on a small subset:
 
 - Use pytest directly:

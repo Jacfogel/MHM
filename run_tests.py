@@ -18,8 +18,9 @@ import logging
 import signal
 import json
 import shutil
+import shlex
 from pathlib import Path
-from typing import Dict, Optional, List
+from typing import Any, Dict, Optional, List
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_filename, now_timestamp_full
 
@@ -71,6 +72,33 @@ _current_test_context = None
 # Console output retention policy (AI_BACKUP_GUIDE.md / BACKUP_GUIDE.md)
 CONSOLE_OUTPUT_KEEP_LAST = 7
 CONSOLE_OUTPUT_ARCHIVE_RETENTION_DAYS = 30
+ARCHIVE_KEEP_LAST = 7
+ARTIFACT_BACKUP_KEEP_LAST = 7
+ARTIFACT_ARCHIVE_RETENTION_DAYS = 30
+
+RERUN_CLASSIFICATIONS = ("stable", "flaky", "possible_isolation", "possible_race")
+RACE_HINT_PATTERNS = (
+    r"\brace condition\b",
+    r"\bdata race\b",
+    r"\bdeadlock\b",
+    r"\btimed out waiting\b",
+    r"\bwait(ing)? .* timed out\b",
+    r"\bdeadlock detected\b",
+    r"event loop is closed",
+)
+
+
+@handle_errors(
+    "formatting failure classification counts", user_friendly=False, default_return="none"
+)
+def format_classification_counts(counts: dict[str, Any]) -> str:
+    """Format non-zero classification counts as a compact comma-separated line."""
+    parts = [
+        f"{tag}={int(counts.get(tag, 0))}"
+        for tag in RERUN_CLASSIFICATIONS
+        if int(counts.get(tag, 0)) > 0
+    ]
+    return ", ".join(parts) if parts else "none"
 
 
 @handle_errors(
@@ -477,6 +505,554 @@ def _rotate_console_output_files(backups_dir: Path, archive_dir: Path) -> None:
         except Exception:
             pass
 
+    # Cap archive copies to avoid unbounded growth.
+    archived_files = sorted(
+        [p for p in archive_dir.glob(pattern) if p.is_file()],
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    for stale in archived_files[ARCHIVE_KEEP_LAST:]:
+        try:
+            stale.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+
+@handle_errors(
+    "applying artifact retention protocol", user_friendly=False, default_return=None
+)
+def apply_artifact_retention(
+    source_dir: Path,
+    backups_dir: Path,
+    archive_dir: Path,
+    pattern: str,
+    keep_current: int = 1,
+    keep_backups: int = ARTIFACT_BACKUP_KEEP_LAST,
+    keep_archive: int = ARCHIVE_KEEP_LAST,
+    archive_retention_days: int = ARTIFACT_ARCHIVE_RETENTION_DAYS,
+) -> None:
+    """Apply current/7/archive(7,30d) retention for files and directories."""
+    source_dir.mkdir(parents=True, exist_ok=True)
+    backups_dir.mkdir(parents=True, exist_ok=True)
+    archive_dir.mkdir(parents=True, exist_ok=True)
+
+    candidates: list[Path] = []
+    for root_dir in (source_dir, backups_dir, archive_dir):
+        candidates.extend([p for p in root_dir.glob(pattern) if p.exists()])
+    candidates = sorted(candidates, key=lambda p: p.stat().st_mtime, reverse=True)
+
+    current_slice = candidates[: max(0, keep_current)]
+    backup_slice = candidates[max(0, keep_current) : max(0, keep_current + keep_backups)]
+    archive_slice = candidates[max(0, keep_current + keep_backups) :]
+
+    for item in current_slice:
+        if item.parent == source_dir:
+            continue
+        target = source_dir / item.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists():
+            continue
+        shutil.move(str(item), str(target))
+
+    for item in backup_slice:
+        if item.parent == backups_dir:
+            continue
+        target = backups_dir / item.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists():
+            continue
+        shutil.move(str(item), str(target))
+
+    for item in archive_slice:
+        if item.parent == archive_dir:
+            continue
+        target = archive_dir / item.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists():
+            continue
+        shutil.move(str(item), str(target))
+
+    archived_items = sorted(
+        [p for p in archive_dir.glob(pattern) if p.exists()],
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    cutoff_ts = time.time() - (archive_retention_days * 24 * 60 * 60)
+    for archived in archived_items:
+        try:
+            if archived.stat().st_mtime < cutoff_ts:
+                if archived.is_dir():
+                    shutil.rmtree(archived, ignore_errors=True)
+                else:
+                    archived.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+    archived_items = sorted(
+        [p for p in archive_dir.glob(pattern) if p.exists()],
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    for stale in archived_items[keep_archive:]:
+        try:
+            if stale.is_dir():
+                shutil.rmtree(stale, ignore_errors=True)
+            else:
+                stale.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+
+@handle_errors(
+    "normalizing pytest failure nodeids", user_friendly=False, default_return=[]
+)
+def extract_failed_nodeids(
+    output_text: str, failure_details: Optional[list[dict[str, str]]] = None
+) -> list[str]:
+    """Extract pytest nodeids from output and failure details."""
+    output_plain = ANSI_ESCAPE_RE.sub("", output_text or "")
+    nodeids: list[str] = []
+    seen_keys: set[str] = set()
+
+    def canonicalize_nodeid(nodeid: str) -> str:
+        normalized = nodeid.strip().replace("\\", "/")
+        # Normalize JUnit-ish nodeid forms:
+        # tests.unit.test_mod.TestClass::test_x -> tests/unit/test_mod.py::TestClass::test_x
+        if normalized.startswith("tests.") and "::" in normalized and "/" not in normalized:
+            left, right = normalized.split("::", 1)
+            parts = left.split(".")
+            class_name = ""
+            if parts and parts[-1] and parts[-1][0].isupper():
+                class_name = parts[-1]
+                parts = parts[:-1]
+            if parts:
+                module_path = "/".join(parts) + ".py"
+                normalized = (
+                    f"{module_path}::{class_name}::{right}" if class_name else f"{module_path}::{right}"
+                )
+        normalized = normalized.replace(":::", "::")
+        return normalized
+
+    def add_nodeid(candidate: str) -> None:
+        normalized = canonicalize_nodeid(candidate)
+        key = normalized.lower()
+        if normalized and key not in seen_keys:
+            seen_keys.add(key)
+            nodeids.append(normalized)
+
+    patterns = [
+        r"^FAILED\s+([^\s]+::[^\s]+)",
+        r"\[\w+\]\s+FAILED\s+([^\s]+::[^\s]+)",
+        r"short test summary info[\s\S]*?^FAILED\s+([^\s]+::[^\s]+)",
+    ]
+    for pattern in patterns:
+        for match in re.findall(pattern, output_plain, re.MULTILINE):
+            add_nodeid(str(match))
+
+    # Fallback from JUnit-style class/name (tests.module::test_name -> tests/module.py::test_name)
+    for detail in failure_details or []:
+        raw_name = str(detail.get("test", "")).strip()
+        if not raw_name or "::" not in raw_name:
+            continue
+        add_nodeid(raw_name)
+
+    return nodeids
+
+
+@handle_errors(
+    "sanitizing nodeid for artifact path", user_friendly=False, default_return="unknown"
+)
+def sanitize_nodeid_for_file(nodeid: str) -> str:
+    """Return filesystem-safe token for a pytest nodeid."""
+    cleaned = re.sub(r"[^A-Za-z0-9._-]+", "_", nodeid).strip("._")
+    return cleaned[:120] if cleaned else "unknown"
+
+
+@handle_errors(
+    "detecting race-condition hints", user_friendly=False, default_return=False
+)
+def has_race_hints(text: str) -> bool:
+    """Heuristic detector for race-condition-like failure text."""
+    lowered = (text or "").lower()
+    return any(re.search(pattern, lowered) for pattern in RACE_HINT_PATTERNS)
+
+
+@handle_errors(
+    "classifying failure rerun outcome",
+    user_friendly=False,
+    default_return="stable",
+)
+def classify_failure_outcome(
+    phase: str,
+    rerun_passes: int,
+    rerun_failures: int,
+    combined_failure_text: str,
+) -> str:
+    """Return classification tag based on rerun outcome and message hints."""
+    if rerun_passes > 0 and rerun_failures > 0:
+        return "possible_race" if has_race_hints(combined_failure_text) else "flaky"
+    if rerun_passes > 0:
+        return "possible_isolation" if phase == "parallel" else "flaky"
+    return "stable"
+
+
+@handle_errors("formatting live pytest output", user_friendly=False, default_return="")
+def format_live_output_line(line: str) -> str:
+    """Insert readability breaks where logger output is glued to progress output."""
+    if not line:
+        return line
+    return re.sub(
+        r"(\[100%\])(?=\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2},\d{3}\s+-\s+mhm_tests\s+-\s+ERROR\s+-)",
+        r"\1\n",
+        line,
+    )
+
+
+@handle_errors(
+    "filtering noisy live pytest lines", user_friendly=False, default_return=False
+)
+def should_suppress_live_line(line: str, state: dict[str, bool]) -> bool:
+    """Suppress redundant pytest session header lines and duplicate logger failure dumps."""
+    plain = ANSI_ESCAPE_RE.sub("", line or "")
+    stripped = plain.strip()
+
+    if state.get("in_pytest_failure_block", False):
+        if stripped.startswith("=========================== short test summary info"):
+            state["in_pytest_failure_block"] = False
+            return False
+        return True
+    if stripped.startswith("================================== FAILURES"):
+        state["in_pytest_failure_block"] = True
+        return True
+
+    if state.get("in_logger_failure_block", False):
+        if (
+            stripped.startswith("---- generated xml file:")
+            or stripped.startswith("=========================== short test summary info")
+        ):
+            state["in_logger_failure_block"] = False
+            return False
+        return True
+
+    if " - mhm_tests - ERROR - [TEST-RESULT]" in plain:
+        state["in_logger_failure_block"] = True
+        return True
+    if " - mhm_tests - ERROR - Error details:" in plain:
+        state["in_logger_failure_block"] = True
+        return True
+
+    redundant_prefixes = (
+        "platform ",
+        "Using --randomly-seed",
+        "rootdir:",
+        "configfile:",
+        "plugins:",
+        "asyncio:",
+        "created:",
+    )
+    return stripped.startswith(redundant_prefixes)
+
+
+@handle_errors("configuring process priority", user_friendly=False, default_return=False)
+def set_process_priority_for_pid(pid: int, priority: str) -> bool:
+    """Best-effort process priority setter using psutil."""
+    if not PSUTIL_AVAILABLE or psutil is None:
+        return False
+
+    priority_name = (priority or "default").lower()
+    profile_to_level = {
+        "default": "normal",
+        "low": "below_normal",
+        "high": "above_normal",
+    }
+    priority_name = profile_to_level.get(priority_name, priority_name)
+    try:
+        proc = psutil.Process(pid)
+        if sys.platform == "win32":
+            win_map = {
+                "idle": psutil.IDLE_PRIORITY_CLASS,
+                "below_normal": psutil.BELOW_NORMAL_PRIORITY_CLASS,
+                "normal": psutil.NORMAL_PRIORITY_CLASS,
+                "above_normal": psutil.ABOVE_NORMAL_PRIORITY_CLASS,
+                "high": psutil.HIGH_PRIORITY_CLASS,
+            }
+            proc.nice(win_map.get(priority_name, psutil.NORMAL_PRIORITY_CLASS))
+        else:
+            unix_map = {
+                "idle": 19,
+                "below_normal": 10,
+                "normal": 0,
+                "above_normal": -5,
+                "high": -10,
+            }
+            proc.nice(unix_map.get(priority_name, 0))
+        return True
+    except Exception:
+        return False
+
+
+@handle_errors(
+    "suspending LM Studio processes", user_friendly=False, default_return=[]
+)
+def suspend_lm_studio_processes() -> list[int]:
+    """Suspend LM Studio processes and return suspended PIDs."""
+    if not PSUTIL_AVAILABLE or psutil is None:
+        return []
+
+    paused: list[int] = []
+    for proc in psutil.process_iter(attrs=["pid", "name"]):
+        try:
+            name = str(proc.info.get("name", "")).lower()
+            if name in {"lm studio.exe", "lm studio"}:
+                proc.suspend()
+                paused.append(int(proc.info["pid"]))
+        except Exception:
+            continue
+    return paused
+
+
+@handle_errors(
+    "resuming LM Studio processes", user_friendly=False, default_return=False
+)
+def resume_lm_studio_processes(pids: list[int]) -> bool:
+    """Resume previously suspended LM Studio processes."""
+    if not pids or not PSUTIL_AVAILABLE or psutil is None:
+        return False
+
+    resumed_any = False
+    for pid in pids:
+        try:
+            psutil.Process(pid).resume()
+            resumed_any = True
+        except Exception:
+            continue
+    return resumed_any
+
+
+@handle_errors("evaluating LM Studio test requirement", user_friendly=False, default_return=False)
+def tests_require_lm_studio(selected_test_paths: list[str], full_mode: bool) -> bool:
+    """Return True when caller explicitly indicates LM Studio must remain active."""
+    return os.environ.get("MHM_TESTS_REQUIRE_LM_STUDIO", "0") == "1"
+
+
+@handle_errors("removing xdist flags for failure rerun", user_friendly=False, default_return=[])
+def remove_parallel_flags(cmd: list[str]) -> list[str]:
+    """Return command copy without xdist worker flags."""
+    sanitized: list[str] = []
+    skip_next = False
+    for token in cmd:
+        if skip_next:
+            skip_next = False
+            continue
+        if token == "-n":
+            skip_next = True
+            continue
+        if token.startswith("-n="):
+            continue
+        sanitized.append(token)
+    return sanitized
+
+
+@handle_errors(
+    "building failure rerun base command", user_friendly=False, default_return=[]
+)
+def build_failure_rerun_base_cmd(
+    base_cmd: list[str], run_id: str, phase: str
+) -> list[str]:
+    """Build minimal pytest command for failed-node reruns only."""
+    rerun_cmd: list[str] = [sys.executable, "-m", "pytest"]
+
+    rerun_basetemp = (
+        Path("tests/data/tmp/pytest_runner") / run_id / f"{phase}_failure_rerun"
+    )
+    rerun_cache = Path("tests/data/tmp/pytest_cache")
+    rerun_basetemp.mkdir(parents=True, exist_ok=True)
+    rerun_cache.mkdir(parents=True, exist_ok=True)
+    rerun_cmd.extend(
+        [
+            "--basetemp",
+            str(rerun_basetemp),
+            "-o",
+            f"cache_dir={rerun_cache}",
+            "--ignore=tests/data",
+            "--ignore=tests/data/tmp",
+            "--ignore-glob=tests/data/tmp/**",
+        ]
+    )
+
+    seed_option = next(
+        (token for token in base_cmd if str(token).startswith("--randomly-seed")),
+        None,
+    )
+    if seed_option:
+        rerun_cmd.append(str(seed_option))
+
+    return rerun_cmd
+
+
+@handle_errors(
+    "running post-failure detailed reruns",
+    user_friendly=False,
+    default_return={"entries": [], "counts": {}, "artifact_dir": None, "run_id": ""},
+)
+def run_post_failure_reruns(
+    base_cmd: list[str],
+    output_text: str,
+    failure_details: list[dict[str, str]],
+    test_context: Optional[dict],
+    run_id: str,
+    max_failures: int,
+    rerun_attempts: int,
+) -> dict[str, Any]:
+    """Rerun failing nodeids with detailed flags and classify outcomes."""
+    phase = str((test_context or {}).get("phase", "unknown"))
+    artifact_dir = Path("tests/logs/failure_reruns") / run_id
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+
+    failed_nodeids = extract_failed_nodeids(output_text, failure_details)
+    if not failed_nodeids:
+        return {
+            "entries": [],
+            "counts": {tag: 0 for tag in RERUN_CLASSIFICATIONS},
+            "artifact_dir": str(artifact_dir),
+            "run_id": run_id,
+            "phase": phase,
+        }
+
+    if len(failed_nodeids) > max(1, max_failures):
+        print(
+            f"{YELLOW}[RERUN]{RESET} Skipped detailed reruns: failures ({len(failed_nodeids)}) exceed limit ({max_failures})."
+        )
+        payload = {
+            "timestamp": now_timestamp_full(),
+            "run_id": run_id,
+            "phase": phase,
+            "max_failures": max_failures,
+            "rerun_attempts": max(1, rerun_attempts),
+            "artifact_dir": str(artifact_dir.as_posix()),
+            "counts": {tag: 0 for tag in RERUN_CLASSIFICATIONS},
+            "entries": [],
+            "skipped_reason": f"failure_count_exceeded_limit:{len(failed_nodeids)}>{max_failures}",
+        }
+        return payload
+
+    selected_nodeids = failed_nodeids[: max(1, max_failures)]
+    rerun_base_cmd = build_failure_rerun_base_cmd(
+        base_cmd=base_cmd,
+        run_id=run_id or now_timestamp_filename(),
+        phase=phase,
+    )
+    counts: dict[str, int] = {tag: 0 for tag in RERUN_CLASSIFICATIONS}
+    entries: list[dict[str, Any]] = []
+    detail_lookup = {entry.get("test", ""): entry for entry in (failure_details or [])}
+
+    print(
+        f"{YELLOW}[RERUN]{RESET} Detailed reruns enabled: {len(selected_nodeids)} failure(s), attempts={rerun_attempts}"
+    )
+
+    for index, nodeid in enumerate(selected_nodeids, start=1):
+        safe_nodeid = sanitize_nodeid_for_file(nodeid)
+        initial_detail = detail_lookup.get(nodeid, {})
+        initial_message = str(initial_detail.get("message", ""))
+        initial_details_text = str(initial_detail.get("details", ""))
+        rerun_artifact = artifact_dir / f"{phase}_{safe_nodeid}.log"
+        if rerun_artifact.exists():
+            rerun_artifact = artifact_dir / f"{phase}_{safe_nodeid}_{index}.log"
+        with open(rerun_artifact, "w", encoding="utf-8", errors="replace") as handle:
+            handle.write(f"[NODEID]\n{nodeid}\n\n[ORIGINAL FAILURE]\n")
+            if initial_message:
+                handle.write(f"message: {initial_message}\n")
+            if initial_details_text:
+                handle.write(f"{initial_details_text}\n")
+
+        attempt_records: list[dict[str, Any]] = []
+        rerun_passes = 0
+        rerun_failures = 0
+        combined_text = f"{initial_message}\n{initial_details_text}"
+
+        for attempt in range(1, max(1, rerun_attempts) + 1):
+            rerun_cmd = rerun_base_cmd + [
+                "-vv",
+                "-s",
+                "--tb=long",
+                "--show-capture=all",
+                nodeid,
+            ]
+            rerun_start = time.time()
+            result = subprocess.run(
+                rerun_cmd,
+                capture_output=True,
+                text=True,
+                check=False,
+                encoding="utf-8",
+                errors="replace",
+            )
+            rerun_duration = time.time() - rerun_start
+            rerun_output = (result.stdout or "") + (result.stderr or "")
+            combined_text += f"\n{rerun_output}"
+            success = result.returncode == 0
+            if success:
+                rerun_passes += 1
+            else:
+                rerun_failures += 1
+
+            with open(rerun_artifact, "a", encoding="utf-8", errors="replace") as handle:
+                handle.write(f"\n[RERUN ATTEMPT {attempt}]\n")
+                handle.write(rerun_output)
+
+            attempt_records.append(
+                {
+                    "attempt": attempt,
+                    "success": success,
+                    "return_code": result.returncode,
+                    "duration_seconds": round(rerun_duration, 3),
+                }
+            )
+
+        classification = classify_failure_outcome(
+            phase=phase,
+            rerun_passes=rerun_passes,
+            rerun_failures=rerun_failures,
+            combined_failure_text=combined_text,
+        )
+        counts[classification] = counts.get(classification, 0) + 1
+
+        entry = {
+            "nodeid": nodeid,
+            "classification": classification,
+            "rerun_passes": rerun_passes,
+            "rerun_failures": rerun_failures,
+            "attempts": attempt_records,
+            "artifact": str(rerun_artifact.as_posix()),
+        }
+        entries.append(entry)
+
+        with open(rerun_artifact, "a", encoding="utf-8", errors="replace") as handle:
+            handle.write(
+                f"\n[CLASSIFICATION]\n{classification}\nrerun_passes={rerun_passes}\nrerun_failures={rerun_failures}\n"
+            )
+
+    summary_payload: dict[str, Any] = {
+        "timestamp": now_timestamp_full(),
+        "run_id": run_id,
+        "phase": phase,
+        "max_failures": max_failures,
+        "rerun_attempts": max(1, rerun_attempts),
+        "artifact_dir": str(artifact_dir.as_posix()),
+        "counts": counts,
+        "entries": entries,
+    }
+
+    print(
+        f"{YELLOW}[RERUN]{RESET} Classification summary: "
+        + format_classification_counts(counts)
+    )
+    print(
+        f"{YELLOW}[RERUN]{RESET} Artifacts: {artifact_dir.as_posix()}"
+    )
+
+    return summary_payload
+
 
 @handle_errors(
     "extracting results from output text",
@@ -694,6 +1270,14 @@ def save_partial_results(
         with open(timestamped_partial_file, "w", encoding="utf-8") as f:
             json.dump(partial_data, f, indent=2)
 
+        apply_artifact_retention(
+            source_dir=Path("tests/logs"),
+            backups_dir=Path("tests/logs/backups"),
+            archive_dir=Path("tests/logs/archive"),
+            pattern="partial_results_*.json",
+            keep_current=0,
+        )
+
         if interrupted:
             print(f"{YELLOW}[PARTIAL RESULTS]{RESET} Saved to {_partial_results_file}")
             print(
@@ -891,6 +1475,8 @@ def build_windows_no_parallel_env() -> dict[str, str]:
         "duration": 0,
         "warnings": "",
         "failures": "",
+        "failure_classification": {},
+        "critical_events": [],
     },
 )
 def run_command(
@@ -900,6 +1486,11 @@ def run_command(
     capture_output: bool = True,
     test_context: dict | None = None,
     env_overrides: dict | None = None,
+    process_priority: str = "normal",
+    post_failure_rerun: bool = False,
+    post_failure_rerun_max: int = 10,
+    post_failure_rerun_attempts: int = 1,
+    run_id: str = "",
 ):
     """
     Run a command and return results with periodic progress logs.
@@ -942,9 +1533,11 @@ def run_command(
         except (ValueError, OSError):
             pass  # SIGTERM not available on Windows
 
-    print(f"\nRunning: {description}...")
+    phase_divider = "-" * 80
+    print(f"\n{phase_divider}\nRunning: {description}...\n{phase_divider}")
 
     start_time = time.time()
+    critical_events: list[str] = []
 
     # To preserve pytest's colors, let it write directly to the terminal (no pipe)
     # Use JUnit XML report to get structured results without capturing output
@@ -970,6 +1563,11 @@ def run_command(
         output_queue = queue.Queue()
         output_lines = []
 
+        display_state = {
+            "in_logger_failure_block": False,
+            "in_pytest_failure_block": False,
+        }
+
         @handle_errors(
             "reading output from pipe", user_friendly=False, default_return=None
         )
@@ -983,9 +1581,11 @@ def run_command(
                         queue_obj.put(line)
                         # Store in global list for partial results extraction
                         _captured_output_lines.append(line)
-                        # Also write to terminal to preserve colors
-                        sys.stdout.write(line)
-                        sys.stdout.flush()
+                        display_line = format_live_output_line(line)
+                        if not should_suppress_live_line(display_line, display_state):
+                            # Also write to terminal to preserve colors
+                            sys.stdout.write(display_line)
+                            sys.stdout.flush()
             finally:
                 try:
                     pipe.close()
@@ -1025,6 +1625,12 @@ def run_command(
             )
 
         _current_process = process
+
+        if not set_process_priority_for_pid(process.pid, process_priority):
+            if process_priority.lower() != "normal":
+                print(
+                    f"{YELLOW}[PRIORITY]{RESET} Could not set subprocess priority to {process_priority}"
+                )
 
         # Start thread to read output and display it
         output_thread = threading.Thread(
@@ -1081,6 +1687,9 @@ def run_command(
 
             # Check for timeout
             if elapsed > max_duration:
+                critical_events.append(
+                    f"{description} exceeded max duration ({max_duration}s) and was terminated."
+                )
                 print(
                     f"\n{RED}[ERROR]{RESET} {description} exceeded maximum duration ({max_duration}s) - terminating"
                 )
@@ -1125,6 +1734,9 @@ def run_command(
                     check_resource_warnings(resources)
                     # Check for critical resource exhaustion - terminate if memory is critically high
                     if check_critical_resources(resources):
+                        critical_events.append(
+                            "Critical memory threshold reached; test process terminated early."
+                        )
                         print(
                             f"\n{RED}[CRITICAL]{RESET} System memory critically high (>98%) - terminating tests to prevent system crash"
                         )
@@ -1231,9 +1843,15 @@ def run_command(
                 time.sleep(1.0)  # Longer delay for normal completion
                 from tests.conftest import _consolidate_worker_logs
 
-                print(f"{GREEN}[CLEANUP]{RESET} Consolidating worker log files...")
+                phase = str((test_context or {}).get("phase", "parallel")).lower()
+                cleanup_label = (
+                    "Consolidating parallel worker log files"
+                    if phase == "parallel"
+                    else "Finalizing serial test log files"
+                )
+                print(f"{GREEN}[CLEANUP]{RESET} {cleanup_label}...")
                 _consolidate_worker_logs()
-                print(f"{GREEN}[CLEANUP]{RESET} Worker log consolidation complete")
+                print(f"{GREEN}[CLEANUP]{RESET} Log finalization complete")
             except Exception as e:
                 print(
                     f"{YELLOW}[CLEANUP]{RESET} Could not consolidate worker logs: {e}"
@@ -1359,34 +1977,71 @@ def run_command(
         effective_returncode = (
             0 if is_windows_teardown_permission_false_negative else process.returncode
         )
+        failure_classification: dict[str, Any] = {}
 
         # Print status message
         if _interrupt_requested:
+            critical_events.append(f"{description} interrupted before completion.")
             print(
-                f"\n{YELLOW}[INTERRUPTED]{RESET} {description} was interrupted after {duration}s"
+                f"\n{YELLOW}[INTERRUPTED]{RESET} {description} was interrupted after {duration:.2f}s"
             )
             print(
                 f"{YELLOW}[INTERRUPTED]{RESET} Partial results saved to {_partial_results_file}"
             )
         elif effective_returncode == 0:
             print(
-                f"\n{GREEN}[SUCCESS]{RESET} {description} completed successfully in {duration}s"
+                f"\n{GREEN}[SUCCESS]{RESET} {description} completed successfully in {duration:.2f}s"
             )
             if is_windows_teardown_permission_false_negative:
                 print(
                     f"{YELLOW}[WARNING]{RESET} Pytest exited non-zero due Windows temp cleanup permissions, but test results were clean."
                 )
         else:
-            print(
-                f"\n{RED}[FAILED]{RESET} {description} failed with exit code {process.returncode} after {duration}s"
+            has_test_failures_or_errors = (
+                results.get("failed", 0) > 0 or results.get("errors", 0) > 0
             )
+            include_exit_code = process.returncode != 1 or not has_test_failures_or_errors
+            if include_exit_code:
+                critical_events.append(
+                    f"{description} failed (exit code {process.returncode})."
+                )
+                print(
+                    f"\n{RED}[FAILED]{RESET} {description} failed with exit code {process.returncode} after {duration:.2f}s"
+                )
+            else:
+                print(
+                    f"\n{RED}[FAILED]{RESET} {description} failed after {duration:.2f}s"
+                )
             if process.returncode in (-1073741515, 3221226505):
+                critical_events.append(
+                    "Windows process crash detected (0xC0000135 / STATUS_DLL_NOT_FOUND)."
+                )
                 print(
                     f"{RED}[CRASH]{RESET} Windows process crash detected (0xC0000135 / STATUS_DLL_NOT_FOUND)."
                 )
                 print(
                     f"{YELLOW}[CRASH]{RESET} This is typically an environment/DLL issue (often Qt platform plugin loading)."
                 )
+            if results.get("failed", 0) > 0 and post_failure_rerun:
+                failure_classification = run_post_failure_reruns(
+                    base_cmd=cmd,
+                    output_text=output,
+                    failure_details=failure_details,
+                    test_context=test_context,
+                    run_id=run_id or now_timestamp_filename(),
+                    max_failures=post_failure_rerun_max,
+                    rerun_attempts=post_failure_rerun_attempts,
+                )
+                if failure_classification.get("counts"):
+                    counts = failure_classification["counts"]
+                    critical_events.append(
+                        "Failure rerun classification: "
+                        + format_classification_counts(counts)
+                    )
+                if failure_classification.get("skipped_reason"):
+                    critical_events.append(
+                        f"Post-failure rerun skipped ({failure_classification['skipped_reason']})."
+                    )
             # Save partial results on failure
             save_partial_results(
                 junit_xml_path, interrupted=False, test_context=_current_test_context
@@ -1401,6 +2056,8 @@ def run_command(
             "warnings": warnings_text,
             "failures": failures_text,
             "failure_details": failure_details,  # Include structured failure details
+            "failure_classification": failure_classification,
+            "critical_events": critical_events,
             "interrupted": _interrupt_requested,
         }
     finally:
@@ -1410,6 +2067,7 @@ def run_command(
                 # Save to backup location with timestamp (using consolidated backups directory)
                 timestamp = now_timestamp_filename()
                 backup_path = _backups_dir / f"junit_results_{timestamp}.xml"
+                latest_path = Path("tests/logs/junit_results_latest.xml")
 
                 # Atomic copy: write to temp first, then rename
                 import shutil
@@ -1417,17 +2075,15 @@ def run_command(
                 temp_backup = str(backup_path) + ".tmp"
                 shutil.copy2(junit_xml_path, temp_backup)
                 os.rename(temp_backup, str(backup_path))
+                shutil.copy2(junit_xml_path, latest_path)
 
-                # Keep only last 5 backups
-                backups = sorted(
-                    _backups_dir.glob("junit_results_*.xml"), key=os.path.getmtime
+                apply_artifact_retention(
+                    source_dir=Path("tests/logs"),
+                    backups_dir=Path("tests/logs/backups"),
+                    archive_dir=Path("tests/logs/archive"),
+                    pattern="junit_results_*.xml",
+                    keep_current=0,
                 )
-                if len(backups) > 5:
-                    for old_backup in backups[:-5]:
-                        try:
-                            old_backup.unlink()
-                        except Exception:
-                            pass
             except Exception as e:
                 print(f"{YELLOW}[WARNING]{RESET} Could not save result backup: {e}")
 
@@ -1530,7 +2186,13 @@ def print_combined_summary(
         else {}
     )
 
-    # Combine results
+    # Combine results. In split mode, serial deselected counts are internal
+    # implementation detail from the no_parallel marker pass and should not
+    # inflate top-level suite deselection stats.
+    combined_deselected = parallel_res.get("deselected", 0)
+    if not (no_parallel_results and isinstance(no_parallel_results, dict)):
+        combined_deselected += no_parallel_res.get("deselected", 0)
+
     combined = {
         "passed": parallel_res.get("passed", 0) + no_parallel_res.get("passed", 0),
         "failed": parallel_res.get("failed", 0) + no_parallel_res.get("failed", 0),
@@ -1538,8 +2200,7 @@ def print_combined_summary(
         "warnings": parallel_res.get("warnings", 0)
         + no_parallel_res.get("warnings", 0),
         "errors": parallel_res.get("errors", 0) + no_parallel_res.get("errors", 0),
-        "deselected": parallel_res.get("deselected", 0)
-        + no_parallel_res.get("deselected", 0),
+        "deselected": combined_deselected,
     }
     combined["total"] = (
         combined["passed"]
@@ -1576,6 +2237,97 @@ def print_combined_summary(
             all_warnings.append(("Serial Tests", no_parallel_results["warnings"]))
         if no_parallel_results.get("failures"):
             all_failures.append(("Serial Tests", no_parallel_results["failures"]))
+
+    # Prepare failure details once, and print them before the combined summary.
+    failure_details_to_print = []
+    seen_tests = set()  # Track normalized test ids we've already printed to avoid duplicates
+
+    def normalize_test_id(value: str) -> str:
+        raw = (value or "").strip().replace("\\", "/")
+        if not raw:
+            return ""
+        if "::" in raw:
+            parts = raw.split("::")
+            module = parts[0]
+            tail = parts[1:]
+            if module.endswith(".py"):
+                module = module[:-3]
+            module = module.replace("/", ".")
+            if (
+                tail
+                and len(tail) == 1
+                and module.split(".")[-1]
+                and module.split(".")[-1][0].isupper()
+            ):
+                class_name = module.split(".")[-1]
+                module = ".".join(module.split(".")[:-1])
+                return f"{module}.{class_name}::{tail[0]}".lower()
+            if tail and tail[0] and tail[0][0].isupper():
+                return f"{module}.{tail[0]}::{ '::'.join(tail[1:]) }".lower()
+            return f"{module}::{ '::'.join(tail) }".lower()
+        return raw.replace("/", ".").lower()
+
+    if parallel_results and isinstance(parallel_results, dict):
+        parallel_failure_details = parallel_results.get("failure_details", [])
+        if parallel_failure_details:
+            for failure_detail in parallel_failure_details:
+                test_name = failure_detail.get("test", "Unknown test")
+                normalized_name = normalize_test_id(test_name)
+                if normalized_name not in seen_tests:
+                    seen_tests.add(normalized_name)
+                    message = failure_detail.get("message", "")
+                    details = failure_detail.get("details", "")
+                    failure_info = f"{test_name}"
+                    if message:
+                        failure_info += f"\n  Message: {message}"
+                    if details:
+                        failure_info += f"\n  Details:\n{details}"
+                    failure_details_to_print.append(("Parallel Tests", failure_info))
+
+    if no_parallel_results and isinstance(no_parallel_results, dict):
+        serial_failure_details = no_parallel_results.get("failure_details", [])
+        if serial_failure_details:
+            for failure_detail in serial_failure_details:
+                test_name = failure_detail.get("test", "Unknown test")
+                normalized_name = normalize_test_id(test_name)
+                if normalized_name not in seen_tests:
+                    seen_tests.add(normalized_name)
+                    message = failure_detail.get("message", "")
+                    details = failure_detail.get("details", "")
+                    failure_info = f"{test_name}"
+                    if message:
+                        failure_info += f"\n  Message: {message}"
+                    if details:
+                        failure_info += f"\n  Details:\n{details}"
+                    failure_details_to_print.append(("Serial Tests", failure_info))
+
+    if all_failures:
+        for source, failure_text in all_failures:
+            if failure_text:
+                test_names_in_text = re.findall(r"([^\s]+::[^\s]+)", failure_text)
+                if not any(
+                    normalize_test_id(test_name) in seen_tests
+                    for test_name in test_names_in_text
+                ):
+                    failure_details_to_print.append((source, failure_text))
+
+    if failure_details_to_print:
+        print(f"\n{RED}{'='*80}{RESET}")
+        print(f"{RED}COMBINED TEST FAILURES{RESET}")
+        print(f"{RED}{'='*80}{RESET}")
+        for source, failure_info in failure_details_to_print:
+            print(f"\n{RED}From {source}:{RESET}")
+            print(failure_info)
+    elif combined["failed"] > 0:
+        print(f"\n{RED}{'='*80}{RESET}")
+        print(f"{RED}COMBINED TEST FAILURES{RESET}")
+        print(f"{RED}{'='*80}{RESET}")
+        print(
+            f"  {combined['failed']} test(s) failed, but failure details could not be extracted."
+        )
+        print(
+            f"  Check {_partial_results_file} or {_backups_dir.name}/ for detailed failure information."
+        )
 
     # Print combined summary
     print(f"\n{'='*80}")
@@ -1616,13 +2368,13 @@ def print_combined_summary(
         parallel_status = ""
         if p_interrupted:
             parallel_status = f" {YELLOW}[INTERRUPTED]{RESET}"
-        parallel_line = f"  Parallel Tests:    {p_passed} passed, {p_failed} failed, {p_skipped} skipped, {p_deselected} deselected, {p_warnings} warnings ({parallel_duration}s){parallel_status}"
+        parallel_line = f"  Parallel Tests:    {p_passed} passed, {p_failed} failed, {p_skipped} skipped, {p_deselected} deselected, {p_warnings} warnings ({parallel_duration:.2f}s){parallel_status}"
         print(parallel_line)
         print(
-            f"  Serial Tests:      {s_passed} passed, {s_failed} failed, {s_skipped} skipped, {s_deselected} deselected, {s_warnings} warnings ({no_parallel_duration}s)"
+            f"  Serial Tests:      {s_passed} passed, {s_failed} failed, {s_skipped} skipped, {s_deselected} deselected, {s_warnings} warnings ({no_parallel_duration:.2f}s)"
         )
 
-        print(f"\nTotal Duration: {total_duration}s")
+        print(f"\nTotal Duration: {total_duration:.2f}s")
 
         # Log durations and test counts to test log file
         p_total = p_passed + p_failed + p_skipped
@@ -1636,7 +2388,7 @@ def print_combined_summary(
         )
     elif parallel_duration > 0:
         # Single run (--no-parallel was used)
-        print(f"\nDuration: {parallel_duration}s")
+        print(f"\nDuration: {parallel_duration:.2f}s")
 
         # Log duration and test counts to test log file
         p_total = (
@@ -1651,85 +2403,6 @@ def print_combined_summary(
             f"TEST SUITE COUNTS - Total: {p_total} tests ({parallel_res.get('passed', 0)} passed, {parallel_res.get('failed', 0)} failed, {parallel_res.get('skipped', 0)} skipped)"
         )
 
-    # Show failures details
-    # Collect failure details from both sources: failures_text and failure_details
-    # Priority: Use failure_details from JUnit XML (most reliable), fall back to failures_text
-    failure_details_to_print = []
-    seen_tests = set()  # Track which tests we've already printed to avoid duplicates
-
-    # First, add structured failure details from JUnit XML (most reliable source)
-    if parallel_results and isinstance(parallel_results, dict):
-        parallel_failure_details = parallel_results.get("failure_details", [])
-        if parallel_failure_details:
-            for failure_detail in parallel_failure_details:
-                test_name = failure_detail.get("test", "Unknown test")
-                if test_name not in seen_tests:
-                    seen_tests.add(test_name)
-                    message = failure_detail.get("message", "")
-                    details = failure_detail.get("details", "")
-                    failure_info = f"{test_name}"
-                    if message:
-                        failure_info += (
-                            f"\n  Message: {message[:200]}"  # Truncate long messages
-                        )
-                    if details:
-                        # Truncate very long details but keep first few lines
-                        details_lines = details.split("\n")[:10]  # First 10 lines
-                        details_preview = "\n".join(details_lines)
-                        if len(details) > len(details_preview):
-                            details_preview += "\n  ... (truncated)"
-                        failure_info += f"\n  Details:\n{details_preview}"
-                    failure_details_to_print.append(("Parallel Tests", failure_info))
-
-    if no_parallel_results and isinstance(no_parallel_results, dict):
-        serial_failure_details = no_parallel_results.get("failure_details", [])
-        if serial_failure_details:
-            for failure_detail in serial_failure_details:
-                test_name = failure_detail.get("test", "Unknown test")
-                if test_name not in seen_tests:
-                    seen_tests.add(test_name)
-                    message = failure_detail.get("message", "")
-                    details = failure_detail.get("details", "")
-                    failure_info = f"{test_name}"
-                    if message:
-                        failure_info += (
-                            f"\n  Message: {message[:200]}"  # Truncate long messages
-                        )
-                    if details:
-                        # Truncate very long details but keep first few lines
-                        details_lines = details.split("\n")[:10]  # First 10 lines
-                        details_preview = "\n".join(details_lines)
-                        if len(details) > len(details_preview):
-                            details_preview += "\n  ... (truncated)"
-                        failure_info += f"\n  Details:\n{details_preview}"
-                    failure_details_to_print.append(("Serial Tests", failure_info))
-
-    # Also add failures from failures_text (parsed from output) if not already covered
-    if all_failures:
-        for source, failure_text in all_failures:
-            if failure_text:
-                # Extract test names from failure_text to check for duplicates
-                test_names_in_text = re.findall(r"([^\s]+::[^\s]+)", failure_text)
-                # Only add if we haven't seen these tests already
-                if not any(test_name in seen_tests for test_name in test_names_in_text):
-                    failure_details_to_print.append((source, failure_text))
-
-    # Print all failures
-    if failure_details_to_print:
-        print(f"\n{RED}FAILURES:{RESET}")
-        for source, failure_info in failure_details_to_print:
-            print(f"\n{RED}From {source}:{RESET}")
-            print(failure_info)
-    elif combined["failed"] > 0:
-        # If we have failures but couldn't extract details, at least show the count
-        print(f"\n{RED}FAILURES:{RESET}")
-        print(
-            f"  {combined['failed']} test(s) failed, but failure details could not be extracted."
-        )
-        print(
-            f"  Check {_partial_results_file} or {_backups_dir.name}/ for detailed failure information."
-        )
-
     # Show warnings details
     if all_warnings:
         print(f"\nWARNINGS:")
@@ -1738,13 +2411,23 @@ def print_combined_summary(
                 print(f"\nFrom {source}:")
                 print(warning_text)
 
+    # Collect critical events for bottom-of-console recap.
+    critical_events: list[str] = []
+    for run_label, run_result in (
+        ("Parallel Tests", parallel_results),
+        ("Serial Tests", no_parallel_results),
+    ):
+        if run_result and isinstance(run_result, dict):
+            for event in run_result.get("critical_events", []) or []:
+                critical_events.append(f"{run_label}: {event}")
+
     # Show interruption notice if parallel tests were interrupted (before final summary)
     if (
         parallel_results
         and isinstance(parallel_results, dict)
         and parallel_results.get("interrupted", False)
     ):
-        print(f"\n{YELLOW}⚠️  INTERRUPTION DETECTED:{RESET}")
+        print(f"\n{YELLOW}[INTERRUPTION DETECTED]{RESET}")
         print(f"  Parallel tests were interrupted before completion.")
         print(f"  Partial results saved to: {_partial_results_file}")
         print(f"  Check {_backups_dir.name}/ directory for timestamped copies.")
@@ -1799,6 +2482,41 @@ def print_combined_summary(
     # Match pytest's format with colored components
     summary_line = f"{border} {summary_text}, {duration_segment} {border}"
     print(summary_line)
+    classification_counts = {tag: 0 for tag in RERUN_CLASSIFICATIONS}
+    for run_result in (parallel_results, no_parallel_results):
+        if not run_result or not isinstance(run_result, dict):
+            continue
+        run_classification = run_result.get("failure_classification", {}) or {}
+        run_counts = run_classification.get("counts", {}) or {}
+        for tag in RERUN_CLASSIFICATIONS:
+            classification_counts[tag] += int(run_counts.get(tag, 0))
+
+    if any(classification_counts.values()):
+        classification_line = format_classification_counts(classification_counts)
+        print(
+            f"{YELLOW}[CLASSIFICATION]{RESET} Post-failure tags: {classification_line}"
+        )
+
+    # Keep critical alerts near the bottom only when the run has issue signals.
+    has_issue_signals = (
+        combined.get("failed", 0) > 0
+        or combined.get("errors", 0) > 0
+        or combined.get("warnings", 0) > 0
+        or (
+            parallel_results
+            and isinstance(parallel_results, dict)
+            and parallel_results.get("interrupted", False)
+        )
+        or (
+            no_parallel_results
+            and isinstance(no_parallel_results, dict)
+            and no_parallel_results.get("interrupted", False)
+        )
+    )
+    if critical_events and has_issue_signals:
+        print(f"{RED}[CRITICAL RECAP]{RESET}")
+        for event in critical_events[-4:]:
+            print(f"  - {event}")
     print()
 
 
@@ -1831,6 +2549,9 @@ def print_test_mode_info():
     print(
         "  --burnin-mode - Enable burn-in mode (combines --no-shim and --random-order)"
     )
+    print("  --process-priority {default|low|high} - Runner/pytest priority profile")
+    print("  --no-pause-lm-studio - Keep LM Studio running during test runs")
+    print("  --no-post-failure-rerun - Disable auto detailed reruns on failures")
     print("\nExamples:")
     print("  python run_tests.py                    # Run all tests in parallel")
     print("  python run_tests.py --mode fast        # Quick unit tests only")
@@ -1864,8 +2585,7 @@ def run_static_logging_check() -> bool:
             print(result.stderr)
         return False
 
-    if result.stdout:
-        print(result.stdout.strip())
+    print("[CHECK] Static logging enforcement: PASS")
     return True
 
 
@@ -2018,6 +2738,20 @@ def cleanup_post_run_test_artifacts() -> None:
         except Exception:
             pass
 
+    # Apply rerun artifact retention every run so old failure directories rotate
+    # even when the current run has no failures, but do not create rerun dirs on clean repos.
+    rerun_source = Path("tests/logs/failure_reruns")
+    rerun_backups = Path("tests/logs/backups/failure_reruns")
+    rerun_archive = Path("tests/logs/archive/failure_reruns")
+    if rerun_source.exists() or rerun_backups.exists() or rerun_archive.exists():
+        apply_artifact_retention(
+            source_dir=rerun_source,
+            backups_dir=rerun_backups,
+            archive_dir=rerun_archive,
+            pattern="*",
+            keep_current=1,
+        )
+
 
 def main():
     """
@@ -2117,6 +2851,48 @@ def main():
         default=True,
         help="Disable automatic termination on critical memory usage",
     )
+    parser.add_argument(
+        "--process-priority",
+        choices=["default", "low", "high"],
+        default="default",
+        help="Priority profile for runner and pytest process (default|low|high, default: default)",
+    )
+    parser.add_argument(
+        "--pause-lm-studio",
+        action="store_true",
+        default=True,
+        help="Temporarily pause LM Studio during test runs (default: enabled)",
+    )
+    parser.add_argument(
+        "--no-pause-lm-studio",
+        dest="pause_lm_studio",
+        action="store_false",
+        help="Do not pause LM Studio during test runs",
+    )
+    parser.add_argument(
+        "--post-failure-rerun",
+        action="store_true",
+        default=True,
+        help="After failures, rerun failing nodeids with -vv -s --tb=long --show-capture=all (default: enabled)",
+    )
+    parser.add_argument(
+        "--no-post-failure-rerun",
+        dest="post_failure_rerun",
+        action="store_false",
+        help="Disable automatic post-failure detailed reruns",
+    )
+    parser.add_argument(
+        "--post-failure-rerun-max",
+        type=int,
+        default=10,
+        help="Skip detailed reruns when failures exceed this count (default: 10)",
+    )
+    parser.add_argument(
+        "--post-failure-rerun-attempts",
+        type=int,
+        default=1,
+        help="Detailed rerun attempts per failed nodeid (default: 1)",
+    )
 
     args = parser.parse_args()
 
@@ -2131,13 +2907,15 @@ def main():
     _auto_terminate_enabled = args.auto_terminate
 
     if not _auto_terminate_enabled:
-        print(
-            f"[INFO] Automatic termination on critical memory disabled (use --critical-memory-limit to set threshold)"
+        auto_terminate_status = (
+            "Disabled (critical memory auto-termination off)"
         )
     else:
-        print(
-            f"[INFO] Automatic termination enabled at {_critical_memory_limit}% system memory"
-        )
+        auto_terminate_status = f"Enabled at {_critical_memory_limit:.1f}% memory"
+
+    priority_status = "Applied"
+    if not set_process_priority_for_pid(os.getpid(), args.process_priority):
+        priority_status = "Unavailable"
 
     # Show help modes if requested
     if args.help_modes:
@@ -2195,6 +2973,7 @@ def main():
 
     # Track if we need to exclude no_parallel tests from parallel execution
     exclude_no_parallel = False
+    worker_selection_note: str | None = None
 
     # Add parallel execution (enabled by default, can be disabled with --no-parallel)
     # When parallel is enabled, exclude no_parallel tests from parallel execution
@@ -2214,8 +2993,8 @@ def main():
             # For systems with 12+ CPUs, use 4 workers; for 8 CPUs use 3; for 4 CPUs use 2
             max_workers = min(4, max(2, cpu_count // 3))
             cmd.extend(["-n", str(max_workers)])
-            print(
-                f"[INFO] Auto-detected {cpu_count} CPUs, using {max_workers} workers to prevent OOM"
+            worker_selection_note = (
+                f"Auto-detected {cpu_count} CPUs; using {max_workers} workers"
             )
         else:
             try:
@@ -2243,9 +3022,21 @@ def main():
 
     # Handle test order randomization
     addopts = os.environ.get("PYTEST_ADDOPTS", "")
+    addopts_args = shlex.split(addopts) if addopts else []
+    cli_args = sys.argv[1:]
+    combined_seed_args = cli_args + addopts_args
+
     has_seed = "--randomly-seed" in addopts or any(
-        arg.startswith("--randomly-seed") for arg in sys.argv
+        arg.startswith("--randomly-seed") for arg in combined_seed_args
     )
+    explicit_seed: str | None = None
+    for i, arg in enumerate(combined_seed_args):
+        if arg.startswith("--randomly-seed="):
+            explicit_seed = arg.split("=", 1)[1].strip()
+            break
+        if arg == "--randomly-seed" and i + 1 < len(combined_seed_args):
+            explicit_seed = str(combined_seed_args[i + 1]).strip()
+            break
 
     if args.random_order:
         # Use truly random order (pytest-randomly will generate a random seed)
@@ -2363,31 +3154,40 @@ def main():
         combined_filter = " and ".join(marker_parts)
         cmd.extend(["-m", combined_filter])
 
-    # Print clear information about what we're running
-    print(f"\nMHM Test Runner")
-    print(f"Mode: {args.mode}")
-    print(f"Description: {description}")
-    if not args.no_parallel:
-        print(f"Parallel: Yes ({args.workers} workers)")
-        print(
-            f"Note: Tests marked with @pytest.mark.no_parallel will run separately in serial mode"
-        )
-    else:
-        print(f"Parallel: No (disabled)")
-    if args.verbose:
-        print(f"Verbose: Yes")
-    if args.coverage:
-        print(f"Coverage: Yes")
-    if args.no_shim:
-        print(f"Test Data Shim: Disabled (burn-in validation)")
+    seed_summary = ""
     if args.random_order:
-        print(f"Test Order: Random (burn-in validation)")
+        seed_summary = "random (generated by pytest-randomly)"
+    elif explicit_seed:
+        seed_summary = f"{explicit_seed} (explicit)"
+    elif not has_seed:
+        seed_summary = "12345 (preset default for reproducibility)"
+    else:
+        seed_summary = "set (from PYTEST_ADDOPTS/CLI)"
 
-    print(f"\nPytest Configuration:")
-    print(f"  Platform: {sys.platform}")
-    print(f"  Python: {sys.version.split()[0]}")
-    if not args.random_order and not has_seed:
-        print(f"  Random Seed: 12345 (fixed for reproducibility)")
+    # Print concise startup summary.
+    print(f"\n{'='*80}")
+    print("MHM Test Runner")
+    print(f"{'='*80}")
+    print(f"  Mode: {args.mode} | Suite: {description}")
+    parallel_status = "No (serial only)"
+    if not args.no_parallel:
+        parallel_status = (
+            f"Yes ({args.workers} workers)"
+            if args.workers != "auto"
+            else "Yes (auto workers)"
+        )
+    print(f"  Parallel: {parallel_status}")
+    print(
+        f"  Guardrails: auto-terminate={auto_terminate_status}; priority={args.process_priority} ({priority_status})"
+    )
+    print(
+        f"  Failure Rerun: {'on' if args.post_failure_rerun else 'off'} (limit={args.post_failure_rerun_max}, attempts={args.post_failure_rerun_attempts})"
+    )
+    print(f"  LM Studio Pause: {'on' if args.pause_lm_studio else 'off'}")
+    if worker_selection_note:
+        print(f"  Workers: {worker_selection_note}")
+    print(f"  Python: {sys.version.split()[0]} | Platform: {sys.platform}")
+    print(f"  Random Seed: {seed_summary}")
 
     # Build test context for partial results
     try:
@@ -2405,118 +3205,159 @@ def main():
         "platform": sys.platform,
         "python_version": sys.version.split()[0],
         "pytest_version": pytest_version,
-        "random_seed": "12345" if not args.random_order and not has_seed else None,
+        "random_seed": (
+            explicit_seed
+            if explicit_seed
+            else ("12345" if not args.random_order and not has_seed else None)
+        ),
         "random_order": args.random_order,
+        "process_priority": args.process_priority,
+        "post_failure_rerun": args.post_failure_rerun,
     }
 
-    # Run the tests
-    parallel_test_context = {**base_test_context, "phase": "parallel"}
-    parallel_results = run_command(
-        cmd,
-        description,
-        progress_interval=args.progress_interval,
-        test_context=parallel_test_context,
-    )
-    success = parallel_results["success"]
-
-    # If parallel execution was enabled, also run no_parallel tests separately in serial mode
-    no_parallel_results = None
-    if not args.no_parallel:
-        # Remove the completed parallel basetemp tree so the serial phase
-        # cannot accidentally collect transient test_*.py files generated there.
-        try:
-            remove_tree_with_retries(parallel_basetemp)
-        except Exception:
-            pass
-
-        # Create a separate command for no_parallel tests (serial execution)
-        no_parallel_cmd = [sys.executable, "-m", "pytest"]
-        no_parallel_cmd.extend(
-            [
-                "--basetemp",
-                str(serial_basetemp),
-                "-o",
-                f"cache_dir={pytest_cache_dir}",
-                "--ignore=tests/data",
-                "--ignore=tests/data/tmp",
-                "--ignore-glob=tests/data/tmp/**",
-            ]
-        )
-
-        # Build marker filter: combine no_parallel with mode filter if present
-        # Always exclude e2e tests (they are slow and should only run explicitly)
-        if mode_marker_filter:
-            # Combine markers: e.g., "no_parallel and not slow and not e2e" or "no_parallel and slow and not e2e"
-            no_parallel_cmd.extend(
-                ["-m", f"no_parallel and {mode_marker_filter} and not e2e"]
-            )
+    pause_lm_studio_active = False
+    lm_studio_paused_pids: list[int] = []
+    if args.pause_lm_studio:
+        if tests_require_lm_studio(selected_test_paths, args.full):
+            print("[LM STUDIO] Pause disabled by MHM_TESTS_REQUIRE_LM_STUDIO=1.")
         else:
-            no_parallel_cmd.extend(
-                ["-m", "no_parallel and not e2e"]
-            )  # Only run no_parallel tests, exclude e2e
+            lm_studio_paused_pids = suspend_lm_studio_processes()
+            if lm_studio_paused_pids:
+                pause_lm_studio_active = True
+                print(
+                    f"[LM STUDIO] Paused {len(lm_studio_paused_pids)} LM Studio process(es) for test execution."
+                )
+            else:
+                print("[LM STUDIO] Pause enabled; no running LM Studio process found.")
 
-        # Copy selected test paths from main command.
-        no_parallel_cmd.extend(selected_test_paths)
+    success = False
+    try:
+        # Run the tests
+        parallel_test_context = {**base_test_context, "phase": "parallel"}
+        parallel_results = run_command(
+            cmd,
+            "Parallel Tests",
+            progress_interval=args.progress_interval,
+            test_context=parallel_test_context,
+            process_priority=args.process_priority,
+            post_failure_rerun=args.post_failure_rerun,
+            post_failure_rerun_max=args.post_failure_rerun_max,
+            post_failure_rerun_attempts=args.post_failure_rerun_attempts,
+            run_id=run_id,
+        )
+        success = parallel_results["success"]
 
-        # Copy other options
-        if args.verbose:
-            no_parallel_cmd.append("-v")
-        if args.coverage:
+        # If parallel execution was enabled, also run no_parallel tests separately in serial mode
+        no_parallel_results = None
+        if not args.no_parallel:
+            # Remove the completed parallel basetemp tree so the serial phase
+            # cannot accidentally collect transient test_*.py files generated there.
+            try:
+                remove_tree_with_retries(parallel_basetemp)
+            except Exception:
+                pass
+
+            # Create a separate command for no_parallel tests (serial execution)
+            no_parallel_cmd = [sys.executable, "-m", "pytest"]
             no_parallel_cmd.extend(
                 [
-                    "--cov=core",
-                    "--cov=communication",
-                    "--cov=ui",
-                    "--cov=tasks",
-                    "--cov=user",
-                    "--cov=ai",
-                    "--cov-report=html:tests/coverage_html",
-                    "--cov-report=term",
+                    "--basetemp",
+                    str(serial_basetemp),
+                    "-o",
+                    f"cache_dir={pytest_cache_dir}",
+                    "--ignore=tests/data",
+                    "--ignore=tests/data/tmp",
+                    "--ignore-glob=tests/data/tmp/**",
                 ]
             )
-        if args.durations_all:
-            no_parallel_cmd.append("--durations=0")
 
-        # Copy randomization settings
-        if args.random_order:
-            pass  # Don't add seed for random order
-        elif not has_seed:
-            no_parallel_cmd.extend(["--randomly-seed=12345"])
+            # Build marker filter: combine no_parallel with mode filter if present
+            # Always exclude e2e tests (they are slow and should only run explicitly)
+            if mode_marker_filter:
+                # Combine markers: e.g., "no_parallel and not slow and not e2e" or "no_parallel and slow and not e2e"
+                no_parallel_cmd.extend(
+                    ["-m", f"no_parallel and {mode_marker_filter} and not e2e"]
+                )
+            else:
+                no_parallel_cmd.extend(
+                    ["-m", "no_parallel and not e2e"]
+                )  # Only run no_parallel tests, exclude e2e
 
-        print(
-            f"\n[NO_PARALLEL] Running tests marked with @pytest.mark.no_parallel in serial mode..."
-        )
-        no_parallel_test_context = {
-            **base_test_context,
-            "phase": "serial",
-            "parallel": False,
-        }
-        no_parallel_results = run_command(
-            no_parallel_cmd,
-            "No-Parallel Tests (Serial)",
-            progress_interval=args.progress_interval,
-            test_context=no_parallel_test_context,
-            env_overrides=build_windows_no_parallel_env(),
-        )
-        no_parallel_success = no_parallel_results["success"]
+            # Copy selected test paths from main command.
+            no_parallel_cmd.extend(selected_test_paths)
 
-        if not no_parallel_success:
-            success = False
+            # Copy other options
+            if args.verbose:
+                no_parallel_cmd.append("-v")
+            if args.coverage:
+                no_parallel_cmd.extend(
+                    [
+                        "--cov=core",
+                        "--cov=communication",
+                        "--cov=ui",
+                        "--cov=tasks",
+                        "--cov=user",
+                        "--cov=ai",
+                        "--cov-report=html:tests/coverage_html",
+                        "--cov-report=term",
+                    ]
+                )
+            if args.durations_all:
+                no_parallel_cmd.append("--durations=0")
 
-    # Print combined summary (always show, even if tests failed)
-    # Handle case where parallel_results might be a bool (backward compatibility)
-    if not isinstance(parallel_results, dict):
-        # Convert bool to dict format for summary
-        parallel_results = {
-            "success": parallel_results,
-            "results": {},
-            "duration": 0,
-            "output": "",
-        }
-    print_combined_summary(parallel_results, no_parallel_results, description)
+            # Copy randomization settings
+            if args.random_order:
+                pass  # Don't add seed for random order
+            elif not has_seed:
+                no_parallel_cmd.extend(["--randomly-seed=12345"])
 
-    # Best-effort post-run cleanup for transient artifacts.
-    cleanup_post_run_test_artifacts()
+            print(
+                f"\n{'-'*80}\n[NO_PARALLEL] Running tests marked with @pytest.mark.no_parallel in serial mode...\n{'-'*80}"
+            )
+            no_parallel_test_context = {
+                **base_test_context,
+                "phase": "serial",
+                "parallel": False,
+            }
+            no_parallel_results = run_command(
+                no_parallel_cmd,
+                "Serial Tests (no_parallel)",
+                progress_interval=args.progress_interval,
+                test_context=no_parallel_test_context,
+                env_overrides=build_windows_no_parallel_env(),
+                process_priority=args.process_priority,
+                post_failure_rerun=args.post_failure_rerun,
+                post_failure_rerun_max=args.post_failure_rerun_max,
+                post_failure_rerun_attempts=args.post_failure_rerun_attempts,
+                run_id=run_id,
+            )
+            no_parallel_success = no_parallel_results["success"]
+
+            if not no_parallel_success:
+                success = False
+
+        # Print combined summary (always show, even if tests failed)
+        # Handle case where parallel_results might be a bool (backward compatibility)
+        if not isinstance(parallel_results, dict):
+            # Convert bool to dict format for summary
+            parallel_results = {
+                "success": parallel_results,
+                "results": {},
+                "duration": 0,
+                "output": "",
+            }
+        print_combined_summary(parallel_results, no_parallel_results, description)
+    finally:
+        if pause_lm_studio_active and lm_studio_paused_pids:
+            if resume_lm_studio_processes(lm_studio_paused_pids):
+                print(
+                    f"[LM STUDIO] Resumed {len(lm_studio_paused_pids)} LM Studio process(es)."
+                )
+            else:
+                print("[LM STUDIO] Could not resume paused LM Studio process(es).")
+
+        # Best-effort post-run cleanup for transient artifacts.
+        cleanup_post_run_test_artifacts()
 
     # Final status message (summary already printed above)
     if success:

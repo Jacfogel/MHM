@@ -29,6 +29,12 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-16 - Test runner diagnostics/output pass **COMPLETED**
+- `run_tests.py` was enhanced with bounded default post-failure reruns, per-failure artifacts, cleaner startup/phase output, and process-priority + LM Studio pause/resume controls.
+- Failure-output semantics were cleaned up (non-zero-only classification display, less recap noise for routine `exit code 1`, clearer split-run deselection semantics).
+- Failure rerun artifact clutter was reduced to a single run folder (`tests/logs/failure_reruns/<run_id>/`) with phase-prefixed logs; unused rerun summary JSON generation was removed.
+- Removed temporary intentional demo failures from `tests/unit/test_user_management.py` and added explicit intermittent-failure tracking for `test_checkin_handler_start_checkin_conversation_manager_error` and `test_validate_core_paths_missing_directory` in [PLANS.md](development_docs/PLANS.md); completed runner/output tasks were pruned from [TODO.md](TODO.md).
+
 ### 2026-02-15 - Dev-tools report/cache consistency pass **COMPLETED**
 - Tier 3 outcomes are now consistently represented with all three tracks (parallel, no-parallel, development-tools), and AI_PRIORITIES only includes Tier 3 test/coverage items when failures/errors are actionable (clean outcomes remain status-only).
 - Standardized away remaining `consolidated_report.txt` references to `development_tools/consolidated_report.md` (non-historical paths) and aligned generated report links/messages.

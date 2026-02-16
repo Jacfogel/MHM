@@ -33,6 +33,27 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-16 - Test runner failure diagnostics, output cleanup, and follow-up tracking
+- **Feature (test runner reliability/diagnostics)**: Extended `run_tests.py` with default post-failure reruns (bounded by failure-count threshold), per-failure artifacts, rerun classification tags, and consolidated end-of-run failure reporting. Added process-priority profiles (`default|low|high`) and LM Studio pause/resume integration for non-AI runs, plus startup/output readability cleanup (phase labels, durations, summary formatting, and bottom-of-console critical signal emphasis).
+- **Fix (test runner output semantics)**: Cleaned duplicate/ambiguous failure output patterns and aligned summary semantics:
+  - serial-phase deselection now shown in serial breakdown while top-level deselection remains suite-semantic (`0` for split parallel/serial mode),
+  - classification lines now emit non-zero tags only,
+  - routine `exit code 1` noise suppressed in recap unless code/context is high-signal.
+- **Fix (artifact clutter reduction)**: Simplified failure rerun artifact structure to a single per-run directory (`tests/logs/failure_reruns/<run_id>/`) containing phase-prefixed per-test logs; removed redundant per-phase summary JSON generation (`failure_rerun_summary_latest.json` and backups) since it was not consumed by runtime flows.
+- **Fix (test noise/readability)**: Suppressed noisy QMessageBox patch print by default in `tests/conftest.py` (`MHM_TEST_QT_PATCH_LOG=1` to opt in), reducing awkward line-glue at the end of parallel progress output.
+- **Fix (intentional demo failures removed)**: Removed temporary intentional assertions from:
+  - `tests/unit/test_user_management.py::TestUserManagement::test_get_all_user_ids_empty`
+  - `tests/unit/test_user_management.py::TestUserManagement::test_get_user_context_success`
+- **Docs/Planning (follow-up tracking)**:
+  - Added explicit intermittent-failure subtasks in [PLANS.md](development_docs/PLANS.md) for:
+    - `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_start_checkin_conversation_manager_error`
+    - `tests/unit/test_config.py::TestConfigValidation::test_validate_core_paths_missing_directory`
+  - Pruned completed items from [TODO.md](TODO.md) so it now retains outstanding work only (removed completed rerun/output-format/test-runner improvement blocks).
+- **Validation**:
+  - `python -m py_compile run_tests.py`
+  - `python -m py_compile tests/unit/test_user_management.py`
+- **Impact**: Test-run failures are now easier to triage in real time, failure artifacts are lower-clutter and phase-coherent, and tracking docs better distinguish completed runner work from outstanding intermittent failures.
+
 ### 2026-02-15 - Dev-tools audit/report consistency, cache semantics alignment, and session closeout
 - **Feature**: Standardized Tier 3 test outcome reporting and severity semantics across generated outputs. Development-tools test track is now included alongside parallel/no-parallel tracks, and Tier 3 priority sections only surface when there is actionable failure/error state (clean outcomes stay in status-style reports instead of priority noise). (See `development_tools/shared/service/report_generation.py`, `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/tool_wrappers.py`, `tests/development_tools/test_audit_strict_mode.py`, `tests/development_tools/test_report_generation_quick_wins.py`)
 - **Feature**: Completed cache/cleanup behavior alignment:

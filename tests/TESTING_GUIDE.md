@@ -295,6 +295,24 @@ Common commands:
   python run_tests.py --coverage
   ```
 
+- Disable post-failure detailed reruns/classification (enabled by default, skipped automatically when failures >10):
+
+  ```bash
+  python run_tests.py --no-post-failure-rerun
+  ```
+
+- Set lower test process priority profile:
+
+  ```bash
+  python run_tests.py --process-priority low
+  ```
+
+- Disable LM Studio pause (pause is enabled by default for run_tests.py modes, including `all` / `all --full`):
+
+  ```bash
+  python run_tests.py --no-pause-lm-studio
+  ```
+
 - Run a specific test file or function with pytest:
 
   ```bash
@@ -317,6 +335,10 @@ Typical options:
 - `--no-parallel` (force serial execution).
 - `--workers N` (explicit worker count).
 - `--coverage` (enable coverage collection).
+- `--process-priority <default|low|high>`.
+- `--no-pause-lm-studio` (LM Studio pause is enabled by default for run_tests.py modes).
+- `--no-post-failure-rerun` (detailed rerun is enabled by default; auto-skipped when failures exceed `--post-failure-rerun-max`).
+- `--post-failure-rerun-max N` and `--post-failure-rerun-attempts N` for rerun scope control.
 
 Prefer `python run_tests.py` over calling pytest directly when you want "normal" local or CI runs.
 

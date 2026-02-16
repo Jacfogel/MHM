@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-15 04:10:57
+> **Last Generated**: 2026-02-15 23:23:48
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,15 +16,15 @@
 
 ### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1582
+- **Functions Found**: 1600
 - **Methods Found**: 1157
 - **Classes Found**: 154
-- **Total Items**: 2739
-- **Functions Documented**: 1511
+- **Total Items**: 2757
+- **Functions Documented**: 1527
 - **Methods Documented**: 1117
 - **Classes Documented**: 120
-- **Total Documented**: 2628
-- **Template-Generated**: 4
+- **Total Documented**: 2644
+- **Template-Generated**: 5
 - **Last Updated**: 2026-02-15
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
@@ -4933,9 +4933,14 @@ Returns:
 **Functions:**
 - [OK] `_persist_captured_output()` - Persist captured pytest output with ANSI stripping to latest and timestamped logs.
 - [OK] `_rotate_console_output_files(backups_dir, archive_dir)` - Keep only recent timestamped console outputs in backups and archive older ones.
+- [MISSING] `add_nodeid(candidate)` - No description
+- [OK] `apply_artifact_retention(source_dir, backups_dir, archive_dir, pattern, keep_current, keep_backups, keep_archive, archive_retention_days)` - Apply current/7/archive(7,30d) retention for files and directories.
+- [OK] `build_failure_rerun_base_cmd(base_cmd, run_id, phase)` - Build minimal pytest command for failed-node reruns only.
 - [OK] `build_windows_no_parallel_env()` - Return environment overrides for stable Windows serial UI/no_parallel runs.
+- [MISSING] `canonicalize_nodeid(nodeid)` - No description
 - [OK] `check_critical_resources(resources)` - Check if resources exceed critical thresholds requiring termination.
 - [OK] `check_resource_warnings(resources)` - Check if resources exceed warning thresholds.
+- [OK] `classify_failure_outcome(phase, rerun_passes, rerun_failures, combined_failure_text)` - Return classification tag based on rerun outcome and message hints.
 - [OK] `cleanup_orphaned_pytest_processes()` - Find and kill any orphaned pytest worker processes on Windows.
 
 Returns:
@@ -4946,11 +4951,15 @@ Keeps outputs that are intentionally useful (e.g., tests/logs, tests/coverage_ht
 while removing transient tmp/cache files and common per-run JSON/directories in tests/data.
 - [OK] `cleanup_stale_test_artifacts()` - Best-effort cleanup for stale pytest/build artifacts that commonly accumulate on Windows.
 - [OK] `detect_stuck_process(last_output_time, current_time, threshold)` - Detect if process appears stuck (no output for extended period).
+- [OK] `extract_failed_nodeids(output_text, failure_details)` - Extract pytest nodeids from output and failure details.
 - [OK] `extract_failures_from_junit_xml(xml_path)` - Extract detailed failure information from JUnit XML.
 
 Returns a list of dicts with 'test', 'message', and 'type' keys.
 - [OK] `extract_pytest_session_info(output_text)` - Extract pytest session information from output text.
 - [OK] `extract_results_from_output(output_text)` - Extract test results from pytest output text when JUnit XML is unavailable.
+- [OK] `format_classification_counts(counts)` - Format non-zero classification counts as a compact comma-separated line.
+- [OK] `format_live_output_line(line)` - Insert readability breaks where logger output is glued to progress output.
+- [OK] `has_race_hints(text)` - Heuristic detector for race-condition-like failure text.
 - [OK] `interrupt_handler(signum, frame)` - Handle interrupt signals (Ctrl+C) gracefully.
 - [OK] `kill_process_tree_windows(pid)` - Kill a process and all its children on Windows.
 
@@ -4964,6 +4973,7 @@ based on the selected test mode (all, fast, unit, integration, behavior, ui, slo
 Returns:
     int: Exit code (0 for success, 1 for failure)
 - [OK] `monitor_resources()` - Monitor system resource usage and return metrics.
+- [OK] `normalize_test_id(value)` - TEST: Normalize Id
 - [OK] `parse_junit_xml(xml_path)` - Parse JUnit XML report to extract test statistics.
 
 Returns a dictionary with: passed, failed, skipped, warnings, errors, total
@@ -4975,8 +4985,10 @@ Args:
     description: Test mode description
 - [OK] `print_test_mode_info()` - Print helpful information about test modes.
 - [OK] `read_output(pipe, queue_obj)` - Read from pipe and put lines in queue, also write to terminal.
+- [OK] `remove_parallel_flags(cmd)` - Return command copy without xdist worker flags.
 - [OK] `remove_tree_with_retries(path, retries, delay_seconds)` - Best-effort directory removal with short retries for Windows file-handle lag.
-- [OK] `run_command(cmd, description, progress_interval, capture_output, test_context, env_overrides)` - Run a command and return results with periodic progress logs.
+- [OK] `resume_lm_studio_processes(pids)` - Resume previously suspended LM Studio processes.
+- [OK] `run_command(cmd, description, progress_interval, capture_output, test_context, env_overrides, process_priority, post_failure_rerun, post_failure_rerun_max, post_failure_rerun_attempts, run_id)` - Run a command and return results with periodic progress logs.
 
 Args:
     cmd: Command to run
@@ -4987,8 +4999,11 @@ Args:
 
 Returns:
     dict with 'success', 'output', 'results', 'duration', 'warnings', 'failures' keys
+- [OK] `run_post_failure_reruns(base_cmd, output_text, failure_details, test_context, run_id, max_failures, rerun_attempts)` - Rerun failing nodeids with detailed flags and classify outcomes.
 - [OK] `run_static_logging_check()` - Run the static logging enforcement script before executing tests.
+- [OK] `sanitize_nodeid_for_file(nodeid)` - Return filesystem-safe token for a pytest nodeid.
 - [OK] `save_partial_results(junit_xml_path, interrupted, output_text, test_context)` - Save partial test results from JUnit XML, falling back to output text parsing.
+- [OK] `set_process_priority_for_pid(pid, priority)` - Best-effort process priority setter using psutil.
 - [OK] `setup_test_logger()` - Set up logger for test duration logging.
 
 Creates a logger for test run duration logging and ensures the tests/logs
@@ -4996,7 +5011,10 @@ directory exists. Returns a configured logger instance.
 
 Returns:
     logging.Logger: Configured logger instance for test runs
+- [OK] `should_suppress_live_line(line, state)` - Suppress redundant pytest session header lines and duplicate logger failure dumps.
 - [MISSING] `signal_handler(signum, frame)` - No description
+- [OK] `suspend_lm_studio_processes()` - Suspend LM Studio processes and return suspended PIDs.
+- [OK] `tests_require_lm_studio(selected_test_paths, full_mode)` - Return True when caller explicitly indicates LM Studio must remain active.
 
 ### `tasks/` - Task Management
 

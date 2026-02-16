@@ -478,6 +478,7 @@ def toggle_data_shim_per_marker(request, monkeypatch):
 # Global QMessageBox patch to prevent popup dialogs during testing
 def setup_qmessagebox_patches():
     """Set up global QMessageBox patches to prevent popup dialogs during testing."""
+    verbose_patch_logging = os.environ.get("MHM_TEST_QT_PATCH_LOG", "0") == "1"
     try:
         from PySide6.QtWidgets import QMessageBox
 
@@ -510,12 +511,15 @@ def setup_qmessagebox_patches():
         QMessageBox.question = MockQMessageBox.question
         QMessageBox.about = MockQMessageBox.about
 
-        print("Global QMessageBox patches applied to prevent popup dialogs")
+        if verbose_patch_logging:
+            print("Global QMessageBox patches applied to prevent popup dialogs")
     except ImportError:
         # PySide6 not available, skip QMessageBox patches
-        print("PySide6 not available, skipping QMessageBox patches")
+        if verbose_patch_logging:
+            print("PySide6 not available, skipping QMessageBox patches")
     except Exception as e:
-        print(f"Failed to apply QMessageBox patches: {e}")
+        if verbose_patch_logging:
+            print(f"Failed to apply QMessageBox patches: {e}")
 
 
 # Set up QMessageBox patches

@@ -193,7 +193,7 @@
 **Priority**: Medium
 **Effort**: Small/Medium
 **Date**: 2026-02-10
-**Last Updated**: 2026-02-14
+**Last Updated**: 2026-02-15
 
 - *What it means*: Investigate and fix test failures that appear intermittently (including coverage-run flakes); keep the suspect list current as flakes are confirmed or resolved.
 - *Why it helps*: Ensures test suite reliability and prevents false negatives that can mask real issues
@@ -209,6 +209,8 @@
   - [ ] Investigate `tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized`
   - [ ] Investigate `tests/unit/test_schedule_management.py::TestScheduleManagement::test_schedule_period_lifecycle`
   - [ ] Investigate `tests/ui/test_task_management_dialog.py::TestTaskManagementDialogRealBehavior::test_save_task_settings_persists_after_reload`
+  - [ ] Investigate `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_start_checkin_conversation_manager_error` intermittent parallel failure (test-user setup occasionally fails to create `tests/data/users/<uuid>/messages/motivational.json`; harden user-fixture directory creation/isolation under xdist)
+  - [ ] Investigate `tests/unit/test_config.py::TestConfigValidation::test_validate_core_paths_missing_directory` intermittent failure in long/parallel runs (`assert is_valid is True`); align test patching with all path globals used by `validate_core_paths()` (`BASE_DATA_DIR`, `USER_INFO_DIR_PATH`, `DEFAULT_MESSAGES_DIR_PATH`)
   - [ ] Investigate `tests/unit/test_user_data_handlers.py::TestUserDataHandlersConvenienceFunctions::test_update_user_account_valid_input` intermittent parallel failure (cross-user write/read mismatch observed in flaky detector and targeted xdist runs)
   - [ ] Investigate `tests/unit/test_user_data_handlers.py::TestUserDataHandlersConvenienceFunctions::test_save_user_data_transaction_valid_input` intermittent parallel failure (cross-user write/read mismatch observed in flaky detector and targeted xdist runs)
   - [ ] Investigate `tests/behavior/test_user_management_coverage_expansion.py::TestUserManagementCoverageExpansion::test_load_account_data_auto_create_real_behavior` intermittent parallel failure (auto-created account occasionally returns empty `internal_username`)
