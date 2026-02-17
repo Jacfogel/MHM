@@ -4,7 +4,8 @@ Report generation methods for AIToolsService.
 Contains methods for generating AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.md.
 These methods are large (~4,300 lines total) and generate comprehensive status reports.
 """
-# pyright: reportAttributeAccessIssue=false
+
+# pyright: reportAttributeAccessIssue=false, reportGeneralTypeIssues=false
 
 import re
 from datetime import datetime
@@ -147,7 +148,9 @@ class ReportGenerationMixin:
         if file_counts:
             return file_counts
         details = tool_data.get("details", {})
-        detailed_issues = details.get("detailed_issues", {}) if isinstance(details, dict) else {}
+        detailed_issues = (
+            details.get("detailed_issues", {}) if isinstance(details, dict) else {}
+        )
         if isinstance(detailed_issues, dict):
             for file_path, issues in detailed_issues.items():
                 if isinstance(issues, list):
@@ -171,14 +174,20 @@ class ReportGenerationMixin:
         """Return code-docstring metrics from analyze_functions (canonical source)."""
         data = function_data
         if not isinstance(data, dict):
-            data = self._load_tool_data("analyze_functions", "functions", log_source=False)
+            data = self._load_tool_data(
+                "analyze_functions", "functions", log_source=False
+            )
         if not isinstance(data, dict):
             return {"total": 0, "undocumented": 0, "documented": 0, "coverage": None}
         details = data.get("details", {})
         if not isinstance(details, dict):
             details = {}
-        total = self._coerce_int(details.get("total_functions", data.get("total_functions", 0)))
-        undocumented = self._coerce_int(details.get("undocumented", data.get("undocumented", 0)))
+        total = self._coerce_int(
+            details.get("total_functions", data.get("total_functions", 0))
+        )
+        undocumented = self._coerce_int(
+            details.get("undocumented", data.get("undocumented", 0))
+        )
         if total < 0:
             total = 0
         if undocumented < 0:
@@ -199,7 +208,9 @@ class ReportGenerationMixin:
         in_memory = getattr(self, "tier3_test_outcome", None)
         if isinstance(in_memory, dict) and in_memory.get("state"):
             return in_memory
-        coverage_result = self._load_tool_data("analyze_test_coverage", "tests", log_source=False)
+        coverage_result = self._load_tool_data(
+            "analyze_test_coverage", "tests", log_source=False
+        )
         if not isinstance(coverage_result, dict):
             return {}
         details = coverage_result.get("details", {})
@@ -222,7 +233,9 @@ class ReportGenerationMixin:
     def _effective_tier3_state_from_outcome(self, outcome: Dict[str, Any]) -> str:
         """Return effective Tier 3 state including development-tools test outcome."""
         state = outcome.get("state", "") if isinstance(outcome, dict) else ""
-        dev_tools = outcome.get("development_tools", {}) if isinstance(outcome, dict) else {}
+        dev_tools = (
+            outcome.get("development_tools", {}) if isinstance(outcome, dict) else {}
+        )
         dev_state = dev_tools.get("state", "") if isinstance(dev_tools, dict) else ""
 
         if state == "coverage_failed":
@@ -255,9 +268,21 @@ class ReportGenerationMixin:
         }
         if actionable_only and state not in actionable_states:
             return
-        parallel = outcome.get("parallel", {}) if isinstance(outcome.get("parallel"), dict) else {}
-        no_parallel = outcome.get("no_parallel", {}) if isinstance(outcome.get("no_parallel"), dict) else {}
-        dev_tools = outcome.get("development_tools", {}) if isinstance(outcome.get("development_tools"), dict) else {}
+        parallel = (
+            outcome.get("parallel", {})
+            if isinstance(outcome.get("parallel"), dict)
+            else {}
+        )
+        no_parallel = (
+            outcome.get("no_parallel", {})
+            if isinstance(outcome.get("no_parallel"), dict)
+            else {}
+        )
+        dev_tools = (
+            outcome.get("development_tools", {})
+            if isinstance(outcome.get("development_tools"), dict)
+            else {}
+        )
         failed_nodes = outcome.get("failed_node_ids", [])
 
         lines.append("## Tier 3 Test Outcome")
@@ -495,9 +520,9 @@ class ReportGenerationMixin:
         ):
             missing_error_handlers = details_missing
 
-        error_coverage = error_details.get("analyze_error_handling") or error_details.get(
-            "error_handling_coverage"
-        )
+        error_coverage = error_details.get(
+            "analyze_error_handling"
+        ) or error_details.get("error_handling_coverage")
         error_total = error_details.get("total_functions")
         error_with_handling = error_details.get("functions_with_error_handling")
         canonical_total = metrics.get("total_functions")
@@ -580,7 +605,9 @@ class ReportGenerationMixin:
                         if "decision_support" in cached_data["results"]:
                             ds_data = cached_data["results"]["decision_support"]
                             ds_details = self._get_decision_support_details(
-                                ds_data.get("data") if isinstance(ds_data, dict) else None
+                                ds_data.get("data")
+                                if isinstance(ds_data, dict)
+                                else None
                             )
                             if ds_details:
                                 if total_functions == "Unknown":
@@ -625,7 +652,9 @@ class ReportGenerationMixin:
         # Registry data is used for registry-gaps reporting only.
         registry_data = self._load_tool_data("analyze_function_registry", "functions")
         if not isinstance(registry_data, dict):
-            registry_data = self._load_tool_data("analyze_function_registry", "functions")
+            registry_data = self._load_tool_data(
+                "analyze_function_registry", "functions"
+            )
 
         # Fallback to cached results
         if (
@@ -683,7 +712,9 @@ class ReportGenerationMixin:
                     func_documented = total_functions - func_undocumented
                     coverage_pct = (func_documented / total_functions) * 100
                     doc_coverage = f"{coverage_pct:.2f}%"
-                    functions_without_docstrings = self._coerce_int(func_undocumented, 0)
+                    functions_without_docstrings = self._coerce_int(
+                        func_undocumented, 0
+                    )
 
         # Check registry for missing items (if not already loaded above)
         if not isinstance(registry_data, dict) or missing_docs is None:
@@ -1230,12 +1261,16 @@ class ReportGenerationMixin:
         else:
             if overlap_analysis_ran:
                 if overlap_data_source == "cached":
-                    lines.append("- **Status**: No overlaps detected (cached overlap data)")
+                    lines.append(
+                        "- **Status**: No overlaps detected (cached overlap data)"
+                    )
                     lines.append(
                         "  - Using cached overlap data (run `audit --full` or `--overlap` flag for latest validation)"
                     )
                 else:
-                    lines.append("- **Status**: No overlaps detected (analysis performed)")
+                    lines.append(
+                        "- **Status**: No overlaps detected (analysis performed)"
+                    )
                     lines.append(
                         "  - Overlap analysis ran but found no section overlaps or consolidation opportunities"
                     )
@@ -2009,13 +2044,17 @@ class ReportGenerationMixin:
             "analyze_duplicate_functions", "functions"
         )
 
-        analyze_details = analyze_data.get("details", {}) if isinstance(analyze_data, dict) else {}
+        analyze_details = (
+            analyze_data.get("details", {}) if isinstance(analyze_data, dict) else {}
+        )
         section_overlaps = analyze_data.get("section_overlaps")
         if section_overlaps is None and isinstance(analyze_details, dict):
             section_overlaps = analyze_details.get("section_overlaps", {})
         consolidation_recs = analyze_data.get("consolidation_recommendations")
         if consolidation_recs is None and isinstance(analyze_details, dict):
-            consolidation_recs = analyze_details.get("consolidation_recommendations", [])
+            consolidation_recs = analyze_details.get(
+                "consolidation_recommendations", []
+            )
         if section_overlaps is None:
             section_overlaps = {}
         if consolidation_recs is None:
@@ -3300,7 +3339,10 @@ class ReportGenerationMixin:
                 decision_metrics = self._get_decision_support_details(
                     self.results_cache.get("decision_support")
                 )
-                if decision_metrics and "critical_complexity_examples" in decision_metrics:
+                if (
+                    decision_metrics
+                    and "critical_complexity_examples" in decision_metrics
+                ):
                     critical_examples = decision_metrics.get(
                         "critical_complexity_examples", []
                     )
@@ -3325,10 +3367,14 @@ class ReportGenerationMixin:
                                 "decision_support", "functions", log_source=False
                             )
                             if decision_data and isinstance(decision_data, dict):
-                                decision_metrics_from_tool = self._get_decision_support_details(
-                                    decision_data
+                                decision_metrics_from_tool = (
+                                    self._get_decision_support_details(decision_data)
                                 )
-                                if decision_metrics_from_tool and "critical_complexity_examples" in decision_metrics_from_tool:
+                                if (
+                                    decision_metrics_from_tool
+                                    and "critical_complexity_examples"
+                                    in decision_metrics_from_tool
+                                ):
                                     critical_examples = decision_metrics_from_tool.get(
                                         "critical_complexity_examples", []
                                     )
@@ -3636,13 +3682,27 @@ class ReportGenerationMixin:
         }
         if tier3_state in actionable_tier3_states:
             tier3_bullets: List[str] = []
-            parallel_outcome = tier3_outcome.get("parallel", {}) if isinstance(tier3_outcome.get("parallel"), dict) else {}
-            no_parallel_outcome = tier3_outcome.get("no_parallel", {}) if isinstance(tier3_outcome.get("no_parallel"), dict) else {}
-            dev_tools_outcome = tier3_outcome.get("development_tools", {}) if isinstance(tier3_outcome.get("development_tools"), dict) else {}
+            parallel_outcome = (
+                tier3_outcome.get("parallel", {})
+                if isinstance(tier3_outcome.get("parallel"), dict)
+                else {}
+            )
+            no_parallel_outcome = (
+                tier3_outcome.get("no_parallel", {})
+                if isinstance(tier3_outcome.get("no_parallel"), dict)
+                else {}
+            )
+            dev_tools_outcome = (
+                tier3_outcome.get("development_tools", {})
+                if isinstance(tier3_outcome.get("development_tools"), dict)
+                else {}
+            )
             failed_nodes = tier3_outcome.get("failed_node_ids", [])
             if tier3_state == "coverage_failed":
                 tier3_title = "Fix Tier 3 coverage run failures"
-                tier3_reason = "Tier 3 coverage orchestration reported a coverage failure outcome."
+                tier3_reason = (
+                    "Tier 3 coverage orchestration reported a coverage failure outcome."
+                )
                 tier3_bullets.append(
                     f"Parallel: {parallel_outcome.get('state', 'unknown')}, no-parallel: {no_parallel_outcome.get('state', 'unknown')}, dev-tools: {dev_tools_outcome.get('state', 'unknown')}."
                 )
@@ -3654,7 +3714,9 @@ class ReportGenerationMixin:
                 )
             else:
                 tier3_title = "Fix Tier 3 failing/erroring tests"
-                tier3_reason = "Tier 3 test outcomes include failed and/or errored tracks."
+                tier3_reason = (
+                    "Tier 3 test outcomes include failed and/or errored tracks."
+                )
                 tier3_bullets.append(
                     f"Parallel failed={parallel_outcome.get('failed_count', 0)}, errors={parallel_outcome.get('error_count', 0)}."
                 )
@@ -3761,7 +3823,10 @@ class ReportGenerationMixin:
         registry_missing_docstrings = (
             to_int(registry_analysis.get("undocumented_handlers_total", 0)) or 0
         ) + (to_int(registry_analysis.get("undocumented_other_total", 0)) or 0)
-        if missing_docs_count_for_priority is not None and registry_doc_coverage_value is not None:
+        if (
+            missing_docs_count_for_priority is not None
+            and registry_doc_coverage_value is not None
+        ):
             watch_list.append(
                 "Docstring metrics: "
                 f"code-docstrings={missing_docs_count_for_priority} missing, "
@@ -3788,7 +3853,9 @@ class ReportGenerationMixin:
             and not dependency_payload
             and isinstance(dependency_patterns_data, dict)
         ):
-            dependency_payload = dependency_patterns_data.get("data", dependency_patterns_data)
+            dependency_payload = dependency_patterns_data.get(
+                "data", dependency_patterns_data
+            )
         if isinstance(dependency_payload, dict):
             circular_dependency_count = len(
                 dependency_payload.get("circular_dependencies", []) or []
@@ -4106,7 +4173,9 @@ class ReportGenerationMixin:
             self._load_dev_tools_coverage()
 
         legacy_data = self._load_tool_data("analyze_legacy_references", "legacy")
-        legacy_summary = getattr(self, "legacy_cleanup_summary", None) or legacy_data or {}
+        legacy_summary = (
+            getattr(self, "legacy_cleanup_summary", None) or legacy_data or {}
+        )
 
         # Get missing docstrings count for consolidated report
         func_undocumented = self._coerce_int(code_doc_metrics.get("undocumented"), 0)
@@ -4344,8 +4413,12 @@ class ReportGenerationMixin:
             )
             doc_sync_summary_for_signals = {
                 "status": docs_sync_summary_summary.get("status", "UNKNOWN"),
-                "path_drift_issues": docs_sync_summary_details.get("path_drift_issues", 0),
-                "paired_doc_issues": docs_sync_summary_details.get("paired_doc_issues", 0),
+                "path_drift_issues": docs_sync_summary_details.get(
+                    "path_drift_issues", 0
+                ),
+                "paired_doc_issues": docs_sync_summary_details.get(
+                    "paired_doc_issues", 0
+                ),
                 "ascii_issues": docs_sync_summary_details.get("ascii_issues", 0),
                 "heading_numbering_issues": docs_sync_summary_details.get(
                     "heading_numbering_issues", 0
@@ -4356,15 +4429,27 @@ class ReportGenerationMixin:
                 "unconverted_link_issues": docs_sync_summary_details.get(
                     "unconverted_link_issues", 0
                 ),
-                "path_drift_files": docs_sync_summary_details.get("path_drift_files", []),
+                "path_drift_files": docs_sync_summary_details.get(
+                    "path_drift_files", []
+                ),
             }
 
         if not doc_sync_summary_for_signals:
             doc_sync_result = self._load_tool_data("analyze_documentation_sync", "docs")
             if doc_sync_result:
-                cached_metrics = doc_sync_result if isinstance(doc_sync_result, dict) else {}
-                summary = cached_metrics.get("summary", {}) if isinstance(cached_metrics, dict) else {}
-                details = cached_metrics.get("details", {}) if isinstance(cached_metrics, dict) else {}
+                cached_metrics = (
+                    doc_sync_result if isinstance(doc_sync_result, dict) else {}
+                )
+                summary = (
+                    cached_metrics.get("summary", {})
+                    if isinstance(cached_metrics, dict)
+                    else {}
+                )
+                details = (
+                    cached_metrics.get("details", {})
+                    if isinstance(cached_metrics, dict)
+                    else {}
+                )
                 doc_sync_summary_for_signals = {
                     "status": summary.get("status", "UNKNOWN"),
                     "path_drift_issues": details.get("path_drift_issues", 0),
@@ -4777,12 +4862,16 @@ class ReportGenerationMixin:
         else:
             if overlap_analysis_ran:
                 if overlap_data_source == "cached":
-                    lines.append("- **Status**: No overlaps detected (cached overlap data)")
+                    lines.append(
+                        "- **Status**: No overlaps detected (cached overlap data)"
+                    )
                     lines.append(
                         "  - Using cached overlap data (run `audit --full` or `--overlap` flag for latest validation)"
                     )
                 else:
-                    lines.append("- **Status**: No overlaps detected (analysis performed)")
+                    lines.append(
+                        "- **Status**: No overlaps detected (analysis performed)"
+                    )
                     lines.append(
                         "  - Overlap analysis ran but found no section overlaps or consolidation opportunities"
                     )
@@ -5192,9 +5281,7 @@ class ReportGenerationMixin:
                     ]
                     if unused_imports_data and isinstance(unused_imports_data, dict):
                         summary = unused_imports_data.get("summary", {})
-                        total_files_with_issues = summary.get(
-                            "files_affected", 0
-                        )
+                        total_files_with_issues = summary.get("files_affected", 0)
                     else:
                         total_files_with_issues = len(file_counts)
                     if total_files_with_issues > 5:
@@ -5405,7 +5492,10 @@ class ReportGenerationMixin:
 
         # Try loading from decision_support (standard format)
         if decision_metrics:
-            if not critical_examples and "critical_complexity_examples" in decision_metrics:
+            if (
+                not critical_examples
+                and "critical_complexity_examples" in decision_metrics
+            ):
                 critical_examples = decision_metrics.get(
                     "critical_complexity_examples", []
                 )
@@ -6119,7 +6209,9 @@ class ReportGenerationMixin:
         except (ImportError, AttributeError, KeyError):
             ai_status_path = "development_tools/AI_STATUS.md"
             ai_priorities_path = "development_tools/AI_PRIORITIES.md"
-            results_file_path = "development_tools/reports/analysis_detailed_results.json"
+            results_file_path = (
+                "development_tools/reports/analysis_detailed_results.json"
+            )
 
         lines.append(f"- Latest AI status: [AI_STATUS.md]({ai_status_path})")
         lines.append(

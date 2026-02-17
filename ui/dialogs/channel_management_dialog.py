@@ -1,5 +1,5 @@
 # channel_management_dialog.py
-# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false
 
 """Channel Management Dialog"""
 

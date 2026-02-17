@@ -1,5 +1,5 @@
 # schedule_editor_dialog.py - Schedule editor dialog implementation using generated UI class (no QUiLoader)
-# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false
 
 """
 Schedule Editor Dialog

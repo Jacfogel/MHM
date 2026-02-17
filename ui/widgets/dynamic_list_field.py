@@ -1,5 +1,5 @@
 # dynamic_list_field.py
-# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false
 
 """Dynamic List Field"""
 

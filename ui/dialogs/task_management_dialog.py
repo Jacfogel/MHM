@@ -1,5 +1,5 @@
 # task_management_dialog.py
-# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false
 
 """Task Management Dialog"""
 

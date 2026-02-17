@@ -1,5 +1,5 @@
 # checkin_settings_widget.py
-# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false
 
 """Checkin Settings Widget"""
 

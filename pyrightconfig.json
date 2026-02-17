@@ -19,9 +19,8 @@
   "reportUnsupportedDunderAll": "none",
   // To suppress only stub/library false positives without hiding future issues:
   // - Prefer code fixes (getattr/setattr, guards) so the checker is satisfied.
-  // - For a single line: add at end of line: # type: ignore[reportAttributeAccessIssue]
-  // - Per-file: use # type: ignore[reportAttributeAccessIssue] on specific lines; Pyright has no "overrides" setting.
-  // ignore = suppress diagnostics; empty = no path-based suppression (UI and tests are type-checked).
+  // - Per-file: # pyright: reportAttributeAccessIssue=false (and/or reportOptionalMemberAccess=false, reportGeneralTypeIssues=false).
+  // ignore = suppress diagnostics for paths; empty = no path-based suppression.
   "ignore": [],
   // exclude = not type-checked. Can hide issues; see comments below.
   "exclude": [

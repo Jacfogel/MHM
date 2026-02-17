@@ -1,5 +1,5 @@
 # checkin_management_dialog.py
-# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false
 
 """Check-in management dialog implementation."""
 

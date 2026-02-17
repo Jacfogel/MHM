@@ -1,5 +1,5 @@
 # admin_panel.py
-# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false
 
 """Admin Panel Dialog"""
 

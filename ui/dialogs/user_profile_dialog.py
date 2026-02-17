@@ -1,5 +1,5 @@
 # user_profile_dialog.py
-# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false
 
 """
 Personalization dialog for user account creation and management (PySide6-based).

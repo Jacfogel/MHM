@@ -1,5 +1,5 @@
 # account_creator_dialog.py
-# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false
 
 """Account Creator Dialog"""
 

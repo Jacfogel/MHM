@@ -1,5 +1,5 @@
 # dynamic_list_container.py
-# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false
 
 """Dynamic List Container"""
 

@@ -1,5 +1,5 @@
 # user_profile_settings_widget.py
-# pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false
 
 """
 User Profile Settings Widget

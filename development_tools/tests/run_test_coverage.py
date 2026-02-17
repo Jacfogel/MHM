@@ -600,18 +600,17 @@ class CoverageMetricsRegenerator:
         if not coverage_dir.exists():
             return artifacts
 
-        artifacts["parallel_shards"].extend(coverage_dir.glob(".coverage_parallel.worker*"))
         artifacts["parallel_shards"].extend(
-            [
-                f
-                for f in coverage_dir.glob(".coverage.worker*")
-                if f.name != ".coverage"
-            ]
+            coverage_dir.glob(".coverage_parallel.worker*")
+        )
+        artifacts["parallel_shards"].extend(
+            [f for f in coverage_dir.glob(".coverage.worker*") if f.name != ".coverage"]
         )
         artifacts["parallel_shards"] = [
             f
             for f in artifacts["parallel_shards"]
-            if f.name not in {".coverage_parallel", ".coverage_no_parallel", ".coverage"}
+            if f.name
+            not in {".coverage_parallel", ".coverage_no_parallel", ".coverage"}
         ]
 
         artifacts["project_root_shards"].extend(
@@ -637,7 +636,10 @@ class CoverageMetricsRegenerator:
         import time
 
         start = time.time()
-        discovered: Dict[str, List[Path]] = {"parallel_shards": [], "project_root_shards": []}
+        discovered: Dict[str, List[Path]] = {
+            "parallel_shards": [],
+            "project_root_shards": [],
+        }
         while time.time() - start < timeout_seconds:
             discovered = self._discover_parallel_coverage_artifacts(coverage_dir)
             shard_count = len(discovered["parallel_shards"])
@@ -2136,7 +2138,9 @@ class CoverageMetricsRegenerator:
                         no_parallel_ok = None
                         no_parallel_coverage_present = None
                         failed_domains = set()
-                        failed_or_error_tests = list(test_results.get("failed_tests", []))
+                        failed_or_error_tests = list(
+                            test_results.get("failed_tests", [])
+                        )
                         failed_or_error_tests.extend(
                             test_results.get("error_tests", [])
                         )
@@ -2236,12 +2240,12 @@ class CoverageMetricsRegenerator:
                     and not parallel_exists
                     and coverage_file.exists()
                     and logger
-                    ):
-                        logger.warning(
-                            f"No shard files found and .coverage_parallel doesn't exist, but .coverage exists. "
-                            f"This suggests pytest-cov may have auto-combined shard files into .coverage. "
-                            f"Will attempt to use .coverage as parallel coverage source."
-                        )
+                ):
+                    logger.warning(
+                        f"No shard files found and .coverage_parallel doesn't exist, but .coverage exists. "
+                        f"This suggests pytest-cov may have auto-combined shard files into .coverage. "
+                        f"Will attempt to use .coverage as parallel coverage source."
+                    )
 
                 # Check project root for shard files (shouldn't be there, but copy if found)
                 project_root_shards = shard_detection["project_root_shards"]
@@ -2918,11 +2922,10 @@ class CoverageMetricsRegenerator:
                                                 f"Shard files found: {shard_files_count}"
                                             )
 
-                                        final_cache_write_allowed = (
-                                            test_results.get("failed_count", 0) == 0
-                                            and not test_results.get(
-                                                "maxfail_reached", False
-                                            )
+                                        final_cache_write_allowed = test_results.get(
+                                            "failed_count", 0
+                                        ) == 0 and not test_results.get(
+                                            "maxfail_reached", False
                                         )
                                         if self.parallel:
                                             final_cache_write_allowed = (
@@ -3162,7 +3165,9 @@ class CoverageMetricsRegenerator:
                     if isinstance(no_parallel_test_results, dict)
                     else {}
                 ),
-                output=no_parallel_output if isinstance(no_parallel_output, str) else "",
+                output=(
+                    no_parallel_output if isinstance(no_parallel_output, str) else ""
+                ),
             )
             combined_failed_nodes = list(parallel_outcome.get("failed_node_ids", []))
             combined_failed_nodes.extend(no_parallel_outcome.get("failed_node_ids", []))
@@ -3765,8 +3770,16 @@ class CoverageMetricsRegenerator:
                 ),
                 output="\n".join(
                     [
-                        result.stdout if hasattr(result, "stdout") and result.stdout else "",
-                        result.stderr if hasattr(result, "stderr") and result.stderr else "",
+                        (
+                            result.stdout
+                            if hasattr(result, "stdout") and result.stdout
+                            else ""
+                        ),
+                        (
+                            result.stderr
+                            if hasattr(result, "stderr") and result.stderr
+                            else ""
+                        ),
                     ]
                 ),
             )
@@ -4059,7 +4072,9 @@ class CoverageMetricsRegenerator:
                         results["error_tests"].append(test_match.group(1).strip())
 
         if results["error_tests"]:
-            results["error_count"] = max(results["error_count"], len(results["error_tests"]))
+            results["error_count"] = max(
+                results["error_count"], len(results["error_tests"])
+            )
 
         return results
 
@@ -4074,9 +4089,7 @@ class CoverageMetricsRegenerator:
         if not output:
             return False
         lowered = output.lower()
-        return (
-            "cleanup_dead_symlinks" in lowered and "permissionerror" in lowered
-        )
+        return "cleanup_dead_symlinks" in lowered and "permissionerror" in lowered
 
     def _build_track_outcome(
         self,
@@ -4123,7 +4136,10 @@ class CoverageMetricsRegenerator:
         }
 
     def _classify_coverage_outcome(
-        self, parallel: Dict[str, Any], no_parallel: Dict[str, Any], coverage_collected: bool
+        self,
+        parallel: Dict[str, Any],
+        no_parallel: Dict[str, Any],
+        coverage_collected: bool,
     ) -> str:
         """Compute aggregate coverage/test outcome state for Tier 3 reporting."""
         if not coverage_collected:
