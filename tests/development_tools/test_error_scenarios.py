@@ -146,6 +146,7 @@ class TestInvalidInputHandling:
         )
         if spec is None or spec.loader is None:
             pytest.skip("Could not load standard_exclusions spec")
+        assert spec is not None and spec.loader is not None  # type narrow for pyright
         exclusions_module = importlib.util.module_from_spec(spec)
         sys.modules["development_tools.shared.standard_exclusions"] = exclusions_module
         spec.loader.exec_module(exclusions_module)
@@ -171,6 +172,7 @@ class TestInvalidInputHandling:
         )
         if spec is None or spec.loader is None:
             pytest.skip("Could not load constants spec")
+        assert spec is not None and spec.loader is not None  # type narrow for pyright
         constants_module = importlib.util.module_from_spec(spec)
         sys.modules["development_tools.shared.constants"] = constants_module
         spec.loader.exec_module(constants_module)

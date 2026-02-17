@@ -19,7 +19,7 @@ if str(project_root) not in sys.path:
 
 # Handle both relative and absolute imports
 try:
-    from . import config
+    from .. import config
     from .analyze_test_markers import TestMarkerAnalyzer
 except ImportError:
     from development_tools import config

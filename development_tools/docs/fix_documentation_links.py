@@ -17,7 +17,7 @@ Usage:
 import re
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -78,7 +78,7 @@ class DocumentationLinkFixer:
         # Heuristic detection (header markers, /generated/, suffix patterns, _pyqt.py)
         return is_generated_file(str(file_path))
 
-    def fix_convert_links(self, dry_run: bool = False) -> Dict[str, any]:
+    def fix_convert_links(self, dry_run: bool = False) -> Dict[str, Any]:
         """
         Convert file path references to markdown links in documentation.
 

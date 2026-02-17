@@ -29,6 +29,10 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-02-17 - Pyright + dev-tools cleanup (mixin overrides, refactor tasks, unused imports) **Largely Complete**
+- Pyright in development_tools: 0 errors, 2 warnings. Fixed real issues (SCRIPT_REGISTRY, domain_mapper guard, Optional[Set[str]], report_generation optional access, changelog_manager getattr, measure_tool_timings method name). Suppressed mixin attribute-access warnings via `# pyright: reportAttributeAccessIssue=false` in the six service mixin files.
+- Added AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md section 3.16 to explore refactoring report_generation.py and run_test_coverage.py (map structure, refactor plan, effort estimate).
+
 ### 2026-02-16 - Static logging check migration + docs/plans refresh **COMPLETED**
 - Relocated static logging enforcement script usage to `development_tools/static_checks/check_channel_loggers.py` and updated all active references (`.github/workflows/logging-enforcement.yml`, `run_tests.py`, `tests/behavior/test_static_logging_check.py`, [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)).
 - Updated planning/ownership docs for script migration and backup confidence work: [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md); removed stale retired-script mention from [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md).

@@ -14,13 +14,21 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 from core.time_utilities import now_timestamp_full, now_timestamp_filename
 
-# Try to import file locking (Unix/Linux)
+# Try to import file locking (Unix/Linux); use getattr so Pyright is happy on Windows stubs
 try:
     import fcntl
 
     HAS_FCNTL = True
+    FCNTL_FLOCK = getattr(fcntl, "flock", None)
+    FCNTL_LOCK_SH = getattr(fcntl, "LOCK_SH", 0)
+    FCNTL_LOCK_EX = getattr(fcntl, "LOCK_EX", 0)
+    FCNTL_LOCK_UN = getattr(fcntl, "LOCK_UN", 0)
 except ImportError:
     HAS_FCNTL = False
+    FCNTL_FLOCK = None
+    FCNTL_LOCK_SH = 0
+    FCNTL_LOCK_EX = 0
+    FCNTL_LOCK_UN = 0
 
 # Try to import Windows file locking
 try:
@@ -107,9 +115,9 @@ class DevToolsCoverageCache:
                 for attempt in range(max_retries):
                     try:
                         with open(self.cache_file, "r", encoding="utf-8") as f:
-                            if HAS_FCNTL:
+                            if HAS_FCNTL and FCNTL_FLOCK is not None:
                                 try:
-                                    fcntl.flock(f.fileno(), fcntl.LOCK_SH)
+                                    FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_SH)
                                 except (OSError, AttributeError):
                                     pass
                             elif HAS_MSVCRT:
@@ -120,9 +128,9 @@ class DevToolsCoverageCache:
 
                             self.cache_data = json.load(f)
 
-                            if HAS_FCNTL:
+                            if HAS_FCNTL and FCNTL_FLOCK is not None:
                                 try:
-                                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                                    FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_UN)
                                 except (OSError, AttributeError):
                                     pass
                             elif HAS_MSVCRT:
@@ -179,9 +187,9 @@ class DevToolsCoverageCache:
             for attempt in range(max_retries):
                 try:
                     with open(temp_file, "w", encoding="utf-8") as f:
-                        if HAS_FCNTL:
+                        if HAS_FCNTL and FCNTL_FLOCK is not None:
                             try:
-                                fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+                                FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_EX)
                             except (OSError, AttributeError):
                                 pass
                         elif HAS_MSVCRT:
@@ -194,9 +202,9 @@ class DevToolsCoverageCache:
                         f.flush()
                         os.fsync(f.fileno())
 
-                        if HAS_FCNTL:
+                        if HAS_FCNTL and FCNTL_FLOCK is not None:
                             try:
-                                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                                FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_UN)
                             except (OSError, AttributeError):
                                 pass
                         elif HAS_MSVCRT:

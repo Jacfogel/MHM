@@ -3,6 +3,7 @@ Tool wrapper methods for AIToolsService.
 
 Contains methods for running analysis, generation, and fix tools.
 """
+# pyright: reportAttributeAccessIssue=false
 
 import json
 import os

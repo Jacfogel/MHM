@@ -17,7 +17,7 @@ Usage:
 import re
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -52,7 +52,7 @@ class DocumentationAddressFixer:
         else:
             self.project_root = Path(config.get_project_root()).resolve()
 
-    def fix_add_addresses(self, dry_run: bool = False) -> Dict[str, any]:
+    def fix_add_addresses(self, dry_run: bool = False) -> Dict[str, Any]:
         """Add file addresses to documentation files that don't have them."""
         updated = 0
         skipped = 0

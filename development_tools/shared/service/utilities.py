@@ -4,6 +4,7 @@ Utility functions for AIToolsService.
 Contains pure utility functions that don't depend on instance state.
 These can be used as mixin methods or standalone functions.
 """
+# pyright: reportAttributeAccessIssue=false
 
 import re
 from typing import Any, Dict, List, Optional, Sequence
@@ -97,7 +98,7 @@ def create_standard_format_result(total_issues: int, files_affected: int,
 # Mixin class for adding utility methods to AIToolsService
 class UtilitiesMixin:
     """Mixin class providing utility methods to AIToolsService."""
-    
+
     def _format_list_for_display(self, items: Sequence[str], limit: int = 3) -> str:
         """Return a concise, comma-separated list with optional overflow marker."""
         return format_list_for_display(items, limit)

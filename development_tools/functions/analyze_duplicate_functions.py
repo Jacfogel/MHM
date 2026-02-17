@@ -37,7 +37,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Set, Tuple, TypedDict, Union
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, TypedDict, Union
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -293,28 +293,34 @@ def _serialize_records(records: List[FunctionRecord]) -> List[Dict[str, object]]
     ]
 
 
-def _deserialize_records(data: List[Dict[str, object]]) -> List[FunctionRecord]:
+def _deserialize_records(data: List[Dict[str, Any]]) -> List[FunctionRecord]:
     records: List[FunctionRecord] = []
     for item in data:
         if not isinstance(item, dict):
             continue
+        class_name_raw = item.get("class_name")
+        class_name = class_name_raw if isinstance(class_name_raw, str) else None
+        line_raw = item.get("line", 0)
+        line = int(line_raw) if isinstance(line_raw, (int, float)) else 0
+        args_raw = item.get("args", [])
+        args_seq = args_raw if isinstance(args_raw, (list, tuple)) else []
+        locals_raw = item.get("locals_used", [])
+        locals_seq = locals_raw if isinstance(locals_raw, (list, tuple)) else []
+        imports_raw = item.get("imports_used", [])
+        imports_seq = imports_raw if isinstance(imports_raw, (list, tuple)) else []
+        tokens_raw = item.get("name_tokens", [])
+        tokens_seq = tokens_raw if isinstance(tokens_raw, (list, tuple)) else []
         records.append(
             FunctionRecord(
                 name=str(item.get("name", "")),
                 full_name=str(item.get("full_name", "")),
-                class_name=item.get("class_name"),
+                class_name=class_name,
                 file_path=str(item.get("file_path", "")),
-                line=int(item.get("line", 0) or 0),
-                args=tuple(str(arg).lower() for arg in item.get("args", []) or []),
-                locals_used=tuple(
-                    str(name).lower() for name in item.get("locals_used", []) or []
-                ),
-                imports_used=tuple(
-                    str(name) for name in item.get("imports_used", []) or []
-                ),
-                name_tokens=tuple(
-                    str(token) for token in item.get("name_tokens", []) or []
-                ),
+                line=line,
+                args=tuple(str(arg).lower() for arg in args_seq),
+                locals_used=tuple(str(name).lower() for name in locals_seq),
+                imports_used=tuple(str(name) for name in imports_seq),
+                name_tokens=tuple(str(token) for token in tokens_seq),
                 excluded=bool(item.get("excluded", False)),
             )
         )
@@ -489,7 +495,7 @@ def _analyze_duplicates(
     records: List[FunctionRecord],
     config_values: Dict,
     cache_stats: Optional[Dict[str, int]] = None,
-) -> Dict[str, object]:
+) -> Dict[str, Any]:
     weights = config_values.get("weights", {})
     min_name_similarity = float(config_values.get("min_name_similarity", 0.6))
     min_overall_similarity = float(config_values.get("min_overall_similarity", 0.7))
@@ -744,8 +750,8 @@ def main() -> int:
     if args.json:
         print(json.dumps(result, indent=2))
     else:
-        summary = result.get("summary", {})
-        details = result.get("details", {})
+        summary: Dict[str, Any] = result.get("summary") or {}
+        details: Dict[str, Any] = result.get("details") or {}
         print("Possible Duplicate Functions")
         print("=" * 30)
         print(f"Total functions analyzed: {details.get('total_functions', 0)}")

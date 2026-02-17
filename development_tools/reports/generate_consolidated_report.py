@@ -13,6 +13,7 @@ that are used by AI collaborators and human developers.
 
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -33,7 +34,7 @@ logger = get_component_logger("development_tools")
 
 
 def generate_consolidated_reports(
-    project_root: str = None, config_path: str = None
+    project_root: Optional[str] = None, config_path: Optional[str] = None
 ) -> dict:
     """
     Generate all consolidated reports (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.md).

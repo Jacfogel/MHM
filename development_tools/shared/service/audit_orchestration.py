@@ -4,6 +4,7 @@ Audit orchestration methods for AIToolsService.
 Contains methods for running audits in three tiers (quick, standard, full)
 and managing audit state.
 """
+# pyright: reportAttributeAccessIssue=false
 
 import json
 import time
@@ -40,7 +41,7 @@ def _get_status_file_mtimes(project_root: Path) -> Dict[str, float]:
     """Get modification times for all status files."""
     # Get status file paths from config
     try:
-        from .. import config
+        from ... import config
         status_config = config.get_status_config()
         status_files_config = status_config.get('status_files', {})
         status_files = {
@@ -71,7 +72,7 @@ def _is_audit_in_progress(project_root: Path) -> bool:
     if _AUDIT_LOCK_FILE is None:
         # Use generic path relative to project root (no development_tools/ assumption)
         try:
-            from .. import config
+            from ... import config
             lock_file_path = config.get_external_value('paths.audit_lock_file', '.audit_in_progress.lock')
             _AUDIT_LOCK_FILE = project_root / lock_file_path
         except (ImportError, AttributeError):
@@ -79,7 +80,7 @@ def _is_audit_in_progress(project_root: Path) -> bool:
     audit_lock_exists = _AUDIT_LOCK_FILE.exists()
     # Use generic path relative to project root (no development_tools/ assumption)
     try:
-        from .. import config
+        from ... import config
         coverage_lock_path = config.get_external_value('paths.coverage_lock_file', '.coverage_in_progress.lock')
         coverage_lock_file = project_root / coverage_lock_path
     except (ImportError, AttributeError):
@@ -129,7 +130,7 @@ class AuditOrchestrationMixin:
     def _get_audit_lock_file_path(self) -> Path:
         """Get audit lock file path (configurable via config, defaults to .audit_in_progress.lock relative to project root)."""
         try:
-            from .. import config
+            from ... import config
             # Default to generic path relative to project root (no development_tools/ assumption)
             lock_file_path = config.get_external_value('paths.audit_lock_file', '.audit_in_progress.lock')
             return self.project_root / lock_file_path
@@ -139,7 +140,7 @@ class AuditOrchestrationMixin:
     def _get_coverage_lock_file_path(self) -> Path:
         """Get coverage lock file path (configurable via config, defaults to .coverage_in_progress.lock relative to project root)."""
         try:
-            from .. import config
+            from ... import config
             # Default to generic path relative to project root (no development_tools/ assumption)
             lock_file_path = config.get_external_value('paths.coverage_lock_file', '.coverage_in_progress.lock')
             return self.project_root / lock_file_path
@@ -292,7 +293,7 @@ class AuditOrchestrationMixin:
                 # Generate status documents
                 # Get status file paths from config
                 try:
-                    from .. import config
+                    from ... import config
                     status_config = config.get_status_config()
                     status_files_config = status_config.get('status_files', {})
                     ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
@@ -1344,10 +1345,11 @@ class AuditOrchestrationMixin:
     def _check_and_trim_changelog_entries(self) -> None:
         """Check and trim AI_CHANGELOG entries to prevent bloat."""
         try:
-            from ai_development_docs import changelog_manager
+            import ai_development_docs
+            changelog_manager = getattr(ai_development_docs, "changelog_manager", None)
         except Exception:
             changelog_manager = None
-        if changelog_manager and hasattr(changelog_manager, 'trim_change_log'):
+        if changelog_manager and hasattr(changelog_manager, "trim_change_log"):
             try:
                 result = changelog_manager.trim_change_log()
                 if isinstance(result, dict):

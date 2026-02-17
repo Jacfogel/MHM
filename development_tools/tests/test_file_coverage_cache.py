@@ -29,13 +29,21 @@ from pathlib import Path
 from typing import Dict, Optional, Set, Any, List, Iterable
 from datetime import datetime
 
-# Try to import file locking (Unix/Linux)
+# Try to import file locking (Unix/Linux); use getattr so Pyright is happy on Windows stubs
 try:
     import fcntl
 
     HAS_FCNTL = True
+    FCNTL_FLOCK = getattr(fcntl, "flock", None)
+    FCNTL_LOCK_SH = getattr(fcntl, "LOCK_SH", 0)
+    FCNTL_LOCK_EX = getattr(fcntl, "LOCK_EX", 0)
+    FCNTL_LOCK_UN = getattr(fcntl, "LOCK_UN", 0)
 except ImportError:
     HAS_FCNTL = False
+    FCNTL_FLOCK = None
+    FCNTL_LOCK_SH = 0
+    FCNTL_LOCK_EX = 0
+    FCNTL_LOCK_UN = 0
 
 # Try to import Windows file locking
 try:
@@ -179,7 +187,8 @@ class TestFileCoverageCache:
                         with open(self.cache_file, "r", encoding="utf-8") as f:
                             if HAS_FCNTL:
                                 try:
-                                    fcntl.flock(f.fileno(), fcntl.LOCK_SH)
+                                    if FCNTL_FLOCK is not None:
+                                        FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_SH)
                                 except (OSError, AttributeError):
                                     pass
                             elif HAS_MSVCRT:
@@ -192,7 +201,8 @@ class TestFileCoverageCache:
 
                             if HAS_FCNTL:
                                 try:
-                                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                                    if FCNTL_FLOCK is not None:
+                                        FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_UN)
                                 except (OSError, AttributeError):
                                     pass
                             elif HAS_MSVCRT:
@@ -264,7 +274,8 @@ class TestFileCoverageCache:
                     with open(temp_file, "w", encoding="utf-8") as f:
                         if HAS_FCNTL:
                             try:
-                                fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+                                if FCNTL_FLOCK is not None:
+                                    FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_EX)
                             except (OSError, AttributeError):
                                 pass
                         elif HAS_MSVCRT:
@@ -279,7 +290,8 @@ class TestFileCoverageCache:
 
                         if HAS_FCNTL:
                             try:
-                                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                                if FCNTL_FLOCK is not None:
+                                    FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_UN)
                             except (OSError, AttributeError):
                                 pass
                         elif HAS_MSVCRT:

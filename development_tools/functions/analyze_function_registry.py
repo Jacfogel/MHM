@@ -268,7 +268,7 @@ def parse_registry_document(path: Path = REGISTRY_PATH) -> Dict[str, Set[str]]:
         if line.lower().startswith("**classes:**"):
             in_functions = False
             continue
-        if in_functions and line.startswith("-"):
+        if in_functions and line.startswith("-") and current_file is not None:
             name = extract_documented_name(line)
             if name:
                 mapping[current_file].add(name)

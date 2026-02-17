@@ -18,7 +18,7 @@ import re
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -50,7 +50,7 @@ class LegacyReferenceAnalyzer:
     def __init__(
         self,
         project_root: str = ".",
-        legacy_tokens: Dict[str, List[str]] = None,
+        legacy_tokens: Optional[Dict[str, List[str]]] = None,
         use_cache: bool = True,
     ):
         """

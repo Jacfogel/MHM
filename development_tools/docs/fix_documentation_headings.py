@@ -17,7 +17,7 @@ Usage:
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -377,7 +377,7 @@ class DocumentationHeadingFixer:
 
     def fix_number_headings(
         self, dry_run: bool = False, start_at_zero: bool = False
-    ) -> Dict[str, any]:
+    ) -> Dict[str, Any]:
         """Number H2 and H3 headings in documentation files."""
         files_updated = 0
         issues_fixed = 0

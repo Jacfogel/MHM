@@ -27,7 +27,7 @@ legacy patterns, follow these requirements:
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -65,7 +65,7 @@ class LegacyReferenceFixer:
     """Fixes legacy references in codebases (portable across projects)."""
 
     def __init__(
-        self, project_root: str = ".", replacement_mappings: Dict[str, str] = None
+        self, project_root: str = ".", replacement_mappings: Optional[Dict[str, str]] = None
     ):
         """
         Initialize legacy reference fixer.

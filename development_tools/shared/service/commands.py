@@ -3,6 +3,7 @@ Command execution methods for AIToolsService.
 
 Contains methods for executing various CLI commands (docs, validate, config, etc.)
 """
+# pyright: reportAttributeAccessIssue=false
 
 import json
 from datetime import datetime
@@ -95,13 +96,13 @@ class CommandsMixin:
         """Return latest mtime for files matching any glob pattern."""
         latest = 0.0
         exclude_prefixes = exclude_prefixes or []
-        exclude_paths = {path.replace("\\", "/") for path in (exclude_paths or [])}
+        exclude_paths_normalized = {path.replace("\\", "/") for path in (exclude_paths or [])}
         for pattern in patterns:
             for path in self.project_root.glob(pattern):
                 if not path.is_file():
                     continue
                 normalized = str(path.relative_to(self.project_root)).replace("\\", "/")
-                if normalized in exclude_paths:
+                if normalized in exclude_paths_normalized:
                     continue
                 if any(normalized.startswith(prefix) for prefix in exclude_prefixes):
                     continue
@@ -135,11 +136,11 @@ class CommandsMixin:
         # Invalidate when coverage runner implementation changes.
         if tool_names:
             try:
-                from ..script_registry import SCRIPT_REGISTRY
+                from .tool_wrappers import SCRIPT_REGISTRY
 
                 for tool_name in tool_names:
-                    script_entry = SCRIPT_REGISTRY.get(tool_name, {})
-                    script_path_str = script_entry.get("script")
+                    # SCRIPT_REGISTRY maps tool name -> script path string
+                    script_path_str = SCRIPT_REGISTRY.get(tool_name)
                     if not script_path_str:
                         continue
                     script_path = self.project_root / script_path_str
@@ -581,7 +582,7 @@ class CommandsMixin:
         if not skip_status_files:
             # Get status file paths from config
             try:
-                from .. import config
+                from ... import config
                 status_config = config.get_status_config()
                 status_files_config = status_config.get('status_files', {})
                 ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
@@ -710,6 +711,7 @@ class CommandsMixin:
                     "_cache_metadata": self._tool_cache_metadata["run_test_coverage"],
                 }
                 try:
+                    from ..output_storage import save_tool_result
                     save_tool_result(
                         "analyze_test_coverage",
                         "tests",

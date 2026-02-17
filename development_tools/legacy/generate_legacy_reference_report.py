@@ -19,7 +19,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -198,7 +198,7 @@ class LegacyReferenceReportGenerator:
 
         return "\n".join(report_lines)
 
-    def save_report(self, report: str, output_file: Path = None) -> Path:
+    def save_report(self, report: str, output_file: Optional[Path] = None) -> Path:
         """
         Save the report to a file.
 

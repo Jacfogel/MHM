@@ -1095,7 +1095,7 @@ def main():
     project_root = Path(__file__).parent.parent.parent
 
     # Run the check
-    checker = UnusedImportsChecker(project_root, verbose=args.verbose)
+    checker = UnusedImportsChecker(str(project_root), verbose=args.verbose)
     results = checker.scan_codebase()
 
     # Output JSON if --json flag is provided

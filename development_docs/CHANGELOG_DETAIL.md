@@ -33,6 +33,11 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-17 - Pyright and development-tools cleanup (mixin overrides, refactor tasks, unused imports)
+- **Pyright (development_tools)**: Reduced errors to 0 and warnings to 2 by fixing real issues (SCRIPT_REGISTRY usage in `commands.py`, `domain_mapper` None guard in `run_test_coverage.py`, `Optional[Set[str]]` in `data_freshness_audit.py`, `_error_metrics`/`_error_field` and optional-member access in `report_generation.py`, `changelog_manager` getattr in `audit_orchestration.py`, method name in `measure_tool_timings.py`) and addressing mixin attribute-access warnings via per-file override instead of stub declarations. Added `# pyright: reportAttributeAccessIssue=false` to the six service mixin files (`utilities.py`, `commands.py`, `audit_orchestration.py`, `data_loading.py`, `report_generation.py`, `tool_wrappers.py`) so only that diagnostic is suppressed there.
+- **Config**: `pyrightconfig.json` — removed invalid `overrides` reference from comment; development_tools is type-checked (no exclude).
+- **Planning**: Added section 3.16 to `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` to explore refactoring `report_generation.py` and `run_test_coverage.py` (Pyright "code too complex" warnings); tasks include mapping structure, identifying split points, and documenting a refactor plan before proceeding.
+
 ### 2026-02-16 - Static logging check migration, script governance planning, and audit artifact refresh
 - **Feature/Fix (static logging check relocation)**: Migrated static logging-enforcement execution path from `scripts/static_checks/check_channel_loggers.py` to `development_tools/static_checks/check_channel_loggers.py` and updated all active callsites/references:
   - CI workflow: `.github/workflows/logging-enforcement.yml`

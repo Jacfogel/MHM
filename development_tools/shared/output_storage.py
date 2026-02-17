@@ -81,7 +81,7 @@ def _get_project_root() -> Path:
 def save_tool_result(
     tool_name: str,
     domain: Optional[str] = None,
-    data: Dict[str, Any] = None,
+    data: Optional[Dict[str, Any]] = None,
     archive_count: int = 7,
     project_root: Optional[Path] = None,
 ) -> Path:
@@ -312,7 +312,7 @@ def load_tool_result(
 def save_tool_cache(
     tool_name: str,
     domain: Optional[str] = None,
-    data: Dict[str, Any] = None,
+    data: Optional[Dict[str, Any]] = None,
     project_root: Optional[Path] = None,
 ) -> Path:
     """

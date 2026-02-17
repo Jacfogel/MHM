@@ -28,7 +28,7 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Dict, Optional, Any, TypeVar, Iterable, Tuple
+from typing import Dict, Generic, Optional, Any, TypeVar, Iterable, Tuple
 import hashlib
 
 T = TypeVar("T")  # Generic type for cached results
@@ -47,7 +47,7 @@ _TOOL_MTIMES_KEY = "__tool_mtimes__"
 _RUN_STATUS_KEY = "__run_status__"
 
 
-class MtimeFileCache:
+class MtimeFileCache(Generic[T]):
     """
     Mtime-based file cache for analyzer results.
 

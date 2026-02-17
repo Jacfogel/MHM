@@ -23,7 +23,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Set, TypedDict
+from typing import Any, Dict, List, Optional, Set, TypedDict
 
 # Add project root to path
 # Script is at: development_tools/functions/analyze_package_exports.py
@@ -55,11 +55,11 @@ logger = get_component_logger("development_tools")
 class UsageStats(TypedDict):
     import_count: int
     import_locations: List[str]
-    import_types: Set[str]
+    import_types: List[str]
     module_path: Optional[str]
 
 
-def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
+def extract_imports_from_file(file_path: str) -> Dict[str, Any]:
     """Extract all imports from a Python file."""
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -122,20 +122,16 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
                 node, (ast.Module, ast.If, ast.Try, ast.With, ast.For, ast.While)
             ):
                 # Process child nodes at same level
-                for child in node.body if hasattr(node, "body") else []:
+                for child in getattr(node, "body", []):
                     process_node(child, is_module_level)
                 # Process else/except/finally blocks if present
-                if hasattr(node, "orelse") and node.orelse:
-                    for child in node.orelse:
+                for child in getattr(node, "orelse", []):
+                    process_node(child, is_module_level)
+                for handler in getattr(node, "handlers", []):
+                    for child in getattr(handler, "body", []):
                         process_node(child, is_module_level)
-                if hasattr(node, "handlers") and node.handlers:
-                    for handler in node.handlers:
-                        if hasattr(handler, "body"):
-                            for child in handler.body:
-                                process_node(child, is_module_level)
-                if hasattr(node, "finalbody") and node.finalbody:
-                    for child in node.finalbody:
-                        process_node(child, is_module_level)
+                for child in getattr(node, "finalbody", []):
+                    process_node(child, is_module_level)
 
         # Process the module body
         for node in tree.body:
@@ -176,9 +172,11 @@ def scan_package_modules(package_name: str) -> Dict[str, List[str]]:
         )
 
         imports = extract_imports_from_file(str(py_file))
+        module_items = imports.get("module_items") or []
 
-        for item in imports["module_items"]:
-            package_api[module_path].append(item["name"])
+        for item in module_items:
+            if isinstance(item, dict) and "name" in item:
+                package_api[module_path].append(item["name"])
 
     return dict(package_api)
 
@@ -191,7 +189,8 @@ def analyze_imports_for_package(package_name: str) -> Dict[str, UsageStats]:
 def analyze_imports_for_packages(package_names: List[str]) -> Dict[str, Dict[str, UsageStats]]:
     """Analyze imports for multiple packages with one full-repo scan."""
     package_set = set(package_names)
-    usage_stats_by_package: Dict[str, Dict[str, UsageStats]] = {
+    # Intermediate structure uses set() for import_types; result converts to List for UsageStats
+    usage_stats_by_package: Dict[str, Dict[str, Any]] = {
         package: defaultdict(
             lambda: {
                 "import_count": 0,
@@ -215,7 +214,9 @@ def analyze_imports_for_packages(package_names: List[str]) -> Dict[str, Dict[str
         rel_path = py_file.relative_to(project_root)
         file_key = str(rel_path).replace("\\", "/")
 
-        for imp in imports["from_imports"]:
+        for imp in imports.get("from_imports") or []:
+            if not isinstance(imp, dict):
+                continue
             package_name = imp.get("package")
             if package_name not in package_set:
                 continue
@@ -235,7 +236,9 @@ def analyze_imports_for_packages(package_names: List[str]) -> Dict[str, Dict[str
             package_stats[item_name]["import_locations"].append(file_key)
             package_stats[item_name]["import_types"].add("from_import")
 
-        for imp in imports["direct_imports"]:
+        for imp in imports.get("direct_imports") or []:
+            if not isinstance(imp, dict):
+                continue
             package_name = imp.get("package")
             if package_name not in package_set:
                 continue
@@ -319,7 +322,7 @@ def _build_should_export(
         should_export -= config_constants
 
     return should_export
-    usage_stats: Dict[str, UsageStats] = defaultdict(
+    usage_stats: Dict[str, Any] = defaultdict(
         lambda: {
             "import_count": 0,
             "import_locations": [],
@@ -343,31 +346,35 @@ def _build_should_export(
         file_key = str(rel_path).replace("\\", "/")
 
         # Check from_imports
-        for imp in imports["from_imports"]:
-            if imp["package"] == package_name:
-                module_parts = imp["module"].split(".")
+        for imp in imports.get("from_imports") or []:
+            if not isinstance(imp, dict) or imp.get("package") != package_name:
+                continue
 
-                # If importing from package directly or subpackage
-                if len(module_parts) > 1 and module_parts[0] == package_name:
-                    # Extract what's being imported
-                    item_name = imp["asname"]
-                    module_path = imp["module"]
+            # If importing from package directly or subpackage
+            module_parts = (imp.get("module") or "").split(".")
+            if len(module_parts) > 1 and module_parts[0] == package_name:
+                # Extract what's being imported
+                item_name = imp.get("asname") or ""
+                module_path = imp.get("module") or ""
 
-                    if item_name not in usage_stats:
-                        usage_stats[item_name]["module_path"] = module_path
+                if item_name not in usage_stats:
+                    usage_stats[item_name]["module_path"] = module_path
 
-                    usage_stats[item_name]["import_count"] += 1
-                    usage_stats[item_name]["import_locations"].append(file_key)
-                    usage_stats[item_name]["import_types"].add("from_import")
-
-        # Check direct imports (import package)
-        for imp in imports["direct_imports"]:
-            if imp["package"] == package_name and "." not in imp["module"]:
-                # Direct package import
-                item_name = imp["asname"]
                 usage_stats[item_name]["import_count"] += 1
                 usage_stats[item_name]["import_locations"].append(file_key)
-                usage_stats[item_name]["import_types"].add("direct_import")
+                usage_stats[item_name]["import_types"].add("from_import")
+
+        # Check direct imports (import package)
+        for imp in imports.get("direct_imports") or []:
+            if not isinstance(imp, dict):
+                continue
+            if imp.get("package") != package_name or "." in (imp.get("module") or ""):
+                continue
+            # Direct package import
+            item_name = imp.get("asname") or ""
+            usage_stats[item_name]["import_count"] += 1
+            usage_stats[item_name]["import_locations"].append(file_key)
+            usage_stats[item_name]["import_types"].add("direct_import")
 
     # Convert sets to lists for JSON serialization
     result = {}

@@ -13,7 +13,7 @@ if available, making this tool portable across different projects.
 import ast
 import sys
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -587,8 +587,8 @@ def scan_all_python_files() -> Dict[str, Dict]:
 def scan_all_functions(
     include_tests: bool = False,
     include_dev_tools: bool = False,
-    scan_directories: List[str] = None,
-    project_root: Path = None,
+    scan_directories: Optional[List[str]] = None,
+    project_root: Optional[Path] = None,
 ) -> List[Dict]:
     """
     Scan all Python files in scan directories and extract functions.

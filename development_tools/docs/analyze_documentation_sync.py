@@ -25,7 +25,7 @@ import re
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -122,7 +122,7 @@ class DocumentationSyncChecker:
 
         return issues
 
-    def run_checks(self) -> Dict[str, any]:
+    def run_checks(self) -> Dict[str, Any]:
         """
         Run paired documentation synchronization checks and return results in standard format.
 
@@ -152,7 +152,7 @@ class DocumentationSyncChecker:
             "details": {"paired_doc_issues": total_issues, "paired_docs": paired_docs},
         }
 
-    def print_report(self, results: Dict[str, any]):
+    def print_report(self, results: Dict[str, Any]):
         """Print a formatted report of the results."""
         summary = results["summary"]
         details = results["details"]

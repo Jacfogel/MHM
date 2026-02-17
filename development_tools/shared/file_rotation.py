@@ -36,7 +36,7 @@ class FileRotator:
         self.rotation_suffix = "%Y-%m-%d_%H%M%S"  # Timestamp format
         self._rotation_counter = 0  # Counter to ensure unique filenames
 
-    def rotate_file(self, file_path: Union[str, Path], max_versions: int = None) -> str:
+    def rotate_file(self, file_path: Union[str, Path], max_versions: Optional[int] = None) -> str:
         """
         Rotate a file by backing up existing versions and creating a new one.
 
@@ -142,7 +142,7 @@ def create_output_file(
     file_path: Union[str, Path],
     content: str,
     rotate: bool = True,
-    max_versions: int = None,
+    max_versions: Optional[int] = None,
     project_root: Optional[Path] = None,
 ) -> Path:
     """

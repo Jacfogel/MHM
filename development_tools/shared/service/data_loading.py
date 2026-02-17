@@ -3,6 +3,7 @@ Data loading and parsing methods for AIToolsService.
 
 Contains methods for loading tool results, parsing output, and aggregating data.
 """
+# pyright: reportAttributeAccessIssue=false
 
 import json
 import re
@@ -20,7 +21,7 @@ logger = get_component_logger("development_tools")
 
 class DataLoadingMixin:
     """Mixin class providing data loading and parsing methods to AIToolsService."""
-    
+
     def _load_tool_data(self, tool_name: str, domain: Optional[str] = None, log_source: bool = True) -> Dict[str, Any]:
         """
         Unified data loading helper with consistent fallback chain.

@@ -17,7 +17,7 @@ if str(project_root) not in sys.path:
 
 # Handle both relative and absolute imports
 try:
-    from . import config
+    from .. import config
     from ..functions.analyze_functions import scan_all_functions, categorize_functions
 except ImportError:
     import sys

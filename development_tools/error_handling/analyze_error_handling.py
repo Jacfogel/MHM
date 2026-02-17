@@ -14,7 +14,7 @@ This script analyzes error handling patterns across the codebase to identify:
 import ast
 import sys
 from pathlib import Path
-from typing import Any, DefaultDict, Dict, List, Optional, Set, TypedDict
+from typing import Any, DefaultDict, Dict, List, Optional, Set, TypedDict, Union
 from collections import defaultdict
 import re
 
@@ -252,7 +252,7 @@ class ErrorHandlingAnalyzer:
                 'missing_error_handling': []
             }
 
-    def _should_exclude_function(self, func_node: ast.FunctionDef, content: str, file_path: str = None) -> bool:
+    def _should_exclude_function(self, func_node: Union[ast.FunctionDef, ast.AsyncFunctionDef], content: str, file_path: Optional[str] = None) -> bool:
         """
         Check if a function should be excluded from error handling analysis.
         
@@ -429,7 +429,7 @@ class ErrorHandlingAnalyzer:
         
         # Determine suggested replacement
         suggested_replacement = self._suggest_exception_replacement(
-            exc_type_name, str(file_path), func_name, line_content
+            exc_type_name or "", str(file_path), func_name or "", line_content
         )
         
         return {
@@ -513,7 +513,7 @@ class ErrorHandlingAnalyzer:
         
         return self.generic_exceptions.get(exc_type, base_exception)
 
-    def _analyze_function(self, func_node: ast.FunctionDef, content: str, file_path: str = None) -> Dict[str, Any]:
+    def _analyze_function(self, func_node: Union[ast.FunctionDef, ast.AsyncFunctionDef], content: str, file_path: Optional[str] = None) -> Dict[str, Any]:
         """Analyze error handling in a function."""
         func_name = func_node.name
         func_start = func_node.lineno
@@ -730,7 +730,7 @@ class ErrorHandlingAnalyzer:
         
         return False
     
-    def _is_nested_function(self, func_node: ast.FunctionDef, content: str, func_start_line: int) -> bool:
+    def _is_nested_function(self, func_node: Union[ast.FunctionDef, ast.AsyncFunctionDef], content: str, func_start_line: int) -> bool:
         """
         Check if a function is nested inside another function.
         
@@ -778,7 +778,7 @@ class ErrorHandlingAnalyzer:
         
         return False
     
-    def _determine_operation_type(self, func_name: str, file_path: str, func_content: str = None) -> str:
+    def _determine_operation_type(self, func_name: str, file_path: str, func_content: Optional[str] = None) -> str:
         """Phase 1: Determine operation type from function name, file path, and content."""
         func_lower = func_name.lower()
         file_lower = file_path.lower()
@@ -805,7 +805,7 @@ class ErrorHandlingAnalyzer:
         
         return "general"
     
-    def _is_entry_point(self, func_name: str, file_path: str, func_content: str = None) -> bool:
+    def _is_entry_point(self, func_name: str, file_path: str, func_content: Optional[str] = None) -> bool:
         """Phase 1: Check if function is an entry point."""
         func_lower = func_name.lower()
         file_lower = file_path.lower()

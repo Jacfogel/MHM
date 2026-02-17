@@ -18,7 +18,7 @@ if str(project_root) not in sys.path:
 
 # Handle both relative and absolute imports
 try:
-    from . import config
+    from .. import config
     from ..shared.common import (
         ProjectPaths,
         ensure_ascii,
@@ -164,6 +164,7 @@ def analyse_topics(
         )
 
     topics = defaultdict(list)
+    keyword_map = keyword_map or {}
     for name, content in docs.items():
         lower = content.lower()
         for label, keywords in keyword_map.items():
@@ -559,8 +560,11 @@ def format_summary(
         if consolidation_recs:
             rec_lines = []
             for rec in consolidation_recs:
-                rec_lines.append(f"{rec['category']} ({len(rec['files'])} files):")
-                rec_lines.extend(f"  - {file}" for file in sorted(rec["files"]))
+                files = rec.get("files")
+                if not isinstance(files, (list, tuple)):
+                    continue
+                rec_lines.append(f"{rec['category']} ({len(files)} files):")
+                rec_lines.extend(f"  - {file}" for file in sorted(files))
                 rec_lines.append(f"  → {rec['suggestion']}")
             blocks.append(summary_block("Consolidation Recommendations", rec_lines))
 

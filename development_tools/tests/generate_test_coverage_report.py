@@ -18,7 +18,7 @@ import sys
 import configparser
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -129,7 +129,7 @@ class TestCoverageReportGenerator:
             self.coverage_html_dir = (self.project_root / html_directory).resolve()
 
     def generate_coverage_summary(
-        self, coverage_data: Dict[str, Dict[str, any]], overall_data: Dict[str, any]
+        self, coverage_data: Dict[str, Dict[str, Any]], overall_data: Dict[str, Any]
     ) -> str:
         """Generate a coverage summary for the plan."""
         summary_lines = []

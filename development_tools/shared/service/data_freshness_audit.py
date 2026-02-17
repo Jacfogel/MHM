@@ -24,7 +24,7 @@ Usage:
 
 import json
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 # Known deleted files that should NOT appear in any reports
 KNOWN_DELETED_FILES = {
@@ -195,7 +195,9 @@ def check_generated_reports_for_deleted_files(project_root: Path, deleted_files:
     return issues
 
 
-def audit_data_freshness(project_root: Path, deleted_files: Set[str] = None) -> Dict[str, any]:
+def audit_data_freshness(
+    project_root: Path, deleted_files: Optional[Set[str]] = None
+) -> Dict[str, Any]:
     """
     Comprehensive audit of data freshness mechanisms.
     

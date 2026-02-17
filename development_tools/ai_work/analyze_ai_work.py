@@ -28,7 +28,7 @@ if str(project_root) not in sys.path:
 
 # Handle both relative and absolute imports
 try:
-    from . import config
+    from .. import config
     from ..shared.standard_exclusions import should_exclude_file
 except ImportError:
     import sys

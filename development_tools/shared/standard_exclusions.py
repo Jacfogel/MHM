@@ -21,7 +21,7 @@ Usage:
     exclusions = get_exclusions('documentation')
 """
 
-from typing import Tuple, Dict, List
+from typing import Dict, List, Optional, Tuple
 
 # Import config to load external exclusions
 try:
@@ -204,7 +204,7 @@ def _load_context_exclusions() -> Dict[str, List[str]]:
 _CONTEXT_EXCLUSIONS_TEMP = _load_context_exclusions()
 
 
-def get_exclusions(tool_type: str = None, context: str = "development") -> list:
+def get_exclusions(tool_type: Optional[str] = None, context: str = "development") -> list:
     """
     Get exclusion patterns for a specific tool type and context.
 
@@ -229,7 +229,7 @@ def get_exclusions(tool_type: str = None, context: str = "development") -> list:
 
 
 def should_exclude_file(
-    file_path, tool_type: str = None, context: str = "development"
+    file_path, tool_type: Optional[str] = None, context: str = "development"
 ) -> bool:
     """
     Check if a file should be excluded based on standard patterns.

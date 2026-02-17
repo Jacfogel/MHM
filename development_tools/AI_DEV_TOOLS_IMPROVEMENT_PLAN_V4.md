@@ -360,6 +360,14 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Evaluate whether to incorporate `scripts/cleanup_unused_imports.py` report-text categorization heuristics (missing logging/error-handling/type-hints) into `development_tools/imports/analyze_unused_imports.py` and/or `development_tools/imports/generate_unused_imports_report.py`
 - [ ] Evaluate whether to add a dedicated per-function AST helper/fixer for try-except to decorator migration (inspired by `scripts/replace_try_except_with_decorator.py`) to complement `development_tools/error_handling/analyze_error_handling.py` recommendations
 
+#### 3.16 Explore refactoring report_generation.py and run_test_coverage.py
+**Status**: PENDING  
+**Rationale**: Both files trigger Pyright "code too complex to analyze" (reportGeneralTypeIssues). Refactoring would improve maintainability and type-checker clarity.  
+**Tasks**:
+- [ ] **report_generation.py** (`development_tools/shared/service/report_generation.py`): Map current structure (sections, helpers, data flow); identify natural split points (e.g. by report type or by section builder); document a refactor plan (extract helpers, optional submodules) and effort estimate; decide whether to proceed in phases or defer
+- [ ] **run_test_coverage.py** (`development_tools/tests/run_test_coverage.py`): Map entry points, coverage merge path, and domain/cache logic; identify overly complex methods or branches; document a refactor plan (extract classes/helpers, reduce conditional depth) and effort estimate; decide whether to proceed in phases or defer
+- [ ] If proceeding: implement refactors in small steps with tests and full audit validation after each step
+
 ---
 
 ### 4. External Tool Evaluation and Integration (MEDIUM)

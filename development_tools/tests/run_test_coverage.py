@@ -469,7 +469,11 @@ class CoverageMetricsRegenerator:
 
                 # Determine source domain for this file (if any)
                 normalized_path = file_path.replace("\\", "/")
-                file_domain = self.domain_mapper.get_source_domain(normalized_path)
+                file_domain = (
+                    self.domain_mapper.get_source_domain(normalized_path)
+                    if self.domain_mapper is not None
+                    else None
+                )
 
                 # If the file is in a changed domain and the statement count changed, prefer fresh
                 # (line numbers likely shifted, making union potentially misleading).
@@ -670,7 +674,7 @@ class CoverageMetricsRegenerator:
             "project_root_shards": discovered["project_root_shards"],
         }
 
-    def run_coverage_analysis(self) -> Dict[str, Dict[str, any]]:
+    def run_coverage_analysis(self) -> Dict[str, Dict[str, Any]]:
         """Run pytest coverage analysis and extract metrics."""
         if logger:
             logger.info("Running pytest coverage analysis...")
@@ -3358,7 +3362,7 @@ class CoverageMetricsRegenerator:
 
         return False
 
-    def run_dev_tools_coverage(self) -> Dict[str, Dict[str, any]]:
+    def run_dev_tools_coverage(self) -> Dict[str, Dict[str, Any]]:
         """Run pytest coverage analysis specifically for development_tools directory."""
         if logger:
             logger.info("Running pytest coverage analysis for development_tools...")
@@ -4271,7 +4275,7 @@ class CoverageMetricsRegenerator:
             )
 
     def _generate_coverage_summary_fallback(
-        self, coverage_data: Dict[str, Dict[str, any]], overall_data: Dict[str, any]
+        self, coverage_data: Dict[str, Dict[str, Any]], overall_data: Dict[str, Any]
     ) -> str:
         """Fallback method for generating coverage summary if report generator is not available."""
         # This is a minimal fallback - ideally the report generator should always be available
@@ -4289,7 +4293,7 @@ class CoverageMetricsRegenerator:
 
     def run(
         self, update_plan: bool = False, dev_tools_only: bool = False
-    ) -> Dict[str, any]:
+    ) -> Dict[str, Any]:
         """Run the coverage metrics regeneration."""
         if dev_tools_only:
             # Run dev tools coverage analysis only

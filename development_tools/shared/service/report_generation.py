@@ -4,6 +4,7 @@ Report generation methods for AIToolsService.
 Contains methods for generating AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.md.
 These methods are large (~4,300 lines total) and generate comprehensive status reports.
 """
+# pyright: reportAttributeAccessIssue=false
 
 import re
 from datetime import datetime
@@ -473,12 +474,14 @@ class ReportGenerationMixin:
         missing_docs = doc_metrics_details.get("missing", {})
         missing_files = self._get_missing_doc_files(limit=4)
 
-        def get_error_field(field_name, default=None):
-            error_details = error_metrics.get("details", {})
+        _error_metrics: Dict[str, Any] = error_metrics or {}
+
+        def _error_field(field_name: str, default: Any = None) -> Any:
+            error_details = _error_metrics.get("details", {})
             return error_details.get(field_name, default)
 
-        error_summary = error_metrics.get("summary", {})
-        error_details = error_metrics.get("details", {})
+        error_summary = _error_metrics.get("summary", {})
+        error_details = _error_metrics.get("details", {})
         missing_error_handlers = to_int(error_summary.get("total_issues"))
         if missing_error_handlers is None:
             missing_error_handlers = (
@@ -1273,7 +1276,7 @@ class ReportGenerationMixin:
                     f"- **Missing Error Handling**: {missing_error_handlers} functions lack protections"
                 )
             # Get decorator count from details
-            decorated = get_error_field("functions_with_decorators")
+            decorated = _error_field("functions_with_decorators")
             if decorated is not None:
                 lines.append(
                     f"- **@handle_errors Usage**: {decorated} functions already use the decorator"

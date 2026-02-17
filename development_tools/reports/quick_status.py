@@ -42,7 +42,7 @@ class QuickStatus:
         # Load config if provided
         # Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
         if __name__ != "__main__" and __package__ and "." in __package__:
-            from . import config
+            from .. import config
         else:
             from development_tools import config
 

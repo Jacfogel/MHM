@@ -34,7 +34,7 @@ if str(project_root) not in sys.path:
 
 # Handle both relative and absolute imports
 try:
-    from . import config
+    from .. import config
 except ImportError:
     from development_tools import config
 

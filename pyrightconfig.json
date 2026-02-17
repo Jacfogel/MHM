@@ -3,6 +3,9 @@
   // "off" = no type checking, "basic" = basic checks, "standard" = more strict, "strict" = very strict
   // Note: Pyright (type checking) and development tools (code quality) check different things and are complementary
   "typeCheckingMode": "basic",
+  // Use project venv so imports (e.g. pytest in tests) resolve when running pyright from project root
+  "venvPath": ".",
+  "venv": ".venv",
   // Disable specific noisy checks that are mostly type annotation mismatches
   // These are still useful but can be overwhelming for beginners
   "reportReturnType": "none",
@@ -17,15 +20,11 @@
   // To suppress only stub/library false positives without hiding future issues:
   // - Prefer code fixes (getattr/setattr, guards) so the checker is satisfied.
   // - For a single line: add at end of line: # type: ignore[reportAttributeAccessIssue]
-  // - For one file only: add "overrides" with "path": "path/to/file.py" and
-  //   "reportAttributeAccessIssue": "none" (use sparingly; new issues in that file won't show).
+  // - Per-file: use # type: ignore[reportAttributeAccessIssue] on specific lines; Pyright has no "overrides" setting.
   // ignore = suppress diagnostics; empty = no path-based suppression (UI and tests are type-checked).
   "ignore": [],
   // exclude = not type-checked. Can hide issues; see comments below.
   "exclude": [
-    // Temporary (revisit later). Hides type issues in dev tooling only.
-    "development_tools",
-    "development_tools/**",
     // Hides type issues in scripts (e.g. bad imports). Per-project choice.
     "scripts",
     "scripts/**",
