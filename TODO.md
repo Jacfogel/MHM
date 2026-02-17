@@ -307,16 +307,6 @@ When adding new tasks, follow this format:
 **headless service not working**
 - Investigate and fix
 
-  **Unify derived command map semantics** - Remove/standardize the precomputed `slash_command_map` - see communication\message_processing\interaction_manager.py
-- *What it means*: Identify all usages of `InteractionManager.slash_command_map` and either (a) delete it and rely on `get_slash_command_map()`, or (b) standardize it to use unprefixed keys (e.g. `"tasks"`) and correct naming/comments.
-- *Why it helps*: Prevents mismatched expectations (`"/tasks"` vs `"tasks"`), reduces duplicate sources of truth, and makes command registration code less error-prone.
-- *Estimated effort*: Small
-
-**Eliminate inconsistent command conversion recursion** - Make slash and bang command handling follow the same conversion strategy - see communication\message_processing\interaction_manager.py
-- *What it means*: Refactor the `/...` and `!...` branches so they both either (a) convert the message and continue in the same `handle_message()` call, or (b) recurse in a controlled single-path function (recommended: convert + continue). Ensure flow-clearing and keyword handling run exactly once.
-- *Why it helps*: Removes subtle behavior drift between `/cmd` and `!cmd` (double-logging, repeated flow clearing, different keyword precedence), making command handling predictable and testable.
-- *Estimated effort*: Medium
-
 **Investigate naive vs timezone-aware datetime usage in scheduler & task reminders**
 Context: During the datetime canonicalization audit, a potential split was identified between:
 - **Timezone-aware datetimes** (e.g., `pytz.localize(...)`) used in parts of `core/scheduler.py`, and  

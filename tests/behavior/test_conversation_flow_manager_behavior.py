@@ -9,6 +9,7 @@ side effects rather than just returning values.
 import pytest
 import uuid
 from pathlib import Path
+from datetime import timedelta
 from unittest.mock import patch, MagicMock
 
 # Import the modules we're testing
@@ -17,8 +18,11 @@ from communication.message_processing.conversation_flow_manager import (
     conversation_manager,
     FLOW_NONE,
     FLOW_CHECKIN,
-    CHECKIN_MOOD
+    FLOW_TASK_REMINDER,
+    CHECKIN_MOOD,
+    CHECKIN_INACTIVITY_MINUTES,
 )
+from core.time_utilities import now_timestamp_full, parse_timestamp_full
 from communication.core.channel_orchestrator import CommunicationManager
 from tests.test_utilities import TestUserFactory
 
@@ -535,3 +539,127 @@ class TestConversationFlowManagerBehavior:
             
             # Should eventually complete
             # The exact flow depends on implementation, but we verify it handles completion
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    def test_active_checkin_keyword_cancel_clears_flow_state(self, test_data_dir):
+        """Test active-flow keyword handling: !cancel during check-in clears flow and completes."""
+        # Arrange
+        manager = ConversationManager()
+        user_id = "test_user_active_checkin_cancel"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+        manager.user_states[user_id] = {
+            "flow": FLOW_CHECKIN,
+            "state": CHECKIN_MOOD,
+            "data": {},
+            "question_order": ["mood"],
+            "current_question_index": 0,
+        }
+
+        # Act
+        message, completed = manager.handle_inbound_message(user_id, "!cancel")
+
+        # Assert
+        assert completed is True
+        assert "canceled" in message.lower()
+        assert user_id not in manager.user_states
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    def test_state_persistence_and_reload_transition(self, test_data_dir):
+        """Test save->load transition for conversation state persistence."""
+        # Arrange
+        state_file = Path(test_data_dir) / f"conversation_states_{uuid.uuid4().hex[:8]}.json"
+
+        writer = ConversationManager()
+        writer._state_file = state_file
+        writer.user_states = {
+            "persist_user_1": {"flow": FLOW_CHECKIN, "state": CHECKIN_MOOD, "data": {"mood": "3"}},
+            "persist_user_2": {"flow": FLOW_NONE, "state": 0, "data": {}},
+        }
+
+        # Act
+        writer._save_user_states()
+
+        reader = ConversationManager()
+        reader._state_file = state_file
+        reader.user_states = {}
+        reader._load_user_states()
+
+        # Assert
+        assert reader.user_states == writer.user_states, (
+            "Loaded user states should match the persisted state snapshot"
+        )
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    def test_expire_inactive_checkins_caches_order_and_removes_user(self, test_data_dir, monkeypatch):
+        """Test inactivity expiry branch removes stale check-in and caches same-day question order."""
+        # Arrange
+        manager = ConversationManager()
+        manager._state_file = Path(test_data_dir) / f"conversation_states_{uuid.uuid4().hex[:8]}.json"
+        manager.user_states = {}
+        user_id = f"expire_user_{uuid.uuid4().hex[:8]}"
+
+        last_activity = now_timestamp_full()
+        last_dt = parse_timestamp_full(last_activity)
+        assert last_dt is not None
+
+        manager.user_states[user_id] = {
+            "flow": FLOW_CHECKIN,
+            "state": CHECKIN_MOOD,
+            "data": {},
+            "question_order": ["mood", "energy"],
+            "current_question_index": 0,
+            "started_at": last_activity,
+            "last_activity": last_activity,
+        }
+
+        # Force now beyond inactivity threshold so the state expires.
+        forced_now = last_dt + timedelta(minutes=CHECKIN_INACTIVITY_MINUTES + 1)
+        monkeypatch.setattr(
+            "communication.message_processing.conversation_flow_manager.now_datetime_full",
+            lambda: forced_now,
+        )
+
+        # Act
+        manager._expire_inactive_checkins(user_id=user_id)
+
+        # Assert
+        assert user_id not in manager.user_states, "Expired check-in should be removed from active states"
+        assert user_id in manager._checkin_order_cache, "Expired check-in order should be cached for same-day restart"
+        assert manager._checkin_order_cache[user_id]["order"] == ["mood", "energy"]
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    def test_task_reminder_flow_is_interrupted_by_command(self, test_data_dir, monkeypatch):
+        """Test command interruption path: task reminder flow clears when user issues a command."""
+        # Arrange
+        manager = ConversationManager()
+        user_id = "test_user_task_reminder_interrupt"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+        manager.user_states[user_id] = {
+            "flow": FLOW_TASK_REMINDER,
+            "state": 0,
+            "data": {"task_id": "task-1"},
+        }
+
+        save_calls = {"count": 0}
+
+        def _count_save():
+            save_calls["count"] += 1
+
+        monkeypatch.setattr(manager, "_save_user_states", _count_save)
+
+        # Act
+        message, completed = manager.handle_inbound_message(
+            user_id, "update task task-1 priority high"
+        )
+
+        # Assert
+        assert message == "", "Interrupting command path should return empty message for handoff"
+        assert completed is True
+        assert user_id not in manager.user_states, "Flow should be cleared on command interruption"
+        assert save_calls["count"] == 1, "Flow clear should persist exactly once"

@@ -33,6 +33,27 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-17 - Interaction/flow command parity and test hardening
+- **Config**: `pyrightconfig.json` - removed invalid `overrides` reference from comment; development_tools is type-checked (no exclude).
+- **Planning**: Added section 3.16 to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) to explore refactoring `report_generation.py` and `run_test_coverage.py` (Pyright "code too complex" warnings); tasks include mapping structure, identifying split points, and documenting a refactor plan before proceeding.
+- **Feature/Fix (interaction manager command handling)**: Standardized command map and slash/bang conversion behavior in `communication/message_processing/interaction_manager.py`:
+  - canonical command mapping now comes from `get_slash_command_map()` with a compatibility `slash_command_map` property;
+  - removed recursive bang-command re-entry path and aligned with slash convert-and-continue flow;
+  - fixed bang-branch fallback so unknown-command prefix stripping runs only on truly unknown bang commands;
+  - replaced basic property `try/except` with decorator-based handling (`@handle_errors`) for centralized error semantics.
+- **Testing (behavior coverage expansion)**:
+  - Extended `tests/behavior/test_communication_interaction_manager_behavior.py` with focused parity/edge tests for flow keywords, flow commands (`/checkin|/restart|/clear` vs bang forms), argument preservation (`/tasks overdue` vs `!tasks overdue`), discoverability-only prefix-drop parsing (`/n`, `!note`), no-recursion assertion, and unknown-command + active-flow clear-once behavior.
+  - Extended `tests/behavior/test_conversation_flow_manager_behavior.py` with tests for active check-in keyword cancel handling, state save/load transitions, inactivity expiry with cached question-order preservation, and task-reminder command interruption flow clearing.
+- **Planning/cleanup updates**:
+  - Removed completed items from [TODO.md](TODO.md) so it remains outstanding-only (deleted completed command-map/recursion tasks).
+  - Added [PLANS.md](development_docs/PLANS.md) session follow-up block for 2026-02-17 summarizing interaction/flow test hardening and targeted flaky-node rerun outcome.
+- **Doc tooling + generated outputs**:
+  - Ran `doc-fix --fix-ascii`, `doc-fix --convert-links`, and `doc-sync` via `.venv` Python, which refreshed generated docs/reports (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.md`, registry/dependency/tree/detail docs, coverage/import/legacy reports, and JSON analysis artifacts).
+- **Validation**:
+- Full audit run and no regressions found
+- **Full-diff attribution**:
+  - Reviewed full working tree via `git diff --stat` and `git diff --name-only`.
+
 ### 2026-02-17 - Pyright and development-tools cleanup (mixin overrides, refactor tasks, unused imports)
 - **Pyright (development_tools)**: Reduced errors to 0 and warnings to 2 by fixing real issues (SCRIPT_REGISTRY usage in `commands.py`, `domain_mapper` None guard in `run_test_coverage.py`, `Optional[Set[str]]` in `data_freshness_audit.py`, `_error_metrics`/`_error_field` and optional-member access in `report_generation.py`, `changelog_manager` getattr in `audit_orchestration.py`, method name in `measure_tool_timings.py`) and addressing mixin attribute-access warnings via per-file override instead of stub declarations. Added `# pyright: reportAttributeAccessIssue=false` to the six service mixin files (`utilities.py`, `commands.py`, `audit_orchestration.py`, `data_loading.py`, `report_generation.py`, `tool_wrappers.py`) so only that diagnostic is suppressed there.
 - **Config**: `pyrightconfig.json` — removed invalid `overrides` reference from comment; development_tools is type-checked (no exclude).

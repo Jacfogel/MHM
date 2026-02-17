@@ -5,7 +5,9 @@ Tests focus on actual side effects and system changes rather than just return va
 """
 
 import pytest
+import types
 from communication.message_processing.interaction_manager import InteractionManager
+from communication.message_processing.conversation_flow_manager import conversation_manager
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from communication.message_processing.command_parser import ParsingResult
 from tests.test_utilities import TestUserFactory
@@ -431,8 +433,11 @@ class TestInteractionManagerBehavior:
         # Assert - Verify command map structure
         assert isinstance(command_map, dict), "Command map should be a dictionary"
         assert len(command_map) > 0, "Command map should not be empty"
-        # Verify some expected commands exist
-        assert 'tasks' in command_map or '/tasks' in str(command_map), "Tasks command should be in map"
+        # Verify canonical semantics: unprefixed command names as keys
+        assert "tasks" in command_map, "Tasks command should be in map"
+        assert "help" in command_map, "Help command should be in map"
+        assert "/tasks" not in command_map, "Slash-prefixed keys should not be used"
+        assert "!tasks" not in command_map, "Bang-prefixed keys should not be used"
     
     def test_get_command_definitions_returns_valid_definitions(self, test_data_dir):
         """Test that get_command_definitions returns valid command definitions."""
@@ -641,6 +646,294 @@ class TestInteractionManagerRealBehavior:
         # Assert - Verify bang command handling
         assert response is not None, "Response should be created"
         assert isinstance(response.message, str), "Response message should be a string"
+
+    @pytest.mark.behavior
+    def test_handle_message_bang_command_does_not_recurse(self, test_data_dir):
+        """Test that bang commands are converted and parsed in-place without recursive re-entry."""
+        # Arrange
+        user_id = "test-interaction-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = _create_fast_interaction_manager()
+
+        call_count = {"count": 0}
+        original_handle_message = InteractionManager.handle_message
+
+        def counting_handle_message(self, inner_user_id, inner_message, channel_type="discord"):
+            call_count["count"] += 1
+            return original_handle_message(self, inner_user_id, inner_message, channel_type)
+
+        interaction_manager.handle_message = types.MethodType(
+            counting_handle_message, interaction_manager
+        )
+
+        # Act
+        response = interaction_manager.handle_message(user_id, "!tasks", "discord")
+
+        # Assert
+        assert response is not None, "Response should be created"
+        assert isinstance(response.message, str), "Response message should be a string"
+        assert call_count["count"] == 1, (
+            "Bang command handling should not recursively call handle_message"
+        )
+
+    @pytest.mark.behavior
+    @pytest.mark.parametrize("keyword", ["/cancel", "!cancel", "/skip", "!skip", "/endlist", "!endl"])
+    def test_flow_keyword_delegation_for_slash_and_bang(
+        self, test_data_dir, monkeypatch, keyword
+    ):
+        """Test that flow keywords delegate to conversation manager for both slash and bang forms."""
+        # Arrange
+        user_id = "test-interaction-user-flow-keyword"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = _create_fast_interaction_manager()
+
+        captured = {"calls": 0, "message": None}
+
+        def _fake_handle_inbound_message(inner_user_id, inner_message):
+            captured["calls"] += 1
+            captured["message"] = inner_message
+            return ("delegated", True)
+
+        monkeypatch.setattr(
+            conversation_manager, "handle_inbound_message", _fake_handle_inbound_message
+        )
+
+        # Act
+        response = interaction_manager.handle_message(user_id, keyword, "discord")
+
+        # Assert
+        assert response.message == "delegated", "Should return delegated flow-keyword response"
+        assert response.completed is True, "Flow keyword delegation should complete"
+        assert captured["calls"] == 1, "Flow keyword should delegate exactly once"
+        assert captured["message"] == keyword, "Delegation should preserve original keyword form"
+
+    @pytest.mark.behavior
+    @pytest.mark.parametrize(
+        "slash_cmd,bang_cmd,method_name,expected_message",
+        [
+            ("/checkin", "!checkin", "start_checkin", "checkin-started"),
+            ("/restart", "!restart", "restart_checkin", "checkin-restarted"),
+            ("/clear", "!clear", "clear_stuck_flows", "flows-cleared"),
+        ],
+    )
+    def test_flow_command_parity_for_slash_and_bang(
+        self,
+        test_data_dir,
+        monkeypatch,
+        slash_cmd,
+        bang_cmd,
+        method_name,
+        expected_message,
+    ):
+        """Test slash/bang parity for flow starter commands."""
+        # Arrange
+        user_id = "test-interaction-user-flow-command-parity"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = _create_fast_interaction_manager()
+
+        calls = {"count": 0}
+
+        def _fake_flow_method(inner_user_id):
+            calls["count"] += 1
+            return (expected_message, True)
+
+        monkeypatch.setattr(conversation_manager, method_name, _fake_flow_method)
+
+        # Act
+        slash_response = interaction_manager.handle_message(user_id, slash_cmd, "discord")
+        bang_response = interaction_manager.handle_message(user_id, bang_cmd, "discord")
+
+        # Assert
+        assert slash_response.message == expected_message, "Slash flow command should use flow starter"
+        assert bang_response.message == expected_message, "Bang flow command should use same flow starter"
+        assert slash_response.completed is True and bang_response.completed is True
+        assert calls["count"] == 2, "Slash and bang forms should each invoke the flow starter once"
+
+    @pytest.mark.behavior
+    def test_tasks_argument_preservation_parity_for_slash_and_bang(
+        self, test_data_dir, monkeypatch
+    ):
+        """Test that task command arguments are preserved identically for slash and bang forms."""
+        # Arrange
+        user_id = "test-interaction-user-arg-parity"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = _create_fast_interaction_manager()
+        parser = interaction_manager.command_parser
+
+        original_rule_parse = parser._rule_based_parse
+        observed_messages: list[str] = []
+
+        def _tracking_rule_parse(message):
+            observed_messages.append(message)
+            return original_rule_parse(message)
+
+        monkeypatch.setattr(parser, "_rule_based_parse", _tracking_rule_parse)
+
+        # Act
+        slash_response = interaction_manager.handle_message(user_id, "/tasks overdue", "discord")
+        bang_response = interaction_manager.handle_message(user_id, "!tasks overdue", "discord")
+
+        # Assert
+        assert isinstance(slash_response.message, str) and isinstance(bang_response.message, str)
+        assert observed_messages.count("show my tasks overdue") >= 2, (
+            "Both slash and bang should convert to identical parser input with preserved args"
+        )
+
+    @pytest.mark.behavior
+    def test_discoverability_only_commands_drop_prefix_and_continue_parser_path(
+        self, test_data_dir, monkeypatch
+    ):
+        """Test discoverability-only commands (/n, !note) drop prefix and continue parsing."""
+        # Arrange
+        user_id = "test-interaction-user-discoverability"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = _create_fast_interaction_manager()
+        parser = interaction_manager.command_parser
+
+        original_rule_parse = parser._rule_based_parse
+        observed_messages: list[str] = []
+
+        def _tracking_rule_parse(message):
+            observed_messages.append(message)
+            return original_rule_parse(message)
+
+        monkeypatch.setattr(parser, "_rule_based_parse", _tracking_rule_parse)
+
+        # Act
+        interaction_manager.handle_message(user_id, "/n quick note", "discord")
+        interaction_manager.handle_message(user_id, "!note quick note", "discord")
+
+        # Assert
+        assert "n quick note" in observed_messages, "Slash discoverability command should reach parser without prefix"
+        assert "note quick note" in observed_messages, "Bang discoverability command should reach parser without prefix"
+        assert "/n quick note" not in observed_messages
+        assert "!note quick note" not in observed_messages
+
+    @pytest.mark.behavior
+    def test_unknown_command_with_active_flow_clears_once_without_double_handling(
+        self, test_data_dir, monkeypatch
+    ):
+        """Test unknown command in active flow clears once and does not route through flow-keyword delegation."""
+        # Arrange
+        user_id = "test-interaction-user-unknown-active-flow"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = _create_fast_interaction_manager()
+
+        counters = {"save_calls": 0, "inbound_calls": 0}
+
+        def _count_save_user_states():
+            counters["save_calls"] += 1
+
+        def _count_handle_inbound_message(*args, **kwargs):
+            counters["inbound_calls"] += 1
+            return ("flow keyword handled", True)
+
+        monkeypatch.setattr(
+            conversation_manager, "_save_user_states", _count_save_user_states
+        )
+        monkeypatch.setattr(
+            conversation_manager, "handle_inbound_message", _count_handle_inbound_message
+        )
+
+        conversation_manager.user_states[user_id] = {"flow": 999, "state": 1, "data": {}}
+
+        # Act
+        response = interaction_manager.handle_message(user_id, "/not_a_real_command", "discord")
+
+        # Assert
+        assert response is not None
+        assert conversation_manager.user_states.get(user_id) is None, (
+            "Unknown command should clear active flow state once"
+        )
+        assert counters["save_calls"] == 1, "Active flow should be persisted once after clear"
+        assert counters["inbound_calls"] == 0, (
+            "Unknown command should not be treated as flow keyword delegation"
+        )
+
+    @pytest.mark.behavior
+    def test_flow_clearing_parity_for_slash_and_bang_commands(
+        self, test_data_dir, monkeypatch
+    ):
+        """Test that /tasks and !tasks both clear active flow exactly once and avoid flow-keyword handling."""
+        # Arrange
+        user_id = "test-interaction-user-flow-parity"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = _create_fast_interaction_manager()
+
+        counters = {"save_calls": 0, "inbound_calls": 0}
+
+        def _count_save_user_states():
+            counters["save_calls"] += 1
+
+        def _count_handle_inbound_message(*args, **kwargs):
+            counters["inbound_calls"] += 1
+            return ("flow keyword handled", True)
+
+        monkeypatch.setattr(
+            conversation_manager, "_save_user_states", _count_save_user_states
+        )
+        monkeypatch.setattr(
+            conversation_manager, "handle_inbound_message", _count_handle_inbound_message
+        )
+
+        for command in ["/tasks", "!tasks"]:
+            counters["save_calls"] = 0
+            counters["inbound_calls"] = 0
+            conversation_manager.user_states[user_id] = {"flow": 123, "state": 1, "data": {}}
+
+            # Act
+            response = interaction_manager.handle_message(user_id, command, "discord")
+
+            # Assert
+            assert response is not None, "Response should be created"
+            assert isinstance(response.message, str), "Response message should be a string"
+            assert conversation_manager.user_states.get(user_id) is None, (
+                "Active flow should be cleared for command messages"
+            )
+            assert counters["save_calls"] == 1, (
+                "Flow clearing should persist exactly once per command"
+            )
+            assert counters["inbound_calls"] == 0, (
+                "Non-keyword commands should not be routed to flow keyword handler"
+            )
+
+    @pytest.mark.behavior
+    def test_unknown_prefix_commands_have_slash_bang_parity(
+        self, test_data_dir, monkeypatch
+    ):
+        """Test that unknown /... and !... commands strip prefix and follow identical parsing path."""
+        # Arrange
+        user_id = "test-interaction-user-unknown-prefix-parity"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = _create_fast_interaction_manager()
+        parser = interaction_manager.command_parser
+
+        original_rule_parse = parser._rule_based_parse
+        observed_messages: list[str] = []
+
+        def _tracking_rule_parse(message):
+            observed_messages.append(message)
+            return original_rule_parse(message)
+
+        monkeypatch.setattr(parser, "_rule_based_parse", _tracking_rule_parse)
+
+        # Act
+        slash_response = interaction_manager.handle_message(user_id, "/not_a_real_cmd 42", "discord")
+        bang_response = interaction_manager.handle_message(user_id, "!not_a_real_cmd 42", "discord")
+
+        # Assert
+        assert slash_response.message == bang_response.message, (
+            "Unknown slash/bang commands should produce identical fallback behavior"
+        )
+        assert "not_a_real_cmd 42" in observed_messages, (
+            "Parser should receive unknown command text without prefix"
+        )
+        assert "/not_a_real_cmd 42" not in observed_messages, (
+            "Slash-prefixed unknown command should not reach parser unchanged"
+        )
+        assert "!not_a_real_cmd 42" not in observed_messages, (
+            "Bang-prefixed unknown command should not reach parser unchanged"
+        )
     
     @pytest.mark.behavior
     def test_handle_message_handles_flow_commands(self, test_data_dir):
@@ -730,8 +1023,25 @@ class TestInteractionManagerRealBehavior:
         assert isinstance(command_map, dict), "Command map should be a dictionary"
         assert len(command_map) > 0, "Command map should not be empty"
         # Verify expected commands exist
-        assert '/tasks' in command_map or 'tasks' in str(command_map), "Tasks command should be in map"
-        assert '/help' in command_map or 'help' in str(command_map), "Help command should be in map"
+        assert "tasks" in command_map, "Tasks command should be in map"
+        assert "help" in command_map, "Help command should be in map"
+        assert "/tasks" not in command_map, "Slash-prefixed keys should not be used"
+        assert "!tasks" not in command_map, "Bang-prefixed keys should not be used"
+
+    @pytest.mark.behavior
+    def test_slash_command_map_property_matches_canonical_getter(self, test_data_dir):
+        """Test that compatibility property mirrors canonical getter output."""
+        # Arrange
+        interaction_manager = _create_fast_interaction_manager()
+
+        # Act
+        command_map = interaction_manager.get_slash_command_map()
+        property_map = interaction_manager.slash_command_map
+
+        # Assert
+        assert property_map == command_map, (
+            "Compatibility property should return canonical getter output"
+        )
     
     @pytest.mark.behavior
     def test_get_command_definitions_returns_actual_definitions(self, test_data_dir):

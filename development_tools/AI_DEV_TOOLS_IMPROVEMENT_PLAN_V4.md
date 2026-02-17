@@ -481,6 +481,10 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 ## 7.3 Dev Tools coverage sometimes is missing from AI_PRIORITIES.md
 - [x] Investigated and fixed loading/reporting so dev-tools coverage appears consistently when available
 
+
+## 7.4 Update AI_PRIORITIES Error Handling section 
+- Consider combining phase 1 and phase 2 error handling priorities
+- at least update phase 1 priorities to indicate that error handling should use decorator-based handling if possible
 ---
 
 ## Related Documents

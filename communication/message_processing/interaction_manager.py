@@ -277,12 +277,6 @@ class InteractionManager:
                     )
                 )
 
-            # Derived lookup map for quick access, derived from definitions.
-            # Keys are command names without prefixes (e.g. "tasks"), suitable for Discord registration.
-            self.slash_command_map = {
-                c.name: c.get_mapped_message() for c in self._command_definitions
-            }
-
         except Exception as e:
             logger.error(f"Error initializing interaction manager: {e}")
             raise
@@ -492,29 +486,37 @@ class InteractionManager:
                         f"Flow '{cmd_name}' is not available yet.", True
                     )
 
-            # For non-flow commands, handle them directly using the mapped message
-            # Preserve arguments if present
+            # For non-flow commands, convert and continue parsing in this same call
+            # (match slash-command behavior and avoid recursive re-entry)
             elif cmd_def:
                 # If mapped_message is None, the command definition is just for discoverability
-                # Drop the prefix and continue parsing (don't recursively call handle_message)
+                # Drop the prefix and continue parsing
                 if cmd_def.mapped_message is None:
                     # Command definition exists but no mapping - drop prefix and parse normally
                     message = message_stripped[1:]  # Drop the '!' prefix
                 else:
-                    # Extract arguments from original message (everything after command name)
+                    # Use mapped message and append args if present
                     if len(message_stripped) > len(cmd_name) + 1:
                         args = message_stripped[
                             len(cmd_name) + 1 :
                         ].strip()  # Everything after "!command"
                         converted_message = cmd_def.get_mapped_message()
+                        # Strip ! prefix if present (parser expects messages without prefix)
+                        if converted_message.startswith("!"):
+                            converted_message = converted_message[1:]
                         if args:
                             converted_message += " " + args
                     else:
                         converted_message = cmd_def.get_mapped_message()
-                    return self.handle_message(user_id, converted_message, channel_type)
+                        # Strip ! prefix if present (parser expects messages without prefix)
+                        if converted_message.startswith("!"):
+                            converted_message = converted_message[1:]
+                    # Continue parsing with converted message
+                    message = converted_message
 
-            # Unknown bang command → drop prefix and continue to structured parsing below
-            message = message_stripped[1:]
+            else:
+                # Unknown bang command → drop prefix and continue to structured parsing below
+                message = message_stripped[1:]
 
         # Check if user is in an active conversation flow
         user_state = conversation_manager.user_states.get(
@@ -920,8 +922,14 @@ class InteractionManager:
         logger.debug("No fallback to chat, returning help")
         return self._get_help_response(user_id, message)
 
+    @property
+    @handle_errors("getting slash command map property", default_return={})
+    def slash_command_map(self) -> dict[str, str]:
+        """Backward-compatible property exposing the canonical slash command map."""
+        return self.get_slash_command_map()
+
     @handle_errors("getting slash command map")
-    def get_slash_command_map(self) -> dict:
+    def get_slash_command_map(self) -> dict[str, str]:
         """Expose slash command mappings without coupling callers to internals.
         Returns a dict like {'tasks': 'show my tasks', ...} suitable for Discord registration.
         """

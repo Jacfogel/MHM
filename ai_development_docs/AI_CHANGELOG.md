@@ -29,9 +29,20 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
-### 2026-02-17 - Pyright + dev-tools cleanup (mixin overrides, refactor tasks, unused imports) **Largely Complete**
+### 2026-02-17 - New session closeout entry and follow-up confirmation **COMPLETED**
+- Added a distinct same-day entry for this session (separate from the earlier 2026-02-17 work) per session-level changelog policy.
+- Confirmed planning sync: completed command-map/recursion tasks removed from [TODO.md](TODO.md), and 2026-02-17 follow-up notes retained in [PLANS.md](development_docs/PLANS.md).
+- Full audit run and no regressions found
+
+### 2026-02-17 - Pyright/dev-tools cleanup + interaction/flow parity hardening **Largely Complete**
 - Pyright in development_tools: 0 errors, 2 warnings. Fixed real issues (SCRIPT_REGISTRY, domain_mapper guard, Optional[Set[str]], report_generation optional access, changelog_manager getattr, measure_tool_timings method name). Suppressed mixin attribute-access warnings via `# pyright: reportAttributeAccessIssue=false` in the six service mixin files.
 - Added AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md section 3.16 to explore refactoring report_generation.py and run_test_coverage.py (map structure, refactor plan, effort estimate).
+- Interaction manager updates completed: canonical slash-command map getter/property alignment, bang-command convert+continue parity (no recursive re-entry), unknown-bang fallback fix, and decorator-based error handling for `slash_command_map` property.
+- Added focused behavior tests for interaction/flow parity and edge cases in `tests/behavior/test_communication_interaction_manager_behavior.py`, plus conversation-flow manager coverage additions in `tests/behavior/test_conversation_flow_manager_behavior.py`.
+- Session planning cleanup applied: completed command-map/recursion tasks removed from [TODO.md](TODO.md) and 2026-02-17 follow-up notes added to [PLANS.md](development_docs/PLANS.md).
+- Ran doc tooling (`doc-fix --fix-ascii`, `doc-fix --convert-links`, `doc-sync`) via `.venv`, refreshing generated status/priority/report artifacts and related generated docs.
+- Validation highlights: combined behavior run `87 passed`; targeted flaky UI rerun for the two Tier-3 node IDs `2 passed`.
+- Full-tree diff was reviewed; unrelated/pre-existing edits currently in tree (not actioned this session) include `.github/workflows/logging-enforcement.yml` and `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`.
 
 ### 2026-02-16 - Static logging check migration + docs/plans refresh **COMPLETED**
 - Relocated static logging enforcement script usage to `development_tools/static_checks/check_channel_loggers.py` and updated all active references (`.github/workflows/logging-enforcement.yml`, `run_tests.py`, `tests/behavior/test_static_logging_check.py`, [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)).

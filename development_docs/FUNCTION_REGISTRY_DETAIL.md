@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-15 23:23:48
+> **Last Generated**: 2026-02-17 01:32:00
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1600
-- **Methods Found**: 1157
+- **Functions Found**: 1601
+- **Methods Found**: 1158
 - **Classes Found**: 154
-- **Total Items**: 2757
-- **Functions Documented**: 1527
-- **Methods Documented**: 1117
+- **Total Items**: 2759
+- **Functions Documented**: 1528
+- **Methods Documented**: 1118
 - **Classes Documented**: 120
-- **Total Documented**: 2644
+- **Total Documented**: 2646
 - **Template-Generated**: 5
-- **Last Updated**: 2026-02-15
+- **Last Updated**: 2026-02-17
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (571)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (418)
+### **Communication Functions** (419)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (411)
@@ -2274,6 +2274,7 @@ Returns:
 - [OK] `handle_user_message(user_id, message, channel_type)` - Convenience function to handle a user message
 - [OK] `parse_due(task)` - Parse due date/time into a datetime for sorting.
 Uses canonical parsers from time_utilities (no inline parsing).
+- [OK] `slash_command_map(self)` - Backward-compatible property exposing the canonical slash command map.
 **Classes:**
 - [OK] `CommandDefinition` - Canonical command definition.
 
@@ -2311,6 +2312,7 @@ Args:
 
 Returns:
     InteractionResponse with appropriate response
+  - [OK] `InteractionManager.slash_command_map(self)` - Backward-compatible property exposing the canonical slash command map.
 
 #### `communication/message_processing/message_router.py`
 **Functions:**

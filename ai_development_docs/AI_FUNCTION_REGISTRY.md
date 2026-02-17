@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-15 23:23:48
+> **Last Generated**: 2026-02-17 01:32:00
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 95.9% [OK] EXCELLENT**
-- **Total Functions**: 1600
-- **Total Methods**: 1157
-- **Documented**: 2644/2757
+- **Total Functions**: 1601
+- **Total Methods**: 1158
+- **Documented**: 2646/2759
 - **Files Scanned**: 110
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -42,7 +42,7 @@ AI Operations Decision Tree:
 |   +-- `communication/message_processing/command_parser.py` - Natural language parsing (33 functions)
 |   `-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
 `-- Interaction Management
-    `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (40/42 functions)
+    `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (42/44 functions)
 ```
 
 ### **[COMM] Need Communication/Channels?**
@@ -216,7 +216,7 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2758
+1. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2783
 2. [OK] `run_tests.py::run_command()` - Complexity: 2667
 3. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2627
 4. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2554
@@ -231,7 +231,7 @@ Most complex functions (may need refactoring):
 
 ### **File Organization**
 - `core/` - System utilities and data management (27 files, 843 functions)
-- `communication/` - Communication channels and message processing (39 files, 793 functions)
+- `communication/` - Communication channels and message processing (39 files, 795 functions)
 - `ai/` - AI chatbot functionality (7 files, 187 functions)
 - `ui/` - User interface components (28 files, 800 functions)
 - `user/` - User context and preferences (4 files, 65 functions)
