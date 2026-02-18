@@ -216,7 +216,7 @@
 **Priority**: Medium
 **Effort**: Small/Medium
 **Date**: 2026-02-10
-**Last Updated**: 2026-02-16
+**Last Updated**: 2026-02-18
 
 - *What it means*: Investigate and fix test failures that appear intermittently (including coverage-run flakes); keep the suspect list current as flakes are confirmed or resolved.
 - *Why it helps*: Ensures test suite reliability and prevents false negatives that can mask real issues
@@ -241,6 +241,8 @@
   - [ ] Monitor `tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_user_index_integration_real_behavior` intermittent parallel failure ("account.json should exist" race under worker churn observed on 2026-02-13; reruns passed, root-cause hardening still pending if it recurs)
   - [ ] Investigate `tests/ui/test_account_creation_ui.py::TestAccountCreationIntegration::test_full_account_lifecycle_real_behavior` and `::test_multiple_users_same_features_real_behavior` (failed in audit --full 2026-02-16; likely same isolation/race pattern as other account_creation_ui real-behavior tests under parallel coverage)
   - [ ] Investigate intermittent no-parallel failure `tests/behavior/test_discord_checkin_retry_behavior.py::TestDiscordCheckinRetryBehavior::test_checkin_message_queued_on_discord_disconnect` (failed in serial no-parallel phase on 2026-02-14 in `ai_dev_tools.log`; reruns usually pass, so classify as potential flake and capture repro conditions)
+  - [ ] Investigate intermittent parallel failure `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_checkin_status_no_checkins` (failed in `audit --full --clear-cache` on 2026-02-18 while coverage data was still collected)
+  - [ ] Investigate intermittent no-parallel failure `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_link_account_verifies_confirmation_code` (failed in no-parallel track during `audit --full --clear-cache` on 2026-02-18)
   - [ ] Monitor and harden Windows temp/cache ACL behavior for pytest (`pytest-cache-files-*`, `pytest_runner`, `pytest_cache`) so reruns do not hit `Access is denied` warnings and temp artifacts remain isolated under `tests/data/tmp`
   - [ ] Investigate `test_scan_all_python_files_demo_project`
   - [ ] Check for timing/race condition issues in test setup or teardown

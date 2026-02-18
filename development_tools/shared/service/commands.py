@@ -319,7 +319,7 @@ class CommandsMixin:
                 except (json.JSONDecodeError, ValueError) as e:
                     logger.warning(f"Failed to parse analyze_config JSON output: {e}")
                     logger.debug(f"Output was: {output[:500]}...")
-                print(output)
+                logger.info(f"analyze_config output:\n{output}")
             else:
                 logger.warning("No output from analyze_config script")
             return True

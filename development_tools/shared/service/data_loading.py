@@ -41,6 +41,38 @@ class DataLoadingMixin:
         Returns:
             Dict containing tool data in standard format, or empty dict if not found
         """
+        def _is_standard_payload(payload: Any) -> bool:
+            return (
+                isinstance(payload, dict)
+                and isinstance(payload.get("summary"), dict)
+                and isinstance(payload.get("details"), dict)
+            )
+
+        def _normalize_with_warning(
+            payload: Dict[str, Any], source_label: str
+        ) -> Optional[Dict[str, Any]]:
+            from ..result_format import normalize_to_standard_format
+
+            if _is_standard_payload(payload):
+                return payload
+
+            # LEGACY COMPATIBILITY:
+            # Accept and normalize legacy/raw tool payloads while producers are migrated.
+            # Logging: warning emitted below on every fallback usage.
+            # Removal plan:
+            # 1) Once all tool producers emit summary/details natively for 3 consecutive full audits,
+            # 2) remove this fallback path and fail fast on non-standard payloads.
+            logger.warning(
+                f"[DATA SOURCE] {tool_name}: using legacy/raw payload from {source_label}; normalizing to standard summary/details format."
+            )
+            try:
+                return normalize_to_standard_format(tool_name, payload)
+            except ValueError as e:
+                logger.warning(
+                    f"[DATA SOURCE] {tool_name}: failed to parse/normalize payload from {source_label}: {e}"
+                )
+                return None
+
         # Determine if we're in an active audit (should have current data)
         is_active_audit = hasattr(self, 'current_audit_tier') and self.current_audit_tier is not None
         audit_tier = getattr(self, 'current_audit_tier', None)
@@ -56,13 +88,8 @@ class DataLoadingMixin:
             if cached_data and isinstance(cached_data, dict):
                 if log_source:
                     logger.debug(f"[DATA SOURCE] {tool_name}: loaded from current audit run (Tier {audit_tier})")
-                # Normalize before returning
-                from ..result_format import normalize_to_standard_format
-                try:
-                    normalized = normalize_to_standard_format(tool_name, cached_data)
-                except ValueError as e:
-                    logger.error(f"Invalid cached result format for {tool_name}: {e}")
-                else:
+                normalized = _normalize_with_warning(cached_data, "results_cache")
+                if normalized is not None:
                     return normalized
         
         # Step 2: Fallback to standardized storage (recent run)
@@ -70,12 +97,19 @@ class DataLoadingMixin:
         # Storing it would cause future calls to incorrectly log "current audit run"
         try:
             from ..output_storage import load_tool_result
-            stored_data = load_tool_result(tool_name, domain, project_root=self.project_root, normalize=True)
+            stored_data = load_tool_result(
+                tool_name, domain, project_root=self.project_root, normalize=False
+            )
             if stored_data and isinstance(stored_data, dict):
                 if log_source:
                     logger.debug(f"[DATA SOURCE] {tool_name}: loaded from standardized storage (cached)")
+                normalized = _normalize_with_warning(
+                    stored_data, "standardized_storage"
+                )
+                if normalized is None:
+                    return {}
                 # Do NOT store in results_cache - this is cached data, not from current audit run
-                return stored_data
+                return normalized
         except Exception as e:
             logger.debug(f"Failed to load {tool_name} from standardized storage: {e}")
         
@@ -515,16 +549,23 @@ class DataLoadingMixin:
         else:
             overall_coverage = round((total_statements - total_missed) / total_statements * 100, 1)
         module_data = self._load_coverage_json(coverage_path)
+        # Keep in-memory payload in standard summary/details format.
         self.dev_tools_coverage_results = {
-            'overall': {
-                'overall_coverage': overall_coverage,
-                'total_statements': total_statements,
-                'total_missed': total_missed
+            'summary': {
+                'total_issues': total_missed,
+                'files_affected': 0,
             },
-            'modules': module_data,
-            'coverage_collected': True,
-            'output_file': str(coverage_path),
-            'html_dir': None
+            'details': {
+                'overall': {
+                    'overall_coverage': overall_coverage,
+                    'total_statements': total_statements,
+                    'total_missed': total_missed
+                },
+                'modules': module_data,
+                'coverage_collected': True,
+                'output_file': str(coverage_path),
+                'html_dir': None
+            },
         }
     
     def _load_coverage_json(self, json_path: Path) -> Dict[str, Dict[str, Any]]:
@@ -565,15 +606,56 @@ class DataLoadingMixin:
         results = getattr(self, 'dev_tools_coverage_results', None)
         if not results:
             return None
-        modules = results.get('modules')
-        if (not modules) and results.get('output_file'):
+
+        # Handle both raw shape ({overall, modules, ...}) and standard shape
+        # ({summary, details={overall, modules, ...}}).
+        details = results.get('details') if isinstance(results, dict) else {}
+        if not isinstance(details, dict):
+            details = {}
+        used_raw_shape = False
+
+        modules = results.get('modules') if isinstance(results, dict) else None
+        if not isinstance(modules, dict) or not modules:
+            modules = details.get('modules')
+        else:
+            used_raw_shape = True
+
+        output_file = None
+        if isinstance(results, dict):
+            output_file = results.get('output_file')
+        if not output_file and isinstance(details, dict):
+            output_file = details.get('output_file')
+        elif output_file:
+            used_raw_shape = True
+
+        if (not modules) and output_file:
             try:
-                modules = self._load_coverage_json(Path(results['output_file']))
-            except Exception:
+                modules = self._load_coverage_json(Path(output_file))
+            except Exception as exc:
+                logger.warning(
+                    f"[DATA SOURCE] dev_tools_coverage_insights: failed to parse modules from output_file={output_file}: {exc}"
+                )
                 modules = {}
         if not isinstance(modules, dict):
             modules = {}
-        overall = results.get('overall') or {}
+
+        overall = results.get('overall') if isinstance(results, dict) else {}
+        if not isinstance(overall, dict) or not overall:
+            overall = details.get('overall') if isinstance(details, dict) else {}
+        else:
+            used_raw_shape = True
+        if not isinstance(overall, dict):
+            overall = {}
+
+        if used_raw_shape:
+            # LEGACY COMPATIBILITY:
+            # This warning indicates dev-tools coverage was loaded from deprecated raw keys.
+            # Removal plan: remove raw-shape handling in _get_dev_tools_coverage_insights()
+            # after producers and caches no longer emit top-level overall/modules/output_file keys.
+            logger.warning(
+                "[DATA SOURCE] dev_tools_coverage_insights: using legacy raw dev-tools coverage shape; producer should emit standard summary/details format."
+            )
+
         overall_pct = overall.get('overall_coverage') or overall.get('coverage')
         total_statements = overall.get('total_statements')
         total_missed = overall.get('total_missed')
@@ -583,6 +665,12 @@ class DataLoadingMixin:
         covered = None
         if total_statements is not None and total_missed is not None:
             covered = max(total_statements - total_missed, 0)
+
+        if overall_pct is None and not modules:
+            logger.warning(
+                "[DATA SOURCE] dev_tools_coverage_insights: failed to parse dev-tools coverage payload (missing overall/modules data)."
+            )
+            return None
         low_modules: List[Dict[str, Any]] = []
         if modules:
             sorted_modules = sorted(modules.items(), key=lambda kv: kv[1].get('coverage', 101))
@@ -602,7 +690,11 @@ class DataLoadingMixin:
             'overall_pct': overall_pct,
             'statements': total_statements,
             'covered': covered,
-            'html': results.get('html_dir'),
+            'html': (
+                results.get('html_dir')
+                if isinstance(results, dict)
+                else None
+            ) or (details.get('html_dir') if isinstance(details, dict) else None),
             'low_modules': low_modules,
             'module_count': len(modules),
         }

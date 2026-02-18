@@ -144,16 +144,23 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Remove duplicate log entries and demote verbose enhancement logs
 - [x] Fix duplicate audit log lines (legacy analysis logged twice; remove wrapper log line)
 - [ ] Replace print statements with logging (except intentional audit progress prints)
+  - [x] Replaced internal print-based output assembly in `shared/service/tool_wrappers.py::run_analyze_path_drift` with direct string construction (no stdout redirection/print calls)
+  - [x] Replaced `print(output)` with structured `logger.info(...)` in `shared/service/commands.py::run_config`
 - [ ] Review noisy logs in config validation and package auditing
-- [ ] Add "Top offenders" list to Quick Wins in AI_PRIORITIES.md
+- [x] Add "Top offenders" list to Quick Wins in AI_PRIORITIES.md
+  - [x] Added unused-imports Quick Win in `shared/service/report_generation.py` with top offender files + fix/verify commands
+  - [x] Added unit coverage in `tests/development_tools/test_report_generation_quick_wins.py`
 
 #### 2.3 Dependency patterns visibility in AI_STATUS and AI_PRIORITIES
-**Status**: PENDING  
+**Status**: COMPLETED  
 **Tasks**:
-- [ ] Add Dependency Patterns section to AI_STATUS.md (summary level)
-- [ ] Add Dependency Patterns recommendations to AI_PRIORITIES.md
-- [ ] Expand consolidated report with top circular chains and high-coupling modules
-- [ ] Keep all three outputs consistent and sourced from report_generation
+- [x] Add Dependency Patterns section to AI_STATUS.md (summary level)
+- [x] Add Dependency Patterns recommendations to AI_PRIORITIES.md
+  - [x] Added `Reduce dependency pattern risk` Immediate Focus item in `shared/service/report_generation.py` when circular chains or high-coupling modules are detected
+  - [x] Included top circular-chain and high-coupling examples with follow-up audit command guidance
+  - [x] Added unit coverage in `tests/development_tools/test_report_generation_quick_wins.py`
+- [x] Expand consolidated report with top circular chains and high-coupling modules
+- [x] Keep all three outputs consistent and sourced from report_generation
 
 #### 2.5 System signals purpose and redundancy cleanup
 **Status**: PENDING  
@@ -223,12 +230,12 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Integrate into `doc-sync` workflow and document the new check
 
 #### 3.1 Changelog trim tooling
-**Status**: PENDING  
+**Status**: COMPLETED  
 **Tasks**:
-- [ ] Review `_check_and_trim_changelog_entries()` in `audit_orchestration.py`
-- [ ] Fix `changelog_manager` import/availability issues
-- [ ] Ensure module exists and is reachable
-- [ ] Add error handling and logging for trim failures
+- [x] Review `_check_and_trim_changelog_entries()` in `audit_orchestration.py`
+- [x] Fix `changelog_manager` import/availability issues
+- [x] Ensure module exists and is reachable
+- [x] Add error handling and logging for trim failures
 
 #### 3.2 Validation warnings cleanup
 **Status**: PENDING  
@@ -483,8 +490,10 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 
 
 ## 7.4 Update AI_PRIORITIES Error Handling section 
-- Consider combining phase 1 and phase 2 error handling priorities
-- at least update phase 1 priorities to indicate that error handling should use decorator-based handling if possible
+- [x] Combined Phase 1 and Phase 2 into a single error-handling modernization priority in `AI_PRIORITIES.md`
+- [x] Updated Phase 1 guidance to explicitly prefer decorator-based handling (`@handle_errors`) where possible
+- [x] Added dedicated `Dependency Patterns` section to `AI_STATUS.md` with top circular chains and top high-coupling modules
+- [x] Expanded `consolidated_report.md` dependency section with top circular chains and top high-coupling modules
 ---
 
 ## Related Documents

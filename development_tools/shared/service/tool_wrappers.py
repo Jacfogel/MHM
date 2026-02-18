@@ -895,28 +895,20 @@ class ToolWrappersMixin:
                 files if isinstance(files, dict) else {},
                 details,
             )
-            import io
-            import sys
-
-            output_buffer = io.StringIO()
-            original_stdout = sys.stdout
-            sys.stdout = output_buffer
-            try:
-                if total_issues > 0:
-                    print(f"\nPath Drift Issues:")
-                    print(f"   Total files with issues: {len(files)}")
-                    print(f"   Total issues found: {total_issues}")
-                    print(f"   Top files with most issues:")
-                    sorted_files = sorted(
-                        files.items(), key=lambda x: x[1], reverse=True
-                    )
-                    for doc_file, issue_count in sorted_files[:5]:
-                        print(f"     {doc_file}: {issue_count} issues")
-                else:
-                    print("\nNo path drift issues found!")
-                output = output_buffer.getvalue()
-            finally:
-                sys.stdout = original_stdout
+            output_lines: list[str] = []
+            if total_issues > 0:
+                output_lines.append("")
+                output_lines.append("Path Drift Issues:")
+                output_lines.append(f"   Total files with issues: {len(files)}")
+                output_lines.append(f"   Total issues found: {total_issues}")
+                output_lines.append("   Top files with most issues:")
+                sorted_files = sorted(files.items(), key=lambda x: x[1], reverse=True)
+                for doc_file, issue_count in sorted_files[:5]:
+                    output_lines.append(f"     {doc_file}: {issue_count} issues")
+            else:
+                output_lines.append("")
+                output_lines.append("No path drift issues found!")
+            output = "\n".join(output_lines)
             try:
                 save_tool_result(
                     "analyze_path_drift", "docs", data, project_root=self.project_root

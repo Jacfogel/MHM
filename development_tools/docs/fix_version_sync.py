@@ -549,8 +549,8 @@ def check_changelog_entry_count(max_entries=15):
 def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
     """Trim AI_CHANGELOG.md entries older than N days and limit total entries."""
     changelog_path = "ai_development_docs/AI_CHANGELOG.md"
-    # Archive goes to reports/archive (consistent with other development_tools archives)
-    archive_path = "development_tools/reports/archive/AI_CHANGELOG_ARCHIVE.md"
+    # Archive goes to project-level archive directory for human/AI review workflows.
+    archive_path = "archive/AI_CHANGELOG_ARCHIVE.md"
 
     if not os.path.exists(changelog_path):
         return []

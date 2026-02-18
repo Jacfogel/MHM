@@ -33,6 +33,38 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-18 - Dev-tools priority/reporting fixes, changelog trim safety, and session closeout
+- **Feature/Fix (AI priorities ranking correctness)**:
+  - Fixed a regression in `development_tools/shared/service/report_generation.py` where Tier 3 failed-test priorities were added after `## Immediate Focus Ranked` rendering, causing failed tests to be omitted from `AI_PRIORITIES.md` even when `tier3_test_outcome.state` was `test_failures`.
+  - Moved Tier 3 failure-priority construction to run before ranked rendering; verified output now includes `Investigate and correct test failures/errors` with failing node IDs and log-location guidance.
+- **Feature/Fix (priorities formatting consistency)**:
+  - Standardized priority metadata output in `report_generation.py`: removed extra top-of-file blurbs, corrected AI_STATUS role wording to avoid implying change-tracking, normalized `Review for guidance` casing, and enforced guidance/details bullets across all priority item types via centralized normalization in `add_priority(...)`.
+  - Kept `AI_PRIORITIES.md` follow-up command scope trimmed to `audit --full` and retained the `Immediate Focus Ranked` section format.
+- **Feature/Fix (changelog trim tooling + archive behavior)**:
+  - Reworked `_check_and_trim_changelog_entries()` in `development_tools/shared/service/audit_orchestration.py` to use supported tooling in `development_tools/docs/fix_version_sync.py` (`check_changelog_entry_count`, `trim_ai_changelog_entries`) instead of unavailable `ai_development_docs.changelog_manager`.
+  - Added explicit non-blocking logging for unavailable tooling, malformed result shapes, check/trim failures, and trim outcomes.
+  - Updated archive target path to `archive/AI_CHANGELOG_ARCHIVE.md` and aligned audit log messaging to that path.
+  - Confirmed trim-order safety behavior: newly trimmed entries are prepended at the top of the archive, ahead of older archived entries.
+- **Tests**:
+  - Added/updated regression coverage:
+    - `tests/development_tools/test_report_generation_quick_wins.py` (Tier 3 failed tests appear in Immediate Focus)
+    - `tests/development_tools/test_changelog_trim_tooling.py` (check/trim integration behavior)
+    - `tests/development_tools/test_fix_version_sync_changelog_archive_order.py` (archive prepend ordering)
+  - Validation runs completed:
+    - `python -m pytest tests/development_tools/test_report_generation_quick_wins.py -q`
+    - `python -m pytest tests/development_tools/test_changelog_trim_tooling.py tests/development_tools/test_fix_version_sync_changelog_archive_order.py -q`
+    - `python -m pytest tests/development_tools/test_audit_strict_mode.py -q`
+- **Planning/session closeout updates**:
+  - Updated [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md): marked section 3.1 (changelog trim tooling) as completed.
+  - Updated [PLANS.md](development_docs/PLANS.md) intermittent-failure tracking with 2026-02-18 failing nodes from `audit --full --clear-cache`:
+    - `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_checkin_status_no_checkins`
+    - `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_link_account_verifies_confirmation_code`
+  - Updated [TODO.md](TODO.md) with a session note; no new standalone TODOs added.
+- **Generated artifacts refreshed this session**:
+  - Status/priority/report outputs: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`
+  - Audit/report artifacts: `development_tools/reports/analysis_detailed_results.json`, `development_tools/reports/tool_timings.json`
+  - Audit-generated docs refreshed by run context: `development_docs/TEST_COVERAGE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`
+
 ### 2026-02-17 - Interaction/flow command parity and test hardening
 - **Config**: `pyrightconfig.json` - removed invalid `overrides` reference from comment; development_tools is type-checked (no exclude).
 - **Planning**: Added section 3.16 to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) to explore refactoring `report_generation.py` and `run_test_coverage.py` (Pyright "code too complex" warnings); tasks include mapping structure, identifying split points, and documenting a refactor plan before proceeding.
@@ -56,8 +88,8 @@ When adding new changes, follow this format:
 
 ### 2026-02-17 - Pyright and development-tools cleanup (mixin overrides, refactor tasks, unused imports)
 - **Pyright (development_tools)**: Reduced errors to 0 and warnings to 2 by fixing real issues (SCRIPT_REGISTRY usage in `commands.py`, `domain_mapper` None guard in `run_test_coverage.py`, `Optional[Set[str]]` in `data_freshness_audit.py`, `_error_metrics`/`_error_field` and optional-member access in `report_generation.py`, `changelog_manager` getattr in `audit_orchestration.py`, method name in `measure_tool_timings.py`) and addressing mixin attribute-access warnings via per-file override instead of stub declarations. Added `# pyright: reportAttributeAccessIssue=false` to the six service mixin files (`utilities.py`, `commands.py`, `audit_orchestration.py`, `data_loading.py`, `report_generation.py`, `tool_wrappers.py`) so only that diagnostic is suppressed there.
-- **Config**: `pyrightconfig.json` — removed invalid `overrides` reference from comment; development_tools is type-checked (no exclude).
-- **Planning**: Added section 3.16 to `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` to explore refactoring `report_generation.py` and `run_test_coverage.py` (Pyright "code too complex" warnings); tasks include mapping structure, identifying split points, and documenting a refactor plan before proceeding.
+- **Config**: `pyrightconfig.json` - removed invalid `overrides` reference from comment; development_tools is type-checked (no exclude).
+- **Planning**: Added section 3.16 to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) to explore refactoring `report_generation.py` and `run_test_coverage.py` (Pyright "code too complex" warnings); tasks include mapping structure, identifying split points, and documenting a refactor plan before proceeding.
 
 ### 2026-02-16 - Static logging check migration, script governance planning, and audit artifact refresh
 - **Feature/Fix (static logging check relocation)**: Migrated static logging-enforcement execution path from `scripts/static_checks/check_channel_loggers.py` to `development_tools/static_checks/check_channel_loggers.py` and updated all active callsites/references:

@@ -52,7 +52,7 @@ python development_tools/run_development_tools.py help
 - `unused-imports-report` - Generate unused imports report from analysis results
 - `config` - Check configuration consistency
 
-**Additional commands**: `system-signals`, `validate`, `decision-support`, `unused-imports`, `duplicate-functions`, `workflow`, `trees`, `cleanup` (alias: `clean-up`), `export-code`, `version-sync` (experimental)
+**Additional commands**: `system-signals`, `validate`, `decision-support`, `duplicate-functions`, `workflow`, `trees`, `cleanup` (alias: `clean-up`), `export-code`, `version-sync` (experimental)
 
 **Note**: Test marker analysis is automatically run during `audit --full` when coverage is generated. For fixing markers, use `development_tools/tests/fix_test_markers.py` directly.
 

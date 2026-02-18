@@ -4452,11 +4452,30 @@ def main():
 
     if args.output_file and results:
         # Save detailed results to JSON file
+        output_payload = results
+        if args.dev_tools_only and isinstance(results, dict):
+            # Emit standard format payload for dev-tools coverage output files.
+            overall = results.get("overall", {}) if isinstance(results.get("overall"), dict) else {}
+            total_missed = int(overall.get("total_missed", 0) or 0)
+            output_payload = {
+                "summary": {
+                    "total_issues": total_missed,
+                    "files_affected": 0,
+                },
+                "details": results,
+                # LEGACY COMPATIBILITY:
+                # Keep top-level outcome for older loaders/scripts that still read this key.
+                # Logging: consumers log a warning when they rely on legacy compatibility paths.
+                # Removal plan: drop this top-level key after all consumers read
+                # details.dev_tools_test_outcome from standard payloads.
+                "dev_tools_test_outcome": results.get("dev_tools_test_outcome", {}),
+            }
+
         output_path = Path(args.output_file)
         with open(output_path, "w", encoding="utf-8") as f:
             import json
 
-            json.dump(results, f, indent=2)
+            json.dump(output_payload, f, indent=2)
         print(f"\nDetailed coverage data saved to: {output_path}")
 
 

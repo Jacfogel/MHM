@@ -1407,7 +1407,7 @@ class TestAccountCreationIntegration:
 
                 assert wait_until(
                     _features_ready,
-                    timeout_seconds=10.0,
+                    timeout_seconds=20.0,
                     poll_seconds=0.02,
                 ), "Account features should materialize in full lifecycle test"
                 clear_user_caches()
@@ -1543,7 +1543,7 @@ class TestAccountCreationIntegration:
         ), "User index should be rebuilt successfully"
 
         # Verify all users have same features
-        for user_id, _ in test_users:
+        for user_id, expected_internal_username in test_users:
             clear_user_caches()
             user_data = get_user_data(user_id, normalize_on_read=True)
             if "account" not in user_data:
@@ -1621,7 +1621,7 @@ class TestAccountCreationIntegration:
 
                     assert wait_until(
                         _features_ready,
-                        timeout_seconds=10.0,
+                        timeout_seconds=20.0,
                         poll_seconds=0.02,
                     ), f"Features should materialize for user {user_id}"
                     clear_user_caches()

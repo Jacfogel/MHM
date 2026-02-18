@@ -1345,24 +1345,61 @@ class AuditOrchestrationMixin:
     def _check_and_trim_changelog_entries(self) -> None:
         """Check and trim AI_CHANGELOG entries to prevent bloat."""
         try:
-            import ai_development_docs
-            changelog_manager = getattr(ai_development_docs, "changelog_manager", None)
-        except Exception:
-            changelog_manager = None
-        if changelog_manager and hasattr(changelog_manager, "trim_change_log"):
-            try:
-                result = changelog_manager.trim_change_log()
-                if isinstance(result, dict):
-                    trimmed = result.get('trimmed_entries')
-                    archive_created = result.get('archive_created')
-                    if trimmed:
-                        logger.info(f"   Trimmed {trimmed} old changelog entries")
-                    if archive_created:
-                        logger.info("   Created archive: development_tools/reports/archive/AI_CHANGELOG_ARCHIVE.md")
-            except Exception as exc:
-                logger.warning(f"   Changelog check/trim failed: {exc}")
+            from development_tools.docs.fix_version_sync import (
+                check_changelog_entry_count,
+                trim_ai_changelog_entries,
+            )
+        except Exception as exc:
+            logger.warning(f"   Changelog check: Tooling unavailable (skipping trim): {exc}")
+            return
+
+        try:
+            check_result = check_changelog_entry_count(max_entries=15)
+        except Exception as exc:
+            logger.warning(f"   Changelog check failed: {exc}")
+            return
+
+        if not isinstance(check_result, dict):
+            logger.warning("   Changelog check failed: unexpected result shape")
+            return
+
+        status = str(check_result.get("status", "unknown")).lower()
+        message = check_result.get("message")
+        if message:
+            logger.info(f"   Changelog check: {message}")
+
+        if status in {"ok", "pass"}:
+            return
+        if status not in {"fail", "warning"}:
+            logger.warning(f"   Changelog check failed: status={status}")
+            return
+
+        try:
+            trim_result = trim_ai_changelog_entries(days_to_keep=30, max_entries=15)
+        except Exception as exc:
+            logger.warning(f"   Changelog trim failed: {exc}")
+            return
+
+        if not isinstance(trim_result, dict):
+            logger.warning("   Changelog trim failed: unexpected result shape")
+            return
+
+        if trim_result.get("error"):
+            logger.warning(f"   Changelog trim failed: {trim_result['error']}")
+            return
+
+        trimmed = int(trim_result.get("trimmed_entries", 0) or 0)
+        kept = int(trim_result.get("kept_entries", 0) or 0)
+        archive_created = bool(trim_result.get("archive_created", False))
+
+        if trimmed > 0:
+            logger.info(f"   Trimmed {trimmed} old changelog entries")
         else:
-            logger.warning("   Changelog check: Tooling unavailable (skipping trim)")
+            logger.info("   Changelog trim: no old entries needed trimming")
+
+        logger.info(f"   Changelog entries kept: {kept}")
+        if archive_created:
+            logger.info("   Created archive: archive/AI_CHANGELOG_ARCHIVE.md")
     
     def _validate_referenced_paths(self) -> None:
         """Validate that all referenced paths in documentation exist."""

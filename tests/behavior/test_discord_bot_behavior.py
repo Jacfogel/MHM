@@ -349,6 +349,7 @@ class TestDiscordBotBehavior:
                 assert mock_thread.start.called, "Thread should be started"
 
     @pytest.mark.communication
+    @pytest.mark.no_parallel
     def test_interaction_manager_single_response(self, test_data_dir):
         """Ensure a single inbound message yields one main response (no duplicates)."""
         import uuid
@@ -373,7 +374,7 @@ class TestDiscordBotBehavior:
                 if internal_uid:
                     break
                 time.sleep(0.05)
-        assert internal_uid
+        assert internal_uid, f"Failed to resolve internal UID for {username}"
 
         # Call handle_user_message twice with the same content to simulate separate messages
         from communication.message_processing.interaction_manager import handle_user_message
