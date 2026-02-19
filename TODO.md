@@ -141,6 +141,11 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
 - *Estimated effort*: Small
 
+**Investigate intermittent parallel hang/crash path (do not increase default timeout)**
+- *What it means*: Keep default coverage pytest timeout at 12 minutes and investigate root cause when runs hang or worker nodes crash, instead of masking with longer defaults.
+- *Why it helps*: Preserves fast failure signals and avoids hiding real reliability issues.
+- *Estimated effort*: Medium
+
 ### Documentation
 
 **Update Inter-Documentation References to Include Section Numbers**

@@ -7,6 +7,7 @@ side effects rather than just returning values.
 """
 
 import pytest
+import uuid
 from unittest.mock import patch
 from datetime import date, datetime
 
@@ -109,7 +110,7 @@ class TestCheckinHandlerBehavior:
     ):
         """Test that CheckinHandler rejects check-in when not enabled."""
         handler = CheckinHandler()
-        user_id = "test_user_checkin_not_enabled"
+        user_id = f"test_user_checkin_not_enabled_{uuid.uuid4().hex[:8]}"
         assert self._create_test_user(
             user_id, enable_checkins=False, test_data_dir=test_data_dir
         ), "Failed to create test user"

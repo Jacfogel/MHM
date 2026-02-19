@@ -158,3 +158,29 @@ def test_tool_hash_mismatch_invalidates_all_domains() -> None:
         assert cache.last_invalidation_reason.startswith("tool_change:")
     finally:
         _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_failed_run_without_failed_domains_invalidates_last_run_domains() -> None:
+    """Failed run fallback should invalidate previously-run domains before global fallback."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        project_root = Path.cwd().resolve()
+        cache = TestFileCoverageCache(project_root, cache_dir=temp_path)
+        cache._save_cache()
+
+        cache.cache_data["last_run_ok"] = False
+        cache.cache_data["last_no_parallel_ok"] = False
+        cache.cache_data["last_failed_domains"] = []
+        cache.cache_data["last_run_domains"] = ["core", "communication"]
+        cache._cached_changed_domains = None
+
+        changed_domains = cache.get_changed_domains()
+
+        assert changed_domains == {"core", "communication"}
+        assert (
+            cache.last_invalidation_reason
+            == "previous_run_failed: run domains from previous run"
+        )
+    finally:
+        _cleanup_local_scratch_dir(temp_path)

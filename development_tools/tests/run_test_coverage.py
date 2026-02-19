@@ -1500,12 +1500,10 @@ class CoverageMetricsRegenerator:
                     else fresh_coverage_json
                 )
 
-                cache_write_allowed_pre_no_parallel = (
-                    result.returncode == 0
-                    and test_results.get("failed_count", 0) == 0
-                    and not test_results.get("maxfail_reached", False)
-                    and coverage_collected
-                )
+                # Persist cache whenever coverage data was collected.
+                # Next-run invalidation is handled by run-status metadata
+                # (failed domains / last run domains).
+                cache_write_allowed_pre_no_parallel = coverage_collected
 
                 # In parallel mode, defer cache writes until no_parallel has completed.
                 # This prevents persisting partial coverage cache state when serial phase fails.
@@ -1601,7 +1599,7 @@ class CoverageMetricsRegenerator:
                 ):
                     if logger:
                         logger.info(
-                            "Skipping test-file coverage cache write because tests failed, maxfail was reached, or coverage data was not collected"
+                            "Skipping test-file coverage cache write because coverage data was not collected"
                         )
 
             # Enhanced error detection and reporting
@@ -2195,6 +2193,9 @@ class CoverageMetricsRegenerator:
                             no_parallel_ok=no_parallel_ok,
                             no_parallel_coverage_present=no_parallel_coverage_present,
                             failed_domains=sorted(failed_domains),
+                            run_domains=(
+                                sorted(changed_domains) if changed_domains else None
+                            ),
                         )
                     except Exception as e:
                         if logger:
@@ -2923,27 +2924,10 @@ class CoverageMetricsRegenerator:
                                                 f"Shard files found: {shard_files_count}"
                                             )
 
-                                        final_cache_write_allowed = test_results.get(
-                                            "failed_count", 0
-                                        ) == 0 and not test_results.get(
-                                            "maxfail_reached", False
-                                        )
-                                        if self.parallel:
-                                            final_cache_write_allowed = (
-                                                final_cache_write_allowed
-                                                and no_parallel_test_results.get(
-                                                    "failed_count", 0
-                                                )
-                                                == 0
-                                                and no_parallel_test_results.get(
-                                                    "total_tests", 0
-                                                )
-                                                > 0
-                                            )
-                                        final_cache_write_allowed = (
-                                            final_cache_write_allowed
-                                            and coverage_collected
-                                        )
+                                        # Persist cache whenever combined coverage data exists.
+                                        # Failed runs are revalidated on the next run via failed-domain
+                                        # invalidation recorded in update_run_status().
+                                        final_cache_write_allowed = coverage_collected
 
                                         # Update cache with coverage (parallel mode)
                                         # On selective runs, fresh_coverage_json_parallel should already be the merged coverage
@@ -3069,7 +3053,7 @@ class CoverageMetricsRegenerator:
                                             and logger
                                         ):
                                             logger.info(
-                                                "Skipping test-file coverage cache write because parallel/no_parallel test results were not fully successful or coverage data was not collected"
+                                                "Skipping test-file coverage cache write because coverage data was not collected"
                                             )
                                     else:
                                         coverage_data = {}
@@ -4098,6 +4082,20 @@ class CoverageMetricsRegenerator:
         lowered = output.lower()
         return "cleanup_dead_symlinks" in lowered and "permissionerror" in lowered
 
+    def _is_xdist_worker_crash_output(self, output: str) -> bool:
+        """Detect xdist/execnet worker crash patterns from pytest output."""
+        if not output:
+            return False
+        lowered = output.lower()
+        crash_markers = (
+            "windows fatal exception",
+            "node down: not properly terminated",
+            "execnet.gateway_base",
+            "pluggyteardownraisedwarning",
+            "oserror: cannot send (already closed?)",
+        )
+        return any(marker in lowered for marker in crash_markers)
+
     def _build_track_outcome(
         self,
         return_code: Optional[int],
@@ -4117,6 +4115,8 @@ class CoverageMetricsRegenerator:
         state = "unknown"
         if self._is_infra_cleanup_error(output):
             state = "infra_cleanup_error"
+        elif self._is_xdist_worker_crash_output(output):
+            state = "crashed"
         elif self._is_windows_crash_return_code(return_code):
             state = "crashed"
         elif return_code is None and total_tests == 0 and not (output or "").strip():

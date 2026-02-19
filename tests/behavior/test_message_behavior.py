@@ -13,6 +13,7 @@ This module tests:
 import pytest
 import os
 import json
+import uuid
 from unittest.mock import Mock, patch, mock_open
 
 # Add the project root to the path
@@ -152,7 +153,7 @@ class TestMessageCRUD:
     @pytest.mark.no_parallel
     def test_add_message_success(self, test_data_dir):
         """Test adding a message successfully."""
-        user_id = "test-user-add"
+        user_id = f"test-user-add-{uuid.uuid4().hex[:8]}"
         category = "motivational"
         message_data = {
             "message": "Test message",
@@ -173,7 +174,7 @@ class TestMessageCRUD:
         
         # Mock get_user_data_dir to return our test directory
         # Patch core.config.get_user_data_dir since that's where it's imported from
-        with patch('core.config.get_user_data_dir', return_value=user_dir):
+        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
             result = add_message(user_id, category, message_data)
 
             # Functions return None on success
@@ -239,7 +240,7 @@ class TestMessageCRUD:
         
         # Mock get_user_data_dir to return our test directory
         # Note: message_management uses core.config.get_user_data_dir, not message_management.get_user_data_dir
-        with patch('core.config.get_user_data_dir', return_value=user_dir):
+        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
             # Ensure directory exists before edit (race condition fix for parallel execution)
             user_messages_dir = os.path.join(user_dir, 'messages')
             os.makedirs(user_messages_dir, exist_ok=True)
@@ -371,7 +372,7 @@ class TestMessageCRUD:
         
         # Mock get_user_data_dir to return our test directory
         # Patch core.config.get_user_data_dir since that's where it's imported from
-        with patch('core.config.get_user_data_dir', return_value=user_dir):
+        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
             result = delete_message(user_id, category, message_id)
             
             # Functions return None on success
@@ -702,7 +703,7 @@ class TestIntegration:
         
         # Mock get_user_data_dir to return our test directory
         # Note: message_management uses core.config.get_user_data_dir, not message_management.get_user_data_dir
-        with patch('core.config.get_user_data_dir', return_value=user_dir):
+        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
             # 1. Add message
             result1 = add_message(user_id, category, new_message)
             assert result1 is None

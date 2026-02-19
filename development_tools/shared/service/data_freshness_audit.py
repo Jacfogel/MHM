@@ -92,6 +92,8 @@ def check_cache_file_for_deleted_files(cache_file: Path, project_root: Path, del
                     normalized = obj.replace('\\', '/')
                     if normalized in deleted_files:
                         issues.append((normalized, f"Found in cache file {cache_file.name} at path: {path}"))
+
+        find_file_paths(data)
     
     except Exception as e:
         issues.append(('', f"Error reading cache file {cache_file.name}: {e}"))

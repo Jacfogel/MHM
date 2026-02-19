@@ -33,6 +33,57 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-19 - Coverage hardening and Tier-3 audit failure cleanup
+- **Feature/Fix**: Progressed the `development_tools/AI_PRIORITIES.md` item "Raise development tools coverage" by adding targeted coverage for the three highlighted low-coverage modules:
+  - `development_tools/shared/export_code_snapshot.py`
+  - `development_tools/shared/export_docs_snapshot.py`
+  - `development_tools/shared/service/data_freshness_audit.py`
+- **Technical Changes**:
+  - Added `tests/development_tools/test_export_snapshots.py` with unit coverage for:
+    - exclusion building/flag handling (`--include-tests`, `--include-dev-tools`)
+    - generated/custom exclusion matching in `_should_exclude`
+    - Python/Markdown discovery filtering behavior
+    - end-to-end snapshot generation via `main(...)` for both code/docs exporters
+  - Added `tests/development_tools/test_data_freshness_audit.py` with unit coverage for:
+    - cache JSON scanning for deleted-file references
+    - read-error handling for malformed JSON cache files
+    - static existence-check warning detection
+    - generated report reference detection
+    - top-level audit summary aggregation behavior
+  - Fixed a functional defect in `development_tools/shared/service/data_freshness_audit.py`:
+    - `check_cache_file_for_deleted_files(...)` created a recursive `find_file_paths(...)` scanner but did not invoke it.
+    - Added `find_file_paths(data)` so the function now actually audits parsed cache content and reports deleted-file references.
+- **Validation**:
+  - `python -m pytest tests/development_tools/test_export_snapshots.py tests/development_tools/test_data_freshness_audit.py -q`
+  - Result: `11 passed`.
+- **Impact**:
+  - Increases regression protection in development-tools snapshot export and data-freshness audit flows.
+  - Corrects a silent false-negative path in freshness auditing where deleted-file references in cache payloads could be missed.
+- **Feature/Fix (coverage precheck correctness)**:
+  - Updated `development_tools/shared/service/commands.py` to block `cache_only` precheck reuse when cached test outcome state is failure-like (`failed`, `test_failures`, `coverage_failed`, `crashed`, etc.) for both:
+    - main coverage (`analyze_test_coverage` cached payload state)
+    - dev-tools coverage (`generate_dev_tools_coverage` cached payload state)
+  - Added regression coverage in `tests/development_tools/test_audit_strict_mode.py` to verify failed cached outcomes force rerun rather than precheck skip.
+- **Feature/Fix (test-file coverage cache persistence policy)**:
+  - Updated `development_tools/tests/run_test_coverage.py` to persist test-file coverage cache whenever coverage data exists, even if tests failed.
+  - Kept safety via existing failed-run invalidation (`failed_domains` / `last_run_domains`) so subsequent runs revalidate affected domains.
+  - Result: avoids empty mapping/cache states after failed runs and reduces unnecessary full reruns.
+- **Feature/Fix (timeout policy alignment)**:
+  - Reverted temporary full-run timeout floor in `development_tools/tests/run_test_coverage.py`; coverage timeout is again driven strictly by config/default (`pytest_timeout`, default 12 minutes).
+- **Feature/Fix (recent audit failures addressed)**:
+  - Removed intentional failure harness test `tests/development_tools/test_intentional_failure.py` from the active suite after validation workflows were completed.
+  - Stabilized two behavior tests that surfaced in the latest Tier 3 runs by switching fixed user IDs to per-test UUID-suffixed IDs:
+    - `tests/behavior/test_message_behavior.py::TestMessageCRUD::test_add_message_success`
+    - `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_start_checkin_not_enabled`
+  - Rechecked `tests/behavior/test_discord_checkin_retry_behavior.py::TestDiscordCheckinRetryBehavior::test_checkin_message_queued_on_discord_disconnect` in targeted reruns; currently stable.
+- **Validation (this session)**:
+  - `pytest tests/development_tools/test_audit_strict_mode.py -q` -> `12 passed`
+  - `pytest tests/development_tools/test_test_file_coverage_cache.py -q` -> `5 passed`
+  - Repeated targeted reruns (passing after fixes):
+    - `pytest tests/behavior/test_message_behavior.py::TestMessageCRUD::test_add_message_success -q`
+    - `pytest tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_start_checkin_not_enabled -q`
+    - `pytest tests/behavior/test_discord_checkin_retry_behavior.py::TestDiscordCheckinRetryBehavior::test_checkin_message_queued_on_discord_disconnect -q`
+
 ### 2026-02-18 - Dev-tools legacy cleanup + reporting/cache hardening session
 - **Feature/Fix (AI priorities ranking correctness)**:
   - Fixed a regression in `development_tools/shared/service/report_generation.py` where Tier 3 failed-test priorities were added after `## Immediate Focus Ranked` rendering, causing failed tests to be omitted from `AI_PRIORITIES.md` even when `tier3_test_outcome.state` was `test_failures`.

@@ -115,6 +115,21 @@ def test_run_test_coverage_classifies_cleanup_permission_error():
 
 
 @pytest.mark.unit
+def test_run_test_coverage_classifies_xdist_worker_crash_output():
+    """xdist worker crash markers should map to crashed even with generic return code."""
+    regenerator = CoverageMetricsRegenerator(project_root=".", parallel=False)
+    outcome = regenerator._build_track_outcome(
+        return_code=1,
+        parsed_results={"failed_count": 0, "error_count": 0, "total_tests": 0},
+        output=(
+            "Windows fatal exception: access violation\n"
+            "[gw0] node down: Not properly terminated\n"
+        ),
+    )
+    assert outcome["state"] == "crashed"
+
+
+@pytest.mark.unit
 def test_run_coverage_regeneration_fails_when_coverage_outcome_failed(
     temp_project_copy, monkeypatch
 ):
@@ -307,3 +322,127 @@ def test_run_dev_tools_coverage_sets_development_tools_outcome(
     assert result.get("success") is True
     assert service.tier3_test_outcome.get("development_tools", {}).get("state") == "failed"
     assert service.tier3_test_outcome.get("development_tools", {}).get("failed_count") == 2
+
+
+@pytest.mark.unit
+def test_run_coverage_regeneration_reruns_when_cached_outcome_failed(
+    temp_project_copy, monkeypatch
+):
+    """Precheck cache reuse should be blocked when cached main outcome is failed."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    output_file = (
+        temp_project_copy
+        / "development_tools"
+        / "tests"
+        / "jsons"
+        / "run_test_coverage_results.json"
+    )
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    monkeypatch.setattr(service, "_is_coverage_file_fresh", lambda *args, **kwargs: True)
+    monkeypatch.setattr(
+        service,
+        "_load_cached_result_if_available",
+        lambda *args, **kwargs: {
+            "details": {"tier3_test_outcome": {"state": "test_failures"}}
+        },
+    )
+    monkeypatch.setattr(service, "_load_coverage_summary", lambda: {"overall": {"missed": 0}})
+
+    calls = {"count": 0}
+
+    def _run_script(*args, **kwargs):
+        calls["count"] += 1
+        output_file.write_text(
+            json.dumps(
+                {
+                    "coverage_outcome": {
+                        "state": "clean",
+                        "parallel": {"state": "passed"},
+                        "no_parallel": {"state": "passed"},
+                        "failed_node_ids": [],
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        return {"success": True, "output": "", "error": ""}
+
+    monkeypatch.setattr(service, "run_script", _run_script)
+
+    assert service.run_coverage_regeneration() is True
+    assert calls["count"] == 1
+
+
+@pytest.mark.unit
+def test_run_dev_tools_coverage_reruns_when_cached_outcome_failed(
+    temp_project_copy, monkeypatch
+):
+    """Precheck cache reuse should be blocked when cached dev-tools outcome is failed."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    dev_tools_coverage_file = (
+        temp_project_copy
+        / "development_tools"
+        / "tests"
+        / "jsons"
+        / "coverage_dev_tools.json"
+    )
+    dev_tools_coverage_file.parent.mkdir(parents=True, exist_ok=True)
+    dev_tools_coverage_file.write_text('{"files": {}, "totals": {}}', encoding="utf-8")
+
+    dev_tools_output_file = (
+        temp_project_copy
+        / "development_tools"
+        / "tests"
+        / "jsons"
+        / "run_test_coverage_dev_tools_results.json"
+    )
+
+    monkeypatch.setattr(service, "_is_coverage_file_fresh", lambda *args, **kwargs: True)
+    monkeypatch.setattr(
+        service,
+        "_load_cached_result_if_available",
+        lambda *args, **kwargs: {
+            "details": {"dev_tools_test_outcome": {"state": "failed"}}
+        },
+    )
+    monkeypatch.setattr(
+        service,
+        "_load_dev_tools_coverage",
+        lambda: setattr(
+            service,
+            "dev_tools_coverage_results",
+            {"summary": {"total_issues": 0, "files_affected": 0}, "details": {}},
+        ),
+    )
+
+    calls = {"count": 0}
+
+    def _run_script(*args, **kwargs):
+        calls["count"] += 1
+        dev_tools_output_file.write_text(
+            json.dumps(
+                {
+                    "details": {
+                        "dev_tools_test_outcome": {
+                            "state": "passed",
+                            "return_code": 0,
+                            "passed_count": 1,
+                            "failed_count": 0,
+                            "error_count": 0,
+                            "skipped_count": 0,
+                            "failed_node_ids": [],
+                        }
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        return {"success": True, "output": "TOTAL", "error": "", "returncode": 0}
+
+    monkeypatch.setattr(service, "run_script", _run_script)
+
+    result = service.run_dev_tools_coverage()
+    assert result.get("success") is True
+    assert calls["count"] == 1

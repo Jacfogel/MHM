@@ -302,9 +302,10 @@ class TestAccountLifecycle:
     def test_enable_checkins_for_basic_user(self):
         """Test enabling check-ins for a user who only has messages enabled."""
         from core.user_data_handlers import save_user_data, get_user_data
+        import uuid
         
         # Arrange - Create basic user
-        user_id = "test-enable-checkins"
+        user_id = f"test-enable-checkins-{uuid.uuid4().hex[:8]}"
         account_data = {
             "internal_username": user_id,
             "timezone": "America/New_York",

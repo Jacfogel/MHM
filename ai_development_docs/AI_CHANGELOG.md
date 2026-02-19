@@ -30,6 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-19 - Coverage hardening + audit failure cleanup **Progressed**
+- Picked and progressed `AI_PRIORITIES.md` item "Raise development tools coverage" by targeting the listed 0%-coverage modules: `development_tools/shared/export_code_snapshot.py`, `development_tools/shared/export_docs_snapshot.py`, and `development_tools/shared/service/data_freshness_audit.py`.
+- Added focused regression/unit tests in `tests/development_tools/test_export_snapshots.py` and `tests/development_tools/test_data_freshness_audit.py` to exercise exclusion toggles, file discovery/bundling, report scanning, static freshness checks, and summary aggregation.
+- Fixed a real bug discovered during test authoring: `check_cache_file_for_deleted_files()` in `data_freshness_audit.py` defined recursive scanning but never executed it; now calls `find_file_paths(data)` so deleted-file references are actually detected.
+- Validation: `python -m pytest tests/development_tools/test_export_snapshots.py tests/development_tools/test_data_freshness_audit.py -q` -> `11 passed`.
+- Hardened coverage orchestration cache-precheck behavior in `development_tools/shared/service/commands.py` so failed cached outcomes (`test_failures`/`failed`/`crashed`/`coverage_failed`) are not reused as `cache_only`; added regression tests in `tests/development_tools/test_audit_strict_mode.py`.
+- Updated test-file coverage cache policy to persist cache artifacts whenever coverage data is collected (even on failing runs) and rely on failed-domain/run-domain invalidation on next run (`development_tools/tests/run_test_coverage.py`, `development_tools/tests/test_file_coverage_cache.py`).
+- Reverted temporary full-run timeout floor so coverage pytest timeout remains config/default driven (12 minutes unless configured otherwise).
+- Fixed/closed recent audit failures: removed `tests/development_tools/test_intentional_failure.py`; stabilized behavior tests with per-test unique user IDs in `tests/behavior/test_message_behavior.py` and `tests/behavior/test_checkin_handler_behavior.py`; revalidated `tests/behavior/test_discord_checkin_retry_behavior.py` targeted failure path as stable in reruns.
+
 ### 2026-02-18 - Legacy cleanup + coverage cache/reporting hardening **Progressed**
 - Removed the final legacy-marker footprint from active files and reran `python development_tools/run_development_tools.py legacy`; `LEGACY_REFERENCE_REPORT.md` now reports `Total Files with Issues: 0` and `Legacy Compatibility Markers Detected: 0`.
 - Standardized dev-tools coverage outcome handling to read `details.dev_tools_test_outcome` first in `development_tools/shared/service/commands.py`, while still tolerating older payloads when encountered.
@@ -143,12 +153,6 @@ Guidelines:
 - Investigated latest Tier-3 failures and isolated two intermittent targets: cleanup TOCTOU path deletion in `test_fix_project_cleanup.py` and nondeterministic user-dir selection in `test_user_management.py`.
 - Removed duplicate flake planning from `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`; consolidated intermittent coverage-flake tracking in [TODO.md](TODO.md) as the single source.
 - Updated both dev-tools guides with failure-aware/tool-aware cache invalidation details, extended V4 plan cache-quality tasks, and refreshed generated audit artifacts/reports (AI_STATUS, AI_PRIORITIES, consolidated report, registry/dependency/coverage docs).
-
-### 2026-02-08 - Dev tools cache/CLI standardization and test fixes **COMPLETED**
-- Standardized dev-tools CLI flags/aliases, removed `critical_issues.txt`, made config portable, and expanded `should_exclude_file` usage; guides and plan/priorities refreshed after audits.
-- Extended caching with tool-code/config invalidation and broader analyzer coverage; cache failures now log and corrupted cache files are cleaned up.
-- Fixed reschedule-request test path (removed `MHM_TESTING` bypass + pytz load) and backfilled missing account `email` on load to avoid user-data flow KeyErrors.
-- Validation: user ran full audit clean (`python development_tools/run_development_tools.py audit --full`).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

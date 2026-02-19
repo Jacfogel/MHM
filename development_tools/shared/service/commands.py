@@ -196,6 +196,53 @@ class CommandsMixin:
             "details": raw_data if isinstance(raw_data, dict) else {},
         }
         return standard
+
+    def _extract_cached_main_coverage_state(self, cached_result: Optional[Dict]) -> Optional[str]:
+        """Extract cached main coverage test outcome state when present."""
+        if not isinstance(cached_result, dict):
+            return None
+        details = cached_result.get("details")
+        if not isinstance(details, dict):
+            return None
+        tier3 = details.get("tier3_test_outcome")
+        if isinstance(tier3, dict):
+            state = tier3.get("state")
+            if isinstance(state, str) and state:
+                return state
+        coverage_outcome = details.get("coverage_outcome")
+        if isinstance(coverage_outcome, dict):
+            state = coverage_outcome.get("state")
+            if isinstance(state, str) and state:
+                return state
+        return None
+
+    def _extract_cached_dev_tools_state(self, cached_result: Optional[Dict]) -> Optional[str]:
+        """Extract cached dev-tools test outcome state when present."""
+        if not isinstance(cached_result, dict):
+            return None
+        details = cached_result.get("details")
+        if not isinstance(details, dict):
+            return None
+        dev_tools = details.get("dev_tools_test_outcome")
+        if isinstance(dev_tools, dict):
+            state = dev_tools.get("state")
+            if isinstance(state, str) and state:
+                return state
+        return None
+
+    def _is_failure_state(self, state: Optional[str]) -> bool:
+        """Return True when cached test outcome state represents a failure."""
+        if not state:
+            return False
+        return state in {
+            "failed",
+            "test_failures",
+            "coverage_failed",
+            "crashed",
+            "infra_cleanup_error",
+            "error",
+            "errors",
+        }
     
     def run_docs(self):
         """Update all documentation (OPTIONAL - not essential for audit)"""
@@ -375,6 +422,13 @@ class CommandsMixin:
             ],
         ):
             cached_data = self._load_cached_result_if_available("generate_dev_tools_coverage", "tests")
+            cached_state = self._extract_cached_dev_tools_state(cached_data)
+            if self._is_failure_state(cached_state):
+                logger.info(
+                    "Skipping precheck cache reuse for dev tools coverage because cached test outcome state is "
+                    + str(cached_state)
+                )
+                cached_data = None
             cache_metadata = {
                 "cache_mode": "cache_only",
                 "invalidation_reason": "Precheck: dev tools/test sources unchanged since coverage_dev_tools.json",
@@ -698,6 +752,14 @@ class CommandsMixin:
                 "development_tools_config.json",
             ],
         ):
+            cached_coverage_result = self._load_cached_result_if_available("analyze_test_coverage", "tests")
+            cached_state = self._extract_cached_main_coverage_state(cached_coverage_result)
+            if self._is_failure_state(cached_state):
+                logger.info(
+                    "Skipping precheck cache reuse for main test coverage because cached test outcome state is "
+                    + str(cached_state)
+                )
+                cached_coverage_result = None
             if not hasattr(self, "_tool_cache_metadata"):
                 self._tool_cache_metadata = {}
             self._tool_cache_metadata["run_test_coverage"] = {
@@ -706,7 +768,7 @@ class CommandsMixin:
                 "source": "orchestration_precheck",
             }
             cached_summary = self._load_coverage_summary()
-            if cached_summary:
+            if cached_summary and cached_coverage_result is not None:
                 logger.info(
                     "Skipping test coverage run - cached main project coverage is up to date"
                 )

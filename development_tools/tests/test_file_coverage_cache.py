@@ -243,6 +243,7 @@ class TestFileCoverageCache:
                 "last_no_parallel_ok": None,
                 "last_no_parallel_coverage_present": None,
                 "last_failed_domains": [],
+                "last_run_domains": [],
                 "last_run_at": None,
                 "last_updated": None,
             }
@@ -449,6 +450,7 @@ class TestFileCoverageCache:
         no_parallel_ok: Optional[bool] = None,
         no_parallel_coverage_present: Optional[bool] = None,
         failed_domains: Optional[Iterable[str]] = None,
+        run_domains: Optional[Iterable[str]] = None,
     ) -> None:
         """Record the last test coverage run status."""
         if parallel_ok is not None:
@@ -462,6 +464,10 @@ class TestFileCoverageCache:
         if failed_domains is not None:
             self.cache_data["last_failed_domains"] = sorted(
                 {d for d in failed_domains if isinstance(d, str) and d}
+            )
+        if run_domains is not None:
+            self.cache_data["last_run_domains"] = sorted(
+                {d for d in run_domains if isinstance(d, str) and d}
             )
         if parallel_ok is not None or no_parallel_ok is not None:
             self.cache_data["last_run_ok"] = bool(
@@ -539,6 +545,7 @@ class TestFileCoverageCache:
             "last_no_parallel_coverage_present"
         )
         last_failed_domains = set(self.cache_data.get("last_failed_domains", []) or [])
+        last_run_domains = set(self.cache_data.get("last_run_domains", []) or [])
         if last_run_ok is False or last_no_parallel_ok is False:
             if last_failed_domains:
                 self.last_invalidation_reason = (
@@ -550,6 +557,16 @@ class TestFileCoverageCache:
                     )
                 self._cached_changed_domains = set(last_failed_domains)
                 return set(last_failed_domains)
+            if last_run_domains:
+                self.last_invalidation_reason = (
+                    "previous_run_failed: run domains from previous run"
+                )
+                if logger:
+                    logger.info(
+                        f"Previous test coverage run failed - invalidating previously-run domains: {sorted(last_run_domains)}"
+                    )
+                self._cached_changed_domains = set(last_run_domains)
+                return set(last_run_domains)
             all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
             self.last_invalidation_reason = (
                 "previous_run_failed: no failed-domain mapping available"
@@ -953,6 +970,7 @@ class TestFileCoverageCache:
             "last_no_parallel_ok": None,
             "last_no_parallel_coverage_present": None,
             "last_failed_domains": [],
+            "last_run_domains": [],
             "last_run_at": None,
             "last_updated": None,
             "last_updated_readable": None,
