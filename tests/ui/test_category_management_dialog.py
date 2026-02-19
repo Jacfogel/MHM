@@ -426,7 +426,11 @@ class TestCategoryManagementDialogRealBehavior:
     def test_save_category_settings_persists_to_disk(self, test_user, test_data_dir, qapp):
         """Test that save_category_settings actually saves data to disk."""
         # Arrange - Ensure user has checkins enabled so validation passes
-        from core.user_data_handlers import get_user_data, update_user_account
+        from core.user_data_handlers import (
+            get_user_data,
+            update_user_account,
+            clear_user_caches,
+        )
         user_data = get_user_data(test_user, 'account')
         account = user_data.get('account', {})
         if 'features' not in account:
@@ -438,24 +442,26 @@ class TestCategoryManagementDialogRealBehavior:
         dialog.ui.groupBox_enable_automated_messages.setChecked(True)
         # Use valid categories from CATEGORY_KEYS: 'fun_facts', 'health', 'motivational', 'quotes_to_ponder', 'word_of_the_day'
         test_categories = ['motivational', 'health']
-        
+
         # Actually set the categories on the widget, not just patch
         dialog.category_widget.set_selected_categories(test_categories)
-        
+        assert set(dialog.category_widget.get_selected_categories()) == set(test_categories)
+
         with patch('ui.dialogs.category_management_dialog.QMessageBox'):
             # Act
             dialog.save_category_settings()
             
             # Assert - Verify data was saved
             # Retry in case of race conditions with file writes in parallel execution
-            from core.user_data_handlers import get_user_data
             import time
             saved_data = {}
-            for attempt in range(5):
+            for attempt in range(10):
+                clear_user_caches()
                 saved_data = get_user_data(test_user, 'preferences', auto_create=True)
-                if saved_data and 'preferences' in saved_data and 'categories' in saved_data.get('preferences', {}):
+                saved_categories = saved_data.get('preferences', {}).get('categories', [])
+                if set(saved_categories) == set(test_categories):
                     break
-                if attempt < 4:
+                if attempt < 9:
                     time.sleep(0.1)  # Brief delay before retry
             
             assert saved_data and 'preferences' in saved_data, f"Preferences data should be loaded. Got: {saved_data}"

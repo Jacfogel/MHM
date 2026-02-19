@@ -8,8 +8,8 @@ and context that was implemented across the MHM system.
 
 import pytest
 import os
-import tempfile
 import shutil
+import uuid
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 
@@ -33,7 +33,10 @@ class TestErrorHandlingImprovements:
     
     def setup_method(self):
         """Set up test environment."""
-        self.temp_dir = tempfile.mkdtemp()
+        base_dir = Path(__file__).parent / "data" / "error_handling_tmp"
+        base_dir.mkdir(parents=True, exist_ok=True)
+        self.temp_dir = str(base_dir / f"run_{uuid.uuid4().hex}")
+        Path(self.temp_dir).mkdir(parents=True, exist_ok=True)
         self.original_cwd = os.getcwd()
         os.chdir(self.temp_dir)
         

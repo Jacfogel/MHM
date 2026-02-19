@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-19 01:33:36
+> **Last Generated**: 2026-02-19 14:56:01
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 438
-- **Files with Unused Imports**: 107
-- **Total Unused Imports**: 327
+- **Total Files Scanned**: 441
+- **Files with Unused Imports**: 106
+- **Total Unused Imports**: 325
 
 ## Breakdown by Category
 
@@ -20,7 +20,7 @@
 - **Star Imports**: 0 imports
 - **Test Mocking**: 127 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 138 imports
+- **Test Infrastructure**: 136 imports
 - **Production Test Mocking**: 1 imports
 - **Ui Imports**: 1 imports
 
@@ -79,7 +79,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 8**: Unused Mock imported from unittest.mock
+- **Line 9**: Unused Mock imported from unittest.mock
 
 ### `tests/core/test_message_management.py`
 
@@ -705,12 +705,6 @@
 
 - **Line 7**: Unused time imported from datetime
 
-### `tests/debug_file_paths.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 1**: Unused import pytest
-
 ### `tests/development_tools/test_analysis_tool_validation.py`
 
 **Count**: 2 unused import(s)
@@ -1013,12 +1007,6 @@
 - **Line 14**: Unused import json
 - **Line 15**: Unused import tempfile
 - **Line 17**: Unused datetime imported from datetime
-
-### `tests/test_error_handling_improvements.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 14**: Unused Path imported from pathlib
 
 ### `tests/test_utilities.py`
 

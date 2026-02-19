@@ -308,6 +308,18 @@ When adding new tasks, follow this format:
   - [ ] Fix test logging to use test-specific log files only
   - [ ] Add safeguards to prevent tests from writing to production logs
 
+**Shrink test policy legacy allowlists and move to full strict mode**
+- *What it means*: Incrementally remove entries from legacy allowlists in `tests/unit/test_test_policy_guards.py` by fixing referenced tests, until policy checks run fully strict without allowlist exceptions.
+- *Why it helps*: Turns policy tests into stronger long-term guardrails and prevents old exceptions from hiding new regressions.
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Inventory each allowlist (`DATETIME_NOW_ALLOWED_FILES`, `PRODUCTION_LOG_REFERENCE_ALLOWED_FILES`, `REAL_USER_PATH_ALLOWED_FILES`, `NO_PARALLEL_REASON_ALLOWED_FILES`) and assign owners/order
+  - [ ] Fix files in small batches (2-5 files per batch) and remove corresponding allowlist entries
+  - [ ] Require explicit reason comments for every `@pytest.mark.no_parallel` occurrence touched
+  - [ ] Replace direct `datetime.now()` usages with canonical test time utilities/patch points where applicable
+  - [ ] Eliminate remaining production-log and real-user-path exceptions or document why they are permanently required
+  - [ ] Remove all temporary allowlist entries and enforce strict policy checks by default
+
 **headless service not working**
 - Investigate and fix
 

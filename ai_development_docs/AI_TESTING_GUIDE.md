@@ -89,6 +89,12 @@ Use existing helpers:
 - Isolation helpers (for example, `tests/test_isolation.py`) for:
   - Any test that might interact with system-like APIs or Task Scheduler.
 
+Factory-return and ID rules:
+
+- `TestUserFactory.create_*` helpers return `bool` success, not a user UUID.
+- If later steps need the actual user ID (for example, `update_user_account(...)`), resolve it explicitly with `get_user_id_by_identifier(...)` (or a helper that returns UUIDs).
+- In parallel-capable tests, prefer unique per-test identifiers (for example, `uuid`-suffixed usernames/channel IDs) to avoid cross-test collisions.
+
 Test logging:
 
 - Headline rule: test logging must be isolated. Write only to `tests/logs/` (or test-specific temp locations), never to `logs/` or real user data directories.
@@ -241,6 +247,11 @@ Marker standards (must stay aligned with `pytest.ini` and section 6 in [TESTING_
   - `asyncio` for async tests.
   - `no_parallel` when absolutely necessary (see section 5).
   - `critical`, `regression`, `smoke` for quality tiers.
+
+Policy guard tests:
+
+- Policy guardrails are enforced by tests in `tests/unit/test_test_policy_guards.py`.
+- When adding/refactoring tests, keep these policies green (for example, no direct `datetime.now()` in tests, no production-log path usage, no real-user-path writes, and `no_parallel` reason requirements).
 
 Examples (pattern only; do not copy literally):
 

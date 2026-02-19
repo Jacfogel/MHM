@@ -3762,7 +3762,9 @@ def mock_logger():
 @pytest.fixture(scope="function")
 def temp_file():
     """Create a temporary file for testing."""
-    with tempfile.NamedTemporaryFile(mode="w+", delete=False) as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w+", delete=False, dir=str(tests_data_tmp_dir)
+    ) as f:
         yield f.name
     # Cleanup
     os.unlink(f.name)

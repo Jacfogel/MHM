@@ -32,12 +32,13 @@ class TestConfigValidation:
     def test_validate_core_paths_success(self, test_data_dir, test_path_factory):
         """Test successful core path validation."""
         temp_root = test_path_factory
+        base_data_dir = os.path.join(temp_root, "data")
+        users_dir = os.path.join(base_data_dir, "users")
         defaults_dir = os.path.join(temp_root, 'resources', 'default_messages')
-        with patch('core.config.BASE_DATA_DIR', test_data_dir):
-            with patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')):
+        with patch('core.config.BASE_DATA_DIR', base_data_dir):
+            with patch('core.config.USER_INFO_DIR_PATH', users_dir):
                 with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', defaults_dir):
                     # Check initial state - directories might not exist yet
-                    users_dir = os.path.join(test_data_dir, 'users')
                     messages_dir = defaults_dir
                     
                     is_valid, errors, warnings = validate_core_paths()

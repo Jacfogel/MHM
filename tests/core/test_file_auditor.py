@@ -5,6 +5,7 @@ Tests for core/file_auditor.py
 import pytest
 import os
 import tempfile
+from pathlib import Path
 from unittest.mock import patch, Mock
 from core.file_auditor import (
     FileAuditor, 
@@ -15,6 +16,9 @@ from core.file_auditor import (
     _split_env_list,
     _classify_path
 )
+
+TESTS_DATA_TMP = Path(__file__).resolve().parents[1] / "data" / "tmp"
+TESTS_DATA_TMP.mkdir(parents=True, exist_ok=True)
 
 
 @pytest.mark.unit
@@ -158,7 +162,7 @@ class TestRecordCreated:
     
     def test_record_created_basic(self):
         """Test basic file creation recording."""
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(delete=False, dir=str(TESTS_DATA_TMP)) as temp_file:
             temp_path = temp_file.name
             temp_file.write(b"test content")
         
@@ -182,7 +186,7 @@ class TestRecordCreated:
     
     def test_record_created_with_extra(self):
         """Test file creation recording with extra data."""
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(delete=False, dir=str(TESTS_DATA_TMP)) as temp_file:
             temp_path = temp_file.name
             temp_file.write(b"test content")
         
@@ -210,7 +214,7 @@ class TestRecordCreated:
     
     def test_record_created_with_stack_trace(self):
         """Test file creation recording with stack trace."""
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(delete=False, dir=str(TESTS_DATA_TMP)) as temp_file:
             temp_path = temp_file.name
             temp_file.write(b"test content")
         
@@ -229,7 +233,7 @@ class TestRecordCreated:
     
     def test_record_created_without_stack_trace(self):
         """Test file creation recording without stack trace."""
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(delete=False, dir=str(TESTS_DATA_TMP)) as temp_file:
             temp_path = temp_file.name
             temp_file.write(b"test content")
         
@@ -247,7 +251,7 @@ class TestRecordCreated:
     
     def test_record_created_stack_trace_exception(self):
         """Test file creation recording when stack trace fails."""
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(delete=False, dir=str(TESTS_DATA_TMP)) as temp_file:
             temp_path = temp_file.name
             temp_file.write(b"test content")
         

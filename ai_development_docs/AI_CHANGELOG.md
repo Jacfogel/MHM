@@ -30,6 +30,19 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-19 - Tier-3 test-failure fixes + testing-guide policy clarifications **COMPLETED**
+- Fixed Tier-3 failures by removing nondeterministic and collision-prone test patterns in:
+  - `tests/unit/test_user_management.py`
+  - `tests/ui/test_category_management_dialog.py`
+  - `tests/unit/test_config.py`
+  - `tests/behavior/test_account_handler_behavior.py`
+  - `tests/behavior/test_checkin_handler_behavior.py`
+- Corrected account-handler test setup misuse where `TestUserFactory.create_basic_user(...)` bool return values were used as user IDs; tests now resolve UUIDs explicitly.
+- Updated paired testing docs `ai_development_docs/AI_TESTING_GUIDE.md` and `tests/TESTING_GUIDE.md` with explicit rules for factory return semantics, UUID resolution, unique per-test IDs for parallel safety, and policy guard tests (`tests/unit/test_test_policy_guards.py`).
+- Updated planning/status artifacts and reports in this same session: `TODO.md`, `development_docs/PLANS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/AI_STATUS.md`, `development_tools/consolidated_report.md`, and refreshed generated reports under `development_docs/*REPORT.md` plus `development_tools/reports/*.json`.
+- Additional test files updated this session and reflected in diff: `tests/conftest.py`, `tests/core/test_file_auditor.py`, `tests/debug_file_paths.py`, `tests/development_tools/test_analyze_functions.py`, and `tests/test_error_handling_improvements.py`; new untracked tests created: `tests/development_tools/test_analyze_test_markers.py`, `tests/development_tools/test_fix_test_markers.py`, `tests/development_tools/test_tool_guide.py`, `tests/unit/test_test_policy_guards.py`.
+- Validation: targeted previously failing nodes and focused account-handler/checkin-handler subsets passed.
+
 ### 2026-02-19 - Coverage hardening + audit failure cleanup **Progressed**
 - Picked and progressed `AI_PRIORITIES.md` item "Raise development tools coverage" by targeting the listed 0%-coverage modules: `development_tools/shared/export_code_snapshot.py`, `development_tools/shared/export_docs_snapshot.py`, and `development_tools/shared/service/data_freshness_audit.py`.
 - Added focused regression/unit tests in `tests/development_tools/test_export_snapshots.py` and `tests/development_tools/test_data_freshness_audit.py` to exercise exclusion toggles, file discovery/bundling, report scanning, static freshness checks, and summary aggregation.
@@ -39,7 +52,6 @@ Guidelines:
 - Updated test-file coverage cache policy to persist cache artifacts whenever coverage data is collected (even on failing runs) and rely on failed-domain/run-domain invalidation on next run (`development_tools/tests/run_test_coverage.py`, `development_tools/tests/test_file_coverage_cache.py`).
 - Reverted temporary full-run timeout floor so coverage pytest timeout remains config/default driven (12 minutes unless configured otherwise).
 - Fixed/closed recent audit failures: removed `tests/development_tools/test_intentional_failure.py`; stabilized behavior tests with per-test unique user IDs in `tests/behavior/test_message_behavior.py` and `tests/behavior/test_checkin_handler_behavior.py`; revalidated `tests/behavior/test_discord_checkin_retry_behavior.py` targeted failure path as stable in reruns.
-
 ### 2026-02-18 - Legacy cleanup + coverage cache/reporting hardening **Progressed**
 - Removed the final legacy-marker footprint from active files and reran `python development_tools/run_development_tools.py legacy`; `LEGACY_REFERENCE_REPORT.md` now reports `Total Files with Issues: 0` and `Legacy Compatibility Markers Detected: 0`.
 - Standardized dev-tools coverage outcome handling to read `details.dev_tools_test_outcome` first in `development_tools/shared/service/commands.py`, while still tolerating older payloads when encountered.

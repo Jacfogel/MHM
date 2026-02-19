@@ -38,8 +38,13 @@ main = functions_module.main
 
 @pytest.fixture
 def temp_python_workspace():
-    """Create an isolated writable workspace outside tests/ for file-based tests."""
-    base = Path(".tmp_devtools_pyfiles") / f"analyze_functions_{uuid.uuid4().hex}"
+    """Create an isolated writable workspace under tests/data for file-based tests."""
+    base = (
+        Path("tests")
+        / "data"
+        / "devtools_pyfiles"
+        / f"analyze_functions_{uuid.uuid4().hex}"
+    )
     base.mkdir(parents=True, exist_ok=True)
     try:
         yield base

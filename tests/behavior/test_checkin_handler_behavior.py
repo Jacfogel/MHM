@@ -292,7 +292,7 @@ class TestCheckinHandlerBehavior:
     def test_checkin_handler_continue_checkin(self, test_data_dir):
         """Test that CheckinHandler handles continue check-in."""
         handler = CheckinHandler()
-        user_id = "test_user_checkin_continue"
+        user_id = f"test_user_checkin_continue_{uuid.uuid4().hex[:8]}"
         assert self._create_test_user(
             user_id, enable_checkins=True, test_data_dir=test_data_dir
         ), "Failed to create test user"

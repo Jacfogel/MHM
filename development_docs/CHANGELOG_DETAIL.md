@@ -33,6 +33,73 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-19 - Tier-3 test-failure remediation and testing-policy guidance update
+- **Feature/Fix**: Investigated and fixed multiple Tier-3 failures in behavior/unit tracks by removing nondeterministic test assumptions and parallel-collision-prone identifiers.
+- **Technical Changes**:
+  - `tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success`
+    - replaced nondeterministic "first directory" selection with exact created-user UUID resolution.
+  - `tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_persists_to_disk`
+    - strengthened persistence verification by clearing caches and retrying until expected category set is observed.
+  - `tests/unit/test_config.py::TestConfigValidation::test_validate_core_paths_success`
+    - moved path validation to per-test isolated directories under `test_path_factory`.
+  - `tests/behavior/test_account_handler_behavior.py`
+    - fixed `test_handle_link_account_with_already_linked_discord` and `test_handle_check_account_status_without_user` by using unique identifiers and proper UUID resolution;
+    - corrected related bool-as-user-id misuse where `TestUserFactory.create_basic_user(...)` return values were treated as IDs.
+  - `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_continue_checkin`
+    - switched to unique per-test user IDs to prevent parallel collisions.
+- **Documentation Updates**:
+  - Updated testing guidance in paired docs:
+    - `ai_development_docs/AI_TESTING_GUIDE.md`
+    - `tests/TESTING_GUIDE.md`
+  - Added explicit guidance for:
+    - `TestUserFactory.create_*` return semantics (`bool` success vs UUID),
+    - required UUID resolution before user-data updates/assertions,
+    - unique per-test identifiers for parallel-safe tests,
+    - policy guard tests location/expectations (`tests/unit/test_test_policy_guards.py`).
+- **Planning Updates**:
+  - Updated `development_docs/PLANS.md` to mark the above Tier-3/intermittent failure items complete.
+- **Validation**:
+  - `pytest tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success -q` -> `1 passed`
+  - `pytest tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_persists_to_disk -q` -> `1 passed`
+  - `pytest tests/unit/test_config.py::TestConfigValidation::test_validate_core_paths_success -q` -> `1 passed`
+  - `pytest tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_link_account_with_already_linked_discord -q` -> `1 passed`
+  - `pytest tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_continue_checkin -q` -> `1 passed`
+  - `pytest tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_check_account_status_without_user -q` -> `1 passed`
+  - Focused subsets:
+    - `pytest tests/behavior/test_account_handler_behavior.py -k "sends_confirmation_code or rejects_invalid_code or with_email_channel or already_linked_discord or already_linked_email or index_update_failure or send_confirmation_code_without_email" -q` -> `8 passed`
+    - `pytest tests/behavior/test_account_handler_behavior.py -k "check_account_status_with_existing_user or check_account_status_without_user" -q` -> `2 passed`
+    - `pytest tests/behavior/test_checkin_handler_behavior.py -k "continue_checkin or start_checkin" -q` -> `6 passed`
+- **Full-diff Attribution**:
+  - Reviewed full working tree (`git diff --stat`, `git diff --name-only`) before writing this entry.
+  - All files currently in `git diff` were actioned in this session and are represented by this entry.
+  - Additional actioned files in this session (beyond the core Tier-3 test fixes above) include:
+    - Planning/docs updates:
+      - `TODO.md`
+      - `development_docs/PLANS.md`
+      - `ai_development_docs/AI_TESTING_GUIDE.md`
+      - `tests/TESTING_GUIDE.md`
+    - Generated status/report artifacts refreshed:
+      - `development_tools/AI_PRIORITIES.md`
+      - `development_tools/AI_STATUS.md`
+      - `development_tools/consolidated_report.md`
+      - `development_tools/reports/analysis_detailed_results.json`
+      - `development_tools/reports/tool_timings.json`
+      - `development_docs/LEGACY_REFERENCE_REPORT.md`
+      - `development_docs/TEST_COVERAGE_REPORT.md`
+      - `development_docs/UNUSED_IMPORTS_REPORT.md`
+    - Additional test hardening/coverage work reflected in diff:
+      - `tests/conftest.py`
+      - `tests/core/test_file_auditor.py`
+      - `tests/debug_file_paths.py`
+      - `tests/development_tools/test_analyze_functions.py`
+      - `tests/test_error_handling_improvements.py`
+    - New untracked test files created this session:
+      - `tests/development_tools/test_analyze_test_markers.py`
+      - `tests/development_tools/test_fix_test_markers.py`
+      - `tests/development_tools/test_tool_guide.py`
+      - `tests/unit/test_test_policy_guards.py`
+
+
 ### 2026-02-19 - Coverage hardening and Tier-3 audit failure cleanup
 - **Feature/Fix**: Progressed the `development_tools/AI_PRIORITIES.md` item "Raise development tools coverage" by adding targeted coverage for the three highlighted low-coverage modules:
   - `development_tools/shared/export_code_snapshot.py`
@@ -83,7 +150,6 @@ When adding new changes, follow this format:
     - `pytest tests/behavior/test_message_behavior.py::TestMessageCRUD::test_add_message_success -q`
     - `pytest tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_start_checkin_not_enabled -q`
     - `pytest tests/behavior/test_discord_checkin_retry_behavior.py::TestDiscordCheckinRetryBehavior::test_checkin_message_queued_on_discord_disconnect -q`
-
 ### 2026-02-18 - Dev-tools legacy cleanup + reporting/cache hardening session
 - **Feature/Fix (AI priorities ranking correctness)**:
   - Fixed a regression in `development_tools/shared/service/report_generation.py` where Tier 3 failed-test priorities were added after `## Immediate Focus Ranked` rendering, causing failed tests to be omitted from `AI_PRIORITIES.md` even when `tier3_test_outcome.state` was `test_failures`.

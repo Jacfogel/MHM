@@ -6,6 +6,8 @@ import logging
 
 logger = logging.getLogger("mhm_tests")
 
+
+@pytest.mark.unit
 def test_debug_file_paths(mock_user_data):
     """Debug test to check if the issue is with file paths."""
     user_id = mock_user_data['user_id']

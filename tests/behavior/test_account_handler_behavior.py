@@ -6,6 +6,7 @@ These tests verify that account handlers actually work and produce expected side
 """
 
 import pytest
+import uuid
 from unittest.mock import patch, MagicMock, AsyncMock
 from tests.test_utilities import TestUserFactory
 from core.user_data_handlers import get_user_id_by_identifier
@@ -315,8 +316,8 @@ class TestAccountHandlerBehavior:
         """Test: Check account status indicates no account for new user."""
         handler = AccountManagementHandler()
         
-        # Use non-existent user ID
-        new_user_id = "999888777666555444"
+        # Use a unique user ID to avoid collisions with other tests.
+        new_user_id = f"check-status-none-{uuid.uuid4().hex[:12]}"
         existing_user_id = get_user_id_by_identifier(new_user_id)
         if existing_user_id:
             from core.user_data_manager import delete_user_completely, rebuild_user_index
@@ -389,7 +390,10 @@ class TestAccountHandlerBehavior:
         
         # Create existing user with email
         existing_username = 'linktestuser'
-        user_id = TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
+        create_success = TestUserFactory.create_basic_user(
+            existing_username, test_data_dir=test_data_dir
+        )
+        assert create_success is True, "Test user should be created"
 
         # Rebuild user index to ensure user is discoverable
         from core.user_data_manager import rebuild_user_index
@@ -399,6 +403,8 @@ class TestAccountHandlerBehavior:
 
         # Add email to user account
         from core.user_data_handlers import update_user_account
+        user_id = get_user_id_by_identifier(existing_username)
+        assert user_id is not None, "Test user should be discoverable by username"
         update_user_account(user_id, {'email': 'test@example.com'})
 
         # Clear pending operations
@@ -503,7 +509,12 @@ class TestAccountHandlerBehavior:
         
         # Create existing user
         existing_username = 'linkinvaliduser'
-        user_id = TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
+        create_success = TestUserFactory.create_basic_user(
+            existing_username, test_data_dir=test_data_dir
+        )
+        assert create_success is True, "Test user should be created"
+        user_id = get_user_id_by_identifier(existing_username)
+        assert user_id is not None, "Test user should be discoverable by username"
         
         # Set up pending operation
         discord_user_id = "555666777888999000"
@@ -657,7 +668,12 @@ class TestAccountHandlerBehavior:
     def test_send_confirmation_code_without_email(self, test_data_dir):
         """Test: Send confirmation code fails when user has no email."""
         # Create user without email
-        user_id = TestUserFactory.create_basic_user('noemailuser', test_data_dir=test_data_dir)
+        create_success = TestUserFactory.create_basic_user(
+            'noemailuser', test_data_dir=test_data_dir
+        )
+        assert create_success is True, "Test user should be created"
+        user_id = get_user_id_by_identifier('noemailuser')
+        assert user_id is not None, "Test user should be discoverable by username"
         
         result = _send_confirmation_code(user_id, '123456', 'discord', 'test_discord_id')
         
@@ -674,7 +690,10 @@ class TestAccountHandlerBehavior:
         
         # Create existing user with different email (to test linking)
         existing_username = 'emaillinkuser'
-        user_id = TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
+        create_success = TestUserFactory.create_basic_user(
+            existing_username, test_data_dir=test_data_dir
+        )
+        assert create_success is True, "Test user should be created"
 
         # Rebuild user index to ensure user is discoverable
         from core.user_data_manager import rebuild_user_index
@@ -684,6 +703,8 @@ class TestAccountHandlerBehavior:
 
         # Add different email to user account (not the one we're linking)
         from core.user_data_handlers import update_user_account
+        user_id = get_user_id_by_identifier(existing_username)
+        assert user_id is not None, "Test user should be discoverable by username"
         update_user_account(user_id, {'email': 'existing@example.com'})
 
         # Clear pending operations
@@ -719,8 +740,13 @@ class TestAccountHandlerBehavior:
         handler = AccountManagementHandler()
         
         # Create existing user with different Discord ID and email
-        existing_username = 'alreadylinkeduser'
-        user_id = TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
+        import uuid
+
+        existing_username = f"alreadylinkeduser_{uuid.uuid4().hex[:8]}"
+        create_success = TestUserFactory.create_basic_user(
+            existing_username, test_data_dir=test_data_dir
+        )
+        assert create_success is True, "Test user should be created"
 
         # Rebuild user index to ensure user is discoverable
         from core.user_data_manager import rebuild_user_index
@@ -730,6 +756,8 @@ class TestAccountHandlerBehavior:
 
         # Link to different Discord ID and add email (needed for confirmation code)
         from core.user_data_handlers import update_user_account
+        user_id = get_user_id_by_identifier(existing_username)
+        assert user_id is not None, "Test user should be discoverable by username"
         update_user_account(user_id, {
             'discord_user_id': '999888777666555444',
             'email': 'test@example.com'
@@ -772,7 +800,10 @@ class TestAccountHandlerBehavior:
         
         # Create existing user with different email
         existing_username = 'alreadylinkedemailuser'
-        user_id = TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
+        create_success = TestUserFactory.create_basic_user(
+            existing_username, test_data_dir=test_data_dir
+        )
+        assert create_success is True, "Test user should be created"
 
         # Rebuild user index to ensure user is discoverable
         from core.user_data_manager import rebuild_user_index
@@ -782,6 +813,8 @@ class TestAccountHandlerBehavior:
 
         # Link to different email
         from core.user_data_handlers import update_user_account
+        user_id = get_user_id_by_identifier(existing_username)
+        assert user_id is not None, "Test user should be discoverable by username"
         update_user_account(user_id, {'email': 'existing@example.com'})
 
         # Try to link to new email
@@ -928,7 +961,12 @@ class TestAccountHandlerBehavior:
         
         # Create existing user with email
         existing_username = 'indexfailuser'
-        user_id = TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
+        create_success = TestUserFactory.create_basic_user(
+            existing_username, test_data_dir=test_data_dir
+        )
+        assert create_success is True, "Test user should be created"
+        user_id = get_user_id_by_identifier(existing_username)
+        assert user_id is not None, "Test user should be discoverable by username"
         
         # Add email to user account
         from core.user_data_handlers import update_user_account
@@ -980,7 +1018,14 @@ class TestAccountHandlerBehavior:
         # Create existing user with Discord ID
         existing_username = 'samediscorduser'
         discord_user_id = "888999000111222333"
-        user_id = TestUserFactory.create_discord_user(discord_user_id, test_data_dir=test_data_dir)
+        create_success = TestUserFactory.create_discord_user(
+            existing_username,
+            discord_user_id=discord_user_id,
+            test_data_dir=test_data_dir,
+        )
+        assert create_success is True, "Test user should be created"
+        user_id = get_user_id_by_identifier(existing_username)
+        assert user_id is not None, "Test user should be discoverable by username"
         
         # Add email to user account
         from core.user_data_handlers import update_user_account

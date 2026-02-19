@@ -532,7 +532,16 @@ Follow these guidelines:
   - Common assertions on logs, errors, or outputs.
   - Reusable patterns (for example, "create a user with default settings").
 
+- `TestUserFactory.create_*` helpers return a **boolean success flag**, not a UUID.
+  - If subsequent assertions or updates require the real user ID, resolve it explicitly (for example, `get_user_id_by_identifier(...)`) or use a helper that returns IDs.
+
+- For tests expected to run in parallel, avoid fixed usernames/channel IDs.
+  - Prefer unique per-test identifiers (for example, `uuid`-suffixed IDs) unless the test is explicitly validating collision behavior.
+
 - Do not re-implement the same setup logic in multiple tests; extract it into a fixture or helper.
+
+- Keep policy guard tests green:
+  - `tests/unit/test_test_policy_guards.py` enforces key test-policy constraints (test-data path safety, marker compliance, time usage, and no-parallel reason expectations).
 
 ### 6.4. Test Time Rules (Canonical Time Utilities)
 

@@ -227,7 +227,7 @@
   - [ ] Investigate `tests/behavior/test_user_data_flow_architecture.py::TestProcessingOrder::test_processing_order_deterministic_regardless_of_input_order`; mitigation applied on 2026-02-09 (stronger persisted-data readiness check + cache clears), monitor in coverage runs.
   - [ ] Monitor Windows no-parallel stability (`0xC0000135` recurrence) after recent run_tests environment/isolation fixes; keep `run_tests.py` serial phase under observation.
   - [ ] Investigate `tests/behavior/test_checkin_questions_enhancement.py::TestCustomQuestions::test_delete_custom_question`
-  - [ ] Investigate `tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success` flake in coverage runs (avoid nondeterministic "first directory" assumptions under shared `tests/data/users`)
+  - [x] 2026-02-19 fixed `tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success` flake by removing nondeterministic "first directory" selection and resolving the exact created user UUID directory.
   - [ ] Investigate `tests/development_tools/test_fix_project_cleanup.py::TestProjectCleanup::test_cleanup_test_temp_dirs_no_directory` flake (TOCTOU race when temp dirs disappear during cleanup in parallel runs)
   - [ ] Investigate `tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized`
   - [ ] Investigate `tests/unit/test_schedule_management.py::TestScheduleManagement::test_schedule_period_lifecycle`
@@ -248,6 +248,10 @@
   - [x] Investigated no-parallel failure `tests/behavior/test_discord_bot_behavior.py::TestDiscordBotBehavior::test_discord_checkin_flow_end_to_end` from `audit --full --clear-cache` on 2026-02-18; probable isolation issue (fixed username `checkin_user` could collide with stale/global index state). Mitigation applied: unique per-test username + test-data-first UUID resolution + terminal-message assertion hardened for equivalent outcomes.
   - [ ] Investigate intermittent parallel failure `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_checkin_status_no_checkins` (failed in `audit --full --clear-cache` on 2026-02-18 while coverage data was still collected)
   - [ ] Investigate intermittent no-parallel failure `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_link_account_verifies_confirmation_code` (failed in no-parallel track during `audit --full --clear-cache` on 2026-02-18)
+  - [x] 2026-02-19 fixed Tier-3 parallel failure `tests/unit/test_config.py::TestConfigValidation::test_validate_core_paths_success` by patching validation targets to per-test isolated directories under `test_path_factory` instead of shared `tests/data` paths.
+  - [x] 2026-02-19 fixed Tier-3 no-parallel failure `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_link_account_with_already_linked_discord` by resolving real user UUIDs after `TestUserFactory.create_basic_user(...)` and removing bool-as-user-id misuse in adjacent link-account tests.
+  - [x] 2026-02-19 fixed Tier-3 parallel failure `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_continue_checkin` by switching to a unique per-test user identifier.
+  - [x] 2026-02-19 fixed Tier-3 no-parallel failure `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_check_account_status_without_user` by using a unique non-existent identifier to avoid cross-test account collisions.
   - [ ] Monitor and harden Windows temp/cache ACL behavior for pytest (`pytest-cache-files-*`, `pytest_runner`, `pytest_cache`) so reruns do not hit `Access is denied` warnings and temp artifacts remain isolated under `tests/data/tmp`
   - [ ] Investigate `test_scan_all_python_files_demo_project`
   - [ ] Check for timing/race condition issues in test setup or teardown

@@ -242,7 +242,10 @@ class TestUserManagement:
     @pytest.mark.file_io
     def test_create_user_files_success(self, test_data_dir, mock_config):
         """Test creating user files successfully."""
-        user_id = "test-create-user"
+        import uuid
+        from core.user_data_handlers import get_user_id_by_identifier
+
+        user_id = f"test-create-user-{uuid.uuid4().hex[:8]}"
         categories = ["motivational", "health"]
         user_preferences = {
             "checkin_settings": {"enabled": True},
@@ -256,15 +259,10 @@ class TestUserManagement:
         )
         assert success is True, "Failed to create test user"
 
-        # Verify files were created
-        user_dir = os.path.join(test_data_dir, "users")
-        # Find the actual user directory (UUID-based)
-        user_dirs = [
-            d for d in os.listdir(user_dir) if os.path.isdir(os.path.join(user_dir, d))
-        ]
-        assert len(user_dirs) > 0, "No user directories found"
-
-        actual_user_dir = os.path.join(user_dir, user_dirs[0])
+        # Verify files were created for this exact user (parallel-safe).
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id, f"Expected user ID mapping for {user_id}"
+        actual_user_dir = os.path.join(test_data_dir, "users", actual_user_id)
         assert os.path.exists(
             os.path.join(actual_user_dir, "account.json")
         ), "account.json should exist"
