@@ -1504,6 +1504,7 @@ class CoverageMetricsRegenerator:
                     result.returncode == 0
                     and test_results.get("failed_count", 0) == 0
                     and not test_results.get("maxfail_reached", False)
+                    and coverage_collected
                 )
 
                 # In parallel mode, defer cache writes until no_parallel has completed.
@@ -1600,7 +1601,7 @@ class CoverageMetricsRegenerator:
                 ):
                     if logger:
                         logger.info(
-                            "Skipping test-file coverage cache write because tests failed or maxfail was reached"
+                            "Skipping test-file coverage cache write because tests failed, maxfail was reached, or coverage data was not collected"
                         )
 
             # Enhanced error detection and reporting
@@ -2939,6 +2940,10 @@ class CoverageMetricsRegenerator:
                                                 )
                                                 > 0
                                             )
+                                        final_cache_write_allowed = (
+                                            final_cache_write_allowed
+                                            and coverage_collected
+                                        )
 
                                         # Update cache with coverage (parallel mode)
                                         # On selective runs, fresh_coverage_json_parallel should already be the merged coverage
@@ -3064,7 +3069,7 @@ class CoverageMetricsRegenerator:
                                             and logger
                                         ):
                                             logger.info(
-                                                "Skipping test-file coverage cache write because parallel/no_parallel test results were not fully successful"
+                                                "Skipping test-file coverage cache write because parallel/no_parallel test results were not fully successful or coverage data was not collected"
                                             )
                                     else:
                                         coverage_data = {}
@@ -3721,6 +3726,8 @@ class CoverageMetricsRegenerator:
                 and self.dev_tools_cache
                 and coverage_output.exists()
                 and dev_tools_changed
+                and result.returncode == 0
+                and bool(coverage_data)
             ):
                 # Load fresh coverage JSON
                 try:

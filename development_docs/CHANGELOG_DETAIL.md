@@ -33,7 +33,7 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
-### 2026-02-18 - Dev-tools priority/reporting fixes, changelog trim safety, and session closeout
+### 2026-02-18 - Dev-tools legacy cleanup + reporting/cache hardening session
 - **Feature/Fix (AI priorities ranking correctness)**:
   - Fixed a regression in `development_tools/shared/service/report_generation.py` where Tier 3 failed-test priorities were added after `## Immediate Focus Ranked` rendering, causing failed tests to be omitted from `AI_PRIORITIES.md` even when `tier3_test_outcome.state` was `test_failures`.
   - Moved Tier 3 failure-priority construction to run before ranked rendering; verified output now includes `Investigate and correct test failures/errors` with failing node IDs and log-location guidance.
@@ -45,21 +45,35 @@ When adding new changes, follow this format:
   - Added explicit non-blocking logging for unavailable tooling, malformed result shapes, check/trim failures, and trim outcomes.
   - Updated archive target path to `archive/AI_CHANGELOG_ARCHIVE.md` and aligned audit log messaging to that path.
   - Confirmed trim-order safety behavior: newly trimmed entries are prepended at the top of the archive, ahead of older archived entries.
+- **Feature/Fix (legacy cleanup + payload standardization)**:
+  - Removed the final legacy-marker footprint from active files and reran `python development_tools/run_development_tools.py legacy`; `LEGACY_REFERENCE_REPORT.md` reached zero files/issues for legacy markers.
+  - Standardized dev-tools coverage outcome handling to prioritize `details.dev_tools_test_outcome` in `development_tools/shared/service/commands.py`, with tolerance for older payloads.
+  - Stopped emitting deprecated top-level `dev_tools_test_outcome` in `development_tools/tests/run_test_coverage.py` output payloads; standardized `summary/details` output retained.
+  - Updated compatibility wording in comments (`development_tools/shared/service/data_loading.py`, `development_tools/shared/mtime_cache.py`, `development_tools/shared/service/audit_orchestration.py`, `run_tests.py`, `user/user_context.py`) to remove legacy/backward-compatibility markers while preserving behavior.
+- **Feature/Fix (coverage cache write safety + Tier 3 formatting parity)**:
+  - Updated `development_tools/tests/run_test_coverage.py` so reusable coverage cache writes are blocked when coverage data is not actually collected.
+  - Added `coverage_collected` gating for serial and deferred parallel test-file cache writes, and tightened dev-tools cache updates to successful pytest runs with usable coverage data.
+  - Updated `development_tools/shared/service/report_generation.py` Tier 3 bullets to render per-track failed tests inline (`Parallel tests failed=N: ...`, `No-parallel tests failed=N: ...`) with counts derived from deduplicated per-track failed node IDs.
+  - Normalized displayed pytest node IDs for readability (`path::TestClass::test_name` -> `path::test_name`) and kept concrete track log-file references in details bullets.
 - **Tests**:
   - Added/updated regression coverage:
     - `tests/development_tools/test_report_generation_quick_wins.py` (Tier 3 failed tests appear in Immediate Focus)
     - `tests/development_tools/test_changelog_trim_tooling.py` (check/trim integration behavior)
     - `tests/development_tools/test_fix_version_sync_changelog_archive_order.py` (archive prepend ordering)
+    - `tests/development_tools/test_audit_strict_mode.py` (dev-tools outcome fixture shape updates)
+    - `tests/development_tools/test_regenerate_coverage_metrics.py` (coverage cache write safety)
+    - `tests/development_tools/test_test_file_coverage_cache.py` + `tests/development_tools/test_dev_tools_coverage_cache.py` (cache guard behavior)
   - Validation runs completed:
     - `python -m pytest tests/development_tools/test_report_generation_quick_wins.py -q`
     - `python -m pytest tests/development_tools/test_changelog_trim_tooling.py tests/development_tools/test_fix_version_sync_changelog_archive_order.py -q`
     - `python -m pytest tests/development_tools/test_audit_strict_mode.py -q`
+    - `python -m pytest tests/development_tools/test_regenerate_coverage_metrics.py -q`
+    - `python -m pytest tests/development_tools/test_test_file_coverage_cache.py tests/development_tools/test_dev_tools_coverage_cache.py -q`
 - **Planning/session closeout updates**:
   - Updated [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md): marked section 3.1 (changelog trim tooling) as completed.
   - Updated [PLANS.md](development_docs/PLANS.md) intermittent-failure tracking with 2026-02-18 failing nodes from `audit --full --clear-cache`:
     - `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_checkin_status_no_checkins`
     - `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_link_account_verifies_confirmation_code`
-  - Updated [TODO.md](TODO.md) with a session note; no new standalone TODOs added.
 - **Generated artifacts refreshed this session**:
   - Status/priority/report outputs: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`
   - Audit/report artifacts: `development_tools/reports/analysis_detailed_results.json`, `development_tools/reports/tool_timings.json`

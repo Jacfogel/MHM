@@ -455,7 +455,14 @@ class CommandsMixin:
                     with open(dev_tools_output_file, "r", encoding="utf-8") as f:
                         dev_tools_payload = json.load(f)
                     if isinstance(dev_tools_payload, dict):
-                        parsed_outcome = dev_tools_payload.get("dev_tools_test_outcome", {})
+                        details = dev_tools_payload.get("details")
+                        parsed_outcome = {}
+                        if isinstance(details, dict):
+                            parsed_outcome = details.get("dev_tools_test_outcome", {})
+                        if not isinstance(parsed_outcome, dict) or not parsed_outcome:
+                            parsed_outcome = dev_tools_payload.get(
+                                "dev_tools_test_outcome", {}
+                            )
                         if isinstance(parsed_outcome, dict):
                             dev_tools_outcome = {
                                 "state": parsed_outcome.get("state", "unknown"),

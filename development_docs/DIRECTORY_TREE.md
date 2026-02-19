@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-17 01:32:08
+> **Last Generated**: 2026-02-18 12:35:18
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -71,7 +71,7 @@ C:.
 |   |   AI_DOCUMENTATION_GUIDE.md
 |   |   AI_ERROR_HANDLING_GUIDE.md
 |   |   AI_FUNCTION_REGISTRY.md
-|   |   AI_LEGACY_REMOVAL_GUIDE.md
+|   |   AI_LEGACY_COMPATIBILITY_GUIDE.md
 |   |   AI_LOGGING_GUIDE.md
 |   |   AI_MODULE_DEPENDENCIES.md
 |   |   AI_SESSION_STARTER.md
@@ -338,6 +338,30 @@ C:.
     (JSON files created by development tools)
 |   |   +---logs
     (log files)
+|   |   +---tmp
+|   |   |   +---pytest_cache
+|   |   |   |   +---dev_tools_2803d6a8
+|   |   |   |   +---dev_tools_2a3cc6ee
+|   |   |   |   +---dev_tools_3b607649
+|   |   |   |   +---dev_tools_603974fd
+|   |   |   |   +---dev_tools_6dcb9a88
+|   |   |   |   +---dev_tools_73beb4c8
+|   |   |   |   +---dev_tools_77c0691b
+|   |   |   |   +---dev_tools_7c7b0a2b
+|   |   |   |   +---dev_tools_d5e327e0
+|   |   |   |   +---dev_tools_fb04bbfd
+|   |   |   |   +---dev_tools_fc7419eb
+|   |   |   |   \---main_f21fb344
+|   |   |   +---pytest_coverage
+|   |   |   |   \---mhm_pytest_tmp_dev_tools_d5e327e0
+|   |   |   \---pytest_temp
+|   |   |       +---dev_tools_2803d6a8
+|   |   |       +---dev_tools_2a3cc6ee
+|   |   |       +---dev_tools_3b607649
+|   |   |       +---dev_tools_73beb4c8
+|   |   |       +---dev_tools_77c0691b
+|   |   |       +---dev_tools_7c7b0a2b
+|   |   |       \---main_f21fb344
 +---logs
     (log files)
 +---notebook
@@ -514,6 +538,7 @@ C:.
 |   |   |   test_audit_strict_mode.py
 |   |   |   test_audit_tier_comprehensive.py
 |   |   |   test_audit_tier_e2e_verification.py
+|   |   |   test_changelog_trim_tooling.py
 |   |   |   test_config.json
 |   |   |   test_config.py
 |   |   |   test_constants.py

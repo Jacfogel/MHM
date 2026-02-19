@@ -168,6 +168,28 @@ class ReportGenerationMixin:
         except (TypeError, ValueError):
             return default
 
+    def _normalize_test_node_id(self, node_id: str) -> str:
+        """Normalize pytest node IDs for compact display (drop class segment)."""
+        text = str(node_id or "").strip()
+        if not text:
+            return ""
+        parts = text.split("::")
+        if len(parts) >= 3:
+            return f"{parts[0]}::{parts[-1]}"
+        return text
+
+    def _get_track_failed_nodes(self, outcome: Dict[str, Any]) -> List[str]:
+        """Return normalized, de-duplicated failed node IDs for a single track."""
+        nodes = outcome.get("failed_node_ids", []) if isinstance(outcome, dict) else []
+        if not isinstance(nodes, list):
+            return []
+        normalized: List[str] = []
+        for node in nodes:
+            normalized_node = self._normalize_test_node_id(str(node))
+            if normalized_node and normalized_node not in normalized:
+                normalized.append(normalized_node)
+        return normalized
+
     def _get_code_docstring_metrics(
         self, function_data: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
@@ -251,6 +273,42 @@ class ReportGenerationMixin:
         if dev_state == "passed":
             return "clean"
         return "unknown"
+
+    def _get_recent_tier3_log_files(
+        self,
+        include_parallel: bool = False,
+        include_no_parallel: bool = False,
+        include_dev_tools: bool = False,
+    ) -> List[str]:
+        """Return latest Tier 3 pytest stdout log files for applicable tracks."""
+        logs_dir = self.project_root / "development_tools" / "tests" / "logs"
+        if not logs_dir.exists():
+            return []
+
+        selections: List[str] = []
+        track_patterns = [
+            (include_parallel, "pytest_parallel_stdout_*.log"),
+            (include_no_parallel, "pytest_no_parallel_stdout_*.log"),
+            (include_dev_tools, "pytest_dev_tools_stdout_*.log"),
+        ]
+        for include_track, pattern in track_patterns:
+            if not include_track:
+                continue
+            matches = sorted(
+                logs_dir.glob(pattern),
+                key=lambda path: path.stat().st_mtime,
+                reverse=True,
+            )
+            if not matches:
+                continue
+            latest = matches[0]
+            try:
+                rel = latest.relative_to(self.project_root)
+                selections.append(str(rel).replace("\\", "/"))
+            except ValueError:
+                selections.append(str(latest).replace("\\", "/"))
+
+        return selections
 
     def _append_tier3_test_outcome_lines(
         self, lines: List[str], actionable_only: bool = False
@@ -2549,7 +2607,7 @@ class ReportGenerationMixin:
                 "Raise coverage for domains below target": "ai_development_docs/AI_TESTING_GUIDE.md",
                 "Raise development tools coverage": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md and ai_development_docs/AI_TESTING_GUIDE.md",
                 "Reduce dependency pattern risk": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Retire remaining legacy references": "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
+                "Remove legacy compatibility code (after full call-site migration)": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
                 "Update tools to use centralized config": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
                 "Add docstrings to handler classes": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Add pytest category markers to tests": "ai_development_docs/AI_TESTING_GUIDE.md",
@@ -2569,7 +2627,7 @@ class ReportGenerationMixin:
                 "Raise coverage for domains below target": "development_docs/TEST_COVERAGE_REPORT.md",
                 "Raise development tools coverage": "development_tools/tests/jsons/generate_dev_tools_coverage_results.json",
                 "Reduce dependency pattern risk": "development_tools/consolidated_report.md",
-                "Retire remaining legacy references": "development_docs/LEGACY_REFERENCE_REPORT.md (exact locations)",
+                "Remove legacy compatibility code (after full call-site migration)": "development_docs/LEGACY_REFERENCE_REPORT.md (exact locations)",
                 "Update tools to use centralized config": "development_tools/ai_work/jsons/analyze_ai_work_results.json",
                 "Add docstrings to handler classes": "development_tools/functions/jsons/analyze_function_patterns_results.json",
                 "Add pytest category markers to tests": "development_tools/tests/jsons/analyze_test_markers_results.json",
@@ -3132,7 +3190,7 @@ class ReportGenerationMixin:
         if legacy_files and legacy_files > 0:
             legacy_bullets: List[str] = []
             legacy_bullets.append(
-                "Review for Guidance: ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md"
+                "Review for Guidance: ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md"
             )
             if legacy_markers:
                 legacy_bullets.append(
@@ -3143,15 +3201,18 @@ class ReportGenerationMixin:
                     f"Review for details: {legacy_report} (exact locations)"
                 )
             legacy_bullets.append(
-                "Action: Remove legacy compatibility code and update references to use new implementations"
+                "Action: Remove active legacy compatibility behavior by migrating all callers/dependencies to current implementations."
+            )
+            legacy_bullets.append(
+                "Action: Only after migration is verified, remove legacy markers/comments/docs evidence."
             )
             legacy_bullets.append(
                 f"Effort: Medium (reviewing {legacy_files} files and updating references requires testing)"
             )
             add_priority(
                 tier=3,  # Tier 3: Medium
-                title="Retire remaining legacy references",
-                reason=f"{legacy_files} files still depend on legacy compatibility markers.",
+                title="Remove legacy compatibility code (after full call-site migration)",
+                reason=f"{legacy_files} files still include legacy compatibility paths requiring migration.",
                 bullets=legacy_bullets,
             )
 
@@ -3725,6 +3786,9 @@ class ReportGenerationMixin:
                 else {}
             )
             failed_nodes = tier3_outcome.get("failed_node_ids", [])
+            include_parallel_logs = False
+            include_no_parallel_logs = False
+            include_dev_tools_logs = False
             if tier3_state == "coverage_failed":
                 tier3_title = "Investigate and correct test failures/errors"
                 tier3_reason = (
@@ -3744,25 +3808,84 @@ class ReportGenerationMixin:
                 tier3_reason = (
                     "Tier 3 test outcomes include failed and/or errored tracks."
                 )
-                tier3_bullets.append(
-                    f"Parallel failed={parallel_outcome.get('failed_count', 0)}, errors={parallel_outcome.get('error_count', 0)}."
-                )
-                tier3_bullets.append(
-                    f"No-parallel failed={no_parallel_outcome.get('failed_count', 0)}, errors={no_parallel_outcome.get('error_count', 0)}."
-                )
-                tier3_bullets.append(
-                    f"Development tools failed={dev_tools_outcome.get('failed_count', 0)}, errors={dev_tools_outcome.get('error_count', 0)}."
-                )
-            if isinstance(failed_nodes, list) and failed_nodes:
+                track_specs = [
+                    ("Parallel", parallel_outcome, "parallel"),
+                    ("No-parallel", no_parallel_outcome, "no_parallel"),
+                    ("Development tools", dev_tools_outcome, "development_tools"),
+                ]
+                for label, track_outcome, track_key in track_specs:
+                    track_failed_nodes = self._get_track_failed_nodes(track_outcome)
+                    failed = (
+                        len(track_failed_nodes)
+                        if track_failed_nodes
+                        else self._coerce_int(track_outcome.get("failed_count", 0))
+                    )
+                    errors = self._coerce_int(track_outcome.get("error_count", 0))
+                    state = str(track_outcome.get("state", "") or "")
+                    if failed > 0 and track_failed_nodes:
+                        tier3_bullets.append(
+                            f"{label} tests failed={failed}: {self._format_list_for_display(track_failed_nodes, limit=6)}."
+                        )
+                    elif failed > 0:
+                        tier3_bullets.append(f"{label} tests failed={failed}.")
+                    elif errors > 0:
+                        tier3_bullets.append(f"{label} tests errors={errors}.")
+                    elif state == "failed":
+                        tier3_bullets.append(f"{label} state=failed.")
+                    else:
+                        continue
+
+                    if failed > 0 or errors > 0 or state == "failed":
+                        if track_key == "parallel":
+                            include_parallel_logs = True
+                        elif track_key == "no_parallel":
+                            include_no_parallel_logs = True
+                        elif track_key == "development_tools":
+                            include_dev_tools_logs = True
+                if not (
+                    include_parallel_logs
+                    or include_no_parallel_logs
+                    or include_dev_tools_logs
+                ):
+                    tier3_bullets.append(
+                        f"Parallel failed={parallel_outcome.get('failed_count', 0)}, errors={parallel_outcome.get('error_count', 0)}."
+                    )
+                    tier3_bullets.append(
+                        f"No-parallel failed={no_parallel_outcome.get('failed_count', 0)}, errors={no_parallel_outcome.get('error_count', 0)}."
+                    )
+                    tier3_bullets.append(
+                        f"Development tools failed={dev_tools_outcome.get('failed_count', 0)}, errors={dev_tools_outcome.get('error_count', 0)}."
+                    )
+                    include_parallel_logs = True
+                    include_no_parallel_logs = True
+                    include_dev_tools_logs = True
+            if isinstance(failed_nodes, list) and failed_nodes and tier3_state != "test_failures":
+                failed_nodes = [
+                    self._normalize_test_node_id(str(node))
+                    for node in dict.fromkeys(
+                        str(node).strip() for node in failed_nodes if str(node).strip()
+                    )
+                ]
+                failed_nodes = [node for node in failed_nodes if node]
                 tier3_bullets.append(
                     f"Failing/erroring test(s): {self._format_list_for_display(failed_nodes, limit=10)}"
                 )
             tier3_bullets.insert(
                 0, "Review for guidance: ai_development_docs/AI_TESTING_GUIDE.md"
             )
-            tier3_bullets.append(
-                "Review for details: stdout files in development_tools/tests/logs"
+            tier3_log_files = self._get_recent_tier3_log_files(
+                include_parallel=include_parallel_logs,
+                include_no_parallel=include_no_parallel_logs,
+                include_dev_tools=include_dev_tools_logs,
             )
+            if tier3_log_files:
+                tier3_bullets.append(
+                    f"Review for details: {self._format_list_for_display(tier3_log_files, limit=6)}"
+                )
+            else:
+                tier3_bullets.append(
+                    "Review for details: stdout files in development_tools/tests/logs"
+                )
             tier3_bullets.append(
                 "Effort: Medium (fixing tests requires understanding business logic)"
             )

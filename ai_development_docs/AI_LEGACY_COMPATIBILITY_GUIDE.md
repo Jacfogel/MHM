@@ -1,6 +1,6 @@
-# AI Legacy Code Removal Guide
+# AI Legacy Compatibility Guide
 
-> **File**: `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md`
+> **File**: `ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md`
 > **Audience**: AI collaborators and developers cleaning up deprecated code paths
 > **Purpose**: Routing and constraints for using the legacy cleanup tools and safely removing legacy code
 > **Style**: Minimal, reference-only, tool-focused
@@ -35,11 +35,13 @@ Use this guide only after you understand the general documentation and developme
 - Documentation and pairing rules: see section 3 "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
 - Development workflow and safety: see section 1 "Safety First" and section 3 "Standard Development Cycle" in [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md).
 
-**When adding legacy code (temporary compatibility only):**
+**When adding legacy compatibility code (temporary compatibility only):**
 
+- Legacy compatibility code is not desirable as a long-term state. Use it only when strictly necessary and always as temporary bridge code.
 - Mark code with a clear `# LEGACY COMPATIBILITY:` header.
 - Log usage when the legacy path is exercised.
 - Add, or update, a removal plan in the relevant docs or changelog.
+- Register all legacy compatibility patterns/paths/functions/parameters in `development_tools/config/development_tools_config.json` under `legacy_cleanup.legacy_patterns`.
 - Add specific detection patterns to `development_tools/legacy/fix_legacy_references.py` (no broad patterns like `"legacy"`).
 
 **When preparing to remove legacy code:**

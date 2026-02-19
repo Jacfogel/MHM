@@ -2,19 +2,22 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-18 02:07:39
+> **Last Generated**: 2026-02-18 18:31:31
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 6
 **Legacy Compatibility Markers Detected**: 8
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
+- Changelogs, archive folders, and planning documents are intentionally historical and excluded from this report.
 - Legacy compatibility markers remain in 2 file(s) (3 total markers).
+- Remaining counts come from legacy inventory tracking categories (4 file(s), 5 marker(s)).
 
 ## Recommended Follow-Up
-1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.
-2. Add regression tests covering analytics handler flows and user data migrations before deleting markers.
-3. Track the cleanup effort and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.
+- Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)
+1. Identify active legacy compatibility behavior and migrate all callers/dependencies to current implementations before deleting markers.
+2. Add or update regression tests that prove migrated flows work without legacy compatibility code paths. See [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) for additional guidance.
+3. Only after migration is verified, remove legacy markers/comments/docs evidence and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.
 
 ## Legacy Compatibility Markers
 **Files Affected**: 2
@@ -35,7 +38,7 @@
 ### development_tools\tests\run_test_coverage.py
 **Issues Found**: 1
 
-- **Line 4466**: `# LEGACY COMPATIBILITY:`
+- **Line 4473**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY:
   ```

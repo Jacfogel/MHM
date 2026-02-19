@@ -131,6 +131,9 @@ def test_ai_priorities_include_tier3_failed_tests_in_immediate_focus(temp_projec
                         "error_count": 0,
                         "skipped_count": 0,
                         "return_code": 1,
+                        "failed_node_ids": [
+                            "tests/behavior/test_a.py::TestA::test_one",
+                        ],
                     },
                     "no_parallel": {
                         "state": "failed",
@@ -139,6 +142,9 @@ def test_ai_priorities_include_tier3_failed_tests_in_immediate_focus(temp_projec
                         "error_count": 0,
                         "skipped_count": 0,
                         "return_code": 1,
+                        "failed_node_ids": [
+                            "tests/behavior/test_b.py::TestB::test_two",
+                        ],
                     },
                     "failed_node_ids": [
                         "tests/behavior/test_a.py::TestA::test_one",
@@ -159,9 +165,16 @@ def test_ai_priorities_include_tier3_failed_tests_in_immediate_focus(temp_projec
     doc = service._generate_ai_priorities_document()
 
     assert "Investigate and correct test failures/errors" in doc
-    assert "Failing/erroring test(s):" in doc
-    assert "tests/behavior/test_a.py::TestA::test_one" in doc
-    assert "Review for details: stdout files in development_tools/tests/logs" in doc
+    assert "Parallel tests failed=1: tests/behavior/test_a.py::test_one." in doc
+    assert "No-parallel tests failed=1: tests/behavior/test_b.py::test_two." in doc
+    assert "Failing/erroring test(s):" not in doc
+    assert "Review for details:" in doc
+    assert (
+        "stdout files in development_tools/tests/logs" in doc
+        or "development_tools/tests/logs/pytest_parallel_stdout_" in doc
+        or "development_tools/tests/logs/pytest_no_parallel_stdout_" in doc
+        or "development_tools/tests/logs/pytest_dev_tools_stdout_" in doc
+    )
     assert "## Immediate Focus Ranked" in doc
 
 

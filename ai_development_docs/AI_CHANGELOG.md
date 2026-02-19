@@ -30,6 +30,17 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-18 - Legacy cleanup + coverage cache/reporting hardening **Progressed**
+- Removed the final legacy-marker footprint from active files and reran `python development_tools/run_development_tools.py legacy`; `LEGACY_REFERENCE_REPORT.md` now reports `Total Files with Issues: 0` and `Legacy Compatibility Markers Detected: 0`.
+- Standardized dev-tools coverage outcome handling to read `details.dev_tools_test_outcome` first in `development_tools/shared/service/commands.py`, while still tolerating older payloads when encountered.
+- Stopped emitting the deprecated top-level `dev_tools_test_outcome` key in `development_tools/tests/run_test_coverage.py` output payloads; standardized `summary/details` output remains intact.
+- Updated compatibility wording in comments (`development_tools/shared/service/data_loading.py`, `development_tools/shared/mtime_cache.py`, `development_tools/shared/service/audit_orchestration.py`, `run_tests.py`, `user/user_context.py`) to remove legacy/backward-compatibility markers while preserving behavior.
+- Updated regression fixture shape in `tests/development_tools/test_audit_strict_mode.py` and validated with targeted tests (`21 passed` across strict-mode and report-generation quick-win suites).
+- Hardened `run_test_coverage.py` cache behavior so reusable coverage cache state is not written when coverage collection fails (`coverage_failed` path); applies to serial/deferred-parallel test-file cache writes and dev-tools coverage cache updates.
+- Updated Tier 3 priority rendering in `report_generation.py` to show per-track failed tests inline (`Parallel tests failed=N: ...`, `No-parallel tests failed=N: ...`) and derive displayed counts from deduplicated per-track failed node IDs.
+- Normalized displayed pytest node IDs to compact `path::test_name` form and retained concrete applicable `development_tools/tests/logs/pytest_*_stdout_*.log` references in priority details.
+- Updated regression expectations in `tests/development_tools/test_report_generation_quick_wins.py`; validated with targeted pytest runs for cache and reporting paths (all passing).
+
 ### 2026-02-18 - Priorities regression fix + safe changelog trim pathing **COMPLETED**
 - Fixed `AI_PRIORITIES.md` omission of failed Tier 3 tests: the failure priority is now added before ranked rendering, so failed node IDs from `analyze_test_coverage` reliably appear in Immediate Focus.
 - Standardized priority output shape in `report_generation.py`: removed redundant top blurbs, corrected AI_STATUS role wording, normalized `Review for guidance`, and enforced guidance/details bullets across priority types.
@@ -39,7 +50,7 @@ Guidelines:
 
 ### 2026-02-17 - New session closeout entry and follow-up confirmation **COMPLETED**
 - Added a distinct same-day entry for this session (separate from the earlier 2026-02-17 work) per session-level changelog policy.
-- Confirmed planning sync: completed command-map/recursion tasks removed from [TODO.md](TODO.md), and 2026-02-17 follow-up notes retained in [PLANS.md](development_docs/PLANS.md).
+- Confirmed planning sync: completed command-map/recursion tasks removed from [TODO.md](TODO.md).
 - Full audit run and no regressions found
 
 ### 2026-02-17 - Pyright/dev-tools cleanup + interaction/flow parity hardening **Largely Complete**
@@ -50,7 +61,7 @@ Guidelines:
 - Session planning cleanup applied: completed command-map/recursion tasks removed from [TODO.md](TODO.md) and 2026-02-17 follow-up notes added to [PLANS.md](development_docs/PLANS.md).
 - Ran doc tooling (`doc-fix --fix-ascii`, `doc-fix --convert-links`, `doc-sync`) via `.venv`, refreshing generated status/priority/report artifacts and related generated docs.
 - Validation highlights: combined behavior run `87 passed`; targeted flaky UI rerun for the two Tier-3 node IDs `2 passed`.
-- Full-tree diff was reviewed; unrelated/pre-existing edits currently in tree (not actioned this session) include `.github/workflows/logging-enforcement.yml` and `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`.
+- Full-tree diff was reviewed; unrelated/pre-existing edits currently in tree (not actioned this session) include `.github/workflows/logging-enforcement.yml` and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
 
 ### 2026-02-16 - Static logging check migration + docs/plans refresh **COMPLETED**
 - Relocated static logging enforcement script usage to `development_tools/static_checks/check_channel_loggers.py` and updated all active references (`.github/workflows/logging-enforcement.yml`, `run_tests.py`, `tests/behavior/test_static_logging_check.py`, [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)).
@@ -138,10 +149,6 @@ Guidelines:
 - Extended caching with tool-code/config invalidation and broader analyzer coverage; cache failures now log and corrupted cache files are cleaned up.
 - Fixed reschedule-request test path (removed `MHM_TESTING` bypass + pytz load) and backfilled missing account `email` on load to avoid user-data flow KeyErrors.
 - Validation: user ran full audit clean (`python development_tools/run_development_tools.py audit --full`).
-
-### 2026-02-06 - Cursor rules and commands refresh **COMPLETED**
-- **Rules**: Refreshed all eight `.cursor/rules/*.mdc` to current project state (run_development_tools.py, .venv, doc paths, duplicate frontmatter removed); line-by-line review against AI_* docs (Tier 1/2/3, time_utilities, legacy path fix_legacy_references.py, testing markers, etc.). Renamed ai-tools.mdc -> dev_tools.mdc; added cache/cleanup and portability (development_tools_config.json, logs/ai_dev_tools.log). All audit levels rewrite AI_STATUS/AI_PRIORITIES/consolidated_report; paired docs list completed (Backup, Changelog, Dev Tools Guide); refs to standalone docs (for all audiences) added in applicable rules (CONFIGURATION_REFERENCE, USER_DATA_MODEL in core; HOW_TO_RUN in critical; README, PROJECT_VISION in context; UI_GUIDE in ui; test guides in testing). Framing: paired = first-line + detailed counterparts; AI uses rules and AI_* as first-line refs but consults any relevant doc.
-- **Commands**: Reviewed and updated `.cursor/commands/*.md` for accuracy (see CHANGELOG_DETAIL for file-level list). **Close-session follow-ups**: Removed `git.md` (user uses AI_CHANGELOG entry as commit message and runs audit/tests). **triage-issue.md**: step 1 "Check logs first" (`logs/errors.log`, AI_LOGGING_GUIDE). **review.md**: step 3 doc/test obligation (paired docs, DOCUMENTATION_GUIDE 4.1). **explore-options.md**: suggest `/audit` if AI_PRIORITIES/AI_STATUS stale. **critical.mdc**: changelog rule (one entry per session, edit existing). **backup.md**: new command (when to use, Copy-Item one-liner, AI_BACKUP_GUIDE). **close.md**: step 5 commit/push wording (no /git reference).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

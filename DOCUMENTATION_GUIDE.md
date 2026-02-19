@@ -150,7 +150,7 @@ Key AI-facing docs:
 -   [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md):
     Error categories, constraints, and links to
     [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
--   [AI_LEGACY_REMOVAL_GUIDE.md](ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md):
+-   [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md):
     Patterns for safely removing legacy code and using automated
     reports.
 

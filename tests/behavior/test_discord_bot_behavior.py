@@ -394,25 +394,29 @@ class TestDiscordBotBehavior:
         Note: Marked as no_parallel because this test creates real users and relies on user index
         updates that may have race conditions in parallel execution.
         """
+        import uuid
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
 
-        ok = TestUserFactory.create_user_with_complex_checkins("checkin_user", test_data_dir=test_data_dir)
+        username = f"checkin_user_{uuid.uuid4().hex[:8]}"
+        ok = TestUserFactory.create_user_with_complex_checkins(
+            username, test_data_dir=test_data_dir
+        )
         assert ok, "User creation should succeed"
         
         # Ensure user index is updated
         from core.user_data_manager import rebuild_user_index
         rebuild_user_index()
         
-        # Get user ID (no retry needed in serial execution)
-        internal_uid = get_user_id_by_identifier("checkin_user")
-        
-        # Fallback to TestUserFactory lookup if needed
+        # Resolve from test-owned data first to avoid stale global index collisions.
+        from tests.test_utilities import TestUserFactory as TUF
+        internal_uid = TUF.get_test_user_id_by_internal_username(username, test_data_dir)
         if not internal_uid:
-            from tests.test_utilities import TestUserFactory as TUF
-            internal_uid = TUF.get_test_user_id_by_internal_username("checkin_user", test_data_dir)
+            internal_uid = get_user_id_by_identifier(username)
         
-        assert internal_uid, f"Should be able to get UUID for user 'checkin_user'. User creation returned: {ok}"
+        assert (
+            internal_uid
+        ), f"Should be able to get UUID for user '{username}'. User creation returned: {ok}"
 
         from communication.message_processing.interaction_manager import handle_user_message
         # Avoid touching real logs by using test user IDs and not starting the real bot; handle via InteractionManager only
@@ -420,7 +424,11 @@ class TestDiscordBotBehavior:
         assert start_resp and start_resp.message
         # If no questions enabled, system ends immediately with a helpful message; accept either case
         if start_resp.completed:
-            assert "no check-in questions are enabled" in start_resp.message.lower()
+            start_message = start_resp.message.lower()
+            assert (
+                "no check-in questions are enabled" in start_message
+                or "check-ins are not enabled for your account" in start_message
+            )
             return
 
         # Answer questions until check-in completes

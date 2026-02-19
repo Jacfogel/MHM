@@ -32,6 +32,8 @@
     - [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) (routing for error categories and handling patterns).
   - Documentation:
     - [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) (routing for documentation categories and sync rules).
+  - Legacy compatibility removal:
+    - [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (required sequencing for migration-first legacy cleanup).
   - Architecture and responsibilities:
     - [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) (routing for key modules, responsibilities, and patterns).
 - Data and configuration rules:
@@ -141,6 +143,14 @@ Use these patterns for frequent change types. Keep responses concise and route t
 - Use [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) to confirm that responsibilities are in the right modules.
 - Encourage running the relevant tests (see [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)) after each significant step.
 - Remind the user to update or confirm docs where behavior, naming, or public interfaces have changed.
+- For legacy compatibility work, follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md).
+- If adding or keeping legacy compatibility code, required minimum:
+  - legacy compatibility is not desirable and must always be temporary bridge code,
+  - add `LEGACY COMPATIBILITY` headers and runtime logging,
+  - register legacy patterns/paths/functions/parameters in `development_tools/config/development_tools_config.json` (`legacy_cleanup.legacy_patterns`),
+  - document explicit removal criteria/next action,
+  - add or update regression tests for both compatibility and modern paths,
+  - migrate call sites/dependencies first, then remove markers/comments/docs evidence last.
 
 When the user asks high-level questions like:
 

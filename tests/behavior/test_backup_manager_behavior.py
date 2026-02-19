@@ -804,24 +804,17 @@ class TestBackupManagerBehavior:
 
                     time.sleep(0.2)  # Increased delay between retries
 
-        # List all user directories (UUID-based)
         # Rebuild index one more time before checking
         rebuild_user_index()
         time.sleep(0.3)  # Give index time to update
 
-        user_dirs = [
-            d
-            for d in os.listdir(self.user_data_dir)
-            if os.path.isdir(os.path.join(self.user_data_dir, d))
-        ]
-        # We should have at least as many directories as users we successfully created
-        # In parallel execution, some users might not be created due to race conditions
-        # Accept if at least 60% of users were created (3 out of 5) - reduced threshold for reliability
-        # But also accept if we have at least 1 user directory (some users might be created by other tests)
+        # We should have at least as many resolved UUID directories as users we successfully created.
+        # This avoids brittle assumptions about a single users/ path when config patches or cache state
+        # influence where get_user_data_dir resolves at runtime.
         min_expected = max(1, int(len(created_user_ids) * 0.6))
         assert (
-            len(user_dirs) >= min_expected
-        ), f"Should have at least {min_expected} user directories (60% of {len(created_user_ids)} created). Found: {len(user_dirs)}. Created users: {created_user_ids}. Resolved UUIDs: {actual_user_uuids}"
+            len(actual_user_uuids) >= min_expected
+        ), f"Should have at least {min_expected} user directories (60% of {len(created_user_ids)} created). Found resolved directories: {len(actual_user_uuids)}. Created users: {created_user_ids}. Resolved UUIDs: {actual_user_uuids}"
 
         # Use the backup manager from fixture (already has patches applied)
         # Create backup

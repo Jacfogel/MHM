@@ -69,7 +69,8 @@ Use these AI docs as your primary routing table; they, in turn, point to detaile
   - Section 3 "Generated Outputs" - where reports and status files live.  
   - Check `development_tools/shared/standard_exclusions.py` (and config) before running tools so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` stay skipped.
 
-- **Legacy removal** - [AI_LEGACY_REMOVAL_GUIDE.md](AI_LEGACY_REMOVAL_GUIDE.md)  
+- **Legacy compatibility** - [AI_LEGACY_COMPATIBILITY_GUIDE.md](AI_LEGACY_COMPATIBILITY_GUIDE.md)  
+  - Legacy compatibility code is high risk and must remain temporary bridge code only; use this guide for required add/keep/remove sequencing.  
   - Quick reference for using `development_tools/legacy/fix_legacy_references.py` and the `legacy` command.  
   - Tightly coupled with [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) and the legacy reports described there.
 
@@ -113,7 +114,7 @@ Use this as a routing table for common request types.
 
 - Start with [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md), especially section 1 "Safety First" and section 3 "Standard Development Cycle".  
 - Use [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) for commands to run audits and checks.  
-- For legacy-related refactors, also use [AI_LEGACY_REMOVAL_GUIDE.md](AI_LEGACY_REMOVAL_GUIDE.md) and the legacy tools described there.
+- For legacy-related refactors, also use [AI_LEGACY_COMPATIBILITY_GUIDE.md](AI_LEGACY_COMPATIBILITY_GUIDE.md) and the legacy tools described there.
 
 ### 4.3. "Help me understand the system"
 

@@ -269,17 +269,20 @@ def test_run_dev_tools_coverage_sets_development_tools_outcome(
     dev_tools_output_file.write_text(
         json.dumps(
             {
-                "dev_tools_test_outcome": {
-                    "state": "failed",
-                    "return_code": 1,
-                    "passed_count": 12,
-                    "failed_count": 2,
-                    "error_count": 0,
-                    "skipped_count": 1,
-                    "failed_node_ids": [
-                        "tests/development_tools/test_example.py::test_failure"
-                    ],
-                }
+                "summary": {"total_issues": 2, "files_affected": 0},
+                "details": {
+                    "dev_tools_test_outcome": {
+                        "state": "failed",
+                        "return_code": 1,
+                        "passed_count": 12,
+                        "failed_count": 2,
+                        "error_count": 0,
+                        "skipped_count": 1,
+                        "failed_node_ids": [
+                            "tests/development_tools/test_example.py::test_failure"
+                        ],
+                    }
+                },
             }
         ),
         encoding="utf-8",

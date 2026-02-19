@@ -276,6 +276,7 @@ For AI-optimized testing instructions and patterns, see the matching sections in
 4. Run targeted and regression tests after each step.  
 5. Update imports and documentation to reflect the new structure.  
 6. If you change test or logging patterns, update the associated guides.
+7. For legacy compatibility work, follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) and treat compatibility code as temporary bridge code only.
 
 
 ## 6. Emergency Procedures

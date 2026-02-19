@@ -64,9 +64,44 @@ class LegacyReferenceReportGenerator:
         normalized = str(file_path).replace("\\", "/")
         if normalized.endswith("run_tests.py"):
             return False
+        if self._is_historical_context_path(normalized):
+            return True
         return should_exclude_file(
             normalized, tool_type="analysis", context="development"
         )
+
+    def _is_historical_context_path(self, normalized_path: str) -> bool:
+        """Treat historical/planning docs as out of scope for legacy cleanup reporting."""
+        lowered = normalized_path.lower().strip("/")
+        base_name = Path(lowered).name
+
+        if "/archive/" in f"/{lowered}/" or "/archived/" in f"/{lowered}/":
+            return True
+        if lowered.startswith("archive/") or lowered.startswith("archived/"):
+            return True
+
+        changelog_files = {
+            "ai_changelog.md",
+            "changelog_detail.md",
+            "ai_changelog_archive.md",
+        }
+        if base_name in changelog_files:
+            return True
+
+        if "changelog_history/" in lowered:
+            return True
+
+        planning_files = {
+            "todo.md",
+            "plans.md",
+        }
+        if base_name in planning_files:
+            return True
+
+        if base_name.endswith("_plan.md") or base_name.startswith("plan_"):
+            return True
+
+        return False
 
     def generate_cleanup_report(
         self, findings: Dict[str, List[Tuple[str, str, List[Dict[str, Any]]]]]
@@ -125,6 +160,9 @@ class LegacyReferenceReportGenerator:
         report_lines.append("## Summary")
         if affected_files:
             report_lines.append("- Scan mode only: no automated fixes were applied.")
+            report_lines.append(
+                "- Changelogs, archive folders, and planning documents are intentionally historical and excluded from this report."
+            )
 
             legacy_entries = filtered_findings.get("legacy_compatibility_markers", [])
             if legacy_entries:
@@ -134,6 +172,12 @@ class LegacyReferenceReportGenerator:
                 report_lines.append(
                     f"- Legacy compatibility markers remain in {len(legacy_entries)} file(s) ({legacy_marker_count} total markers)."
                 )
+                other_file_count = len(affected_files) - len(legacy_entries)
+                other_marker_count = total_markers - legacy_marker_count
+                if other_file_count > 0 and other_marker_count > 0:
+                    report_lines.append(
+                        f"- Remaining counts come from legacy inventory tracking categories ({other_file_count} file(s), {other_marker_count} marker(s))."
+                    )
                 enabled_fields_files = {
                     file_path
                     for file_path, _, matches in legacy_entries
@@ -162,13 +206,16 @@ class LegacyReferenceReportGenerator:
 
         report_lines.append("## Recommended Follow-Up")
         report_lines.append(
-            "1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration."
+            "- Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)"
         )
         report_lines.append(
-            "2. Add regression tests covering analytics handler flows and user data migrations before deleting markers."
+            "1. Identify active legacy compatibility behavior and migrate all callers/dependencies to current implementations before deleting markers."
         )
         report_lines.append(
-            "3. Track the cleanup effort and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues."
+            "2. Add or update regression tests that prove migrated flows work without legacy compatibility code paths. See [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) for additional guidance."
+        )
+        report_lines.append(
+            "3. Only after migration is verified, remove legacy markers/comments/docs evidence and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues."
         )
         report_lines.append("")
 

@@ -496,6 +496,8 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 - [x] Expanded `consolidated_report.md` dependency section with top circular chains and top high-coupling modules
 ---
 
+## 7.5 add --cache-clear as an alias for --clear-cache
+
 ## Related Documents
 
 - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` - Prior version with detailed history
