@@ -552,8 +552,11 @@ class TestAccountHandlerBehavior:
         handler = AccountManagementHandler()
         
         # Create user with known username
-        existing_username = 'existscheckuser'
-        TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
+        existing_username = f'existscheckuser_{uuid.uuid4().hex[:8]}'
+        create_success = TestUserFactory.create_basic_user(
+            existing_username, test_data_dir=test_data_dir
+        )
+        assert create_success is True, "Test user should be created"
         
         # Rebuild user index to ensure user is discoverable
         from core.user_data_manager import rebuild_user_index
@@ -574,8 +577,11 @@ class TestAccountHandlerBehavior:
         handler = AccountManagementHandler()
         
         # Create user with known username
-        existing_username = 'getiduser'
-        TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
+        existing_username = f'getiduser_{uuid.uuid4().hex[:8]}'
+        create_success = TestUserFactory.create_basic_user(
+            existing_username, test_data_dir=test_data_dir
+        )
+        assert create_success is True, "Test user should be created"
         
         # Rebuild user index to ensure user is discoverable
         from core.user_data_manager import rebuild_user_index

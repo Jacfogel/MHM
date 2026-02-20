@@ -390,10 +390,13 @@ class AccountManagementHandler(InteractionHandler):
         """Check if a username already exists in the system"""
         user_ids = get_all_user_ids()
         for user_id in user_ids:
-            user_data_result = get_user_data(user_id, "account")
-            account_data = user_data_result.get("account", {})
-            if account_data.get("internal_username", "").lower() == username.lower():
-                return True
+            try:
+                user_data_result = get_user_data(user_id, "account")
+                account_data = user_data_result.get("account", {})
+                if account_data.get("internal_username", "").lower() == username.lower():
+                    return True
+            except Exception as e:
+                logger.debug(f"Skipping user {user_id} during username lookup due to read error: {e}")
         return False
 
     @handle_errors("getting user ID by username", default_return=None)
@@ -401,10 +404,13 @@ class AccountManagementHandler(InteractionHandler):
         """Get user ID by username"""
         user_ids = get_all_user_ids()
         for user_id in user_ids:
-            user_data_result = get_user_data(user_id, "account")
-            account_data = user_data_result.get("account", {})
-            if account_data.get("internal_username", "").lower() == username.lower():
-                return user_id
+            try:
+                user_data_result = get_user_data(user_id, "account")
+                account_data = user_data_result.get("account", {})
+                if account_data.get("internal_username", "").lower() == username.lower():
+                    return user_id
+            except Exception as e:
+                logger.debug(f"Skipping user {user_id} during user-id lookup due to read error: {e}")
         return None
 
     @handle_errors("getting account handler help")

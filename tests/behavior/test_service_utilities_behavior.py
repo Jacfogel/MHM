@@ -11,7 +11,10 @@ from core.service_utilities import (
     Throttler,
     create_reschedule_request,
     get_flags_dir,
+    get_service_processes,
+    is_headless_service_running,
     is_service_running,
+    is_ui_service_running,
     wait_for_network,
     load_and_localize_datetime,
 )
@@ -216,6 +219,72 @@ class TestServiceUtilitiesBehavior:
 
             # Assert
             assert is_running is False, "Should return False when process check fails"
+
+    def test_get_service_processes_classifies_ui_and_headless(self, test_data_dir):
+        """Test service process classification for UI-managed and headless processes."""
+        mock_headless = MagicMock()
+        mock_headless.info = {
+            "pid": 111,
+            "name": "python.exe",
+            "cmdline": ["python", "core/service.py"],
+            "create_time": 1.0,
+            "environ": {"MHM_HEADLESS_SERVICE": "1"},
+        }
+        mock_headless.is_running.return_value = True
+
+        mock_ui = MagicMock()
+        mock_ui.info = {
+            "pid": 222,
+            "name": "python.exe",
+            "cmdline": ["python", "ui/service.py"],
+            "create_time": 2.0,
+            "environ": {},
+        }
+        mock_ui.is_running.return_value = True
+
+        with patch(
+            "core.service_utilities.psutil.process_iter",
+            return_value=[mock_headless, mock_ui],
+        ):
+            processes = get_service_processes()
+            assert is_headless_service_running() is True
+            assert is_ui_service_running() is True
+
+        assert len(processes) == 2
+        assert any(p["is_headless"] for p in processes)
+        assert any(p["is_ui_managed"] for p in processes)
+
+    def test_get_service_processes_deduplicates_same_pid_and_create_time(
+        self, test_data_dir
+    ):
+        """Test duplicate process entries are collapsed by pid+create_time key."""
+        proc_a = MagicMock()
+        proc_a.info = {
+            "pid": 333,
+            "name": "python.exe",
+            "cmdline": ["python", "core/service.py"],
+            "create_time": 3.0,
+            "environ": {},
+        }
+        proc_a.is_running.return_value = True
+
+        proc_b = MagicMock()
+        proc_b.info = {
+            "pid": 333,
+            "name": "python.exe",
+            "cmdline": ["python", "core/service.py"],
+            "create_time": 3.0,
+            "environ": {},
+        }
+        proc_b.is_running.return_value = True
+
+        with patch(
+            "core.service_utilities.psutil.process_iter",
+            return_value=[proc_a, proc_b],
+        ):
+            processes = get_service_processes()
+
+        assert len(processes) == 1, "Duplicate process entries should be removed"
 
     def test_wait_for_network_returns_true_when_network_available(self, test_data_dir):
         """Test that wait_for_network returns True when network is available."""
@@ -464,8 +533,16 @@ class TestServiceUtilitiesIntegration:
 
             is_service_running.assert_called_once()
 
-            # Verify file creation was called
-            mock_file.assert_called_once()
+            # Verify file creation write call occurred (ignore unrelated open() calls in parallel runs)
+            write_calls = [
+                c
+                for c in mock_file.call_args_list
+                if len(c.args) >= 2 and c.args[1] == "w"
+            ]
+            assert len(write_calls) == 1, "Should open exactly one reschedule file for writing"
+            assert (
+                "reschedule_request_" in str(write_calls[0].args[0])
+            ), "Write target should be a reschedule request flag file"
             mock_json_dump.assert_called_once()
 
             # Verify request data structure

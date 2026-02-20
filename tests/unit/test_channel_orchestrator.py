@@ -327,6 +327,54 @@ class TestChannelOrchestratorHelpers:
         result = self.manager._select_weighted_message("not a list", ['Morning'])
         assert result == "", "Should return empty string for non-list available_messages"
 
+    def test_select_weighted_message_prefers_specific_periods_when_weight_hits(self):
+        """Test weighted branch selecting specific-period messages."""
+        available_messages = [
+            {"message": "Specific", "time_periods": ["Morning"]},
+            {"message": "All", "time_periods": ["ALL"]},
+        ]
+
+        with (
+            patch("random.random", return_value=0.1),
+            patch("random.choice", side_effect=lambda items: items[0]),
+        ):
+            result = self.manager._select_weighted_message(
+                available_messages, ["Morning"]
+            )
+
+        assert result["message"] == "Specific"
+
+    def test_select_weighted_message_uses_all_period_when_weight_misses(self):
+        """Test weighted branch selecting ALL-period messages when specific weight misses."""
+        available_messages = [
+            {"message": "Specific", "time_periods": ["Morning"]},
+            {"message": "All", "time_periods": ["ALL"]},
+        ]
+
+        with (
+            patch("random.random", return_value=0.95),
+            patch("random.choice", side_effect=lambda items: items[0]),
+        ):
+            result = self.manager._select_weighted_message(
+                available_messages, ["Morning"]
+            )
+
+        assert result["message"] == "All"
+
+    def test_select_weighted_message_falls_back_when_only_specific_periods(self):
+        """Test fallback branch when no ALL-period messages are available."""
+        available_messages = [{"message": "Specific", "time_periods": ["Morning"]}]
+
+        with (
+            patch("random.random", return_value=0.95),
+            patch("random.choice", side_effect=lambda items: items[0]),
+        ):
+            result = self.manager._select_weighted_message(
+                available_messages, ["Morning"]
+            )
+
+        assert result["message"] == "Specific"
+
     def test_handle_task_reminder_invalid_input(self):
         """Test handle_task_reminder with invalid input."""
         # Test None user_id
@@ -344,6 +392,124 @@ class TestChannelOrchestratorHelpers:
         # Test empty task_id
         result = self.manager.handle_task_reminder("user_1", "")
         assert result is None, "Should return None for empty task_id"
+
+    def test_handle_task_reminder_tracks_last_reminder_on_success(self):
+        """Test successful task reminder send updates last reminder tracking."""
+        user_id = "user_ok"
+        task_id = "task_123"
+        task = {
+            "task_id": task_id,
+            "title": "Follow up",
+            "completed": False,
+            "priority": "medium",
+        }
+
+        with (
+            patch("tasks.task_management.are_tasks_enabled", return_value=True),
+            patch("tasks.task_management.get_task_by_id", return_value=task),
+            patch(
+                "communication.core.channel_orchestrator.get_user_data",
+                return_value={"preferences": {"channel": {"type": "email"}}},
+            ),
+            patch.object(
+                self.manager,
+                "_get_recipient_for_service",
+                return_value="person@example.com",
+            ),
+            patch.object(
+                self.manager,
+                "_create_task_reminder_message",
+                return_value="Reminder body",
+            ),
+            patch.object(self.manager, "send_message_sync", return_value=True),
+        ):
+            self.manager.handle_task_reminder(user_id, task_id)
+
+        assert self.manager.get_last_task_reminder(user_id) == task_id
+
+    def test_handle_task_reminder_does_not_track_when_send_fails(self):
+        """Test failed send does not update last reminder tracking."""
+        user_id = "user_fail"
+        task_id = "task_456"
+        task = {
+            "task_id": task_id,
+            "title": "Do thing",
+            "completed": False,
+            "priority": "high",
+        }
+
+        with (
+            patch("tasks.task_management.are_tasks_enabled", return_value=True),
+            patch("tasks.task_management.get_task_by_id", return_value=task),
+            patch(
+                "communication.core.channel_orchestrator.get_user_data",
+                return_value={"preferences": {"channel": {"type": "email"}}},
+            ),
+            patch.object(
+                self.manager,
+                "_get_recipient_for_service",
+                return_value="person@example.com",
+            ),
+            patch.object(self.manager, "send_message_sync", return_value=False),
+        ):
+            self.manager.handle_task_reminder(user_id, task_id)
+
+        assert self.manager.get_last_task_reminder(user_id) is None
+
+    def test_handle_task_reminder_exits_when_tasks_disabled(self):
+        """Test tasks-disabled branch exits before any send attempts."""
+        with (
+            patch("tasks.task_management.are_tasks_enabled", return_value=False),
+            patch.object(self.manager, "send_message_sync") as mock_send,
+        ):
+            self.manager.handle_task_reminder("user_disabled", "task_x")
+
+        mock_send.assert_not_called()
+
+    def test_handle_task_reminder_skips_completed_task(self):
+        """Test completed task branch exits without sending."""
+        task = {"task_id": "task_done", "title": "Done", "completed": True}
+        with (
+            patch("tasks.task_management.are_tasks_enabled", return_value=True),
+            patch("tasks.task_management.get_task_by_id", return_value=task),
+            patch.object(self.manager, "send_message_sync") as mock_send,
+        ):
+            self.manager.handle_task_reminder("user_done", "task_done")
+
+        mock_send.assert_not_called()
+
+    def test_handle_task_reminder_exits_when_preferences_missing(self):
+        """Test missing preferences branch exits without sending."""
+        task = {"task_id": "task_ok", "title": "Active task", "completed": False}
+        with (
+            patch("tasks.task_management.are_tasks_enabled", return_value=True),
+            patch("tasks.task_management.get_task_by_id", return_value=task),
+            patch(
+                "communication.core.channel_orchestrator.get_user_data",
+                return_value={"preferences": None},
+            ),
+            patch.object(self.manager, "send_message_sync") as mock_send,
+        ):
+            self.manager.handle_task_reminder("user_noprefs", "task_ok")
+
+        mock_send.assert_not_called()
+
+    def test_handle_task_reminder_exits_when_recipient_missing(self):
+        """Test missing recipient branch exits without sending."""
+        task = {"task_id": "task_ok", "title": "Active task", "completed": False}
+        with (
+            patch("tasks.task_management.are_tasks_enabled", return_value=True),
+            patch("tasks.task_management.get_task_by_id", return_value=task),
+            patch(
+                "communication.core.channel_orchestrator.get_user_data",
+                return_value={"preferences": {"channel": {"type": "email"}}},
+            ),
+            patch.object(self.manager, "_get_recipient_for_service", return_value=None),
+            patch.object(self.manager, "send_message_sync") as mock_send,
+        ):
+            self.manager.handle_task_reminder("user_norecipient", "task_ok")
+
+        mock_send.assert_not_called()
 
     def test_set_scheduler_manager(self):
         """Test set_scheduler_manager sets the scheduler manager."""
@@ -374,4 +540,3 @@ class TestChannelOrchestratorHelpers:
             
             # Should expire for non-scheduled messages
             mock_manager.expire_checkin_flow_due_to_unrelated_outbound.assert_called_once_with(user_id)
-

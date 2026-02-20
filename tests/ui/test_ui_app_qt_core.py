@@ -135,6 +135,39 @@ class TestServiceManagerCore:
             result = service_manager.is_service_running()
             # Should return the first running process
             assert result == (True, 12345)
+
+    def test_is_service_running_ignores_when_service_not_main_script(self, service_manager):
+        """Test service detection ignores cmdlines where service.py is not the final script arg."""
+        mock_process = Mock()
+        mock_process.info = {
+            "pid": 12345,
+            "name": "python.exe",
+            "cmdline": ["python", "wrapper.py", "service.py", "--mode"],
+        }
+        mock_process.is_running.return_value = True
+
+        with patch("ui.ui_app_qt.psutil.process_iter", return_value=[mock_process]):
+            result = service_manager.is_service_running()
+
+        assert result == (False, None)
+
+    def test_is_service_running_skips_non_python_or_missing_name(self, service_manager):
+        """Test service detection skips entries without python executable names."""
+        non_python = Mock()
+        non_python.info = {"pid": 1, "name": "node.exe", "cmdline": ["node", "service.py"]}
+        non_python.is_running.return_value = True
+
+        missing_name = Mock()
+        missing_name.info = {"pid": 2, "name": None, "cmdline": ["python", "service.py"]}
+        missing_name.is_running.return_value = True
+
+        with patch(
+            "ui.ui_app_qt.psutil.process_iter",
+            return_value=[non_python, missing_name],
+        ):
+            result = service_manager.is_service_running()
+
+        assert result == (False, None)
     
     @pytest.mark.slow
     def test_start_service_success(self, service_manager):

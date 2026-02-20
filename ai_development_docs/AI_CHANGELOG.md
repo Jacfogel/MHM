@@ -30,6 +30,17 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-20 - Coverage expansion batch + stability fixes **COMPLETED**
+- Main session outcome: expanded automated test coverage across priority domains (`communication`, `ui`, `core`) with additional scenario/branch-focused tests and refreshed coverage/report outputs.
+- As part of keeping the coverage run green, resolved two active Tier 3 failures:
+  - `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_username_exists_checks_existing_username`
+  - `tests/ui/test_account_creation_ui.py::TestAccountCreationErrorHandling::test_invalid_data_handling_real_behavior`
+- Hardened username lookup behavior in `communication/command_handlers/account_handler.py` to skip per-user read errors during scans, and stabilized related behavior tests with unique identifiers + explicit setup assertions.
+- Updated the failing UI persistence assertion path in `tests/ui/test_account_creation_ui.py` to use runtime path resolution with bounded retry and non-auto-create verification, removing a parallel timing/path assumption.
+- Coverage-focused updates reflected in current diff include `tests/unit/test_channel_orchestrator.py`, `tests/ui/test_ui_app_qt_core.py`, and `tests/behavior/test_service_utilities_behavior.py`, plus refreshed `AI_STATUS/AI_PRIORITIES/consolidated_report` and report JSONs.
+- Validation: targeted reruns passed; user-confirmed full `audit --full` now has all tests passing.
+- Full-diff review (`git diff --stat` + `git diff --name-only`) completed before wrap-up; per user, all diff files were actioned this session.
+
 ### 2026-02-20 - Tier 3/logging follow-up and full-diff session wrap **COMPLETED**
 - Completed a focused follow-up pass on audit/logging behavior: `quick_status` now runs only during explicit quick audits, and tool completion labels are standardized to `PASS`/`FAIL` with `issues=<n>` detail.
 - Finalized Tier 3/report/logging integration updates across service orchestration/wrappers/commands/reporting and coverage runner paths (`audit_orchestration.py`, `commands.py`, `report_generation.py`, `tool_wrappers.py`, `run_test_coverage.py`), with refreshed status/priorities/consolidated outputs.
@@ -158,15 +169,6 @@ Guidelines:
 - Confirmed improved clean sample run: `4457 passed, 1 skipped in 209.25s`.
 - Moved recent `parallel_profile_20260211_*.log/.xml` artifacts from `tests/logs/` to `development_tools/tests/logs/archive/` to match backup-guide archive handling.
 - Added follow-up tracking for automating profile artifact rotation/retention (7-version consolidated policy) in [TODO.md](TODO.md) and reflected the updated baseline in [PLANS.md](development_docs/PLANS.md).
-
-### 2026-02-10 - Flaky follow-up **COMPLETED**
-- Stabilized and revalidated targeted flaky user-data tests under xdist; user confirmed targeted parallel rerun now passes (`3 passed`).
-- Removed the obvious unused import in `development_tools/shared/service/commands.py` (`import os`).
-- Confirmed migration away from legacy `tests/flaky_test_report.md` to `tests/logs/flaky_test_report.md` (old path removed from repo state).
-- Added dev-tools exclusions for pytest temp artifacts (`.tmp_pytest_runner`, `.pytest_tmp_cache`, `.tmp_pytest`, `.tmp_devtools_pyfiles`, `.pytest-tmp-*`) in config + shared exclusions to prevent false-positive audit findings.
-- Fixed `analyze_missing_addresses.py` to use shared exclusion logic, eliminating the false "95 files missing addresses" recommendation from temp fixture paths.
-- Removed final obvious-unused import from `tests/conftest.py` (`import sys`) and regenerated `UNUSED_IMPORTS_REPORT.md` (`Obvious Unused: 0`).
-- Updated planning docs for next cycle: new outstanding flaky items in [TODO.md](TODO.md), timing/no-parallel stability note in [PLANS.md](development_docs/PLANS.md), and user-verified successful docs + full-audit reruns.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -33,6 +33,40 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-20 - Coverage expansion batch + Tier 3 stability fixes
+- **Feature/Fix**: Completed a coverage-focused session to raise scenario/branch coverage in below-target domains (`communication`, `ui`, `core`), with Tier 3 failure remediation performed as stabilization work to keep coverage/audit runs green.
+- **Technical Changes**:
+  - `communication/command_handlers/account_handler.py`
+    - hardened `_username_exists(...)` and `_get_user_id_by_username(...)` loops to skip per-user read failures instead of aborting the whole lookup path.
+  - `tests/behavior/test_account_handler_behavior.py`
+    - stabilized username lookup tests using per-test unique usernames and explicit user-creation success assertions before lookup checks.
+  - `tests/ui/test_account_creation_ui.py`
+    - fixed parallel flake in `test_invalid_data_handling_real_behavior` by using runtime-resolved user paths (`get_user_data_dir`/`get_user_file_path`), bounded write-visibility retries, and `auto_create=False` readback validation.
+  - Primary coverage expansion work reflected in current diff:
+    - `tests/behavior/test_service_utilities_behavior.py`
+    - `tests/ui/test_ui_app_qt_core.py`
+    - `tests/unit/test_channel_orchestrator.py`
+  - Supporting generated/report refreshes from the coverage/audit pass:
+    - `development_tools/AI_PRIORITIES.md`
+    - `development_tools/AI_STATUS.md`
+    - `development_tools/consolidated_report.md`
+    - `development_tools/reports/analysis_detailed_results.json`
+    - `development_tools/reports/tool_timings.json`
+    - `development_docs/TEST_COVERAGE_REPORT.md`
+    - `development_docs/UNUSED_IMPORTS_REPORT.md`
+    - `development_docs/LEGACY_REFERENCE_REPORT.md`
+- **Planning/Docs Updates**:
+  - Updated [PLANS.md](development_docs/PLANS.md) with this session's completion status and continuing coverage direction.
+  - Synced summary + detail changelog pair by adding this corresponding entry in [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md).
+- **Validation**:
+  - Targeted reruns in-session:
+    - `pytest -q tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_username_exists_checks_existing_username`
+    - `pytest -q tests/ui/test_account_creation_ui.py::TestAccountCreationErrorHandling::test_invalid_data_handling_real_behavior`
+  - User-confirmed full validation after session work: all tests passing in `audit --full`.
+- **Full-diff Attribution**:
+  - Reviewed full working tree via `git diff --stat` and `git diff --name-only` before finalizing.
+  - Per user confirmation, everything currently in diff was actioned in this session and is represented by this entry.
+
 ### 2026-02-20 - Tier 3 classification transition + audit logging cleanup session
 - **Feature/Fix**: Completed a focused follow-up session across Tier 3 failure classification consumption, audit logging normalization, and dev-tools test/report reliability, with full-audit pass confirmation.
 - **Technical Changes**:
@@ -65,9 +99,9 @@ When adding new changes, follow this format:
   - Updated and synchronized:
     - [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)
     - [PLANS.md](development_docs/PLANS.md)
-    - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`
-    - `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`
-    - `ai_development_docs/AI_TESTING_GUIDE.md`
+    - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
+    - [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
+    - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)
 - **Generated Artifacts Refreshed**:
   - `development_tools/AI_STATUS.md`
   - `development_tools/AI_PRIORITIES.md`

@@ -30,14 +30,6 @@
 
 ## [ACTIVE] **Current Active Plans**
 
-### **Session Follow-ups (2026-02-20)**
-- Keep tracking development-tools implementation items in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), especially:
-  - Section 1.1 remaining coverage uplift work (raise development tools coverage toward 60%+ and re-baseline after latest test additions).
-  - Section 2.2 remaining logging cleanup work (finish standalone analyzer print-to-logger migration where appropriate).
-  - Section 2.9 final transition item (remove Tier 3 v1 compatibility bridge fields after all consumers are classification-only).
-- Tier 3 failure classification and strict-mode semantics are now implemented and stable in recent full-audit runs.
-- No additional multi-step non-dev-tools plans were added in this wrap-up.
-
 ### **Backup Reliability and Restore Confidence Plan** **PLANNING**
 
 **Status**: **PLANNING**  
