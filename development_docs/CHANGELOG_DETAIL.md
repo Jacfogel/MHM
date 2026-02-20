@@ -33,6 +33,57 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-20 - Tier 3 classification transition + audit logging cleanup session
+- **Feature/Fix**: Completed a focused follow-up session across Tier 3 failure classification consumption, audit logging normalization, and dev-tools test/report reliability, with full-audit pass confirmation.
+- **Technical Changes**:
+  - `development_tools/shared/service/audit_orchestration.py`
+    - ensured `quick_status` runs only for explicit `audit --quick` (not standard/full audits);
+    - standardized tool completion status labels to `PASS`/`FAIL` and removed `PASS_WITH_FINDINGS` wording while preserving `issues=<count>`;
+    - continued log-noise reduction and lifecycle-focused INFO logging behavior.
+  - `development_tools/shared/service/commands.py`
+  - `development_tools/shared/service/report_generation.py`
+  - `development_tools/shared/service/tool_wrappers.py`
+  - `development_tools/tests/run_test_coverage.py`
+    - completed coordinated Tier 3/report/logging integration updates from the V4 roadmap and follow-up pass.
+  - `tests/development_tools/test_changelog_trim_tooling.py`
+    - aligned assertions with current log-level policy (`Changelog check:` diagnostics on DEBUG).
+- **Coverage and Test Work Included in This Session**:
+  - Added/expanded dev-tools tests and reliability coverage in:
+    - `tests/development_tools/test_generate_function_registry.py`
+    - `tests/development_tools/test_regenerate_coverage_metrics.py`
+    - `tests/development_tools/test_report_generation_quick_wins.py`
+    - `tests/development_tools/test_audit_strict_mode.py`
+    - `tests/development_tools/test_analyze_module_dependencies.py`
+    - `tests/development_tools/conftest.py`
+  - Additional test stabilization changes captured in current tree:
+    - `tests/behavior/test_discord_checkin_retry_behavior.py`
+    - `tests/ui/test_account_creation_ui.py`
+    - `tests/ui/test_task_management_dialog.py`
+    - `tests/conftest.py`
+- **Legacy Compatibility Bridge**: Added an explicit temporary bridge for Tier 3 `coverage_outcome` v1 fields (`state`, counts, `return_code`, `failed_node_ids`) with `# LEGACY COMPATIBILITY:` marker, runtime bridge-use logging for state-only payloads, and specific legacy-pattern registration under `legacy_cleanup.legacy_patterns`. Removal plan: remove bridge once all consumers read `classification*` fields directly.    
+- **Documentation/Planning Updates**:
+  - Updated and synchronized:
+    - [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)
+    - [PLANS.md](development_docs/PLANS.md)
+    - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`
+    - `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`
+    - `ai_development_docs/AI_TESTING_GUIDE.md`
+- **Generated Artifacts Refreshed**:
+  - `development_tools/AI_STATUS.md`
+  - `development_tools/AI_PRIORITIES.md`
+  - `development_tools/consolidated_report.md`
+  - `development_tools/reports/analysis_detailed_results.json`
+  - `development_tools/reports/tool_timings.json`
+  - `development_docs/TEST_COVERAGE_REPORT.md`
+  - `development_docs/UNUSED_IMPORTS_REPORT.md`
+  - `development_docs/LEGACY_REFERENCE_REPORT.md`
+- **Validation**:
+  - `pytest tests/development_tools/test_changelog_trim_tooling.py tests/development_tools/test_status_file_timing.py -q` -> `4 passed`
+  - `python development_tools/run_development_tools.py audit --full --clear-cache` -> full audit passing (user-verified)
+- **Full-diff Attribution**:
+  - Reviewed full working tree (`git diff --stat`, `git diff --name-only`) before finalizing this entry.
+  - Current tree is session-scoped; this entry is the canonical record for all files currently in diff.
+
 ### 2026-02-19 - Tier-3 test-failure remediation and testing-policy guidance update
 - **Feature/Fix**: Investigated and fixed multiple Tier-3 failures in behavior/unit tracks by removing nondeterministic test assumptions and parallel-collision-prone identifiers.
 - **Technical Changes**:
@@ -49,15 +100,15 @@ When adding new changes, follow this format:
     - switched to unique per-test user IDs to prevent parallel collisions.
 - **Documentation Updates**:
   - Updated testing guidance in paired docs:
-    - `ai_development_docs/AI_TESTING_GUIDE.md`
-    - `tests/TESTING_GUIDE.md`
+    - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)
+    - [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)
   - Added explicit guidance for:
     - `TestUserFactory.create_*` return semantics (`bool` success vs UUID),
     - required UUID resolution before user-data updates/assertions,
     - unique per-test identifiers for parallel-safe tests,
     - policy guard tests location/expectations (`tests/unit/test_test_policy_guards.py`).
 - **Planning Updates**:
-  - Updated `development_docs/PLANS.md` to mark the above Tier-3/intermittent failure items complete.
+  - Updated [PLANS.md](development_docs/PLANS.md) to mark the above Tier-3/intermittent failure items complete.
 - **Validation**:
   - `pytest tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success -q` -> `1 passed`
   - `pytest tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_persists_to_disk -q` -> `1 passed`
@@ -74,10 +125,10 @@ When adding new changes, follow this format:
   - All files currently in `git diff` were actioned in this session and are represented by this entry.
   - Additional actioned files in this session (beyond the core Tier-3 test fixes above) include:
     - Planning/docs updates:
-      - `TODO.md`
-      - `development_docs/PLANS.md`
-      - `ai_development_docs/AI_TESTING_GUIDE.md`
-      - `tests/TESTING_GUIDE.md`
+      - [TODO.md](TODO.md)
+      - [PLANS.md](development_docs/PLANS.md)
+      - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)
+      - [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)
     - Generated status/report artifacts refreshed:
       - `development_tools/AI_PRIORITIES.md`
       - `development_tools/AI_STATUS.md`

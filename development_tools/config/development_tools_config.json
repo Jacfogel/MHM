@@ -362,6 +362,11 @@
       "legacy_compatibility_markers": [
         "# LEGACY COMPATIBILITY:"
       ],
+      "tier3_coverage_outcome_compat_bridge": [
+        "LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained \\(state/counts/return_code/failed_node_ids\\)",
+        "tier3_coverage_outcome_v1",
+        "legacy_state_only_payload"
+      ],
       "legacy_inventory_tracking": [
         "(?i)backward compatibility",
         "(?i)compatibility methods",

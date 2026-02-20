@@ -43,9 +43,10 @@ def test_check_and_trim_changelog_entries_skips_trim_when_within_limit(
 
     service._check_and_trim_changelog_entries()
 
-    log_messages = [call.args[0] for call in logger_mock.info.call_args_list]
-    assert any("Changelog check:" in msg for msg in log_messages)
-    assert not any("Created archive: archive/AI_CHANGELOG_ARCHIVE.md" in msg for msg in log_messages)
+    info_messages = [call.args[0] for call in logger_mock.info.call_args_list]
+    debug_messages = [call.args[0] for call in logger_mock.debug.call_args_list]
+    assert any("Changelog check:" in msg for msg in debug_messages)
+    assert not any("Created archive: archive/AI_CHANGELOG_ARCHIVE.md" in msg for msg in info_messages)
 
 
 @pytest.mark.unit

@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-02-16
+> **Last Updated**: 2026-02-20
 
 This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -44,12 +44,18 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 **Status**: IN PROGRESS  
 **Tasks**:
 - [ ] Use `development_tools/AI_PRIORITIES.md` (audit-generated) to identify actionable coverage priorities; only mirror specific module targets here when they need explicit follow-up
-- [ ] Add tests for `development_tools/ai_work/analyze_ai_work.py` (currently 0.0%)
-- [ ] Add tests for `analyze_package_exports.py`, `run_dev_tools.py`, `data_freshness_audit.py` (0.0% per AI_PRIORITIES)
+- [x] Add targeted tests for current top low-coverage offenders identified from latest coverage output:
+  - `development_tools/imports/analyze_dependency_patterns.py`
+  - `development_tools/shared/service/tool_wrappers.py`
+  - `development_tools/functions/generate_function_registry.py`
+  - Added/expanded tests:
+    - `tests/development_tools/test_analyze_dependency_patterns.py`
+    - `tests/development_tools/test_tool_wrappers_package_exports.py`
+    - `tests/development_tools/test_generate_function_registry.py`
 - [ ] Investigate skipped test increase (1 -> 2 skipped)
 - [ ] Strengthen tests for fragile helpers across `tests/development_tools/`
 - [ ] Update all dev tools tests to use `tests/development_tools/test_config.json` fixture
-- [ ] Document coverage improvements and updated baseline
+- [ ] Re-run dev-tools coverage and document updated baseline/progress toward 60% target
 
 #### 1.2 Restore audit status tests without memory leak
 **Status**: PENDING  
@@ -138,15 +144,16 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [x] Apply consistent format for ASCII, addresses, headings, and links
 
 #### 2.2 Standardize logging and surface top offenders
-**Status**: PENDING  
+**Status**: IN PROGRESS  
 **Tasks**:
-- [ ] Standardize log levels across tools (INFO/DEBUG/WARNING)
-- [ ] Remove duplicate log entries and demote verbose enhancement logs
+- [x] Standardize log levels across core orchestration/reporting/coverage paths (INFO lifecycle, DEBUG internals, WARNING actionable anomalies)
+- [x] Remove duplicate log entries and demote verbose enhancement logs in high-noise paths
 - [x] Fix duplicate audit log lines (legacy analysis logged twice; remove wrapper log line)
 - [ ] Replace print statements with logging (except intentional audit progress prints)
   - [x] Replaced internal print-based output assembly in `shared/service/tool_wrappers.py::run_analyze_path_drift` with direct string construction (no stdout redirection/print calls)
   - [x] Replaced `print(output)` with structured `logger.info(...)` in `shared/service/commands.py::run_config`
-- [ ] Review noisy logs in config validation and package auditing
+- [x] Review noisy logs in config validation and package auditing (demoted multiline/non-actionable internals to DEBUG)
+- [ ] Complete remaining print-to-logger migration in standalone analyzer scripts where still appropriate
 - [x] Add "Top offenders" list to Quick Wins in AI_PRIORITIES.md
   - [x] Added unused-imports Quick Win in `shared/service/report_generation.py` with top offender files + fix/verify commands
   - [x] Added unit coverage in `tests/development_tools/test_report_generation_quick_wins.py`
@@ -183,15 +190,24 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Consider progress indicators for long-running tools
 
 #### 2.9 Audit failure visibility and exit semantics for coverage/test stages
-**Status**: IN PROGRESS  
+**Status**: COMPLETED  
 **Tasks**:
 - [x] Make Tier 3 audit output explicitly summarize pytest outcomes from both coverage tracks (parallel + no_parallel): passed/failed/skipped/crashed, plus failed node IDs
 - [x] Add a clear "completed with test failures" state distinct from "completed successfully" when coverage was produced but any tests failed
-- [ ] Add explicit crash reporting for no_parallel subprocess failures (e.g., `3221226505` / `0xC0000135`) with actionable context in final audit summary
+- [x] Add explicit crash reporting for no_parallel subprocess failures (e.g., `3221226505` / `0xC0000135`) with actionable context in final audit summary
 - [x] Add a strict/fail-fast mode so audit returns non-zero when Tier 3 test failures or no_parallel crashes occur
-- [ ] Add explicit reporting/handling for Windows pytest teardown cleanup errors (e.g., `cleanup_dead_symlinks` PermissionError) so false-negative non-zero exits are clearly classified and do not masquerade as test failures
+- [x] Add explicit reporting/handling for Windows pytest teardown cleanup errors (e.g., `cleanup_dead_symlinks` PermissionError) so false-negative non-zero exits are clearly classified and do not masquerade as test failures
+- [x] Extend strict-mode failure semantics to include `infra_cleanup_error` (not only `test_failures`/`crashed`)
+- [x] Preserve legacy Tier3 track fields for compatibility while adding explicit `classification*` metadata
 - [x] Ensure AI_STATUS/AI_PRIORITIES/consolidated report carry the same failure state and do not imply a clean run
 - [x] Include development-tools test track in Tier 3 outcome state handling and strict-exit decisioning
+- [x] Surface actionable `classification_reason`, `return_code_hex`, and relevant `log_file` paths in Tier 3 report sections
+
+**Temporary compatibility bridge note**:
+- [x] Added explicit `# LEGACY COMPATIBILITY:` marker and bridge-use logging for state-only Tier3 payload fallback paths
+- [x] Registered specific legacy pattern tracking for this bridge in `legacy_cleanup.legacy_patterns`
+- [x] Migrated downstream Tier3 consumers (audit orchestration, report generation, cache precheck decisions) to use `classification*` fields as the primary contract
+- [ ] Remove Tier3 v1 compatibility bridge fields once downstream consumers are migrated to `classification*` fields only
 
 #### 2.10 Cache and cleanup semantics alignment
 **Status**: COMPLETED  

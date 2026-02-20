@@ -2,16 +2,16 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-19 14:56:06
+> **Last Generated**: 2026-02-20 01:39:00
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 6
-**Legacy Compatibility Markers Detected**: 8
+**Total Files with Issues**: 7
+**Legacy Compatibility Markers Detected**: 12
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
 - Changelogs, archive folders, and planning documents are intentionally historical and excluded from this report.
-- Legacy compatibility markers remain in 2 file(s) (3 total markers).
-- Remaining counts come from legacy inventory tracking categories (4 file(s), 5 marker(s)).
+- Legacy compatibility markers remain in 2 file(s) (4 total markers).
+- Remaining counts come from legacy inventory tracking categories (5 file(s), 8 marker(s)).
 
 ## Recommended Follow-Up
 - Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)
@@ -36,9 +36,14 @@
   ```
 
 ### development_tools\tests\run_test_coverage.py
-**Issues Found**: 1
+**Issues Found**: 2
 
-- **Line 4473**: `# LEGACY COMPATIBILITY:`
+- **Line 4229**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)
+  ```
+
+- **Line 4577**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY:
   ```
@@ -57,7 +62,7 @@
 ### development_tools\shared\service\audit_orchestration.py
 **Issues Found**: 1
 
-- **Line 1596**: `Backward compatibility`
+- **Line 1715**: `Backward compatibility`
   ```
   # Backward compatibility: retained as sum of per-tool durations
   ```
@@ -81,4 +86,28 @@
 - **Line 75**: `legacy extraction`
   ```
   # Extract data and update using new functions directly - no legacy extraction needed
+  ```
+
+## Tier3 Coverage Outcome Compat Bridge
+**Files Affected**: 2
+
+### development_tools\shared\service\commands.py
+**Issues Found**: 2
+
+- **Line 972**: `tier3_coverage_outcome_v1`
+  ```
+  "LEGACY COMPATIBILITY: tier3_coverage_outcome_v1 bridge exercised; "
+  ```
+
+- **Line 977**: `legacy_state_only_payload`
+  ```
+  track["classification_reason"] = "legacy_state_only_payload"
+  ```
+
+### development_tools\tests\run_test_coverage.py
+**Issues Found**: 1
+
+- **Line 4229**: `LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)`
+  ```
+  # LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)
   ```

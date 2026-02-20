@@ -481,6 +481,13 @@ def temp_project_copy(demo_project_root):
                         shutil.rmtree(copy_path, ignore_errors=True)
                     except Exception:
                         pass
+        # Guard against intermittent partial-copy behavior under parallel load.
+        source_legacy_file = demo_project_root / "legacy_code.py"
+        copied_legacy_file = copy_path / "legacy_code.py"
+        if source_legacy_file.exists() and not copied_legacy_file.exists():
+            copied_legacy_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_legacy_file, copied_legacy_file)
+
         # Ensure tests start from a clean fixture snapshot and don't rely on stale status files.
         for status_file in ["AI_STATUS.md", "AI_PRIORITIES.md", "consolidated_report.md"]:
             (copy_path / status_file).unlink(missing_ok=True)

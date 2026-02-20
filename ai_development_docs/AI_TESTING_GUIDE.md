@@ -308,6 +308,7 @@ On any test failure:
      - Shared files or directories.
      - Global state or singletons.
      - External services.
+   - For development-tools Tier 3 coverage runs, also check per-track classification fields (`classification_reason`, `actionable_context`, `log_file`, `return_code_hex`) in `coverage_outcome` to distinguish crashes/infra cleanup issues from test failures.
 
 Routing to other AI docs:
 

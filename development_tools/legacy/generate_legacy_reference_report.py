@@ -278,7 +278,7 @@ class LegacyReferenceReportGenerator:
         )
 
         if logger:
-            logger.info(f"Legacy reference report saved: {output_file}")
+            logger.debug(f"Legacy reference report saved: {output_file}")
 
         return output_file
 

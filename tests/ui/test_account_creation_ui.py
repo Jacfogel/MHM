@@ -1165,6 +1165,8 @@ class TestAccountCreationErrorHandling:
     def test_invalid_data_handling_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test handling of invalid data during account creation."""
         import uuid
+        from pathlib import Path
+        from core.file_locking import safe_json_read
 
         user_id = f"test-invalid-data-{uuid.uuid4().hex[:8]}"
 
@@ -1190,12 +1192,23 @@ class TestAccountCreationErrorHandling:
                 attempts=100,
                 delay=0.02,
             )
-            user_dir = os.path.join(
-                test_data_dir, "users", resolved_user_id or user_id
+            users_dir = Path(test_data_dir) / "users"
+            candidate_user_dirs = []
+
+            if resolved_user_id:
+                candidate_user_dirs.append(users_dir / resolved_user_id)
+            candidate_user_dirs.append(users_dir / user_id)
+
+            # Also accept any user directory whose account maps to this internal username.
+            if users_dir.exists():
+                for account_file in users_dir.glob("*/account.json"):
+                    account_data = safe_json_read(str(account_file), default={})
+                    if str(account_data.get("internal_username", "")).strip() == user_id:
+                        candidate_user_dirs.append(account_file.parent)
+
+            assert any(path.exists() for path in candidate_user_dirs), (
+                "User directory should be created even with invalid data"
             )
-            assert os.path.exists(
-                user_dir
-            ), "User directory should be created even with invalid data"
 
     @pytest.mark.ui
     def test_file_system_error_handling_real_behavior(self, test_data_dir, mock_config):

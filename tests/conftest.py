@@ -167,6 +167,24 @@ warnings.filterwarnings(
 project_root = Path(__file__).parent.parent
 
 
+@pytest.fixture(scope="function", autouse=True)
+def ensure_valid_cwd():
+    """Keep cwd valid across tests to avoid coverage teardown path errors."""
+    try:
+        original_cwd = Path.cwd()
+    except FileNotFoundError:
+        original_cwd = project_root
+        os.chdir(project_root)
+
+    yield
+
+    target_cwd = original_cwd if original_cwd.exists() else project_root
+    try:
+        os.chdir(target_cwd)
+    except FileNotFoundError:
+        os.chdir(project_root)
+
+
 # CRITICAL: Set up logging isolation BEFORE importing any core modules
 def setup_logging_isolation():
     """Set up logging isolation before any core modules are imported."""
@@ -237,14 +255,14 @@ tests_data_dir.mkdir(exist_ok=True)
 (tests_data_dir / "users").mkdir(parents=True, exist_ok=True)
 tests_data_tmp_dir = tests_data_dir / "tmp"
 tests_data_tmp_dir.mkdir(parents=True, exist_ok=True)
+tests_pytest_runtime_tmp_dir = tests_data_dir / "tmp_pytest_runtime"
+tests_pytest_runtime_tmp_dir.mkdir(parents=True, exist_ok=True)
 os.environ["TEST_DATA_DIR"] = os.environ.get("TEST_DATA_DIR", str(tests_data_dir))
 # Also set BASE_DATA_DIR for any code that reads it directly
 os.environ["BASE_DATA_DIR"] = str(tests_data_dir)
 # Keep pytest temp/cache helper artifacts under tests/data/tmp when possible.
-os.environ.setdefault("PYTEST_DEBUG_TEMPROOT", str(tests_data_tmp_dir))
-os.environ.setdefault(
-    "PYTEST_CACHE_DIR", str(tests_data_tmp_dir / "pytest_cache")
-)
+os.environ["PYTEST_DEBUG_TEMPROOT"] = str(tests_pytest_runtime_tmp_dir)
+os.environ["PYTEST_CACHE_DIR"] = str(tests_pytest_runtime_tmp_dir / "pytest_cache")
 # Route service flags to tests/data/flags in test mode
 flags_dir = tests_data_dir / "flags"
 flags_dir.mkdir(parents=True, exist_ok=True)

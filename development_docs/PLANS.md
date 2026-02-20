@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-17
+> **Last Updated**: 2026-02-20
 
 ---
 
@@ -30,11 +30,12 @@
 
 ## [ACTIVE] **Current Active Plans**
 
-### **Session Follow-ups (2026-02-15)**
+### **Session Follow-ups (2026-02-20)**
 - Keep tracking development-tools implementation items in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), especially:
-  - Tier 3 failure semantics remaining items in section 2.9 (no-parallel crash classification and teardown/cleanup error classification).
-  - Coverage uplift work in section 1.1 (raise development tools coverage toward 60%+).
-  - Logging normalization and verbosity cleanup in section 2.2.
+  - Section 1.1 remaining coverage uplift work (raise development tools coverage toward 60%+ and re-baseline after latest test additions).
+  - Section 2.2 remaining logging cleanup work (finish standalone analyzer print-to-logger migration where appropriate).
+  - Section 2.9 final transition item (remove Tier 3 v1 compatibility bridge fields after all consumers are classification-only).
+- Tier 3 failure classification and strict-mode semantics are now implemented and stable in recent full-audit runs.
 - No additional multi-step non-dev-tools plans were added in this wrap-up.
 
 ### **Backup Reliability and Restore Confidence Plan** **PLANNING**

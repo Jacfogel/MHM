@@ -206,12 +206,12 @@ class CommandsMixin:
             return None
         tier3 = details.get("tier3_test_outcome")
         if isinstance(tier3, dict):
-            state = tier3.get("state")
+            state = self._derive_tier3_state_from_classifications(tier3)
             if isinstance(state, str) and state:
                 return state
         coverage_outcome = details.get("coverage_outcome")
         if isinstance(coverage_outcome, dict):
-            state = coverage_outcome.get("state")
+            state = self._derive_tier3_state_from_classifications(coverage_outcome)
             if isinstance(state, str) and state:
                 return state
         return None
@@ -225,10 +225,54 @@ class CommandsMixin:
             return None
         dev_tools = details.get("dev_tools_test_outcome")
         if isinstance(dev_tools, dict):
-            state = dev_tools.get("state")
+            state = self._extract_track_classification(dev_tools)
             if isinstance(state, str) and state:
                 return state
         return None
+
+    def _extract_track_classification(self, track: Dict) -> str:
+        """Return canonical per-track classification label."""
+        if not isinstance(track, dict):
+            return "unknown"
+        classification = track.get("classification")
+        if isinstance(classification, str) and classification.strip():
+            return classification.strip()
+        return "unknown"
+
+    def _derive_tier3_state_from_classifications(self, outcome: Dict) -> str:
+        """Derive aggregate Tier 3 state from per-track classifications."""
+        if not isinstance(outcome, dict):
+            return ""
+        state = outcome.get("state")
+        if state == "coverage_failed":
+            return "coverage_failed"
+        parallel = (
+            outcome.get("parallel", {}) if isinstance(outcome.get("parallel"), dict) else {}
+        )
+        no_parallel = (
+            outcome.get("no_parallel", {}) if isinstance(outcome.get("no_parallel"), dict) else {}
+        )
+        dev_tools = (
+            outcome.get("development_tools", {})
+            if isinstance(outcome.get("development_tools"), dict)
+            else {}
+        )
+        track_labels = (
+            self._extract_track_classification(parallel),
+            self._extract_track_classification(no_parallel),
+            self._extract_track_classification(dev_tools),
+        )
+        if "infra_cleanup_error" in track_labels:
+            return "infra_cleanup_error"
+        if "crashed" in track_labels:
+            return "crashed"
+        if "failed" in track_labels:
+            return "test_failures"
+        if "passed" in track_labels or "skipped" in track_labels:
+            return "clean"
+        if any(label == "unknown" for label in track_labels):
+            return "coverage_failed"
+        return "unknown"
 
     def _is_failure_state(self, state: Optional[str]) -> bool:
         """Return True when cached test outcome state represents a failure."""
@@ -305,8 +349,7 @@ class CommandsMixin:
     
     def run_validate(self):
         """Validate AI-generated work (simple command)"""
-        logger.info("Analyzing AI work...")
-        logger.info("=" * 50)
+        logger.debug("Analyzing AI work...")
         # Use --json flag to prevent multiline print output from being captured
         result = self.run_script('analyze_ai_work', '--json')
         if result['success']:
@@ -328,8 +371,7 @@ class CommandsMixin:
                     save_tool_result('analyze_ai_work', 'ai_work', data, project_root=self.project_root)
             except Exception as e:
                 logger.debug(f"Failed to save analyze_ai_work results: {e}")
-            logger.info("=" * 50)
-            logger.info("Validation completed successfully!")
+            logger.debug("Validation completed successfully!")
             return True
         else:
             logger.error(f"Validation failed: {result['error']}")
@@ -338,7 +380,6 @@ class CommandsMixin:
     def run_config(self):
         """Check configuration consistency (simple command)"""
         logger.info("Running analyze_config...")
-        logger.info("=" * 50)
         result = self.run_script('analyze_config')
         if result['success']:
             output = result.get('output', '')
@@ -366,7 +407,7 @@ class CommandsMixin:
                 except (json.JSONDecodeError, ValueError) as e:
                     logger.warning(f"Failed to parse analyze_config JSON output: {e}")
                     logger.debug(f"Output was: {output[:500]}...")
-                logger.info(f"analyze_config output:\n{output}")
+                logger.debug(f"analyze_config output (first 1000 chars): {output[:1000]}")
             else:
                 logger.warning("No output from analyze_config script")
             return True
@@ -405,7 +446,7 @@ class CommandsMixin:
     
     def run_dev_tools_coverage(self) -> Dict:
         """Run coverage analysis specifically for development_tools directory."""
-        logger.info("Generating dev tools coverage (development_tools/tests)...")
+        logger.debug("Generating dev tools coverage (development_tools/tests)...")
         dev_tools_coverage_file = self.project_root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
         dev_tools_patterns = [
             "development_tools/**/*.py",
@@ -446,6 +487,11 @@ class CommandsMixin:
                 merged_tier3 = dict(existing_tier3)
                 merged_tier3["development_tools"] = {
                     "state": "skipped",
+                    "classification": "skipped",
+                    "classification_reason": "cache_reuse_precheck",
+                    "actionable_context": "Development-tools coverage execution skipped because cache is fresh.",
+                    "log_file": None,
+                    "return_code_hex": None,
                     "return_code": None,
                     "passed_count": 0,
                     "failed_count": 0,
@@ -497,6 +543,17 @@ class CommandsMixin:
                 initial_dev_tools_state = "failed"
             dev_tools_outcome = {
                 "state": initial_dev_tools_state,
+                "classification": (
+                    "failed" if initial_dev_tools_state == "failed" else "unknown"
+                ),
+                "classification_reason": (
+                    "dev_tools_nonzero_exit_no_structured_outcome"
+                    if initial_dev_tools_state == "failed"
+                    else "dev_tools_outcome_pending_parse"
+                ),
+                "actionable_context": "Inspect dev-tools pytest stdout log for details.",
+                "log_file": None,
+                "return_code_hex": None,
                 "return_code": result.get("returncode"),
                 "passed_count": 0,
                 "failed_count": 0,
@@ -520,6 +577,19 @@ class CommandsMixin:
                         if isinstance(parsed_outcome, dict):
                             dev_tools_outcome = {
                                 "state": parsed_outcome.get("state", "unknown"),
+                                "classification": parsed_outcome.get(
+                                    "classification",
+                                    parsed_outcome.get("state", "unknown"),
+                                ),
+                                "classification_reason": parsed_outcome.get(
+                                    "classification_reason", "unknown"
+                                ),
+                                "actionable_context": parsed_outcome.get(
+                                    "actionable_context",
+                                    "Inspect dev-tools pytest stdout log for details.",
+                                ),
+                                "log_file": parsed_outcome.get("log_file"),
+                                "return_code_hex": parsed_outcome.get("return_code_hex"),
                                 "return_code": parsed_outcome.get("return_code"),
                                 "passed_count": parsed_outcome.get("passed_count", 0),
                                 "failed_count": parsed_outcome.get("failed_count", 0),
@@ -728,8 +798,7 @@ class CommandsMixin:
     
     def run_coverage_regeneration(self):
         """Regenerate test coverage data"""
-        logger.info("Generating test coverage (main project tests)...")
-        logger.info("=" * 50)
+        logger.debug("Generating test coverage (main project tests)...")
         main_coverage_file = self.project_root / "development_tools" / "tests" / "jsons" / "coverage.json"
         main_coverage_patterns = [
             "*.py",
@@ -796,11 +865,24 @@ class CommandsMixin:
                 )
                 self.tier3_test_outcome = {
                     "state": "clean",
-                    "parallel": {"state": "unknown"},
-                    "no_parallel": {"state": "unknown"},
+                    "parallel": {
+                        "state": "unknown",
+                        "classification": "unknown",
+                        "classification_reason": "cache_only_precheck",
+                    },
+                    "no_parallel": {
+                        "state": "unknown",
+                        "classification": "unknown",
+                        "classification_reason": "cache_only_precheck",
+                    },
                     "failed_node_ids": [],
                     "development_tools": existing_tier3.get(
-                        "development_tools", {"state": "unknown"}
+                        "development_tools",
+                        {
+                            "state": "unknown",
+                            "classification": "unknown",
+                            "classification_reason": "cache_only_precheck",
+                        },
                     ),
                 }
                 return True
@@ -847,8 +929,22 @@ class CommandsMixin:
             self._tool_cache_metadata['run_test_coverage'] = cache_metadata
             structured_outcome = {
                 "state": "coverage_failed",
-                "parallel": {"state": "unknown"},
-                "no_parallel": {"state": "unknown"},
+                "parallel": {
+                    "state": "unknown",
+                    "classification": "unknown",
+                    "classification_reason": "coverage_outcome_missing",
+                    "actionable_context": "No structured parallel outcome was provided.",
+                    "log_file": None,
+                    "return_code_hex": None,
+                },
+                "no_parallel": {
+                    "state": "unknown",
+                    "classification": "unknown",
+                    "classification_reason": "coverage_outcome_missing",
+                    "actionable_context": "No structured no-parallel outcome was provided.",
+                    "log_file": None,
+                    "return_code_hex": None,
+                },
                 "failed_node_ids": [],
             }
             if coverage_output_file.exists():
@@ -863,9 +959,28 @@ class CommandsMixin:
                                 "parallel": structured.get("parallel", {}),
                                 "no_parallel": structured.get("no_parallel", {}),
                                 "failed_node_ids": structured.get(
-                                    "failed_node_ids", []
+                                "failed_node_ids", []
                                 ),
                             }
+                            for track_name in ("parallel", "no_parallel"):
+                                track = structured_outcome.get(track_name, {})
+                                if not isinstance(track, dict):
+                                    track = {"state": "unknown"}
+                                    structured_outcome[track_name] = track
+                                if "classification" not in track:
+                                    logger.info(
+                                        "LEGACY COMPATIBILITY: tier3_coverage_outcome_v1 bridge exercised; "
+                                        f"adding missing classification fields for {track_name} track."
+                                    )
+                                    track_state = str(track.get("state", "unknown") or "unknown")
+                                    track["classification"] = track_state
+                                    track["classification_reason"] = "legacy_state_only_payload"
+                                    track["actionable_context"] = (
+                                        "Legacy coverage outcome payload without explicit classification fields; "
+                                        "state-only compatibility bridge applied."
+                                    )
+                                    track["log_file"] = track.get("log_file")
+                                    track["return_code_hex"] = track.get("return_code_hex")
                 except Exception as parse_error:
                     logger.debug(
                         f"Failed to parse run_test_coverage structured output: {parse_error}"
@@ -913,7 +1028,7 @@ class CommandsMixin:
                             '_cache_metadata': cache_metadata,
                         }
                         save_tool_result('analyze_test_coverage', 'tests', standard_format, project_root=self.project_root)
-                        logger.info(f"Saved analyze_test_coverage results to standardized storage (coverage: {overall_coverage}%)")
+                        logger.debug(f"Saved analyze_test_coverage results to standardized storage (coverage: {overall_coverage}%)")
                     else:
                         logger.warning("No coverage data available to save - _load_coverage_summary() returned None (coverage.json may not exist or be empty)")
                 except Exception as save_error:
@@ -997,8 +1112,7 @@ class CommandsMixin:
     
     def run_analyze_system_signals(self):
         """Run system signals analysis"""
-        logger.info("Analyzing system signals...")
-        logger.info("=" * 50)
+        logger.debug("Analyzing system signals...")
         result = self.run_script('analyze_system_signals', '--json')
         if result['success']:
             output = result.get('output', '')
@@ -1040,7 +1154,7 @@ class CommandsMixin:
             else:
                 logger.error("analyze_system_signals returned empty output")
                 return False
-            logger.info("System signals analysis completed!")
+            logger.debug("System signals analysis completed!")
             return True
         else:
             logger.error(f"System signals analysis failed: {result.get('error', 'Unknown error')}")
@@ -1049,8 +1163,7 @@ class CommandsMixin:
     
     def run_test_markers(self, action: str = 'check', dry_run: bool = False) -> Dict:
         """Run test markers analysis or fix"""
-        logger.info(f"Analyzing test markers: {action}")
-        logger.info("=" * 50)
+        logger.debug(f"Analyzing test markers: {action}")
         args = []
         if action == 'check':
             args.append('--check')
@@ -1100,7 +1213,7 @@ class CommandsMixin:
                     save_tool_result('analyze_test_markers', 'tests', standard_result, project_root=self.project_root)
                 except Exception as e:
                     logger.debug(f"Failed to save analyze_test_markers result: {e}")
-                logger.info("Test markers analysis completed!")
+                logger.debug("Test markers analysis completed!")
             except (json.JSONDecodeError, ValueError) as e:
                 logger.error(f"Test markers analysis failed: Invalid JSON output: {e}")
                 logger.debug(f"Output was: {output[:200]}")
@@ -1124,11 +1237,10 @@ class CommandsMixin:
     
     def run_unused_imports(self):
         """Run unused imports analysis (analysis only)"""
-        logger.info("Analyzing unused imports...")
-        logger.info("=" * 50)
+        logger.debug("Analyzing unused imports...")
         result = self.run_analyze_unused_imports()
         if result.get('success'):
-            logger.info("Unused imports analysis completed!")
+            logger.debug("Unused imports analysis completed!")
         else:
             logger.warning(f"Unused imports analysis completed with issues: {result.get('error', 'Unknown error')}")
         if hasattr(self, '_tools_run_in_current_tier'):
@@ -1137,7 +1249,7 @@ class CommandsMixin:
     
     def run_unused_imports_report(self):
         """Run unused imports report generation (generates markdown report from analysis results)"""
-        logger.info("=" * 50)
+        logger.info("Generating unused imports report...")
         result = self.run_generate_unused_imports_report()
         if result.get('success'):
             logger.info("Unused imports report generated successfully!")
@@ -1359,7 +1471,7 @@ class CommandsMixin:
         if self._is_doc_subcheck_cache_fresh(tool_name):
             cached = load_tool_result(tool_name, "docs", project_root=self.project_root)
             if isinstance(cached, dict):
-                logger.info(f"  - {log_label}: using cached result (mtime up to date)")
+                logger.debug(f"  - {log_label}: using cached result (mtime up to date)")
                 if hasattr(self, "_tool_cache_metadata"):
                     self._tool_cache_metadata[tool_name] = {
                         "cache_mode": "cache_only",
@@ -1463,7 +1575,7 @@ class CommandsMixin:
                     else {}
                 )
                 subcheck_modes["paired_docs"] = "cache_only"
-                logger.info("  - Paired docs: using cached result (mtime up to date)")
+                logger.debug("  - Paired docs: using cached result (mtime up to date)")
             else:
                 paired_docs_cached = False
 
@@ -1486,7 +1598,7 @@ class CommandsMixin:
                 all_results["paired_docs"] = {}
                 subcheck_modes["paired_docs"] = "unknown"
 
-        logger.info("  - Analyzing path drift...")
+        logger.debug("  - Analyzing path drift...")
         path_drift_result = self.run_analyze_path_drift()
         path_drift_data = (
             path_drift_result.get("data")
@@ -1514,7 +1626,7 @@ class CommandsMixin:
             else "unknown"
         )
 
-        logger.info("  - Analyzing ASCII compliance...")
+        logger.debug("  - Analyzing ASCII compliance...")
         all_results["ascii_compliance"] = self._run_doc_subcheck_with_cache(
             "analyze_ascii_compliance",
             "ASCII compliance",
@@ -1527,7 +1639,7 @@ class CommandsMixin:
             else "unknown"
         )
 
-        logger.info("  - Analyzing heading numbering...")
+        logger.debug("  - Analyzing heading numbering...")
         all_results["heading_numbering"] = self._run_doc_subcheck_with_cache(
             "analyze_heading_numbering",
             "Heading numbering",
@@ -1540,7 +1652,7 @@ class CommandsMixin:
             else "unknown"
         )
 
-        logger.info("  - Analyzing missing addresses...")
+        logger.debug("  - Analyzing missing addresses...")
         all_results["missing_addresses"] = self._run_doc_subcheck_with_cache(
             "analyze_missing_addresses",
             "Missing addresses",
@@ -1553,7 +1665,7 @@ class CommandsMixin:
             else "unknown"
         )
 
-        logger.info("  - Analyzing unconverted links...")
+        logger.debug("  - Analyzing unconverted links...")
         all_results["unconverted_links"] = self._run_doc_subcheck_with_cache(
             "analyze_unconverted_links",
             "Unconverted links",
@@ -1598,8 +1710,13 @@ class CommandsMixin:
         if hasattr(self, "_tool_cache_metadata"):
             cache_only_count = sum(1 for mode in subcheck_modes.values() if mode == "cache_only")
             refresh_count = sum(1 for mode in subcheck_modes.values() if mode != "cache_only")
+            doc_sync_cache_mode = (
+                "cache_only"
+                if refresh_count == 0
+                else ("cold_scan" if cache_only_count == 0 else "partial_cache")
+            )
             self._tool_cache_metadata["analyze_documentation_sync"] = {
-                "cache_mode": "cache_only" if refresh_count == 0 else "partial_cache",
+                "cache_mode": doc_sync_cache_mode,
                 "cache_hits": cache_only_count,
                 "cache_misses": refresh_count,
                 "subchecks": subcheck_modes,
@@ -1609,11 +1726,11 @@ class CommandsMixin:
                     else "One or more doc subchecks refreshed"
                 ),
             }
-        logger.info(
+        logger.debug(
             f"Documentation sync subchecks cache summary: "
             f"{', '.join(f'{name}={mode}' for name, mode in sorted(subcheck_modes.items()))}"
         )
-        logger.info(f"Documentation sync summary: {summary.get('status', 'UNKNOWN')} - {summary.get('total_issues', 0)} total issues")
+        logger.debug(f"Documentation sync summary: {summary.get('status', 'UNKNOWN')} - {summary.get('total_issues', 0)} total issues")
         return True
     
     def _run_legacy_cleanup_scan(self, *args) -> bool:
@@ -1626,7 +1743,7 @@ class CommandsMixin:
             self.legacy_cleanup_summary = summary
             return True
         if result.get('output'):
-            logger.info(result['output'])
+            logger.debug(result['output'])
         if result.get('error'):
             logger.error(result['error'])
         return False

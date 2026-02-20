@@ -195,7 +195,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger.info("[SCAN] Gathering actionable insights for AI decision-making...")
+    logger.debug("[SCAN] Gathering actionable insights for AI decision-making...")
     functions = scan_all_functions(
         include_tests=args.include_tests, include_dev_tools=args.include_dev_tools
     )

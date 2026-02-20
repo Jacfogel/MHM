@@ -66,6 +66,7 @@ def test_ai_priorities_hides_tier3_test_outcome_when_clean(temp_project_copy):
                     "state": "clean",
                     "parallel": {
                         "state": "unknown",
+                        "classification": "passed",
                         "passed_count": 0,
                         "failed_count": 0,
                         "error_count": 0,
@@ -74,6 +75,7 @@ def test_ai_priorities_hides_tier3_test_outcome_when_clean(temp_project_copy):
                     },
                     "no_parallel": {
                         "state": "unknown",
+                        "classification": "passed",
                         "passed_count": 0,
                         "failed_count": 0,
                         "error_count": 0,
@@ -88,6 +90,7 @@ def test_ai_priorities_hides_tier3_test_outcome_when_clean(temp_project_copy):
             "details": {
                 "dev_tools_test_outcome": {
                     "state": "passed",
+                    "classification": "passed",
                     "passed_count": 10,
                     "failed_count": 0,
                     "error_count": 0,
@@ -126,6 +129,7 @@ def test_ai_priorities_include_tier3_failed_tests_in_immediate_focus(temp_projec
                     "state": "test_failures",
                     "parallel": {
                         "state": "failed",
+                        "classification": "failed",
                         "passed_count": 10,
                         "failed_count": 1,
                         "error_count": 0,
@@ -137,6 +141,7 @@ def test_ai_priorities_include_tier3_failed_tests_in_immediate_focus(temp_projec
                     },
                     "no_parallel": {
                         "state": "failed",
+                        "classification": "failed",
                         "passed_count": 5,
                         "failed_count": 1,
                         "error_count": 0,
@@ -176,6 +181,80 @@ def test_ai_priorities_include_tier3_failed_tests_in_immediate_focus(temp_projec
         or "development_tools/tests/logs/pytest_dev_tools_stdout_" in doc
     )
     assert "## Immediate Focus Ranked" in doc
+
+
+@pytest.mark.unit
+def test_tier3_crash_metadata_surfaces_in_status_and_priorities(temp_project_copy):
+    """Tier 3 crash classification reason/log path should be rendered in reports."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    payloads = {
+        "analyze_test_coverage": {
+            "summary": {"total_issues": 10, "files_affected": 1},
+            "details": {
+                "tier3_test_outcome": {
+                    "state": "crashed",
+                    "parallel": {
+                        "state": "passed",
+                        "classification": "passed",
+                        "classification_reason": "pytest_passed",
+                        "actionable_context": "Track completed successfully.",
+                        "log_file": "development_tools/tests/logs/pytest_parallel_stdout_2026.log",
+                        "return_code_hex": "0x00000000",
+                        "passed_count": 10,
+                        "failed_count": 0,
+                        "error_count": 0,
+                        "skipped_count": 0,
+                        "return_code": 0,
+                    },
+                    "no_parallel": {
+                        "state": "crashed",
+                        "classification": "crashed",
+                        "classification_reason": "windows_status_dll_not_found",
+                        "actionable_context": "Missing DLL or PATH issue in Python/runtime dependencies.",
+                        "log_file": "development_tools/tests/logs/pytest_no_parallel_stdout_2026.log",
+                        "return_code_hex": "0xC0000135",
+                        "passed_count": 0,
+                        "failed_count": 0,
+                        "error_count": 0,
+                        "skipped_count": 0,
+                        "return_code": 3221226505,
+                    },
+                    "failed_node_ids": [],
+                }
+            },
+        },
+        "generate_dev_tools_coverage": {
+            "summary": {"total_issues": 0, "files_affected": 0},
+            "details": {
+                "dev_tools_test_outcome": {
+                    "state": "passed",
+                    "classification": "passed",
+                    "passed_count": 10,
+                    "failed_count": 0,
+                    "error_count": 0,
+                    "skipped_count": 0,
+                    "return_code": 0,
+                }
+            },
+        },
+    }
+
+    def fake_load(tool_name, domain=None, log_source=True):
+        return payloads.get(tool_name, {})
+
+    service._load_tool_data = fake_load
+    service._load_coverage_summary = lambda: {}
+    service._load_dev_tools_coverage = lambda: None
+
+    status_doc = service._generate_ai_status_document()
+    priorities_doc = service._generate_ai_priorities_document()
+
+    assert "No-Parallel Classification" in status_doc
+    assert "windows_status_dll_not_found" in status_doc
+    assert "pytest_no_parallel_stdout_2026.log" in status_doc
+    assert "classification=crashed, reason=windows_status_dll_not_found" in priorities_doc
+    assert "0xC0000135" in priorities_doc
 
 
 @pytest.mark.unit

@@ -24,6 +24,8 @@ scan_all_python_files = analyze_functions_module.scan_all_python_files
 detect_function_type = registry_module.detect_function_type
 generate_function_registry_content = registry_module.generate_function_registry_content
 update_function_registry = registry_module.update_function_registry
+generate_file_section = registry_module.generate_file_section
+get_directory_description = registry_module.get_directory_description
 
 
 def _patch_should_exclude_file(monkeypatch, mock_func):
@@ -354,6 +356,57 @@ class TestContentGeneration:
         else:
             # If test file wasn't found, that's okay - the test verifies categorization when files are found
             pytest.skip("demo_tests.py not found in scan results (may be excluded)")
+
+
+class TestRegistryHelpers:
+    """Test smaller helper branches in generate_function_registry.py."""
+
+    @pytest.mark.unit
+    def test_get_directory_description_unknown_directory(self):
+        """Unknown directories should fall back to generic description."""
+        assert get_directory_description("experimental") == "Unknown Directory"
+
+    @pytest.mark.unit
+    def test_generate_file_section_renders_missing_and_documented_entries(self):
+        """File section should render function/class/method doc statuses correctly."""
+        payload = {
+            "functions": [
+                {
+                    "name": "documented_func",
+                    "args": ["x"],
+                    "has_docstring": True,
+                    "docstring": "Doc text",
+                },
+                {
+                    "name": "undocumented_func",
+                    "args": [],
+                    "has_docstring": False,
+                    "docstring": "",
+                },
+            ],
+            "classes": [
+                {
+                    "name": "Widget",
+                    "docstring": "",
+                    "methods": [
+                        {
+                            "name": "save",
+                            "args": ["self"],
+                            "has_docstring": False,
+                            "docstring": "",
+                        }
+                    ],
+                }
+            ],
+        }
+
+        section = generate_file_section("core/sample.py", payload)
+
+        assert "#### `core/sample.py`" in section
+        assert "- [OK] `documented_func(x)` - Doc text" in section
+        assert "- [MISSING] `undocumented_func()` - No description" in section
+        assert "- [MISSING] `Widget` - No description" in section
+        assert "Widget.save(self)" in section
 
 
 class TestFileGeneration:

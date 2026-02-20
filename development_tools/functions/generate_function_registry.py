@@ -1256,7 +1256,7 @@ def generate_communication_patterns_section(
 
 def update_function_registry():
     """Update FUNCTION_REGISTRY_DETAIL.md and AI_FUNCTION_REGISTRY.md with current codebase analysis."""
-    logger.info("[SCAN] Scanning all Python files...")
+    logger.debug("[SCAN] Scanning all Python files...")
     actual_functions = scan_all_python_files()
 
     logger.info("[GEN] Generating FUNCTION_REGISTRY_DETAIL.md content...")

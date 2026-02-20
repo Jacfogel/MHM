@@ -825,11 +825,11 @@ def main():
     parser.add_argument("--json", action="store_true", help="Output results as JSON")
     args = parser.parse_args()
 
-    logger.info("[SCAN] Scanning for all functions...")
+    logger.debug("[SCAN] Scanning for all functions...")
     all_functions = scan_all_functions(
         include_tests=args.include_tests, include_dev_tools=args.include_dev_tools
     )
-    logger.info(f"Found {len(all_functions)} functions.")
+    logger.debug(f"Found {len(all_functions)} functions.")
     categories = categorize_functions(all_functions)
 
     # Validate results before showing

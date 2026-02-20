@@ -56,7 +56,7 @@ class ConfigValidator:
 
     def scan_tools_for_config_usage(self) -> Dict:
         """Scan all AI tools to check configuration usage."""
-        logger.info("Scanning AI tools for configuration usage...")
+        logger.debug("Scanning AI tools for configuration usage...")
 
         tools = {}
         for py_file in self.ai_tools_dir.glob("*.py"):
@@ -214,7 +214,7 @@ class ConfigValidator:
 
     def validate_configuration_consistency(self) -> Dict:
         """Validate that the configuration itself is consistent."""
-        logger.info("Validating configuration consistency...")
+        logger.debug("Validating configuration consistency...")
 
         validation = {
             "scan_directories_exist": [],
@@ -260,7 +260,7 @@ class ConfigValidator:
 
     def check_configuration_completeness(self) -> Dict:
         """Check if all configuration sections have required fields."""
-        logger.info("Checking configuration completeness...")
+        logger.debug("Checking configuration completeness...")
 
         completeness = {
             "sections_complete": True,
@@ -395,7 +395,7 @@ class ConfigValidator:
 
     def run_validation(self) -> Dict:
         """Run the complete configuration validation."""
-        logger.info("Starting configuration validation...")
+        logger.debug("Starting configuration validation...")
 
         # Scan tools for config usage
         tools_analysis = self.scan_tools_for_config_usage()
@@ -444,9 +444,9 @@ class ConfigValidator:
 
     def print_validation_report(self, results: Dict):
         """Print a comprehensive validation report."""
-        logger.info("=" * 80)
-        logger.info("CONFIGURATION VALIDATION REPORT")
-        logger.info("=" * 80)
+        logger.debug("=" * 80)
+        logger.debug("CONFIGURATION VALIDATION REPORT")
+        logger.debug("=" * 80)
 
         if "details" not in results or "summary" not in results:
             raise ValueError("Config validation results must use standard format.")
@@ -459,39 +459,39 @@ class ConfigValidator:
         completeness = details.get("completeness", {})
         recommendations = details.get("recommendations", [])
 
-        logger.info(f"SUMMARY:")
-        logger.info(
+        logger.debug("SUMMARY:")
+        logger.debug(
             f"   Tools using config: {nested_summary.get('tools_using_config', 0)}/{nested_summary.get('total_tools', 0)}"
         )
-        logger.info(
+        logger.debug(
             f"   Configuration valid: {'YES' if nested_summary.get('config_valid', False) else 'NO'}"
         )
-        logger.info(
+        logger.debug(
             f"   Configuration complete: {'YES' if nested_summary.get('config_complete', False) else 'NO'}"
         )
-        logger.info(
+        logger.debug(
             f"   Recommendations: {nested_summary.get('total_recommendations', len(recommendations))}"
         )
 
         # Tool analysis
-        logger.info(f"TOOL ANALYSIS:")
+        logger.debug("TOOL ANALYSIS:")
         for tool_name, analysis in tools_analysis.items():
             # Skip wrapper scripts in the report - they don't need config
             if analysis.get("is_wrapper_script", False):
                 status = "OK"
-                logger.info(f"   {status} {tool_name} (wrapper script)")
+                logger.debug(f"   {status} {tool_name} (wrapper script)")
                 continue
 
             # Skip entry point scripts in the report - they don't need config (AIToolsService handles it)
             if analysis.get("is_entry_point_script", False):
                 status = "OK"
-                logger.info(f"   {status} {tool_name} (entry point script)")
+                logger.debug(f"   {status} {tool_name} (entry point script)")
                 continue
 
             # Status logic: OK if imports config and no issues, WARN if has issues or doesn't import config (recommendation), FAIL only for critical issues
             if analysis["imports_config"] and not analysis["issues"]:
                 status = "OK"
-                logger.info(f"   {status} {tool_name}")
+                logger.debug(f"   {status} {tool_name}")
             elif analysis["issues"]:
                 status = "WARN"
                 logger.warning(f"   {status} {tool_name}")
@@ -503,7 +503,7 @@ class ConfigValidator:
                 )
 
             if analysis["config_functions_used"]:
-                logger.info(
+                logger.debug(
                     f"      Uses: {', '.join(analysis['config_functions_used'])}"
                 )
 
@@ -535,11 +535,11 @@ class ConfigValidator:
 
         # Recommendations
         if recommendations:
-            logger.info(f"RECOMMENDATIONS:")
+            logger.debug("RECOMMENDATIONS:")
             for i, rec in enumerate(recommendations, 1):
-                logger.info(f"   {i}. {rec}")
+                logger.debug(f"   {i}. {rec}")
 
-        logger.info(f"Configuration validation complete!")
+        logger.debug("Configuration validation complete!")
 
 
 def main():

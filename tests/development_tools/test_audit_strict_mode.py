@@ -20,7 +20,10 @@ def test_audit_full_non_strict_allows_tier3_test_failures(temp_project_copy):
     service._run_quick_audit_tools = MagicMock(return_value=True)
     service._run_standard_audit_tools = MagicMock(return_value=True)
     def _full_non_strict():
-        service.tier3_test_outcome = {"state": "test_failures"}
+        service.tier3_test_outcome = {
+            "parallel": {"classification": "failed"},
+            "no_parallel": {"classification": "passed"},
+        }
         return True
     service._run_full_audit_tools = MagicMock(side_effect=_full_non_strict)
     service._save_audit_results_aggregated = MagicMock(return_value=None)
@@ -44,7 +47,10 @@ def test_audit_full_strict_fails_on_tier3_test_failures(temp_project_copy):
     service._run_quick_audit_tools = MagicMock(return_value=True)
     service._run_standard_audit_tools = MagicMock(return_value=True)
     def _full_strict():
-        service.tier3_test_outcome = {"state": "test_failures"}
+        service.tier3_test_outcome = {
+            "parallel": {"classification": "failed"},
+            "no_parallel": {"classification": "passed"},
+        }
         return True
     service._run_full_audit_tools = MagicMock(side_effect=_full_strict)
     service._save_audit_results_aggregated = MagicMock(return_value=None)
@@ -71,7 +77,9 @@ def test_audit_full_strict_fails_when_dev_tools_tests_fail(temp_project_copy):
     def _full_strict_dev_tools():
         service.tier3_test_outcome = {
             "state": "clean",
-            "development_tools": {"state": "failed"},
+            "parallel": {"classification": "passed"},
+            "no_parallel": {"classification": "passed"},
+            "development_tools": {"classification": "failed"},
         }
         return True
 
@@ -100,6 +108,9 @@ def test_run_test_coverage_classifies_windows_crash():
         output="",
     )
     assert outcome["state"] == "crashed"
+    assert outcome["classification"] == "crashed"
+    assert outcome["classification_reason"] == "windows_status_dll_not_found"
+    assert outcome["return_code_hex"] == "0xC0000135"
 
 
 @pytest.mark.unit
@@ -112,6 +123,8 @@ def test_run_test_coverage_classifies_cleanup_permission_error():
         output="PermissionError: [WinError 5] cleanup_dead_symlinks failed",
     )
     assert outcome["state"] == "infra_cleanup_error"
+    assert outcome["classification"] == "infra_cleanup_error"
+    assert outcome["classification_reason"] == "cleanup_dead_symlinks_permission_error"
 
 
 @pytest.mark.unit
@@ -127,6 +140,99 @@ def test_run_test_coverage_classifies_xdist_worker_crash_output():
         ),
     )
     assert outcome["state"] == "crashed"
+    assert outcome["classification_reason"] == "xdist_worker_crash_output"
+
+
+@pytest.mark.unit
+def test_run_test_coverage_classifies_nonzero_without_tests_as_crash():
+    """Non-zero exit with no parsed tests should classify as crashed infra issue."""
+    regenerator = CoverageMetricsRegenerator(project_root=".", parallel=False)
+    outcome = regenerator._build_track_outcome(
+        return_code=5,
+        parsed_results={"failed_count": 0, "error_count": 0, "total_tests": 0},
+        output="",
+    )
+    assert outcome["state"] == "crashed"
+    assert outcome["classification"] == "crashed"
+    assert outcome["classification_reason"] == "nonzero_without_tests"
+
+
+@pytest.mark.unit
+def test_run_test_coverage_classifies_failed_tests_without_crash_markers():
+    """Parsed failures without crash markers should remain failed test outcomes."""
+    regenerator = CoverageMetricsRegenerator(project_root=".", parallel=False)
+    outcome = regenerator._build_track_outcome(
+        return_code=1,
+        parsed_results={
+            "failed_count": 1,
+            "error_count": 0,
+            "total_tests": 4,
+            "failed_tests": ["tests/unit/test_a.py::test_x"],
+            "error_tests": [],
+        },
+        output="================ short test summary info =================\nFAILED tests/unit/test_a.py::test_x",
+    )
+    assert outcome["state"] == "failed"
+    assert outcome["classification"] == "failed"
+    assert outcome["classification_reason"] == "pytest_failed_or_errored"
+
+
+@pytest.mark.unit
+def test_audit_full_strict_fails_on_tier3_infra_cleanup_error(temp_project_copy):
+    """Strict mode should fail when Tier 3 reports infra cleanup errors."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._run_quick_audit_tools = MagicMock(return_value=True)
+    service._run_standard_audit_tools = MagicMock(return_value=True)
+
+    def _full_strict_infra_cleanup():
+        service.tier3_test_outcome = {
+            "parallel": {"classification": "infra_cleanup_error"},
+            "no_parallel": {"classification": "passed"},
+        }
+        return True
+
+    service._run_full_audit_tools = MagicMock(side_effect=_full_strict_infra_cleanup)
+    service._save_audit_results_aggregated = MagicMock(return_value=None)
+    service._reload_all_cache_data = MagicMock(return_value=None)
+    service._sync_todo_with_changelog = MagicMock(return_value=None)
+    service._validate_referenced_paths = MagicMock(return_value=None)
+    service._check_and_trim_changelog_entries = MagicMock(return_value=None)
+    service._check_documentation_quality = MagicMock(return_value=None)
+    service._check_ascii_compliance = MagicMock(return_value=None)
+    service._generate_ai_status_document = MagicMock(return_value="# AI Status")
+    service._generate_ai_priorities_document = MagicMock(return_value="# AI Priorities")
+    service._generate_consolidated_report = MagicMock(return_value="# Consolidated")
+
+    assert service.run_audit(full=True, strict=True) is False
+
+
+@pytest.mark.unit
+def test_audit_full_non_strict_allows_tier3_infra_cleanup_error(temp_project_copy):
+    """Non-strict mode should keep success when Tier 3 reports infra cleanup issues."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._run_quick_audit_tools = MagicMock(return_value=True)
+    service._run_standard_audit_tools = MagicMock(return_value=True)
+
+    def _full_non_strict_infra_cleanup():
+        service.tier3_test_outcome = {
+            "parallel": {"classification": "infra_cleanup_error"},
+            "no_parallel": {"classification": "passed"},
+        }
+        return True
+
+    service._run_full_audit_tools = MagicMock(side_effect=_full_non_strict_infra_cleanup)
+    service._save_audit_results_aggregated = MagicMock(return_value=None)
+    service._reload_all_cache_data = MagicMock(return_value=None)
+    service._sync_todo_with_changelog = MagicMock(return_value=None)
+    service._validate_referenced_paths = MagicMock(return_value=None)
+    service._check_and_trim_changelog_entries = MagicMock(return_value=None)
+    service._check_documentation_quality = MagicMock(return_value=None)
+    service._check_ascii_compliance = MagicMock(return_value=None)
+    service._generate_ai_status_document = MagicMock(return_value="# AI Status")
+    service._generate_ai_priorities_document = MagicMock(return_value="# AI Priorities")
+    service._generate_consolidated_report = MagicMock(return_value="# Consolidated")
+
+    assert service.run_audit(full=True, strict=False) is True
 
 
 @pytest.mark.unit
@@ -174,6 +280,7 @@ def test_tier3_outcome_includes_development_tools_line(temp_project_copy):
         "state": "test_failures",
         "parallel": {
             "state": "failed",
+            "classification": "failed",
             "passed_count": 10,
             "failed_count": 1,
             "error_count": 0,
@@ -182,6 +289,7 @@ def test_tier3_outcome_includes_development_tools_line(temp_project_copy):
         },
         "no_parallel": {
             "state": "passed",
+            "classification": "passed",
             "passed_count": 5,
             "failed_count": 0,
             "error_count": 0,
@@ -190,6 +298,7 @@ def test_tier3_outcome_includes_development_tools_line(temp_project_copy):
         },
         "development_tools": {
             "state": "passed",
+            "classification": "passed",
             "passed_count": 20,
             "failed_count": 0,
             "error_count": 0,
@@ -215,6 +324,7 @@ def test_run_coverage_regeneration_preserves_development_tools_outcome(
     service.tier3_test_outcome = {
         "development_tools": {
             "state": "failed",
+            "classification": "failed",
             "passed_count": 2,
             "failed_count": 1,
             "error_count": 0,
@@ -237,8 +347,8 @@ def test_run_coverage_regeneration_preserves_development_tools_outcome(
             {
                 "coverage_outcome": {
                     "state": "clean",
-                    "parallel": {"state": "passed"},
-                    "no_parallel": {"state": "passed"},
+                    "parallel": {"state": "passed", "classification": "passed"},
+                    "no_parallel": {"state": "passed", "classification": "passed"},
                     "failed_node_ids": [],
                 }
             }
@@ -255,6 +365,61 @@ def test_run_coverage_regeneration_preserves_development_tools_outcome(
 
     assert service.run_coverage_regeneration() is True
     assert service.tier3_test_outcome.get("development_tools", {}).get("state") == "failed"
+
+
+@pytest.mark.unit
+def test_run_coverage_regeneration_propagates_track_classification_fields(
+    temp_project_copy, monkeypatch
+):
+    """Main coverage regeneration should preserve per-track classification metadata."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    output_file = (
+        temp_project_copy
+        / "development_tools"
+        / "tests"
+        / "jsons"
+        / "run_test_coverage_results.json"
+    )
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file.write_text(
+        json.dumps(
+            {
+                "coverage_outcome": {
+                    "state": "crashed",
+                    "parallel": {
+                        "state": "passed",
+                        "classification": "passed",
+                        "classification_reason": "pytest_passed",
+                        "actionable_context": "Track completed successfully.",
+                        "log_file": "development_tools/tests/logs/pytest_parallel_stdout_x.log",
+                        "return_code_hex": "0x00000000",
+                    },
+                    "no_parallel": {
+                        "state": "crashed",
+                        "classification": "crashed",
+                        "classification_reason": "windows_status_dll_not_found",
+                        "actionable_context": "Missing DLL or PATH issue.",
+                        "log_file": "development_tools/tests/logs/pytest_no_parallel_stdout_x.log",
+                        "return_code_hex": "0xC0000135",
+                    },
+                    "failed_node_ids": [],
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *args, **kwargs: {"success": True, "output": "", "error": ""},
+    )
+    monkeypatch.setattr(service, "_load_coverage_summary", lambda: {"overall": {"missed": 0}})
+
+    assert service.run_coverage_regeneration() is True
+    outcome = service.tier3_test_outcome
+    assert outcome.get("no_parallel", {}).get("classification_reason") == "windows_status_dll_not_found"
+    assert outcome.get("no_parallel", {}).get("log_file") == "development_tools/tests/logs/pytest_no_parallel_stdout_x.log"
 
 
 @pytest.mark.unit
@@ -288,6 +453,7 @@ def test_run_dev_tools_coverage_sets_development_tools_outcome(
                 "details": {
                     "dev_tools_test_outcome": {
                         "state": "failed",
+                        "classification": "failed",
                         "return_code": 1,
                         "passed_count": 12,
                         "failed_count": 2,
@@ -321,6 +487,10 @@ def test_run_dev_tools_coverage_sets_development_tools_outcome(
     result = service.run_dev_tools_coverage()
     assert result.get("success") is True
     assert service.tier3_test_outcome.get("development_tools", {}).get("state") == "failed"
+    assert (
+        service.tier3_test_outcome.get("development_tools", {}).get("classification")
+        == "failed"
+    )
     assert service.tier3_test_outcome.get("development_tools", {}).get("failed_count") == 2
 
 
@@ -344,7 +514,12 @@ def test_run_coverage_regeneration_reruns_when_cached_outcome_failed(
         service,
         "_load_cached_result_if_available",
         lambda *args, **kwargs: {
-            "details": {"tier3_test_outcome": {"state": "test_failures"}}
+            "details": {
+                "tier3_test_outcome": {
+                    "parallel": {"classification": "failed"},
+                    "no_parallel": {"classification": "passed"},
+                }
+            }
         },
     )
     monkeypatch.setattr(service, "_load_coverage_summary", lambda: {"overall": {"missed": 0}})
@@ -358,8 +533,8 @@ def test_run_coverage_regeneration_reruns_when_cached_outcome_failed(
                 {
                     "coverage_outcome": {
                         "state": "clean",
-                        "parallel": {"state": "passed"},
-                        "no_parallel": {"state": "passed"},
+                        "parallel": {"state": "passed", "classification": "passed"},
+                        "no_parallel": {"state": "passed", "classification": "passed"},
                         "failed_node_ids": [],
                     }
                 }
@@ -404,7 +579,7 @@ def test_run_dev_tools_coverage_reruns_when_cached_outcome_failed(
         service,
         "_load_cached_result_if_available",
         lambda *args, **kwargs: {
-            "details": {"dev_tools_test_outcome": {"state": "failed"}}
+            "details": {"dev_tools_test_outcome": {"classification": "failed"}}
         },
     )
     monkeypatch.setattr(
@@ -427,6 +602,7 @@ def test_run_dev_tools_coverage_reruns_when_cached_outcome_failed(
                     "details": {
                         "dev_tools_test_outcome": {
                             "state": "passed",
+                            "classification": "passed",
                             "return_code": 0,
                             "passed_count": 1,
                             "failed_count": 0,

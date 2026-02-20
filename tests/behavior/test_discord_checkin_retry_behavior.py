@@ -64,12 +64,23 @@ class TestDiscordCheckinRetryBehavior:
         from communication.core.channel_orchestrator import CommunicationManager
         from communication.core.retry_manager import RetryManager
 
+        # Isolate singleton state to prevent cross-test contamination from prior suites.
+        with contextlib.suppress(Exception):
+            CommunicationManager._instance = None
         manager = CommunicationManager()
         # Isolate retry-manager state for this test module to avoid singleton cross-test queue noise.
         with contextlib.suppress(Exception):
             manager.retry_manager.stop_retry_thread()
         manager.retry_manager = RetryManager(send_callback=manager.send_message_sync)
-        return manager
+        try:
+            yield manager
+        finally:
+            with contextlib.suppress(Exception):
+                manager.retry_manager.stop_retry_thread()
+            with contextlib.suppress(Exception):
+                manager._channels_dict.clear()
+            with contextlib.suppress(Exception):
+                CommunicationManager._instance = None
 
     def test_checkin_message_queued_on_discord_disconnect(
         self, comm_manager, user_id, test_data_dir

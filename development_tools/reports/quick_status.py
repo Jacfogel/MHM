@@ -428,7 +428,7 @@ class QuickStatus:
     def print_json_status(self):
         """Print status as JSON for programmatic consumption"""
         status = self.get_quick_status()
-        logger.info("Running quick status...")
+        logger.debug("Running quick status...")
         # JSON output stays as print() for programmatic consumption
         print(json.dumps(_build_standard_result(status), indent=2))
 

@@ -168,10 +168,10 @@ class TestAnalyzeCircularDependencies:
         }
         
         analyze_circular_dependencies(actual_imports)
-        mock_logger.info.assert_called()
+        mock_logger.debug.assert_called()
         # Check that "No circular dependencies" was logged
-        info_calls = [str(call) for call in mock_logger.info.call_args_list]
-        assert any("No circular dependencies" in str(call) for call in info_calls)
+        debug_calls = [str(call) for call in mock_logger.debug.call_args_list]
+        assert any("No circular dependencies" in str(call) for call in debug_calls)
     
     @pytest.mark.unit
     @patch('development_tools.imports.analyze_module_dependencies.logger')
@@ -188,9 +188,9 @@ class TestAnalyzeCircularDependencies:
         
         analyze_circular_dependencies(actual_imports)
         # Should log warning about circular dependencies
-        # Check if warning was called (circular deps found) or info was called (none found)
+        # Check if warning was called (circular deps found) or debug was called (none found)
         # The logic might not detect it if the module names don't match exactly
-        assert mock_logger.warning.called or mock_logger.info.called
+        assert mock_logger.warning.called or mock_logger.debug.called
 
 
 class TestFindUsageOfModule:

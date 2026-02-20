@@ -190,6 +190,34 @@ class ReportGenerationMixin:
                 normalized.append(normalized_node)
         return normalized
 
+    def _format_track_classification_summary(self, label: str, outcome: Dict[str, Any]) -> str:
+        """Build concise track classification summary for Tier 3 sections."""
+        classification = self._track_classification_label(outcome)
+        reason = str(outcome.get("classification_reason", "unknown"))
+        if reason in {"", "unknown"}:
+            reason = classification
+        return_hex = outcome.get("return_code_hex")
+        log_file = outcome.get("log_file")
+        pieces = [f"- **{label} Classification**: {classification} (reason={reason})"]
+        if return_hex:
+            pieces.append(f"return_hex={return_hex}")
+        if classification not in {"passed", "skipped", "unknown"}:
+            if isinstance(log_file, str) and log_file.strip():
+                pieces.append(f"log={log_file.strip()}")
+            context = outcome.get("actionable_context")
+            if isinstance(context, str) and context.strip():
+                pieces.append(f"hint={context.strip()}")
+        return " | ".join(pieces)
+
+    def _track_classification_label(self, outcome: Dict[str, Any]) -> str:
+        """Return the normalized track classification label."""
+        if not isinstance(outcome, dict):
+            return "unknown"
+        classification = outcome.get("classification")
+        if isinstance(classification, str) and classification.strip():
+            return classification.strip()
+        return "unknown"
+
     def _get_code_docstring_metrics(
         self, function_data: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
@@ -255,23 +283,39 @@ class ReportGenerationMixin:
     def _effective_tier3_state_from_outcome(self, outcome: Dict[str, Any]) -> str:
         """Return effective Tier 3 state including development-tools test outcome."""
         state = outcome.get("state", "") if isinstance(outcome, dict) else ""
-        dev_tools = (
-            outcome.get("development_tools", {}) if isinstance(outcome, dict) else {}
-        )
-        dev_state = dev_tools.get("state", "") if isinstance(dev_tools, dict) else ""
 
         if state == "coverage_failed":
             return "coverage_failed"
-        if state in {"crashed", "infra_cleanup_error"}:
-            return state
-        if dev_state in {"crashed", "infra_cleanup_error"}:
-            return dev_state
-        if state == "test_failures" or dev_state == "failed":
+        if not isinstance(outcome, dict):
+            return "unknown"
+        parallel = (
+            outcome.get("parallel", {}) if isinstance(outcome.get("parallel"), dict) else {}
+        )
+        no_parallel = (
+            outcome.get("no_parallel", {})
+            if isinstance(outcome.get("no_parallel"), dict)
+            else {}
+        )
+        dev_tools = (
+            outcome.get("development_tools", {})
+            if isinstance(outcome.get("development_tools"), dict)
+            else {}
+        )
+        track_labels = (
+            self._track_classification_label(parallel),
+            self._track_classification_label(no_parallel),
+            self._track_classification_label(dev_tools),
+        )
+        if "infra_cleanup_error" in track_labels:
+            return "infra_cleanup_error"
+        if "crashed" in track_labels:
+            return "crashed"
+        if "failed" in track_labels:
             return "test_failures"
-        if state:
-            return state
-        if dev_state == "passed":
+        if any(label in {"passed", "skipped"} for label in track_labels):
             return "clean"
+        if any(label == "unknown" for label in track_labels):
+            return "coverage_failed"
         return "unknown"
 
     def _get_recent_tier3_log_files(
@@ -346,22 +390,31 @@ class ReportGenerationMixin:
         lines.append("## Tier 3 Test Outcome")
         lines.append(f"- **State**: {state}")
         lines.append(
-            f"- **Parallel Track**: {parallel.get('state', 'unknown')} "
+            f"- **Parallel Track**: {self._track_classification_label(parallel)} "
             f"(passed={parallel.get('passed_count', 0)}, failed={parallel.get('failed_count', 0)}, "
             f"errors={parallel.get('error_count', 0)}, skipped={parallel.get('skipped_count', 0)}, "
             f"return={parallel.get('return_code')})"
         )
         lines.append(
-            f"- **No-Parallel Track**: {no_parallel.get('state', 'unknown')} "
+            f"- **No-Parallel Track**: {self._track_classification_label(no_parallel)} "
             f"(passed={no_parallel.get('passed_count', 0)}, failed={no_parallel.get('failed_count', 0)}, "
             f"errors={no_parallel.get('error_count', 0)}, skipped={no_parallel.get('skipped_count', 0)}, "
             f"return={no_parallel.get('return_code')})"
         )
         lines.append(
-            f"- **Development Tools Track**: {dev_tools.get('state', 'unknown')} "
+            f"- **Development Tools Track**: {self._track_classification_label(dev_tools)} "
             f"(passed={dev_tools.get('passed_count', 0)}, failed={dev_tools.get('failed_count', 0)}, "
             f"errors={dev_tools.get('error_count', 0)}, skipped={dev_tools.get('skipped_count', 0)}, "
             f"return={dev_tools.get('return_code')})"
+        )
+        lines.append(
+            self._format_track_classification_summary("Parallel", parallel)
+        )
+        lines.append(
+            self._format_track_classification_summary("No-Parallel", no_parallel)
+        )
+        lines.append(
+            self._format_track_classification_summary("Development Tools", dev_tools)
         )
         if isinstance(failed_nodes, list) and failed_nodes:
             lines.append(
@@ -3795,14 +3848,48 @@ class ReportGenerationMixin:
                     "Tier 3 coverage orchestration reported a coverage failure outcome."
                 )
                 tier3_bullets.append(
-                    f"Parallel: {parallel_outcome.get('state', 'unknown')}, no-parallel: {no_parallel_outcome.get('state', 'unknown')}, dev-tools: {dev_tools_outcome.get('state', 'unknown')}."
+                    f"Parallel: {self._track_classification_label(parallel_outcome)}, "
+                    f"no-parallel: {self._track_classification_label(no_parallel_outcome)}, "
+                    f"dev-tools: {self._track_classification_label(dev_tools_outcome)}."
                 )
             elif tier3_state in {"crashed", "infra_cleanup_error"}:
                 tier3_title = "Investigate and correct test failures/errors"
                 tier3_reason = f"Tier 3 test pipeline reported `{tier3_state}`."
-                tier3_bullets.append(
-                    f"Parallel return={parallel_outcome.get('return_code')}, no-parallel return={no_parallel_outcome.get('return_code')}, dev-tools return={dev_tools_outcome.get('return_code')}."
-                )
+                for label, track_outcome, track_key in (
+                    ("Parallel", parallel_outcome, "parallel"),
+                    ("No-parallel", no_parallel_outcome, "no_parallel"),
+                    ("Development tools", dev_tools_outcome, "development_tools"),
+                ):
+                    track_state = self._track_classification_label(track_outcome)
+                    track_reason = str(
+                        track_outcome.get("classification_reason", "unknown")
+                    )
+                    track_return_hex = track_outcome.get("return_code_hex")
+                    track_log_file = track_outcome.get("log_file")
+                    if track_state in {"crashed", "infra_cleanup_error"}:
+                        summary = (
+                            f"{label} classification={track_state}, reason={track_reason}"
+                        )
+                        if isinstance(track_return_hex, str) and track_return_hex:
+                            summary += f", return={track_return_hex}"
+                        if isinstance(track_log_file, str) and track_log_file.strip():
+                            summary += f" (log: {track_log_file.strip()})"
+                            if track_key == "parallel":
+                                include_parallel_logs = True
+                            elif track_key == "no_parallel":
+                                include_no_parallel_logs = True
+                            elif track_key == "development_tools":
+                                include_dev_tools_logs = True
+                        tier3_bullets.append(summary + ".")
+                        track_hint = track_outcome.get("actionable_context")
+                        if isinstance(track_hint, str) and track_hint.strip():
+                            tier3_bullets.append(
+                                f"{label} hint: {track_hint.strip()}"
+                            )
+                if not tier3_bullets:
+                    tier3_bullets.append(
+                        f"Parallel return={parallel_outcome.get('return_code')}, no-parallel return={no_parallel_outcome.get('return_code')}, dev-tools return={dev_tools_outcome.get('return_code')}."
+                    )
             else:
                 tier3_title = "Investigate and correct test failures/errors"
                 tier3_reason = (
@@ -3821,7 +3908,7 @@ class ReportGenerationMixin:
                         else self._coerce_int(track_outcome.get("failed_count", 0))
                     )
                     errors = self._coerce_int(track_outcome.get("error_count", 0))
-                    state = str(track_outcome.get("state", "") or "")
+                    state = self._track_classification_label(track_outcome)
                     if failed > 0 and track_failed_nodes:
                         tier3_bullets.append(
                             f"{label} tests failed={failed}: {self._format_list_for_display(track_failed_nodes, limit=6)}."
@@ -3831,7 +3918,7 @@ class ReportGenerationMixin:
                     elif errors > 0:
                         tier3_bullets.append(f"{label} tests errors={errors}.")
                     elif state == "failed":
-                        tier3_bullets.append(f"{label} state=failed.")
+                        tier3_bullets.append(f"{label} classification=failed.")
                     else:
                         continue
 

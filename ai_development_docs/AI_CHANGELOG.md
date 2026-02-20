@@ -30,7 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-20 - Tier 3/logging follow-up and full-diff session wrap **COMPLETED**
+- Completed a focused follow-up pass on audit/logging behavior: `quick_status` now runs only during explicit quick audits, and tool completion labels are standardized to `PASS`/`FAIL` with `issues=<n>` detail.
+- Finalized Tier 3/report/logging integration updates across service orchestration/wrappers/commands/reporting and coverage runner paths (`audit_orchestration.py`, `commands.py`, `report_generation.py`, `tool_wrappers.py`, `run_test_coverage.py`), with refreshed status/priorities/consolidated outputs.
+- Updated dev-tools tests and reliability coverage in current session tree (including `test_generate_function_registry.py`, `test_regenerate_coverage_metrics.py`, `test_report_generation_quick_wins.py`, `test_audit_strict_mode.py`, plus targeted test stabilization updates).
+- Adjusted `tests/development_tools/test_changelog_trim_tooling.py` to match current INFO/DEBUG policy.
+- Validation: targeted dev-tools pytest checks passed; user-confirmed `audit --full --clear-cache` passes.
+- Full `git diff --stat` + `git diff --name-only` review completed; current tree treated as session-scoped and reflected by this entry.
+
 ### 2026-02-19 - Tier-3 test-failure fixes + testing-guide policy clarifications **COMPLETED**
+- Added an explicit temporary legacy-compatibility bridge for Tier 3 `coverage_outcome` v1 fields (`state`, counts, `return_code`, `failed_node_ids`) with marker/commenting, usage logging when state-only payloads are encountered, and specific legacy-pattern registration for cleanup tracking; removal plan is to delete this bridge after downstream consumers stop reading v1-only fields.
 - Fixed Tier-3 failures by removing nondeterministic and collision-prone test patterns in:
   - `tests/unit/test_user_management.py`
   - `tests/ui/test_category_management_dialog.py`
@@ -38,8 +47,8 @@ Guidelines:
   - `tests/behavior/test_account_handler_behavior.py`
   - `tests/behavior/test_checkin_handler_behavior.py`
 - Corrected account-handler test setup misuse where `TestUserFactory.create_basic_user(...)` bool return values were used as user IDs; tests now resolve UUIDs explicitly.
-- Updated paired testing docs `ai_development_docs/AI_TESTING_GUIDE.md` and `tests/TESTING_GUIDE.md` with explicit rules for factory return semantics, UUID resolution, unique per-test IDs for parallel safety, and policy guard tests (`tests/unit/test_test_policy_guards.py`).
-- Updated planning/status artifacts and reports in this same session: `TODO.md`, `development_docs/PLANS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/AI_STATUS.md`, `development_tools/consolidated_report.md`, and refreshed generated reports under `development_docs/*REPORT.md` plus `development_tools/reports/*.json`.
+- Updated paired testing docs [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) and [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) with explicit rules for factory return semantics, UUID resolution, unique per-test IDs for parallel safety, and policy guard tests (`tests/unit/test_test_policy_guards.py`).
+- Updated planning/status artifacts and reports in this same session: [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), `development_tools/AI_PRIORITIES.md`, `development_tools/AI_STATUS.md`, `development_tools/consolidated_report.md`, and refreshed generated reports under `development_docs/*REPORT.md` plus `development_tools/reports/*.json`.
 - Additional test files updated this session and reflected in diff: `tests/conftest.py`, `tests/core/test_file_auditor.py`, `tests/debug_file_paths.py`, `tests/development_tools/test_analyze_functions.py`, and `tests/test_error_handling_improvements.py`; new untracked tests created: `tests/development_tools/test_analyze_test_markers.py`, `tests/development_tools/test_fix_test_markers.py`, `tests/development_tools/test_tool_guide.py`, `tests/unit/test_test_policy_guards.py`.
 - Validation: targeted previously failing nodes and focused account-handler/checkin-handler subsets passed.
 
@@ -158,13 +167,6 @@ Guidelines:
 - Fixed `analyze_missing_addresses.py` to use shared exclusion logic, eliminating the false "95 files missing addresses" recommendation from temp fixture paths.
 - Removed final obvious-unused import from `tests/conftest.py` (`import sys`) and regenerated `UNUSED_IMPORTS_REPORT.md` (`Obvious Unused: 0`).
 - Updated planning docs for next cycle: new outstanding flaky items in [TODO.md](TODO.md), timing/no-parallel stability note in [PLANS.md](development_docs/PLANS.md), and user-verified successful docs + full-audit reruns.
-
-### 2026-02-09 - Coverage cache hardening + flake tracking cleanup **COMPLETED**
-- Extended coverage cache safety: test-file/dev-tools coverage caches now rely on tool/config/run-status metadata for invalidation and failed-run handling (`test_file_coverage_cache.py`, `dev_tools_coverage_cache.py`, `run_test_coverage.py`).
-- Added `run_tests.py` to dev-tools config key files and updated one behavior test module to use UUID-suffixed user IDs to reduce parallel collision risk (`tests/behavior/test_user_data_flow_architecture.py`).
-- Investigated latest Tier-3 failures and isolated two intermittent targets: cleanup TOCTOU path deletion in `test_fix_project_cleanup.py` and nondeterministic user-dir selection in `test_user_management.py`.
-- Removed duplicate flake planning from `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`; consolidated intermittent coverage-flake tracking in [TODO.md](TODO.md) as the single source.
-- Updated both dev-tools guides with failure-aware/tool-aware cache invalidation details, extended V4 plan cache-quality tasks, and refreshed generated audit artifacts/reports (AI_STATUS, AI_PRIORITIES, consolidated report, registry/dependency/coverage docs).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

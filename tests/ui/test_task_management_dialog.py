@@ -42,10 +42,22 @@ def qapp():
 def task_management_user(test_data_dir):
     """Create a test user for task management tests."""
     import time
+    from pathlib import Path
+    from core.file_locking import safe_json_read
 
     user_id = f"test_task_user_{uuid.uuid4().hex[:8]}"
     TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
-    for _ in range(50):
+    users_dir = Path(test_data_dir) / "users"
+
+    for _ in range(60):
+        # Prefer on-disk scan to avoid stale user_index mappings under parallel load.
+        if users_dir.exists():
+            for account_file in users_dir.glob("*/account.json"):
+                account_data = safe_json_read(str(account_file), default={})
+                if account_data.get("internal_username") == user_id:
+                    return account_file.parent.name
+
+        # Fallback to index-based lookup if scan has not materialized yet.
         resolved_user_id = TestUserFactory.get_test_user_id_by_internal_username(
             user_id, test_data_dir
         )

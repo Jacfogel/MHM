@@ -111,7 +111,7 @@ class ToolWrappersMixin:
 
     def run_analyze_documentation(self, include_overlap: bool = False) -> Dict:
         """Run analyze_documentation with structured JSON handling."""
-        logger.info("Analyzing documentation...")
+        logger.debug("Analyzing documentation...")
         args = ["--json"]
         if include_overlap:
             args.append("--overlap")
@@ -242,11 +242,11 @@ class ToolWrappersMixin:
 
     def run_analyze_function_registry(self) -> Dict:
         """Run analyze_function_registry with structured JSON handling."""
-        logger.info("Analyzing function registry...")
+        logger.debug("Analyzing function registry...")
         result = self.run_script("analyze_function_registry", "--json")
         stderr_output = result.get("error", "")
         if stderr_output:
-            logger.info(f"analyze_function_registry stderr output: {stderr_output}")
+            logger.debug(f"analyze_function_registry stderr output: {stderr_output}")
             if "Traceback" in stderr_output or 'File "' in stderr_output:
                 logger.error(
                     f"analyze_function_registry traceback found in stderr:\n{stderr_output}"
@@ -308,7 +308,7 @@ class ToolWrappersMixin:
 
     def run_analyze_module_dependencies(self) -> Dict:
         """Run analyze_module_dependencies and capture dependency drift summary."""
-        logger.info("Analyzing module dependencies...")
+        logger.debug("Analyzing module dependencies...")
         result = self.run_script("analyze_module_dependencies")
         output = result.get("output", "")
         summary = self._parse_module_dependency_report(output)
@@ -347,7 +347,7 @@ class ToolWrappersMixin:
 
     def run_analyze_functions(self) -> Dict:
         """Run analyze_functions with structured JSON handling."""
-        logger.info("Analyzing functions...")
+        logger.debug("Analyzing functions...")
         args = ["--json"]
         if self.exclusion_config.get("include_tests", False):
             args.append("--include-tests")
@@ -396,7 +396,7 @@ class ToolWrappersMixin:
         self, min_overall: Optional[float] = None, min_name: Optional[float] = None
     ) -> Dict:
         """Run analyze_duplicate_functions with structured JSON handling."""
-        logger.info("Analyzing duplicate functions...")
+        logger.debug("Analyzing duplicate functions...")
         args = ["--json"]
         if self.exclusion_config.get("include_tests", False):
             args.append("--include-tests")
@@ -435,7 +435,7 @@ class ToolWrappersMixin:
 
     def run_decision_support(self) -> Dict:
         """Run decision_support with structured JSON handling."""
-        logger.info("Running decision_support...")
+        logger.debug("Running decision_support...")
         args = []
         if self.exclusion_config.get("include_tests", False):
             args.append("--include-tests")
@@ -494,7 +494,7 @@ class ToolWrappersMixin:
 
     def run_analyze_function_patterns(self) -> Dict:
         """Run analyze_function_patterns and save results."""
-        logger.info("Analyzing function patterns...")
+        logger.debug("Analyzing function patterns...")
         try:
             from development_tools.functions.analyze_function_patterns import (
                 analyze_function_patterns,
@@ -525,7 +525,7 @@ class ToolWrappersMixin:
 
     def run_analyze_module_imports(self) -> Dict:
         """Run analyze_module_imports and save results."""
-        logger.info("Analyzing module imports...")
+        logger.debug("Analyzing module imports...")
         try:
             from development_tools.imports.analyze_module_imports import (
                 ModuleImportAnalyzer,
@@ -552,7 +552,7 @@ class ToolWrappersMixin:
 
     def run_analyze_dependency_patterns(self) -> Dict:
         """Run analyze_dependency_patterns and save results."""
-        logger.info("Analyzing dependency patterns...")
+        logger.debug("Analyzing dependency patterns...")
         try:
             from development_tools.imports.analyze_module_imports import (
                 ModuleImportAnalyzer,
@@ -590,7 +590,7 @@ class ToolWrappersMixin:
 
     def run_analyze_package_exports(self) -> Dict:
         """Run analyze_package_exports and save results."""
-        logger.info("Analyzing package exports...")
+        logger.debug("Analyzing package exports...")
         try:
             from development_tools.functions.analyze_package_exports import (
                 generate_audit_report,
@@ -606,7 +606,7 @@ class ToolWrappersMixin:
             import_usage_index = analyze_imports_for_packages(packages)
             package_api_index = scan_package_modules_for_packages(packages)
             registry_index = parse_function_registry_for_packages(packages)
-            logger.info(
+            logger.debug(
                 f"Analyzing package exports with parallel package scanning ({len(packages)} packages, {max_workers} workers)..."
             )
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -635,7 +635,7 @@ class ToolWrappersMixin:
                                             value[nested_key] = sorted(nested_value)
                         all_reports[package] = report
                         if isinstance(report, dict):
-                            logger.info(
+                            logger.debug(
                                 f"Package export audit complete: {package} "
                                 f"(missing={len(report.get('missing_exports', []))}, "
                                 f"unnecessary={len(report.get('potentially_unnecessary', []))})"
@@ -991,7 +991,7 @@ class ToolWrappersMixin:
 
     def run_generate_legacy_reference_report(self) -> Dict:
         """Run generate_legacy_reference_report to create LEGACY_REFERENCE_REPORT.md."""
-        logger.info("Generating legacy reference report...")
+        logger.debug("Generating legacy reference report...")
         # First, ensure we have legacy reference analysis results
         legacy_data = None
         if hasattr(self, "legacy_cleanup_summary") and self.legacy_cleanup_summary:
@@ -1102,7 +1102,7 @@ class ToolWrappersMixin:
         This tool generates TEST_COVERAGE_REPORT.md, HTML, and JSON reports from existing coverage.json.
         It should be run after run_test_coverage has executed tests and collected coverage data.
         """
-        logger.info("Generating test coverage report from existing coverage data...")
+        logger.debug("Generating test coverage report from existing coverage data...")
 
         # Check if coverage.json exists
         coverage_json = (
@@ -1127,7 +1127,7 @@ class ToolWrappersMixin:
                     self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
                 )
                 if test_coverage_report.exists():
-                    logger.info(
+                    logger.debug(
                         f"Test coverage report generated: {test_coverage_report.relative_to(self.project_root)}"
                     )
                     return {
@@ -1313,7 +1313,7 @@ class ToolWrappersMixin:
                     json_output = "\n".join(output_lines[json_start:json_end])
                     try:
                         data = json.loads(json_output)
-                        logger.info(
+                        logger.debug(
                             f"Successfully parsed JSON output from analyze_unused_imports ({len(str(data))} chars, {len(json_output)} chars raw)"
                         )
                     except json.JSONDecodeError as e:
@@ -1413,13 +1413,13 @@ class ToolWrappersMixin:
 
     def run_generate_unused_imports_report(self) -> Dict:
         """Run generate_unused_imports_report to generate markdown report from analysis results."""
-        logger.info("Generating unused imports report...")
+        logger.debug("Generating unused imports report...")
         tools_run = getattr(self, "_tools_run_in_current_tier", None)
         if tools_run is None:
             tools_run = set()
             setattr(self, "_tools_run_in_current_tier", tools_run)
         if "analyze_unused_imports" not in tools_run:
-            logger.info("Running unused imports analysis before generating the report.")
+            logger.debug("Running unused imports analysis before generating the report.")
             analysis_result = self.run_unused_imports()
             if not analysis_result.get("success", False):
                 logger.warning(
@@ -1455,7 +1455,7 @@ class ToolWrappersMixin:
                 "returncode": result_proc.returncode,
             }
             if result["success"]:
-                logger.info("Unused imports report generated successfully")
+                logger.debug("Unused imports report generated successfully")
             else:
                 logger.warning(
                     f"Unused imports report generation completed with issues: {result.get('error', 'Unknown error')}"

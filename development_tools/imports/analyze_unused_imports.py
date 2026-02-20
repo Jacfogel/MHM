@@ -856,7 +856,7 @@ class UnusedImportsChecker:
     def scan_codebase(self) -> Dict:
         """Scan the entire codebase for unused imports."""
         if logger:
-            logger.info(
+            logger.debug(
                 f"Starting unused imports scan (workers: {self.max_workers}, cache: {self.use_cache})..."
             )
 
@@ -987,7 +987,7 @@ class UnusedImportsChecker:
             cache_info = f" (cache: {cache_hits} hits, {cache_misses} misses)"
 
         if logger:
-            logger.info(
+            logger.debug(
                 f"Scan complete. Found {self.stats['total_unused']} unused imports in {self.stats['files_with_issues']} files{cache_info}."
             )
 

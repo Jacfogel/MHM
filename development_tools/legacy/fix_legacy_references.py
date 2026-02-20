@@ -60,6 +60,10 @@ except (AttributeError, ImportError):
 
 logger = get_component_logger("development_tools")
 
+REQUIRED_LEGACY_PATTERN_KEYS = [
+    "tier3_coverage_outcome_compat_bridge",
+]
+
 
 class LegacyReferenceFixer:
     """Fixes legacy references in codebases (portable across projects)."""
@@ -91,6 +95,15 @@ class LegacyReferenceFixer:
             else:
                 # Generic defaults (projects should provide their own via config)
                 self.replacement_mappings = {}
+
+        # Validate required specific legacy-pattern registrations for compatibility bridges.
+        configured_patterns = legacy_config.get("legacy_patterns", {})
+        for pattern_key in REQUIRED_LEGACY_PATTERN_KEYS:
+            if pattern_key not in configured_patterns:
+                logger.warning(
+                    "Legacy cleanup config missing required specific pattern key: "
+                    f"{pattern_key}"
+                )
 
     def cleanup_legacy_references(
         self,

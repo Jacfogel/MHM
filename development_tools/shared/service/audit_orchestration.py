@@ -10,7 +10,7 @@ import json
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
 from core.logger import get_component_logger
 
@@ -97,6 +97,13 @@ def _is_audit_in_progress(project_root: Path) -> bool:
 
 class AuditOrchestrationMixin:
     """Mixin class providing audit orchestration methods to AIToolsService."""
+    _CACHE_AWARE_TOOLS = {
+        "run_test_coverage",
+        "generate_dev_tools_coverage",
+        "analyze_unused_imports",
+        "analyze_legacy_references",
+        "analyze_documentation_sync",
+    }
 
     def run_analyze_duplicate_functions(self, *args, **kwargs):
         """Stub for mixin typing; implemented in ToolWrappersMixin."""
@@ -110,21 +117,38 @@ class AuditOrchestrationMixin:
             else {}
         )
         state = outcome.get("state", "") or ""
-        dev_tools = outcome.get("development_tools", {})
-        dev_state = dev_tools.get("state", "") if isinstance(dev_tools, dict) else ""
+        parallel = outcome.get("parallel", {}) if isinstance(outcome.get("parallel"), dict) else {}
+        no_parallel = outcome.get("no_parallel", {}) if isinstance(outcome.get("no_parallel"), dict) else {}
+        dev_tools = (
+            outcome.get("development_tools", {})
+            if isinstance(outcome.get("development_tools"), dict)
+            else {}
+        )
+
+        def _track_label(track: Dict[str, Any]) -> str:
+            classification = track.get("classification")
+            if isinstance(classification, str) and classification.strip():
+                return classification.strip()
+            return "unknown"
+
+        track_labels = (
+            _track_label(parallel),
+            _track_label(no_parallel),
+            _track_label(dev_tools),
+        )
 
         if state == "coverage_failed":
             return "coverage_failed"
-        if state in {"crashed", "infra_cleanup_error"}:
-            return state
-        if dev_state in {"crashed", "infra_cleanup_error"}:
-            return dev_state
-        if state == "test_failures" or dev_state == "failed":
+        if "infra_cleanup_error" in track_labels:
+            return "infra_cleanup_error"
+        if "crashed" in track_labels:
+            return "crashed"
+        if "failed" in track_labels:
             return "test_failures"
-        if state:
-            return state
-        if dev_state == "passed":
+        if any(label in {"passed", "skipped"} for label in track_labels):
             return "clean"
+        if any(label == "unknown" for label in track_labels):
+            return "coverage_failed"
         return "unknown"
     
     def _get_audit_lock_file_path(self) -> Path:
@@ -217,6 +241,8 @@ class AuditOrchestrationMixin:
             
             # Tier 2: Standard audit tools
             if tier >= 2:
+                print("=" * 50)
+                logger.info("=" * 50)
                 print("Running Tier 2 tools (standard audit)...")
                 logger.info("Running Tier 2 tools (standard audit)...")
                 tier2_success = self._run_standard_audit_tools()
@@ -225,6 +251,8 @@ class AuditOrchestrationMixin:
             
             # Tier 3: Full audit tools
             if tier >= 3:
+                print("=" * 50)
+                logger.info("=" * 50)
                 print("Running Tier 3 tools (full audit)...")
                 logger.info("Running Tier 3 tools (full audit)...")
                 tier3_success = self._run_full_audit_tools()
@@ -337,7 +365,7 @@ class AuditOrchestrationMixin:
             tier3_state = ""
             if tier >= 3:
                 tier3_state = self._effective_tier3_state()
-            if strict and tier >= 3 and tier3_state in {"test_failures", "crashed"}:
+            if strict and tier >= 3 and tier3_state in {"test_failures", "crashed", "infra_cleanup_error"}:
                 success = False
                 logger.warning(
                     f"Strict mode forcing non-zero exit for Tier 3 outcome: {tier3_state}"
@@ -391,10 +419,10 @@ class AuditOrchestrationMixin:
                 logger.info(f"* AI Priorities: {ai_priorities_file}")
                 logger.info(f"* Consolidated Report: {consolidated_file}")
             else:
-                if strict and tier >= 3 and tier3_state in {"test_failures", "crashed"}:
-                    print(f"Completed {operation_name} with strict-mode test failures/crashes")
+                if strict and tier >= 3 and tier3_state in {"test_failures", "crashed", "infra_cleanup_error"}:
+                    print(f"Completed {operation_name} with strict-mode test failures/crashes/infra errors")
                     logger.warning(
-                        f"Completed {operation_name} with strict-mode test failures/crashes"
+                        f"Completed {operation_name} with strict-mode test failures/crashes/infra errors"
                     )
                 else:
                     print(f"Completed {operation_name} with tool failures")
@@ -428,26 +456,26 @@ class AuditOrchestrationMixin:
         return self.run_audit(quick=True)
     
     def _run_quick_audit_tools(self) -> bool:
-        """Run Tier 1 tools: Quick audit (core metrics only, ≤2s per tool).
+        """Run Tier 1 tools: Quick audit (core metrics only, <=2s per tool).
         
-        Note: Tools moved here based on execution time (≤2s) while respecting dependencies.
+        Note: Tools moved here based on execution time (<=2s) while respecting dependencies.
         """
         successful = []
         failed = []
         
-        # Core Tier 1 tools (≤2s)
+        # Core Tier 1 tools (<=2s)
         tier1_core_tools = [
             ('analyze_system_signals', self.run_analyze_system_signals),  # 1.07s
         ]
         
-        # Independent tools (≤2s)
+        # Independent tools (<=2s)
         tier1_independent_tools = [
             ('analyze_documentation', lambda: self.run_analyze_documentation(include_overlap=getattr(self, '_include_overlap', False))),  # 0.21s
             ('analyze_config', lambda: self.run_script('analyze_config')),  # 0.93s
             ('analyze_ai_work', self.run_validate),  # 0.95s
         ]
         
-        # Dependent groups (all tools ≤2s)
+        # Dependent groups (all tools <=2s)
         tier1_dependent_groups = [
             # Function patterns group: depends on analyze_functions (runs in Tier 2)
             [
@@ -463,20 +491,15 @@ class AuditOrchestrationMixin:
         
         # Run core tools first (analyze_functions must run before dependent tools)
         for tool_name, tool_func in tier1_core_tools:
-            start_time = time.time()
             try:
-                # Note: Tools log their own execution, so no need to log here
-                result = tool_func()
-                elapsed_time = time.time() - start_time
+                result, elapsed_time = self._run_tool_with_timing(tool_name, tool_func)
                 self._tool_timings[tool_name] = elapsed_time
-                logger.debug(f"  - {tool_name} completed in {elapsed_time:.2f}s")
                 if isinstance(result, dict):
                     success = result.get('success', False)
                     if 'data' in result:
                         self._extract_key_info(tool_name, result)
                 else:
                     success = bool(result)
-                self._record_tool_cache_metadata(tool_name, result)
                 if success:
                     self._tool_execution_status[tool_name] = 'success'
                     successful.append(tool_name)
@@ -488,7 +511,7 @@ class AuditOrchestrationMixin:
                     failed.append(tool_name)
                     logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
             except Exception as exc:
-                elapsed_time = time.time() - start_time
+                elapsed_time = exc.elapsed_time if isinstance(exc, ToolExecutionError) else 0.0
                 self._tool_timings[tool_name] = elapsed_time
                 self._tool_execution_status[tool_name] = 'failed'
                 failed.append(tool_name)
@@ -545,47 +568,45 @@ class AuditOrchestrationMixin:
                         failed.append(tool_name)
                         logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
         
-        # Run quick_status at the end of Tier 1 (after other tools have run and potentially created results)
-        # This allows it to use fresh data from the current audit run, but it still works gracefully if data is missing
-        start_time = time.time()
-        try:
-            # Note: quick_status logs its own execution ("Generating JSON status output")
-            quick_status_result = self.run_script('quick_status', 'json')
-            elapsed_time = time.time() - start_time
-            self._tool_timings['quick_status'] = elapsed_time
-            logger.debug(f"  - quick_status completed in {elapsed_time:.2f}s")
-            self._record_tool_cache_metadata('quick_status', quick_status_result)
-            if quick_status_result.get('success'):
-                self.status_results = quick_status_result
-                output = quick_status_result.get('output', '')
-                if output:
-                    try:
-                        parsed = json.loads(output)
-                        self.status_summary = parsed
-                        quick_status_result['data'] = parsed
+        # quick_status is only part of explicit Tier 1 (--quick) runs.
+        if self.current_audit_tier == 1:
+            try:
+                quick_status_result, elapsed_time = self._run_tool_with_timing(
+                    'quick_status',
+                    lambda: self.run_script('quick_status', 'json')
+                )
+                self._tool_timings['quick_status'] = elapsed_time
+                if quick_status_result.get('success'):
+                    self.status_results = quick_status_result
+                    output = quick_status_result.get('output', '')
+                    if output:
                         try:
-                            save_tool_result('quick_status', 'reports', parsed, project_root=self.project_root)
-                        except Exception as e:
-                            logger.debug(f"Failed to save quick_status result: {e}")
-                        self._tool_execution_status['quick_status'] = 'success'
-                        successful.append('quick_status')
-                        self._tools_run_in_current_tier.add('quick_status')
-                    except json.JSONDecodeError:
+                            parsed = json.loads(output)
+                            self.status_summary = parsed
+                            quick_status_result['data'] = parsed
+                            try:
+                                save_tool_result('quick_status', 'reports', parsed, project_root=self.project_root)
+                            except Exception as e:
+                                logger.debug(f"Failed to save quick_status result: {e}")
+                            self._tool_execution_status['quick_status'] = 'success'
+                            successful.append('quick_status')
+                            self._tools_run_in_current_tier.add('quick_status')
+                        except json.JSONDecodeError:
+                            self._tool_execution_status['quick_status'] = 'failed'
+                            logger.warning("  - quick_status output could not be parsed as JSON")
+                            failed.append('quick_status')
+                    else:
                         self._tool_execution_status['quick_status'] = 'failed'
-                        logger.warning("  - quick_status output could not be parsed as JSON")
                         failed.append('quick_status')
                 else:
                     self._tool_execution_status['quick_status'] = 'failed'
                     failed.append('quick_status')
-            else:
+            except Exception as exc:
+                elapsed_time = exc.elapsed_time if isinstance(exc, ToolExecutionError) else 0.0
+                self._tool_timings['quick_status'] = elapsed_time
                 self._tool_execution_status['quick_status'] = 'failed'
                 failed.append('quick_status')
-        except Exception as exc:
-            elapsed_time = time.time() - start_time
-            self._tool_timings['quick_status'] = elapsed_time
-            self._tool_execution_status['quick_status'] = 'failed'
-            failed.append('quick_status')
-            logger.error(f"  - quick_status failed: {exc}")
+                logger.error(f"  - quick_status failed: {exc}")
         
         if failed:
             logger.warning(f"Tier 1 completed with {len(failed)} failure(s): {', '.join(failed)}")
@@ -595,14 +616,14 @@ class AuditOrchestrationMixin:
         return len(failed) == 0
     
     def _run_standard_audit_tools(self) -> bool:
-        """Run Tier 2 tools: Standard audit (quality checks, >2s but ≤10s per tool).
+        """Run Tier 2 tools: Standard audit (quality checks, >2s but <=10s per tool).
         
-        Note: Tools moved here based on execution time (>2s but ≤10s) while respecting dependencies.
+        Note: Tools moved here based on execution time (>2s but <=10s) while respecting dependencies.
         """
         successful = []
         failed = []
         
-        # Independent tools (>2s but ≤10s)
+        # Independent tools (>2s but <=10s)
         tier2_independent_tools = [
             ('analyze_functions', self.run_analyze_functions),  # 3.41s
             ('analyze_error_handling', self.run_analyze_error_handling),  # 3.06s
@@ -610,9 +631,9 @@ class AuditOrchestrationMixin:
             ('analyze_duplicate_functions', self.run_analyze_duplicate_functions),  # 6.50s
         ]
         
-        # Dependent groups (>2s but ≤10s)
+        # Dependent groups (>2s but <=10s)
         tier2_dependent_groups = [
-            # Module imports group: analyze_module_imports → analyze_dependency_patterns, analyze_module_dependencies
+            # Module imports group: analyze_module_imports -> analyze_dependency_patterns, analyze_module_dependencies
             [
                 ('analyze_module_imports', self.run_analyze_module_imports),  # 2.18s
                 ('analyze_dependency_patterns', self.run_analyze_dependency_patterns),  # 2.03s
@@ -626,7 +647,7 @@ class AuditOrchestrationMixin:
             [
                 ('analyze_documentation_sync', self.run_analyze_documentation_sync),  # 7.70s
             ],
-            # Unused imports group: moved from Tier 3 (both ≤10s)
+            # Unused imports group: moved from Tier 3 (both <=10s)
             [
                 ('analyze_unused_imports', self.run_unused_imports),  # 7.82s
                 ('generate_unused_imports_report', self.run_generate_unused_imports_report),  # 0.98s
@@ -697,14 +718,116 @@ class AuditOrchestrationMixin:
     
     def _run_tool_with_timing(self, tool_name: str, tool_func) -> tuple:
         """Run a tool and return (result, elapsed_time) tuple."""
+        self._log_tool_start(tool_name)
         start_time = time.time()
         try:
             result = tool_func()
             elapsed_time = time.time() - start_time
+            self._record_tool_cache_metadata(tool_name, result)
+            self._log_tool_completion(tool_name, result, elapsed_time)
             return result, elapsed_time
         except Exception as exc:
             elapsed_time = time.time() - start_time
+            logger.error(
+                f"Completed {tool_name}: FAIL (exception) elapsed={elapsed_time:.2f}s",
+                exc_info=True,
+            )
             raise ToolExecutionError(tool_name=tool_name, elapsed_time=elapsed_time, original_exception=exc) from exc
+
+    def _normalize_cache_state(self, raw_mode: Optional[str]) -> Optional[str]:
+        """Normalize internal cache mode labels for operator-facing logs."""
+        if not isinstance(raw_mode, str) or not raw_mode.strip():
+            return None
+        normalized = raw_mode.strip().lower()
+        mapping = {
+            "cache_only": "utilized",
+            "partial_cache": "partially_utilized",
+            "cold_scan": "invalidated",
+            "unknown": "none_found",
+        }
+        return mapping.get(normalized, "none_found")
+
+    def _tool_cache_state_for_log(
+        self, tool_name: str, allow_default_none_found: bool
+    ) -> Optional[str]:
+        """Return normalized cache state for log lines."""
+        if tool_name not in self._CACHE_AWARE_TOOLS:
+            return None
+        metadata = getattr(self, "_tool_cache_metadata", {})
+        if isinstance(metadata, dict):
+            tool_meta = metadata.get(tool_name, {})
+            if isinstance(tool_meta, dict):
+                state = self._normalize_cache_state(tool_meta.get("cache_mode"))
+                if state:
+                    return state
+        if allow_default_none_found:
+            return "none_found"
+        return None
+
+    def _log_tool_start(self, tool_name: str) -> None:
+        """Log standardized tool start line (cache only when known at start)."""
+        cache_state = self._tool_cache_state_for_log(
+            tool_name, allow_default_none_found=False
+        )
+        if cache_state:
+            logger.info(f"Starting {tool_name} (cache={cache_state})")
+        else:
+            logger.info(f"Starting {tool_name}")
+
+    def _extract_issue_count(self, tool_name: str, result: Any) -> Optional[int]:
+        """Extract normalized issue count from tool result payload when available."""
+        if tool_name in {"run_test_coverage", "generate_dev_tools_coverage"}:
+            return None
+        if not isinstance(result, dict):
+            return None
+        data = result.get("data")
+        if isinstance(data, dict):
+            summary = data.get("summary", {})
+            if isinstance(summary, dict):
+                value = summary.get("total_issues")
+                try:
+                    return int(value)
+                except (TypeError, ValueError):
+                    pass
+        issues_found = result.get("issues_found")
+        if isinstance(issues_found, bool):
+            return 1 if issues_found else 0
+        return None
+
+    def _log_tool_completion(self, tool_name: str, result: Any, elapsed_time: float) -> None:
+        """Log standardized tool completion line with status, issues, and cache mode."""
+        success = bool(result)
+        if isinstance(result, dict):
+            success = bool(result.get("success", False))
+        status = "PASS" if success else "FAIL"
+        issue_count = self._extract_issue_count(tool_name, result)
+
+        issue_fragment = (
+            f" issues={issue_count}"
+            if isinstance(issue_count, int)
+            else ""
+        )
+        cache_state = self._tool_cache_state_for_log(
+            tool_name, allow_default_none_found=True
+        )
+        if success and cache_state == "invalidated":
+            cache_state = "created"
+        cache_fragment = f" cache={cache_state}" if cache_state else ""
+        detail_fragment = ""
+        if tool_name == "generate_unused_imports_report" and success:
+            detail_fragment = " detailed_report=development_docs/UNUSED_IMPORTS_REPORT.md"
+        elif tool_name == "generate_test_coverage_report" and success:
+            detail_fragment = " detailed_report=development_docs/TEST_COVERAGE_REPORT.md"
+        elif tool_name == "generate_legacy_reference_report" and success:
+            detail_fragment = " detailed_report=development_docs/LEGACY_REFERENCE_REPORT.md"
+        message = (
+            f"Completed {tool_name}: {status}{issue_fragment}"
+            f"{cache_fragment} elapsed={elapsed_time:.2f}s{detail_fragment}"
+        )
+        if success:
+            logger.info(message)
+        else:
+            logger.warning(message)
 
     def _infer_cache_mode_from_hits_misses(self, hits: int, misses: int) -> str:
         """Infer cache mode from cache hit/miss counters."""
@@ -978,19 +1101,15 @@ class AuditOrchestrationMixin:
         # Run coverage-dependent tools sequentially (they depend on coverage data from both test suites)
         logger.debug("Running coverage-dependent tools (sequential, after coverage completion)...")
         for tool_name, tool_func in tier3_coverage_dependent_group:
-            start_time = time.time()
             try:
-                result = tool_func()
-                elapsed_time = time.time() - start_time
+                result, elapsed_time = self._run_tool_with_timing(tool_name, tool_func)
                 self._tool_timings[tool_name] = elapsed_time
-                logger.debug(f"  - {tool_name} completed in {elapsed_time:.2f}s")
                 if isinstance(result, dict):
                     success = result.get('success', False)
                     if 'data' in result:
                         self._extract_key_info(tool_name, result)
                 else:
                     success = bool(result)
-                self._record_tool_cache_metadata(tool_name, result)
                 if success:
                     self._tool_execution_status[tool_name] = 'success'
                     successful.append(tool_name)
@@ -1000,7 +1119,7 @@ class AuditOrchestrationMixin:
                     failed.append(tool_name)
                     logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
             except Exception as exc:
-                elapsed_time = time.time() - start_time
+                elapsed_time = exc.elapsed_time if isinstance(exc, ToolExecutionError) else 0.0
                 self._tool_timings[tool_name] = elapsed_time
                 self._tool_execution_status[tool_name] = 'failed'
                 failed.append(tool_name)
@@ -1366,7 +1485,7 @@ class AuditOrchestrationMixin:
         status = str(check_result.get("status", "unknown")).lower()
         message = check_result.get("message")
         if message:
-            logger.info(f"   Changelog check: {message}")
+            logger.debug(f"   Changelog check: {message}")
 
         if status in {"ok", "pass"}:
             return
@@ -1411,11 +1530,11 @@ class AuditOrchestrationMixin:
             if isinstance(result, dict):
                 self.path_validation_result = result
             if status == 'ok':
-                logger.info(f"   Path validation: {message}")
+                logger.debug(f"   Path validation: {message}")
             elif status == 'fail':
                 issues = result.get('issues_found', 'unknown') if isinstance(result, dict) else 'unknown'
-                logger.info(f"   Path validation: {message}")
-                logger.info(f"   Found {issues} path issues")
+                logger.debug(f"   Path validation: {message}")
+                logger.debug(f"   Found {issues} path issues")
         except Exception as exc:
             logger.warning(f"   Path validation failed: {exc}")
             self.path_validation_result = None
@@ -1435,11 +1554,11 @@ class AuditOrchestrationMixin:
                 if duplicates:
                     logger.warning(f"   Documentation quality: Found {len(duplicates)} verbatim duplicates")
                 else:
-                    logger.info("   Documentation quality: No verbatim duplicates found")
+                    logger.debug("   Documentation quality: No verbatim duplicates found")
                 if placeholders:
                     logger.warning(f"   Documentation quality: Found {len(placeholders)} files with placeholders")
                 else:
-                    logger.info("   Documentation quality: No placeholder content found")
+                    logger.debug("   Documentation quality: No placeholder content found")
         except Exception as exc:
             logger.warning(f"   Documentation quality check failed: {exc}")
     
@@ -1489,10 +1608,10 @@ class AuditOrchestrationMixin:
                 else {}
             )
             if total_issues == 0:
-                logger.info("   ASCII compliance: All documentation files use ASCII-only characters")
+                logger.debug("   ASCII compliance: All documentation files use ASCII-only characters")
                 doc_sync_details["ascii_issues"] = 0
             else:
-                logger.info(f"   ASCII compliance: Found {total_issues} non-ASCII characters in {files_with_issues} files")
+                logger.debug(f"   ASCII compliance: Found {total_issues} non-ASCII characters in {files_with_issues} files")
                 doc_sync_details["ascii_issues"] = files_with_issues
             recalculated_total = (
                 int(doc_sync_details.get("paired_doc_issues", 0) or 0)
@@ -1549,8 +1668,8 @@ class AuditOrchestrationMixin:
         if tier <= 1:
             return tier1_tools
         if tier == 2:
-            return tier1_tools + tier2_additional_tools
-        return tier1_tools + tier2_additional_tools + tier3_additional_tools
+            return [tool for tool in tier1_tools if tool != 'quick_status'] + tier2_additional_tools
+        return [tool for tool in tier1_tools if tool != 'quick_status'] + tier2_additional_tools + tier3_additional_tools
 
     def _save_timing_data(self, tier: int, audit_success: bool) -> None:
         """Save timing data to a JSON file for analysis."""
@@ -1630,17 +1749,18 @@ class AuditOrchestrationMixin:
                     auto_count = summary.get('auto_cleanable_count', 0)
                     manual_count = summary.get('manual_review_count', 0)
                     if completed_count > 0:
-                        logger.info(
+                        logger.debug(
                             f"   TODO sync: {completed_count} completed entries detected "
                             f"({auto_count} auto-cleanable, {manual_count} manual review)"
                         )
                         dry_run_report = result.get('dry_run_report')
                         if isinstance(dry_run_report, str) and dry_run_report.strip():
-                            logger.info(f"   {dry_run_report}")
+                            logger.debug(f"   {dry_run_report}")
                     else:
-                        logger.info("   TODO sync: No completed entries detected")
+                        logger.debug("   TODO sync: No completed entries detected")
                 else:
                     message = result.get('message', 'Unknown error')
                     logger.warning(f"   TODO sync: {message}")
         except Exception as exc:
             logger.warning(f"   TODO sync failed: {exc}")
+

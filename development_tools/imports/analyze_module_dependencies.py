@@ -139,7 +139,7 @@ def parse_module_dependencies() -> Dict[str, List[str]]:
 
 def generate_dependency_report_extended():
     """Generate a comprehensive dependency audit report."""
-    logger.info("[SCAN] Scanning all Python files for imports...")
+    logger.debug("[SCAN] Scanning all Python files for imports...")
     actual_imports = scan_all_python_files()
 
     logger.info("[DOC] Parsing MODULE_DEPENDENCIES_DETAIL.md...")
@@ -233,7 +233,7 @@ def generate_updated_dependency_sections(actual_imports: Dict[str, Dict]):
 
 def analyze_circular_dependencies(actual_imports: Dict[str, Dict]):
     """Analyze potential circular dependencies."""
-    logger.info("CIRCULAR DEPENDENCY ANALYSIS:")
+    logger.debug("CIRCULAR DEPENDENCY ANALYSIS:")
 
     # Build dependency graph
     dependency_graph = {}
@@ -254,7 +254,7 @@ def analyze_circular_dependencies(actual_imports: Dict[str, Dict]):
         for file1, file2 in circular_deps:
             logger.warning(f"   {file1} ↔ {file2}")
     else:
-        logger.info("No circular dependencies detected")
+        logger.debug("No circular dependencies detected")
 
 
 def identify_enhancement_needs(
@@ -432,10 +432,10 @@ def generate_enhanced_dependency_report(
 
 def generate_dependency_report():
     """Generate the main dependency audit report."""
-    logger.info("Scanning all Python files for imports...")
+    logger.debug("Scanning all Python files for imports...")
     actual_imports = scan_all_python_files()
 
-    logger.info("Parsing MODULE_DEPENDENCIES_DETAIL.md...")
+    logger.debug("Parsing MODULE_DEPENDENCIES_DETAIL.md...")
     documented_deps = parse_module_dependencies()
 
     # Identify enhancement needs

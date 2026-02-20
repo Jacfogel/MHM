@@ -134,7 +134,7 @@ class DocumentationSyncChecker:
             Dictionary with standard format: 'summary', and 'details' keys
         """
         if logger:
-            logger.info("Analyzing documentation synchronization...")
+            logger.debug("Analyzing documentation synchronization...")
 
         paired_docs = self.check_paired_documentation()
 

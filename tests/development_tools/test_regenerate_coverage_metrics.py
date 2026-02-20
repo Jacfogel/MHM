@@ -175,6 +175,80 @@ class TestCoverageAnalysis:
                 assert isinstance(results, dict)
                 assert 'modules' in results or 'overall' in results
 
+    @pytest.mark.unit
+    def test_parallel_outcome_uses_parallel_results_only(self, demo_project_root):
+        """Parallel outcome should not inherit no_parallel failure counts."""
+        regenerator = CoverageMetricsRegenerator(
+            str(demo_project_root),
+            parallel=True,
+        )
+
+        parse_call_count = {"count": 0}
+
+        def fake_parse(_stdout):
+            parse_call_count["count"] += 1
+            if parse_call_count["count"] == 1:
+                return {
+                    "random_seed": None,
+                    "maxfail_reached": False,
+                    "warnings_count": 0,
+                    "passed_count": 10,
+                    "failed_count": 0,
+                    "error_count": 0,
+                    "skipped_count": 0,
+                    "test_summary": "10 passed",
+                    "failed_tests": [],
+                    "error_tests": [],
+                    "total_tests": 10,
+                }
+            return {
+                "random_seed": None,
+                "maxfail_reached": False,
+                "warnings_count": 0,
+                "passed_count": 5,
+                "failed_count": 1,
+                "error_count": 0,
+                "skipped_count": 0,
+                "test_summary": "1 failed, 5 passed",
+                "failed_tests": ["tests/example/test_no_parallel.py::test_one"],
+                "error_tests": [],
+                "total_tests": 6,
+            }
+
+        subprocess_call_count = {"count": 0}
+
+        def fake_subprocess_run(*args, **kwargs):
+            subprocess_call_count["count"] += 1
+            result = Mock()
+            stdout_handle = kwargs.get("stdout")
+            if subprocess_call_count["count"] == 1:
+                result.returncode = 0
+                stdout_text = "10 passed in 1.00s\n"
+            else:
+                result.returncode = 1
+                stdout_text = "1 failed, 5 passed in 1.00s\n"
+            if stdout_handle and hasattr(stdout_handle, "write"):
+                stdout_handle.write(stdout_text)
+                stdout_handle.flush()
+            result.stdout = stdout_text
+            result.stderr = ""
+            return result
+
+        with patch("subprocess.run", side_effect=fake_subprocess_run):
+            with patch.object(
+                regenerator.report_generator, "finalize_coverage_outputs"
+            ):
+                with patch.object(
+                    regenerator, "_parse_pytest_test_results", side_effect=fake_parse
+                ):
+                    results = regenerator.run_coverage_analysis()
+
+        coverage_outcome = results.get("coverage_outcome", {})
+        parallel_outcome = coverage_outcome.get("parallel", {})
+        no_parallel_outcome = coverage_outcome.get("no_parallel", {})
+        assert parallel_outcome.get("failed_count") == 0
+        assert no_parallel_outcome.get("failed_count") == 1
+
 
 class TestCoverageArtifacts:
     """Test coverage artifact management."""

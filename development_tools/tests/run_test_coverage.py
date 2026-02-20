@@ -29,7 +29,7 @@ import tempfile
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from core.time_utilities import now_timestamp_full, now_timestamp_filename
 
@@ -543,7 +543,7 @@ class CoverageMetricsRegenerator:
                 files_2_unique_count += 1
 
         if logger:
-            logger.info(
+            logger.debug(
                 f"Merge details: {files_1_count} files from first JSON, {files_2_unique_count} unique files from second JSON, "
                 f"{duplicate_count} duplicates (line-union for unchanged domains; fresh for changed domains)"
             )
@@ -652,7 +652,7 @@ class CoverageMetricsRegenerator:
 
         elapsed = round(time.time() - start, 2)
         if logger:
-            logger.info(
+            logger.debug(
                 "Coverage shard detection: "
                 f"expected_workers={expected_workers if expected_workers is not None else 'unknown'}, "
                 f"found_in_coverage_dir={len(discovered['parallel_shards'])}, "
@@ -679,7 +679,7 @@ class CoverageMetricsRegenerator:
     def run_coverage_analysis(self) -> Dict[str, Dict[str, Any]]:
         """Run pytest coverage analysis and extract metrics."""
         if logger:
-            logger.info("Running pytest coverage analysis...")
+            logger.debug("Running pytest coverage analysis...")
         self._cleanup_stray_pytest_cache_temp_dirs()
 
         # Load coverage configuration from external config
@@ -1420,7 +1420,7 @@ class CoverageMetricsRegenerator:
                 cached_files_count = len(cached_coverage_json.get("files", {}))
                 fresh_files_count = len(fresh_coverage_json.get("files", {}))
                 if logger:
-                    logger.info(
+                    logger.debug(
                         f"Merging coverage: {cached_files_count} cached files + {fresh_files_count} fresh files"
                     )
 
@@ -1438,7 +1438,7 @@ class CoverageMetricsRegenerator:
                 # Validate merged result
                 merged_files_count = len(merged_coverage_json.get("files", {}))
                 if logger:
-                    logger.info(
+                    logger.debug(
                         f"Merged coverage contains {merged_files_count} files (expected ~{cached_files_count + fresh_files_count})"
                     )
 
@@ -1456,7 +1456,7 @@ class CoverageMetricsRegenerator:
                         json.dump(merged_coverage_json, f, indent=2)
                     merged_coverage_saved = True
                     if logger:
-                        logger.info("Merged cached and fresh coverage data")
+                        logger.debug("Merged cached and fresh coverage data")
                 except Exception as e:
                     if logger:
                         logger.warning(f"Failed to save merged coverage JSON: {e}")
@@ -1471,7 +1471,7 @@ class CoverageMetricsRegenerator:
                     total_missing = merged_totals.get("missing_lines", 0)
 
                     if logger:
-                        logger.info(
+                        logger.debug(
                             f"Using merged totals (serial): {total_statements} statements, {total_covered} covered, {total_missing} missing"
                         )
 
@@ -1483,7 +1483,7 @@ class CoverageMetricsRegenerator:
                         overall_coverage["total_missed"] = total_missing
 
                     if logger:
-                        logger.info(
+                        logger.debug(
                             f"Recalculated overall coverage from merged JSON (serial): {overall_coverage.get('overall_coverage', 0):.1f}%"
                         )
 
@@ -1725,6 +1725,8 @@ class CoverageMetricsRegenerator:
                     if test_results["random_seed"]:
                         logger.info(f"Random seed used: {test_results['random_seed']}")
 
+            parallel_test_results = dict(test_results) if isinstance(test_results, dict) else {}
+
             # If parallel execution was enabled, also run no_parallel tests separately in serial mode
             no_parallel_test_results = {
                 "passed_count": 0,
@@ -1884,42 +1886,16 @@ class CoverageMetricsRegenerator:
                             f"Return code: {no_parallel_result.returncode}, Output length: {len(no_parallel_output)} chars"
                         )
                         if no_parallel_result.returncode != 0:
-                            # Check for specific Windows error codes
-                            # 0xC0000135 = 3221226505 (STATUS_DLL_NOT_FOUND)
-                            # 0xC0000005 = 3221225477 (STATUS_ACCESS_VIOLATION)
-                            if (
-                                no_parallel_result.returncode == 3221226505
-                            ):  # 0xC0000135 STATUS_DLL_NOT_FOUND
-                                logger.error(
-                                    f"Pytest crashed with Windows error 0xC0000135 (STATUS_DLL_NOT_FOUND) - missing DLL required by Python or dependencies"
-                                )
-                                logger.error(
-                                    f"This usually indicates: missing system DLL, corrupted Python installation, or PATH issues"
-                                )
-                                logger.error(
-                                    f"Check log for details: {no_parallel_stdout_log}"
-                                )
-                                logger.error(
-                                    f"Troubleshooting: verify Python installation, check PATH, try reinstalling pytest/dependencies"
-                                )
-                            elif (
-                                no_parallel_result.returncode == 3221225477
-                            ):  # 0xC0000005 STATUS_ACCESS_VIOLATION
-                                logger.error(
-                                    f"Pytest crashed with Windows error 0xC0000005 (STATUS_ACCESS_VIOLATION) - memory access violation"
-                                )
-                                logger.error(
-                                    f"This usually indicates: memory corruption, threading issue, or library conflict (common with Qt/PyQt UI tests)"
-                                )
-                                logger.error(
-                                    f"Check log for details: {no_parallel_stdout_log}"
-                                )
-                                logger.error(
-                                    f"Troubleshooting: check for UI test issues, threading problems, or library conflicts"
+                            if self._is_windows_crash_return_code(
+                                no_parallel_result.returncode
+                            ):
+                                self._log_windows_crash_context(
+                                    no_parallel_result.returncode,
+                                    no_parallel_stdout_log,
                                 )
                             else:
                                 logger.warning(
-                                    f"Pytest exited with non-zero code {no_parallel_result.returncode} (0x{no_parallel_result.returncode:08X}) - check log for errors: {no_parallel_stdout_log}"
+                                    f"Pytest exited with non-zero code {no_parallel_result.returncode} ({self._format_return_code_hex(no_parallel_result.returncode) or 'n/a'}) - check log for errors: {no_parallel_stdout_log}"
                                 )
                             # Try to extract any error message from the output
                             if no_parallel_output:
@@ -1964,38 +1940,14 @@ class CoverageMetricsRegenerator:
                             f"No_parallel tests produced no output - subprocess may have failed silently"
                         )
                         logger.warning(
-                            f"Return code: {no_parallel_result.returncode} (0x{no_parallel_result.returncode:08X}), Log file exists: {no_parallel_stdout_log.exists()}, Log size: {no_parallel_stdout_log.stat().st_size if no_parallel_stdout_log.exists() else 0} bytes"
+                            f"Return code: {no_parallel_result.returncode} ({self._format_return_code_hex(no_parallel_result.returncode) or 'n/a'}), Log file exists: {no_parallel_stdout_log.exists()}, Log size: {no_parallel_stdout_log.stat().st_size if no_parallel_stdout_log.exists() else 0} bytes"
                         )
-                        # Check for specific Windows error codes that indicate crashes
-                        if (
-                            no_parallel_result.returncode == 3221225477
-                        ):  # 0xC0000005 STATUS_ACCESS_VIOLATION
-                            logger.error(
-                                f"Pytest crashed with Windows error 0xC0000005 (STATUS_ACCESS_VIOLATION) - memory access violation"
-                            )
-                            logger.error(
-                                f"This usually indicates: memory corruption, threading issue, or library conflict (common with Qt/PyQt UI tests)"
-                            )
-                            logger.error(
-                                f"Check log for details: {no_parallel_stdout_log}"
-                            )
-                            logger.error(
-                                f"Troubleshooting: check for UI test issues, threading problems, or library conflicts"
-                            )
-                        elif (
-                            no_parallel_result.returncode == 3221226505
-                        ):  # 0xC0000135 STATUS_DLL_NOT_FOUND
-                            logger.error(
-                                f"Pytest crashed with Windows error 0xC0000135 (STATUS_DLL_NOT_FOUND) - missing DLL required by Python or dependencies"
-                            )
-                            logger.error(
-                                f"This usually indicates: missing system DLL, corrupted Python installation, or PATH issues"
-                            )
-                            logger.error(
-                                f"Check log for details: {no_parallel_stdout_log}"
-                            )
-                            logger.error(
-                                f"Troubleshooting: verify Python installation, check PATH, try reinstalling pytest/dependencies"
+                        if self._is_windows_crash_return_code(
+                            no_parallel_result.returncode
+                        ):
+                            self._log_windows_crash_context(
+                                no_parallel_result.returncode,
+                                no_parallel_stdout_log,
                             )
                         if no_parallel_stdout_log.exists():
                             log_content = no_parallel_stdout_log.read_text(
@@ -2756,7 +2708,7 @@ class CoverageMetricsRegenerator:
                                                 if is_selective_run
                                                 else "full"
                                             )
-                                            logger.info(
+                                            logger.debug(
                                                 f"Merging coverage (parallel, {run_type} run): {cached_files_count} cached files from domains {sorted(cached_domains)} + {fresh_files_count} fresh files from test run (domains: {sorted(fresh_domains)})"
                                             )
 
@@ -2799,17 +2751,17 @@ class CoverageMetricsRegenerator:
                                                 )
                                                 if domain:
                                                     merged_domains.add(domain)
-                                            logger.info(
+                                            logger.debug(
                                                 f"Merged coverage (parallel) contains {merged_files_count} files from domains {sorted(merged_domains)} (expected ~{cached_files_count + fresh_files_count})"
                                             )
-                                            logger.info(
+                                            logger.debug(
                                                 f"Merged totals: {merged_totals.get('num_statements', 0)} statements, {merged_totals.get('covered_lines', 0)} covered, {merged_totals.get('percent_covered', 0.0):.2f}%"
                                             )
                                             if is_selective_run:
-                                                logger.info(
+                                                logger.debug(
                                                     f"  Cached (unchanged tests): {cached_totals.get('num_statements', 0)} statements, {cached_totals.get('covered_lines', 0)} covered, {cached_totals.get('percent_covered', 0.0):.2f}%"
                                                 )
-                                                logger.info(
+                                                logger.debug(
                                                     f"  Fresh (re-run tests): {fresh_totals.get('num_statements', 0)} statements, {fresh_totals.get('covered_lines', 0)} covered, {fresh_totals.get('percent_covered', 0.0):.2f}%"
                                                 )
 
@@ -2833,7 +2785,7 @@ class CoverageMetricsRegenerator:
                                                 )
                                             merged_coverage_saved = True
                                             if logger:
-                                                logger.info(
+                                                logger.debug(
                                                     "Merged cached and fresh coverage data (parallel mode)"
                                                 )
                                         except Exception as e:
@@ -2888,7 +2840,7 @@ class CoverageMetricsRegenerator:
                                             )
 
                                             if logger:
-                                                logger.info(
+                                                logger.debug(
                                                     f"Using merged totals: {total_statements} statements, {total_covered} covered, {total_missing} missing"
                                                 )
 
@@ -2906,7 +2858,7 @@ class CoverageMetricsRegenerator:
                                                 )
 
                                             if logger:
-                                                logger.info(
+                                                logger.debug(
                                                     f"Recalculated overall coverage from merged JSON: {overall_coverage.get('overall_coverage', 0):.1f}%"
                                                 )
 
@@ -3144,8 +3096,10 @@ class CoverageMetricsRegenerator:
 
             parallel_outcome = self._build_track_outcome(
                 return_code=result.returncode if "result" in locals() else None,
-                parsed_results=test_results if isinstance(test_results, dict) else {},
+                parsed_results=parallel_test_results,
                 output=test_output if isinstance(test_output, str) else "",
+                track_name="parallel",
+                log_file=self.pytest_stdout_log,
             )
             no_parallel_outcome = self._build_track_outcome(
                 return_code=no_parallel_return_code,
@@ -3156,6 +3110,12 @@ class CoverageMetricsRegenerator:
                 ),
                 output=(
                     no_parallel_output if isinstance(no_parallel_output, str) else ""
+                ),
+                track_name="no_parallel",
+                log_file=(
+                    no_parallel_stdout_log
+                    if "no_parallel_stdout_log" in locals()
+                    else None
                 ),
             )
             combined_failed_nodes = list(parallel_outcome.get("failed_node_ids", []))
@@ -3210,8 +3170,22 @@ class CoverageMetricsRegenerator:
                 "coverage_collected": False,
                 "coverage_outcome": {
                     "state": "coverage_failed",
-                    "parallel": {"state": "unknown"},
-                    "no_parallel": {"state": "unknown"},
+                    "parallel": {
+                        "state": "unknown",
+                        "classification": "unknown",
+                        "classification_reason": "coverage_execution_error",
+                        "actionable_context": "Coverage execution failed before track outcome could be computed.",
+                        "log_file": None,
+                        "return_code_hex": None,
+                    },
+                    "no_parallel": {
+                        "state": "unknown",
+                        "classification": "unknown",
+                        "classification_reason": "coverage_execution_error",
+                        "actionable_context": "Coverage execution failed before track outcome could be computed.",
+                        "log_file": None,
+                        "return_code_hex": None,
+                    },
                     "failed_node_ids": [],
                 },
             }
@@ -3359,7 +3333,7 @@ class CoverageMetricsRegenerator:
     def run_dev_tools_coverage(self) -> Dict[str, Dict[str, Any]]:
         """Run pytest coverage analysis specifically for development_tools directory."""
         if logger:
-            logger.info("Running pytest coverage analysis for development_tools...")
+            logger.debug("Running pytest coverage analysis for development_tools...")
         self._cleanup_stray_pytest_cache_temp_dirs()
 
         # Dev tools coverage caching: check if dev tools have changed
@@ -3750,6 +3724,27 @@ class CoverageMetricsRegenerator:
             parsed_dev_tools_results = self._parse_pytest_test_results(
                 result.stdout if hasattr(result, "stdout") and result.stdout else ""
             )
+            if logger:
+                logger.info(
+                    "Dev tools tests completed: "
+                    f"{parsed_dev_tools_results.get('passed_count', 0)} passed, "
+                    f"{parsed_dev_tools_results.get('failed_count', 0)} failed, "
+                    f"{parsed_dev_tools_results.get('skipped_count', 0)} skipped"
+                )
+                dev_tools_failed_nodes = list(
+                    parsed_dev_tools_results.get("failed_tests", [])
+                )
+                dev_tools_failed_nodes.extend(
+                    parsed_dev_tools_results.get("error_tests", [])
+                )
+                if dev_tools_failed_nodes:
+                    logger.warning("Dev tools failed/error tests:")
+                    for node in dev_tools_failed_nodes[:10]:
+                        logger.warning(f"  - {node}")
+                    if len(dev_tools_failed_nodes) > 10:
+                        logger.warning(
+                            f"  ... and {len(dev_tools_failed_nodes) - 10} more (see log for full list)"
+                        )
             dev_tools_test_outcome = self._build_track_outcome(
                 return_code=(
                     result.returncode if hasattr(result, "returncode") else None
@@ -4075,6 +4070,38 @@ class CoverageMetricsRegenerator:
             return False
         return return_code in {3221226505, 3221225477}
 
+    def _format_return_code_hex(self, return_code: Optional[int]) -> Optional[str]:
+        """Return normalized hex code string for process return codes."""
+        if return_code is None:
+            return None
+        # Preserve canonical Windows-code display used in existing tooling/docs.
+        canonical_codes = {
+            3221226505: "0xC0000135",
+            3221225477: "0xC0000005",
+        }
+        if return_code in canonical_codes:
+            return canonical_codes[return_code]
+        try:
+            return f"0x{(int(return_code) & 0xFFFFFFFF):08X}"
+        except (TypeError, ValueError):
+            return None
+
+    def _classify_windows_crash_return_code(
+        self, return_code: Optional[int]
+    ) -> Tuple[Optional[str], Optional[str]]:
+        """Return crash reason and actionable context for known Windows return codes."""
+        if return_code == 3221226505:
+            return (
+                "windows_status_dll_not_found",
+                "Missing DLL or PATH issue in Python/runtime dependencies. Verify Python install and dependency DLL availability.",
+            )
+        if return_code == 3221225477:
+            return (
+                "windows_status_access_violation",
+                "Process access violation likely from native/library interaction. Review UI/native deps and threading-sensitive tests.",
+            )
+        return None, None
+
     def _is_infra_cleanup_error(self, output: str) -> bool:
         """Detect pytest teardown cleanup errors that are infra failures, not test failures."""
         if not output:
@@ -4096,11 +4123,35 @@ class CoverageMetricsRegenerator:
         )
         return any(marker in lowered for marker in crash_markers)
 
+    def _log_windows_crash_context(
+        self, return_code: Optional[int], log_file: Optional[Path]
+    ) -> None:
+        """Emit consistent, non-duplicated crash diagnostics for known Windows crashes."""
+        if not logger:
+            return
+        reason, context = self._classify_windows_crash_return_code(return_code)
+        if reason is None:
+            return
+        return_code_hex = self._format_return_code_hex(return_code) or "unknown"
+        if reason == "windows_status_dll_not_found":
+            logger.error(
+                f"Pytest crashed with Windows error {return_code_hex} (STATUS_DLL_NOT_FOUND)"
+            )
+        elif reason == "windows_status_access_violation":
+            logger.error(
+                f"Pytest crashed with Windows error {return_code_hex} (STATUS_ACCESS_VIOLATION)"
+            )
+        logger.error(context)
+        if log_file:
+            logger.error(f"Check log for details: {log_file}")
+
     def _build_track_outcome(
         self,
         return_code: Optional[int],
         parsed_results: Dict[str, Any],
         output: str,
+        track_name: str = "track",
+        log_file: Optional[Path] = None,
     ) -> Dict[str, Any]:
         """Build normalized per-track outcome details for report generation."""
         failed_tests = list(parsed_results.get("failed_tests", []))
@@ -4111,29 +4162,79 @@ class CoverageMetricsRegenerator:
         error_count = int(parsed_results.get("error_count", 0) or 0)
         passed_count = int(parsed_results.get("passed_count", 0) or 0)
         skipped_count = int(parsed_results.get("skipped_count", 0) or 0)
+        return_code_hex = self._format_return_code_hex(return_code)
+        normalized_log_file = str(log_file).replace("\\", "/") if log_file else None
 
         state = "unknown"
+        classification = "unknown"
+        classification_reason = "unknown"
+        actionable_context = "Review pytest stdout log for this track."
         if self._is_infra_cleanup_error(output):
             state = "infra_cleanup_error"
+            classification = "infra_cleanup_error"
+            classification_reason = "cleanup_dead_symlinks_permission_error"
+            actionable_context = (
+                "Pytest teardown cleanup permission issue detected. Review temp-dir cleanup permissions and retry."
+            )
         elif self._is_xdist_worker_crash_output(output):
             state = "crashed"
+            classification = "crashed"
+            classification_reason = "xdist_worker_crash_output"
+            actionable_context = (
+                "xdist worker crash markers detected in pytest output. Inspect worker crash details in track log."
+            )
         elif self._is_windows_crash_return_code(return_code):
             state = "crashed"
+            classification = "crashed"
+            crash_reason, crash_context = self._classify_windows_crash_return_code(
+                return_code
+            )
+            classification_reason = crash_reason or "windows_crash_return_code"
+            actionable_context = crash_context or actionable_context
         elif return_code is None and total_tests == 0 and not (output or "").strip():
             state = "skipped"
+            classification = "skipped"
+            classification_reason = "no_output_no_return_code"
+            actionable_context = (
+                f"{track_name} produced no return code and no parsed output (likely intentionally skipped)."
+            )
         elif return_code not in (0, None) and total_tests == 0 and not failed_node_ids:
             state = "crashed"
+            classification = "crashed"
+            classification_reason = "nonzero_without_tests"
+            actionable_context = (
+                "Non-zero exit with zero parsed tests indicates subprocess crash/infra issue before pytest summary."
+            )
         elif failed_count > 0 or error_count > 0 or failed_node_ids:
             state = "failed"
+            classification = "failed"
+            classification_reason = "pytest_failed_or_errored"
+            actionable_context = "One or more pytest node IDs failed/errored. Fix failing tests and rerun."
         elif return_code == 0 and total_tests > 0:
             state = "passed"
+            classification = "passed"
+            classification_reason = "pytest_passed"
+            actionable_context = "Track completed successfully."
         elif return_code == 0 and total_tests == 0:
             state = "skipped"
+            classification = "skipped"
+            classification_reason = "zero_tests_collected"
+            actionable_context = "Track completed with zero collected tests."
         elif return_code is None:
             state = "crashed"
+            classification = "crashed"
+            classification_reason = "missing_return_code"
+            actionable_context = "Subprocess did not return a valid exit code."
 
+        # LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)
+        # Temporary bridge for downstream consumers still reading v1 track fields directly.
         return {
             "state": state,
+            "classification": classification,
+            "classification_reason": classification_reason,
+            "actionable_context": actionable_context,
+            "log_file": normalized_log_file,
+            "return_code_hex": return_code_hex,
             "return_code": return_code,
             "passed_count": passed_count,
             "failed_count": failed_count,
@@ -4151,7 +4252,10 @@ class CoverageMetricsRegenerator:
         """Compute aggregate coverage/test outcome state for Tier 3 reporting."""
         if not coverage_collected:
             return "coverage_failed"
-        states = [parallel.get("state"), no_parallel.get("state")]
+        states = [
+            parallel.get("classification", parallel.get("state")),
+            no_parallel.get("classification", no_parallel.get("state")),
+        ]
         if "infra_cleanup_error" in states:
             return "infra_cleanup_error"
         if "crashed" in states:
@@ -4356,7 +4460,7 @@ class CoverageMetricsRegenerator:
 
             return coverage_results
         else:
-            logger.info("Generating test coverage...")
+            logger.debug("Generating test coverage...")
 
             # Run coverage analysis
             coverage_results = self.run_coverage_analysis()

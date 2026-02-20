@@ -883,7 +883,7 @@ class ErrorHandlingAnalyzer:
 
     def analyze_project(self, include_tests: bool = False, include_dev_tools: bool = False) -> Dict[str, Any]:
         """Analyze error handling across the entire project."""
-        logger.info("Analyzing error handling coverage...")
+        logger.debug("Analyzing error handling coverage...")
         
         # Determine context based on configuration
         if include_tests and include_dev_tools:
@@ -930,7 +930,7 @@ class ErrorHandlingAnalyzer:
             if not should_exclude_file(str(py_file), 'analysis', context):
                 python_files.append(py_file)
         
-        logger.info(f"Found {len(python_files)} Python files to analyze")
+        logger.debug(f"Found {len(python_files)} Python files to analyze")
         
         # Analyze each file
         file_results = []

@@ -105,7 +105,8 @@ python development_tools/run_development_tools.py help
 - **Execution**: Coverage tools and legacy group run in parallel; coverage-dependent tools run sequentially after coverage completes
 - **Use case**: Comprehensive analysis, pre-release checks, periodic deep audits
 - **Tier 3 outcome states**: `clean`, `test_failures`, `crashed`, `infra_cleanup_error`, `coverage_failed`.
-- **Strict mode behavior**: `audit --strict` returns non-zero for Tier 3 `test_failures` or `crashed`; default audit mode remains non-strict.
+- **Strict mode behavior**: `audit --strict` returns non-zero for Tier 3 `test_failures`, `crashed`, or `infra_cleanup_error`; default audit mode remains non-strict.
+- **Track classification fields**: Tier 3 `coverage_outcome.parallel`/`coverage_outcome.no_parallel` include `classification`, `classification_reason`, `actionable_context`, `log_file`, and `return_code_hex` in addition to legacy state/count fields.
 
 **Note**: All three tiers update the same output files:
 - AI-facing (root): `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`

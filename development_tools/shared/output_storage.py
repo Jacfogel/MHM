@@ -162,7 +162,7 @@ def save_tool_result(
                     os.fsync(f.fileno())  # Force sync to disk on Unix
                 except (OSError, AttributeError):
                     pass  # fsync not available or not needed on Windows
-        logger.info(
+        logger.debug(
             f"Saved tool result: {result_file} (archive_count={archive_count}, data_size={len(str(result_data))} chars)"
         )
     except Exception as e:
