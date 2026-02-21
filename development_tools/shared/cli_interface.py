@@ -518,6 +518,93 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         return 1
 
 
+def _backup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle backup policy operations."""
+    parser = argparse.ArgumentParser(prog="backup", add_help=False)
+    subparsers = parser.add_subparsers(dest="backup_subcommand")
+
+    subparsers.add_parser("inventory", add_help=False)
+
+    retention_parser = subparsers.add_parser("retention", add_help=False)
+    retention_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview retention actions without deleting files (default).",
+    )
+    retention_parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Apply retention actions and delete selected files.",
+    )
+
+    drill_parser = subparsers.add_parser("drill", add_help=False)
+    drill_parser.add_argument(
+        "--backup-path",
+        type=str,
+        default=None,
+        help="Optional explicit backup artifact path. Defaults to newest available backup.",
+    )
+    drill_parser.add_argument(
+        "--restore-config",
+        action="store_true",
+        help="Include config restore in the isolated restore drill.",
+    )
+
+    verify_parser = subparsers.add_parser("verify", add_help=False)
+    verify_parser.add_argument(
+        "--skip-drill",
+        action="store_true",
+        help="Skip isolated restore drill and run inventory/recency/validation checks only.",
+    )
+
+    if "-h" in argv or "--help" in argv:
+        print("Usage:")
+        print("  backup inventory")
+        print("  backup retention [--dry-run|--apply]")
+        print("  backup drill [--backup-path <path>] [--restore-config]")
+        print("  backup verify [--skip-drill]")
+        return 0
+
+    if not argv:
+        print("Usage:")
+        print("  backup inventory")
+        print("  backup retention [--dry-run|--apply]")
+        print("  backup drill [--backup-path <path>] [--restore-config]")
+        print("  backup verify [--skip-drill]")
+        return 2
+
+    try:
+        ns = parser.parse_args(list(argv))
+    except SystemExit:
+        return 2
+
+    if ns.backup_subcommand == "inventory":
+        result = service.run_backup_inventory()
+        return 0 if result.get("success") else 1
+
+    if ns.backup_subcommand == "retention":
+        apply_flag = bool(getattr(ns, "apply", False))
+        dry_run_flag = True if not apply_flag else False
+        # If both are specified, --apply takes precedence.
+        result = service.run_backup_retention(dry_run=dry_run_flag, apply=apply_flag)
+        return 0 if result.get("success") else 1
+
+    if ns.backup_subcommand == "drill":
+        result = service.run_backup_drill(
+            backup_path=ns.backup_path,
+            restore_users=True,
+            restore_config=bool(ns.restore_config),
+        )
+        return 0 if result.get("success") else 1
+
+    if ns.backup_subcommand == "verify":
+        result = service.run_backup_health_check(run_drill=not bool(ns.skip_drill))
+        return 0 if result.get("success") else 1
+
+    print("Invalid backup subcommand. Use: inventory, retention, drill, or verify.")
+    return 2
+
+
 def _export_code_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     """
     Export Python files into a single Markdown snapshot.
@@ -706,6 +793,14 @@ COMMAND_REGISTRY = OrderedDict(
                 "clean-up",
                 _cleanup_command,
                 "Alias for `cleanup` (clean project cache and temporary files).",
+            ),
+        ),
+        (
+            "backup",
+            CommandRegistration(
+                "backup",
+                _backup_command,
+                "Backup policy operations: inventory, retention, restore drill, and health verification.",
             ),
         ),
         (

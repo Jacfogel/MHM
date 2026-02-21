@@ -41,7 +41,7 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 **Where to look:**
 - Implementation: `core/backup_manager.py` - `BackupManager`
 - Scheduler integration: `core/scheduler.py`
-- Backup artifacts: `data/backups/*.zip`
+- Backup artifacts: `data/backups/*` (directory backups by policy; zip is read-only compatibility for historical artifacts)
 
 **AI usage:**
 - Use `BackupManager.create_backup()` for creating backups
@@ -74,19 +74,22 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 **Where to look:**
 - Implementation: `development_tools/shared/file_rotation.py` - `FileRotator`, `create_output_file()`
 - Storage: `development_tools/shared/output_storage.py` - `save_tool_result()`
+- Policy models: `development_tools/shared/backup_policy_models.py`
+- Inventory/retention: `development_tools/shared/backup_inventory.py`, `development_tools/shared/retention_engine.py`
 - Archives: `development_tools/reports/archive/` or `{domain}/jsons/archive/`
 
 **Key rules:**
-- Status files: 7 versions
-- Tool results: 7 versions (standardized)
-- Generated docs: 7 versions
-- Coverage JSON: 5 versions
-- Test logs: current 1 + 7 backups + up to 7 archive copies (archive >30 days removed)
+- `backup inventory` generates ownership map + producer/output inventory from config
+- `backup retention --dry-run|--apply` enforces category-B retention for dev-tools-owned artifacts
+- `backup drill` runs isolated restore drill via core backup API and writes reports
+- `backup verify` runs end-to-end backup health checks (inventory + latest backup validation + drill)
+- Dev-tools policy is config-driven from `development_tools/config/development_tools_config.json`
 
 **AI usage:**
 - Use `create_output_file()` for status files and generated docs
 - Use `save_tool_result()` for tool JSON results
 - Use `FileRotator.rotate_file()` for custom rotation needs
+- Use `python development_tools/run_development_tools.py backup <inventory|retention|drill|verify>` for policy workflows
 
 **Restore:** See BACKUP_GUIDE.md section 4.3 for restore procedures.
 
@@ -131,21 +134,19 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 ## 7. Unified Retention Policy
 
 **Standardized policies:**
-- Logs: current 1 + 7 backups + up to 7 archive copies (archive >30 days deleted)
-- User backups: 30 days OR 10 files
-- Message archives: 90 days
-- Dev tools (status): 7 versions
-- Dev tools (results): 7 versions
-- Generated docs: 7 versions
-- Coverage JSON: 5 versions
-- Test logs: current 1 + 7 backups + up to 7 archive copies (archive >30 days deleted)
+- Category A (runtime recovery): `max_age_days=30`, `min_keep=4`, `max_keep=10` (core-owned)
+- Category B (engineering artifacts): `max_age_days=90`, `min_keep=7`, `max_keep=30` (development-tools-owned)
+- Category C (git-canonical tracked assets): local retention disabled; rely on Git history
 
-**Global rotation protocol (default):**
-- Keep `1` current active file
-- Keep `7` previous versions in `backups/`
-- Move older rotated copies to `archive/` and keep up to `7`
-- Delete archived copies older than `30` days
-- Effective target: up to `15` most recent copies retained (1 current + 7 backups + 7 archive)
+**Ownership map:**
+- `core/*`: user-data backup creation/restore + scheduler weekly backup
+- `development_tools/*`: engineering artifact inventory/retention/reporting
+- `git`: canonical code/docs/changelog history
+
+**Artifact mapping:**
+- Generated docs, test logs, tool JSON archives, coverage artifacts, manual snapshots -> Category B
+- User backup artifacts (directory by policy; historical zip read support only) and runtime log archives -> Category A
+- Code files, non-generated docs, changelogs -> Category C
 
 **AI usage:**
 - Follow these policies consistently
@@ -164,9 +165,15 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 **Common operations:**
 - Create backup: `backup_manager.create_backup()`
 - Restore: `backup_manager.restore_backup(path, restore_users=True)`
+- Isolated restore (drill): `backup_manager.restore_backup_to_path(path, destination, restore_users=True, restore_config=False)`
 - Validate: `backup_manager.validate_backup(path)`
 - Rotate file: `create_output_file(path, content, rotate=True, max_versions=7)`
 - Create snapshot: `create_project_snapshot(include_user_data=False, compress=True)`
+- Inventory report: `python development_tools/run_development_tools.py backup inventory`
+- Retention dry-run: `python development_tools/run_development_tools.py backup retention --dry-run`
+- Retention apply: `python development_tools/run_development_tools.py backup retention --apply`
+- Restore drill: `python development_tools/run_development_tools.py backup drill`
+- Backup health verify: `python development_tools/run_development_tools.py backup verify`
 
 **For detailed procedures:** See BACKUP_GUIDE.md section 8 for complete safety procedures.
 

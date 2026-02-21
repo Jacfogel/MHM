@@ -1966,21 +1966,29 @@ class SchedulerManager:
             # Get list of existing backups
             backups = backup_manager.list_backups()
 
-            # Check if backup is needed
+            # Check if weekly backup is needed based on weekly artifacts only.
             needs_backup = False
+            weekly_backups = []
+            for backup in backups:
+                if not isinstance(backup, dict):
+                    continue
+                backup_name = str(backup.get("backup_name") or "")
+                file_name = str(backup.get("file_name") or "")
+                if "weekly_backup_" in backup_name or "weekly_backup_" in file_name:
+                    weekly_backups.append(backup)
 
-            if not backups:
-                logger.info("No existing backups found - creating first backup")
+            if not weekly_backups:
+                logger.info("No weekly backups found - creating weekly backup")
                 needs_backup = True
             else:
-                # Get the most recent backup (list is sorted newest first)
-                last_backup = backups[0]
+                # Get the most recent weekly backup.
+                last_backup = weekly_backups[0]
 
                 created_at_str = last_backup.get("created_at") or ""
                 last_backup_time = parse_timestamp_full(created_at_str)
                 if last_backup_time is None:
                     logger.warning(
-                        f"Latest backup has invalid created_at timestamp '{created_at_str}' - creating a new backup for safety"
+                        f"Latest weekly backup has invalid created_at timestamp '{created_at_str}' - creating a new backup for safety"
                     )
                     needs_backup = True
                 else:
@@ -1988,12 +1996,12 @@ class SchedulerManager:
 
                     if days_since_backup >= 7:
                         logger.info(
-                            f"Last backup was {days_since_backup} days ago - creating new backup"
+                            f"Last weekly backup was {days_since_backup} days ago - creating new backup"
                         )
                         needs_backup = True
                     else:
                         logger.debug(
-                            f"Backup not needed - last backup was {days_since_backup} days ago"
+                            f"Weekly backup not needed - last weekly backup was {days_since_backup} days ago"
                         )
 
             # Create backup if needed

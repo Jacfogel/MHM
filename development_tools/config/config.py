@@ -277,6 +277,7 @@ AUDIT_TIERS = {
             "analyze_unused_imports",
             "analyze_legacy_references",
             "analyze_module_dependencies",
+            "analyze_backup_health",
         ],
         "report_generators": [
             "generate_legacy_reference_report",  # → LEGACY_REFERENCE_REPORT.md
@@ -892,6 +893,66 @@ def get_system_signals_config():
                 result[key] = value
         return result
     return SYSTEM_SIGNALS
+
+
+# Backup policy configuration
+BACKUP_POLICY = {
+    "categories": {
+        "A": {
+            "description": "Recovery-critical runtime data",
+            "max_age_days": 30,
+            "min_keep": 4,
+            "max_keep": 10,
+            "local_retention_enabled": True,
+        },
+        "B": {
+            "description": "Engineering artifacts",
+            "max_age_days": 90,
+            "min_keep": 7,
+            "max_keep": 30,
+            "local_retention_enabled": True,
+        },
+        "C": {
+            "description": "Git-canonical tracked assets",
+            "max_age_days": None,
+            "min_keep": 0,
+            "max_keep": 0,
+            "local_retention_enabled": False,
+        },
+    },
+    "artifact_rules": [],
+    "restore_drill": {
+        "temp_restore_root": "development_tools/reports/backup_drills",
+        "report_json_path": "development_tools/reports/backup_restore_drill_report.json",
+        "report_markdown_path": "development_tools/reports/backup_restore_drill_report.md",
+        "verification_checks": {
+            "required_paths": ["users"],
+            "min_file_count": 1,
+        },
+    },
+    "ownership_map": {
+        "core": "User backup creation/restore + runtime backup scheduling",
+        "development_tools": "Engineering artifact retention/inventory/reporting",
+        "git": "Canonical source history for tracked code/docs/changelogs",
+    },
+}
+
+
+def get_backup_policy_config():
+    """Get backup policy configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value("backup_policy", None)
+    if external_config:
+        result = BACKUP_POLICY.copy()
+        # Deep merge for top-level nested sections
+        for nested_key in ("categories", "restore_drill", "ownership_map"):
+            merged_nested = dict(result.get(nested_key, {}))
+            if isinstance(external_config.get(nested_key), dict):
+                merged_nested.update(external_config.get(nested_key, {}))
+                result[nested_key] = merged_nested
+        if isinstance(external_config.get("artifact_rules"), list):
+            result["artifact_rules"] = external_config["artifact_rules"]
+        return result
+    return BACKUP_POLICY
 
 
 # Auto document functions configuration

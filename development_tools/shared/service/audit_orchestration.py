@@ -1020,6 +1020,7 @@ class AuditOrchestrationMixin:
         tier3_coverage_dependent_group = [
             ('analyze_test_markers', lambda: self.run_test_markers('check')),  # 1.57s
             ('generate_test_coverage_report', self.run_generate_test_coverage_report),  # ~5s
+            ('analyze_backup_health', lambda: self.run_backup_health_check(run_drill=True)),
         ]
         
         # Legacy group - analyze_legacy_references (62.11s) is >10s, so entire group stays in Tier 3

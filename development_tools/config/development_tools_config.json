@@ -367,6 +367,12 @@
         "tier3_coverage_outcome_v1",
         "legacy_state_only_payload"
       ],
+      "backup_zip_compat_bridge": [
+        "LEGACY COMPATIBILITY: BACKUP_FORMAT=zip ignored in runtime; backup creation is directory-only by policy",
+        "LEGACY COMPATIBILITY: Zip backup restore path for historical artifacts\\.",
+        "LEGACY COMPATIBILITY: Validating zip backup artifact:",
+        "LEGACY COMPATIBILITY: Reading zip backup metadata:"
+      ],
       "legacy_inventory_tracking": [
         "(?i)backward compatibility",
         "(?i)compatibility methods",
@@ -786,6 +792,154 @@
     "actionable_threshold": 75.0,
     "rule_sets": {},
     "rule_set_paths": []
+  },
+  "backup_policy": {
+    "categories": {
+      "A": {
+        "description": "Recovery-critical runtime data",
+        "max_age_days": 30,
+        "min_keep": 4,
+        "max_keep": 10,
+        "local_retention_enabled": true
+      },
+      "B": {
+        "description": "Engineering artifacts",
+        "max_age_days": 90,
+        "min_keep": 7,
+        "max_keep": 30,
+        "local_retention_enabled": true
+      },
+      "C": {
+        "description": "Git-canonical tracked assets",
+        "max_age_days": null,
+        "min_keep": 0,
+        "max_keep": 0,
+        "local_retention_enabled": false
+      }
+    },
+    "artifact_rules": [
+      {
+        "name": "core_user_backups",
+        "paths": [
+          "data/backups/*"
+        ],
+        "category": "A",
+        "enabled": true,
+        "ownership": "core",
+        "portable": true,
+        "producer": "core.backup_manager + core.scheduler",
+        "trigger": "scheduled_weekly",
+        "restore_path": "core.backup_manager.restore_backup",
+        "notes": "Core-owned runtime recovery artifacts"
+      },
+      {
+        "name": "runtime_log_archives",
+        "paths": [
+          "logs/archive/*",
+          "logs/backups/*"
+        ],
+        "category": "A",
+        "enabled": true,
+        "ownership": "core",
+        "portable": true,
+        "producer": "core.logger",
+        "trigger": "automatic_rotation",
+        "restore_path": "manual_log_restore",
+        "notes": "Managed by runtime logging pipeline"
+      },
+      {
+        "name": "devtools_report_archives",
+        "paths": [
+          "development_tools/reports/archive/**/*",
+          "development_tools/reports/jsons/*.json"
+        ],
+        "category": "B",
+        "enabled": true,
+        "ownership": "development_tools",
+        "portable": true,
+        "producer": "development_tools output storage",
+        "trigger": "on_command_run",
+        "restore_path": "copy_archive_to_active"
+      },
+      {
+        "name": "devtools_domain_json_archives",
+        "paths": [
+          "development_tools/*/jsons/archive/**/*",
+          "development_tools/*/jsons/*_results.json",
+          "development_tools/*/jsons/.*_cache.json"
+        ],
+        "category": "B",
+        "enabled": true,
+        "ownership": "development_tools",
+        "portable": true,
+        "producer": "development_tools.save_tool_result/save_tool_cache",
+        "trigger": "on_command_run",
+        "restore_path": "copy_archive_to_active"
+      },
+      {
+        "name": "generated_docs_archives",
+        "paths": [
+          "development_docs/archive/**/*",
+          "ai_development_docs/archive/**/*"
+        ],
+        "category": "B",
+        "enabled": true,
+        "ownership": "development_tools",
+        "portable": true,
+        "producer": "development_tools docs generators",
+        "trigger": "on_docs_generation",
+        "restore_path": "copy_archive_to_active"
+      },
+      {
+        "name": "test_and_coverage_artifacts",
+        "paths": [
+          "development_tools/tests/logs/**/*",
+          "development_tools/tests/jsons/archive/**/*",
+          "archive/coverage_artifacts/**/*"
+        ],
+        "category": "B",
+        "enabled": true,
+        "ownership": "development_tools",
+        "portable": true,
+        "producer": "development_tools coverage workflows",
+        "trigger": "on_coverage_run",
+        "restore_path": "copy_archive_to_active"
+      },
+      {
+        "name": "git_canonical_docs_and_code",
+        "paths": [
+          "core/**/*.py",
+          "communication/**/*.py",
+          "development_docs/*.md",
+          "ai_development_docs/*.md",
+          "README.md",
+          "TODO.md"
+        ],
+        "category": "C",
+        "enabled": true,
+        "ownership": "git",
+        "portable": true,
+        "producer": "git",
+        "trigger": "version_control",
+        "restore_path": "git_restore",
+        "notes": "Local retention commands must not mutate these files"
+      }
+    ],
+    "restore_drill": {
+      "temp_restore_root": "development_tools/reports/backup_drills",
+      "report_json_path": "development_tools/reports/jsons/backup_restore_drill_report.json",
+      "verification_checks": {
+        "required_paths": [
+          "users"
+        ],
+        "min_file_count": 1
+      }
+    },
+    "ownership_map": {
+      "core": "User backup creation/restore and runtime backup scheduling",
+      "development_tools": "Artifact inventory, retention, and backup drill reporting",
+      "git": "Canonical history for tracked code/docs/changelogs"
+    }
   },
   "unused_imports": {
     "pylint_command": [

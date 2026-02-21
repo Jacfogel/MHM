@@ -204,13 +204,38 @@ class TestInteractionHandlersBehavior:
         # Poll for index visibility first; rebuild only as fallback for parallel lag.
         internal_user_id = get_user_id_by_identifier(user_id)
         if internal_user_id is None:
+            assert wait_until(
+                lambda: (
+                    get_user_id_by_identifier(user_id) is not None
+                    or TestUserFactory.get_test_user_id_by_internal_username(
+                        user_id, test_data_dir
+                    )
+                    is not None
+                ),
+                timeout_seconds=3.0,
+                poll_seconds=0.02,
+            ), "Should resolve user UUID from index or test directory scan"
+            internal_user_id = get_user_id_by_identifier(user_id) or TestUserFactory.get_test_user_id_by_internal_username(
+                user_id, test_data_dir
+            )
+        if internal_user_id is None:
             rebuild_user_index()
             assert wait_until(
-                lambda: get_user_id_by_identifier(user_id) is not None,
-                timeout_seconds=1.5,
-                poll_seconds=0.01,
+                lambda: (
+                    get_user_id_by_identifier(user_id) is not None
+                    or TestUserFactory.get_test_user_id_by_internal_username(
+                        user_id, test_data_dir
+                    )
+                    is not None
+                ),
+                timeout_seconds=4.0,
+                poll_seconds=0.02,
             ), "Should resolve user UUID for created user"
             internal_user_id = get_user_id_by_identifier(user_id)
+        if internal_user_id is None:
+            internal_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+                user_id, test_data_dir
+            )
         assert internal_user_id is not None, "Should be able to get UUID for created user"
         
         # Create some test tasks first

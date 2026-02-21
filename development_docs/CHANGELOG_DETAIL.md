@@ -33,6 +33,38 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-21 - Backup reliability hardening + JSON-only backup reporting
+- **Feature/Fix**: Completed backup reliability hardening across core and development-tools: directory-first runtime backup policy, weekly backup cadence protections, explicit backup-health verification, and JSON-only backup reporting outputs.
+- **Technical Changes**:
+  - `core/backup_manager.py`
+    - backup creation now writes directory artifacts with `manifest.json` by default in runtime policy;
+    - backup listing, retention cleanup, metadata, restore, isolated restore drill, and validation now support directory artifacts;
+    - zip support is retained only as explicit `# LEGACY COMPATIBILITY:` read-path handling (metadata read/restore/validate/drill) with bridge-use logging;
+    - retention now protects weekly backups from being evicted by high-frequency auto backups (separate weekly keep window).
+  - `core/scheduler.py`
+    - weekly backup scheduling now evaluates recency using the latest `weekly_backup_*` artifact (not latest backup of any type), preventing weekly cadence suppression.
+  - `core/auto_cleanup.py`
+    - backup cleanup now includes both zip files and directory backup artifacts (manifest-backed directories).
+  - `development_tools/shared/service/commands.py`
+    - added/expanded `analyze_backup_health` checks, including explicit weekly backup presence/recency checks;
+    - backup reports moved to JSON-only outputs under `development_tools/reports/jsons/`;
+    - backup drill restore extraction directories are now temporary and auto-cleaned after verification.
+  - `development_tools/shared/service/report_generation.py`
+    - integrated backup health into `AI_STATUS.md` and `consolidated_report.md`;
+    - added consolidated per-check backup-health detail lines;
+    - added AI priority injection when backup health fails.
+  - `development_tools/config/development_tools_config.json`
+  - `development_tools/config/development_tools_config.json.example`
+    - added specific legacy pattern registration for `backup_zip_compat_bridge`.
+    - updated backup report paths to `development_tools/reports/jsons/*` and removed markdown drill report path requirement.
+  - `development_tools/legacy/fix_legacy_references.py`
+    - added `backup_zip_compat_bridge` to required legacy pattern keys.
+- **Policy Clarification**:
+  - compressed formats remain valid for archives (for example, log archives), but active backup artifacts are directory backups by policy;
+  - backup-tool report artifacts are JSON-only and stored in `development_tools/reports/jsons`.
+- **Removal Plan**:
+  - remove zip compatibility read paths in `core/backup_manager.py` and remove `backup_zip_compat_bridge` pattern registration after no zip backup artifacts remain in `data/backups/` for one full Category-A retention window (30 days).
+
 ### 2026-02-20 - Coverage expansion batch + Tier 3 stability fixes
 - **Feature/Fix**: Completed a coverage-focused session to raise scenario/branch coverage in below-target domains (`communication`, `ui`, `core`), with Tier 3 failure remediation performed as stabilization work to keep coverage/audit runs green.
 - **Technical Changes**:

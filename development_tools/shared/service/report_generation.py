@@ -576,6 +576,9 @@ class ReportGenerationMixin:
         dependency_patterns_data = self._load_tool_data(
             "analyze_dependency_patterns", "imports"
         )
+        backup_health_data = self._load_tool_data(
+            "analyze_backup_health", "reports", log_source=False
+        )
 
         # Extract overlap analysis data
         details = analyze_docs_data.get("details", {})
@@ -1024,6 +1027,36 @@ class ReportGenerationMixin:
                     f"- **Test Coverage**: {percent_text(overall.get('coverage'), 1)} "
                     f"({overall.get('covered')} of {overall.get('statements')} statements)"
                 )
+
+        backup_summary = (
+            backup_health_data.get("summary", {})
+            if isinstance(backup_health_data, dict)
+            else {}
+        )
+        backup_checks = (
+            backup_health_data.get("details", {}).get("checks", [])
+            if isinstance(backup_health_data.get("details"), dict)
+            else backup_health_data.get("checks", [])
+            if isinstance(backup_health_data, dict)
+            else []
+        )
+        if backup_summary:
+            backup_status = str(
+                backup_summary.get(
+                    "status",
+                    "PASS" if bool(backup_summary.get("success")) else "FAIL",
+                )
+            ).upper()
+            passed_checks = backup_summary.get("passed_checks")
+            total_checks = backup_summary.get("total_checks")
+            check_fragment = ""
+            if isinstance(passed_checks, int) and isinstance(total_checks, int):
+                check_fragment = f" ({passed_checks}/{total_checks} checks)"
+            lines.append(f"- **Backup Health**: {backup_status}{check_fragment}")
+        else:
+            lines.append(
+                "- **Backup Health**: Not collected in this run (run `python development_tools/run_development_tools.py backup verify`)"
+            )
 
         lines.append("")
         lines.append("## Documentation Signals")
@@ -1904,6 +1937,59 @@ class ReportGenerationMixin:
                 )
 
         lines.append("")
+        lines.append("## Backup Health")
+
+        if backup_summary:
+            backup_status = str(
+                backup_summary.get(
+                    "status",
+                    "PASS" if bool(backup_summary.get("success")) else "FAIL",
+                )
+            ).upper()
+            lines.append(f"- **Status**: {backup_status}")
+            passed_checks = backup_summary.get("passed_checks")
+            total_checks = backup_summary.get("total_checks")
+            if isinstance(passed_checks, int) and isinstance(total_checks, int):
+                lines.append(f"- **Checks**: {passed_checks}/{total_checks} passed")
+            latest_backup_path = backup_summary.get("latest_backup_path")
+            if latest_backup_path:
+                lines.append(f"- **Latest Backup Artifact**: `{latest_backup_path}`")
+            latest_created_at = backup_summary.get("latest_backup_created_at")
+            if latest_created_at:
+                lines.append(f"- **Latest Backup Created At**: {latest_created_at}")
+            weekly_present_status = "UNKNOWN"
+            weekly_recent_status = "UNKNOWN"
+            if isinstance(backup_checks, list):
+                for check in backup_checks:
+                    if not isinstance(check, dict):
+                        continue
+                    check_name = str(check.get("name") or "")
+                    if check_name == "weekly_backup_present":
+                        weekly_present_status = (
+                            "PASS" if bool(check.get("success")) else "FAIL"
+                        )
+                    if check_name == "weekly_backup_recent_enough":
+                        weekly_recent_status = (
+                            "PASS" if bool(check.get("success")) else "FAIL"
+                        )
+            lines.append(f"- **Weekly Backup Presence**: {weekly_present_status}")
+            lines.append(f"- **Weekly Backup Recency**: {weekly_recent_status}")
+
+            drill_status = "SKIPPED"
+            if isinstance(backup_checks, list):
+                for check in backup_checks:
+                    if isinstance(check, dict) and check.get("name") == "restore_drill":
+                        drill_status = "PASS" if bool(check.get("success")) else "FAIL"
+                        break
+            elif bool(backup_summary.get("drill_executed")):
+                drill_status = "UNKNOWN"
+            lines.append(f"- **Restore Drill**: {drill_status}")
+        else:
+            lines.append(
+                "- Backup health data unavailable (run `python development_tools/run_development_tools.py backup verify`)"
+            )
+
+        lines.append("")
         lines.append("## System Signals")
 
         if hasattr(self, "system_signals") and self.system_signals:
@@ -2213,6 +2299,9 @@ class ReportGenerationMixin:
         )
         duplicate_functions_data = self._load_tool_data(
             "analyze_duplicate_functions", "functions"
+        )
+        backup_health_data = self._load_tool_data(
+            "analyze_backup_health", "reports", log_source=False
         )
 
         analyze_details = (
@@ -2668,6 +2757,7 @@ class ReportGenerationMixin:
                 "Investigate possible duplicate functions/methods": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Refactor high-complexity functions": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Investigate and correct test failures/errors": "ai_development_docs/AI_TESTING_GUIDE.md",
+                "Investigate backup health failures": "ai_development_docs/AI_BACKUP_GUIDE.md",
                 "Consolidate documentation files": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Review documentation overlaps": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
             }
@@ -2688,6 +2778,7 @@ class ReportGenerationMixin:
                 "Investigate possible duplicate functions/methods": "development_tools/functions/jsons/analyze_duplicate_functions_results.json",
                 "Refactor high-complexity functions": "development_tools/functions/jsons/analyze_functions_results.json",
                 "Investigate and correct test failures/errors": "stdout files in development_tools/tests/logs",
+                "Investigate backup health failures": "development_tools/reports/jsons/backup_health_report.json",
                 "Consolidate documentation files": "development_tools/docs/jsons/analyze_documentation_results.json",
                 "Review documentation overlaps": "development_tools/docs/jsons/analyze_documentation_results.json",
             }
@@ -3983,6 +4074,68 @@ class ReportGenerationMixin:
                 bullets=tier3_bullets,
             )
 
+        backup_summary = (
+            backup_health_data.get("summary", {})
+            if isinstance(backup_health_data, dict)
+            else {}
+        )
+        backup_checks = (
+            backup_health_data.get("details", {}).get("checks", [])
+            if isinstance(backup_health_data.get("details"), dict)
+            else backup_health_data.get("checks", [])
+            if isinstance(backup_health_data, dict)
+            else []
+        )
+        backup_success = bool(backup_summary.get("success")) if backup_summary else False
+        if backup_summary and not backup_success:
+            backup_bullets: List[str] = []
+            backup_bullets.append(
+                "Review for guidance: ai_development_docs/AI_BACKUP_GUIDE.md"
+            )
+
+            failed_checks: List[str] = []
+            if isinstance(backup_checks, list):
+                for check in backup_checks:
+                    if not isinstance(check, dict):
+                        continue
+                    if bool(check.get("success")):
+                        continue
+                    check_name = str(check.get("name") or "unknown_check")
+                    details = check.get("details")
+                    if isinstance(details, dict) and details.get("error"):
+                        failed_checks.append(
+                            f"{check_name} (error={details.get('error')})"
+                        )
+                    else:
+                        failed_checks.append(check_name)
+
+            if failed_checks:
+                backup_bullets.append(
+                    f"Failed checks: {self._format_list_for_display(failed_checks, limit=7)}"
+                )
+            backup_bullets.append(
+                "Action: run `python development_tools/run_development_tools.py backup verify` and resolve failing check(s)"
+            )
+            backup_bullets.append(
+                "Action: run `python development_tools/run_development_tools.py backup drill` to confirm restorability"
+            )
+            backup_bullets.append(
+                "Effort: Small to Medium (depends on whether failure is inventory/reporting vs backup creation/validation)"
+            )
+            backup_bullets.append(
+                "Why this matters: Backup health failures mean recovery confidence is degraded."
+            )
+
+            add_priority(
+                tier=1,
+                title="Investigate backup health failures",
+                reason=(
+                    f"Backup health is {str(backup_summary.get('status', 'FAIL')).upper()} "
+                    f"({backup_summary.get('passed_checks', 0)}/{backup_summary.get('total_checks', 0)} checks passed)."
+                ),
+                bullets=backup_bullets,
+            )
+
         lines.append("## Immediate Focus Ranked")
         if priority_items:
             for idx, item in enumerate(
@@ -4647,6 +4800,9 @@ class ReportGenerationMixin:
         legacy_summary = (
             getattr(self, "legacy_cleanup_summary", None) or legacy_data or {}
         )
+        backup_health_data = self._load_tool_data(
+            "analyze_backup_health", "reports", log_source=False
+        )
 
         # Get missing docstrings count for consolidated report
         func_undocumented = self._coerce_int(code_doc_metrics.get("undocumented"), 0)
@@ -4858,6 +5014,32 @@ class ReportGenerationMixin:
             lines.append(
                 f"- **Legacy references**: {legacy_issues} files still reference legacy patterns"
             )
+
+        backup_summary = (
+            backup_health_data.get("summary", {})
+            if isinstance(backup_health_data, dict)
+            else {}
+        )
+        backup_checks = (
+            backup_health_data.get("details", {}).get("checks", [])
+            if isinstance(backup_health_data.get("details"), dict)
+            else backup_health_data.get("checks", [])
+            if isinstance(backup_health_data, dict)
+            else []
+        )
+        if backup_summary:
+            backup_status = str(
+                backup_summary.get(
+                    "status",
+                    "PASS" if bool(backup_summary.get("success")) else "FAIL",
+                )
+            ).upper()
+            passed_checks = backup_summary.get("passed_checks")
+            total_checks = backup_summary.get("total_checks")
+            check_fragment = ""
+            if isinstance(passed_checks, int) and isinstance(total_checks, int):
+                check_fragment = f" ({passed_checks}/{total_checks} checks)"
+            lines.append(f"- **Backup Health**: {backup_status}{check_fragment}")
 
         lines.append("")
 
@@ -6620,6 +6802,112 @@ class ReportGenerationMixin:
                 lines.append(
                     f"  - Tools missing config module import: {', '.join(missing_import_tools)}"
                 )
+
+        lines.append("")
+
+        # Backup Health
+        lines.append("## Backup Health")
+        if backup_summary:
+            backup_status = str(
+                backup_summary.get(
+                    "status",
+                    "PASS" if bool(backup_summary.get("success")) else "FAIL",
+                )
+            ).upper()
+            lines.append(f"- **Status**: {backup_status}")
+            passed_checks = backup_summary.get("passed_checks")
+            total_checks = backup_summary.get("total_checks")
+            if isinstance(passed_checks, int) and isinstance(total_checks, int):
+                lines.append(f"- **Checks**: {passed_checks}/{total_checks} passed")
+            latest_backup_path = backup_summary.get("latest_backup_path")
+            if latest_backup_path:
+                lines.append(f"- **Latest Backup Artifact**: `{latest_backup_path}`")
+            latest_created_at = backup_summary.get("latest_backup_created_at")
+            if latest_created_at:
+                lines.append(f"- **Latest Backup Created At**: {latest_created_at}")
+            weekly_present_status = "UNKNOWN"
+            weekly_recent_status = "UNKNOWN"
+            if isinstance(backup_checks, list):
+                for check in backup_checks:
+                    if not isinstance(check, dict):
+                        continue
+                    check_name = str(check.get("name") or "")
+                    if check_name == "weekly_backup_present":
+                        weekly_present_status = (
+                            "PASS" if bool(check.get("success")) else "FAIL"
+                        )
+                    if check_name == "weekly_backup_recent_enough":
+                        weekly_recent_status = (
+                            "PASS" if bool(check.get("success")) else "FAIL"
+                        )
+            lines.append(f"- **Weekly Backup Presence**: {weekly_present_status}")
+            lines.append(f"- **Weekly Backup Recency**: {weekly_recent_status}")
+            drill_status = "SKIPPED"
+            if isinstance(backup_checks, list):
+                for check in backup_checks:
+                    if isinstance(check, dict) and check.get("name") == "restore_drill":
+                        drill_status = "PASS" if bool(check.get("success")) else "FAIL"
+                        break
+            elif bool(backup_summary.get("drill_executed")):
+                drill_status = "UNKNOWN"
+            lines.append(f"- **Restore Drill**: {drill_status}")
+            if isinstance(backup_checks, list) and backup_checks:
+                lines.append("- **Check Details**:")
+                for check in backup_checks:
+                    if not isinstance(check, dict):
+                        continue
+                    check_name = str(check.get("name") or "unknown_check")
+                    check_status = "PASS" if bool(check.get("success")) else "FAIL"
+                    detail_text = ""
+                    details = check.get("details")
+                    if isinstance(details, dict):
+                        if check_name == "inventory_generation":
+                            inventory_error = details.get("error")
+                            if inventory_error:
+                                detail_text = f"error={inventory_error}"
+                        elif check_name in {
+                            "weekly_backup_present",
+                            "weekly_backup_recent_enough",
+                        }:
+                            weekly_count = details.get("weekly_backup_count")
+                            weekly_created = details.get("latest_weekly_created_at")
+                            fragments = []
+                            if weekly_count is not None:
+                                fragments.append(f"count={weekly_count}")
+                            if weekly_created:
+                                fragments.append(f"latest={weekly_created}")
+                            detail_text = ", ".join(fragments)
+                        elif check_name == "backups_discoverable":
+                            backup_count = details.get("backup_count")
+                            if backup_count is not None:
+                                detail_text = f"count={backup_count}"
+                        elif check_name == "latest_backup_recent_enough":
+                            latest_created = details.get("latest_created_at")
+                            if latest_created:
+                                detail_text = f"latest={latest_created}"
+                        elif check_name == "latest_backup_validates":
+                            errors = details.get("errors")
+                            if isinstance(errors, list):
+                                detail_text = f"errors={len(errors)}"
+                        elif check_name == "restore_drill":
+                            drill_error = details.get("error")
+                            if drill_error:
+                                detail_text = f"error={drill_error}"
+                            else:
+                                detail_text = "isolated restore verification completed"
+                    if detail_text:
+                        lines.append(
+                            f"- `{check_status}` `{check_name}` ({detail_text})"
+                        )
+                    else:
+                        lines.append(f"- `{check_status}` `{check_name}`")
+            lines.append(
+                "- **Command**: `python development_tools/run_development_tools.py backup verify`"
+            )
+        else:
+            lines.append(
+                "- Backup health data unavailable (run `python development_tools/run_development_tools.py backup verify`)"
+            )
 
         lines.append("")
 

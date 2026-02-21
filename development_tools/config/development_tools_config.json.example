@@ -382,6 +382,12 @@
       "legacy_compatibility_markers": [
         "# LEGACY COMPATIBILITY:",
         "# LEGACY:"
+      ],
+      "backup_zip_compat_bridge": [
+        "LEGACY COMPATIBILITY: BACKUP_FORMAT=zip ignored in runtime; backup creation is directory-only by policy",
+        "LEGACY COMPATIBILITY: Zip backup restore path for historical artifacts\\.",
+        "LEGACY COMPATIBILITY: Validating zip backup artifact:",
+        "LEGACY COMPATIBILITY: Reading zip backup metadata:"
       ]
     },
     "replacement_mappings": {
@@ -559,6 +565,97 @@
     "actionable_threshold": 75.0,
     "rule_sets": {},
     "rule_set_paths": []
+  },
+  "backup_policy": {
+    "_comment": "Unified backup ownership/retention policy. Keep project-specific paths here so dev-tools code stays portable.",
+    "categories": {
+      "A": {
+        "_comment": "Recovery-critical runtime data (typically core-owned)",
+        "description": "Recovery-critical runtime data",
+        "max_age_days": 30,
+        "min_keep": 4,
+        "max_keep": 10,
+        "local_retention_enabled": true
+      },
+      "B": {
+        "_comment": "Engineering artifacts managed by development_tools retention command",
+        "description": "Engineering artifacts",
+        "max_age_days": 90,
+        "min_keep": 7,
+        "max_keep": 30,
+        "local_retention_enabled": true
+      },
+      "C": {
+        "_comment": "Git-owned tracked assets: local retention disabled",
+        "description": "Git-canonical tracked assets",
+        "max_age_days": null,
+        "min_keep": 0,
+        "max_keep": 0,
+        "local_retention_enabled": false
+      }
+    },
+    "artifact_rules": [
+      {
+        "name": "core_user_backups",
+        "paths": [
+          "data/backups/*"
+        ],
+        "category": "A",
+        "enabled": true,
+        "ownership": "core",
+        "portable": true,
+        "producer": "core backup manager",
+        "trigger": "scheduled_weekly",
+        "restore_path": "core restore API",
+        "notes": "Core-owned user backup artifacts"
+      },
+      {
+        "name": "devtools_engineering_artifacts",
+        "paths": [
+          "development_tools/reports/archive/**/*",
+          "development_tools/*/jsons/archive/**/*",
+          "development_docs/archive/**/*"
+        ],
+        "category": "B",
+        "enabled": true,
+        "ownership": "development_tools",
+        "portable": true,
+        "producer": "development_tools",
+        "trigger": "on_command_run",
+        "restore_path": "copy archive file back to active location"
+      },
+      {
+        "name": "git_canonical_assets",
+        "paths": [
+          "core/**/*.py",
+          "development_docs/*.md",
+          "ai_development_docs/*.md"
+        ],
+        "category": "C",
+        "enabled": true,
+        "ownership": "git",
+        "portable": true,
+        "producer": "git",
+        "trigger": "version_control",
+        "restore_path": "git restore"
+      }
+    ],
+    "restore_drill": {
+      "_comment": "Restore drill output/report locations",
+      "temp_restore_root": "development_tools/reports/backup_drills",
+      "report_json_path": "development_tools/reports/jsons/backup_restore_drill_report.json",
+      "verification_checks": {
+        "required_paths": [
+          "users"
+        ],
+        "min_file_count": 1
+      }
+    },
+    "ownership_map": {
+      "core": "Runtime user-data backup/restore ownership",
+      "development_tools": "Engineering artifact retention/inventory ownership",
+      "git": "Canonical tracked-history ownership"
+    }
   },
   "unused_imports": {
     "_comment": "Unused imports checker settings",

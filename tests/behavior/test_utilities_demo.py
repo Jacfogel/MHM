@@ -163,7 +163,9 @@ class TestUtilitiesDemo:
     
     def test_email_user_creation(self, test_data_dir):
         """Test creating an email user with specific email address."""
-        user_id = "test_email_user"
+        import uuid
+
+        user_id = f"test_email_user_{uuid.uuid4().hex[:8]}"
         email = "test.email@example.com"
         
         success = TestUserFactory.create_email_user(user_id, email=email, test_data_dir=test_data_dir)

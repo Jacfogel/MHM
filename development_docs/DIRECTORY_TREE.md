@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-18 12:35:18
+> **Last Generated**: 2026-02-21 02:16:04
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -283,6 +283,9 @@ C:.
 |   |   +---jsons
     (JSON files created by development tools)
 |   +---shared
+|   |   |   backup_inventory.py
+|   |   |   backup_policy_models.py
+|   |   |   backup_reports.py
 |   |   |   cli_interface.py
 |   |   |   common.py
 |   |   |   constants.py
@@ -297,6 +300,7 @@ C:.
 |   |   |   OUTPUT_STORAGE_STANDARDS.md
 |   |   |   result_format.py
 |   |   |   RESULT_FORMAT_STANDARD.md
+|   |   |   retention_engine.py
 |   |   |   standard_exclusions.py
 |   |   |   tool_guide.py
 |   |   |   tool_metadata.py
@@ -338,30 +342,6 @@ C:.
     (JSON files created by development tools)
 |   |   +---logs
     (log files)
-|   |   +---tmp
-|   |   |   +---pytest_cache
-|   |   |   |   +---dev_tools_2803d6a8
-|   |   |   |   +---dev_tools_2a3cc6ee
-|   |   |   |   +---dev_tools_3b607649
-|   |   |   |   +---dev_tools_603974fd
-|   |   |   |   +---dev_tools_6dcb9a88
-|   |   |   |   +---dev_tools_73beb4c8
-|   |   |   |   +---dev_tools_77c0691b
-|   |   |   |   +---dev_tools_7c7b0a2b
-|   |   |   |   +---dev_tools_d5e327e0
-|   |   |   |   +---dev_tools_fb04bbfd
-|   |   |   |   +---dev_tools_fc7419eb
-|   |   |   |   \---main_f21fb344
-|   |   |   +---pytest_coverage
-|   |   |   |   \---mhm_pytest_tmp_dev_tools_d5e327e0
-|   |   |   \---pytest_temp
-|   |   |       +---dev_tools_2803d6a8
-|   |   |       +---dev_tools_2a3cc6ee
-|   |   |       +---dev_tools_3b607649
-|   |   |       +---dev_tools_73beb4c8
-|   |   |       +---dev_tools_77c0691b
-|   |   |       +---dev_tools_7c7b0a2b
-|   |   |       \---main_f21fb344
 +---logs
     (log files)
 +---notebook
@@ -513,6 +493,8 @@ C:.
 |   |   |   test_message_management.py
 |   |   |   test_python_interpreter_selection.py
 |   |   |   test_schedule_utilities.py
+|   |   |   test_service_message_content_helpers.py
+|   |   |   test_service_request_helpers.py
 |   |   |   
 |   +---data
     (data files)
@@ -523,6 +505,7 @@ C:.
 |   |   |   test_analysis_validation_framework.py
 |   |   |   test_analyze_ai_work.py
 |   |   |   test_analyze_ascii_compliance.py
+|   |   |   test_analyze_dependency_patterns.py
 |   |   |   test_analyze_documentation.py
 |   |   |   test_analyze_duplicate_functions.py
 |   |   |   test_analyze_error_handling.py
@@ -532,6 +515,7 @@ C:.
 |   |   |   test_analyze_missing_addresses.py
 |   |   |   test_analyze_module_dependencies.py
 |   |   |   test_analyze_package_exports.py
+|   |   |   test_analyze_test_markers.py
 |   |   |   test_analyze_unconverted_links.py
 |   |   |   test_analyze_unused_imports.py
 |   |   |   test_audit_status_updates.py
@@ -542,11 +526,13 @@ C:.
 |   |   |   test_config.json
 |   |   |   test_config.py
 |   |   |   test_constants.py
+|   |   |   test_data_freshness_audit.py
 |   |   |   test_decision_support.py
 |   |   |   test_dev_tools_coverage_cache.py
 |   |   |   test_documentation_sync_checker.py
 |   |   |   test_error_scenarios.py
 |   |   |   test_exclusion_utilities.py
+|   |   |   test_export_snapshots.py
 |   |   |   test_false_negative_detection.py
 |   |   |   test_fixture_status_files.py
 |   |   |   test_fix_documentation.py
@@ -555,6 +541,7 @@ C:.
 |   |   |   test_fix_documentation_headings.py
 |   |   |   test_fix_documentation_links.py
 |   |   |   test_fix_project_cleanup.py
+|   |   |   test_fix_test_markers.py
 |   |   |   test_fix_version_sync_todo_sync.py
 |   |   |   test_generate_consolidated_report.py
 |   |   |   test_generate_directory_tree.py
@@ -579,6 +566,8 @@ C:.
 |   |   |   test_status_file_timing.py
 |   |   |   test_supporting_tools.py
 |   |   |   test_test_file_coverage_cache.py
+|   |   |   test_tool_guide.py
+|   |   |   test_tool_wrappers_package_exports.py
 |   |   |   test_verification_summary.py
 |   |   |   __init__.py
 |   |   |   
@@ -604,6 +593,7 @@ C:.
 |   |   |   test_account_creator_dialog_validation.py
 |   |   |   test_category_management_dialog.py
 |   |   |   test_channel_management_dialog_coverage_expansion.py
+|   |   |   test_checkin_settings_widget_question_counts.py
 |   |   |   test_dialogs.py
 |   |   |   test_dialog_behavior.py
 |   |   |   test_dialog_coverage_expansion.py
@@ -657,6 +647,8 @@ C:.
 |   |   |   test_logger_unit.py
 |   |   |   test_logging_components.py
 |   |   |   test_message_formatter.py
+|   |   |   test_notebook_handler_edge_cases.py
+|   |   |   test_notebook_handler_pagination_formatting.py
 |   |   |   test_notebook_validation.py
 |   |   |   test_notebook_validation_error_handling.py
 |   |   |   test_no_prints_policy.py
@@ -670,6 +662,7 @@ C:.
 |   |   |   test_service_utilities_network.py
 |   |   |   test_tags.py
 |   |   |   test_tags_expansion.py
+|   |   |   test_test_policy_guards.py
 |   |   |   test_ui_management.py
 |   |   |   test_user_context.py
 |   |   |   test_user_data_handlers.py

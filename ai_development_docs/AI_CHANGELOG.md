@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-21 - Backup reliability hardening + JSON-only reporting **COMPLETED**
+- Runtime backups are now directory-first with zip kept only as a temporary `# LEGACY COMPATIBILITY:` read-path bridge for historical artifacts.
+- Weekly backup reliability was hardened: scheduler now checks weekly cadence from `weekly_backup_*` artifacts, and retention no longer lets frequent auto backups evict weekly backups.
+- `analyze_backup_health` now validates weekly presence/recency explicitly and feeds `AI_STATUS.md`, `consolidated_report.md`, and `AI_PRIORITIES.md` (priority item appears automatically on backup-health failure).
+- Backup tooling outputs are now JSON-only in `development_tools/reports/jsons`, and drill restore extraction folders are temporary/auto-cleaned after verification.
+- `backup_zip_compat_bridge` legacy tracking remains registered; removal plan is unchanged (remove bridge after no zip backups remain for one full 30-day Category-A retention window).
+
 ### 2026-02-20 - Coverage expansion batch + stability fixes **COMPLETED**
 - Main session outcome: expanded automated test coverage across priority domains (`communication`, `ui`, `core`) with additional scenario/branch-focused tests and refreshed coverage/report outputs.
 - As part of keeping the coverage run green, resolved two active Tier 3 failures:
@@ -155,20 +162,6 @@ Guidelines:
 - **tests/test_utilities.py** (from earlier): Optional params typed as `str | None` etc.; early `if not test_data_dir` guards in `*__with_test_dir`; added `create_minimal_user__impl_and_get_id`.
 - **Audit test fixes**: Marked `test_get_user_data_account_with_discord_id` and `test_checkin_handler_start_checkin_with_old_checkin` with `@pytest.mark.no_parallel` so they run in serial during audit/coverage and avoid shared-state interference. Added `@handle_errors` to `_parse_time_period` in `communication/message_processing/command_parser.py` (AI_PRIORITIES).
 - **Pyright in tests**: Reduced pyright warnings in `tests/` via typing (`str | None` for `test_data_dir` params), guards/asserts for optional members, `getattr`/`cast(Any)` for mocks, unused-expression fixes, and targeted ignores for intentional invalid-argument tests. Remaining warnings are mainly in `ui/` (dialogs/widgets).
-
-### 2026-02-13 - Ruff cleanup + retention expansion + flake hardening **Progressed**
-- Extended test-log retention in `tests/conftest.py` to nested families: `tests/logs/flaky_detector_runs/*` and `tests/logs/worker_logs_backup/*` now use `current / 7 backups / archive / 30-day prune`.
-- Applied Ruff cleanup across many `tests/behavior/*` modules plus light runtime cleanup in `ai/chatbot.py`, `ai/cache_manager.py`, `ai/prompt_manager.py`, `communication/command_handlers/account_handler.py`, and `communication/command_handlers/analytics_handler.py` (unused imports/variables, simplified conditionals/strings, flatter test patch contexts).
-- Hardened pytest temp/cache routing and cleanup for Windows artifacts: `pytest.ini`, `tests/conftest.py`, and `run_tests.py` now keep `pytest-cache-files-*`/pytest temp trees under `tests/data/tmp` with stronger stale cleanup behavior.
-- Added test-hardening for parallel instability in `tests/behavior/test_interaction_handlers_behavior.py` (`test_profile_handler_shows_actual_profile`) with rebuild/cache-clear + short retry fallback for delayed context updates.
-- Updated planning docs for next steps: [TODO.md](TODO.md) now tracks non-test Ruff remediation plus Windows pytest temp/cache ACL hygiene; [PLANS.md](development_docs/PLANS.md) tracks monitoring of intermittent parallel failures and temp/cache permission stability.
-- User-reported repeated `python run_tests.py` reruns now converge to green: `3737 passed, 0 failed` (recent successful totals roughly ~187-208s).
-
-### 2026-02-11 - Parallel profiling + archive hygiene **Progressed**
-- Re-baselined full parallel profiling using temp-isolated pytest dirs (`--basetemp` and `cache_dir` under `%TEMP%`) to avoid cross-run contamination from shared test temp/cache paths.
-- Confirmed improved clean sample run: `4457 passed, 1 skipped in 209.25s`.
-- Moved recent `parallel_profile_20260211_*.log/.xml` artifacts from `tests/logs/` to `development_tools/tests/logs/archive/` to match backup-guide archive handling.
-- Added follow-up tracking for automating profile artifact rotation/retention (7-version consolidated policy) in [TODO.md](TODO.md) and reflected the updated baseline in [PLANS.md](development_docs/PLANS.md).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -6,16 +6,24 @@ Contains methods for executing various CLI commands (docs, validate, config, etc
 # pyright: reportAttributeAccessIssue=false
 
 import json
-from datetime import datetime
+import shutil
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
 from core.logger import get_component_logger
+from core.time_utilities import now_timestamp_filename
 
 logger = get_component_logger("development_tools")
 
 # Import output storage
 from ..output_storage import save_tool_result
+from ..backup_inventory import build_backup_inventory
+from ..backup_policy_models import load_backup_policy, resolve_policy_path
+from ..backup_reports import (
+    write_json_report,
+)
+from ..retention_engine import apply_retention_plan, build_retention_plan
 
 
 class CommandsMixin:
@@ -1109,6 +1117,384 @@ class CommandsMixin:
                 'success': False,
                 'error': str(e)
             }
+
+    def run_backup_inventory(self) -> Dict[str, object]:
+        """Generate backup ownership/producer inventory from policy config."""
+        try:
+            policy = load_backup_policy()
+            inventory = build_backup_inventory(self.project_root, policy)
+            inventory_payload = {
+                "generated_at": datetime.now().isoformat(timespec="seconds"),
+                "project_root": str(self.project_root),
+                "inventory": inventory,
+            }
+            json_path = write_json_report(
+                self.project_root,
+                "development_tools/reports/jsons/backup_inventory.json",
+                inventory_payload,
+                rotate=False,
+            )
+            return {
+                "success": True,
+                "data": inventory_payload,
+                "report_paths": {
+                    "json": str(json_path),
+                },
+            }
+        except Exception as e:
+            logger.error(f"Backup inventory failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
+    def run_backup_retention(self, dry_run: bool = True, apply: bool = False) -> Dict[str, object]:
+        """Apply or preview portable retention policy for development-tool artifacts."""
+        execute_apply = bool(apply) and not bool(dry_run)
+        try:
+            policy = load_backup_policy()
+            plan = build_retention_plan(
+                self.project_root,
+                policy,
+                target_category="B",
+                owner="development_tools",
+            )
+            result = apply_retention_plan(plan, dry_run=not execute_apply)
+            payload = {
+                "generated_at": datetime.now().isoformat(timespec="seconds"),
+                "project_root": str(self.project_root),
+                "plan": plan,
+                "result": result,
+            }
+            json_path = write_json_report(
+                self.project_root,
+                "development_tools/reports/jsons/backup_retention_report.json",
+                payload,
+                rotate=False,
+            )
+            return {
+                "success": True,
+                "data": payload,
+                "report_paths": {
+                    "json": str(json_path),
+                },
+            }
+        except Exception as e:
+            logger.error(f"Backup retention failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
+    def run_backup_drill(
+        self,
+        backup_path: Optional[str] = None,
+        restore_users: bool = True,
+        restore_config: bool = False,
+    ) -> Dict[str, object]:
+        """Run isolated restore drill for latest core user backup."""
+        restore_destination: Optional[Path] = None
+        try:
+            from core.backup_manager import backup_manager
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Core backup manager unavailable: {e}",
+            }
+
+        try:
+            policy = load_backup_policy()
+            drill_cfg = policy.restore_drill
+            drill_root = resolve_policy_path(self.project_root, drill_cfg.temp_restore_root)
+            drill_root.mkdir(parents=True, exist_ok=True)
+            restore_destination = drill_root / f"restore_drill_{now_timestamp_filename()}"
+            restore_destination.mkdir(parents=True, exist_ok=True)
+
+            selected_backup_path = backup_path
+            if not selected_backup_path:
+                backups = backup_manager.list_backups()
+                if not backups:
+                    raise RuntimeError("No backups available for restore drill")
+                selected_backup_path = str(backups[0].get("file_path") or "")
+            if not selected_backup_path:
+                raise RuntimeError("Unable to resolve backup path for restore drill")
+
+            is_valid, validation_errors = backup_manager.validate_backup(selected_backup_path)
+            if not is_valid:
+                raise RuntimeError(
+                    "Backup validation failed before drill restore: "
+                    + "; ".join(validation_errors)
+                )
+
+            restored = backup_manager.restore_backup_to_path(
+                backup_path=selected_backup_path,
+                destination=str(restore_destination),
+                restore_users=restore_users,
+                restore_config=restore_config,
+            )
+            if not restored:
+                raise RuntimeError("restore_backup_to_path returned False")
+
+            all_files = [p for p in restore_destination.rglob("*") if p.is_file()]
+            checks = drill_cfg.verification_checks or {}
+            required_paths = checks.get("required_paths", [])
+            if not isinstance(required_paths, list):
+                required_paths = []
+            min_file_count = checks.get("min_file_count", 1)
+            if not isinstance(min_file_count, int):
+                min_file_count = 1
+
+            missing_required_paths: List[str] = []
+            for rel in required_paths:
+                rel_str = str(rel).strip()
+                if not rel_str:
+                    continue
+                candidate = restore_destination / rel_str
+                if not candidate.exists():
+                    missing_required_paths.append(rel_str)
+
+            verification = {
+                "required_paths_ok": len(missing_required_paths) == 0,
+                "missing_required_paths": missing_required_paths,
+                "min_file_count_ok": len(all_files) >= min_file_count,
+                "expected_min_file_count": min_file_count,
+                "restored_file_count": len(all_files),
+            }
+            success = verification["required_paths_ok"] and verification["min_file_count_ok"]
+            report = {
+                "summary": {
+                    "success": success,
+                    "backup_path": selected_backup_path,
+                    "restore_destination": str(restore_destination),
+                    "restored_file_count": len(all_files),
+                },
+                "verification": verification,
+            }
+            json_path = write_json_report(
+                self.project_root,
+                drill_cfg.report_json_path,
+                report,
+                rotate=False,
+            )
+            return {
+                "success": success,
+                "data": report,
+                "report_paths": {
+                    "json": str(json_path),
+                },
+            }
+        except Exception as e:
+            logger.error(f"Backup drill failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+        finally:
+            if restore_destination is not None:
+                shutil.rmtree(restore_destination, ignore_errors=True)
+
+    def run_backup_health_check(self, run_drill: bool = True) -> Dict[str, object]:
+        """Verify backup creation/discoverability/restorability end-to-end."""
+        checks: List[Dict[str, object]] = []
+        report_paths: Dict[str, str] = {}
+        try:
+            from core.backup_manager import backup_manager
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Core backup manager unavailable: {e}",
+            }
+
+        try:
+            inventory_result = self.run_backup_inventory()
+            inventory_ok = bool(inventory_result.get("success"))
+            checks.append(
+                {
+                    "name": "inventory_generation",
+                    "success": inventory_ok,
+                    "details": {
+                        "report_paths": inventory_result.get("report_paths", {}),
+                        "error": inventory_result.get("error"),
+                    },
+                }
+            )
+
+            backups = backup_manager.list_backups()
+            has_backups = len(backups) > 0
+            checks.append(
+                {
+                    "name": "backups_discoverable",
+                    "success": has_backups,
+                    "details": {"backup_count": len(backups)},
+                }
+            )
+            if not has_backups:
+                raise RuntimeError("No backups available in data/backups for health check")
+
+            def _parse_backup_created_at(raw_value: object) -> Optional[datetime]:
+                if not isinstance(raw_value, str) or not raw_value.strip():
+                    return None
+                try:
+                    return datetime.fromisoformat(raw_value.replace("Z", ""))
+                except Exception:
+                    return None
+
+            weekly_backups: List[Dict[str, object]] = []
+            for backup in backups:
+                if not isinstance(backup, dict):
+                    continue
+                backup_name = str(backup.get("backup_name") or "")
+                file_name = str(backup.get("file_name") or "")
+                if "weekly_backup_" in backup_name or "weekly_backup_" in file_name:
+                    weekly_backups.append(backup)
+
+            latest_weekly: Optional[Dict[str, object]] = None
+            latest_weekly_created: Optional[datetime] = None
+            for backup in weekly_backups:
+                created_dt = _parse_backup_created_at(backup.get("created_at"))
+                if created_dt is None:
+                    continue
+                if latest_weekly_created is None or created_dt > latest_weekly_created:
+                    latest_weekly_created = created_dt
+                    latest_weekly = backup
+
+            weekly_present = len(weekly_backups) > 0
+            checks.append(
+                {
+                    "name": "weekly_backup_present",
+                    "success": weekly_present,
+                    "details": {
+                        "weekly_backup_count": len(weekly_backups),
+                        "latest_weekly_backup_path": str(
+                            (latest_weekly or {}).get("file_path") or ""
+                        ),
+                        "latest_weekly_created_at": str(
+                            (latest_weekly or {}).get("created_at") or ""
+                        ),
+                    },
+                }
+            )
+
+            recent_cutoff = datetime.now() - timedelta(days=8)
+            weekly_recent_enough = (
+                latest_weekly_created is not None and latest_weekly_created >= recent_cutoff
+            )
+            checks.append(
+                {
+                    "name": "weekly_backup_recent_enough",
+                    "success": weekly_recent_enough,
+                    "details": {
+                        "recent_cutoff": recent_cutoff.isoformat(timespec="seconds"),
+                        "latest_weekly_backup_path": str(
+                            (latest_weekly or {}).get("file_path") or ""
+                        ),
+                        "latest_weekly_created_at": str(
+                            (latest_weekly or {}).get("created_at") or ""
+                        ),
+                    },
+                }
+            )
+
+            latest_backup = backups[0]
+            latest_path = str(latest_backup.get("file_path") or "")
+            if not latest_path:
+                raise RuntimeError("Latest backup entry missing file_path")
+
+            latest_created_raw = latest_backup.get("created_at")
+            latest_created = None
+            if isinstance(latest_created_raw, str) and latest_created_raw:
+                latest_created = _parse_backup_created_at(latest_created_raw)
+            recent_cutoff = datetime.now() - timedelta(days=8)
+            recent_ok = latest_created is not None and latest_created >= recent_cutoff
+            checks.append(
+                {
+                    "name": "latest_backup_recent_enough",
+                    "success": recent_ok,
+                    "details": {
+                        "latest_backup_path": latest_path,
+                        "latest_created_at": latest_created_raw,
+                        "recent_cutoff": recent_cutoff.isoformat(timespec="seconds"),
+                    },
+                }
+            )
+
+            valid, errors = backup_manager.validate_backup(latest_path)
+            checks.append(
+                {
+                    "name": "latest_backup_validates",
+                    "success": bool(valid),
+                    "details": {"backup_path": latest_path, "errors": errors or []},
+                }
+            )
+
+            drill_result: Dict[str, object] = {"success": True, "skipped": not run_drill}
+            if run_drill:
+                drill_result = self.run_backup_drill(
+                    backup_path=latest_path,
+                    restore_users=True,
+                    restore_config=False,
+                )
+                checks.append(
+                    {
+                        "name": "restore_drill",
+                        "success": bool(drill_result.get("success")),
+                        "details": {
+                            "report_paths": drill_result.get("report_paths", {}),
+                            "error": drill_result.get("error"),
+                        },
+                    }
+                )
+                if isinstance(drill_result.get("report_paths"), dict):
+                    report_paths.update(
+                        {
+                            f"drill_{k}": str(v)
+                            for k, v in drill_result.get("report_paths", {}).items()
+                        }
+                    )
+
+            success = all(bool(check.get("success")) for check in checks)
+            failed_checks = [check for check in checks if not bool(check.get("success"))]
+            payload = {
+                "generated_at": datetime.now().isoformat(timespec="seconds"),
+                "project_root": str(self.project_root),
+                "summary": {
+                    "status": "PASS" if success else "FAIL",
+                    "total_issues": len(failed_checks),
+                    "files_affected": 0,
+                    "success": success,
+                    "total_checks": len(checks),
+                    "passed_checks": sum(
+                        1 for check in checks if bool(check.get("success"))
+                    ),
+                    "latest_backup_path": latest_path,
+                    "latest_backup_created_at": latest_created_raw,
+                    "drill_executed": bool(run_drill),
+                },
+                "details": {
+                    "checks": checks,
+                    "failed_checks": [str(check.get("name") or "") for check in failed_checks],
+                },
+                "checks": checks,
+            }
+            json_path = write_json_report(
+                self.project_root,
+                "development_tools/reports/jsons/backup_health_report.json",
+                payload,
+                rotate=False,
+            )
+            report_paths.update(
+                {
+                    "health_json": str(json_path),
+                }
+            )
+            try:
+                save_tool_result(
+                    "analyze_backup_health",
+                    "reports",
+                    payload,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_backup_health result: {e}")
+            return {
+                "success": success,
+                "data": payload,
+                "report_paths": report_paths,
+            }
+        except Exception as e:
+            logger.error(f"Backup health check failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
     
     def run_analyze_system_signals(self):
         """Run system signals analysis"""

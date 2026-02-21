@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-20 12:10:41
+> **Last Generated**: 2026-02-21 02:17:24
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 7
 **Legacy Compatibility Markers Detected**: 12
@@ -62,7 +62,7 @@
 ### development_tools\shared\service\audit_orchestration.py
 **Issues Found**: 1
 
-- **Line 1715**: `Backward compatibility`
+- **Line 1716**: `Backward compatibility`
   ```
   # Backward compatibility: retained as sum of per-tool durations
   ```
@@ -94,12 +94,12 @@
 ### development_tools\shared\service\commands.py
 **Issues Found**: 2
 
-- **Line 972**: `tier3_coverage_outcome_v1`
+- **Line 980**: `tier3_coverage_outcome_v1`
   ```
   "LEGACY COMPATIBILITY: tier3_coverage_outcome_v1 bridge exercised; "
   ```
 
-- **Line 977**: `legacy_state_only_payload`
+- **Line 985**: `legacy_state_only_payload`
   ```
   track["classification_reason"] = "legacy_state_only_payload"
   ```

@@ -95,7 +95,7 @@ This guide covers both how the systems work and how to restore from backups.
 ### 2.1. Location
 
 - **Code**: `core/backup_manager.py`
-- **Backups**: `data/backups/*.zip`
+- **Backups**: `data/backups/*` (directory backups by policy; zip backups are read-only compatibility for historical artifacts)
 - **Scheduler**: `core/scheduler.py` (weekly backup check)
 
 ### 2.2. How It Works
@@ -114,7 +114,7 @@ This guide covers both how the systems work and how to restore from backups.
 - Optional: Project code (via `include_code` parameter)
 
 **Backup Format:**
-- ZIP files with compression (`ZIP_DEFLATED`)
+- Directory backups by policy (zip read support retained only for historical artifacts)
 - Includes `manifest.json` with metadata:
   - Backup name and creation timestamp
   - What's included (users, config, logs, code)
@@ -126,7 +126,8 @@ This guide covers both how the systems work and how to restore from backups.
 - **Enforcement**: Both policies apply (whichever is stricter)
 
 **Backup Naming:**
-- Format: `mhm_backup_YYYYMMDD_HHMMSS.zip` or `weekly_backup_YYYYMMDD_HHMMSS.zip`
+- Format: `mhm_backup_YYYYMMDD_HHMMSS` or `weekly_backup_YYYYMMDD_HHMMSS` (directory by default)
+- Historical zip artifacts may still exist with `.zip` suffix
 
 **Verification:**
 - Automatic verification after creation
@@ -135,7 +136,7 @@ This guide covers both how the systems work and how to restore from backups.
 ### 2.3. Restoring User Data from Backups
 
 **Prerequisites:**
-- Backup ZIP file from `data/backups/`
+- Backup artifact from `data/backups/` (directory or zip)
 - Python environment with MHM installed
 - Access to the project directory
 
@@ -157,14 +158,14 @@ This guide covers both how the systems work and how to restore from backups.
    
    # Restore user data only
    success = backup_manager.restore_backup(
-       backup_path="data/backups/mhm_backup_20251217_120000.zip",
+       backup_path="data/backups/mhm_backup_20251217_120000",
        restore_users=True,
        restore_config=False
    )
    
    # Or restore both users and config
    success = backup_manager.restore_backup(
-       backup_path="data/backups/mhm_backup_20251217_120000.zip",
+       backup_path="data/backups/mhm_backup_20251217_120000",
        restore_users=True,
        restore_config=True
    )
@@ -178,8 +179,8 @@ This guide covers both how the systems work and how to restore from backups.
 #### Option B: Manual Restore
 
 1. **Extract the backup ZIP:**
-   - Right-click the backup file -> "Extract All"
-   - Or use PowerShell: `Expand-Archive -Path data\backups\mhm_backup_YYYYMMDD_HHMMSS.zip -DestinationPath .\restore_temp`
+   - If backup is already a directory: copy/browse directly.
+   - If backup is a zip file: Right-click -> "Extract All", or use `Expand-Archive`.
 
 2. **Verify backup contents:**
    - Check `manifest.json` to see what's included
@@ -261,13 +262,23 @@ This guide covers both how the systems work and how to restore from backups.
 - Uses `FileRotator` class for status files
 - Uses `save_tool_result()` for JSON results
 - Rotates existing files before writing new content
+- Uses `backup_policy` config (`development_tools/config/development_tools_config.json`) for ownership + category-based retention decisions
+
+**Backup Policy Commands:**
+- `python development_tools/run_development_tools.py backup inventory`
+  - Builds ownership/producer/output inventory from configured artifact rules.
+- `python development_tools/run_development_tools.py backup retention --dry-run`
+  - Previews category-B retention actions for development-tools-owned artifacts.
+- `python development_tools/run_development_tools.py backup retention --apply`
+  - Applies category-B retention actions.
+- `python development_tools/run_development_tools.py backup drill`
+  - Runs isolated restore drill from latest core backup and writes drill reports.
+- `python development_tools/run_development_tools.py backup verify`
+  - Runs end-to-end backup health checks (inventory, newest-backup validation, and restore drill).
 
 **Retention:**
-- **Status files**: 7 versions (default)
-- **Tool results**: 7 versions (default, standardized retention)
-- **Test logs**: 1 current + 7 backups + up to 7 archive copies (archive >30 days deleted)
-- **Generated docs**: 7 versions
-- **Coverage JSON**: 5 versions
+- Category-B defaults: `max_age_days=90`, `min_keep=7`, `max_keep=30`
+- Rules are configurable per artifact via `backup_policy.artifact_rules`
 
 **Archive Naming:**
 - Format: `{filename}_{YYYY-MM-DD_HHMMSS}_{counter}.{ext}`
@@ -409,53 +420,42 @@ with gzip.open('file.log.gz', 'rt') as f:
 
 All retention policies have been standardized for consistency. This is the authoritative reference.
 
-### 7.1. Retention Tiers
+### 7.1. Retention Categories
 
-1. **Active Files**: Current files (no rotation)
-2. **Backup Files**: Recent rotated files (7-30 days, 5-10 versions)
-3. **Archive Files**: Long-term storage (30-90 days, compressed)
-4. **Deep Archive**: External storage (manual, no cleanup)
+1. **Category A: Recovery-Critical Runtime Data**
+   - Defaults: `max_age_days=30`, `min_keep=4`, `max_keep=10`
+   - Ownership: `core`
+2. **Category B: Engineering Artifacts**
+   - Defaults: `max_age_days=90`, `min_keep=7`, `max_keep=30`
+   - Ownership: `development_tools`
+3. **Category C: Git-Canonical Tracked Assets**
+   - Local retention disabled (`git` is authoritative)
+   - Ownership: `git`
 
 ### 7.2. Policy Details
 
-| System | Retention | Archive Location | Compression | Notes |
-|--------|-----------|------------------|-------------|-------|
-| **Logs (all)** | 1 current + 7 backups + up to 7 archive | `logs/backups/` -> `logs/archive/` | After 7 days | Archive >30 days deleted |
-| **Log archives** | 30 days (plus max 7 archive copies) | `logs/archive/` | Yes (.gz) | Compressed after 7 days |
-| **User backups** | 30 days OR 10 files | `data/backups/` | Yes (ZIP) | Whichever is stricter |
-| **Message archives** | 90 days | `data/users/{id}/messages/archives/` | No | Only messages >365 days |
-| **Dev tools (status)** | 7 versions | `development_tools/reports/archive/` | No | AI_STATUS.md, AI_PRIORITIES.md, etc. |
-| **Dev tools (results)** | 7 versions | `{domain}/jsons/archive/` | No | Tool JSON results |
-| **Test logs** | 1 current + 7 backups + up to 7 archive | `tests/logs/archive/` | No | Archive >30 days deleted |
-| **Generated docs** | 7 versions | `{doc_dir}/archive/` | No | FUNCTION_REGISTRY_DETAIL.md, etc. |
-| **Coverage JSON** | 5 versions | `development_tools/tests/jsons/archive/` | No | coverage.json, coverage_dev_tools.json |
-| **External Archive** | Manual | `c:\Users\Julie\projects\MHM\Archive\` | Optional | No cleanup policy |
+| Artifact Class | Category | Owner | Retention Behavior |
+|--------|-----------|------------------|-------------|
+| User backup artifacts (`data/backups/*`; directory backups by policy) | A | core | 30d + floor/count guard (`min_keep=4`, `max_keep=10`) |
+| Runtime log archives | A | core | Runtime-managed; recovery-focused retention |
+| Generated docs archives | B | development_tools | 90d + floor/count guard (`min_keep=7`, `max_keep=30`) |
+| Dev-tools JSON result/cache archives | B | development_tools | 90d + floor/count guard |
+| Test logs + coverage artifacts | B | development_tools | 90d + floor/count guard |
+| Manual snapshots (if created by tooling) | B | development_tools | 90d + floor/count guard |
+| Code files, non-generated docs, changelogs | C | git | No local retention pruning by tooling |
 
 ### 7.3. Configuration
 
 Retention policies are configured in:
-- **Logs**: `core/config.py` - `LOG_BACKUP_COUNT` (default: 7)
-- **User backups**: `core/backup_manager.py` - `max_backups` (10), `backup_retention_days` (30)
-- **Message archives**: `core/auto_cleanup.py` - `archive_retention_days` (90)
-- **Dev tools**: `development_tools/shared/file_rotation.py` - `max_versions` (varies by type)
-
-### 7.3.1. Default Rotation Protocol
-
-For backup/archive-managed files, the default protocol is:
-1. Keep `1` current active file
-2. Keep `7` previous copies in `backups/`
-3. Move older rotated copies to `archive/` and keep up to `7`
-4. Delete archive copies older than `30` days
-
-This keeps recent history immediately accessible while enforcing 30-day archive cleanup and a practical ceiling of 15 recent retained copies.
+- Core runtime/user backups: `core/backup_manager.py`, `core/scheduler.py`, `core/logger.py`
+- Development-tool artifact policy: `development_tools/config/development_tools_config.json` -> `backup_policy`
+- Dev-tools policy engine: `development_tools/shared/backup_policy_models.py`, `development_tools/shared/retention_engine.py`
 
 ### 7.4. Policy Rationale
 
-- **7 backups/versions**: Good balance between history and disk space for frequently updated files
-- **7 versions**: Standardized retention for most files (tool results, generated docs, test logs)
-- **5 versions**: Sufficient for less critical files (coverage JSON)
-- **30 days**: Standard retention for backups (monthly cycle)
-- **90 days**: Extended retention for archives (quarterly cycle)
+- Keeps recovery-critical runtime state with stricter short-window guarantees (Category A).
+- Keeps engineering artifacts long enough for trend/debug workflows (Category B).
+- Avoids redundant local backup layers for tracked source-of-truth assets (Category C via Git).
 
 ---
 
@@ -473,10 +473,22 @@ This keeps recent history immediately accessible while enforcing 30-day archive 
 2. **Verify backup integrity:**
    ```python
    from core.backup_manager import backup_manager
-   is_valid, errors = backup_manager.validate_backup("data/backups/mhm_backup_YYYYMMDD_HHMMSS.zip")
+   is_valid, errors = backup_manager.validate_backup("data/backups/mhm_backup_YYYYMMDD_HHMMSS")
    if not is_valid:
        print(f"Backup has errors: {errors}")
        # Don't restore from invalid backup!
+   ```
+
+3. **For restore drills, use isolated restore path (non-destructive):**
+   ```python
+   from core.backup_manager import backup_manager
+   ok = backup_manager.restore_backup_to_path(
+       backup_path="data/backups/mhm_backup_YYYYMMDD_HHMMSS",
+       destination="development_tools/reports/backup_drills/manual_drill",
+       restore_users=True,
+       restore_config=False,
+   )
+   print(ok)
    ```
 
 3. **Check disk space:**
@@ -501,6 +513,20 @@ This keeps recent history immediately accessible while enforcing 30-day archive 
 3. **Check file permissions:**
    - Ensure restored files have correct permissions
    - Fix any permission issues if needed
+
+### 8.3. Standard Restore Drill Runbook
+
+1. Run inventory and confirm ownership map:
+   - `python development_tools/run_development_tools.py backup inventory`
+2. Run backup health verify (recommended):
+   - `python development_tools/run_development_tools.py backup verify`
+3. Run retention preview (optional sanity check):
+   - `python development_tools/run_development_tools.py backup retention --dry-run`
+4. Run drill:
+   - `python development_tools/run_development_tools.py backup drill`
+5. Review outputs:
+   - `development_tools/reports/jsons/backup_restore_drill_report.json`
+6. Verify drill destination contains expected paths and file count per configured checks.
 
 ---
 
@@ -550,7 +576,7 @@ This keeps recent history immediately accessible while enforcing 30-day archive 
 
 **Solutions:**
 - Check backup directory: `data/backups/`
-- List all backups: `Get-ChildItem data\backups\*.zip`
+- List all backups: `Get-ChildItem data\backups\*`
 - Verify backup name and path are correct
 
 ### 9.6. Restore Failed
@@ -562,7 +588,7 @@ This keeps recent history immediately accessible while enforcing 30-day archive 
 2. Verify backup file integrity: `backup_manager.validate_backup(path)`
 3. Check disk space: Ensure enough space available
 4. Check file permissions: Ensure write access to restore location
-5. Try manual extract: Extract ZIP manually and copy files
+5. Try manual restore: if artifact is a directory, copy files directly; if historical zip, extract manually and copy files
 
 ### 9.7. Partial Restore
 
@@ -570,7 +596,7 @@ This keeps recent history immediately accessible while enforcing 30-day archive 
 
 **Solutions:**
 1. Check restore logs for errors
-2. Verify backup contents: Extract ZIP and check `manifest.json`
+2. Verify backup contents: open backup artifact and check `manifest.json`
 3. Manually restore missing files from extracted backup
 4. Verify system state: `validate_system_state()`
 
@@ -582,7 +608,7 @@ This keeps recent history immediately accessible while enforcing 30-day archive 
 1. Try validating: `backup_manager.validate_backup(path)`
 2. Check for other backups: List all backups and try a different one
 3. Check backup file size: Corrupted files may be smaller than expected
-4. Try extracting manually: If ZIP extract fails, backup is likely corrupted
+4. Try opening manually: if directory artifact contents are unreadable (or zip extract fails for historical zip), backup is likely corrupted
 
 ---
 

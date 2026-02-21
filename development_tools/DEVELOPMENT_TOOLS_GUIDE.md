@@ -87,6 +87,7 @@ python development_tools/run_development_tools.py config
 - `export-code` - Exports Python source files from a specified directory into a single Markdown snapshot for LLM context (portable, project-root-relative paths).
 - `trees` - generates directory tree reports.
 - `cleanup` - cleans up project cache files, temporary directories, and artifacts. (alias: clean-up)
+- `backup` - policy-driven backup inventory, retention, and restore drill operations.
 - `help` - shows detailed help information.
 
 **Experimental Commands** (high-risk, run only with approval):
@@ -340,6 +341,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - Run `python development_tools/run_development_tools.py doc-sync` after documentation edits to ensure heading parity and ASCII compliance.
 - Treat experimental tools (`docs/fix_version_sync.py`, `functions/generate_function_docstrings.py`, etc.) as opt-in: dry-run first, capture logs, and record findings in [TODO.md](TODO.md) or the improvement plan.
 - Keep file organization portable (mirroring `development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) to support eventual extraction of the suite. The baseline structure should remain:
+- Use config-driven backup policy workflows (`backup inventory`, `backup retention`, `backup drill`, `backup verify`) so project-specific backup paths stay declared in `development_tools/config/development_tools_config.json` rather than hardcoded in tool logic.
 
 ```
 development_tools/

@@ -146,6 +146,15 @@ When adding new tasks, follow this format:
 - *Why it helps*: Preserves fast failure signals and avoids hiding real reliability issues.
 - *Estimated effort*: Medium
 
+**Stabilize Coverage Cache Invalidation Metadata**
+- *What it means*: Investigate why `run_test_coverage` and `generate_dev_tools_coverage` repeatedly log `tool hash missing from cache metadata` and force cold scans every full audit.
+- *Why it helps*: Restores expected cache-hit behavior, reduces unnecessary full reruns, and improves audit runtime consistency.
+- *Estimated effort*: Small/Medium
+- *Subtasks*:
+  - [ ] Trace where tool-hash metadata is written for both cache systems and why it is not persisted/reloaded
+  - [ ] Add/adjust regression tests for cache metadata persistence and invalidation-reason reporting
+  - [ ] Verify cache mode summary shows cache hits on unchanged consecutive runs
+
 ### Documentation
 
 **Update Inter-Documentation References to Include Section Numbers**

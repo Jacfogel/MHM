@@ -323,12 +323,13 @@ def cleanup_old_backup_files():
             backup_retention_days = 30
         max_backups = 10
 
-        # Gather .zip backups with mtime
+        # Gather backup artifacts (zip files and directory backups) with mtime
         backup_files = []
         now_ts = time.time()
 
         for file_path in backup_dir.iterdir():
-            if file_path.is_file() and file_path.suffix == ".zip":
+            is_backup_dir = file_path.is_dir() and (file_path / "manifest.json").exists()
+            if (file_path.is_file() and file_path.suffix == ".zip") or is_backup_dir:
                 try:
                     mtime = file_path.stat().st_mtime
                     backup_files.append((str(file_path), mtime))
@@ -346,7 +347,10 @@ def cleanup_old_backup_files():
             if mtime < age_cutoff:
                 try:
                     if os.path.exists(file_path):
-                        os.remove(file_path)
+                        if Path(file_path).is_dir():
+                            shutil.rmtree(file_path, ignore_errors=True)
+                        else:
+                            os.remove(file_path)
                         logger.info(
                             f"Removed old backup file (> {backup_retention_days}d): {file_path}"
                         )
@@ -360,7 +364,10 @@ def cleanup_old_backup_files():
         for file_path, _ in backup_files[max_backups:]:
             try:
                 if os.path.exists(file_path):
-                    os.remove(file_path)
+                    if Path(file_path).is_dir():
+                        shutil.rmtree(file_path, ignore_errors=True)
+                    else:
+                        os.remove(file_path)
                     logger.info(
                         f"Removed old backup file (>{max_backups} backups): {file_path}"
                     )

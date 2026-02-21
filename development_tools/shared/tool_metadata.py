@@ -349,6 +349,13 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="advisory",
         description="Aggregates metrics into recommendations and priorities.",
     ),
+    "analyze_backup_health": ToolInfo(
+        name="analyze_backup_health",
+        path="development_tools/shared/service/commands.py",
+        tier="supporting",
+        trust="stable",
+        description="Runs backup health verification (inventory, recency, validation, restore drill).",
+    ),
     "export_code_snapshot": ToolInfo(
         name="export_code_snapshot",
         path="development_tools/shared/export_code_snapshot.py",
@@ -429,6 +436,7 @@ COMMAND_GROUPS = OrderedDict(
                 "workflow",
                 "trees",
                 "cleanup",
+                "backup",
                 "export-code",
                 "help",
             ],

@@ -52,7 +52,7 @@ python development_tools/run_development_tools.py help
 - `unused-imports-report` - Generate unused imports report from analysis results
 - `config` - Check configuration consistency
 
-**Additional commands**: `system-signals`, `validate`, `decision-support`, `duplicate-functions`, `workflow`, `trees`, `cleanup` (alias: `clean-up`), `export-code`, `version-sync` (experimental)
+**Additional commands**: `system-signals`, `validate`, `decision-support`, `duplicate-functions`, `workflow`, `trees`, `cleanup` (alias: `clean-up`), `backup`, `export-code`, `version-sync` (experimental)
 
 **Note**: Test marker analysis is automatically run during `audit --full` when coverage is generated. For fixing markers, use `development_tools/tests/fix_test_markers.py` directly.
 
@@ -227,6 +227,11 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.m
   - **Cache management**:
     - `python development_tools/run_development_tools.py audit --clear-cache` clears development-tools cache artifacts only (tool cache/result artifacts used by development-tools freshness logic).
     - `python development_tools/run_development_tools.py cleanup --cache` clears all cache categories (tool caches/results + `__pycache__` + `.pytest_cache` + coverage cache artifacts).
+  - **Backup policy workflows**:
+    - `python development_tools/run_development_tools.py backup inventory` builds ownership and producer inventory from `backup_policy`.
+    - `python development_tools/run_development_tools.py backup retention --dry-run|--apply` enforces Category-B retention on development-tools-owned artifacts.
+    - `python development_tools/run_development_tools.py backup drill` executes isolated restore drill and writes drill reports.
+    - `python development_tools/run_development_tools.py backup verify` runs end-to-end backup health checks (inventory + newest-backup validation + restore drill).
 - **Parallel Execution**: Tools run in parallel where possible, with dependency-aware grouping:
   - **Tier 2**: Independent tools run in parallel; dependent groups (module imports, function patterns, decision support, function registry) run sequentially within groups but in parallel with each other
   - **Tier 3**: Coverage group runs sequentially; legacy and unused imports groups run in parallel with each other (tools within each group run sequentially)

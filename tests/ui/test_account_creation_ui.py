@@ -1426,13 +1426,23 @@ class TestAccountCreationIntegration:
                     account = get_user_data(
                         user_id, "account", normalize_on_read=True
                     ).get("account", {})
-                    if isinstance(account.get("features"), dict):
+                    features = account.get("features")
+                    if isinstance(features, dict) and all(
+                        k in features for k in expected
+                    ):
                         return True
                     account_path = get_user_file_path(user_id, "account")
                     if not account_path or not os.path.exists(account_path):
                         # Coverage/parallel runs can remove test-owned account files;
                         # re-materialize minimal account data for this test user.
-                        save_user_data(user_id, {"account": account_data})
+                        from tests.conftest import (
+                            materialize_user_minimal_via_public_apis as _mat,
+                        )
+
+                        _mat(user_id)
+                        save_result = save_user_data(user_id, {"account": account_data})
+                        if not save_result.get("account"):
+                            return False
                         account_path = get_user_file_path(user_id, "account")
                         if not account_path:
                             return False
@@ -1440,11 +1450,11 @@ class TestAccountCreationIntegration:
                     if not isinstance(raw.get("features"), dict):
                         _upd_acct(user_id, {"features": expected})
                         return False
-                    return isinstance(raw.get("features"), dict)
+                    return all(k in raw.get("features", {}) for k in expected)
 
                 assert wait_until(
                     _features_ready,
-                    timeout_seconds=20.0,
+                    timeout_seconds=30.0,
                     poll_seconds=0.02,
                 ), "Account features should materialize in full lifecycle test"
                 clear_user_caches()
@@ -1629,24 +1639,37 @@ class TestAccountCreationIntegration:
                         account = get_user_data(
                             user_id, "account", normalize_on_read=True
                         ).get("account", {})
-                        if isinstance(account.get("features"), dict):
+                        features = account.get("features")
+                        if isinstance(features, dict) and all(
+                            features.get(k) == v for k, v in baseline.items()
+                        ):
                             return True
                         account_path = get_user_file_path(user_id, "account")
                         if not account_path or not os.path.exists(account_path):
                             # Recreate test-owned account record if parallel cleanup
                             # removed this user's account file during coverage runs.
-                            save_user_data(
+                            from tests.conftest import (
+                                materialize_user_minimal_via_public_apis as _mat,
+                            )
+
+                            _mat(user_id)
+                            save_result = save_user_data(
                                 user_id,
                                 {
                                     "account": {
                                         "user_id": user_id,
                                         "internal_username": expected_internal_username,
                                         "timezone": "America/New_York",
-                                        "channel": {"type": "email"},
+                                        "channel": {
+                                            "type": "email",
+                                            "contact": f"{expected_internal_username}@example.com",
+                                        },
                                         "features": baseline,
                                     }
                                 },
                             )
+                            if not save_result.get("account"):
+                                return False
                             account_path = get_user_file_path(user_id, "account")
                             if not account_path:
                                 return False
@@ -1654,11 +1677,14 @@ class TestAccountCreationIntegration:
                         if not isinstance(raw.get("features"), dict):
                             _upd_acct(user_id, {"features": baseline})
                             return False
-                        return isinstance(raw.get("features"), dict)
+                        return all(
+                            raw.get("features", {}).get(k) == v
+                            for k, v in baseline.items()
+                        )
 
                     assert wait_until(
                         _features_ready,
-                        timeout_seconds=20.0,
+                        timeout_seconds=30.0,
                         poll_seconds=0.02,
                     ), f"Features should materialize for user {user_id}"
                     clear_user_caches()

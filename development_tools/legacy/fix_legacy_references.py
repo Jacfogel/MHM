@@ -62,6 +62,7 @@ logger = get_component_logger("development_tools")
 
 REQUIRED_LEGACY_PATTERN_KEYS = [
     "tier3_coverage_outcome_compat_bridge",
+    "backup_zip_compat_bridge",
 ]
 
 

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-18 12:35:10
+> **Last Generated**: 2026-02-21 02:15:56
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1601
-- **Methods Found**: 1158
+- **Functions Found**: 1616
+- **Methods Found**: 1173
 - **Classes Found**: 154
-- **Total Items**: 2759
-- **Functions Documented**: 1528
-- **Methods Documented**: 1118
+- **Total Items**: 2789
+- **Functions Documented**: 1543
+- **Methods Documented**: 1133
 - **Classes Documented**: 120
-- **Total Documented**: 2646
+- **Total Documented**: 2676
 - **Template-Generated**: 5
-- **Last Updated**: 2026-02-18
+- **Last Updated**: 2026-02-21
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (571)
+### **Core System Functions** (586)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (419)
@@ -2447,20 +2447,34 @@ This is separate from production data cleanup.
 Sets up backup directory, maximum backup count, and ensures backup directory exists.
 - [OK] `_add_directory_to_zip(self, zipf, directory, zip_path)` - Recursively add a directory to the zip file.
 - [OK] `_backup_config_files(self, zipf)` - Backup configuration files.
+- [OK] `_backup_config_files_to_directory(self, backup_root)` - Backup configuration files to a directory payload.
 - [OK] `_backup_log_files(self, zipf)` - Backup log files.
+- [OK] `_backup_log_files_to_directory(self, backup_root)` - Backup log files to a directory payload.
 - [OK] `_backup_project_code(self, zipf)` - Backup project code files (Python files, configs, etc.).
+- [OK] `_backup_project_code_to_directory(self, backup_root)` - Backup project code files to a directory payload.
 - [OK] `_backup_user_data(self, zipf)` - Backup all user data directories.
+- [OK] `_backup_user_data_to_directory(self, backup_root)` - Backup all user data directories to a directory payload.
 - [OK] `_cleanup_old_backups(self)` - Remove old backups by count and age retention policy.
+- [OK] `_copy_directory_prefix_to_destination(self, backup_root, prefix, destination)` - Copy files from backup_root/<prefix> to destination/<prefix>.
 - [OK] `_create_backup__cleanup_old_backups(self)` - Clean up old backups by count and age.
+- [OK] `_create_backup__create_directory_payload(self, backup_dir_path, backup_name, include_users, include_config, include_logs, include_code)` - Create non-zipped directory backup payload.
 - [OK] `_create_backup__create_zip_file(self, backup_path, backup_name, include_users, include_config, include_logs, include_code)` - Create the backup zip file with all specified components.
 - [OK] `_create_backup__setup_backup(self, backup_name)` - Setup backup name and path parameters.
 - [OK] `_create_backup_manifest(self, zipf, backup_name, include_users, include_config, include_logs, include_code)` - Create a manifest file describing the backup contents.
+- [OK] `_extract_zip_prefix_to_destination(self, zipf, prefix, destination)` - Safely extract zip entries under prefix into destination.
+- [OK] `_get_backup_artifact_size_bytes(self, backup_path)` - Return size in bytes for file or directory backup artifact.
 - [OK] `_get_backup_info(self, backup_path)` - Get information about a specific backup.
+- [OK] `_is_directory_backup_path(self, file_path)` - Return True when path is a backup directory with manifest.
+- [OK] `_is_weekly_backup_artifact(self, backup_path)` - Return True when backup artifact name indicates weekly scheduler ownership.
+- [OK] `_materialize_directory_backup(self, zip_backup_path, directory_backup_path)` - Extract a zip payload to a directory backup and remove zip payload.
 - [OK] `_restore_config_files(self, zipf)` - Restore configuration files from backup.
+- [OK] `_restore_config_files_from_directory(self, backup_root)` - Restore config files from directory backup.
 - [OK] `_restore_user_data(self, zipf)` - Restore user data from backup.
+- [OK] `_restore_user_data_from_directory(self, backup_root)` - Restore user data from directory backup.
 - [OK] `_validate_backup__check_file_exists(self, backup_path, errors)` - Check if the backup file exists and add error if not.
 - [OK] `_validate_backup__check_file_integrity(self, zipf, errors)` - Check if the zip file is not corrupted.
 - [OK] `_validate_backup__validate_content_requirements(self, zipf, errors)` - Validate that backup contains required content.
+- [OK] `_validate_backup__validate_directory_backup(self, backup_path)` - Validate directory backup integrity and contents.
 - [OK] `_validate_backup__validate_manifest(self, zipf, errors)` - Validate the backup manifest file.
 - [OK] `_validate_backup__validate_zip_file(self, backup_path)` - Validate zip file integrity and contents.
 - [OK] `_validate_system_state__ensure_user_data_directory()` - Ensure the user data directory exists, creating it if necessary.
@@ -2494,6 +2508,9 @@ Returns:
 
 Returns:
     bool: True if successful, False if failed
+- [OK] `restore_backup_to_path(self, backup_path, destination, restore_users, restore_config)` - Restore backup contents into an isolated destination path.
+
+This API is non-destructive to active runtime data directories.
 - [OK] `validate_backup(self, backup_path)` - Validate a backup file for integrity and completeness.
 
 Args:
@@ -2512,20 +2529,34 @@ Returns:
 Sets up backup directory, maximum backup count, and ensures backup directory exists.
   - [OK] `BackupManager._add_directory_to_zip(self, zipf, directory, zip_path)` - Recursively add a directory to the zip file.
   - [OK] `BackupManager._backup_config_files(self, zipf)` - Backup configuration files.
+  - [OK] `BackupManager._backup_config_files_to_directory(self, backup_root)` - Backup configuration files to a directory payload.
   - [OK] `BackupManager._backup_log_files(self, zipf)` - Backup log files.
+  - [OK] `BackupManager._backup_log_files_to_directory(self, backup_root)` - Backup log files to a directory payload.
   - [OK] `BackupManager._backup_project_code(self, zipf)` - Backup project code files (Python files, configs, etc.).
+  - [OK] `BackupManager._backup_project_code_to_directory(self, backup_root)` - Backup project code files to a directory payload.
   - [OK] `BackupManager._backup_user_data(self, zipf)` - Backup all user data directories.
+  - [OK] `BackupManager._backup_user_data_to_directory(self, backup_root)` - Backup all user data directories to a directory payload.
   - [OK] `BackupManager._cleanup_old_backups(self)` - Remove old backups by count and age retention policy.
+  - [OK] `BackupManager._copy_directory_prefix_to_destination(self, backup_root, prefix, destination)` - Copy files from backup_root/<prefix> to destination/<prefix>.
   - [OK] `BackupManager._create_backup__cleanup_old_backups(self)` - Clean up old backups by count and age.
+  - [OK] `BackupManager._create_backup__create_directory_payload(self, backup_dir_path, backup_name, include_users, include_config, include_logs, include_code)` - Create non-zipped directory backup payload.
   - [OK] `BackupManager._create_backup__create_zip_file(self, backup_path, backup_name, include_users, include_config, include_logs, include_code)` - Create the backup zip file with all specified components.
   - [OK] `BackupManager._create_backup__setup_backup(self, backup_name)` - Setup backup name and path parameters.
   - [OK] `BackupManager._create_backup_manifest(self, zipf, backup_name, include_users, include_config, include_logs, include_code)` - Create a manifest file describing the backup contents.
+  - [OK] `BackupManager._extract_zip_prefix_to_destination(self, zipf, prefix, destination)` - Safely extract zip entries under prefix into destination.
+  - [OK] `BackupManager._get_backup_artifact_size_bytes(self, backup_path)` - Return size in bytes for file or directory backup artifact.
   - [OK] `BackupManager._get_backup_info(self, backup_path)` - Get information about a specific backup.
+  - [OK] `BackupManager._is_directory_backup_path(self, file_path)` - Return True when path is a backup directory with manifest.
+  - [OK] `BackupManager._is_weekly_backup_artifact(self, backup_path)` - Return True when backup artifact name indicates weekly scheduler ownership.
+  - [OK] `BackupManager._materialize_directory_backup(self, zip_backup_path, directory_backup_path)` - Extract a zip payload to a directory backup and remove zip payload.
   - [OK] `BackupManager._restore_config_files(self, zipf)` - Restore configuration files from backup.
+  - [OK] `BackupManager._restore_config_files_from_directory(self, backup_root)` - Restore config files from directory backup.
   - [OK] `BackupManager._restore_user_data(self, zipf)` - Restore user data from backup.
+  - [OK] `BackupManager._restore_user_data_from_directory(self, backup_root)` - Restore user data from directory backup.
   - [OK] `BackupManager._validate_backup__check_file_exists(self, backup_path, errors)` - Check if the backup file exists and add error if not.
   - [OK] `BackupManager._validate_backup__check_file_integrity(self, zipf, errors)` - Check if the zip file is not corrupted.
   - [OK] `BackupManager._validate_backup__validate_content_requirements(self, zipf, errors)` - Validate that backup contains required content.
+  - [OK] `BackupManager._validate_backup__validate_directory_backup(self, backup_path)` - Validate directory backup integrity and contents.
   - [OK] `BackupManager._validate_backup__validate_manifest(self, zipf, errors)` - Validate the backup manifest file.
   - [OK] `BackupManager._validate_backup__validate_zip_file(self, backup_path)` - Validate zip file integrity and contents.
   - [OK] `BackupManager.create_backup(self, backup_name, include_users, include_config, include_logs, include_code)` - Create a comprehensive backup with validation.
@@ -2541,6 +2572,9 @@ Returns:
 
 Returns:
     bool: True if successful, False if failed
+  - [OK] `BackupManager.restore_backup_to_path(self, backup_path, destination, restore_users, restore_config)` - Restore backup contents into an isolated destination path.
+
+This API is non-destructive to active runtime data directories.
   - [OK] `BackupManager.validate_backup(self, backup_path)` - Validate a backup file for integrity and completeness.
 
 Args:
