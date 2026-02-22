@@ -1282,31 +1282,52 @@ class CommunicationManager:
         logger.info(f"Total messages received: {len(all_messages)}")
         return all_messages
 
-    @handle_errors("handling message sending", default_return=None)
-    def handle_message_sending(self, user_id: str, category: str):
+    @handle_errors("handling message sending", default_return="failed")
+    def handle_message_sending(
+        self,
+        user_id: str,
+        category: str,
+        is_scheduled_trigger: bool = False,
+        allow_deferral: bool = True,
+    ) -> str:
         """
         Handle sending messages for a user and category with improved recipient resolution.
         Now uses scheduled check-ins instead of random replacement.
         """
         logger.debug(
-            f"Handling message sending for user_id: {user_id}, category: {category}"
+            "Handling message sending for user_id: "
+            f"{user_id}, category: {category}, "
+            f"is_scheduled_trigger={is_scheduled_trigger}, allow_deferral={allow_deferral}"
         )
 
         if not user_id:
             logger.error("User ID is not provided.")
-            return
+            return "failed"
+
+        # Scheduled sends should defer if user is mid-flow or just completed one.
+        if is_scheduled_trigger and allow_deferral:
+            from communication.message_processing.conversation_flow_manager import (
+                conversation_manager,
+            )
+
+            block_reason = conversation_manager.get_flow_block_reason(user_id)
+            if block_reason:
+                logger.info(
+                    f"Deferring scheduled message for user {user_id}, category {category}, reason={block_reason}"
+                )
+                return "deferred"
 
         # Get user preferences
         prefs_result = get_user_data(user_id, "preferences", normalize_on_read=True)
         preferences = prefs_result.get("preferences")
         if not preferences:
             logger.error(f"User preferences not found for user {user_id}.")
-            return
+            return "failed"
 
         messaging_service = preferences.get("channel", {}).get("type")
         if not messaging_service:
             logger.error(f"No messaging service configured for user {user_id}")
-            return
+            return "failed"
 
         # Get the appropriate recipient ID for the messaging service
         recipient = self._get_recipient_for_service(
@@ -1316,12 +1337,12 @@ class CommunicationManager:
             logger.error(
                 f"No valid recipient found for user {user_id} with service {messaging_service}"
             )
-            return
+            return "failed"
 
         # Handle check-in category specially
         if category == "checkin":
             self._handle_scheduled_checkin(user_id, messaging_service, recipient)
-            return
+            return "sent"
 
         # Handle AI-generated messages and track if message was actually sent
         message_sent = False
@@ -1346,16 +1367,17 @@ class CommunicationManager:
         # CRITICAL: Only expire check-in flows if a message was actually sent and delivered
         # Don't expire flows for failed sends or when no message was available to send
         if message_sent:
-            # Expire active check-in flows ONLY for non-scheduled messages to avoid user confusion
-            # Scheduled messages (motivational, health, etc.) are expected and shouldn't cancel active check-ins
-            # Only cancel check-in flows when we're responding to user input with unrelated content
-            self._expire_checkin_flow_if_needed(user_id, category)
+            # Only cancel check-in flows when responding to user input with unrelated content.
+            if not is_scheduled_trigger:
+                self._expire_checkin_flow_if_needed(user_id, category)
 
             # Message sending completion already logged above with full details
+            return "sent"
         else:
             logger.debug(
                 f"No message sent for user {user_id}, category {category} - preserving any active check-in flow"
             )
+            return "skipped"
 
     @handle_errors(
         "expiring check-in flow if needed", user_friendly=False, default_return=None

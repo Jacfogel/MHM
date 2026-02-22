@@ -540,3 +540,50 @@ class TestChannelOrchestratorHelpers:
             
             # Should expire for non-scheduled messages
             mock_manager.expire_checkin_flow_due_to_unrelated_outbound.assert_called_once_with(user_id)
+
+    def test_handle_message_sending_defers_when_active_flow(self):
+        """Scheduled sends should defer when an active flow exists."""
+        user_id = "flow_user"
+        with patch(
+            "communication.message_processing.conversation_flow_manager.conversation_manager"
+        ) as mock_conv:
+            mock_conv.get_flow_block_reason.return_value = "active_flow"
+            status = self.manager.handle_message_sending(
+                user_id, "motivational", is_scheduled_trigger=True, allow_deferral=True
+            )
+        assert status == "deferred"
+
+    def test_handle_message_sending_defers_when_cooldown_active(self):
+        """Scheduled sends should defer during post-flow cooldown."""
+        user_id = "cooldown_user"
+        with patch(
+            "communication.message_processing.conversation_flow_manager.conversation_manager"
+        ) as mock_conv:
+            mock_conv.get_flow_block_reason.return_value = "post_flow_cooldown"
+            status = self.manager.handle_message_sending(
+                user_id, "motivational", is_scheduled_trigger=True, allow_deferral=True
+            )
+        assert status == "deferred"
+
+    def test_handle_message_sending_non_scheduled_path_preserved(self):
+        """Non-scheduled sends should still send and report sent status."""
+        user_id = "normal_user"
+        with (
+            patch(
+                "communication.core.channel_orchestrator.get_user_data",
+                return_value={"preferences": {"channel": {"type": "discord"}}},
+            ),
+            patch.object(
+                self.manager, "_get_recipient_for_service", return_value="discord_user"
+            ),
+            patch.object(
+                self.manager, "_send_predefined_message", return_value=(True, "hello")
+            ),
+            patch.object(self.manager, "_expire_checkin_flow_if_needed") as mock_expire,
+        ):
+            status = self.manager.handle_message_sending(
+                user_id, "motivational", is_scheduled_trigger=False
+            )
+
+        assert status == "sent"
+        mock_expire.assert_called_once_with(user_id, "motivational")

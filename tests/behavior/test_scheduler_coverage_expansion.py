@@ -31,7 +31,7 @@ def mock_communication_manager():
     """Create a mock communication manager."""
     mock_cm = Mock()
     mock_cm.send_message = Mock(return_value=True)
-    mock_cm.handle_message_sending = Mock(return_value=True)
+    mock_cm.handle_message_sending = Mock(return_value="sent")
     mock_cm.handle_task_reminder = Mock(return_value=True)
     return mock_cm
 
@@ -699,7 +699,10 @@ class TestMessageHandling:
 
         # Verify side effect: communication manager should be called
         scheduler_manager.communication_manager.handle_message_sending.assert_called_once_with(
-            user_id, category
+            user_id=user_id,
+            category=category,
+            is_scheduled_trigger=True,
+            allow_deferral=True,
         )
 
     @pytest.mark.behavior
@@ -712,7 +715,7 @@ class TestMessageHandling:
         # Make the first call fail, second call succeed
         scheduler_manager.communication_manager.handle_message_sending.side_effect = [
             Exception("Network error"),  # First call fails
-            None,  # Second call succeeds
+            "sent",  # Second call succeeds
         ]
 
         with patch("time.sleep") as mock_sleep:  # Don't actually sleep during tests
@@ -727,6 +730,57 @@ class TestMessageHandling:
                 == 2
             )
             mock_sleep.assert_called_once_with(1)
+
+    @pytest.mark.behavior
+    @pytest.mark.scheduler
+    def test_handle_sending_scheduled_message_deferred_schedules_one_retry(
+        self, scheduler_manager
+    ):
+        """Deferred scheduled sends should schedule a one-time retry without recursion."""
+        user_id = "test-user"
+        category = "motivational"
+        scheduler_manager.communication_manager.handle_message_sending.return_value = (
+            "deferred"
+        )
+
+        with (
+            patch.object(
+                scheduler_manager, "_remove_user_message_job"
+            ) as mock_remove_job,
+            patch.object(
+                scheduler_manager, "_schedule_deferred_message_retry"
+            ) as mock_retry,
+        ):
+            scheduler_manager.handle_sending_scheduled_message(user_id, category)
+
+        mock_remove_job.assert_called_once_with(user_id, category)
+        mock_retry.assert_called_once_with(
+            user_id=user_id, category=category, delay_minutes=10, retry_delay=30
+        )
+
+    @pytest.mark.behavior
+    @pytest.mark.scheduler
+    def test_deferred_retry_calls_handle_message_sending_with_deferral_disabled(
+        self, scheduler_manager
+    ):
+        """Deferred retries should invoke scheduled send with allow_deferral=False."""
+        user_id = "retry-user"
+        category = "motivational"
+        captured = {}
+
+        def _capture(*args, **kwargs):
+            captured["kwargs"] = kwargs
+
+        with (
+            patch("core.scheduler.schedule.every") as mock_every,
+            patch("core.scheduler.now_datetime_full", return_value=now_datetime_full()),
+        ):
+            mock_every.return_value.day.at.return_value.do.side_effect = _capture
+            scheduler_manager._schedule_deferred_message_retry(user_id, category)
+
+        kwargs = captured["kwargs"]
+        assert kwargs["allow_deferral"] is False
+        assert kwargs["retry_attempts"] == 1
 
     @pytest.mark.behavior
     @pytest.mark.scheduler

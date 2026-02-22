@@ -956,7 +956,12 @@ class SchedulerManager:
 
     @handle_errors("handling sending scheduled message")
     def handle_sending_scheduled_message(
-        self, user_id, category, retry_attempts=3, retry_delay=30
+        self,
+        user_id,
+        category,
+        retry_attempts=3,
+        retry_delay=30,
+        allow_deferral=True,
     ):
         """
         Handles the sending of scheduled messages with retries.
@@ -970,14 +975,39 @@ class SchedulerManager:
         while attempt < retry_attempts:
             try:
                 # Try to send the message
-                self.communication_manager.handle_message_sending(user_id, category)
-                logger.info(
-                    f"Message sent successfully for user {user_id}, category {category}."
+                send_status = self.communication_manager.handle_message_sending(
+                    user_id=user_id,
+                    category=category,
+                    is_scheduled_trigger=True,
+                    allow_deferral=allow_deferral,
                 )
+                if send_status == "sent":
+                    logger.info(
+                        f"Message sent successfully for user {user_id}, category {category}."
+                    )
+                    # Remove this job after successful execution to make it a one-time job
+                    self._remove_user_message_job(user_id, category)
+                    return  # Exit after successful execution
 
-                # Remove this job after successful execution to make it a one-time job
-                self._remove_user_message_job(user_id, category)
-                return  # Exit after successful execution
+                if send_status == "deferred":
+                    logger.info(
+                        f"Deferred scheduled message for user {user_id}, category {category}; scheduling one-time retry in 10 minutes."
+                    )
+                    self._remove_user_message_job(user_id, category)
+                    self._schedule_deferred_message_retry(
+                        user_id=user_id,
+                        category=category,
+                        delay_minutes=10,
+                        retry_delay=retry_delay,
+                    )
+                    return
+
+                if send_status == "skipped":
+                    logger.info(
+                        f"Skipping scheduled message for user {user_id}, category {category}: no eligible message content."
+                    )
+                    self._remove_user_message_job(user_id, category)
+                    return
             except Exception as e:
                 logger.error(
                     f"Error sending message for user {user_id}, category {category}: {e}"
@@ -990,6 +1020,26 @@ class SchedulerManager:
 
         # Remove job even if it failed after all retries
         self._remove_user_message_job(user_id, category)
+
+    @handle_errors("scheduling deferred message retry", default_return=False)
+    def _schedule_deferred_message_retry(
+        self, user_id, category, delay_minutes=10, retry_delay=30
+    ) -> bool:
+        """Schedule a one-time retry for deferred scheduled sends."""
+        retry_dt = now_datetime_full() + timedelta(minutes=delay_minutes)
+        retry_time = format_timestamp(retry_dt, TIME_ONLY_MINUTE)
+        schedule.every().day.at(retry_time).do(
+            self.handle_sending_scheduled_message,
+            user_id=user_id,
+            category=category,
+            retry_attempts=1,
+            retry_delay=retry_delay,
+            allow_deferral=False,
+        )
+        logger.info(
+            f"Scheduled deferred retry for user {user_id}, category {category} at {retry_time} (allow_deferral=False)."
+        )
+        return True
 
     @handle_errors("removing user message job")
     def _remove_user_message_job(self, user_id, category):

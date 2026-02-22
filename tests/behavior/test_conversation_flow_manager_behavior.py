@@ -22,7 +22,13 @@ from communication.message_processing.conversation_flow_manager import (
     CHECKIN_MOOD,
     CHECKIN_INACTIVITY_MINUTES,
 )
-from core.time_utilities import now_timestamp_full, parse_timestamp_full
+from core.time_utilities import (
+    now_datetime_full,
+    now_timestamp_full,
+    parse_timestamp_full,
+    format_timestamp,
+    TIMESTAMP_FULL,
+)
 from communication.core.channel_orchestrator import CommunicationManager
 from tests.test_utilities import TestUserFactory
 
@@ -563,6 +569,39 @@ class TestConversationFlowManagerBehavior:
         assert completed is True
         assert "canceled" in message.lower()
         assert user_id not in manager.user_states
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    def test_clear_flow_state_marks_completion_timestamp(self):
+        """Clearing a flow should stamp completion timestamp for cooldown checks."""
+        manager = ConversationManager()
+        user_id = f"flow_complete_{uuid.uuid4().hex[:8]}"
+        manager.user_states[user_id] = {"flow": FLOW_TASK_REMINDER, "state": 1, "data": {}}
+
+        manager._clear_flow_state(user_id, mark_completion=True)
+
+        assert user_id not in manager.user_states
+        assert user_id in manager._flow_completion_timestamps
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    def test_post_flow_cooldown_boundary(self):
+        """Cooldown should be active for recent completions and inactive after threshold."""
+        manager = ConversationManager()
+        user_id = f"cooldown_{uuid.uuid4().hex[:8]}"
+        now = now_datetime_full()
+
+        manager._flow_completion_timestamps[user_id] = format_timestamp(
+            now - timedelta(minutes=5), TIMESTAMP_FULL
+        )
+        assert manager.is_within_post_flow_cooldown(user_id, cooldown_minutes=10) is True
+        assert manager.get_flow_block_reason(user_id, cooldown_minutes=10) == "post_flow_cooldown"
+
+        manager._flow_completion_timestamps[user_id] = format_timestamp(
+            now - timedelta(minutes=11), TIMESTAMP_FULL
+        )
+        assert manager.is_within_post_flow_cooldown(user_id, cooldown_minutes=10) is False
+        assert manager.get_flow_block_reason(user_id, cooldown_minutes=10) is None
 
     @pytest.mark.behavior
     @pytest.mark.communication

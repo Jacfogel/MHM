@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-21 02:15:56
+> **Last Generated**: 2026-02-21 22:46:29
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
+### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1616
-- **Methods Found**: 1173
+- **Functions Found**: 1622
+- **Methods Found**: 1179
 - **Classes Found**: 154
-- **Total Items**: 2789
-- **Functions Documented**: 1543
-- **Methods Documented**: 1133
+- **Total Items**: 2801
+- **Functions Documented**: 1549
+- **Methods Documented**: 1139
 - **Classes Documented**: 120
-- **Total Documented**: 2676
+- **Total Documented**: 2688
 - **Template-Generated**: 5
 - **Last Updated**: 2026-02-21
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (586)
+### **Core System Functions** (587)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (419)
+### **Communication Functions** (424)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (411)
@@ -1759,7 +1759,7 @@ Returns:
 
 Returns:
     List[str]: List of registered channels, empty list if failed
-- [OK] `handle_message_sending(self, user_id, category)` - Handle sending messages for a user and category with improved recipient resolution.
+- [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral)` - Handle sending messages for a user and category with improved recipient resolution.
 Now uses scheduled check-ins instead of random replacement.
 - [OK] `handle_task_reminder(self, user_id, task_id)` - Handle task reminder with validation.
 
@@ -1852,7 +1852,7 @@ Returns:
 
 Returns:
     List[str]: List of registered channels, empty list if failed
-  - [OK] `CommunicationManager.handle_message_sending(self, user_id, category)` - Handle sending messages for a user and category with improved recipient resolution.
+  - [OK] `CommunicationManager.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral)` - Handle sending messages for a user and category with improved recipient resolution.
 Now uses scheduled check-ins instead of random replacement.
   - [OK] `CommunicationManager.handle_task_reminder(self, user_id, task_id)` - Handle task reminder with validation.
 
@@ -2023,6 +2023,7 @@ Returns:
 **Functions:**
 - [OK] `__init__(self)` - Initialize the object.
 - [OK] `_cache_expired_checkin_order(self, user_id, user_state)` - Cache the question order for a same-day restart after expiration.
+- [OK] `_clear_flow_state(self, user_id, mark_completion)` - Clear user flow state and optionally mark completion timestamp.
 - [OK] `_complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
 - [OK] `_date_str(dt)` - Return YYYY-MM-DD without sprinkling strftime format strings.
 - [OK] `_expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
@@ -2049,6 +2050,7 @@ Parses natural language responses like:
 - "1 to 2 days before"
 - "No reminders needed" / "No" / "Skip"
 - [OK] `_load_user_states(self)` - Load user states from disk with comprehensive logging
+- [OK] `_mark_flow_completion(self, user_id)` - Record when a user flow completed to enforce post-flow cooldown.
 - [OK] `_parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
 
 Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
@@ -2086,12 +2088,15 @@ Returns:
 This is a safety mechanism to reset flow state when it gets stuck.
 - [OK] `expire_checkin_flow_due_to_unrelated_outbound(self, user_id)` - Expire an active check-in flow when an unrelated outbound message is sent.
 Safe no-op if no flow or different flow is active.
+- [OK] `get_flow_block_reason(self, user_id, cooldown_minutes)` - Return active flow or cooldown block reason for scheduled sends.
 - [OK] `handle_contextual_question(self, user_id, message_text)` - Handle a single contextual question without entering a conversation flow.
 Perfect for one-off questions that benefit from user context.
 - [OK] `handle_inbound_message(self, user_id, message_text)` - Primary entry point. Takes user's message and returns a (reply_text, completed).
 
 Now defaults to contextual chat for all messages unless user is in a specific flow
 or uses a special command.
+- [OK] `has_active_flow(self, user_id)` - Return True when user currently has an active non-zero flow.
+- [OK] `is_within_post_flow_cooldown(self, user_id, cooldown_minutes)` - Return True if user is still within post-flow cooldown window.
 - [OK] `restart_checkin(self, user_id)` - Force restart a check-in flow, clearing any existing checkin state.
 This should be used when user explicitly wants to start over.
 - [OK] `start_analytics_flow(self, user_id)` - Start the analytics flow for a user.
@@ -2127,6 +2132,7 @@ Called by task handler after creating a task with a due date.
 - [MISSING] `ConversationManager` - No description
   - [OK] `ConversationManager.__init__(self)` - Initialize the object.
   - [OK] `ConversationManager._cache_expired_checkin_order(self, user_id, user_state)` - Cache the question order for a same-day restart after expiration.
+  - [OK] `ConversationManager._clear_flow_state(self, user_id, mark_completion)` - Clear user flow state and optionally mark completion timestamp.
   - [OK] `ConversationManager._complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
   - [OK] `ConversationManager._expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
   - [OK] `ConversationManager._generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
@@ -2152,6 +2158,7 @@ Parses natural language responses like:
 - "1 to 2 days before"
 - "No reminders needed" / "No" / "Skip"
   - [OK] `ConversationManager._load_user_states(self)` - Load user states from disk with comprehensive logging
+  - [OK] `ConversationManager._mark_flow_completion(self, user_id)` - Record when a user flow completed to enforce post-flow cooldown.
   - [OK] `ConversationManager._parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
 
 Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
@@ -2189,12 +2196,15 @@ Returns:
 This is a safety mechanism to reset flow state when it gets stuck.
   - [OK] `ConversationManager.expire_checkin_flow_due_to_unrelated_outbound(self, user_id)` - Expire an active check-in flow when an unrelated outbound message is sent.
 Safe no-op if no flow or different flow is active.
+  - [OK] `ConversationManager.get_flow_block_reason(self, user_id, cooldown_minutes)` - Return active flow or cooldown block reason for scheduled sends.
   - [OK] `ConversationManager.handle_contextual_question(self, user_id, message_text)` - Handle a single contextual question without entering a conversation flow.
 Perfect for one-off questions that benefit from user context.
   - [OK] `ConversationManager.handle_inbound_message(self, user_id, message_text)` - Primary entry point. Takes user's message and returns a (reply_text, completed).
 
 Now defaults to contextual chat for all messages unless user is in a specific flow
 or uses a special command.
+  - [OK] `ConversationManager.has_active_flow(self, user_id)` - Return True when user currently has an active non-zero flow.
+  - [OK] `ConversationManager.is_within_post_flow_cooldown(self, user_id, cooldown_minutes)` - Return True if user is still within post-flow cooldown window.
   - [OK] `ConversationManager.restart_checkin(self, user_id)` - Force restart a check-in flow, clearing any existing checkin state.
 This should be used when user explicitly wants to start over.
   - [OK] `ConversationManager.start_analytics_flow(self, user_id)` - Start the analytics flow for a user.
@@ -3887,6 +3897,7 @@ Args:
     communication_manager: The communication manager for sending messages
 - [OK] `_remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
+- [OK] `_schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
 - [OK] `_select_task_for_reminder__calculate_due_date_weight(self, task, today)` - Calculate due date proximity weight for a task.
 - [OK] `_select_task_for_reminder__calculate_priority_weight(self, task)` - Calculate priority-based weight for a task.
 - [OK] `_select_task_for_reminder__calculate_task_weights(self, incomplete_tasks, today)` - Calculate weights for all tasks.
@@ -3926,7 +3937,7 @@ Args:
     end_time: End time in HH:MM format (e.g., "18:00")
 Returns:
     Random time in HH:MM format
-- [OK] `handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay)` - Handles the sending of scheduled messages with retries.
+- [OK] `handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay, allow_deferral)` - Handles the sending of scheduled messages with retries.
 This is a one-time job that removes itself after execution.
 - [OK] `handle_task_reminder(self, user_id, task_id, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
 - [OK] `is_job_for_category(self, job, user_id, category)` - Determines if a job is scheduled for a specific user and category.
@@ -3992,6 +4003,7 @@ Args:
     communication_manager: The communication manager for sending messages
   - [OK] `SchedulerManager._remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
+  - [OK] `SchedulerManager._schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
   - [OK] `SchedulerManager._select_task_for_reminder__calculate_due_date_weight(self, task, today)` - Calculate due date proximity weight for a task.
   - [OK] `SchedulerManager._select_task_for_reminder__calculate_priority_weight(self, task)` - Calculate priority-based weight for a task.
   - [OK] `SchedulerManager._select_task_for_reminder__calculate_task_weights(self, incomplete_tasks, today)` - Calculate weights for all tasks.
@@ -4029,7 +4041,7 @@ Args:
     end_time: End time in HH:MM format (e.g., "18:00")
 Returns:
     Random time in HH:MM format
-  - [OK] `SchedulerManager.handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay)` - Handles the sending of scheduled messages with retries.
+  - [OK] `SchedulerManager.handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay, allow_deferral)` - Handles the sending of scheduled messages with retries.
 This is a one-time job that removes itself after execution.
   - [OK] `SchedulerManager.handle_task_reminder(self, user_id, task_id, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
   - [OK] `SchedulerManager.is_job_for_category(self, job, user_id, category)` - Determines if a job is scheduled for a specific user and category.

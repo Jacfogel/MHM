@@ -35,39 +35,6 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-### Flow & Communication
-
-**Audit Flow State Expiration and Interference Prevention**
-- *What it means*: Review all flow states (note flows, task flows, check-in flows, task reminder flows) to ensure they have appropriate time-based expiries and don't interfere with each other or automated messages. Active flow states should delay the start of scheduled automated flows/messages for a brief period of inactivity (e.g., 5-10 minutes) to prevent conflicts.
-- *Why it helps*: Prevents flows from interfering with each other, ensures automated messages don't interrupt active user conversations, and maintains a smooth user experience
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Review all flow states and their expiration logic (note body, list items, task due date, task reminder, check-in)
-  - [ ] Verify expiration times are appropriate (currently 10 minutes for note/task flows, 2 hours for check-ins)
-  - [ ] Ensure flow handlers detect and clear flows for unrelated messages (commands, greetings, etc.)
-  - [ ] Add logic to delay scheduled automated messages/flows when user is in an active flow
-  - [ ] Add logic to delay scheduled automated messages/flows for a brief period after flow completion (e.g., 5-10 minutes)
-  - [ ] Test flow interference scenarios (active note flow + scheduled check-in, active task flow + scheduled reminder, etc.)
-  - [ ] Document flow state management and interference prevention logic
-
-**Check-in Flow Behavior & Stability**
-- *What it means*: Validate end-to-end check-in flow behavior after recent fixes (idle expiry, outbound-triggered expiry, and flow persistence) and ensure legacy shims are not used in live flows.
-- *Why it helps*: Prevents stale states and confusing interactions during conversations.
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
-  - [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
-  - [ ] **Test fixes with real Discord check-in flow and verify flow state persistence** - Restart service and test that check-in flows persist through scheduled message checks
-  - [ ] **Monitor logs for MESSAGE_SELECTION debug info** - Understand why sometimes no messages match (review matching_periods, current_days, and message filtering)
-
-**Channel-Agnostic Command Registry Follow-ups**
-- *What it means*: Finalize and monitor the new centralized command system and Discord integrations.
-- *Why it helps*: Ensures consistent behavior across channels and prevents regressions.
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Add behavior tests for dynamic Discord app commands (sync + callback wiring; registration already covered in `tests/behavior/test_discord_bot_behavior.py`)
-  - [ ] Add behavior tests for classic dynamic commands (skip `help`, ensure mapping works)
-
 ### AI & Chatbot
 
 **AI Chatbot Actionability Sprint** - Plan and implement actionable AI responses

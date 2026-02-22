@@ -1680,3 +1680,176 @@ class TestDiscordBotAdditionalBehavior:
             assert bot._commands_registered is True, "Commands should be registered"
             # Verify command registration (tree.add_command should be called)
             assert mock_bot.tree.add_command.called, "Should register commands"
+
+    @pytest.mark.communication
+    @pytest.mark.behavior
+    def test_dynamic_app_command_callback_routes_mapped_message(self, test_data_dir):
+        """Dynamic app command callback should route mapped text via interaction manager."""
+        bot = DiscordBot()
+        mock_bot = MagicMock()
+        mock_bot.tree = MagicMock()
+        registered_classic = {}
+
+        def _register_classic(name):
+            def _decorator(fn):
+                registered_classic[name] = fn
+                return fn
+
+            return _decorator
+
+        mock_bot.command = MagicMock(side_effect=_register_classic)
+        bot.bot = mock_bot
+        bot._commands_registered = False
+
+        mock_im = MagicMock()
+        mock_im.get_command_definitions = MagicMock(
+            return_value=[
+                {
+                    "name": "tasks",
+                    "mapped_message": "show my tasks",
+                    "description": "Show tasks",
+                }
+            ]
+        )
+
+        created_app_commands = []
+
+        def _capture_app_command(*args, **kwargs):
+            cmd = MagicMock()
+            cmd.callback = kwargs["callback"]
+            created_app_commands.append(cmd)
+            return cmd
+
+        response_obj = MagicMock()
+        response_obj.message = "Tasks list"
+        response_obj.rich_data = None
+        response_obj.suggestions = None
+
+        with (
+            patch(
+                "communication.message_processing.interaction_manager.get_interaction_manager",
+                return_value=mock_im,
+            ),
+            patch(
+                "communication.communication_channels.discord.bot.app_commands.Command",
+                side_effect=_capture_app_command,
+            ),
+            patch(
+                "communication.communication_channels.discord.bot.get_user_id_by_identifier",
+                return_value="internal-user",
+            ),
+            patch(
+                "communication.message_processing.interaction_manager.handle_user_message",
+                return_value=response_obj,
+            ) as mock_handle_user_message,
+        ):
+            bot.initialize__register_commands()
+
+            interaction = MagicMock()
+            interaction.user.id = 123
+            interaction.response = MagicMock()
+            interaction.response.send_message = AsyncMock()
+            asyncio.run(created_app_commands[0].callback(interaction))
+
+        mock_handle_user_message.assert_called_once_with(
+            "internal-user", "show my tasks", "discord"
+        )
+        interaction.response.send_message.assert_called_once_with("Tasks list")
+
+    @pytest.mark.communication
+    @pytest.mark.behavior
+    def test_register_events_on_ready_schedules_app_command_sync(self, test_data_dir):
+        """on_ready should schedule app-command sync that calls tree.sync()."""
+        bot = DiscordBot()
+        mock_bot = MagicMock()
+        mock_bot.user = "TestBot"
+        mock_bot.tree = MagicMock()
+        mock_bot.tree.sync = AsyncMock()
+        scheduled_coroutines = []
+
+        mock_loop = MagicMock()
+        mock_loop.create_task.side_effect = lambda coro: (
+            scheduled_coroutines.append(coro),
+            MagicMock(),
+        )[1]
+        mock_bot.loop = mock_loop
+        mock_bot.event = MagicMock(side_effect=lambda fn: fn)
+        bot.bot = mock_bot
+        bot._events_registered = False
+
+        bot.initialize__register_events()
+        asyncio.run(bot._on_ready_handler())
+
+        # Execute scheduled coroutines to verify sync path.
+        for coro in scheduled_coroutines:
+            asyncio.run(coro)
+
+        assert mock_bot.tree.sync.await_count == 1
+
+    @pytest.mark.communication
+    @pytest.mark.behavior
+    def test_dynamic_classic_commands_skip_help_and_map_messages(self, test_data_dir):
+        """Dynamic classic command registration should skip help and route mapped messages."""
+        bot = DiscordBot()
+        mock_bot = MagicMock()
+        mock_bot.tree = MagicMock()
+        registered_classic = {}
+
+        def _register_classic(name):
+            def _decorator(fn):
+                registered_classic[name] = fn
+                return fn
+
+            return _decorator
+
+        mock_bot.command = MagicMock(side_effect=_register_classic)
+        bot.bot = mock_bot
+        bot._commands_registered = False
+
+        mock_im = MagicMock()
+        mock_im.get_command_definitions = MagicMock(
+            return_value=[
+                {"name": "help", "mapped_message": "help", "description": "Help"},
+                {
+                    "name": "tasks",
+                    "mapped_message": "show my tasks",
+                    "description": "Show tasks",
+                },
+            ]
+        )
+
+        response_obj = MagicMock()
+        response_obj.message = "Tasks from classic"
+
+        with (
+            patch(
+                "communication.message_processing.interaction_manager.get_interaction_manager",
+                return_value=mock_im,
+            ),
+            patch(
+                "communication.communication_channels.discord.bot.app_commands.Command",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "communication.communication_channels.discord.bot.get_user_id_by_identifier",
+                return_value="internal-user",
+            ),
+            patch(
+                "communication.message_processing.interaction_manager.handle_user_message",
+                return_value=response_obj,
+            ) as mock_handle_user_message,
+        ):
+            bot.initialize__register_commands()
+
+            assert "help" not in registered_classic
+            assert "tasks" in registered_classic
+
+            ctx = MagicMock()
+            ctx.author.id = 123
+            ctx.send = AsyncMock()
+            asyncio.run(registered_classic["tasks"](ctx))
+
+        mock_handle_user_message.assert_called_with(
+            "internal-user", "show my tasks", "discord"
+        )
+        ctx.send.assert_awaited_once_with("Tasks from classic")

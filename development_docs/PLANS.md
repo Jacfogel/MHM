@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-20
+> **Last Updated**: 2026-02-22
 
 ---
 
@@ -29,6 +29,39 @@
 ---
 
 ## [ACTIVE] **Current Active Plans**
+
+### **Flow/Check-in Scheduled Send Stability Follow-up** **IN PROGRESS**
+
+**Status**: **IN PROGRESS**  
+**Priority**: High  
+**Effort**: Small/Medium  
+**Date**: 2026-02-22  
+**Last Updated**: 2026-02-22
+
+**Objective**: Complete post-implementation validation for scheduled-send deferral and cooldown behavior, plus Discord command registry wiring coverage.
+
+**Completed in this session**:
+- [x] Added scheduled-send flow gating and post-flow cooldown behavior in runtime paths (`communication/message_processing/conversation_flow_manager.py`, `communication/core/channel_orchestrator.py`, `core/scheduler.py`).
+- [x] Added one-time deferred retry scheduling (+10 minutes, non-recursive deferral path) in scheduler behavior.
+- [x] Added coverage for deferral/cooldown in unit and behavior tests:
+  - [x] `tests/unit/test_channel_orchestrator.py`
+  - [x] `tests/behavior/test_conversation_flow_manager_behavior.py`
+  - [x] `tests/behavior/test_scheduler_coverage_expansion.py`
+- [x] Added Discord dynamic command behavior coverage:
+  - [x] app-command callback mapping test
+  - [x] on-ready app-command sync test
+  - [x] classic command mapping + `help` skip test
+  - [x] file: `tests/behavior/test_discord_bot_behavior.py`
+- [x] Compliance verification against `ai_development_docs/AI_TESTING_GUIDE.md` completed with policy guard checks.
+
+**Remaining follow-ups**:
+- [ ] Run live Discord manual validation for active-flow deferral, 10-minute cooldown, and one-time retry behavior.
+- [ ] Monitor logs during live runs for unexpected legacy compatibility warnings in check-in flow paths.
+- [ ] Monitor `MESSAGE_SELECTION` diagnostics during live runs to confirm expected category/period matching behavior.
+
+**Validation completed**:
+- [x] `pytest tests/unit/test_test_policy_guards.py tests/unit/test_channel_orchestrator.py tests/behavior/test_conversation_flow_manager_behavior.py tests/behavior/test_scheduler_coverage_expansion.py tests/behavior/test_discord_bot_behavior.py -q` -> `206 passed`
+- [x] User-confirmed full audit run completed with no new issues raised and all tests passing.
 
 ### **Backup Reliability and Restore Confidence Plan** **IN PROGRESS**
 

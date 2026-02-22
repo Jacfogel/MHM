@@ -77,6 +77,8 @@ CHECKIN_COMPLETE = 200
 
 # Idle expiry threshold for check-in flows (2 hours)
 CHECKIN_INACTIVITY_MINUTES = 120
+# Post-flow cooldown to delay scheduled automations after flow completion
+POST_FLOW_COOLDOWN_MINUTES = 10
 
 # Question mapping for dynamic flow
 QUESTION_STATES = {
@@ -108,6 +110,7 @@ class ConversationManager:
         """Initialize the object."""
         self.user_states = {}
         self._checkin_order_cache: dict[str, dict[str, str | list[str]]] = {}
+        self._flow_completion_timestamps: dict[str, str] = {}
 
         # Use BASE_DATA_DIR from config to respect test environment
         from core.config import BASE_DATA_DIR
@@ -165,6 +168,56 @@ class ConversationManager:
                 f"question_index={state.get('current_question_index')}"
             )
 
+    @handle_errors("marking flow completion", default_return=None)
+    def _mark_flow_completion(self, user_id: str) -> None:
+        """Record when a user flow completed to enforce post-flow cooldown."""
+        if not user_id:
+            return
+        self._flow_completion_timestamps[user_id] = now_timestamp_full()
+
+    @handle_errors("clearing flow state", default_return=None)
+    def _clear_flow_state(self, user_id: str, mark_completion: bool = True) -> None:
+        """Clear user flow state and optionally mark completion timestamp."""
+        self.user_states.pop(user_id, None)
+        if mark_completion:
+            self._mark_flow_completion(user_id)
+        self._save_user_states()
+
+    @handle_errors("checking active flow state", default_return=False)
+    def has_active_flow(self, user_id: str) -> bool:
+        """Return True when user currently has an active non-zero flow."""
+        if not user_id:
+            return False
+        user_state = self.user_states.get(user_id)
+        return bool(user_state and user_state.get("flow", FLOW_NONE) != FLOW_NONE)
+
+    @handle_errors("checking post-flow cooldown", default_return=False)
+    def is_within_post_flow_cooldown(
+        self, user_id: str, cooldown_minutes: int = POST_FLOW_COOLDOWN_MINUTES
+    ) -> bool:
+        """Return True if user is still within post-flow cooldown window."""
+        if not user_id:
+            return False
+        completion_ts = self._flow_completion_timestamps.get(user_id)
+        if not completion_ts:
+            return False
+
+        completion_dt = parse_timestamp_full(completion_ts)
+        if completion_dt is None:
+            return False
+        return now_datetime_full() - completion_dt <= timedelta(minutes=cooldown_minutes)
+
+    @handle_errors("getting flow block reason", default_return=None)
+    def get_flow_block_reason(
+        self, user_id: str, cooldown_minutes: int = POST_FLOW_COOLDOWN_MINUTES
+    ) -> str | None:
+        """Return active flow or cooldown block reason for scheduled sends."""
+        if self.has_active_flow(user_id):
+            return "active_flow"
+        if self.is_within_post_flow_cooldown(user_id, cooldown_minutes):
+            return "post_flow_cooldown"
+        return None
+
     @handle_errors("expiring inactive check-in states", default_return=None)
     def _expire_inactive_checkins(self, user_id: str | None = None) -> None:
         """Remove stale check-in flows that have been idle beyond the allowed window."""
@@ -212,7 +265,7 @@ class ConversationManager:
         """Cache the question order for a same-day restart after expiration."""
         question_order = user_state.get("question_order", [])
         if not question_order:
-            self.user_states.pop(user_id, None)
+            self._clear_flow_state(user_id, mark_completion=True)
             return
 
         started_at_str = user_state.get("started_at") or user_state.get("last_activity")
@@ -225,7 +278,7 @@ class ConversationManager:
             "order": question_order,
             "date": started_date,
         }
-        self.user_states.pop(user_id, None)
+        self._clear_flow_state(user_id, mark_completion=True)
 
     @handle_errors("getting cached check-in order", default_return=None)
     def _get_cached_checkin_order(self, user_id: str) -> list[str] | None:
@@ -312,8 +365,7 @@ class ConversationManager:
                 # Check if check-ins are enabled for this user
                 if not is_user_checkins_enabled(user_id):
                     # Clear any existing state for this user
-                    self.user_states.pop(user_id, None)
-                    self._save_user_states()
+                    self._clear_flow_state(user_id, mark_completion=True)
                     return (
                         "Check-ins are not enabled for your account. Please contact an administrator to enable check-ins.",
                         True,
@@ -366,8 +418,7 @@ class ConversationManager:
                 logger.debug(
                     f"User in FLOW_TASK_REMINDER but issued command '{message_text}', clearing flow"
                 )
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return ("", True)  # Return empty to let command be processed
             # Not a command, handle as reminder followup response
             return self._handle_task_reminder_followup(
@@ -381,8 +432,7 @@ class ConversationManager:
             return self._handle_task_due_date_flow(user_id, user_state, message_text)
         else:
             # Unknown flow - reset to default contextual chat
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
             ai_bot = get_ai_chatbot()
             reply = ai_bot.generate_contextual_response(
                 user_id, message_text, timeout=10
@@ -404,8 +454,7 @@ class ConversationManager:
         # Check if check-ins are enabled for this user
         if not is_user_checkins_enabled(user_id):
             # Clear any existing state for this user
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
             return (
                 "Check-ins are not enabled for your account. Please contact an administrator to enable check-ins.",
                 True,
@@ -449,8 +498,7 @@ class ConversationManager:
         existing_state = self.user_states.get(user_id)
         if existing_state:
             flow_type = existing_state.get("flow", "unknown")
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
             logger.info(f"Cleared stuck flow {flow_type} for user {user_id}")
             return (
                 "Cleared stuck flow state. You can now use commands normally.",
@@ -481,8 +529,7 @@ class ConversationManager:
         # Clear any existing checkin state
         existing_state = self.user_states.get(user_id)
         if existing_state and existing_state.get("flow") == FLOW_CHECKIN:
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
             logger.info(
                 f"Cleared existing checkin flow for user {user_id} before restart"
             )
@@ -750,7 +797,7 @@ class ConversationManager:
         """
         Enhanced check-in flow with dynamic questions and better validation
         """
-        # Idle expiry: 45 minutes since last activity
+        # Idle expiry: CHECKIN_INACTIVITY_MINUTES since last activity
         try:
             last_ts = user_state.get("last_activity")
             if last_ts:
@@ -771,8 +818,7 @@ class ConversationManager:
             pass
 
         if message_text.lower().startswith("/cancel"):
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
             return (
                 "Check-in canceled. You can start again anytime with /checkin",
                 True,
@@ -788,8 +834,7 @@ class ConversationManager:
                     False,
                 )
             if stripped.startswith("/cancel") or stripped.startswith("!cancel"):
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return (
                     "Check-in canceled. You can start again anytime with /checkin",
                     True,
@@ -798,8 +843,7 @@ class ConversationManager:
             # Handle /tasks and !tasks explicitly to ensure proper delegation
             if stripped in ["/tasks", "!tasks"]:
                 # Expire check-in flow
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 # Directly call task handler to avoid parsing issues
                 try:
                     from communication.command_handlers.task_handler import (
@@ -833,8 +877,7 @@ class ConversationManager:
 
             # Expire current check-in and delegate to interaction manager
             try:
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
             except Exception:
                 pass
 
@@ -937,8 +980,7 @@ class ConversationManager:
         completion_message = self._generate_completion_message(user_id, data)
 
         # Clear the user state
-        self.user_states.pop(user_id, None)
-        self._save_user_states()
+        self._clear_flow_state(user_id, mark_completion=True)
 
         return (completion_message, True)
 
@@ -1322,8 +1364,7 @@ class ConversationManager:
                 logger.error(
                     f"Task reminder follow-up for user {user_id} but no task_id in state"
                 )
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return (
                     "I couldn't find the task to update. The task was created successfully.",
                     True,
@@ -1338,8 +1379,7 @@ class ConversationManager:
                 if started_at is not None and (
                     now_datetime_full() - started_at
                 ) > timedelta(minutes=10):
-                    self.user_states.pop(user_id, None)
-                    self._save_user_states()
+                    self._clear_flow_state(user_id, mark_completion=True)
                     return (
                         "⏱️ Reminder flow expired. Task was created successfully. You can add reminders later by updating the task.",
                         True,
@@ -1361,8 +1401,7 @@ class ConversationManager:
                 logger.info(
                     f"User {user_id} in reminder flow sent unrelated message '{message_text}', clearing flow"
                 )
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return ("", True)  # Empty response to let command be processed normally
 
             # Check if user wants to skip reminders
@@ -1378,8 +1417,7 @@ class ConversationManager:
             ]
             if any(pattern in message_lower for pattern in skip_patterns):
                 # User doesn't want reminders - clear flow
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return ("Got it! No reminders will be set for this task.", True)
 
             # Parse reminder periods from natural language
@@ -1396,8 +1434,7 @@ class ConversationManager:
                 task = get_task_by_id(user_id, task_id)
                 if task and not task.get("due_date"):
                     # Task has no due date, can't set reminder periods
-                    self.user_states.pop(user_id, None)
-                    self._save_user_states()
+                    self._clear_flow_state(user_id, mark_completion=True)
                     return (
                         "This task doesn't have a due date, so I can't set reminder periods. You can add a due date and reminders later by updating the task.",
                         True,
@@ -1418,8 +1455,7 @@ class ConversationManager:
                 logger.error(
                     f"Task {task_id} not found when trying to set reminder periods"
                 )
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return (
                     "I couldn't find the task to update. The task was created successfully.",
                     True,
@@ -1428,8 +1464,7 @@ class ConversationManager:
             due_date_str = task.get("due_date")
             if not due_date_str:
                 # Task has no due date, can't set reminder periods
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return (
                     "This task doesn't have a due date, so I can't set reminder periods. You can add a due date and reminders later by updating the task.",
                     True,
@@ -1441,8 +1476,7 @@ class ConversationManager:
                 logger.warning(
                     f"Task {task_id} has invalid due_date format '{due_date_str}', cannot set reminders"
                 )
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return (
                     "This task has an invalid due date format, so I can't set reminder periods. You can update the due date and add reminders later.",
                     True,
@@ -1467,8 +1501,7 @@ class ConversationManager:
                         logger.error(
                             f"update_task returned False for task {task_id} with reminder periods for user {user_id}"
                         )
-                        self.user_states.pop(user_id, None)
-                        self._save_user_states()
+                        self._clear_flow_state(user_id, mark_completion=True)
                         return (
                             "I had trouble saving the reminder periods. The task was created successfully. You can add reminders later by updating the task.",
                             True,
@@ -1480,16 +1513,14 @@ class ConversationManager:
                         logger.error(
                             f"Task {task_id} was not updated with reminder_periods after update_task returned True"
                         )
-                        self.user_states.pop(user_id, None)
-                        self._save_user_states()
+                        self._clear_flow_state(user_id, mark_completion=True)
                         return (
                             "I had trouble saving the reminder periods. The task was created successfully. You can add reminders later by updating the task.",
                             True,
                         )
 
                     # Clear flow
-                    self.user_states.pop(user_id, None)
-                    self._save_user_states()
+                    self._clear_flow_state(user_id, mark_completion=True)
 
                     periods_text = ", ".join(
                         [
@@ -1506,8 +1537,7 @@ class ConversationManager:
                         f"Exception in update_task for task {task_id}: {update_error}",
                         exc_info=True,
                     )
-                    self.user_states.pop(user_id, None)
-                    self._save_user_states()
+                    self._clear_flow_state(user_id, mark_completion=True)
                     return (
                         "I had trouble saving the reminder periods. The task was created successfully. You can add reminders later by updating the task.",
                         True,
@@ -1531,8 +1561,7 @@ class ConversationManager:
             # Don't clear flow on exception if it's a parsing issue - let user try again
             # Only clear if it's a critical error
             if "task_id" in str(e).lower() or "not found" in str(e).lower():
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return (
                     "I had trouble setting up reminders, but your task was created successfully. You can add reminders later by updating the task.",
                     True,
@@ -1865,8 +1894,7 @@ class ConversationManager:
             if started_at is not None and (
                 now_datetime_full() - started_at
             ) > timedelta(minutes=10):
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return (
                     "⏱️ Due date flow expired. Task was created without a due date. You can add one later by updating the task.",
                     True,
@@ -1882,8 +1910,7 @@ class ConversationManager:
             for keyword in cancel_keywords
         ):
             task_id = user_state.get("data", {}).get("task_id")
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
             return (
                 "❌ Due date setting cancelled. Task was created without a due date.",
                 True,
@@ -1895,8 +1922,7 @@ class ConversationManager:
             for keyword in skip_keywords
         ):
             task_id = user_state.get("data", {}).get("task_id")
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
             return (
                 "✅ Task created without a due date. You can add one later by updating the task.",
                 True,
@@ -1916,15 +1942,13 @@ class ConversationManager:
             logger.info(
                 f"User {user_id} in due date flow sent unrelated message '{message_text}', clearing flow"
             )
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
             return ("", True)  # Empty response to let command be processed normally
 
         # Parse date/time from user input
         task_id = user_state.get("data", {}).get("task_id")
         if not task_id:
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
             return ("❌ Could not find task. Please try creating the task again.", True)
 
         # Parse date/time from message
@@ -1950,16 +1974,14 @@ class ConversationManager:
         try:
             update_result = update_task(user_id, task_id, update_data)
             if not update_result:
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return (
                     "❌ Failed to update task with due date. The task was created successfully. You can add a due date later by updating the task.",
                     True,
                 )
 
             # Clear flow
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
 
             # Now ask about reminder periods with context-aware options
             self.start_task_reminder_followup(user_id, task_id)
@@ -1973,8 +1995,7 @@ class ConversationManager:
             return (response, False)  # Not completed - reminder flow is active
         except Exception as e:
             logger.error(f"Error updating task with due date: {e}", exc_info=True)
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
             return (
                 "❌ Failed to update task with due date. The task was created successfully. You can add a due date later by updating the task.",
                 True,
@@ -2160,8 +2181,7 @@ class ConversationManager:
                 now_datetime_full() - started_at
             ) > timedelta(minutes=10):
                 # Flow expired
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return (
                     "⏱️ Note flow expired. Please start over with `!n <title>`",
                     True,
@@ -2181,8 +2201,7 @@ class ConversationManager:
             title = flow_data.get("title", "")
 
             # Clear flow state
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
 
             return (f"❌ Note creation cancelled. '{title}' was not saved.", True)
 
@@ -2198,8 +2217,7 @@ class ConversationManager:
             group = flow_data.get("group")
 
             # Clear flow state
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
 
             # Create note without body
             from notebook.notebook_data_manager import create_note
@@ -2229,8 +2247,7 @@ class ConversationManager:
             logger.info(
                 f"User {user_id} in note body flow sent unrelated message '{message_text}', clearing flow"
             )
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
             return ("", True)  # Empty response to let command be processed normally
 
         # User's message is the body - create the note directly
@@ -2241,8 +2258,7 @@ class ConversationManager:
         body = message_text
 
         # Clear flow state
-        self.user_states.pop(user_id, None)
-        self._save_user_states()
+        self._clear_flow_state(user_id, mark_completion=True)
 
         # Create note using notebook manager
         from notebook.notebook_data_manager import create_note
@@ -2302,8 +2318,7 @@ class ConversationManager:
             group = flow_data.get("group")
 
             # Clear flow state
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
 
             # Create list with collected items
             from notebook.notebook_data_manager import create_list
@@ -2337,8 +2352,7 @@ class ConversationManager:
                 now_datetime_full() - started_at
             ) > timedelta(minutes=10):
                 # Flow expired
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
+                self._clear_flow_state(user_id, mark_completion=True)
                 return (
                     "⏱️ List flow expired. Please start over with `!l <title>`",
                     True,
@@ -2358,8 +2372,7 @@ class ConversationManager:
             logger.info(
                 f"User {user_id} in list items flow sent unrelated message '{message_text}', clearing flow"
             )
-            self.user_states.pop(user_id, None)
-            self._save_user_states()
+            self._clear_flow_state(user_id, mark_completion=True)
             return ("", True)  # Empty response to let command be processed normally
 
         # Parse items from message (comma, semicolon, or newline separated)

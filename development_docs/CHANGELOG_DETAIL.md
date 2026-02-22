@@ -33,6 +33,61 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-22 - Flow deferral/cooldown hardening + Discord command wiring coverage
+- **Feature/Fix**: Implemented and validated the planned flow-interference protections and Discord command-registry behavior coverage, then completed session closeout updates.
+- **Technical Changes**:
+  - `communication/message_processing/conversation_flow_manager.py`
+    - added centralized flow completion timestamp tracking and cleanup helpers;
+    - added read-only flow gating API (`has_active_flow`, `is_within_post_flow_cooldown`, `get_flow_block_reason`);
+    - wired flow completion stamping across flow-exit paths and updated stale inactivity-comment wording.
+  - `communication/core/channel_orchestrator.py`
+    - updated `handle_message_sending(...)` to return status values (`sent`, `deferred`, `skipped`, `failed`);
+    - added scheduled-trigger gating checks using flow block reasons and deferral controls.
+  - `core/scheduler.py`
+    - updated scheduled-send handling to consume send-status values;
+    - added one-time deferred retry scheduling at +10 minutes with `allow_deferral=False` to avoid recursive loops.
+  - Added test coverage in:
+    - `tests/unit/test_channel_orchestrator.py`
+    - `tests/behavior/test_conversation_flow_manager_behavior.py`
+    - `tests/behavior/test_scheduler_coverage_expansion.py`
+    - `tests/behavior/test_discord_bot_behavior.py`
+    - including dynamic app-command callback mapping, `on_ready` sync scheduling, and classic command mapping with explicit `help` skip behavior.
+  - Runtime/message-library follow-up:
+    - completed live Discord validation run for flow deferral/cooldown, one-time deferred retry timing, outbound-triggered flow expiry, and restart persistence using timestamped log evidence;
+    - normalized user message-library `time_periods` labels to include canonical scheduled period names that were producing `MESSAGE_SELECTION_NO_MATCH`:
+      - `data/users/c59410b9-5872-41e5-ac30-2496b9dd8938/messages/motivational.json` (`Default`)
+      - `data/users/05187f39-64a0-4766-a152-59738af01e97/messages/motivational.json` (`Motivational Message Default`)
+      - `data/users/05187f39-64a0-4766-a152-59738af01e97/messages/word_of_the_day.json` (`Word Of The Day Message Default`)
+- **Planning/Follow-up Updates**:
+  - Updated [TODO.md](TODO.md) to remove completed flow/command-registry implementation tasks and completed check-in flow stability validation tasks.
+  - Updated [PLANS.md](development_docs/PLANS.md) with an active follow-up plan for live Discord validation and monitoring.
+- **Validation**:
+  - `pytest tests/unit/test_test_policy_guards.py tests/unit/test_channel_orchestrator.py tests/behavior/test_conversation_flow_manager_behavior.py tests/behavior/test_scheduler_coverage_expansion.py tests/behavior/test_discord_bot_behavior.py -q` -> `206 passed`
+  - User-reported full audit run status: no new issues raised; all tests passing.
+  - Live runtime evidence from logs:
+    - scheduled deferral reasons observed (`active_flow`, `post_flow_cooldown`) and scheduler deferred retry scheduled/executed once at +10 minutes (`allow_deferral=False`);
+    - outbound unrelated interaction path expired active check-in flow as expected;
+    - stop/start lifecycle and post-restart flow-state load confirmed in logs;
+    - check-in legacy bridge pattern scan for `start_checkin`/`FLOW_CHECKIN`/`get_recent_checkins`/`store_checkin_response` returned no hits.
+- **Legacy Compatibility Policy**:
+  - No new temporary legacy compatibility bridge was added in this implementation path.
+- **Full-diff Attribution**:
+  - Reviewed full working tree before finalizing (`git diff --stat`, `git diff --name-only`).
+  - Session-scoped implementation/test files are listed above; additional generated/report artifacts updated during audit/tooling in this same working tree include:
+    - `development_tools/AI_PRIORITIES.md`
+    - `development_tools/AI_STATUS.md`
+    - `development_tools/consolidated_report.md`
+    - `development_tools/reports/analysis_detailed_results.json`
+    - `development_tools/reports/tool_timings.json`
+    - `development_docs/TEST_COVERAGE_REPORT.md`
+    - `development_docs/UNUSED_IMPORTS_REPORT.md`
+    - `development_docs/LEGACY_REFERENCE_REPORT.md`
+    - `development_docs/DIRECTORY_TREE.md`
+    - `development_docs/FUNCTION_REGISTRY_DETAIL.md`
+    - `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
+    - `ai_development_docs/AI_FUNCTION_REGISTRY.md`
+    - `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
+
 ### 2026-02-21 - Backup reliability hardening + JSON-only backup reporting
 - **Feature/Fix**: Completed backup reliability hardening across core and development-tools: directory-first runtime backup policy, weekly backup cadence protections, explicit backup-health verification, and JSON-only backup reporting outputs.
 - **Technical Changes**:

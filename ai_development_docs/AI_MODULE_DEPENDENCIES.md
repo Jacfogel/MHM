@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-21 02:16:02
+> **Last Generated**: 2026-02-21 22:46:35
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports**: 1459
+- **Total Imports**: 1460
 - **Standard Library**: 387 (26.5%)
 - **Third-Party**: 223 (15.3%)
-- **Local Imports**: 849 (58.2%)
+- **Local Imports**: 850 (58.2%)
 
 ## Dependency Decision Trees
 
@@ -121,7 +121,7 @@ External libraries provide channel and UI support.
 - `core/user_data_handlers.py` -> 43 local dependencies (heavy coupling)
 - `communication/message_processing/conversation_flow_manager.py` -> 37 local dependencies (heavy coupling)
 - `communication/command_handlers/analytics_handler.py` -> 33 local dependencies (heavy coupling)
-- `communication/core/channel_orchestrator.py` -> 32 local dependencies (heavy coupling)
+- `communication/core/channel_orchestrator.py` -> 33 local dependencies (heavy coupling)
 
 ### Third-Party Risks
 - `ui/ui_app_qt.py` -> PySide6.QtWidgets (30 modules use this)

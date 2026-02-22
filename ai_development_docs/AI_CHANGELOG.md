@@ -30,6 +30,19 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-22 - Flow deferral/cooldown hardening + Discord wiring tests **COMPLETED**
+- Implemented scheduled-send flow protection end-to-end: active-flow and post-flow cooldown gating now defer scheduled sends, and scheduler performs a one-time +10 minute retry without recursive deferral.
+- Added flow completion/cooldown tracking APIs in `conversation_flow_manager` and updated `channel_orchestrator` send-status handling (`sent`/`deferred`/`skipped`/`failed`), with scheduler branching on deferred behavior.
+- Added focused coverage for the new behavior in `tests/unit/test_channel_orchestrator.py`, `tests/behavior/test_conversation_flow_manager_behavior.py`, and `tests/behavior/test_scheduler_coverage_expansion.py`.
+- Added Discord behavior coverage for dynamic app command callback routing, `on_ready` app-command sync, and classic dynamic command mapping with explicit `help` skip in `tests/behavior/test_discord_bot_behavior.py`.
+- Compliance re-check against `ai_development_docs/AI_TESTING_GUIDE.md` plus policy-guard run passed (`206 passed`), and user-reported full audit run raised no new issues with all tests passing.
+- Completed live runtime validation on February 21, 2026: observed active-flow and cooldown deferral reasons, verified one-time +10 minute deferred retry execution (`allow_deferral=False`), confirmed outbound-triggered check-in flow expiry behavior, and confirmed restart/persistence behavior from logs.
+- Resolved `MESSAGE_SELECTION_NO_MATCH` period-label mismatches for affected users by normalizing message library `time_periods` to include canonical schedule period names in:
+  - `data/users/c59410b9-5872-41e5-ac30-2496b9dd8938/messages/motivational.json`
+  - `data/users/05187f39-64a0-4766-a152-59738af01e97/messages/motivational.json`
+  - `data/users/05187f39-64a0-4766-a152-59738af01e97/messages/word_of_the_day.json`
+- Session closeout updates applied: completed TODO items removed from [TODO.md](TODO.md), follow-up validation/monitoring tracked in [PLANS.md](development_docs/PLANS.md), and full diff review (`git diff --stat` + `git diff --name-only`) completed before finalizing changelog entries.
+
 ### 2026-02-21 - Backup reliability hardening + JSON-only reporting **COMPLETED**
 - Runtime backups are now directory-first with zip kept only as a temporary `# LEGACY COMPATIBILITY:` read-path bridge for historical artifacts.
 - Weekly backup reliability was hardened: scheduler now checks weekly cadence from `weekly_backup_*` artifacts, and retention no longer lets frequent auto backups evict weekly backups.
