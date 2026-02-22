@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-02-21 22:52:14",
+  "last_generated": "2026-02-21 23:51:43",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-02-21T22:52:14.636191",
+  "timestamp": "2026-02-21T23:51:43.133500",
   "successful": [
     "analyze_duplicate_functions",
     "analyze_functions",
@@ -50,8 +50,8 @@
           "groups_filtered_single_function": 11,
           "cache": {
             "total_files": 108,
-            "cached_files": 108,
-            "scanned_files": 0
+            "cached_files": 0,
+            "scanned_files": 108
           },
           "pairs_considered": 20000,
           "pairs_reported": 38,
@@ -2577,7 +2577,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-21T22:47:52"
+      "timestamp": "2026-02-21T23:43:49"
     },
     "analyze_functions": {
       "success": true,
@@ -2714,7 +2714,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-21T22:47:51"
+      "timestamp": "2026-02-21T23:43:47"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -4672,7 +4672,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-21T22:47:49"
+      "timestamp": "2026-02-21T23:43:44"
     },
     "analyze_function_registry": {
       "success": true,
@@ -6745,7 +6745,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-21T22:47:54"
+      "timestamp": "2026-02-21T23:43:52"
     },
     "analyze_package_exports": {
       "success": true,
@@ -14479,7 +14479,7 @@
           }
         }
       },
-      "timestamp": "2026-02-21T22:47:53"
+      "timestamp": "2026-02-21T23:43:49"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -14497,7 +14497,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-21T22:46:41"
+      "timestamp": "2026-02-21T23:43:55"
     },
     "analyze_documentation": {
       "success": true,
@@ -14536,7 +14536,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.20259685973911457,
+              "similarity_score": 0.20250685160445694,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -14719,20 +14719,20 @@
               ]
             },
             "TODO.md": {
-              "content_length": 27505,
+              "content_length": 24520,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
-              "section_count": 13,
+              "section_count": 12,
               "sections": [
                 "Introduction",
                 "How to Add New TODOs",
                 "High Priority",
-                "Flow & Communication",
                 "AI & Chatbot",
                 "Medium Priority",
                 "Quality & Operations",
                 "Documentation",
                 "User Experience Improvements",
-                "AI & Conversation"
+                "AI & Conversation",
+                "Performance Optimizations"
               ]
             },
             "ai_development_docs/AI_ARCHITECTURE.md": {
@@ -14768,20 +14768,20 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 24928,
+              "content_length": 27077,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
-              "section_count": 21,
+              "section_count": 22,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-02-22 - Flow deferral/cooldown hardening + Discord wiring tests **COMPLETED**",
                 "2026-02-21 - Backup reliability hardening + JSON-only reporting **COMPLETED**",
                 "2026-02-20 - Coverage expansion batch + stability fixes **COMPLETED**",
                 "2026-02-20 - Tier 3/logging follow-up and full-diff session wrap **COMPLETED**",
-                "2026-02-19 - Tier-3 test-failure fixes + testing-guide policy clarifications **COMPLETED**",
-                "2026-02-19 - Coverage hardening + audit failure cleanup **Progressed**"
+                "2026-02-19 - Tier-3 test-failure fixes + testing-guide policy clarifications **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -14970,9 +14970,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 177922,
+              "content_length": 182418,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 72,
+              "section_count": 73,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -14980,27 +14980,27 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-02-22 - Flow deferral/cooldown hardening + Discord command wiring coverage",
                 "2026-02-21 - Backup reliability hardening + JSON-only backup reporting",
                 "2026-02-20 - Coverage expansion batch + Tier 3 stability fixes",
-                "2026-02-20 - Tier 3 classification transition + audit logging cleanup session",
-                "2026-02-19 - Tier-3 test-failure remediation and testing-policy guidance update"
+                "2026-02-20 - Tier 3 classification transition + audit logging cleanup session"
               ]
             },
             "development_docs/PLANS.md": {
-              "content_length": 43809,
+              "content_length": 45903,
               "header_info": "# MHM Development Plans\n\n\n> **File**: `development_docs/PLANS.md`\n> **Audience**: Human Developer & AI Collaborators  \n> **Purpose**: Consolidated development plans (grouped, interdependent work) with",
-              "section_count": 21,
+              "section_count": 22,
               "sections": [
                 "Introduction",
                 "[IN PROGRESS] **Plan Maintenance**",
                 "**How to Update This Plan**",
                 "**Success Criteria**",
                 "[ACTIVE] **Current Active Plans**",
+                "**Flow/Check-in Scheduled Send Stability Follow-up** **IN PROGRESS**",
                 "**Backup Reliability and Restore Confidence Plan** **IN PROGRESS**",
                 "**Test Suite Performance Optimization Plan** **ON HOLD**",
                 "**No-Parallel Marker Reduction Plan** **IN PROGRESS**",
-                "**Investigate Intermittent Test Failures** **IN PROGRESS**",
-                "**Error Handling Quality Improvement Plan** **IN PROGRESS**"
+                "**Investigate Intermittent Test Failures** **IN PROGRESS**"
               ]
             },
             "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
@@ -15185,15 +15185,15 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-21T22:47:48"
+      "timestamp": "2026-02-21T23:43:43"
     },
     "analyze_documentation_sync": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 2,
           "files_affected": 0,
-          "status": "PASS"
+          "status": "FAIL"
         },
         "details": {
           "paired_doc_issues": 0,
@@ -15201,7 +15201,7 @@
           "ascii_compliance_issues": 0,
           "heading_numbering_issues": 0,
           "missing_address_issues": 0,
-          "unconverted_link_issues": 0,
+          "unconverted_link_issues": 2,
           "path_drift_files": [],
           "paired_docs": {},
           "path_drift": {
@@ -15251,18 +15251,28 @@
           },
           "unconverted_links": {
             "summary": {
-              "total_issues": 0,
-              "files_affected": 0,
-              "status": "CLEAN"
+              "total_issues": 2,
+              "files_affected": 2,
+              "status": "NEEDS_ATTENTION"
             },
-            "files": {},
+            "files": {
+              "ai_development_docs/AI_CHANGELOG.md": 1,
+              "development_docs/PLANS.md": 1
+            },
             "details": {
-              "detailed_issues": {}
+              "detailed_issues": {
+                "ai_development_docs/AI_CHANGELOG.md": [
+                  "Line 38: Path `ai_development_docs/AI_TESTING_GUIDE.md` should be converted to markdown link"
+                ],
+                "development_docs/PLANS.md": [
+                  "Line 55: Path `ai_development_docs/AI_TESTING_GUIDE.md` should be converted to markdown link"
+                ]
+              }
             }
           }
         }
       },
-      "timestamp": "2026-02-21T22:47:55"
+      "timestamp": "2026-02-21T23:44:02"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -15277,7 +15287,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-21T22:46:42"
+      "timestamp": "2026-02-21T23:43:56"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -15292,7 +15302,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-21T22:46:44"
+      "timestamp": "2026-02-21T23:43:59"
     },
     "analyze_path_drift": {
       "success": true,
@@ -15305,22 +15315,32 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-21T22:47:55"
+      "timestamp": "2026-02-21T23:43:53"
     },
     "analyze_unconverted_links": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
-          "files_affected": 0,
-          "status": "CLEAN"
+          "total_issues": 2,
+          "files_affected": 2,
+          "status": "NEEDS_ATTENTION"
         },
-        "files": {},
+        "files": {
+          "ai_development_docs/AI_CHANGELOG.md": 1,
+          "development_docs/PLANS.md": 1
+        },
         "details": {
-          "detailed_issues": {}
+          "detailed_issues": {
+            "ai_development_docs/AI_CHANGELOG.md": [
+              "Line 38: Path `ai_development_docs/AI_TESTING_GUIDE.md` should be converted to markdown link"
+            ],
+            "development_docs/PLANS.md": [
+              "Line 55: Path `ai_development_docs/AI_TESTING_GUIDE.md` should be converted to markdown link"
+            ]
+          }
         }
       },
-      "timestamp": "2026-02-21T22:46:45"
+      "timestamp": "2026-02-21T23:44:02"
     },
     "analyze_error_handling": {
       "success": true,
@@ -15340,8 +15360,8 @@
             "handle_errors_decorator": 1500,
             "try_except": 714,
             "handle_ai_error": 15,
-            "handle_communication_error": 4,
             "handle_network_error": 5,
+            "handle_communication_error": 4,
             "DataError": 15,
             "ConfigurationError": 4,
             "ValidationError": 24,
@@ -15349,8 +15369,8 @@
             "error_handler_usage": 8,
             "handle_validation_error": 2,
             "FileOperationError": 8,
-            "MHMError": 2,
             "CommunicationError": 2,
+            "MHMError": 2,
             "handle_file_error": 3,
             "AIError": 2,
             "safe_file_operation": 1
@@ -15401,7 +15421,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-21T22:47:51"
+      "timestamp": "2026-02-21T23:43:49"
     },
     "analyze_test_coverage": {
       "success": true,
@@ -15412,54 +15432,64 @@
         },
         "details": {
           "overall": {
-            "coverage": 72.8,
-            "statements": 30320,
-            "covered": 22087,
+            "coverage": 72.6,
+            "statements": 30020,
+            "covered": 21787,
             "missed": 8233,
-            "generated": null
+            "generated": "2026-02-21T23:51:37.068809"
           },
           "modules": [
             {
               "module": "communication",
-              "coverage": 71.3,
-              "missed": 2745
+              "coverage": 71.0,
+              "missed": 2732
             },
             {
               "module": "ui",
-              "coverage": 71.4,
-              "missed": 1923
+              "coverage": 71.2,
+              "missed": 1925
             },
             {
               "module": "core",
-              "coverage": 73.0,
-              "missed": 2922
+              "coverage": 72.8,
+              "missed": 2923
             },
             {
               "module": "notebook",
-              "coverage": 76.4,
+              "coverage": 76.1,
               "missed": 145
             },
             {
               "module": "ai",
-              "coverage": 78.4,
-              "missed": 374
+              "coverage": 77.6,
+              "missed": 384
             },
             {
               "module": "tasks",
-              "coverage": 81.3,
+              "coverage": 81.2,
               "missed": 102
             },
             {
               "module": "user",
-              "coverage": 92.7,
+              "coverage": 92.6,
               "missed": 22
             }
           ],
           "worst_files": [
             {
+              "path": "notebook/__init__.py",
+              "coverage": 0.0,
+              "missing": 0
+            },
+            {
               "path": "user/__init__.py",
-              "coverage": 23.1,
+              "coverage": 16.7,
               "missing": 10
+            },
+            {
+              "path": "ui/ui_app_qt.py",
+              "coverage": 50.4,
+              "missing": 699
             },
             {
               "path": "communication/communication_channels/discord/bot.py",
@@ -15467,43 +15497,35 @@
               "missing": 630
             },
             {
-              "path": "ui/ui_app_qt.py",
-              "coverage": 50.7,
-              "missing": 696
-            },
-            {
               "path": "ui/widgets/checkin_settings_widget.py",
-              "coverage": 54.3,
+              "coverage": 54.1,
               "missing": 294
-            },
-            {
-              "path": "core/checkin_analytics.py",
-              "coverage": 61.5,
-              "missing": 269
             }
           ],
           "tier3_test_outcome": {
-            "state": "clean",
+            "state": "test_failures",
             "parallel": {
-              "state": "passed",
-              "classification": "passed",
-              "classification_reason": "pytest_passed",
-              "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-02-21_22-47-59.log",
-              "return_code_hex": "0x00000000",
-              "return_code": 0,
-              "passed_count": 4542,
-              "failed_count": 0,
+              "state": "failed",
+              "classification": "failed",
+              "classification_reason": "pytest_failed_or_errored",
+              "actionable_context": "One or more pytest node IDs failed/errored. Fix failing tests and rerun.",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-02-21_23-46-35.log",
+              "return_code_hex": "0x00000001",
+              "return_code": 1,
+              "passed_count": 4634,
+              "failed_count": 1,
               "error_count": 0,
               "skipped_count": 1,
-              "failed_node_ids": []
+              "failed_node_ids": [
+                "tests/ui/test_account_creation_ui.py::TestAccountCreationErrorHandling::test_invalid_data_handling_real_behavior"
+              ]
             },
             "no_parallel": {
               "state": "passed",
               "classification": "passed",
               "classification_reason": "pytest_passed",
               "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-02-21_22-50-59.log",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-02-21_23-50-19.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
               "passed_count": 93,
@@ -15512,21 +15534,22 @@
               "skipped_count": 0,
               "failed_node_ids": []
             },
-            "failed_node_ids": [],
+            "failed_node_ids": [
+              "tests/ui/test_account_creation_ui.py::TestAccountCreationErrorHandling::test_invalid_data_handling_real_behavior"
+            ],
             "development_tools": {
-              "state": "skipped",
-              "classification": "skipped",
-              "classification_reason": "cache_reuse_precheck",
-              "actionable_context": "Development-tools coverage execution skipped because cache is fresh.",
+              "state": "passed",
+              "classification": "passed",
+              "classification_reason": "pytest_passed",
+              "actionable_context": "Track completed successfully.",
               "log_file": null,
-              "return_code_hex": null,
-              "return_code": null,
-              "passed_count": 0,
+              "return_code_hex": "0x00000000",
+              "return_code": 0,
+              "passed_count": 731,
               "failed_count": 0,
               "error_count": 0,
               "skipped_count": 0,
-              "failed_node_ids": [],
-              "from_cache": true
+              "failed_node_ids": []
             }
           }
         },
@@ -15536,7 +15559,7 @@
           "source": "run_test_coverage"
         }
       },
-      "timestamp": "2026-02-21T22:52:11"
+      "timestamp": "2026-02-21T23:51:40"
     },
     "analyze_test_markers": {
       "success": true,
@@ -15550,20 +15573,20 @@
           "missing": []
         }
       },
-      "timestamp": "2026-02-21T22:52:13"
+      "timestamp": "2026-02-21T23:51:41"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 11577,
+          "total_issues": 11586,
           "files_affected": 0
         },
         "details": {
           "overall": {
             "overall_coverage": 51.8,
             "total_statements": 24042,
-            "total_missed": 11577
+            "total_missed": 11586
           },
           "modules": {
             "development_tools\\__init__.py": {
@@ -16773,8 +16796,8 @@
             },
             "development_tools\\docs\\fix_version_sync.py": {
               "statements": 446,
-              "missed": 226,
-              "coverage": 49,
+              "missed": 221,
+              "coverage": 50,
               "missing_lines": [
                 "21",
                 "23",
@@ -16881,12 +16904,7 @@
                 "542",
                 "556",
                 "575",
-                "587",
                 "618",
-                "638",
-                "697",
-                "698",
-                "704",
                 "716",
                 "717",
                 "722",
@@ -17003,7 +17021,7 @@
                 "912",
                 "913"
               ],
-              "covered": 220
+              "covered": 225
             },
             "development_tools\\docs\\generate_directory_tree.py": {
               "statements": 128,
@@ -21410,8 +21428,8 @@
             },
             "development_tools\\shared\\mtime_cache.py": {
               "statements": 253,
-              "missed": 48,
-              "coverage": 81,
+              "missed": 52,
+              "coverage": 79,
               "missing_lines": [
                 "40",
                 "41",
@@ -21422,6 +21440,10 @@
                 "131",
                 "145",
                 "146",
+                "172",
+                "173",
+                "177",
+                "179",
                 "183",
                 "184",
                 "185",
@@ -21462,7 +21484,7 @@
                 "468",
                 "483"
               ],
-              "covered": 205
+              "covered": 201
             },
             "development_tools\\shared\\output_storage.py": {
               "statements": 233,
@@ -23475,7 +23497,7 @@
             },
             "development_tools\\shared\\service\\report_generation.py": {
               "statements": 3558,
-              "missed": 1338,
+              "missed": 1346,
               "coverage": 62,
               "missing_lines": [
                 "32",
@@ -23532,7 +23554,6 @@
                 "290",
                 "310",
                 "319",
-                "347",
                 "352",
                 "353",
                 "363",
@@ -23666,6 +23687,7 @@
                 "887",
                 "888",
                 "905",
+                "908",
                 "915",
                 "931",
                 "932",
@@ -23684,7 +23706,6 @@
                 "971",
                 "972",
                 "988",
-                "1015",
                 "1067",
                 "1073",
                 "1150",
@@ -23717,7 +23738,7 @@
                 "1266",
                 "1281",
                 "1296",
-                "1311",
+                "1315",
                 "1335",
                 "1361",
                 "1362",
@@ -23882,9 +23903,10 @@
                 "2051",
                 "2071",
                 "2094",
-                "2109",
-                "2112",
+                "2104",
+                "2107",
                 "2122",
+                "2135",
                 "2138",
                 "2139",
                 "2188",
@@ -23995,8 +24017,27 @@
                 "2915",
                 "2924",
                 "2945",
+                "2962",
+                "2965",
+                "2966",
+                "2972",
+                "2973",
+                "2974",
+                "2975",
+                "2976",
+                "2977",
+                "2978",
+                "2979",
+                "2981",
+                "2983",
                 "2984",
                 "2985",
+                "2987",
+                "2988",
+                "2990",
+                "2993",
+                "2996",
+                "3000",
                 "3009",
                 "3012",
                 "3013",
@@ -24355,28 +24396,15 @@
                 "5122",
                 "5124",
                 "5126",
-                "5131",
                 "5132",
-                "5134",
-                "5136",
-                "5137",
-                "5138",
-                "5139",
-                "5140",
-                "5142",
-                "5143",
-                "5144",
                 "5146",
                 "5147",
                 "5149",
-                "5151",
-                "5152",
                 "5153",
                 "5154",
                 "5155",
                 "5156",
                 "5158",
-                "5160",
                 "5161",
                 "5166",
                 "5167",
@@ -24390,7 +24418,6 @@
                 "5179",
                 "5180",
                 "5181",
-                "5183",
                 "5190",
                 "5201",
                 "5202",
@@ -24468,22 +24495,10 @@
                 "5353",
                 "5354",
                 "5355",
-                "5365",
-                "5368",
-                "5369",
-                "5370",
                 "5374",
                 "5376",
-                "5377",
                 "5378",
-                "5379",
-                "5380",
-                "5383",
-                "5384",
-                "5389",
-                "5392",
                 "5393",
-                "5394",
                 "5417",
                 "5418",
                 "5423",
@@ -24718,8 +24733,23 @@
                 "6310",
                 "6313",
                 "6314",
+                "6325",
+                "6328",
+                "6329",
+                "6334",
+                "6335",
+                "6336",
+                "6337",
+                "6338",
+                "6339",
+                "6340",
+                "6341",
+                "6343",
+                "6344",
                 "6345",
                 "6346",
+                "6347",
+                "6348",
                 "6360",
                 "6371",
                 "6374",
@@ -24775,9 +24805,9 @@
                 "6936",
                 "6937",
                 "6956",
-                "6970",
-                "6971",
-                "6972",
+                "6966",
+                "6967",
+                "6968",
                 "7016",
                 "7017",
                 "7018",
@@ -24817,7 +24847,7 @@
                 "7109",
                 "7112"
               ],
-              "covered": 2220
+              "covered": 2212
             },
             "development_tools\\shared\\service\\tool_wrappers.py": {
               "statements": 726,
@@ -27625,7 +27655,7 @@
             },
             "development_tools\\tests\\test_file_coverage_cache.py": {
               "statements": 540,
-              "missed": 195,
+              "missed": 197,
               "coverage": 64,
               "missing_lines": [
                 "36",
@@ -27687,18 +27717,20 @@
                 "317",
                 "329",
                 "330",
+                "332",
+                "333",
+                "339",
+                "340",
                 "341",
                 "342",
+                "343",
+                "349",
                 "352",
                 "353",
-                "360",
-                "361",
+                "359",
                 "362",
                 "363",
-                "364",
-                "365",
                 "366",
-                "367",
                 "371",
                 "385",
                 "387",
@@ -27824,7 +27856,7 @@
                 "1028",
                 "1039"
               ],
-              "covered": 345
+              "covered": 343
             }
           },
           "coverage_collected": true,
@@ -27851,7 +27883,7 @@
           "source": "run_test_coverage --dev-tools-only"
         }
       },
-      "timestamp": "2026-02-21T22:42:20"
+      "timestamp": "2026-02-21T23:50:18"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -30937,7 +30969,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-21T22:47:53"
+      "timestamp": "2026-02-21T23:43:49"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -30957,7 +30989,7 @@
           "missing_sections": []
         }
       },
-      "timestamp": "2026-02-21T22:47:54"
+      "timestamp": "2026-02-21T23:43:51"
     },
     "analyze_module_imports": {
       "success": true,
@@ -42977,7 +43009,7 @@
           }
         }
       },
-      "timestamp": "2026-02-21T22:47:53"
+      "timestamp": "2026-02-21T23:43:49"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -45394,8 +45426,8 @@
             "files_scanned": 449,
             "files_with_issues": 106,
             "total_unused": 325,
-            "cache_hits": 449,
-            "cache_misses": 0
+            "cache_hits": 0,
+            "cache_misses": 449
           },
           "by_category": {
             "obvious_unused": 0,
@@ -45411,22 +45443,22 @@
           },
           "files_scanned": 449,
           "_cache_metadata": {
-            "cache_mode": "cache_only",
-            "hits": 449,
-            "misses": 0,
+            "cache_mode": "cold_scan",
+            "hits": 0,
+            "misses": 449,
             "total_cache_checks": 449,
-            "hit_rate": 100.0
+            "hit_rate": 0.0
           }
         },
         "_cache_metadata": {
-          "cache_mode": "cache_only",
-          "hits": 449,
-          "misses": 0,
+          "cache_mode": "cold_scan",
+          "hits": 0,
+          "misses": 449,
           "total_cache_checks": 449,
-          "hit_rate": 100.0
+          "hit_rate": 0.0
         }
       },
-      "timestamp": "2026-02-21T22:47:55"
+      "timestamp": "2026-02-21T23:46:31"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -45592,15 +45624,15 @@
           "legacy_markers": 12,
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
           "cache": {
-            "cache_mode": "cache_only",
-            "hits": 447,
-            "misses": 0,
+            "cache_mode": "cold_scan",
+            "hits": 0,
+            "misses": 447,
             "total_cache_checks": 447,
-            "hit_rate": 100.0
+            "hit_rate": 0.0
           }
         }
       },
-      "timestamp": "2026-02-21T22:47:59"
+      "timestamp": "2026-02-21T23:46:36"
     },
     "analyze_config": {
       "success": true,
@@ -45668,7 +45700,7 @@
           }
         }
       },
-      "timestamp": "2026-02-21T22:49:55"
+      "timestamp": "2026-02-21T23:49:40"
     },
     "analyze_ai_work": {
       "success": true,
@@ -45683,12 +45715,12 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-02-21T22:47:48"
+      "timestamp": "2026-02-21T23:43:43"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-02-21T22:52:14",
+        "generated_at": "2026-02-21T23:51:43",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -45697,8 +45729,8 @@
           "success": true,
           "total_checks": 7,
           "passed_checks": 7,
-          "latest_backup_path": "data\\backups\\auto_safe_operation_2026-02-21_22-51-31",
-          "latest_backup_created_at": "2026-02-21 22:51:31",
+          "latest_backup_path": "data\\backups\\auto_safe_operation_2026-02-21_23-50-37",
+          "latest_backup_created_at": "2026-02-21 23:50:37",
           "drill_executed": true
         },
         "details": {
@@ -45733,7 +45765,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-02-13T22:52:14",
+                "recent_cutoff": "2026-02-13T23:51:43",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-02-21_01-44-35",
                 "latest_weekly_created_at": "2026-02-21 01:44:35"
               }
@@ -45742,16 +45774,16 @@
               "name": "latest_backup_recent_enough",
               "success": true,
               "details": {
-                "latest_backup_path": "data\\backups\\auto_safe_operation_2026-02-21_22-51-31",
-                "latest_created_at": "2026-02-21 22:51:31",
-                "recent_cutoff": "2026-02-13T22:52:14"
+                "latest_backup_path": "data\\backups\\auto_safe_operation_2026-02-21_23-50-37",
+                "latest_created_at": "2026-02-21 23:50:37",
+                "recent_cutoff": "2026-02-13T23:51:43"
               }
             },
             {
               "name": "latest_backup_validates",
               "success": true,
               "details": {
-                "backup_path": "data\\backups\\auto_safe_operation_2026-02-21_22-51-31",
+                "backup_path": "data\\backups\\auto_safe_operation_2026-02-21_23-50-37",
                 "errors": []
               }
             },
@@ -45799,7 +45831,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-02-13T22:52:14",
+              "recent_cutoff": "2026-02-13T23:51:43",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-02-21_01-44-35",
               "latest_weekly_created_at": "2026-02-21 01:44:35"
             }
@@ -45808,16 +45840,16 @@
             "name": "latest_backup_recent_enough",
             "success": true,
             "details": {
-              "latest_backup_path": "data\\backups\\auto_safe_operation_2026-02-21_22-51-31",
-              "latest_created_at": "2026-02-21 22:51:31",
-              "recent_cutoff": "2026-02-13T22:52:14"
+              "latest_backup_path": "data\\backups\\auto_safe_operation_2026-02-21_23-50-37",
+              "latest_created_at": "2026-02-21 23:50:37",
+              "recent_cutoff": "2026-02-13T23:51:43"
             }
           },
           {
             "name": "latest_backup_validates",
             "success": true,
             "details": {
-              "backup_path": "data\\backups\\auto_safe_operation_2026-02-21_22-51-31",
+              "backup_path": "data\\backups\\auto_safe_operation_2026-02-21_23-50-37",
               "errors": []
             }
           },
@@ -45833,20 +45865,20 @@
           }
         ]
       },
-      "timestamp": "2026-02-21T22:52:14"
+      "timestamp": "2026-02-21T23:51:43"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 1,
+          "total_issues": 2,
           "files_affected": 0,
-          "status": "ISSUES"
+          "status": "CRITICAL"
         },
         "details": {
-          "timestamp": "2026-02-21T22:47:47.085857",
+          "timestamp": "2026-02-21T23:43:41.783050",
           "system_health": {
-            "overall_status": "ISSUES",
+            "overall_status": "CRITICAL",
             "core_files": {
               "run_mhm.py": "OK",
               "run_tests.py": "OK",
@@ -45864,7 +45896,7 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-02-21T22:44:04.358342",
+            "last_audit": "2026-02-21T22:52:14.681417",
             "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
             "documentation_sync_status": "Synchronized",
@@ -45873,48 +45905,50 @@
               "Documentation is synchronized"
             ],
             "recommendations": [
-              "Check logs/errors.log for recent errors"
+              "Review logs/errors.log for recent error details"
             ],
             "warnings": [],
             "errors": [],
             "severity_levels": {
               "INFO": [],
-              "WARNING": [
-                "Errors detected in logs/errors.log (last 24 hours)"
-              ],
-              "CRITICAL": []
+              "WARNING": [],
+              "CRITICAL": [
+                "Recent errors detected in logs/errors.log (last hour)"
+              ]
             }
           },
           "recent_activity": {
             "recent_changes": [
-              "development_tools/shared/backup_inventory.py",
-              "development_tools/legacy/fix_legacy_references.py",
-              "core/auto_cleanup.py",
-              "tests/behavior/test_interaction_handlers_behavior.py",
-              "tests/unit/test_channel_orchestrator.py",
-              "tests/behavior/test_utilities_demo.py",
+              "communication/core/channel_orchestrator.py",
               "core/scheduler.py",
-              "development_tools/shared/service/commands.py",
-              "development_tools/shared/service/audit_orchestration.py",
-              "development_tools/shared/cli_interface.py"
+              "tests/behavior/test_discord_bot_behavior.py",
+              "communication/message_processing/conversation_flow_manager.py",
+              "tests/behavior/test_conversation_flow_manager_behavior.py",
+              "tests/unit/test_channel_orchestrator.py",
+              "tests/behavior/test_scheduler_coverage_expansion.py",
+              "development_docs/TEST_COVERAGE_REPORT.md",
+              "ai_development_docs/AI_CHANGELOG.md",
+              "TODO.md"
             ],
             "git_status": "Modified",
             "last_commit": null,
             "uncommitted_changes": true
           },
-          "critical_alerts": [],
+          "critical_alerts": [
+            "CRITICAL: Recent errors in logs/errors.log"
+          ],
           "performance_indicators": {
             "log_file_sizes": {
               "ai.log": "0.0MB",
               "ai_dev_tools.log": "0.6MB",
-              "app.log": "0.0MB",
+              "app.log": "0.1MB",
               "communication_manager.log": "0.0MB",
               "discord.log": "0.0MB",
               "email.log": "0.0MB",
-              "errors.log": "0.0MB",
+              "errors.log": "0.1MB",
               "file_ops.log": "0.1MB",
               "message.log": "0.0MB",
-              "scheduler.log": "0.0MB",
+              "scheduler.log": "0.1MB",
               "ui.log": "0.0MB",
               "user_activity.log": "0.0MB"
             },
@@ -45923,7 +45957,7 @@
           }
         }
       },
-      "timestamp": "2026-02-21T22:47:47"
+      "timestamp": "2026-02-21T23:43:41"
     },
     "decision_support": {
       "success": true,
@@ -46064,7 +46098,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-21T22:47:50"
+      "timestamp": "2026-02-21T23:43:46"
     },
     "quick_status": {
       "success": true,
