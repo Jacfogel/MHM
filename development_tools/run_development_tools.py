@@ -6,6 +6,7 @@
 """Command-line interface for AI development tools."""
 
 import argparse
+import os
 import shutil
 import sys
 import time
@@ -16,6 +17,12 @@ project_root = Path(__file__).resolve().parent.parent
 project_root_str = str(project_root)
 if project_root_str not in sys.path:
     sys.path.insert(0, project_root_str)
+
+# Force explicit dev-tools logging mode before importing the logger module.
+# This prevents leaked test env vars (e.g., MHM_TESTING=1) from routing
+# development-tools logs into test-coverage log directories.
+os.environ["MHM_DEV_TOOLS_RUN"] = "1"
+os.environ["MHM_TESTING"] = "0"
 
 # Now we can import development_tools as a package
 try:

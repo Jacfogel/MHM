@@ -23,6 +23,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -39,6 +40,13 @@ from core.time_utilities import now_timestamp_full, now_timestamp_filename
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
+
+# Ensure dev-tools logger routing is active even when this module is invoked directly.
+os.environ.setdefault("MHM_DEV_TOOLS_RUN", "1")
+os.environ.setdefault(
+    "DEV_TOOLS_LOGS_DIR",
+    str(project_root / "development_tools" / "reports" / "logs"),
+)
 
 from core.logger import get_component_logger
 
@@ -343,6 +351,104 @@ class CoverageMetricsRegenerator:
                 logger.warning(
                     "TestCoverageReportGenerator not available - report generation may fail"
                 )
+
+    def _configure_test_logging_env(self, env: Dict[str, str]) -> Dict[str, str]:
+        """Force test subprocess logging into test-only log roots."""
+        # Keep coverage stdout/stderr artifacts in development_tools/tests/logs,
+        # but isolate runtime app/component logs from pytest subprocesses under
+        # tests/data/tmp so they do not pollute coverage artifact directories.
+        test_logs_root = self.project_root / "tests" / "data" / "tmp" / "runtime_logs"
+        test_tmp_root = self.project_root / "tests" / "data" / "tmp"
+        test_logs_root.mkdir(parents=True, exist_ok=True)
+        test_tmp_root.mkdir(parents=True, exist_ok=True)
+        # Force pytest subprocesses into pure test mode (not dev-tools mode),
+        # so logger path expectations in test suites remain deterministic.
+        env["MHM_DEV_TOOLS_RUN"] = "0"
+        env["MHM_TESTING"] = "1"
+        # Ensure deterministic backup artifact behavior in tests regardless of
+        # user/runtime shell env (e.g., BACKUP_FORMAT=directory).
+        env["BACKUP_FORMAT"] = "zip"
+        env["TEST_CONSOLIDATED_LOGGING"] = "1"
+        env["TEST_VERBOSE_LOGS"] = "0"
+        env["TEST_LOGS_DIR"] = str(test_logs_root)
+        env["LOGS_DIR"] = str(test_logs_root)
+        env["LOG_BACKUP_DIR"] = str(test_logs_root / "backups")
+        env["LOG_ARCHIVE_DIR"] = str(test_logs_root / "archive")
+        # Keep pytest temp usage inside repo-owned tests/data/tmp to reduce ACL drift.
+        env["TMP"] = str(test_tmp_root)
+        env["TEMP"] = str(test_tmp_root)
+        env["TMPDIR"] = str(test_tmp_root)
+        env["PYTEST_DEBUG_TEMPROOT"] = str(test_tmp_root)
+        return env
+
+    def _create_pytest_temp_paths(self, run_label: str) -> tuple[Path, Path]:
+        """Create isolated pytest basetemp/cache dirs with workspace-first fallback."""
+        candidates = [
+            self.project_root / "tests" / "data" / "tmp" / "pytest_runner",
+            Path(tempfile.gettempdir()) / "mhm_pytest_tmp",
+        ]
+        unique_id = f"{run_label}_{uuid.uuid4().hex[:8]}"
+        last_error: Optional[Exception] = None
+
+        for root in candidates:
+            try:
+                root.mkdir(parents=True, exist_ok=True)
+                pytest_temp_base = root / f"mhm_pytest_tmp_{unique_id}"
+                pytest_temp_base.mkdir(parents=True, exist_ok=True)
+                pytest_cache_dir = pytest_temp_base / ".pytest_cache"
+                pytest_cache_dir.mkdir(parents=True, exist_ok=True)
+                return pytest_temp_base, pytest_cache_dir
+            except Exception as exc:
+                last_error = exc
+                continue
+
+        if last_error:
+            raise last_error
+        raise RuntimeError("Unable to create pytest temporary directories")
+
+    @staticmethod
+    def _strip_xdist_args(cmd: List[str]) -> List[str]:
+        """Return command list without xdist-specific arguments."""
+        stripped: List[str] = []
+        skip_next = False
+        for arg in cmd:
+            if skip_next:
+                skip_next = False
+                continue
+            if arg in {"-n", "--numprocesses", "--dist"}:
+                skip_next = True
+                continue
+            if arg.startswith("--dist="):
+                continue
+            stripped.append(arg)
+        return stripped
+
+    @staticmethod
+    def _remove_tree_with_retries(path: Path, retries: int = 20) -> bool:
+        """Best-effort recursive removal with retries for Windows handle/ACL lag."""
+
+        def _on_rm_error(func, target, exc_info):
+            try:
+                os.chmod(target, stat.S_IWRITE)
+                func(target)
+            except Exception:
+                pass
+
+        if not path.exists():
+            return True
+        for attempt in range(retries):
+            try:
+                shutil.rmtree(path, ignore_errors=False, onerror=_on_rm_error)
+                return True
+            except Exception:
+                import time
+
+                time.sleep(min(0.5, 0.05 * (attempt + 1)))
+        try:
+            shutil.rmtree(path, ignore_errors=True, onerror=_on_rm_error)
+        except Exception:
+            pass
+        return not path.exists()
 
     def _configure_coverage_paths(self) -> None:
         """Load coverage configuration paths from coverage.ini (if it exists and specifies paths)."""
@@ -873,6 +979,23 @@ class CoverageMetricsRegenerator:
                     str(tf.relative_to(self.project_root)) for tf in test_files_to_run
                 ]
 
+        # Main product coverage run should not execute development-tools test files.
+        # Those are handled separately by generate_dev_tools_coverage in Tier 3.
+        dev_tools_test_prefix = "tests/development_tools/"
+        if test_filter_args:
+            original_count = len(test_filter_args)
+            test_filter_args = [
+                path
+                for path in test_filter_args
+                if not path.replace("\\", "/").startswith(dev_tools_test_prefix)
+            ]
+            if logger and len(test_filter_args) != original_count:
+                excluded_count = original_count - len(test_filter_args)
+                logger.info(
+                    f"Excluded {excluded_count} development-tools test file(s) from main coverage run; "
+                    "they run under generate_dev_tools_coverage"
+                )
+
         # Store coverage.json in development_tools/tests/jsons/ instead of root
         jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
         jsons_dir.mkdir(parents=True, exist_ok=True)
@@ -1021,6 +1144,8 @@ class CoverageMetricsRegenerator:
                         # Ignore temp directories to prevent collecting tests from temp files
                         "--ignore=tests/data/pytest-tmp-*",
                         "--ignore=tests/data/pytest-of-*",
+                        # Dev-tools tests are executed by generate_dev_tools_coverage
+                        "--ignore=tests/development_tools/",
                     ]
                 )
                 # Add test files or directories
@@ -1043,6 +1168,8 @@ class CoverageMetricsRegenerator:
                         # Ignore temp directories to prevent collecting tests from temp files
                         "--ignore=tests/data/pytest-tmp-*",
                         "--ignore=tests/data/pytest-of-*",
+                        # Dev-tools tests are executed by generate_dev_tools_coverage
+                        "--ignore=tests/development_tools/",
                     ]
                 )
                 # Add test files or directories
@@ -1079,7 +1206,7 @@ class CoverageMetricsRegenerator:
                 )
 
             env = os.environ.copy()
-            env["MHM_DEV_TOOLS_RUN"] = "1"
+            env = self._configure_test_logging_env(env)
             # Ensure PATH includes Python executable's directory for Windows DLL resolution
             env = self._ensure_python_path_in_env(env)
             if self.parallel:
@@ -1098,15 +1225,8 @@ class CoverageMetricsRegenerator:
             else:
                 env["COVERAGE_FILE"] = str(self.coverage_data_file.resolve())
 
-            # Set unique pytest temp directory to avoid conflicts when running in parallel with dev tools coverage
-            # Use a unique identifier based on process/coverage type to ensure isolation
-            unique_id = f"main_{uuid.uuid4().hex[:8]}"
-            pytest_temp_root = Path(tempfile.gettempdir()) / "mhm_pytest_tmp"
-            pytest_temp_root.mkdir(parents=True, exist_ok=True)
-            pytest_temp_base = pytest_temp_root / f"mhm_pytest_tmp_{unique_id}"
-            pytest_temp_base.mkdir(parents=True, exist_ok=True)
             # Use unique cache/basetemp directories per run to avoid cross-run collisions.
-            pytest_cache_dir = pytest_temp_base / ".pytest_cache"
+            pytest_temp_base, pytest_cache_dir = self._create_pytest_temp_paths("main")
             env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
             # Force pytest cache provider to use writable temp cache directory.
             cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
@@ -1236,6 +1356,49 @@ class CoverageMetricsRegenerator:
                     stderr=stderr_content
                     or f"Pytest timed out after {pytest_timeout // 60} minutes",
                 )
+
+            if (
+                self.parallel
+                and result.returncode != 0
+                and self._is_infra_cleanup_error(result.stdout or "")
+            ):
+                fallback_cmd = self._strip_xdist_args(cmd)
+                if fallback_cmd != cmd:
+                    if logger:
+                        logger.warning(
+                            "Parallel pytest run hit cleanup permission error; retrying once without xdist"
+                        )
+                    with open(
+                        stdout_log_path, "a", encoding="utf-8", buffering=1
+                    ) as stdout_file:
+                        stdout_file.write(
+                            "\n[RETRY] Re-running without xdist due to cleanup permission error\n"
+                        )
+                        try:
+                            retry_result = subprocess.run(
+                                fallback_cmd,
+                                stdout=stdout_file,
+                                stderr=subprocess.STDOUT,
+                                text=True,
+                                cwd=self.project_root,
+                                env=env,
+                                timeout=pytest_timeout,
+                            )
+                        except subprocess.TimeoutExpired:
+                            retry_result = subprocess.CompletedProcess(
+                                fallback_cmd,
+                                returncode=1,
+                                stdout="",
+                                stderr=(
+                                    f"Retry without xdist timed out after {pytest_timeout // 60} minutes"
+                                ),
+                            )
+                    retry_result.stdout = stdout_log_path.read_text(
+                        encoding="utf-8", errors="ignore"
+                    )
+                    retry_result.stderr = ""
+                    result = retry_result
+                    cmd = fallback_cmd
 
             # Log if the command completed too quickly (suspicious)
             if result.returncode is not None and logger:
@@ -1701,8 +1864,9 @@ class CoverageMetricsRegenerator:
                     )
                     if error_details:
                         error_msg += ":\n  - " + "\n  - ".join(error_details)
+                    stderr_hint_path = self.pytest_stderr_log or self.pytest_stdout_log
                     error_msg += (
-                        f"\n  See {self.pytest_stderr_log} for full stderr output"
+                        f"\n  See {stderr_hint_path} for full stderr/stdout output"
                     )
                     cmd_str = " ".join(
                         cmd
@@ -1771,7 +1935,7 @@ class CoverageMetricsRegenerator:
                 # Use separate coverage data file for no_parallel tests
                 # Use absolute path to ensure coverage.py uses our specified location
                 no_parallel_env = os.environ.copy()
-                no_parallel_env["MHM_DEV_TOOLS_RUN"] = "1"
+                no_parallel_env = self._configure_test_logging_env(no_parallel_env)
                 # Ensure PATH includes Python executable's directory for Windows DLL resolution
                 no_parallel_env = self._ensure_python_path_in_env(no_parallel_env)
                 no_parallel_env["COVERAGE_FILE"] = str(
@@ -1781,14 +1945,10 @@ class CoverageMetricsRegenerator:
                     no_parallel_env["COVERAGE_RCFILE"] = str(
                         self.coverage_config_path.resolve()
                     )
-                # Set unique pytest temp directory to avoid conflicts when running in parallel with dev tools coverage
-                unique_id = f"no_parallel_{uuid.uuid4().hex[:8]}"
-                pytest_temp_root = Path(tempfile.gettempdir()) / "mhm_pytest_tmp"
-                pytest_temp_root.mkdir(parents=True, exist_ok=True)
-                pytest_temp_base = pytest_temp_root / f"mhm_pytest_tmp_{unique_id}"
-                pytest_temp_base.mkdir(parents=True, exist_ok=True)
                 # Use unique cache/basetemp directories per run to avoid cross-run collisions.
-                pytest_cache_dir = pytest_temp_base / ".pytest_cache"
+                pytest_temp_base, pytest_cache_dir = self._create_pytest_temp_paths(
+                    "no_parallel"
+                )
                 no_parallel_env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
                 # Force pytest cache provider to use writable temp cache directory.
                 no_parallel_cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
@@ -2346,7 +2506,7 @@ class CoverageMetricsRegenerator:
                         # Use coverage combine to merge the coverage data files
                         # Set COVERAGE_FILE to the final combined file location
                         combine_env = os.environ.copy()
-                        combine_env["MHM_DEV_TOOLS_RUN"] = "1"
+                        combine_env = self._configure_test_logging_env(combine_env)
                         # Ensure PATH includes Python executable's directory for Windows DLL resolution
                         combine_env = self._ensure_python_path_in_env(combine_env)
                         combine_env["COVERAGE_FILE"] = str(
@@ -2862,6 +3022,26 @@ class CoverageMetricsRegenerator:
                                                     f"Recalculated overall coverage from merged JSON: {overall_coverage.get('overall_coverage', 0):.1f}%"
                                                 )
 
+                                        # Re-evaluate coverage collection status after combined coverage.json load.
+                                        # This is especially important when the parallel phase times out or exits
+                                        # non-zero but coverage artifacts were still successfully combined.
+                                        total_statements = int(
+                                            overall_coverage.get("total_statements", 0)
+                                            or 0
+                                        )
+                                        recovered_coverage_collected = bool(
+                                            coverage_data
+                                        ) or total_statements > 0
+                                        if (
+                                            recovered_coverage_collected
+                                            and not coverage_collected
+                                        ):
+                                            coverage_collected = True
+                                            if logger:
+                                                logger.info(
+                                                    "Recovered coverage data from combined parallel/no_parallel artifacts"
+                                                )
+
                                         # Validate coverage percentage - if it's unexpectedly low, warn
                                         # Expected coverage should be around 70-75% based on historical data
                                         coverage_pct = overall_coverage.get(
@@ -3063,7 +3243,7 @@ class CoverageMetricsRegenerator:
                             str(self.coverage_html_dir),
                         ]
                         env = os.environ.copy()
-                        env["MHM_DEV_TOOLS_RUN"] = "1"
+                        env = self._configure_test_logging_env(env)
                         env["COVERAGE_FILE"] = str(self.coverage_data_file)
                         if self.coverage_config_path.exists():
                             env["COVERAGE_RCFILE"] = str(self.coverage_config_path)
@@ -3468,22 +3648,17 @@ class CoverageMetricsRegenerator:
                 )
 
             env = os.environ.copy()
-            env["MHM_DEV_TOOLS_RUN"] = "1"
+            env = self._configure_test_logging_env(env)
             # Ensure PATH includes Python executable's directory for Windows DLL resolution
             env = self._ensure_python_path_in_env(env)
             # Set COVERAGE_FILE to absolute path to ensure files are created in the correct location
             env["COVERAGE_FILE"] = str(self.dev_tools_coverage_data_file.resolve())
             if dev_cov_config and dev_cov_config.exists():
                 env["COVERAGE_RCFILE"] = str(dev_cov_config.resolve())
-            # Set unique pytest temp directory to avoid conflicts when running in parallel with main coverage
-            # Use a unique identifier based on process/coverage type to ensure isolation
-            unique_id = f"dev_tools_{uuid.uuid4().hex[:8]}"
-            pytest_temp_root = Path(tempfile.gettempdir()) / "mhm_pytest_tmp"
-            pytest_temp_root.mkdir(parents=True, exist_ok=True)
-            pytest_temp_base = pytest_temp_root / f"mhm_pytest_tmp_{unique_id}"
-            pytest_temp_base.mkdir(parents=True, exist_ok=True)
             # Use unique cache/basetemp directories per run to avoid cross-run collisions.
-            pytest_cache_dir = pytest_temp_base / ".pytest_cache"
+            pytest_temp_base, pytest_cache_dir = self._create_pytest_temp_paths(
+                "dev_tools"
+            )
             env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
             # Force pytest cache provider to use writable temp cache directory.
             cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
@@ -3885,11 +4060,12 @@ class CoverageMetricsRegenerator:
                 if not entry.is_dir():
                     continue
                 try:
-                    shutil.rmtree(entry, ignore_errors=False)
-                    removed += 1
+                    if self._remove_tree_with_retries(entry):
+                        removed += 1
+                    else:
+                        failed_paths.append((entry, "directory still exists after retries"))
                 except Exception as exc:
                     failed_paths.append((entry, str(exc)))
-                    continue
         if removed > 0 and logger:
             logger.info(f"Removed {removed} stray pytest-cache-files-* directory(s)")
         root_leftovers = [
@@ -4328,7 +4504,13 @@ class CoverageMetricsRegenerator:
                                 )
                     except Exception as e:
                         if logger:
-                            logger.warning(f"Failed to archive {file_path.name}: {e}")
+                            error_text = str(e).lower()
+                            if "winerror 32" in error_text or "being used by another process" in error_text:
+                                logger.debug(
+                                    f"Skipped archiving locked log file {file_path.name}: {e}"
+                                )
+                            else:
+                                logger.warning(f"Failed to archive {file_path.name}: {e}")
 
             # Step 2: Ensure archive has at most max_versions-1 files (since 1 is in main)
             max_archived = max_versions - 1  # Keep 7 archived files when max_versions=8
@@ -4378,9 +4560,18 @@ class CoverageMetricsRegenerator:
                             logger.debug(f"Removed excess main log: {old_file.name}")
                     except Exception as e:
                         if logger:
-                            logger.warning(
-                                f"Failed to remove excess main file {old_file.name}: {e}"
-                            )
+                            error_text = str(e).lower()
+                            if (
+                                "winerror 32" in error_text
+                                or "being used by another process" in error_text
+                            ):
+                                logger.debug(
+                                    f"Skipped removal of locked excess main file {old_file.name}: {e}"
+                                )
+                            else:
+                                logger.warning(
+                                    f"Failed to remove excess main file {old_file.name}: {e}"
+                                )
             elif logger:
                 logger.debug(
                     f"No rotation needed for {base_name}: {len(all_files)} files (max: {max_versions})"

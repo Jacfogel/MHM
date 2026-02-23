@@ -16,6 +16,7 @@ from pathlib import Path
 
 from core.logger import (
     _is_testing_environment,
+    _get_log_paths_for_environment,
     PytestContextLogFormatter,
     apply_test_context_formatter_to_all_loggers,
     ComponentLogger,
@@ -69,6 +70,19 @@ class TestTestingEnvironmentDetection:
              patch('sys.argv', ['python', 'script.py']):
             result = _is_testing_environment()
             assert result == False, "Should return False when not testing"
+
+    @pytest.mark.unit
+    def test_dev_tools_log_paths_are_isolated_from_production(self):
+        """Dev-tools mode should route all logs to development_tools/reports/logs."""
+        with patch.dict(os.environ, {"MHM_DEV_TOOLS_RUN": "1"}, clear=False), patch(
+            "core.logger._is_testing_environment", return_value=False
+        ), patch("core.logger._is_dev_tools_run", return_value=True):
+            paths = _get_log_paths_for_environment()
+        base_dir = Path(paths["base_dir"]).as_posix()
+        assert base_dir.endswith("development_tools/reports/logs")
+        assert Path(paths["errors_file"]).as_posix().endswith(
+            "development_tools/reports/logs/errors.log"
+        )
 
 
 class TestPytestContextLogFormatter:

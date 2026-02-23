@@ -101,6 +101,9 @@ def apply_test_context_formatter_to_all_loggers():
 # and logging setup, so decorating it would create infinite loops
 def _get_log_paths_for_environment():
     """Get appropriate log paths based on the current environment."""
+    # In test mode, always use test-specific log roots. This prevents
+    # cross-test env leakage (e.g., MHM_DEV_TOOLS_RUN=1) from breaking
+    # tests that assert logs are under per-test directories.
     if _is_testing_environment():
         # Use test-specific paths
         base_dir = Path(os.getenv("LOGS_DIR", "tests/logs"))
@@ -133,39 +136,71 @@ def _get_log_paths_for_environment():
             "checkin_dynamic_file": str(base_dir / "checkin_dynamic.log"),
             "ai_dev_tools_file": str(base_dir / "ai_dev_tools.log"),
         }
-    else:
-        # Use centralized paths from config - import locally to avoid circular import
-        import core.config as config
 
-        paths = {
-            "base_dir": config.LOGS_DIR,
-            "backup_dir": config.LOG_BACKUP_DIR,
-            "archive_dir": config.LOG_ARCHIVE_DIR,
-            "main_file": config.LOG_MAIN_FILE,
-            "discord_file": config.LOG_DISCORD_FILE,
-            "ai_file": config.LOG_AI_FILE,
-            "user_activity_file": config.LOG_USER_ACTIVITY_FILE,
-            "errors_file": config.LOG_ERRORS_FILE,
-            "communication_manager_file": config.LOG_COMMUNICATION_MANAGER_FILE,
-            "email_file": config.LOG_EMAIL_FILE,
-            "ui_file": config.LOG_UI_FILE,
-            "file_ops_file": config.LOG_FILE_OPS_FILE,
-            "scheduler_file": config.LOG_SCHEDULER_FILE,
-            # Additional component loggers used in the codebase
-            "schedule_utilities_file": str(
-                Path(config.LOGS_DIR) / "schedule_utilities.log"
-            ),
-            "analytics_file": str(Path(config.LOGS_DIR) / "analytics.log"),
-            "message_file": str(Path(config.LOGS_DIR) / "message.log"),
-            "backup_file": str(Path(config.LOGS_DIR) / "backup.log"),
-            "checkin_dynamic_file": str(Path(config.LOGS_DIR) / "checkin_dynamic.log"),
-            "ai_dev_tools_file": config.LOG_AI_DEV_TOOLS_FILE,
+    # Explicit dev-tools runs use dev-tools log roots.
+    if os.getenv("MHM_DEV_TOOLS_RUN") == "1" and _is_dev_tools_run():
+        dev_tools_base = Path(
+            os.getenv(
+                "DEV_TOOLS_LOGS_DIR",
+                str(Path("development_tools") / "reports" / "logs"),
+            )
+        )
+        dev_tools_backup = dev_tools_base / "backups"
+        dev_tools_archive = dev_tools_base / "archive"
+        dev_tools_base.mkdir(parents=True, exist_ok=True)
+        dev_tools_backup.mkdir(parents=True, exist_ok=True)
+        dev_tools_archive.mkdir(parents=True, exist_ok=True)
+        dev_tools_main = str(dev_tools_base / "main.log")
+        dev_tools_errors = str(dev_tools_base / "errors.log")
+        dev_tools_file_ops = str(dev_tools_base / "file_ops.log")
+        return {
+            "base_dir": str(dev_tools_base),
+            "backup_dir": str(dev_tools_backup),
+            "archive_dir": str(dev_tools_archive),
+            "main_file": dev_tools_main,
+            # Collapse non-critical component logs to main.log for dev-tools runs.
+            "discord_file": dev_tools_main,
+            "ai_file": dev_tools_main,
+            "user_activity_file": dev_tools_main,
+            "errors_file": dev_tools_errors,
+            "communication_manager_file": dev_tools_main,
+            "email_file": dev_tools_main,
+            "ui_file": dev_tools_main,
+            "file_ops_file": dev_tools_file_ops,
+            "scheduler_file": dev_tools_main,
+            "schedule_utilities_file": dev_tools_main,
+            "analytics_file": dev_tools_main,
+            "message_file": dev_tools_main,
+            "backup_file": dev_tools_main,
+            "checkin_dynamic_file": dev_tools_main,
+            "ai_dev_tools_file": dev_tools_main,
         }
-        # When running as development tools (audit, scripts), route main/app log to ai_dev_tools.log
-        # so the main project's app.log is not written to (dev tools are intended to be isolated).
-        if _is_dev_tools_run():
-            paths["main_file"] = config.LOG_AI_DEV_TOOLS_FILE
-        return paths
+
+    # Use centralized paths from config - import locally to avoid circular import
+    import core.config as config
+
+    return {
+        "base_dir": config.LOGS_DIR,
+        "backup_dir": config.LOG_BACKUP_DIR,
+        "archive_dir": config.LOG_ARCHIVE_DIR,
+        "main_file": config.LOG_MAIN_FILE,
+        "discord_file": config.LOG_DISCORD_FILE,
+        "ai_file": config.LOG_AI_FILE,
+        "user_activity_file": config.LOG_USER_ACTIVITY_FILE,
+        "errors_file": config.LOG_ERRORS_FILE,
+        "communication_manager_file": config.LOG_COMMUNICATION_MANAGER_FILE,
+        "email_file": config.LOG_EMAIL_FILE,
+        "ui_file": config.LOG_UI_FILE,
+        "file_ops_file": config.LOG_FILE_OPS_FILE,
+        "scheduler_file": config.LOG_SCHEDULER_FILE,
+        # Additional component loggers used in the codebase
+        "schedule_utilities_file": str(Path(config.LOGS_DIR) / "schedule_utilities.log"),
+        "analytics_file": str(Path(config.LOGS_DIR) / "analytics.log"),
+        "message_file": str(Path(config.LOGS_DIR) / "message.log"),
+        "backup_file": str(Path(config.LOGS_DIR) / "backup.log"),
+        "checkin_dynamic_file": str(Path(config.LOGS_DIR) / "checkin_dynamic.log"),
+        "ai_dev_tools_file": config.LOG_AI_DEV_TOOLS_FILE,
+    }
 
 
 # FAILSAFE: If running tests, forcibly remove all handlers from root logger and main logger
@@ -226,6 +261,16 @@ class ComponentLogger:
         self.logger = logging.getLogger(f"mhm.{component_name}")
         # Default to INFO (or provided level), but allow specific components to override below
         self.logger.setLevel(level)
+        # During development-tools runs, keep non-dev-tools component logs out of main.log noise.
+        # Preserve warnings/errors for diagnostics, but suppress routine INFO chatter
+        # from runtime components (e.g., communication_manager state-load logs).
+        if (
+            os.getenv("MHM_DEV_TOOLS_RUN") == "1"
+            and _is_dev_tools_run()
+            and not _is_testing_environment()
+            and component_name not in {"development_tools", "file_ops"}
+        ):
+            self.logger.setLevel(logging.WARNING)
 
         # Ensure no duplicate handlers
         self.logger.handlers.clear()

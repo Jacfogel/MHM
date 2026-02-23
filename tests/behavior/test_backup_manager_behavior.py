@@ -12,6 +12,7 @@ import os
 import json
 import zipfile
 import shutil
+import uuid
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -33,10 +34,19 @@ class TestBackupManagerBehavior:
     """Test BackupManager behavior with real file system operations."""
 
     @pytest.fixture(autouse=True)
-    def setup_backup_manager(self, test_data_dir):
+    def setup_backup_manager(self, test_data_dir, monkeypatch):
         """Set up backup manager with test data directory."""
+        # Guard against leaked env mutations from earlier tests in the same
+        # no_parallel process; these tests require test-mode zip backups.
+        monkeypatch.setenv("MHM_TESTING", "1")
+        monkeypatch.setenv("BACKUP_FORMAT", "zip")
+
         self.test_data_dir = test_data_dir
-        self.backup_dir = os.path.join(test_data_dir, "backups")
+        # Use a per-test unique backup directory to avoid cross-test file-lock
+        # collisions under Windows when different phases run back-to-back.
+        self.backup_dir = os.path.join(
+            test_data_dir, "backups", f"test_backup_{uuid.uuid4().hex[:8]}"
+        )
         self.user_data_dir = os.path.join(test_data_dir, "users")
 
         # Create test directories

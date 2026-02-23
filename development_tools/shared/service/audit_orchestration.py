@@ -1000,15 +1000,16 @@ class AuditOrchestrationMixin:
         """Run Tier 3 tools: Full audit (comprehensive analysis, >10s per tool or groups with >10s tools).
         
         Note: Tools moved here based on execution time (>10s) while respecting dependencies:
-        - Coverage tools: run_test_coverage (365.45s) and generate_dev_tools_coverage (94.23s) run in parallel (independent test suites)
+        - Coverage tools: run_test_coverage and generate_dev_tools_coverage run in parallel (independent test suites)
         - Coverage-dependent tools: analyze_test_markers and generate_test_coverage_report run sequentially after coverage completes
         - Legacy group: analyze_legacy_references (62.11s) is >10s, so entire group stays in Tier 3
         """
         successful = []
         failed = []
         
-        # Coverage tool groups - run in parallel (independent test suites with separate coverage files)
-        # run_test_coverage (365.45s) and generate_dev_tools_coverage (94.23s) are >10s, so entire group stays in Tier 3
+        # Coverage tool groups.
+        # Both execute heavy pytest workloads. We run them concurrently for throughput,
+        # and apply worker caps in command handlers to avoid CPU oversubscription.
         tier3_coverage_main_group = [
             ('run_test_coverage', self.run_coverage_regeneration),  # 365.45s
         ]
@@ -1029,7 +1030,7 @@ class AuditOrchestrationMixin:
             ('generate_legacy_reference_report', self.run_generate_legacy_reference_report),  # 0.96s
         ]
         
-        # Independent groups that can run in parallel with each other
+        # Independent groups that can run in parallel with each other.
         tier3_parallel_groups = [
             tier3_coverage_main_group,
             tier3_coverage_dev_tools_group,
@@ -1059,37 +1060,41 @@ class AuditOrchestrationMixin:
                         group_results[tool_name] = ({'success': False, 'error': str(exc)}, elapsed_time)
                 return group_results
             
-            with ThreadPoolExecutor(max_workers=len(tier3_parallel_groups)) as executor:
-                future_to_group = {
-                    executor.submit(run_tool_group, group): i
-                    for i, group in enumerate(tier3_parallel_groups)
-                }
-                
-                # Track when all parallel groups complete for accurate timing
-                parallel_group_times = {}
-                for future in as_completed(future_to_group):
-                    group_results = future.result()
-                    group_end_time = time.time()
-                    group_wall_clock = group_end_time - parallel_start_time
-                    for tool_name, (result, elapsed_time) in group_results.items():
-                        self._tool_timings[tool_name] = elapsed_time
-                        parallel_group_times[tool_name] = group_wall_clock
-                        logger.debug(f"  - {tool_name} completed in {elapsed_time:.2f}s (wall-clock: {group_wall_clock:.2f}s)")
-                        if isinstance(result, dict):
-                            success = result.get('success', False)
-                            if 'data' in result:
-                                self._extract_key_info(tool_name, result)
-                        else:
-                            success = bool(result)
-                        self._record_tool_cache_metadata(tool_name, result)
-                        if success:
-                            self._tool_execution_status[tool_name] = 'success'
-                            successful.append(tool_name)
-                            self._tools_run_in_current_tier.add(tool_name)
-                        else:
-                            self._tool_execution_status[tool_name] = 'failed'
-                            failed.append(tool_name)
-                            logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+            self._tier3_coverage_concurrent = True
+            try:
+                with ThreadPoolExecutor(max_workers=len(tier3_parallel_groups)) as executor:
+                    future_to_group = {
+                        executor.submit(run_tool_group, group): i
+                        for i, group in enumerate(tier3_parallel_groups)
+                    }
+                    
+                    # Track when all parallel groups complete for accurate timing
+                    parallel_group_times = {}
+                    for future in as_completed(future_to_group):
+                        group_results = future.result()
+                        group_end_time = time.time()
+                        group_wall_clock = group_end_time - parallel_start_time
+                        for tool_name, (result, elapsed_time) in group_results.items():
+                            self._tool_timings[tool_name] = elapsed_time
+                            parallel_group_times[tool_name] = group_wall_clock
+                            logger.debug(f"  - {tool_name} completed in {elapsed_time:.2f}s (wall-clock: {group_wall_clock:.2f}s)")
+                            if isinstance(result, dict):
+                                success = result.get('success', False)
+                                if 'data' in result:
+                                    self._extract_key_info(tool_name, result)
+                            else:
+                                success = bool(result)
+                            self._record_tool_cache_metadata(tool_name, result)
+                            if success:
+                                self._tool_execution_status[tool_name] = 'success'
+                                successful.append(tool_name)
+                                self._tools_run_in_current_tier.add(tool_name)
+                            else:
+                                self._tool_execution_status[tool_name] = 'failed'
+                                failed.append(tool_name)
+                                logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+            finally:
+                self._tier3_coverage_concurrent = False
             
             # Log parallel execution summary
             if parallel_group_times:

@@ -10,6 +10,7 @@ import json
 import os
 import time
 import hashlib
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 from core.time_utilities import now_timestamp_full, now_timestamp_filename
@@ -77,6 +78,112 @@ class DevToolsCoverageCache:
             / "dev_tools_coverage_cache.py",
         ]
         return tuple(path for path in tool_files if path.exists())
+
+    def _default_cache_data(self) -> Dict[str, Any]:
+        """Return default cache payload for new/legacy cache files."""
+        return {
+            "cache_version": "1.0",
+            "source_files_mtime": {},
+            "test_files_mtime": {},
+            "config_mtime": None,
+            "tool_hash": None,
+            "tool_mtimes": {},
+            "coverage_json": None,
+            "last_run_ok": None,
+            "last_exit_code": None,
+            "last_run_at": None,
+            "last_updated": None,
+        }
+
+    def _get_config_file_path(self) -> Optional[Path]:
+        """Resolve development tools config file path if available."""
+        try:
+            import development_tools.config.config as config_module
+
+            if (
+                hasattr(config_module, "_config_file_path")
+                and config_module._config_file_path
+            ):
+                config_path = Path(config_module._config_file_path)
+                if config_path.exists():
+                    return config_path
+        except Exception:
+            pass
+
+        fallback_path = (
+            self.project_root
+            / "development_tools"
+            / "config"
+            / "development_tools_config.json"
+        )
+        return fallback_path if fallback_path.exists() else None
+
+    def _get_config_mtime(self) -> Optional[float]:
+        """Return config mtime for invalidation metadata."""
+        config_path = self._get_config_file_path()
+        if not config_path:
+            return None
+        try:
+            return config_path.stat().st_mtime
+        except OSError:
+            return None
+
+    def _ensure_cache_schema(self) -> bool:
+        """Normalize loaded cache payload and backfill missing metadata."""
+        changed = False
+        defaults = self._default_cache_data()
+
+        if not isinstance(self.cache_data, dict):
+            self.cache_data = {}
+            changed = True
+
+        for key, default_value in defaults.items():
+            if key not in self.cache_data:
+                self.cache_data[key] = deepcopy(default_value)
+                changed = True
+
+        dict_keys = ["source_files_mtime", "test_files_mtime", "tool_mtimes"]
+        for key in dict_keys:
+            if not isinstance(self.cache_data.get(key), dict):
+                self.cache_data[key] = {}
+                changed = True
+
+        config_mtime = self.cache_data.get("config_mtime")
+        if config_mtime is not None and not isinstance(config_mtime, (int, float)):
+            self.cache_data["config_mtime"] = None
+            changed = True
+
+        tool_hash = self.cache_data.get("tool_hash")
+        if tool_hash is not None and not isinstance(tool_hash, str):
+            self.cache_data["tool_hash"] = None
+            changed = True
+
+        coverage_json = self.cache_data.get("coverage_json")
+        if coverage_json is not None and not isinstance(coverage_json, dict):
+            self.cache_data["coverage_json"] = None
+            changed = True
+
+        if not isinstance(self.cache_data.get("cache_version"), str):
+            self.cache_data["cache_version"] = defaults["cache_version"]
+            changed = True
+
+        if self.cache_data.get("tool_hash") is None:
+            backfilled_tool_hash = self._compute_tool_hash()
+            if backfilled_tool_hash:
+                self.cache_data["tool_hash"] = backfilled_tool_hash
+                changed = True
+
+        if not self.cache_data.get("tool_mtimes"):
+            self.cache_data["tool_mtimes"] = self._get_tool_mtimes()
+            changed = True
+
+        if self.cache_data.get("config_mtime") is None:
+            current_config_mtime = self._get_config_mtime()
+            if current_config_mtime is not None:
+                self.cache_data["config_mtime"] = current_config_mtime
+                changed = True
+
+        return changed
 
     def _compute_tool_hash(self) -> Optional[str]:
         """Compute a hash for coverage tool source files."""
@@ -148,21 +255,34 @@ class DevToolsCoverageCache:
             except Exception as e:
                 if logger:
                     logger.warning(f"Failed to load dev tools coverage cache: {e}")
-                self.cache_data = {}
+                self.cache_data = self._default_cache_data()
         else:
-            self.cache_data = {
-                "cache_version": "1.0",
-                "source_files_mtime": {},
-                "test_files_mtime": {},
-                "config_mtime": None,
-                "tool_hash": None,
-                "tool_mtimes": {},
-                "coverage_json": None,
-                "last_run_ok": None,
-                "last_exit_code": None,
-                "last_run_at": None,
-                "last_updated": None,
-            }
+            self.cache_data = self._default_cache_data()
+
+        schema_changed = self._ensure_cache_schema()
+        if schema_changed:
+            try:
+                self._save_cache()
+                # Retry once if metadata backfill is not yet visible after atomic replace.
+                persisted_tool_hash = None
+                if self.cache_file.exists():
+                    try:
+                        persisted_payload = json.loads(
+                            self.cache_file.read_text(encoding="utf-8")
+                        )
+                        persisted_tool_hash = persisted_payload.get("tool_hash")
+                    except Exception:
+                        persisted_tool_hash = None
+                if not isinstance(persisted_tool_hash, str):
+                    time.sleep(0.05)
+                    self._save_cache()
+                if logger:
+                    logger.debug(
+                        "Backfilled dev-tools coverage cache metadata for legacy/missing schema fields"
+                    )
+            except Exception as e:
+                if logger:
+                    logger.debug(f"Failed to persist dev-tools cache backfill: {e}")
 
     def _save_cache(self) -> None:
         """Save cache to disk with file locking and atomic write for thread safety."""
@@ -179,6 +299,9 @@ class DevToolsCoverageCache:
             )
             self.cache_data["tool_hash"] = self._compute_tool_hash()
             self.cache_data["tool_mtimes"] = self._get_tool_mtimes()
+            current_config_mtime = self._get_config_mtime()
+            if current_config_mtime is not None:
+                self.cache_data["config_mtime"] = current_config_mtime
 
             temp_file = self.cache_file.with_suffix(".tmp")
             max_retries = 5

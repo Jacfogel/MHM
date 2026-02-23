@@ -80,3 +80,34 @@ def test_dev_tools_cache_reports_tool_hash_mismatch_reason() -> None:
         assert "tool hash mismatch" in reason
     finally:
         _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_dev_tools_cache_backfills_missing_metadata_on_load() -> None:
+    """Legacy cache payloads should backfill missing tool/config metadata."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        project_root = Path.cwd().resolve()
+        cache_file = temp_path / "dev_tools_coverage_cache.json"
+        cache_file.write_text(
+            json.dumps(
+                {
+                    "cache_version": "0.9",
+                    "source_files_mtime": {},
+                    "test_files_mtime": {},
+                    "coverage_json": {},
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        cache = DevToolsCoverageCache(project_root=project_root, cache_dir=temp_path)
+        assert isinstance(cache.cache_data.get("tool_hash"), str)
+        assert cache.get_tool_change_reason() is None
+        assert "config_mtime" in cache.cache_data
+
+        persisted = json.loads(cache_file.read_text(encoding="utf-8"))
+        assert isinstance(persisted.get("tool_hash"), str)
+        assert "config_mtime" in persisted
+    finally:
+        _cleanup_local_scratch_dir(temp_path)

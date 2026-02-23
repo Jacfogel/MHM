@@ -11,6 +11,8 @@ This file provides:
 
 import pytest
 import os
+import hashlib
+import stat
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 # Set environment variable for consolidated logging very early, before any logging initialization
@@ -48,6 +50,55 @@ warnings.filterwarnings(
 
 # Strip ANSI escape sequences from pytest longrepr before writing to log files.
 ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+
+
+def _patch_windows_pathlib_mkdir_mode() -> None:
+    """Avoid Windows ACL lockout when pytest creates temp roots with mode 0o700."""
+    if os.name != "nt":
+        return
+
+    original_mkdir = Path.mkdir
+    if getattr(original_mkdir, "__name__", "") == "_mhm_safe_mkdir":
+        return
+
+    def _mhm_safe_mkdir(self, mode=0o777, parents=False, exist_ok=False):
+        # In this environment, mode=0o700 can create unreadable directories.
+        if mode == 0o700:
+            mode = 0o777
+        return original_mkdir(self, mode=mode, parents=parents, exist_ok=exist_ok)
+
+    Path.mkdir = _mhm_safe_mkdir
+
+
+def _patch_pytest_dead_symlink_cleanup() -> None:
+    """Prevent teardown crashes when pytest temp roots hit transient ACL issues on Windows."""
+    try:
+        from _pytest import pathlib as pytest_pathlib
+        from _pytest import tmpdir as pytest_tmpdir
+    except Exception:
+        return
+
+    original = getattr(pytest_tmpdir, "cleanup_dead_symlinks", None) or getattr(
+        pytest_pathlib, "cleanup_dead_symlinks", None
+    )
+    if original is None:
+        return
+    if getattr(original, "__name__", "") == "_mhm_safe_cleanup_dead_symlinks":
+        return
+
+    def _mhm_safe_cleanup_dead_symlinks(root):
+        try:
+            return original(root)
+        except PermissionError:
+            # Best-effort cleanup only: never fail an entire test session on this step.
+            return None
+
+    pytest_pathlib.cleanup_dead_symlinks = _mhm_safe_cleanup_dead_symlinks
+    pytest_tmpdir.cleanup_dead_symlinks = _mhm_safe_cleanup_dead_symlinks
+
+
+_patch_pytest_dead_symlink_cleanup()
+_patch_windows_pathlib_mkdir_mode()
 
 
 def ensure_qt_runtime():
@@ -255,14 +306,17 @@ tests_data_dir.mkdir(exist_ok=True)
 (tests_data_dir / "users").mkdir(parents=True, exist_ok=True)
 tests_data_tmp_dir = tests_data_dir / "tmp"
 tests_data_tmp_dir.mkdir(parents=True, exist_ok=True)
+# Keep pytest runtime temp/cache under a dedicated root that cleanup fixtures do not purge.
 tests_pytest_runtime_tmp_dir = tests_data_dir / "tmp_pytest_runtime"
 tests_pytest_runtime_tmp_dir.mkdir(parents=True, exist_ok=True)
 os.environ["TEST_DATA_DIR"] = os.environ.get("TEST_DATA_DIR", str(tests_data_dir))
 # Also set BASE_DATA_DIR for any code that reads it directly
 os.environ["BASE_DATA_DIR"] = str(tests_data_dir)
 # Keep pytest temp/cache helper artifacts under tests/data/tmp when possible.
-os.environ["PYTEST_DEBUG_TEMPROOT"] = str(tests_pytest_runtime_tmp_dir)
-os.environ["PYTEST_CACHE_DIR"] = str(tests_pytest_runtime_tmp_dir / "pytest_cache")
+os.environ.setdefault("PYTEST_DEBUG_TEMPROOT", str(tests_pytest_runtime_tmp_dir))
+os.environ.setdefault(
+    "PYTEST_CACHE_DIR", str(tests_pytest_runtime_tmp_dir / "pytest_cache")
+)
 # Route service flags to tests/data/flags in test mode
 flags_dir = tests_data_dir / "flags"
 flags_dir.mkdir(parents=True, exist_ok=True)
@@ -1122,12 +1176,27 @@ class LogLifecycleManager:
         for backup_file in self.backup_dir.glob("*"):
             try:
                 if backup_file.is_file() and backup_file.stat().st_mtime < cutoff_date:
-                    # Create archive filename with timestamp
-                    timestamp = now_timestamp_filename()
-                    archive_filename = (
-                        f"{backup_file.stem}_{timestamp}{backup_file.suffix}"
-                    )
-                    archive_path = self.archive_dir / archive_filename
+                    # Keep archive naming stable: avoid repeatedly appending timestamps,
+                    # and shorten oversized names for Windows path safety.
+                    archive_name = backup_file.name
+                    if len(archive_name) > 150:
+                        digest = hashlib.sha1(
+                            archive_name.encode("utf-8", errors="ignore")
+                        ).hexdigest()[:10]
+                        suffix = backup_file.suffix
+                        stem_budget = max(32, 150 - len(suffix) - 11)
+                        archive_name = f"{backup_file.stem[:stem_budget]}_{digest}{suffix}"
+                    archive_path = self.archive_dir / archive_name
+                    if archive_path.exists():
+                        digest = hashlib.sha1(
+                            str(backup_file).encode("utf-8", errors="ignore")
+                        ).hexdigest()[:8]
+                        suffix = backup_file.suffix
+                        stem_budget = max(24, 140 - len(suffix) - 9)
+                        archive_path = (
+                            self.archive_dir
+                            / f"{backup_file.stem[:stem_budget]}_{digest}{suffix}"
+                        )
 
                     shutil.move(str(backup_file), str(archive_path))
                     archived_count += 1
@@ -1752,6 +1821,18 @@ def _prune_old_files(
     return removed_count
 
 
+def _is_transient_test_data_dir_name(name: str) -> bool:
+    """True for per-run transient test-data directories safe to purge."""
+    if name == "tmp_pytest_runtime":
+        # Used by PYTEST_DEBUG_TEMPROOT/PYTEST_CACHE_DIR; keep this root in place.
+        return False
+    return (
+        name.startswith("pytest-of-")
+        or name.startswith("tmp_")
+        or (name.startswith("tmp") and name != "tmp")
+    )
+
+
 def _apply_versioned_retention_protocol(
     logs_dir: Path,
     backups_dir: Path,
@@ -1777,8 +1858,9 @@ def _apply_versioned_retention_protocol(
         backups_dir.mkdir(parents=True, exist_ok=True)
         archive_dir.mkdir(parents=True, exist_ok=True)
 
+        # Keep archive as a sink only. Never pull entries back out of archive.
         candidates = []
-        for base in (logs_dir, backups_dir, archive_dir):
+        for base in (logs_dir, backups_dir):
             candidates.extend(list(base.glob(pattern)))
 
         # Deduplicate by resolved path string for stability across directories.
@@ -1854,15 +1936,22 @@ def _cleanup_pytest_cache_temp_dirs(project_root_path: Path, data_dir: Path) -> 
     removed = 0
     failed_paths: list[tuple[Path, str]] = []
 
-    def _rmtree_with_retries(path: Path, attempts: int = 3) -> bool:
-        for _ in range(attempts):
+    def _rmtree_with_retries(path: Path, attempts: int = 20) -> bool:
+        def _on_rm_error(func, target, exc_info):
             try:
-                shutil.rmtree(path, ignore_errors=False)
+                os.chmod(target, stat.S_IWRITE)
+                func(target)
+            except Exception:
+                pass
+
+        for attempt in range(attempts):
+            try:
+                shutil.rmtree(path, ignore_errors=False, onerror=_on_rm_error)
                 return True
             except Exception:
-                time.sleep(0.05)
+                time.sleep(min(0.5, 0.05 * (attempt + 1)))
         try:
-            shutil.rmtree(path, ignore_errors=True)
+            shutil.rmtree(path, ignore_errors=True, onerror=_on_rm_error)
         except Exception:
             pass
         return not path.exists()
@@ -2179,11 +2268,7 @@ def prune_test_artifacts_before_and_after_session():
         for item in data_dir.iterdir():
             try:
                 if item.is_dir():
-                    if (
-                        item.name.startswith("tmp_")
-                        or (item.name.startswith("tmp") and item.name != "tmp")
-                        or item.name.startswith("pytest-of-")
-                    ):
+                    if _is_transient_test_data_dir_name(item.name):
                         shutil.rmtree(item, ignore_errors=True)
                         # Don't log cleanup operations - focus on test results
                 elif item.is_file() and item.name == ".last_cache_cleanup":
@@ -2213,6 +2298,8 @@ def prune_test_artifacts_before_and_after_session():
         tmp_dir = data_dir / "tmp"
         if tmp_dir.exists():
             for child in tmp_dir.iterdir():
+                if child.name == "pytest_runner":
+                    continue
                 if child.is_dir() or child.is_file():
                     try:
                         if child.is_dir():
@@ -2316,11 +2403,7 @@ def prune_test_artifacts_before_and_after_session():
             for item in data_dir.iterdir():
                 try:
                     if item.is_dir():
-                        if (
-                            item.name.startswith("pytest-of-")
-                            or item.name.startswith("tmp_")
-                            or (item.name.startswith("tmp") and item.name != "tmp")
-                        ):
+                        if _is_transient_test_data_dir_name(item.name):
                             shutil.rmtree(item, ignore_errors=True)
                             # Don't log cleanup operations - focus on test results
                     elif item.is_file():
@@ -2362,6 +2445,8 @@ def prune_test_artifacts_before_and_after_session():
         tmp_dir = data_dir / "tmp"
         if tmp_dir.exists():
             for child in tmp_dir.iterdir():
+                if child.name == "pytest_runner":
+                    continue
                 try:
                     if child.is_dir():
                         shutil.rmtree(child, ignore_errors=True)
@@ -3549,11 +3634,7 @@ def cleanup_test_users_after_session():
                 item_path = os.path.join(base_test_data_dir, item)
                 try:
                     if os.path.isdir(item_path):
-                        if (
-                            item.startswith("pytest-of-")
-                            or item.startswith("tmp_")
-                            or (item.startswith("tmp") and item != "tmp")
-                        ):
+                        if _is_transient_test_data_dir_name(item):
                             shutil.rmtree(item_path, ignore_errors=True)
                     elif os.path.isfile(item_path):
                         # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking*.json, conversation_states*.json)
@@ -3619,11 +3700,7 @@ def cleanup_test_users_after_session():
                 item_path = os.path.join(base_test_data_dir, item)
                 try:
                     if os.path.isdir(item_path):
-                        if (
-                            item.startswith("pytest-of-")
-                            or item.startswith("tmp_")
-                            or (item.startswith("tmp") and item != "tmp")
-                        ):
+                        if _is_transient_test_data_dir_name(item):
                             shutil.rmtree(item_path, ignore_errors=True)
                     elif os.path.isfile(item_path):
                         # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking*.json, conversation_states*.json)
@@ -3933,6 +4010,11 @@ def pytest_ignore_collect(collection_path, config):
     if "pytest-tmp-" in path_str or "pytest-of-" in path_str:
         if "/tests/data/" in path_str:
             return True
+
+    # Ignore local manual temp/probe directories that may be left behind during
+    # troubleshooting and can carry unreadable ACLs on Windows.
+    if "/tests/tmp_pytest_" in path_str or "/tests/manual_mode700_dir" in path_str:
+        return True
 
     return None  # Let other ignore rules handle it
 

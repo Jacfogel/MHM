@@ -161,6 +161,56 @@ def test_tool_hash_mismatch_invalidates_all_domains() -> None:
 
 
 @pytest.mark.unit
+def test_cache_backfills_missing_tool_hash_on_load() -> None:
+    """Legacy cache payloads missing tool hash should be backfilled on load."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        project_root = Path.cwd().resolve()
+        cache_file = temp_path / "test_file_coverage_cache.json"
+        cache_file.write_text(
+            json.dumps(
+                {
+                    "cache_version": "1.0",
+                    "source_files_mtime": {},
+                    "test_files": {},
+                    "test_files_mtime": {},
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        cache = TestFileCoverageCache(project_root, cache_dir=temp_path)
+        assert isinstance(cache.cache_data.get("tool_hash"), str)
+        assert cache._get_tool_change_reason() is None
+
+        persisted = json.loads(cache_file.read_text(encoding="utf-8"))
+        assert isinstance(persisted.get("tool_hash"), str)
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_save_cache_backfills_missing_excluded_test_dirs() -> None:
+    """Saving cache should tolerate legacy instances missing excluded dirs state."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        project_root = Path.cwd().resolve()
+        cache = TestFileCoverageCache(project_root, cache_dir=temp_path)
+
+        # Simulate a legacy/partial instance state that may appear in old caches.
+        if hasattr(cache, "excluded_test_dirs"):
+            delattr(cache, "excluded_test_dirs")
+
+        cache._save_cache()
+
+        assert cache.cache_file.exists()
+        assert isinstance(cache.excluded_test_dirs, list)
+        assert cache.excluded_test_dirs
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
 def test_failed_run_without_failed_domains_invalidates_last_run_domains() -> None:
     """Failed run fallback should invalidate previously-run domains before global fallback."""
     temp_path = _make_local_scratch_dir()

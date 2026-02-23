@@ -25,6 +25,7 @@ import json
 import os
 import time
 import hashlib
+from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Optional, Set, Any, List, Iterable
 from datetime import datetime
@@ -76,6 +77,10 @@ class TestFileCoverageCache:
     When a domain changes, invalidates cache for all test files that cover that domain.
     """
 
+    DEFAULT_EXCLUDED_TEST_DIRS = [
+        "tests/data",  # Test data directory - contains temporary test data files
+    ]
+
     def __init__(self, project_root: Path, cache_dir: Optional[Path] = None):
         """
         Initialize test-file-based coverage cache.
@@ -97,17 +102,14 @@ class TestFileCoverageCache:
         self.cache_file = self.cache_dir / "test_file_coverage_cache.json"
         self.cache_data: Dict[str, Any] = {}
         self.tool_paths = self._get_default_tool_paths()
-        self._load_cache()
-        self._cached_changed_domains: Optional[Set[str]] = None
-        self.last_invalidation_reason: Optional[str] = None
-
         # Full coverage JSON cache (for when no domains change)
         self.full_coverage_cache_key = "_full_coverage_json"
 
         # Directories to exclude when discovering test files (test data, temp files, etc.)
-        self.excluded_test_dirs = [
-            "tests/data",  # Test data directory - contains temporary test data files
-        ]
+        self.excluded_test_dirs = list(self.DEFAULT_EXCLUDED_TEST_DIRS)
+        self._load_cache()
+        self._cached_changed_domains: Optional[Set[str]] = None
+        self.last_invalidation_reason: Optional[str] = None
 
     def _get_default_tool_paths(self) -> tuple[Path, ...]:
         """Return tool paths used to compute cache invalidation hash."""
@@ -127,6 +129,84 @@ class TestFileCoverageCache:
             / "domain_mapper.py",
         ]
         return tuple(path for path in tool_files if path.exists())
+
+    def _default_cache_data(self) -> Dict[str, Any]:
+        """Return default cache payload for new/legacy cache files."""
+        return {
+            "cache_version": "2.1",
+            "source_files_mtime": {},  # domain -> {file_path: mtime}
+            "test_files": {},  # test_file_path -> {domains: [], coverage_data: {}, last_run: timestamp}
+            "test_files_mtime": {},  # test_file_path -> mtime
+            "config_mtime": None,
+            "tool_hash": None,
+            "tool_mtimes": {},
+            "last_run_ok": None,
+            "last_parallel_ok": None,
+            "last_no_parallel_ok": None,
+            "last_no_parallel_coverage_present": None,
+            "last_failed_domains": [],
+            "last_run_domains": [],
+            "last_run_at": None,
+            "last_updated": None,
+        }
+
+    def _ensure_cache_schema(self) -> bool:
+        """Normalize loaded cache payload and backfill missing metadata."""
+        changed = False
+        defaults = self._default_cache_data()
+
+        if not isinstance(self.cache_data, dict):
+            self.cache_data = {}
+            changed = True
+
+        for key, default_value in defaults.items():
+            if key not in self.cache_data:
+                self.cache_data[key] = deepcopy(default_value)
+                changed = True
+
+        dict_keys = ["source_files_mtime", "test_files", "test_files_mtime", "tool_mtimes"]
+        for key in dict_keys:
+            if not isinstance(self.cache_data.get(key), dict):
+                self.cache_data[key] = {}
+                changed = True
+
+        list_keys = ["last_failed_domains", "last_run_domains"]
+        for key in list_keys:
+            if not isinstance(self.cache_data.get(key), list):
+                self.cache_data[key] = []
+                changed = True
+
+        config_mtime = self.cache_data.get("config_mtime")
+        if config_mtime is not None and not isinstance(config_mtime, (int, float)):
+            self.cache_data["config_mtime"] = None
+            changed = True
+
+        tool_hash = self.cache_data.get("tool_hash")
+        if tool_hash is not None and not isinstance(tool_hash, str):
+            self.cache_data["tool_hash"] = None
+            changed = True
+
+        if not isinstance(self.cache_data.get("cache_version"), str):
+            self.cache_data["cache_version"] = defaults["cache_version"]
+            changed = True
+
+        if self.cache_data.get("tool_hash") is None:
+            backfilled_tool_hash = self._compute_tool_hash()
+            if backfilled_tool_hash:
+                self.cache_data["tool_hash"] = backfilled_tool_hash
+                changed = True
+
+        if not self.cache_data.get("tool_mtimes"):
+            self.cache_data["tool_mtimes"] = self._get_tool_mtimes()
+            changed = True
+
+        if self.cache_data.get("config_mtime") is None:
+            before_mtime = self.cache_data.get("config_mtime")
+            self._update_config_mtime()
+            if self.cache_data.get("config_mtime") != before_mtime:
+                changed = True
+
+        return changed
 
     def _compute_tool_hash(self) -> Optional[str]:
         """Compute a hash for coverage tool source files."""
@@ -166,18 +246,50 @@ class TestFileCoverageCache:
         Returns:
             True if file should be included, False if it should be excluded
         """
-        test_file_rel = str(test_file.relative_to(self.project_root))
+        return not self._is_excluded_test_path(test_file)
 
-        # Exclude files in test data directories
-        for excluded_dir in self.excluded_test_dirs:
-            excluded_path = Path(excluded_dir)
-            if test_file.is_relative_to(self.project_root / excluded_path):
-                return False
+    def _is_excluded_test_path(self, path: Path) -> bool:
+        """Return True when path is under an excluded test directory."""
+        excluded_dirs = getattr(self, "excluded_test_dirs", None)
+        if not isinstance(excluded_dirs, list) or not excluded_dirs:
+            excluded_dirs = self.DEFAULT_EXCLUDED_TEST_DIRS
+            # Backfill instance state for legacy/partial instances.
+            self.excluded_test_dirs = list(excluded_dirs)
+        for excluded_dir in excluded_dirs:
+            excluded_path = self.project_root / Path(excluded_dir)
+            if path.is_relative_to(excluded_path):
+                return True
+        return False
 
-        return True
+    def _iter_test_files(self) -> Iterable[Path]:
+        """Iterate test files while tolerating transient ACL/path errors."""
+        if not self.test_root.exists():
+            return
+
+        def _on_walk_error(_error):
+            # Ignore inaccessible folders so cache bookkeeping remains best-effort.
+            return
+
+        for root, dirs, files in os.walk(
+            self.test_root, topdown=True, onerror=_on_walk_error
+        ):
+            root_path = Path(root)
+            dirs[:] = [
+                dirname
+                for dirname in dirs
+                if not self._is_excluded_test_path(root_path / dirname)
+            ]
+
+            for filename in files:
+                if not filename.startswith("test_") or not filename.endswith(".py"):
+                    continue
+                test_file = root_path / filename
+                if self.is_valid_test_file(test_file):
+                    yield test_file
 
     def _load_cache(self) -> None:
         """Load cache from disk with file locking for thread safety."""
+        schema_changed = False
         if self.cache_file.exists():
             try:
                 max_retries = 5
@@ -228,25 +340,35 @@ class TestFileCoverageCache:
             except Exception as e:
                 if logger:
                     logger.warning(f"Failed to load test-file coverage cache: {e}")
-                self.cache_data = {}
+                self.cache_data = self._default_cache_data()
         else:
-            self.cache_data = {
-                "cache_version": "2.1",
-                "source_files_mtime": {},  # domain -> {file_path: mtime}
-                "test_files": {},  # test_file_path -> {domains: [], coverage_data: {}, last_run: timestamp}
-                "test_files_mtime": {},  # test_file_path -> mtime
-                "config_mtime": None,
-                "tool_hash": None,
-                "tool_mtimes": {},
-                "last_run_ok": None,
-                "last_parallel_ok": None,
-                "last_no_parallel_ok": None,
-                "last_no_parallel_coverage_present": None,
-                "last_failed_domains": [],
-                "last_run_domains": [],
-                "last_run_at": None,
-                "last_updated": None,
-            }
+            self.cache_data = self._default_cache_data()
+
+        schema_changed = self._ensure_cache_schema()
+        if schema_changed:
+            try:
+                self._save_cache()
+                # Windows file locking can briefly delay atomic replace visibility.
+                # Retry once if persisted metadata still looks stale.
+                persisted_tool_hash = None
+                if self.cache_file.exists():
+                    try:
+                        persisted_payload = json.loads(
+                            self.cache_file.read_text(encoding="utf-8")
+                        )
+                        persisted_tool_hash = persisted_payload.get("tool_hash")
+                    except Exception:
+                        persisted_tool_hash = None
+                if not isinstance(persisted_tool_hash, str):
+                    time.sleep(0.05)
+                    self._save_cache()
+                if logger:
+                    logger.debug(
+                        "Backfilled test-file coverage cache metadata for legacy/missing schema fields"
+                    )
+            except Exception as e:
+                if logger:
+                    logger.debug(f"Failed to persist cache schema backfill: {e}")
 
     def _save_cache(self) -> None:
         """Save cache to disk with file locking and atomic write for thread safety."""
@@ -392,9 +514,7 @@ class TestFileCoverageCache:
     def _get_current_test_file_mtimes(self) -> Dict[str, float]:
         """Return current mtimes for all valid test files."""
         mtimes: Dict[str, float] = {}
-        for test_file in self.test_root.rglob("test_*.py"):
-            if not self.is_valid_test_file(test_file):
-                continue
+        for test_file in self._iter_test_files():
             try:
                 rel_path = str(test_file.relative_to(self.project_root))
                 mtimes[rel_path] = test_file.stat().st_mtime
@@ -480,9 +600,7 @@ class TestFileCoverageCache:
     def _get_current_test_files(self) -> Set[str]:
         """Return relative paths for all valid test files on disk."""
         current_files = set()
-        for test_file in self.test_root.rglob("test_*.py"):
-            if not self.is_valid_test_file(test_file):
-                continue
+        for test_file in self._iter_test_files():
             current_files.add(str(test_file.relative_to(self.project_root)))
         return current_files
 
@@ -707,11 +825,7 @@ class TestFileCoverageCache:
 
         # Also discover test files that aren't in cache yet (new test files)
         # These should be run if they cover changed domains
-        for test_file in self.test_root.rglob("test_*.py"):
-            # Skip test data files
-            if not self.is_valid_test_file(test_file):
-                continue
-
+        for test_file in self._iter_test_files():
             test_file_rel = str(test_file.relative_to(self.project_root))
             if test_file_rel not in test_files:
                 # New test file - check if it covers changed domains
@@ -987,11 +1101,7 @@ class TestFileCoverageCache:
             List of test file paths that don't have domain mappings
         """
         unmapped = []
-        all_test_files = [
-            tf
-            for tf in self.test_root.rglob("test_*.py")
-            if self.is_valid_test_file(tf)
-        ]
+        all_test_files = list(self._iter_test_files())
 
         for test_file in all_test_files:
             test_file_domains = self.get_test_files_domains(test_file)
@@ -1015,11 +1125,7 @@ class TestFileCoverageCache:
         # Don't rely on cached count which may be incomplete
         actual_test_files = []
         unmapped_test_files = []
-        for test_file in self.test_root.rglob("test_*.py"):
-            # Skip test data files
-            if not self.is_valid_test_file(test_file):
-                continue
-
+        for test_file in self._iter_test_files():
             # Check if this test file is associated with any domain
             test_file_domains = self.get_test_files_domains(test_file)
             if test_file_domains:  # Only count if it has at least one domain

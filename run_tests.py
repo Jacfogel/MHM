@@ -535,8 +535,13 @@ def apply_artifact_retention(
     archive_dir.mkdir(parents=True, exist_ok=True)
 
     candidates: list[Path] = []
-    for root_dir in (source_dir, backups_dir, archive_dir):
+    # Keep archive as a sink only; never promote archive artifacts back to source/backups.
+    for root_dir in (source_dir, backups_dir):
         candidates.extend([p for p in root_dir.glob(pattern) if p.exists()])
+    unique: dict[str, Path] = {}
+    for candidate in candidates:
+        unique[str(candidate.resolve())] = candidate
+    candidates = list(unique.values())
     candidates = sorted(candidates, key=lambda p: p.stat().st_mtime, reverse=True)
 
     current_slice = candidates[: max(0, keep_current)]
@@ -549,7 +554,10 @@ def apply_artifact_retention(
         target = source_dir / item.name
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.exists():
-            continue
+            if target.is_dir():
+                shutil.rmtree(target, ignore_errors=True)
+            else:
+                target.unlink(missing_ok=True)
         shutil.move(str(item), str(target))
 
     for item in backup_slice:
@@ -558,7 +566,10 @@ def apply_artifact_retention(
         target = backups_dir / item.name
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.exists():
-            continue
+            if target.is_dir():
+                shutil.rmtree(target, ignore_errors=True)
+            else:
+                target.unlink(missing_ok=True)
         shutil.move(str(item), str(target))
 
     for item in archive_slice:
@@ -567,7 +578,10 @@ def apply_artifact_retention(
         target = archive_dir / item.name
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.exists():
-            continue
+            if target.is_dir():
+                shutil.rmtree(target, ignore_errors=True)
+            else:
+                target.unlink(missing_ok=True)
         shutil.move(str(item), str(target))
 
     archived_items = sorted(
@@ -2711,28 +2725,27 @@ def cleanup_post_run_test_artifacts() -> None:
     if not data_dir.exists():
         return
 
-    dir_prefixes = (
-        "logs_",
-        "mhm_pytest_tmp_main_",
-        "pytest-of-",
-        "tmp_",
-    )
-    file_prefixes = (
-        "conversation_states_",
-        "welcome_tracking_",
-    )
+    # Keep only fixture/static roots; clear all other test-generated artifacts.
+    persistent_fixture_roots = {"devtools_pyfiles", "devtools_unit"}
+    file_prefixes = ("conversation_states_", "welcome_tracking_")
 
     for item in data_dir.iterdir():
         try:
             if item.is_dir():
-                if (
-                    item.name in {"flags", "requests", "tag-tests"}
-                    or item.name.startswith(dir_prefixes)
-                    or (item.name.startswith("tmp") and item.name != "tmp")
-                ):
-                    shutil.rmtree(item, ignore_errors=True)
+                if item.name in persistent_fixture_roots:
+                    continue
+                if item.name in {"tmp", "users"}:
+                    for child in item.iterdir():
+                        if child.is_dir():
+                            remove_tree_with_retries(child)
+                        else:
+                            child.unlink(missing_ok=True)
+                    continue
+                remove_tree_with_retries(item)
             elif item.is_file():
                 if item.suffix == ".json" and item.name.startswith(file_prefixes):
+                    item.unlink(missing_ok=True)
+                elif item.name in {".last_cache_cleanup"}:
                     item.unlink(missing_ok=True)
         except Exception:
             pass

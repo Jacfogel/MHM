@@ -174,7 +174,7 @@ def register_default_loaders() -> None:
             registered_loaders.append(key)
 
     if registered_loaders:
-        logger.info(
+        logger.debug(
             f"Registered data loaders: {', '.join(registered_loaders)} ({len(registered_loaders)} total)"
         )
 

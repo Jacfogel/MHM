@@ -5,11 +5,12 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-22
+> **Last Updated**: 2026-02-23
 
 ---
 
-**Note**: [TODO.md](TODO.md) is the canonical list for standalone tasks. Larger, scoped efforts live in dedicated plan files such as [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
+**Note**: [TODO.md](TODO.md) is the canonical list for standalone tasks. Larger, scoped efforts live in dedicated plan files such as [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).  
+**Testing Source of Truth**: All testing roadmap work now lives in [TEST_PLAN.md](development_docs/TEST_PLAN.md). Keep only pointers here.
 
 ## [IN PROGRESS] **Plan Maintenance**
 
@@ -29,6 +30,43 @@
 ---
 
 ## [ACTIVE] **Current Active Plans**
+
+### **Development-Tools Audit Throughput Stabilization Follow-up** **IN PROGRESS**
+
+**Status**: **IN PROGRESS**  
+**Priority**: High  
+**Effort**: Small/Medium  
+**Date**: 2026-02-23  
+**Last Updated**: 2026-02-23
+
+**Objective**: Keep `audit --full --clear-cache` reliably in the fast path by preserving Tier 3 concurrency while eliminating slow/timeout behavior in `analyze_unused_imports`.
+
+**Completed in this session**:
+- [x] Restored concurrent Tier 3 coverage orchestration while preserving stability:
+  - [x] `development_tools/shared/service/audit_orchestration.py` now runs main + dev-tools coverage groups in parallel again.
+  - [x] Added Tier 3 concurrent-execution flagging to support contention-aware runtime behavior.
+- [x] Added worker-cap controls for concurrent coverage runs:
+  - [x] `development_tools/shared/service/commands.py` resolves per-track worker caps (`main`/`dev_tools`) with concurrency-aware defaults.
+  - [x] Coverage invocations now apply explicit `--workers` values in concurrent Tier 3 mode.
+- [x] Added temporary cache-clear policy to preserve unused-imports cache:
+  - [x] `development_tools/shared/fix_project_cleanup.py` now excludes `.analyze_unused_imports_cache.json` from tool-cache artifact clearing.
+- [x] Added roadmap tasks for structural unused-imports performance improvements in:
+  - [x] `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` section `5.1.1`.
+- [x] Validated targeted regression suites:
+  - [x] `pytest tests/development_tools/test_run_development_tools.py -q`
+  - [x] `pytest tests/development_tools/test_regenerate_coverage_metrics.py -q`
+  - [x] `pytest tests/development_tools/test_fix_project_cleanup.py -q`
+
+**Observed outcome (user-run full audit after changes)**:
+- [x] Full audit wall-clock improved to ~`277s` (~4m37s) with no tool failures.
+- [x] `analyze_unused_imports` completed in ~`6.30s` with `partial_cache` (`hits=448`, `misses=1`) instead of prior long sequential/timeout behavior.
+- [x] Tier 3 coverage parallel savings reported (~`237s`) with both coverage tracks passing.
+
+**Remaining follow-ups**:
+- [ ] Implement `analyze_unused_imports` backend/perf redesign from V4 plan section `5.1.1` (batched fast backend + incremental path).
+- [ ] Decide whether preserved unused-imports cache policy should remain temporary or become config-driven.
+- [ ] Add explicit audit-time telemetry for unused-imports analyzer backend/path selection (fast path vs degraded path).
+- [ ] Re-run multiple full clear-cache audits to confirm stable median/variance (not just single-run success).
 
 ### **Flow/Check-in Scheduled Send Stability Follow-up** **IN PROGRESS**
 
@@ -52,7 +90,7 @@
   - [x] on-ready app-command sync test
   - [x] classic command mapping + `help` skip test
   - [x] file: `tests/behavior/test_discord_bot_behavior.py`
-- [x] Compliance verification against `ai_development_docs/AI_TESTING_GUIDE.md` completed with policy guard checks.
+- [x] Compliance verification against [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) completed with policy guard checks.
 
 **Remaining follow-ups**:
 - [ ] Run live Discord manual validation for active-flow deferral, 10-minute cooldown, and one-time retry behavior.
@@ -86,204 +124,20 @@
 - [x] Backup ownership map is documented (which module/script is authoritative for each backup type).
 - [x] Known gaps are converted into prioritized implementation tasks with clear owners.
 
-### **Test Suite Performance Optimization Plan** **ON HOLD**
+### **Testing Program Consolidation** **IN PROGRESS**
 
-**Status**: **ON HOLD**  
-**Priority**: Medium  
-**Effort**: Medium  
-**Date**: 2025-11-23  
-**Last Updated**: 2026-02-14
+**Status**: **IN PROGRESS**  
+**Last Updated**: 2026-02-22
 
-**Objective**: Optimize test suite execution time from ~265 seconds (4.4 minutes) to ~205-225 seconds (3.4-3.7 minutes) by reducing unnecessary delays, optimizing expensive operations, and improving test efficiency.
-
-**Current Performance**:
-- Latest `run_tests.py` full run (2026-02-13): `3737 passed, 0 failed` in **189.36s total** (parallel segment: `3652 passed` in 135.65s; serial no-parallel segment: `85 passed` in 44.60s).
-- Total Duration: **~147.43 seconds (2.45 minutes)** on latest full parallel profile (`4457 passed, 1 skipped`) - **significant improvement**
-  - Parallel tests: ~129-147s in recent stable runs
-  - Serial no-parallel phase remains stable in recent reruns
-- Target range (~205-225s) is now exceeded in recent runs; focus has shifted from broad optimization to stability monitoring and targeted hotspot cleanup.
-- Recent run (2026-01-26): ~327s parallel (4,376 tests) + ~138s serial (159 tests).
-- Recent flaky-detector full-suite runs (2026-02-10) were typically ~207-255s, with rare timeout outliers at 600s; follow-up remains focused on timeout root cause and worker-log consolidation.
-- As of 2026-02-10 session close, serial `@pytest.mark.no_parallel` runs are passing in `run_tests.py` (no Windows crash observed in latest reruns); keep monitoring for regression.
-- Audit/report noise from pytest temp artifacts was reduced by excluding `.tmp_pytest_runner` and related temp/cache directories in dev-tools exclusions.
-- 2026-02-11 profiling runs show improved full parallel-suite runtime when using temp-isolated pytest dirs (`--basetemp` and `cache_dir` under `%TEMP%`), with a clean sample at `4457 passed, 1 skipped in 209.25s`.
-- 2026-02-12 updates reduced major overhead from test temp-directory guardrails and improved flaky assertions in high-churn UI/Discord tests.
-- Environment note: occasional Windows ACL/cache permission issues (`.pytest_cache`, `pytest-of-*`, `pytest-cache-files-*`) can still distort runtime and should be treated as environment hygiene, not baseline suite cost.
-- **Performance Investigation Results (2025-11-24)**:
-  - Attempted optimizations (removed `no_parallel` markers, added `wait_until` helpers, reduced retry loops)
-  - Performance did not improve; actually degraded in some cases
-  - Reverted all optimization attempts
-  - Determined performance variability is primarily due to system load, not code changes
-  - Test suite baseline performance is acceptable (~3.8-4 minutes)
-
-**Key Performance Issues Identified**:
-
-1. **Excessive `rebuild_user_index()` Calls** (High Impact)
-   - `rebuild_user_index()` is expensive (scans all user directories)
-   - Called multiple times per test (3+ times in `test_multiple_users_same_channel`)
-   - Called in retry loops unnecessarily
-   - **Solution**: Use `update_user_index(user_id)` for single-user updates, batch operations and rebuild once
-
-2. **Excessive Retry Loops with Sleep Delays** (Medium-High Impact)
-   - 141 `time.sleep` calls across 35 files
-   - Retry loops with 5 attempts and 0.1s delays (0.4s total per loop)
-   - **Solution**: Reduce retry counts (5->3), reduce sleep (0.1s->0.05s), use `wait_until()` helper
-
-3. **Redundant `_materialize_and_verify()` Calls** (Medium Impact)
-   - Called 25 times in `test_account_lifecycle.py`
-   - Each call does full data loading and merging
-   - **Solution**: Call only once per test, cache results if needed
-
-4. **Too Many `no_parallel` Tests** (Medium Impact)
-   - 133 tests running serially (83 seconds)
-   - Many may not need serial execution with proper isolation
-   - **Solution**: Audit and remove `no_parallel` where safe, use unique identifiers
-
-5. **Sequential User Creation** (High Impact)
-   - `test_multiple_users_same_channel` creates 3 users sequentially with full retry logic
-   - **Solution**: Create all users first, then rebuild index once
-
-**Deferred Work (if resumed)**:
-- Re-verify baseline performance under controlled system load.
-- Target excessive `rebuild_user_index()` usage with per-user updates and batching.
-- Replace remaining manual retry loops with `wait_until()` where safe.
-- Audit `no_parallel` markers for additional safe removals.
-- Consider caching expensive test helpers and batching file operations.
-- Add a lightweight wrapper to archive `parallel_profile_*.log/.xml` outputs into `development_tools/tests/logs/archive/` with 7-version consolidated retention.
-
-**Success Criteria**:
-- [ ] Test suite runs in ~205-225 seconds (15-23% improvement)
-- [ ] `test_multiple_users_same_channel` runs in <15s
-- [ ] `test_account_lifecycle` tests run in <12s each
-- [ ] All tests continue to pass after optimizations
-- [ ] No increase in flaky tests
-- [ ] Reduced `rebuild_user_index()` calls by 50%+
-
-**Implementation Notes**:
-- Test after each optimization to ensure no regressions
-- Some optimizations may require careful testing for race conditions
-- Keep retry logic for truly flaky operations, but optimize the delays
-- Document why `no_parallel` is needed when it's kept
-- Use `wait_until()` helper from `tests/conftest.py` instead of manual retries where possible
-- Follow testing guidelines: use helpers from `tests/test_utilities.py`, ensure test isolation
-- Added `_wait_for_user_id_by_username` helper to poll `get_user_id_by_identifier` with a single fallback `rebuild_user_index()` call, removing dozens of expensive index rebuilds from the UI account-creation tests
-
-**Progress Summary**:
-- **Analysis Complete**: Performance issues identified and documented
-- **Optimization Attempts**: Tried removing `no_parallel` markers, adding `wait_until` helpers, reducing retry loops
-- **Reverted Changes**: All optimization attempts reverted after determining performance variability is due to system load
-- **Current Status**: Plan on hold - baseline performance (~3.8-4 minutes) is acceptable. Future optimizations should focus on reducing expensive operations (like `rebuild_user_index()`) rather than test execution patterns.
-- **2026-01-26 Update**: Short-circuited heavy UI startup work in `MHM_TESTING` mode to reduce long-running parallel UI tests; re-baseline after next full run.
-- **2026-02-13 Update**: Current baseline is materially improved (~2.5 minutes in latest full parallel run). Plan remains on hold pending new regressions; next work should target top cumulative hotspots (`tests/ui/test_account_creation_ui.py`, `tests/unit/test_user_data_manager.py`) only if runtime drifts again.
-
-### **No-Parallel Marker Reduction Plan** **IN PROGRESS**
-
-**Status**: **IN PROGRESS**
-**Priority**: High
-**Effort**: Medium
-**Date**: 2026-02-10
-**Last Updated**: 2026-02-10
-
-**Objective**: Reduce `@pytest.mark.no_parallel` usage by making targeted tests parallel-safe through deterministic test data isolation, unique IDs, fixture-scoped paths, and explicit state cleanup.
-
-**Current Baseline**:
-- Active `@pytest.mark.no_parallel` markers remaining: 86 across 12 test files (updated 2026-02-10 after Wave 1 execution; baseline was 95 across 17 files).
-- Recent progress included successful reintegration of several isolated tests by removing fixed IDs/shared file collisions.
-
-**Approach**:
-- Prioritize easiest wins first: single-marker files and two-marker files with fixed IDs or shared file constants.
-- Convert tests to per-test unique user IDs and per-test data paths.
-- Patch module-level file constants in tests where shared state is unavoidable.
-- Keep marker only when real cross-process invariants cannot be safely isolated.
-
-**Execution Waves**:
-- [x] **Wave 1 (easiest wins)**: Single/low-count marker files
-  - [x] `tests/unit/test_file_operations.py` (`test_save_large_json_data`)
-  - [x] `tests/behavior/test_welcome_manager_behavior.py` (2 tests)
-  - [x] `tests/behavior/test_webhook_handler_behavior.py` (2 tests)
-  - [x] `tests/behavior/test_conversation_flow_manager_behavior.py` (2 tests)
-  - [x] `tests/behavior/test_interaction_handlers_behavior.py` (2 tests)
-- [ ] **Wave 2 (moderate)**: Small clusters with shared message/account state
-  - [ ] `tests/behavior/test_message_behavior.py` (4 tests)
-  - [ ] `tests/behavior/test_discord_bot_behavior.py` (3 tests)
-  - [ ] `tests/ui/test_ui_app_qt_main.py` (5 tests)
-- [ ] **Wave 3 (larger clusters)**: High-touch modules
-  - [ ] `tests/behavior/test_account_management_real_behavior.py` (6 tests)
-  - [ ] `tests/unit/test_user_management.py` (6 tests)
-  - [ ] `tests/integration/test_account_lifecycle.py` (7 tests)
-  - [ ] `tests/integration/test_user_creation.py` (7 tests)
-  - [ ] `tests/behavior/test_backup_manager_behavior.py` (8 tests)
-  - [ ] `tests/behavior/test_user_data_flow_architecture.py` (8 tests)
-  - [ ] `tests/unit/test_user_data_manager.py` (14 tests)
-  - [ ] `tests/behavior/test_account_handler_behavior.py` (15 tests)
-
-**Per-Test Conversion Checklist**:
-- [ ] Replace fixed identifiers with unique per-test IDs (worker-safe suffixes)
-- [ ] Route all filesystem writes to fixture-provided per-test paths
-- [ ] Patch module-level file constants used by the test target
-- [ ] Remove marker and run targeted loop (`pytest -n auto`) for that test/module
-- [ ] Add/adjust assertions so data is validated via isolated test-owned files
-- [ ] Document residual reason if marker must remain
-
-**Validation Checklist**:
-- [ ] Targeted repeated parallel runs pass for each converted test
-- [ ] Module-level parallel run passes after each batch
-- [ ] Full-suite flaky detector trend improves after each wave
-- [ ] Remaining marker count tracked in changelog/session notes
-
-**Success Criteria**:
-- [ ] Reduce active no-parallel markers by at least 50% from the 2026-02-10 baseline
-- [ ] No increase in flaky failure rate in `flaky_detector` targeted reruns
-- [ ] Every remaining marker has a documented technical reason
-
-### **Investigate Intermittent Test Failures** **IN PROGRESS**
-
-**Status**: **IN PROGRESS**
-**Priority**: Medium
-**Effort**: Small/Medium
-**Date**: 2026-02-10
-**Last Updated**: 2026-02-18
-
-- *What it means*: Investigate and fix test failures that appear intermittently (including coverage-run flakes); keep the suspect list current as flakes are confirmed or resolved.
-- *Why it helps*: Ensures test suite reliability and prevents false negatives that can mask real issues
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Investigate `tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_feature_enablement_persistence_real_behavior` and ensure each worker has isolated `tests/data` state
-  - [ ] Investigate `tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_updates_account_features`; `tests/behavior/test_user_data_flow_architecture.py::TestAtomicOperations::test_atomic_operation_all_types_succeed` had a mitigation on 2026-02-09 (unique per-test user IDs), monitor for recurrence in coverage runs.
-  - [ ] Investigate `tests/behavior/test_user_data_flow_architecture.py::TestProcessingOrder::test_processing_order_deterministic_regardless_of_input_order`; mitigation applied on 2026-02-09 (stronger persisted-data readiness check + cache clears), monitor in coverage runs.
-  - [ ] Monitor Windows no-parallel stability (`0xC0000135` recurrence) after recent run_tests environment/isolation fixes; keep `run_tests.py` serial phase under observation.
-  - [ ] Investigate `tests/behavior/test_checkin_questions_enhancement.py::TestCustomQuestions::test_delete_custom_question`
-  - [x] 2026-02-19 fixed `tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success` flake by removing nondeterministic "first directory" selection and resolving the exact created user UUID directory.
-  - [ ] Investigate `tests/development_tools/test_fix_project_cleanup.py::TestProjectCleanup::test_cleanup_test_temp_dirs_no_directory` flake (TOCTOU race when temp dirs disappear during cleanup in parallel runs)
-  - [ ] Investigate `tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized`
-  - [ ] Investigate `tests/unit/test_schedule_management.py::TestScheduleManagement::test_schedule_period_lifecycle`
-  - [ ] Investigate `tests/ui/test_task_management_dialog.py::TestTaskManagementDialogRealBehavior::test_save_task_settings_persists_after_reload`
-  - [ ] Investigate `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_start_checkin_conversation_manager_error` intermittent parallel failure (test-user setup occasionally fails to create `tests/data/users/<uuid>/messages/motivational.json`; harden user-fixture directory creation/isolation under xdist)
-  - [ ] Investigate `tests/unit/test_config.py::TestConfigValidation::test_validate_core_paths_missing_directory` intermittent failure in long/parallel runs (`assert is_valid is True`); align test patching with all path globals used by `validate_core_paths()` (`BASE_DATA_DIR`, `USER_INFO_DIR_PATH`, `DEFAULT_MESSAGES_DIR_PATH`)
-  - [ ] Investigate `tests/unit/test_user_data_handlers.py::TestUserDataHandlersConvenienceFunctions::test_update_user_account_valid_input` intermittent parallel failure (cross-user write/read mismatch observed in flaky detector and targeted xdist runs)
-  - [ ] Investigate `tests/unit/test_user_data_handlers.py::TestUserDataHandlersConvenienceFunctions::test_save_user_data_transaction_valid_input` intermittent parallel failure (cross-user write/read mismatch observed in flaky detector and targeted xdist runs)
-  - [ ] Investigate `tests/behavior/test_user_management_coverage_expansion.py::TestUserManagementCoverageExpansion::test_load_account_data_auto_create_real_behavior` intermittent parallel failure (auto-created account occasionally returns empty `internal_username`)
-  - [ ] Monitor `tests/behavior/test_interaction_handlers_behavior.py::TestInteractionHandlersBehavior::test_profile_handler_shows_actual_profile` in parallel runs (intermittent context-update lag observed on 2026-02-13; test-side retry/index-refresh mitigation added, continue monitoring)
-  - [ ] Monitor `tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_user_index_integration_real_behavior` intermittent parallel failure ("account.json should exist" race under worker churn observed on 2026-02-13; reruns passed, root-cause hardening still pending if it recurs)
-  - [ ] Investigate `tests/ui/test_account_creation_ui.py::TestAccountCreationIntegration::test_full_account_lifecycle_real_behavior` and `::test_multiple_users_same_features_real_behavior` (failed in audit --full 2026-02-16; likely same isolation/race pattern as other account_creation_ui real-behavior tests under parallel coverage)
-  - [ ] Investigate intermittent no-parallel failure `tests/behavior/test_discord_checkin_retry_behavior.py::TestDiscordCheckinRetryBehavior::test_checkin_message_queued_on_discord_disconnect` (failed in serial no-parallel phase on 2026-02-14 in `ai_dev_tools.log`; reruns usually pass, so classify as potential flake and capture repro conditions)
-  - [x] 2026-02-19 follow-up: reran `tests/behavior/test_discord_checkin_retry_behavior.py::TestDiscordCheckinRetryBehavior::test_checkin_message_queued_on_discord_disconnect` repeatedly after recent audit failures; currently stable in targeted reruns (monitor for recurrence in full coverage runs).
-  - [x] 2026-02-19 fixed intermittent no-parallel failure `tests/behavior/test_message_behavior.py::TestMessageCRUD::test_add_message_success` by switching to per-test unique user IDs.
-  - [x] 2026-02-19 fixed intermittent no-parallel failure `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_start_checkin_not_enabled` by switching to per-test unique user IDs.
-  - [x] 2026-02-19 removed intentional audit-failure test `tests/development_tools/test_intentional_failure.py` from the suite after failure-path validation was completed.
-  - [x] Investigated no-parallel failure `tests/behavior/test_discord_bot_behavior.py::TestDiscordBotBehavior::test_discord_checkin_flow_end_to_end` from `audit --full --clear-cache` on 2026-02-18; probable isolation issue (fixed username `checkin_user` could collide with stale/global index state). Mitigation applied: unique per-test username + test-data-first UUID resolution + terminal-message assertion hardened for equivalent outcomes.
-  - [ ] Investigate intermittent parallel failure `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_checkin_status_no_checkins` (failed in `audit --full --clear-cache` on 2026-02-18 while coverage data was still collected)
-  - [ ] Investigate intermittent no-parallel failure `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_link_account_verifies_confirmation_code` (failed in no-parallel track during `audit --full --clear-cache` on 2026-02-18)
-  - [x] 2026-02-19 fixed Tier-3 parallel failure `tests/unit/test_config.py::TestConfigValidation::test_validate_core_paths_success` by patching validation targets to per-test isolated directories under `test_path_factory` instead of shared `tests/data` paths.
-  - [x] 2026-02-19 fixed Tier-3 no-parallel failure `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_link_account_with_already_linked_discord` by resolving real user UUIDs after `TestUserFactory.create_basic_user(...)` and removing bool-as-user-id misuse in adjacent link-account tests.
-  - [x] 2026-02-19 fixed Tier-3 parallel failure `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_continue_checkin` by switching to a unique per-test user identifier.
-  - [x] 2026-02-19 fixed Tier-3 no-parallel failure `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_check_account_status_without_user` by using a unique non-existent identifier to avoid cross-test account collisions.
-  - [ ] Monitor and harden Windows temp/cache ACL behavior for pytest (`pytest-cache-files-*`, `pytest_runner`, `pytest_cache`) so reruns do not hit `Access is denied` warnings and temp artifacts remain isolated under `tests/data/tmp`
-  - [ ] Investigate `test_scan_all_python_files_demo_project`
-  - [ ] Check for timing/race condition issues in test setup or teardown
-  - [ ] Verify test isolation and data cleanup between test runs
-  - [ ] Add retry logic or fix root cause if identified
-  - [ ] Track `tests/development_tools/test_legacy_reference_cleanup.py::TestCleanupOperations::test_cleanup_legacy_references_dry_run` failures (PermissionError when copying `tests/fixtures/development_tools_demo` into `tests/data/tmp*/demo_project`) and ensure the temporary `tests/data/tmp*` directories remain writable before rerunning the suite.
+- Canonical testing roadmap is now tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md).
+- Migrated areas include:
+  - test reliability and intermittent failure triage
+  - no-parallel marker reduction waves
+  - harness/logging/retention/cleanup hardening
+  - coverage cache metadata stabilization
+  - coverage consistency and growth strategy
+  - nightly no-shim governance
+- Keep testing execution details and checklists in `TEST_PLAN.md`; do not duplicate them in this file.
 
 ### **Error Handling Quality Improvement Plan** **IN PROGRESS**
 
@@ -515,32 +369,9 @@
 
 ---
 
-### **2025-09-07 - Test Standardization Burn-in** **MOSTLY COMPLETE**
+### **Test Standardization Burn-in**
 
-**Status**: **MOSTLY COMPLETE**  
-**Priority**: High  
-**Effort**: Small  
-**Last Updated**: 2025-11-20
-
-**Objective**: Maintain stability by validating order independence and removing test-only aids over time.
-
-**Completed**:
-- [x] Tooling for burn-in validation runs (COMPLETED 2025-11-11)
-  - [x] `--no-shim`, `--random-order`, `--burnin-mode` options added
-- [x] Fixed order-dependent test failures (COMPLETED 2025-11-11)
-  - [x] All 7 identified tests fixed
-  - [x] All tests pass with `--burnin-mode` (2,809 passed, 1 skipped)
-- [x] Sweep and resolve Discord/aiohttp deprecations (COMPLETED)
-  - [x] Warning count reduced to external-only (4 Discord library warnings expected)
-
-**Remaining Work**:
-- [ ] Nightly run with `--burnin-mode`; track regressions
-- [ ] After 2 weeks green with `--burnin-mode`, gate or remove remaining test-only diagnostics
-
-**Success Criteria**:
-- [x] Tooling in place (COMPLETED)
-- [ ] No failures under `--burnin-mode` runs for 2 consecutive weeks (ongoing monitoring)
-- [x] CI warning count reduced to external-only (COMPLETED)
+Moved to [TEST_PLAN.md](development_docs/TEST_PLAN.md) under governance/automation tracking.
 
 ---
 
@@ -649,32 +480,7 @@
 - [x] **Main UI Application**: 21 behavior tests complete
 
 **Remaining Work**:
-- [ ] **Testing & Validation Strategy** (consolidated UI component testing plan)
-  - [ ] **Phase 1: Core UI Components**
-    - [ ] `ui/ui_app_qt.py` (main application bootstrap)
-    - [ ] `ui/dialogs/task_crud_dialog.py` (task CRUD)
-    - [ ] `ui/generate_ui_files.py` (UI file generation)
-  - [ ] **Phase 2: Dialog Components**
-    - [ ] `ui/dialogs/account_creator_dialog.py`
-    - [ ] `ui/dialogs/checkin_management_dialog.py`
-    - [ ] `ui/dialogs/task_management_dialog.py`
-    - [ ] `ui/dialogs/category_management_dialog.py`
-  - [ ] **Phase 3: Widget Components**
-    - [ ] `ui/widgets/task_settings_widget.py`
-    - [ ] `ui/widgets/channel_selection_widget.py`
-    - [ ] `ui/widgets/checkin_settings_widget.py`
-    - [ ] `ui/widgets/category_selection_widget.py`
-  - [ ] **Test Categories**
-    - [ ] Button functionality (click actions, state changes, shortcuts)
-    - [ ] Input validation (text, numeric, date/time, dropdowns)
-    - [ ] Dialog workflows (open/close, save/cancel, modal behavior)
-    - [ ] Widget interactions (data binding, event propagation, state management)
-    - [ ] Error handling (validation errors, system errors)
-  - [ ] **Integration Testing**
-    - [ ] Cross-dialog communication
-    - [ ] Windows path compatibility tests around messages defaults and config path creation
-    - [ ] Expand preferences save/load tests to cover Pydantic normalization and legacy flag handling (full vs partial updates)
-    - [ ] Add tests for read-path normalization (`normalize_on_read=True`) at critical read sites (schedules, account/preferences)
+- [ ] **Testing & Validation Strategy** is tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md) (UI and integration testing backlog).
 - [ ] **UI Quality Improvements**
   - [ ] Fix Dialog Integration (main window updates after dialog changes)
   - [ ] Add Data Validation across all forms
@@ -685,18 +491,7 @@
 
 ### **Testing Strategy Plan**
 
-**Status**: Core, Communication, and Supporting Modules Complete; UI Layer and Integration Testing Remaining  
-**Last Updated**: 2025-11-20
-
-**Remaining Work**:
-- [ ] **UI Layer Testing** - See "UI Migration Plan" for detailed checklist
-- [ ] **Integration Testing**
-  - [ ] Cross-module workflows
-  - [ ] End-to-end user scenarios
-  - [ ] Performance testing
-  - [ ] End-to-end tests for `/checkin` flow via Discord and via plain text
-  - [ ] End-to-end tests for `/status`, `/profile`, `/tasks` via Discord slash commands
-  - [ ] Windows path tests: default messages load and directory creation using normalized separators
+Moved to [TEST_PLAN.md](development_docs/TEST_PLAN.md) as part of testing roadmap consolidation.
 
 ---
 

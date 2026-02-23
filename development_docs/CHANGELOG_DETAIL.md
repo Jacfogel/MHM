@@ -33,6 +33,41 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-23 - Test planning consolidation (TEST_PLAN) + dev-tools audit throughput recovery
+- **Primary Session Objective**: Created and established `development_docs/TEST_PLAN.md` as the canonical testing roadmap and consolidated/organized test-related planning tasks into that document (with `TODO.md` and `PLANS.md` updated to reference it as source of truth).
+- **Feature/Fix (additional session work)**: Recovered full-audit performance after repeated timeout/slow-run regressions by restoring safe Tier 3 parallelism, reducing log-noise side effects, and temporarily preserving unused-imports cache during `--clear-cache` runs.
+- **Technical Changes**:
+  - `development_tools/shared/service/audit_orchestration.py`
+    - restored concurrent Tier 3 execution for `run_test_coverage` + `generate_dev_tools_coverage` (with legacy group still parallelized);
+    - retained coverage-dependent sequencing after coverage tracks complete;
+    - added per-run concurrency state signaling for coverage command controls.
+  - `development_tools/shared/service/commands.py`
+    - added concurrency-aware worker resolution for coverage runs (`main` + `dev_tools`);
+    - applied explicit `--workers` caps during concurrent Tier 3 execution;
+    - kept cache metadata and structured outcome handling aligned with existing reporting contract.
+  - `development_tools/tests/run_test_coverage.py`
+    - aligned coverage pipeline behavior with Tier 3 orchestration changes, including clearer worker and cache-state reporting;
+    - retained dev-tools exclusion from main coverage sweep and improved robustness around coverage artifact handling.
+  - `development_tools/shared/fix_project_cleanup.py`
+    - temporarily excluded `.analyze_unused_imports_cache.json` from tool-cache clearing so `audit --clear-cache` no longer forces repeated cold unused-imports scans.
+  - `core/logger.py`
+    - reduced non-dev-tools INFO log pollution during dev-tools runs (notably `mhm.communication_manager` chatter) by tightening runtime log-level behavior under dev-tools execution context.
+  - Planning/doc updates:
+    - added explicit unused-imports performance roadmap tasks under `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` section `5.1.1`;
+    - updated planning pointers/follow-ups in `TODO.md` and `development_docs/PLANS.md`.
+- **Observed Runtime Impact**:
+  - User full run (`audit --full --clear-cache`) completed successfully in ~`277s` wall-clock (~4m37s).
+  - Tier 3 reported concurrent coverage savings of ~`237s` (`run_test_coverage` ~`250.63s`, `generate_dev_tools_coverage` ~`232.02s`).
+  - `analyze_unused_imports` completed in ~`6.30s` with `partial_cache` (`hits=448`, `misses=1`) instead of prior long/timeout sequential behavior.
+- **Validation**:
+  - `pytest tests/development_tools/test_run_development_tools.py -q` -> `7 passed`
+  - `pytest tests/development_tools/test_regenerate_coverage_metrics.py -q` -> `13 passed`
+  - `pytest tests/development_tools/test_fix_project_cleanup.py -q` -> `30 passed`
+  - User full-audit verification from logs: successful Tier 3 completion with no tool failures.
+- **Full-diff Attribution**:
+  - Reviewed full working tree before finalizing (`git diff --stat`, `git diff --name-only`).
+  - Per user confirmation, all files currently present in diff are session-actioned and represented by this session entry, including generated artifacts (`development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`, `development_tools/reports/*.json`, and `development_docs/*REPORT.md`) and supporting runtime/test changes (`run_tests.py`, `tests/conftest.py`, `tests/*` updates).
+
 ### 2026-02-22 - Flow deferral/cooldown hardening + Discord command wiring coverage
 - **Feature/Fix**: Implemented and validated the planned flow-interference protections and Discord command-registry behavior coverage, then completed session closeout updates.
 - **Technical Changes**:

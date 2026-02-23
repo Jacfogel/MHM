@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-21 23:46:37
+> **Last Generated**: 2026-02-23 14:32:03
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 7
 **Legacy Compatibility Markers Detected**: 12
@@ -38,12 +38,12 @@
 ### development_tools\tests\run_test_coverage.py
 **Issues Found**: 2
 
-- **Line 4229**: `# LEGACY COMPATIBILITY:`
+- **Line 4405**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)
   ```
 
-- **Line 4577**: `# LEGACY COMPATIBILITY:`
+- **Line 4768**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY:
   ```
@@ -62,7 +62,7 @@
 ### development_tools\shared\service\audit_orchestration.py
 **Issues Found**: 1
 
-- **Line 1716**: `Backward compatibility`
+- **Line 1721**: `Backward compatibility`
   ```
   # Backward compatibility: retained as sum of per-tool durations
   ```
@@ -70,7 +70,7 @@
 ### run_tests.py
 **Issues Found**: 1
 
-- **Line 3339**: `backward compatibility`
+- **Line 3352**: `backward compatibility`
   ```
   # Handle case where parallel_results might be a bool (backward compatibility)
   ```
@@ -94,12 +94,12 @@
 ### development_tools\shared\service\commands.py
 **Issues Found**: 2
 
-- **Line 980**: `tier3_coverage_outcome_v1`
+- **Line 1039**: `tier3_coverage_outcome_v1`
   ```
   "LEGACY COMPATIBILITY: tier3_coverage_outcome_v1 bridge exercised; "
   ```
 
-- **Line 985**: `legacy_state_only_payload`
+- **Line 1044**: `legacy_state_only_payload`
   ```
   track["classification_reason"] = "legacy_state_only_payload"
   ```
@@ -107,7 +107,7 @@
 ### development_tools\tests\run_test_coverage.py
 **Issues Found**: 1
 
-- **Line 4229**: `LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)`
+- **Line 4405**: `LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)`
   ```
   # LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)
   ```

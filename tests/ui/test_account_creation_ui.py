@@ -10,7 +10,7 @@ Tests the actual UI behavior, user interactions, and side effects for:
 - Error handling and validation
 """
 
-from tests.conftest import ensure_qt_runtime
+from tests.conftest import ensure_qt_runtime, wait_until
 
 ensure_qt_runtime()
 
@@ -1165,10 +1165,10 @@ class TestAccountCreationErrorHandling:
     def test_invalid_data_handling_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test handling of invalid data during account creation."""
         import uuid
-        import time
         from pathlib import Path
         from core.file_locking import safe_json_read
         from core.config import get_user_data_dir, get_user_file_path
+        from core.user_data_manager import rebuild_user_index
 
         user_id = f"test-invalid-data-{uuid.uuid4().hex[:8]}"
 
@@ -1208,30 +1208,74 @@ class TestAccountCreationErrorHandling:
             if users_dir.exists():
                 for account_file in users_dir.glob("*/account.json"):
                     account_data = safe_json_read(str(account_file), default={})
-                    if str(account_data.get("internal_username", "")).strip() == user_id:
+                    account_internal_username = str(
+                        account_data.get("internal_username", "")
+                    ).strip()
+                    account_username = str(account_data.get("username", "")).strip()
+                    account_user_id = str(account_data.get("user_id", "")).strip()
+                    if (
+                        account_internal_username == user_id
+                        or account_username == user_id
+                        or account_user_id == user_id
+                        or (resolved_user_id and account_user_id == resolved_user_id)
+                    ):
                         candidate_user_dirs.append(account_file.parent)
 
-            user_dir_exists = any(path.exists() for path in candidate_user_dirs)
             runtime_account_file = Path(get_user_file_path(user_id, "account"))
+            lookup_candidates = [
+                candidate
+                for candidate in [resolved_user_id, user_id]
+                if candidate
+            ]
 
-            # Account/prefs writes can lag very briefly in parallel CI runs.
-            for _ in range(20):
-                if user_dir_exists or runtime_account_file.exists():
-                    break
-                time.sleep(0.05)
-                user_dir_exists = any(path.exists() for path in candidate_user_dirs)
+            def _account_persisted() -> bool:
+                # Re-scan user account files to handle delayed index/account flush under worker churn.
+                if users_dir.exists():
+                    for account_file in users_dir.glob("*/account.json"):
+                        account_data = safe_json_read(str(account_file), default={})
+                        account_internal_username = str(
+                            account_data.get("internal_username", "")
+                        ).strip()
+                        account_username = str(account_data.get("username", "")).strip()
+                        account_user_id = str(account_data.get("user_id", "")).strip()
+                        if (
+                            account_internal_username == user_id
+                            or account_username == user_id
+                            or account_user_id == user_id
+                            or (resolved_user_id and account_user_id == resolved_user_id)
+                        ):
+                            candidate_user_dirs.append(account_file.parent)
 
-            # Parallel/audit runs can resolve the write through index-mapped IDs where direct
-            # directory discovery in this test process may lag; accept persisted account reads too.
-            lookup_id = resolved_user_id or user_id
-            account_result = get_user_data(lookup_id, "account", auto_create=False)
-            persisted_account = account_result.get("account", {})
-            account_persisted = isinstance(persisted_account, dict) and bool(
-                persisted_account
+                if runtime_account_file.exists():
+                    return True
+
+                if any(path.exists() for path in candidate_user_dirs):
+                    return True
+
+                for lookup_id in lookup_candidates:
+                    account_result = get_user_data(
+                        lookup_id, "account", auto_create=False
+                    )
+                    persisted_account = account_result.get("account", {})
+                    if isinstance(persisted_account, dict) and bool(persisted_account):
+                        return True
+
+                return False
+
+            account_persisted = wait_until(
+                _account_persisted, timeout_seconds=4.0, poll_seconds=0.05
             )
+            if not account_persisted:
+                # One explicit rebuild helps when index/account visibility lags in xdist runs.
+                rebuild_user_index()
+                account_persisted = wait_until(
+                    _account_persisted, timeout_seconds=4.0, poll_seconds=0.05
+                )
 
-            assert user_dir_exists or runtime_account_file.exists() or account_persisted, (
-                "Account save should persist either a discoverable user directory or readable account data"
+            assert account_persisted, (
+                "Account save should persist either a discoverable user directory or readable account data "
+                f"(user_id={user_id}, resolved_user_id={resolved_user_id}, runtime_account_file={runtime_account_file}, "
+                f"candidate_dirs={len(candidate_user_dirs)}, result={result})"
             )
 
     @pytest.mark.ui

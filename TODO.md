@@ -32,6 +32,7 @@ When adding new tasks, follow this format:
 **Note**: Phase 1: Enhanced Task & Check-in Systems is tracked in [PLANS.md](development_docs/PLANS.md). 
 **Note**: Mood-Aware Support Calibration items (Safety Net Response Library, Task Breakdown Prompt Experiments, Context-Aware Reminder Content Mapping, Mood Re-evaluation Cadence Guidelines) are tracked in [PLANS.md](development_docs/PLANS.md) under "Mood-Aware Support Calibration" plan.
 **Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
+**Testing Source of Truth**: All testing roadmap items are tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md). Keep only non-testing TODO items here.
 
 ## High Priority
 
@@ -102,25 +103,6 @@ When adding new tasks, follow this format:
   - [ ] Check existing archiving/trimming in message_management or message.log for sent_messages
   - [ ] Define retention or max-size policy for sent_messages.json
   - [ ] Implement archiving/trimming if needed; document in USER_DATA_MODEL or config
-
-**Nightly No-Shim Validation Runs**
-- *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
-- *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
-- *Estimated effort*: Small
-
-**Investigate intermittent parallel hang/crash path (do not increase default timeout)**
-- *What it means*: Keep default coverage pytest timeout at 12 minutes and investigate root cause when runs hang or worker nodes crash, instead of masking with longer defaults.
-- *Why it helps*: Preserves fast failure signals and avoids hiding real reliability issues.
-- *Estimated effort*: Medium
-
-**Stabilize Coverage Cache Invalidation Metadata**
-- *What it means*: Investigate why `run_test_coverage` and `generate_dev_tools_coverage` repeatedly log `tool hash missing from cache metadata` and force cold scans every full audit.
-- *Why it helps*: Restores expected cache-hit behavior, reduces unnecessary full reruns, and improves audit runtime consistency.
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Trace where tool-hash metadata is written for both cache systems and why it is not persisted/reloaded
-  - [ ] Add/adjust regression tests for cache metadata persistence and invalidation-reason reporting
-  - [ ] Verify cache mode summary shows cache hits on unchanged consecutive runs
 
 ### Documentation
 
@@ -262,39 +244,8 @@ When adding new tasks, follow this format:
 - *Why it helps*: Consistency and clarity, especially when collaborating with AI tools
 - *Estimated effort*: Small
 
-**Investigate what shows up in test logs, what doesn't, and why**
-- *What it means*: Review test logging behavior to understand what information appears in test logs, what information is missing, and why certain information may not be logged. This includes understanding log levels, filtering, and output redirection.
-- *Why it helps*: Improves debugging capabilities and ensures important test information is captured
-- *Estimated effort*: Medium
-
-**Investigate test log rotation only saving 1 backup and no archives**
-- *What it means*: Review test log rotation behavior to understand why only 1 backup is being saved and why archives are not being created. This includes checking log rotation configuration, backup retention settings, and archive creation logic.
-- *Why it helps*: Ensures proper log retention for debugging historical issues and prevents log files from growing unbounded
-- *Estimated effort*: Small/Medium
-
-**Investigate test log pollution of production logs**
-- *What it means*: Review test logging behavior to understand why test logs are appearing in production log files (e.g., `logs/app.log`, `logs/ai.log`, `logs/communication_manager.log`). Tests should write to test-specific log files in `tests/logs/` and not pollute production logs.
-- *Why it helps*: Keeps production logs clean and focused on actual application behavior, making debugging easier and preventing confusion from test artifacts
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Review test logging configuration and log file paths
-  - [ ] Check if tests are using production loggers instead of test loggers
-  - [ ] Verify that test fixtures properly isolate logging
-  - [ ] Identify which tests are writing to production logs
-  - [ ] Fix test logging to use test-specific log files only
-  - [ ] Add safeguards to prevent tests from writing to production logs
-
-**Shrink test policy legacy allowlists and move to full strict mode**
-- *What it means*: Incrementally remove entries from legacy allowlists in `tests/unit/test_test_policy_guards.py` by fixing referenced tests, until policy checks run fully strict without allowlist exceptions.
-- *Why it helps*: Turns policy tests into stronger long-term guardrails and prevents old exceptions from hiding new regressions.
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Inventory each allowlist (`DATETIME_NOW_ALLOWED_FILES`, `PRODUCTION_LOG_REFERENCE_ALLOWED_FILES`, `REAL_USER_PATH_ALLOWED_FILES`, `NO_PARALLEL_REASON_ALLOWED_FILES`) and assign owners/order
-  - [ ] Fix files in small batches (2-5 files per batch) and remove corresponding allowlist entries
-  - [ ] Require explicit reason comments for every `@pytest.mark.no_parallel` occurrence touched
-  - [ ] Replace direct `datetime.now()` usages with canonical test time utilities/patch points where applicable
-  - [ ] Eliminate remaining production-log and real-user-path exceptions or document why they are permanently required
-  - [ ] Remove all temporary allowlist entries and enforce strict policy checks by default
+**Testing Roadmap Consolidation**
+- Testing program tasks (reliability, no-parallel reduction, flaky triage, log isolation/retention, policy strictness, coverage consistency, artifact cleanup, and nightly burn-in) are tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md).
 
 **headless service not working**
 - Investigate and fix
@@ -343,17 +294,6 @@ Priority
 - Medium  
 - Blocker only if a real bug or undefined behavior is confirmed
 
-**Test coverage variability**
-- investigate test coverage results varying considerably from run to run. At present last several run results were these:
-  - 64.4% (19230 of 29879 statements)
-  - 43.6% (12910 of 29598 statements)
-  - 71.3% (21306 of 29873 statements)
-  - 71.4% (21300 of 29823 statements)
-  - 71.4% (21300 of 29823 statements)
-  - 71.6% (21378 of 29861 statements)
-  - 59.4% (17572 of 29578 statements)
-- note that issue predates addition of caching, and isn't explained by test failures or caching issues
-
 **Email service not showing as active**
 - after running for some time, checking the UI will show the service discord and ngrok running, but email not running
 - logs don't indicate email service failure
@@ -377,9 +317,6 @@ Priority
    - Windows file cache behavior during large test runs
    - Identify safe optimizations without reducing usability
 
-**cleanup/simplify test artifact cleanup**
-- everything in tests/data/ should be cleaned up between test runs
-
-**Refactor large modufles**
+**Refactor large modules**
 - identify overly large modules that could benefit from refactoring into multiple smaller modules, that cover separate  concerns 
 - determine whether a tool for this purpose could be added to development tools. 

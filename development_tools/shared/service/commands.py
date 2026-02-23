@@ -6,6 +6,7 @@ Contains methods for executing various CLI commands (docs, validate, config, etc
 # pyright: reportAttributeAccessIssue=false
 
 import json
+import os
 import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -28,6 +29,52 @@ from ..retention_engine import apply_retention_plan, build_retention_plan
 
 class CommandsMixin:
     """Mixin class providing command execution methods to AIToolsService."""
+
+    def _resolve_coverage_workers(self, target: str) -> Optional[str]:
+        """Resolve pytest-xdist worker count for coverage runs."""
+        if target not in {"main", "dev_tools"}:
+            return None
+
+        try:
+            from ... import config
+
+            coverage_cfg = config.get_external_value("coverage", {}) or {}
+        except Exception:
+            coverage_cfg = {}
+
+        concurrent = bool(getattr(self, "_tier3_coverage_concurrent", False))
+        if target == "main":
+            key = "main_workers_when_concurrent" if concurrent else "main_workers"
+        else:
+            key = (
+                "dev_tools_workers_when_concurrent"
+                if concurrent
+                else "dev_tools_workers"
+            )
+
+        configured = coverage_cfg.get(key)
+        if configured is not None:
+            configured_text = str(configured).strip()
+            if configured_text.lower() == "auto":
+                return "auto"
+            try:
+                configured_int = int(configured_text)
+                if configured_int > 0:
+                    return str(configured_int)
+            except ValueError:
+                logger.warning(
+                    f"Ignoring invalid coverage worker config {key}={configured!r}"
+                )
+
+        # When Tier 3 coverage jobs run concurrently, cap workers per job to avoid
+        # over-subscribing CPU and triggering timeout regressions.
+        if concurrent:
+            cpu_count = os.cpu_count() or 4
+            if target == "main":
+                return str(max(2, cpu_count // 2))
+            return str(max(1, cpu_count // 3))
+
+        return None
 
     def _infer_coverage_cache_mode_from_output(self, output: str) -> str:
         """Infer cache mode from run_test_coverage script output text."""
@@ -536,13 +583,19 @@ class CommandsMixin:
                 / "jsons"
                 / "run_test_coverage_dev_tools_results.json"
             )
-            result = self.run_script(
-                'run_test_coverage',
-                '--dev-tools-only',
-                '--output-file',
+            coverage_args = [
+                "run_test_coverage",
+                "--dev-tools-only",
+                "--output-file",
                 str(dev_tools_output_file),
-                timeout=720,
-            )
+            ]
+            dev_workers = self._resolve_coverage_workers("dev_tools")
+            if dev_workers:
+                coverage_args.extend(["--workers", dev_workers])
+                logger.info(
+                    f"Dev tools coverage worker cap: {dev_workers} (concurrent={bool(getattr(self, '_tier3_coverage_concurrent', False))})"
+                )
+            result = self.run_script(*coverage_args, timeout=720)
             output_text = "\n".join(
                 [result.get("output", "") or "", result.get("error", "") or ""]
             )
@@ -916,12 +969,18 @@ class CommandsMixin:
                 / "jsons"
                 / "run_test_coverage_results.json"
             )
-            result = self.run_script(
-                'run_test_coverage',
-                '--output-file',
+            coverage_args = [
+                "run_test_coverage",
+                "--output-file",
                 str(coverage_output_file),
-                timeout=1200,
-            )
+            ]
+            main_workers = self._resolve_coverage_workers("main")
+            if main_workers:
+                coverage_args.extend(["--workers", main_workers])
+                logger.info(
+                    f"Main coverage worker cap: {main_workers} (concurrent={bool(getattr(self, '_tier3_coverage_concurrent', False))})"
+                )
+            result = self.run_script(*coverage_args, timeout=1200)
             output_text = "\n".join(
                 [result.get("output", "") or "", result.get("error", "") or ""]
             )

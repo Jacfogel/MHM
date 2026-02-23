@@ -426,6 +426,16 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Implement `imports/fix_unused_imports.py`
 - [ ] Add cleanup recommendations and consider `--categorize` flag
 
+#### 5.1.1 Unused imports analyzer performance improvements
+**Status**: PENDING  
+**Tasks**:
+- [ ] Replace per-file pylint subprocess model in `development_tools/imports/analyze_unused_imports.py` with a batched single-pass backend (prefer `ruff` `F401`, fallback to pylint)
+- [ ] Eliminate hard dependency on multiprocessing for primary performance path (avoid Windows `WinError 5` fallback to sequential scans)
+- [ ] Add incremental scan mode keyed by changed files/fingerprints so full cold scans are rare outside explicit full rebuilds
+- [ ] Keep existing categorization semantics (`test_mocking`, `qt_testing`, `type_hints_only`, etc.) while separating expensive categorization from fast detection path
+- [ ] Add runtime metrics in tool output (scan phase timings, files/sec, backend used) and update audit summaries with these metrics
+- [ ] Add regression tests for performance path selection and cache behavior under `audit --full --clear-cache`
+
 #### 5.2 Documentation overlap analysis enhancements
 **Status**: PENDING  
 **Tasks**:

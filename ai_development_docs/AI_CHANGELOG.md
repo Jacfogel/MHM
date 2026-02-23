@@ -30,12 +30,19 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-23 - TEST_PLAN consolidation + audit throughput recovery **Progressed**
+- Primary objective completed: created `development_docs/TEST_PLAN.md` and consolidated/organized test-related planning into it as the canonical testing roadmap (with `TODO.md`/`PLANS.md` pointing to it as source of truth).
+- Restored safe Tier 3 coverage concurrency and added concurrency-aware worker caps in `audit_orchestration.py` + `commands.py`, recovering full-audit speed without reintroducing earlier timeout failures.
+- Temporarily preserved `.analyze_unused_imports_cache.json` during `--clear-cache` (`fix_project_cleanup.py`), preventing repeated cold scans while the analyzer performance redesign is pending.
+- Added explicit unused-imports performance follow-up tasks in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` (section `5.1.1`) and synced planning pointers in `TODO.md` + `development_docs/PLANS.md`.
+- User-verified full run result after changes: `audit --full --clear-cache` completed successfully in ~`277s` wall-clock, with Tier 3 parallel savings and no tool failures.
+
 ### 2026-02-22 - Flow deferral/cooldown hardening + Discord wiring tests **COMPLETED**
 - Implemented scheduled-send flow protection end-to-end: active-flow and post-flow cooldown gating now defer scheduled sends, and scheduler performs a one-time +10 minute retry without recursive deferral.
 - Added flow completion/cooldown tracking APIs in `conversation_flow_manager` and updated `channel_orchestrator` send-status handling (`sent`/`deferred`/`skipped`/`failed`), with scheduler branching on deferred behavior.
 - Added focused coverage for the new behavior in `tests/unit/test_channel_orchestrator.py`, `tests/behavior/test_conversation_flow_manager_behavior.py`, and `tests/behavior/test_scheduler_coverage_expansion.py`.
 - Added Discord behavior coverage for dynamic app command callback routing, `on_ready` app-command sync, and classic dynamic command mapping with explicit `help` skip in `tests/behavior/test_discord_bot_behavior.py`.
-- Compliance re-check against `ai_development_docs/AI_TESTING_GUIDE.md` plus policy-guard run passed (`206 passed`), and user-reported full audit run raised no new issues with all tests passing.
+- Compliance re-check against [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) plus policy-guard run passed (`206 passed`), and user-reported full audit run raised no new issues with all tests passing.
 - Completed live runtime validation on February 21, 2026: observed active-flow and cooldown deferral reasons, verified one-time +10 minute deferred retry execution (`allow_deferral=False`), confirmed outbound-triggered check-in flow expiry behavior, and confirmed restart/persistence behavior from logs.
 - Resolved `MESSAGE_SELECTION_NO_MATCH` period-label mismatches for affected users by normalizing message library `time_periods` to include canonical schedule period names in:
   - `data/users/c59410b9-5872-41e5-ac30-2496b9dd8938/messages/motivational.json`
