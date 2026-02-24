@@ -7,6 +7,7 @@ focusing on view creation and button handler behavior.
 
 import pytest
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
+from uuid import uuid4
 from communication.communication_channels.discord.checkin_view import get_checkin_view
 
 
@@ -104,9 +105,15 @@ class TestCheckinView:
         import os
         
         # Create test user with Discord ID
-        discord_user_id = "123456789"
-        user_id = "test_cancel_user"
-        TestUserFactory.create_discord_user(user_id, discord_user_id=discord_user_id, test_data_dir=test_data_dir)
+        suffix = uuid4().hex[:10]
+        discord_user_id = str(1_000_000_000 + int(uuid4().int % 899_999_999))
+        user_id = f"test_cancel_user_{suffix}"
+        created = TestUserFactory.create_discord_user(
+            user_id,
+            discord_user_id=discord_user_id,
+            test_data_dir=test_data_dir,
+        )
+        assert created is True, "Discord test user should be created"
         
         # Patch config to use test data directory
         with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
@@ -180,9 +187,15 @@ class TestCheckinView:
         import os
         
         # Create test user with Discord ID
-        discord_user_id = "987654321"
-        user_id = "test_skip_user"
-        TestUserFactory.create_discord_user(user_id, discord_user_id=discord_user_id, test_data_dir=test_data_dir)
+        suffix = uuid4().hex[:10]
+        discord_user_id = str(1_000_000_000 + int(uuid4().int % 899_999_999))
+        user_id = f"test_skip_user_{suffix}"
+        created = TestUserFactory.create_discord_user(
+            user_id,
+            discord_user_id=discord_user_id,
+            test_data_dir=test_data_dir,
+        )
+        assert created is True, "Discord test user should be created"
         
         # Patch config to use test data directory
         with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
@@ -325,4 +338,3 @@ class TestCheckinView:
         
         for cid in custom_ids_2:
             assert user_id_2 in cid, f"Custom ID should contain user_id: {cid}"
-

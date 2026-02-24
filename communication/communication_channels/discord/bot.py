@@ -816,12 +816,6 @@ class DiscordBot(BaseChannel):
                 default_return=None,
             )
             async def _check_new_authorized_users():
-                from communication.communication_channels.discord.welcome_handler import (
-                    has_been_welcomed,
-                    mark_as_welcomed,
-                    get_welcome_message,
-                )
-
                 # Get all users who can DM us (have authorized the app)
                 # Note: We can't directly query this, but we can check when they first DM us
                 # This is handled in on_message for DMs

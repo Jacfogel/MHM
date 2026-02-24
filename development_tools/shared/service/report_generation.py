@@ -5895,7 +5895,6 @@ class ReportGenerationMixin:
 
                 # Add top files with unused imports
                 from collections import defaultdict
-                import json
 
                 file_counts = defaultdict(int)
 

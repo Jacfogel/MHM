@@ -563,7 +563,6 @@ class CommandsMixin:
                 normalized_cached.setdefault("_cache_metadata", {}).update(cache_metadata)
                 return {"success": True, "data": normalized_cached, "cache_metadata": cache_metadata}
 
-        from .audit_orchestration import _AUDIT_LOCK_FILE
         # Use separate lock file for dev tools coverage to avoid conflicts when running in parallel with main coverage
         # Both lock files are checked by _is_audit_in_progress(), so this is safe
         coverage_lock_file = self._get_coverage_lock_file_path() if hasattr(self, '_get_coverage_lock_file_path') else (self.project_root / 'development_tools' / '.coverage_in_progress.lock')
@@ -948,7 +947,6 @@ class CommandsMixin:
                 }
                 return True
 
-        from .audit_orchestration import _AUDIT_LOCK_FILE
         # Use helper method if available, otherwise default location
         coverage_lock_file = self._get_coverage_lock_file_path() if hasattr(self, '_get_coverage_lock_file_path') else (self.project_root / 'development_tools' / '.coverage_in_progress.lock')
         try:

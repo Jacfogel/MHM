@@ -33,6 +33,45 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-24 - Checkin-view Tier 3 recurrence fix + dev-tools wrapper branch coverage
+- **Feature/Fix**: Investigated the latest Tier 3 parallel failure (`tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user`) and completed two complementary reliability/coverage tasks in this session:
+  - fixed parallel-collision-prone checkin-view test setup;
+  - expanded branch-focused development-tools tests for low-coverage wrapper logic.
+- **Technical Changes**:
+  - `tests/unit/test_checkin_view.py`
+    - added `uuid4`-based per-test unique IDs in valid-user button-handler tests (`cancel` and `skip`) to avoid shared `tests/data` collisions under xdist.
+    - added explicit assertions on `TestUserFactory.create_discord_user(...)` success before lookup and callback checks.
+  - `tests/development_tools/test_tool_wrappers_branch_paths.py` (new)
+    - added branch/error-path coverage for `development_tools/shared/service/tool_wrappers.py`:
+      - `run_script`: unregistered tool, missing registered file, timeout return payload.
+      - `run_analyze_documentation`: cached-overlap merge path and keyword fallback when non-JSON output indicates issues.
+      - `run_analyze_error_handling`: cache load allowed only when script succeeded; skip-cache behavior when script failed.
+      - `run_generate_test_coverage_report`: missing `coverage.json` failure path and script-success/report-missing branch.
+  - Planning updates:
+    - `development_docs/TEST_PLAN.md`
+      - recorded checkin-view recurrence and this session's validation evidence.
+    - `development_docs/PLANS.md`
+      - updated Testing Program Consolidation progress with checkin-view recurrence fix.
+    - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`
+      - recorded branch-focused wrapper test addition under coverage-strengthening tasks.
+- **Validation**:
+  - `pytest -q tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user tests/unit/test_checkin_view.py::TestCheckinView::test_skip_question_button_handler_with_valid_user` -> `2 passed`.
+  - `pytest -q tests/unit/test_test_policy_guards.py tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user` -> `7 passed`.
+  - `pytest -q tests/development_tools/test_tool_wrappers_branch_paths.py` -> `9 passed`.
+  - `pytest -q tests/unit/test_test_policy_guards.py tests/development_tools/test_tool_wrappers_branch_paths.py` -> `15 passed`.
+  - Focused branch coverage run:
+    - `pytest -q tests/development_tools/test_tool_wrappers_package_exports.py tests/development_tools/test_tool_wrappers_branch_paths.py --cov=development_tools.shared.service.tool_wrappers --cov-branch --cov-report=term-missing`
+    - observed `development_tools/shared/service/tool_wrappers.py` at `25%` in this targeted run (up from prior `19%` baseline snapshot).
+- **Full-diff Attribution**:
+  - Completed full-tree review (`git diff --stat`, `git diff --name-only`) before closeout.
+  - Per user confirmation, **all files currently present in the working-tree diff are session-scoped and actioned in this session**.
+  - The full diff spans five concrete change clusters and is fully represented by this entry:
+    - runtime behavior updates in communication/scheduler/UI paths (including Discord/bot orchestration and scheduler-flow interactions),
+    - test reliability hardening across unit/UI/dev-tools tests (including checkin-view isolation and account-creation stability adjustments),
+    - new dev-tools coverage tests for retention and wrapper branch paths,
+    - development-tools orchestration/reporting/config touch-ups plus regenerated audit JSON timing/detail artifacts,
+    - synchronized planning/status/report/changelog updates (`AI_STATUS`, `AI_PRIORITIES`, `consolidated_report`, `TEST_COVERAGE_REPORT`, `UNUSED_IMPORTS_REPORT`, and both changelog tracks).
+
 ### 2026-02-24 - Tier 3 stabilization + portability hardening + unused-imports performance completion
 - **Feature/Fix**: Completed the session's reliability and portability objectives across the development-tools stack: fixed Tier 3 parallel test instability, completed the `5.1.1` unused-imports performance work in code, and made marker/path handling more config-driven and project-independent.
 - **Technical Changes (session-wide scope)**:

@@ -55,6 +55,29 @@ class TestCommandRouting:
         mock_service.run_docs.assert_called_once_with()
 
     @pytest.mark.integration
+    def test_cache_clear_alias_routes_to_clear_cache(self, monkeypatch):
+        mock_service = MagicMock()
+        mock_service.run_audit.return_value = True
+        clear_cache_calls = []
+
+        def _fake_clear_cache(_project_root):
+            clear_cache_calls.append(True)
+            return 3
+
+        monkeypatch.setattr(
+            runner,
+            "AIToolsService",
+            lambda project_root=None, config_path=None: mock_service,
+        )
+        monkeypatch.setattr(runner, "_clear_all_caches", _fake_clear_cache)
+
+        assert runner.main(["--cache-clear", "audit"]) == 0
+        assert len(clear_cache_calls) == 1
+        mock_service.run_audit.assert_called_once_with(
+            quick=False, full=False, include_overlap=False, strict=False
+        )
+
+    @pytest.mark.integration
     def test_unknown_command_returns_2(self):
         assert runner.main(["nonexistent"]) == 2
 

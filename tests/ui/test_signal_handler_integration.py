@@ -358,7 +358,6 @@ class TestUISignalConnectionIntegrity:
         connections work end-to-end without errors being swallowed.
         """
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
-        from communication.core.channel_orchestrator import CommunicationManager
         from unittest.mock import patch
         
         # Capture any exceptions that occur during signal handling

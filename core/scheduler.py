@@ -1585,8 +1585,6 @@ class SchedulerManager:
         Returns:
             Selected task dictionary
         """
-        from datetime import datetime
-
         # Handle edge cases
         edge_case_result = self._select_task_for_reminder__handle_edge_cases(
             incomplete_tasks

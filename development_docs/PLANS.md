@@ -6,11 +6,11 @@
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
 > **Last Updated**: 2026-02-24
+> **Children**: [TEST_PLAN.md](development_docs\TEST_PLAN.md), [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).  
 
 ---
 
-**Note**: [TODO.md](TODO.md) is the canonical list for standalone tasks. Larger, scoped efforts live in dedicated plan files such as [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).  
-**Testing Source of Truth**: All testing roadmap work now lives in [TEST_PLAN.md](development_docs/TEST_PLAN.md). Keep only pointers here.
+**Note**: [TODO.md](TODO.md) is the canonical list for standalone tasks. Larger, scoped efforts live here or in subordinate dedicated plan files such as [TEST_PLAN.md](development_docs\TEST_PLAN.md), [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).  
 
 ## [IN PROGRESS] **Plan Maintenance**
 
@@ -139,6 +139,7 @@
   - nightly no-shim governance
 - Recent completion:
   - [x] Fixed parallel test race in [test_logger_behavior.py](tests/behavior/test_logger_behavior.py) by replacing shared `tests/data/logs` teardown fixtures with a per-test `tmp_path` log fixture.
+  - [x] Fixed Tier-3 recurrent checkin-view test setup flake in [test_checkin_view.py](tests/unit/test_checkin_view.py) by using per-test unique IDs and explicit user-creation assertions.
 - Remaining follow-up:
   - [ ] Sweep other tests for shared/destructive log-directory fixture patterns and migrate to xdist-safe isolated temp paths.
 - Keep testing execution details and checklists in `TEST_PLAN.md`; do not duplicate them in this file.

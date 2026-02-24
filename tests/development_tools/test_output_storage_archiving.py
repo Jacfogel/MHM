@@ -337,8 +337,7 @@ class TestOutputStorageArchiving:
         3. At least one save succeeded (proving the function works)
         """
         import threading
-        import platform
-        
+
         results = []
         errors = []
         lock = threading.Lock()

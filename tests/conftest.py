@@ -3365,7 +3365,6 @@ def force_test_data_directory():
 def mock_user_data(mock_config, test_data_dir, request):
     """Create mock user data for testing with unique user ID for each test."""
     import uuid
-    import core.config
 
     # Generate unique user ID for each test to prevent interference
     user_id = f"test-user-{uuid.uuid4().hex[:8]}"

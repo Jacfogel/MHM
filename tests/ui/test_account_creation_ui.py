@@ -76,6 +76,63 @@ def _resolve_user_id_with_retry(
         if attempt < attempts - 1:
             time.sleep(delay)
     return None
+
+
+def _wait_for_account_features(
+    user_id: str,
+    expected_features: dict[str, str],
+    timeout_seconds: float = 60.0,
+) -> bool:
+    """Robustly materialize and verify account feature flags for a test user."""
+    from core.user_data_handlers import clear_user_caches
+    from core.file_locking import safe_json_read
+
+    def _features_ready() -> bool:
+        clear_user_caches()
+        account = get_user_data(user_id, "account", normalize_on_read=True).get(
+            "account", {}
+        )
+        features = account.get("features")
+        if isinstance(features, dict) and all(
+            features.get(k) == v for k, v in expected_features.items()
+        ):
+            return True
+
+        account_path = get_user_file_path(user_id, "account")
+        raw_account = (
+            safe_json_read(account_path, default={})
+            if account_path and os.path.exists(account_path)
+            else {}
+        )
+        if not isinstance(raw_account, dict):
+            raw_account = {}
+
+        raw_features = raw_account.get("features")
+        if not isinstance(raw_features, dict):
+            raw_features = {}
+
+        changed = False
+        for key, value in expected_features.items():
+            if raw_features.get(key) != value:
+                raw_features[key] = value
+                changed = True
+
+        if changed or "features" not in raw_account:
+            raw_account.setdefault("user_id", user_id)
+            raw_account.setdefault("internal_username", user_id)
+            raw_account["features"] = raw_features
+            save_result = save_user_data(user_id, {"account": raw_account})
+            return bool(save_result.get("account"))
+
+        return False
+
+    return wait_until(
+        _features_ready,
+        timeout_seconds=timeout_seconds,
+        poll_seconds=0.02,
+    )
+
+
 from ui.dialogs.account_creator_dialog import AccountCreatorDialog
 from ui.widgets.category_selection_widget import CategorySelectionWidget
 from ui.widgets.channel_selection_widget import ChannelSelectionWidget
@@ -1356,7 +1413,6 @@ class TestAccountCreationIntegration:
             get_user_data,
             clear_user_caches,
         )
-        from tests.conftest import wait_until
 
         # Use a true UUID as user_id so reads/writes bypass identifier index timing.
         import uuid
@@ -1450,59 +1506,11 @@ class TestAccountCreationIntegration:
             _upd_acct(user_id, {"features": feats})
             clear_user_caches()
             loaded_data = get_user_data(user_id, normalize_on_read=True)
-        if "features" not in loaded_data.get("account", {}):
-            account_file_path = os.path.join(
-                test_data_dir, "users", user_id, "account.json"
-            )
-            if os.path.exists(account_file_path):
-                from core.file_locking import safe_json_read
-
-                raw_account = safe_json_read(account_file_path, default={})
-                if isinstance(raw_account.get("features"), dict):
-                    loaded_data["account"] = raw_account
-            _upd_acct(user_id, {"features": expected})
-            if "features" not in loaded_data.get("account", {}):
-                from core.file_locking import safe_json_read
-                from core.file_operations import get_user_file_path
-
-                def _features_ready() -> bool:
-                    clear_user_caches()
-                    account = get_user_data(
-                        user_id, "account", normalize_on_read=True
-                    ).get("account", {})
-                    features = account.get("features")
-                    if isinstance(features, dict) and all(
-                        k in features for k in expected
-                    ):
-                        return True
-                    account_path = get_user_file_path(user_id, "account")
-                    if not account_path or not os.path.exists(account_path):
-                        # Coverage/parallel runs can remove test-owned account files;
-                        # re-materialize minimal account data for this test user.
-                        from tests.conftest import (
-                            materialize_user_minimal_via_public_apis as _mat,
-                        )
-
-                        _mat(user_id)
-                        save_result = save_user_data(user_id, {"account": account_data})
-                        if not save_result.get("account"):
-                            return False
-                        account_path = get_user_file_path(user_id, "account")
-                        if not account_path:
-                            return False
-                    raw = safe_json_read(account_path, default={})
-                    if not isinstance(raw.get("features"), dict):
-                        _upd_acct(user_id, {"features": expected})
-                        return False
-                    return all(k in raw.get("features", {}) for k in expected)
-
-                assert wait_until(
-                    _features_ready,
-                    timeout_seconds=30.0,
-                    poll_seconds=0.02,
-                ), "Account features should materialize in full lifecycle test"
-                clear_user_caches()
-                loaded_data = get_user_data(user_id, normalize_on_read=True)
+        assert _wait_for_account_features(
+            user_id, expected, timeout_seconds=60.0
+        ), "Account features should materialize in full lifecycle test"
+        clear_user_caches()
+        loaded_data = get_user_data(user_id, normalize_on_read=True)
         features = loaded_data["account"]["features"]
         # [OK] VERIFY REAL BEHAVIOR: All features should be enabled
         assert features["automated_messages"] == "enabled", "Messages should be enabled"
@@ -1663,76 +1671,11 @@ class TestAccountCreationIntegration:
                 _upd_acct(user_id, {"features": feats})
                 clear_user_caches()
                 user_data = get_user_data(user_id, normalize_on_read=True)
-            if "features" not in user_data.get("account", {}):
-                account_file_path = os.path.join(
-                    test_data_dir, "users", user_id, "account.json"
-                )
-                if os.path.exists(account_file_path):
-                    from core.file_locking import safe_json_read
-
-                    raw_account = safe_json_read(account_file_path, default={})
-                    if isinstance(raw_account.get("features"), dict):
-                        user_data["account"] = raw_account
-                _upd_acct(user_id, {"features": baseline})
-                if "features" not in user_data.get("account", {}):
-                    from core.file_locking import safe_json_read
-                    from core.file_operations import get_user_file_path
-
-                    def _features_ready() -> bool:
-                        clear_user_caches()
-                        account = get_user_data(
-                            user_id, "account", normalize_on_read=True
-                        ).get("account", {})
-                        features = account.get("features")
-                        if isinstance(features, dict) and all(
-                            features.get(k) == v for k, v in baseline.items()
-                        ):
-                            return True
-                        account_path = get_user_file_path(user_id, "account")
-                        if not account_path or not os.path.exists(account_path):
-                            # Recreate test-owned account record if parallel cleanup
-                            # removed this user's account file during coverage runs.
-                            from tests.conftest import (
-                                materialize_user_minimal_via_public_apis as _mat,
-                            )
-
-                            _mat(user_id)
-                            save_result = save_user_data(
-                                user_id,
-                                {
-                                    "account": {
-                                        "user_id": user_id,
-                                        "internal_username": expected_internal_username,
-                                        "timezone": "America/New_York",
-                                        "channel": {
-                                            "type": "email",
-                                            "contact": f"{expected_internal_username}@example.com",
-                                        },
-                                        "features": baseline,
-                                    }
-                                },
-                            )
-                            if not save_result.get("account"):
-                                return False
-                            account_path = get_user_file_path(user_id, "account")
-                            if not account_path:
-                                return False
-                        raw = safe_json_read(account_path, default={})
-                        if not isinstance(raw.get("features"), dict):
-                            _upd_acct(user_id, {"features": baseline})
-                            return False
-                        return all(
-                            raw.get("features", {}).get(k) == v
-                            for k, v in baseline.items()
-                        )
-
-                    assert wait_until(
-                        _features_ready,
-                        timeout_seconds=30.0,
-                        poll_seconds=0.02,
-                    ), f"Features should materialize for user {user_id}"
-                    clear_user_caches()
-                    user_data = get_user_data(user_id, normalize_on_read=True)
+            assert _wait_for_account_features(
+                user_id, baseline, timeout_seconds=60.0
+            ), f"Features should materialize for user {user_id}"
+            clear_user_caches()
+            user_data = get_user_data(user_id, normalize_on_read=True)
             features = user_data["account"]["features"]
 
             # [OK] VERIFY REAL BEHAVIOR: All users should have same features

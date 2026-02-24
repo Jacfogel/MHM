@@ -5,7 +5,9 @@
 > **Status**: **IN PROGRESS**  
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
-> **Last Updated**: 2026-02-22 (Session 3 validation refresh)
+> **Last Updated**: 2026-02-24 (Session 5 checkin-view isolation fix)
+> **Parent**: [PLANS.md](development_docs/PLANS.md)  
+> This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
 ---
 
@@ -61,6 +63,12 @@ Signals currently present in logs and/or recent outputs:
 
 ### Completed in this session
 
+- Hardened `test_checkin_view` parallel isolation for Discord button-handler tests:
+  - File: `tests/unit/test_checkin_view.py`
+  - Replaced fixed IDs with per-test unique `user_id` / `discord_user_id` values.
+  - Added explicit user-creation assertions to fail early on setup issues.
+  - Target node from full audit recurrence:
+    - `tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user`
 - Hardened account-creation invalid-data test assertion path for delayed persistence/index scenarios:
   - File: `tests/ui/test_account_creation_ui.py`
   - Added broader account matching (`internal_username`, `username`, `user_id`) and `wait_until(...)`-based persistence polling.
@@ -88,6 +96,14 @@ Signals currently present in logs and/or recent outputs:
 
 ### Validation completed this session
 
+- `pytest` targeted set passed:
+  - `tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user`
+  - `tests/unit/test_checkin_view.py::TestCheckinView::test_skip_question_button_handler_with_valid_user`
+  - Result: **2 passed**.
+- Policy guard compliance check passed:
+  - `tests/unit/test_test_policy_guards.py`
+  - `tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user`
+  - Result: **7 passed**.
 - `pytest` targeted set passed:
   - `tests/ui/test_account_creation_ui.py::TestAccountCreationErrorHandling::test_invalid_data_handling_real_behavior`
   - `tests/development_tools/test_test_file_coverage_cache.py`
@@ -299,8 +315,8 @@ Status: **IN PROGRESS**
 - [ ] `tests/unit/test_user_data_handlers.py::TestUserDataHandlersConvenienceFunctions::test_update_user_account_valid_input`
 - [ ] `tests/unit/test_user_data_handlers.py::TestUserDataHandlersConvenienceFunctions::test_save_user_data_transaction_valid_input`
 - [ ] `tests/behavior/test_user_management_coverage_expansion.py::TestUserManagementCoverageExpansion::test_load_account_data_auto_create_real_behavior`
-- [ ] `tests/ui/test_account_creation_ui.py::TestAccountCreationIntegration::test_full_account_lifecycle_real_behavior` (recurred `2026-02-22 21:09` in full audit; targeted `x5` reruns passed `2026-02-22`).
-- [ ] `tests/ui/test_account_creation_ui.py::TestAccountCreationIntegration::test_multiple_users_same_features_real_behavior` (recurred `2026-02-22 21:09` in full audit; targeted `x5` reruns passed `2026-02-22`).
+- [ ] `tests/ui/test_account_creation_ui.py::TestAccountCreationIntegration::test_full_account_lifecycle_real_behavior` (recurred `2026-02-22 21:09` and again `2026-02-24 13:04` in full audit; latest failure mode `KeyError: 'features'`; see `development_tools/tests/logs/pytest_parallel_stdout_2026-02-24_13-02-05.log`).
+- [ ] `tests/ui/test_account_creation_ui.py::TestAccountCreationIntegration::test_multiple_users_same_features_real_behavior` (recurred `2026-02-22 21:09` and again `2026-02-24 13:04` in full audit; latest failure mode `KeyError: 'features'`; see `development_tools/tests/logs/pytest_parallel_stdout_2026-02-24_13-02-05.log`).
 - [ ] `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_checkin_status_no_checkins`
 - [ ] `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_link_account_verifies_confirmation_code`
 - [ ] `tests/development_tools/test_legacy_reference_cleanup.py::TestCleanupOperations::test_cleanup_legacy_references_dry_run`

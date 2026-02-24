@@ -199,8 +199,10 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--clear-cache",
+        "--cache-clear",
+        dest="clear_cache",
         action="store_true",
-        help="Clear all development tools cache files before running the command",
+        help="Clear all development tools cache files before running the command (alias: --cache-clear)",
     )
     return parser
 
@@ -241,7 +243,7 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--project-root", type=str, default=None)
     parser.add_argument("--config-path", type=str, default=None)
-    parser.add_argument("--clear-cache", action="store_true")
+    parser.add_argument("--clear-cache", "--cache-clear", dest="clear_cache", action="store_true")
     parser.add_argument("command", nargs="?")
 
     # Use parse_known_args to separate global args from command args

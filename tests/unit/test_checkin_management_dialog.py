@@ -69,7 +69,6 @@ class TestCheckinManagementDialogInitialization:
             get_user_id_by_identifier,
             get_user_data,
             update_user_account,
-            clear_user_caches,
         )
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:

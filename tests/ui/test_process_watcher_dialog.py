@@ -543,8 +543,6 @@ class TestProcessWatcherDetails:
     @pytest.mark.ui
     def test_show_process_details_with_valid_process(self, dialog):
         """Test show_process_details displays details for valid process."""
-        import psutil
-
         # Create mock process
         mock_proc = MagicMock()
         mock_proc.name.return_value = "python.exe"
@@ -882,8 +880,6 @@ class TestProcessWatcherIntegration:
             dialog.update_all_processes()
 
         # Arrange: Set up process details mock
-        import psutil
-
         mock_proc_details = MagicMock()
         mock_proc_details.name.return_value = "python.exe"
         mock_proc_details.status.return_value = "running"

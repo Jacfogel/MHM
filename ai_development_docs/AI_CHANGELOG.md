@@ -30,6 +30,24 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-24 - Checkin-view Tier 3 fix + tool-wrappers branch coverage push **Progressed**
+- Investigated Tier 3 failure from `development_tools/tests/logs/pytest_parallel_stdout_2026-02-24_13-16-22.log` and fixed `tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user` recurrence by removing collision-prone fixed IDs.
+- Hardened `tests/unit/test_checkin_view.py` valid-user button-handler tests to use per-test unique `user_id` / `discord_user_id` values and explicit user-creation assertions, reducing parallel isolation risk.
+- Added branch-focused dev-tools coverage tests in `tests/development_tools/test_tool_wrappers_branch_paths.py` targeting low-coverage `development_tools/shared/service/tool_wrappers.py` wrapper decision paths (`run_script`, `run_analyze_documentation`, `run_analyze_error_handling`, `run_generate_test_coverage_report`).
+- Updated planning docs with this session's progress and follow-up tracking:
+  - `development_docs/TEST_PLAN.md`
+  - `development_docs/PLANS.md`
+  - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`
+- Validation:
+  - `pytest -q tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user tests/unit/test_checkin_view.py::TestCheckinView::test_skip_question_button_handler_with_valid_user` -> `2 passed`
+  - `pytest -q tests/unit/test_test_policy_guards.py tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user` -> `7 passed`
+  - `pytest -q tests/development_tools/test_tool_wrappers_branch_paths.py` -> `9 passed`
+  - `pytest -q tests/unit/test_test_policy_guards.py tests/development_tools/test_tool_wrappers_branch_paths.py` -> `15 passed`
+- Full diff review executed (`git diff --stat`, `git diff --name-only`); per user confirmation, all files currently present in the working-tree diff are session-scoped and actioned in this session.
+- Session-scoped added tests also include:
+  - `tests/development_tools/test_retention_engine.py`
+  - `tests/development_tools/test_tool_wrappers_branch_paths.py`
+
 ### 2026-02-24 - Tier 3 stabilization + portability hardening + unused-imports perf completion **Progressed**
 - Closed the Tier 3 parallel race in logger behavior tests by replacing shared `tests/data/logs` teardown fixtures with isolated per-test `tmp_path` log directories (`tests/behavior/test_logger_behavior.py`).
 - Hardened test-runtime temp handling and cleanup in `tests/conftest.py` + `development_tools/tests/run_test_coverage.py` + `development_tools/run_development_tools.py` (Windows mkdir/cleanup patching, safer pytest runner temp-root handling, and transient test-artifact cleanup under `tests/data/tmp*`).
@@ -163,19 +181,6 @@ Guidelines:
 - ASCII analysis/report consumption now uses standardized `summary/details` paths without legacy flat fallback dependency; stale payload handling was hardened via freshness checks.
 - Unified "Function Docstring Coverage" reporting to one explicit source (`analyze_functions`, code-docstrings) to eliminate cross-report mismatches; registry docstring signals remain labeled separately as registry-index metrics.
 - Updated session planning docs and roadmap tracking ([TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)); user-validated full `audit --full --clear-cache` runs succeeded in-session.
-
-### 2026-02-14 - Pytest cache isolation + flake follow-up **COMPLETED**
-- Added strict cleanup/hard-fail behavior for stale root `pytest-cache-files-*` temp dirs and clearer cleanup diagnostics in test/coverage paths (`tests/conftest.py`, `development_tools/tests/run_test_coverage.py`).
-- Disabled pytest cacheprovider for normal runs too (`pytest.ini`, `tests/conftest.py`) and kept it disabled in coverage subprocesses to enforce zero root cache-temp dirs.
-- Coverage runs now log pytest errors (not only failures) and treat errors as cache-write blockers (`development_tools/tests/run_test_coverage.py`).
-- Stabilized recent intermittent tests (`test_interaction_manager_single_response`, `test_multiple_users_same_features_real_behavior`), plus robustness fixes in `core/logger.py` and `user/__init__.py`.
-- Updated `run_tests.py` scope:
-  - default `--mode all` now includes `tests/core/`, `tests/communication/`, and `tests/notebook/`.
-  - new `--full` flag runs full `tests/` tree (including `tests/development_tools/`).
-- Updated testing docs ([TESTING_GUIDE.md](tests/TESTING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md), [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md)) and fixed an AI guide path typo.
-- Closed related planning/tasks ([TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md)) and documented fixture-status regeneration handling ([DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md), `tests/development_tools/conftest.py`).
-- Final validation: user full run passed (`python run_tests.py` -> `3737 passed, 0 failed`).
-- Additional validation: `python run_tests.py --full` -> `4556 passed, 0 failed, 1 skipped`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -544,7 +544,6 @@ class ConfigValidator:
 
 def main():
     """Main function to run configuration validation."""
-    import sys
     import json
 
     validator = ConfigValidator()

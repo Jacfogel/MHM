@@ -229,7 +229,6 @@ class TestNetworkAndExternalErrorHandling:
     @pytest.mark.unit
     def test_coverage_handles_pytest_failure(self, demo_project_root):
         """Coverage metrics should report pytest failures without crashing."""
-        import subprocess
         coverage = load_development_tools_module("run_test_coverage")
         regenerator = coverage.CoverageMetricsRegenerator(str(demo_project_root))
 
@@ -240,4 +239,3 @@ class TestNetworkAndExternalErrorHandling:
 
             result = regenerator.run_coverage_analysis()
             assert isinstance(result, dict)
-

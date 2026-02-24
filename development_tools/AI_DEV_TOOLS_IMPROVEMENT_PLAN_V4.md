@@ -52,8 +52,18 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
     - `tests/development_tools/test_analyze_dependency_patterns.py`
     - `tests/development_tools/test_tool_wrappers_package_exports.py`
     - `tests/development_tools/test_generate_function_registry.py`
+- [x] Add targeted coverage tests for retention planning and enforcement helpers:
+  - `development_tools/shared/retention_engine.py`
+  - Added tests: `tests/development_tools/test_retention_engine.py`
 - [ ] Investigate skipped test increase (1 -> 2 skipped)
 - [ ] Strengthen tests for fragile helpers across `tests/development_tools/`
+  - [x] Added branch-focused wrapper tests for low-coverage service paths:
+    - `tests/development_tools/test_tool_wrappers_branch_paths.py`
+    - Covered branch/error paths in:
+      - `run_script` (unregistered/missing/timeout)
+      - `run_analyze_documentation` (cached-overlap merge + non-JSON issue fallback)
+      - `run_analyze_error_handling` (cache usage gating on script success)
+      - `run_generate_test_coverage_report` (missing coverage input and report-missing branch)
 - [ ] Update all dev tools tests to use `tests/development_tools/test_config.json` fixture
 - [ ] Re-run dev-tools coverage and document updated baseline/progress toward 60% target
 
@@ -533,6 +543,7 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 ---
 
 ## 7.5 add --cache-clear as an alias for --clear-cache
+- [x] Added `--cache-clear` as a global alias for `--clear-cache` in `run_development_tools.py` and documented in AI + human tool guides.
 
 ## Related Documents
 

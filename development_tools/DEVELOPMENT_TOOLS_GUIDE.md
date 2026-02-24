@@ -39,6 +39,11 @@ python development_tools/run_dev_tools.py --project-root /path/to/project status
 # Specify a custom config file
 python development_tools/run_development_tools.py --config-path /path/to/config.json audit
 
+# Clear dev-tools cache artifacts before running a command
+python development_tools/run_development_tools.py --clear-cache audit
+# Alias:
+python development_tools/run_development_tools.py --cache-clear audit
+
 # Combine both
 python development_tools/run_development_tools.py --project-root . --config-path development_tools/config/development_tools_config.json status
 ```

@@ -237,8 +237,7 @@ class TestErrorHandlingImprovements:
     def test_ui_app_validation(self):
         """Test UI application validation logic without Qt initialization."""
         # Test the validation methods directly without instantiating the full UI
-        from ui.ui_app_qt import MHMManagerUI
-        
+
         # Create a mock instance that doesn't require Qt initialization
         class MockMHMManagerUI:
             def __init__(self):

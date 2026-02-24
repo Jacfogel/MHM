@@ -1916,9 +1916,7 @@ class MHMManagerUI(QMainWindow):
         )
 
         # Create a test message request using the same pattern as shutdown requests
-        from datetime import datetime
         import json
-        from pathlib import Path
 
         # Use the same directory structure as the shutdown flag
         base_dir = get_flags_dir()
@@ -2071,7 +2069,6 @@ class MHMManagerUI(QMainWindow):
 
         # Create check-in prompt request file (same pattern as test messages)
         # The service will pick this up and send the check-in prompt
-        from datetime import datetime
         import json
         import time
 
@@ -2233,7 +2230,6 @@ class MHMManagerUI(QMainWindow):
 
             # Create task reminder request file (same pattern as test messages)
             # The service will pick this up and send the task reminder
-            from datetime import datetime
             import json
 
             base_dir = Path(__file__).parent.parent
@@ -2271,7 +2267,7 @@ class MHMManagerUI(QMainWindow):
     @handle_errors("toggling logging verbosity", default_return=None)
     def toggle_logging_verbosity(self):
         """Toggle logging verbosity and update menu."""
-        from core.logger import toggle_verbose_logging, get_verbose_mode
+        from core.logger import toggle_verbose_logging
 
         is_verbose = toggle_verbose_logging()
 
@@ -2333,7 +2329,6 @@ class MHMManagerUI(QMainWindow):
             find_pyc_files,
             calculate_cache_size,
         )
-        import os
 
         # Get cleanup status
         status = get_cleanup_status()

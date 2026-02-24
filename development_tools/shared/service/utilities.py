@@ -481,7 +481,6 @@ class UtilitiesMixin:
     
     def show_help(self):
         """Show comprehensive help and the available command list."""
-        from ..common import COMMAND_TIERS
         print("AI Development Tools Runner")
         print("=" * 50)
         print(f"Comprehensive AI collaboration tools for the {self.project_name} project")

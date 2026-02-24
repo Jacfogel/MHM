@@ -10,8 +10,6 @@ from pathlib import Path
 
 from tests.development_tools.conftest import (
     load_development_tools_module,
-    demo_project_root,
-    test_config_path,
 )
 
 # Load the module
