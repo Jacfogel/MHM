@@ -33,6 +33,15 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-24 - Module refactor candidates tool and development tools refinements
+- **Feature**: Added development-tools analyzer for large/high-complexity modules and refined reporting, priorities format, and analyze_functions JSON.
+- **Technical Changes**:
+  - **New tool** `development_tools/functions/analyze_module_refactor_candidates.py`: scans Python modules (same dirs/exclusions as `analyze_functions`), aggregates per-file lines, function/class count, total complexity, and high/critical counts; flags modules exceeding configurable thresholds; outputs standard JSON (`summary` + `details.refactor_candidates`). Config in `development_tools_config.json` and `config.py`; registered in `tool_metadata.py`, `tool_wrappers.py`, Tier 2 audit, CLI `module-refactor-candidates`. Report integration: AI_STATUS, AI_PRIORITIES priority, consolidated report, docs and improvement plan (5.5) updated.
+  - **Refinements** (same session): Renamed `total_complexity` → `total_function_complexity`; single short threshold message; AI_LEGACY_COMPATIBILITY_GUIDE in refactor guidance; exclusions and top-level tests/ documented; AI_PRIORITIES: standard bullet order (guidance → top results → details → action), "Top target modules" for dev-tools coverage, no Effort lines, sub-indent for top-3 lists; combined legacy Action bullet. Improvement plan §2.8: task for development_tools-only audit mode and dev-tools-specific reports.
+  - **analyze_functions** (`analyze_functions.py`, `tool_wrappers.py`): JSON now includes `files_affected`, `critical_complexity_examples` and `high_complexity_examples` (top 15 each, relative paths) from script; tool_wrappers no longer merges cache; `analyze_functions_results.json` is self-contained.
+  - **Test**: Confirmed `test_cleanup_test_temp_dirs_pytest_dirs` passes (AI_PRIORITIES test item addressed).
+- **Impact**: New refactor-candidates pipeline, consistent priority layout, roadmap for dev-tools-only runs, and complete analyze_functions JSON. Validation: `module-refactor-candidates --json` and `analyze_functions --json` produce expected output.
+
 ### 2026-02-24 - Checkin-view Tier 3 recurrence fix + dev-tools wrapper branch coverage
 - **Feature/Fix**: Investigated the latest Tier 3 parallel failure (`tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user`) and completed two complementary reliability/coverage tasks in this session:
   - fixed parallel-collision-prone checkin-view test setup;
@@ -48,11 +57,11 @@ When adding new changes, follow this format:
       - `run_analyze_error_handling`: cache load allowed only when script succeeded; skip-cache behavior when script failed.
       - `run_generate_test_coverage_report`: missing `coverage.json` failure path and script-success/report-missing branch.
   - Planning updates:
-    - `development_docs/TEST_PLAN.md`
+    - [TEST_PLAN.md](development_docs/TEST_PLAN.md)
       - recorded checkin-view recurrence and this session's validation evidence.
-    - `development_docs/PLANS.md`
+    - [PLANS.md](development_docs/PLANS.md)
       - updated Testing Program Consolidation progress with checkin-view recurrence fix.
-    - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`
+    - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
       - recorded branch-focused wrapper test addition under coverage-strengthening tasks.
 - **Validation**:
   - `pytest -q tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user tests/unit/test_checkin_view.py::TestCheckinView::test_skip_question_button_handler_with_valid_user` -> `2 passed`.

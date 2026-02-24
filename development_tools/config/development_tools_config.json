@@ -800,6 +800,12 @@
       "imports": 0.15
     }
   },
+  "analyze_module_refactor_candidates": {
+    "max_lines_per_module": 500,
+    "max_functions_per_module": 40,
+    "max_total_complexity_per_module": 2000,
+    "high_plus_critical_threshold": 5
+  },
   "analyze_module_dependencies": {
     "dependency_doc_path": "development_docs/MODULE_DEPENDENCIES_DETAIL.md"
   },

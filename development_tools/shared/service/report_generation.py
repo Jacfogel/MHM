@@ -190,7 +190,9 @@ class ReportGenerationMixin:
                 normalized.append(normalized_node)
         return normalized
 
-    def _format_track_classification_summary(self, label: str, outcome: Dict[str, Any]) -> str:
+    def _format_track_classification_summary(
+        self, label: str, outcome: Dict[str, Any]
+    ) -> str:
         """Build concise track classification summary for Tier 3 sections."""
         classification = self._track_classification_label(outcome)
         reason = str(outcome.get("classification_reason", "unknown"))
@@ -289,7 +291,9 @@ class ReportGenerationMixin:
         if not isinstance(outcome, dict):
             return "unknown"
         parallel = (
-            outcome.get("parallel", {}) if isinstance(outcome.get("parallel"), dict) else {}
+            outcome.get("parallel", {})
+            if isinstance(outcome.get("parallel"), dict)
+            else {}
         )
         no_parallel = (
             outcome.get("no_parallel", {})
@@ -407,9 +411,7 @@ class ReportGenerationMixin:
             f"errors={dev_tools.get('error_count', 0)}, skipped={dev_tools.get('skipped_count', 0)}, "
             f"return={dev_tools.get('return_code')})"
         )
-        lines.append(
-            self._format_track_classification_summary("Parallel", parallel)
-        )
+        lines.append(self._format_track_classification_summary("Parallel", parallel))
         lines.append(
             self._format_track_classification_summary("No-Parallel", no_parallel)
         )
@@ -1036,9 +1038,11 @@ class ReportGenerationMixin:
         backup_checks = (
             backup_health_data.get("details", {}).get("checks", [])
             if isinstance(backup_health_data.get("details"), dict)
-            else backup_health_data.get("checks", [])
-            if isinstance(backup_health_data, dict)
-            else []
+            else (
+                backup_health_data.get("checks", [])
+                if isinstance(backup_health_data, dict)
+                else []
+            )
         )
         if backup_summary:
             backup_status = str(
@@ -1877,14 +1881,41 @@ class ReportGenerationMixin:
             if isinstance(duplicate_data, dict)
             else {}
         )
+        duplicate_details_status = (
+            duplicate_data.get("details", {})
+            if isinstance(duplicate_data, dict)
+            else {}
+        )
         duplicate_groups = to_int(duplicate_summary.get("total_issues")) or 0
         duplicate_files = to_int(duplicate_summary.get("files_affected")) or 0
+        dup_capped = isinstance(
+            duplicate_details_status, dict
+        ) and duplicate_details_status.get("groups_capped", False)
         if duplicate_groups > 0:
+            groups_label = (
+                f"at least {duplicate_groups}" if dup_capped else str(duplicate_groups)
+            )
             lines.append(
-                f"- **Potential Duplicate Groups**: {duplicate_groups} (files affected: {duplicate_files})"
+                f"- **Potential Duplicate Groups**: {groups_label} (files affected: {duplicate_files})"
             )
         else:
             lines.append("- **Potential Duplicate Groups**: 0")
+
+        lines.append("")
+        lines.append("## Module Refactor Candidates")
+        refactor_data = self._load_tool_data(
+            "analyze_module_refactor_candidates", "functions"
+        )
+        refactor_summary = (
+            refactor_data.get("summary", {}) if isinstance(refactor_data, dict) else {}
+        )
+        refactor_count = to_int(refactor_summary.get("total_issues")) or 0
+        if refactor_count > 0:
+            lines.append(
+                f"- **Large/High-Complexity Modules**: {refactor_count} candidate(s) for refactoring (see AI_PRIORITIES)"
+            )
+        else:
+            lines.append("- **Large/High-Complexity Modules**: 0 candidates")
 
         lines.append("")
         lines.append("## Validation Status")
@@ -2322,6 +2353,9 @@ class ReportGenerationMixin:
         duplicate_functions_data = self._load_tool_data(
             "analyze_duplicate_functions", "functions"
         )
+        module_refactor_candidates_data = self._load_tool_data(
+            "analyze_module_refactor_candidates", "functions"
+        )
         backup_health_data = self._load_tool_data(
             "analyze_backup_health", "reports", log_source=False
         )
@@ -2751,6 +2785,11 @@ class ReportGenerationMixin:
             nonlocal tier_insertion_counters
             if not reason:
                 return
+            # Ensure bullets is always a list of strings (guard against int/other types from callers)
+            if isinstance(bullets, (list, tuple)):
+                bullets = [b if isinstance(b, str) else str(b) for b in bullets]
+            else:
+                bullets = [] if bullets is None else [str(bullets)]
 
             # Validate recommendation if requested
             if validate:
@@ -2777,7 +2816,8 @@ class ReportGenerationMixin:
                 "Add pytest category markers to tests": "ai_development_docs/AI_TESTING_GUIDE.md",
                 "Remove obvious unused imports": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Investigate possible duplicate functions/methods": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Refactor high-complexity functions": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Consider refactoring large or high-complexity modules": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+                "Refactor high-complexity functions": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
                 "Investigate and correct test failures/errors": "ai_development_docs/AI_TESTING_GUIDE.md",
                 "Investigate backup health failures": "ai_development_docs/AI_BACKUP_GUIDE.md",
                 "Consolidate documentation files": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
@@ -2798,6 +2838,7 @@ class ReportGenerationMixin:
                 "Add pytest category markers to tests": "development_tools/tests/jsons/analyze_test_markers_results.json",
                 "Remove obvious unused imports": "development_docs/UNUSED_IMPORTS_REPORT.md",
                 "Investigate possible duplicate functions/methods": "development_tools/functions/jsons/analyze_duplicate_functions_results.json",
+                "Consider refactoring large or high-complexity modules": "development_tools/functions/jsons/analyze_module_refactor_candidates_results.json",
                 "Refactor high-complexity functions": "development_tools/functions/jsons/analyze_functions_results.json",
                 "Investigate and correct test failures/errors": "stdout files in development_tools/tests/logs",
                 "Investigate backup health failures": "development_tools/reports/jsons/backup_health_report.json",
@@ -2809,13 +2850,17 @@ class ReportGenerationMixin:
             for bullet in bullets:
                 if not bullet:
                     continue
-                normalized = bullet.strip()
+                normalized = bullet.strip() if isinstance(bullet, str) else str(bullet)
                 lower = normalized.lower()
                 if lower.startswith("review for guidance:"):
-                    suffix = normalized.split(":", 1)[1].strip() if ":" in normalized else ""
+                    suffix = (
+                        normalized.split(":", 1)[1].strip() if ":" in normalized else ""
+                    )
                     normalized = f"Review for guidance: {suffix}"
                 elif lower.startswith("review for details:"):
-                    suffix = normalized.split(":", 1)[1].strip() if ":" in normalized else ""
+                    suffix = (
+                        normalized.split(":", 1)[1].strip() if ":" in normalized else ""
+                    )
                     normalized = f"Review for details: {suffix}"
                 normalized_bullets.append(normalized)
 
@@ -2824,7 +2869,8 @@ class ReportGenerationMixin:
                 for item in normalized_bullets
             )
             has_details = any(
-                item.lower().startswith("review for details:") for item in normalized_bullets
+                item.lower().startswith("review for details:")
+                for item in normalized_bullets
             )
             if not has_guidance:
                 guidance = guidance_defaults.get(
@@ -2868,9 +2914,6 @@ class ReportGenerationMixin:
                 )
             drift_details.append(
                 "Action: Fix broken paths in top offender files, then run `python development_tools/run_development_tools.py doc-sync`"
-            )
-            drift_details.append(
-                "Effort: Small (update file paths in documentation, run automated fix tool)"
             )
             drift_details.append(
                 "Why this matters: Broken paths in documentation reduce trust and make navigation difficult"
@@ -2947,9 +2990,6 @@ class ReportGenerationMixin:
                     doc_bullets.append(f"Top functions: {', '.join(example_items)}")
             doc_bullets.append("Action: Add docstrings to functions missing them")
             doc_bullets.append(
-                "Effort: Medium (requires understanding each function's purpose and parameters)"
-            )
-            doc_bullets.append(
                 "Why this matters: Docstrings help AI collaborators and future developers understand code intent"
             )
             # Calculate total and documented for better context
@@ -3013,9 +3053,6 @@ class ReportGenerationMixin:
                 "Action: Regenerate registry entries via `python development_tools/run_development_tools.py docs`"
             )
             registry_bullets.append(
-                "Effort: Small (automated command regenerates FUNCTION_REGISTRY_DETAIL.md)"
-            )
-            registry_bullets.append(
                 "Why this matters: Registry documentation helps track all functions in the codebase and their relationships"
             )
 
@@ -3068,9 +3105,6 @@ class ReportGenerationMixin:
                     error_handling_bullets.append(
                         f"Specific functions: {self._format_list_for_display(specific_functions, limit=3)}"
                     )
-            error_handling_bullets.append(
-                "Effort: Small (add @handle_errors decorator or wrap in try-except)"
-            )
             error_handling_bullets.append(
                 "Why this matters: Functions without error handling can crash the application on unexpected errors"
             )
@@ -3215,14 +3249,15 @@ class ReportGenerationMixin:
                 "See `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for decorator and exception categorization rules."
             )
             modernization_bullets.append(
-                "Effort: Medium (touches call-path behavior, logging, and error class imports)"
-            )
-            modernization_bullets.append(
                 "Why this matters: Standardized decorator-driven handling plus specific exceptions improves resilience and debuggability."
             )
 
-            phase1_text = f"{phase1_total}" if phase1_total and phase1_total > 0 else "0"
-            phase2_text = f"{phase2_total}" if phase2_total and phase2_total > 0 else "0"
+            phase1_text = (
+                f"{phase1_total}" if phase1_total and phase1_total > 0 else "0"
+            )
+            phase2_text = (
+                f"{phase2_total}" if phase2_total and phase2_total > 0 else "0"
+            )
             add_priority(
                 tier=2,
                 title="Modernize error handling (Phase 1 + Phase 2)",
@@ -3243,7 +3278,6 @@ class ReportGenerationMixin:
                 f"Top target domains: {self._format_list_for_display(coverage_highlights, limit=3)}",
                 "Review for details: development_docs/TEST_COVERAGE_REPORT.md",
                 "Action: Add scenario tests for uncovered code paths in target domains",
-                "Effort: Medium (writing tests requires understanding business logic)",
             ]
             add_priority(
                 tier=2,  # Tier 2: High
@@ -3266,7 +3300,7 @@ class ReportGenerationMixin:
                         for item in low_dev_modules
                     ]
                     dev_bullets.append(
-                        f"Top target domains: {self._format_list_for_display(highlights, limit=3)}"
+                        f"Top target modules: {self._format_list_for_display(highlights, limit=3)}"
                     )
                 dev_bullets.append(
                     "Review for details: development_tools/tests/jsons/generate_dev_tools_coverage_results.json"
@@ -3277,9 +3311,6 @@ class ReportGenerationMixin:
                     )
                 dev_bullets.append(
                     "Action: Strengthen tests in `tests/development_tools/` for fragile helpers and low-coverage modules"
-                )
-                dev_bullets.append(
-                    "Effort: Medium (adding tests for modules requires understanding tool behavior)"
                 )
                 add_priority(
                     tier=2,  # Tier 2: High
@@ -3293,7 +3324,9 @@ class ReportGenerationMixin:
             circular_dependencies = dependency_payload.get("circular_dependencies", [])
             high_coupling = dependency_payload.get("high_coupling", [])
             circular_count = (
-                len(circular_dependencies) if isinstance(circular_dependencies, list) else 0
+                len(circular_dependencies)
+                if isinstance(circular_dependencies, list)
+                else 0
             )
             high_coupling_count = (
                 len(high_coupling) if isinstance(high_coupling, list) else 0
@@ -3367,13 +3400,7 @@ class ReportGenerationMixin:
                     f"Review for details: {legacy_report} (exact locations)"
                 )
             legacy_bullets.append(
-                "Action: Remove active legacy compatibility behavior by migrating all callers/dependencies to current implementations."
-            )
-            legacy_bullets.append(
-                "Action: Only after migration is verified, remove legacy markers/comments/docs evidence."
-            )
-            legacy_bullets.append(
-                f"Effort: Medium (reviewing {legacy_files} files and updating references requires testing)"
+                "Action: Remove active legacy compatibility behavior by migrating all callers/dependencies to current implementations. Only after migration is verified, remove legacy markers/comments/docs evidence."
             )
             add_priority(
                 tier=3,  # Tier 3: Medium
@@ -3458,9 +3485,6 @@ class ReportGenerationMixin:
                         "Action: Update tools to import and use centralized config module instead of hardcoded values"
                     )
                     config_bullets.append(
-                        f"Effort: Small to Medium (updating {len(unique_recs)} tool(s) requires understanding config structure)"
-                    )
-                    config_bullets.append(
                         "Why this matters: Centralized configuration improves maintainability and consistency across tools"
                     )
                     add_priority(
@@ -3518,9 +3542,6 @@ class ReportGenerationMixin:
                         )
                         handlers_bullets.append(
                             'Action: Add class-level docstrings to handler classes (e.g., class AccountManagementHandler: """Handler for...""")'
-                        )
-                        handlers_bullets.append(
-                            f"Effort: Small (adding docstrings to {len(handlers_no_doc)} handler classes is straightforward)"
                         )
                         handlers_bullets.append(
                             "Why this matters: Class docstrings improve code documentation and help developers understand handler purpose"
@@ -3582,9 +3603,6 @@ class ReportGenerationMixin:
 
                 test_markers_bullets.append(
                     "Action: Add pytest category markers to tests missing them"
-                )
-                test_markers_bullets.append(
-                    "Effort: Small (run automated fix tool or add markers manually)"
                 )
                 test_markers_bullets.append(
                     "Why this matters: Category markers help organize tests and enable selective test execution"
@@ -3670,9 +3688,6 @@ class ReportGenerationMixin:
                     "Action: Review and remove obvious unused imports (safe to delete)"
                 )
                 unused_bullets.append(
-                    "Effort: Small (remove safe imports identified as obvious unused)"
-                )
-                unused_bullets.append(
                     "Why this matters: Unused imports add noise, slow imports, and can hide real dependencies"
                 )
 
@@ -3726,7 +3741,7 @@ class ReportGenerationMixin:
                 sorted_groups = sorted(groups, key=group_sort_key, reverse=True)[:3]
                 duplicate_bullets: List[str] = []
                 duplicate_bullets.append(
-                    "Review for Guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                    "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
                 )
                 duplicate_bullets.append("Top target groups:")
                 for idx, group in enumerate(sorted_groups, start=1):
@@ -3762,14 +3777,67 @@ class ReportGenerationMixin:
                 duplicate_bullets.append(
                     "Review for details: development_tools/functions/jsons/analyze_duplicate_functions_results.json"
                 )
+                dup_capped_priority = isinstance(details, dict) and details.get(
+                    "groups_capped", False
+                )
+                groups_reason = (
+                    f"at least {dup_groups}" if dup_capped_priority else str(dup_groups)
+                )
                 add_priority(
                     tier=2,
                     title="Investigate possible duplicate functions/methods",
-                    reason=f"{dup_groups} potential duplicate groups across {dup_files} files.",
+                    reason=f"{groups_reason} potential duplicate groups across {dup_files} files.",
                     bullets=duplicate_bullets,
                     validate=True,
                     data_source="analyze_duplicate_functions",
                     count=dup_groups,
+                    expected_min=None,
+                )
+
+        # Module refactor candidates (large/high-complexity modules)
+        if module_refactor_candidates_data and isinstance(
+            module_refactor_candidates_data, dict
+        ):
+            refactor_summary = module_refactor_candidates_data.get("summary", {})
+            refactor_details = module_refactor_candidates_data.get("details", {})
+            refactor_count = to_int(refactor_summary.get("total_issues")) or 0
+            candidates_list = (
+                refactor_details.get("refactor_candidates", [])
+                if isinstance(refactor_details, dict)
+                else []
+            )
+            if (
+                refactor_count > 0
+                and isinstance(candidates_list, list)
+                and candidates_list
+            ):
+                refactor_bullets = []
+                refactor_bullets.append(
+                    "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md"
+                )
+                refactor_bullets.append("Top candidate modules (consider splitting):")
+                for idx, cand in enumerate(candidates_list[:3], start=1):
+                    if isinstance(cand, dict):
+                        file_key = cand.get("file", "?")
+                        line_count = cand.get("lines", 0)
+                        funcs = cand.get("function_count", 0)
+                        total_comp = cand.get(
+                            "total_function_complexity", cand.get("total_complexity", 0)
+                        )
+                        refactor_bullets.append(
+                            f"  {idx}. {file_key} (lines={line_count}, functions={funcs}, total_function_complexity={total_comp})"
+                        )
+                refactor_bullets.append(
+                    "Review for details: development_tools/functions/jsons/analyze_module_refactor_candidates_results.json"
+                )
+                add_priority(
+                    tier=2,
+                    title="Consider refactoring large or high-complexity modules",
+                    reason=f"{refactor_count} module(s) exceed size/complexity thresholds (candidates for splitting).",
+                    bullets=refactor_bullets,
+                    validate=True,
+                    data_source="analyze_module_refactor_candidates",
+                    count=refactor_count,
                     expected_min=None,
                 )
 
@@ -3858,23 +3926,24 @@ class ReportGenerationMixin:
                     complexity_bullets.append(
                         f"Highest complexity: {self._format_list_for_display(example_names, limit=3)}"
                     )
+            # Standard order: guidance, top results, details, action
             complexity_bullets.insert(
                 0,
-                "Review for Guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
             )
-            complexity_bullets.insert(
-                1,
-                "Review for details: development_tools/functions/jsons/analyze_functions_results.json",
-            )
+            # Insert details after top results (after index 1 if we have "Highest complexity")
+            details_line = "Review for details: development_tools/functions/jsons/analyze_functions_results.json"
+            complexity_bullets.insert(1, details_line)
+            if len(complexity_bullets) > 2 and not complexity_bullets[2].startswith("Review for details:"):
+                # We have "Highest complexity" at index 2; move details to after it
+                complexity_bullets.pop(1)
+                complexity_bullets.insert(2, details_line)
             if high_complex and high_complex > 0 and critical_complex <= 10:
                 complexity_bullets.append(
                     f"Then address {high_complex} high-complexity functions (100-199 nodes)."
                 )
             complexity_bullets.append(
                 "Action: Break down complex functions into smaller, focused functions with single responsibilities"
-            )
-            complexity_bullets.append(
-                f"Effort: Large (refactoring {critical_complex} critical functions requires careful analysis and testing)"
             )
             add_priority(
                 tier=3,  # Tier 3: Medium
@@ -3905,19 +3974,18 @@ class ReportGenerationMixin:
                     high_complexity_bullets.append(
                         f"Highest complexity: {self._format_list_for_display(example_names, limit=3)}"
                     )
+            # Standard order: guidance, top results, details, action
             high_complexity_bullets.insert(
                 0,
-                "Review for Guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
             )
-            high_complexity_bullets.insert(
-                1,
-                "Review for details: development_tools/functions/jsons/analyze_functions_results.json",
-            )
+            details_line_high = "Review for details: development_tools/functions/jsons/analyze_functions_results.json"
+            high_complexity_bullets.insert(1, details_line_high)
+            if len(high_complexity_bullets) > 2 and not high_complexity_bullets[2].startswith("Review for details:"):
+                high_complexity_bullets.pop(1)
+                high_complexity_bullets.insert(2, details_line_high)
             high_complexity_bullets.append(
                 "Action: Simplify high-complexity functions by extracting helper functions and reducing nesting"
-            )
-            high_complexity_bullets.append(
-                f"Effort: Medium (refactoring {high_complex} high-complexity functions requires careful planning)"
             )
             add_priority(
                 tier=3,  # Tier 3: Medium
@@ -3980,9 +4048,7 @@ class ReportGenerationMixin:
                     track_return_hex = track_outcome.get("return_code_hex")
                     track_log_file = track_outcome.get("log_file")
                     if track_state in {"crashed", "infra_cleanup_error"}:
-                        summary = (
-                            f"{label} classification={track_state}, reason={track_reason}"
-                        )
+                        summary = f"{label} classification={track_state}, reason={track_reason}"
                         if isinstance(track_return_hex, str) and track_return_hex:
                             summary += f", return={track_return_hex}"
                         if isinstance(track_log_file, str) and track_log_file.strip():
@@ -3996,9 +4062,7 @@ class ReportGenerationMixin:
                         tier3_bullets.append(summary + ".")
                         track_hint = track_outcome.get("actionable_context")
                         if isinstance(track_hint, str) and track_hint.strip():
-                            tier3_bullets.append(
-                                f"{label} hint: {track_hint.strip()}"
-                            )
+                            tier3_bullets.append(f"{label} hint: {track_hint.strip()}")
                 if not tier3_bullets:
                     tier3_bullets.append(
                         f"Parallel return={parallel_outcome.get('return_code')}, no-parallel return={no_parallel_outcome.get('return_code')}, dev-tools return={dev_tools_outcome.get('return_code')}."
@@ -4059,7 +4123,11 @@ class ReportGenerationMixin:
                     include_parallel_logs = True
                     include_no_parallel_logs = True
                     include_dev_tools_logs = True
-            if isinstance(failed_nodes, list) and failed_nodes and tier3_state != "test_failures":
+            if (
+                isinstance(failed_nodes, list)
+                and failed_nodes
+                and tier3_state != "test_failures"
+            ):
                 failed_nodes = [
                     self._normalize_test_node_id(str(node))
                     for node in dict.fromkeys(
@@ -4086,9 +4154,6 @@ class ReportGenerationMixin:
                 tier3_bullets.append(
                     "Review for details: stdout files in development_tools/tests/logs"
                 )
-            tier3_bullets.append(
-                "Effort: Medium (fixing tests requires understanding business logic)"
-            )
             add_priority(
                 tier=1,
                 title=tier3_title,
@@ -4104,11 +4169,15 @@ class ReportGenerationMixin:
         backup_checks = (
             backup_health_data.get("details", {}).get("checks", [])
             if isinstance(backup_health_data.get("details"), dict)
-            else backup_health_data.get("checks", [])
-            if isinstance(backup_health_data, dict)
-            else []
+            else (
+                backup_health_data.get("checks", [])
+                if isinstance(backup_health_data, dict)
+                else []
+            )
         )
-        backup_success = bool(backup_summary.get("success")) if backup_summary else False
+        backup_success = (
+            bool(backup_summary.get("success")) if backup_summary else False
+        )
         if backup_summary and not backup_success:
             backup_bullets: List[str] = []
             backup_bullets.append(
@@ -4142,9 +4211,6 @@ class ReportGenerationMixin:
                 "Action: run `python development_tools/run_development_tools.py backup drill` to confirm restorability"
             )
             backup_bullets.append(
-                "Effort: Small to Medium (depends on whether failure is inventory/reporting vs backup creation/validation)"
-            )
-            backup_bullets.append(
                 "Why this matters: Backup health failures mean recovery confidence is degraded."
             )
 
@@ -4165,7 +4231,13 @@ class ReportGenerationMixin:
             ):
                 lines.append(f"{idx}. **{item['title']}**  -  {item['reason']}")
                 for bullet in item["bullets"]:
-                    lines.append(f"   - {bullet}")
+                    # Further indent top-3 list items (numbered or "Group N")
+                    is_sub_bullet = bool(
+                        re.match(r"^\d+\.\s", bullet.strip())
+                        or bullet.strip().startswith("Group ")
+                    )
+                    prefix = "     - " if is_sub_bullet else "   - "
+                    lines.append(f"{prefix}{bullet}")
         else:
             lines.append(
                 "All signals are green. Re-run `python development_tools/run_development_tools.py status` to monitor."
@@ -4379,7 +4451,9 @@ class ReportGenerationMixin:
                 obvious_count = len(obvious_findings)
 
             if unused_total > 0 and obvious_count > 0:
-                unused_file_counts = self._extract_file_issue_counts(unused_imports_data)
+                unused_file_counts = self._extract_file_issue_counts(
+                    unused_imports_data
+                )
                 top_unused = sorted(
                     unused_file_counts.items(), key=lambda item: item[1], reverse=True
                 )[:3]
@@ -5045,9 +5119,11 @@ class ReportGenerationMixin:
         backup_checks = (
             backup_health_data.get("details", {}).get("checks", [])
             if isinstance(backup_health_data.get("details"), dict)
-            else backup_health_data.get("checks", [])
-            if isinstance(backup_health_data, dict)
-            else []
+            else (
+                backup_health_data.get("checks", [])
+                if isinstance(backup_health_data, dict)
+                else []
+            )
         )
         if backup_summary:
             backup_status = str(
@@ -6524,8 +6600,14 @@ class ReportGenerationMixin:
         )
         duplicate_groups = to_int(duplicate_summary.get("total_issues")) or 0
         duplicate_files = to_int(duplicate_summary.get("files_affected")) or 0
+        dup_capped_cr = isinstance(duplicate_details, dict) and duplicate_details.get(
+            "groups_capped", False
+        )
+        groups_label_cr = (
+            f"at least {duplicate_groups}" if dup_capped_cr else str(duplicate_groups)
+        )
         lines.append(
-            f"- **Duplicate Function Groups**: {duplicate_groups} groups across {duplicate_files} files"
+            f"- **Duplicate Function Groups**: {groups_label_cr} groups across {duplicate_files} files"
         )
         if isinstance(duplicate_details, dict):
             cache_stats = duplicate_details.get("cache", {})
@@ -6607,6 +6689,41 @@ class ReportGenerationMixin:
             if cap_notes:
                 lines.append(
                     f"   - **Output limits**: {', '.join(cap_notes)} (increase config to see more)"
+                )
+
+        lines.append("")
+        # Module Refactor Candidates
+        refactor_data_cr = self._load_tool_data(
+            "analyze_module_refactor_candidates", "functions"
+        )
+        refactor_summary_cr = (
+            refactor_data_cr.get("summary", {})
+            if isinstance(refactor_data_cr, dict)
+            else {}
+        )
+        refactor_details_cr = (
+            refactor_data_cr.get("details", {})
+            if isinstance(refactor_data_cr, dict)
+            else {}
+        )
+        refactor_cand_count = to_int(refactor_summary_cr.get("total_issues")) or 0
+        lines.append(
+            f"- **Module Refactor Candidates**: {refactor_cand_count} large/high-complexity module(s)"
+        )
+        if refactor_cand_count > 0 and isinstance(refactor_details_cr, dict):
+            candidates_cr = refactor_details_cr.get("refactor_candidates", [])
+            if isinstance(candidates_cr, list) and candidates_cr:
+                top_refactor = [
+                    f"{c.get('file', '?')} (lines={c.get('lines', 0)}, total_function_complexity={c.get('total_function_complexity', c.get('total_complexity', 0))})"
+                    for c in candidates_cr[:3]
+                    if isinstance(c, dict)
+                ]
+                if top_refactor:
+                    lines.append(
+                        f"   - **Top 3 candidates**: {', '.join(top_refactor)}"
+                    )
+                lines.append(
+                    "   - **Full list**: development_tools/functions/jsons/analyze_module_refactor_candidates_results.json"
                 )
 
         lines.append("")

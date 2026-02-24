@@ -265,6 +265,13 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="partial",
         description="Flags possible duplicate/similar functions and methods using weighted similarity.",
     ),
+    "analyze_module_refactor_candidates": ToolInfo(
+        name="analyze_module_refactor_candidates",
+        path="development_tools/functions/analyze_module_refactor_candidates.py",
+        tier="supporting",
+        trust="partial",
+        description="Identifies large or high-complexity modules as candidates for refactoring into smaller modules.",
+    ),
     "analyze_function_patterns": ToolInfo(
         name="analyze_function_patterns",
         path="development_tools/functions/analyze_function_patterns.py",

@@ -30,14 +30,17 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-24 - Module refactor candidates tool and development tools refinements **COMPLETED**
+- Added `analyze_module_refactor_candidates`: identifies large/high-complexity modules; configurable thresholds; Tier 2 audit; AI_STATUS, AI_PRIORITIES, consolidated report. Refinements: `total_function_complexity` naming, short threshold message, legacy guide in refactor guidance, top-level tests/ included; AI_PRIORITIES standard order, "Top target modules", no Effort lines, sub-indent for top-3 lists; improvement plan §2.8 (dev-tools-only audit mode). analyze_functions JSON: `files_affected`, `critical_complexity_examples`/`high_complexity_examples` (relative paths) from script; wrapper no longer merges cache. Test: `test_cleanup_test_temp_dirs_pytest_dirs` verified passing.
+
 ### 2026-02-24 - Checkin-view Tier 3 fix + tool-wrappers branch coverage push **Progressed**
 - Investigated Tier 3 failure from `development_tools/tests/logs/pytest_parallel_stdout_2026-02-24_13-16-22.log` and fixed `tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user` recurrence by removing collision-prone fixed IDs.
 - Hardened `tests/unit/test_checkin_view.py` valid-user button-handler tests to use per-test unique `user_id` / `discord_user_id` values and explicit user-creation assertions, reducing parallel isolation risk.
 - Added branch-focused dev-tools coverage tests in `tests/development_tools/test_tool_wrappers_branch_paths.py` targeting low-coverage `development_tools/shared/service/tool_wrappers.py` wrapper decision paths (`run_script`, `run_analyze_documentation`, `run_analyze_error_handling`, `run_generate_test_coverage_report`).
 - Updated planning docs with this session's progress and follow-up tracking:
-  - `development_docs/TEST_PLAN.md`
-  - `development_docs/PLANS.md`
-  - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`
+  - [TEST_PLAN.md](development_docs/TEST_PLAN.md)
+  - [PLANS.md](development_docs/PLANS.md)
+  - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
 - Validation:
   - `pytest -q tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user tests/unit/test_checkin_view.py::TestCheckinView::test_skip_question_button_handler_with_valid_user` -> `2 passed`
   - `pytest -q tests/unit/test_test_policy_guards.py tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user` -> `7 passed`
@@ -167,20 +170,6 @@ Guidelines:
 - Refreshed generated audit/report outputs in current diff: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`, `development_tools/reports/analysis_detailed_results.json`, `development_tools/reports/tool_timings.json`, plus updated generated docs (`development_docs/TEST_COVERAGE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`).
 - Full tree diff was reviewed (`git diff --stat`, `git diff --name-only`) and this entry now reflects the entire current-session diff.
 - `doc-fix/doc-sync` automation was attempted but blocked by missing `python-dotenv` in this environment; targeted doc edits were applied manually.
-
-### 2026-02-16 - Test runner diagnostics/output pass **COMPLETED**
-- `run_tests.py` was enhanced with bounded default post-failure reruns, per-failure artifacts, cleaner startup/phase output, and process-priority + LM Studio pause/resume controls.
-- Failure-output semantics were cleaned up (non-zero-only classification display, less recap noise for routine `exit code 1`, clearer split-run deselection semantics).
-- Failure rerun artifact clutter was reduced to a single run folder (`tests/logs/failure_reruns/<run_id>/`) with phase-prefixed logs; unused rerun summary JSON generation was removed.
-- Removed temporary intentional demo failures from `tests/unit/test_user_management.py` and added explicit intermittent-failure tracking for `test_checkin_handler_start_checkin_conversation_manager_error` and `test_validate_core_paths_missing_directory` in [PLANS.md](development_docs/PLANS.md); completed runner/output tasks were pruned from [TODO.md](TODO.md).
-
-### 2026-02-15 - Dev-tools report/cache consistency pass **COMPLETED**
-- Tier 3 outcomes are now consistently represented with all three tracks (parallel, no-parallel, development-tools), and AI_PRIORITIES only includes Tier 3 test/coverage items when failures/errors are actionable (clean outcomes remain status-only).
-- Standardized away remaining `consolidated_report.txt` references to `development_tools/consolidated_report.md` (non-historical paths) and aligned generated report links/messages.
-- Tightened cache semantics: `audit --clear-cache` now clears dev-tools cache artifacts only, while cleanup variants (`cleanup --cache`, `--full`, `--all`, and default cleanup) cover broader cache/temp artifact scopes dynamically from canonical tool metadata.
-- ASCII analysis/report consumption now uses standardized `summary/details` paths without legacy flat fallback dependency; stale payload handling was hardened via freshness checks.
-- Unified "Function Docstring Coverage" reporting to one explicit source (`analyze_functions`, code-docstrings) to eliminate cross-report mismatches; registry docstring signals remain labeled separately as registry-index metrics.
-- Updated session planning docs and roadmap tracking ([TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)); user-validated full `audit --full --clear-cache` runs succeeded in-session.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

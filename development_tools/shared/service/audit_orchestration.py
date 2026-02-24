@@ -342,7 +342,9 @@ class AuditOrchestrationMixin:
                 try:
                     ai_priorities = self._generate_ai_priorities_document()
                 except Exception as e:
+                    import traceback
                     logger.warning(f"Error generating AI_PRIORITIES document: {e}")
+                    logger.debug(f"AI_PRIORITIES traceback:\n{traceback.format_exc()}")
                     ai_priorities = "# AI Priorities\n\nError generating priorities document."
                 ai_priorities_file = create_output_file(ai_priorities_path, ai_priorities, project_root=self.project_root)
                 
@@ -629,6 +631,7 @@ class AuditOrchestrationMixin:
             ('analyze_error_handling', self.run_analyze_error_handling),  # 3.06s
             ('analyze_package_exports', self.run_analyze_package_exports),  # 9.06s
             ('analyze_duplicate_functions', self.run_analyze_duplicate_functions),  # 6.50s
+            ('analyze_module_refactor_candidates', self.run_analyze_module_refactor_candidates),
         ]
         
         # Dependent groups (>2s but <=10s)
@@ -1655,6 +1658,7 @@ class AuditOrchestrationMixin:
             'analyze_error_handling',
             'analyze_package_exports',
             'analyze_duplicate_functions',
+            'analyze_module_refactor_candidates',
             'analyze_module_imports',
             'analyze_dependency_patterns',
             'analyze_module_dependencies',

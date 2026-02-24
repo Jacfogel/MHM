@@ -193,7 +193,18 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [x] Standardize consolidated report filename to `consolidated_report.md`
 - [x] Expand consolidated report detail to at least AI_STATUS level
 
-#### 2.7 Console output polish (optional)
+#### 2.8 Run all tools in development_tools-only mode
+**Status**: PENDING  
+**Tasks**:
+- [ ] Add a way to run the full audit (or equivalent) with `development_tools/` as the project root instead of the MHM project
+- [ ] Separate this from the current "include dev tools in scan" behavior so it is explicit and clean (e.g. a dedicated mode or flag)
+- [ ] When running in development_tools-only mode, generate reports specific to development tools:
+  - `development_tools/AI_PRIORITIES.md` (development-tools-focused priorities)
+  - `development_tools/AI_STATUS.md` (development-tools status snapshot)
+  - `development_tools/consolidated_report.md` (development-tools consolidated report)
+- [ ] Reuse existing coverage/test flow for development_tools where it already targets that tree; ensure report outputs above are written from that run rather than the MHM-wide audit
+
+#### 2.9 Console output polish (optional)
 **Status**: PENDING  
 **Tasks**:
 - [ ] Verify no raw dict/list dumps during audits
@@ -480,10 +491,11 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Document workflow and best practices
 
 #### 5.5 New tool creation based on gap analysis
-**Status**: PENDING  
+**Status**: IN PROGRESS  
 **Effort**: Large  
 **Tasks**:
-- [ ] Prioritize 29 identified gaps across 6 domains:
+- [x] **Module refactor candidates**: Added `functions/analyze_module_refactor_candidates.py` to identify high-complexity or very large modules as candidates for refactoring into smaller modules. Configurable thresholds (max lines, max functions, max total complexity, high+critical function count). Runs in Tier 2 audit; surfaces in AI_STATUS, AI_PRIORITIES, and consolidated report. Command: `module-refactor-candidates` (optional `--json`, `--include-tests`, `--include-dev-tools`).
+- [ ] Prioritize remaining gaps across 6 domains:
   - Documentation
   - Code quality
   - Testing

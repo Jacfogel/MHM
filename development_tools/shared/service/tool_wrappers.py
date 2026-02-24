@@ -37,6 +37,7 @@ SCRIPT_REGISTRY = {
     "generate_error_handling_report": "error_handling/generate_error_handling_report.py",
     "analyze_functions": "functions/analyze_functions.py",
     "analyze_duplicate_functions": "functions/analyze_duplicate_functions.py",
+    "analyze_module_refactor_candidates": "functions/analyze_module_refactor_candidates.py",
     "analyze_function_patterns": "functions/analyze_function_patterns.py",
     "analyze_package_exports": "functions/analyze_package_exports.py",
     "generate_function_registry": "functions/generate_function_registry.py",
@@ -358,26 +359,7 @@ class ToolWrappersMixin:
             try:
                 json_data = json.loads(result["output"])
                 result["data"] = json_data
-                if "analyze_functions" in self.results_cache:
-                    extracted_metrics_raw = self.results_cache["analyze_functions"]
-                    if "details" in extracted_metrics_raw and isinstance(
-                        extracted_metrics_raw.get("details"), dict
-                    ):
-                        extracted_metrics = extracted_metrics_raw["details"]
-                    else:
-                        extracted_metrics = extracted_metrics_raw
-                    if "critical_complexity_examples" in extracted_metrics:
-                        json_data["details"]["critical_complexity_examples"] = (
-                            extracted_metrics["critical_complexity_examples"]
-                        )
-                    if "high_complexity_examples" in extracted_metrics:
-                        json_data["details"]["high_complexity_examples"] = (
-                            extracted_metrics["high_complexity_examples"]
-                        )
-                    if "undocumented_examples" in extracted_metrics:
-                        json_data["details"]["undocumented_examples"] = (
-                            extracted_metrics["undocumented_examples"]
-                        )
+                # Script output is the source of truth (includes examples and files_affected)
                 try:
                     save_tool_result(
                         "analyze_functions",
@@ -426,6 +408,43 @@ class ToolWrappersMixin:
             except Exception as e:
                 logger.warning(
                     f"Failed to save analyze_duplicate_functions result: {e}"
+                )
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
+        return result
+
+    def run_analyze_module_refactor_candidates(
+        self, include_tests: bool = False, include_dev_tools: bool = False
+    ) -> Dict:
+        """Run analyze_module_refactor_candidates with structured JSON handling."""
+        logger.debug("Analyzing module refactor candidates...")
+        args = ["--json"]
+        if include_tests or self.exclusion_config.get("include_tests", False):
+            args.append("--include-tests")
+        if include_dev_tools or self.exclusion_config.get("include_dev_tools", False):
+            args.append("--include-dev-tools")
+        result = self.run_script("analyze_module_refactor_candidates", *args)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            try:
+                save_tool_result(
+                    "analyze_module_refactor_candidates",
+                    "functions",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(
+                    f"Failed to save analyze_module_refactor_candidates result: {e}"
                 )
             summary = data.get("summary", {}) if isinstance(data, dict) else {}
             result["issues_found"] = bool(summary.get("total_issues", 0))

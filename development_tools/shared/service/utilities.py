@@ -123,20 +123,23 @@ class UtilitiesMixin:
     
     def _extract_key_info(self, script_name: str, result: Dict[str, Any]):
         """Extract key information from script result."""
+        data = result.get("data")
         if script_name not in self.results_cache:
             self.results_cache[script_name] = {}
-        if 'analyze_functions' in script_name:
+        if "analyze_functions" in script_name:
             self._extract_function_metrics(result)
-        elif 'analyze_function_registry' in script_name:
+        elif "analyze_function_registry" in script_name:
             self._extract_documentation_metrics(result)
-        elif 'decision_support' in script_name:
+        elif "decision_support" in script_name:
             self._extract_decision_insights(result)
-        elif 'analyze_error_handling' in script_name:
+        elif "analyze_error_handling" in script_name:
             self._extract_error_handling_metrics(result)
-        elif 'analyze_module_dependencies' in script_name:
-            data = result.get('data')
+        elif "analyze_module_dependencies" in script_name:
             if data:
                 self.module_dependency_summary = data
+        elif isinstance(data, dict) and data.get("summary") and data.get("details") is not None:
+            # Store full standard-format result for tools without special extraction (e.g. analyze_module_refactor_candidates)
+            self.results_cache[script_name] = data
     
     def _extract_function_metrics(self, result: Dict[str, Any]):
         """Extract function-related metrics"""

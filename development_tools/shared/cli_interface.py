@@ -409,6 +409,50 @@ def _duplicate_functions_command(service: "AIToolsService", argv: Sequence[str])
     return 0 if success else 1
 
 
+def _module_refactor_candidates_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle module-refactor-candidates command (analysis only)."""
+    parser = argparse.ArgumentParser(
+        prog="module-refactor-candidates",
+        add_help=False,
+        description="Identify large or high-complexity modules as refactoring candidates.",
+    )
+    parser.add_argument(
+        "--include-tests", action="store_true", help="Include test files in analysis."
+    )
+    parser.add_argument(
+        "--include-dev-tools",
+        action="store_true",
+        help="Include development_tools in analysis.",
+    )
+    parser.add_argument(
+        "--include-all",
+        action="store_true",
+        help="Include tests and dev tools.",
+    )
+    parser.add_argument("--json", action="store_true", help="Output JSON to stdout.")
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+
+    service.set_exclusion_config(
+        include_tests=ns.include_tests or ns.include_all,
+        include_dev_tools=ns.include_dev_tools or ns.include_all,
+    )
+
+    result = service.run_analyze_module_refactor_candidates(
+        include_tests=ns.include_tests or ns.include_all,
+        include_dev_tools=ns.include_dev_tools or ns.include_all,
+    )
+    success = result.get("success", False) if isinstance(result, dict) else bool(result)
+    if ns.json and isinstance(result, dict) and "data" in result:
+        import json as _json
+        print(_json.dumps(result["data"], indent=2))
+    return 0 if success else 1
+
+
 def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     """Handle cleanup command."""
     parser = argparse.ArgumentParser(prog="cleanup", add_help=False)
@@ -777,6 +821,14 @@ COMMAND_REGISTRY = OrderedDict(
                 "duplicate-functions",
                 _duplicate_functions_command,
                 "Detect possible duplicate or similar functions (analysis only).",
+            ),
+        ),
+        (
+            "module-refactor-candidates",
+            CommandRegistration(
+                "module-refactor-candidates",
+                _module_refactor_candidates_command,
+                "Identify large or high-complexity modules as refactoring candidates.",
             ),
         ),
         (

@@ -722,6 +722,25 @@ def get_analyze_duplicate_functions_config():
     return ANALYZE_DUPLICATE_FUNCTIONS
 
 
+# Module refactor candidates (large/high-complexity modules)
+ANALYZE_MODULE_REFACTOR_CANDIDATES = {
+    "max_lines_per_module": 500,
+    "max_functions_per_module": 40,
+    "max_total_complexity_per_module": 2000,
+    "high_plus_critical_threshold": 5,
+}
+
+
+def get_analyze_module_refactor_candidates_config():
+    """Get module refactor candidates config (from external config if available, otherwise default)."""
+    external_config = _get_external_value("analyze_module_refactor_candidates", None)
+    if external_config:
+        result = ANALYZE_MODULE_REFACTOR_CANDIDATES.copy()
+        result.update(external_config)
+        return result
+    return ANALYZE_MODULE_REFACTOR_CANDIDATES
+
+
 # Audit module dependencies configuration
 AUDIT_MODULE_DEPENDENCIES = {
     "dependency_doc_path": "development_docs/MODULE_DEPENDENCIES_DETAIL.md",  # Generic default

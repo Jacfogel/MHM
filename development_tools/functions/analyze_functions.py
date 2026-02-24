@@ -838,25 +838,65 @@ def main():
 
     if args.json:
         # Output JSON for programmatic use
-        # Prepare examples for JSON output (top 5 by complexity)
+        root = PROJECT_ROOT
+
+        def _rel_file(fpath: str) -> str:
+            """Return path relative to project root, or basename if outside root."""
+            if not fpath:
+                return ""
+            try:
+                p = Path(fpath).resolve()
+                root_resolved = Path(root).resolve()
+                if not p.is_absolute():
+                    return str(p).replace("\\", "/")
+                r = p.relative_to(root_resolved)
+                return str(r).replace("\\", "/")
+            except (ValueError, TypeError, OSError):
+                return Path(fpath).name if fpath else ""
+
+        def _make_example(func: Dict) -> Dict:
+            return {
+                "name": func.get("name", "unknown"),
+                "function": func.get("name", "unknown"),
+                "file": _rel_file(func.get("file", "")),
+                "complexity": func.get("complexity", 0),
+            }
+
+        # Undocumented examples (top 5 by complexity)
         undocumented_list = categories.get("undocumented", [])
         undocumented_examples = []
         if undocumented_list:
-            # Sort by complexity (descending) and take top 5
             sorted_undoc = sorted(
                 undocumented_list, key=lambda x: x.get("complexity", 0), reverse=True
             )[:5]
-            undocumented_examples = [
-                {
-                    "name": func.get("name", "unknown"),
-                    "function": func.get("name", "unknown"),
-                    "file": func.get("file", ""),
-                    "complexity": func.get("complexity", 0),
-                }
-                for func in sorted_undoc
-            ]
+            undocumented_examples = [_make_example(f) for f in sorted_undoc]
 
-        # Calculate total issues (complexity issues + undocumented)
+        # Critical and high complexity examples (top 15 each, by complexity)
+        critical_list = categories.get("critical_complex", [])
+        high_list = categories.get("high_complex", [])
+        critical_complexity_examples = [
+            _make_example(f)
+            for f in sorted(
+                critical_list, key=lambda x: x.get("complexity", 0), reverse=True
+            )[:15]
+        ]
+        high_complexity_examples = [
+            _make_example(f)
+            for f in sorted(
+                high_list, key=lambda x: x.get("complexity", 0), reverse=True
+            )[:15]
+        ]
+
+        # Unique files with at least one issue (moderate/high/critical/undocumented)
+        issue_funcs = (
+            categories.get("moderate_complex", [])
+            + categories.get("high_complex", [])
+            + categories.get("critical_complex", [])
+            + undocumented_list
+        )
+        files_affected = len({_rel_file(f.get("file", "")) for f in issue_funcs if f.get("file")})
+
+        # Calculate total issues
         moderate_complexity = len(categories.get("moderate_complex", []))
         high_complexity = len(categories.get("high_complex", []))
         critical_complexity = len(categories.get("critical_complex", []))
@@ -869,7 +909,7 @@ def main():
         metrics = {
             "summary": {
                 "total_issues": total_issues,
-                "files_affected": 0,  # Not file-based
+                "files_affected": files_affected,
             },
             "details": {
                 "total_functions": len(all_functions),
@@ -878,6 +918,8 @@ def main():
                 "critical_complexity": critical_complexity,
                 "undocumented": undocumented,
                 "undocumented_examples": undocumented_examples,
+                "critical_complexity_examples": critical_complexity_examples,
+                "high_complexity_examples": high_complexity_examples,
                 "handlers": len(categories.get("handlers", [])),
                 "tests": len(categories.get("tests", [])),
                 "utilities": len(categories.get("utilities", [])),
