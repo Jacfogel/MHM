@@ -13,6 +13,7 @@ import pytest
 import os
 import hashlib
 import stat
+import sys
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 # Set environment variable for consolidated logging very early, before any logging initialization
@@ -65,16 +66,51 @@ def _patch_windows_pathlib_mkdir_mode() -> None:
         # In this environment, mode=0o700 can create unreadable directories.
         if mode == 0o700:
             mode = 0o777
-        return original_mkdir(self, mode=mode, parents=parents, exist_ok=exist_ok)
+        try:
+            return original_mkdir(self, mode=mode, parents=parents, exist_ok=exist_ok)
+        except FileNotFoundError:
+            # Some cleanup fixtures remove pytest temp roots while other workers are
+            # still creating basetemp/cache directories. Retry once by rebuilding
+            # the missing parent chain for known pytest temp locations.
+            path_str = str(self).replace("\\", "/")
+            if (
+                not parents
+                and (
+                    "/pytest_runner/" in path_str
+                    or "/tests/data/tmp_pytest_runtime/" in path_str
+                    or "/tests/data/tmp/" in path_str
+                )
+            ):
+                return original_mkdir(self, mode=mode, parents=True, exist_ok=exist_ok)
+            raise
 
     Path.mkdir = _mhm_safe_mkdir
+
+
+def _patch_windows_os_mkdir_mode() -> None:
+    """Normalize mode=0o700 for os.mkdir on Windows to avoid unreadable temp dirs."""
+    if os.name != "nt":
+        return
+
+    original_os_mkdir = os.mkdir
+    if getattr(original_os_mkdir, "__name__", "") == "_mhm_safe_os_mkdir":
+        return
+
+    def _mhm_safe_os_mkdir(path, mode=0o777, *args, **kwargs):
+        if mode == 0o700:
+            mode = 0o777
+        return original_os_mkdir(path, mode, *args, **kwargs)
+
+    os.mkdir = _mhm_safe_os_mkdir
 
 
 def _patch_pytest_dead_symlink_cleanup() -> None:
     """Prevent teardown crashes when pytest temp roots hit transient ACL issues on Windows."""
     try:
-        from _pytest import pathlib as pytest_pathlib
-        from _pytest import tmpdir as pytest_tmpdir
+        import importlib
+
+        pytest_pathlib = importlib.import_module("_pytest.pathlib")
+        pytest_tmpdir = importlib.import_module("_pytest.tmpdir")
     except Exception:
         return
 
@@ -93,12 +129,13 @@ def _patch_pytest_dead_symlink_cleanup() -> None:
             # Best-effort cleanup only: never fail an entire test session on this step.
             return None
 
-    pytest_pathlib.cleanup_dead_symlinks = _mhm_safe_cleanup_dead_symlinks
-    pytest_tmpdir.cleanup_dead_symlinks = _mhm_safe_cleanup_dead_symlinks
+    setattr(pytest_pathlib, "cleanup_dead_symlinks", _mhm_safe_cleanup_dead_symlinks)
+    setattr(pytest_tmpdir, "cleanup_dead_symlinks", _mhm_safe_cleanup_dead_symlinks)
 
 
 _patch_pytest_dead_symlink_cleanup()
 _patch_windows_pathlib_mkdir_mode()
+_patch_windows_os_mkdir_mode()
 
 
 def ensure_qt_runtime():
@@ -1996,6 +2033,111 @@ def _cleanup_pytest_cache_temp_dirs(project_root_path: Path, data_dir: Path) -> 
     return removed
 
 
+def _remove_path_best_effort(path: Path) -> None:
+    """Best-effort removal for transient test artifacts."""
+    try:
+        if path.is_dir():
+            shutil.rmtree(path, ignore_errors=True)
+        else:
+            path.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+
+def _clear_directory_contents(path: Path, keep_dir_names: set[str] | None = None) -> None:
+    """Remove directory contents while optionally preserving specific child directories."""
+    if not path.exists() or not path.is_dir():
+        return
+    keep = keep_dir_names or set()
+    for child in path.iterdir():
+        if child.is_dir() and child.name in keep:
+            continue
+        _remove_path_best_effort(child)
+
+
+def _clear_pytest_runner_directory_contents(
+    runner_dir: Path, active_basetemp: Path | None = None
+) -> None:
+    """Clean pytest runner roots without deleting active concurrent basetemp dirs."""
+    if not runner_dir.exists() or not runner_dir.is_dir():
+        return
+
+    keep: set[str] = set()
+    if active_basetemp is not None:
+        try:
+            if active_basetemp.parent.resolve() == runner_dir.resolve():
+                keep.add(active_basetemp.name)
+        except Exception:
+            pass
+
+    # Concurrent coverage jobs use mhm_pytest_tmp_* under the same runner root.
+    # Keep recently touched runner dirs to avoid cross-process deletion races.
+    grace_seconds = 30 * 60
+    now_ts = time.time()
+    for child in runner_dir.iterdir():
+        if not child.is_dir():
+            continue
+        name = child.name
+        if not (
+            name.startswith("mhm_pytest_tmp_")
+            or name.startswith("repro_")
+            or name.startswith("pytest-")
+        ):
+            continue
+        try:
+            age_seconds = now_ts - child.stat().st_mtime
+            if age_seconds <= grace_seconds:
+                keep.add(name)
+        except Exception:
+            keep.add(name)
+
+    _clear_directory_contents(runner_dir, keep_dir_names=keep)
+
+
+def _get_active_pytest_basetemp() -> Path | None:
+    """Best-effort parse of active --basetemp path from current pytest invocation."""
+    try:
+        argv = list(sys.argv)
+    except Exception:
+        return None
+
+    for idx, arg in enumerate(argv):
+        if arg.startswith("--basetemp="):
+            raw = arg.split("=", 1)[1].strip()
+            if raw:
+                return Path(raw).resolve()
+        if arg == "--basetemp" and idx + 1 < len(argv):
+            raw = argv[idx + 1].strip()
+            if raw:
+                return Path(raw).resolve()
+    return None
+
+
+def _cleanup_session_test_data_artifacts(data_dir: Path) -> None:
+    """Clean known transient test-data directories before/after a test session."""
+    # Remove whole transient roots.
+    for name in ("devtools_pyfiles", "devtools_unit", "error_handling_tmp"):
+        _remove_path_best_effort(data_dir / name)
+
+    # Keep directory roots, clear contents.
+    _clear_directory_contents(data_dir / "backups")
+    _clear_directory_contents(data_dir / "users")
+
+    active_basetemp = _get_active_pytest_basetemp()
+
+    tmp_dir = data_dir / "tmp"
+    _clear_directory_contents(tmp_dir, keep_dir_names={"pytest_runner"})
+    tmp_runner_dir = tmp_dir / "pytest_runner"
+    _clear_pytest_runner_directory_contents(tmp_runner_dir, active_basetemp)
+
+    runtime_tmp_dir = data_dir / "tmp_pytest_runtime"
+    _clear_directory_contents(
+        runtime_tmp_dir, keep_dir_names={"pytest_runner", "pytest_cache"}
+    )
+    runtime_runner_dir = runtime_tmp_dir / "pytest_runner"
+    _clear_pytest_runner_directory_contents(runtime_runner_dir, active_basetemp)
+
+
 def _apply_flaky_run_group_retention(
     runs_dir: Path,
     backups_dir: Path,
@@ -2169,6 +2311,9 @@ def prune_test_artifacts_before_and_after_session():
     profile_keep_versions = int(os.getenv("TEST_PROFILE_KEEP_VERSIONS", "7"))
     test_archive_retention_days = int(os.getenv("TEST_LOG_ARCHIVE_RETENTION_DAYS", "30"))
 
+    # Session-level cleanup for known transient test-data roots.
+    _cleanup_session_test_data_artifacts(data_dir)
+
     # Prune before tests
     if logs_dir.exists():
         removed = _prune_old_files(
@@ -2313,6 +2458,9 @@ def prune_test_artifacts_before_and_after_session():
         pass
 
     yield
+
+    # Session-level cleanup for known transient test-data roots.
+    _cleanup_session_test_data_artifacts(data_dir)
 
     # Prune again after tests
     if logs_dir.exists():

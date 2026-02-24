@@ -30,7 +30,9 @@
     "logs_dir": "logs",
     "data_dir": "data",
     "ai_docs_dir": "ai_development_docs",
-    "development_docs_dir": "development_docs"
+    "development_docs_dir": "development_docs",
+    "tests_dir": "tests",
+    "tests_data_dir": "tests/data"
   },
   "fix_version_sync": {
     "ai_docs": [
@@ -729,6 +731,30 @@
     },
     "ignore_rules": []
   },
+  "test_markers": {
+    "categories": [
+      "unit",
+      "integration",
+      "behavior",
+      "ui"
+    ],
+    "directory_to_marker": {
+      "unit": "unit",
+      "integration": "integration",
+      "behavior": "behavior",
+      "ui": "ui"
+    },
+    "transient_data_path_markers": [
+      "/tmp/",
+      "/tmp_pytest_runtime/",
+      "pytest-tmp-",
+      "pytest-of-"
+    ],
+    "ai_path_tokens": [
+      "ai/test_ai",
+      "test_ai"
+    ]
+  },
   "analyze_function_registry": {
     "registry_path": "development_docs/FUNCTION_REGISTRY_DETAIL.md",
     "high_complexity_min": 50,
@@ -942,11 +968,19 @@
     }
   },
   "unused_imports": {
+    "preferred_backend": "ruff",
+    "ruff_command": [
+      "python",
+      "-m",
+      "ruff"
+    ],
     "pylint_command": [
       "python",
       "-m",
       "pylint"
     ],
+    "batch_size": 200,
+    "pylint_batch_size": 25,
     "ignore_patterns": [],
     "type_stub_locations": [],
     "timeout_seconds": 30

@@ -12,7 +12,7 @@ import sys
 import re
 import ast
 from pathlib import Path
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple, Dict, Optional, Pattern
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -22,8 +22,22 @@ if str(project_root) not in sys.path:
 # Handle both relative and absolute imports
 try:
     from .. import config
+    from ..shared.common import ProjectPaths
+    from ..shared.constants import (
+        TEST_CATEGORY_MARKERS,
+        TEST_MARKER_AI_PATH_TOKENS,
+        TEST_MARKER_DIRECTORY_MAP,
+        TEST_MARKER_TRANSIENT_PATH_MARKERS,
+    )
 except ImportError:
     from development_tools import config
+    from development_tools.shared.common import ProjectPaths
+    from development_tools.shared.constants import (
+        TEST_CATEGORY_MARKERS,
+        TEST_MARKER_AI_PATH_TOKENS,
+        TEST_MARKER_DIRECTORY_MAP,
+        TEST_MARKER_TRANSIENT_PATH_MARKERS,
+    )
 
 from core.logger import get_component_logger
 
@@ -32,15 +46,96 @@ config.load_external_config()
 
 logger = get_component_logger("development_tools")
 
-CATEGORY_MARKERS = {"unit", "integration", "behavior", "ui"}
-
 
 class TestMarkerAnalyzer:
     """Analyze and manage pytest category markers in test files."""
 
     def __init__(self, project_root: Optional[Path] = None):
-        self.project_root = project_root or Path(config.get_project_root())
-        self.test_dir = self.project_root / "tests"
+        self.project_root = (project_root or Path(config.get_project_root())).resolve()
+
+        paths = ProjectPaths(root=self.project_root)
+        self.test_dir = paths.tests
+        self.tests_data_dir = paths.tests_data
+        self.tests_dir_rel = self._normalize_rel_path(
+            str(config.get_external_value("paths.tests_dir", "tests"))
+        )
+        self.tests_data_dir_rel = self._normalize_rel_path(
+            str(
+                config.get_external_value(
+                    "paths.tests_data_dir", f"{self.tests_dir_rel}/data"
+                )
+            )
+        )
+        test_markers_config = (
+            config.get_test_markers_config()
+            if hasattr(config, "get_test_markers_config")
+            else {}
+        )
+
+        configured_categories = test_markers_config.get(
+            "categories", list(TEST_CATEGORY_MARKERS)
+        )
+        if not isinstance(configured_categories, list) or not configured_categories:
+            configured_categories = list(TEST_CATEGORY_MARKERS)
+        self.category_markers: Tuple[str, ...] = tuple(
+            str(marker).strip() for marker in configured_categories if str(marker).strip()
+        )
+        if not self.category_markers:
+            self.category_markers = TEST_CATEGORY_MARKERS
+
+        self.category_marker_patterns: List[Pattern[str]] = [
+            re.compile(rf"@pytest\.mark\.{re.escape(marker)}\b")
+            for marker in self.category_markers
+        ]
+
+        configured_dir_map = test_markers_config.get(
+            "directory_to_marker", TEST_MARKER_DIRECTORY_MAP
+        )
+        if not isinstance(configured_dir_map, dict) or not configured_dir_map:
+            configured_dir_map = TEST_MARKER_DIRECTORY_MAP
+        self.directory_to_marker: Dict[str, str] = {
+            str(directory).strip("/\\"): str(marker).strip()
+            for directory, marker in configured_dir_map.items()
+            if str(directory).strip("/\\") and str(marker).strip()
+        }
+        if not self.directory_to_marker:
+            self.directory_to_marker = dict(TEST_MARKER_DIRECTORY_MAP)
+
+        configured_transient_markers = test_markers_config.get(
+            "transient_data_path_markers",
+            list(TEST_MARKER_TRANSIENT_PATH_MARKERS),
+        )
+        if not isinstance(configured_transient_markers, list):
+            configured_transient_markers = list(TEST_MARKER_TRANSIENT_PATH_MARKERS)
+        self.transient_data_path_markers: Tuple[str, ...] = tuple(
+            str(marker).replace("\\", "/")
+            for marker in configured_transient_markers
+            if str(marker).strip()
+        ) or TEST_MARKER_TRANSIENT_PATH_MARKERS
+
+        configured_ai_tokens = test_markers_config.get(
+            "ai_path_tokens",
+            list(TEST_MARKER_AI_PATH_TOKENS),
+        )
+        if not isinstance(configured_ai_tokens, list):
+            configured_ai_tokens = list(TEST_MARKER_AI_PATH_TOKENS)
+        self.ai_path_tokens: Tuple[str, ...] = tuple(
+            str(token).replace("\\", "/")
+            for token in configured_ai_tokens
+            if str(token).strip()
+        ) or TEST_MARKER_AI_PATH_TOKENS
+
+    @staticmethod
+    def _normalize_rel_path(path_value: str) -> str:
+        """Normalize relative path strings for cross-platform substring matching."""
+        return path_value.replace("\\", "/").strip("/")
+
+    def _is_under_tests_data_dir(self, normalized_file_path: str) -> bool:
+        """Return True if file path points to configured tests data directory."""
+        marker = f"/{self.tests_data_dir_rel}/"
+        return marker in normalized_file_path or normalized_file_path.startswith(
+            f"{self.tests_data_dir_rel}/"
+        )
 
     def find_test_files(self, exclude_ai: bool = True) -> List[Path]:
         """Find all test files in the tests directory."""
@@ -50,17 +145,18 @@ class TestMarkerAnalyzer:
 
         for test_file in self.test_dir.rglob("test_*.py"):
             if test_file.is_file():
+                file_str = str(test_file).replace("\\", "/")
+
                 # Skip AI test files if requested
-                if exclude_ai and (
-                    "ai/test_ai" in str(test_file) or "test_ai" in test_file.name
-                ):
+                if exclude_ai and any(token in file_str for token in self.ai_path_tokens):
                     continue
 
                 # Skip temporary test files in tests/data/ (pytest temporary directories)
-                file_str = str(test_file).replace("\\", "/")
-                if "/tests/data/" in file_str or file_str.startswith("tests/data/"):
-                    # Exclude pytest temporary directories
-                    if "pytest-tmp-" in file_str or "pytest-of-" in file_str:
+                if self._is_under_tests_data_dir(file_str):
+                    if any(
+                        marker in file_str
+                        for marker in self.transient_data_path_markers
+                    ):
                         continue
 
                 test_files.append(test_file)
@@ -69,25 +165,17 @@ class TestMarkerAnalyzer:
 
     def has_category_marker(self, content: str) -> bool:
         """Check if content has any category marker."""
-        patterns = [
-            r"@pytest\.mark\.unit\b",
-            r"@pytest\.mark\.integration\b",
-            r"@pytest\.mark\.behavior\b",
-            r"@pytest\.mark\.ui\b",
-        ]
-        return any(re.search(pattern, content) for pattern in patterns)
+        return any(pattern.search(content) for pattern in self.category_marker_patterns)
 
     def get_expected_marker(self, file_path: Path) -> Optional[str]:
         """Determine expected marker based on directory structure."""
         f_str = str(file_path).replace("\\", "/")
-        if "/tests/unit/" in f_str or f_str.startswith("tests/unit/"):
-            return "unit"
-        elif "/tests/integration/" in f_str or f_str.startswith("tests/integration/"):
-            return "integration"
-        elif "/tests/behavior/" in f_str or f_str.startswith("tests/behavior/"):
-            return "behavior"
-        elif "/tests/ui/" in f_str or f_str.startswith("tests/ui/"):
-            return "ui"
+
+        for directory, marker in self.directory_to_marker.items():
+            normalized_directory = self._normalize_rel_path(directory)
+            expected_prefix = f"{self.tests_dir_rel}/{normalized_directory}/"
+            if f"/{expected_prefix}" in f_str or f_str.startswith(expected_prefix):
+                return marker
         return None
 
     def analyze_markers(self) -> Dict:
@@ -127,7 +215,7 @@ class TestMarkerAnalyzer:
 
     def find_missing_markers_ast(self) -> List[Tuple[str, int, str, str]]:
         """Find missing markers using AST analysis (more accurate)."""
-        finder = MissingMarkerFinder()
+        finder = MissingMarkerFinder(category_markers=self.category_markers)
         test_files = self.find_test_files()
 
         for file_path in test_files:
@@ -278,8 +366,9 @@ class TestMarkerAnalyzer:
 class MissingMarkerFinder:
     """AST-based finder for missing markers (more accurate than regex)."""
 
-    def __init__(self):
+    def __init__(self, category_markers: Optional[Tuple[str, ...]] = None):
         self.missing = []
+        self.category_markers = set(category_markers or TEST_CATEGORY_MARKERS)
 
     def _is_pytest_fixture(self, decorators):
         for dec in decorators:
@@ -304,7 +393,7 @@ class MissingMarkerFinder:
             if isinstance(dec, ast.Call):
                 target = dec.func
             if isinstance(target, ast.Attribute):
-                if target.attr in CATEGORY_MARKERS:
+                if target.attr in self.category_markers:
                     value = target.value
                     if isinstance(value, ast.Attribute) and value.attr == "mark":
                         return True
@@ -312,7 +401,7 @@ class MissingMarkerFinder:
                         # handles 'from pytest import mark'
                         return True
             elif isinstance(target, ast.Name):
-                if target.id in CATEGORY_MARKERS:
+                if target.id in self.category_markers:
                     return True
         return False
 

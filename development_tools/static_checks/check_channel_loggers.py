@@ -24,6 +24,8 @@ IGNORED_DIR_NAMES = {
     ".git",
     ".venv",
     "venv",
+    ".pytest_runtime",
+    "tmp_pytest_runtime",
     ".pytest_cache",
     ".pytest_profile_cache",
     ".pytest_profile_tmp",

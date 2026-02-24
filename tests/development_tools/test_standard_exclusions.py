@@ -62,6 +62,13 @@ class TestUniversalExclusions:
         assert should_exclude_file('tests/data/tmp/file.txt') is True
 
     @pytest.mark.unit
+    def test_pytest_runtime_excluded(self):
+        """Test that pytest runtime scratch directories are excluded."""
+        assert should_exclude_file('.pytest_runtime/pytest_runner/pytest_tmp_main_abcd/test.py') is True
+        assert should_exclude_file('tests/data/tmp_pytest_runtime/pytest_runner/pytest_tmp_dev_tools_1234/file.py') is True
+        assert should_exclude_file('C:/repo/.pytest_runtime/pytest_runner/pytest_tmp_dev_tools_1234/file.py') is True
+
+    @pytest.mark.unit
     def test_scripts_excluded(self):
         """Test that scripts directory is excluded."""
         assert should_exclude_file('scripts/file.py') is True

@@ -77,6 +77,8 @@ class ProjectPaths:
         # Get paths from config
         try:
             paths_config = config.get_paths_config()
+            tests_dir = paths_config.get("tests_dir", "tests")
+            tests_data_dir = paths_config.get("tests_data_dir", f"{tests_dir}/data")
             self.root = project_root
             self.docs = project_root / paths_config.get(
                 "ai_docs_dir", "ai_development_docs"
@@ -85,8 +87,8 @@ class ProjectPaths:
                 "development_docs_dir", "development_docs"
             )
             self.data = project_root / paths_config.get("data_dir", "data")
-            # Note: tests_dir not in paths_config, use default
-            self.tests = project_root / "tests"
+            self.tests = project_root / tests_dir
+            self.tests_data = project_root / tests_data_dir
         except (AttributeError, ImportError, TypeError, KeyError):
             # Fallback to defaults if config not available
             self.root = project_root
@@ -94,6 +96,7 @@ class ProjectPaths:
             self.dev_docs = project_root / "development_docs"
             self.data = project_root / "data"
             self.tests = project_root / "tests"
+            self.tests_data = project_root / "tests" / "data"
 
 
 def ensure_ascii(text: str) -> str:

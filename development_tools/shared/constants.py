@@ -352,6 +352,58 @@ CORE_MODULES: Tuple[str, ...] = _load_core_modules()
 # =============================================================================
 
 
+def _load_test_category_markers() -> Tuple[str, ...]:
+    """Load test category markers from config or return defaults."""
+    constants_config = _get_constants_config_safe()
+    if constants_config and "test_category_markers" in constants_config:
+        return tuple(constants_config["test_category_markers"])
+    return ("unit", "integration", "behavior", "ui")
+
+
+def _load_test_marker_directory_map() -> Dict[str, str]:
+    """Load test directory-to-marker map from config or return defaults."""
+    constants_config = _get_constants_config_safe()
+    if constants_config and "test_marker_directory_map" in constants_config:
+        configured = constants_config["test_marker_directory_map"]
+        if isinstance(configured, dict):
+            return {str(key): str(value) for key, value in configured.items()}
+    return {
+        "unit": "unit",
+        "integration": "integration",
+        "behavior": "behavior",
+        "ui": "ui",
+    }
+
+
+def _load_test_marker_transient_path_markers() -> Tuple[str, ...]:
+    """Load transient path markers used by test marker scans."""
+    constants_config = _get_constants_config_safe()
+    if constants_config and "test_marker_transient_path_markers" in constants_config:
+        return tuple(constants_config["test_marker_transient_path_markers"])
+    return (
+        "/tmp/",
+        "/tmp_pytest_runtime/",
+        "pytest-tmp-",
+        "pytest-of-",
+    )
+
+
+def _load_test_marker_ai_path_tokens() -> Tuple[str, ...]:
+    """Load path tokens used to exclude AI tests from marker analysis."""
+    constants_config = _get_constants_config_safe()
+    if constants_config and "test_marker_ai_path_tokens" in constants_config:
+        return tuple(constants_config["test_marker_ai_path_tokens"])
+    return ("ai/test_ai", "test_ai")
+
+
+TEST_CATEGORY_MARKERS: Tuple[str, ...] = _load_test_category_markers()
+TEST_MARKER_DIRECTORY_MAP: Dict[str, str] = _load_test_marker_directory_map()
+TEST_MARKER_TRANSIENT_PATH_MARKERS: Tuple[str, ...] = (
+    _load_test_marker_transient_path_markers()
+)
+TEST_MARKER_AI_PATH_TOKENS: Tuple[str, ...] = _load_test_marker_ai_path_tokens()
+
+
 def _load_ascii_compliance_files() -> Tuple[str, ...]:
     """Load ASCII compliance files list from config or return defaults.
 

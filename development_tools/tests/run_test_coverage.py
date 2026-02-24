@@ -384,6 +384,11 @@ class CoverageMetricsRegenerator:
     def _create_pytest_temp_paths(self, run_label: str) -> tuple[Path, Path]:
         """Create isolated pytest basetemp/cache dirs with workspace-first fallback."""
         candidates = [
+            self.project_root
+            / "tests"
+            / "data"
+            / "tmp_pytest_runtime"
+            / "pytest_runner",
             self.project_root / "tests" / "data" / "tmp" / "pytest_runner",
             Path(tempfile.gettempdir()) / "mhm_pytest_tmp",
         ]

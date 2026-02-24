@@ -180,12 +180,6 @@ class ProjectCleanup:
         dev_tools_dir = self.project_root / "development_tools"
         if not dev_tools_dir.exists():
             return artifacts
-        # Temporary policy: preserve unused-imports cache across --clear-cache runs
-        # to avoid repeated cold scans while analyzer performance improvements are in progress.
-        preserve_cache_names = {
-            ".analyze_unused_imports_cache.json",
-        }
-
         # Canonical tool list: derive cache and result files from central metadata.
         try:
             from development_tools.shared.tool_metadata import iter_tools
@@ -231,8 +225,6 @@ class ProjectCleanup:
         seen = set()
         for artifact in artifacts:
             if not artifact.is_file():
-                continue
-            if artifact.name in preserve_cache_names:
                 continue
             normalized = str(artifact.resolve()).lower()
             if normalized in seen:

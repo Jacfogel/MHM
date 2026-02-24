@@ -1735,6 +1735,7 @@ class ReportGenerationMixin:
                     lines.append(f"- **Status**: {status}")
                 details = unused_imports_data.get("details", {})
                 by_category = details.get("by_category") or {}
+                perf = details.get("performance") or {}
                 if by_category:
                     obvious = by_category.get("obvious_unused", 0)
                     type_only = by_category.get("type_hints_only", 0)
@@ -1743,6 +1744,27 @@ class ReportGenerationMixin:
                     if type_only > 0:
                         lines.append(
                             f"    - **Type-Only Imports**: {type_only} imports"
+                        )
+                if isinstance(perf, dict):
+                    backend = perf.get("backend")
+                    mode = perf.get("scan_mode")
+                    files_per_second = perf.get("files_per_second")
+                    total_seconds = (
+                        perf.get("timings", {}).get("total_seconds")
+                        if isinstance(perf.get("timings"), dict)
+                        else None
+                    )
+                    if backend:
+                        lines.append(f"    - **Backend**: {backend}")
+                    if mode:
+                        lines.append(f"    - **Scan Mode**: {mode}")
+                    if isinstance(files_per_second, (int, float)):
+                        lines.append(
+                            f"    - **Throughput**: {float(files_per_second):.2f} files/sec"
+                        )
+                    if isinstance(total_seconds, (int, float)):
+                        lines.append(
+                            f"    - **Scan Time**: {float(total_seconds):.2f}s"
                         )
             else:
                 lines.append("## Unused Imports")
@@ -5842,12 +5864,34 @@ class ReportGenerationMixin:
                     f"- **Total Unused**: {total_unused} imports across {files_with_issues} files"
                 )
                 by_category = details.get("by_category", {})
+                perf = details.get("performance", {})
                 obvious = by_category.get("obvious_unused")
                 if obvious:
                     lines.append(f"    - **Obvious Removals**: {obvious} imports")
                 type_only = by_category.get("type_hints_only")
                 if type_only:
                     lines.append(f"    - **Type-Only Imports**: {type_only} imports")
+                if isinstance(perf, dict):
+                    backend = perf.get("backend")
+                    mode = perf.get("scan_mode")
+                    files_per_second = perf.get("files_per_second")
+                    total_seconds = (
+                        perf.get("timings", {}).get("total_seconds")
+                        if isinstance(perf.get("timings"), dict)
+                        else None
+                    )
+                    if backend:
+                        lines.append(f"    - **Backend**: {backend}")
+                    if mode:
+                        lines.append(f"    - **Scan Mode**: {mode}")
+                    if isinstance(files_per_second, (int, float)):
+                        lines.append(
+                            f"    - **Throughput**: {float(files_per_second):.2f} files/sec"
+                        )
+                    if isinstance(total_seconds, (int, float)):
+                        lines.append(
+                            f"    - **Scan Time**: {float(total_seconds):.2f}s"
+                        )
 
                 # Add top files with unused imports
                 from collections import defaultdict

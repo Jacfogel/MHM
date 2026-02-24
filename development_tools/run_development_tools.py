@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
 
-# NOTE: This file was modified to test domain-aware coverage cache merging.
-
 """Command-line interface for AI development tools."""
 
 import argparse
@@ -107,9 +105,17 @@ def _cleanup_transient_runtime_artifacts(project_root: Path) -> None:
         "welcome_tracking_",
     )
 
+    protected_test_data_dirs = {
+        "tmp",
+        "tmp_pytest_runtime",
+        "pytest_runner",
+    }
+
     for item in data_dir.iterdir():
         try:
             if item.is_dir():
+                if item.name in protected_test_data_dirs:
+                    continue
                 if (
                     item.name in {"flags", "requests", "tag-tests"}
                     or item.name.startswith(dir_prefixes)

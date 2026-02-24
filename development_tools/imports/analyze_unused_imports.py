@@ -4,7 +4,7 @@
 """
 Unused Imports Detection
 
-This script identifies unused imports throughout the codebase using pylint.
+This script identifies unused imports throughout the codebase.
 It categorizes findings and generates detailed reports for cleanup planning.
 
 Configuration is loaded from external config file (development_tools_config.json)
@@ -21,8 +21,10 @@ import sys
 import subprocess
 import argparse
 import json
-import multiprocessing
+import importlib.util
 import re
+import shutil
+import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 
@@ -47,43 +49,6 @@ logger = get_component_logger("development_tools")
 UNUSED_IMPORTS_CONFIG = config.get_unused_imports_config()
 
 
-def _process_file_worker(args: Tuple[Path, str]) -> Tuple[Path, Optional[List[Dict]]]:
-    """Worker function for parallel file processing."""
-    file_path, project_root_str = args
-    project_root = Path(project_root_str)
-
-    try:
-        # Run pylint with only unused-import enabled, JSON output
-        cmd = [
-            sys.executable,
-            "-m",
-            "pylint",
-            "--disable=all",
-            "--enable=unused-import",
-            "--output-format=json",
-            str(file_path),
-        ]
-
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=30, cwd=project_root_str
-        )
-
-        # Pylint returns non-zero if it finds issues, which is what we want
-        if result.stdout:
-            try:
-                issues = json.loads(result.stdout)
-                return (file_path, issues)
-            except json.JSONDecodeError:
-                return (file_path, None)
-
-        return (file_path, [])
-
-    except subprocess.TimeoutExpired:
-        return (file_path, None)
-    except Exception as e:
-        return (file_path, None)
-
-
 class UnusedImportsChecker:
     """Detects and categorizes unused imports in Python files."""
 
@@ -105,10 +70,8 @@ class UnusedImportsChecker:
         # Reload config to ensure it's up to date (project_root is handled via config file)
         UNUSED_IMPORTS_CONFIG = config.get_unused_imports_config()
 
-        # Parallelization settings
-        self.max_workers = max_workers or min(
-            multiprocessing.cpu_count(), 8
-        )  # Cap at 8 to avoid overload
+        # Legacy argument retained for compatibility (not used for primary scan path).
+        self.max_workers = max_workers
         self.use_cache = use_cache
         self.verbose = verbose
 
@@ -124,8 +87,18 @@ class UnusedImportsChecker:
         )
 
         # Get config values
+        self.preferred_backend = UNUSED_IMPORTS_CONFIG.get(
+            "preferred_backend", "ruff"
+        ).lower()
+        self.ruff_command = UNUSED_IMPORTS_CONFIG.get(
+            "ruff_command", [sys.executable, "-m", "ruff"]
+        )
         self.pylint_command = UNUSED_IMPORTS_CONFIG.get(
             "pylint_command", [sys.executable, "-m", "pylint"]
+        )
+        self.batch_size = max(1, int(UNUSED_IMPORTS_CONFIG.get("batch_size", 200)))
+        self.pylint_batch_size = max(
+            1, int(UNUSED_IMPORTS_CONFIG.get("pylint_batch_size", 25))
         )
         self.timeout_seconds = UNUSED_IMPORTS_CONFIG.get("timeout_seconds", 30)
         self.ignore_patterns = UNUSED_IMPORTS_CONFIG.get("ignore_patterns", [])
@@ -159,7 +132,28 @@ class UnusedImportsChecker:
             "total_unused": 0,
             "cache_hits": 0,
             "cache_misses": 0,
+            "changed_files": 0,
+            "cache_mode": "unknown",
+            "backend": "unknown",
         }
+        self.performance = {
+            "backend": "unknown",
+            "scan_mode": "unknown",
+            "timings": {
+                "discovery_seconds": 0.0,
+                "detection_seconds": 0.0,
+                "categorization_seconds": 0.0,
+                "total_seconds": 0.0,
+            },
+            "files_per_second": 0.0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "changed_files": 0,
+            "batch_size": self.batch_size,
+            "fallback_used": False,
+            "fallback_reason": "",
+        }
+        self._file_context_cache: Dict[Path, Tuple[List[str], str]] = {}
 
     def should_scan_file(self, file_path: Path) -> bool:
         """Determine if a file should be scanned."""
@@ -199,6 +193,219 @@ class UnusedImportsChecker:
                 python_files.append(file_path)
 
         return sorted(python_files)
+
+    def _command_exists(self, command: List[str]) -> bool:
+        """Return True when the command executable is available."""
+        if not command:
+            return False
+        resolved = self._resolve_python_command(command)
+        if len(resolved) >= 3 and resolved[1] == "-m":
+            module_name = resolved[2]
+            # Fast in-process check first.
+            if importlib.util.find_spec(module_name) is None:
+                return False
+            # Verify the exact command/interpreter pair can execute.
+            try:
+                probe = resolved + ["--version"]
+                result = subprocess.run(
+                    probe,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                    cwd=str(self.project_root),
+                )
+                return result.returncode == 0
+            except Exception:
+                return False
+        first = resolved[0]
+        if Path(first).exists():
+            return True
+        return shutil.which(first) is not None
+
+    def _resolve_python_command(self, command: List[str]) -> List[str]:
+        """Normalize Python launcher commands to the current interpreter."""
+        if not command:
+            return command
+        first = str(command[0]).lower()
+        if first in {"python", "python3", "py"}:
+            return [sys.executable] + command[1:]
+        return command
+
+    def _detect_backend(self) -> str:
+        """Pick backend, preferring ruff and falling back to pylint."""
+        if self.preferred_backend == "pylint":
+            return "pylint"
+        if self._command_exists(self.ruff_command):
+            return "ruff"
+        return "pylint"
+
+    def _chunk_files(self, files: List[Path], chunk_size: Optional[int] = None) -> List[List[Path]]:
+        """Split files into stable chunks for batched backend calls."""
+        size = chunk_size or self.batch_size
+        return [files[i : i + size] for i in range(0, len(files), size)]
+
+    def _normalize_pylint_issue(self, issue: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Normalize pylint issue to unused-import issue payload."""
+        message_id = issue.get("message-id")
+        if message_id != "W0611":
+            return None
+        return {
+            "message-id": "W0611",
+            "message": issue.get("message", ""),
+            "line": issue.get("line", 0),
+            "column": issue.get("column", 0),
+            "symbol": issue.get("symbol", "unused-import"),
+        }
+
+    def _normalize_ruff_issue(self, issue: Dict[str, Any]) -> Optional[Tuple[Path, Dict[str, Any]]]:
+        """Normalize ruff issue to per-file unused-import payload."""
+        if not isinstance(issue, dict):
+            return None
+        if issue.get("code") != "F401":
+            return None
+        filename = issue.get("filename")
+        if not filename:
+            return None
+        issue_path = Path(filename)
+        if not issue_path.is_absolute():
+            issue_path = (self.project_root / issue_path).resolve()
+        location = issue.get("location", {}) if isinstance(issue.get("location"), dict) else {}
+        normalized = {
+            "message-id": "W0611",
+            "message": issue.get("message", ""),
+            "line": int(location.get("row", 0) or 0),
+            "column": int(location.get("column", 0) or 0),
+            "symbol": "unused-import",
+        }
+        return (issue_path, normalized)
+
+    def _run_batched_ruff(self, files: List[Path]) -> Dict[Path, List[Dict[str, Any]]]:
+        """Run ruff in file batches and return issues keyed by file path."""
+        issues_by_file: Dict[Path, List[Dict[str, Any]]] = {fp: [] for fp in files}
+        for batch in self._chunk_files(files, chunk_size=self.batch_size):
+            cmd = self._resolve_python_command(self.ruff_command) + [
+                "check",
+                "--select",
+                "F401",
+                "--output-format",
+                "json",
+            ] + [str(fp) for fp in batch]
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=self.timeout_seconds,
+                cwd=str(self.project_root),
+            )
+            if result.returncode not in (0, 1):
+                raise RuntimeError(
+                    f"ruff execution failed (rc={result.returncode}): {result.stderr.strip()}"
+                )
+            stdout = result.stdout.strip()
+            if not stdout and result.returncode == 0:
+                continue
+            if not stdout and result.returncode != 0:
+                raise RuntimeError(
+                    f"ruff produced no JSON output (rc={result.returncode}): {result.stderr.strip()}"
+                )
+            parsed = json.loads(stdout)
+            if not isinstance(parsed, list):
+                raise RuntimeError("ruff output JSON is not a list")
+            for raw_issue in parsed:
+                normalized = self._normalize_ruff_issue(raw_issue)
+                if not normalized:
+                    continue
+                issue_path, issue_payload = normalized
+                if issue_path not in issues_by_file:
+                    continue
+                issues_by_file[issue_path].append(issue_payload)
+        return issues_by_file
+
+    def _run_batched_pylint(self, files: List[Path]) -> Dict[Path, List[Dict[str, Any]]]:
+        """Run pylint in file batches and return issues keyed by file path."""
+        issues_by_file: Dict[Path, List[Dict[str, Any]]] = {fp: [] for fp in files}
+        for batch in self._chunk_files(files, chunk_size=self.pylint_batch_size):
+            cmd = self._resolve_python_command(self.pylint_command) + [
+                "--disable=all",
+                "--enable=unused-import",
+                "--output-format=json",
+            ] + [str(fp) for fp in batch]
+            # Pylint cost grows with batch size; avoid false timeouts on fallback path.
+            timeout_seconds = max(
+                self.timeout_seconds,
+                int(self.timeout_seconds * max(1.0, len(batch) / 8.0)),
+            )
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=timeout_seconds,
+                cwd=str(self.project_root),
+            )
+
+            stdout = result.stdout.strip()
+            if not stdout and result.returncode == 0:
+                continue
+            if not stdout and result.returncode != 0:
+                raise RuntimeError(
+                    f"pylint produced no JSON output (rc={result.returncode}): {result.stderr.strip()}"
+                )
+            parsed = json.loads(stdout)
+            if not isinstance(parsed, list):
+                raise RuntimeError("pylint output JSON is not a list")
+            for raw_issue in parsed:
+                if not isinstance(raw_issue, dict):
+                    continue
+                issue_file = raw_issue.get("path")
+                if not issue_file:
+                    continue
+                issue_path = Path(issue_file)
+                if not issue_path.is_absolute():
+                    issue_path = (self.project_root / issue_path).resolve()
+                if issue_path not in issues_by_file:
+                    continue
+                normalized = self._normalize_pylint_issue(raw_issue)
+                if normalized:
+                    issues_by_file[issue_path].append(normalized)
+        return issues_by_file
+
+    def _run_detection_backend(
+        self, files: List[Path]
+    ) -> Tuple[str, Dict[Path, List[Dict[str, Any]]], bool, str]:
+        """Run detection backend with ruff-first fallback semantics."""
+        backend = self._detect_backend()
+        fallback_used = False
+        fallback_reason = ""
+        if not files:
+            return backend, {}, False, ""
+        if backend == "ruff":
+            try:
+                return "ruff", self._run_batched_ruff(files), False, ""
+            except Exception as exc:
+                fallback_used = True
+                fallback_reason = f"ruff failed: {exc}"
+                if logger:
+                    logger.warning(
+                        f"Ruff backend failed ({exc}); falling back to pylint batched scan."
+                    )
+                try:
+                    return (
+                        "pylint",
+                        self._run_batched_pylint(files),
+                        fallback_used,
+                        fallback_reason,
+                    )
+                except Exception as pylint_exc:
+                    raise RuntimeError(
+                        f"unused-import detection backend failed: {fallback_reason}; "
+                        f"pylint failed: {pylint_exc}"
+                    )
+        try:
+            return "pylint", self._run_batched_pylint(files), fallback_used, fallback_reason
+        except Exception as exc:
+            raise RuntimeError(f"unused-import detection backend failed: pylint failed: {exc}")
 
     def run_pylint_on_file(self, file_path: Path) -> Optional[List[Dict]]:
         """Run pylint on a single file to detect unused imports."""
@@ -268,10 +475,9 @@ class UnusedImportsChecker:
         if file_path.name == "__init__.py":
             return "re_exports"
 
-        # Read the file to get context
+        # Read the file to get context (cached per file for this run)
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                lines = f.readlines()
+            lines, file_content = self._get_file_context(file_path)
 
             line_num = issue.get("line", 1) - 1  # Convert to 0-based
             if line_num < 0 or line_num >= len(lines):
@@ -279,7 +485,6 @@ class UnusedImportsChecker:
 
             # Get the import line and surrounding context
             import_line = lines[line_num].strip()
-            file_content = "".join(lines)
 
             # Check for test mocking requirements
             if self._is_test_mocking_import(file_path, import_name, file_content):
@@ -400,13 +605,41 @@ class UnusedImportsChecker:
                 logger.warning(f"Error categorizing import in {file_path}: {e}")
             return "obvious_unused"
 
+    def _get_file_context(self, file_path: Path) -> Tuple[List[str], str]:
+        """Load and cache file lines/content for categorization phase."""
+        cached = self._file_context_cache.get(file_path)
+        if cached is not None:
+            return cached
+        with open(file_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        content = "".join(lines)
+        payload = (lines, content)
+        self._file_context_cache[file_path] = payload
+        return payload
+
     def _extract_import_name_from_message(self, message: str) -> str:
-        """Extract the actual import name from pylint message."""
+        """Extract the import symbol from pylint/ruff unused-import messages."""
         # Examples:
         # "Unused import os" -> "os"
         # "Unused Optional imported from typing" -> "Optional"
         # "Unused List imported from typing" -> "List"
         # "Unused datetime imported from datetime" -> "datetime"
+        # "`typing.Optional` imported but unused" -> "Optional"
+        # "`unittest.mock.Mock` imported but unused" -> "Mock"
+        # "`.audit_orchestration._AUDIT_LOCK_FILE` imported but unused" -> "_AUDIT_LOCK_FILE"
+
+        if not message:
+            return ""
+
+        # Ruff F401 format: backtick-wrapped import path.
+        backtick_match = re.search(r"`([^`]+)`\s+imported but unused", message)
+        if backtick_match:
+            raw_name = backtick_match.group(1).strip()
+            if raw_name.startswith("."):
+                raw_name = raw_name[1:]
+            if not raw_name:
+                return ""
+            return raw_name.split(".")[-1]
 
         if not message.startswith("Unused "):
             return ""
@@ -855,146 +1088,139 @@ class UnusedImportsChecker:
 
     def scan_codebase(self) -> Dict:
         """Scan the entire codebase for unused imports."""
+        self._file_context_cache = {}
+        start_total = time.perf_counter()
         if logger:
             logger.debug(
-                f"Starting unused imports scan (workers: {self.max_workers}, cache: {self.use_cache})..."
+                f"Starting unused imports scan (cache: {self.use_cache}, preferred backend: {self.preferred_backend})..."
             )
 
+        start_discovery = time.perf_counter()
         python_files = self.find_python_files()
+        discovery_seconds = time.perf_counter() - start_discovery
+
         self.stats["files_scanned"] = len(python_files)
         total_files = len(python_files)
 
         print(f"Scanning {total_files} Python files for unused imports...")
-        print(f"Using {self.max_workers} parallel workers, caching: {self.use_cache}")
-        print("")  # Blank line before progress
+        print(f"Using cache: {self.use_cache}, preferred backend: {self.preferred_backend}")
+        print("")
 
-        # Separate files into cached and uncached
-        files_to_scan = []
-        cached_results = {}
-
+        files_to_scan: List[Path] = []
+        issues_by_file: Dict[Path, List[Dict[str, Any]]] = {}
         for file_path in python_files:
             cached = self.cache.get_cached(file_path)
             if cached is not None:
                 self.stats["cache_hits"] += 1
-                cached_results[file_path] = (
-                    cached  # cached is already a list (possibly empty)
-                )
+                issues_by_file[file_path] = cached if isinstance(cached, list) else []
             else:
                 self.stats["cache_misses"] += 1
                 files_to_scan.append(file_path)
 
-        # Process cached files first (fast)
-        # CRITICAL: Filter out cached results for files that no longer exist
-        for file_path, issues in cached_results.items():
-            # Verify file still exists before processing cached results
-            if not file_path.exists():
-                # File was deleted, skip cached results for it
-                continue
+        self.stats["changed_files"] = len(files_to_scan)
+        if not self.use_cache:
+            self.stats["cache_mode"] = "disabled"
+        elif self.stats["cache_hits"] > 0 and self.stats["cache_misses"] == 0:
+            self.stats["cache_mode"] = "cache_only"
+        elif self.stats["cache_hits"] > 0 and self.stats["cache_misses"] > 0:
+            self.stats["cache_mode"] = "partial_cache"
+        else:
+            self.stats["cache_mode"] = "cold_scan"
 
-            if issues:
-                try:
-                    rel_path = file_path.relative_to(self.project_root)
-                    rel_path_str = str(rel_path).replace("\\", "/")
-                except ValueError:
-                    rel_path_str = str(file_path)
-
-                self.stats["files_with_issues"] += 1
-
-                for issue in issues:
-                    if issue.get("message-id") == "W0611":  # unused-import
-                        category = self.categorize_unused_import(file_path, issue)
-
-                        self.findings[category].append(
-                            {
-                                "file": rel_path_str,
-                                "line": issue.get("line", 0),
-                                "column": issue.get("column", 0),
-                                "message": issue.get("message", ""),
-                                "symbol": issue.get("symbol", ""),
-                            }
-                        )
-
-                        self.stats["total_unused"] += 1
-
-        # Process uncached files in parallel
+        start_detection = time.perf_counter()
+        backend_used = self._detect_backend()
+        fallback_used = False
+        fallback_reason = ""
         if files_to_scan:
             print(
-                f"Processing {len(files_to_scan)} files (cached: {len(cached_results)})..."
+                f"Processing {len(files_to_scan)} changed file(s) (cached: {self.stats['cache_hits']})..."
             )
-
-            # Prepare arguments for worker function
-            worker_args = [(fp, str(self.project_root)) for fp in files_to_scan]
-
-            # Use multiprocessing for performance; gracefully degrade if multiprocessing
-            # is unavailable (restricted sandbox/permissions environments).
             try:
-                with multiprocessing.Pool(processes=self.max_workers) as pool:
-                    results = pool.map(_process_file_worker, worker_args)
-            except (PermissionError, OSError) as exc:
-                if logger:
-                    logger.warning(
-                        f"Multiprocessing unavailable ({exc}); falling back to sequential scan."
-                    )
-                results = [_process_file_worker(args) for args in worker_args]
+                backend_used, detected, fallback_used, fallback_reason = self._run_detection_backend(
+                    files_to_scan
+                )
+            except Exception as exc:
+                self.cache.mark_run_result(success=False, error=str(exc))
+                self.cache.save_cache()
+                raise
+            for file_path in files_to_scan:
+                file_issues = detected.get(file_path, [])
+                issues_by_file[file_path] = file_issues
+                self.cache.cache_results(file_path, file_issues)
+        detection_seconds = time.perf_counter() - start_detection
 
-            # Process results
-            for file_path, issues in results:
-                # Cache the results
-                if issues is not None:
-                    self.cache.cache_results(file_path, issues if issues else [])
+        start_categorization = time.perf_counter()
+        for file_path in python_files:
+            if not file_path.exists():
+                continue
+            issues = issues_by_file.get(file_path) or []
+            if not issues:
+                continue
 
-                if issues is None:
-                    # Error occurred
+            try:
+                rel_path = file_path.relative_to(self.project_root)
+                rel_path_str = str(rel_path).replace("\\", "/")
+            except ValueError:
+                rel_path_str = str(file_path)
+
+            file_issue_count = 0
+            for issue in issues:
+                if issue.get("message-id") != "W0611":
                     continue
+                category = self.categorize_unused_import(file_path, issue)
+                self.findings[category].append(
+                    {
+                        "file": rel_path_str,
+                        "line": issue.get("line", 0),
+                        "column": issue.get("column", 0),
+                        "message": issue.get("message", ""),
+                        "symbol": issue.get("symbol", ""),
+                    }
+                )
+                self.stats["total_unused"] += 1
+                file_issue_count += 1
 
-                if not issues:
-                    # No unused imports
-                    continue
-
-                # File has unused imports
+            if file_issue_count > 0:
                 self.stats["files_with_issues"] += 1
+        categorization_seconds = time.perf_counter() - start_categorization
 
-                try:
-                    rel_path = file_path.relative_to(self.project_root)
-                    rel_path_str = str(rel_path).replace("\\", "/")
-                except ValueError:
-                    rel_path_str = str(file_path)
-
-                for issue in issues:
-                    if issue.get("message-id") == "W0611":  # unused-import
-                        category = self.categorize_unused_import(file_path, issue)
-
-                        self.findings[category].append(
-                            {
-                                "file": rel_path_str,
-                                "line": issue.get("line", 0),
-                                "column": issue.get("column", 0),
-                                "message": issue.get("message", ""),
-                                "symbol": issue.get("symbol", ""),
-                            }
-                        )
-
-                        self.stats["total_unused"] += 1
-
-        # Save cache
+        if files_to_scan:
+            self.cache.mark_run_result(success=True)
         self.cache.save_cache()
 
-        print("")  # Blank line after progress
-        cache_info = ""
-        if self.use_cache:
-            cache_hits = self.stats.get("cache_hits", 0)
-            cache_misses = self.stats.get("cache_misses", 0)
-            cache_info = f" (cache: {cache_hits} hits, {cache_misses} misses)"
+        total_seconds = time.perf_counter() - start_total
+        files_per_second = (
+            round(total_files / total_seconds, 2) if total_seconds > 0 else 0.0
+        )
+        self.stats["backend"] = backend_used
 
+        self.performance = {
+            "backend": backend_used,
+            "scan_mode": self.stats["cache_mode"],
+            "timings": {
+                "discovery_seconds": round(discovery_seconds, 4),
+                "detection_seconds": round(detection_seconds, 4),
+                "categorization_seconds": round(categorization_seconds, 4),
+                "total_seconds": round(total_seconds, 4),
+            },
+            "files_per_second": files_per_second,
+            "cache_hits": self.stats["cache_hits"],
+            "cache_misses": self.stats["cache_misses"],
+            "changed_files": self.stats["changed_files"],
+            "batch_size": self.batch_size,
+            "fallback_used": fallback_used,
+            "fallback_reason": fallback_reason,
+        }
+
+        print("")
         if logger:
             logger.debug(
-                f"Scan complete. Found {self.stats['total_unused']} unused imports in {self.stats['files_with_issues']} files{cache_info}."
+                f"Scan complete. Found {self.stats['total_unused']} unused imports in "
+                f"{self.stats['files_with_issues']} files "
+                f"(backend={backend_used}, mode={self.stats['cache_mode']}, files/sec={files_per_second})."
             )
 
-        return {
-            "findings": self.findings,
-            "stats": self.stats,
-        }
+        return {"findings": self.findings, "stats": self.stats, "performance": self.performance}
 
     def get_summary_data(self) -> Dict:
         """Get summary data for integration with AI tools."""
@@ -1002,6 +1228,8 @@ class UnusedImportsChecker:
             "files_scanned": self.stats["files_scanned"],
             "files_with_issues": self.stats["files_with_issues"],
             "total_unused": self.stats["total_unused"],
+            "backend": self.stats.get("backend", "unknown"),
+            "cache_mode": self.stats.get("cache_mode", "unknown"),
             "by_category": {
                 category: len(items) for category, items in self.findings.items()
             },
@@ -1025,7 +1253,7 @@ class UnusedImportsChecker:
             Dictionary with standard format: 'summary', 'files', and 'details' keys
         """
         # Ensure scan has been run
-        if not hasattr(self, "findings") or not self.findings:
+        if self.stats.get("files_scanned", 0) == 0:
             self.scan_codebase()
 
         # Build files dict from findings
@@ -1049,6 +1277,7 @@ class UnusedImportsChecker:
             "details": {
                 "findings": self.findings,  # Full findings for detailed reports
                 "stats": self.stats,  # Full stats for report generation
+                "performance": self.performance,
                 "by_category": {
                     category: len(items) for category, items in self.findings.items()
                 },

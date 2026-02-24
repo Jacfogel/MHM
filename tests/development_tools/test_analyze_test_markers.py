@@ -48,6 +48,16 @@ def test_find_test_files_filters_ai_and_pytest_temp_dirs():
             "def test_tmp():\n    pass\n",
         )
         _write(
+            project_root
+            / "tests"
+            / "data"
+            / "tmp_pytest_runtime"
+            / "pytest_runner"
+            / "pytest_tmp_dev_tools_1234"
+            / "test_runtime_tmp.py",
+            "def test_runtime_tmp():\n    pass\n",
+        )
+        _write(
             project_root / "tests" / "data" / "custom" / "test_custom.py",
             "def test_custom():\n    pass\n",
         )
@@ -60,6 +70,7 @@ def test_find_test_files_filters_ai_and_pytest_temp_dirs():
         assert not any("test_ai_flow.py" in f for f in files)
         assert not any("test_ai_helper.py" in f for f in files)
         assert not any("pytest-tmp-1" in f for f in files)
+        assert not any("tmp_pytest_runtime" in f for f in files)
 
 
 @pytest.mark.unit
@@ -74,6 +85,45 @@ def test_has_category_marker_and_expected_marker_path_resolution():
         assert analyzer.get_expected_marker(project_root / "tests" / "behavior" / "test_file.py") == "behavior"
         assert analyzer.get_expected_marker(project_root / "tests" / "ui" / "test_file.py") == "ui"
         assert analyzer.get_expected_marker(project_root / "tests" / "misc" / "test_file.py") is None
+
+
+@pytest.mark.unit
+def test_uses_configured_marker_categories_and_directory_map(monkeypatch):
+    with _workspace_temp_project() as project_root:
+        _write(
+            project_root / "tests" / "suite" / "test_custom.py",
+            "import pytest\n\n@pytest.mark.suite\ndef test_custom():\n    pass\n",
+        )
+
+        monkeypatch.setattr(
+            analyze_test_markers.config,
+            "get_test_markers_config",
+            lambda: {
+                "categories": ["suite", "integration"],
+                "directory_to_marker": {
+                    "suite": "suite",
+                    "integration": "integration",
+                },
+                "transient_data_path_markers": [
+                    "/tmp/",
+                    "/tmp_pytest_runtime/",
+                    "pytest-tmp-",
+                    "pytest-of-",
+                ],
+                "ai_path_tokens": ["ai/test_ai", "test_ai"],
+            },
+        )
+
+        analyzer = TestMarkerAnalyzer(project_root=project_root)
+        content = (project_root / "tests" / "suite" / "test_custom.py").read_text(
+            encoding="utf-8"
+        )
+
+        assert analyzer.has_category_marker(content)
+        assert (
+            analyzer.get_expected_marker(project_root / "tests" / "suite" / "test_file.py")
+            == "suite"
+        )
 
 
 @pytest.mark.unit

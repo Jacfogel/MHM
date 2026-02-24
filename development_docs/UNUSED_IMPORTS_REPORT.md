@@ -2,27 +2,144 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-23 14:31:54
+> **Last Generated**: 2026-02-24 04:45:54
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 449
-- **Files with Unused Imports**: 106
-- **Total Unused Imports**: 325
+- **Files with Unused Imports**: 123
+- **Total Unused Imports**: 410
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 0 imports
+- **Obvious Unused**: 28 imports
 - **Type Hints Only**: 5 imports
-- **Re Exports**: 0 imports
-- **Conditional Imports**: 1 imports
+- **Re Exports**: 2 imports
+- **Conditional Imports**: 23 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 127 imports
+- **Test Mocking**: 147 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 136 imports
-- **Production Test Mocking**: 1 imports
-- **Ui Imports**: 1 imports
+- **Test Infrastructure**: 144 imports
+- **Production Test Mocking**: 2 imports
+- **Ui Imports**: 5 imports
+
+## Obvious Unused
+
+**Recommendation**: These imports can likely be safely removed.
+
+### `communication/communication_channels/discord/bot.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 820**: `communication.communication_channels.discord.welcome_handler.has_been_welcomed` imported but unused
+- **Line 821**: `communication.communication_channels.discord.welcome_handler.mark_as_welcomed` imported but unused
+- **Line 822**: `communication.communication_channels.discord.welcome_handler.get_welcome_message` imported but unused
+
+### `communication/core/channel_orchestrator.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 6**: `random` imported but unused
+
+### `core/scheduler.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 1588**: `datetime.datetime` imported but unused
+
+### `development_tools/config/analyze_config.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 547**: `sys` imported but unused
+
+### `development_tools/shared/service/commands.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 566**: `.audit_orchestration._AUDIT_LOCK_FILE` imported but unused
+- **Line 951**: `.audit_orchestration._AUDIT_LOCK_FILE` imported but unused
+
+### `development_tools/shared/service/report_generation.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 5898**: `json` imported but unused
+
+### `development_tools/shared/service/utilities.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 484**: `..common.COMMAND_TIERS` imported but unused
+
+### `tests/conftest.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 3368**: `core.config` imported but unused
+
+### `tests/development_tools/test_analyze_functions.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 15**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 16**: `tests.development_tools.conftest.test_config_path` imported but unused
+
+### `tests/development_tools/test_analyze_missing_addresses.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 13**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 14**: `tests.development_tools.conftest.test_config_path` imported but unused
+
+### `tests/development_tools/test_error_scenarios.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 232**: `subprocess` imported but unused
+
+### `tests/development_tools/test_output_storage_archiving.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 340**: `platform` imported but unused
+
+### `tests/test_error_handling_improvements.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 240**: `ui.ui_app_qt.MHMManagerUI` imported but unused
+
+### `tests/ui/test_process_watcher_dialog.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 546**: `psutil` imported but unused
+- **Line 885**: `psutil` imported but unused
+
+### `tests/ui/test_signal_handler_integration.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 361**: `communication.core.channel_orchestrator.CommunicationManager` imported but unused
+
+### `tests/unit/test_checkin_management_dialog.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 72**: `core.user_data_handlers.clear_user_caches` imported but unused
+
+### `ui/ui_app_qt.py`
+
+**Count**: 6 unused import(s)
+
+- **Line 1919**: `datetime.datetime` imported but unused
+- **Line 1921**: `pathlib.Path` imported but unused
+- **Line 2074**: `datetime.datetime` imported but unused
+- **Line 2236**: `datetime.datetime` imported but unused
+- **Line 2274**: `core.logger.get_verbose_mode` imported but unused
+- **Line 2336**: `os` imported but unused
 
 ## Type Hints Only
 
@@ -32,31 +149,114 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 9**: Unused Optional imported from typing
+- **Line 9**: `typing.Optional` imported but unused
 
 ### `core/message_management.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 12**: Unused List imported from typing
-- **Line 12**: Unused Dict imported from typing
-- **Line 12**: Unused Optional imported from typing
+- **Line 12**: `typing.List` imported but unused
+- **Line 12**: `typing.Dict` imported but unused
+- **Line 12**: `typing.Optional` imported but unused
 
 ### `core/scheduler.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 12**: Unused List imported from typing
+- **Line 12**: `typing.List` imported but unused
+
+## Re Exports
+
+**Recommendation**: Review if these are intentional re-exports in `__init__.py` files.
+
+### `core/__init__.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 73**: `.message_management.add_message` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+- **Line 74**: `.message_management.archive_old_messages` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
 
 ## Conditional Imports
 
 **Recommendation**: Review carefully - these may be for optional dependencies.
 
-### `tests/ui/test_signal_handler_integration.py`
+### `core/error_handling.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 412**: `time` imported but unused
+- **Line 649**: `os` imported but unused
+
+### `core/file_operations.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 35**: Unused QtWidgets imported from PySide6
+- **Line 723**: `core.user_data_manager.update_user_index` imported but unused; consider using `importlib.util.find_spec` to test for availability
+
+### `core/scheduler.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 1350**: `random` imported but unused
+- **Line 1739**: `datetime.datetime` imported but unused
+- **Line 1739**: `datetime.timedelta` imported but unused
+
+### `core/ui_management.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 145**: `ui.widgets.period_row_widget.PeriodRowWidget` imported but unused
+
+### `core/user_data_handlers.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 1425**: `core.schemas.validate_preferences_dict` imported but unused
+
+### `core/user_data_validation.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 421**: `datetime.datetime` imported but unused
+- **Line 548**: `datetime.datetime` imported but unused
+- **Line 696**: `datetime.datetime` imported but unused
+
+### `development_tools/tests/run_test_coverage.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 4451**: `development_tools.shared.file_rotation.FileRotator` imported but unused; consider using `importlib.util.find_spec` to test for availability
+
+### `tests/conftest.py`
+
+**Count**: 6 unused import(s)
+
+- **Line 1591**: `core.scheduler.SchedulerManager` imported but unused; consider using `importlib.util.find_spec` to test for availability
+- **Line 1592**: `core.service.MHMService` imported but unused; consider using `importlib.util.find_spec` to test for availability
+- **Line 1593**: `communication.core.channel_orchestrator.CommunicationManager` imported but unused; consider using `importlib.util.find_spec` to test for availability
+- **Line 1594**: `ai.chatbot.AIChatBotSingleton` imported but unused; consider using `importlib.util.find_spec` to test for availability
+- **Line 4800**: `signal` imported but unused; consider using `importlib.util.find_spec` to test for availability
+- **Line 4801**: `sys` imported but unused; consider using `importlib.util.find_spec` to test for availability
+
+### `tests/development_tools/test_analysis_validation_framework.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 392**: `development_tools.shared.service.data_loading.DataLoadingMixin` imported but unused; consider using `importlib.util.find_spec` to test for availability
+- **Line 510**: `development_tools.shared.service.report_generation.ReportGenerationMixin` imported but unused; consider using `importlib.util.find_spec` to test for availability
+
+### `tests/integration/test_account_management.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 62**: `core.user_data_handlers.update_user_preferences` imported but unused
+- **Line 63**: `core.user_data_handlers.get_all_user_ids` imported but unused
+
+### `tests/unit/test_communication_core_init.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 154**: `communication.core.InvalidAttribute` imported but unused
 
 ## Test Mocking
 
@@ -66,453 +266,483 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 19**: Unused Mock imported from unittest.mock
-- **Line 26**: Unused get_user_data imported from core.user_data_handlers
+- **Line 19**: `unittest.mock.Mock` imported but unused
+- **Line 26**: `core.user_data_handlers.get_user_data` imported but unused
 
 ### `tests/ai/test_cache_manager.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 7**: Unused Mock imported from unittest.mock
+- **Line 7**: `unittest.mock.Mock` imported but unused
 
 ### `tests/core/test_file_auditor.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 9**: Unused Mock imported from unittest.mock
+- **Line 9**: `unittest.mock.Mock` imported but unused
 
 ### `tests/core/test_message_management.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 8**: Unused Mock imported from unittest.mock
-- **Line 10**: Unused load_default_messages imported from core.message_management
+- **Line 8**: `unittest.mock.Mock` imported but unused
+- **Line 12**: `core.message_management.load_default_messages` imported but unused
 
 ### `tests/core/test_schedule_utilities.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 8**: Unused Mock imported from unittest.mock
+- **Line 8**: `unittest.mock.Mock` imported but unused
 
 ### `tests/development_tools/test_analyze_ai_work.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 11**: Unused patch imported from unittest.mock
-- **Line 11**: Unused MagicMock imported from unittest.mock
+- **Line 11**: `unittest.mock.patch` imported but unused
+- **Line 11**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/development_tools/test_analyze_error_handling.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 10**: Unused patch imported from unittest.mock
-- **Line 10**: Unused MagicMock imported from unittest.mock
+- **Line 10**: `unittest.mock.patch` imported but unused
+- **Line 10**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/development_tools/test_analyze_function_registry.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 11**: Unused MagicMock imported from unittest.mock
+- **Line 11**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/development_tools/test_analyze_functions.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
-- **Line 9**: Unused MagicMock imported from unittest.mock
+- **Line 9**: `unittest.mock.patch` imported but unused
+- **Line 9**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/development_tools/test_analyze_module_dependencies.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 11**: Unused MagicMock imported from unittest.mock
-- **Line 11**: Unused mock_open imported from unittest.mock
+- **Line 11**: `unittest.mock.MagicMock` imported but unused
+- **Line 11**: `unittest.mock.mock_open` imported but unused
 
 ### `tests/development_tools/test_analyze_unused_imports.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 12**: Unused mock_open imported from unittest.mock
+- **Line 12**: `unittest.mock.mock_open` imported but unused
 
 ### `tests/development_tools/test_decision_support.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 10**: Unused MagicMock imported from unittest.mock
+- **Line 10**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/development_tools/test_fix_documentation.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 9**: Unused MagicMock imported from unittest.mock
+- **Line 9**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/development_tools/test_generate_error_handling_report.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 11**: Unused MagicMock imported from unittest.mock
+- **Line 11**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/development_tools/test_generate_function_docstrings.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 10**: Unused MagicMock imported from unittest.mock
+- **Line 10**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/development_tools/test_generate_unused_imports_report.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 10**: Unused patch imported from unittest.mock
-- **Line 10**: Unused MagicMock imported from unittest.mock
+- **Line 10**: `unittest.mock.patch` imported but unused
+- **Line 10**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/development_tools/test_output_storage_archiving.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 11**: Unused patch imported from unittest.mock
+- **Line 11**: `unittest.mock.patch` imported but unused
 
 ### `tests/development_tools/test_regenerate_coverage_metrics.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
-- **Line 10**: Unused MagicMock imported from unittest.mock
+- **Line 10**: `unittest.mock.MagicMock` imported but unused
+- **Line 298**: `unittest.mock.MagicMock` imported but unused
+
+### `tests/integration/test_account_lifecycle.py`
+
+**Count**: 9 unused import(s)
+
+- **Line 144**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 304**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 407**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 506**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 608**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 696**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 764**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 843**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 907**: `core.user_data_handlers.save_user_data` imported but unused
+
+### `tests/integration/test_account_management.py`
+
+**Count**: 5 unused import(s)
+
+- **Line 62**: `core.user_data_handlers.update_user_account` imported but unused
+- **Line 63**: `core.user_data_handlers.update_user_context` imported but unused
+- **Line 63**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 132**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 437**: `core.user_data_handlers.save_user_data` imported but unused
 
 ### `tests/integration/test_task_cleanup_real_bug_verification.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 13**: Unused MagicMock imported from unittest.mock
+- **Line 13**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/integration/test_task_cleanup_silent_failure.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 9**: Unused patch imported from unittest.mock
-- **Line 9**: Unused MagicMock imported from unittest.mock
+- **Line 9**: `unittest.mock.patch` imported but unused
+- **Line 9**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/integration/test_user_creation.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 19**: Unused update_user_account imported from core.user_data_handlers
-- **Line 19**: Unused update_user_schedules imported from core.user_data_handlers
-- **Line 28**: Unused validate_schedule_periods__validate_time_format imported from core.user_data_validation
+- **Line 22**: `core.user_data_handlers.update_user_account` imported but unused
+- **Line 25**: `core.user_data_handlers.update_user_schedules` imported but unused
+- **Line 28**: `core.user_data_validation.validate_schedule_periods__validate_time_format` imported but unused
 
 ### `tests/test_error_handling_improvements.py`
 
 **Count**: 4 unused import(s)
 
-- **Line 13**: Unused patch imported from unittest.mock
-- **Line 13**: Unused MagicMock imported from unittest.mock
-- **Line 16**: Unused DataError imported from core.error_handling
-- **Line 16**: Unused FileOperationError imported from core.error_handling
+- **Line 13**: `unittest.mock.patch` imported but unused
+- **Line 13**: `unittest.mock.MagicMock` imported but unused
+- **Line 16**: `core.error_handling.DataError` imported but unused
+- **Line 16**: `core.error_handling.FileOperationError` imported but unused
 
 ### `tests/test_utilities.py`
 
 **Count**: 4 unused import(s)
 
-- **Line 20**: Unused create_new_user imported from core.user_data_handlers
-- **Line 20**: Unused save_user_data imported from core.user_data_handlers
-- **Line 20**: Unused get_user_data imported from core.user_data_handlers
-- **Line 21**: Unused ensure_user_directory imported from core.file_operations
+- **Line 20**: `core.user_data_handlers.create_new_user` imported but unused
+- **Line 20**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 20**: `core.user_data_handlers.get_user_data` imported but unused
+- **Line 21**: `core.file_operations.ensure_user_directory` imported but unused
 
 ### `tests/ui/test_account_creation_ui.py`
 
-**Count**: 5 unused import(s)
+**Count**: 7 unused import(s)
 
-- **Line 22**: Unused MagicMock imported from unittest.mock
-- **Line 36**: Unused create_user_files imported from core.file_operations
-- **Line 36**: Unused get_user_file_path imported from core.file_operations
-- **Line 37**: Unused is_valid_email imported from core.user_data_validation
-- **Line 37**: Unused validate_schedule_periods__validate_time_format imported from core.user_data_validation
+- **Line 22**: `unittest.mock.MagicMock` imported but unused
+- **Line 36**: `core.file_operations.create_user_files` imported but unused
+- **Line 36**: `core.file_operations.get_user_file_path` imported but unused
+- **Line 38**: `core.user_data_validation.is_valid_email` imported but unused
+- **Line 39**: `core.user_data_validation.validate_schedule_periods__validate_time_format` imported but unused
+- **Line 2086**: `core.user_data_handlers.get_user_data` imported but unused
+- **Line 2372**: `core.user_data_handlers.get_user_data` imported but unused
 
 ### `tests/ui/test_account_creator_dialog_validation.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 13**: Unused patch imported from unittest.mock
+- **Line 13**: `unittest.mock.patch` imported but unused
 
 ### `tests/ui/test_category_management_dialog.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 16**: Unused Mock imported from unittest.mock
-- **Line 16**: Unused MagicMock imported from unittest.mock
+- **Line 16**: `unittest.mock.Mock` imported but unused
+- **Line 16**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/ui/test_channel_management_dialog_coverage_expansion.py`
 
 **Count**: 5 unused import(s)
 
-- **Line 16**: Unused get_user_data imported from core.user_data_handlers
-- **Line 16**: Unused update_channel_preferences imported from core.user_data_handlers
-- **Line 16**: Unused update_user_account imported from core.user_data_handlers
-- **Line 17**: Unused is_valid_email imported from core.user_data_validation
-- **Line 17**: Unused is_valid_phone imported from core.user_data_validation
+- **Line 16**: `core.user_data_handlers.get_user_data` imported but unused
+- **Line 16**: `core.user_data_handlers.update_channel_preferences` imported but unused
+- **Line 16**: `core.user_data_handlers.update_user_account` imported but unused
+- **Line 17**: `core.user_data_validation.is_valid_email` imported but unused
+- **Line 17**: `core.user_data_validation.is_valid_phone` imported but unused
 
 ### `tests/ui/test_dialog_behavior.py`
 
 **Count**: 6 unused import(s)
 
-- **Line 23**: Unused patch imported from unittest.mock
-- **Line 23**: Unused Mock imported from unittest.mock
-- **Line 23**: Unused MagicMock imported from unittest.mock
-- **Line 32**: Unused save_user_data imported from core.user_data_handlers
-- **Line 33**: Unused create_user_files imported from core.file_operations
-- **Line 33**: Unused get_user_file_path imported from core.file_operations
+- **Line 23**: `unittest.mock.patch` imported but unused
+- **Line 23**: `unittest.mock.Mock` imported but unused
+- **Line 23**: `unittest.mock.MagicMock` imported but unused
+- **Line 32**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 33**: `core.file_operations.create_user_files` imported but unused
+- **Line 33**: `core.file_operations.get_user_file_path` imported but unused
 
 ### `tests/ui/test_dialog_coverage_expansion.py`
 
 **Count**: 7 unused import(s)
 
-- **Line 26**: Unused Mock imported from unittest.mock
-- **Line 26**: Unused MagicMock imported from unittest.mock
-- **Line 35**: Unused save_user_data imported from core.user_data_handlers
-- **Line 35**: Unused get_user_data imported from core.user_data_handlers
-- **Line 36**: Unused create_user_files imported from core.file_operations
-- **Line 37**: Unused get_schedule_time_periods imported from core.schedule_management
-- **Line 37**: Unused set_schedule_periods imported from core.schedule_management
+- **Line 26**: `unittest.mock.Mock` imported but unused
+- **Line 26**: `unittest.mock.MagicMock` imported but unused
+- **Line 35**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 35**: `core.user_data_handlers.get_user_data` imported but unused
+- **Line 36**: `core.file_operations.create_user_files` imported but unused
+- **Line 37**: `core.schedule_management.get_schedule_time_periods` imported but unused
+- **Line 37**: `core.schedule_management.set_schedule_periods` imported but unused
 
 ### `tests/ui/test_message_editor_dialog.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 16**: Unused Mock imported from unittest.mock
+- **Line 16**: `unittest.mock.Mock` imported but unused
 
 ### `tests/ui/test_process_watcher_dialog.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 17**: Unused Mock imported from unittest.mock
+- **Line 17**: `unittest.mock.Mock` imported but unused
 
 ### `tests/ui/test_signal_handler_integration.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 40**: Unused patch imported from unittest.mock
-- **Line 40**: Unused MagicMock imported from unittest.mock
+- **Line 40**: `unittest.mock.patch` imported but unused
+- **Line 40**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/ui/test_task_crud_dialog.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 13**: Unused Mock imported from unittest.mock
+- **Line 13**: `unittest.mock.Mock` imported but unused
 
 ### `tests/ui/test_task_management_dialog.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 18**: Unused MagicMock imported from unittest.mock
+- **Line 18**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/ui/test_task_settings_widget.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 18**: Unused Mock imported from unittest.mock
-- **Line 18**: Unused MagicMock imported from unittest.mock
+- **Line 18**: `unittest.mock.Mock` imported but unused
+- **Line 18**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/ui/test_ui_button_verification.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 14**: Unused Mock imported from unittest.mock
-- **Line 14**: Unused patch imported from unittest.mock
+- **Line 14**: `unittest.mock.Mock` imported but unused
+- **Line 14**: `unittest.mock.patch` imported but unused
 
 ### `tests/ui/test_ui_components_headless.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 14**: Unused patch imported from unittest.mock
+- **Line 14**: `unittest.mock.patch` imported but unused
 
 ### `tests/ui/test_ui_widgets_coverage_expansion.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 22**: Unused Mock imported from unittest.mock
-- **Line 22**: Unused MagicMock imported from unittest.mock
+- **Line 22**: `unittest.mock.Mock` imported but unused
+- **Line 22**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/ui/test_user_analytics_dialog.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 16**: Unused Mock imported from unittest.mock
+- **Line 16**: `unittest.mock.Mock` imported but unused
 
 ### `tests/ui/test_user_profile_dialog_coverage_expansion.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 13**: Unused MagicMock imported from unittest.mock
+- **Line 13**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/ui/test_widget_behavior.py`
 
 **Count**: 7 unused import(s)
 
-- **Line 25**: Unused patch imported from unittest.mock
-- **Line 25**: Unused Mock imported from unittest.mock
-- **Line 25**: Unused MagicMock imported from unittest.mock
-- **Line 34**: Unused save_user_data imported from core.user_data_handlers
-- **Line 34**: Unused get_user_data imported from core.user_data_handlers
-- **Line 35**: Unused create_user_files imported from core.file_operations
-- **Line 35**: Unused get_user_file_path imported from core.file_operations
+- **Line 25**: `unittest.mock.patch` imported but unused
+- **Line 25**: `unittest.mock.Mock` imported but unused
+- **Line 25**: `unittest.mock.MagicMock` imported but unused
+- **Line 34**: `core.user_data_handlers.save_user_data` imported but unused
+- **Line 34**: `core.user_data_handlers.get_user_data` imported but unused
+- **Line 35**: `core.file_operations.create_user_files` imported but unused
+- **Line 35**: `core.file_operations.get_user_file_path` imported but unused
 
 ### `tests/ui/test_widget_behavior_simple.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 15**: Unused patch imported from unittest.mock
-- **Line 15**: Unused Mock imported from unittest.mock
+- **Line 15**: `unittest.mock.patch` imported but unused
+- **Line 15**: `unittest.mock.Mock` imported but unused
 
 ### `tests/unit/test_admin_panel.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 17**: Unused Mock imported from unittest.mock
-- **Line 17**: Unused MagicMock imported from unittest.mock
+- **Line 17**: `unittest.mock.Mock` imported but unused
+- **Line 17**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_ai_chatbot_helpers.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 8**: Unused Mock imported from unittest.mock
-- **Line 8**: Unused MagicMock imported from unittest.mock
+- **Line 8**: `unittest.mock.Mock` imported but unused
+- **Line 8**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_channel_orchestrator.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 9**: Unused MagicMock imported from unittest.mock
+- **Line 9**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_checkin_management_dialog.py`
 
-**Count**: 1 unused import(s)
+**Count**: 3 unused import(s)
 
-- **Line 20**: Unused MagicMock imported from unittest.mock
+- **Line 20**: `unittest.mock.MagicMock` imported but unused
+- **Line 70**: `core.user_data_handlers.get_user_data` imported but unused
+- **Line 71**: `core.user_data_handlers.update_user_account` imported but unused
 
 ### `tests/unit/test_checkin_view.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 9**: Unused Mock imported from unittest.mock
-- **Line 9**: Unused MagicMock imported from unittest.mock
+- **Line 9**: `unittest.mock.Mock` imported but unused
+- **Line 9**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_command_parser_helpers.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 9**: Unused MagicMock imported from unittest.mock
+- **Line 9**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_communication_core_init.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 12**: Unused patch imported from unittest.mock
-- **Line 12**: Unused MagicMock imported from unittest.mock
+- **Line 12**: `unittest.mock.patch` imported but unused
+- **Line 12**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_communication_init.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 12**: Unused patch imported from unittest.mock
-- **Line 12**: Unused MagicMock imported from unittest.mock
+- **Line 12**: `unittest.mock.patch` imported but unused
+- **Line 12**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_email_bot_body_extraction.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 12**: Unused MagicMock imported from unittest.mock
+- **Line 12**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_enhanced_checkin_responses.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 12**: Unused MagicMock imported from unittest.mock
+- **Line 12**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_file_operations.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 20**: Unused FileOperationError imported from core.error_handling
+- **Line 20**: `core.error_handling.FileOperationError` imported but unused
 
 ### `tests/unit/test_interaction_handlers_helpers.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 9**: Unused Mock imported from unittest.mock
-- **Line 9**: Unused MagicMock imported from unittest.mock
+- **Line 9**: `unittest.mock.Mock` imported but unused
+- **Line 9**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_logger_unit.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 14**: Unused Mock imported from unittest.mock
-- **Line 14**: Unused mock_open imported from unittest.mock
+- **Line 14**: `unittest.mock.Mock` imported but unused
+- **Line 14**: `unittest.mock.mock_open` imported but unused
 
 ### `tests/unit/test_message_formatter.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 12**: Unused MagicMock imported from unittest.mock
-- **Line 19**: Unused DataError imported from core.error_handling
+- **Line 12**: `unittest.mock.MagicMock` imported but unused
+- **Line 19**: `core.error_handling.DataError` imported but unused
 
 ### `tests/unit/test_profile_handler.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 3**: Unused patch imported from unittest.mock
+- **Line 3**: `unittest.mock.patch` imported but unused
 
 ### `tests/unit/test_prompt_manager.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 19**: Unused Mock imported from unittest.mock
-- **Line 19**: Unused MagicMock imported from unittest.mock
+- **Line 19**: `unittest.mock.Mock` imported but unused
+- **Line 19**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_recurring_tasks.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 11**: Unused _create_next_recurring_task_instance imported from tasks.task_management
+- **Line 13**: `tasks.task_management._create_next_recurring_task_instance` imported but unused
 
 ### `tests/unit/test_ui_management.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 16**: Unused MagicMock imported from unittest.mock
+- **Line 16**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_user_context.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 16**: Unused Mock imported from unittest.mock
-- **Line 16**: Unused MagicMock imported from unittest.mock
+- **Line 16**: `unittest.mock.Mock` imported but unused
+- **Line 16**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_user_data_handlers.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 10**: Unused MagicMock imported from unittest.mock
+- **Line 10**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/unit/test_user_data_manager.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 14**: Unused Mock imported from unittest.mock
-- **Line 14**: Unused MagicMock imported from unittest.mock
-- **Line 14**: Unused mock_open imported from unittest.mock
+- **Line 14**: `unittest.mock.Mock` imported but unused
+- **Line 14**: `unittest.mock.MagicMock` imported but unused
+- **Line 14**: `unittest.mock.mock_open` imported but unused
 
 ### `tests/unit/test_user_management.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 10**: Unused patch imported from unittest.mock
-- **Line 12**: Unused update_user_account imported from core.user_data_handlers
-- **Line 12**: Unused update_user_context imported from core.user_data_handlers
+- **Line 10**: `unittest.mock.patch` imported but unused
+- **Line 17**: `core.user_data_handlers.update_user_account` imported but unused
+- **Line 18**: `core.user_data_handlers.update_user_context` imported but unused
 
 ### `tests/unit/test_user_preferences.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 16**: Unused Mock imported from unittest.mock
-- **Line 16**: Unused MagicMock imported from unittest.mock
-- **Line 20**: Unused get_user_data imported from core.user_data_handlers
+- **Line 16**: `unittest.mock.Mock` imported but unused
+- **Line 16**: `unittest.mock.MagicMock` imported but unused
+- **Line 20**: `core.user_data_handlers.get_user_data` imported but unused
 
 ## Qt Testing
 
@@ -522,140 +752,140 @@
 
 **Count**: 4 unused import(s)
 
-- **Line 25**: Unused QWidget imported from PySide6.QtWidgets
-- **Line 25**: Unused QMessageBox imported from PySide6.QtWidgets
-- **Line 26**: Unused Qt imported from PySide6.QtCore
-- **Line 26**: Unused QTimer imported from PySide6.QtCore
+- **Line 25**: `PySide6.QtWidgets.QWidget` imported but unused
+- **Line 25**: `PySide6.QtWidgets.QMessageBox` imported but unused
+- **Line 26**: `PySide6.QtCore.Qt` imported but unused
+- **Line 26**: `PySide6.QtCore.QTimer` imported but unused
 
 ### `tests/ui/test_category_management_dialog.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 18**: Unused QMessageBox imported from PySide6.QtWidgets
-- **Line 19**: Unused Qt imported from PySide6.QtCore
-- **Line 20**: Unused QTest imported from PySide6.QtTest
+- **Line 18**: `PySide6.QtWidgets.QMessageBox` imported but unused
+- **Line 19**: `PySide6.QtCore.Qt` imported but unused
+- **Line 20**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/ui/test_dialog_behavior.py`
 
 **Count**: 5 unused import(s)
 
-- **Line 26**: Unused QWidget imported from PySide6.QtWidgets
-- **Line 26**: Unused QMessageBox imported from PySide6.QtWidgets
-- **Line 26**: Unused QDialog imported from PySide6.QtWidgets
-- **Line 27**: Unused Qt imported from PySide6.QtCore
-- **Line 27**: Unused QTimer imported from PySide6.QtCore
+- **Line 26**: `PySide6.QtWidgets.QWidget` imported but unused
+- **Line 26**: `PySide6.QtWidgets.QMessageBox` imported but unused
+- **Line 26**: `PySide6.QtWidgets.QDialog` imported but unused
+- **Line 27**: `PySide6.QtCore.Qt` imported but unused
+- **Line 27**: `PySide6.QtCore.QTimer` imported but unused
 
 ### `tests/ui/test_dialog_coverage_expansion.py`
 
 **Count**: 4 unused import(s)
 
-- **Line 29**: Unused QWidget imported from PySide6.QtWidgets
-- **Line 30**: Unused Qt imported from PySide6.QtCore
-- **Line 30**: Unused QTimer imported from PySide6.QtCore
-- **Line 31**: Unused QTest imported from PySide6.QtTest
+- **Line 29**: `PySide6.QtWidgets.QWidget` imported but unused
+- **Line 30**: `PySide6.QtCore.Qt` imported but unused
+- **Line 30**: `PySide6.QtCore.QTimer` imported but unused
+- **Line 31**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/ui/test_message_editor_dialog.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 17**: Unused QTableWidgetItem imported from PySide6.QtWidgets
-- **Line 18**: Unused Qt imported from PySide6.QtCore
-- **Line 19**: Unused QTest imported from PySide6.QtTest
+- **Line 17**: `PySide6.QtWidgets.QTableWidgetItem` imported but unused
+- **Line 18**: `PySide6.QtCore.Qt` imported but unused
+- **Line 19**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/ui/test_process_watcher_dialog.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 22**: Unused Qt imported from PySide6.QtCore
-- **Line 22**: Unused QTimer imported from PySide6.QtCore
-- **Line 23**: Unused QTest imported from PySide6.QtTest
+- **Line 22**: `PySide6.QtCore.Qt` imported but unused
+- **Line 22**: `PySide6.QtCore.QTimer` imported but unused
+- **Line 23**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/ui/test_signal_handler_integration.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 41**: Unused QLineEdit imported from PySide6.QtWidgets
-- **Line 42**: Unused Qt imported from PySide6.QtCore
-- **Line 43**: Unused QTest imported from PySide6.QtTest
+- **Line 41**: `PySide6.QtWidgets.QLineEdit` imported but unused
+- **Line 42**: `PySide6.QtCore.Qt` imported but unused
+- **Line 43**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/ui/test_task_crud_dialog.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 14**: Unused QTableWidgetItem imported from PySide6.QtWidgets
+- **Line 14**: `PySide6.QtWidgets.QTableWidgetItem` imported but unused
 
 ### `tests/ui/test_task_management_dialog.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 20**: Unused QMessageBox imported from PySide6.QtWidgets
-- **Line 21**: Unused Qt imported from PySide6.QtCore
-- **Line 22**: Unused QTest imported from PySide6.QtTest
+- **Line 20**: `PySide6.QtWidgets.QMessageBox` imported but unused
+- **Line 21**: `PySide6.QtCore.Qt` imported but unused
+- **Line 22**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/ui/test_task_settings_widget.py`
 
 **Count**: 4 unused import(s)
 
-- **Line 19**: Unused QWidget imported from PySide6.QtWidgets
-- **Line 19**: Unused QMessageBox imported from PySide6.QtWidgets
-- **Line 20**: Unused Qt imported from PySide6.QtCore
-- **Line 21**: Unused QTest imported from PySide6.QtTest
+- **Line 19**: `PySide6.QtWidgets.QWidget` imported but unused
+- **Line 19**: `PySide6.QtWidgets.QMessageBox` imported but unused
+- **Line 20**: `PySide6.QtCore.Qt` imported but unused
+- **Line 21**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/ui/test_ui_widgets_coverage_expansion.py`
 
 **Count**: 5 unused import(s)
 
-- **Line 26**: Unused QWidget imported from PySide6.QtWidgets
-- **Line 26**: Unused QListWidgetItem imported from PySide6.QtWidgets
-- **Line 26**: Unused QInputDialog imported from PySide6.QtWidgets
-- **Line 27**: Unused QTimer imported from PySide6.QtCore
-- **Line 28**: Unused QTest imported from PySide6.QtTest
+- **Line 26**: `PySide6.QtWidgets.QWidget` imported but unused
+- **Line 26**: `PySide6.QtWidgets.QListWidgetItem` imported but unused
+- **Line 26**: `PySide6.QtWidgets.QInputDialog` imported but unused
+- **Line 27**: `PySide6.QtCore.QTimer` imported but unused
+- **Line 28**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/ui/test_user_analytics_dialog.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 19**: Unused Qt imported from PySide6.QtCore
-- **Line 20**: Unused QTest imported from PySide6.QtTest
+- **Line 19**: `PySide6.QtCore.Qt` imported but unused
+- **Line 20**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/ui/test_user_profile_dialog_coverage_expansion.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 18**: Unused QTest imported from PySide6.QtTest
+- **Line 18**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/ui/test_widget_behavior.py`
 
 **Count**: 5 unused import(s)
 
-- **Line 28**: Unused QMessageBox imported from PySide6.QtWidgets
-- **Line 28**: Unused QDialog imported from PySide6.QtWidgets
-- **Line 29**: Unused Qt imported from PySide6.QtCore
-- **Line 29**: Unused QTimer imported from PySide6.QtCore
-- **Line 30**: Unused QTest imported from PySide6.QtTest
+- **Line 28**: `PySide6.QtWidgets.QMessageBox` imported but unused
+- **Line 28**: `PySide6.QtWidgets.QDialog` imported but unused
+- **Line 29**: `PySide6.QtCore.Qt` imported but unused
+- **Line 29**: `PySide6.QtCore.QTimer` imported but unused
+- **Line 30**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/ui/test_widget_behavior_simple.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 16**: Unused QWidget imported from PySide6.QtWidgets
-- **Line 17**: Unused Qt imported from PySide6.QtCore
-- **Line 18**: Unused QTest imported from PySide6.QtTest
+- **Line 16**: `PySide6.QtWidgets.QWidget` imported but unused
+- **Line 17**: `PySide6.QtCore.Qt` imported but unused
+- **Line 18**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/unit/test_admin_panel.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 19**: Unused Qt imported from PySide6.QtCore
-- **Line 20**: Unused QTest imported from PySide6.QtTest
+- **Line 19**: `PySide6.QtCore.Qt` imported but unused
+- **Line 20**: `PySide6.QtTest.QTest` imported but unused
 
 ### `tests/unit/test_checkin_management_dialog.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 21**: Unused QMessageBox imported from PySide6.QtWidgets
-- **Line 22**: Unused Qt imported from PySide6.QtCore
-- **Line 23**: Unused QTest imported from PySide6.QtTest
+- **Line 21**: `PySide6.QtWidgets.QMessageBox` imported but unused
+- **Line 22**: `PySide6.QtCore.Qt` imported but unused
+- **Line 23**: `PySide6.QtTest.QTest` imported but unused
 
 ## Test Infrastructure
 
@@ -663,479 +893,502 @@
 
 ### `tests/ai/ai_test_base.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
-- **Line 8**: Unused datetime imported from datetime
+- **Line 8**: `datetime.datetime` imported but unused
+- **Line 255**: `datetime.datetime` imported but unused
 
 ### `tests/ai/test_ai_core.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 8**: Unused import time
+- **Line 8**: `time` imported but unused
 
 ### `tests/ai/test_context_includes_recent_messages.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 1**: Unused import os
+- **Line 1**: `os` imported but unused
 
 ### `tests/communication/test_channel_monitor.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 8**: Unused datetime imported from datetime
+- **Line 8**: `datetime.datetime` imported but unused
 
 ### `tests/communication/test_retry_manager.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 6**: Unused import time
-- **Line 7**: Unused import threading
+- **Line 6**: `time` imported but unused
+- **Line 7**: `threading` imported but unused
+
+### `tests/conftest.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 1422**: `datetime.datetime` imported but unused
+- **Line 3202**: `os` imported but unused
+- **Line 4787**: `time` imported but unused
 
 ### `tests/core/test_message_management.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 7**: Unused import json
-- **Line 9**: Unused datetime imported from datetime
+- **Line 7**: `json` imported but unused
+- **Line 9**: `datetime.datetime` imported but unused
 
 ### `tests/core/test_schedule_utilities.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 7**: Unused time imported from datetime
+- **Line 7**: `datetime.time` imported but unused
 
 ### `tests/development_tools/test_analysis_tool_validation.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 12**: Unused demo_project_root imported from tests.development_tools.conftest
-- **Line 12**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 12**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 12**: `tests.development_tools.conftest.test_config_path` imported but unused
+
+### `tests/development_tools/test_analysis_validation_framework.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 16**: `json` imported but unused
 
 ### `tests/development_tools/test_analyze_ai_work.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 9**: Unused import tempfile
-- **Line 10**: Unused Path imported from pathlib
-- **Line 13**: Unused demo_project_root imported from tests.development_tools.conftest
+- **Line 9**: `tempfile` imported but unused
+- **Line 10**: `pathlib.Path` imported but unused
+- **Line 13**: `tests.development_tools.conftest.demo_project_root` imported but unused
 
 ### `tests/development_tools/test_analyze_ascii_compliance.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 10**: Unused demo_project_root imported from tests.development_tools.conftest
-- **Line 10**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 10**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 10**: `tests.development_tools.conftest.test_config_path` imported but unused
 
 ### `tests/development_tools/test_analyze_documentation.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 9**: Unused import tempfile
-- **Line 13**: Unused demo_project_root imported from tests.development_tools.conftest
+- **Line 9**: `tempfile` imported but unused
+- **Line 13**: `tests.development_tools.conftest.demo_project_root` imported but unused
 
 ### `tests/development_tools/test_analyze_error_handling.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 12**: Unused demo_project_root imported from tests.development_tools.conftest
-- **Line 12**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 12**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 12**: `tests.development_tools.conftest.test_config_path` imported but unused
 
 ### `tests/development_tools/test_analyze_function_registry.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 10**: Unused Path imported from pathlib
-- **Line 13**: Unused demo_project_root imported from tests.development_tools.conftest
-- **Line 13**: Unused test_config_path imported from tests.development_tools.conftest
-
-### `tests/development_tools/test_analyze_functions.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 13**: Unused demo_project_root imported from tests.development_tools.conftest
-- **Line 13**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 10**: `pathlib.Path` imported but unused
+- **Line 13**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 13**: `tests.development_tools.conftest.test_config_path` imported but unused
 
 ### `tests/development_tools/test_analyze_heading_numbering.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 10**: Unused demo_project_root imported from tests.development_tools.conftest
-- **Line 10**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 10**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 10**: `tests.development_tools.conftest.test_config_path` imported but unused
 
 ### `tests/development_tools/test_analyze_missing_addresses.py`
 
-**Count**: 4 unused import(s)
+**Count**: 2 unused import(s)
 
-- **Line 8**: Unused import tempfile
-- **Line 9**: Unused Path imported from pathlib
-- **Line 11**: Unused demo_project_root imported from tests.development_tools.conftest
-- **Line 11**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 8**: `tempfile` imported but unused
+- **Line 9**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_analyze_module_dependencies.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 9**: Unused import tempfile
-- **Line 10**: Unused Path imported from pathlib
-- **Line 13**: Unused demo_project_root imported from tests.development_tools.conftest
+- **Line 9**: `tempfile` imported but unused
+- **Line 10**: `pathlib.Path` imported but unused
+- **Line 13**: `tests.development_tools.conftest.demo_project_root` imported but unused
 
 ### `tests/development_tools/test_analyze_unconverted_links.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 10**: Unused demo_project_root imported from tests.development_tools.conftest
-- **Line 10**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 10**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 10**: `tests.development_tools.conftest.test_config_path` imported but unused
 
 ### `tests/development_tools/test_analyze_unused_imports.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 10**: Unused import tempfile
-- **Line 11**: Unused Path imported from pathlib
-- **Line 14**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 10**: `tempfile` imported but unused
+- **Line 11**: `pathlib.Path` imported but unused
+- **Line 14**: `tests.development_tools.conftest.test_config_path` imported but unused
 
 ### `tests/development_tools/test_decision_support.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 9**: Unused Path imported from pathlib
+- **Line 9**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_documentation_sync_checker.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 9**: Unused Path imported from pathlib
+- **Line 9**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_error_scenarios.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 10**: Unused import shutil
+- **Line 10**: `shutil` imported but unused
 
 ### `tests/development_tools/test_exclusion_utilities.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 9**: Unused Path imported from pathlib
+- **Line 9**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_false_negative_detection.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 14**: Unused Path imported from pathlib
-- **Line 18**: Unused demo_project_root imported from tests.development_tools.conftest
-- **Line 18**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 14**: `pathlib.Path` imported but unused
+- **Line 18**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 18**: `tests.development_tools.conftest.test_config_path` imported but unused
 
 ### `tests/development_tools/test_fix_documentation.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 8**: Unused Path imported from pathlib
+- **Line 8**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_fix_documentation_addresses.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 8**: Unused import tempfile
-- **Line 9**: Unused Path imported from pathlib
+- **Line 8**: `tempfile` imported but unused
+- **Line 9**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_fix_documentation_ascii.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 8**: Unused import tempfile
-- **Line 9**: Unused Path imported from pathlib
+- **Line 8**: `tempfile` imported but unused
+- **Line 9**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_fix_documentation_headings.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 11**: Unused temp_project_copy imported from tests.development_tools.conftest
+- **Line 11**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
 ### `tests/development_tools/test_fix_documentation_links.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 11**: Unused temp_project_copy imported from tests.development_tools.conftest
+- **Line 11**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
 ### `tests/development_tools/test_fix_project_cleanup.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 9**: Unused import tempfile
-- **Line 13**: Unused temp_project_copy imported from tests.development_tools.conftest
+- **Line 9**: `tempfile` imported but unused
+- **Line 13**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
 ### `tests/development_tools/test_generate_consolidated_report.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 12**: Unused temp_project_copy imported from tests.development_tools.conftest
+- **Line 12**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
 ### `tests/development_tools/test_generate_directory_tree.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 12**: Unused demo_project_root imported from tests.development_tools.conftest
-- **Line 12**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 12**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 12**: `tests.development_tools.conftest.test_config_path` imported but unused
 
 ### `tests/development_tools/test_generate_error_handling_report.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 10**: Unused Path imported from pathlib
+- **Line 10**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_generate_function_docstrings.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 9**: Unused Path imported from pathlib
-- **Line 12**: Unused demo_project_root imported from tests.development_tools.conftest
-- **Line 12**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 9**: `pathlib.Path` imported but unused
+- **Line 12**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 12**: `tests.development_tools.conftest.test_config_path` imported but unused
 
 ### `tests/development_tools/test_generate_function_registry.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 8**: Unused Path imported from pathlib
+- **Line 8**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_generate_module_dependencies.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 8**: Unused Path imported from pathlib
+- **Line 8**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_generate_unused_imports_report.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 8**: Unused import json
-- **Line 9**: Unused Path imported from pathlib
-- **Line 12**: Unused temp_project_copy imported from tests.development_tools.conftest
+- **Line 8**: `json` imported but unused
+- **Line 9**: `pathlib.Path` imported but unused
+- **Line 12**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
 ### `tests/development_tools/test_legacy_reference_cleanup.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 11**: Unused Path imported from pathlib
+- **Line 11**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_output_storage_archiving.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 10**: Unused Path imported from pathlib
-- **Line 13**: Unused temp_project_copy imported from tests.development_tools.conftest
+- **Line 10**: `pathlib.Path` imported but unused
+- **Line 13**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
 ### `tests/development_tools/test_path_drift_detection.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 13**: Unused import tempfile
-- **Line 14**: Unused import shutil
-- **Line 15**: Unused Path imported from pathlib
+- **Line 13**: `tempfile` imported but unused
+- **Line 14**: `shutil` imported but unused
+- **Line 15**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_path_drift_integration.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 9**: Unused import tempfile
-- **Line 10**: Unused Path imported from pathlib
-- **Line 13**: Unused temp_project_copy imported from tests.development_tools.conftest
+- **Line 9**: `tempfile` imported but unused
+- **Line 10**: `pathlib.Path` imported but unused
+- **Line 13**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
 ### `tests/development_tools/test_path_drift_verification_comprehensive.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 9**: Unused Path imported from pathlib
-- **Line 11**: Unused temp_project_copy imported from tests.development_tools.conftest
+- **Line 9**: `pathlib.Path` imported but unused
+- **Line 11**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
 ### `tests/development_tools/test_regenerate_coverage_metrics.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 9**: Unused Path imported from pathlib
+- **Line 9**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_status_file_timing.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 10**: Unused import time
-- **Line 20**: Unused temp_project_copy imported from tests.development_tools.conftest
+- **Line 10**: `time` imported but unused
+- **Line 20**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
 ### `tests/integration/test_account_management.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 11**: Unused import time
-- **Line 12**: Unused import tempfile
+- **Line 11**: `time` imported but unused
+- **Line 12**: `tempfile` imported but unused
 
 ### `tests/integration/test_orphaned_reminder_cleanup.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 9**: Unused datetime imported from datetime
+- **Line 9**: `datetime.datetime` imported but unused
 
 ### `tests/integration/test_task_cleanup_real.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 12**: Unused datetime imported from datetime
+- **Line 12**: `datetime.datetime` imported but unused
 
 ### `tests/integration/test_task_cleanup_real_bug_verification.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 12**: Unused datetime imported from datetime
+- **Line 12**: `datetime.datetime` imported but unused
 
 ### `tests/integration/test_task_cleanup_silent_failure.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 10**: Unused datetime imported from datetime
+- **Line 10**: `datetime.datetime` imported but unused
 
 ### `tests/integration/test_task_reminder_integration.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 9**: Unused datetime imported from datetime
-- **Line 10**: Unused import time
+- **Line 9**: `datetime.datetime` imported but unused
+- **Line 10**: `time` imported but unused
 
 ### `tests/integration/test_user_creation.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 14**: Unused import json
-- **Line 15**: Unused import tempfile
-- **Line 17**: Unused datetime imported from datetime
+- **Line 14**: `json` imported but unused
+- **Line 15**: `tempfile` imported but unused
+- **Line 17**: `datetime.datetime` imported but unused
 
 ### `tests/test_utilities.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 8**: Unused import tempfile
-- **Line 15**: Unused Path imported from pathlib
+- **Line 8**: `tempfile` imported but unused
+- **Line 15**: `pathlib.Path` imported but unused
 
 ### `tests/ui/test_account_creation_ui.py`
 
 **Count**: 6 unused import(s)
 
-- **Line 21**: Unused import shutil
-- **Line 23**: Unused datetime imported from datetime
-- **Line 80**: Unused CategorySelectionWidget imported from ui.widgets.category_selection_widget
-- **Line 81**: Unused ChannelSelectionWidget imported from ui.widgets.channel_selection_widget
-- **Line 82**: Unused TaskSettingsWidget imported from ui.widgets.task_settings_widget
-- **Line 83**: Unused CheckinSettingsWidget imported from ui.widgets.checkin_settings_widget
+- **Line 21**: `shutil` imported but unused
+- **Line 23**: `datetime.datetime` imported but unused
+- **Line 80**: `ui.widgets.category_selection_widget.CategorySelectionWidget` imported but unused
+- **Line 81**: `ui.widgets.channel_selection_widget.ChannelSelectionWidget` imported but unused
+- **Line 82**: `ui.widgets.task_settings_widget.TaskSettingsWidget` imported but unused
+- **Line 83**: `ui.widgets.checkin_settings_widget.CheckinSettingsWidget` imported but unused
 
 ### `tests/ui/test_dialog_behavior.py`
 
 **Count**: 7 unused import(s)
 
-- **Line 22**: Unused import shutil
-- **Line 24**: Unused datetime imported from datetime
-- **Line 24**: Unused time imported from datetime
-- **Line 39**: Unused open_schedule_editor imported from ui.dialogs.schedule_editor_dialog
-- **Line 40**: Unused TaskEditDialog imported from ui.dialogs.task_edit_dialog
-- **Line 41**: Unused TaskCrudDialog imported from ui.dialogs.task_crud_dialog
-- **Line 42**: Unused TaskCompletionDialog imported from ui.dialogs.task_completion_dialog
+- **Line 22**: `shutil` imported but unused
+- **Line 24**: `datetime.datetime` imported but unused
+- **Line 24**: `datetime.time` imported but unused
+- **Line 39**: `ui.dialogs.schedule_editor_dialog.open_schedule_editor` imported but unused
+- **Line 40**: `ui.dialogs.task_edit_dialog.TaskEditDialog` imported but unused
+- **Line 41**: `ui.dialogs.task_crud_dialog.TaskCrudDialog` imported but unused
+- **Line 42**: `ui.dialogs.task_completion_dialog.TaskCompletionDialog` imported but unused
 
 ### `tests/ui/test_dialog_coverage_expansion.py`
 
 **Count**: 6 unused import(s)
 
-- **Line 25**: Unused import shutil
-- **Line 27**: Unused datetime imported from datetime
-- **Line 27**: Unused time imported from datetime
-- **Line 28**: Unused Path imported from pathlib
-- **Line 40**: Unused TaskCrudDialog imported from ui.dialogs.task_crud_dialog
-- **Line 43**: Unused TestDataFactory imported from tests.test_utilities
+- **Line 25**: `shutil` imported but unused
+- **Line 27**: `datetime.datetime` imported but unused
+- **Line 27**: `datetime.time` imported but unused
+- **Line 28**: `pathlib.Path` imported but unused
+- **Line 40**: `ui.dialogs.task_crud_dialog.TaskCrudDialog` imported but unused
+- **Line 43**: `tests.test_utilities.TestDataFactory` imported but unused
 
 ### `tests/ui/test_dialogs.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 15**: Unused Path imported from pathlib
+- **Line 15**: `pathlib.Path` imported but unused
 
 ### `tests/ui/test_process_watcher_dialog.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 18**: Unused datetime imported from datetime
+- **Line 18**: `datetime.datetime` imported but unused
 
 ### `tests/ui/test_ui_widgets_coverage_expansion.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 23**: Unused datetime imported from datetime
+- **Line 23**: `datetime.datetime` imported but unused
 
 ### `tests/ui/test_user_analytics_dialog.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 17**: Unused datetime imported from datetime
+- **Line 17**: `datetime.datetime` imported but unused
 
 ### `tests/ui/test_user_profile_dialog_coverage_expansion.py`
 
 **Count**: 4 unused import(s)
 
-- **Line 11**: Unused import os
-- **Line 12**: Unused import tempfile
-- **Line 14**: Unused datetime imported from datetime
-- **Line 21**: Unused TestDataFactory imported from tests.test_utilities
+- **Line 11**: `os` imported but unused
+- **Line 12**: `tempfile` imported but unused
+- **Line 14**: `datetime.datetime` imported but unused
+- **Line 21**: `tests.test_utilities.TestDataFactory` imported but unused
 
 ### `tests/ui/test_widget_behavior.py`
 
 **Count**: 5 unused import(s)
 
-- **Line 22**: Unused import tempfile
-- **Line 23**: Unused import shutil
-- **Line 26**: Unused datetime imported from datetime
-- **Line 26**: Unused time imported from datetime
-- **Line 36**: Unused TestUserDataFactory imported from tests.test_utilities
+- **Line 22**: `tempfile` imported but unused
+- **Line 23**: `shutil` imported but unused
+- **Line 26**: `datetime.datetime` imported but unused
+- **Line 26**: `datetime.time` imported but unused
+- **Line 36**: `tests.test_utilities.TestUserDataFactory` imported but unused
 
 ### `tests/unit/test_auto_cleanup_logic.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 5**: Unused import tempfile
+- **Line 5**: `tempfile` imported but unused
+
+### `tests/unit/test_communication_core_init.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 68**: `datetime.datetime` imported but unused
+- **Line 292**: `datetime.datetime` imported but unused
 
 ### `tests/unit/test_file_locking.py`
 
-**Count**: 1 unused import(s)
+**Count**: 5 unused import(s)
 
-- **Line 14**: Unused Path imported from pathlib
+- **Line 14**: `pathlib.Path` imported but unused
+- **Line 269**: `tempfile` imported but unused
+- **Line 270**: `shutil` imported but unused
+- **Line 292**: `tempfile` imported but unused
+- **Line 305**: `shutil` imported but unused
 
 ### `tests/unit/test_file_operations.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 10**: Unused Path imported from pathlib
+- **Line 10**: `pathlib.Path` imported but unused
 
 ### `tests/unit/test_logger_unit.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 12**: Unused import json
+- **Line 12**: `json` imported but unused
 
 ### `tests/unit/test_prompt_manager.py`
 
 **Count**: 3 unused import(s)
 
-- **Line 17**: Unused import os
-- **Line 18**: Unused import tempfile
-- **Line 20**: Unused Path imported from pathlib
+- **Line 17**: `os` imported but unused
+- **Line 18**: `tempfile` imported but unused
+- **Line 20**: `pathlib.Path` imported but unused
+
+### `tests/unit/test_rich_formatter.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 244**: `datetime.datetime` imported but unused
 
 ### `tests/unit/test_user_data_manager.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 19**: Unused Path imported from pathlib
-- **Line 20**: Unused datetime imported from datetime
+- **Line 19**: `pathlib.Path` imported but unused
+- **Line 20**: `datetime.datetime` imported but unused
 
 ### `tests/unit/test_user_preferences.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 17**: Unused Path imported from pathlib
+- **Line 17**: `pathlib.Path` imported but unused
 
 ## Production Test Mocking
 
@@ -1145,17 +1398,32 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 26**: Unused determine_file_path imported from core.file_operations
+- **Line 27**: `core.file_operations.determine_file_path` imported but unused
+
+### `ui/ui_app_qt.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 1546**: `core.user_data_handlers.update_user_context` imported but unused
 
 ## Ui Imports
 
 **Recommendation**: These Qt imports are required for UI functionality. Keep them.
 
-### `ui/widgets/checkin_settings_widget.py`
+### `ui/ui_app_qt.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 6**: Unused QComboBox imported from PySide6.QtWidgets
+- **Line 2433**: `PySide6.QtWidgets.QScrollArea` imported but unused
+
+### `ui/widgets/checkin_settings_widget.py`
+
+**Count**: 4 unused import(s)
+
+- **Line 16**: `PySide6.QtWidgets.QComboBox` imported but unused
+- **Line 410**: `PySide6.QtCore.QTimer` imported but unused
+- **Line 799**: `PySide6.QtWidgets.QHBoxLayout` imported but unused
+- **Line 803**: `PySide6.QtWidgets.QPushButton` imported but unused
 
 ## Overall Recommendations
 

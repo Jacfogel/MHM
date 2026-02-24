@@ -26,7 +26,7 @@ class TestUnusedImportsCheckerInit:
         """Test initialization with default parameters."""
         checker = UnusedImportsChecker(project_root=str(tmp_path))
         assert checker.project_root == tmp_path.resolve()
-        assert checker.max_workers is not None
+        assert checker.max_workers is None
         assert checker.use_cache is True
         assert checker.verbose is False
     
@@ -143,6 +143,40 @@ def func():
         category = checker.categorize_unused_import(code_file, issue)
         assert category == 'obvious_unused'
 
+    @pytest.mark.unit
+    def test_extract_import_name_from_ruff_message(self, tmp_path):
+        """Ruff F401 messages should map dotted imports to symbol names for categorization."""
+        checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
+
+        assert (
+            checker._extract_import_name_from_message("`typing.Optional` imported but unused")
+            == "Optional"
+        )
+        assert (
+            checker._extract_import_name_from_message("`unittest.mock.Mock` imported but unused")
+            == "Mock"
+        )
+        assert (
+            checker._extract_import_name_from_message("`.audit_orchestration._AUDIT_LOCK_FILE` imported but unused")
+            == "_AUDIT_LOCK_FILE"
+        )
+
+    @pytest.mark.unit
+    def test_categorize_type_hints_from_ruff_message(self, tmp_path):
+        checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
+        code_file = tmp_path / "code.py"
+        code_file.write_text(
+            """
+from typing import Optional
+
+def func() -> Optional[str]:
+    return None
+"""
+        )
+        issue = {"message": "`typing.Optional` imported but unused", "line": 2}
+        category = checker.categorize_unused_import(code_file, issue)
+        assert category == "type_hints_only"
+
 
 class TestRunPylintOnFile:
     """Test running pylint on individual files."""
@@ -241,9 +275,8 @@ class TestScanCodebase:
         assert result['stats']['files_scanned'] == 0
     
     @pytest.mark.unit
-    @patch('multiprocessing.Pool')
     @patch.object(UnusedImportsChecker, 'find_python_files')
-    def test_scan_codebase_with_files(self, mock_find_files, mock_pool, tmp_path):
+    def test_scan_codebase_with_files(self, mock_find_files, tmp_path):
         """Test scanning with Python files."""
         # Create test files
         file1 = tmp_path / "file1.py"
@@ -254,28 +287,28 @@ class TestScanCodebase:
         # Mock find_python_files to return only our test files
         mock_find_files.return_value = [file1, file2]
         
-        # Mock multiprocessing Pool to return results directly (no actual subprocess)
-        mock_pool_instance = MagicMock()
-        mock_pool.return_value.__enter__.return_value = mock_pool_instance
-        mock_pool.return_value.__exit__.return_value = None
-        
-        # Mock pool.map to return our test results
-        mock_pool_instance.map.return_value = [
-            (file1, [{'message': 'Unused import os', 'message-id': 'W0611', 'line': 1}]),
-            (file2, [])
-        ]
-        
         checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
+        checker._run_detection_backend = MagicMock(
+            return_value=(
+                "ruff",
+                {
+                    file1: [{'message': 'Unused import os', 'message-id': 'W0611', 'line': 1}],
+                    file2: [],
+                },
+                False,
+                "",
+            )
+        )
         result = checker.scan_codebase()
         
         # Should have findings
         assert isinstance(result, dict)
         assert len(result.get('findings', {}).get('obvious_unused', [])) > 0
+        assert result.get("performance", {}).get("backend") == "ruff"
     
     @pytest.mark.unit
-    @patch('multiprocessing.Pool')
     @patch.object(UnusedImportsChecker, 'find_python_files')
-    def test_scan_codebase_excludes_files(self, mock_find_files, mock_pool, tmp_path):
+    def test_scan_codebase_excludes_files(self, mock_find_files, tmp_path):
         """Test that excluded files are not scanned."""
         # Create regular file (excluded files won't be in find_python_files result)
         regular_file = tmp_path / "file.py"
@@ -284,23 +317,136 @@ class TestScanCodebase:
         # Mock find_python_files to return only the regular file (excluded files filtered out)
         mock_find_files.return_value = [regular_file]
         
-        # Mock multiprocessing Pool to return results directly (no actual subprocess)
-        mock_pool_instance = MagicMock()
-        mock_pool.return_value.__enter__.return_value = mock_pool_instance
-        mock_pool.return_value.__exit__.return_value = None
-        
-        # Mock pool.map to return no unused imports
-        mock_pool_instance.map.return_value = [
-            (regular_file, [])
-        ]
-        
         checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
+        checker._run_detection_backend = MagicMock(
+            return_value=("ruff", {regular_file: []}, False, "")
+        )
         result = checker.scan_codebase()
         
         # Should process the file
         assert isinstance(result, dict)
-        # Verify pool was called (meaning files were processed)
-        assert mock_pool_instance.map.called
+        # Verify backend was called (meaning files were processed)
+        assert checker._run_detection_backend.called
+
+
+class TestBackendSelection:
+    """Test backend selection and fallback behavior."""
+
+    @pytest.mark.unit
+    @patch.object(UnusedImportsChecker, "_run_batched_ruff")
+    @patch.object(UnusedImportsChecker, "_run_batched_pylint")
+    def test_detection_falls_back_to_pylint(
+        self, mock_pylint, mock_ruff, tmp_path
+    ):
+        file1 = tmp_path / "a.py"
+        file1.write_text("import os")
+        checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
+        checker.preferred_backend = "ruff"
+        checker.ruff_command = ["ruff"]
+
+        mock_ruff.side_effect = RuntimeError("ruff unavailable")
+        mock_pylint.return_value = {file1: []}
+
+        backend, issues, fallback_used, fallback_reason = checker._run_detection_backend([file1])
+
+        assert backend == "pylint"
+        assert issues == {file1: []}
+        assert fallback_used is True
+        assert "ruff failed" in fallback_reason
+
+    @pytest.mark.unit
+    @patch.object(UnusedImportsChecker, "_run_batched_ruff")
+    @patch.object(UnusedImportsChecker, "_run_batched_pylint")
+    def test_detection_raises_when_both_backends_fail(
+        self, mock_pylint, mock_ruff, tmp_path
+    ):
+        file1 = tmp_path / "a.py"
+        file1.write_text("import os")
+        checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
+        checker.preferred_backend = "ruff"
+        checker.ruff_command = ["ruff"]
+
+        mock_ruff.side_effect = RuntimeError("ruff unavailable")
+        mock_pylint.side_effect = RuntimeError("pylint unavailable")
+
+        with pytest.raises(RuntimeError, match="unused-import detection backend failed"):
+            checker._run_detection_backend([file1])
+
+    @pytest.mark.unit
+    @patch.object(UnusedImportsChecker, "_run_batched_pylint")
+    def test_detection_raises_when_pylint_backend_fails(self, mock_pylint, tmp_path):
+        file1 = tmp_path / "a.py"
+        file1.write_text("import os")
+        checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
+        checker.preferred_backend = "pylint"
+
+        mock_pylint.side_effect = RuntimeError("pylint unavailable")
+
+        with pytest.raises(RuntimeError, match="unused-import detection backend failed"):
+            checker._run_detection_backend([file1])
+
+    @pytest.mark.unit
+    @patch("development_tools.imports.analyze_unused_imports.subprocess.run")
+    def test_ruff_runner_raises_on_missing_json_output(self, mock_run, tmp_path):
+        file1 = tmp_path / "a.py"
+        file1.write_text("import os")
+        checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
+        checker.ruff_command = ["python", "-m", "ruff"]
+        mock_run.return_value = MagicMock(
+            returncode=1,
+            stdout="",
+            stderr="No module named ruff",
+        )
+
+        with pytest.raises(RuntimeError, match="ruff produced no JSON output"):
+            checker._run_batched_ruff([file1])
+
+    @pytest.mark.unit
+    @patch("development_tools.imports.analyze_unused_imports.subprocess.run")
+    def test_pylint_runner_raises_on_missing_json_output(self, mock_run, tmp_path):
+        file1 = tmp_path / "a.py"
+        file1.write_text("import os")
+        checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
+        checker.pylint_command = ["python", "-m", "pylint"]
+        mock_run.return_value = MagicMock(
+            returncode=1,
+            stdout="",
+            stderr="No module named pylint",
+        )
+
+        with pytest.raises(RuntimeError, match="pylint produced no JSON output"):
+            checker._run_batched_pylint([file1])
+
+    @pytest.mark.unit
+    @patch("development_tools.imports.analyze_unused_imports.subprocess.run")
+    def test_python_command_normalized_to_sys_executable(self, mock_run, tmp_path):
+        file1 = tmp_path / "a.py"
+        file1.write_text("import os")
+        checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
+        checker.ruff_command = ["python", "-m", "ruff"]
+        mock_run.return_value = MagicMock(returncode=0, stdout="[]", stderr="")
+
+        checker._run_batched_ruff([file1])
+
+        called_cmd = mock_run.call_args[0][0]
+        assert called_cmd[0] == unused_imports_module.sys.executable
+
+    @pytest.mark.unit
+    @patch("development_tools.imports.analyze_unused_imports.subprocess.run")
+    def test_pylint_uses_smaller_fallback_batches(self, mock_run, tmp_path):
+        files = []
+        for i in range(30):
+            f = tmp_path / f"f{i}.py"
+            f.write_text("import os\n")
+            files.append(f)
+        checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
+        checker.pylint_batch_size = 10
+        mock_run.return_value = MagicMock(returncode=0, stdout="[]", stderr="")
+
+        checker._run_batched_pylint(files)
+
+        # 30 files with batch size 10 => 3 subprocess invocations
+        assert mock_run.call_count == 3
 
 
 class TestRunAnalysis:
@@ -428,4 +574,3 @@ class TestCache:
         
         # Subprocess should be called twice
         assert mock_subprocess.call_count == 2
-

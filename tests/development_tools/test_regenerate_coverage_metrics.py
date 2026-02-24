@@ -72,6 +72,21 @@ TOTAL                        35      8    77%
         assert overall['total_missed'] == 20
 
 
+class TestCoverageTempPaths:
+    """Test pytest temp path creation for coverage subprocesses."""
+
+    @pytest.mark.unit
+    def test_create_pytest_temp_paths_prefers_runtime_tmp_root(self, demo_project_root):
+        regenerator = CoverageMetricsRegenerator(str(demo_project_root))
+        pytest_temp_base, pytest_cache_dir = regenerator._create_pytest_temp_paths(
+            "dev_tools"
+        )
+        temp_base_str = str(pytest_temp_base).replace("\\", "/")
+        assert "/tests/data/tmp_pytest_runtime/pytest_runner/" in temp_base_str
+        assert pytest_temp_base.exists()
+        assert pytest_cache_dir.exists()
+
+
 class TestCoverageCategorization:
     """Test module categorization by coverage."""
     

@@ -104,6 +104,11 @@ When adding new tasks, follow this format:
   - [ ] Define retention or max-size policy for sent_messages.json
   - [ ] Implement archiving/trimming if needed; document in USER_DATA_MODEL or config
 
+**Sweep test log fixtures for xdist-safe isolation**
+- *What it means*: Audit tests that write to shared log paths (for example under `tests/data/logs`) and migrate them to per-test isolated paths (`tmp_path`) where destructive teardown can race in parallel runs.
+- *Why it helps*: Prevents intermittent `FileNotFoundError` and similar races during Tier 3 parallel coverage runs.
+- *Estimated effort*: Small/Medium
+
 ### Documentation
 
 **Update Inter-Documentation References to Include Section Numbers**

@@ -30,11 +30,20 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-24 - Tier 3 stabilization + portability hardening + unused-imports perf completion **Progressed**
+- Closed the Tier 3 parallel race in logger behavior tests by replacing shared `tests/data/logs` teardown fixtures with isolated per-test `tmp_path` log directories (`tests/behavior/test_logger_behavior.py`).
+- Hardened test-runtime temp handling and cleanup in `tests/conftest.py` + `development_tools/tests/run_test_coverage.py` + `development_tools/run_development_tools.py` (Windows mkdir/cleanup patching, safer pytest runner temp-root handling, and transient test-artifact cleanup under `tests/data/tmp*`).
+- Completed roadmap item `5.1.1` in code: `development_tools/imports/analyze_unused_imports.py` now uses batched `ruff` (`F401`) with `pylint` fallback, changed-file incremental cache flow, no multiprocessing primary path, preserved categorization semantics, and explicit performance telemetry; report output now includes backend/scan-mode/throughput in `report_generation.py`.
+- Advanced portability/config independence: added config-driven `tests_dir/tests_data_dir` and test-marker settings in `development_tools/config/*`; updated `shared/common.py`, `shared/constants.py`, `tests/analyze_test_markers.py`, and `shared/standard_exclusions.py` to remove hardcoded assumptions and better exclude pytest runtime artifacts.
+- Updated and validated regression coverage in `tests/development_tools/test_analyze_unused_imports.py`, `test_analyze_test_markers.py`, `test_standard_exclusions.py`, `test_fix_project_cleanup.py`, and `test_regenerate_coverage_metrics.py`; refreshed generated status/priorities/reports and planning docs.
+- Validation evidence included targeted reruns (`1 passed` targeted logger test; `15 passed` logger file with `-n 6`) plus user-provided full audit completion in-session (`2026-02-24 04:17:43`).
+- Full diff review completed (`git diff --stat`, `git diff --name-only`); per user confirmation, **all files currently in the working tree diff were actioned in this session**.
+
 ### 2026-02-23 - TEST_PLAN consolidation + audit throughput recovery **Progressed**
-- Primary objective completed: created `development_docs/TEST_PLAN.md` and consolidated/organized test-related planning into it as the canonical testing roadmap (with `TODO.md`/`PLANS.md` pointing to it as source of truth).
+- Primary objective completed: created [TEST_PLAN.md](development_docs/TEST_PLAN.md) and consolidated/organized test-related planning into it as the canonical testing roadmap (with [TODO.md](TODO.md)/`PLANS.md` pointing to it as source of truth).
 - Restored safe Tier 3 coverage concurrency and added concurrency-aware worker caps in `audit_orchestration.py` + `commands.py`, recovering full-audit speed without reintroducing earlier timeout failures.
 - Temporarily preserved `.analyze_unused_imports_cache.json` during `--clear-cache` (`fix_project_cleanup.py`), preventing repeated cold scans while the analyzer performance redesign is pending.
-- Added explicit unused-imports performance follow-up tasks in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` (section `5.1.1`) and synced planning pointers in `TODO.md` + `development_docs/PLANS.md`.
+- Added explicit unused-imports performance follow-up tasks in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (section `5.1.1`) and synced planning pointers in [TODO.md](TODO.md) + [PLANS.md](development_docs/PLANS.md).
 - User-verified full run result after changes: `audit --full --clear-cache` completed successfully in ~`277s` wall-clock, with Tier 3 parallel savings and no tool failures.
 
 ### 2026-02-22 - Flow deferral/cooldown hardening + Discord wiring tests **COMPLETED**
@@ -167,14 +176,6 @@ Guidelines:
 - Closed related planning/tasks ([TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md)) and documented fixture-status regeneration handling ([DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md), `tests/development_tools/conftest.py`).
 - Final validation: user full run passed (`python run_tests.py` -> `3737 passed, 0 failed`).
 - Additional validation: `python run_tests.py --full` -> `4556 passed, 0 failed, 1 skipped`.
-
-### 2026-02-14 - Logging guard + coverage/cache stabilization **COMPLETED**
-- Added CI logging-enforcement workflow (`.github/workflows/logging-enforcement.yml`) to run `check_channel_loggers.py` as a gate before downstream test steps; documented behavior in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and removed the completed TODO task.
-- Tuned legacy scan/report filtering so `run_tests.py` remains included for legacy findings while `tests/data/*` remains excluded from analyzer/report noise.
-- Hardened development-tools coverage merge/report flow (`run_test_coverage.py`, `generate_test_coverage_report.py`) with expected-shard detection, wait/retry combine logic, and missing-shard validation warnings.
-- Completed test-file coverage cache hardening (`test_file_coverage_cache.py`, `domain_mapper.py`, `run_test_coverage.py`): cross-domain dependency invalidation, test-file mtime/domain invalidation, explicit tool-change invalidation reasons, and skip-cache-on-failure/partial-run safeguards.
-- Added focused regression tests in `tests/development_tools/test_test_file_coverage_cache.py` (tool hash/mtime persistence, all-domain invalidation on hash mismatch, dependency expansion) and enforced scratch test data under `tests/data/tmp` with explicit cleanup.
-- Standardized coverage scope/artifact reporting in generated outputs (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`, `TEST_COVERAGE_REPORT.md`) and aligned artifact exclusions/ignore rules for `development_tools/tests/.coverage*` and `development_tools/tests/coverage_html/`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

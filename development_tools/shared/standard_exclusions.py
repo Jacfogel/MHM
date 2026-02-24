@@ -54,6 +54,7 @@ _DEFAULT_BASE_EXCLUSIONS = [
     ".ruff_cache",
     ".pytest_tmp_cache",
     ".pytest-tmp-*",
+    ".pytest_runtime",
     ".tmp_devtools_pyfiles",
     ".tmp_pytest",
     ".tmp_pytest_runner",
@@ -100,8 +101,10 @@ _DEFAULT_BASE_EXCLUSIONS = [
     # Pytest temporary directories (created during parallel test runs)
     "pytest-tmp-*",
     "pytest-of-*",
+    "pytest_tmp_*",
     "*/pytest-tmp-*",
     "*/pytest-of-*",
+    "*/pytest_tmp_*",
     # Generated files (should be excluded everywhere)
     "*/generated/*",
     "*/ui/generated/*",
@@ -243,8 +246,6 @@ def should_exclude_file(
         True if file should be excluded
     """
     import fnmatch
-    from pathlib import Path
-
     exclusions = get_exclusions(tool_type, context)
 
     # Convert Path object to string if needed
@@ -253,7 +254,12 @@ def should_exclude_file(
 
     # Explicitly check for pytest temp directories first (most common exclusion during scanning)
     # These are created during parallel test execution and should always be excluded
-    if "pytest-tmp-" in normalized_path or "pytest-of-" in normalized_path:
+    if (
+        "pytest-tmp-" in normalized_path
+        or "pytest-of-" in normalized_path
+        or "/.pytest_runtime/" in normalized_path
+        or "pytest_tmp_" in normalized_path
+    ):
         # These are pytest worker/temp directories and should not be scanned by audit tools.
         return True
 

@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-23
+> **Last Updated**: 2026-02-24
 
 ---
 
@@ -51,7 +51,7 @@
 - [x] Added temporary cache-clear policy to preserve unused-imports cache:
   - [x] `development_tools/shared/fix_project_cleanup.py` now excludes `.analyze_unused_imports_cache.json` from tool-cache artifact clearing.
 - [x] Added roadmap tasks for structural unused-imports performance improvements in:
-  - [x] `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` section `5.1.1`.
+  - [x] [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `5.1.1`.
 - [x] Validated targeted regression suites:
   - [x] `pytest tests/development_tools/test_run_development_tools.py -q`
   - [x] `pytest tests/development_tools/test_regenerate_coverage_metrics.py -q`
@@ -127,7 +127,7 @@
 ### **Testing Program Consolidation** **IN PROGRESS**
 
 **Status**: **IN PROGRESS**  
-**Last Updated**: 2026-02-22
+**Last Updated**: 2026-02-24
 
 - Canonical testing roadmap is now tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md).
 - Migrated areas include:
@@ -137,6 +137,10 @@
   - coverage cache metadata stabilization
   - coverage consistency and growth strategy
   - nightly no-shim governance
+- Recent completion:
+  - [x] Fixed parallel test race in [test_logger_behavior.py](tests/behavior/test_logger_behavior.py) by replacing shared `tests/data/logs` teardown fixtures with a per-test `tmp_path` log fixture.
+- Remaining follow-up:
+  - [ ] Sweep other tests for shared/destructive log-directory fixture patterns and migrate to xdist-safe isolated temp paths.
 - Keep testing execution details and checklists in `TEST_PLAN.md`; do not duplicate them in this file.
 
 ### **Error Handling Quality Improvement Plan** **IN PROGRESS**

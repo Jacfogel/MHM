@@ -8,8 +8,6 @@ Focuses on logger setup, verbosity control, and file operations.
 import pytest
 import os
 import logging
-import shutil
-from pathlib import Path
 from unittest.mock import patch
 
 # Do not modify sys.path; rely on package imports
@@ -30,18 +28,18 @@ from core.logger import (
     get_log_level_from_env
 )
 
+
+@pytest.fixture
+def temp_log_dir(tmp_path):
+    """Create isolated temporary log directory per test."""
+    log_dir = tmp_path / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    return log_dir
+
+
 class TestLoggerInitializationBehavior:
     """Test logger initialization with real behavior verification."""
-    
-    @pytest.fixture
-    def temp_log_dir(self, test_data_dir):
-        """Create temporary log directory for testing."""
-        log_dir = Path(test_data_dir) / "logs"
-        log_dir.mkdir(exist_ok=True)
-        yield log_dir
-        # Cleanup
-        shutil.rmtree(log_dir, ignore_errors=True)
-    
+
     @pytest.mark.behavior
     def test_get_logger_creation_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test logger can be created successfully."""
@@ -83,16 +81,7 @@ class TestLoggerInitializationBehavior:
 
 class TestLoggerVerbosityBehavior:
     """Test logger verbosity control with real behavior verification."""
-    
-    @pytest.fixture
-    def temp_log_dir(self, test_data_dir):
-        """Create temporary log directory for testing."""
-        log_dir = Path(test_data_dir) / "logs"
-        log_dir.mkdir(exist_ok=True)
-        yield log_dir
-        # Cleanup
-        shutil.rmtree(log_dir, ignore_errors=True)
-    
+
     @pytest.mark.behavior
     def test_verbose_mode_toggle_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test verbose mode toggle functionality."""
@@ -186,16 +175,7 @@ class TestLoggerNoiseSuppressionBehavior:
 
 class TestLoggerFileOperationsBehavior:
     """Test logger file operations with real behavior verification."""
-    
-    @pytest.fixture
-    def temp_log_dir(self, test_data_dir):
-        """Create temporary log directory for testing."""
-        log_dir = Path(test_data_dir) / "logs"
-        log_dir.mkdir(exist_ok=True)
-        yield log_dir
-        # Cleanup
-        shutil.rmtree(log_dir, ignore_errors=True)
-    
+
     @pytest.mark.behavior
     def test_backup_directory_rotating_handler_creation_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test BackupDirectoryRotatingFileHandler creation."""
@@ -259,16 +239,7 @@ class TestLoggerFileOperationsBehavior:
 
 class TestLoggerRestartBehavior:
     """Test logger restart functionality with real behavior verification."""
-    
-    @pytest.fixture
-    def temp_log_dir(self, test_data_dir):
-        """Create temporary log directory for testing."""
-        log_dir = Path(test_data_dir) / "logs"
-        log_dir.mkdir(exist_ok=True)
-        yield log_dir
-        # Cleanup
-        shutil.rmtree(log_dir, ignore_errors=True)
-    
+
     @pytest.mark.behavior
     def test_force_restart_logging_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test forcing logging restart."""
@@ -301,16 +272,7 @@ class TestLoggerRestartBehavior:
 
 class TestLoggerIntegrationBehavior:
     """Test logger integration with real behavior verification."""
-    
-    @pytest.fixture
-    def temp_log_dir(self, test_data_dir):
-        """Create temporary log directory for testing."""
-        log_dir = Path(test_data_dir) / "logs"
-        log_dir.mkdir(exist_ok=True)
-        yield log_dir
-        # Cleanup
-        shutil.rmtree(log_dir, ignore_errors=True)
-    
+
     @pytest.mark.behavior
     def test_logger_full_workflow_real_behavior(self, temp_log_dir, monkeypatch):
         """REAL BEHAVIOR TEST: Test complete logger workflow."""

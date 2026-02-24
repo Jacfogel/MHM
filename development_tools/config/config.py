@@ -555,10 +555,12 @@ def get_audit_tiers_config():
 def get_paths_config():
     """
     Get paths configuration (docs, logs, data directories).
-    Returns dict with keys: docs_dir, logs_dir, data_dir, ai_docs_dir, development_docs_dir
+    Returns dict with keys:
+    docs_dir, logs_dir, data_dir, ai_docs_dir, development_docs_dir, tests_dir, tests_data_dir
 
     NOTE: Defaults are generic. Projects should provide config file for proper paths.
     """
+    tests_dir = _get_external_value("paths.tests_dir", "tests")
     paths = {
         "docs_dir": _get_external_value("paths.docs_dir", "docs"),  # Generic default
         "logs_dir": _get_external_value("paths.logs_dir", "logs"),
@@ -569,6 +571,10 @@ def get_paths_config():
         "development_docs_dir": _get_external_value(
             "paths.development_docs_dir", "docs"
         ),  # Generic default
+        "tests_dir": tests_dir,
+        "tests_data_dir": _get_external_value(
+            "paths.tests_data_dir", f"{tests_dir}/data"
+        ),
     }
     return paths
 
@@ -595,6 +601,21 @@ def get_constants_config():
     """
     constants = _get_external_value("constants", {})
     return constants if isinstance(constants, dict) else {}
+
+
+def get_test_markers_config():
+    """
+    Get pytest test marker analysis configuration from external config.
+
+    Returns:
+        Dict with optional keys:
+        - categories
+        - directory_to_marker
+        - transient_data_path_markers
+        - ai_path_tokens
+    """
+    test_markers = _get_external_value("test_markers", {})
+    return test_markers if isinstance(test_markers, dict) else {}
 
 
 # Documentation analysis configuration
@@ -797,7 +818,11 @@ def get_analyze_ai_work_config():
 
 # Unused imports checker configuration
 UNUSED_IMPORTS = {
+    "preferred_backend": "ruff",  # prefer ruff F401, fallback to pylint
+    "ruff_command": ["python", "-m", "ruff"],  # Ruff command as list
     "pylint_command": ["python", "-m", "pylint"],  # Pylint command as list
+    "batch_size": 200,  # Files per backend invocation
+    "pylint_batch_size": 25,  # Smaller fallback batches to avoid timeout spikes
     "ignore_patterns": [],  # Patterns to ignore
     "type_stub_locations": [],  # Locations for type stubs (.pyi files)
     "timeout_seconds": 30,  # Timeout per file

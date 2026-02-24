@@ -391,6 +391,16 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] **run_test_coverage.py** (`development_tools/tests/run_test_coverage.py`): Map entry points, coverage merge path, and domain/cache logic; identify overly complex methods or branches; document a refactor plan (extract classes/helpers, reduce conditional depth) and effort estimate; decide whether to proceed in phases or defer
 - [ ] If proceeding: implement refactors in small steps with tests and full audit validation after each step
 
+#### 3.17 Portability and Project-Independence Compliance Sweep
+**Status**: PENDING  
+**Tasks**:
+- [ ] Audit all tools under `development_tools/**` for hardcoded project paths and replace with config/shared helpers (`config.py`, `shared/common.py`, `shared/constants.py`, `shared/standard_exclusions.py`)
+- [ ] Ensure test/discovery paths are config-driven (for example `paths.tests_dir`, `paths.tests_data_dir`) with generic defaults and project overrides in `development_tools/config/development_tools_config.json`
+- [ ] Remove project-specific runtime artifact name assumptions from analyzers/exclusions (use generic patterns and config-driven markers)
+- [ ] Validate each scanning tool applies standard exclusions consistently via `should_exclude_file(...)` where applicable
+- [ ] TODO: add/enable an import-boundary check that flags non-approved imports from project business domains inside `development_tools/**` (keep tools isolated from MHM business logic)
+- [ ] Run portability validation pass (targeted tests + `audit --full`) and document findings/fixes in changelog and this roadmap
+
 ---
 
 ### 4. External Tool Evaluation and Integration (MEDIUM)
@@ -427,14 +437,14 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Add cleanup recommendations and consider `--categorize` flag
 
 #### 5.1.1 Unused imports analyzer performance improvements
-**Status**: PENDING  
+**Status**: COMPLETED (2026-02-23)  
 **Tasks**:
-- [ ] Replace per-file pylint subprocess model in `development_tools/imports/analyze_unused_imports.py` with a batched single-pass backend (prefer `ruff` `F401`, fallback to pylint)
-- [ ] Eliminate hard dependency on multiprocessing for primary performance path (avoid Windows `WinError 5` fallback to sequential scans)
-- [ ] Add incremental scan mode keyed by changed files/fingerprints so full cold scans are rare outside explicit full rebuilds
-- [ ] Keep existing categorization semantics (`test_mocking`, `qt_testing`, `type_hints_only`, etc.) while separating expensive categorization from fast detection path
-- [ ] Add runtime metrics in tool output (scan phase timings, files/sec, backend used) and update audit summaries with these metrics
-- [ ] Add regression tests for performance path selection and cache behavior under `audit --full --clear-cache`
+- [x] Replace per-file pylint subprocess model in `development_tools/imports/analyze_unused_imports.py` with a batched single-pass backend (prefer `ruff` `F401`, fallback to pylint)
+- [x] Eliminate hard dependency on multiprocessing for primary performance path (avoid Windows `WinError 5` fallback to sequential scans)
+- [x] Add incremental scan mode keyed by changed files/fingerprints so full cold scans are rare outside explicit full rebuilds
+- [x] Keep existing categorization semantics (`test_mocking`, `qt_testing`, `type_hints_only`, etc.) while separating expensive categorization from fast detection path
+- [x] Add runtime metrics in tool output (scan phase timings, files/sec, backend used) and update audit summaries with these metrics
+- [x] Add regression tests for performance path selection and cache behavior under `audit --full --clear-cache`
 
 #### 5.2 Documentation overlap analysis enhancements
 **Status**: PENDING  

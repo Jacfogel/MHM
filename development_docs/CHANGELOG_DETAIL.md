@@ -33,8 +33,61 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-24 - Tier 3 stabilization + portability hardening + unused-imports performance completion
+- **Feature/Fix**: Completed the session's reliability and portability objectives across the development-tools stack: fixed Tier 3 parallel test instability, completed the `5.1.1` unused-imports performance work in code, and made marker/path handling more config-driven and project-independent.
+- **Technical Changes (session-wide scope)**:
+  - **Tier 3 and test-runtime stabilization**:
+    - [test_logger_behavior.py](tests/behavior/test_logger_behavior.py): removed shared `tests/data/logs` teardown fixture pattern and switched to isolated per-test `tmp_path` log dirs to eliminate xdist race failures.
+    - [conftest.py](tests/conftest.py): hardened Windows temp-dir behavior (`Path.mkdir`/`os.mkdir` mode normalization, safe dead-symlink cleanup monkeypatch) and added session-level cleanup for transient test artifacts under `tests/data/tmp*`, `tests/data/tmp_pytest_runtime`, `tests/data/error_handling_tmp`, and related runner dirs without deleting active basetemp roots.
+    - [run_test_coverage.py](development_tools/tests/run_test_coverage.py): prioritized `tests/data/tmp_pytest_runtime/pytest_runner` for isolated pytest temp roots.
+    - [run_development_tools.py](development_tools/run_development_tools.py): protected key runtime test-temp roots from over-aggressive transient cleanup.
+  - **Unused imports analyzer performance completion (`5.1.1`)**:
+    - [analyze_unused_imports.py](development_tools/imports/analyze_unused_imports.py): replaced per-file subprocess scanning with batched backend execution (prefer `ruff F401`, fallback to batched `pylint`), removed multiprocessing as the primary execution path, added changed-file incremental scanning with mtime cache integration, preserved category semantics, and added explicit performance telemetry (`backend`, `scan_mode`, phase timings, throughput, fallback metadata).
+    - [report_generation.py](development_tools/shared/service/report_generation.py): surfaced unused-import performance metrics in generated status/consolidated reports (backend, scan mode, throughput, scan duration).
+    - [fix_project_cleanup.py](development_tools/shared/fix_project_cleanup.py): removed temporary cache-preserve exception and restored normal tool-cache cleanup for `.analyze_unused_imports_cache.json`.
+  - **Portability/project-independence hardening**:
+    - [config.py](development_tools/config/config.py): added configurable `paths.tests_dir` and `paths.tests_data_dir` support, added `get_test_markers_config()`, and expanded default unused-import backend config.
+    - [development_tools_config.json](development_tools/config/development_tools_config.json) and [development_tools_config.json.example](development_tools/config/development_tools_config.json.example): added `tests_dir/tests_data_dir`, test-marker config blocks, and explicit unused-import backend settings.
+    - [common.py](development_tools/shared/common.py): made `ProjectPaths` test/data directories config-driven.
+    - [constants.py](development_tools/shared/constants.py): centralized test-marker constants and directory/path token defaults.
+    - [analyze_test_markers.py](development_tools/tests/analyze_test_markers.py): replaced hardcoded marker/path assumptions with config/constants-driven behavior.
+    - [standard_exclusions.py](development_tools/shared/standard_exclusions.py): expanded transient pytest-runtime exclusion handling (including `.pytest_runtime` and `pytest_tmp_*` patterns).
+    - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md): marked `5.1.1` completed and added portability sweep tracking (`3.17`).
+  - **Regression and compatibility test updates**:
+    - [test_analyze_unused_imports.py](tests/development_tools/test_analyze_unused_imports.py): added backend-selection/fallback coverage and adapted scan tests to batched backend path.
+    - [test_analyze_test_markers.py](tests/development_tools/test_analyze_test_markers.py): added config-driven marker map coverage and runtime-temp filtering checks.
+    - [test_standard_exclusions.py](tests/development_tools/test_standard_exclusions.py): added pytest-runtime exclusion assertions.
+    - [test_fix_project_cleanup.py](tests/development_tools/test_fix_project_cleanup.py): validated normal cleanup of hidden unused-import cache artifacts.
+    - [test_regenerate_coverage_metrics.py](tests/development_tools/test_regenerate_coverage_metrics.py): aligned with updated pytest temp-root behavior.
+  - **Planning/report/changelog/generated artifact refreshes**:
+    - planning/status docs:
+      - [TODO.md](TODO.md)
+      - [PLANS.md](development_docs/PLANS.md)
+      - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
+      - [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md)
+      - [AI_STATUS.md](development_tools/AI_STATUS.md)
+      - [consolidated_report.md](development_tools/consolidated_report.md)
+      - [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)
+      - [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)
+    - regenerated artifacts:
+      - [analysis_detailed_results.json](development_tools/reports/analysis_detailed_results.json)
+      - [tool_timings.json](development_tools/reports/tool_timings.json)
+      - [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)
+      - [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)
+      - [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)
+- **Planning/Follow-up Updates**:
+  - Added outstanding follow-up in [TODO.md](TODO.md): sweep remaining shared/destructive log fixtures for xdist-safe isolation.
+  - Updated Testing Program Consolidation status in [PLANS.md](development_docs/PLANS.md) with completed logger-race fix and remaining fixture-sweep task.
+- **Validation**:
+  - `.venv\Scripts\python.exe -m pytest tests/behavior/test_logger_behavior.py::TestLoggerFileOperationsBehavior::test_get_log_file_info_real_behavior -q` -> `1 passed`
+  - `.venv\Scripts\python.exe -m pytest tests/behavior/test_logger_behavior.py -n 6 -q` -> `15 passed`
+  - User-provided full-audit run in-session (log timestamp `2026-02-24 04:17:43`) completed successfully (`Tier 3 completed successfully`, `parallel tests passed`, `dev-tools tests passed`).
+- **Full-diff Attribution**:
+  - Reviewed full tree before changelog finalization (`git diff --stat`, `git diff --name-only`): `33` modified files present.
+  - Per user confirmation, **all files currently shown in `git diff --name-only` were actioned in this session** and are represented by this entry.
+
 ### 2026-02-23 - Test planning consolidation (TEST_PLAN) + dev-tools audit throughput recovery
-- **Primary Session Objective**: Created and established `development_docs/TEST_PLAN.md` as the canonical testing roadmap and consolidated/organized test-related planning tasks into that document (with `TODO.md` and `PLANS.md` updated to reference it as source of truth).
+- **Primary Session Objective**: Created and established [TEST_PLAN.md](development_docs/TEST_PLAN.md) as the canonical testing roadmap and consolidated/organized test-related planning tasks into that document (with [TODO.md](TODO.md) and `PLANS.md` updated to reference it as source of truth).
 - **Feature/Fix (additional session work)**: Recovered full-audit performance after repeated timeout/slow-run regressions by restoring safe Tier 3 parallelism, reducing log-noise side effects, and temporarily preserving unused-imports cache during `--clear-cache` runs.
 - **Technical Changes**:
   - `development_tools/shared/service/audit_orchestration.py`
@@ -53,8 +106,8 @@ When adding new changes, follow this format:
   - `core/logger.py`
     - reduced non-dev-tools INFO log pollution during dev-tools runs (notably `mhm.communication_manager` chatter) by tightening runtime log-level behavior under dev-tools execution context.
   - Planning/doc updates:
-    - added explicit unused-imports performance roadmap tasks under `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` section `5.1.1`;
-    - updated planning pointers/follow-ups in `TODO.md` and `development_docs/PLANS.md`.
+    - added explicit unused-imports performance roadmap tasks under [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `5.1.1`;
+    - updated planning pointers/follow-ups in [TODO.md](TODO.md) and [PLANS.md](development_docs/PLANS.md).
 - **Observed Runtime Impact**:
   - User full run (`audit --full --clear-cache`) completed successfully in ~`277s` wall-clock (~4m37s).
   - Tier 3 reported concurrent coverage savings of ~`237s` (`run_test_coverage` ~`250.63s`, `generate_dev_tools_coverage` ~`232.02s`).
