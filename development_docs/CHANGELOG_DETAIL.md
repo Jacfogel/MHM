@@ -33,6 +33,50 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-25 - Tier 3 user-management failure fix + dev-tools coverage push
+- **Feature/Fix**: Closed the active Tier 3 failure from `AI_PRIORITIES.md` and executed a focused development-tools coverage batch targeting the lowest modules (`tool_wrappers.py`, `utilities.py`, `analyze_system_signals.py`).
+- **Technical Changes**:
+  - `tests/unit/test_user_management.py`
+    - fixed `test_create_user_files_success` flake by using `TestUserFactory.create_minimal_user_and_get_id(...)` and asserting against the returned UUID instead of a separate post-create index lookup.
+  - Added focused low-coverage tests:
+    - `tests/development_tools/test_service_utilities.py`
+      - covers helper/mixin extraction paths in `development_tools/shared/service/utilities.py` (formatting/parsing helpers, decision/doc/function metric extraction).
+    - `tests/development_tools/test_tool_wrappers_additional.py`
+      - adds branch coverage for wrapper fallback and normalization paths in `development_tools/shared/service/tool_wrappers.py` (`run_analyze_function_registry`, `run_analyze_module_dependencies`, `run_analyze_module_refactor_candidates`, `run_decision_support` fallback).
+    - `tests/development_tools/test_analyze_system_signals_additional.py`
+      - adds helper/format/CLI-path coverage for `development_tools/reports/analyze_system_signals.py`.
+  - Updated existing dev-tools coverage-focused tests:
+    - `tests/development_tools/test_fix_documentation.py` now exercises dispatcher `main()` branches (no-op help path, dry-run path, `--full` alias, non-zero error aggregation).
+    - added `tests/development_tools/test_backup_inventory.py` for path matching, dedupe, and inventory summary rendering.
+  - Planning update:
+    - recorded these coverage additions in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`.
+  - Audit/report artifacts refreshed in this session:
+    - `development_tools/AI_STATUS.md`
+    - `development_tools/AI_PRIORITIES.md`
+    - `development_tools/consolidated_report.md`
+    - `development_tools/reports/analysis_detailed_results.json`
+    - `development_tools/reports/tool_timings.json`
+    - `development_docs/TEST_COVERAGE_REPORT.md`
+    - `development_docs/UNUSED_IMPORTS_REPORT.md`
+    - `development_docs/LEGACY_REFERENCE_REPORT.md`
+- **Validation**:
+  - targeted flake verification:
+    - `.\.venv\Scripts\python.exe -m pytest tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success -n 4 -q` (repeated runs; stable)
+    - `.\.venv\Scripts\python.exe -m pytest tests/unit/test_user_management.py -n 4 -q` -> all passing
+  - new dev-tools tests:
+    - `.\.venv\Scripts\python.exe -m pytest tests/development_tools/test_service_utilities.py tests/development_tools/test_tool_wrappers_additional.py tests/development_tools/test_analyze_system_signals_additional.py -q` -> passing
+  - session target suite:
+    - `.\.venv\Scripts\python.exe -m pytest tests/development_tools/test_fix_documentation.py tests/development_tools/test_backup_inventory.py tests/development_tools/test_service_utilities.py tests/development_tools/test_tool_wrappers_additional.py tests/development_tools/test_analyze_system_signals_additional.py tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success -q` -> `20 passed`
+  - dev-tools coverage follow-up run:
+    - `.\.venv\Scripts\python.exe development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel`
+    - observed overall dev-tools coverage increase (`54.5%` -> `55.7%`) with major gains in target modules (`tool_wrappers.py` to `38%`, `utilities.py` to `69%`, `analyze_system_signals.py` to `53%`).
+- **Full-diff Attribution**:
+  - completed closeout diff review before changelog finalization using:
+    - `git diff --stat`
+    - `git diff --name-only`
+    - `git status --short` (to include untracked session test files).
+  - per user confirmation in-session, no new issues were identified during full audit follow-up.
+
 ### 2026-02-25 - Weekly backup-first semantics restoration + guide sync
 - **Feature/Fix**: Restored weekly backup behavior as a first-class recovery signal (distinct from high-frequency auto safe-operation backups) and aligned both backup guides to match implementation.
 - **Technical Changes**:

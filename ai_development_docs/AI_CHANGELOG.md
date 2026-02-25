@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-25 - Tier 3 failure fix + dev-tools coverage uplift **Progressed**
+- Fixed Tier 3 recurrent failure `tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success` by switching to factory-returned UUID (`create_minimal_user_and_get_id`) instead of a separate post-create index lookup.
+- Added focused low-coverage dev-tools tests: `test_service_utilities.py`, `test_tool_wrappers_additional.py`, `test_analyze_system_signals_additional.py`, plus strengthened `test_fix_documentation.py` and new `test_backup_inventory.py`.
+- Validated targeted suites (`20 passed`) and repeated parallel checks for the previously failing user-management test; no new issues were identified during full audit follow-up.
+- Dev-tools coverage follow-up (`run_test_coverage.py --dev-tools-only --no-parallel`) improved overall from `54.5%` to `55.7%`, with target module improvements: `tool_wrappers.py 38%`, `utilities.py 69%`, `analyze_system_signals.py 53%`.
+
 ### 2026-02-25 - Weekly backup semantics restored + backup guides synced **COMPLETED**
 - Restored weekly-first backup behavior in runtime: scheduler now checks `weekly_backup_*` recency for weekly creation decisions, and cleanup retention now preserves weekly artifacts in a dedicated keep window (`WEEKLY_BACKUP_MAX_KEEP`, default 4) separate from non-weekly (`max_backups=10`).
 - Restored explicit weekly backup health checks in dev-tools (`weekly_backup_present`, `weekly_backup_recent_enough`) and weekly-focused backup-health reporting labels in AI status/consolidated reporting.

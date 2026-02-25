@@ -243,7 +243,6 @@ class TestUserManagement:
     def test_create_user_files_success(self, test_data_dir, mock_config):
         """Test creating user files successfully."""
         import uuid
-        from core.user_data_handlers import get_user_id_by_identifier
 
         user_id = f"test-create-user-{uuid.uuid4().hex[:8]}"
         categories = ["motivational", "health"]
@@ -253,15 +252,12 @@ class TestUserManagement:
             "categories": ["motivational", "health"],
         }
 
-        # Use TestUserFactory instead of create_user_files directly (minimal user since we only check basic files)
-        success = TestUserFactory.create_minimal_user(
+        # Use factory helper that returns the UUID directly to avoid index lookup races in parallel runs.
+        success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(
             user_id, test_data_dir=test_data_dir
         )
         assert success is True, "Failed to create test user"
-
-        # Verify files were created for this exact user (parallel-safe).
-        actual_user_id = get_user_id_by_identifier(user_id)
-        assert actual_user_id, f"Expected user ID mapping for {user_id}"
+        assert actual_user_id, f"Expected created UUID for {user_id}"
         actual_user_dir = os.path.join(test_data_dir, "users", actual_user_id)
         assert os.path.exists(
             os.path.join(actual_user_dir, "account.json")

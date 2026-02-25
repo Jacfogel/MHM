@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-25 11:08:52
+> **Last Generated**: 2026-02-25 13:54:26
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 464
+- **Total Files Scanned**: 468
 - **Files with Unused Imports**: 121
-- **Total Unused Imports**: 386
+- **Total Unused Imports**: 385
 
 ## Breakdown by Category
 
@@ -18,7 +18,7 @@
 - **Re Exports**: 2 imports
 - **Conditional Imports**: 21 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 148 imports
+- **Test Mocking**: 147 imports
 - **Qt Testing**: 54 imports
 - **Test Infrastructure**: 149 imports
 - **Production Test Mocking**: 2 imports
@@ -227,12 +227,6 @@
 **Count**: 1 unused import(s)
 
 - **Line 10**: `unittest.mock.MagicMock` imported but unused
-
-### `tests/development_tools/test_fix_documentation.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 9**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/development_tools/test_generate_error_handling_report.py`
 
@@ -920,6 +914,12 @@
 - **Line 11**: `pathlib.Path` imported but unused
 - **Line 14**: `tests.development_tools.conftest.test_config_path` imported but unused
 
+### `tests/development_tools/test_backup_inventory.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 3**: `pathlib.Path` imported but unused
+
 ### `tests/development_tools/test_decision_support.py`
 
 **Count**: 1 unused import(s)
@@ -951,12 +951,6 @@
 - **Line 14**: `pathlib.Path` imported but unused
 - **Line 18**: `tests.development_tools.conftest.demo_project_root` imported but unused
 - **Line 18**: `tests.development_tools.conftest.test_config_path` imported but unused
-
-### `tests/development_tools/test_fix_documentation.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 8**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_fix_documentation_addresses.py`
 

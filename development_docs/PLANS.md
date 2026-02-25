@@ -151,6 +151,8 @@
 - Recent completion:
   - [x] Fixed parallel test race in [test_logger_behavior.py](tests/behavior/test_logger_behavior.py) by replacing shared `tests/data/logs` teardown fixtures with a per-test `tmp_path` log fixture.
   - [x] Fixed Tier-3 recurrent checkin-view test setup flake in [test_checkin_view.py](tests/unit/test_checkin_view.py) by using per-test unique IDs and explicit user-creation assertions.
+  - [x] Fixed Tier-3 recurrent user-management failure in [test_user_management.py](tests/unit/test_user_management.py) by resolving created user UUID directly from `TestUserFactory.create_minimal_user_and_get_id(...)` instead of post-create index lookup.
+  - [x] Added focused development-tools low-coverage tests for `utilities.py`, `tool_wrappers.py`, and `analyze_system_signals.py`; targeted validations passed and no new issues were identified during full audit follow-up.
 - Remaining follow-up:
   - [ ] Sweep other tests for shared/destructive log-directory fixture patterns and migrate to xdist-safe isolated temp paths.
 - Keep testing execution details and checklists in `TEST_PLAN.md`; do not duplicate them in this file.

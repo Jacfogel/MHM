@@ -1,91 +1,142 @@
-"""
-Tests for fix_documentation.py.
+"""Tests for docs/fix_documentation.py dispatcher behavior."""
 
-Tests the documentation fix dispatcher that orchestrates all fix operations.
-"""
+from types import SimpleNamespace
 
 import pytest
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+import argparse
+
+from tests.development_tools.conftest import load_development_tools_module
 
 
-class TestFixDocumentation:
-    """Test documentation fix dispatcher functionality."""
-    
-    @pytest.mark.unit
-    def test_main_with_add_addresses(self, tmp_path):
-        """Test main function with --add-addresses flag."""
-        from tests.development_tools.conftest import load_development_tools_module
-        fix_doc_module = load_development_tools_module("docs.fix_documentation")
-        
-        # Mock the fixers to avoid actual file operations
-        with patch.object(fix_doc_module.DocumentationAddressFixer, 'fix_add_addresses') as mock_fix:
-            mock_fix.return_value = {'updated': 1, 'skipped': 2, 'errors': 0}
-            
-            # Test via main function (would need to mock argparse)
-            fixer = fix_doc_module.DocumentationAddressFixer()
-            result = fixer.fix_add_addresses(dry_run=True)
-            
-            assert isinstance(result, dict), "Result should be a dictionary"
-            assert 'updated' in result, "Result should have updated count"
-            assert 'skipped' in result, "Result should have skipped count"
-            assert 'errors' in result, "Result should have errors count"
-    
-    @pytest.mark.unit
-    def test_main_with_fix_ascii(self, tmp_path):
-        """Test main function with --fix-ascii flag."""
-        from tests.development_tools.conftest import load_development_tools_module
-        fix_doc_module = load_development_tools_module("docs.fix_documentation")
-        
-        with patch.object(fix_doc_module.DocumentationASCIIFixer, 'fix_ascii') as mock_fix:
-            mock_fix.return_value = {'files_updated': 1, 'replacements_made': 5, 'errors': 0}
-            
-            fixer = fix_doc_module.DocumentationASCIIFixer()
-            result = fixer.fix_ascii(dry_run=True)
-            
-            assert isinstance(result, dict), "Result should be a dictionary"
-            assert 'files_updated' in result, "Result should have files_updated count"
-            assert 'replacements_made' in result, "Result should have replacements_made count"
-            assert 'errors' in result, "Result should have errors count"
-    
-    @pytest.mark.unit
-    def test_main_with_all_flag(self, tmp_path):
-        """Test main function with --all flag."""
-        from tests.development_tools.conftest import load_development_tools_module
-        fix_doc_module = load_development_tools_module("docs.fix_documentation")
-        
-        # Mock all fixers
-        with patch.object(fix_doc_module.DocumentationAddressFixer, 'fix_add_addresses') as mock_addr, \
-             patch.object(fix_doc_module.DocumentationASCIIFixer, 'fix_ascii') as mock_ascii, \
-             patch.object(fix_doc_module.DocumentationHeadingFixer, 'fix_number_headings') as mock_head, \
-             patch.object(fix_doc_module.DocumentationLinkFixer, 'fix_convert_links') as mock_link:
-            
-            mock_addr.return_value = {'updated': 1, 'skipped': 0, 'errors': 0}
-            mock_ascii.return_value = {'files_updated': 1, 'replacements_made': 2, 'errors': 0}
-            mock_head.return_value = {'files_updated': 1, 'issues_fixed': 3, 'errors': 0}
-            mock_link.return_value = {'files_updated': 1, 'changes_made': 4, 'errors': 0}
-            
-            # Test that all fixers would be called
-            addr_fixer = fix_doc_module.DocumentationAddressFixer()
-            ascii_fixer = fix_doc_module.DocumentationASCIIFixer()
-            
-            addr_result = addr_fixer.fix_add_addresses(dry_run=True)
-            ascii_result = ascii_fixer.fix_ascii(dry_run=True)
-            
-            assert isinstance(addr_result, dict), "Address fixer should return dict"
-            assert isinstance(ascii_result, dict), "ASCII fixer should return dict"
-    
-    @pytest.mark.unit
-    def test_main_with_dry_run(self, tmp_path):
-        """Test main function with --dry-run flag."""
-        from tests.development_tools.conftest import load_development_tools_module
-        fix_doc_module = load_development_tools_module("docs.fix_documentation")
-        
-        with patch.object(fix_doc_module.DocumentationAddressFixer, 'fix_add_addresses') as mock_fix:
-            mock_fix.return_value = {'updated': 0, 'skipped': 1, 'errors': 0}
-            
-            fixer = fix_doc_module.DocumentationAddressFixer()
-            result = fixer.fix_add_addresses(dry_run=True)
-            
-            assert result['updated'] == 0 or result['skipped'] >= 0, \
-                "Dry run should not update files"
+@pytest.mark.unit
+def test_main_returns_1_when_no_fix_flags_selected(monkeypatch):
+    """Dispatcher should print help and exit non-zero when no operations are selected."""
+    module = load_development_tools_module("docs.fix_documentation")
+
+    def fake_parse_args(self):
+        return SimpleNamespace(
+            add_addresses=False,
+            fix_ascii=False,
+            number_headings=False,
+            convert_links=False,
+            all=False,
+            full=False,
+            dry_run=False,
+        )
+
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", fake_parse_args)
+
+    result = module.main()
+
+    assert result == 1
+
+
+@pytest.mark.unit
+def test_main_runs_add_addresses_with_dry_run(monkeypatch):
+    """Dispatcher should call add-addresses fixer with requested dry-run mode."""
+    module = load_development_tools_module("docs.fix_documentation")
+
+    def fake_parse_args(self):
+        return SimpleNamespace(
+            add_addresses=True,
+            fix_ascii=False,
+            number_headings=False,
+            convert_links=False,
+            all=False,
+            full=False,
+            dry_run=True,
+        )
+
+    class DummyAddressFixer:
+        def __init__(self):
+            self.called = False
+
+        def fix_add_addresses(self, dry_run=False):
+            self.called = True
+            assert dry_run is True
+            return {"updated": 0, "skipped": 2, "errors": 0}
+
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", fake_parse_args)
+    monkeypatch.setattr(module, "DocumentationAddressFixer", DummyAddressFixer)
+
+    result = module.main()
+
+    assert result == 0
+
+
+@pytest.mark.unit
+def test_main_runs_all_fixers_with_full_alias(monkeypatch):
+    """`--full` should behave like `--all` and execute all fixer paths."""
+    module = load_development_tools_module("docs.fix_documentation")
+    calls = []
+
+    def fake_parse_args(self):
+        return SimpleNamespace(
+            add_addresses=False,
+            fix_ascii=False,
+            number_headings=False,
+            convert_links=False,
+            all=False,
+            full=True,
+            dry_run=False,
+        )
+
+    class DummyAddressFixer:
+        def fix_add_addresses(self, dry_run=False):
+            calls.append(("addresses", dry_run))
+            return {"updated": 1, "skipped": 0, "errors": 0}
+
+    class DummyASCIIFixer:
+        def fix_ascii(self, dry_run=False):
+            calls.append(("ascii", dry_run))
+            return {"files_updated": 1, "replacements_made": 1, "errors": 0}
+
+    class DummyHeadingFixer:
+        def fix_number_headings(self, dry_run=False):
+            calls.append(("headings", dry_run))
+            return {"files_updated": 1, "issues_fixed": 1, "errors": 0}
+
+    class DummyLinkFixer:
+        def fix_convert_links(self, dry_run=False):
+            calls.append(("links", dry_run))
+            return {"files_updated": 1, "changes_made": 1, "errors": 0}
+
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", fake_parse_args)
+    monkeypatch.setattr(module, "DocumentationAddressFixer", DummyAddressFixer)
+    monkeypatch.setattr(module, "DocumentationASCIIFixer", DummyASCIIFixer)
+    monkeypatch.setattr(module, "DocumentationHeadingFixer", DummyHeadingFixer)
+    monkeypatch.setattr(module, "DocumentationLinkFixer", DummyLinkFixer)
+
+    result = module.main()
+
+    assert result == 0
+    assert [name for name, _ in calls] == ["addresses", "ascii", "headings", "links"]
+
+
+@pytest.mark.unit
+def test_main_returns_1_when_any_fixer_reports_errors(monkeypatch):
+    """Dispatcher should return non-zero aggregate status when errors are reported."""
+    module = load_development_tools_module("docs.fix_documentation")
+
+    def fake_parse_args(self):
+        return SimpleNamespace(
+            add_addresses=False,
+            fix_ascii=True,
+            number_headings=False,
+            convert_links=False,
+            all=False,
+            full=False,
+            dry_run=False,
+        )
+
+    class DummyASCIIFixer:
+        def fix_ascii(self, dry_run=False):
+            assert dry_run is False
+            return {"files_updated": 1, "replacements_made": 1, "errors": 2}
+
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", fake_parse_args)
+    monkeypatch.setattr(module, "DocumentationASCIIFixer", DummyASCIIFixer)
+
+    result = module.main()
+
+    assert result == 1

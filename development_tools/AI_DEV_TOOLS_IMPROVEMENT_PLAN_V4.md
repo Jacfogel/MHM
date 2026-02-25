@@ -73,6 +73,13 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
       - `run_analyze_documentation` (cached-overlap merge + non-JSON issue fallback)
       - `run_analyze_error_handling` (cache usage gating on script success)
       - `run_generate_test_coverage_report` (missing coverage input and report-missing branch)
+  - [x] Added targeted tests for current low-coverage modules from `AI_PRIORITIES`:
+    - `tests/development_tools/test_fix_documentation.py` now exercises dispatcher `main()` branches (`--full`, `--dry-run`, no-op help path, error aggregation)
+    - `tests/development_tools/test_backup_inventory.py` covers path matching, deduped file collection, and inventory summary/latest-modified rendering in `development_tools/shared/backup_inventory.py`
+  - [x] Added additional low-coverage tests for top priority modules:
+    - `tests/development_tools/test_service_utilities.py` covers utility helpers and `UtilitiesMixin` extraction paths (function metrics, documentation metrics, decision insights, generic standard-format caching)
+    - `tests/development_tools/test_tool_wrappers_additional.py` adds branch coverage for `run_analyze_function_registry`, `run_analyze_module_dependencies`, `run_analyze_module_refactor_candidates`, and `run_decision_support` fallback behavior
+    - `tests/development_tools/test_analyze_system_signals_additional.py` covers system-signal helper classification/scoring, standard-format wrapping, human-readable rendering, and CLI `--json` main path
 - [ ] Update all dev tools tests to use `tests/development_tools/test_config.json` fixture
 - [ ] Re-run dev-tools coverage and document updated baseline/progress toward 60% target
 
