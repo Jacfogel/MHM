@@ -363,7 +363,11 @@ def cleanup_old_backup_files():
                 except Exception as e:
                     logger.warning(f"Failed to remove old backup {file_path}: {e}")
 
+        @handle_errors(
+            "checking weekly backup artifact name during cleanup", default_return=False
+        )
         def _is_weekly_backup_artifact(path: str) -> bool:
+            """Return True when a backup artifact belongs to weekly scheduler cadence."""
             return Path(path).name.startswith("weekly_backup_")
 
         # Count-based retention mirrors BackupManager:

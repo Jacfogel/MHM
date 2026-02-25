@@ -35,7 +35,7 @@ Guidelines:
 - Restored explicit weekly backup health checks in dev-tools (`weekly_backup_present`, `weekly_backup_recent_enough`) and weekly-focused backup-health reporting labels in AI status/consolidated reporting.
 - Synced paired backup docs to implementation semantics: [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md) and [AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md).
 - Added/updated coverage for retention behavior (`tests/unit/test_auto_cleanup_backup_retention.py`) and related dev-tools low-coverage tests (`test_cli_interface.py`, `test_analyze_module_refactor_candidates.py`, plus expanded `test_generate_function_registry.py` branches).
-- Regenerated in-session audit/report artifacts and derived docs (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.md`, `analysis_detailed_results.json`, `tool_timings.json`, `TEST_COVERAGE_REPORT.md`, `UNUSED_IMPORTS_REPORT.md`, `LEGACY_REFERENCE_REPORT.md`) and updated planning/changelog trackers (`TODO.md`, `PLANS.md`, `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`, both changelog tracks).
+- Regenerated in-session audit/report artifacts and derived docs (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.md`, `analysis_detailed_results.json`, `tool_timings.json`, `TEST_COVERAGE_REPORT.md`, `UNUSED_IMPORTS_REPORT.md`, `LEGACY_REFERENCE_REPORT.md`) and updated planning/changelog trackers ([TODO.md](TODO.md), `PLANS.md`, `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`, both changelog tracks).
 - Full working tree was reviewed (`git diff --stat`, `git diff --name-only`, `git status --short`) and, per user confirmation, all working-tree changes were actioned in this session; user confirmed full audit pass with no new issues.
 
 ### 2026-02-25 - Conftest refactor and AI priorities follow-up **COMPLETED**
@@ -167,16 +167,6 @@ Guidelines:
 - Added a distinct same-day entry for this session (separate from the earlier 2026-02-17 work) per session-level changelog policy.
 - Confirmed planning sync: completed command-map/recursion tasks removed from [TODO.md](TODO.md).
 - Full audit run and no regressions found
-
-### 2026-02-17 - Pyright/dev-tools cleanup + interaction/flow parity hardening **Largely Complete**
-- Pyright in development_tools: 0 errors, 2 warnings. Fixed real issues (SCRIPT_REGISTRY, domain_mapper guard, Optional[Set[str]], report_generation optional access, changelog_manager getattr, measure_tool_timings method name). Suppressed mixin attribute-access warnings via `# pyright: reportAttributeAccessIssue=false` in the six service mixin files.
-- Added AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md section 3.16 to explore refactoring report_generation.py and run_test_coverage.py (map structure, refactor plan, effort estimate).
-- Interaction manager updates completed: canonical slash-command map getter/property alignment, bang-command convert+continue parity (no recursive re-entry), unknown-bang fallback fix, and decorator-based error handling for `slash_command_map` property.
-- Added focused behavior tests for interaction/flow parity and edge cases in `tests/behavior/test_communication_interaction_manager_behavior.py`, plus conversation-flow manager coverage additions in `tests/behavior/test_conversation_flow_manager_behavior.py`.
-- Session planning cleanup applied: completed command-map/recursion tasks removed from [TODO.md](TODO.md) and 2026-02-17 follow-up notes added to [PLANS.md](development_docs/PLANS.md).
-- Ran doc tooling (`doc-fix --fix-ascii`, `doc-fix --convert-links`, `doc-sync`) via `.venv`, refreshing generated status/priority/report artifacts and related generated docs.
-- Validation highlights: combined behavior run `87 passed`; targeted flaky UI rerun for the two Tier-3 node IDs `2 passed`.
-- Full-tree diff was reviewed; unrelated/pre-existing edits currently in tree (not actioned this session) include `.github/workflows/logging-enforcement.yml` and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -2014,7 +2014,12 @@ class SchedulerManager:
             # Get list of existing backups
             backups = backup_manager.list_backups()
 
+            @handle_errors(
+                "checking weekly backup entry during scheduler backup check",
+                default_return=False,
+            )
             def _is_weekly_backup_entry(backup_entry: dict) -> bool:
+                """Return True when a backup metadata entry represents a weekly backup."""
                 if not isinstance(backup_entry, dict):
                     return False
                 backup_name = str(backup_entry.get("backup_name") or "")

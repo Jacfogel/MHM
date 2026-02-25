@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-25 02:13:08
+> **Last Generated**: 2026-02-25 11:00:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,12 +14,12 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
+### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1623
+- **Functions Found**: 1625
 - **Methods Found**: 1179
 - **Classes Found**: 154
-- **Total Items**: 2802
+- **Total Items**: 2804
 - **Functions Documented**: 1550
 - **Methods Documented**: 1139
 - **Classes Documented**: 120
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (587)
+### **Core System Functions** (589)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (424)
@@ -2419,6 +2419,7 @@ Returns:
 - [OK] `_get_cleanup_status__format_next_cleanup_date(last_date)` - Format the next cleanup date or return 'Overdue'.
 - [OK] `_get_cleanup_status__get_invalid_tracker_status()` - Get status when cleanup tracker exists but contains an invalid timestamp.
 - [OK] `_get_cleanup_status__get_never_cleaned_status()` - Get status when cleanup has never been performed.
+- [MISSING] `_is_weekly_backup_artifact(path)` - No description
 - [OK] `_perform_cleanup__discover_cache_files(root_path)` - Discover all cache files and directories in the given root path.
 - [OK] `_perform_cleanup__log_completion_results(removed_dirs, removed_files, total_size)` - Log the final cleanup results and statistics.
 - [OK] `_perform_cleanup__log_discovery_results(pycache_dirs, pyc_files)` - Calculate total size and log discovery results.
@@ -2434,7 +2435,8 @@ Returns True if cleanup was performed, False if not needed.
 This can be called independently of the full auto_cleanup cycle.
 Returns True if cleanup was performed, False otherwise.
 - [OK] `cleanup_old_backup_files()` - Clean up old backup files from data/backups directory.
-Uses same retention policy as BackupManager (30 days by default, max 10 files).
+Uses same retention policy as BackupManager (30 days default, separate
+weekly and non-weekly keep limits).
 - [OK] `cleanup_old_message_archives()` - Clean up old message archive files from user directories.
 Removes archive files older than 90 days (archives are already compressed).
 - [OK] `cleanup_old_request_files()` - Clean up old request files from data/requests directory.
@@ -2475,7 +2477,7 @@ Sets up backup directory, maximum backup count, and ensures backup directory exi
 - [OK] `_get_backup_artifact_size_bytes(self, backup_path)` - Return size in bytes for file or directory backup artifact.
 - [OK] `_get_backup_info(self, backup_path)` - Get information about a specific backup.
 - [OK] `_is_directory_backup_path(self, file_path)` - Return True when path is a backup directory with manifest.
-- [OK] `_is_weekly_backup_artifact(self, backup_path)` - Return True when backup artifact name indicates weekly scheduler ownership.
+- [OK] `_is_weekly_backup_artifact(self, file_path)` - Return True when backup artifact name indicates weekly cadence.
 - [OK] `_materialize_directory_backup(self, zip_backup_path, directory_backup_path)` - Extract a zip payload to a directory backup and remove zip payload.
 - [OK] `_restore_config_files(self, zipf)` - Restore configuration files from backup.
 - [OK] `_restore_config_files_from_directory(self, backup_root)` - Restore config files from directory backup.
@@ -2557,7 +2559,7 @@ Sets up backup directory, maximum backup count, and ensures backup directory exi
   - [OK] `BackupManager._get_backup_artifact_size_bytes(self, backup_path)` - Return size in bytes for file or directory backup artifact.
   - [OK] `BackupManager._get_backup_info(self, backup_path)` - Get information about a specific backup.
   - [OK] `BackupManager._is_directory_backup_path(self, file_path)` - Return True when path is a backup directory with manifest.
-  - [OK] `BackupManager._is_weekly_backup_artifact(self, backup_path)` - Return True when backup artifact name indicates weekly scheduler ownership.
+  - [OK] `BackupManager._is_weekly_backup_artifact(self, file_path)` - Return True when backup artifact name indicates weekly cadence.
   - [OK] `BackupManager._materialize_directory_backup(self, zip_backup_path, directory_backup_path)` - Extract a zip payload to a directory backup and remove zip payload.
   - [OK] `BackupManager._restore_config_files(self, zipf)` - Restore configuration files from backup.
   - [OK] `BackupManager._restore_config_files_from_directory(self, backup_root)` - Restore config files from directory backup.
@@ -3895,6 +3897,7 @@ Returns:
 
 Args:
     communication_manager: The communication manager for sending messages
+- [MISSING] `_is_weekly_backup_entry(backup_entry)` - No description
 - [OK] `_remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
 - [OK] `_schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
@@ -3907,9 +3910,9 @@ This makes user message jobs effectively one-time jobs.
 - [OK] `check_and_perform_weekly_backup(self)` - Check if a weekly backup is needed and perform it if so.
 Runs during the daily scheduler job at 01:00 (before log archival at 02:00).
 Creates a backup if:
-- No backups exist, OR
-- Last backup is 7+ days old
-Keeps last 10 backups with 30-day retention as configured in BackupManager.
+- No weekly backups exist, OR
+- Last weekly backup is 7+ days old
+Retention is enforced by BackupManager with separate weekly/non-weekly buckets.
 - [OK] `cleanup_old_tasks(self, user_id, category)` - Cleans up all tasks (scheduled jobs and system tasks) associated with a given user and category.
 - [OK] `cleanup_orphaned_task_reminders(self)` - Periodic cleanup job to remove reminders for tasks that no longer exist.
 
@@ -4013,9 +4016,9 @@ This makes user message jobs effectively one-time jobs.
   - [OK] `SchedulerManager.check_and_perform_weekly_backup(self)` - Check if a weekly backup is needed and perform it if so.
 Runs during the daily scheduler job at 01:00 (before log archival at 02:00).
 Creates a backup if:
-- No backups exist, OR
-- Last backup is 7+ days old
-Keeps last 10 backups with 30-day retention as configured in BackupManager.
+- No weekly backups exist, OR
+- Last weekly backup is 7+ days old
+Retention is enforced by BackupManager with separate weekly/non-weekly buckets.
   - [OK] `SchedulerManager.cleanup_old_tasks(self, user_id, category)` - Cleans up all tasks (scheduled jobs and system tasks) associated with a given user and category.
   - [OK] `SchedulerManager.cleanup_orphaned_task_reminders(self)` - Periodic cleanup job to remove reminders for tasks that no longer exist.
 

@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-02-25 10:54:13",
+  "last_generated": "2026-02-25 11:12:48",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-02-25T10:54:13.860896",
+  "timestamp": "2026-02-25T11:12:48.902020",
   "successful": [
     "analyze_duplicate_functions",
     "analyze_functions",
@@ -51,8 +51,8 @@
           "groups_filtered_single_function": 11,
           "cache": {
             "total_files": 108,
-            "cached_files": 0,
-            "scanned_files": 108
+            "cached_files": 106,
+            "scanned_files": 2
           },
           "pairs_considered": 20000,
           "pairs_reported": 38,
@@ -119,7 +119,7 @@
                 "full_name": "_get_cleanup_status__calculate_days_since_cleanup",
                 "class": null,
                 "file": "core/auto_cleanup.py",
-                "line": 729,
+                "line": 733,
                 "args": [
                   "last_cleanup_timestamp"
                 ]
@@ -129,7 +129,7 @@
                 "full_name": "_get_cleanup_status__calculate_days_since_cleanup",
                 "class": null,
                 "file": "core/auto_cleanup.py",
-                "line": 729,
+                "line": 733,
                 "args": [
                   "last_cleanup_timestamp"
                 ]
@@ -227,7 +227,7 @@
                 "full_name": "_get_cleanup_status__format_next_cleanup_date",
                 "class": null,
                 "file": "core/auto_cleanup.py",
-                "line": 744,
+                "line": 748,
                 "args": [
                   "last_date"
                 ]
@@ -237,7 +237,7 @@
                 "full_name": "_get_cleanup_status__format_next_cleanup_date",
                 "class": null,
                 "file": "core/auto_cleanup.py",
-                "line": 744,
+                "line": 748,
                 "args": [
                   "last_date"
                 ]
@@ -2578,13 +2578,13 @@
           ]
         }
       },
-      "timestamp": "2026-02-25T10:48:51"
+      "timestamp": "2026-02-25T11:08:45"
     },
     "analyze_functions": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 447,
+          "total_issues": 446,
           "files_affected": 75
         },
         "details": {
@@ -2592,15 +2592,8 @@
           "moderate_complexity": 160,
           "high_complexity": 146,
           "critical_complexity": 140,
-          "undocumented": 1,
-          "undocumented_examples": [
-            {
-              "name": "_is_weekly_backup_artifact",
-              "function": "_is_weekly_backup_artifact",
-              "file": "core/auto_cleanup.py",
-              "complexity": 19
-            }
-          ],
+          "undocumented": 0,
+          "undocumented_examples": [],
           "critical_complexity_examples": [
             {
               "name": "initialize__register_events",
@@ -2790,7 +2783,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-02-25T10:48:50"
+      "timestamp": "2026-02-25T11:08:44"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -4748,7 +4741,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-25T10:48:45"
+      "timestamp": "2026-02-25T11:08:41"
     },
     "analyze_function_registry": {
       "success": true,
@@ -5533,16 +5526,16 @@
                 "name": "validate_user_update"
               },
               {
+                "complexity": 625,
+                "file": "core/auto_cleanup.py",
+                "has_docstring": true,
+                "name": "cleanup_old_backup_files"
+              },
+              {
                 "complexity": 618,
                 "file": "ui/dialogs/task_edit_dialog.py",
                 "has_docstring": true,
                 "name": "render_reminder_period_row"
-              },
-              {
-                "complexity": 617,
-                "file": "core/auto_cleanup.py",
-                "has_docstring": true,
-                "name": "cleanup_old_backup_files"
               },
               {
                 "complexity": 615,
@@ -5929,6 +5922,12 @@
                 "name": "update_task"
               },
               {
+                "complexity": 414,
+                "file": "core/scheduler.py",
+                "has_docstring": true,
+                "name": "check_and_perform_weekly_backup"
+              },
+              {
                 "complexity": 413,
                 "file": "communication/core/channel_orchestrator.py",
                 "has_docstring": true,
@@ -5957,12 +5956,6 @@
                 "file": "core/scheduler.py",
                 "has_docstring": true,
                 "name": "clear_all_accumulated_jobs"
-              },
-              {
-                "complexity": 406,
-                "file": "core/scheduler.py",
-                "has_docstring": true,
-                "name": "check_and_perform_weekly_backup"
               },
               {
                 "complexity": 403,
@@ -6679,10 +6672,6 @@
                 "name": "_augment_suggestions"
               },
               {
-                "file": "core/auto_cleanup.py",
-                "name": "_is_weekly_backup_artifact"
-              },
-              {
                 "file": "core/error_handling.py",
                 "name": "_now_datetime_full"
               },
@@ -6725,10 +6714,6 @@
               {
                 "file": "core/schedule_management.py",
                 "name": "edit_schedule_period"
-              },
-              {
-                "file": "core/scheduler.py",
-                "name": "_is_weekly_backup_entry"
               },
               {
                 "file": "core/scheduler.py",
@@ -6807,109 +6792,33 @@
                 "name": "is_blank"
               }
             ],
-            "undocumented_other_total": 36
+            "undocumented_other_total": 34
           },
-          "coverage": 95.45,
+          "coverage": 95.57,
           "errors": [],
           "extra": {
             "count": 0,
             "files": {}
           },
           "missing": {
-            "count": 2,
-            "files": {
-              "core/auto_cleanup.py": [
-                "_is_weekly_backup_artifact"
-              ],
-              "core/scheduler.py": [
-                "_is_weekly_backup_entry"
-              ]
-            },
+            "count": 0,
+            "files": {},
             "missing_files": []
           },
-          "registry_sections": {
-            "core/auto_cleanup.py": {
-              "classes": [],
-              "functions": [
-                {
-                  "args": [
-                    "path"
-                  ],
-                  "docstring": "",
-                  "name": "_is_weekly_backup_artifact"
-                }
-              ]
-            },
-            "core/scheduler.py": {
-              "classes": [
-                {
-                  "docstring": "",
-                  "methods": [
-                    "__init__",
-                    "run_daily_scheduler",
-                    "stop_scheduler",
-                    "reset_and_reschedule_daily_messages",
-                    "is_job_for_category",
-                    "schedule_all_users_immediately",
-                    "schedule_new_user",
-                    "run_full_daily_scheduler",
-                    "schedule_daily_message_job",
-                    "schedule_message_for_period",
-                    "schedule_checkin_at_exact_time",
-                    "schedule_message_at_random_time",
-                    "is_time_conflict",
-                    "get_random_time_within_period",
-                    "log_scheduled_tasks",
-                    "handle_sending_scheduled_message",
-                    "_schedule_deferred_message_retry",
-                    "_remove_user_message_job",
-                    "handle_task_reminder",
-                    "set_wake_timer",
-                    "cleanup_old_tasks",
-                    "clear_all_accumulated_jobs",
-                    "schedule_all_task_reminders",
-                    "_select_task_for_reminder__handle_edge_cases",
-                    "_select_task_for_reminder__calculate_priority_weight",
-                    "_select_task_for_reminder__calculate_due_date_weight",
-                    "_select_task_for_reminder__calculate_task_weights",
-                    "_select_task_for_reminder__task_key",
-                    "_select_task_for_reminder__select_task_by_weight",
-                    "select_task_for_reminder",
-                    "get_random_time_within_task_period",
-                    "schedule_task_reminder_at_time",
-                    "schedule_task_reminder_at_datetime",
-                    "cleanup_task_reminders",
-                    "cleanup_orphaned_task_reminders",
-                    "perform_daily_log_archival",
-                    "check_and_perform_weekly_backup"
-                  ],
-                  "name": "SchedulerManager"
-                }
-              ],
-              "functions": [
-                {
-                  "args": [
-                    "backup_entry"
-                  ],
-                  "docstring": "",
-                  "name": "_is_weekly_backup_entry"
-                }
-              ]
-            }
-          },
+          "registry_sections": {},
           "totals": {
             "classes_found": 154,
             "files_scanned": 110,
-            "functions_documented": 1551,
+            "functions_documented": 1553,
             "functions_found": 1625
           }
         },
         "summary": {
           "files_affected": 0,
-          "total_issues": 2
+          "total_issues": 0
         }
       },
-      "timestamp": "2026-02-25T10:48:55"
+      "timestamp": "2026-02-25T11:08:49"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -6995,10 +6904,10 @@
             },
             {
               "file": "core/scheduler.py",
-              "lines": 2241,
+              "lines": 2246,
               "function_count": 46,
               "class_count": 1,
-              "total_function_complexity": 9424,
+              "total_function_complexity": 9440,
               "high_complexity_count": 10,
               "critical_complexity_count": 21,
               "reasons": [
@@ -7211,10 +7120,10 @@
             },
             {
               "file": "core/auto_cleanup.py",
-              "lines": 821,
+              "lines": 825,
               "function_count": 29,
               "class_count": 0,
-              "total_function_complexity": 3161,
+              "total_function_complexity": 3177,
               "high_complexity_count": 7,
               "critical_complexity_count": 3,
               "reasons": [
@@ -7663,7 +7572,7 @@
           }
         }
       },
-      "timestamp": "2026-02-25T10:48:53"
+      "timestamp": "2026-02-25T11:08:48"
     },
     "analyze_package_exports": {
       "success": true,
@@ -14093,131 +14002,6 @@
                 "is_valid_intent"
               ]
             },
-            "ai": {
-              "package": "ai",
-              "current_exports_count": 22,
-              "should_export_count": 22,
-              "already_exported": [
-                "AIChatBotSingleton",
-                "CacheEntry",
-                "ContextAnalysis",
-                "ContextBuilder",
-                "ContextCache",
-                "ContextData",
-                "ConversationHistory",
-                "ConversationMessage",
-                "ConversationSession",
-                "LMStudioManager",
-                "PromptManager",
-                "PromptTemplate",
-                "ResponseCache",
-                "ensure_lm_studio_ready",
-                "get_ai_chatbot",
-                "get_context_builder",
-                "get_context_cache",
-                "get_conversation_history",
-                "get_lm_studio_manager",
-                "get_prompt_manager",
-                "get_response_cache",
-                "is_lm_studio_ready"
-              ],
-              "missing_exports": [],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "get_ai_chatbot": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.chatbot"
-                }
-              },
-              "import_usage_details": {
-                "get_prompt_manager": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.prompt_manager"
-                },
-                "get_response_cache": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.cache_manager"
-                },
-                "is_lm_studio_ready": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.lm_studio_manager"
-                },
-                "get_ai_chatbot": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.chatbot"
-                }
-              },
-              "package_api_items": [
-                "AIChatBotSingleton",
-                "CacheEntry",
-                "ContextAnalysis",
-                "ContextBuilder",
-                "ContextCache",
-                "ContextData",
-                "ConversationHistory",
-                "ConversationMessage",
-                "ConversationSession",
-                "LMStudioManager",
-                "PromptManager",
-                "PromptTemplate",
-                "ResponseCache",
-                "ensure_lm_studio_ready",
-                "get_ai_chatbot",
-                "get_context_builder",
-                "get_context_cache",
-                "get_conversation_history",
-                "get_lm_studio_manager",
-                "get_prompt_manager",
-                "get_response_cache",
-                "is_lm_studio_ready"
-              ],
-              "registry_items": [
-                "__init__",
-                "__new__",
-                "__post_init__",
-                "_call_lm_studio_api",
-                "_cleanup_lru",
-                "_load_custom_prompt",
-                "add_prompt_template",
-                "ensure_lm_studio_ready"
-              ]
-            },
             "tasks": {
               "package": "tasks",
               "current_exports_count": 20,
@@ -15377,11 +15161,136 @@
                 "get_all_preferences",
                 "get_instance_context"
               ]
+            },
+            "ai": {
+              "package": "ai",
+              "current_exports_count": 22,
+              "should_export_count": 22,
+              "already_exported": [
+                "AIChatBotSingleton",
+                "CacheEntry",
+                "ContextAnalysis",
+                "ContextBuilder",
+                "ContextCache",
+                "ContextData",
+                "ConversationHistory",
+                "ConversationMessage",
+                "ConversationSession",
+                "LMStudioManager",
+                "PromptManager",
+                "PromptTemplate",
+                "ResponseCache",
+                "ensure_lm_studio_ready",
+                "get_ai_chatbot",
+                "get_context_builder",
+                "get_context_cache",
+                "get_conversation_history",
+                "get_lm_studio_manager",
+                "get_prompt_manager",
+                "get_response_cache",
+                "is_lm_studio_ready"
+              ],
+              "missing_exports": [],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "get_ai_chatbot": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.chatbot"
+                }
+              },
+              "import_usage_details": {
+                "get_prompt_manager": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.prompt_manager"
+                },
+                "get_response_cache": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.cache_manager"
+                },
+                "is_lm_studio_ready": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.lm_studio_manager"
+                },
+                "get_ai_chatbot": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.chatbot"
+                }
+              },
+              "package_api_items": [
+                "AIChatBotSingleton",
+                "CacheEntry",
+                "ContextAnalysis",
+                "ContextBuilder",
+                "ContextCache",
+                "ContextData",
+                "ConversationHistory",
+                "ConversationMessage",
+                "ConversationSession",
+                "LMStudioManager",
+                "PromptManager",
+                "PromptTemplate",
+                "ResponseCache",
+                "ensure_lm_studio_ready",
+                "get_ai_chatbot",
+                "get_context_builder",
+                "get_context_cache",
+                "get_conversation_history",
+                "get_lm_studio_manager",
+                "get_prompt_manager",
+                "get_response_cache",
+                "is_lm_studio_ready"
+              ],
+              "registry_items": [
+                "__init__",
+                "__new__",
+                "__post_init__",
+                "_call_lm_studio_api",
+                "_cleanup_lru",
+                "_load_custom_prompt",
+                "add_prompt_template",
+                "ensure_lm_studio_ready"
+              ]
             }
           }
         }
       },
-      "timestamp": "2026-02-25T10:48:51"
+      "timestamp": "2026-02-25T11:08:45"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -15399,7 +15308,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-25T10:48:57"
+      "timestamp": "2026-02-25T11:06:52"
     },
     "analyze_documentation": {
       "success": true,
@@ -15438,7 +15347,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.20241393245107234,
+              "similarity_score": 0.2023833845701264,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -15621,7 +15530,7 @@
               ]
             },
             "TODO.md": {
-              "content_length": 20330,
+              "content_length": 21053,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
               "section_count": 12,
               "sections": [
@@ -15653,7 +15562,7 @@
               ]
             },
             "ai_development_docs/AI_BACKUP_GUIDE.md": {
-              "content_length": 8864,
+              "content_length": 9516,
               "header_info": "# AI Backup Guide\n\n> **File**: `ai_development_docs/AI_BACKUP_GUIDE.md`  \n> **Pair**: [BACKUP_GUIDE.md](../development_docs/BACKUP_GUIDE.md)  \n> **Audience**: AI collaborators  \n> **Purpose**: Fast ro",
               "section_count": 15,
               "sections": [
@@ -15670,7 +15579,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 25276,
+              "content_length": 25067,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -15679,11 +15588,11 @@
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-02-25 - Weekly backup semantics restored + backup guides synced **COMPLETED**",
                 "2026-02-25 - Conftest refactor and AI priorities follow-up **COMPLETED**",
                 "2026-02-24 - Module refactor candidates tool and development tools refinements **COMPLETED**",
                 "2026-02-24 - Checkin-view Tier 3 fix + tool-wrappers branch coverage push **Progressed**",
-                "2026-02-24 - Tier 3 stabilization + portability hardening + unused-imports perf completion **Progressed**",
-                "2026-02-23 - TEST_PLAN consolidation + audit throughput recovery **Progressed**"
+                "2026-02-24 - Tier 3 stabilization + portability hardening + unused-imports perf completion **Progressed**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -15872,9 +15781,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 207729,
+              "content_length": 211688,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 78,
+              "section_count": 79,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -15882,14 +15791,14 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-02-25 - Weekly backup-first semantics restoration + guide sync",
                 "2026-02-25 - Conftest refactor and AI priorities follow-up",
                 "2026-02-24 - Module refactor candidates tool and development tools refinements",
-                "2026-02-24 - Checkin-view Tier 3 recurrence fix + dev-tools wrapper branch coverage",
-                "2026-02-24 - Tier 3 stabilization + portability hardening + unused-imports performance completion"
+                "2026-02-24 - Checkin-view Tier 3 recurrence fix + dev-tools wrapper branch coverage"
               ]
             },
             "development_docs/PLANS.md": {
-              "content_length": 28087,
+              "content_length": 28895,
               "header_info": "# MHM Development Plans\n\n\n> **File**: `development_docs/PLANS.md`\n> **Audience**: Human Developer & AI Collaborators  \n> **Purpose**: Consolidated development plans (grouped, interdependent work) with",
               "section_count": 21,
               "sections": [
@@ -16087,7 +15996,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-25T10:48:44"
+      "timestamp": "2026-02-25T11:08:40"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -16164,7 +16073,7 @@
           }
         }
       },
-      "timestamp": "2026-02-25T10:49:04"
+      "timestamp": "2026-02-25T11:08:54"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -16179,7 +16088,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-25T10:48:58"
+      "timestamp": "2026-02-25T11:08:50"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -16194,7 +16103,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-25T10:49:02"
+      "timestamp": "2026-02-25T11:08:53"
     },
     "analyze_path_drift": {
       "success": true,
@@ -16207,7 +16116,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-25T10:48:56"
+      "timestamp": "2026-02-25T11:08:49"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -16222,24 +16131,24 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-25T10:49:04"
+      "timestamp": "2026-02-25T11:08:54"
     },
     "analyze_error_handling": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 2,
-          "files_affected": 2
+          "total_issues": 0,
+          "files_affected": 0
         },
         "details": {
           "total_functions": 1537,
           "functions_with_try_except": 612,
-          "functions_with_error_handling": 1535,
-          "functions_with_decorators": 1520,
-          "functions_missing_error_handling": 2,
-          "analyze_error_handling": 99.86987638256343,
+          "functions_with_error_handling": 1537,
+          "functions_with_decorators": 1522,
+          "functions_missing_error_handling": 0,
+          "analyze_error_handling": 100.0,
           "error_patterns": {
-            "handle_errors_decorator": 1500,
+            "handle_errors_decorator": 1501,
             "try_except": 715,
             "handle_ai_error": 15,
             "handle_communication_error": 4,
@@ -16250,37 +16159,19 @@
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "safe_file_operation": 1,
-            "FileOperationError": 8,
-            "CommunicationError": 2,
-            "AIError": 2,
             "handle_file_error": 3,
-            "MHMError": 2
+            "AIError": 2,
+            "MHMError": 2,
+            "safe_file_operation": 1,
+            "CommunicationError": 2,
+            "FileOperationError": 8
           },
-          "missing_error_handling": [
-            {
-              "file": "core\\auto_cleanup.py",
-              "function": "_is_weekly_backup_artifact",
-              "line": 366,
-              "quality": "none"
-            },
-            {
-              "file": "core\\scheduler.py",
-              "function": "_is_weekly_backup_entry",
-              "line": 2017,
-              "quality": "none"
-            }
-          ],
+          "missing_error_handling": [],
           "error_handling_quality": {
-            "excellent": 1520,
-            "good": 15,
-            "none": 2
+            "excellent": 1522,
+            "good": 15
           },
-          "recommendations": [
-            "Add error handling to 2 functions",
-            "Replace basic try-except with @handle_errors decorator where appropriate",
-            "Priority: Add error handling to 2 critical functions"
-          ],
+          "recommendations": [],
           "phase1_candidates": [],
           "phase1_total": 0,
           "phase1_by_priority": {},
@@ -16288,18 +16179,6 @@
           "phase2_total": 0,
           "phase2_by_type": {},
           "worst_modules": [
-            {
-              "module": "auto_cleanup.py",
-              "coverage": 96.55172413793103,
-              "missing": 1,
-              "total": 29
-            },
-            {
-              "module": "scheduler.py",
-              "coverage": 97.82608695652173,
-              "missing": 1,
-              "total": 46
-            },
             {
               "module": "cache_manager.py",
               "coverage": 100.0,
@@ -16317,89 +16196,101 @@
               "coverage": 100.0,
               "missing": 0,
               "total": 12
+            },
+            {
+              "module": "conversation_history.py",
+              "coverage": 100.0,
+              "missing": 0,
+              "total": 16
+            },
+            {
+              "module": "lm_studio_manager.py",
+              "coverage": 100.0,
+              "missing": 0,
+              "total": 9
             }
           ]
         }
       },
-      "timestamp": "2026-02-25T10:48:52"
+      "timestamp": "2026-02-25T11:08:44"
     },
     "analyze_test_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 8255,
+          "total_issues": 8254,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "coverage": 72.5,
-            "statements": 30049,
-            "covered": 21794,
-            "missed": 8255,
-            "generated": "2026-02-25T10:52:54.325088"
+            "coverage": 72.8,
+            "statements": 30350,
+            "covered": 22096,
+            "missed": 8254,
+            "generated": null
           },
           "modules": [
             {
               "module": "communication",
-              "coverage": 71.1,
-              "missed": 2727
+              "coverage": 71.3,
+              "missed": 2747
             },
             {
               "module": "ui",
-              "coverage": 71.3,
-              "missed": 1918
+              "coverage": 71.6,
+              "missed": 1907
             },
             {
               "module": "core",
-              "coverage": 72.5,
-              "missed": 2963
+              "coverage": 72.7,
+              "missed": 2960
             },
             {
               "module": "notebook",
-              "coverage": 76.1,
+              "coverage": 76.4,
               "missed": 145
             },
             {
               "module": "ai",
-              "coverage": 78.0,
-              "missed": 378
+              "coverage": 78.6,
+              "missed": 371
             },
             {
               "module": "tasks",
-              "coverage": 81.2,
+              "coverage": 81.3,
               "missed": 102
             },
             {
               "module": "user",
-              "coverage": 92.6,
+              "coverage": 92.7,
               "missed": 22
             }
           ],
           "worst_files": [
             {
-              "path": "notebook/__init__.py",
-              "coverage": 0.0,
-              "missing": 0
-            },
-            {
               "path": "user/__init__.py",
-              "coverage": 16.7,
+              "coverage": 23.1,
               "missing": 10
             },
             {
               "path": "communication/communication_channels/discord/bot.py",
-              "coverage": 50.5,
+              "coverage": 50.6,
               "missing": 630
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 50.7,
-              "missing": 692
+              "coverage": 51.7,
+              "missing": 680
             },
             {
               "path": "core/backup_manager.py",
-              "coverage": 53.8,
+              "coverage": 53.9,
               "missing": 351
+            },
+            {
+              "path": "ui/widgets/checkin_settings_widget.py",
+              "coverage": 54.3,
+              "missing": 294
             }
           ],
           "tier3_test_outcome": {
@@ -16409,7 +16300,7 @@
               "classification": "passed",
               "classification_reason": "pytest_passed",
               "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-02-25_10-49-10.log",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-02-25_11-09-00.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
               "passed_count": 3902,
@@ -16423,7 +16314,7 @@
               "classification": "passed",
               "classification_reason": "pytest_passed",
               "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-02-25_10-51-22.log",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-02-25_11-10-57.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
               "passed_count": 98,
@@ -16434,7 +16325,19 @@
             },
             "failed_node_ids": [],
             "development_tools": {
-              "state": "unknown"
+              "state": "skipped",
+              "classification": "skipped",
+              "classification_reason": "cache_reuse_precheck",
+              "actionable_context": "Development-tools coverage execution skipped because cache is fresh.",
+              "log_file": null,
+              "return_code_hex": null,
+              "return_code": null,
+              "passed_count": 0,
+              "failed_count": 0,
+              "error_count": 0,
+              "skipped_count": 0,
+              "failed_node_ids": [],
+              "from_cache": true
             }
           }
         },
@@ -16444,7 +16347,7 @@
           "source": "run_test_coverage"
         }
       },
-      "timestamp": "2026-02-25T10:52:57"
+      "timestamp": "2026-02-25T11:12:44"
     },
     "analyze_test_markers": {
       "success": true,
@@ -16458,20 +16361,20 @@
           "missing": []
         }
       },
-      "timestamp": "2026-02-25T10:54:11"
+      "timestamp": "2026-02-25T11:12:47"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 11379,
+          "total_issues": 11422,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "overall_coverage": 54.2,
+            "overall_coverage": 54.0,
             "total_statements": 24829,
-            "total_missed": 11379
+            "total_missed": 11422
           },
           "modules": {
             "development_tools\\__init__.py": {
@@ -16641,8 +16544,8 @@
             },
             "development_tools\\config\\config.py": {
               "statements": 354,
-              "missed": 58,
-              "coverage": 84,
+              "missed": 59,
+              "coverage": 83,
               "missing_lines": [
                 "58",
                 "60",
@@ -16652,6 +16555,7 @@
                 "356",
                 "382",
                 "397",
+                "443",
                 "453",
                 "463",
                 "483",
@@ -16703,7 +16607,7 @@
                 "1042",
                 "1044"
               ],
-              "covered": 296
+              "covered": 295
             },
             "development_tools\\docs\\__init__.py": {
               "statements": 0,
@@ -17687,8 +17591,8 @@
             },
             "development_tools\\docs\\fix_version_sync.py": {
               "statements": 446,
-              "missed": 226,
-              "coverage": 49,
+              "missed": 221,
+              "coverage": 50,
               "missing_lines": [
                 "21",
                 "23",
@@ -17795,12 +17699,7 @@
                 "542",
                 "556",
                 "575",
-                "587",
                 "618",
-                "638",
-                "697",
-                "698",
-                "704",
                 "716",
                 "717",
                 "722",
@@ -17917,7 +17816,7 @@
                 "912",
                 "913"
               ],
-              "covered": 220
+              "covered": 225
             },
             "development_tools\\docs\\generate_directory_tree.py": {
               "statements": 128,
@@ -19891,8 +19790,8 @@
             },
             "development_tools\\imports\\analyze_module_imports.py": {
               "statements": 291,
-              "missed": 129,
-              "coverage": 56,
+              "missed": 124,
+              "coverage": 57,
               "missing_lines": [
                 "18",
                 "27",
@@ -19913,11 +19812,6 @@
                 "175",
                 "201",
                 "208",
-                "219",
-                "221",
-                "227",
-                "228",
-                "229",
                 "241",
                 "251",
                 "253",
@@ -20024,7 +19918,7 @@
                 "490",
                 "492"
               ],
-              "covered": 162
+              "covered": 167
             },
             "development_tools\\imports\\analyze_unused_imports.py": {
               "statements": 554,
@@ -20496,14 +20390,15 @@
             },
             "development_tools\\legacy\\analyze_legacy_references.py": {
               "statements": 342,
-              "missed": 139,
-              "coverage": 59,
+              "missed": 159,
+              "coverage": 54,
               "missing_lines": [
                 "27",
                 "35",
                 "41",
                 "42",
                 "73",
+                "86",
                 "120",
                 "121",
                 "122",
@@ -20530,9 +20425,28 @@
                 "230",
                 "231",
                 "233",
+                "245",
+                "247",
+                "248",
+                "249",
+                "250",
+                "251",
+                "252",
+                "254",
+                "265",
                 "280",
                 "305",
                 "307",
+                "309",
+                "310",
+                "311",
+                "312",
+                "314",
+                "317",
+                "318",
+                "320",
+                "321",
+                "322",
                 "330",
                 "331",
                 "332",
@@ -20639,12 +20553,12 @@
                 "737",
                 "738"
               ],
-              "covered": 203
+              "covered": 183
             },
             "development_tools\\legacy\\fix_legacy_references.py": {
               "statements": 165,
-              "missed": 100,
-              "coverage": 39,
+              "missed": 102,
+              "coverage": 38,
               "missing_lines": [
                 "36",
                 "46",
@@ -20652,10 +20566,12 @@
                 "50",
                 "58",
                 "59",
-                "95",
+                "98",
+                "104",
                 "125",
                 "159",
                 "160",
+                "177",
                 "195",
                 "197",
                 "198",
@@ -20747,7 +20663,7 @@
                 "365",
                 "366"
               ],
-              "covered": 65
+              "covered": 63
             },
             "development_tools\\legacy\\generate_legacy_reference_report.py": {
               "statements": 143,
@@ -24214,8 +24130,8 @@
             },
             "development_tools\\shared\\service\\report_generation.py": {
               "statements": 3635,
-              "missed": 1297,
-              "coverage": 64,
+              "missed": 1330,
+              "coverage": 63,
               "missing_lines": [
                 "32",
                 "34",
@@ -24271,6 +24187,7 @@
                 "292",
                 "314",
                 "323",
+                "351",
                 "356",
                 "357",
                 "367",
@@ -24404,6 +24321,7 @@
                 "889",
                 "890",
                 "907",
+                "910",
                 "917",
                 "933",
                 "934",
@@ -24733,9 +24651,26 @@
                 "2983",
                 "2992",
                 "3010",
+                "3027",
+                "3030",
+                "3031",
+                "3037",
+                "3038",
+                "3039",
+                "3040",
+                "3041",
+                "3042",
+                "3043",
+                "3044",
                 "3046",
+                "3048",
                 "3049",
                 "3050",
+                "3052",
+                "3053",
+                "3055",
+                "3058",
+                "3062",
                 "3106",
                 "3139",
                 "3174",
@@ -25413,9 +25348,23 @@
                 "6432",
                 "6435",
                 "6436",
+                "6447",
+                "6450",
+                "6451",
+                "6456",
+                "6457",
+                "6458",
+                "6459",
+                "6460",
+                "6461",
+                "6462",
+                "6463",
                 "6465",
+                "6466",
                 "6467",
                 "6468",
+                "6469",
+                "6470",
                 "6482",
                 "6493",
                 "6496",
@@ -25466,8 +25415,8 @@
                 "7018",
                 "7024",
                 "7033",
-                "7046",
-                "7048",
+                "7050",
+                "7052",
                 "7069",
                 "7093",
                 "7110",
@@ -25515,7 +25464,7 @@
                 "7283",
                 "7286"
               ],
-              "covered": 2338
+              "covered": 2305
             },
             "development_tools\\shared\\service\\tool_wrappers.py": {
               "statements": 741,
@@ -28331,7 +28280,7 @@
             },
             "development_tools\\tests\\test_file_coverage_cache.py": {
               "statements": 620,
-              "missed": 207,
+              "missed": 204,
               "coverage": 67,
               "missing_lines": [
                 "37",
@@ -28411,18 +28360,15 @@
                 "439",
                 "451",
                 "452",
+                "462",
                 "463",
                 "464",
                 "474",
                 "475",
-                "482",
-                "483",
+                "481",
                 "484",
                 "485",
-                "486",
-                "487",
                 "488",
-                "489",
                 "493",
                 "507",
                 "509",
@@ -28542,7 +28488,7 @@
                 "1134",
                 "1145"
               ],
-              "covered": 413
+              "covered": 416
             }
           },
           "coverage_collected": true,
@@ -28569,7 +28515,7 @@
           "source": "run_test_coverage --dev-tools-only"
         }
       },
-      "timestamp": "2026-02-25T10:54:09"
+      "timestamp": "2026-02-25T11:06:44"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -31653,7 +31599,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-25T10:48:53"
+      "timestamp": "2026-02-25T11:08:47"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -31673,7 +31619,7 @@
           "missing_sections": []
         }
       },
-      "timestamp": "2026-02-25T10:48:55"
+      "timestamp": "2026-02-25T11:08:49"
     },
     "analyze_module_imports": {
       "success": true,
@@ -43634,7 +43580,7 @@
           }
         }
       },
-      "timestamp": "2026-02-25T10:48:53"
+      "timestamp": "2026-02-25T11:08:47"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -46494,25 +46440,25 @@
             "files_scanned": 464,
             "files_with_issues": 121,
             "total_unused": 386,
-            "cache_hits": 0,
-            "cache_misses": 464,
-            "changed_files": 464,
-            "cache_mode": "cold_scan",
+            "cache_hits": 462,
+            "cache_misses": 2,
+            "changed_files": 2,
+            "cache_mode": "partial_cache",
             "backend": "ruff"
           },
           "performance": {
             "backend": "ruff",
-            "scan_mode": "cold_scan",
+            "scan_mode": "partial_cache",
             "timings": {
-              "discovery_seconds": 1.8554,
-              "detection_seconds": 0.7808,
-              "categorization_seconds": 0.0814,
-              "total_seconds": 2.8359
+              "discovery_seconds": 1.9707,
+              "detection_seconds": 0.3189,
+              "categorization_seconds": 0.0822,
+              "total_seconds": 2.627
             },
-            "files_per_second": 163.62,
-            "cache_hits": 0,
-            "cache_misses": 464,
-            "changed_files": 464,
+            "files_per_second": 176.62,
+            "cache_hits": 462,
+            "cache_misses": 2,
+            "changed_files": 2,
             "batch_size": 200,
             "fallback_used": false,
             "fallback_reason": ""
@@ -46531,22 +46477,22 @@
           },
           "files_scanned": 464,
           "_cache_metadata": {
-            "cache_mode": "cold_scan",
-            "hits": 0,
-            "misses": 464,
+            "cache_mode": "partial_cache",
+            "hits": 462,
+            "misses": 2,
             "total_cache_checks": 464,
-            "hit_rate": 0.0
+            "hit_rate": 99.6
           }
         },
         "_cache_metadata": {
-          "cache_mode": "cold_scan",
-          "hits": 0,
-          "misses": 464,
+          "cache_mode": "partial_cache",
+          "hits": 462,
+          "misses": 2,
           "total_cache_checks": 464,
-          "hit_rate": 0.0
+          "hit_rate": 99.6
         }
       },
-      "timestamp": "2026-02-25T10:48:57"
+      "timestamp": "2026-02-25T11:08:51"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -46726,15 +46672,15 @@
           "legacy_markers": 13,
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
           "cache": {
-            "cache_mode": "cold_scan",
-            "hits": 0,
-            "misses": 463,
-            "total_cache_checks": 463,
-            "hit_rate": 0.0
+            "cache_mode": "partial_cache",
+            "hits": 461,
+            "misses": 3,
+            "total_cache_checks": 464,
+            "hit_rate": 99.4
           }
         }
       },
-      "timestamp": "2026-02-25T10:49:09"
+      "timestamp": "2026-02-25T11:08:59"
     },
     "analyze_config": {
       "success": true,
@@ -46802,7 +46748,7 @@
           }
         }
       },
-      "timestamp": "2026-02-25T10:50:59"
+      "timestamp": "2026-02-25T11:04:15"
     },
     "analyze_ai_work": {
       "success": true,
@@ -46817,12 +46763,12 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-02-25T10:48:43"
+      "timestamp": "2026-02-25T11:08:39"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-02-25T10:54:13",
+        "generated_at": "2026-02-25T11:12:48",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -46867,7 +46813,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-02-17T10:54:13",
+                "recent_cutoff": "2026-02-17T11:12:48",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-02-25_10-26-52",
                 "latest_weekly_created_at": "2026-02-25 10:26:52"
               }
@@ -46878,7 +46824,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-02-25_10-26-52",
                 "latest_created_at": "2026-02-25 10:26:52",
-                "recent_cutoff": "2026-02-17T10:54:13"
+                "recent_cutoff": "2026-02-17T11:12:48"
               }
             },
             {
@@ -46933,7 +46879,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-02-17T10:54:13",
+              "recent_cutoff": "2026-02-17T11:12:48",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-02-25_10-26-52",
               "latest_weekly_created_at": "2026-02-25 10:26:52"
             }
@@ -46944,7 +46890,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-02-25_10-26-52",
               "latest_created_at": "2026-02-25 10:26:52",
-              "recent_cutoff": "2026-02-17T10:54:13"
+              "recent_cutoff": "2026-02-17T11:12:48"
             }
           },
           {
@@ -46967,7 +46913,7 @@
           }
         ]
       },
-      "timestamp": "2026-02-25T10:54:13"
+      "timestamp": "2026-02-25T11:12:48"
     },
     "analyze_system_signals": {
       "success": true,
@@ -46978,7 +46924,7 @@
           "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-02-25T10:48:42.331562",
+          "timestamp": "2026-02-25T11:08:38.525402",
           "system_health": {
             "overall_status": "ISSUES",
             "core_files": {
@@ -46998,7 +46944,7 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-02-25T10:25:42.259126",
+            "last_audit": "2026-02-25T11:06:49.606523",
             "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
             "documentation_sync_status": "Synchronized",
@@ -47021,16 +46967,16 @@
           },
           "recent_activity": {
             "recent_changes": [
-              "tests/development_tools/test_fix_project_cleanup.py",
-              "tests/behavior/test_checkin_questions_enhancement.py",
-              "development_tools/shared/service/commands.py",
-              "tests/conftest.py",
-              "tests/behavior/test_discord_checkin_retry_behavior.py",
-              "tests/unit/test_checkin_view.py",
-              "tests/test_support/test_helpers.py",
+              "core/scheduler.py",
+              "tests/unit/test_auto_cleanup_backup_retention.py",
               "development_tools/shared/service/report_generation.py",
-              "tests/test_support/conftest_cleanup_impl.py",
-              "tests/test_support/conftest_hooks.py"
+              "development_tools/shared/service/commands.py",
+              "tests/development_tools/test_cli_interface.py",
+              "core/auto_cleanup.py",
+              "tests/development_tools/test_generate_function_registry.py",
+              "tests/development_tools/test_analyze_module_refactor_candidates.py",
+              "core/backup_manager.py",
+              "ai_development_docs/AI_CHANGELOG.md"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -47057,7 +47003,7 @@
           }
         }
       },
-      "timestamp": "2026-02-25T10:48:42"
+      "timestamp": "2026-02-25T11:08:38"
     },
     "decision_support": {
       "success": true,
@@ -47198,7 +47144,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-25T10:48:47"
+      "timestamp": "2026-02-25T11:08:42"
     },
     "quick_status": {
       "success": true,

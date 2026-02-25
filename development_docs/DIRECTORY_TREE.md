@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-25 02:13:20
+> **Last Generated**: 2026-02-25 11:00:33
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -521,6 +521,7 @@ C:.
 |   |   |   test_analyze_heading_numbering.py
 |   |   |   test_analyze_missing_addresses.py
 |   |   |   test_analyze_module_dependencies.py
+|   |   |   test_analyze_module_refactor_candidates.py
 |   |   |   test_analyze_package_exports.py
 |   |   |   test_analyze_test_markers.py
 |   |   |   test_analyze_unconverted_links.py
@@ -530,6 +531,7 @@ C:.
 |   |   |   test_audit_tier_comprehensive.py
 |   |   |   test_audit_tier_e2e_verification.py
 |   |   |   test_changelog_trim_tooling.py
+|   |   |   test_cli_interface.py
 |   |   |   test_config.json
 |   |   |   test_config.py
 |   |   |   test_constants.py
@@ -639,6 +641,7 @@ C:.
 |   |   |   test_ai_chatbot_helpers.py
 |   |   |   test_ai_deterministic.py
 |   |   |   test_analytics_handler.py
+|   |   |   test_auto_cleanup_backup_retention.py
 |   |   |   test_auto_cleanup_logic.py
 |   |   |   test_auto_cleanup_paths.py
 |   |   |   test_channel_orchestrator.py
