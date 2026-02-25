@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-25 - Weekly backup semantics restored + backup guides synced **COMPLETED**
+- Restored weekly-first backup behavior in runtime: scheduler now checks `weekly_backup_*` recency for weekly creation decisions, and cleanup retention now preserves weekly artifacts in a dedicated keep window (`WEEKLY_BACKUP_MAX_KEEP`, default 4) separate from non-weekly (`max_backups=10`).
+- Restored explicit weekly backup health checks in dev-tools (`weekly_backup_present`, `weekly_backup_recent_enough`) and weekly-focused backup-health reporting labels in AI status/consolidated reporting.
+- Synced paired backup docs to implementation semantics: [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md) and [AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md).
+- Added/updated coverage for retention behavior (`tests/unit/test_auto_cleanup_backup_retention.py`) and related dev-tools low-coverage tests (`test_cli_interface.py`, `test_analyze_module_refactor_candidates.py`, plus expanded `test_generate_function_registry.py` branches).
+- Regenerated in-session audit/report artifacts and derived docs (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.md`, `analysis_detailed_results.json`, `tool_timings.json`, `TEST_COVERAGE_REPORT.md`, `UNUSED_IMPORTS_REPORT.md`, `LEGACY_REFERENCE_REPORT.md`) and updated planning/changelog trackers (`TODO.md`, `PLANS.md`, `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`, both changelog tracks).
+- Full working tree was reviewed (`git diff --stat`, `git diff --name-only`, `git status --short`) and, per user confirmation, all working-tree changes were actioned in this session; user confirmed full audit pass with no new issues.
+
 ### 2026-02-25 - Conftest refactor and AI priorities follow-up **COMPLETED**
 - Conftest plan Phase 1.1: Extracted test helpers to `tests/support/test_helpers.py`; added `tests/conftest_mocks.py` plugin (mock/temp fixtures), wired in pytest_plugins. Updated TESTING_GUIDE.md and AI_TESTING_GUIDE.md. Re-exports later removed; call sites use tests.support.test_helpers.
 - Conftest plan Phase 1.2 (logging impl): Extracted logging to `tests/support/conftest_logging_impl.py`; ~500 lines removed from conftest. Phase 1.2 (cleanup impl): Extracted to `conftest_cleanup_impl.py`. Unused-imports: marked `import sys` with noqa in conftest; Obvious Unused: 0.

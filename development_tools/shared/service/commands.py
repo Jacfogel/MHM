@@ -1387,62 +1387,6 @@ class CommandsMixin:
                 except Exception:
                     return None
 
-            weekly_backups: List[Dict[str, object]] = []
-            for backup in backups:
-                if not isinstance(backup, dict):
-                    continue
-                backup_name = str(backup.get("backup_name") or "")
-                file_name = str(backup.get("file_name") or "")
-                if "weekly_backup_" in backup_name or "weekly_backup_" in file_name:
-                    weekly_backups.append(backup)
-
-            latest_weekly: Optional[Dict[str, object]] = None
-            latest_weekly_created: Optional[datetime] = None
-            for backup in weekly_backups:
-                created_dt = _parse_backup_created_at(backup.get("created_at"))
-                if created_dt is None:
-                    continue
-                if latest_weekly_created is None or created_dt > latest_weekly_created:
-                    latest_weekly_created = created_dt
-                    latest_weekly = backup
-
-            weekly_present = len(weekly_backups) > 0
-            checks.append(
-                {
-                    "name": "weekly_backup_present",
-                    "success": weekly_present,
-                    "details": {
-                        "weekly_backup_count": len(weekly_backups),
-                        "latest_weekly_backup_path": str(
-                            (latest_weekly or {}).get("file_path") or ""
-                        ),
-                        "latest_weekly_created_at": str(
-                            (latest_weekly or {}).get("created_at") or ""
-                        ),
-                    },
-                }
-            )
-
-            recent_cutoff = datetime.now() - timedelta(days=8)
-            weekly_recent_enough = (
-                latest_weekly_created is not None and latest_weekly_created >= recent_cutoff
-            )
-            checks.append(
-                {
-                    "name": "weekly_backup_recent_enough",
-                    "success": weekly_recent_enough,
-                    "details": {
-                        "recent_cutoff": recent_cutoff.isoformat(timespec="seconds"),
-                        "latest_weekly_backup_path": str(
-                            (latest_weekly or {}).get("file_path") or ""
-                        ),
-                        "latest_weekly_created_at": str(
-                            (latest_weekly or {}).get("created_at") or ""
-                        ),
-                    },
-                }
-            )
-
             latest_backup = backups[0]
             latest_path = str(latest_backup.get("file_path") or "")
             if not latest_path:
@@ -1452,6 +1396,51 @@ class CommandsMixin:
             latest_created = None
             if isinstance(latest_created_raw, str) and latest_created_raw:
                 latest_created = _parse_backup_created_at(latest_created_raw)
+
+            weekly_backups = [
+                backup
+                for backup in backups
+                if str(backup.get("backup_name") or "").startswith("weekly_backup_")
+                or str(backup.get("file_name") or "").startswith("weekly_backup_")
+            ]
+            latest_weekly = weekly_backups[0] if weekly_backups else None
+            latest_weekly_path = (
+                str(latest_weekly.get("file_path") or "") if latest_weekly else ""
+            )
+            latest_weekly_created_raw = (
+                latest_weekly.get("created_at") if latest_weekly else None
+            )
+            latest_weekly_created = _parse_backup_created_at(latest_weekly_created_raw)
+
+            checks.append(
+                {
+                    "name": "weekly_backup_present",
+                    "success": bool(latest_weekly),
+                    "details": {
+                        "weekly_backup_count": len(weekly_backups),
+                        "latest_weekly_backup_path": latest_weekly_path,
+                        "latest_weekly_created_at": latest_weekly_created_raw,
+                    },
+                }
+            )
+
+            recent_cutoff = datetime.now() - timedelta(days=8)
+            weekly_backup_recent_enough = (
+                latest_weekly_created is not None
+                and latest_weekly_created >= recent_cutoff
+            )
+            checks.append(
+                {
+                    "name": "weekly_backup_recent_enough",
+                    "success": weekly_backup_recent_enough,
+                    "details": {
+                        "recent_cutoff": recent_cutoff.isoformat(timespec="seconds"),
+                        "latest_weekly_backup_path": latest_weekly_path,
+                        "latest_weekly_created_at": latest_weekly_created_raw,
+                    },
+                }
+            )
+
             recent_cutoff = datetime.now() - timedelta(days=8)
             recent_ok = latest_created is not None and latest_created >= recent_cutoff
             checks.append(

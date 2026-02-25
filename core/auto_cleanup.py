@@ -306,7 +306,8 @@ def perform_cleanup(root_path="."):
 def cleanup_old_backup_files():
     """
     Clean up old backup files from data/backups directory.
-    Uses same retention policy as BackupManager (30 days by default, max 10 files).
+    Uses same retention policy as BackupManager (30 days default, separate
+    weekly and non-weekly keep limits).
     """
     try:
         from core.config import get_backups_dir
@@ -322,7 +323,10 @@ def cleanup_old_backup_files():
         except Exception:
             backup_retention_days = 30
         max_backups = 10
-
+        try:
+            weekly_max_backups = int(os.getenv("WEEKLY_BACKUP_MAX_KEEP", "4"))
+        except Exception:
+            weekly_max_backups = 4
         # Gather backup artifacts (zip files and directory backups) with mtime
         backup_files = []
         now_ts = time.time()
@@ -359,9 +363,37 @@ def cleanup_old_backup_files():
                 except Exception as e:
                     logger.warning(f"Failed to remove old backup {file_path}: {e}")
 
-        # Count-based retention: keep newest max_backups
-        backup_files.sort(key=lambda x: x[1], reverse=True)
-        for file_path, _ in backup_files[max_backups:]:
+        def _is_weekly_backup_artifact(path: str) -> bool:
+            return Path(path).name.startswith("weekly_backup_")
+
+        # Count-based retention mirrors BackupManager:
+        # weekly backups are retained in a separate bucket from non-weekly backups.
+        weekly_backups = []
+        non_weekly_backups = []
+        for file_path, mtime in backup_files:
+            if _is_weekly_backup_artifact(file_path):
+                weekly_backups.append((file_path, mtime))
+            else:
+                non_weekly_backups.append((file_path, mtime))
+
+        weekly_backups.sort(key=lambda x: x[1], reverse=True)
+        non_weekly_backups.sort(key=lambda x: x[1], reverse=True)
+
+        for file_path, _ in weekly_backups[weekly_max_backups:]:
+            try:
+                if os.path.exists(file_path):
+                    if Path(file_path).is_dir():
+                        shutil.rmtree(file_path, ignore_errors=True)
+                    else:
+                        os.remove(file_path)
+                    logger.info(
+                        f"Removed old weekly backup file (>{weekly_max_backups} weekly backups): {file_path}"
+                    )
+                    removed_count += 1
+            except Exception as e:
+                logger.warning(f"Failed to remove old weekly backup {file_path}: {e}")
+
+        for file_path, _ in non_weekly_backups[max_backups:]:
             try:
                 if os.path.exists(file_path):
                     if Path(file_path).is_dir():

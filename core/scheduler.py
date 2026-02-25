@@ -2006,30 +2006,32 @@ class SchedulerManager:
         Check if a weekly backup is needed and perform it if so.
         Runs during the daily scheduler job at 01:00 (before log archival at 02:00).
         Creates a backup if:
-        - No backups exist, OR
-        - Last backup is 7+ days old
-        Keeps last 10 backups with 30-day retention as configured in BackupManager.
+        - No weekly backups exist, OR
+        - Last weekly backup is 7+ days old
+        Retention is enforced by BackupManager with separate weekly/non-weekly buckets.
         """
         try:
             # Get list of existing backups
             backups = backup_manager.list_backups()
 
-            # Check if weekly backup is needed based on weekly artifacts only.
-            needs_backup = False
-            weekly_backups = []
-            for backup in backups:
-                if not isinstance(backup, dict):
-                    continue
-                backup_name = str(backup.get("backup_name") or "")
-                file_name = str(backup.get("file_name") or "")
-                if "weekly_backup_" in backup_name or "weekly_backup_" in file_name:
-                    weekly_backups.append(backup)
+            def _is_weekly_backup_entry(backup_entry: dict) -> bool:
+                if not isinstance(backup_entry, dict):
+                    return False
+                backup_name = str(backup_entry.get("backup_name") or "")
+                file_name = str(backup_entry.get("file_name") or "")
+                return backup_name.startswith("weekly_backup_") or file_name.startswith(
+                    "weekly_backup_"
+                )
 
+            weekly_backups = [b for b in backups if _is_weekly_backup_entry(b)]
+
+            # Check if weekly backup is needed based on latest weekly artifact.
+            needs_backup = False
             if not weekly_backups:
                 logger.info("No weekly backups found - creating weekly backup")
                 needs_backup = True
             else:
-                # Get the most recent weekly backup.
+                # list_backups() is sorted newest-first.
                 last_backup = weekly_backups[0]
 
                 created_at_str = last_backup.get("created_at") or ""
@@ -2044,12 +2046,12 @@ class SchedulerManager:
 
                     if days_since_backup >= 7:
                         logger.info(
-                            f"Last weekly backup was {days_since_backup} days ago - creating new backup"
+                            f"Last weekly backup was {days_since_backup} days ago - creating new weekly backup"
                         )
                         needs_backup = True
                     else:
                         logger.debug(
-                            f"Weekly backup not needed - last weekly backup was {days_since_backup} days ago"
+                            f"Weekly backup not needed - latest weekly backup was {days_since_backup} days ago"
                         )
 
             # Create backup if needed
@@ -2068,14 +2070,17 @@ class SchedulerManager:
 
                     # Check backup health
                     backups = backup_manager.list_backups()
-                    if backups:
-                        latest_backup = backups[0]
+                    latest_weekly = [
+                        b for b in backups if _is_weekly_backup_entry(b)
+                    ]
+                    if latest_weekly:
+                        latest_backup = latest_weekly[0]
                         latest_created_at_str = latest_backup.get("created_at") or ""
                         backup_time = parse_timestamp_full(latest_created_at_str)
 
                         if backup_time is None:
                             logger.warning(
-                                f"Backup health: Latest backup has invalid created_at '{latest_created_at_str}'"
+                                f"Backup health: Latest weekly backup has invalid created_at '{latest_created_at_str}'"
                             )
                         else:
                             days_old = (now_datetime_full() - backup_time).days
@@ -2083,11 +2088,11 @@ class SchedulerManager:
                                 1024 * 1024
                             )
                             logger.info(
-                                f"Backup health: Latest backup is {days_old} days old, size: {backup_size_mb:.2f} MB"
+                                f"Backup health: Latest weekly backup is {days_old} days old, size: {backup_size_mb:.2f} MB"
                             )
                     else:
                         logger.warning(
-                            "No backups found after creation - backup health check failed"
+                            "No weekly backups found after creation - backup health check failed"
                         )
                 else:
                     logger.error("Weekly backup failed - no backup path returned")

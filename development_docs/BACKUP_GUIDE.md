@@ -102,8 +102,8 @@ This guide covers both how the systems work and how to restore from backups.
 
 **Backup Schedule:**
 - **Automatic**: Weekly backups created at 01:00 daily if:
-  - No backups exist, OR
-  - Last backup is 7+ days old
+  - No `weekly_backup_*` artifacts exist, OR
+  - Last `weekly_backup_*` artifact is 7+ days old
 
 **Backup Contents:**
 - All user data directories (`data/users/{user_id}/`)
@@ -122,7 +122,8 @@ This guide covers both how the systems work and how to restore from backups.
 
 **Retention Policy:**
 - **Age-based**: Keep backups for 30 days (configurable via `BACKUP_RETENTION_DAYS`)
-- **Count-based**: Keep maximum 10 backups
+- **Count-based (non-weekly)**: Keep maximum 10 non-weekly backups (`self.max_backups`)
+- **Count-based (weekly)**: Keep a separate weekly window (`WEEKLY_BACKUP_MAX_KEEP`, default 4)
 - **Enforcement**: Both policies apply (whichever is stricter)
 
 **Backup Naming:**
@@ -274,7 +275,7 @@ This guide covers both how the systems work and how to restore from backups.
 - `python development_tools/run_development_tools.py backup drill`
   - Runs isolated restore drill from latest core backup and writes drill reports.
 - `python development_tools/run_development_tools.py backup verify`
-  - Runs end-to-end backup health checks (inventory, newest-backup validation, and restore drill).
+  - Runs end-to-end backup health checks (inventory, explicit weekly presence/recency checks, newest-backup validation, and restore drill).
 
 **Retention:**
 - Category-B defaults: `max_age_days=90`, `min_keep=7`, `max_keep=30`
@@ -436,7 +437,7 @@ All retention policies have been standardized for consistency. This is the autho
 
 | Artifact Class | Category | Owner | Retention Behavior |
 |--------|-----------|------------------|-------------|
-| User backup artifacts (`data/backups/*`; directory backups by policy) | A | core | 30d + floor/count guard (`min_keep=4`, `max_keep=10`) |
+| User backup artifacts (`data/backups/*`; directory backups by policy) | A | core | 30d + floor/count guard (`min_keep=4`, `max_keep=10` non-weekly) + separate weekly keep window (`WEEKLY_BACKUP_MAX_KEEP`, default 4) |
 | Runtime log archives | A | core | Runtime-managed; recovery-focused retention |
 | Generated docs archives | B | development_tools | 90d + floor/count guard (`min_keep=7`, `max_keep=30`) |
 | Dev-tools JSON result/cache archives | B | development_tools | 90d + floor/count guard |
@@ -548,7 +549,8 @@ Retention policies are configured in:
 
 **Solutions:**
 - Check scheduler: Weekly backups run at 01:00
-- Check last backup: Backups only created if 7+ days old
+- Check last weekly backup: Weekly backups are created based on the most recent `weekly_backup_*` artifact age (7+ days)
+- Run backup health verify: confirm `weekly_backup_present` and `weekly_backup_recent_enough` checks
 - Check disk space: Insufficient space may prevent backups
 - Check logs: Look for backup errors in `logs/file_ops.log`
 

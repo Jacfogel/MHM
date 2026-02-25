@@ -104,6 +104,16 @@ When adding new tasks, follow this format:
   - [ ] Define retention or max-size policy for sent_messages.json
   - [ ] Implement archiving/trimming if needed; document in USER_DATA_MODEL or config
 
+**Monitor weekly backup health after retention split restoration**
+- *Created* 2026-02-25
+- *What it means*: After the next scheduled run, confirm weekly backup checks remain healthy with separate weekly/non-weekly retention buckets.
+- *Why it helps*: Verifies that `weekly_backup_*` artifacts are preserved and weekly cadence remains reliable under frequent auto backups.
+- *Estimated effort*: Small
+- *Subtasks*:
+  - [ ] Run `python development_tools/run_development_tools.py backup verify` after the next 01:00 scheduler cycle
+  - [ ] Confirm `weekly_backup_present` and `weekly_backup_recent_enough` are both PASS
+  - [ ] Review `logs/scheduler.log` for weekly backup decision logging and unexpected fallback behavior
+
 **Sweep test log fixtures for xdist-safe isolation**
 - *What it means*: Audit tests that write to shared log paths (for example under `tests/data/logs`) and migrate them to per-test isolated paths (`tmp_path`) where destructive teardown can race in parallel runs.
 - *Why it helps*: Prevents intermittent `FileNotFoundError` and similar races during Tier 3 parallel coverage runs.

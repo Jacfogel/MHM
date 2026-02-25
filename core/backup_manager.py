@@ -41,10 +41,8 @@ class BackupManager:
         # Redirect backups under tests/data when in test mode
         self.backup_dir = core.config.get_backups_dir()
         self.ensure_backup_directory()
-        # Keep last 10 backups by default; also enforce age-based retention
+        # Keep last 10 non-weekly backups by default; also enforce age-based retention
         self.max_backups = 10
-        # Keep a small rolling window of weekly backups so frequent automatic
-        # backups do not evict weekly recovery points.
         try:
             self.weekly_max_backups = int(os.getenv("WEEKLY_BACKUP_MAX_KEEP", "4"))
         except (ValueError, TypeError):
@@ -630,12 +628,6 @@ class BackupManager:
             return total
         return 0
 
-    @handle_errors("checking weekly backup artifact", default_return=False)
-    def _is_weekly_backup_artifact(self, backup_path: str) -> bool:
-        """Return True when backup artifact name indicates weekly scheduler ownership."""
-        name = Path(backup_path).name
-        return "weekly_backup_" in name
-
     @handle_errors("cleaning up old backups")
     def _cleanup_old_backups(self) -> None:
         """Remove old backups by count and age retention policy."""
@@ -693,18 +685,16 @@ class BackupManager:
                         logger.warning(f"Failed to remove old backup {file_path}: {e}")
 
             # Count-based retention:
-            # 1) Keep newest weekly backups separately.
-            # 2) Keep newest non-weekly backups by global limit.
-            weekly_backups = [
-                (file_path, mtime)
-                for file_path, mtime in backup_files
-                if self._is_weekly_backup_artifact(file_path)
-            ]
-            non_weekly_backups = [
-                (file_path, mtime)
-                for file_path, mtime in backup_files
-                if not self._is_weekly_backup_artifact(file_path)
-            ]
+            # - Keep weekly backups in a dedicated bucket so frequent auto backups
+            #   do not evict weekly recovery points.
+            # - Keep non-weekly backups in the standard bucket.
+            weekly_backups: list[tuple[str, float]] = []
+            non_weekly_backups: list[tuple[str, float]] = []
+            for file_path, mtime in backup_files:
+                if self._is_weekly_backup_artifact(file_path):
+                    weekly_backups.append((file_path, mtime))
+                else:
+                    non_weekly_backups.append((file_path, mtime))
 
             weekly_backups.sort(key=lambda x: x[1], reverse=True)
             non_weekly_backups.sort(key=lambda x: x[1], reverse=True)
@@ -730,12 +720,18 @@ class BackupManager:
                         else:
                             os.remove(file_path)
                         logger.debug(
-                            f"Removed backup by count (>{self.max_backups} non-weekly): {file_path}"
+                            f"Removed backup by count (>{self.max_backups}): {file_path}"
                         )
                 except Exception as e:
                     logger.warning(f"Failed to remove old backup {file_path}: {e}")
         except Exception as e:
             logger.warning(f"Backup cleanup encountered an error: {e}")
+
+    @handle_errors("checking if backup artifact is weekly", default_return=False)
+    def _is_weekly_backup_artifact(self, file_path: str) -> bool:
+        """Return True when backup artifact name indicates weekly cadence."""
+        artifact_name = Path(file_path).name
+        return artifact_name.startswith("weekly_backup_")
 
     @handle_errors("listing available backups", default_return=[])
     def list_backups(self) -> list[dict]:

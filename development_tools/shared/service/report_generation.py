@@ -2010,23 +2010,26 @@ class ReportGenerationMixin:
             latest_created_at = backup_summary.get("latest_backup_created_at")
             if latest_created_at:
                 lines.append(f"- **Latest Backup Created At**: {latest_created_at}")
-            weekly_present_status = "UNKNOWN"
-            weekly_recent_status = "UNKNOWN"
+            backup_present_status = "UNKNOWN"
+            backup_recent_status = "UNKNOWN"
             if isinstance(backup_checks, list):
                 for check in backup_checks:
                     if not isinstance(check, dict):
                         continue
                     check_name = str(check.get("name") or "")
-                    if check_name == "weekly_backup_present":
-                        weekly_present_status = (
+                    if check_name in {"backup_present", "weekly_backup_present"}:
+                        backup_present_status = (
                             "PASS" if bool(check.get("success")) else "FAIL"
                         )
-                    if check_name == "weekly_backup_recent_enough":
-                        weekly_recent_status = (
+                    if check_name in {
+                        "backups_recent_enough",
+                        "weekly_backup_recent_enough",
+                    }:
+                        backup_recent_status = (
                             "PASS" if bool(check.get("success")) else "FAIL"
                         )
-            lines.append(f"- **Weekly Backup Presence**: {weekly_present_status}")
-            lines.append(f"- **Weekly Backup Recency**: {weekly_recent_status}")
+            lines.append(f"- **Weekly Backup Presence**: {backup_present_status}")
+            lines.append(f"- **Weekly Backup Recency**: {backup_recent_status}")
 
             drill_status = "SKIPPED"
             if isinstance(backup_checks, list):
@@ -6985,23 +6988,26 @@ class ReportGenerationMixin:
             latest_created_at = backup_summary.get("latest_backup_created_at")
             if latest_created_at:
                 lines.append(f"- **Latest Backup Created At**: {latest_created_at}")
-            weekly_present_status = "UNKNOWN"
-            weekly_recent_status = "UNKNOWN"
+            backup_present_status = "UNKNOWN"
+            backup_recent_status = "UNKNOWN"
             if isinstance(backup_checks, list):
                 for check in backup_checks:
                     if not isinstance(check, dict):
                         continue
                     check_name = str(check.get("name") or "")
-                    if check_name == "weekly_backup_present":
-                        weekly_present_status = (
+                    if check_name in {"backup_present", "weekly_backup_present"}:
+                        backup_present_status = (
                             "PASS" if bool(check.get("success")) else "FAIL"
                         )
-                    if check_name == "weekly_backup_recent_enough":
-                        weekly_recent_status = (
+                    if check_name in {
+                        "backups_recent_enough",
+                        "weekly_backup_recent_enough",
+                    }:
+                        backup_recent_status = (
                             "PASS" if bool(check.get("success")) else "FAIL"
                         )
-            lines.append(f"- **Weekly Backup Presence**: {weekly_present_status}")
-            lines.append(f"- **Weekly Backup Recency**: {weekly_recent_status}")
+            lines.append(f"- **Weekly Backup Presence**: {backup_present_status}")
+            lines.append(f"- **Weekly Backup Recency**: {backup_recent_status}")
             drill_status = "SKIPPED"
             if isinstance(backup_checks, list):
                 for check in backup_checks:
@@ -7026,16 +7032,24 @@ class ReportGenerationMixin:
                             if inventory_error:
                                 detail_text = f"error={inventory_error}"
                         elif check_name in {
+                            "backup_present",
+                            "backups_recent_enough",
                             "weekly_backup_present",
                             "weekly_backup_recent_enough",
                         }:
                             weekly_count = details.get("weekly_backup_count")
                             weekly_created = details.get("latest_weekly_created_at")
+                            backup_count = details.get("backup_count")
+                            backup_created = details.get("latest_backup_created_at")
                             fragments = []
                             if weekly_count is not None:
                                 fragments.append(f"count={weekly_count}")
                             if weekly_created:
                                 fragments.append(f"latest={weekly_created}")
+                            if backup_count is not None:
+                                fragments.append(f"count={backup_count}")
+                            if backup_created:
+                                fragments.append(f"latest={backup_created}")
                             detail_text = ", ".join(fragments)
                         elif check_name == "backups_discoverable":
                             backup_count = details.get("backup_count")

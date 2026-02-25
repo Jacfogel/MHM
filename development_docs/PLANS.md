@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-24
+> **Last Updated**: 2026-02-25
 > **Children**: [TEST_PLAN.md](development_docs\TEST_PLAN.md), [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).  
 
 ---
@@ -107,7 +107,7 @@
 **Priority**: High  
 **Effort**: Medium  
 **Date**: 2026-02-16  
-**Last Updated**: 2026-02-21
+**Last Updated**: 2026-02-25
 
 **Objective**: Verify that existing backup mechanisms are reliably producing restorable artifacts and define improvements where gaps are found.
 
@@ -123,6 +123,17 @@
 - [x] At least one recent backup set is proven restorable end-to-end in an isolated test restore.
 - [x] Backup ownership map is documented (which module/script is authoritative for each backup type).
 - [x] Known gaps are converted into prioritized implementation tasks with clear owners.
+
+**Completed in this session (2026-02-25)**:
+- [x] Restored weekly-first scheduler gating so weekly backup creation decisions use `weekly_backup_*` recency rather than generic latest-backup recency.
+- [x] Restored explicit weekly backup health checks in development tools (`weekly_backup_present`, `weekly_backup_recent_enough`).
+- [x] Restored separate retention buckets for backup cleanup:
+  - [x] non-weekly backups keep window (`max_backups=10`)
+  - [x] weekly backups keep window (`WEEKLY_BACKUP_MAX_KEEP`, default 4)
+- [x] Synced paired backup guides to match implementation semantics:
+  - [x] [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md)
+  - [x] [AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md)
+- [x] Added/validated retention coverage test for weekly bucket preservation behavior.
 
 ### **Testing Program Consolidation** **IN PROGRESS**
 

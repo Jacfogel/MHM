@@ -22,10 +22,14 @@ scan_all_python_files = analyze_functions_module.scan_all_python_files
 
 # Import registry generation functions from generate_function_registry.py (still there)
 detect_function_type = registry_module.detect_function_type
+generate_function_template = registry_module.generate_function_template
 generate_function_registry_content = registry_module.generate_function_registry_content
 update_function_registry = registry_module.update_function_registry
 generate_file_section = registry_module.generate_file_section
 get_directory_description = registry_module.get_directory_description
+get_file_stats = registry_module.get_file_stats
+format_file_entry = registry_module.format_file_entry
+find_files_needing_attention = registry_module.find_files_needing_attention
 
 
 def _patch_should_exclude_file(monkeypatch, mock_func):
@@ -149,6 +153,43 @@ class TestFunctionTypeDetection:
         assert test_func is not None
         assert test_func['func_type'] == 'test_function'
         assert test_func['is_test'] is True
+
+    @pytest.mark.unit
+    def test_detect_function_type_branch_coverage(self):
+        """Cover major detect_function_type branches."""
+        assert detect_function_type("ui/generated/demo.py", "qtTrId", [], []) == "qt_translation"
+        assert detect_function_type("ui/generated/form_pyqt.py", "setupUi", [], []) == "ui_generated"
+        assert detect_function_type("core/mod.py", "__exit__", [], []) == "special_method"
+        assert detect_function_type("core/mod.py", "main", [], []) == "main_function"
+        assert detect_function_type("core/mod.py", "plain_name", [], []) == "regular_function"
+
+    @pytest.mark.unit
+    def test_generate_function_template_branch_coverage(self):
+        """Cover template generation branches with representative inputs."""
+        assert "translation" in generate_function_template(
+            "qt_translation", "qtTrId", "ui/generated/demo.py", []
+        ).lower()
+        assert "setup" in generate_function_template(
+            "ui_generated", "setupUi", "ui/generated/account_creator_dialog_pyqt.py", []
+        ).lower()
+        assert "translation" in generate_function_template(
+            "ui_generated", "retranslateUi", "ui/generated/account_creator_dialog_pyqt.py", []
+        ).lower()
+        assert "integration test" in generate_function_template(
+            "test_function", "test_integration_login_flow", "tests/x.py", []
+        ).lower()
+        assert "special python method" in generate_function_template(
+            "special_method", "__something__", "core/x.py", []
+        ).lower()
+        assert generate_function_template(
+            "constructor", "__init__", "core/x.py", []
+        ) == "Initialize the object"
+        assert "main entry point" in generate_function_template(
+            "main_function", "main", "run_x.py", []
+        ).lower()
+        assert generate_function_template(
+            "regular_function", "x", "core/x.py", []
+        ) == "No description"
 
 
 class TestScanning:
@@ -365,6 +406,45 @@ class TestRegistryHelpers:
     def test_get_directory_description_unknown_directory(self):
         """Unknown directories should fall back to generic description."""
         assert get_directory_description("experimental") == "Unknown Directory"
+
+    @pytest.mark.unit
+    def test_file_stats_and_format_entry_helpers(self):
+        """get_file_stats/format_file_entry should handle documented and missing files."""
+        payload = {
+            "core/sample.py": {
+                "functions": [{"name": "a", "has_docstring": True}],
+                "classes": [{"name": "C", "docstring": "", "methods": [{"name": "m", "has_docstring": False}]}],
+            }
+        }
+
+        stats = get_file_stats("core/sample.py", payload)
+        assert stats == {"total": 2, "documented": 1, "functions": 1, "methods": 1}
+        assert format_file_entry("core/sample.py", "desc", payload).endswith("(1/2 functions)")
+        assert format_file_entry("core/missing.py", "desc", payload) == "`core/missing.py` - desc"
+
+    @pytest.mark.unit
+    def test_find_files_needing_attention_sorts_by_missing_then_coverage(self):
+        """find_files_needing_attention should sort deterministically by priority."""
+        actual_functions = {
+            "a.py": {
+                "functions": [
+                    {"name": "f1", "has_docstring": False},
+                    {"name": "f2", "has_docstring": False},
+                ],
+                "classes": [],
+            },
+            "b.py": {
+                "functions": [
+                    {"name": "g1", "has_docstring": True},
+                    {"name": "g2", "has_docstring": False},
+                ],
+                "classes": [],
+            },
+        }
+
+        items = find_files_needing_attention(actual_functions, threshold=0.8)
+        assert [i["file"] for i in items] == ["a.py", "b.py"]
+        assert items[0]["missing"] == 2
 
     @pytest.mark.unit
     def test_generate_file_section_renders_missing_and_documented_entries(self):

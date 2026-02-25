@@ -55,6 +55,15 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [x] Add targeted coverage tests for retention planning and enforcement helpers:
   - `development_tools/shared/retention_engine.py`
   - Added tests: `tests/development_tools/test_retention_engine.py`
+- [x] Add targeted low-coverage tests from current AI priorities:
+  - `development_tools/functions/analyze_module_refactor_candidates.py`
+  - `development_tools/shared/cli_interface.py`
+  - Added tests:
+    - `tests/development_tools/test_analyze_module_refactor_candidates.py`
+    - `tests/development_tools/test_cli_interface.py`
+  - Expanded branch coverage in existing low-coverage test modules:
+    - `tests/development_tools/test_cli_interface.py` (docs/workflow/doc-fix/status/unused-imports/backup/list command paths)
+    - `tests/development_tools/test_generate_function_registry.py` (function-type/template/stats-and-attention helpers)
 - [ ] Investigate skipped test increase (1 -> 2 skipped)
 - [ ] Strengthen tests for fragile helpers across `tests/development_tools/`
   - [x] Added branch-focused wrapper tests for low-coverage service paths:

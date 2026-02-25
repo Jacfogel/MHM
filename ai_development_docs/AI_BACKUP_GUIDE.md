@@ -43,6 +43,11 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 - Scheduler integration: `core/scheduler.py`
 - Backup artifacts: `data/backups/*` (directory backups by policy; zip is read-only compatibility for historical artifacts)
 
+**Key rules:**
+- Weekly scheduler logic keys off `weekly_backup_*` artifacts (not generic latest backup)
+- Weekly health checks are explicit: `weekly_backup_present`, `weekly_backup_recent_enough`
+- Retention keeps weekly artifacts in a separate keep window from non-weekly backups (`WEEKLY_BACKUP_MAX_KEEP`, default 4)
+
 **AI usage:**
 - Use `BackupManager.create_backup()` for creating backups
 - Use `BackupManager.restore_backup()` for restoring
@@ -82,7 +87,7 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 - `backup inventory` generates ownership map + producer/output inventory from config
 - `backup retention --dry-run|--apply` enforces category-B retention for dev-tools-owned artifacts
 - `backup drill` runs isolated restore drill via core backup API and writes reports
-- `backup verify` runs end-to-end backup health checks (inventory + latest backup validation + drill)
+- `backup verify` runs end-to-end backup health checks (inventory + explicit weekly presence/recency checks + latest backup validation + drill)
 - Dev-tools policy is config-driven from `development_tools/config/development_tools_config.json`
 
 **AI usage:**
@@ -138,6 +143,9 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 - Category B (engineering artifacts): `max_age_days=90`, `min_keep=7`, `max_keep=30` (development-tools-owned)
 - Category C (git-canonical tracked assets): local retention disabled; rely on Git history
 
+**Category A note:**
+- Runtime backup retention uses separate count buckets: non-weekly max 10, weekly max from `WEEKLY_BACKUP_MAX_KEEP` (default 4)
+
 **Ownership map:**
 - `core/*`: user-data backup creation/restore + scheduler weekly backup
 - `development_tools/*`: engineering artifact inventory/retention/reporting
@@ -189,7 +197,8 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 
 ### 9.2. Backups Not Created
 - Check scheduler (runs at 01:00)
-- Check last backup age (only if 7+ days old)
+- Check last `weekly_backup_*` age (weekly creation gates on weekly artifact recency, 7+ days)
+- Run `backup verify` and inspect `weekly_backup_present` + `weekly_backup_recent_enough`
 - Check disk space
 - Check logs for errors
 

@@ -33,6 +33,59 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-25 - Weekly backup-first semantics restoration + guide sync
+- **Feature/Fix**: Restored weekly backup behavior as a first-class recovery signal (distinct from high-frequency auto safe-operation backups) and aligned both backup guides to match implementation.
+- **Technical Changes**:
+  - `core/backup_manager.py`
+    - restored separate retention buckets for backup artifacts:
+      - non-weekly keep window (`max_backups=10`)
+      - weekly keep window (`WEEKLY_BACKUP_MAX_KEEP`, default `4`)
+    - weekly artifact detection now drives dedicated weekly count pruning to prevent frequent auto backups from evicting weekly restore points.
+  - `core/auto_cleanup.py`
+    - cleanup retention logic now mirrors `BackupManager` weekly/non-weekly split and applies the same weekly keep-window environment setting.
+  - `core/scheduler.py`
+    - `check_and_perform_weekly_backup()` now gates creation on latest `weekly_backup_*` artifact recency (7+ days), not generic latest backup recency.
+  - `development_tools/shared/service/commands.py`
+    - backup health verification restored explicit weekly checks: `weekly_backup_present` and `weekly_backup_recent_enough`, while retaining latest-backup validation and restore drill checks.
+  - `development_tools/shared/service/report_generation.py`
+    - backup health sections now render weekly-specific labels (`Weekly Backup Presence`, `Weekly Backup Recency`) while preserving compatibility for generic check names where present.
+  - Tests:
+    - added/expanded retention behavior coverage:
+      - `tests/unit/test_auto_cleanup_backup_retention.py`
+    - development-tools low-coverage follow-up tests added in current tree:
+      - `tests/development_tools/test_cli_interface.py`
+      - `tests/development_tools/test_analyze_module_refactor_candidates.py`
+      - expanded branch coverage in `tests/development_tools/test_generate_function_registry.py`
+  - Planning/docs synchronization:
+    - updated paired backup docs:
+      - [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md)
+      - [AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md)
+    - updated planning trackers:
+      - [TODO.md](TODO.md)
+      - [PLANS.md](development_docs/PLANS.md)
+      - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
+  - Audit/status/report refreshes were regenerated in-session:
+    - `development_tools/AI_STATUS.md`
+    - `development_tools/AI_PRIORITIES.md`
+    - `development_tools/consolidated_report.md`
+    - `development_tools/reports/analysis_detailed_results.json`
+    - `development_tools/reports/tool_timings.json`
+    - generated docs refreshed from audit outputs:
+      - `development_docs/TEST_COVERAGE_REPORT.md`
+      - `development_docs/UNUSED_IMPORTS_REPORT.md`
+      - `development_docs/LEGACY_REFERENCE_REPORT.md`
+  - New test files added in this session:
+    - `tests/unit/test_auto_cleanup_backup_retention.py`
+    - `tests/development_tools/test_cli_interface.py`
+    - `tests/development_tools/test_analyze_module_refactor_candidates.py`
+- **Validation**:
+  - `pytest tests/unit/test_auto_cleanup_backup_retention.py tests/unit/test_auto_cleanup_logic.py tests/unit/test_auto_cleanup_paths.py tests/development_tools/test_cli_interface.py -q` -> `21 passed`.
+  - `python -m py_compile core/backup_manager.py core/auto_cleanup.py core/scheduler.py development_tools/shared/service/commands.py development_tools/shared/service/report_generation.py tests/unit/test_auto_cleanup_backup_retention.py` -> passed.
+  - User-confirmed full audit pass with no new issues.
+- **Full-diff Attribution**:
+  - Completed full working-tree review before closeout (`git diff --stat` and `git diff --name-only`, plus `git status --short` for untracked test additions).
+  - Per user confirmation, everything currently present in working tree was actioned in this session; this entry is intended to fully cover both tracked diffs and untracked new tests.
+
 ### 2026-02-25 - Conftest refactor and AI priorities follow-up
 - **Conftest plan Phase 1.1 (test support module)**: Reduced tests/conftest.py size by (1) extracting standalone test helpers into `tests/support/test_helpers.py` (`wait_until`, `materialize_user_minimal_via_public_apis`) with conftest re-exports; (2) starting Phase 2 pytest_plugins split: added `tests/conftest_mocks.py` with mock/temp fixtures (`mock_logger`, `temp_file`, `mock_ai_response`, `mock_task_data`, `mock_message_data`, `mock_service_data`, `mock_communication_data`, `mock_schedule_data`) and wired `pytest_plugins = ["tests.conftest_mocks"]` in root conftest. Updated AI_TESTING_GUIDE.md and TESTING_GUIDE.md (section 3) for support module; TEST_PLAN.md Section 9 note. Verification: unit suite 1444 passed; conftest metrics improved (Phase 1.1: lines 5115->5003, functions 121->119; Phase 2 first plugin removes ~105 lines from conftest). Further plugins (logging, cleanup, user_data, hooks) can be added incrementally per plan. (Re-exports later removed; all call sites now use tests.support.test_helpers.)
 - **Conftest plan Phase 1.2 (logging impl)**: Extracted logging implementation into `tests/support/conftest_logging_impl.py`: `SessionLogRotationManager`, `LogLifecycleManager`, and `_write_test_log_header`. Conftest imports these from the support module and retains only fixture/hook definitions and global instances (`session_rotation_manager`, `log_lifecycle_manager`). Removed ~500 lines from conftest; trimmed unused `core.time_utilities` imports (parse_timestamp_full, format_timestamp, TIMESTAMP_FULL, now_timestamp_filename) from conftest. Next: Phase 1.2 cleanup impl or Phase 2 plugins (conftest_hooks, conftest_logging, conftest_cleanup, conftest_user_data).
