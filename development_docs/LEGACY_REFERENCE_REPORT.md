@@ -2,16 +2,16 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-24 15:18:46
+> **Last Generated**: 2026-02-25 02:48:56
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 7
-**Legacy Compatibility Markers Detected**: 12
+**Total Files with Issues**: 8
+**Legacy Compatibility Markers Detected**: 13
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
 - Changelogs, archive folders, and planning documents are intentionally historical and excluded from this report.
 - Legacy compatibility markers remain in 2 file(s) (4 total markers).
-- Remaining counts come from legacy inventory tracking categories (5 file(s), 8 marker(s)).
+- Remaining counts come from legacy inventory tracking categories (6 file(s), 9 marker(s)).
 
 ## Recommended Follow-Up
 - Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)
@@ -49,7 +49,7 @@
   ```
 
 ## Legacy Inventory Tracking
-**Files Affected**: 4
+**Files Affected**: 5
 
 ### development_tools\shared\mtime_cache.py
 **Issues Found**: 1
@@ -70,9 +70,17 @@
 ### run_tests.py
 **Issues Found**: 1
 
-- **Line 3352**: `backward compatibility`
+- **Line 3593**: `backward compatibility`
   ```
   # Handle case where parallel_results might be a bool (backward compatibility)
+  ```
+
+### tests\test_support\test_helpers.py
+**Issues Found**: 1
+
+- **Line 5**: `backward compatibility`
+  ```
+  from tests.conftest (re-exported for backward compatibility).
   ```
 
 ### user\user_context.py

@@ -30,8 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-25 - Conftest refactor and AI priorities follow-up **COMPLETED**
+- Conftest plan Phase 1.1: Extracted test helpers to `tests/support/test_helpers.py`; added `tests/conftest_mocks.py` plugin (mock/temp fixtures), wired in pytest_plugins. Updated TESTING_GUIDE.md and AI_TESTING_GUIDE.md. Re-exports later removed; call sites use tests.support.test_helpers.
+- Conftest plan Phase 1.2 (logging impl): Extracted logging to `tests/support/conftest_logging_impl.py`; ~500 lines removed from conftest. Phase 1.2 (cleanup impl): Extracted to `conftest_cleanup_impl.py`. Unused-imports: marked `import sys` with noqa in conftest; Obvious Unused: 0.
+- Phase 2 plugins: cleanup, logging, hooks, user_data, env-all conftest_* plugins added and wired; run_tests imports `_consolidate_worker_logs` from conftest_hooks. Test support layout: renamed `tests/support` to `tests/test_support`; moved all six plugins there; all imports now `tests.test_support`.
+- Tier 3 / AI priorities: checkin_view hardened with tmp_path; hashlib removed from conftest. Policy: allowlist conftest_hooks for datetime; removed 10 obvious unused imports (conftest + conftest_cleanup).
+- AI priorities (2026-02-25): Documentation drift: DIRECTORY_TREE.md updated for tests/test_support/; path drift 0. Five UI tests marked no_parallel (shared user index/test_data_dir). Two obvious unused imports removed from conftest. ASCII: doc-fix and doc-sync verified.
+- run_tests.py: `--full` parallel timeout 60 min; stuck detection (10 min no output) saves partial results then terminates.
+
 ### 2026-02-24 - Module refactor candidates tool and development tools refinements **COMPLETED**
-- Added `analyze_module_refactor_candidates`: identifies large/high-complexity modules; configurable thresholds; Tier 2 audit; AI_STATUS, AI_PRIORITIES, consolidated report. Refinements: `total_function_complexity` naming, short threshold message, legacy guide in refactor guidance, top-level tests/ included; AI_PRIORITIES standard order, "Top target modules", no Effort lines, sub-indent for top-3 lists; improvement plan §2.8 (dev-tools-only audit mode). analyze_functions JSON: `files_affected`, `critical_complexity_examples`/`high_complexity_examples` (relative paths) from script; wrapper no longer merges cache. Test: `test_cleanup_test_temp_dirs_pytest_dirs` verified passing.
+- Added `analyze_module_refactor_candidates`: identifies large/high-complexity modules; configurable thresholds; Tier 2 audit; AI_STATUS, AI_PRIORITIES, consolidated report. Refinements: `total_function_complexity` naming, short threshold message, legacy guide in refactor guidance, top-level tests/ included; AI_PRIORITIES standard order, "Top target modules", no Effort lines, sub-indent for top-3 lists; improvement plan Section 2.8 (dev-tools-only audit mode). analyze_functions JSON: `files_affected`, `critical_complexity_examples`/`high_complexity_examples` (relative paths) from script; wrapper no longer merges cache. Test: `test_cleanup_test_temp_dirs_pytest_dirs` verified passing.
 
 ### 2026-02-24 - Checkin-view Tier 3 fix + tool-wrappers branch coverage push **Progressed**
 - Investigated Tier 3 failure from `development_tools/tests/logs/pytest_parallel_stdout_2026-02-24_13-16-22.log` and fixed `tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user` recurrence by removing collision-prone fixed IDs.
@@ -161,15 +169,6 @@ Guidelines:
 - Ran doc tooling (`doc-fix --fix-ascii`, `doc-fix --convert-links`, `doc-sync`) via `.venv`, refreshing generated status/priority/report artifacts and related generated docs.
 - Validation highlights: combined behavior run `87 passed`; targeted flaky UI rerun for the two Tier-3 node IDs `2 passed`.
 - Full-tree diff was reviewed; unrelated/pre-existing edits currently in tree (not actioned this session) include `.github/workflows/logging-enforcement.yml` and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
-
-### 2026-02-16 - Static logging check migration + docs/plans refresh **COMPLETED**
-- Relocated static logging enforcement script usage to `development_tools/static_checks/check_channel_loggers.py` and updated all active references (`.github/workflows/logging-enforcement.yml`, `run_tests.py`, `tests/behavior/test_static_logging_check.py`, [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)).
-- Updated planning/ownership docs for script migration and backup confidence work: [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md); removed stale retired-script mention from [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md).
-- Explicitly captured that `scripts/` is intentionally untracked (temporary/one-off workspace), so script-related work this session was recorded through tracked docs/plans and reference updates rather than relying on script-file git diffs.
-- Applied doc drift fixes raised in-session ([TODO.md](TODO.md) path/update cleanup and [SCRIPTS_GUIDE.md](scripts/SCRIPTS_GUIDE.md) unconverted link conversion).
-- Refreshed generated audit/report outputs in current diff: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`, `development_tools/reports/analysis_detailed_results.json`, `development_tools/reports/tool_timings.json`, plus updated generated docs (`development_docs/TEST_COVERAGE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`).
-- Full tree diff was reviewed (`git diff --stat`, `git diff --name-only`) and this entry now reflects the entire current-session diff.
-- `doc-fix/doc-sync` automation was attempted but blocked by missing `python-dotenv` in this environment; targeted doc edits were applied manually.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

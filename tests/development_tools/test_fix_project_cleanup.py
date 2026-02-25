@@ -5,6 +5,8 @@ Tests project cleanup functionality including cache directory removal,
 coverage file cleanup, and test data cleanup.
 """
 
+import shutil
+
 import pytest
 import tempfile
 from pathlib import Path
@@ -324,15 +326,18 @@ class TestProjectCleanup:
     def test_cleanup_test_temp_dirs_no_directory(self, temp_project_copy):
         """Test cleaning up test temp dirs when directory doesn't exist."""
         cleanup = ProjectCleanup(project_root=temp_project_copy)
-        
-        # Ensure the directory doesn't exist
+
+        # Ensure the directory doesn't exist (ignore FileNotFoundError on Windows
+        # when the tree contains broken symlinks or already-removed targets e.g. .pytest_cache)
         test_data_dir = temp_project_copy / "tests" / "data"
         if test_data_dir.exists():
-            import shutil
-            shutil.rmtree(test_data_dir)
-        
+            try:
+                shutil.rmtree(test_data_dir)
+            except FileNotFoundError:
+                pass  # already gone or broken symlink under the tree
+
         removed, failed = cleanup.cleanup_test_temp_dirs(dry_run=False)
-        
+
         assert removed == 0, "Should remove nothing if directory doesn't exist"
         assert failed == 0, "Should not have failures"
     

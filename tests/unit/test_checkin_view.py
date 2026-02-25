@@ -96,28 +96,40 @@ class TestCheckinView:
         assert "More" in button_labels, "Should have More button"
 
     @pytest.mark.asyncio
-    async def test_cancel_checkin_button_handler_with_valid_user(self, test_data_dir, mock_interaction_factory):
-        """Test cancel check-in button handler with valid user."""
+    async def test_cancel_checkin_button_handler_with_valid_user(
+        self, tmp_path, mock_interaction_factory
+    ):
+        """Test cancel check-in button handler with valid user.
+
+        Uses tmp_path (function-scoped) for full isolation from other tests and
+        parallel workers, avoiding session test_data_dir collisions.
+        """
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
         from unittest.mock import patch
         import core.config
         import os
-        
-        # Create test user with Discord ID
+
+        isolated_data_dir = str(tmp_path)
+        # Create test user with Discord ID in isolated dir
         suffix = uuid4().hex[:10]
         discord_user_id = str(1_000_000_000 + int(uuid4().int % 899_999_999))
         user_id = f"test_cancel_user_{suffix}"
         created = TestUserFactory.create_discord_user(
             user_id,
             discord_user_id=discord_user_id,
-            test_data_dir=test_data_dir,
+            test_data_dir=isolated_data_dir,
         )
         assert created is True, "Discord test user should be created"
-        
-        # Patch config to use test data directory
-        with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
-             patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')):
+
+        # Patch config to use isolated directory (no shared session state)
+        with patch.object(
+            core.config, "BASE_DATA_DIR", isolated_data_dir
+        ), patch.object(
+            core.config,
+            "USER_INFO_DIR_PATH",
+            os.path.join(isolated_data_dir, "users"),
+        ):
             internal_user_id = get_user_id_by_identifier(discord_user_id)
             assert internal_user_id is not None, "User should be created"
             
@@ -178,28 +190,40 @@ class TestCheckinView:
             "Should send error message for invalid user"
 
     @pytest.mark.asyncio
-    async def test_skip_question_button_handler_with_valid_user(self, test_data_dir, mock_interaction_factory):
-        """Test skip question button handler with valid user."""
+    async def test_skip_question_button_handler_with_valid_user(
+        self, tmp_path, mock_interaction_factory
+    ):
+        """Test skip question button handler with valid user.
+
+        Uses tmp_path (function-scoped) for full isolation from other tests and
+        parallel workers, avoiding session test_data_dir collisions.
+        """
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
         from unittest.mock import patch
         import core.config
         import os
-        
-        # Create test user with Discord ID
+
+        isolated_data_dir = str(tmp_path)
+        # Create test user with Discord ID in isolated dir
         suffix = uuid4().hex[:10]
         discord_user_id = str(1_000_000_000 + int(uuid4().int % 899_999_999))
         user_id = f"test_skip_user_{suffix}"
         created = TestUserFactory.create_discord_user(
             user_id,
             discord_user_id=discord_user_id,
-            test_data_dir=test_data_dir,
+            test_data_dir=isolated_data_dir,
         )
         assert created is True, "Discord test user should be created"
-        
-        # Patch config to use test data directory
-        with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
-             patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')):
+
+        # Patch config to use isolated directory (no shared session state)
+        with patch.object(
+            core.config, "BASE_DATA_DIR", isolated_data_dir
+        ), patch.object(
+            core.config,
+            "USER_INFO_DIR_PATH",
+            os.path.join(isolated_data_dir, "users"),
+        ):
             internal_user_id = get_user_id_by_identifier(discord_user_id)
             assert internal_user_id is not None, "User should be created"
             

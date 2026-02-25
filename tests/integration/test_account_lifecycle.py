@@ -260,7 +260,7 @@ class TestAccountLifecycle:
         self._materialize_and_verify(actual_user_id)
         loaded_data = get_user_data(actual_user_id)
         if "account" not in loaded_data:
-            from tests.conftest import materialize_user_minimal_via_public_apis as _mat
+            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis as _mat
             _mat(actual_user_id)
             loaded_data = get_user_data(actual_user_id)
         if loaded_data.get("account", {}).get("features", {}).get("automated_messages") != "enabled":
@@ -379,7 +379,7 @@ class TestAccountLifecycle:
             if attempt < 4:
                 time.sleep(0.1)
         if "account" not in updated_data:
-            from tests.conftest import materialize_user_minimal_via_public_apis as _mat
+            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis as _mat
             _mat(actual_user_id)
             updated_data = get_user_data(actual_user_id, 'all', auto_create=True)
         assert updated_data.get("account", {}).get("features", {}).get("checkins") == "enabled", \

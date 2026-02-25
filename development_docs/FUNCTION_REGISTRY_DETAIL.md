@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-21 23:43:21
+> **Last Generated**: 2026-02-25 02:13:08
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1622
+- **Functions Found**: 1623
 - **Methods Found**: 1179
 - **Classes Found**: 154
-- **Total Items**: 2801
-- **Functions Documented**: 1549
+- **Total Items**: 2802
+- **Functions Documented**: 1550
 - **Methods Documented**: 1139
 - **Classes Documented**: 120
-- **Total Documented**: 2688
+- **Total Documented**: 2689
 - **Template-Generated**: 5
-- **Last Updated**: 2026-02-21
+- **Last Updated**: 2026-02-25
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -4979,6 +4979,7 @@ Returns:
 
 #### `run_tests.py`
 **Functions:**
+- [OK] `_merge_run_results(agg, run_result)` - Merge a single run_command result into an aggregated results dict (in place).
 - [OK] `_persist_captured_output()` - Persist captured pytest output with ANSI stripping to latest and timestamped logs.
 - [OK] `_rotate_console_output_files(backups_dir, archive_dir)` - Keep only recent timestamped console outputs in backups and archive older ones.
 - [MISSING] `add_nodeid(candidate)` - No description
@@ -5016,7 +5017,7 @@ Returns:
 - [OK] `main()` - Main entry point for MHM test runner.
 
 Parses command-line arguments and executes pytest with appropriate configuration
-based on the selected test mode (all, fast, unit, integration, behavior, ui, slow).
+based on the selected test mode (all, fast, unit, integration, behavior, ui, slow, development_tools).
 
 Returns:
     int: Exit code (0 for success, 1 for failure)

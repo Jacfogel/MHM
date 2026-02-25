@@ -473,55 +473,81 @@ class TestCategoryManagementDialogRealBehavior:
     
     @pytest.mark.ui
     @pytest.mark.behavior
-    def test_save_category_settings_updates_account_features(self, test_user, test_data_dir, qapp):
-        """Test that save_category_settings updates account features on disk."""
-        # Arrange
+    def test_save_category_settings_updates_account_features(self, tmp_path, qapp):
+        """Test that save_category_settings updates account features on disk.
+
+        Uses tmp_path (function-scoped) for full isolation from other tests and
+        parallel workers, avoiding session test_data_dir collisions.
+        """
         import time
+        import os
 
         from core.user_data_handlers import (
             get_user_data,
             update_user_account,
             clear_user_caches,
         )
-        # Prime account data with retries to reduce parallel filesystem/index timing races.
-        update_ok = False
-        for attempt in range(8):
-            if update_user_account(test_user, {"features": {"checkins": "enabled"}}):
-                clear_user_caches()
-                baseline = get_user_data(
-                    test_user, "account", normalize_on_read=True
-                )
-                if "account" in baseline and baseline.get("account"):
-                    update_ok = True
-                    break
-            if attempt < 7:
-                time.sleep(0.1)
-        assert update_ok, "Failed to initialize account data for category settings test"
+        from unittest.mock import patch
+        import core.config
 
-        dialog = CategoryManagementDialog(parent=None, user_id=test_user)
-        dialog.ui.groupBox_enable_automated_messages.setChecked(True)
-        test_categories = ['motivational']
-        
-        with patch.object(dialog.category_widget, 'get_selected_categories', return_value=test_categories):
-            with patch('ui.dialogs.category_management_dialog.QMessageBox'):
-                # Act
+        isolated_data_dir = str(tmp_path)
+        user_id = f"test_category_user_{uuid.uuid4().hex[:8]}"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=isolated_data_dir)
+        test_user = None
+        for _ in range(10):
+            test_user = TestUserFactory.get_test_user_id_by_internal_username(
+                user_id, isolated_data_dir
+            )
+            if test_user:
+                break
+            time.sleep(0.05)
+        assert test_user, "Failed to resolve test user in isolated dir"
+
+        with patch.object(core.config, "BASE_DATA_DIR", isolated_data_dir), patch.object(
+            core.config, "USER_INFO_DIR_PATH", os.path.join(isolated_data_dir, "users")
+        ):
+            # Prime account data with retries to reduce timing races.
+            update_ok = False
+            for attempt in range(8):
+                if update_user_account(test_user, {"features": {"checkins": "enabled"}}):
+                    clear_user_caches()
+                    baseline = get_user_data(
+                        test_user, "account", normalize_on_read=True
+                    )
+                    if "account" in baseline and baseline.get("account"):
+                        update_ok = True
+                        break
+                if attempt < 7:
+                    time.sleep(0.1)
+            assert update_ok, "Failed to initialize account data for category settings test"
+
+            dialog = CategoryManagementDialog(parent=None, user_id=test_user)
+            dialog.ui.groupBox_enable_automated_messages.setChecked(True)
+            test_categories = ["motivational"]
+
+            with patch.object(
+                dialog.category_widget, "get_selected_categories", return_value=test_categories
+            ), patch("ui.dialogs.category_management_dialog.QMessageBox"):
                 dialog.save_category_settings()
-                
-                # Assert - Verify account features were updated
+
                 saved_account = {}
                 for attempt in range(20):
                     clear_user_caches()
-                    saved_account = get_user_data(test_user, 'account', normalize_on_read=True)
-                    account_features = saved_account.get('account', {}).get('features', {})
-                    if account_features.get('automated_messages') == 'enabled':
+                    saved_account = get_user_data(
+                        test_user, "account", normalize_on_read=True
+                    )
+                    account_features = saved_account.get("account", {}).get("features", {})
+                    if account_features.get("automated_messages") == "enabled":
                         break
                     if attempt < 19:
                         time.sleep(0.1)
-                
-                assert 'features' in saved_account.get('account', {}), \
+
+                assert "features" in saved_account.get("account", {}), (
                     "Account should have features"
-                assert saved_account['account']['features'].get('automated_messages') == 'enabled', \
-                    "Automated messages should be enabled in account"
+                )
+                assert saved_account["account"]["features"].get(
+                    "automated_messages"
+                ) == "enabled", "Automated messages should be enabled in account"
     
     @pytest.mark.ui
     @pytest.mark.behavior

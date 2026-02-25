@@ -7,7 +7,8 @@ import pytest
 def test_no_direct_os_environ_mutations_in_tests():
     """Policy: tests must use monkeypatch.setenv; no direct os.environ mutations.
 
-    Scans test files for forbidden patterns. Allows exceptions in tests/conftest.py.
+    Scans test files for forbidden patterns. Allows exceptions in tests/conftest.py
+    and tests/conftest_*.py plugins (they set env intentionally for session setup).
     """
     root = os.path.join(os.path.dirname(__file__), '..')
     root = os.path.abspath(root)
@@ -22,8 +23,12 @@ def test_no_direct_os_environ_mutations_in_tests():
         for name in filenames:
             if not name.endswith('.py'):
                 continue
-            # Skip conftest.py which sets env intentionally before imports
-            if name == 'conftest.py' and os.path.basename(dirpath) == 'tests':
+            # Skip root conftest and conftest_* plugins (set env for session setup)
+            if os.path.basename(dirpath) == 'tests':
+                if name == 'conftest.py' or (name.startswith('conftest_') and name.endswith('.py')):
+                    continue
+            # Skip test_support (conftest plugins and impl set env intentionally)
+            if 'test_support' in dirpath.replace('\\', '/'):
                 continue
             # Skip standalone test runners (AI functionality tests, etc.)
             if name == 'run_ai_functionality_tests.py' or name == 'test_ai_functionality_manual.py':

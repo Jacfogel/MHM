@@ -589,7 +589,7 @@ class TestAIChatBotIntegration:
         
         # Verify user data was saved by loading it
         from core.user_data_handlers import get_user_data
-        from tests.conftest import materialize_user_minimal_via_public_apis
+        from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
         loaded_account = {}
         for attempt in range(10):
             materialize_user_minimal_via_public_apis(actual_user_id)

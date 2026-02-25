@@ -43,7 +43,7 @@ Test locations (must not change without updating this file and [TESTING_GUIDE.md
 - `tests/notebook/` - notebook subsystem tests.
 - `tests/ai/` - AI-focused pytest tests and the dedicated AI functionality suite.
 - `tests/development_tools/` - infrastructure tests for development tools (config, CLI, exclusions, core analysis tools).
-- `tests/conftest.py` - fixtures, hooks, and global configuration.
+- `tests/conftest.py` - fixtures, hooks, and global configuration (root). Plugin modules live under `tests/test_support/` (conftest_env, conftest_mocks, conftest_cleanup, conftest_logging, conftest_user_data, conftest_hooks) and are loaded via `pytest_plugins`. Logging implementation in `tests/test_support/conftest_logging_impl.py`; cleanup in `tests/test_support/conftest_cleanup_impl.py`.
 
 Rules:
 
@@ -86,6 +86,9 @@ Use existing helpers:
 - Helper functions in `tests/test_utilities.py` (or equivalent) for:
   - Creating test users, messages, schedules.
   - Common assertions on logs and outputs.
+- Standalone test helpers in `tests/test_support/test_helpers.py` for:
+  - `wait_until(predicate, ...)` - poll until true or timeout.
+  - `materialize_user_minimal_via_public_apis(user_id)` - ensure minimal user structures. Import from `tests.test_support.test_helpers`.
 - Isolation helpers (for example, `tests/test_isolation.py`) for:
   - Any test that might interact with system-like APIs or Task Scheduler.
 
@@ -280,6 +283,7 @@ Use fixtures and helpers:
 
 - Prefer fixtures from `tests/conftest.py`.
 - Prefer helpers from `tests/test_utilities.py` and isolation tools from `tests/test_isolation.py`.
+- For `wait_until` and `materialize_user_minimal_via_public_apis`, use `tests.test_support.test_helpers`.
 
 ---
 

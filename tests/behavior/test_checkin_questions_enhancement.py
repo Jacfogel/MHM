@@ -367,7 +367,7 @@ class TestAnalyticsWithNewQuestions:
         from core.response_tracking import store_user_response, get_checkins_by_days
         from unittest.mock import patch
         import os
-        from tests.conftest import wait_until
+        from tests.test_support.test_helpers import wait_until
 
         # Create check-in with sleep_schedule
         checkin_data = {
@@ -417,7 +417,7 @@ class TestAnalyticsWithNewQuestions:
         from core.response_tracking import store_user_response, get_checkins_by_days
         from unittest.mock import patch
         import os
-        from tests.conftest import wait_until
+        from tests.test_support.test_helpers import wait_until
 
         # Create check-ins with new questions
         checkin_data = {

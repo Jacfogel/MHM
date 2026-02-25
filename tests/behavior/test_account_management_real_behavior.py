@@ -12,7 +12,7 @@ import logging
 import contextlib
 import pytest
 
-from tests.conftest import materialize_user_minimal_via_public_apis
+from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
 from tests.test_utilities import TestUserFactory
 
 TEST_LOGGER = logging.getLogger("mhm_tests")
@@ -134,7 +134,7 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         )
         
         # Materialize and load basic user (serial execution ensures files are written)
-        from tests.conftest import materialize_user_minimal_via_public_apis
+        from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
         import time
         
         materialize_user_minimal_via_public_apis(basic_user_id)
@@ -456,7 +456,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             from core.user_data_handlers import save_user_data, get_user_data
             from core.user_data_handlers import get_user_id_by_identifier
             from tests.test_utilities import TestUserFactory
-            from tests.conftest import materialize_user_minimal_via_public_apis
+            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
             
             # Get the UUID for the basic user (serial execution ensures index is updated)
             from core.user_data_manager import rebuild_user_index

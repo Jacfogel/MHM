@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-21 23:43:27
+> **Last Generated**: 2026-02-25 02:13:17
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports**: 1460
-- **Standard Library**: 387 (26.5%)
-- **Third-Party**: 223 (15.3%)
-- **Local Imports**: 850 (58.2%)
+- **Total Imports**: 1452
+- **Standard Library**: 380 (26.2%)
+- **Third-Party**: 223 (15.4%)
+- **Local Imports**: 849 (58.5%)
 
 ## Dependency Decision Trees
 
@@ -61,7 +61,7 @@ Communication Dependencies:
 ### Need UI Dependencies?
 UI Dependencies:
 - Main Application
-  - ui/ui_app_qt.py <- standard library (datetime, json, os, pathlib), third-party (PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets), time_utilities, logger, config, error_handling, service_utilities (+20 more)
+  - ui/ui_app_qt.py <- standard library (json, os, pathlib, re), third-party (PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets), time_utilities, logger, config, error_handling, service_utilities (+20 more)
 - Dialogs
   - ui/dialogs/account_creator_dialog.py <- standard library (pathlib, time, typing, uuid), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, user_data_handlers, error_handling, category_selection_widget (+10 more)
   - ui/dialogs/admin_panel.py <- third-party (PySide6.QtCore, PySide6.QtWidgets), logger, error_handling

@@ -150,8 +150,8 @@ def test_account_management_data_structures(test_data_dir, mock_config):
         
         # Test account data structure
         try:
-            from tests.conftest import materialize_user_minimal_via_public_apis
-            from tests.conftest import wait_until
+            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
+            from tests.test_support.test_helpers import wait_until
             materialize_user_minimal_via_public_apis(test_user)
             assert wait_until(
                 lambda: (
@@ -370,7 +370,7 @@ def test_account_management_safe_operations():
         
         # Test reading temporary user data
         try:
-            from tests.conftest import materialize_user_minimal_via_public_apis
+            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
             import time
             materialize_user_minimal_via_public_apis(temp_user_id)
             # Retry in case of race conditions with file writes in parallel execution

@@ -18,8 +18,14 @@ def test_no_print_calls_in_tests():
             try:
                 with open(path, 'r', encoding='utf-8') as f:
                     text = f.read()
-                # Ignore conftest informational prints for now
+                # Ignore root conftest and conftest_* plugins (may use print for optional verbose/diagnostic output)
                 if name == 'conftest.py' and os.path.basename(dirpath) == 'tests':
+                    continue
+                if name.startswith('conftest_') and name.endswith('.py') and os.path.basename(dirpath) == 'tests':
+                    continue
+                # Skip test_support (conftest plugins and impl; may use diagnostic print)
+                normalized_dir = dirpath.replace('\\', '/')
+                if '/test_support' in normalized_dir or normalized_dir.endswith('test_support'):
                     continue
                 # Skip standalone test runners (AI functionality tests, scripts, etc.)
                 if name in ['run_ai_functionality_tests.py', 'test_ai_functionality_manual.py']:

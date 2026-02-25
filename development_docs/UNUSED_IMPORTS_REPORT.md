@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-24 15:18:34
+> **Last Generated**: 2026-02-25 02:48:44
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 452
-- **Files with Unused Imports**: 118
-- **Total Unused Imports**: 381
+- **Total Files Scanned**: 461
+- **Files with Unused Imports**: 121
+- **Total Unused Imports**: 386
 
 ## Breakdown by Category
 
 - **Obvious Unused**: 0 imports
 - **Type Hints Only**: 5 imports
 - **Re Exports**: 2 imports
-- **Conditional Imports**: 23 imports
+- **Conditional Imports**: 21 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 146 imports
+- **Test Mocking**: 148 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 144 imports
+- **Test Infrastructure**: 149 imports
 - **Production Test Mocking**: 2 imports
 - **Ui Imports**: 5 imports
 
@@ -110,17 +110,6 @@
 
 - **Line 4451**: `development_tools.shared.file_rotation.FileRotator` imported but unused; consider using `importlib.util.find_spec` to test for availability
 
-### `tests/conftest.py`
-
-**Count**: 6 unused import(s)
-
-- **Line 1591**: `core.scheduler.SchedulerManager` imported but unused; consider using `importlib.util.find_spec` to test for availability
-- **Line 1592**: `core.service.MHMService` imported but unused; consider using `importlib.util.find_spec` to test for availability
-- **Line 1593**: `communication.core.channel_orchestrator.CommunicationManager` imported but unused; consider using `importlib.util.find_spec` to test for availability
-- **Line 1594**: `ai.chatbot.AIChatBotSingleton` imported but unused; consider using `importlib.util.find_spec` to test for availability
-- **Line 4799**: `signal` imported but unused; consider using `importlib.util.find_spec` to test for availability
-- **Line 4800**: `sys` imported but unused; consider using `importlib.util.find_spec` to test for availability
-
 ### `tests/development_tools/test_analysis_validation_framework.py`
 
 **Count**: 2 unused import(s)
@@ -134,6 +123,15 @@
 
 - **Line 62**: `core.user_data_handlers.update_user_preferences` imported but unused
 - **Line 63**: `core.user_data_handlers.get_all_user_ids` imported but unused
+
+### `tests/test_support/conftest_logging.py`
+
+**Count**: 4 unused import(s)
+
+- **Line 290**: `core.scheduler.SchedulerManager` imported but unused; consider using `importlib.util.find_spec` to test for availability
+- **Line 291**: `core.service.MHMService` imported but unused; consider using `importlib.util.find_spec` to test for availability
+- **Line 292**: `communication.core.channel_orchestrator.CommunicationManager` imported but unused; consider using `importlib.util.find_spec` to test for availability
+- **Line 293**: `ai.chatbot.AIChatBotSingleton` imported but unused; consider using `importlib.util.find_spec` to test for availability
 
 ### `tests/unit/test_communication_core_init.py`
 
@@ -157,6 +155,13 @@
 **Count**: 1 unused import(s)
 
 - **Line 7**: `unittest.mock.Mock` imported but unused
+
+### `tests/conftest.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 30**: `unittest.mock.Mock` imported but unused
+- **Line 30**: `unittest.mock.patch` imported but unused
 
 ### `tests/core/test_file_auditor.py`
 
@@ -328,12 +333,12 @@
 
 **Count**: 6 unused import(s)
 
-- **Line 22**: `unittest.mock.MagicMock` imported but unused
-- **Line 36**: `core.file_operations.create_user_files` imported but unused
-- **Line 38**: `core.user_data_validation.is_valid_email` imported but unused
-- **Line 39**: `core.user_data_validation.validate_schedule_periods__validate_time_format` imported but unused
-- **Line 2029**: `core.user_data_handlers.get_user_data` imported but unused
-- **Line 2315**: `core.user_data_handlers.get_user_data` imported but unused
+- **Line 23**: `unittest.mock.MagicMock` imported but unused
+- **Line 37**: `core.file_operations.create_user_files` imported but unused
+- **Line 39**: `core.user_data_validation.is_valid_email` imported but unused
+- **Line 40**: `core.user_data_validation.validate_schedule_periods__validate_time_format` imported but unused
+- **Line 2032**: `core.user_data_handlers.get_user_data` imported but unused
+- **Line 2319**: `core.user_data_handlers.get_user_data` imported but unused
 
 ### `tests/ui/test_account_creator_dialog_validation.py`
 
@@ -634,10 +639,10 @@
 
 **Count**: 4 unused import(s)
 
-- **Line 25**: `PySide6.QtWidgets.QWidget` imported but unused
-- **Line 25**: `PySide6.QtWidgets.QMessageBox` imported but unused
-- **Line 26**: `PySide6.QtCore.Qt` imported but unused
-- **Line 26**: `PySide6.QtCore.QTimer` imported but unused
+- **Line 26**: `PySide6.QtWidgets.QWidget` imported but unused
+- **Line 26**: `PySide6.QtWidgets.QMessageBox` imported but unused
+- **Line 27**: `PySide6.QtCore.Qt` imported but unused
+- **Line 27**: `PySide6.QtCore.QTimer` imported but unused
 
 ### `tests/ui/test_category_management_dialog.py`
 
@@ -807,11 +812,13 @@
 
 ### `tests/conftest.py`
 
-**Count**: 3 unused import(s)
+**Count**: 5 unused import(s)
 
-- **Line 1422**: `datetime.datetime` imported but unused
-- **Line 3202**: `os` imported but unused
-- **Line 4786**: `time` imported but unused
+- **Line 22**: `tempfile` imported but unused
+- **Line 23**: `shutil` imported but unused
+- **Line 24**: `json` imported but unused
+- **Line 27**: `time` imported but unused
+- **Line 31**: `datetime.datetime` imported but unused
 
 ### `tests/core/test_message_management.py`
 
@@ -981,8 +988,8 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 9**: `tempfile` imported but unused
-- **Line 13**: `tests.development_tools.conftest.temp_project_copy` imported but unused
+- **Line 11**: `tempfile` imported but unused
+- **Line 15**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
 ### `tests/development_tools/test_generate_consolidated_report.py`
 
@@ -1126,6 +1133,19 @@
 - **Line 15**: `tempfile` imported but unused
 - **Line 17**: `datetime.datetime` imported but unused
 
+### `tests/test_support/conftest_hooks.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 611**: `time` imported but unused
+
+### `tests/test_support/conftest_user_data.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 11**: `pathlib.Path` imported but unused
+- **Line 408**: `os` imported but unused
+
 ### `tests/test_utilities.py`
 
 **Count**: 2 unused import(s)
@@ -1137,12 +1157,12 @@
 
 **Count**: 6 unused import(s)
 
-- **Line 21**: `shutil` imported but unused
-- **Line 23**: `datetime.datetime` imported but unused
-- **Line 137**: `ui.widgets.category_selection_widget.CategorySelectionWidget` imported but unused
-- **Line 138**: `ui.widgets.channel_selection_widget.ChannelSelectionWidget` imported but unused
-- **Line 139**: `ui.widgets.task_settings_widget.TaskSettingsWidget` imported but unused
-- **Line 140**: `ui.widgets.checkin_settings_widget.CheckinSettingsWidget` imported but unused
+- **Line 22**: `shutil` imported but unused
+- **Line 24**: `datetime.datetime` imported but unused
+- **Line 138**: `ui.widgets.category_selection_widget.CategorySelectionWidget` imported but unused
+- **Line 139**: `ui.widgets.channel_selection_widget.ChannelSelectionWidget` imported but unused
+- **Line 140**: `ui.widgets.task_settings_widget.TaskSettingsWidget` imported but unused
+- **Line 141**: `ui.widgets.checkin_settings_widget.CheckinSettingsWidget` imported but unused
 
 ### `tests/ui/test_dialog_behavior.py`
 

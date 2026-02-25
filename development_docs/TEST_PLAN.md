@@ -450,3 +450,4 @@ Performance optimization plan status:
 - Reliability-first default remains active.
 - Do not increase default coverage timeout to mask hang/crash path; fix root causes.
 - Any completed item should be closed here with date + evidence, then removed from backlog sections in `PLANS.md`/`TODO.md`.
+- Conftest refactor (see plan): Phase 1.1 moved `wait_until` and `materialize_user_minimal_via_public_apis` to `tests/support/test_helpers.py`; conftest re-exports them. Phase 2 started: `tests/conftest_mocks.py` plugin added for mock/temp fixtures; any further plugins must preserve Phase 3 harness behavior and Section 7 validation gates.

@@ -10,7 +10,8 @@ Tests the actual UI behavior, user interactions, and side effects for:
 - Error handling and validation
 """
 
-from tests.conftest import ensure_qt_runtime, wait_until
+from tests.conftest import ensure_qt_runtime
+from tests.test_support.test_helpers import wait_until
 
 ensure_qt_runtime()
 
@@ -938,7 +939,7 @@ class TestAccountManagementRealBehavior:
     def test_user_index_integration_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test user index integration with real file operations."""
         from core.user_data_manager import update_user_index, rebuild_user_index
-        from tests.conftest import wait_until
+        from tests.test_support.test_helpers import wait_until
         import uuid
 
         # Create test users for index testing
@@ -1406,6 +1407,7 @@ class TestAccountCreationIntegration:
     """Test integration scenarios for account creation and management."""
 
     @pytest.mark.integration
+    @pytest.mark.no_parallel  # shared user index and test_data_dir under xdist
     def test_full_account_lifecycle_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test complete account lifecycle with real file operations."""
         from core.user_data_handlers import (
@@ -1483,7 +1485,7 @@ class TestAccountCreationIntegration:
         clear_user_caches()
         loaded_data = get_user_data(user_id, normalize_on_read=True)
         if "account" not in loaded_data or "features" not in loaded_data["account"]:
-            from tests.conftest import materialize_user_minimal_via_public_apis as _mat
+            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis as _mat
 
             _mat(user_id)
             clear_user_caches()
@@ -1573,13 +1575,14 @@ class TestAccountCreationIntegration:
         ), "Schedule periods should persist"
 
     @pytest.mark.integration
+    @pytest.mark.no_parallel  # shared user index and test_data_dir under xdist
     def test_multiple_users_same_features_real_behavior(
         self, test_data_dir, mock_config
     ):
         """REAL BEHAVIOR TEST: Test creating multiple users with same features."""
         from core.user_data_handlers import save_user_data, get_user_data, clear_user_caches
         from core.user_data_manager import update_user_index, rebuild_user_index
-        from tests.conftest import wait_until
+        from tests.test_support.test_helpers import wait_until
         import uuid
 
         # Create multiple test users with same features
@@ -1646,7 +1649,7 @@ class TestAccountCreationIntegration:
             clear_user_caches()
             user_data = get_user_data(user_id, normalize_on_read=True)
             if "account" not in user_data:
-                from tests.conftest import (
+                from tests.test_support.test_helpers import (
                     materialize_user_minimal_via_public_apis as _mat,
                 )
 
@@ -2108,6 +2111,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel  # shared user index and test_data_dir under xdist
     def test_create_account_persists_channel_info(self, dialog, test_data_dir):
         """Test that create_account persists channel information to disk."""
         from core.user_data_handlers import get_user_data

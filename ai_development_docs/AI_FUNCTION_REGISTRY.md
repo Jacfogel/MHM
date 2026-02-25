@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-21 23:43:21
+> **Last Generated**: 2026-02-25 02:13:08
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 96.0% [OK] EXCELLENT**
-- **Total Functions**: 1622
+- **Total Functions**: 1623
 - **Total Methods**: 1179
-- **Documented**: 2688/2801
+- **Documented**: 2689/2802
 - **Files Scanned**: 110
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -216,11 +216,11 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2783
-2. [OK] `run_tests.py::run_command()` - Complexity: 2667
-3. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2627
-4. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2554
-5. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2488
+1. [OK] `run_tests.py::run_command()` - Complexity: 2885
+2. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2783
+3. [OK] `run_tests.py::main()` - Complexity: 2683
+4. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2623
+5. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2554
 
 
 ### **Pattern Recognition**

@@ -327,7 +327,7 @@ def interrupt_handler(signum, frame):
         try:
             # Import consolidation function
             sys.path.insert(0, str(Path(__file__).parent))
-            from tests.conftest import _consolidate_worker_logs
+            from tests.test_support.conftest_hooks import _consolidate_worker_logs
 
             print(f"{GREEN}[CLEANUP]{RESET} Consolidating worker log files...")
             _consolidate_worker_logs()
@@ -1652,8 +1652,13 @@ def run_command(
         output_thread.start()
 
         # Monitor progress while process runs
-        # Add maximum timeout to prevent infinite hanging (30 minutes max)
-        max_duration = 30 * 60  # 30 minutes
+        # Full-suite parallel runs get 60 minutes; others 30 minutes
+        is_full_parallel = (
+            test_context
+            and test_context.get("phase") == "parallel"
+            and test_context.get("full")
+        )
+        max_duration = (60 * 60) if is_full_parallel else (30 * 60)
         next_tick = start_time + max(1, progress_interval)
         next_resource_check = (
             start_time + 60
@@ -1705,8 +1710,14 @@ def run_command(
                 print(
                     f"\n{RED}[ERROR]{RESET} {description} exceeded maximum duration ({max_duration}s) - terminating"
                 )
+                output_text = (
+                    "".join(_captured_output_lines) if _captured_output_lines else None
+                )
                 save_partial_results(
-                    junit_xml_path, interrupted=True, test_context=_current_test_context
+                    junit_xml_path,
+                    interrupted=True,
+                    output_text=output_text,
+                    test_context=_current_test_context,
                 )
                 # Kill entire process tree (especially important for pytest-xdist workers on Windows)
                 if sys.platform == "win32":
@@ -1730,14 +1741,37 @@ def run_command(
                 detect_stuck_process(_last_output_time, now, threshold=600)
                 and not stuck_warning_shown
             ):
+                critical_events.append(
+                    "Process produced no output for 10 minutes; terminated to avoid indefinite hang."
+                )
                 print(
                     f"\n{YELLOW}[WARNING]{RESET} Process appears stuck (no output for 10 minutes)"
                 )
-                print(f"{YELLOW}[WARNING]{RESET} Saving partial results...")
+                print(f"{YELLOW}[WARNING]{RESET} Saving partial results and terminating...")
+                output_text = (
+                    "".join(_captured_output_lines) if _captured_output_lines else None
+                )
                 save_partial_results(
-                    junit_xml_path, interrupted=True, test_context=_current_test_context
+                    junit_xml_path,
+                    interrupted=True,
+                    output_text=output_text,
+                    test_context=_current_test_context,
                 )
                 stuck_warning_shown = True
+                # Terminate so the run does not hang until max_duration
+                if sys.platform == "win32":
+                    kill_process_tree_windows(process.pid)
+                else:
+                    process.terminate()
+                shutdown_start = time.time()
+                while process.poll() is None and (time.time() - shutdown_start) < 5:
+                    time.sleep(0.1)
+                if process.poll() is None:
+                    if sys.platform == "win32":
+                        kill_process_tree_windows(process.pid)
+                    else:
+                        process.kill()
+                break
 
             # Monitor resources periodically (more frequently if memory is high)
             if now >= next_resource_check:
@@ -1853,7 +1887,7 @@ def run_command(
             try:
                 # Small delay to ensure workers have closed their file handles
                 time.sleep(1.0)  # Longer delay for normal completion
-                from tests.conftest import _consolidate_worker_logs
+                from tests.test_support.conftest_hooks import _consolidate_worker_logs
 
                 phase = str((test_context or {}).get("phase", "parallel")).lower()
                 cleanup_label = (
@@ -1984,8 +2018,21 @@ def run_command(
             and results.get("errors", 0) == 0
             and results.get("passed", 0) > 0
         )
+        # Pytest exit code 5 = no tests collected. When serial phase has no no_parallel
+        # tests (e.g. development_tools mode), all are deselected; treat as success.
+        is_no_tests_collected_ok = (
+            process.returncode == 5
+            and results.get("failed", 0) == 0
+            and results.get("errors", 0) == 0
+            and (results.get("deselected", 0) > 0 or results.get("passed", 0) == 0)
+        )
         effective_returncode = (
-            0 if is_windows_teardown_permission_false_negative else process.returncode
+            0
+            if (
+                is_windows_teardown_permission_false_negative
+                or is_no_tests_collected_ok
+            )
+            else process.returncode
         )
         failure_classification: dict[str, Any] = {}
 
@@ -2123,7 +2170,7 @@ def run_command(
             # This ensures logs are consolidated even if something went wrong
             try:
                 time.sleep(1.0)  # Delay to allow workers to close file handles
-                from tests.conftest import _consolidate_worker_logs
+                from tests.test_support.conftest_hooks import _consolidate_worker_logs
 
                 _consolidate_worker_logs()
             except Exception:
@@ -2168,6 +2215,23 @@ def setup_test_logger():
         logger.propagate = False
 
     return logger
+
+
+def _merge_run_results(agg: dict, run_result: dict) -> None:
+    """Merge a single run_command result into an aggregated results dict (in place)."""
+    if not run_result or not isinstance(run_result, dict):
+        return
+    agg["success"] = agg.get("success", True) and run_result.get("success", False)
+    agg["duration"] = agg.get("duration", 0.0) + float(run_result.get("duration", 0))
+    res = agg.setdefault("results", {})
+    run_res = run_result.get("results") or {}
+    for key in ("passed", "failed", "skipped", "errors", "warnings", "deselected"):
+        res[key] = res.get(key, 0) + run_res.get(key, 0)
+    agg.setdefault("failure_details", []).extend(run_result.get("failure_details") or [])
+    if run_result.get("failures"):
+        agg["failures"] = (agg.get("failures") or "") + (run_result.get("failures") or "")
+    if run_result.get("output"):
+        agg["output"] = (agg.get("output") or "") + (run_result.get("output") or "")
 
 
 @handle_errors("printing combined test summary", default_return=None)
@@ -2770,7 +2834,7 @@ def main():
     Main entry point for MHM test runner.
 
     Parses command-line arguments and executes pytest with appropriate configuration
-    based on the selected test mode (all, fast, unit, integration, behavior, ui, slow).
+    based on the selected test mode (all, fast, unit, integration, behavior, ui, slow, development_tools).
 
     Returns:
         int: Exit code (0 for success, 1 for failure)
@@ -2778,14 +2842,23 @@ def main():
     parser = argparse.ArgumentParser(description="MHM Test Runner")
     parser.add_argument(
         "--mode",
-        choices=["fast", "unit", "integration", "behavior", "ui", "all", "slow"],
+        choices=[
+            "fast",
+            "unit",
+            "integration",
+            "behavior",
+            "ui",
+            "all",
+            "slow",
+            "development_tools",
+        ],
         default="all",
-        help="Test execution mode (default: all)",
+        help="Test execution mode (default: all). Use development_tools for tests/development_tools/ only.",
     )
     parser.add_argument(
         "--full",
         action="store_true",
-        help="For --mode all, run full tests/ tree (includes tests/development_tools and other test dirs)",
+        help="For --mode all, run core then development_tools as two phases (like audit --full; excludes tests/ai/ etc.)",
     )
     parser.add_argument(
         "--no-parallel",
@@ -2961,6 +3034,10 @@ def main():
     # Base pytest command
     cmd = [sys.executable, "-m", "pytest"]
 
+    # Suppress DeprecationWarnings (e.g. audioop from discord.py) so they don't appear in summary.
+    # Ensures main process filters before any imports; workers still rely on pytest.ini/conftest.
+    cmd.extend(["-W", "ignore::DeprecationWarning"])
+
     # Force pytest temp/cache paths into tests/data/tmp so transient artifacts
     # stay under the test-data sandbox rather than repo root.
     run_id = now_timestamp_filename()
@@ -3084,6 +3161,9 @@ def main():
     # Track marker filters for later use in no_parallel test run
     mode_marker_filter = None
 
+    # When --full with mode all, run core and development_tools as two separate phases (like audit).
+    full_phase_paths: list[tuple[str, list[str]]] | None = None
+
     # Add test selection based on mode
     selected_test_paths: list[str] = []
     if args.mode == "fast":
@@ -3134,11 +3214,31 @@ def main():
         mode_marker_filter = "slow"
         description = "Slow Tests Only"
 
+    elif args.mode == "development_tools":
+        # Development tools infrastructure tests only
+        selected_test_paths = ["tests/development_tools/"]
+        cmd.extend(selected_test_paths)
+        description = "Development Tools Tests"
+
     elif args.mode == "all":
-        # "all" defaults to core suites; --full expands to the full tests/ tree.
+        # "all" defaults to core suites; --full runs core and development_tools as two phases (like audit).
         if args.full:
-            selected_test_paths = ["tests/"]
-            description = "Full Test Suite (all tests/ directories)"
+            _core_paths = [
+                "tests/unit/",
+                "tests/integration/",
+                "tests/behavior/",
+                "tests/ui/",
+                "tests/core/",
+                "tests/communication/",
+                "tests/notebook/",
+            ]
+            _devtools_paths = ["tests/development_tools/"]
+            full_phase_paths = [
+                ("Core", _core_paths),
+                ("Development Tools", _devtools_paths),
+            ]
+            selected_test_paths = []  # No paths in cmd; two-phase run adds paths per phase
+            description = "Full Test Suite (core + development_tools, two phases)"
         else:
             selected_test_paths = [
                 "tests/unit/",
@@ -3150,7 +3250,8 @@ def main():
                 "tests/notebook/",
             ]
             description = "All Tests (Unit, Integration, Behavior, UI, Core, Communication, Notebook)"
-        cmd.extend(selected_test_paths)
+        if not full_phase_paths:
+            cmd.extend(selected_test_paths)
 
     # Add marker filters (combine mode filter with no_parallel and e2e exclusion if needed)
     marker_parts = []
@@ -3212,6 +3313,7 @@ def main():
     base_test_context = {
         "mode": args.mode,
         "description": description,
+        "full": getattr(args, "full", False),
         "parallel": not args.no_parallel,
         "workers": args.workers if not args.no_parallel else None,
         "platform": sys.platform,
@@ -3229,8 +3331,13 @@ def main():
 
     pause_lm_studio_active = False
     lm_studio_paused_pids: list[int] = []
+    _paths_for_lm_check = (
+        [p for _name, paths in full_phase_paths for p in paths]
+        if full_phase_paths
+        else selected_test_paths
+    )
     if args.pause_lm_studio:
-        if tests_require_lm_studio(selected_test_paths, args.full):
+        if tests_require_lm_studio(_paths_for_lm_check, args.full):
             print("[LM STUDIO] Pause disabled by MHM_TESTS_REQUIRE_LM_STUDIO=1.")
         else:
             lm_studio_paused_pids = suspend_lm_studio_processes()
@@ -3244,109 +3351,243 @@ def main():
 
     success = False
     try:
-        # Run the tests
-        parallel_test_context = {**base_test_context, "phase": "parallel"}
-        parallel_results = run_command(
-            cmd,
-            "Parallel Tests",
-            progress_interval=args.progress_interval,
-            test_context=parallel_test_context,
-            process_priority=args.process_priority,
-            post_failure_rerun=args.post_failure_rerun,
-            post_failure_rerun_max=args.post_failure_rerun_max,
-            post_failure_rerun_attempts=args.post_failure_rerun_attempts,
-            run_id=run_id,
-        )
-        success = parallel_results["success"]
-
-        # If parallel execution was enabled, also run no_parallel tests separately in serial mode
-        no_parallel_results = None
-        if not args.no_parallel:
-            # Remove the completed parallel basetemp tree so the serial phase
-            # cannot accidentally collect transient test_*.py files generated there.
-            try:
-                remove_tree_with_retries(parallel_basetemp)
-            except Exception:
-                pass
-
-            # Create a separate command for no_parallel tests (serial execution)
-            no_parallel_cmd = [sys.executable, "-m", "pytest"]
-            no_parallel_cmd.extend(
-                [
-                    "--basetemp",
-                    str(serial_basetemp),
-                    "-o",
-                    f"cache_dir={pytest_cache_dir}",
-                    "--ignore=tests/data",
-                    "--ignore=tests/data/tmp",
-                    "--ignore-glob=tests/data/tmp/**",
-                ]
-            )
-
-            # Build marker filter: combine no_parallel with mode filter if present
-            # Always exclude e2e tests (they are slow and should only run explicitly)
-            if mode_marker_filter:
-                # Combine markers: e.g., "no_parallel and not slow and not e2e" or "no_parallel and slow and not e2e"
-                no_parallel_cmd.extend(
-                    ["-m", f"no_parallel and {mode_marker_filter} and not e2e"]
-                )
-            else:
-                no_parallel_cmd.extend(
-                    ["-m", "no_parallel and not e2e"]
-                )  # Only run no_parallel tests, exclude e2e
-
-            # Copy selected test paths from main command.
-            no_parallel_cmd.extend(selected_test_paths)
-
-            # Copy other options
-            if args.verbose:
-                no_parallel_cmd.append("-v")
-            if args.coverage:
-                no_parallel_cmd.extend(
-                    [
-                        "--cov=core",
-                        "--cov=communication",
-                        "--cov=ui",
-                        "--cov=tasks",
-                        "--cov=user",
-                        "--cov=ai",
-                        "--cov-report=html:tests/coverage_html",
-                        "--cov-report=term",
-                    ]
-                )
-            if args.durations_all:
-                no_parallel_cmd.append("--durations=0")
-
-            # Copy randomization settings
-            if args.random_order:
-                pass  # Don't add seed for random order
-            elif not has_seed:
-                no_parallel_cmd.extend(["--randomly-seed=12345"])
-
-            print(
-                f"\n{'-'*80}\n[NO_PARALLEL] Running tests marked with @pytest.mark.no_parallel in serial mode...\n{'-'*80}"
-            )
-            no_parallel_test_context = {
-                **base_test_context,
-                "phase": "serial",
-                "parallel": False,
+        # Run the tests (two phases when --full, else single run)
+        if full_phase_paths:
+            # Run core and development_tools as separate phases (like audit --full).
+            success = True
+            base_cmd = list(cmd)
+            agg_parallel = {
+                "success": True,
+                "results": {
+                    "passed": 0,
+                    "failed": 0,
+                    "skipped": 0,
+                    "errors": 0,
+                    "warnings": 0,
+                    "deselected": 0,
+                },
+                "duration": 0.0,
+                "output": "",
+                "failure_details": [],
+                "failures": "",
+                "warnings": "",
             }
-            no_parallel_results = run_command(
-                no_parallel_cmd,
-                "Serial Tests (no_parallel)",
+            agg_no_parallel = {
+                "success": True,
+                "results": {
+                    "passed": 0,
+                    "failed": 0,
+                    "skipped": 0,
+                    "errors": 0,
+                    "warnings": 0,
+                    "deselected": 0,
+                },
+                "duration": 0.0,
+                "output": "",
+                "failure_details": [],
+                "failures": "",
+                "warnings": "",
+            }
+            for phase_name, paths in full_phase_paths:
+                phase_cmd = base_cmd + paths
+                print(
+                    f"\n{'-'*80}\nRunning: Parallel Tests ({phase_name})...\n{'-'*80}"
+                )
+                parallel_test_context = {**base_test_context, "phase": "parallel"}
+                pr = run_command(
+                    phase_cmd,
+                    f"Parallel Tests ({phase_name})",
+                    progress_interval=args.progress_interval,
+                    test_context=parallel_test_context,
+                    process_priority=args.process_priority,
+                    post_failure_rerun=args.post_failure_rerun,
+                    post_failure_rerun_max=args.post_failure_rerun_max,
+                    post_failure_rerun_attempts=args.post_failure_rerun_attempts,
+                    run_id=run_id,
+                )
+                _merge_run_results(agg_parallel, pr)
+                if not pr["success"]:
+                    success = False
+                try:
+                    remove_tree_with_retries(parallel_basetemp)
+                except Exception:
+                    pass
+
+                if not args.no_parallel:
+                    no_parallel_cmd = [sys.executable, "-m", "pytest"]
+                    no_parallel_cmd.extend(["-W", "ignore::DeprecationWarning"])
+                    no_parallel_cmd.extend(
+                        [
+                            "--basetemp",
+                            str(serial_basetemp),
+                            "-o",
+                            f"cache_dir={pytest_cache_dir}",
+                            "--ignore=tests/data",
+                            "--ignore=tests/data/tmp",
+                            "--ignore-glob=tests/data/tmp/**",
+                        ]
+                    )
+                    if mode_marker_filter:
+                        no_parallel_cmd.extend(
+                            [
+                                "-m",
+                                f"no_parallel and {mode_marker_filter} and not e2e",
+                            ]
+                        )
+                    else:
+                        no_parallel_cmd.extend(["-m", "no_parallel and not e2e"])
+                    no_parallel_cmd.extend(paths)
+                    if args.verbose:
+                        no_parallel_cmd.append("-v")
+                    if args.coverage:
+                        no_parallel_cmd.extend(
+                            [
+                                "--cov=core",
+                                "--cov=communication",
+                                "--cov=ui",
+                                "--cov=tasks",
+                                "--cov=user",
+                                "--cov=ai",
+                                "--cov-report=html:tests/coverage_html",
+                                "--cov-report=term",
+                            ]
+                        )
+                    if args.durations_all:
+                        no_parallel_cmd.append("--durations=0")
+                    if args.random_order:
+                        pass
+                    elif not has_seed:
+                        no_parallel_cmd.extend(["--randomly-seed=12345"])
+                    print(
+                        f"\n{'-'*80}\n[NO_PARALLEL] Running tests marked with @pytest.mark.no_parallel in serial mode ({phase_name})...\n{'-'*80}"
+                    )
+                    no_parallel_test_context = {
+                        **base_test_context,
+                        "phase": "serial",
+                        "parallel": False,
+                    }
+                    npr = run_command(
+                        no_parallel_cmd,
+                        f"Serial Tests (no_parallel, {phase_name})",
+                        progress_interval=args.progress_interval,
+                        test_context=no_parallel_test_context,
+                        env_overrides=build_windows_no_parallel_env(),
+                        process_priority=args.process_priority,
+                        post_failure_rerun=args.post_failure_rerun,
+                        post_failure_rerun_max=args.post_failure_rerun_max,
+                        post_failure_rerun_attempts=args.post_failure_rerun_attempts,
+                        run_id=run_id,
+                    )
+                    _merge_run_results(agg_no_parallel, npr)
+                    if not npr["success"]:
+                        success = False
+            parallel_results = agg_parallel
+            no_parallel_results = agg_no_parallel
+        else:
+            # Single run (non-full or non-all mode)
+            parallel_test_context = {**base_test_context, "phase": "parallel"}
+            parallel_results = run_command(
+                cmd,
+                "Parallel Tests",
                 progress_interval=args.progress_interval,
-                test_context=no_parallel_test_context,
-                env_overrides=build_windows_no_parallel_env(),
+                test_context=parallel_test_context,
                 process_priority=args.process_priority,
                 post_failure_rerun=args.post_failure_rerun,
                 post_failure_rerun_max=args.post_failure_rerun_max,
                 post_failure_rerun_attempts=args.post_failure_rerun_attempts,
                 run_id=run_id,
             )
-            no_parallel_success = no_parallel_results["success"]
+            success = parallel_results["success"]
 
-            if not no_parallel_success:
-                success = False
+            # If parallel execution was enabled, also run no_parallel tests separately in serial mode
+            no_parallel_results = None
+            if not args.no_parallel:
+                # Remove the completed parallel basetemp tree so the serial phase
+                # cannot accidentally collect transient test_*.py files generated there.
+                try:
+                    remove_tree_with_retries(parallel_basetemp)
+                except Exception:
+                    pass
+
+                # Create a separate command for no_parallel tests (serial execution)
+                no_parallel_cmd = [sys.executable, "-m", "pytest"]
+                no_parallel_cmd.extend(["-W", "ignore::DeprecationWarning"])
+                no_parallel_cmd.extend(
+                    [
+                        "--basetemp",
+                        str(serial_basetemp),
+                        "-o",
+                        f"cache_dir={pytest_cache_dir}",
+                        "--ignore=tests/data",
+                        "--ignore=tests/data/tmp",
+                        "--ignore-glob=tests/data/tmp/**",
+                    ]
+                )
+
+                # Build marker filter: combine no_parallel with mode filter if present
+                # Always exclude e2e tests (they are slow and should only run explicitly)
+                if mode_marker_filter:
+                    # Combine markers: e.g., "no_parallel and not slow and not e2e" or "no_parallel and slow and not e2e"
+                    no_parallel_cmd.extend(
+                        ["-m", f"no_parallel and {mode_marker_filter} and not e2e"]
+                    )
+                else:
+                    no_parallel_cmd.extend(
+                        ["-m", "no_parallel and not e2e"]
+                    )  # Only run no_parallel tests, exclude e2e
+
+                # Copy selected test paths from main command.
+                no_parallel_cmd.extend(selected_test_paths)
+
+                # Copy other options
+                if args.verbose:
+                    no_parallel_cmd.append("-v")
+                if args.coverage:
+                    no_parallel_cmd.extend(
+                        [
+                            "--cov=core",
+                            "--cov=communication",
+                            "--cov=ui",
+                            "--cov=tasks",
+                            "--cov=user",
+                            "--cov=ai",
+                            "--cov-report=html:tests/coverage_html",
+                            "--cov-report=term",
+                        ]
+                    )
+                if args.durations_all:
+                    no_parallel_cmd.append("--durations=0")
+
+                # Copy randomization settings
+                if args.random_order:
+                    pass  # Don't add seed for random order
+                elif not has_seed:
+                    no_parallel_cmd.extend(["--randomly-seed=12345"])
+
+                print(
+                    f"\n{'-'*80}\n[NO_PARALLEL] Running tests marked with @pytest.mark.no_parallel in serial mode...\n{'-'*80}"
+                )
+                no_parallel_test_context = {
+                    **base_test_context,
+                    "phase": "serial",
+                    "parallel": False,
+                }
+                no_parallel_results = run_command(
+                    no_parallel_cmd,
+                    "Serial Tests (no_parallel)",
+                    progress_interval=args.progress_interval,
+                    test_context=no_parallel_test_context,
+                    env_overrides=build_windows_no_parallel_env(),
+                    process_priority=args.process_priority,
+                    post_failure_rerun=args.post_failure_rerun,
+                    post_failure_rerun_max=args.post_failure_rerun_max,
+                    post_failure_rerun_attempts=args.post_failure_rerun_attempts,
+                    run_id=run_id,
+                )
+                no_parallel_success = no_parallel_results["success"]
+
+                if not no_parallel_success:
+                    success = False
 
         # Print combined summary (always show, even if tests failed)
         # Handle case where parallel_results might be a bool (backward compatibility)

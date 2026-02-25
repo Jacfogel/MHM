@@ -140,8 +140,7 @@ Tests must be safe: they must not pollute real user data, create real Windows sc
 
 `tests/conftest.py` is the central place for:
 
-- Global fixtures.
-- Pytest hooks.
+- Global fixtures and pytest hooks; plugin modules live under `tests/test_support/` (e.g. `conftest_mocks.py`, `conftest_cleanup.py`, `conftest_logging.py`, `conftest_user_data.py`, `conftest_hooks.py`, `conftest_env.py`) and are loaded via `pytest_plugins`. Logging implementation in `tests/test_support/conftest_logging_impl.py`; cleanup implementation in `tests/test_support/conftest_cleanup_impl.py`.
 - Logging setup for test runs.
 - Path redirection for user data and configuration during tests.
 
@@ -158,6 +157,7 @@ Always prefer existing fixtures from `tests/conftest.py` over writing ad-hoc set
 Common helpers are usually defined in utility modules such as:
 
 - `tests/test_utilities.py` (or similarly named helpers module).
+- `tests/test_support/test_helpers.py` - standalone helpers (not fixtures): `wait_until(predicate, ...)` and `materialize_user_minimal_via_public_apis(user_id)`. Import from `tests.test_support.test_helpers`.
 
 These helpers typically provide:
 
@@ -265,10 +265,16 @@ Common commands:
   `tests/unit/`, `tests/integration/`, `tests/behavior/`, `tests/ui/`,
   `tests/core/`, `tests/communication/`, and `tests/notebook/`.
 
-- Run full `tests/` tree (including `tests/development_tools/` and other test dirs):
+- Run core suites plus `tests/development_tools/` in **two phases** (core, then development_tools; same as audit --full; excludes e.g. `tests/ai/`):
 
   ```bash
   python run_tests.py --mode all --full
+  ```
+
+- Run only development tools tests (`tests/development_tools/`):
+
+  ```bash
+  python run_tests.py --mode development_tools
   ```
 
 - Run only unit tests:
@@ -331,7 +337,7 @@ Common commands:
 Typical options:
 
 - `--mode unit` / `--mode integration` / (any future modes).
-- `--full` (with `--mode all`, expands selection to the full `tests/` tree).
+- `--full` (with `--mode all`, runs core then development_tools as two phases, like audit --full; excludes `tests/ai/` etc.).
 - `--no-parallel` (force serial execution).
 - `--workers N` (explicit worker count).
 - `--coverage` (enable coverage collection).

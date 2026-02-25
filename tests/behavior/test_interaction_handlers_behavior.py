@@ -199,7 +199,7 @@ class TestInteractionHandlersBehavior:
         # Resolve to the internal UUID to match the rest of the system.
         from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
-        from tests.conftest import wait_until
+        from tests.test_support.test_helpers import wait_until
 
         # Poll for index visibility first; rebuild only as fallback for parallel lag.
         internal_user_id = get_user_id_by_identifier(user_id)
@@ -268,7 +268,7 @@ class TestInteractionHandlersBehavior:
         # Get the actual UUID for the created user
         from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
-        from tests.conftest import wait_until
+        from tests.test_support.test_helpers import wait_until
         
         # Resolve UUID with a short poll first; rebuild index only as fallback.
         actual_user_id = get_user_id_by_identifier(user_id)
@@ -344,7 +344,7 @@ class TestInteractionHandlersBehavior:
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
-        from tests.conftest import wait_until
+        from tests.test_support.test_helpers import wait_until
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Failed to create test user"
         

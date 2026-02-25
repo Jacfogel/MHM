@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-21 23:43:22
+> **Last Generated**: 2026-02-25 02:13:11
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 108
-- **Total Imports Found**: 1460
+- **Total Imports Found**: 1452
 - **Dependencies Documented**: 108 (100% coverage)
-- **Standard Library Imports**: 387 (26.5%)
-- **Third-Party Imports**: 223 (15.3%)
-- **Local Imports**: 850 (58.2%)
-- **Last Updated**: 2026-02-21
+- **Standard Library Imports**: 380 (26.2%)
+- **Third-Party Imports**: 223 (15.4%)
+- **Local Imports**: 849 (58.5%)
+- **Last Updated**: 2026-02-25
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 387 imports (26.5%)
-- **Third-Party**: 223 imports (15.3%)
-- **Local**: 850 imports (58.2%)
+- **Standard Library**: 380 imports (26.2%)
+- **Third-Party**: 223 imports (15.4%)
+- **Local**: 849 imports (58.5%)
 
 ## Module Dependencies by Directory
 
@@ -2899,7 +2899,7 @@
     - `core.auto_cleanup (calculate_cache_size, find_pyc_files, find_pycache_dirs, get_cleanup_status, perform_cleanup, update_cleanup_timestamp)` (NEW)
     - `core.config (AI_TIMEOUT_SECONDS, BASE_DATA_DIR, DISCORD_BOT_TOKEN, EMAIL_IMAP_SERVER, EMAIL_SMTP_PASSWORD, EMAIL_SMTP_SERVER, EMAIL_SMTP_USERNAME, LM_STUDIO_BASE_URL, LOG_LEVEL, LOG_MAIN_FILE, SCHEDULER_INTERVAL, core.config, validate_all_configuration)` (NEW)
     - `core.error_handling (DataError, handle_errors)` (NEW)
-    - `core.logger (get_component_logger, get_verbose_mode, setup_logging, toggle_verbose_logging)` (NEW)
+    - `core.logger (get_component_logger, setup_logging, toggle_verbose_logging)` (NEW)
     - `core.scheduler (SchedulerManager, run_category_scheduler_standalone, run_full_scheduler_standalone, run_user_scheduler_standalone)` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
     - `core.time_utilities (now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
@@ -2921,7 +2921,6 @@
     - `ui.generated.admin_panel_pyqt (Ui_ui_app_mainwindow)` (NEW)
     - `user.user_context (UserContext)` (NEW)
   - **Standard Library**:
-    - `datetime`
     - `json`
     - `os`
     - `pathlib (Path, pathlib)`

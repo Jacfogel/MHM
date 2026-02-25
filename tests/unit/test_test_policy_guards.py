@@ -20,6 +20,8 @@ TEMPFILE_CALLS_REQUIRING_DIR = {
 }
 DATETIME_NOW_ALLOWED_FILES = {
     "tests/conftest.py",
+    "tests/conftest_hooks.py",
+    "tests/test_support/conftest_hooks.py",
     "tests/development_tools/conftest.py",
     "tests/development_tools/test_changelog_trim_tooling.py",
     "tests/development_tools/test_supporting_tools.py",

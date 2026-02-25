@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-21 23:43:28
+> **Last Generated**: 2026-02-25 02:13:20
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -11,6 +11,7 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
+|   .coverage
 |   ARCHITECTURE.md
 |   CONFIGURATION_REFERENCE.md
 |   DEVELOPMENT_WORKFLOW.md
@@ -43,6 +44,8 @@ C:.
 |   |       triage-issue.md
 |   |       
 |   +---plans
+|   |   |   conftest_refactor_plan_4aa2eb26.plan.md
+|   |   |   
 |   \---rules
 |           communication-guidelines.mdc
 |           context.mdc
@@ -179,6 +182,7 @@ C:.
 |   |   PLANS.md
 |   |   TASKS_PLAN.md
 |   |   TEST_COVERAGE_REPORT.md
+|   |   TEST_PLAN.md
 |   |   UNUSED_IMPORTS_REPORT.md
 |   |   
 |   \---changelog_history
@@ -245,6 +249,7 @@ C:.
 |   |   |   analyze_functions.py
 |   |   |   analyze_function_patterns.py
 |   |   |   analyze_function_registry.py
+|   |   |   analyze_module_refactor_candidates.py
 |   |   |   analyze_package_exports.py
 |   |   |   generate_function_docstrings.py
 |   |   |   generate_function_registry.py
@@ -282,6 +287,8 @@ C:.
 |   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
+|   |   +---logs
+    (log files)
 |   +---shared
 |   |   |   backup_inventory.py
 |   |   |   backup_policy_models.py
@@ -560,6 +567,7 @@ C:.
 |   |   |   test_path_drift_verification_comprehensive.py
 |   |   |   test_regenerate_coverage_metrics.py
 |   |   |   test_report_generation_quick_wins.py
+|   |   |   test_retention_engine.py
 |   |   |   test_run_development_tools.py
 |   |   |   test_run_dev_tools.py
 |   |   |   test_standard_exclusions.py
@@ -567,6 +575,7 @@ C:.
 |   |   |   test_supporting_tools.py
 |   |   |   test_test_file_coverage_cache.py
 |   |   |   test_tool_guide.py
+|   |   |   test_tool_wrappers_branch_paths.py
 |   |   |   test_tool_wrappers_package_exports.py
 |   |   |   test_verification_summary.py
 |   |   |   __init__.py
@@ -586,6 +595,17 @@ C:.
 |   +---logs
     (log files)
 |   +---notebook
+|   |   |   __init__.py
+|   |   |   
+|   +---test_support
+|   |   |   conftest_cleanup.py
+|   |   |   conftest_cleanup_impl.py
+|   |   |   conftest_hooks.py
+|   |   |   conftest_logging.py
+|   |   |   conftest_logging_impl.py
+|   |   |   conftest_mocks.py
+|   |   |   conftest_user_data.py
+|   |   |   test_helpers.py
 |   |   |   __init__.py
 |   |   |   
 |   +---ui
