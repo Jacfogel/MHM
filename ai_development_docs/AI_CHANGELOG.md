@@ -40,6 +40,7 @@ Guidelines:
 ### 2026-02-26 - Dev-tools exclusions consistency + CLI logging cleanup **Progressed**
 - Applied shared exclusion filtering (`standard_exclusions.should_exclude_file`) to additional non-orchestration scanners/tests paths: function docstrings, domain mapper, test marker analyzer, channel logger checker, version-sync discovery, and dev-tools coverage cache/source mtime discovery paths.
 - Converted remaining standalone analyzer summary prints to structured logging in `analyze_dependency_patterns.py`, `analyze_module_imports.py`, and non-JSON mode of `generate_unused_imports_report.py` (kept JSON stdout behavior).
+- Logging enforcement follow-up: hardened `development_tools/static_checks/check_channel_loggers.py` standalone CI execution with resilient exclusions loading + fallback path so `python development_tools/static_checks/check_channel_loggers.py` works in minimal environments without optional runtime deps.
 - Added/updated regression coverage in `test_analyze_module_imports_cli.py`, `test_check_channel_loggers.py`, `test_fix_version_sync_file_discovery.py`, and related existing dev-tools test modules.
 - Updated V4 roadmap tracking ([AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) sections `2.2`/`3.11`), re-ran full diff review (`git diff --stat`, `git diff --name-only`, `git status --short`), and user confirmed no new issues during `audit --full --clear-cache` follow-up.
 
@@ -164,16 +165,5 @@ Guidelines:
 - Updated test-file coverage cache policy to persist cache artifacts whenever coverage data is collected (even on failing runs) and rely on failed-domain/run-domain invalidation on next run (`development_tools/tests/run_test_coverage.py`, `development_tools/tests/test_file_coverage_cache.py`).
 - Reverted temporary full-run timeout floor so coverage pytest timeout remains config/default driven (12 minutes unless configured otherwise).
 - Fixed/closed recent audit failures: removed `tests/development_tools/test_intentional_failure.py`; stabilized behavior tests with per-test unique user IDs in `tests/behavior/test_message_behavior.py` and `tests/behavior/test_checkin_handler_behavior.py`; revalidated `tests/behavior/test_discord_checkin_retry_behavior.py` targeted failure path as stable in reruns.
-### 2026-02-18 - Legacy cleanup + coverage cache/reporting hardening **Progressed**
-- Removed the final legacy-marker footprint from active files and reran `python development_tools/run_development_tools.py legacy`; `LEGACY_REFERENCE_REPORT.md` now reports `Total Files with Issues: 0` and `Legacy Compatibility Markers Detected: 0`.
-- Standardized dev-tools coverage outcome handling to read `details.dev_tools_test_outcome` first in `development_tools/shared/service/commands.py`, while still tolerating older payloads when encountered.
-- Stopped emitting the deprecated top-level `dev_tools_test_outcome` key in `development_tools/tests/run_test_coverage.py` output payloads; standardized `summary/details` output remains intact.
-- Updated compatibility wording in comments (`development_tools/shared/service/data_loading.py`, `development_tools/shared/mtime_cache.py`, `development_tools/shared/service/audit_orchestration.py`, `run_tests.py`, `user/user_context.py`) to remove legacy/backward-compatibility markers while preserving behavior.
-- Updated regression fixture shape in `tests/development_tools/test_audit_strict_mode.py` and validated with targeted tests (`21 passed` across strict-mode and report-generation quick-win suites).
-- Hardened `run_test_coverage.py` cache behavior so reusable coverage cache state is not written when coverage collection fails (`coverage_failed` path); applies to serial/deferred-parallel test-file cache writes and dev-tools coverage cache updates.
-- Updated Tier 3 priority rendering in `report_generation.py` to show per-track failed tests inline (`Parallel tests failed=N: ...`, `No-parallel tests failed=N: ...`) and derive displayed counts from deduplicated per-track failed node IDs.
-- Normalized displayed pytest node IDs to compact `path::test_name` form and retained concrete applicable `development_tools/tests/logs/pytest_*_stdout_*.log` references in priority details.
-- Updated regression expectations in `tests/development_tools/test_report_generation_quick_wins.py`; validated with targeted pytest runs for cache and reporting paths (all passing).
-
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

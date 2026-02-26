@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-02-20
+> **Last Updated**: 2026-02-26
 
 This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -242,6 +242,7 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [x] Ensure AI_STATUS/AI_PRIORITIES/consolidated report carry the same failure state and do not imply a clean run
 - [x] Include development-tools test track in Tier 3 outcome state handling and strict-exit decisioning
 - [x] Surface actionable `classification_reason`, `return_code_hex`, and relevant `log_file` paths in Tier 3 report sections
+- [ ] Follow-up: refine cache-only legacy outcome normalization so valid cached coverage runs do not emit false `coverage_failed` states when legacy state-only track payloads are bridged
 
 **Temporary compatibility bridge note**:
 - [x] Added explicit `# LEGACY COMPATIBILITY:` marker and bridge-use logging for state-only Tier3 payload fallback paths
@@ -384,6 +385,7 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
   - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/docs/fix_version_sync.py::find_trackable_files` for both directory pruning and file filtering (`tool_type="fix_version_sync"`, development context), with coverage in `tests/development_tools/test_fix_version_sync_file_discovery.py`
   - [x] Added shared exclusion filtering in `development_tools/tests/test_file_coverage_cache.py` for test-path validation and source-domain mtime discovery, and aligned full-run test discovery to `_iter_test_files()`, with coverage in `tests/development_tools/test_test_file_coverage_cache.py` (`tests/coverage_html` + `domain/scripts` exclusions)
   - [x] Added shared exclusion filtering in `development_tools/tests/run_test_coverage.py` for `_get_dev_tools_source_mtimes()` and `_get_dev_tools_test_mtimes()`, with coverage in `tests/development_tools/test_regenerate_coverage_metrics.py`
+  - [x] Hardened `development_tools/static_checks/check_channel_loggers.py` standalone execution by making exclusions loading resilient in minimal CI environments (direct script path + safe fallback), keeping static logging enforcement runnable without optional runtime dependencies
 
 #### 3.12 Integrate flaky detector into development tools suite
 **Status**: PENDING  

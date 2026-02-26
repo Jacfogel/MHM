@@ -74,6 +74,9 @@ When adding new changes, follow this format:
     - `development_tools/imports/analyze_dependency_patterns.py`
     - `development_tools/imports/analyze_module_imports.py`
     - `development_tools/imports/generate_unused_imports_report.py` (non-JSON mode; JSON stdout retained)
+  - Logging-enforcement CI follow-up:
+    - `development_tools/static_checks/check_channel_loggers.py` standalone execution now avoids brittle package import chains when invoked by workflow path (`python development_tools/static_checks/check_channel_loggers.py`).
+    - added a safe exclusions-loader fallback so static logging checks remain runnable in minimal environments where optional runtime dependencies (for example `python-dotenv`) are unavailable.
   - Added/updated regression tests:
     - `tests/development_tools/test_analyze_module_imports_cli.py`
     - `tests/development_tools/test_check_channel_loggers.py`
@@ -89,6 +92,9 @@ When adding new changes, follow this format:
     - expanded completed checklist items in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) sections `2.2` and `3.11`.
 - **Validation**:
   - targeted pytest checks were run and passed for the touched analyzers and exclusion-integration paths.
+  - logging enforcement follow-up validation:
+    - `python development_tools/static_checks/check_channel_loggers.py` -> passed
+    - `pytest tests/development_tools/test_check_channel_loggers.py -q` -> `1 passed`
   - user-confirmed `audit --full --clear-cache` follow-up runs reported no new issues.
 - **Full-diff Attribution**:
   - final closeout review used:

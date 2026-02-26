@@ -13,10 +13,9 @@ from __future__ import annotations
 import ast
 import sys
 import os
+import importlib.util
 from pathlib import Path
 from typing import Iterable
-
-from development_tools.shared.standard_exclusions import should_exclude_file
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 LOG_METHODS = {"debug", "info", "warning", "error", "exception", "critical"}
@@ -44,6 +43,45 @@ ALLOWED_LOGGING_IMPORT_PATHS = {
     Path("core/service.py"),
     Path("run_tests.py"),
 }
+
+
+def _load_should_exclude_file():
+    """Load standard exclusions helper without importing development_tools package."""
+    module_path = REPO_ROOT / "development_tools" / "shared" / "standard_exclusions.py"
+    try:
+        spec = importlib.util.spec_from_file_location(
+            "_mhm_standard_exclusions", module_path
+        )
+        if spec is None or spec.loader is None:
+            raise RuntimeError(f"Unable to load exclusions helper from {module_path}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return getattr(module, "should_exclude_file")
+    except Exception:
+        # Keep logging enforcement runnable in isolated CI environments where
+        # optional runtime dependencies for full dev-tools config are unavailable.
+        def _fallback_should_exclude_file(
+            file_path: str, tool_type: str | None = None, context: str = "development"
+        ) -> bool:
+            normalized = str(file_path).replace("\\", "/")
+            fallback_fragments = (
+                "__pycache__",
+                ".git/",
+                ".venv/",
+                "venv/",
+                ".pytest_cache/",
+                ".pytest_runtime/",
+                ".tmp_pytest",
+                ".tmp_devtools_pyfiles",
+                "htmlcov/",
+                "mhm.egg-info/",
+            )
+            return any(fragment in normalized for fragment in fallback_fragments)
+
+        return _fallback_should_exclude_file
+
+
+should_exclude_file = _load_should_exclude_file()
 
 
 def is_excluded(path: Path) -> bool:

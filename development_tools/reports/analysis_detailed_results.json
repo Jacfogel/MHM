@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-02-25 23:52:08",
+  "last_generated": "2026-02-26 00:16:00",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-02-25T23:52:08.370460",
+  "timestamp": "2026-02-26T00:16:00.862276",
   "successful": [
     "analyze_duplicate_functions",
     "analyze_functions",
@@ -2578,7 +2578,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-25T23:51:53"
+      "timestamp": "2026-02-26T00:15:42"
     },
     "analyze_functions": {
       "success": true,
@@ -2783,7 +2783,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-02-25T23:51:52"
+      "timestamp": "2026-02-26T00:15:41"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -4741,7 +4741,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-25T23:51:50"
+      "timestamp": "2026-02-26T00:15:38"
     },
     "analyze_function_registry": {
       "success": true,
@@ -6818,7 +6818,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-25T23:51:56"
+      "timestamp": "2026-02-26T00:15:46"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -7572,7 +7572,7 @@
           }
         }
       },
-      "timestamp": "2026-02-25T23:51:55"
+      "timestamp": "2026-02-26T00:15:45"
     },
     "analyze_package_exports": {
       "success": true,
@@ -7586,6 +7586,1215 @@
           "total_unnecessary_exports": 1,
           "packages_with_missing": 2,
           "packages": {
+            "communication": {
+              "package": "communication",
+              "current_exports_count": 60,
+              "should_export_count": 89,
+              "already_exported": [
+                "AnalyticsHandler",
+                "BaseChannel",
+                "BotInitializationError",
+                "ChannelConfig",
+                "ChannelFactory",
+                "ChannelMonitor",
+                "ChannelStatus",
+                "ChannelType",
+                "CheckinHandler",
+                "CommandDefinition",
+                "CommandRegistry",
+                "CommunicationManager",
+                "ConversationManager",
+                "DiscordAPIClient",
+                "DiscordBot",
+                "DiscordCommandRegistry",
+                "DiscordConnectionStatus",
+                "DiscordEventHandler",
+                "DiscordRichFormatter",
+                "EmailBot",
+                "EmailBotError",
+                "EmailCommandRegistry",
+                "EmailMessageFormatter",
+                "EmailRichFormatter",
+                "EnhancedCommandParser",
+                "EventContext",
+                "EventType",
+                "HelpHandler",
+                "InteractionHandler",
+                "InteractionManager",
+                "InteractionResponse",
+                "MessageData",
+                "MessageFormatter",
+                "MessageRouter",
+                "MessageSendError",
+                "MessageType",
+                "ParsedCommand",
+                "ParsingResult",
+                "ProfileHandler",
+                "QueuedMessage",
+                "RetryManager",
+                "RichFormatter",
+                "RoutingResult",
+                "ScheduleManagementHandler",
+                "SendMessageOptions",
+                "TaskManagementHandler",
+                "TextMessageFormatter",
+                "conversation_manager",
+                "get_all_handlers",
+                "get_command_registry",
+                "get_discord_api_client",
+                "get_discord_event_handler",
+                "get_enhanced_command_parser",
+                "get_interaction_handler",
+                "get_interaction_manager",
+                "get_message_formatter",
+                "get_message_router",
+                "get_rich_formatter",
+                "handle_user_message",
+                "parse_command"
+              ],
+              "missing_exports": [
+                "AccountManagementHandler",
+                "CheckinFeatureSelect",
+                "CreateAccountButton",
+                "DiscordWebhookHandler",
+                "FLOW_LIST_ITEMS",
+                "FLOW_NOTE_BODY",
+                "FLOW_TASK_REMINDER",
+                "FeatureSelectionView",
+                "MessageFeatureSelect",
+                "NotebookHandler",
+                "TaskFeatureSelect",
+                "TimezoneSelect",
+                "WebhookServer",
+                "clear_welcomed_status",
+                "get_available_channels",
+                "get_channel_class_mapping",
+                "get_checkin_view",
+                "get_task_reminder_view",
+                "get_welcome_message",
+                "get_welcome_message_view",
+                "handle_application_authorized",
+                "handle_webhook_event",
+                "has_been_welcomed",
+                "is_valid_intent",
+                "mark_as_welcomed",
+                "parse_webhook_event",
+                "start_account_creation_flow",
+                "start_account_linking_flow",
+                "verify_webhook_signature"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "CommunicationManager": {
+                  "import_count": 10,
+                  "import_locations": [
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "core/service.py",
+                    "ui/ui_app_qt.py",
+                    "ui/ui_app_qt.py",
+                    "ui/ui_app_qt.py",
+                    "communication/command_handlers/account_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.core.channel_orchestrator"
+                },
+                "conversation_manager": {
+                  "import_count": 9,
+                  "import_locations": [
+                    "core/service.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/notebook_handler.py",
+                    "communication/command_handlers/notebook_handler.py",
+                    "communication/command_handlers/task_handler.py",
+                    "communication/core/channel_orchestrator.py",
+                    "communication/core/channel_orchestrator.py",
+                    "communication/core/channel_orchestrator.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.conversation_flow_manager"
+                },
+                "InteractionHandler": {
+                  "import_count": 7,
+                  "import_locations": [
+                    "communication/command_handlers/account_handler.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/notebook_handler.py",
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/schedule_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.base_handler"
+                },
+                "InteractionResponse": {
+                  "import_count": 9,
+                  "import_locations": [
+                    "communication/command_handlers/account_handler.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/base_handler.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/notebook_handler.py",
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/schedule_handler.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.shared_types"
+                },
+                "ParsedCommand": {
+                  "import_count": 16,
+                  "import_locations": [
+                    "communication/command_handlers/account_handler.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/base_handler.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/notebook_handler.py",
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/schedule_handler.py",
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/communication_channels/discord/account_flow_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.shared_types"
+                },
+                "_pending_link_operations": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/command_handlers/account_handler.py",
+                    "communication/command_handlers/account_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.account_handler"
+                },
+                "TaskManagementHandler": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.task_handler"
+                },
+                "CheckinHandler": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.checkin_handler"
+                },
+                "ProfileHandler": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/message_processing/conversation_flow_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.profile_handler"
+                },
+                "ScheduleManagementHandler": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/message_processing/conversation_flow_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.schedule_handler"
+                },
+                "AnalyticsHandler": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.analytics_handler"
+                },
+                "NotebookHandler": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.notebook_handler"
+                },
+                "AccountManagementHandler": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/communication_channels/discord/account_flow_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.account_handler"
+                },
+                "BaseChannel": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "communication/core/channel_monitor.py",
+                    "communication/core/channel_orchestrator.py",
+                    "communication/core/factory.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/email/bot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.base.base_channel"
+                },
+                "ChannelConfig": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/core/factory.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/email/bot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.base.base_channel"
+                },
+                "ChannelStatus": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/email/bot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.base.base_channel"
+                },
+                "ChannelFactory": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/core/channel_orchestrator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.core.factory"
+                },
+                "handle_user_message": {
+                  "import_count": 16,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/checkin_view.py",
+                    "communication/communication_channels/discord/checkin_view.py",
+                    "communication/communication_channels/discord/event_handler.py",
+                    "communication/communication_channels/discord/task_reminder_view.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.interaction_manager"
+                },
+                "get_all_handlers": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.interaction_handlers"
+                },
+                "is_valid_intent": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.intent_validation"
+                },
+                "get_interaction_handler": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.interaction_handlers"
+                },
+                "ChannelType": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/email/bot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.base.base_channel"
+                },
+                "get_interaction_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.interaction_manager"
+                },
+                "has_been_welcomed": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/webhook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.welcome_handler"
+                },
+                "mark_as_welcomed": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/webhook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.welcome_handler"
+                },
+                "get_welcome_message": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/webhook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.welcome_handler"
+                },
+                "start_account_creation_flow": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/welcome_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.account_flow_handler"
+                },
+                "start_account_linking_flow": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/welcome_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.account_flow_handler"
+                },
+                "get_rich_formatter": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/communication_channels/discord/event_handler.py",
+                    "communication/communication_channels/discord/event_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.base.rich_formatter"
+                }
+              },
+              "import_usage_details": {
+                "CommunicationManager": {
+                  "import_count": 10,
+                  "import_locations": [
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "core/service.py",
+                    "ui/ui_app_qt.py",
+                    "ui/ui_app_qt.py",
+                    "ui/ui_app_qt.py",
+                    "communication/command_handlers/account_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.core.channel_orchestrator"
+                },
+                "conversation_manager": {
+                  "import_count": 9,
+                  "import_locations": [
+                    "core/service.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/notebook_handler.py",
+                    "communication/command_handlers/notebook_handler.py",
+                    "communication/command_handlers/task_handler.py",
+                    "communication/core/channel_orchestrator.py",
+                    "communication/core/channel_orchestrator.py",
+                    "communication/core/channel_orchestrator.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.conversation_flow_manager"
+                },
+                "InteractionHandler": {
+                  "import_count": 7,
+                  "import_locations": [
+                    "communication/command_handlers/account_handler.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/notebook_handler.py",
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/schedule_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.base_handler"
+                },
+                "InteractionResponse": {
+                  "import_count": 9,
+                  "import_locations": [
+                    "communication/command_handlers/account_handler.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/base_handler.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/notebook_handler.py",
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/schedule_handler.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.shared_types"
+                },
+                "ParsedCommand": {
+                  "import_count": 16,
+                  "import_locations": [
+                    "communication/command_handlers/account_handler.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/base_handler.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/notebook_handler.py",
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/schedule_handler.py",
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/communication_channels/discord/account_flow_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.shared_types"
+                },
+                "_pending_link_operations": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/command_handlers/account_handler.py",
+                    "communication/command_handlers/account_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.account_handler"
+                },
+                "_generate_confirmation_code": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/account_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.account_handler"
+                },
+                "_send_confirmation_code": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/account_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.account_handler"
+                },
+                "TaskManagementHandler": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.task_handler"
+                },
+                "CheckinHandler": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.checkin_handler"
+                },
+                "ProfileHandler": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/message_processing/conversation_flow_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.profile_handler"
+                },
+                "ScheduleManagementHandler": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/message_processing/conversation_flow_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.schedule_handler"
+                },
+                "AnalyticsHandler": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.analytics_handler"
+                },
+                "NotebookHandler": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.notebook_handler"
+                },
+                "AccountManagementHandler": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/communication_channels/discord/account_flow_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.account_handler"
+                },
+                "FLOW_NOTE_BODY": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.conversation_flow_manager"
+                },
+                "FLOW_LIST_ITEMS": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.conversation_flow_manager"
+                },
+                "BaseChannel": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "communication/core/channel_monitor.py",
+                    "communication/core/channel_orchestrator.py",
+                    "communication/core/factory.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/email/bot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.base.base_channel"
+                },
+                "ChannelConfig": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/core/factory.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/email/bot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.base.base_channel"
+                },
+                "ChannelStatus": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/email/bot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.base.base_channel"
+                },
+                "ChannelFactory": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/core/channel_orchestrator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.core.factory"
+                },
+                "RetryManager": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.core.retry_manager"
+                },
+                "ChannelMonitor": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.core.channel_monitor"
+                },
+                "handle_user_message": {
+                  "import_count": 16,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/checkin_view.py",
+                    "communication/communication_channels/discord/checkin_view.py",
+                    "communication/communication_channels/discord/event_handler.py",
+                    "communication/communication_channels/discord/task_reminder_view.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.interaction_manager"
+                },
+                "get_task_reminder_view": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.task_reminder_view"
+                },
+                "get_checkin_view": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.checkin_view"
+                },
+                "get_all_handlers": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.interaction_handlers"
+                },
+                "is_valid_intent": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.intent_validation"
+                },
+                "get_interaction_handler": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.interaction_handlers"
+                },
+                "get_enhanced_command_parser": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.command_parser"
+                },
+                "ParsingResult": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.command_parser"
+                },
+                "FLOW_TASK_REMINDER": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.conversation_flow_manager"
+                },
+                "ChannelType": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/email/bot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.base.base_channel"
+                },
+                "get_interaction_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.message_processing.interaction_manager"
+                },
+                "WebhookServer": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.webhook_server"
+                },
+                "has_been_welcomed": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/webhook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.welcome_handler"
+                },
+                "mark_as_welcomed": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/webhook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.welcome_handler"
+                },
+                "get_welcome_message": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/webhook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.welcome_handler"
+                },
+                "start_account_creation_flow": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/welcome_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.account_flow_handler"
+                },
+                "start_account_linking_flow": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py",
+                    "communication/communication_channels/discord/welcome_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.account_flow_handler"
+                },
+                "get_rich_formatter": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/communication_channels/discord/event_handler.py",
+                    "communication/communication_channels/discord/event_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.base.rich_formatter"
+                },
+                "clear_welcomed_status": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/communication_channels/discord/webhook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.core.welcome_manager"
+                },
+                "get_welcome_message_view": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/communication_channels/discord/webhook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.welcome_handler"
+                },
+                "parse_webhook_event": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/communication_channels/discord/webhook_server.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.webhook_handler"
+                },
+                "handle_webhook_event": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/communication_channels/discord/webhook_server.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.webhook_handler"
+                },
+                "_has_been_welcomed": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/communication_channels/discord/welcome_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.core.welcome_manager"
+                },
+                "_mark_as_welcomed": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/communication_channels/discord/welcome_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.core.welcome_manager"
+                },
+                "_clear_welcomed_status": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/communication_channels/discord/welcome_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.core.welcome_manager"
+                },
+                "_get_welcome_message": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/communication_channels/discord/welcome_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.core.welcome_manager"
+                }
+              },
+              "package_api_items": [
+                "AccountManagementHandler",
+                "AnalyticsHandler",
+                "BaseChannel",
+                "BotInitializationError",
+                "ChannelConfig",
+                "ChannelFactory",
+                "ChannelMonitor",
+                "ChannelStatus",
+                "ChannelType",
+                "CheckinFeatureSelect",
+                "CheckinHandler",
+                "CommandDefinition",
+                "CommandRegistry",
+                "CommunicationManager",
+                "ConversationManager",
+                "CreateAccountButton",
+                "DiscordAPIClient",
+                "DiscordBot",
+                "DiscordCommandRegistry",
+                "DiscordConnectionStatus",
+                "DiscordEventHandler",
+                "DiscordRichFormatter",
+                "DiscordWebhookHandler",
+                "EmailBot",
+                "EmailBotError",
+                "EmailCommandRegistry",
+                "EmailMessageFormatter",
+                "EmailRichFormatter",
+                "EnhancedCommandParser",
+                "EventContext",
+                "EventType",
+                "FeatureSelectionView",
+                "HelpHandler",
+                "InteractionHandler",
+                "InteractionManager",
+                "InteractionResponse",
+                "MessageData",
+                "MessageFeatureSelect",
+                "MessageFormatter",
+                "MessageRouter",
+                "MessageSendError",
+                "MessageType",
+                "NotebookHandler",
+                "ParsedCommand",
+                "ParsingResult",
+                "ProfileHandler",
+                "QueuedMessage",
+                "RetryManager",
+                "RichFormatter",
+                "RoutingResult",
+                "ScheduleManagementHandler",
+                "SendMessageOptions",
+                "TaskFeatureSelect",
+                "TaskManagementHandler",
+                "TextMessageFormatter",
+                "TimezoneSelect",
+                "WebhookServer",
+                "clear_welcomed_status",
+                "get_all_handlers",
+                "get_available_channels",
+                "get_channel_class_mapping",
+                "get_checkin_view",
+                "get_command_registry",
+                "get_discord_api_client",
+                "get_discord_event_handler",
+                "get_enhanced_command_parser",
+                "get_interaction_handler",
+                "get_interaction_manager",
+                "get_message_formatter",
+                "get_message_router",
+                "get_rich_formatter",
+                "get_task_reminder_view",
+                "get_welcome_message",
+                "get_welcome_message_view",
+                "handle_application_authorized",
+                "handle_user_message",
+                "handle_webhook_event",
+                "has_been_welcomed",
+                "is_valid_intent",
+                "mark_as_welcomed",
+                "parse_command",
+                "parse_webhook_event",
+                "start_account_creation_flow",
+                "start_account_linking_flow",
+                "verify_webhook_signature"
+              ],
+              "registry_items": [
+                "__getattr__",
+                "__init__",
+                "__init____setup_event_loop",
+                "__post_init__",
+                "_attempt_channel_restart",
+                "_augment_suggestions",
+                "_build_trend_graph",
+                "_cache_expired_checkin_order",
+                "_check_dns_resolution",
+                "_create_error_response",
+                "_find_task_by_identifier",
+                "_format_entry_id",
+                "_format_entry_response",
+                "_format_profile_text",
+                "_generate_confirmation_code",
+                "_get_user_id_by_username",
+                "_handle_add_schedule_period",
+                "_handle_checkin_status",
+                "_handle_commands_list",
+                "_handle_continue_checkin",
+                "_handle_edit_schedule_period",
+                "_handle_examples",
+                "_initialize_registry",
+                "_load_welcome_tracking",
+                "_route_bang_command",
+                "_save_welcome_tracking",
+                "_set_status",
+                "create_channel",
+                "create_embed",
+                "create_interactive_elements",
+                "get_connection_latency",
+                "handle_application_authorized",
+                "is_valid_intent"
+              ]
+            },
             "core": {
               "package": "core",
               "current_exports_count": 155,
@@ -12793,1213 +14002,424 @@
                 "is_valid_category_name"
               ]
             },
-            "communication": {
-              "package": "communication",
-              "current_exports_count": 60,
-              "should_export_count": 89,
+            "tasks": {
+              "package": "tasks",
+              "current_exports_count": 20,
+              "should_export_count": 20,
               "already_exported": [
-                "AnalyticsHandler",
-                "BaseChannel",
-                "BotInitializationError",
-                "ChannelConfig",
-                "ChannelFactory",
-                "ChannelMonitor",
-                "ChannelStatus",
-                "ChannelType",
-                "CheckinHandler",
-                "CommandDefinition",
-                "CommandRegistry",
-                "CommunicationManager",
-                "ConversationManager",
-                "DiscordAPIClient",
-                "DiscordBot",
-                "DiscordCommandRegistry",
-                "DiscordConnectionStatus",
-                "DiscordEventHandler",
-                "DiscordRichFormatter",
-                "EmailBot",
-                "EmailBotError",
-                "EmailCommandRegistry",
-                "EmailMessageFormatter",
-                "EmailRichFormatter",
-                "EnhancedCommandParser",
-                "EventContext",
-                "EventType",
-                "HelpHandler",
-                "InteractionHandler",
-                "InteractionManager",
-                "InteractionResponse",
-                "MessageData",
-                "MessageFormatter",
-                "MessageRouter",
-                "MessageSendError",
-                "MessageType",
-                "ParsedCommand",
-                "ParsingResult",
-                "ProfileHandler",
-                "QueuedMessage",
-                "RetryManager",
-                "RichFormatter",
-                "RoutingResult",
-                "ScheduleManagementHandler",
-                "SendMessageOptions",
-                "TaskManagementHandler",
-                "TextMessageFormatter",
-                "conversation_manager",
-                "get_all_handlers",
-                "get_command_registry",
-                "get_discord_api_client",
-                "get_discord_event_handler",
-                "get_enhanced_command_parser",
-                "get_interaction_handler",
-                "get_interaction_manager",
-                "get_message_formatter",
-                "get_message_router",
-                "get_rich_formatter",
-                "handle_user_message",
-                "parse_command"
+                "TaskManagementError",
+                "add_user_task_tag",
+                "are_tasks_enabled",
+                "cleanup_task_reminders",
+                "complete_task",
+                "create_task",
+                "delete_task",
+                "ensure_task_directory",
+                "get_task_by_id",
+                "get_tasks_due_soon",
+                "get_user_task_stats",
+                "load_active_tasks",
+                "load_completed_tasks",
+                "remove_user_task_tag",
+                "restore_task",
+                "save_active_tasks",
+                "save_completed_tasks",
+                "schedule_task_reminders",
+                "setup_default_task_tags",
+                "update_task"
               ],
-              "missing_exports": [
-                "AccountManagementHandler",
-                "CheckinFeatureSelect",
-                "CreateAccountButton",
-                "DiscordWebhookHandler",
-                "FLOW_LIST_ITEMS",
-                "FLOW_NOTE_BODY",
-                "FLOW_TASK_REMINDER",
-                "FeatureSelectionView",
-                "MessageFeatureSelect",
-                "NotebookHandler",
-                "TaskFeatureSelect",
-                "TimezoneSelect",
-                "WebhookServer",
-                "clear_welcomed_status",
-                "get_available_channels",
-                "get_channel_class_mapping",
-                "get_checkin_view",
-                "get_task_reminder_view",
-                "get_welcome_message",
-                "get_welcome_message_view",
-                "handle_application_authorized",
-                "handle_webhook_event",
-                "has_been_welcomed",
-                "is_valid_intent",
-                "mark_as_welcomed",
-                "parse_webhook_event",
-                "start_account_creation_flow",
-                "start_account_linking_flow",
-                "verify_webhook_signature"
-              ],
+              "missing_exports": [],
               "potentially_unnecessary": [],
               "cross_module_usage": {
-                "CommunicationManager": {
-                  "import_count": 10,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/service.py",
-                    "ui/ui_app_qt.py",
-                    "ui/ui_app_qt.py",
-                    "ui/ui_app_qt.py",
-                    "communication/command_handlers/account_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.core.channel_orchestrator"
-                },
-                "conversation_manager": {
-                  "import_count": 9,
-                  "import_locations": [
-                    "core/service.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/notebook_handler.py",
-                    "communication/command_handlers/notebook_handler.py",
-                    "communication/command_handlers/task_handler.py",
-                    "communication/core/channel_orchestrator.py",
-                    "communication/core/channel_orchestrator.py",
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.message_processing.conversation_flow_manager"
-                },
-                "InteractionHandler": {
-                  "import_count": 7,
-                  "import_locations": [
-                    "communication/command_handlers/account_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/notebook_handler.py",
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/schedule_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.base_handler"
-                },
-                "InteractionResponse": {
-                  "import_count": 9,
-                  "import_locations": [
-                    "communication/command_handlers/account_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/base_handler.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/notebook_handler.py",
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/schedule_handler.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.shared_types"
-                },
-                "ParsedCommand": {
-                  "import_count": 16,
-                  "import_locations": [
-                    "communication/command_handlers/account_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/base_handler.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/notebook_handler.py",
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/schedule_handler.py",
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/communication_channels/discord/account_flow_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.shared_types"
-                },
-                "_pending_link_operations": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/account_handler.py",
-                    "communication/command_handlers/account_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.account_handler"
-                },
-                "TaskManagementHandler": {
+                "are_tasks_enabled": {
                   "import_count": 6,
                   "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.task_handler"
-                },
-                "CheckinHandler": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.checkin_handler"
-                },
-                "ProfileHandler": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/message_processing/conversation_flow_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.profile_handler"
-                },
-                "ScheduleManagementHandler": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/message_processing/conversation_flow_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.schedule_handler"
-                },
-                "AnalyticsHandler": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.analytics_handler"
-                },
-                "NotebookHandler": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.notebook_handler"
-                },
-                "AccountManagementHandler": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/communication_channels/discord/account_flow_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.account_handler"
-                },
-                "BaseChannel": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "communication/core/channel_monitor.py",
-                    "communication/core/channel_orchestrator.py",
-                    "communication/core/factory.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/email/bot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.base.base_channel"
-                },
-                "ChannelConfig": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/core/factory.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/email/bot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.base.base_channel"
-                },
-                "ChannelStatus": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/email/bot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.base.base_channel"
-                },
-                "ChannelFactory": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
+                    "ai/chatbot.py",
+                    "ai/chatbot.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "ui/ui_app_qt.py",
                     "communication/core/channel_orchestrator.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.core.factory"
+                  "module_path": "tasks.task_management"
                 },
-                "handle_user_message": {
-                  "import_count": 16,
+                "load_active_tasks": {
+                  "import_count": 9,
                   "import_locations": [
+                    "ai/chatbot.py",
+                    "core/scheduler.py",
+                    "ui/ui_app_qt.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/task_handler.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_management"
+                },
+                "get_user_task_stats": {
+                  "import_count": 7,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/widgets/task_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_management"
+                },
+                "get_tasks_due_soon": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_management"
+                },
+                "get_task_by_id": {
+                  "import_count": 13,
+                  "import_locations": [
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
                     "communication/core/channel_orchestrator.py",
                     "communication/message_processing/conversation_flow_manager.py",
                     "communication/message_processing/conversation_flow_manager.py",
                     "communication/message_processing/conversation_flow_manager.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_management"
+                },
+                "update_task": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "core/scheduler.py",
+                    "communication/command_handlers/task_handler.py",
                     "communication/message_processing/conversation_flow_manager.py",
                     "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/checkin_view.py",
-                    "communication/communication_channels/discord/checkin_view.py",
-                    "communication/communication_channels/discord/event_handler.py",
-                    "communication/communication_channels/discord/task_reminder_view.py"
+                    "ui/dialogs/task_edit_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.message_processing.interaction_manager"
+                  "module_path": "tasks.task_management"
                 },
-                "get_all_handlers": {
+                "load_completed_tasks": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_management"
+                },
+                "create_task": {
                   "import_count": 2,
                   "import_locations": [
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/interaction_manager.py"
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_edit_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.command_handlers.interaction_handlers"
+                  "module_path": "tasks.task_management"
                 },
-                "is_valid_intent": {
+                "complete_task": {
                   "import_count": 2,
                   "import_locations": [
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/interaction_manager.py"
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.message_processing.intent_validation"
+                  "module_path": "tasks.task_management"
                 },
-                "get_interaction_handler": {
+                "restore_task": {
                   "import_count": 2,
                   "import_locations": [
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.command_handlers.interaction_handlers"
+                  "module_path": "tasks.task_management"
                 },
-                "ChannelType": {
+                "delete_task": {
                   "import_count": 2,
                   "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/email/bot.py"
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.communication_channels.base.base_channel"
+                  "module_path": "tasks.task_management"
                 },
-                "get_interaction_manager": {
+                "add_user_task_tag": {
                   "import_count": 2,
                   "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py"
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/widgets/tag_widget.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.message_processing.interaction_manager"
+                  "module_path": "tasks.task_management"
                 },
-                "has_been_welcomed": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/webhook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.welcome_handler"
-                },
-                "mark_as_welcomed": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/webhook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.welcome_handler"
-                },
-                "get_welcome_message": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/webhook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.welcome_handler"
-                },
-                "start_account_creation_flow": {
+                "setup_default_task_tags": {
                   "import_count": 2,
                   "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/welcome_handler.py"
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/task_management_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.communication_channels.discord.account_flow_handler"
-                },
-                "start_account_linking_flow": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/welcome_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.account_flow_handler"
-                },
-                "get_rich_formatter": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/communication_channels/discord/event_handler.py",
-                    "communication/communication_channels/discord/event_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.base.rich_formatter"
+                  "module_path": "tasks.task_management"
                 }
               },
               "import_usage_details": {
-                "CommunicationManager": {
-                  "import_count": 10,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/service.py",
-                    "ui/ui_app_qt.py",
-                    "ui/ui_app_qt.py",
-                    "ui/ui_app_qt.py",
-                    "communication/command_handlers/account_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.core.channel_orchestrator"
-                },
-                "conversation_manager": {
-                  "import_count": 9,
-                  "import_locations": [
-                    "core/service.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/notebook_handler.py",
-                    "communication/command_handlers/notebook_handler.py",
-                    "communication/command_handlers/task_handler.py",
-                    "communication/core/channel_orchestrator.py",
-                    "communication/core/channel_orchestrator.py",
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.message_processing.conversation_flow_manager"
-                },
-                "InteractionHandler": {
-                  "import_count": 7,
-                  "import_locations": [
-                    "communication/command_handlers/account_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/notebook_handler.py",
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/schedule_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.base_handler"
-                },
-                "InteractionResponse": {
-                  "import_count": 9,
-                  "import_locations": [
-                    "communication/command_handlers/account_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/base_handler.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/notebook_handler.py",
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/schedule_handler.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.shared_types"
-                },
-                "ParsedCommand": {
-                  "import_count": 16,
-                  "import_locations": [
-                    "communication/command_handlers/account_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/base_handler.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/notebook_handler.py",
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/schedule_handler.py",
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/communication_channels/discord/account_flow_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.shared_types"
-                },
-                "_pending_link_operations": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/account_handler.py",
-                    "communication/command_handlers/account_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.account_handler"
-                },
-                "_generate_confirmation_code": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/account_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.account_handler"
-                },
-                "_send_confirmation_code": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/account_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.account_handler"
-                },
-                "TaskManagementHandler": {
+                "are_tasks_enabled": {
                   "import_count": 6,
                   "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/chatbot.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "ui/ui_app_qt.py",
+                    "communication/core/channel_orchestrator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_management"
+                },
+                "load_active_tasks": {
+                  "import_count": 9,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "core/scheduler.py",
+                    "ui/ui_app_qt.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/analytics_handler.py",
                     "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/command_handlers/task_handler.py",
                     "communication/message_processing/interaction_manager.py",
-                    "communication/message_processing/interaction_manager.py"
+                    "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.command_handlers.task_handler"
+                  "module_path": "tasks.task_management"
                 },
-                "CheckinHandler": {
-                  "import_count": 2,
+                "get_user_task_stats": {
+                  "import_count": 7,
                   "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py"
+                    "ai/chatbot.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/widgets/task_settings_widget.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.command_handlers.checkin_handler"
+                  "module_path": "tasks.task_management"
                 },
-                "ProfileHandler": {
+                "get_tasks_due_soon": {
                   "import_count": 3,
                   "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/message_processing/conversation_flow_manager.py"
+                    "ai/chatbot.py",
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.command_handlers.profile_handler"
+                  "module_path": "tasks.task_management"
                 },
-                "ScheduleManagementHandler": {
-                  "import_count": 3,
+                "get_task_by_id": {
+                  "import_count": 13,
                   "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/message_processing/conversation_flow_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.schedule_handler"
-                },
-                "AnalyticsHandler": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "core/scheduler.py",
+                    "communication/core/channel_orchestrator.py",
                     "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py"
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.command_handlers.analytics_handler"
+                  "module_path": "tasks.task_management"
                 },
-                "NotebookHandler": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.notebook_handler"
-                },
-                "AccountManagementHandler": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/communication_channels/discord/account_flow_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.command_handlers.account_handler"
-                },
-                "FLOW_NOTE_BODY": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.message_processing.conversation_flow_manager"
-                },
-                "FLOW_LIST_ITEMS": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.message_processing.conversation_flow_manager"
-                },
-                "BaseChannel": {
+                "update_task": {
                   "import_count": 5,
                   "import_locations": [
-                    "communication/core/channel_monitor.py",
-                    "communication/core/channel_orchestrator.py",
-                    "communication/core/factory.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/email/bot.py"
+                    "core/scheduler.py",
+                    "communication/command_handlers/task_handler.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "ui/dialogs/task_edit_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.communication_channels.base.base_channel"
+                  "module_path": "tasks.task_management"
                 },
-                "ChannelConfig": {
+                "load_completed_tasks": {
                   "import_count": 4,
                   "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/core/factory.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/email/bot.py"
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.communication_channels.base.base_channel"
+                  "module_path": "tasks.task_management"
                 },
-                "ChannelStatus": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/email/bot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.base.base_channel"
-                },
-                "ChannelFactory": {
+                "create_task": {
                   "import_count": 2,
                   "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/core/channel_orchestrator.py"
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_edit_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.core.factory"
+                  "module_path": "tasks.task_management"
                 },
-                "RetryManager": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.core.retry_manager"
-                },
-                "ChannelMonitor": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.core.channel_monitor"
-                },
-                "handle_user_message": {
-                  "import_count": 16,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/checkin_view.py",
-                    "communication/communication_channels/discord/checkin_view.py",
-                    "communication/communication_channels/discord/event_handler.py",
-                    "communication/communication_channels/discord/task_reminder_view.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.message_processing.interaction_manager"
-                },
-                "get_task_reminder_view": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.task_reminder_view"
-                },
-                "get_checkin_view": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.checkin_view"
-                },
-                "get_all_handlers": {
+                "complete_task": {
                   "import_count": 2,
                   "import_locations": [
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/interaction_manager.py"
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.command_handlers.interaction_handlers"
+                  "module_path": "tasks.task_management"
                 },
-                "is_valid_intent": {
+                "restore_task": {
                   "import_count": 2,
                   "import_locations": [
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/interaction_manager.py"
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.message_processing.intent_validation"
+                  "module_path": "tasks.task_management"
                 },
-                "get_interaction_handler": {
+                "delete_task": {
                   "import_count": 2,
                   "import_locations": [
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
+                    "communication/command_handlers/task_handler.py",
+                    "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.command_handlers.interaction_handlers"
+                  "module_path": "tasks.task_management"
                 },
-                "get_enhanced_command_parser": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.message_processing.command_parser"
-                },
-                "ParsingResult": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.message_processing.command_parser"
-                },
-                "FLOW_TASK_REMINDER": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.message_processing.conversation_flow_manager"
-                },
-                "ChannelType": {
+                "add_user_task_tag": {
                   "import_count": 2,
                   "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/email/bot.py"
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/widgets/tag_widget.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.communication_channels.base.base_channel"
+                  "module_path": "tasks.task_management"
                 },
-                "get_interaction_manager": {
+                "setup_default_task_tags": {
                   "import_count": 2,
                   "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py"
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/task_management_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.message_processing.interaction_manager"
+                  "module_path": "tasks.task_management"
                 },
-                "WebhookServer": {
+                "remove_user_task_tag": {
                   "import_count": 1,
                   "import_locations": [
-                    "communication/communication_channels/discord/bot.py"
+                    "ui/widgets/tag_widget.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "communication.communication_channels.discord.webhook_server"
-                },
-                "has_been_welcomed": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/webhook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.welcome_handler"
-                },
-                "mark_as_welcomed": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/webhook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.welcome_handler"
-                },
-                "get_welcome_message": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/webhook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.welcome_handler"
-                },
-                "start_account_creation_flow": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/welcome_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.account_flow_handler"
-                },
-                "start_account_linking_flow": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/communication_channels/discord/bot.py",
-                    "communication/communication_channels/discord/welcome_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.account_flow_handler"
-                },
-                "get_rich_formatter": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/communication_channels/discord/event_handler.py",
-                    "communication/communication_channels/discord/event_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.base.rich_formatter"
-                },
-                "clear_welcomed_status": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/communication_channels/discord/webhook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.core.welcome_manager"
-                },
-                "get_welcome_message_view": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/communication_channels/discord/webhook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.welcome_handler"
-                },
-                "parse_webhook_event": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/communication_channels/discord/webhook_server.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.webhook_handler"
-                },
-                "handle_webhook_event": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/communication_channels/discord/webhook_server.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.webhook_handler"
-                },
-                "_has_been_welcomed": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/communication_channels/discord/welcome_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.core.welcome_manager"
-                },
-                "_mark_as_welcomed": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/communication_channels/discord/welcome_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.core.welcome_manager"
-                },
-                "_clear_welcomed_status": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/communication_channels/discord/welcome_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.core.welcome_manager"
-                },
-                "_get_welcome_message": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/communication_channels/discord/welcome_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.core.welcome_manager"
+                  "module_path": "tasks.task_management"
                 }
               },
               "package_api_items": [
-                "AccountManagementHandler",
-                "AnalyticsHandler",
-                "BaseChannel",
-                "BotInitializationError",
-                "ChannelConfig",
-                "ChannelFactory",
-                "ChannelMonitor",
-                "ChannelStatus",
-                "ChannelType",
-                "CheckinFeatureSelect",
-                "CheckinHandler",
-                "CommandDefinition",
-                "CommandRegistry",
-                "CommunicationManager",
-                "ConversationManager",
-                "CreateAccountButton",
-                "DiscordAPIClient",
-                "DiscordBot",
-                "DiscordCommandRegistry",
-                "DiscordConnectionStatus",
-                "DiscordEventHandler",
-                "DiscordRichFormatter",
-                "DiscordWebhookHandler",
-                "EmailBot",
-                "EmailBotError",
-                "EmailCommandRegistry",
-                "EmailMessageFormatter",
-                "EmailRichFormatter",
-                "EnhancedCommandParser",
-                "EventContext",
-                "EventType",
-                "FeatureSelectionView",
-                "HelpHandler",
-                "InteractionHandler",
-                "InteractionManager",
-                "InteractionResponse",
-                "MessageData",
-                "MessageFeatureSelect",
-                "MessageFormatter",
-                "MessageRouter",
-                "MessageSendError",
-                "MessageType",
-                "NotebookHandler",
-                "ParsedCommand",
-                "ParsingResult",
-                "ProfileHandler",
-                "QueuedMessage",
-                "RetryManager",
-                "RichFormatter",
-                "RoutingResult",
-                "ScheduleManagementHandler",
-                "SendMessageOptions",
-                "TaskFeatureSelect",
-                "TaskManagementHandler",
-                "TextMessageFormatter",
-                "TimezoneSelect",
-                "WebhookServer",
-                "clear_welcomed_status",
-                "get_all_handlers",
-                "get_available_channels",
-                "get_channel_class_mapping",
-                "get_checkin_view",
-                "get_command_registry",
-                "get_discord_api_client",
-                "get_discord_event_handler",
-                "get_enhanced_command_parser",
-                "get_interaction_handler",
-                "get_interaction_manager",
-                "get_message_formatter",
-                "get_message_router",
-                "get_rich_formatter",
-                "get_task_reminder_view",
-                "get_welcome_message",
-                "get_welcome_message_view",
-                "handle_application_authorized",
-                "handle_user_message",
-                "handle_webhook_event",
-                "has_been_welcomed",
-                "is_valid_intent",
-                "mark_as_welcomed",
-                "parse_command",
-                "parse_webhook_event",
-                "start_account_creation_flow",
-                "start_account_linking_flow",
-                "verify_webhook_signature"
+                "TaskManagementError",
+                "add_user_task_tag",
+                "are_tasks_enabled",
+                "cleanup_task_reminders",
+                "complete_task",
+                "create_task",
+                "delete_task",
+                "ensure_task_directory",
+                "get_task_by_id",
+                "get_tasks_due_soon",
+                "get_user_task_stats",
+                "load_active_tasks",
+                "load_completed_tasks",
+                "remove_user_task_tag",
+                "restore_task",
+                "save_active_tasks",
+                "save_completed_tasks",
+                "schedule_task_reminders",
+                "setup_default_task_tags",
+                "update_task"
               ],
               "registry_items": [
-                "__getattr__",
-                "__init__",
-                "__init____setup_event_loop",
-                "__post_init__",
-                "_attempt_channel_restart",
-                "_augment_suggestions",
-                "_build_trend_graph",
-                "_cache_expired_checkin_order",
-                "_check_dns_resolution",
-                "_create_error_response",
-                "_find_task_by_identifier",
-                "_format_entry_id",
-                "_format_entry_response",
-                "_format_profile_text",
-                "_generate_confirmation_code",
-                "_get_user_id_by_username",
-                "_handle_add_schedule_period",
-                "_handle_checkin_status",
-                "_handle_commands_list",
-                "_handle_continue_checkin",
-                "_handle_edit_schedule_period",
-                "_handle_examples",
-                "_initialize_registry",
-                "_load_welcome_tracking",
-                "_route_bang_command",
-                "_save_welcome_tracking",
-                "_set_status",
-                "create_channel",
-                "create_embed",
-                "create_interactive_elements",
-                "get_connection_latency",
-                "handle_application_authorized",
-                "is_valid_intent"
+                "_calculate_next_due_date"
               ]
             },
             "ui": {
@@ -14664,426 +15084,6 @@
                 "set_selected_categories"
               ]
             },
-            "tasks": {
-              "package": "tasks",
-              "current_exports_count": 20,
-              "should_export_count": 20,
-              "already_exported": [
-                "TaskManagementError",
-                "add_user_task_tag",
-                "are_tasks_enabled",
-                "cleanup_task_reminders",
-                "complete_task",
-                "create_task",
-                "delete_task",
-                "ensure_task_directory",
-                "get_task_by_id",
-                "get_tasks_due_soon",
-                "get_user_task_stats",
-                "load_active_tasks",
-                "load_completed_tasks",
-                "remove_user_task_tag",
-                "restore_task",
-                "save_active_tasks",
-                "save_completed_tasks",
-                "schedule_task_reminders",
-                "setup_default_task_tags",
-                "update_task"
-              ],
-              "missing_exports": [],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "are_tasks_enabled": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/chatbot.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "ui/ui_app_qt.py",
-                    "communication/core/channel_orchestrator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "load_active_tasks": {
-                  "import_count": 9,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "core/scheduler.py",
-                    "ui/ui_app_qt.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/task_handler.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "get_user_task_stats": {
-                  "import_count": 7,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/widgets/task_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "get_tasks_due_soon": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "get_task_by_id": {
-                  "import_count": 13,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "update_task": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "communication/command_handlers/task_handler.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "ui/dialogs/task_edit_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "load_completed_tasks": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "create_task": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_edit_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "complete_task": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "restore_task": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "delete_task": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "add_user_task_tag": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/widgets/tag_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "setup_default_task_tags": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/task_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                }
-              },
-              "import_usage_details": {
-                "are_tasks_enabled": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/chatbot.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "ui/ui_app_qt.py",
-                    "communication/core/channel_orchestrator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "load_active_tasks": {
-                  "import_count": 9,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "core/scheduler.py",
-                    "ui/ui_app_qt.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/task_handler.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "get_user_task_stats": {
-                  "import_count": 7,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/widgets/task_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "get_tasks_due_soon": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "get_task_by_id": {
-                  "import_count": 13,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "update_task": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "communication/command_handlers/task_handler.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "ui/dialogs/task_edit_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "load_completed_tasks": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "create_task": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_edit_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "complete_task": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "restore_task": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "delete_task": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "add_user_task_tag": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/widgets/tag_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "setup_default_task_tags": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/task_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                },
-                "remove_user_task_tag": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/tag_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_management"
-                }
-              },
-              "package_api_items": [
-                "TaskManagementError",
-                "add_user_task_tag",
-                "are_tasks_enabled",
-                "cleanup_task_reminders",
-                "complete_task",
-                "create_task",
-                "delete_task",
-                "ensure_task_directory",
-                "get_task_by_id",
-                "get_tasks_due_soon",
-                "get_user_task_stats",
-                "load_active_tasks",
-                "load_completed_tasks",
-                "remove_user_task_tag",
-                "restore_task",
-                "save_active_tasks",
-                "save_completed_tasks",
-                "schedule_task_reminders",
-                "setup_default_task_tags",
-                "update_task"
-              ],
-              "registry_items": [
-                "_calculate_next_due_date"
-              ]
-            },
             "ai": {
               "package": "ai",
               "current_exports_count": 22,
@@ -15290,25 +15290,33 @@
           }
         }
       },
-      "timestamp": "2026-02-25T23:51:53"
+      "timestamp": "2026-02-26T00:15:42"
     },
     "analyze_ascii_compliance": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
-          "files_affected": 0,
-          "status": "CLEAN"
+          "total_issues": 1,
+          "files_affected": 1,
+          "status": "NEEDS_ATTENTION"
         },
-        "files": {},
+        "files": {
+          "ai_development_docs/AI_CHANGELOG.md": 1
+        },
         "details": {
-          "files": {},
-          "file_count": 0,
-          "total_issues": 0,
-          "detailed_issues": {}
+          "files": {
+            "ai_development_docs/AI_CHANGELOG.md": 1
+          },
+          "file_count": 1,
+          "total_issues": 1,
+          "detailed_issues": {
+            "ai_development_docs/AI_CHANGELOG.md": [
+              "Non-ASCII character '\u2019' (U+2019): 1 instance(s) found (auto-fixable: ''')"
+            ]
+          }
         }
       },
-      "timestamp": "2026-02-25T23:51:04"
+      "timestamp": "2026-02-26T00:15:24"
     },
     "analyze_documentation": {
       "success": true,
@@ -15347,7 +15355,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.20224540789492346,
+              "similarity_score": 0.2022938129694622,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -15579,7 +15587,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 25712,
+              "content_length": 24608,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -15588,11 +15596,11 @@
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-02-26 - Sleep check-in multi-period parsing + schedule-style time formats **COMPLETED**",
                 "2026-02-26 - Dev-tools exclusions consistency + CLI logging cleanup **Progressed**",
                 "2026-02-25 - Tier 3 failure fix + dev-tools coverage uplift **Progressed**",
                 "2026-02-25 - Weekly backup semantics restored + backup guides synced **COMPLETED**",
-                "2026-02-25 - Conftest refactor and AI priorities follow-up **COMPLETED**",
-                "2026-02-24 - Module refactor candidates tool and development tools refinements **COMPLETED**"
+                "2026-02-25 - Conftest refactor and AI priorities follow-up **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -15781,9 +15789,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 218112,
+              "content_length": 219987,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 81,
+              "section_count": 82,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -15791,10 +15799,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-02-26 - Sleep check-in multi-period input expansion",
                 "2026-02-26 - Dev-tools exclusions consistency + CLI logging cleanup",
                 "2026-02-25 - Tier 3 user-management failure fix + dev-tools coverage push",
-                "2026-02-25 - Weekly backup-first semantics restoration + guide sync",
-                "2026-02-25 - Conftest refactor and AI priorities follow-up"
+                "2026-02-25 - Weekly backup-first semantics restoration + guide sync"
               ]
             },
             "development_docs/PLANS.md": {
@@ -15996,20 +16004,20 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-02-25T23:51:48"
+      "timestamp": "2026-02-26T00:15:36"
     },
     "analyze_documentation_sync": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 1,
           "files_affected": 0,
-          "status": "PASS"
+          "status": "FAIL"
         },
         "details": {
           "paired_doc_issues": 0,
           "path_drift_issues": 0,
-          "ascii_compliance_issues": 0,
+          "ascii_compliance_issues": 1,
           "heading_numbering_issues": 0,
           "missing_address_issues": 0,
           "unconverted_link_issues": 0,
@@ -16026,16 +16034,24 @@
           },
           "ascii_compliance": {
             "summary": {
-              "total_issues": 0,
-              "files_affected": 0,
-              "status": "CLEAN"
+              "total_issues": 1,
+              "files_affected": 1,
+              "status": "NEEDS_ATTENTION"
             },
-            "files": {},
+            "files": {
+              "ai_development_docs/AI_CHANGELOG.md": 1
+            },
             "details": {
-              "files": {},
-              "file_count": 0,
-              "total_issues": 0,
-              "detailed_issues": {}
+              "files": {
+                "ai_development_docs/AI_CHANGELOG.md": 1
+              },
+              "file_count": 1,
+              "total_issues": 1,
+              "detailed_issues": {
+                "ai_development_docs/AI_CHANGELOG.md": [
+                  "Non-ASCII character '\u2019' (U+2019): 1 instance(s) found (auto-fixable: ''')"
+                ]
+              }
             }
           },
           "heading_numbering": {
@@ -16073,7 +16089,7 @@
           }
         }
       },
-      "timestamp": "2026-02-25T23:51:56"
+      "timestamp": "2026-02-26T00:15:45"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -16088,7 +16104,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-25T23:51:05"
+      "timestamp": "2026-02-26T00:09:28"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -16103,7 +16119,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-25T23:51:08"
+      "timestamp": "2026-02-26T00:09:32"
     },
     "analyze_path_drift": {
       "success": true,
@@ -16116,7 +16132,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-25T23:51:56"
+      "timestamp": "2026-02-26T00:15:45"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -16131,7 +16147,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-02-25T23:51:09"
+      "timestamp": "2026-02-26T00:09:34"
     },
     "analyze_error_handling": {
       "success": true,
@@ -16159,12 +16175,12 @@
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "handle_file_error": 3,
-            "MHMError": 2,
             "CommunicationError": 2,
-            "AIError": 2,
+            "MHMError": 2,
             "FileOperationError": 8,
-            "safe_file_operation": 1
+            "AIError": 2,
+            "safe_file_operation": 1,
+            "handle_file_error": 3
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -16212,38 +16228,38 @@
           ]
         }
       },
-      "timestamp": "2026-02-25T23:51:52"
+      "timestamp": "2026-02-26T00:15:41"
     },
     "analyze_test_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 8282,
+          "total_issues": 8261,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "coverage": 72.5,
+            "coverage": 72.6,
             "statements": 30149,
-            "covered": 21867,
-            "missed": 8282,
-            "generated": "2026-02-25T23:49:39.157066"
+            "covered": 21888,
+            "missed": 8261,
+            "generated": "2026-02-26T00:13:57.459369"
           },
           "modules": [
             {
               "module": "communication",
               "coverage": 71.0,
-              "missed": 2739
+              "missed": 2740
             },
             {
               "module": "ui",
-              "coverage": 71.2,
-              "missed": 1922
+              "coverage": 71.3,
+              "missed": 1912
             },
             {
               "module": "core",
-              "coverage": 72.6,
-              "missed": 2974
+              "coverage": 72.7,
+              "missed": 2966
             },
             {
               "module": "notebook",
@@ -16252,8 +16268,8 @@
             },
             {
               "module": "ai",
-              "coverage": 78.0,
-              "missed": 378
+              "coverage": 78.2,
+              "missed": 374
             },
             {
               "module": "tasks",
@@ -16278,64 +16294,29 @@
               "missing": 10
             },
             {
-              "path": "ui/ui_app_qt.py",
-              "coverage": 50.4,
-              "missing": 696
-            },
-            {
               "path": "communication/communication_channels/discord/bot.py",
               "coverage": 50.5,
               "missing": 630
             },
             {
+              "path": "ui/ui_app_qt.py",
+              "coverage": 51.0,
+              "missing": 688
+            },
+            {
               "path": "core/backup_manager.py",
-              "coverage": 54.1,
-              "missing": 349
+              "coverage": 53.8,
+              "missing": 351
             }
-          ],
-          "tier3_test_outcome": {
-            "state": "clean",
-            "parallel": {
-              "state": "passed",
-              "classification": "passed",
-              "classification_reason": "pytest_passed",
-              "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-02-25_23-45-13.log",
-              "return_code_hex": "0x00000000",
-              "return_code": 0,
-              "passed_count": 3900,
-              "failed_count": 0,
-              "error_count": 0,
-              "skipped_count": 1,
-              "failed_node_ids": []
-            },
-            "no_parallel": {
-              "state": "passed",
-              "classification": "passed",
-              "classification_reason": "pytest_passed",
-              "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-02-25_23-47-21.log",
-              "return_code_hex": "0x00000000",
-              "return_code": 0,
-              "passed_count": 98,
-              "failed_count": 0,
-              "error_count": 0,
-              "skipped_count": 0,
-              "failed_node_ids": []
-            },
-            "failed_node_ids": [],
-            "development_tools": {
-              "state": "unknown"
-            }
-          }
+          ]
         },
         "_cache_metadata": {
-          "cache_mode": "cold_scan",
-          "invalidation_reason": "Coverage command executed (stdout mode markers unavailable)",
-          "source": "run_test_coverage"
+          "cache_mode": "cache_only",
+          "invalidation_reason": "Precheck: core/test sources unchanged since coverage.json",
+          "source": "orchestration_precheck"
         }
       },
-      "timestamp": "2026-02-25T23:49:42"
+      "timestamp": "2026-02-26T00:15:52"
     },
     "analyze_test_markers": {
       "success": true,
@@ -16349,20 +16330,20 @@
           "missing": []
         }
       },
-      "timestamp": "2026-02-25T23:52:06"
+      "timestamp": "2026-02-26T00:15:58"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 11017,
+          "total_issues": 11032,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "overall_coverage": 55.9,
+            "overall_coverage": 55.8,
             "total_statements": 24964,
-            "total_missed": 11017
+            "total_missed": 11032
           },
           "modules": {
             "development_tools\\__init__.py": {
@@ -17541,8 +17522,8 @@
             },
             "development_tools\\docs\\fix_version_sync.py": {
               "statements": 450,
-              "missed": 211,
-              "coverage": 53,
+              "missed": 216,
+              "coverage": 52,
               "missing_lines": [
                 "21",
                 "23",
@@ -17639,7 +17620,12 @@
                 "558",
                 "572",
                 "591",
+                "603",
                 "634",
+                "654",
+                "713",
+                "714",
+                "720",
                 "732",
                 "733",
                 "738",
@@ -17756,7 +17742,7 @@
                 "928",
                 "929"
               ],
-              "covered": 239
+              "covered": 234
             },
             "development_tools\\docs\\generate_directory_tree.py": {
               "statements": 128,
@@ -19749,8 +19735,8 @@
             },
             "development_tools\\imports\\analyze_module_imports.py": {
               "statements": 311,
-              "missed": 130,
-              "coverage": 58,
+              "missed": 125,
+              "coverage": 60,
               "missing_lines": [
                 "18",
                 "27",
@@ -19771,11 +19757,6 @@
                 "175",
                 "201",
                 "208",
-                "219",
-                "221",
-                "227",
-                "228",
-                "229",
                 "241",
                 "251",
                 "253",
@@ -19883,7 +19864,7 @@
                 "492",
                 "558"
               ],
-              "covered": 181
+              "covered": 186
             },
             "development_tools\\imports\\analyze_unused_imports.py": {
               "statements": 554,
@@ -21846,7 +21827,7 @@
             },
             "development_tools\\shared\\fix_project_cleanup.py": {
               "statements": 383,
-              "missed": 86,
+              "missed": 85,
               "coverage": 78,
               "missing_lines": [
                 "33",
@@ -21923,7 +21904,6 @@
                 "442",
                 "443",
                 "444",
-                "459",
                 "462",
                 "464",
                 "465",
@@ -21936,12 +21916,12 @@
                 "496",
                 "616"
               ],
-              "covered": 297
+              "covered": 298
             },
             "development_tools\\shared\\mtime_cache.py": {
               "statements": 253,
-              "missed": 53,
-              "coverage": 79,
+              "missed": 63,
+              "coverage": 75,
               "missing_lines": [
                 "40",
                 "41",
@@ -21950,8 +21930,16 @@
                 "111",
                 "130",
                 "131",
+                "134",
+                "135",
+                "141",
+                "142",
+                "143",
+                "144",
                 "145",
                 "146",
+                "148",
+                "156",
                 "172",
                 "173",
                 "177",
@@ -21959,11 +21947,13 @@
                 "183",
                 "184",
                 "185",
+                "194",
                 "199",
                 "200",
                 "201",
                 "202",
                 "203",
+                "214",
                 "222",
                 "223",
                 "234",
@@ -21997,7 +21987,7 @@
                 "481",
                 "483"
               ],
-              "covered": 200
+              "covered": 190
             },
             "development_tools\\shared\\output_storage.py": {
               "statements": 233,
@@ -23936,7 +23926,7 @@
             },
             "development_tools\\shared\\service\\report_generation.py": {
               "statements": 3635,
-              "missed": 1332,
+              "missed": 1335,
               "coverage": 63,
               "missing_lines": [
                 "32",
@@ -23993,6 +23983,7 @@
                 "292",
                 "314",
                 "323",
+                "351",
                 "356",
                 "357",
                 "367",
@@ -24126,6 +24117,7 @@
                 "889",
                 "890",
                 "907",
+                "910",
                 "917",
                 "933",
                 "934",
@@ -24144,7 +24136,6 @@
                 "973",
                 "974",
                 "990",
-                "1017",
                 "1071",
                 "1077",
                 "1154",
@@ -24174,7 +24165,6 @@
                 "1253",
                 "1254",
                 "1261",
-                "1270",
                 "1285",
                 "1300",
                 "1315",
@@ -24453,10 +24443,26 @@
                 "2983",
                 "2992",
                 "3010",
+                "3027",
+                "3030",
+                "3031",
+                "3037",
+                "3038",
+                "3039",
+                "3040",
+                "3041",
+                "3042",
                 "3043",
                 "3044",
+                "3046",
+                "3048",
                 "3049",
                 "3050",
+                "3052",
+                "3053",
+                "3055",
+                "3058",
+                "3062",
                 "3071",
                 "3074",
                 "3075",
@@ -24810,28 +24816,15 @@
                 "5223",
                 "5225",
                 "5227",
-                "5232",
                 "5233",
-                "5235",
-                "5237",
-                "5238",
-                "5239",
-                "5240",
-                "5241",
-                "5243",
-                "5244",
-                "5245",
                 "5247",
                 "5248",
                 "5250",
-                "5252",
-                "5253",
                 "5254",
                 "5255",
                 "5256",
                 "5257",
                 "5259",
-                "5261",
                 "5262",
                 "5267",
                 "5268",
@@ -24845,7 +24838,6 @@
                 "5280",
                 "5281",
                 "5282",
-                "5284",
                 "5291",
                 "5302",
                 "5303",
@@ -24875,22 +24867,10 @@
                 "5345",
                 "5356",
                 "5357",
-                "5362",
-                "5363",
-                "5364",
-                "5365",
                 "5367",
                 "5369",
-                "5370",
                 "5371",
-                "5372",
-                "5373",
-                "5374",
-                "5375",
-                "5378",
-                "5381",
                 "5382",
-                "5383",
                 "5391",
                 "5392",
                 "5393",
@@ -25169,10 +25149,23 @@
                 "6432",
                 "6435",
                 "6436",
+                "6447",
+                "6450",
+                "6451",
+                "6456",
+                "6457",
+                "6458",
+                "6459",
+                "6460",
+                "6461",
                 "6462",
                 "6463",
+                "6465",
+                "6466",
                 "6467",
                 "6468",
+                "6469",
+                "6470",
                 "6482",
                 "6493",
                 "6496",
@@ -25272,7 +25265,7 @@
                 "7283",
                 "7286"
               ],
-              "covered": 2303
+              "covered": 2300
             },
             "development_tools\\shared\\service\\tool_wrappers.py": {
               "statements": 741,
@@ -26157,8 +26150,8 @@
             },
             "development_tools\\tests\\dev_tools_coverage_cache.py": {
               "statements": 289,
-              "missed": 97,
-              "coverage": 66,
+              "missed": 100,
+              "coverage": 65,
               "missing_lines": [
                 "22",
                 "23",
@@ -26171,6 +26164,9 @@
                 "47",
                 "110",
                 "111",
+                "113",
+                "119",
+                "125",
                 "128",
                 "129",
                 "137",
@@ -26258,7 +26254,7 @@
                 "421",
                 "422"
               ],
-              "covered": 192
+              "covered": 189
             },
             "development_tools\\tests\\domain_mapper.py": {
               "statements": 150,
@@ -26463,7 +26459,7 @@
             },
             "development_tools\\tests\\run_test_coverage.py": {
               "statements": 2060,
-              "missed": 1399,
+              "missed": 1396,
               "coverage": 32,
               "missing_lines": [
                 "43",
@@ -27784,9 +27780,6 @@
                 "4467",
                 "4468",
                 "4469",
-                "4528",
-                "4529",
-                "4530",
                 "4533",
                 "4534",
                 "4535",
@@ -27866,11 +27859,11 @@
                 "4789",
                 "4790"
               ],
-              "covered": 661
+              "covered": 664
             },
             "development_tools\\tests\\test_file_coverage_cache.py": {
               "statements": 629,
-              "missed": 205,
+              "missed": 208,
               "coverage": 67,
               "missing_lines": [
                 "37",
@@ -27951,15 +27944,18 @@
                 "450",
                 "462",
                 "463",
-                "473",
                 "474",
                 "475",
                 "485",
                 "486",
-                "492",
+                "493",
+                "494",
                 "495",
                 "496",
+                "497",
+                "498",
                 "499",
+                "500",
                 "504",
                 "518",
                 "520",
@@ -28079,7 +28075,7 @@
                 "1147",
                 "1158"
               ],
-              "covered": 424
+              "covered": 421
             }
           },
           "coverage_collected": true,
@@ -28106,7 +28102,7 @@
           "source": "run_test_coverage --dev-tools-only"
         }
       },
-      "timestamp": "2026-02-25T23:50:24"
+      "timestamp": "2026-02-26T00:15:15"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -31190,7 +31186,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-25T23:51:54"
+      "timestamp": "2026-02-26T00:15:44"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -31210,7 +31206,7 @@
           "missing_sections": []
         }
       },
-      "timestamp": "2026-02-25T23:51:56"
+      "timestamp": "2026-02-26T00:15:47"
     },
     "analyze_module_imports": {
       "success": true,
@@ -43185,7 +43181,7 @@
           }
         }
       },
-      "timestamp": "2026-02-25T23:51:54"
+      "timestamp": "2026-02-26T00:15:44"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -46048,12 +46044,12 @@
             "backend": "ruff",
             "scan_mode": "cache_only",
             "timings": {
-              "discovery_seconds": 1.596,
-              "detection_seconds": 0.1014,
-              "categorization_seconds": 0.0781,
-              "total_seconds": 2.0267
+              "discovery_seconds": 2.1465,
+              "detection_seconds": 0.1346,
+              "categorization_seconds": 0.1032,
+              "total_seconds": 2.653
             },
-            "files_per_second": 232.4,
+            "files_per_second": 177.54,
             "cache_hits": 471,
             "cache_misses": 0,
             "changed_files": 0,
@@ -46090,7 +46086,7 @@
           "hit_rate": 100.0
         }
       },
-      "timestamp": "2026-02-25T23:51:58"
+      "timestamp": "2026-02-26T00:15:48"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -46271,14 +46267,14 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
           "cache": {
             "cache_mode": "partial_cache",
-            "hits": 469,
+            "hits": 470,
             "misses": 1,
-            "total_cache_checks": 470,
+            "total_cache_checks": 471,
             "hit_rate": 99.8
           }
         }
       },
-      "timestamp": "2026-02-25T23:52:03"
+      "timestamp": "2026-02-26T00:15:55"
     },
     "analyze_config": {
       "success": true,
@@ -46346,7 +46342,7 @@
           }
         }
       },
-      "timestamp": "2026-02-25T23:48:04"
+      "timestamp": "2026-02-26T00:12:36"
     },
     "analyze_ai_work": {
       "success": true,
@@ -46361,12 +46357,12 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-02-25T23:51:48"
+      "timestamp": "2026-02-26T00:15:36"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-02-25T23:52:08",
+        "generated_at": "2026-02-26T00:16:00",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -46411,7 +46407,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-02-17T23:52:08",
+                "recent_cutoff": "2026-02-18T00:16:00",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-02-25_10-26-52",
                 "latest_weekly_created_at": "2026-02-25 10:26:52"
               }
@@ -46422,7 +46418,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-02-25_10-26-52",
                 "latest_created_at": "2026-02-25 10:26:52",
-                "recent_cutoff": "2026-02-17T23:52:08"
+                "recent_cutoff": "2026-02-18T00:16:00"
               }
             },
             {
@@ -46477,7 +46473,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-02-17T23:52:08",
+              "recent_cutoff": "2026-02-18T00:16:00",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-02-25_10-26-52",
               "latest_weekly_created_at": "2026-02-25 10:26:52"
             }
@@ -46488,7 +46484,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-02-25_10-26-52",
               "latest_created_at": "2026-02-25 10:26:52",
-              "recent_cutoff": "2026-02-17T23:52:08"
+              "recent_cutoff": "2026-02-18T00:16:00"
             }
           },
           {
@@ -46511,7 +46507,7 @@
           }
         ]
       },
-      "timestamp": "2026-02-25T23:52:08"
+      "timestamp": "2026-02-26T00:16:00"
     },
     "analyze_system_signals": {
       "success": true,
@@ -46522,7 +46518,7 @@
           "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-02-25T23:51:46.967617",
+          "timestamp": "2026-02-26T00:15:34.254806",
           "system_health": {
             "overall_status": "ISSUES",
             "core_files": {
@@ -46542,13 +46538,12 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-02-25T23:50:28.882121",
+            "last_audit": "2026-02-26T00:15:21.474243",
             "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
-            "documentation_sync_status": "Synchronized",
+            "documentation_sync_status": "Minor Issues",
             "health_indicators": [
-              "Audit data is very recent (<1 hour)",
-              "Documentation is synchronized"
+              "Audit data is very recent (<1 hour)"
             ],
             "recommendations": [
               "Check logs/errors.log for recent errors"
@@ -46556,7 +46551,9 @@
             "warnings": [],
             "errors": [],
             "severity_levels": {
-              "INFO": [],
+              "INFO": [
+                "Documentation has 1 minor sync issue(s)"
+              ],
               "WARNING": [
                 "Errors detected in logs/errors.log (last 24 hours)"
               ],
@@ -46565,16 +46562,16 @@
           },
           "recent_activity": {
             "recent_changes": [
-              "development_tools/imports/generate_unused_imports_report.py",
-              "development_tools/static_checks/check_channel_loggers.py",
+              "communication/command_handlers/analytics_handler.py",
+              "core/checkin_analytics.py",
               "tests/behavior/test_checkin_questions_enhancement.py",
-              "development_tools/imports/analyze_module_imports.py",
-              "tests/development_tools/test_generate_unused_imports_report.py",
-              "development_tools/imports/analyze_dependency_patterns.py",
-              "development_tools/tests/run_test_coverage.py",
               "core/checkin_dynamic_manager.py",
-              "tests/development_tools/test_analyze_dependency_patterns.py",
-              "tests/development_tools/test_test_file_coverage_cache.py"
+              "tests/behavior/test_dynamic_checkin_behavior.py",
+              "development_docs/CHANGELOG_DETAIL.md",
+              "ai_development_docs/AI_CHANGELOG.md",
+              "development_docs/TEST_COVERAGE_REPORT.md",
+              "development_tools/reports/tool_timings.json",
+              "resources/default_checkin/questions.json"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -46601,7 +46598,7 @@
           }
         }
       },
-      "timestamp": "2026-02-25T23:51:47"
+      "timestamp": "2026-02-26T00:15:34"
     },
     "decision_support": {
       "success": true,
@@ -46742,7 +46739,7 @@
           ]
         }
       },
-      "timestamp": "2026-02-25T23:51:50"
+      "timestamp": "2026-02-26T00:15:38"
     },
     "quick_status": {
       "success": true,
