@@ -30,6 +30,35 @@ from ..retention_engine import apply_retention_plan, build_retention_plan
 class CommandsMixin:
     """Mixin class providing command execution methods to AIToolsService."""
 
+    def _get_audit_related_lock_paths(self) -> List[Path]:
+        """Return audit/coverage lock file paths anchored at project root."""
+        lock_names = [
+            ".audit_in_progress.lock",
+            ".coverage_in_progress.lock",
+            ".coverage_dev_tools_in_progress.lock",
+        ]
+        try:
+            from ... import config
+
+            lock_names[0] = str(
+                config.get_external_value(
+                    "paths.audit_lock_file", lock_names[0]
+                )
+            )
+            lock_names[1] = str(
+                config.get_external_value(
+                    "paths.coverage_lock_file", lock_names[1]
+                )
+            )
+        except Exception:
+            pass
+
+        return [self.project_root / Path(name) for name in lock_names]
+
+    def _get_existing_audit_related_locks(self) -> List[Path]:
+        """Return currently present audit/coverage lock files."""
+        return [lock for lock in self._get_audit_related_lock_paths() if lock.exists()]
+
     def _resolve_coverage_workers(self, target: str) -> Optional[str]:
         """Resolve pytest-xdist worker count for coverage runs."""
         if target not in {"main", "dev_tools"}:
@@ -348,6 +377,22 @@ class CommandsMixin:
         logger.info("Starting documentation update...")
         logger.info("Updating documentation...")
         logger.info("=" * 50)
+
+        # Fail fast when audit/coverage locks are present to avoid noisy partial updates.
+        blocking_locks = self._get_existing_audit_related_locks()
+        if blocking_locks:
+            lock_list = ", ".join(str(path) for path in blocking_locks)
+            logger.error(
+                "Documentation update blocked: audit/coverage lock file(s) present: "
+                f"{lock_list}"
+            )
+            logger.error(
+                "If no audit is running, remove stale lock file(s) and rerun: "
+                "python development_tools/run_development_tools.py docs"
+            )
+            logger.info("=" * 50)
+            return False
+
         success = True
         
         # Generate function registry

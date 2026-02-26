@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-26 00:15:56
+> **Last Generated**: 2026-02-26 13:16:45
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 8
 **Legacy Compatibility Markers Detected**: 13
@@ -102,12 +102,12 @@
 ### development_tools\shared\service\commands.py
 **Issues Found**: 2
 
-- **Line 1037**: `tier3_coverage_outcome_v1`
+- **Line 1082**: `tier3_coverage_outcome_v1`
   ```
   "LEGACY COMPATIBILITY: tier3_coverage_outcome_v1 bridge exercised; "
   ```
 
-- **Line 1042**: `legacy_state_only_payload`
+- **Line 1087**: `legacy_state_only_payload`
   ```
   track["classification_reason"] = "legacy_state_only_payload"
   ```

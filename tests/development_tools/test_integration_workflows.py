@@ -85,3 +85,27 @@ class TestCommandRouting:
     def test_missing_command_shows_help(self):
         assert runner.main([]) == 1
 
+    @pytest.mark.integration
+    def test_audit_keyboard_interrupt_cleans_up_lock_files(self, monkeypatch, tmp_path):
+        mock_service = MagicMock()
+        mock_service.run_audit.side_effect = KeyboardInterrupt()
+        monkeypatch.setattr(
+            runner,
+            "AIToolsService",
+            lambda project_root=None, config_path=None: mock_service,
+        )
+
+        audit_lock = tmp_path / ".audit_in_progress.lock"
+        coverage_lock = tmp_path / ".coverage_in_progress.lock"
+        dev_tools_coverage_lock = tmp_path / ".coverage_dev_tools_in_progress.lock"
+        audit_lock.write_text("", encoding="utf-8")
+        coverage_lock.write_text("", encoding="utf-8")
+        dev_tools_coverage_lock.write_text("", encoding="utf-8")
+
+        code = runner.main(["--project-root", str(tmp_path), "audit"])
+
+        assert code == 130
+        assert not audit_lock.exists()
+        assert not coverage_lock.exists()
+        assert not dev_tools_coverage_lock.exists()
+

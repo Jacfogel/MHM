@@ -584,3 +584,23 @@ from typing import Dict, List
         assert 'appropriate_locations' in result, "Should have appropriate_locations"
         assert 'naming_conventions' in result, "Should have naming_conventions"
 
+    @pytest.mark.unit
+    def test_main_logs_summary_in_non_json_mode(self):
+        """Non-JSON CLI output should use structured logging instead of print."""
+        with (
+            patch.object(
+                ai_work_module,
+                "analyze_ai_work",
+                return_value={
+                    "summary": {"total_issues": 0, "files_affected": 0, "status": "GOOD"},
+                    "details": {"output": "Validation report"},
+                },
+            ),
+            patch.object(ai_work_module.logger, "info") as mock_info,
+            patch("builtins.print") as mock_print,
+            patch("sys.argv", ["analyze_ai_work.py", "--work-type", "documentation"]),
+        ):
+            ai_work_module.main()
+
+        mock_info.assert_called_once_with("Validation report")
+        mock_print.assert_not_called()

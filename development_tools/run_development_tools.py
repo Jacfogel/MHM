@@ -176,6 +176,44 @@ def _clear_all_caches(project_root: Path) -> int:
     return cache_files_cleared
 
 
+def _get_audit_related_lock_paths(project_root: Path) -> list[Path]:
+    """Return audit/coverage lock file paths anchored at project root."""
+    audit_lock_name = ".audit_in_progress.lock"
+    coverage_lock_name = ".coverage_in_progress.lock"
+    dev_tools_coverage_lock_name = ".coverage_dev_tools_in_progress.lock"
+
+    try:
+        from development_tools import config
+
+        audit_lock_name = str(
+            config.get_external_value("paths.audit_lock_file", audit_lock_name)
+        )
+        coverage_lock_name = str(
+            config.get_external_value("paths.coverage_lock_file", coverage_lock_name)
+        )
+    except Exception:
+        pass
+
+    return [
+        project_root / Path(audit_lock_name),
+        project_root / Path(coverage_lock_name),
+        project_root / Path(dev_tools_coverage_lock_name),
+    ]
+
+
+def _cleanup_audit_related_locks(project_root: Path) -> int:
+    """Best-effort removal of audit/coverage lock files."""
+    removed = 0
+    for lock_path in _get_audit_related_lock_paths(project_root):
+        try:
+            if lock_path.exists():
+                lock_path.unlink()
+                removed += 1
+        except Exception as exc:
+            logger.warning(f"Failed to remove lock file {lock_path}: {exc}")
+    return removed
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Development tools command-line interface. Shorthand: use run_dev_tools.py instead of run_development_tools.py",
@@ -297,6 +335,18 @@ def main(argv=None) -> int:
         command = commands[command_name]
         exit_code = command.handler(service, remaining_args)
         return exit_code
+    except KeyboardInterrupt:
+        if command_name in {"audit", "full-audit"}:
+            removed = _cleanup_audit_related_locks(project_root_path)
+            if removed > 0:
+                logger.warning(
+                    f"Interrupted audit; cleaned up {removed} audit/coverage lock file(s)"
+                )
+                print(
+                    f"Interrupted audit; cleaned up {removed} audit/coverage lock file(s)."
+                )
+        print("Interrupted by user.")
+        return 130
     except Exception as e:
         logger.error(f"Error executing command '{command_name}': {e}", exc_info=True)
         print(f"Error executing command '{command_name}': {e}")

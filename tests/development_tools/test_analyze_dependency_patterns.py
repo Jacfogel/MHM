@@ -139,3 +139,74 @@ def test_main_logs_library_usage_guidance(monkeypatch):
     assert messages == [
         "This tool is typically used as a library. Use generate_module_dependencies.py for full analysis."
     ]
+
+
+@pytest.mark.unit
+def test_find_critical_dependencies_renders_entry_data_and_communication_sections():
+    """Critical dependency rendering should include discovered section headers."""
+    analyzer = DependencyPatternAnalyzer()
+    actual_imports = {
+        "run_mhm.py": _build_imports_payload(local_modules=["core.config"]),
+        "core/user_data_handlers.py": _build_imports_payload(local_modules=["core.file_operations"]),
+        "communication/message_processing/interaction_manager.py": _build_imports_payload(
+            local_modules=["communication.core.channel_orchestrator", "core.logger"]
+        ),
+    }
+    rendered = analyzer.find_critical_dependencies(actual_imports)
+    assert "Entry Points" in rendered
+    assert "Data Flow" in rendered
+    assert "Communication Flow" in rendered
+
+
+@pytest.mark.unit
+def test_generate_dependency_patterns_section_renders_dynamic_sections():
+    """Dependency pattern section should include major relationship headings."""
+    analyzer = DependencyPatternAnalyzer()
+    patterns = {
+        "communication_dependencies": [
+            {
+                "file": "communication/message_processing/interaction_manager.py",
+                "modules": ["core.config", "communication.core.router", "ai.chatbot"],
+            }
+        ],
+        "ui_dependencies": [
+            {"file": "ui/main.py", "modules": ["core.config", "ui.widgets"]}
+        ],
+        "third_party_dependencies": [
+            {"file": "ui/main.py", "dependencies": ["PySide6", "pydantic"]}
+        ],
+    }
+    rendered = analyzer.generate_dependency_patterns_section(patterns, {})
+    assert "Core -> Communication and AI" in rendered
+    assert "UI -> Core" in rendered
+    assert "Communication -> Communication" in rendered
+    assert "Third-Party Integration" in rendered
+
+
+@pytest.mark.unit
+def test_generate_quick_reference_and_decision_tree_outputs():
+    """Quick reference and decision trees should render when imports are present."""
+    analyzer = DependencyPatternAnalyzer()
+    actual_imports = {
+        "core/config.py": _build_imports_payload(stdlib_modules=["json"]),
+        "core/logger.py": _build_imports_payload(stdlib_modules=["logging"]),
+        "core/user_data_handlers.py": _build_imports_payload(local_modules=["core.config"]),
+        "communication/core/channel_orchestrator.py": _build_imports_payload(local_modules=["core.logger"]),
+        "communication/message_processing/conversation_flow_manager.py": _build_imports_payload(
+            local_modules=["communication.core.channel_orchestrator"]
+        ),
+        "ai/chatbot.py": _build_imports_payload(local_modules=["core.config"]),
+        "ui/ui_app_qt.py": _build_imports_payload(local_modules=["core.config"]),
+        "ui/dialogs/account_dialog.py": _build_imports_payload(local_modules=["ui/ui_app_qt"]),
+        "ui/widgets/tag_widget.py": _build_imports_payload(local_modules=["ui/ui_app_qt"]),
+    }
+
+    quick_ref = analyzer.generate_quick_reference(actual_imports, {})
+    trees = analyzer.build_dynamic_decision_trees(actual_imports)
+
+    assert "Dependency Guidelines" in quick_ref
+    assert "`core/` - " in quick_ref
+    assert "Need Core System Access?" in trees
+    assert "Need AI or Chatbot Support?" in trees
+    assert "Need Communication Channel Coverage?" in trees
+    assert "Need UI Dependencies?" in trees

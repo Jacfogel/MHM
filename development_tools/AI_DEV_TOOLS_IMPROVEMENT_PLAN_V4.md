@@ -80,8 +80,45 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
     - `tests/development_tools/test_service_utilities.py` covers utility helpers and `UtilitiesMixin` extraction paths (function metrics, documentation metrics, decision insights, generic standard-format caching)
     - `tests/development_tools/test_tool_wrappers_additional.py` adds branch coverage for `run_analyze_function_registry`, `run_analyze_module_dependencies`, `run_analyze_module_refactor_candidates`, and `run_decision_support` fallback behavior
     - `tests/development_tools/test_analyze_system_signals_additional.py` covers system-signal helper classification/scoring, standard-format wrapping, human-readable rendering, and CLI `--json` main path
+  - [x] Added targeted tests for a current AI-priorities low-coverage module:
+    - `tests/development_tools/test_backup_reports.py` now covers `development_tools/shared/backup_reports.py` path resolution, JSON/markdown report writing, and markdown rendering branches for inventory/retention/restore-drill outputs
+  - [x] Expanded low-coverage test coverage for `development_tools/functions/analyze_duplicate_functions.py`:
+    - Added CLI and helper branch tests in `tests/development_tools/test_analyze_duplicate_functions.py` for `_group_pairs` max-group behavior, `_normalize_path` fallback behavior, JSON CLI output, and non-JSON "no groups" rendering path
+  - [x] Expanded helper/section coverage for `development_tools/functions/generate_function_registry.py`:
+    - Added targeted tests in `tests/development_tools/test_generate_function_registry.py` for dynamic section generators (`generate_pattern_section`, `generate_entry_points_section`, `generate_common_operations_section`, `generate_complexity_section`, `generate_file_organization_section`, `generate_communication_patterns_section`)
+  - [x] Added focused validation-model coverage for `development_tools/shared/backup_policy_models.py`:
+    - Added `tests/development_tools/test_backup_policy_models.py` covering parser/validation branches (`_as_int`, `_parse_category`, `_parse_artifact_rule`, `_merge_policy_dict`, `load_backup_policy`, `resolve_policy_path`)
+  - [x] Expanded coverage for `development_tools/reports/quick_status.py` and `development_tools/imports/analyze_dependency_patterns.py`:
+    - Added branch/CLI and helper coverage in `tests/development_tools/test_supporting_tools.py` (`_build_standard_result`, git-threshold paths, documentation-status parsing, `main()` usage/unknown-command branches)
+    - Added dynamic section coverage in `tests/development_tools/test_analyze_dependency_patterns.py` (`find_critical_dependencies`, `generate_dependency_patterns_section`, `generate_quick_reference`, `build_dynamic_decision_trees`)
+  - [x] Expanded reporting/storage helper coverage for additional low-coverage modules:
+    - Added report-generation path coverage in `tests/development_tools/test_analyze_module_dependencies.py` (`generate_updated_dependency_sections`, `generate_enhanced_dependency_report`, orchestrated `generate_dependency_report` helper-call flow)
+    - Added static-check coverage in `tests/development_tools/test_check_channel_loggers.py` (`check_file` rule branches, allowlist behavior, and `main()` pass/fail CLI paths)
+    - Added shared-helper coverage in `tests/development_tools/test_common_shared.py` (`ProjectPaths`, `iter_python_sources`, `run_cli`, file/text/json helpers, summary rendering)
+    - Added output-storage helper coverage in `tests/development_tools/test_output_storage_helpers.py` (domain inference fallback matrix, stale file-reference validation recursion, corrupted-cache cleanup, newest-result aggregation preference, normalization failure handling)
 - [ ] Update all dev tools tests to use `tests/development_tools/test_config.json` fixture
-- [ ] Re-run dev-tools coverage and document updated baseline/progress toward 60% target
+- [x] Re-run dev-tools coverage and document updated baseline/progress toward 60% target
+  - [x] Coverage refresh: `python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel`
+  - [x] Updated baseline: **59.6%** (`14916/25008`) toward 60%+ target (report rounds to **60%**)
+  - [x] Confirmed targeted gains from recent sessions:
+    - `development_tools/shared/backup_reports.py`: **100%** (from prior 31% target state)
+    - `development_tools/shared/backup_policy_models.py`: **94%** (from prior 32% target state)
+    - `development_tools/functions/analyze_duplicate_functions.py`: **49%** (up from prior 31% target state)
+    - `development_tools/functions/generate_function_registry.py`: **73%** (up from prior 31% target state)
+    - `development_tools/reports/quick_status.py`: **76%** (up from prior 33% target state)
+    - `development_tools/shared/output_storage.py`: **75%** (up from prior 49% target state)
+    - `development_tools/shared/common.py`: **71%** (up from prior 45% target state)
+    - `development_tools/static_checks/check_channel_loggers.py`: **85%** (up from prior 42% target state)
+    - `development_tools/imports/analyze_dependency_patterns.py`: **93%** (up from prior 35% target state)
+    - `development_tools/imports/analyze_module_dependencies.py`: **68%** (up from prior 40% target state)
+    - `development_tools/ai_work/analyze_ai_work.py`: **77%**
+- [x] Hardened docs command behavior around audit locks:
+  - `development_tools/shared/service/commands.py::run_docs` now fails fast when audit/coverage lock files are present, preventing partial noisy doc-generation failures.
+  - Added tests: `tests/development_tools/test_commands_docs_locks.py`.
+- [x] Added interrupted-audit lock cleanup in CLI runner:
+  - `development_tools/run_development_tools.py` now catches `KeyboardInterrupt` for `audit`/`full-audit` and removes audit/coverage lock files before exiting.
+  - Added regression test: `tests/development_tools/test_integration_workflows.py::test_audit_keyboard_interrupt_cleans_up_lock_files`.
+- [ ] Extend lock handling beyond `KeyboardInterrupt` path to robust stale-lock recovery for hard-kill/process-crash scenarios (metadata-backed active/stale detection).
 
 #### 1.2 Restore audit status tests without memory leak
 **Status**: PENDING  
@@ -183,6 +220,7 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
   - [x] Converted `development_tools/imports/analyze_dependency_patterns.py` standalone entrypoint guidance from `print(...)` to `logger.info(...)` with explicit `main()` entrypoint and test coverage in `tests/development_tools/test_analyze_dependency_patterns.py`
   - [x] Converted `development_tools/imports/analyze_module_imports.py` standalone `--file/--scan` summary output from `print(...)` to `logger.info(...)` with explicit `main()` entrypoint and CLI-path tests in `tests/development_tools/test_analyze_module_imports_cli.py`
   - [x] Converted non-JSON CLI summary output in `development_tools/imports/generate_unused_imports_report.py` from `print(...)` to `logger.info(...)` (kept `--json` stdout behavior), with coverage in `tests/development_tools/test_generate_unused_imports_report.py::test_main_logs_summary_in_non_json_mode`
+  - [x] Converted `development_tools/ai_work/analyze_ai_work.py` non-JSON CLI output from `print(...)` to `logger.info(...)`, extracted reusable `main()` entrypoint, and added regression test `tests/development_tools/test_analyze_ai_work.py::test_main_logs_summary_in_non_json_mode`
 - [x] Add "Top offenders" list to Quick Wins in AI_PRIORITIES.md
   - [x] Added unused-imports Quick Win in `shared/service/report_generation.py` with top offender files + fix/verify commands
   - [x] Added unit coverage in `tests/development_tools/test_report_generation_quick_wins.py`

@@ -2,6 +2,7 @@
 
 import os
 from datetime import datetime, timedelta
+from unittest.mock import patch
 
 import importlib
 import pytest
@@ -267,3 +268,169 @@ def test_create_output_file_rotates_existing_content(
     assert any(
         archive.read_text(encoding="utf-8") == "first run" for archive in archives
     ), f"Expected 'first run' in archives, got: {[a.read_text(encoding='utf-8') for a in archives]}"
+
+
+@pytest.mark.unit
+def test_quick_status_build_standard_result_handles_non_dict(quick_status_module):
+    """_build_standard_result should handle malformed status payloads safely."""
+    result = quick_status_module._build_standard_result("bad-status")
+    assert result["summary"]["status"] == "UNKNOWN"
+    assert result["summary"]["total_issues"] == 0
+    assert result["details"] == {}
+
+
+@pytest.mark.unit
+def test_quick_status_get_git_recent_threshold_uses_commit_time(
+    quick_status_module, monkeypatch, tmp_path
+):
+    """Git commit timestamp should be used when git log succeeds."""
+    qs = quick_status_module.QuickStatus()
+    qs.project_root = tmp_path
+
+    class _Result:
+        returncode = 0
+        stdout = "2026-02-26 00:00:00 +00:00\n"
+
+    monkeypatch.setattr("subprocess.run", lambda *args, **kwargs: _Result())
+    threshold = qs._get_git_recent_threshold()
+    assert threshold == datetime(2026, 2, 25, 0, 0, 0)
+
+
+@pytest.mark.unit
+def test_quick_status_get_git_recent_threshold_falls_back_on_error(
+    quick_status_module, monkeypatch, tmp_path
+):
+    """Fallback threshold should be recent when git execution fails."""
+    qs = quick_status_module.QuickStatus()
+    qs.project_root = tmp_path
+
+    def _raise(*args, **kwargs):
+        raise RuntimeError("git unavailable")
+
+    monkeypatch.setattr("subprocess.run", _raise)
+    threshold = qs._get_git_recent_threshold()
+    assert datetime.now() - timedelta(days=8) < threshold <= datetime.now()
+
+
+@pytest.mark.unit
+def test_quick_status_documentation_status_extracts_coverage_from_audit_json(
+    tmp_path, quick_status_module
+):
+    """Documentation status should parse coverage text from cached audit output."""
+    qs = quick_status_module.QuickStatus()
+    qs.project_root = tmp_path
+
+    audit_dir = tmp_path / "development_tools" / "reports"
+    audit_dir.mkdir(parents=True, exist_ok=True)
+    audit_file = audit_dir / "analysis_detailed_results.json"
+    audit_file.write_text(
+        '{"timestamp":"2026-02-26T01:02:03","results":{"analyze_function_registry":{"success":true,"output":"Summary\\nCoverage: 96%"}}}',
+        encoding="utf-8",
+    )
+
+    for doc in [
+        "README.md",
+        "ai_development_docs/AI_CHANGELOG.md",
+        "development_docs/CHANGELOG_DETAIL.md",
+        "TODO.md",
+        "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+        "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
+    ]:
+        doc_path = tmp_path / doc.replace("/", os.sep)
+        doc_path.parent.mkdir(parents=True, exist_ok=True)
+        doc_path.write_text("x", encoding="utf-8")
+
+    docs = qs._check_documentation_status()
+    assert docs["coverage"] == "96%"
+    assert docs["recent_audit"] == "2026-02-26T01:02:03"
+    assert all(value == "OK" for value in docs["key_files"].values())
+
+
+@pytest.mark.unit
+def test_quick_status_main_handles_usage_and_unknown_command(
+    quick_status_module, monkeypatch
+):
+    """CLI main should exit with code 1 for usage/unknown command branches."""
+    with (
+        patch("sys.argv", ["quick_status.py"]),
+        patch("builtins.print") as mock_print,
+        pytest.raises(SystemExit) as usage_exit,
+    ):
+        quick_status_module.main()
+    assert usage_exit.value.code == 1
+    assert any("Usage: python quick_status.py" in str(c.args[0]) for c in mock_print.call_args_list if c.args)
+
+    class _StubQuickStatus:
+        def print_concise_status(self):
+            raise AssertionError("should not run")
+
+        def print_json_status(self):
+            raise AssertionError("should not run")
+
+    monkeypatch.setattr(quick_status_module, "QuickStatus", _StubQuickStatus)
+    with (
+        patch("sys.argv", ["quick_status.py", "unknown"]),
+        patch("builtins.print") as mock_print_unknown,
+        pytest.raises(SystemExit) as unknown_exit,
+    ):
+        quick_status_module.main()
+    assert unknown_exit.value.code == 1
+    assert any("Unknown command: unknown" in str(c.args[0]) for c in mock_print_unknown.call_args_list if c.args)
+
+
+@pytest.mark.unit
+def test_quick_status_print_concise_status_renders_all_sections(quick_status_module):
+    """print_concise_status should print system/docs/issues/actions/activity sections."""
+    qs = quick_status_module.QuickStatus()
+
+    fake_status = {
+        "system_health": {
+            "overall_status": "ISSUES",
+            "core_files": {"core/service.py": "MISSING"},
+            "key_directories": {},
+        },
+        "documentation_status": {
+            "coverage": "88%",
+            "recent_audit": "2026-02-26T12:34:56",
+            "key_files": {"README.md": "OK", "TODO.md": "MISSING"},
+        },
+        "critical_issues": ["Missing core files: core/service.py"],
+        "action_items": ["Restore missing core files: core/service.py"],
+        "recent_activity": {"recent_changes": ["core/service.py"]},
+    }
+
+    with (
+        patch.object(qs, "get_quick_status", return_value=fake_status),
+        patch("builtins.print") as mock_print,
+    ):
+        qs.print_concise_status()
+
+    printed = [str(call.args[0]) for call in mock_print.call_args_list if call.args]
+    assert any("[SYSTEM] Status: ISSUES" in line for line in printed)
+    assert any("[DOCS] Coverage: 88%" in line for line in printed)
+    assert any("[CRITICAL ISSUES]" in line for line in printed)
+    assert any("[PRIORITY ACTIONS]" in line for line in printed)
+    assert any("[RECENT ACTIVITY]" in line for line in printed)
+    assert any("[QUICK COMMANDS]" in line for line in printed)
+
+
+@pytest.mark.unit
+def test_quick_status_print_json_status_outputs_standard_format(quick_status_module):
+    """print_json_status should print wrapped standard-format JSON."""
+    qs = quick_status_module.QuickStatus()
+    fake_status = {
+        "system_health": {"overall_status": "OK", "core_files": {"run_mhm.py": "OK"}},
+        "documentation_status": {"key_files": {"README.md": "OK"}},
+        "critical_issues": [],
+    }
+
+    with (
+        patch.object(qs, "get_quick_status", return_value=fake_status),
+        patch("builtins.print") as mock_print,
+    ):
+        qs.print_json_status()
+
+    printed_payload = mock_print.call_args.args[0]
+    assert '"summary"' in printed_payload
+    assert '"status": "OK"' in printed_payload
+    assert '"files_affected": 0' in printed_payload

@@ -477,7 +477,8 @@ def execute(
     )
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """CLI entrypoint for standalone execution."""
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -539,7 +540,8 @@ if __name__ == "__main__":
         print(json.dumps(result, indent=2))
     else:
         output = result.get("details", {}).get("output", "")
-        print(output)
-        # Also log for debugging (but not the full output)
-        if len(output) < 500:  # Only log short outputs
-            logger.info(output)
+        logger.info(output)
+
+
+if __name__ == "__main__":
+    main()

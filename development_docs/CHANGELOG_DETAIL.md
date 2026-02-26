@@ -33,6 +33,53 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-26 - Dev-tools coverage progression to 60% rounded + AI work CLI logging follow-up
+- **Feature/Fix**: Consolidated same-session dev-tools coverage work under `AI_PRIORITIES` item `#2` into one tracked progression, including the AI work non-JSON CLI logging cleanup and supporting regression coverage.
+- **Technical Changes**:
+  - Added/expanded targeted tests across these files:
+    - `tests/development_tools/test_backup_reports.py`
+    - `tests/development_tools/test_analyze_duplicate_functions.py`
+    - `tests/development_tools/test_generate_function_registry.py`
+    - `tests/development_tools/test_backup_policy_models.py`
+    - `tests/development_tools/test_supporting_tools.py`
+    - `tests/development_tools/test_analyze_dependency_patterns.py`
+    - `tests/development_tools/test_analyze_module_dependencies.py`
+    - `tests/development_tools/test_check_channel_loggers.py`
+    - `tests/development_tools/test_common_shared.py`
+    - `tests/development_tools/test_output_storage_helpers.py`
+    - `tests/development_tools/test_analyze_ai_work.py`
+  - `development_tools/ai_work/analyze_ai_work.py`:
+    - migrated standalone non-JSON CLI summary output from `print(...)` to `logger.info(...)`.
+    - refactored CLI into reusable `main()` flow and added regression coverage for non-JSON logging behavior.
+  - Docs/audit lock behavior hardening:
+    - `development_tools/shared/service/commands.py`:
+      - added fail-fast lock precheck in `run_docs()` so docs generation stops immediately when audit/coverage locks are present (prevents partial noisy failures from downstream static-doc safeguards).
+      - added lock-path helper methods for consistent detection.
+    - `development_tools/run_development_tools.py`:
+      - added interrupt handling for `audit`/`full-audit` to remove audit/coverage lock files on `KeyboardInterrupt` and exit with code `130`.
+    - Added lock regression coverage:
+      - `tests/development_tools/test_commands_docs_locks.py`
+      - `tests/development_tools/test_integration_workflows.py` (interrupted-audit lock cleanup path)
+  - Coverage progression was advanced in staged batches:
+    - `56.6%` (`14164/25008`)
+    - `58.6%` (`14667/25008`)
+    - `59.6%` (`14916/25008`, report display rounds to `60%`).
+  - Planning tracking updated in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.1`.
+- **Validation**:
+  - staged targeted runs passed:
+    - `pytest -q tests/development_tools/test_backup_reports.py` -> `7 passed`
+    - `pytest -q tests/development_tools/test_analyze_duplicate_functions.py` -> `9 passed`
+    - `pytest -q tests/development_tools/test_generate_function_registry.py tests/development_tools/test_backup_policy_models.py tests/development_tools/test_supporting_tools.py tests/development_tools/test_analyze_dependency_patterns.py tests/development_tools/test_backup_reports.py tests/development_tools/test_analyze_duplicate_functions.py tests/development_tools/test_analyze_ai_work.py` -> `103 passed`
+  - consolidated validation run passed:
+    - `pytest -q tests/development_tools/test_generate_function_registry.py tests/development_tools/test_backup_policy_models.py tests/development_tools/test_supporting_tools.py tests/development_tools/test_analyze_dependency_patterns.py tests/development_tools/test_analyze_module_dependencies.py tests/development_tools/test_check_channel_loggers.py tests/development_tools/test_common_shared.py tests/development_tools/test_output_storage_helpers.py tests/development_tools/test_backup_reports.py tests/development_tools/test_analyze_duplicate_functions.py tests/development_tools/test_analyze_ai_work.py` -> `141 passed`.
+  - lock-handling follow-up validation passed:
+    - `pytest -q tests/development_tools/test_commands_docs_locks.py` -> `2 passed`
+    - `pytest -q tests/development_tools/test_integration_workflows.py -k "interrupt or audit_command_success or audit_command_failure or docs_command_invokes_service"` -> `4 passed`
+    - `pytest -q tests/unit/test_test_policy_guards.py` -> `6 passed`.
+  - final closeout verification (user-run):
+    - `python development_tools/run_development_tools.py audit --full --clear-cache` -> completed with no new issues.
+- **Impact**: Reached the current dev-tools coverage threshold target as rounded in reports (`60%` display, `59.6%` actual) while keeping policy-guard-safe, low-risk test scope and tightening CLI logging consistency.
+
 ### 2026-02-26 - Sleep check-in multi-period input expansion
 - **Feature/Fix**: Expanded check-in sleep schedule input to support interrupted sleep logging across up to three chunks, with schedule-style time format flexibility and additional connector/separator phrasing.
 - **Technical Changes**:

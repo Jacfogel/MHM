@@ -1,195 +1,6 @@
 {
   "runs": [
     {
-      "timestamp": "2026-02-24T13:59:32.053216",
-      "tier": "quick",
-      "tier_number": 1,
-      "audit_success": true,
-      "tool_timings": {
-        "analyze_system_signals": 1.2320079803466797,
-        "analyze_config": 1.3337550163269043,
-        "analyze_ai_work": 1.3989894390106201,
-        "analyze_documentation": 1.4476065635681152,
-        "analyze_function_patterns": 3.5146915912628174,
-        "decision_support": 4.376216650009155,
-        "quick_status": 1.170173168182373
-      },
-      "total_time": 14.473440408706665,
-      "sum_tool_durations_seconds": 14.473440408706665,
-      "wall_clock_total_seconds": 13.382204500027001,
-      "parallelism_gain_seconds": 1.0912359086796641,
-      "expected_tools": [
-        "analyze_system_signals",
-        "analyze_documentation",
-        "analyze_config",
-        "analyze_ai_work",
-        "analyze_function_patterns",
-        "decision_support",
-        "quick_status"
-      ],
-      "observed_tools": [
-        "analyze_ai_work",
-        "analyze_config",
-        "analyze_documentation",
-        "analyze_function_patterns",
-        "analyze_system_signals",
-        "decision_support",
-        "quick_status"
-      ],
-      "missing_expected_tools": [],
-      "failed_tools": [],
-      "tool_execution_status": {
-        "analyze_system_signals": "success",
-        "analyze_config": "success",
-        "analyze_ai_work": "success",
-        "analyze_documentation": "success",
-        "analyze_function_patterns": "success",
-        "decision_support": "success",
-        "quick_status": "success"
-      },
-      "tool_cache_metadata": {}
-    },
-    {
-      "timestamp": "2026-02-24T13:59:58.912440",
-      "tier": "standard",
-      "tier_number": 2,
-      "audit_success": true,
-      "tool_timings": {
-        "analyze_system_signals": 1.174506425857544,
-        "analyze_config": 1.5965275764465332,
-        "analyze_ai_work": 1.6428577899932861,
-        "analyze_documentation": 1.7491095066070557,
-        "analyze_function_patterns": 3.660668134689331,
-        "decision_support": 2.1208677291870117,
-        "analyze_functions": 2.5289478302001953,
-        "analyze_package_exports": 3.833087921142578,
-        "analyze_duplicate_functions": 4.813101768493652,
-        "analyze_error_handling": 5.093821048736572,
-        "analyze_module_refactor_candidates": 2.8993852138519287,
-        "analyze_module_imports": 2.0290019512176514,
-        "analyze_dependency_patterns": 0.013246536254882812,
-        "analyze_module_dependencies": 1.9244954586029053,
-        "analyze_function_registry": 3.009807586669922,
-        "analyze_unused_imports": 3.8393259048461914,
-        "generate_unused_imports_report": 0.9759294986724854,
-        "analyze_documentation_sync": 9.268911600112915
-      },
-      "total_time": 52.17359948158264,
-      "sum_tool_durations_seconds": 52.17359948158264,
-      "wall_clock_total_seconds": 22.03453740000259,
-      "parallelism_gain_seconds": 30.13906208158005,
-      "expected_tools": [
-        "analyze_system_signals",
-        "analyze_documentation",
-        "analyze_config",
-        "analyze_ai_work",
-        "analyze_function_patterns",
-        "decision_support",
-        "analyze_functions",
-        "analyze_error_handling",
-        "analyze_package_exports",
-        "analyze_duplicate_functions",
-        "analyze_module_refactor_candidates",
-        "analyze_module_imports",
-        "analyze_dependency_patterns",
-        "analyze_module_dependencies",
-        "analyze_function_registry",
-        "analyze_documentation_sync",
-        "analyze_unused_imports",
-        "generate_unused_imports_report"
-      ],
-      "observed_tools": [
-        "analyze_ai_work",
-        "analyze_config",
-        "analyze_dependency_patterns",
-        "analyze_documentation",
-        "analyze_documentation_sync",
-        "analyze_duplicate_functions",
-        "analyze_error_handling",
-        "analyze_function_patterns",
-        "analyze_function_registry",
-        "analyze_functions",
-        "analyze_module_dependencies",
-        "analyze_module_imports",
-        "analyze_module_refactor_candidates",
-        "analyze_package_exports",
-        "analyze_system_signals",
-        "analyze_unused_imports",
-        "decision_support",
-        "generate_unused_imports_report"
-      ],
-      "missing_expected_tools": [],
-      "failed_tools": [],
-      "tool_execution_status": {
-        "analyze_system_signals": "success",
-        "analyze_config": "success",
-        "analyze_ai_work": "success",
-        "analyze_documentation": "success",
-        "analyze_function_patterns": "success",
-        "decision_support": "success",
-        "analyze_functions": "success",
-        "analyze_package_exports": "success",
-        "analyze_duplicate_functions": "success",
-        "analyze_error_handling": "success",
-        "analyze_module_refactor_candidates": "success",
-        "analyze_module_imports": "success",
-        "analyze_dependency_patterns": "success",
-        "analyze_module_dependencies": "success",
-        "analyze_function_registry": "success",
-        "analyze_unused_imports": "success",
-        "generate_unused_imports_report": "success",
-        "analyze_documentation_sync": "success"
-      },
-      "tool_cache_metadata": {
-        "analyze_path_drift": {
-          "cache_mode": "internal_mtime_cache",
-          "invalidation_reason": "Path drift uses internal analyzer cache",
-          "source": "run_analyze_path_drift"
-        },
-        "analyze_ascii_compliance": {
-          "cache_mode": "cache_only",
-          "invalidation_reason": "Docs unchanged since last subcheck result",
-          "source": "doc_subcheck_mtime"
-        },
-        "analyze_heading_numbering": {
-          "cache_mode": "cold_scan",
-          "invalidation_reason": "Parsed standardized stdout from subcheck",
-          "source": "doc_subcheck_stdout"
-        },
-        "analyze_unused_imports": {
-          "cache_mode": "cold_scan",
-          "hits": 0,
-          "misses": 452,
-          "total_cache_checks": 452,
-          "hit_rate": 0.0
-        },
-        "analyze_missing_addresses": {
-          "cache_mode": "cold_scan",
-          "invalidation_reason": "Parsed standardized stdout from subcheck",
-          "source": "doc_subcheck_stdout"
-        },
-        "analyze_unconverted_links": {
-          "cache_mode": "cold_scan",
-          "invalidation_reason": "Parsed standardized stdout from subcheck",
-          "source": "doc_subcheck_stdout"
-        },
-        "analyze_documentation_sync": {
-          "cache_mode": "partial_cache",
-          "cache_hits": 1,
-          "cache_misses": 5,
-          "subchecks": {
-            "paired_docs": "cold_scan",
-            "path_drift": "internal_mtime_cache",
-            "ascii_compliance": "cache_only",
-            "heading_numbering": "cold_scan",
-            "missing_addresses": "cold_scan",
-            "unconverted_links": "cold_scan"
-          },
-          "invalidation_reason": "One or more doc subchecks refreshed"
-        }
-      }
-    },
-    {
       "timestamp": "2026-02-24T14:02:09.412028",
       "tier": "standard",
       "tier_number": 2,
@@ -8665,6 +8476,378 @@
           "misses": 1,
           "total_cache_checks": 471,
           "hit_rate": 99.8
+        }
+      }
+    },
+    {
+      "timestamp": "2026-02-26T10:35:00.793559",
+      "tier": "full",
+      "tier_number": 3,
+      "audit_success": true,
+      "tool_timings": {
+        "analyze_system_signals": 1.2191321849822998,
+        "analyze_config": 1.3920259475708008,
+        "analyze_ai_work": 1.47145676612854,
+        "analyze_documentation": 1.6930232048034668,
+        "analyze_function_patterns": 3.2276768684387207,
+        "decision_support": 3.5450470447540283,
+        "analyze_functions": 2.2191951274871826,
+        "analyze_package_exports": 3.5739567279815674,
+        "analyze_duplicate_functions": 3.8556511402130127,
+        "analyze_error_handling": 4.14161229133606,
+        "analyze_module_refactor_candidates": 2.588651180267334,
+        "analyze_function_registry": 2.96407151222229,
+        "analyze_module_imports": 1.5226490497589111,
+        "analyze_dependency_patterns": 0.013508796691894531,
+        "analyze_module_dependencies": 1.864823341369629,
+        "analyze_unused_imports": 3.508817672729492,
+        "generate_unused_imports_report": 0.9327409267425537,
+        "analyze_documentation_sync": 11.435752630233765,
+        "analyze_legacy_references": 4.554535865783691,
+        "generate_legacy_reference_report": 1.072770118713379,
+        "run_test_coverage": 233.21751618385315,
+        "generate_dev_tools_coverage": 327.73331022262573,
+        "analyze_test_markers": 2.641481637954712,
+        "generate_test_coverage_report": 0.9744679927825928,
+        "analyze_backup_health": 1.1512887477874756
+      },
+      "total_time": 622.5151631832123,
+      "sum_tool_durations_seconds": 622.5151631832123,
+      "wall_clock_total_seconds": 357.31895949994214,
+      "parallelism_gain_seconds": 265.19620368327014,
+      "expected_tools": [
+        "analyze_system_signals",
+        "analyze_documentation",
+        "analyze_config",
+        "analyze_ai_work",
+        "analyze_function_patterns",
+        "decision_support",
+        "analyze_functions",
+        "analyze_error_handling",
+        "analyze_package_exports",
+        "analyze_duplicate_functions",
+        "analyze_module_refactor_candidates",
+        "analyze_module_imports",
+        "analyze_dependency_patterns",
+        "analyze_module_dependencies",
+        "analyze_function_registry",
+        "analyze_documentation_sync",
+        "analyze_unused_imports",
+        "generate_unused_imports_report",
+        "run_test_coverage",
+        "generate_dev_tools_coverage",
+        "analyze_test_markers",
+        "generate_test_coverage_report",
+        "analyze_legacy_references",
+        "generate_legacy_reference_report"
+      ],
+      "observed_tools": [
+        "analyze_ai_work",
+        "analyze_backup_health",
+        "analyze_config",
+        "analyze_dependency_patterns",
+        "analyze_documentation",
+        "analyze_documentation_sync",
+        "analyze_duplicate_functions",
+        "analyze_error_handling",
+        "analyze_function_patterns",
+        "analyze_function_registry",
+        "analyze_functions",
+        "analyze_legacy_references",
+        "analyze_module_dependencies",
+        "analyze_module_imports",
+        "analyze_module_refactor_candidates",
+        "analyze_package_exports",
+        "analyze_system_signals",
+        "analyze_test_markers",
+        "analyze_unused_imports",
+        "decision_support",
+        "generate_dev_tools_coverage",
+        "generate_legacy_reference_report",
+        "generate_test_coverage_report",
+        "generate_unused_imports_report",
+        "run_test_coverage"
+      ],
+      "missing_expected_tools": [],
+      "failed_tools": [],
+      "tool_execution_status": {
+        "analyze_system_signals": "success",
+        "analyze_config": "success",
+        "analyze_ai_work": "success",
+        "analyze_documentation": "success",
+        "analyze_function_patterns": "success",
+        "decision_support": "success",
+        "analyze_functions": "success",
+        "analyze_package_exports": "success",
+        "analyze_duplicate_functions": "success",
+        "analyze_error_handling": "success",
+        "analyze_module_refactor_candidates": "success",
+        "analyze_function_registry": "success",
+        "analyze_module_imports": "success",
+        "analyze_dependency_patterns": "success",
+        "analyze_module_dependencies": "success",
+        "analyze_unused_imports": "success",
+        "generate_unused_imports_report": "success",
+        "analyze_documentation_sync": "success",
+        "analyze_legacy_references": "success",
+        "generate_legacy_reference_report": "success",
+        "run_test_coverage": "success",
+        "generate_dev_tools_coverage": "success",
+        "analyze_test_markers": "success",
+        "generate_test_coverage_report": "success",
+        "analyze_backup_health": "success"
+      },
+      "tool_cache_metadata": {
+        "analyze_unused_imports": {
+          "cache_mode": "cold_scan",
+          "hits": 0,
+          "misses": 475,
+          "total_cache_checks": 475,
+          "hit_rate": 0.0
+        },
+        "analyze_path_drift": {
+          "cache_mode": "internal_mtime_cache",
+          "invalidation_reason": "Path drift uses internal analyzer cache",
+          "source": "run_analyze_path_drift"
+        },
+        "analyze_ascii_compliance": {
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Parsed standardized stdout from subcheck",
+          "source": "doc_subcheck_stdout"
+        },
+        "analyze_heading_numbering": {
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Parsed standardized stdout from subcheck",
+          "source": "doc_subcheck_stdout"
+        },
+        "analyze_missing_addresses": {
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Parsed standardized stdout from subcheck",
+          "source": "doc_subcheck_stdout"
+        },
+        "analyze_unconverted_links": {
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Parsed standardized stdout from subcheck",
+          "source": "doc_subcheck_stdout"
+        },
+        "analyze_documentation_sync": {
+          "cache_mode": "cold_scan",
+          "cache_hits": 0,
+          "cache_misses": 6,
+          "subchecks": {
+            "paired_docs": "cold_scan",
+            "path_drift": "internal_mtime_cache",
+            "ascii_compliance": "cold_scan",
+            "heading_numbering": "cold_scan",
+            "missing_addresses": "cold_scan",
+            "unconverted_links": "cold_scan"
+          },
+          "invalidation_reason": "One or more doc subchecks refreshed"
+        },
+        "analyze_legacy_references": {
+          "cache_mode": "cold_scan",
+          "hits": 0,
+          "misses": 473,
+          "total_cache_checks": 473,
+          "hit_rate": 0.0
+        },
+        "run_test_coverage": {
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Coverage command executed (stdout mode markers unavailable)",
+          "source": "coverage_json_metadata",
+          "generated_by": ""
+        },
+        "generate_dev_tools_coverage": {
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Coverage command executed (stdout mode markers unavailable)",
+          "source": "coverage_json_metadata",
+          "generated_by": ""
+        }
+      }
+    },
+    {
+      "timestamp": "2026-02-26T13:22:55.550499",
+      "tier": "full",
+      "tier_number": 3,
+      "audit_success": true,
+      "tool_timings": {
+        "analyze_system_signals": 1.1263132095336914,
+        "analyze_config": 1.3337583541870117,
+        "analyze_ai_work": 1.4013242721557617,
+        "analyze_documentation": 1.6208703517913818,
+        "analyze_function_patterns": 2.6835665702819824,
+        "decision_support": 3.4100911617279053,
+        "analyze_functions": 2.0792205333709717,
+        "analyze_package_exports": 3.3844046592712402,
+        "analyze_duplicate_functions": 4.109168767929077,
+        "analyze_error_handling": 4.338994741439819,
+        "analyze_module_refactor_candidates": 3.0648653507232666,
+        "analyze_module_imports": 1.7536523342132568,
+        "analyze_dependency_patterns": 0.016039133071899414,
+        "analyze_module_dependencies": 2.0244460105895996,
+        "analyze_function_registry": 3.2798116207122803,
+        "analyze_unused_imports": 3.8853516578674316,
+        "generate_unused_imports_report": 1.0972273349761963,
+        "analyze_documentation_sync": 12.021296739578247,
+        "analyze_legacy_references": 4.8468077182769775,
+        "generate_legacy_reference_report": 1.0299980640411377,
+        "run_test_coverage": 257.57889437675476,
+        "generate_dev_tools_coverage": 367.4369463920593,
+        "analyze_test_markers": 2.741011381149292,
+        "generate_test_coverage_report": 1.1092166900634766,
+        "analyze_backup_health": 1.2117681503295898
+      },
+      "total_time": 688.5850455760956,
+      "sum_tool_durations_seconds": 688.5850455760956,
+      "wall_clock_total_seconds": 397.9675380999688,
+      "parallelism_gain_seconds": 290.6175074761268,
+      "expected_tools": [
+        "analyze_system_signals",
+        "analyze_documentation",
+        "analyze_config",
+        "analyze_ai_work",
+        "analyze_function_patterns",
+        "decision_support",
+        "analyze_functions",
+        "analyze_error_handling",
+        "analyze_package_exports",
+        "analyze_duplicate_functions",
+        "analyze_module_refactor_candidates",
+        "analyze_module_imports",
+        "analyze_dependency_patterns",
+        "analyze_module_dependencies",
+        "analyze_function_registry",
+        "analyze_documentation_sync",
+        "analyze_unused_imports",
+        "generate_unused_imports_report",
+        "run_test_coverage",
+        "generate_dev_tools_coverage",
+        "analyze_test_markers",
+        "generate_test_coverage_report",
+        "analyze_legacy_references",
+        "generate_legacy_reference_report"
+      ],
+      "observed_tools": [
+        "analyze_ai_work",
+        "analyze_backup_health",
+        "analyze_config",
+        "analyze_dependency_patterns",
+        "analyze_documentation",
+        "analyze_documentation_sync",
+        "analyze_duplicate_functions",
+        "analyze_error_handling",
+        "analyze_function_patterns",
+        "analyze_function_registry",
+        "analyze_functions",
+        "analyze_legacy_references",
+        "analyze_module_dependencies",
+        "analyze_module_imports",
+        "analyze_module_refactor_candidates",
+        "analyze_package_exports",
+        "analyze_system_signals",
+        "analyze_test_markers",
+        "analyze_unused_imports",
+        "decision_support",
+        "generate_dev_tools_coverage",
+        "generate_legacy_reference_report",
+        "generate_test_coverage_report",
+        "generate_unused_imports_report",
+        "run_test_coverage"
+      ],
+      "missing_expected_tools": [],
+      "failed_tools": [],
+      "tool_execution_status": {
+        "analyze_system_signals": "success",
+        "analyze_config": "success",
+        "analyze_ai_work": "success",
+        "analyze_documentation": "success",
+        "analyze_function_patterns": "success",
+        "decision_support": "success",
+        "analyze_functions": "success",
+        "analyze_package_exports": "success",
+        "analyze_duplicate_functions": "success",
+        "analyze_error_handling": "success",
+        "analyze_module_refactor_candidates": "success",
+        "analyze_module_imports": "success",
+        "analyze_dependency_patterns": "success",
+        "analyze_module_dependencies": "success",
+        "analyze_function_registry": "success",
+        "analyze_unused_imports": "success",
+        "generate_unused_imports_report": "success",
+        "analyze_documentation_sync": "success",
+        "analyze_legacy_references": "success",
+        "generate_legacy_reference_report": "success",
+        "run_test_coverage": "success",
+        "generate_dev_tools_coverage": "success",
+        "analyze_test_markers": "success",
+        "generate_test_coverage_report": "success",
+        "analyze_backup_health": "success"
+      },
+      "tool_cache_metadata": {
+        "analyze_path_drift": {
+          "cache_mode": "internal_mtime_cache",
+          "invalidation_reason": "Path drift uses internal analyzer cache",
+          "source": "run_analyze_path_drift"
+        },
+        "analyze_unused_imports": {
+          "cache_mode": "cold_scan",
+          "hits": 0,
+          "misses": 476,
+          "total_cache_checks": 476,
+          "hit_rate": 0.0
+        },
+        "analyze_ascii_compliance": {
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Parsed standardized stdout from subcheck",
+          "source": "doc_subcheck_stdout"
+        },
+        "analyze_heading_numbering": {
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Parsed standardized stdout from subcheck",
+          "source": "doc_subcheck_stdout"
+        },
+        "analyze_missing_addresses": {
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Parsed standardized stdout from subcheck",
+          "source": "doc_subcheck_stdout"
+        },
+        "analyze_unconverted_links": {
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Parsed standardized stdout from subcheck",
+          "source": "doc_subcheck_stdout"
+        },
+        "analyze_documentation_sync": {
+          "cache_mode": "cold_scan",
+          "cache_hits": 0,
+          "cache_misses": 6,
+          "subchecks": {
+            "paired_docs": "cold_scan",
+            "path_drift": "internal_mtime_cache",
+            "ascii_compliance": "cold_scan",
+            "heading_numbering": "cold_scan",
+            "missing_addresses": "cold_scan",
+            "unconverted_links": "cold_scan"
+          },
+          "invalidation_reason": "One or more doc subchecks refreshed"
+        },
+        "analyze_legacy_references": {
+          "cache_mode": "cold_scan",
+          "hits": 0,
+          "misses": 474,
+          "total_cache_checks": 474,
+          "hit_rate": 0.0
+        },
+        "run_test_coverage": {
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Coverage command executed (stdout mode markers unavailable)",
+          "source": "coverage_json_metadata",
+          "generated_by": ""
+        },
+        "generate_dev_tools_coverage": {
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Coverage command executed (stdout mode markers unavailable)",
+          "source": "coverage_json_metadata",
+          "generated_by": ""
         }
       }
     }

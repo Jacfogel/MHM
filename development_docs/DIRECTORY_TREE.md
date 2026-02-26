@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-25 23:51:00
+> **Last Generated**: 2026-02-26 13:13:50
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -333,6 +333,44 @@ C:.
 |   |   |   
 |   +---tests
 |   |   |   .coverage
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.10156.XiQkACpx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.10156.XXtmbFAx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.13184.XQGedtUx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.13184.XRPvGNHx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.13772.XSmbLTbx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.13772.XUoBGoox
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.14640.XRIefwXx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.14640.XvHceHLx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.16336.XfezIhOx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.16336.XToKGLOx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.18972.XGggeCix
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.18972.XkcyoEix
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.22568.XeDRXQQx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.22568.XgAjJLtx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.25668.XHqRmNJx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.25668.XubNTivx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.27736.Xcfgpvjx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.27736.XgdUBIQx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.30464.XijYfaHx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.30464.XJPdsGCx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.32264.XcPqSWix
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.32264.XcUyJPox
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.34792.XEVNyeSx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.34792.XlWIoNzx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.36652.XGIqRLax
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.36652.XyKKvcFx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.36996.XkoYvHIx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.36996.XvUcgvGx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.37448.XAIyubOx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.37448.XQPLqtRx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.38096.XdYwexXx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.38096.XjsJEDzx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.5772.XhErniPx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.5772.XkZDqXvx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.7536.XdMoyhbx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.7536.XFqiDcgx
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.8928.XcFzJGox
+|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.8928.XxTTwYbx
 |   |   |   analyze_test_coverage.py
 |   |   |   analyze_test_markers.py
 |   |   |   coverage.ini
@@ -533,9 +571,13 @@ C:.
 |   |   |   test_audit_tier_comprehensive.py
 |   |   |   test_audit_tier_e2e_verification.py
 |   |   |   test_backup_inventory.py
+|   |   |   test_backup_policy_models.py
+|   |   |   test_backup_reports.py
 |   |   |   test_changelog_trim_tooling.py
 |   |   |   test_check_channel_loggers.py
 |   |   |   test_cli_interface.py
+|   |   |   test_commands_docs_locks.py
+|   |   |   test_common_shared.py
 |   |   |   test_config.json
 |   |   |   test_config.py
 |   |   |   test_constants.py
@@ -569,6 +611,7 @@ C:.
 |   |   |   test_legacy_reference_cleanup.py
 |   |   |   test_mtime_cache.py
 |   |   |   test_output_storage_archiving.py
+|   |   |   test_output_storage_helpers.py
 |   |   |   test_path_drift_detection.py
 |   |   |   test_path_drift_integration.py
 |   |   |   test_path_drift_verification_comprehensive.py

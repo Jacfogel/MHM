@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-26 00:15:49
+> **Last Generated**: 2026-02-26 13:16:33
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 471
-- **Files with Unused Imports**: 121
-- **Total Unused Imports**: 385
+- **Total Files Scanned**: 476
+- **Files with Unused Imports**: 125
+- **Total Unused Imports**: 388
 
 ## Breakdown by Category
 
@@ -18,9 +18,9 @@
 - **Re Exports**: 2 imports
 - **Conditional Imports**: 21 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 147 imports
+- **Test Mocking**: 146 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 149 imports
+- **Test Infrastructure**: 153 imports
 - **Production Test Mocking**: 2 imports
 - **Ui Imports**: 5 imports
 
@@ -184,9 +184,8 @@
 
 ### `tests/development_tools/test_analyze_ai_work.py`
 
-**Count**: 2 unused import(s)
+**Count**: 1 unused import(s)
 
-- **Line 11**: `unittest.mock.patch` imported but unused
 - **Line 11**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/development_tools/test_analyze_error_handling.py`
@@ -920,6 +919,24 @@
 
 - **Line 3**: `pathlib.Path` imported but unused
 
+### `tests/development_tools/test_backup_policy_models.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 3**: `pathlib.Path` imported but unused
+
+### `tests/development_tools/test_backup_reports.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 3**: `pathlib.Path` imported but unused
+
+### `tests/development_tools/test_common_shared.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 3**: `pathlib.Path` imported but unused
+
 ### `tests/development_tools/test_decision_support.py`
 
 **Count**: 1 unused import(s)
@@ -1044,6 +1061,12 @@
 
 - **Line 10**: `pathlib.Path` imported but unused
 - **Line 13**: `tests.development_tools.conftest.temp_project_copy` imported but unused
+
+### `tests/development_tools/test_output_storage_helpers.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 4**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_path_drift_detection.py`
 

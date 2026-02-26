@@ -1,6 +1,7 @@
 """Unit tests for development_tools/static_checks/check_channel_loggers.py."""
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -39,3 +40,95 @@ def test_iter_python_files_respects_standard_exclusions(tmp_path: Path):
     assert "scripts/helper.py" not in as_posix
     assert "tests/data/test_tmp.py" not in as_posix
     assert ".ruff_cache/cache_mod.py" not in as_posix
+
+
+@pytest.mark.unit
+def test_check_file_flags_forbidden_logging_import(tmp_path: Path):
+    """check_file should report direct logging import violations."""
+    target = tmp_path / "core" / "bad_logging.py"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        "import logging\nlogger = logging.getLogger(__name__)\n",
+        encoding="utf-8",
+    )
+
+    with patch.object(check_channel_loggers, "REPO_ROOT", tmp_path):
+        issues = list(check_channel_loggers.check_file(target))
+
+    assert any("Direct logging import is forbidden" in issue for issue in issues)
+    assert any("core.logger.get_component_logger" in issue for issue in issues)
+
+
+@pytest.mark.unit
+def test_check_file_flags_multi_arg_logger_calls(tmp_path: Path):
+    """check_file should require a single positional arg for logger methods."""
+    target = tmp_path / "core" / "bad_logger_call.py"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        "from core.logger import get_component_logger\n"
+        "app_logger = get_component_logger('x')\n"
+        "app_logger.info('value=%s', 3)\n",
+        encoding="utf-8",
+    )
+
+    with patch.object(check_channel_loggers, "REPO_ROOT", tmp_path):
+        issues = list(check_channel_loggers.check_file(target))
+
+    assert any("single positional argument" in issue for issue in issues)
+
+
+@pytest.mark.unit
+def test_check_file_allows_logging_import_for_allowlisted_path(tmp_path: Path):
+    """Allowlisted files should not fail direct logging import checks."""
+    target = tmp_path / "core" / "logger.py"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("import logging\n", encoding="utf-8")
+
+    with (
+        patch.object(check_channel_loggers, "REPO_ROOT", tmp_path),
+        patch.object(check_channel_loggers, "ALLOWED_LOGGING_IMPORT_PATHS", {Path("core/logger.py")}),
+    ):
+        issues = list(check_channel_loggers.check_file(target))
+
+    assert issues == []
+
+
+@pytest.mark.unit
+def test_main_returns_failure_when_violations_found(tmp_path: Path):
+    """main should return 1 and print violations when issues are present."""
+    violation_file = tmp_path / "core" / "bad.py"
+    violation_file.parent.mkdir(parents=True, exist_ok=True)
+    violation_file.write_text("import logging\n", encoding="utf-8")
+
+    with (
+        patch.object(check_channel_loggers, "REPO_ROOT", tmp_path),
+        patch("builtins.print") as mock_print,
+    ):
+        result = check_channel_loggers.main()
+
+    assert result == 1
+    printed = [str(c.args[0]) for c in mock_print.call_args_list if c.args]
+    assert any("Static logging check failed" in line for line in printed)
+
+
+@pytest.mark.unit
+def test_main_returns_success_when_no_violations(tmp_path: Path):
+    """main should return 0 when no files violate static logging rules."""
+    clean_file = tmp_path / "core" / "good.py"
+    clean_file.parent.mkdir(parents=True, exist_ok=True)
+    clean_file.write_text(
+        "from core.logger import get_component_logger\n"
+        "app_logger = get_component_logger('x')\n"
+        "app_logger.info(f'value={3}')\n",
+        encoding="utf-8",
+    )
+
+    with (
+        patch.object(check_channel_loggers, "REPO_ROOT", tmp_path),
+        patch("builtins.print") as mock_print,
+    ):
+        result = check_channel_loggers.main()
+
+    assert result == 0
+    printed = [str(c.args[0]) for c in mock_print.call_args_list if c.args]
+    assert any("Static check passed" in line for line in printed)

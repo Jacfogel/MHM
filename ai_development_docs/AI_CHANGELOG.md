@@ -30,12 +30,20 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-26 - Dev-tools coverage + AI work CLI follow-up **Progressed**
+- Continued `AI_PRIORITIES` item `#2` with targeted low-risk test expansions across dev-tools modules, plus `analyze_ai_work.py` non-JSON CLI logging migration (`print` -> `logger.info`) with regression coverage.
+- Validation progressed across batches from targeted suites (`7 passed`, `9 passed`, `103 passed`) to the consolidated suite (`141 passed`).
+- Dev-tools-only coverage progressed `56.6%` (`14164/25008`) -> `58.6%` (`14667/25008`) -> `59.6%` (`14916/25008`, report rounds to `60%`).
+- Hardened docs/audit lock behavior: `run_docs` now fails fast when audit/coverage locks exist, and `run_development_tools.py` now cleans audit/coverage lock files on interrupted `audit`/`full-audit` (`KeyboardInterrupt`) to reduce stale-lock blockers.
+- Final user-run verification: `audit --full --clear-cache` completed with no new issues.
+- Updated roadmap tracking in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.1`; full detailed breakdown is recorded in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md).
+
 ### 2026-02-26 - Sleep check-in multi-period parsing + schedule-style time formats **COMPLETED**
 - Sleep check-in answers now support interrupted sleep in up to 3 chunks with flexible connectors (`and`, `to`, `-`, ` - `) plus `from`/`between` phrasing.
 - Time parsing for sleep schedule now accepts schedule-style variants (`9pm`, `930pm`, `21:30`, hour-only values, `noon`, `midnight`) and chunk separators via commas, semicolons, or new lines.
 - Analytics now consume chunk payloads (`sleep_chunks`/`total_sleep_hours`) so interrupted sleep totals are calculated correctly and check-in history formatting shows chunk ranges + totals.
 - Updated question text/examples in `resources/default_checkin/questions.json`; behavior validation passed: `pytest tests/behavior/test_checkin_questions_enhancement.py tests/behavior/test_dynamic_checkin_behavior.py -q` (`27 passed`).
-- Per user instruction, generated/audit artifact files in working-tree diff were excluded from this session’s changelog attribution.
+- Per user instruction, generated/audit artifact files in working-tree diff were excluded from this session's changelog attribution.
 
 ### 2026-02-26 - Dev-tools exclusions consistency + CLI logging cleanup **Progressed**
 - Applied shared exclusion filtering (`standard_exclusions.should_exclude_file`) to additional non-orchestration scanners/tests paths: function docstrings, domain mapper, test marker analyzer, channel logger checker, version-sync discovery, and dev-tools coverage cache/source mtime discovery paths.
@@ -123,47 +131,5 @@ Guidelines:
 - Backup tooling outputs are now JSON-only in `development_tools/reports/jsons`, and drill restore extraction folders are temporary/auto-cleaned after verification.
 - `backup_zip_compat_bridge` legacy tracking remains registered; removal plan is unchanged (remove bridge after no zip backups remain for one full 30-day Category-A retention window).
 
-### 2026-02-20 - Coverage expansion batch + stability fixes **COMPLETED**
-- Main session outcome: expanded automated test coverage across priority domains (`communication`, `ui`, `core`) with additional scenario/branch-focused tests and refreshed coverage/report outputs.
-- As part of keeping the coverage run green, resolved two active Tier 3 failures:
-  - `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_username_exists_checks_existing_username`
-  - `tests/ui/test_account_creation_ui.py::TestAccountCreationErrorHandling::test_invalid_data_handling_real_behavior`
-- Hardened username lookup behavior in `communication/command_handlers/account_handler.py` to skip per-user read errors during scans, and stabilized related behavior tests with unique identifiers + explicit setup assertions.
-- Updated the failing UI persistence assertion path in `tests/ui/test_account_creation_ui.py` to use runtime path resolution with bounded retry and non-auto-create verification, removing a parallel timing/path assumption.
-- Coverage-focused updates reflected in current diff include `tests/unit/test_channel_orchestrator.py`, `tests/ui/test_ui_app_qt_core.py`, and `tests/behavior/test_service_utilities_behavior.py`, plus refreshed `AI_STATUS/AI_PRIORITIES/consolidated_report` and report JSONs.
-- Validation: targeted reruns passed; user-confirmed full `audit --full` now has all tests passing.
-- Full-diff review (`git diff --stat` + `git diff --name-only`) completed before wrap-up; per user, all diff files were actioned this session.
-
-### 2026-02-20 - Tier 3/logging follow-up and full-diff session wrap **COMPLETED**
-- Completed a focused follow-up pass on audit/logging behavior: `quick_status` now runs only during explicit quick audits, and tool completion labels are standardized to `PASS`/`FAIL` with `issues=<n>` detail.
-- Finalized Tier 3/report/logging integration updates across service orchestration/wrappers/commands/reporting and coverage runner paths (`audit_orchestration.py`, `commands.py`, `report_generation.py`, `tool_wrappers.py`, `run_test_coverage.py`), with refreshed status/priorities/consolidated outputs.
-- Updated dev-tools tests and reliability coverage in current session tree (including `test_generate_function_registry.py`, `test_regenerate_coverage_metrics.py`, `test_report_generation_quick_wins.py`, `test_audit_strict_mode.py`, plus targeted test stabilization updates).
-- Adjusted `tests/development_tools/test_changelog_trim_tooling.py` to match current INFO/DEBUG policy.
-- Validation: targeted dev-tools pytest checks passed; user-confirmed `audit --full --clear-cache` passes.
-- Full `git diff --stat` + `git diff --name-only` review completed; current tree treated as session-scoped and reflected by this entry.
-
-### 2026-02-19 - Tier-3 test-failure fixes + testing-guide policy clarifications **COMPLETED**
-- Added an explicit temporary legacy-compatibility bridge for Tier 3 `coverage_outcome` v1 fields (`state`, counts, `return_code`, `failed_node_ids`) with marker/commenting, usage logging when state-only payloads are encountered, and specific legacy-pattern registration for cleanup tracking; removal plan is to delete this bridge after downstream consumers stop reading v1-only fields.
-- Fixed Tier-3 failures by removing nondeterministic and collision-prone test patterns in:
-  - `tests/unit/test_user_management.py`
-  - `tests/ui/test_category_management_dialog.py`
-  - `tests/unit/test_config.py`
-  - `tests/behavior/test_account_handler_behavior.py`
-  - `tests/behavior/test_checkin_handler_behavior.py`
-- Corrected account-handler test setup misuse where `TestUserFactory.create_basic_user(...)` bool return values were used as user IDs; tests now resolve UUIDs explicitly.
-- Updated paired testing docs [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) and [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) with explicit rules for factory return semantics, UUID resolution, unique per-test IDs for parallel safety, and policy guard tests (`tests/unit/test_test_policy_guards.py`).
-- Updated planning/status artifacts and reports in this same session: [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), `development_tools/AI_PRIORITIES.md`, `development_tools/AI_STATUS.md`, `development_tools/consolidated_report.md`, and refreshed generated reports under `development_docs/*REPORT.md` plus `development_tools/reports/*.json`.
-- Additional test files updated this session and reflected in diff: `tests/conftest.py`, `tests/core/test_file_auditor.py`, `tests/debug_file_paths.py`, `tests/development_tools/test_analyze_functions.py`, and `tests/test_error_handling_improvements.py`; new untracked tests created: `tests/development_tools/test_analyze_test_markers.py`, `tests/development_tools/test_fix_test_markers.py`, `tests/development_tools/test_tool_guide.py`, `tests/unit/test_test_policy_guards.py`.
-- Validation: targeted previously failing nodes and focused account-handler/checkin-handler subsets passed.
-
-### 2026-02-19 - Coverage hardening + audit failure cleanup **Progressed**
-- Picked and progressed `AI_PRIORITIES.md` item "Raise development tools coverage" by targeting the listed 0%-coverage modules: `development_tools/shared/export_code_snapshot.py`, `development_tools/shared/export_docs_snapshot.py`, and `development_tools/shared/service/data_freshness_audit.py`.
-- Added focused regression/unit tests in `tests/development_tools/test_export_snapshots.py` and `tests/development_tools/test_data_freshness_audit.py` to exercise exclusion toggles, file discovery/bundling, report scanning, static freshness checks, and summary aggregation.
-- Fixed a real bug discovered during test authoring: `check_cache_file_for_deleted_files()` in `data_freshness_audit.py` defined recursive scanning but never executed it; now calls `find_file_paths(data)` so deleted-file references are actually detected.
-- Validation: `python -m pytest tests/development_tools/test_export_snapshots.py tests/development_tools/test_data_freshness_audit.py -q` -> `11 passed`.
-- Hardened coverage orchestration cache-precheck behavior in `development_tools/shared/service/commands.py` so failed cached outcomes (`test_failures`/`failed`/`crashed`/`coverage_failed`) are not reused as `cache_only`; added regression tests in `tests/development_tools/test_audit_strict_mode.py`.
-- Updated test-file coverage cache policy to persist cache artifacts whenever coverage data is collected (even on failing runs) and rely on failed-domain/run-domain invalidation on next run (`development_tools/tests/run_test_coverage.py`, `development_tools/tests/test_file_coverage_cache.py`).
-- Reverted temporary full-run timeout floor so coverage pytest timeout remains config/default driven (12 minutes unless configured otherwise).
-- Fixed/closed recent audit failures: removed `tests/development_tools/test_intentional_failure.py`; stabilized behavior tests with per-test unique user IDs in `tests/behavior/test_message_behavior.py` and `tests/behavior/test_checkin_handler_behavior.py`; revalidated `tests/behavior/test_discord_checkin_retry_behavior.py` targeted failure path as stable in reruns.
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

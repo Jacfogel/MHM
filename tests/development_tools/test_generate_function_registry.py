@@ -6,6 +6,7 @@ Tests function extraction, scanning, categorization, and file generation.
 
 import pytest
 from pathlib import Path
+from unittest.mock import patch
 
 # Import helper from conftest
 from tests.development_tools.conftest import load_development_tools_module
@@ -487,6 +488,175 @@ class TestRegistryHelpers:
         assert "- [MISSING] `undocumented_func()` - No description" in section
         assert "- [MISSING] `Widget` - No description" in section
         assert "Widget.save(self)" in section
+
+    @pytest.mark.unit
+    def test_generate_pattern_section_includes_detected_patterns(self):
+        """Pattern section should render detected handler/manager examples."""
+        patterns = {
+            "handlers": [
+                {"file": "communication/a.py", "function": "handle_message", "has_doc": True},
+                {"file": "communication/b.py", "function": "handle_task", "has_doc": False},
+                {"file": "communication/c.py", "function": "handle_help", "has_doc": False},
+            ],
+            "managers": [
+                {"file": "core/manager.py", "class": "TaskManager", "has_doc": True},
+                {"file": "core/manager2.py", "class": "UserManager", "has_doc": False},
+                {"file": "core/manager3.py", "class": "CacheManager", "has_doc": False},
+            ],
+        }
+        content = registry_module.generate_pattern_section(patterns, {})
+
+        assert "Handler Pattern" in content
+        assert "Manager Pattern" in content
+        assert "`handle_message`" in content
+        assert "`TaskManager`" in content
+
+    @pytest.mark.unit
+    def test_generate_entry_points_section_includes_fallbacks_when_sparse(self):
+        """Entry point section should include fallback canonical items when too short."""
+        patterns = {"entry_points": [{"file": "misc/runner.py", "function": "boot", "has_doc": False}]}
+
+        with patch.object(registry_module.config, "get_project_key_files", return_value=["run_tests.py"]):
+            content = registry_module.generate_entry_points_section(patterns, {})
+
+        assert "communication/message_processing/interaction_manager.py::handle_message()" in content
+        assert "ai/chatbot.py::generate_response()" in content
+
+    @pytest.mark.unit
+    def test_generate_entry_points_section_respects_priority_and_init_filter(self):
+        """Entry points should prioritize key functions and include allowed __init__."""
+        patterns = {
+            "entry_points": [
+                {"file": "ui/ui_app_qt.py", "function": "__init__", "has_doc": True},
+                {"file": "misc/mod.py", "function": "other", "has_doc": True},
+                {"file": "communication/message_processing/interaction_manager.py", "function": "handle_message", "has_doc": True},
+                {"file": "ai/chatbot.py", "function": "generate_response", "has_doc": True},
+            ]
+        }
+
+        with patch.object(registry_module.config, "get_project_key_files", return_value=["ui_app_qt.py"]):
+            content = registry_module.generate_entry_points_section(patterns, {})
+
+        lines = content.splitlines()
+        assert lines[0].endswith("handle_message()` - Main message entry point")
+        assert any("ui/ui_app_qt.py::__init__()" in line for line in lines)
+
+    @pytest.mark.unit
+    def test_generate_common_operations_section_returns_placeholder_when_empty(self):
+        """Common operations should return a placeholder when no patterns are found."""
+        content = registry_module.generate_common_operations_section({}, {})
+        assert "No common operations detected" in content
+
+    @pytest.mark.unit
+    def test_generate_common_operations_section_detects_priority_ops(self):
+        """Common operations should include user message, AI response, and scheduling."""
+        patterns = {
+            "entry_points": [
+                {"file": "communication/message_processing/interaction_manager.py", "function": "handle_message"},
+                {"file": "ai/chatbot.py", "function": "generate_response"},
+                {"file": "run_mhm.py", "function": "main"},
+            ],
+            "data_access": [
+                {"file": "core/user_data_handlers.py", "function": "get_user_data"},
+                {"file": "core/user_data_handlers.py", "function": "save_user_data"},
+            ],
+            "communication": [
+                {"file": "communication/core/channel_orchestrator.py", "function": "send_alert"},
+                {"file": "communication/core/channel_orchestrator.py", "function": "receive_status"},
+            ],
+            "error_handlers": [{"file": "core/error_handling.py", "function": "handle_errors"}],
+            "schedulers": [{"file": "core/scheduler.py", "function": "schedule_checkins"}],
+        }
+        actual_functions = {
+            "communication/message_processing/command_parser.py": {
+                "functions": [{"name": "parse_command"}],
+                "classes": [],
+            },
+            "core/validate_input.py": {
+                "functions": [{"name": "validate_payload"}],
+                "classes": [],
+            },
+            "core/config.py": {
+                "functions": [{"name": "get_config"}],
+                "classes": [],
+            },
+        }
+
+        content = registry_module.generate_common_operations_section(actual_functions, patterns)
+        assert "**User Message**" in content
+        assert "**AI Response**" in content
+        assert "**Scheduling**" in content
+        assert "**Command Parsing**" in content
+
+    @pytest.mark.unit
+    def test_generate_complexity_section_empty_when_no_high_complexity(self):
+        """Complexity section should be empty when nothing exceeds threshold."""
+        actual_functions = {
+            "core/a.py": {
+                "functions": [{"name": "small", "complexity": 50, "has_docstring": True}],
+                "classes": [],
+            }
+        }
+        assert registry_module.generate_complexity_section(actual_functions) == ""
+
+    @pytest.mark.unit
+    def test_generate_complexity_section_renders_top_complex_items(self):
+        """Complexity section should list high-complexity functions."""
+        actual_functions = {
+            "core/a.py": {
+                "functions": [
+                    {"name": "f1", "complexity": 300, "has_docstring": True},
+                    {"name": "f2", "complexity": 250, "has_docstring": False},
+                ],
+                "classes": [{"name": "C", "methods": [{"name": "m", "has_docstring": True}]}],
+            }
+        }
+        content = registry_module.generate_complexity_section(actual_functions)
+        assert "Complexity Metrics" in content
+        assert "core/a.py::f1()" in content
+        assert "Complexity: 300" in content
+
+    @pytest.mark.unit
+    def test_generate_file_organization_section_includes_known_and_extra_dirs(self):
+        """Organization section should include priority and non-priority directories."""
+        actual_functions = {
+            "core/a.py": {"functions": [{"name": "a"}], "classes": []},
+            "communication/b.py": {"functions": [], "classes": [{"methods": [{"name": "m"}]}]},
+            "extras/c.py": {"functions": [{"name": "x"}], "classes": []},
+        }
+        content = registry_module.generate_file_organization_section(actual_functions)
+        assert "`core/`" in content
+        assert "`communication/`" in content
+        assert "`extras/`" in content
+
+    @pytest.mark.unit
+    def test_generate_communication_patterns_section_detects_send_status_parse(self):
+        """Communication patterns should render detected send/status/parse entries."""
+        patterns = {
+            "communication": [
+                {"file": "communication/core/orchestrator.py", "function": "send_message"},
+                {"file": "communication/core/orchestrator.py", "function": "is_ready"},
+            ]
+        }
+        actual_functions = {
+            "communication/message_processing/command_parser.py": {
+                "functions": [{"name": "parse_command", "has_docstring": True}],
+                "classes": [],
+            }
+        }
+        content = registry_module.generate_communication_patterns_section(patterns, actual_functions)
+        assert "**Message Sending**" in content
+        assert "**Channel Status**" in content
+        assert "**Command Parsing**" in content
+
+    @pytest.mark.unit
+    def test_generate_communication_patterns_section_empty_when_no_patterns(self):
+        """Communication patterns should be empty when no matches are found."""
+        content = registry_module.generate_communication_patterns_section(
+            {"communication": []},
+            {"core/a.py": {"functions": [{"name": "parse_timestamp"}], "classes": []}},
+        )
+        assert content == ""
 
 
 class TestFileGeneration:

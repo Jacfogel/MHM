@@ -21,6 +21,9 @@ analyze_circular_dependencies = deps_module.analyze_circular_dependencies
 identify_enhancement_needs = deps_module.identify_enhancement_needs
 find_usage_of_module = deps_module.find_usage_of_module
 analyze_module_complexity = deps_module.analyze_module_complexity
+generate_updated_dependency_sections = deps_module.generate_updated_dependency_sections
+generate_enhanced_dependency_report = deps_module.generate_enhanced_dependency_report
+generate_dependency_report = deps_module.generate_dependency_report
 
 
 class TestExtractImportsFromFile:
@@ -339,3 +342,73 @@ TODO: Add detailed purpose description
         
         assert isinstance(result, dict)
         assert result.get('nonexistent.py') == 'not_in_codebase'
+
+
+class TestDependencyReportGeneration:
+    """Test report-generation helper paths."""
+
+    @pytest.mark.unit
+    @patch('development_tools.imports.analyze_module_dependencies.logger')
+    def test_generate_updated_dependency_sections_logs_only_local_import_files(self, mock_logger):
+        """Updated sections should only render files with local imports."""
+        actual_imports = {
+            "core/a.py": {"imports": {"local": ["core.b"], "standard_library": [], "third_party": []}},
+            "core/b.py": {"imports": {"local": [], "standard_library": ["json"], "third_party": []}},
+        }
+
+        generate_updated_dependency_sections(actual_imports)
+
+        debug_lines = [str(call.args[0]) for call in mock_logger.debug.call_args_list if call.args]
+        assert any("#### `core/a.py`" in line for line in debug_lines)
+        assert not any("#### `core/b.py`" in line for line in debug_lines)
+
+    @pytest.mark.unit
+    def test_generate_enhanced_dependency_report_prints_module_analysis(self, capsys):
+        """Enhanced report should print module sections with analysis details."""
+        actual_imports = {
+            "core/a.py": {"imports": {"local": ["core.b"], "standard_library": [], "third_party": []}, "total_imports": 1},
+            "core/b.py": {"imports": {"local": [], "standard_library": [], "third_party": []}, "total_imports": 0},
+        }
+        documented = {"core/a.py": ["core.b"]}
+
+        generate_enhanced_dependency_report(actual_imports, documented)
+        output = capsys.readouterr().out
+
+        assert "ENHANCED MODULE ANALYSIS REPORT" in output
+        assert "#### `core/a.py`" in output
+        assert "**Complexity**" in output
+
+    @pytest.mark.unit
+    @patch('development_tools.imports.analyze_module_dependencies.analyze_circular_dependencies')
+    @patch('development_tools.imports.analyze_module_dependencies.generate_updated_dependency_sections')
+    @patch('development_tools.imports.analyze_module_dependencies.generate_enhanced_dependency_report')
+    @patch('development_tools.imports.analyze_module_dependencies.identify_enhancement_needs')
+    @patch('development_tools.imports.analyze_module_dependencies.parse_module_dependencies')
+    @patch('development_tools.imports.analyze_module_dependencies.scan_all_python_files')
+    def test_generate_dependency_report_invokes_subreports(
+        self,
+        mock_scan,
+        mock_parse,
+        mock_identify,
+        mock_enhanced,
+        mock_updated,
+        mock_circular,
+        capsys,
+    ):
+        """Main report generator should call enhancement/circular/update helpers."""
+        mock_scan.return_value = {
+            "core/a.py": {
+                "imports": {"standard_library": [], "third_party": [], "local": ["core.b"]},
+                "total_imports": 1,
+            }
+        }
+        mock_parse.return_value = {"core/a.py": ["core.b"]}
+        mock_identify.return_value = {"core/a.py": "enhanced"}
+
+        generate_dependency_report()
+        output = capsys.readouterr().out
+
+        assert "MODULE DEPENDENCIES AUDIT REPORT" in output
+        mock_enhanced.assert_called_once()
+        mock_updated.assert_called_once()
+        mock_circular.assert_called_once()
