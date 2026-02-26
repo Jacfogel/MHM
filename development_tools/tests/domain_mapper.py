@@ -20,6 +20,8 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
+from development_tools.shared.standard_exclusions import should_exclude_file
+
 try:
     from core.logger import get_component_logger
 
@@ -241,6 +243,13 @@ class DomainMapper:
             if test_dir_path.exists():
                 # Find all test files in this directory
                 for test_file in test_dir_path.rglob("test_*.py"):
+                    rel_path = str(test_file.relative_to(self.project_root)).replace(
+                        "\\", "/"
+                    )
+                    if should_exclude_file(
+                        rel_path, tool_type="analysis", context="development"
+                    ):
+                        continue
                     test_files.append(test_file)
 
         # Also find test files with matching markers
@@ -248,6 +257,13 @@ class DomainMapper:
         if markers:
             # Search all test files for these markers
             for test_file in self.test_root.rglob("test_*.py"):
+                rel_path = str(test_file.relative_to(self.project_root)).replace(
+                    "\\", "/"
+                )
+                if should_exclude_file(
+                    rel_path, tool_type="analysis", context="development"
+                ):
+                    continue
                 file_markers = self.parse_markers_from_test_file(test_file)
                 if markers.intersection(file_markers):
                     if test_file not in test_files:

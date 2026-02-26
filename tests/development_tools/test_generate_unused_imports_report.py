@@ -372,3 +372,39 @@ class TestIntegrationWithAnalysis:
         assert '100' in report  # files_scanned
         assert '2' in report  # files_with_issues
         assert '3' in report  # total_unused
+
+
+@pytest.mark.unit
+def test_main_logs_summary_in_non_json_mode(monkeypatch, temp_project_copy):
+    """main() should log report summary lines when not in --json mode."""
+    messages = []
+
+    analysis_data = {
+        "details": {
+            "findings": {"obvious_unused": []},
+            "stats": {"files_scanned": 4, "files_with_issues": 1, "total_unused": 2},
+        }
+    }
+
+    monkeypatch.setattr(report_module, "load_tool_result", lambda *args, **kwargs: {"data": analysis_data})
+    monkeypatch.setattr(report_module, "create_output_file", lambda *args, **kwargs: None)
+    monkeypatch.setattr(report_module.logger, "info", lambda message: messages.append(message))
+    monkeypatch.setattr(
+        report_module.sys,
+        "argv",
+        [
+            "generate_unused_imports_report.py",
+            "--project-root",
+            str(temp_project_copy),
+            "--output-file",
+            "development_docs/UNUSED_IMPORTS_REPORT.md",
+        ],
+    )
+
+    rc = report_module.main()
+
+    assert rc == 0
+    assert any("Report saved to:" in message for message in messages)
+    assert any("Files scanned: 4" in message for message in messages)
+    assert any("Files with issues: 1" in message for message in messages)
+    assert any("Total unused imports: 2" in message for message in messages)

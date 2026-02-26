@@ -529,16 +529,22 @@ class DependencyPatternAnalyzer:
         )
 
 
-if __name__ == "__main__":
+def main() -> int:
+    """CLI entry point for standalone execution."""
     import argparse
 
     parser = argparse.ArgumentParser(description="Analyze dependency patterns")
     parser.add_argument(
         "--circular", action="store_true", help="Detect circular dependencies"
     )
-    args = parser.parse_args()
+    parser.parse_args()
 
     # This would need actual_imports data - typically called from generate_module_dependencies.py
-    print(
+    logger.info(
         "This tool is typically used as a library. Use generate_module_dependencies.py for full analysis."
     )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

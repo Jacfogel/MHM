@@ -2,12 +2,12 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-25 13:54:26
+> **Last Generated**: 2026-02-25 22:58:30
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 468
+- **Total Files Scanned**: 471
 - **Files with Unused Imports**: 121
 - **Total Unused Imports**: 385
 
@@ -108,7 +108,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 4451**: `development_tools.shared.file_rotation.FileRotator` imported but unused; consider using `importlib.util.find_spec` to test for availability
+- **Line 4474**: `development_tools.shared.file_rotation.FileRotator` imported but unused; consider using `importlib.util.find_spec` to test for availability
 
 ### `tests/development_tools/test_analysis_validation_framework.py`
 

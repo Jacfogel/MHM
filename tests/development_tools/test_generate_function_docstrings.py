@@ -341,6 +341,28 @@ def undocumented_func():
         
         assert isinstance(results, dict)
         assert results['files_processed'] >= 0
+
+    @pytest.mark.unit
+    def test_scan_and_document_respects_standard_exclusions(self, tmp_path):
+        """Files under excluded paths (e.g. scripts/) should be skipped."""
+        excluded_dir = tmp_path / "scripts"
+        excluded_dir.mkdir(parents=True, exist_ok=True)
+        excluded_file = excluded_dir / "script_module.py"
+        excluded_file.write_text(
+            "def main():\n    return True\n",
+            encoding="utf-8",
+        )
+
+        with patch(
+            "development_tools.functions.generate_function_docstrings.config.get_scan_directories",
+            return_value=["scripts"],
+        ):
+            results = scan_and_document_functions(project_root_path=tmp_path)
+
+        assert isinstance(results, dict)
+        assert results["files_processed"] == 0
+        assert results["functions_documented"] == 0
+        assert results["errors"] == 0
     
     @pytest.mark.integration
     def test_scan_and_document_demo_project(self, demo_project_root, test_config_path):
@@ -353,4 +375,3 @@ def undocumented_func():
         assert 'functions_documented' in results
         assert 'functions_skipped' in results
         assert 'errors' in results
-

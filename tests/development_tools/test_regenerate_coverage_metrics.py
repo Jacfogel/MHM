@@ -364,6 +364,46 @@ directory = development_tools/tests/coverage_html
             if config_file.exists():
                 config_file.unlink()
 
+    @pytest.mark.unit
+    def test_get_dev_tools_source_mtimes_respects_shared_exclusions(self, tmp_path):
+        """Dev-tools source mtimes should skip excluded paths like development_tools/scripts."""
+        keep_file = tmp_path / "development_tools" / "shared" / "keep.py"
+        skip_file = tmp_path / "development_tools" / "scripts" / "skip.py"
+        keep_file.parent.mkdir(parents=True, exist_ok=True)
+        skip_file.parent.mkdir(parents=True, exist_ok=True)
+        keep_file.write_text("def keep():\n    return 1\n", encoding="utf-8")
+        skip_file.write_text("def skip():\n    return 1\n", encoding="utf-8")
+
+        regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+        mtimes = regenerator._get_dev_tools_source_mtimes()
+        normalized_keys = {k.replace("\\", "/") for k in mtimes.keys()}
+
+        assert "development_tools/shared/keep.py" in normalized_keys
+        assert "development_tools/scripts/skip.py" not in normalized_keys
+
+    @pytest.mark.unit
+    def test_get_dev_tools_test_mtimes_respects_shared_exclusions(self, tmp_path):
+        """Dev-tools test mtimes should skip excluded paths under tests/development_tools."""
+        keep_file = tmp_path / "tests" / "development_tools" / "test_keep.py"
+        skip_file = (
+            tmp_path
+            / "tests"
+            / "development_tools"
+            / ".ruff_cache"
+            / "test_skip.py"
+        )
+        keep_file.parent.mkdir(parents=True, exist_ok=True)
+        skip_file.parent.mkdir(parents=True, exist_ok=True)
+        keep_file.write_text("def test_keep():\n    assert True\n", encoding="utf-8")
+        skip_file.write_text("def test_skip():\n    assert True\n", encoding="utf-8")
+
+        regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+        mtimes = regenerator._get_dev_tools_test_mtimes()
+        normalized_keys = {k.replace("\\", "/") for k in mtimes.keys()}
+
+        assert "tests/development_tools/test_keep.py" in normalized_keys
+        assert "tests/development_tools/.ruff_cache/test_skip.py" not in normalized_keys
+
 
 class TestCoverageJSON:
     """Test coverage JSON loading."""

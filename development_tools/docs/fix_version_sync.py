@@ -38,8 +38,11 @@ logger = get_component_logger("development_tools")
 VERSION_SYNC_CONFIG = config.get_fix_version_sync_config()
 AI_DOCS = VERSION_SYNC_CONFIG["ai_docs"]
 
-# Use consolidated generated files from exclusions section
-from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
+# Use consolidated generated files and shared exclusion checks.
+from development_tools.shared.standard_exclusions import (
+    ALL_GENERATED_FILES,
+    should_exclude_file,
+)
 
 # Extract .md files from ALL_GENERATED_FILES for generated docs
 # (exclude .txt, .json files which are also in the list)
@@ -206,16 +209,29 @@ def find_trackable_files(scope="ai_docs"):
         # Walk through directory and find files
         for root, dirs, files in os.walk("."):
             # Skip excluded directories
+            rel_root = str(Path(root)).replace("\\", "/").lstrip("./")
             dirs[:] = [
                 d
                 for d in dirs
                 if not any(
                     pattern.replace("/*", "") in d for pattern in EXCLUDE_PATTERNS
                 )
+                and not should_exclude_file(
+                    f"{rel_root}/{d}".strip("/"),
+                    tool_type="fix_version_sync",
+                    context="development",
+                )
             ]
 
             for file in files:
                 file_path = Path(root) / file
+                rel_file_path = str(file_path).replace("\\", "/").lstrip("./")
+                if should_exclude_file(
+                    rel_file_path,
+                    tool_type="fix_version_sync",
+                    context="development",
+                ):
+                    continue
                 if should_track_file(str(file_path), scope):
                     trackable_files.append(str(file_path))
 

@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-26 - Dev-tools exclusions consistency + CLI logging cleanup **Progressed**
+- Applied shared exclusion filtering (`standard_exclusions.should_exclude_file`) to additional non-orchestration scanners/tests paths: function docstrings, domain mapper, test marker analyzer, channel logger checker, version-sync discovery, and dev-tools coverage cache/source mtime discovery paths.
+- Converted remaining standalone analyzer summary prints to structured logging in `analyze_dependency_patterns.py`, `analyze_module_imports.py`, and non-JSON mode of `generate_unused_imports_report.py` (kept JSON stdout behavior).
+- Added/updated regression coverage in `test_analyze_module_imports_cli.py`, `test_check_channel_loggers.py`, `test_fix_version_sync_file_discovery.py`, and related existing dev-tools test modules.
+- Updated V4 roadmap tracking ([AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) sections `2.2`/`3.11`), re-ran full diff review (`git diff --stat`, `git diff --name-only`, `git status --short`), and user confirmed no new issues during `audit --full --clear-cache` follow-up.
+
 ### 2026-02-25 - Tier 3 failure fix + dev-tools coverage uplift **Progressed**
 - Fixed Tier 3 recurrent failure `tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success` by switching to factory-returned UUID (`create_minimal_user_and_get_id`) instead of a separate post-create index lookup.
 - Added focused low-coverage dev-tools tests: `test_service_utilities.py`, `test_tool_wrappers_additional.py`, `test_analyze_system_signals_additional.py`, plus strengthened `test_fix_documentation.py` and new `test_backup_inventory.py`.
@@ -168,11 +174,6 @@ Guidelines:
 - Replaced unavailable changelog trim dependency in `audit_orchestration.py` with `development_tools/docs/fix_version_sync.py` APIs and improved warning/info logging for check/trim result handling.
 - Moved changelog archive target to `archive/AI_CHANGELOG_ARCHIVE.md` and validated prepend behavior so newly trimmed entries are added at the top of archive history.
 - Added/updated regression tests: `test_report_generation_quick_wins.py`, `test_changelog_trim_tooling.py`, and `test_fix_version_sync_changelog_archive_order.py`; refreshed generated status/priority/consolidated outputs after fixes.
-
-### 2026-02-17 - New session closeout entry and follow-up confirmation **COMPLETED**
-- Added a distinct same-day entry for this session (separate from the earlier 2026-02-17 work) per session-level changelog policy.
-- Confirmed planning sync: completed command-map/recursion tasks removed from [TODO.md](TODO.md).
-- Full audit run and no regressions found
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

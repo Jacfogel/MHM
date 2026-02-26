@@ -65,6 +65,64 @@ def test_domain_mapper_expands_cross_domain_dependencies() -> None:
 
 
 @pytest.mark.unit
+def test_domain_mapper_get_test_files_for_source_includes_domain_tests() -> None:
+    """Domain mapper should include relevant non-excluded test files."""
+    temp_dir = _make_local_scratch_dir()
+    try:
+        core_dir = temp_dir / "core"
+        tests_unit_dir = temp_dir / "tests" / "unit"
+        core_dir.mkdir(parents=True, exist_ok=True)
+        tests_unit_dir.mkdir(parents=True, exist_ok=True)
+
+        (core_dir / "service.py").write_text("def f():\n    return 1\n", encoding="utf-8")
+        expected_test_file = tests_unit_dir / "test_service.py"
+        expected_test_file.write_text(
+            "import pytest\n\n@pytest.mark.unit\ndef test_service():\n    assert True\n",
+            encoding="utf-8",
+        )
+
+        mapper = DomainMapper(temp_dir)
+        test_files = mapper.get_test_files_for_source("core/service.py")
+
+        assert expected_test_file in test_files
+    finally:
+        _cleanup_local_scratch_dir(temp_dir)
+
+
+@pytest.mark.unit
+def test_domain_mapper_get_test_files_for_source_excludes_tests_data() -> None:
+    """Domain mapper should skip excluded paths like tests/data/** test files."""
+    temp_dir = _make_local_scratch_dir()
+    try:
+        core_dir = temp_dir / "core"
+        tests_unit_dir = temp_dir / "tests" / "unit"
+        tests_data_dir = temp_dir / "tests" / "data" / "pytest-of-worker"
+        core_dir.mkdir(parents=True, exist_ok=True)
+        tests_unit_dir.mkdir(parents=True, exist_ok=True)
+        tests_data_dir.mkdir(parents=True, exist_ok=True)
+
+        (core_dir / "service.py").write_text("def f():\n    return 1\n", encoding="utf-8")
+        included_test_file = tests_unit_dir / "test_service.py"
+        included_test_file.write_text(
+            "import pytest\n\n@pytest.mark.unit\ndef test_service():\n    assert True\n",
+            encoding="utf-8",
+        )
+        excluded_test_file = tests_data_dir / "test_transient.py"
+        excluded_test_file.write_text(
+            "import pytest\n\n@pytest.mark.unit\ndef test_transient():\n    assert True\n",
+            encoding="utf-8",
+        )
+
+        mapper = DomainMapper(temp_dir)
+        test_files = mapper.get_test_files_for_source("core/service.py")
+
+        assert included_test_file in test_files
+        assert excluded_test_file not in test_files
+    finally:
+        _cleanup_local_scratch_dir(temp_dir)
+
+
+@pytest.mark.unit
 def test_cache_invalidates_domains_when_test_file_changes() -> None:
     """Changing a test file should invalidate affected (and dependent) domains."""
     temp_path = _make_local_scratch_dir()
@@ -232,5 +290,51 @@ def test_failed_run_without_failed_domains_invalidates_last_run_domains() -> Non
             cache.last_invalidation_reason
             == "previous_run_failed: run domains from previous run"
         )
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_is_valid_test_file_uses_shared_exclusions() -> None:
+    """Shared exclusions should mark tests/coverage_html test files as invalid."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        (temp_path / "tests" / "unit").mkdir(parents=True, exist_ok=True)
+        (temp_path / "tests" / "coverage_html").mkdir(parents=True, exist_ok=True)
+
+        valid_file = temp_path / "tests" / "unit" / "test_ok.py"
+        excluded_file = temp_path / "tests" / "coverage_html" / "test_skip.py"
+        valid_file.write_text("def test_ok():\n    assert True\n", encoding="utf-8")
+        excluded_file.write_text(
+            "def test_skip():\n    assert True\n", encoding="utf-8"
+        )
+
+        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+
+        assert cache.is_valid_test_file(valid_file)
+        assert not cache.is_valid_test_file(excluded_file)
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_get_source_file_mtimes_respects_shared_exclusions() -> None:
+    """Source mtimes should skip files under excluded paths like domain/scripts/*."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        core_dir = temp_path / "core"
+        keep_file = core_dir / "module.py"
+        skip_file = core_dir / "scripts" / "helper.py"
+        keep_file.parent.mkdir(parents=True, exist_ok=True)
+        skip_file.parent.mkdir(parents=True, exist_ok=True)
+        keep_file.write_text("def f():\n    return 1\n", encoding="utf-8")
+        skip_file.write_text("def s():\n    return 1\n", encoding="utf-8")
+
+        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        mtimes = cache.get_source_file_mtimes("core")
+        normalized_keys = {k.replace("\\", "/") for k in mtimes.keys()}
+
+        assert "core/module.py" in normalized_keys
+        assert "core/scripts/helper.py" not in normalized_keys
     finally:
         _cleanup_local_scratch_dir(temp_path)

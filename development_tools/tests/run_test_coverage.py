@@ -33,6 +33,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from core.time_utilities import now_timestamp_full, now_timestamp_filename
+from development_tools.shared.standard_exclusions import should_exclude_file
 
 # Add project root to path for core module imports
 # Script is at: development_tools/tests/generate_test_coverage.py
@@ -379,6 +380,16 @@ class CoverageMetricsRegenerator:
         env["TEMP"] = str(test_tmp_root)
         env["TMPDIR"] = str(test_tmp_root)
         env["PYTEST_DEBUG_TEMPROOT"] = str(test_tmp_root)
+        # Ensure this external-library deprecation warning is suppressed even in
+        # subprocess/worker paths where pytest warning filters may not apply.
+        warning_filters = [
+            "ignore:'audioop' is deprecated and slated for removal in Python 3.13:DeprecationWarning",
+            "ignore:.*audioop.*deprecated.*:DeprecationWarning",
+        ]
+        existing_warning_filters = env.get("PYTHONWARNINGS", "").strip()
+        if existing_warning_filters:
+            warning_filters.insert(0, existing_warning_filters)
+        env["PYTHONWARNINGS"] = ",".join(warning_filters)
         return env
 
     def _create_pytest_temp_paths(self, run_label: str) -> tuple[Path, Path]:
@@ -3395,6 +3406,12 @@ class CoverageMetricsRegenerator:
                 continue
             try:
                 rel_path = str(py_file.relative_to(self.project_root))
+                if should_exclude_file(
+                    rel_path.replace("\\", "/"),
+                    tool_type="analysis",
+                    context="development",
+                ):
+                    continue
                 mtime = py_file.stat().st_mtime
                 mtimes[rel_path] = mtime
             except OSError:
@@ -3411,6 +3428,12 @@ class CoverageMetricsRegenerator:
         for test_file in tests_dir.rglob("test_*.py"):
             try:
                 rel_path = str(test_file.relative_to(self.project_root))
+                if should_exclude_file(
+                    rel_path.replace("\\", "/"),
+                    tool_type="analysis",
+                    context="development",
+                ):
+                    continue
                 mtimes[rel_path] = test_file.stat().st_mtime
             except OSError:
                 continue

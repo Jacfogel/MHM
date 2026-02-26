@@ -16,6 +16,8 @@ import os
 from pathlib import Path
 from typing import Iterable
 
+from development_tools.shared.standard_exclusions import should_exclude_file
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 LOG_METHODS = {"debug", "info", "warning", "error", "exception", "critical"}
 
@@ -112,10 +114,21 @@ def iter_python_files(root: Path) -> Iterable[Path]:
         dirnames[:] = [
             name
             for name in dirnames
-            if name not in IGNORED_DIR_NAMES and not is_excluded(rel_dir / name)
+            if name not in IGNORED_DIR_NAMES
+            and not is_excluded(rel_dir / name)
+            and not should_exclude_file(
+                str((rel_dir / name).as_posix()),
+                tool_type="analysis",
+                context="development",
+            )
         ]
         for filename in filenames:
             if filename.endswith(".py"):
+                rel_file = (rel_dir / filename).as_posix()
+                if should_exclude_file(
+                    rel_file, tool_type="analysis", context="development"
+                ):
+                    continue
                 yield Path(dirpath) / filename
 
 

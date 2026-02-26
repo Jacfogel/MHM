@@ -66,7 +66,7 @@ def test_find_test_files_filters_ai_and_pytest_temp_dirs():
         files = [p.as_posix() for p in analyzer.find_test_files(exclude_ai=True)]
 
         assert str(project_root / "tests" / "unit" / "test_ok.py").replace("\\", "/") in files
-        assert str(project_root / "tests" / "data" / "custom" / "test_custom.py").replace("\\", "/") in files
+        assert not any("tests/data/custom/test_custom.py" in f for f in files)
         assert not any("test_ai_flow.py" in f for f in files)
         assert not any("test_ai_helper.py" in f for f in files)
         assert not any("pytest-tmp-1" in f for f in files)

@@ -22,6 +22,7 @@ if str(project_root) not in sys.path:
 # Handle both relative and absolute imports
 try:
     from .. import config
+    from ..shared.standard_exclusions import should_exclude_file
     from ..shared.common import ProjectPaths
     from ..shared.constants import (
         TEST_CATEGORY_MARKERS,
@@ -31,6 +32,7 @@ try:
     )
 except ImportError:
     from development_tools import config
+    from development_tools.shared.standard_exclusions import should_exclude_file
     from development_tools.shared.common import ProjectPaths
     from development_tools.shared.constants import (
         TEST_CATEGORY_MARKERS,
@@ -146,6 +148,16 @@ class TestMarkerAnalyzer:
         for test_file in self.test_dir.rglob("test_*.py"):
             if test_file.is_file():
                 file_str = str(test_file).replace("\\", "/")
+                relative_path = str(test_file.relative_to(self.project_root)).replace(
+                    "\\", "/"
+                )
+
+                # Apply shared exclusions so tests/data, scripts, caches, etc.
+                # stay consistent with other analyzer tools.
+                if should_exclude_file(
+                    relative_path, tool_type="analysis", context="development"
+                ):
+                    continue
 
                 # Skip AI test files if requested
                 if exclude_ai and any(token in file_str for token in self.ai_path_tokens):

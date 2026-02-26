@@ -532,7 +532,8 @@ def scan_all_python_files() -> Dict[str, Dict]:
     return ModuleImportAnalyzer().scan_all_python_files()
 
 
-if __name__ == "__main__":
+def main() -> int:
+    """CLI entry point for standalone execution."""
     import argparse
 
     parser = argparse.ArgumentParser(description="Analyze module imports")
@@ -544,14 +545,19 @@ if __name__ == "__main__":
 
     if args.file:
         imports = analyzer.extract_imports_from_file(args.file)
-        print(f"Imports from {args.file}:")
-        print(f"  Standard library: {len(imports['standard_library'])}")
-        print(f"  Third-party: {len(imports['third_party'])}")
-        print(f"  Local: {len(imports['local'])}")
+        logger.info(f"Imports from {args.file}:")
+        logger.info(f"  Standard library: {len(imports['standard_library'])}")
+        logger.info(f"  Third-party: {len(imports['third_party'])}")
+        logger.info(f"  Local: {len(imports['local'])}")
     elif args.scan:
         results = analyzer.scan_all_python_files()
-        print(f"Scanned {len(results)} files")
+        logger.info(f"Scanned {len(results)} files")
         total_imports = sum(data["total_imports"] for data in results.values())
-        print(f"Total imports: {total_imports}")
+        logger.info(f"Total imports: {total_imports}")
     else:
         parser.print_help()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

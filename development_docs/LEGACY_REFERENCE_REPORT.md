@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-25 13:54:33
+> **Last Generated**: 2026-02-25 22:58:41
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 8
 **Legacy Compatibility Markers Detected**: 13
@@ -38,12 +38,12 @@
 ### development_tools\tests\run_test_coverage.py
 **Issues Found**: 2
 
-- **Line 4410**: `# LEGACY COMPATIBILITY:`
+- **Line 4433**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)
   ```
 
-- **Line 4773**: `# LEGACY COMPATIBILITY:`
+- **Line 4796**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY:
   ```
@@ -115,7 +115,7 @@
 ### development_tools\tests\run_test_coverage.py
 **Issues Found**: 1
 
-- **Line 4410**: `LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)`
+- **Line 4433**: `LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)`
   ```
   # LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)
   ```

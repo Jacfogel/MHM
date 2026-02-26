@@ -63,6 +63,7 @@ except ImportError:
 
 from .domain_mapper import DomainMapper
 from core.time_utilities import now_timestamp_full, now_timestamp_filename
+from development_tools.shared.standard_exclusions import should_exclude_file
 
 
 class TestFileCoverageCache:
@@ -250,6 +251,16 @@ class TestFileCoverageCache:
 
     def _is_excluded_test_path(self, path: Path) -> bool:
         """Return True when path is under an excluded test directory."""
+        try:
+            rel_path = str(path.relative_to(self.project_root)).replace("\\", "/")
+            if should_exclude_file(
+                rel_path, tool_type="analysis", context="development"
+            ):
+                return True
+        except ValueError:
+            # Path may be outside project_root in some edge cases.
+            pass
+
         excluded_dirs = getattr(self, "excluded_test_dirs", None)
         if not isinstance(excluded_dirs, list) or not excluded_dirs:
             excluded_dirs = self.DEFAULT_EXCLUDED_TEST_DIRS
@@ -628,6 +639,12 @@ class TestFileCoverageCache:
                 continue
             try:
                 rel_path = str(py_file.relative_to(self.project_root))
+                if should_exclude_file(
+                    rel_path.replace("\\", "/"),
+                    tool_type="analysis",
+                    context="development",
+                ):
+                    continue
                 mtime = py_file.stat().st_mtime
                 mtimes[rel_path] = mtime
             except OSError:
@@ -805,11 +822,7 @@ class TestFileCoverageCache:
         if is_full_run:
             # Full run: include ALL test files, even unmapped ones, to ensure complete coverage
             # But exclude test data directories
-            all_test_files = [
-                tf
-                for tf in self.test_root.rglob("test_*.py")
-                if self.is_valid_test_file(tf)
-            ]
+            all_test_files = list(self._iter_test_files())
 
             return sorted(all_test_files)
 

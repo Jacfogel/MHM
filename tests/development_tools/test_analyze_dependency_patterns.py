@@ -1,5 +1,6 @@
 """Tests for imports/analyze_dependency_patterns.py."""
 
+import sys
 import pytest
 
 from tests.development_tools.conftest import load_development_tools_module
@@ -118,3 +119,23 @@ def test_format_module_dependencies_deduplicates_and_limits():
     assert "standard library (" in rendered
     assert "third-party (" in rendered
     assert "+3 more" in rendered
+
+
+@pytest.mark.unit
+def test_main_logs_library_usage_guidance(monkeypatch):
+    """Standalone entrypoint should log usage guidance and exit cleanly."""
+    messages = []
+
+    monkeypatch.setattr(sys, "argv", ["analyze_dependency_patterns.py"])
+    monkeypatch.setattr(
+        dep_patterns_module.logger,
+        "info",
+        lambda message: messages.append(message),
+    )
+
+    exit_code = dep_patterns_module.main()
+
+    assert exit_code == 0
+    assert messages == [
+        "This tool is typically used as a library. Use generate_module_dependencies.py for full analysis."
+    ]

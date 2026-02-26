@@ -26,8 +26,10 @@ if str(project_root) not in sys.path:
 # Handle both relative and absolute imports
 try:
     from .. import config
+    from ..shared.standard_exclusions import should_exclude_file
 except ImportError:
     from development_tools import config
+    from development_tools.shared.standard_exclusions import should_exclude_file
 
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_filename
@@ -310,6 +312,9 @@ def scan_and_document_functions(project_root_path: Optional[Path] = None):
             continue
 
         for py_file in dir_path.rglob("*.py"):
+            if should_exclude_file(str(py_file), "analysis", "production"):
+                continue
+
             relative_path = py_file.relative_to(project_root)
             file_key = str(relative_path).replace("\\", "/")
 

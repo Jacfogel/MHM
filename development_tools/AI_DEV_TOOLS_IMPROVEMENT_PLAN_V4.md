@@ -180,6 +180,9 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
   - [x] Replaced `print(output)` with structured `logger.info(...)` in `shared/service/commands.py::run_config`
 - [x] Review noisy logs in config validation and package auditing (demoted multiline/non-actionable internals to DEBUG)
 - [ ] Complete remaining print-to-logger migration in standalone analyzer scripts where still appropriate
+  - [x] Converted `development_tools/imports/analyze_dependency_patterns.py` standalone entrypoint guidance from `print(...)` to `logger.info(...)` with explicit `main()` entrypoint and test coverage in `tests/development_tools/test_analyze_dependency_patterns.py`
+  - [x] Converted `development_tools/imports/analyze_module_imports.py` standalone `--file/--scan` summary output from `print(...)` to `logger.info(...)` with explicit `main()` entrypoint and CLI-path tests in `tests/development_tools/test_analyze_module_imports_cli.py`
+  - [x] Converted non-JSON CLI summary output in `development_tools/imports/generate_unused_imports_report.py` from `print(...)` to `logger.info(...)` (kept `--json` stdout behavior), with coverage in `tests/development_tools/test_generate_unused_imports_report.py::test_main_logs_summary_in_non_json_mode`
 - [x] Add "Top offenders" list to Quick Wins in AI_PRIORITIES.md
   - [x] Added unused-imports Quick Win in `shared/service/report_generation.py` with top offender files + fix/verify commands
   - [x] Added unit coverage in `tests/development_tools/test_report_generation_quick_wins.py`
@@ -374,6 +377,13 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Exclude `scripts/` where appropriate
 - [ ] Exclude `tests/ai/results/` where appropriate
 - [ ] Exclude `tests/coverage_html/` where appropriate
+  - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/functions/generate_function_docstrings.py` scanner loop (analysis/production context), with coverage in `tests/development_tools/test_generate_function_docstrings.py::test_scan_and_document_respects_standard_exclusions`
+  - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/tests/domain_mapper.py` when discovering `tests/**/test_*.py` (analysis/development context, using project-relative paths), with coverage in `tests/development_tools/test_test_file_coverage_cache.py` for include + `tests/data/**` exclusion behavior
+  - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/tests/analyze_test_markers.py::find_test_files` (analysis/development context, project-relative paths), with coverage update in `tests/development_tools/test_analyze_test_markers.py` confirming `tests/data/**` exclusion
+  - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/static_checks/check_channel_loggers.py::iter_python_files` (analysis/development context, project-relative paths), with unit coverage in `tests/development_tools/test_check_channel_loggers.py`
+  - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/docs/fix_version_sync.py::find_trackable_files` for both directory pruning and file filtering (`tool_type="fix_version_sync"`, development context), with coverage in `tests/development_tools/test_fix_version_sync_file_discovery.py`
+  - [x] Added shared exclusion filtering in `development_tools/tests/test_file_coverage_cache.py` for test-path validation and source-domain mtime discovery, and aligned full-run test discovery to `_iter_test_files()`, with coverage in `tests/development_tools/test_test_file_coverage_cache.py` (`tests/coverage_html` + `domain/scripts` exclusions)
+  - [x] Added shared exclusion filtering in `development_tools/tests/run_test_coverage.py` for `_get_dev_tools_source_mtimes()` and `_get_dev_tools_test_mtimes()`, with coverage in `tests/development_tools/test_regenerate_coverage_metrics.py`
 
 #### 3.12 Integrate flaky detector into development tools suite
 **Status**: PENDING  

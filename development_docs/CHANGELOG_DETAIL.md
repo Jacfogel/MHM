@@ -33,6 +33,44 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-26 - Dev-tools exclusions consistency + CLI logging cleanup
+- **Feature/Fix**: Continued the dev-tools roadmap by applying shared exclusion filtering to additional non-orchestration scanners and finishing another batch of print-to-logger migrations in standalone analyzers.
+- **Technical Changes**:
+  - Shared exclusions (`standard_exclusions.should_exclude_file(...)`) added to:
+    - `development_tools/functions/generate_function_docstrings.py`
+    - `development_tools/tests/domain_mapper.py`
+    - `development_tools/tests/analyze_test_markers.py`
+    - `development_tools/static_checks/check_channel_loggers.py`
+    - `development_tools/docs/fix_version_sync.py`
+    - `development_tools/tests/test_file_coverage_cache.py`
+    - `development_tools/tests/run_test_coverage.py`
+  - Standalone analyzer print-to-logger migration completed for:
+    - `development_tools/imports/analyze_dependency_patterns.py`
+    - `development_tools/imports/analyze_module_imports.py`
+    - `development_tools/imports/generate_unused_imports_report.py` (non-JSON mode; JSON stdout retained)
+  - Added/updated regression tests:
+    - `tests/development_tools/test_analyze_module_imports_cli.py`
+    - `tests/development_tools/test_check_channel_loggers.py`
+    - `tests/development_tools/test_fix_version_sync_file_discovery.py`
+    - updated targeted coverage in:
+      - `tests/development_tools/test_analyze_dependency_patterns.py`
+      - `tests/development_tools/test_analyze_test_markers.py`
+      - `tests/development_tools/test_generate_function_docstrings.py`
+      - `tests/development_tools/test_generate_unused_imports_report.py`
+      - `tests/development_tools/test_regenerate_coverage_metrics.py`
+      - `tests/development_tools/test_test_file_coverage_cache.py`
+  - Planning updates:
+    - expanded completed checklist items in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) sections `2.2` and `3.11`.
+- **Validation**:
+  - targeted pytest checks were run and passed for the touched analyzers and exclusion-integration paths.
+  - user-confirmed `audit --full --clear-cache` follow-up runs reported no new issues.
+- **Full-diff Attribution**:
+  - final closeout review used:
+    - `git diff --stat`
+    - `git diff --name-only`
+    - `git status --short`
+  - changelog entries and planning follow-ups were finalized from that working-tree review.
+
 ### 2026-02-25 - Tier 3 user-management failure fix + dev-tools coverage push
 - **Feature/Fix**: Closed the active Tier 3 failure from `AI_PRIORITIES.md` and executed a focused development-tools coverage batch targeting the lowest modules (`tool_wrappers.py`, `utilities.py`, `analyze_system_signals.py`).
 - **Technical Changes**:
@@ -49,7 +87,7 @@ When adding new changes, follow this format:
     - `tests/development_tools/test_fix_documentation.py` now exercises dispatcher `main()` branches (no-op help path, dry-run path, `--full` alias, non-zero error aggregation).
     - added `tests/development_tools/test_backup_inventory.py` for path matching, dedupe, and inventory summary rendering.
   - Planning update:
-    - recorded these coverage additions in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`.
+    - recorded these coverage additions in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
   - Audit/report artifacts refreshed in this session:
     - `development_tools/AI_STATUS.md`
     - `development_tools/AI_PRIORITIES.md`
