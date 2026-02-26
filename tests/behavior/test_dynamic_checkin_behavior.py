@@ -94,6 +94,15 @@ class TestDynamicCheckinManager:
         assert 'sleep_time' in value
         assert 'wake_time' in value
         assert error is None
+
+        is_valid, value, error = dynamic_checkin_manager.validate_answer(
+            'sleep_schedule',
+            '23:00-01:00, 02:00-06:00'
+        )
+        assert is_valid is True
+        assert isinstance(value, dict)
+        assert value.get('total_sleep_hours') == 6.0
+        assert len(value.get('sleep_chunks', [])) == 2
     
     def test_build_next_question_with_response(self):
         """Test building questions with response statements."""

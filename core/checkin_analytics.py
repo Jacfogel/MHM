@@ -134,6 +134,31 @@ class CheckinAnalytics:
         if value is None or value == "SKIPPED":
             return None
         if isinstance(value, dict):
+            total_sleep_hours = value.get("total_sleep_hours")
+            if isinstance(total_sleep_hours, (int, float)):
+                return float(total_sleep_hours)
+            sleep_chunks = value.get("sleep_chunks")
+            if isinstance(sleep_chunks, list) and sleep_chunks:
+                chunk_total = 0.0
+                for chunk in sleep_chunks:
+                    if not isinstance(chunk, dict):
+                        return None
+                    duration = chunk.get("duration_hours")
+                    if isinstance(duration, (int, float)):
+                        chunk_total += float(duration)
+                        continue
+                    sleep_time = chunk.get("sleep_time")
+                    wake_time = chunk.get("wake_time")
+                    if sleep_time and wake_time:
+                        chunk_duration = self._calculate_sleep_duration(
+                            sleep_time, wake_time
+                        )
+                        if chunk_duration is None:
+                            return None
+                        chunk_total += chunk_duration
+                        continue
+                    return None
+                return round(chunk_total, 1)
             sleep_time = value.get("sleep_time")
             wake_time = value.get("wake_time")
             if sleep_time and wake_time:
@@ -859,14 +884,11 @@ class CheckinAnalytics:
                         # Skip 'SKIPPED' responses to avoid analytics inaccuracies
                         if v_raw == "SKIPPED":
                             continue
-                        # Handle sleep_schedule specially (convert to hours)
-                        if field == "sleep_schedule" and isinstance(v_raw, dict):
-                            if "sleep_time" in v_raw and "wake_time" in v_raw:
-                                duration = self._calculate_sleep_duration(
-                                    v_raw["sleep_time"], v_raw["wake_time"]
-                                )
-                                if duration is not None:
-                                    values.append(duration)
+                        # Handle sleep_schedule specially (convert to hours).
+                        if field == "sleep_schedule":
+                            duration = self._coerce_sleep_hours(v_raw)
+                            if duration is not None:
+                                values.append(duration)
                             continue
                         # Handle yes/no questions by converting to 0/1
                         if isinstance(v_raw, bool):

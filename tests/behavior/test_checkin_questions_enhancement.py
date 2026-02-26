@@ -140,6 +140,35 @@ class TestSleepScheduleQuestion:
             ("23:30 and 07:00", {"sleep_time": "23:30", "wake_time": "07:00"}),
             ("11:30pm, 7:00am", {"sleep_time": "23:30", "wake_time": "07:00"}),
             ("10:00 PM, 6:30 AM", {"sleep_time": "22:00", "wake_time": "06:30"}),
+            ("930pm and 645am", {"sleep_time": "21:30", "wake_time": "06:45"}),
+            ("between 930pm and 645am", {"sleep_time": "21:30", "wake_time": "06:45"}),
+            ("from 930pm to 645am", {"sleep_time": "21:30", "wake_time": "06:45"}),
+            ("21 and 6", {"sleep_time": "21:00", "wake_time": "06:00"}),
+            ("midnight and noon", {"sleep_time": "00:00", "wake_time": "12:00"}),
+            (
+                "11:30 PM-1:00 AM, 2:15 AM-6:45 AM",
+                {"sleep_time": "23:30", "wake_time": "06:45", "total_sleep_hours": 6.0},
+            ),
+            (
+                "930pm-1am, 215am-645am",
+                {"sleep_time": "21:30", "wake_time": "06:45", "total_sleep_hours": 8.0},
+            ),
+            (
+                "from 930pm - 1am, from 215am to 645am",
+                {"sleep_time": "21:30", "wake_time": "06:45", "total_sleep_hours": 8.0},
+            ),
+            (
+                "from 930pm - 1am; from 215am to 645am",
+                {"sleep_time": "21:30", "wake_time": "06:45", "total_sleep_hours": 8.0},
+            ),
+            (
+                "from 930pm - 1am\nfrom 215am to 645am",
+                {"sleep_time": "21:30", "wake_time": "06:45", "total_sleep_hours": 8.0},
+            ),
+            (
+                "22:30-23:30, 00:15-03:00, 03:30-06:30",
+                {"sleep_time": "22:30", "wake_time": "06:30", "total_sleep_hours": 6.8},
+            ),
         ]
 
         for answer, expected in test_cases:
@@ -152,9 +181,18 @@ class TestSleepScheduleQuestion:
             assert "wake_time" in value
             assert value["sleep_time"] == expected["sleep_time"]
             assert value["wake_time"] == expected["wake_time"]
+            if "total_sleep_hours" in expected:
+                assert value.get("total_sleep_hours") == expected["total_sleep_hours"]
+                assert isinstance(value.get("sleep_chunks"), list)
+                assert 2 <= len(value["sleep_chunks"]) <= 3
 
         # Test invalid formats
-        invalid_cases = ["invalid", "10:00", "just one time"]
+        invalid_cases = [
+            "invalid",
+            "10:00",
+            "just one time",
+            "23:00-00:00, 01:00-02:00, 03:00-04:00, 05:00-06:00",
+        ]
         for answer in invalid_cases:
             is_valid, value, error = dynamic_checkin_manager.validate_answer(
                 "sleep_schedule", answer
@@ -180,6 +218,20 @@ class TestSleepScheduleQuestion:
         # Test long sleep
         duration = analytics._calculate_sleep_duration("22:00", "10:00")
         assert duration == 12.0
+
+    def test_interrupted_sleep_duration_calculation(self):
+        """Test interrupted sleep total duration calculation from sleep chunks."""
+        analytics = CheckinAnalytics()
+
+        duration = analytics._coerce_sleep_hours(
+            {
+                "sleep_chunks": [
+                    {"sleep_time": "23:30", "wake_time": "01:00"},
+                    {"sleep_time": "02:15", "wake_time": "06:45"},
+                ]
+            }
+        )
+        assert duration == 6.0
 
 
 @pytest.mark.behavior

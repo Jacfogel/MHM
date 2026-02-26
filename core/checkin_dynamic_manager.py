@@ -310,11 +310,10 @@ class DynamicCheckinManager:
             return True, answer, None
 
         elif question_type == "time_pair":
-            # Parse sleep time and wake time from answer
-            parsed_times = self._parse_time_pair_response(answer)
-            if parsed_times:
-                sleep_time, wake_time = parsed_times
-                return True, {"sleep_time": sleep_time, "wake_time": wake_time}, None
+            # Parse single sleep window or interrupted sleep chunks.
+            parsed_sleep = self._parse_time_pair_response(answer)
+            if parsed_sleep:
+                return True, parsed_sleep, None
             else:
                 return False, None, error_message
 
@@ -434,58 +433,127 @@ class DynamicCheckinManager:
         return None
 
     @handle_errors("parsing time pair response", default_return=None)
-    def _parse_time_pair_response(self, answer: str) -> tuple[str, str] | None:
-        """Parse sleep time and wake time from user response.
+    def _parse_time_pair_response(self, answer: str) -> dict[str, Any] | None:
+        """Parse sleep data from user response.
 
-        Supports formats like:
-        - "11:30 PM and 7:00 AM"
-        - "23:30 and 07:00"
-        - "11:30pm, 7:00am"
-        - "11:30 PM, 7:00 AM"
+        Supports either:
+        - Single window: "11:30 PM and 7:00 AM"
+        - Interrupted chunks (up to 3):
+          "11:00 PM-1:00 AM, 2:00 AM-6:30 AM"
         """
         answer = answer.strip()
+        if not answer:
+            return None
 
-        # Try to split on common separators
+        import re
+
+        normalized_answer = answer.strip()
+        if normalized_answer.lower().startswith("between "):
+            # Normalize "between X and Y" to "X and Y" for legacy separator parsing.
+            normalized_answer = normalized_answer[8:].strip()
+
+        chunk_segments = [
+            segment.strip()
+            for segment in re.split(r"[;,\n\r]+", normalized_answer)
+            if segment.strip()
+        ]
+        chunk_pattern = re.compile(r"^\s*(.*?)\s*(?:-|to|until|->)\s*(.*?)\s*$", re.IGNORECASE)
+        chunk_pairs: list[tuple[str, str]] = []
+        for segment in chunk_segments:
+            match = chunk_pattern.match(segment)
+            if not match:
+                chunk_pairs = []
+                break
+            chunk_pairs.append((match.group(1).strip(), match.group(2).strip()))
+
+        if len(chunk_pairs) > 3:
+            return None
+
+        if 1 <= len(chunk_pairs) <= 3:
+            parsed_chunks: list[dict[str, Any]] = []
+            total_hours = 0.0
+            for sleep_time_str, wake_time_str in chunk_pairs:
+                sleep_time = self._normalize_time(sleep_time_str)
+                wake_time = self._normalize_time(wake_time_str)
+                if not sleep_time or not wake_time:
+                    return None
+                duration_hours = self._calculate_sleep_chunk_hours(
+                    sleep_time, wake_time
+                )
+                if duration_hours is None:
+                    return None
+                parsed_chunks.append(
+                    {
+                        "sleep_time": sleep_time,
+                        "wake_time": wake_time,
+                        "duration_hours": duration_hours,
+                    }
+                )
+                total_hours += duration_hours
+
+            return {
+                "sleep_time": parsed_chunks[0]["sleep_time"],
+                "wake_time": parsed_chunks[-1]["wake_time"],
+                "sleep_chunks": parsed_chunks,
+                "total_sleep_hours": round(total_hours, 1),
+            }
+
+        # Fallback to single-window parsing using legacy separators.
         separators = [" and ", " & ", ", ", "; ", " to ", " then "]
         parts = None
         for sep in separators:
-            if sep in answer.lower():
-                parts = [p.strip() for p in answer.split(sep, 1)]
+            if sep in normalized_answer.lower():
+                parts = [p.strip() for p in normalized_answer.split(sep, 1)]
                 if len(parts) == 2:
                     break
 
-        # If no separator found, try to find two time patterns
         if not parts or len(parts) != 2:
-            # Try to find two time patterns in the text
-            import re
-
-            time_pattern = r"\b(\d{1,2}):(\d{2})\s*(am|pm|AM|PM)?\b"
-            matches = re.findall(time_pattern, answer)
-            if len(matches) >= 2:
-                # Use first two matches
-                sleep_match = matches[0]
-                wake_match = matches[1]
-                parts = [
-                    f"{sleep_match[0]}:{sleep_match[1]}{sleep_match[2] if sleep_match[2] else ''}",
-                    f"{wake_match[0]}:{wake_match[1]}{wake_match[2] if wake_match[2] else ''}",
-                ]
+            time_tokens = self._extract_time_tokens(normalized_answer)
+            if len(time_tokens) >= 2:
+                parts = [time_tokens[0], time_tokens[1]]
             else:
                 return None
 
         if len(parts) != 2:
             return None
 
-        sleep_time_str = parts[0].strip()
-        wake_time_str = parts[1].strip()
+        sleep_time = self._normalize_time(parts[0].strip())
+        wake_time = self._normalize_time(parts[1].strip())
+        if not sleep_time or not wake_time:
+            return None
 
-        # Parse and normalize times
-        sleep_time = self._normalize_time(sleep_time_str)
-        wake_time = self._normalize_time(wake_time_str)
+        return {"sleep_time": sleep_time, "wake_time": wake_time}
 
-        if sleep_time and wake_time:
-            return (sleep_time, wake_time)
+    @handle_errors("extracting time tokens", default_return=[])
+    def _extract_time_tokens(self, text: str) -> list[str]:
+        """Extract schedule-style time tokens from free text."""
+        import re
 
-        return None
+        token_pattern = re.compile(
+            r"\b(?:noon|midnight|(?:[01]?\d|2[0-3])(?::?[0-5]\d)?\s*(?:am|pm)?)\b",
+            re.IGNORECASE,
+        )
+        return [match.group(0).strip() for match in token_pattern.finditer(text)]
+
+    @handle_errors("calculating sleep chunk hours", default_return=None)
+    def _calculate_sleep_chunk_hours(
+        self, sleep_time: str, wake_time: str
+    ) -> float | None:
+        """Calculate duration for one sleep chunk in hours."""
+        try:
+            sleep_hour, sleep_minute = [int(v) for v in sleep_time.split(":", 1)]
+            wake_hour, wake_minute = [int(v) for v in wake_time.split(":", 1)]
+        except (TypeError, ValueError):
+            return None
+
+        sleep_total = (sleep_hour * 60) + sleep_minute
+        wake_total = (wake_hour * 60) + wake_minute
+        if wake_total <= sleep_total:
+            wake_total += 24 * 60
+        duration_minutes = wake_total - sleep_total
+        if duration_minutes <= 0:
+            return None
+        return round(duration_minutes / 60, 1)
 
     @handle_errors("normalizing time format", default_return=None)
     def _normalize_time(self, time_str: str) -> str | None:
@@ -495,38 +563,59 @@ class DynamicCheckinManager:
         - "11:30 PM" -> "23:30"
         - "7:00 AM" -> "07:00"
         - "23:30" -> "23:30"
-        - "7:00" -> "07:00" (assumes AM if no AM/PM)
+        - "7:00" -> "07:00" (assumes 24-hour value)
+        - "9pm" -> "21:00"
+        - "930pm" -> "21:30"
+        - "9" -> "09:00"
+        - "noon" -> "12:00"
+        - "midnight" -> "00:00"
         """
         import re
 
-        time_str = time_str.strip().upper()
-
-        # Pattern to match time with optional AM/PM
-        pattern = r"(\d{1,2}):(\d{2})\s*(AM|PM)?"
-        match = re.match(pattern, time_str)
-
-        if not match:
+        time_str = self._clean_time_token(time_str).upper()
+        if not time_str:
             return None
 
-        hour = int(match.group(1))
-        minute = int(match.group(2))
-        am_pm = match.group(3)
+        if time_str == "NOON":
+            return "12:00"
+        if time_str == "MIDNIGHT":
+            return "00:00"
 
-        # Validate hour and minute
-        if hour < 0 or hour > 23 or minute < 0 or minute > 59:
-            return None
+        # 24-hour format with colon: HH:MM
+        match_hhmm = re.match(r"^([01]?\d|2[0-3]):([0-5]\d)$", time_str)
+        if match_hhmm:
+            hour = int(match_hhmm.group(1))
+            minute = int(match_hhmm.group(2))
+            return f"{hour:02d}:{minute:02d}"
 
-        # Handle AM/PM conversion
-        if am_pm:
+        # 12-hour with optional colon/minutes: 9PM, 9:30PM, 930PM
+        match_ampm = re.match(r"^(1[0-2]|0?[1-9])(?::?([0-5]\d))?\s*(AM|PM)$", time_str)
+        if match_ampm:
+            hour = int(match_ampm.group(1))
+            minute = int(match_ampm.group(2)) if match_ampm.group(2) else 0
+            am_pm = match_ampm.group(3)
             if am_pm == "PM" and hour != 12:
                 hour += 12
             elif am_pm == "AM" and hour == 12:
                 hour = 0
-        # If no AM/PM and hour > 12, assume 24-hour format
-        # If hour <= 12 and no AM/PM, assume AM (could be ambiguous, but common case)
+            return f"{hour:02d}:{minute:02d}"
 
-        # Format as HH:MM
-        return f"{hour:02d}:{minute:02d}"
+        # Hour-only 24-hour format: 0-23
+        match_hour = re.match(r"^([01]?\d|2[0-3])$", time_str)
+        if match_hour:
+            return f"{int(match_hour.group(1)):02d}:00"
+
+        return None
+
+    @handle_errors("cleaning time token", default_return="")
+    def _clean_time_token(self, time_str: str) -> str:
+        """Remove connector words/punctuation around a time token."""
+        import re
+
+        token = (time_str or "").strip().strip(",.;")
+        token = re.sub(r"^(FROM|BETWEEN)\s+", "", token, flags=re.IGNORECASE)
+        token = re.sub(r"\s+(TO|AND)$", "", token, flags=re.IGNORECASE)
+        return token.strip()
 
     @handle_errors("getting enabled questions for UI", default_return={})
     def get_enabled_questions_for_ui(

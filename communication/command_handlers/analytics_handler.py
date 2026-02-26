@@ -710,6 +710,24 @@ class AnalyticsHandler(InteractionHandler):
             except ValueError:
                 return value_str
         if isinstance(value, dict):
+            sleep_chunks = value.get("sleep_chunks")
+            total_sleep_hours = value.get("total_sleep_hours")
+            if isinstance(sleep_chunks, list) and sleep_chunks:
+                chunk_ranges = []
+                for chunk in sleep_chunks:
+                    if not isinstance(chunk, dict):
+                        continue
+                    start = chunk.get("sleep_time")
+                    end = chunk.get("wake_time")
+                    if start and end:
+                        chunk_ranges.append(f"{start}-{end}")
+                if chunk_ranges:
+                    if isinstance(total_sleep_hours, (int, float)):
+                        return (
+                            f"{'; '.join(chunk_ranges)} "
+                            f"(total {self._format_numeric_value(float(total_sleep_hours))}h)"
+                        )
+                    return "; ".join(chunk_ranges)
             sleep_time = value.get("sleep_time")
             wake_time = value.get("wake_time")
             if sleep_time and wake_time:

@@ -33,6 +33,32 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-26 - Sleep check-in multi-period input expansion
+- **Feature/Fix**: Expanded check-in sleep schedule input to support interrupted sleep logging across up to three chunks, with schedule-style time format flexibility and additional connector/separator phrasing.
+- **Technical Changes**:
+  - `core/checkin_dynamic_manager.py`
+    - extended `time_pair` parsing for sleep schedule answers to accept:
+      - multi-chunk inputs (1-3 chunks),
+      - connectors `and`, `to`, `-`, ` - `,
+      - optional prefixes `from` and `between`,
+      - chunk separators using commas, semicolons, and new lines.
+    - expanded time normalization to accept schedule-style variants (`9pm`, `930pm`, `21:30`, hour-only forms, `noon`, `midnight`).
+  - `core/checkin_analytics.py`
+    - updated sleep-hours coercion to consume chunk-based payloads (`sleep_chunks`, `total_sleep_hours`) so analytics compute true interrupted-sleep totals.
+  - `communication/command_handlers/analytics_handler.py`
+    - updated check-in history formatting for chunked sleep schedules to display chunk ranges and total hours when present.
+  - `resources/default_checkin/questions.json`
+    - updated user-facing question/validation copy with chunk-capable examples and separator guidance.
+  - Tests:
+    - expanded behavior coverage in:
+      - `tests/behavior/test_checkin_questions_enhancement.py`
+      - `tests/behavior/test_dynamic_checkin_behavior.py`
+    - added acceptance cases for multi-chunk parsing, connector variants, and separator variants.
+- **Validation**:
+  - `pytest tests/behavior/test_checkin_questions_enhancement.py tests/behavior/test_dynamic_checkin_behavior.py -q` -> `27 passed`.
+- **Closeout Scope Note**:
+  - Session closeout attribution intentionally excludes generated/audit artifact files per user instruction; this entry covers non-generated code/doc/test changes only.
+
 ### 2026-02-26 - Dev-tools exclusions consistency + CLI logging cleanup
 - **Feature/Fix**: Continued the dev-tools roadmap by applying shared exclusion filtering to additional non-orchestration scanners and finishing another batch of print-to-logger migrations in standalone analyzers.
 - **Technical Changes**:

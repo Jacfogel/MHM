@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-26 - Sleep check-in multi-period parsing + schedule-style time formats **COMPLETED**
+- Sleep check-in answers now support interrupted sleep in up to 3 chunks with flexible connectors (`and`, `to`, `-`, ` - `) plus `from`/`between` phrasing.
+- Time parsing for sleep schedule now accepts schedule-style variants (`9pm`, `930pm`, `21:30`, hour-only values, `noon`, `midnight`) and chunk separators via commas, semicolons, or new lines.
+- Analytics now consume chunk payloads (`sleep_chunks`/`total_sleep_hours`) so interrupted sleep totals are calculated correctly and check-in history formatting shows chunk ranges + totals.
+- Updated question text/examples in `resources/default_checkin/questions.json`; behavior validation passed: `pytest tests/behavior/test_checkin_questions_enhancement.py tests/behavior/test_dynamic_checkin_behavior.py -q` (`27 passed`).
+- Per user instruction, generated/audit artifact files in working-tree diff were excluded from this session’s changelog attribution.
+
 ### 2026-02-26 - Dev-tools exclusions consistency + CLI logging cleanup **Progressed**
 - Applied shared exclusion filtering (`standard_exclusions.should_exclude_file`) to additional non-orchestration scanners/tests paths: function docstrings, domain mapper, test marker analyzer, channel logger checker, version-sync discovery, and dev-tools coverage cache/source mtime discovery paths.
 - Converted remaining standalone analyzer summary prints to structured logging in `analyze_dependency_patterns.py`, `analyze_module_imports.py`, and non-JSON mode of `generate_unused_imports_report.py` (kept JSON stdout behavior).
@@ -167,13 +174,6 @@ Guidelines:
 - Updated Tier 3 priority rendering in `report_generation.py` to show per-track failed tests inline (`Parallel tests failed=N: ...`, `No-parallel tests failed=N: ...`) and derive displayed counts from deduplicated per-track failed node IDs.
 - Normalized displayed pytest node IDs to compact `path::test_name` form and retained concrete applicable `development_tools/tests/logs/pytest_*_stdout_*.log` references in priority details.
 - Updated regression expectations in `tests/development_tools/test_report_generation_quick_wins.py`; validated with targeted pytest runs for cache and reporting paths (all passing).
-
-### 2026-02-18 - Priorities regression fix + safe changelog trim pathing **COMPLETED**
-- Fixed `AI_PRIORITIES.md` omission of failed Tier 3 tests: the failure priority is now added before ranked rendering, so failed node IDs from `analyze_test_coverage` reliably appear in Immediate Focus.
-- Standardized priority output shape in `report_generation.py`: removed redundant top blurbs, corrected AI_STATUS role wording, normalized `Review for guidance`, and enforced guidance/details bullets across priority types.
-- Replaced unavailable changelog trim dependency in `audit_orchestration.py` with `development_tools/docs/fix_version_sync.py` APIs and improved warning/info logging for check/trim result handling.
-- Moved changelog archive target to `archive/AI_CHANGELOG_ARCHIVE.md` and validated prepend behavior so newly trimmed entries are added at the top of archive history.
-- Added/updated regression tests: `test_report_generation_quick_wins.py`, `test_changelog_trim_tooling.py`, and `test_fix_version_sync_changelog_archive_order.py`; refreshed generated status/priority/consolidated outputs after fixes.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-25 11:00:33
+> **Last Generated**: 2026-02-25 23:51:00
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -329,8 +329,8 @@ C:.
 |   |   |   |   __init__.py
 |   |   |   |   
 |   +---static_checks
-|   |       check_channel_loggers.py
-|   |       
+|   |   |   check_channel_loggers.py
+|   |   |   
 |   +---tests
 |   |   |   .coverage
 |   |   |   analyze_test_coverage.py
@@ -521,8 +521,10 @@ C:.
 |   |   |   test_analyze_heading_numbering.py
 |   |   |   test_analyze_missing_addresses.py
 |   |   |   test_analyze_module_dependencies.py
+|   |   |   test_analyze_module_imports_cli.py
 |   |   |   test_analyze_module_refactor_candidates.py
 |   |   |   test_analyze_package_exports.py
+|   |   |   test_analyze_system_signals_additional.py
 |   |   |   test_analyze_test_markers.py
 |   |   |   test_analyze_unconverted_links.py
 |   |   |   test_analyze_unused_imports.py
@@ -530,7 +532,9 @@ C:.
 |   |   |   test_audit_strict_mode.py
 |   |   |   test_audit_tier_comprehensive.py
 |   |   |   test_audit_tier_e2e_verification.py
+|   |   |   test_backup_inventory.py
 |   |   |   test_changelog_trim_tooling.py
+|   |   |   test_check_channel_loggers.py
 |   |   |   test_cli_interface.py
 |   |   |   test_config.json
 |   |   |   test_config.py
@@ -551,6 +555,7 @@ C:.
 |   |   |   test_fix_documentation_links.py
 |   |   |   test_fix_project_cleanup.py
 |   |   |   test_fix_test_markers.py
+|   |   |   test_fix_version_sync_file_discovery.py
 |   |   |   test_fix_version_sync_todo_sync.py
 |   |   |   test_generate_consolidated_report.py
 |   |   |   test_generate_directory_tree.py
@@ -572,11 +577,13 @@ C:.
 |   |   |   test_retention_engine.py
 |   |   |   test_run_development_tools.py
 |   |   |   test_run_dev_tools.py
+|   |   |   test_service_utilities.py
 |   |   |   test_standard_exclusions.py
 |   |   |   test_status_file_timing.py
 |   |   |   test_supporting_tools.py
 |   |   |   test_test_file_coverage_cache.py
 |   |   |   test_tool_guide.py
+|   |   |   test_tool_wrappers_additional.py
 |   |   |   test_tool_wrappers_branch_paths.py
 |   |   |   test_tool_wrappers_package_exports.py
 |   |   |   test_verification_summary.py

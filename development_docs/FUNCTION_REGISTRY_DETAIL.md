@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-25 11:00:24
+> **Last Generated**: 2026-02-25 23:50:51
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
+### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1625
-- **Methods Found**: 1179
+- **Functions Found**: 1628
+- **Methods Found**: 1182
 - **Classes Found**: 154
-- **Total Items**: 2804
-- **Functions Documented**: 1550
-- **Methods Documented**: 1139
+- **Total Items**: 2810
+- **Functions Documented**: 1555
+- **Methods Documented**: 1142
 - **Classes Documented**: 120
-- **Total Documented**: 2689
+- **Total Documented**: 2697
 - **Template-Generated**: 5
 - **Last Updated**: 2026-02-25
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (589)
+### **Core System Functions** (592)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (424)
@@ -2419,7 +2419,7 @@ Returns:
 - [OK] `_get_cleanup_status__format_next_cleanup_date(last_date)` - Format the next cleanup date or return 'Overdue'.
 - [OK] `_get_cleanup_status__get_invalid_tracker_status()` - Get status when cleanup tracker exists but contains an invalid timestamp.
 - [OK] `_get_cleanup_status__get_never_cleaned_status()` - Get status when cleanup has never been performed.
-- [MISSING] `_is_weekly_backup_artifact(path)` - No description
+- [OK] `_is_weekly_backup_artifact(path)` - Return True when a backup artifact belongs to weekly scheduler cadence.
 - [OK] `_perform_cleanup__discover_cache_files(root_path)` - Discover all cache files and directories in the given root path.
 - [OK] `_perform_cleanup__log_completion_results(removed_dirs, removed_files, total_size)` - Log the final cleanup results and statistics.
 - [OK] `_perform_cleanup__log_discovery_results(pycache_dirs, pyc_files)` - Calculate total size and log discovery results.
@@ -2717,6 +2717,9 @@ Only includes fields that appear in the data and are in enabled_fields if provid
 #### `core/checkin_dynamic_manager.py`
 **Functions:**
 - [OK] `__init__(self)` - Initialize the dynamic check-in manager.
+- [OK] `_calculate_sleep_chunk_hours(self, sleep_time, wake_time)` - Calculate duration for one sleep chunk in hours.
+- [OK] `_clean_time_token(self, time_str)` - Remove connector words/punctuation around a time token.
+- [OK] `_extract_time_tokens(self, text)` - Extract schedule-style time tokens from free text.
 - [OK] `_get_numeric_response_fallback(self, question_responses, answer_value)` - Return response list for nearest integer key when float answers are provided.
 - [OK] `_load_data(self)` - Load questions and responses data from JSON files.
 - [OK] `_normalize_time(self, time_str)` - Normalize time string to HH:MM format (24-hour).
@@ -2725,15 +2728,19 @@ Supports formats like:
 - "11:30 PM" -> "23:30"
 - "7:00 AM" -> "07:00"
 - "23:30" -> "23:30"
-- "7:00" -> "07:00" (assumes AM if no AM/PM)
+- "7:00" -> "07:00" (assumes 24-hour value)
+- "9pm" -> "21:00"
+- "930pm" -> "21:30"
+- "9" -> "09:00"
+- "noon" -> "12:00"
+- "midnight" -> "00:00"
 - [OK] `_parse_numerical_response(self, answer)` - Parse numerical responses including written numbers, decimals, and mixed formats.
-- [OK] `_parse_time_pair_response(self, answer)` - Parse sleep time and wake time from user response.
+- [OK] `_parse_time_pair_response(self, answer)` - Parse sleep data from user response.
 
-Supports formats like:
-- "11:30 PM and 7:00 AM"
-- "23:30 and 07:00"
-- "11:30pm, 7:00am"
-- "11:30 PM, 7:00 AM"
+Supports either:
+- Single window: "11:30 PM and 7:00 AM"
+- Interrupted chunks (up to 3):
+  "11:00 PM-1:00 AM, 2:00 AM-6:30 AM"
 - [OK] `build_next_question_with_response(self, question_key, previous_question_key, previous_answer)` - Build the next question text with a response statement from the previous answer.
 - [OK] `delete_custom_question(self, user_id, question_key)` - Delete a custom question from user preferences.
 - [OK] `get_all_questions(self, user_id)` - Get all question definitions, merging predefined and custom questions.
@@ -2758,6 +2765,9 @@ Checks custom questions first (if user_id provided), then predefined questions.
 **Classes:**
 - [OK] `DynamicCheckinManager` - Manages dynamic check-in questions and responses loaded from JSON files.
   - [OK] `DynamicCheckinManager.__init__(self)` - Initialize the dynamic check-in manager.
+  - [OK] `DynamicCheckinManager._calculate_sleep_chunk_hours(self, sleep_time, wake_time)` - Calculate duration for one sleep chunk in hours.
+  - [OK] `DynamicCheckinManager._clean_time_token(self, time_str)` - Remove connector words/punctuation around a time token.
+  - [OK] `DynamicCheckinManager._extract_time_tokens(self, text)` - Extract schedule-style time tokens from free text.
   - [OK] `DynamicCheckinManager._get_numeric_response_fallback(self, question_responses, answer_value)` - Return response list for nearest integer key when float answers are provided.
   - [OK] `DynamicCheckinManager._load_data(self)` - Load questions and responses data from JSON files.
   - [OK] `DynamicCheckinManager._normalize_time(self, time_str)` - Normalize time string to HH:MM format (24-hour).
@@ -2766,15 +2776,19 @@ Supports formats like:
 - "11:30 PM" -> "23:30"
 - "7:00 AM" -> "07:00"
 - "23:30" -> "23:30"
-- "7:00" -> "07:00" (assumes AM if no AM/PM)
+- "7:00" -> "07:00" (assumes 24-hour value)
+- "9pm" -> "21:00"
+- "930pm" -> "21:30"
+- "9" -> "09:00"
+- "noon" -> "12:00"
+- "midnight" -> "00:00"
   - [OK] `DynamicCheckinManager._parse_numerical_response(self, answer)` - Parse numerical responses including written numbers, decimals, and mixed formats.
-  - [OK] `DynamicCheckinManager._parse_time_pair_response(self, answer)` - Parse sleep time and wake time from user response.
+  - [OK] `DynamicCheckinManager._parse_time_pair_response(self, answer)` - Parse sleep data from user response.
 
-Supports formats like:
-- "11:30 PM and 7:00 AM"
-- "23:30 and 07:00"
-- "11:30pm, 7:00am"
-- "11:30 PM, 7:00 AM"
+Supports either:
+- Single window: "11:30 PM and 7:00 AM"
+- Interrupted chunks (up to 3):
+  "11:00 PM-1:00 AM, 2:00 AM-6:30 AM"
   - [OK] `DynamicCheckinManager.build_next_question_with_response(self, question_key, previous_question_key, previous_answer)` - Build the next question text with a response statement from the previous answer.
   - [OK] `DynamicCheckinManager.delete_custom_question(self, user_id, question_key)` - Delete a custom question from user preferences.
   - [OK] `DynamicCheckinManager.get_all_questions(self, user_id)` - Get all question definitions, merging predefined and custom questions.
@@ -3897,7 +3911,7 @@ Returns:
 
 Args:
     communication_manager: The communication manager for sending messages
-- [MISSING] `_is_weekly_backup_entry(backup_entry)` - No description
+- [OK] `_is_weekly_backup_entry(backup_entry)` - Return True when a backup metadata entry represents a weekly backup.
 - [OK] `_remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
 - [OK] `_schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
