@@ -59,6 +59,8 @@ SCRIPT_REGISTRY = {
     "fix_documentation": "docs/fix_documentation.py",
     "analyze_system_signals": "reports/analyze_system_signals.py",
     "cleanup_project": "shared/fix_project_cleanup.py",
+    "analyze_pyright": "static_checks/analyze_pyright.py",
+    "analyze_ruff": "static_checks/analyze_ruff.py",
 }
 
 
@@ -1427,6 +1429,72 @@ class ToolWrappersMixin:
             )
             if not result.get("error"):
                 result["error"] = "No parseable JSON output from analyze_unused_imports"
+            result["success"] = False
+        return result
+
+    def run_analyze_pyright(self) -> Dict:
+        """Run pyright static analysis with structured JSON handling."""
+        logger.debug("Analyzing pyright diagnostics...")
+        result = self.run_script("analyze_pyright", "--json", timeout=900)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
+            self.results_cache["analyze_pyright"] = data
+            try:
+                save_tool_result(
+                    "analyze_pyright",
+                    "static_checks",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_pyright result: {e}")
+        else:
+            if not result.get("error"):
+                result["error"] = "No parseable JSON output from analyze_pyright"
+            result["success"] = False
+        return result
+
+    def run_analyze_ruff(self) -> Dict:
+        """Run ruff static analysis with structured JSON handling."""
+        logger.debug("Analyzing ruff diagnostics...")
+        result = self.run_script("analyze_ruff", "--json", timeout=900)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
+            self.results_cache["analyze_ruff"] = data
+            try:
+                save_tool_result(
+                    "analyze_ruff",
+                    "static_checks",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_ruff result: {e}")
+        else:
+            if not result.get("error"):
+                result["error"] = "No parseable JSON output from analyze_ruff"
             result["success"] = False
         return result
 

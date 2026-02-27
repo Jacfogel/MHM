@@ -349,6 +349,20 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="advisory",
         description="Analyzes system health and status signals for reports.",
     ),
+    "analyze_ruff": ToolInfo(
+        name="analyze_ruff",
+        path="development_tools/static_checks/analyze_ruff.py",
+        tier="supporting",
+        trust="advisory",
+        description="Runs ruff in JSON mode and summarizes lint findings for reports.",
+    ),
+    "analyze_pyright": ToolInfo(
+        name="analyze_pyright",
+        path="development_tools/static_checks/analyze_pyright.py",
+        tier="supporting",
+        trust="advisory",
+        description="Runs pyright in JSON mode and summarizes type-check diagnostics for reports.",
+    ),
     "decision_support": ToolInfo(
         name="decision_support",
         path="development_tools/reports/decision_support.py",

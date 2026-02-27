@@ -102,6 +102,9 @@ python development_tools/run_development_tools.py help
   - **Legacy group** (runs in parallel with coverage tools):
     - `analyze_legacy_references` - Legacy code scanning (~62s, >10s)
     - `generate_legacy_reference_report` - Legacy report generation (~1s, but part of legacy group)
+  - **Static analysis group** (runs in parallel with coverage and legacy groups):
+    - `analyze_ruff` - Ruff diagnostics summary (advisory)
+    - `analyze_pyright` - Pyright diagnostics summary (advisory)
 - **Execution**: Coverage tools and legacy group run in parallel; coverage-dependent tools run sequentially after coverage completes
 - **Use case**: Comprehensive analysis, pre-release checks, periodic deep audits
 - **Tier 3 outcome states**: `clean`, `test_failures`, `crashed`, `infra_cleanup_error`, `coverage_failed`.
@@ -201,6 +204,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 - **Documentation & structure**: `docs/analyze_documentation_sync.py` (paired doc sync only), `docs/analyze_path_drift.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_missing_addresses.py`, `docs/analyze_unconverted_links.py`, `docs/generate_directory_tree.py`, `docs/fix_documentation.py` (dispatcher), `docs/fix_documentation_addresses.py`, `docs/fix_documentation_ascii.py`, `docs/fix_documentation_headings.py`, `docs/fix_documentation_links.py`, `functions/generate_function_registry.py`, `functions/analyze_function_patterns.py`, `functions/analyze_duplicate_functions.py`, `functions/analyze_module_refactor_candidates.py`, `imports/generate_module_dependencies.py` (orchestrator), `imports/analyze_module_imports.py`, `imports/analyze_dependency_patterns.py`, `docs/analyze_documentation.py`
 - **Quality, validation, coverage**: `tests/run_test_coverage.py`, `tests/analyze_test_coverage.py`, `tests/generate_test_coverage_report.py`, `ai_work/analyze_ai_work.py`, `imports/analyze_unused_imports.py`, `imports/generate_unused_imports_report.py`, `error_handling/analyze_error_handling.py`, `error_handling/generate_error_handling_report.py`
 - **Legacy, versioning, signals**: `legacy/fix_legacy_references.py`, `reports/analyze_system_signals.py`, `reports/quick_status.py`, `docs/fix_version_sync.py` (experimental)
+- **Static analysis**: `static_checks/analyze_ruff.py`, `static_checks/analyze_pyright.py`, `static_checks/check_channel_loggers.py`
 - **Decision & utilities**: `reports/decision_support.py`, `functions/analyze_functions.py`, `functions/generate_function_docstrings.py` (experimental), `config/analyze_config.py`, `shared/file_rotation.py`, `functions/analyze_*` helpers, `shared/tool_guide.py`
 
 Consult [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) for the detailed tier and trust matrix.

@@ -30,6 +30,18 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-27 - Static-analysis pipeline hardening + report clarity improvements **COMPLETED**
+- Fixed Ruff/Pyright audit-runtime drift by normalizing configured `python -m ...` launchers to the active interpreter, eliminating false "tool unavailable" states in static-check wrappers.
+- Added portable Ruff config sync scaffolding via `development_tools/config/sync_ruff_toml.py`; generated root `.ruff.toml` from shared exclusions; removed Ruff settings from `pyproject.toml` to avoid split ownership.
+- Improved static-analysis reporting:
+  - Ruff top rules now include readable rule names (code + name + count).
+  - Pyright now reports separate top files for errors vs warnings, with conditional lines so zero-count severities are omitted.
+  - Static-analysis unavailable messaging in AI reports was tightened to show explicit reasons when tools are missing.
+- Updated dev-tools roadmap planning with portability and structure follow-ups in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` (`7.6` static tooling/packaging portability, `7.7` directory taxonomy + config boundary cleanup) and synced `PLANS.md` pointer.
+- Validation in-session:
+  - targeted static-analysis/reporting tests passed (`test_static_analysis_tools.py`, `test_report_generation_static_analysis.py`, `test_tool_wrappers_static_analysis.py`).
+  - full audit completed with no new non-static-analysis issues; regenerated `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.md` reflect updated static findings.
+
 ### 2026-02-26 - Dev-tools coverage + AI work CLI follow-up **Progressed**
 - Continued `AI_PRIORITIES` item `#2` with targeted low-risk test expansions across dev-tools modules, plus `analyze_ai_work.py` non-JSON CLI logging migration (`print` -> `logger.info`) with regression coverage.
 - Validation progressed across batches from targeted suites (`7 passed`, `9 passed`, `103 passed`) to the consolidated suite (`141 passed`).

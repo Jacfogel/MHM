@@ -858,6 +858,26 @@ def get_unused_imports_config():
     return UNUSED_IMPORTS
 
 
+# Static analysis configuration (ruff + pyright)
+STATIC_ANALYSIS = {
+    "pyright_command": ["python", "-m", "pyright"],
+    "pyright_args": ["--outputjson"],
+    "ruff_command": ["python", "-m", "ruff"],
+    "ruff_args": ["check", ".", "--output-format", "json"],
+    "timeout_seconds": 600,
+}
+
+
+def get_static_analysis_config():
+    """Get static analysis tool configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value("static_analysis", None)
+    if external_config:
+        result = STATIC_ANALYSIS.copy()
+        result.update(external_config)
+        return result
+    return STATIC_ANALYSIS
+
+
 # Quick status configuration
 QUICK_STATUS = {
     "core_files": [],  # Will use project.key_files if empty

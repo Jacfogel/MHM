@@ -1006,6 +1006,7 @@ class AuditOrchestrationMixin:
         - Coverage tools: run_test_coverage and generate_dev_tools_coverage run in parallel (independent test suites)
         - Coverage-dependent tools: analyze_test_markers and generate_test_coverage_report run sequentially after coverage completes
         - Legacy group: analyze_legacy_references (62.11s) is >10s, so entire group stays in Tier 3
+        - Static analysis group: ruff and pyright run in parallel with coverage/legacy groups
         """
         successful = []
         failed = []
@@ -1032,12 +1033,19 @@ class AuditOrchestrationMixin:
             ('analyze_legacy_references', self.run_analyze_legacy_references),  # 62.11s
             ('generate_legacy_reference_report', self.run_generate_legacy_reference_report),  # 0.96s
         ]
+
+        # Static analysis group (advisory): surfaces ruff + pyright findings in reports.
+        tier3_static_analysis_group = [
+            ('analyze_ruff', self.run_analyze_ruff),
+            ('analyze_pyright', self.run_analyze_pyright),
+        ]
         
         # Independent groups that can run in parallel with each other.
         tier3_parallel_groups = [
             tier3_coverage_main_group,
             tier3_coverage_dev_tools_group,
             tier3_legacy_group,
+            tier3_static_analysis_group,
         ]
         
         # Run coverage and legacy groups in parallel (each group runs its tools sequentially)
@@ -1674,6 +1682,8 @@ class AuditOrchestrationMixin:
             'generate_test_coverage_report',
             'analyze_legacy_references',
             'generate_legacy_reference_report',
+            'analyze_ruff',
+            'analyze_pyright',
         ]
         if tier <= 1:
             return tier1_tools
@@ -1773,4 +1783,3 @@ class AuditOrchestrationMixin:
                     logger.warning(f"   TODO sync: {message}")
         except Exception as exc:
             logger.warning(f"   TODO sync failed: {exc}")
-

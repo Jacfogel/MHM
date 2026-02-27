@@ -608,6 +608,21 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 - [x] `EXCLUSION_RULES.md` updated to document `tests/data/` as excluded-by-default for analyzer-style tooling
 
 ## 7.2 Integrate pyright and ruff into development tools, they can run in parallel as part of the full audit and contribute towards development_tools\AI_PRIORITIES.md, development_tools\AI_STATUS.md and development_tools\consolidated_report.md
+- [x] Added static analysis tools:
+  - `development_tools/static_checks/analyze_ruff.py`
+  - `development_tools/static_checks/analyze_pyright.py`
+- [x] Integrated both tools into Tier 3 full audit parallel groups in `development_tools/shared/service/audit_orchestration.py`
+- [x] Added tool metadata + script registry integration:
+  - `development_tools/shared/tool_metadata.py`
+  - `development_tools/shared/service/tool_wrappers.py`
+- [x] Added report integration so both tools contribute to:
+  - `development_tools/AI_STATUS.md`
+  - `development_tools/AI_PRIORITIES.md`
+  - `development_tools/consolidated_report.md`
+- [x] Added configurable static-analysis command settings via:
+  - `development_tools/config/config.py`
+  - `development_tools/config/development_tools_config.json`
+  - `development_tools/config/development_tools_config.json.example`
 
 ## 7.3 Dev Tools coverage sometimes is missing from AI_PRIORITIES.md
 - [x] Investigated and fixed loading/reporting so dev-tools coverage appears consistently when available
@@ -622,6 +637,44 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 
 ## 7.5 add --cache-clear as an alias for --clear-cache
 - [x] Added `--cache-clear` as a global alias for `--clear-cache` in `run_development_tools.py` and documented in AI + human tool guides.
+
+## 7.6 Portability Follow-Up: Static Tooling and Packaging
+- [ ] Document current compromise: `.ruff.toml` currently lives at repo root for compatibility with direct `ruff check .` workflows; this is acceptable short-term but not ideal for a drop-in `development_tools/` suite.
+- [ ] Explore moving Ruff config ownership fully under `development_tools/config/` while preserving UX:
+  - Evaluate wrappers/commands that always pass `--config development_tools/config/ruff.toml` (or generated equivalent).
+  - Evaluate a sync strategy that avoids requiring a root-level `.ruff.toml` in host repos.
+  - Define migration path and backward compatibility expectations for existing repos.
+- [ ] Explore Pyright parity with Ruff config strategy:
+  - Assess whether `pyrightconfig.json` can be owned under `development_tools/config/` with explicit `--project` usage in wrappers.
+  - Define how to avoid collisions with host-repo Pyright settings while keeping dev-tools audits reproducible.
+- [ ] Evaluate development-tools-specific dependency management:
+  - Assess introducing `development_tools/requirements.txt` (or `requirements-devtools.txt`) for portable tool-suite installs.
+  - Compare alternatives: extras (`pip install .[devtools]`), pinned lock file, bootstrap installer command.
+  - Decide ownership boundaries between host project deps and dev-tools-only deps (ruff/pyright/radon/etc.).
+- [ ] Add portability acceptance criteria and tests:
+  - Fixture-based validation that the suite runs in a minimal external repo with no root lint/type config files.
+  - Validation that reports remain complete when host-repo lint/type configs differ from dev-tools defaults.
+
+## 7.7 Directory Taxonomy and Config Boundary Cleanup
+- [ ] Define a target taxonomy for `development_tools/` that is intuitive for new contributors and portable across host repos.
+- [ ] Document current pain point: `development_tools/config/` currently mixes public tool configuration surface with runtime/platform implementation concerns, which makes discovery and ownership unclear.
+- [ ] Establish and document a stable "configuration surface" directory contract for development tools configuration files, including:
+  - `development_tools/config/config.py`
+  - `development_tools/config/development_tools_config.json`
+  - `development_tools/config/development_tools_config.json.example`
+  - `development_tools/config/sync_ruff_toml.py`
+- [ ] Evaluate whether runtime/platform internals currently in `development_tools/config/` should move to a separate runtime-focused module/path (for example `development_tools/shared/runtime_config/` or similar) while preserving backward compatibility.
+- [ ] Evaluate overlap between `development_tools/shared/` and `development_tools/config/` responsibilities:
+  - Identify modules that are effectively configuration plumbing vs generic shared utilities.
+  - Propose clear ownership rules so "where to find things" is predictable.
+- [ ] Propose a phased migration plan (no big-bang move):
+  - Phase 1: clarify docs + ownership map.
+  - Phase 2: introduce compatibility shims/re-exports for moved modules.
+  - Phase 3: migrate callsites and remove deprecated paths.
+- [ ] Add structure acceptance criteria:
+  - New contributors can find config entrypoints in under 2 minutes.
+  - Core commands run unchanged during migration.
+  - Existing import paths remain supported until deprecation window ends.
 
 ## Related Documents
 

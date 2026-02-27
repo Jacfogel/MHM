@@ -33,6 +33,43 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-27 - Static-analysis integration hardening + Ruff/Pyright report clarity + portability follow-ups
+- **Feature/Fix**: Completed the Ruff/Pyright development-tools integration pass by fixing interpreter drift, improving static-analysis report fidelity, and recording portability-oriented follow-up work in the dev-tools roadmap.
+- **Technical Changes**:
+  - Static-analysis execution/runtime alignment:
+    - Added interpreter normalization in `development_tools/static_checks/analyze_ruff.py` and `development_tools/static_checks/analyze_pyright.py` so configured launcher commands like `python -m ...` resolve to the active runtime (`sys.executable`) during audits.
+    - This removed the prior mismatch where static checks could report tools unavailable in one interpreter while other tooling still used Ruff successfully.
+  - Ruff configuration portability scaffolding:
+    - Added `development_tools/config/sync_ruff_toml.py` to generate root `.ruff.toml` from shared exclusions/config.
+    - Wired Ruff static checker to sync and use generated config during execution.
+    - Removed Ruff config blocks from `pyproject.toml` to avoid split config ownership.
+  - Reporting improvements:
+    - `development_tools/shared/service/report_generation.py` now handles static-analysis availability more explicitly and includes unavailable reason lines when tools are missing.
+    - Added richer Ruff rule output: top rules now include both code and readable rule name (for example `UP006 non-pep585-annotation`).
+    - Pyright top-file reporting now separates by severity bucket:
+      - `Top Pyright Error Files`
+      - `Top Pyright Warning Files`
+      - each line is conditionally rendered only when that severity exists.
+  - Planning/documentation follow-up updates:
+    - Expanded `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` with:
+      - static tooling + packaging portability follow-up (`7.6`)
+      - directory taxonomy/config-boundary cleanup follow-up (`7.7`)
+    - Updated `development_docs/PLANS.md` to reference the new follow-up scope.
+- **Validation**:
+  - Targeted static-analysis/reporting tests passed:
+    - `pytest tests/development_tools/test_static_analysis_tools.py tests/development_tools/test_report_generation_static_analysis.py -q`
+    - `pytest tests/development_tools/test_tool_wrappers_static_analysis.py -q`
+  - Full audit run completed successfully in-session (user-confirmed) with no new non-static-analysis issues; updated static findings are now reflected in:
+    - `development_tools/AI_STATUS.md`
+    - `development_tools/AI_PRIORITIES.md`
+    - `development_tools/consolidated_report.md`
+- **Full-diff Attribution**:
+  - Closeout review executed before finalizing this entry using:
+    - `git diff --stat`
+    - `git diff --name-only`
+    - `git status --short` (to include untracked additions)
+  - Entry reflects session-scoped static-analysis integration, reporting updates, portability roadmap additions, and regenerated audit artifacts.
+
 ### 2026-02-26 - Dev-tools coverage progression to 60% rounded + AI work CLI logging follow-up
 - **Feature/Fix**: Consolidated same-session dev-tools coverage work under `AI_PRIORITIES` item `#2` into one tracked progression, including the AI work non-JSON CLI logging cleanup and supporting regression coverage.
 - **Technical Changes**:

@@ -133,6 +133,38 @@ class ReportGenerationMixin:
         details = normalized.get("details", {})
         return details if isinstance(details, dict) else {}
 
+    def _get_static_analysis_snapshot(self) -> Dict[str, Dict[str, Any]]:
+        """Load normalized summary/details for ruff and pyright static analysis tools."""
+        result: Dict[str, Dict[str, Any]] = {}
+        for tool_name in ("analyze_ruff", "analyze_pyright"):
+            tool_data = self._load_tool_data(
+                tool_name, "static_checks", log_source=False
+            )
+            if not isinstance(tool_data, dict):
+                result[tool_name] = {
+                    "available": False,
+                    "summary": {"total_issues": 0, "files_affected": 0, "status": "WARN"},
+                    "details": {},
+                }
+                continue
+            summary = tool_data.get("summary", {})
+            details = tool_data.get("details", {})
+            if not isinstance(summary, dict):
+                summary = {}
+            if not isinstance(details, dict):
+                details = {}
+            tool_available = bool(details.get("tool_available", True))
+            result[tool_name] = {
+                "available": tool_available,
+                "summary": {
+                    "total_issues": self._coerce_int(summary.get("total_issues"), 0),
+                    "files_affected": self._coerce_int(summary.get("files_affected"), 0),
+                    "status": str(summary.get("status", "UNKNOWN")),
+                },
+                "details": details,
+            }
+        return result
+
     def _extract_file_issue_counts(self, tool_data: Any) -> Dict[str, int]:
         """Extract per-file issue counts from standardized tool payload."""
         if not isinstance(tool_data, dict):
@@ -581,6 +613,7 @@ class ReportGenerationMixin:
         backup_health_data = self._load_tool_data(
             "analyze_backup_health", "reports", log_source=False
         )
+        static_analysis = self._get_static_analysis_snapshot()
 
         # Extract overlap analysis data
         details = analyze_docs_data.get("details", {})
@@ -1061,6 +1094,34 @@ class ReportGenerationMixin:
             lines.append(
                 "- **Backup Health**: Not collected in this run (run `python development_tools/run_development_tools.py backup verify`)"
             )
+
+        ruff_summary = (
+            static_analysis.get("analyze_ruff", {}).get("summary", {})
+            if isinstance(static_analysis, dict)
+            else {}
+        )
+        pyright_summary = (
+            static_analysis.get("analyze_pyright", {}).get("summary", {})
+            if isinstance(static_analysis, dict)
+            else {}
+        )
+        ruff_available = bool(
+            static_analysis.get("analyze_ruff", {}).get("available", False)
+        ) if isinstance(static_analysis, dict) else False
+        pyright_available = bool(
+            static_analysis.get("analyze_pyright", {}).get("available", False)
+        ) if isinstance(static_analysis, dict) else False
+        ruff_total = to_int(ruff_summary.get("total_issues")) or 0
+        pyright_total = to_int(pyright_summary.get("total_issues")) or 0
+        if not (ruff_available and pyright_available):
+            lines.append("- **Static Analysis (ruff/pyright)**: UNAVAILABLE")
+        elif ruff_total > 0 or pyright_total > 0:
+            lines.append(
+                f"- **Static Analysis (ruff/pyright)**: {ruff_total + pyright_total} issue(s) "
+                f"(ruff={ruff_total}, pyright={pyright_total})"
+            )
+        else:
+            lines.append("- **Static Analysis (ruff/pyright)**: CLEAN")
 
         lines.append("")
         lines.append("## Documentation Signals")
@@ -1788,6 +1849,53 @@ class ReportGenerationMixin:
             )
 
         lines.append("")
+        lines.append("## Static Analysis")
+        if isinstance(static_analysis, dict):
+            ruff_data = static_analysis.get("analyze_ruff", {})
+            pyright_data = static_analysis.get("analyze_pyright", {})
+            ruff_summary = (
+                ruff_data.get("summary", {}) if isinstance(ruff_data, dict) else {}
+            )
+            pyright_summary = (
+                pyright_data.get("summary", {})
+                if isinstance(pyright_data, dict)
+                else {}
+            )
+            ruff_details = (
+                ruff_data.get("details", {}) if isinstance(ruff_data, dict) else {}
+            )
+            pyright_details = (
+                pyright_data.get("details", {})
+                if isinstance(pyright_data, dict)
+                else {}
+            )
+            ruff_available = bool(ruff_data.get("available", False))
+            pyright_available = bool(pyright_data.get("available", False))
+            lines.append(
+                f"- **Ruff**: {ruff_summary.get('status', 'UNKNOWN')} "
+                f"({to_int(ruff_summary.get('total_issues')) or 0} issue(s) across "
+                f"{to_int(ruff_summary.get('files_affected')) or 0} file(s))"
+            )
+            pyright_errors = to_int(pyright_details.get("errors")) or 0
+            pyright_warnings = to_int(pyright_details.get("warnings")) or 0
+            lines.append(
+                f"- **Pyright**: {pyright_summary.get('status', 'UNKNOWN')} "
+                f"({pyright_errors} error(s), {pyright_warnings} warning(s))"
+            )
+            if not ruff_available:
+                message = str(ruff_details.get("message", "")).strip()
+                if message:
+                    lines.append(f"  - Ruff unavailable: {message}")
+            if not pyright_available:
+                message = str(pyright_details.get("message", "")).strip()
+                if message:
+                    lines.append(f"  - Pyright unavailable: {message}")
+        else:
+            lines.append(
+                "- Static analysis data unavailable (run `audit --full` for latest diagnostics)"
+            )
+
+        lines.append("")
         lines.append("## Dependency Patterns")
         dependency_patterns_details = (
             dependency_patterns_data.get("details", {})
@@ -2362,6 +2470,7 @@ class ReportGenerationMixin:
         backup_health_data = self._load_tool_data(
             "analyze_backup_health", "reports", log_source=False
         )
+        static_analysis = self._get_static_analysis_snapshot()
 
         analyze_details = (
             analyze_data.get("details", {}) if isinstance(analyze_data, dict) else {}
@@ -3320,6 +3429,67 @@ class ReportGenerationMixin:
                     title="Raise development tools coverage",
                     reason=f"Development tools coverage is {percent_text(dev_pct, 1)} (target 60%+).",
                     bullets=dev_bullets,
+                )
+
+        # Static analysis priority (ruff + pyright)
+        if isinstance(static_analysis, dict):
+            ruff_data = static_analysis.get("analyze_ruff", {})
+            pyright_data = static_analysis.get("analyze_pyright", {})
+            ruff_summary = static_analysis.get("analyze_ruff", {}).get("summary", {})
+            pyright_summary = static_analysis.get("analyze_pyright", {}).get(
+                "summary", {}
+            )
+            pyright_details = static_analysis.get("analyze_pyright", {}).get(
+                "details", {}
+            )
+            ruff_details = (
+                ruff_data.get("details", {}) if isinstance(ruff_data, dict) else {}
+            )
+            ruff_available = bool(ruff_data.get("available", False))
+            pyright_available = bool(pyright_data.get("available", False))
+            ruff_issues = to_int(ruff_summary.get("total_issues")) or 0
+            pyright_issues = to_int(pyright_summary.get("total_issues")) or 0
+            pyright_errors = to_int(pyright_details.get("errors")) or 0
+            pyright_warnings = to_int(pyright_details.get("warnings")) or 0
+            if not (ruff_available and pyright_available):
+                unavailable_bullets: List[str] = []
+                ruff_msg = str(ruff_details.get("message", "")).strip()
+                pyright_msg = str(pyright_details.get("message", "")).strip()
+                if not ruff_available:
+                    unavailable_bullets.append(
+                        f"Ruff unavailable: {ruff_msg if ruff_msg else 'no details provided'}"
+                    )
+                if not pyright_available:
+                    unavailable_bullets.append(
+                        f"Pyright unavailable: {pyright_msg if pyright_msg else 'no details provided'}"
+                    )
+                unavailable_bullets.append(
+                    "Action: install missing tooling in the audit interpreter (for example `.venv`) and rerun `python development_tools/run_development_tools.py audit --full`."
+                )
+                unavailable_bullets.append(
+                    "Why this matters: without ruff/pyright, static-analysis signals in reports are incomplete."
+                )
+                add_priority(
+                    tier=2,
+                    title="Enable static analysis tooling for audits",
+                    reason="Ruff and/or pyright are unavailable in the current audit environment.",
+                    bullets=unavailable_bullets,
+                )
+            elif ruff_issues > 0 or pyright_issues > 0:
+                static_bullets: List[str] = [
+                    f"Ruff findings: {ruff_issues} issue(s) across {to_int(ruff_summary.get('files_affected')) or 0} file(s).",
+                    f"Pyright findings: {pyright_errors} error(s), {pyright_warnings} warning(s).",
+                    "Action: Run `python -m ruff check .` and `python -m pyright` to inspect full diagnostics before fixes.",
+                    "Why this matters: Lint/type regressions reduce reliability and increase defect risk.",
+                ]
+                add_priority(
+                    tier=3,
+                    title="Address static analysis findings",
+                    reason=(
+                        f"Static analysis reports {ruff_issues + pyright_issues} total issue(s) "
+                        f"(ruff={ruff_issues}, pyright={pyright_issues})."
+                    ),
+                    bullets=static_bullets,
                 )
 
         # Dependency patterns priority
@@ -4553,6 +4723,23 @@ class ReportGenerationMixin:
             dev_pct = dev_tools_insights["overall_pct"]
             detail = f"Development tools coverage is {percent_text(dev_pct, 1)} (target 60%+)."
             watch_list.append(detail)
+        if isinstance(static_analysis, dict):
+            ruff_data = static_analysis.get("analyze_ruff", {})
+            pyright_data = static_analysis.get("analyze_pyright", {})
+            ruff_summary = ruff_data.get("summary", {}) if isinstance(ruff_data, dict) else {}
+            pyright_summary = (
+                pyright_data.get("summary", {}) if isinstance(pyright_data, dict) else {}
+            )
+            ruff_total = to_int(ruff_summary.get("total_issues")) or 0
+            pyright_total = to_int(pyright_summary.get("total_issues")) or 0
+            ruff_available = bool(ruff_data.get("available", False))
+            pyright_available = bool(pyright_data.get("available", False))
+            if not (ruff_available and pyright_available):
+                watch_list.append("Static analysis tooling unavailable in current environment (ruff and/or pyright missing).")
+            elif ruff_total > 0 or pyright_total > 0:
+                watch_list.append(
+                    f"Static analysis findings: ruff={ruff_total}, pyright={pyright_total}."
+                )
 
         registry_doc_coverage_value = (
             doc_metrics_details.get("coverage")
@@ -4902,6 +5089,7 @@ class ReportGenerationMixin:
         backup_health_data = self._load_tool_data(
             "analyze_backup_health", "reports", log_source=False
         )
+        static_analysis = self._get_static_analysis_snapshot()
 
         # Get missing docstrings count for consolidated report
         func_undocumented = self._coerce_int(code_doc_metrics.get("undocumented"), 0)
@@ -6076,6 +6264,104 @@ class ReportGenerationMixin:
         else:
             lines.append(
                 "- **Unused Imports**: Data unavailable (run `audit --full` for latest scan)"
+            )
+
+        lines.append("")
+
+        # Static Analysis
+        lines.append("## Static Analysis")
+        if isinstance(static_analysis, dict):
+            ruff_data = static_analysis.get("analyze_ruff", {})
+            pyright_data = static_analysis.get("analyze_pyright", {})
+            ruff_summary = (
+                ruff_data.get("summary", {}) if isinstance(ruff_data, dict) else {}
+            )
+            pyright_summary = (
+                pyright_data.get("summary", {}) if isinstance(pyright_data, dict) else {}
+            )
+            ruff_details = (
+                ruff_data.get("details", {}) if isinstance(ruff_data, dict) else {}
+            )
+            pyright_details = (
+                pyright_data.get("details", {}) if isinstance(pyright_data, dict) else {}
+            )
+            ruff_available = bool(ruff_data.get("available", False))
+            pyright_available = bool(pyright_data.get("available", False))
+            lines.append(
+                f"- **Ruff**: {ruff_summary.get('status', 'UNKNOWN')} "
+                f"({to_int(ruff_summary.get('total_issues')) or 0} issue(s), "
+                f"{to_int(ruff_summary.get('files_affected')) or 0} file(s))"
+            )
+            lines.append(
+                f"- **Pyright**: {pyright_summary.get('status', 'UNKNOWN')} "
+                f"({to_int(pyright_details.get('errors')) or 0} error(s), "
+                f"{to_int(pyright_details.get('warnings')) or 0} warning(s))"
+            )
+            if not ruff_available:
+                message = str(ruff_details.get("message", "")).strip()
+                if message:
+                    lines.append(f"  - Ruff unavailable: {message}")
+            elif isinstance(ruff_details.get("top_rules"), list):
+                named_rules = []
+                for item in (ruff_details.get("top_rules") or [])[:5]:
+                    if not isinstance(item, dict):
+                        continue
+                    code = str(item.get("code", "")).strip()
+                    name = str(item.get("name", "")).strip()
+                    count = to_int(item.get("count")) or 0
+                    if not code:
+                        continue
+                    if name:
+                        named_rules.append(f"{code} {name} ({count})")
+                    else:
+                        named_rules.append(f"{code} ({count})")
+                if named_rules:
+                    lines.append(f"  - Top Ruff Rules: {', '.join(named_rules)}")
+            elif isinstance(ruff_details.get("violations_by_rule"), dict):
+                top_rules = list((ruff_details.get("violations_by_rule") or {}).items())[:5]
+                if top_rules:
+                    rule_text = ", ".join(f"{rule} ({count})" for rule, count in top_rules)
+                    lines.append(f"  - Top Ruff Rules: {rule_text}")
+            if not pyright_available:
+                message = str(pyright_details.get("message", "")).strip()
+                if message:
+                    lines.append(f"  - Pyright unavailable: {message}")
+            elif isinstance(pyright_details.get("top_error_files"), list) or isinstance(
+                pyright_details.get("top_warning_files"), list
+            ):
+                if (to_int(pyright_details.get("errors")) or 0) > 0:
+                    top_error_files = pyright_details.get("top_error_files", [])[:5]
+                    if isinstance(top_error_files, list):
+                        file_text = ", ".join(
+                            f"{Path(str(item.get('file', 'unknown'))).name} ({to_int(item.get('count')) or 0})"
+                            for item in top_error_files
+                            if isinstance(item, dict)
+                        )
+                        if file_text:
+                            lines.append(f"  - Top Pyright Error Files: {file_text}")
+                if (to_int(pyright_details.get("warnings")) or 0) > 0:
+                    top_warning_files = pyright_details.get("top_warning_files", [])[:5]
+                    if isinstance(top_warning_files, list):
+                        file_text = ", ".join(
+                            f"{Path(str(item.get('file', 'unknown'))).name} ({to_int(item.get('count')) or 0})"
+                            for item in top_warning_files
+                            if isinstance(item, dict)
+                        )
+                        if file_text:
+                            lines.append(f"  - Top Pyright Warning Files: {file_text}")
+            elif isinstance(pyright_details.get("top_files"), list):
+                top_files = pyright_details.get("top_files", [])[:5]
+                if top_files:
+                    file_text = ", ".join(
+                        f"{Path(str(item.get('file', 'unknown'))).name} ({to_int(item.get('count')) or 0})"
+                        for item in top_files
+                        if isinstance(item, dict)
+                    )
+                    if file_text:
+                        lines.append(f"  - Top Pyright Files: {file_text}")
+        else:
+            lines.append(
+                "- Static analysis data unavailable (run `audit --full` for latest diagnostics)"
             )
 
         lines.append("")

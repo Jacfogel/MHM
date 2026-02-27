@@ -703,6 +703,29 @@
     "type_stub_locations": [],
     "timeout_seconds": 30
   },
+  "static_analysis": {
+    "_comment": "Static analysis tool settings (ruff + pyright)",
+    "pyright_command": [
+      "python",
+      "-m",
+      "pyright"
+    ],
+    "pyright_args": [
+      "--outputjson"
+    ],
+    "ruff_command": [
+      "python",
+      "-m",
+      "ruff"
+    ],
+    "ruff_args": [
+      "check",
+      ".",
+      "--output-format",
+      "json"
+    ],
+    "timeout_seconds": 600
+  },
   "quick_status": {
     "_comment": "Quick status settings",
     "core_files": [],

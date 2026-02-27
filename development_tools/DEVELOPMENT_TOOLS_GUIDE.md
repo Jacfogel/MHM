@@ -176,6 +176,9 @@ The modular structure provides clear separation of concerns, making the codebase
 - **Legacy group** (runs in parallel with coverage tools):
 - Legacy reference scanning (~62s, >10s)
 - Reference report generation (~1s, but part of the legacy reference group)
+- **Static analysis group** (runs in parallel with coverage + legacy groups):
+- Ruff diagnostics summary (advisory)
+- Pyright diagnostics summary (advisory)
 - Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_REPORT.md, UNUSED_IMPORTS_REPORT.md)
 - Tier 3 outcome states are explicit: `clean`, `test_failures`, `crashed`, `infra_cleanup_error`, `coverage_failed`
 - In strict mode (`audit --strict`), Tier 3 returns non-zero for `test_failures` or `crashed`; default mode remains non-strict.
@@ -302,6 +305,9 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | generate_unused_imports_report.py | supporting | partial | Generates markdown report from unused imports analysis results. |
 | quick_status.py | supporting | advisory | Cached status snapshot that depends on the latest audit run. |
 | system_signals.py | supporting | advisory | Collects OS/process health signals for consolidated reports. |
+| static_checks/analyze_ruff.py | supporting | advisory | Runs Ruff in JSON mode and contributes lint diagnostics to Tier 3 audit reports. |
+| static_checks/analyze_pyright.py | supporting | advisory | Runs Pyright in JSON mode and contributes type-check diagnostics to Tier 3 audit reports. |
+| static_checks/check_channel_loggers.py | supporting | stable | Enforces logging import/call rules for static checks and CI validation. |
 | decision_support.py | supporting | advisory | Aggregates metrics into improvement priorities. |
 | shared/file_rotation.py | supporting | stable | Timestamped rotation utility used by coverage generation. |
 | shared/export_code_snapshot.py | supporting | stable | Exports Python source files into a single Markdown snapshot for LLM context. |
