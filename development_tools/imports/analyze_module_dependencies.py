@@ -137,84 +137,6 @@ def parse_module_dependencies() -> Dict[str, List[str]]:
     return documented
 
 
-def generate_dependency_report_extended():
-    """Generate a comprehensive dependency audit report."""
-    logger.debug("[SCAN] Scanning all Python files for imports...")
-    actual_imports = scan_all_python_files()
-
-    logger.info("[DOC] Parsing MODULE_DEPENDENCIES_DETAIL.md...")
-    documented_deps = parse_module_dependencies()
-
-    logger.info("=" * 80)
-    logger.info("MODULE DEPENDENCIES AUDIT REPORT")
-    logger.info("=" * 80)
-
-    # Statistics
-    total_files = len(actual_imports)
-    total_actual_imports = sum(
-        data["total_imports"] for data in actual_imports.values()
-    )
-    total_documented_deps = sum(len(deps) for deps in documented_deps.values())
-
-    logger.info(f"[STATS] OVERALL STATISTICS:")
-    logger.info(f"   Files scanned: {total_files}")
-    logger.info(f"   Total imports found: {total_actual_imports}")
-    logger.info(f"   Dependencies documented: {total_documented_deps}")
-
-    # Import breakdown
-    std_lib_count = sum(
-        len(data["imports"]["standard_library"]) for data in actual_imports.values()
-    )
-    third_party_count = sum(
-        len(data["imports"]["third_party"]) for data in actual_imports.values()
-    )
-    local_count = sum(len(data["imports"]["local"]) for data in actual_imports.values())
-
-    logger.info(f"   Standard library imports: {std_lib_count}")
-    logger.info(f"   Third-party imports: {third_party_count}")
-    logger.info(f"   Local imports: {local_count}")
-
-    # Missing dependencies
-    logger.warning(f"[MISS] MISSING FROM DEPENDENCIES DOCUMENTATION:")
-    missing_count = 0
-    for file_path, data in actual_imports.items():
-        if file_path not in documented_deps:
-            logger.warning(f"   [DIR] {file_path} - ENTIRE FILE MISSING")
-            missing_count += data["total_imports"]
-        else:
-            documented_deps_set = set(documented_deps[file_path])
-            actual_deps = set(data["imports"]["local"])  # Focus on local dependencies
-            missing_deps = actual_deps - documented_deps_set
-
-            if missing_deps:
-                logger.warning(f"   [FILE] {file_path}:")
-                for dep in sorted(missing_deps):
-                    logger.warning(f"      - {dep}")
-                    missing_count += 1
-
-    logger.warning(f"   Total missing dependencies: {missing_count}")
-
-    # Detailed breakdown by directory
-    logger.info(f"[DIR] BREAKDOWN BY DIRECTORY:")
-    dir_stats = {}
-    for file_path, data in actual_imports.items():
-        dir_name = file_path.split("/")[0] if "/" in file_path else "root"
-        if dir_name not in dir_stats:
-            dir_stats[dir_name] = {"files": 0, "imports": 0, "local_deps": 0}
-        dir_stats[dir_name]["files"] += 1
-        dir_stats[dir_name]["imports"] += data["total_imports"]
-        dir_stats[dir_name]["local_deps"] += len(data["imports"]["local"])
-
-    for dir_name, stats in sorted(dir_stats.items()):
-        logger.info(
-            f"   {dir_name}/: {stats['files']} files, {stats['imports']} imports, {stats['local_deps']} local deps"
-        )
-
-    # Generate updated dependency sections
-    logger.info(f"[DOC] GENERATING UPDATED DEPENDENCY SECTIONS...")
-    generate_updated_dependency_sections(actual_imports)
-
-
 def generate_updated_dependency_sections(actual_imports: Dict[str, Dict]):
     """Generate updated dependency sections for missing files."""
     logger.debug("=" * 80)
@@ -400,9 +322,9 @@ def generate_enhanced_dependency_report(
     actual_imports: Dict[str, Dict], documented_deps: Dict[str, List[str]]
 ):
     """Generate an enhanced dependency report with automated insights."""
-    print("\n" + "=" * 80)
-    print("ENHANCED MODULE ANALYSIS REPORT")
-    print("=" * 80)
+    logger.debug("\n" + "=" * 80)
+    logger.debug("ENHANCED MODULE ANALYSIS REPORT")
+    logger.debug("=" * 80)
 
     # Analyze each documented module
     for file_path in sorted(documented_deps.keys()):
@@ -411,23 +333,29 @@ def generate_enhanced_dependency_report(
             analysis = analyze_module_complexity(file_path, data, actual_imports)
             reverse_deps = find_usage_of_module(file_path, actual_imports)
 
-            print(f"\n#### `{file_path}`")
-            print(f"- **Complexity**: {analysis['complexity_level'].upper()}")
-            print(f"- **Dependencies**: {analysis['dependency_count']}")
-            print(f"- **Used by**: {analysis['reverse_dependency_count']} modules")
+            logger.debug(f"\n#### `{file_path}`")
+            logger.debug(f"- **Complexity**: {analysis['complexity_level'].upper()}")
+            logger.debug(f"- **Dependencies**: {analysis['dependency_count']}")
+            logger.debug(
+                f"- **Used by**: {analysis['reverse_dependency_count']} modules"
+            )
 
             if analysis["key_insights"]:
-                print(f"- **Key Insights**: {', '.join(analysis['key_insights'])}")
+                logger.debug(
+                    f"- **Key Insights**: {', '.join(analysis['key_insights'])}"
+                )
 
             if analysis["recommendations"]:
-                print(
+                logger.debug(
                     f"- **Recommendations**: {', '.join(analysis['recommendations'])}"
                 )
 
             if reverse_deps:
-                print(f"- **Reverse Dependencies**: {', '.join(reverse_deps[:5])}")
+                logger.debug(
+                    f"- **Reverse Dependencies**: {', '.join(reverse_deps[:5])}"
+                )
                 if len(reverse_deps) > 5:
-                    print(f"  ... and {len(reverse_deps) - 5} more")
+                    logger.debug(f"  ... and {len(reverse_deps) - 5} more")
 
 
 def generate_dependency_report():
@@ -459,25 +387,25 @@ def generate_dependency_report():
         if file_path not in documented_deps:
             missing_deps.append(file_path)
 
-    # Print report
-    print("\n" + "=" * 80)
-    print("MODULE DEPENDENCIES AUDIT REPORT")
-    print("=" * 80)
+    # Log report (DEBUG level - verbose per-module analysis)
+    logger.debug("\n" + "=" * 80)
+    logger.debug("MODULE DEPENDENCIES AUDIT REPORT")
+    logger.debug("=" * 80)
 
-    print("\n[STATS] OVERALL STATISTICS:")
-    print(f"   Files scanned: {total_files}")
-    print(f"   Total imports found: {total_imports}")
-    print(f"   Dependencies documented: {documented_count}")
-    print(f"   Standard library imports: {std_lib_count}")
-    print(f"   Third-party imports: {third_party_count}")
-    print(f"   Local imports: {local_count}")
+    logger.debug("\n[STATS] OVERALL STATISTICS:")
+    logger.debug(f"   Files scanned: {total_files}")
+    logger.debug(f"   Total imports found: {total_imports}")
+    logger.debug(f"   Dependencies documented: {documented_count}")
+    logger.debug(f"   Standard library imports: {std_lib_count}")
+    logger.debug(f"   Third-party imports: {third_party_count}")
+    logger.debug(f"   Local imports: {local_count}")
 
     # Enhancement status summary
     enhancement_counts = {}
     for status in enhancement_status.values():
         enhancement_counts[status] = enhancement_counts.get(status, 0) + 1
 
-    print(f"\n[ENHANCEMENT] Manual Enhancement Status:")
+    logger.debug("\n[ENHANCEMENT] Manual Enhancement Status:")
     for status, count in sorted(enhancement_counts.items()):
         status_display = {
             "enhanced": "Modules with manual enhancements",
@@ -487,25 +415,25 @@ def generate_dependency_report():
             "error": "Modules with parsing errors",
             "not_in_codebase": "Documented modules not in codebase",
         }.get(status, status)
-        print(f"   {status_display}: {count}")
+        logger.debug(f"   {status_display}: {count}")
 
     if missing_deps:
-        print(f"\n[MISS] MISSING FROM DEPENDENCIES DOCUMENTATION:")
+        logger.debug("\n[MISS] MISSING FROM DEPENDENCIES DOCUMENTATION:")
         for file_path in sorted(missing_deps):
-            print(f"   [DIR] {file_path} - ENTIRE FILE MISSING")
-        print(f"\n   Total missing dependencies: {len(missing_deps)}")
+            logger.debug(f"   [DIR] {file_path} - ENTIRE FILE MISSING")
+        logger.debug(f"\n   Total missing dependencies: {len(missing_deps)}")
 
     # Show modules needing enhancement
     needs_enhancement = {
         k: v for k, v in enhancement_status.items() if v == "needs_enhancement"
     }
     if needs_enhancement:
-        print(f"\n[PRIORITY] Modules needing manual enhancement:")
+        logger.debug("\n[PRIORITY] Modules needing manual enhancement:")
         for file_path in sorted(needs_enhancement.keys()):
-            print(f"   📝 {file_path}")
+            logger.debug(f"   {file_path}")
 
     # Directory breakdown
-    print(f"\n[DIR] BREAKDOWN BY DIRECTORY:")
+    logger.debug("\n[DIR] BREAKDOWN BY DIRECTORY:")
     dir_stats = {}
     for file_path, data in actual_imports.items():
         dir_name = file_path.split("/")[0] if "/" in file_path else "root"
@@ -517,7 +445,7 @@ def generate_dependency_report():
 
     for dir_name in sorted(dir_stats.keys()):
         stats = dir_stats[dir_name]
-        print(
+        logger.debug(
             f"   {dir_name}/: {stats['files']} files, {stats['imports']} imports, {stats['local_deps']} local deps"
         )
 

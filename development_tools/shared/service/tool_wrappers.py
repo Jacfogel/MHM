@@ -17,7 +17,7 @@ from core.logger import get_component_logger
 logger = get_component_logger("development_tools")
 
 # Import output storage
-from ..output_storage import save_tool_result
+from ..output_storage import load_tool_result, save_tool_result
 
 # Script registry - maps tool names to their file paths
 SCRIPT_REGISTRY = {
@@ -57,6 +57,7 @@ SCRIPT_REGISTRY = {
     "analyze_ai_work": "ai_work/analyze_ai_work.py",
     "fix_version_sync": "docs/fix_version_sync.py",
     "fix_documentation": "docs/fix_documentation.py",
+    "fix_function_docstrings": "functions/fix_function_docstrings.py",
     "analyze_system_signals": "reports/analyze_system_signals.py",
     "cleanup_project": "shared/fix_project_cleanup.py",
     "analyze_pyright": "static_checks/analyze_pyright.py",
@@ -1411,6 +1412,9 @@ class ToolWrappersMixin:
             result["issues_found"] = total_unused > 0
             result["success"] = True
             result["error"] = ""
+            tools_run = getattr(self, "_tools_run_in_current_tier", None)
+            if tools_run is not None:
+                tools_run.add("analyze_unused_imports")
             try:
                 save_tool_result(
                     "analyze_unused_imports",
@@ -1435,6 +1439,21 @@ class ToolWrappersMixin:
     def run_analyze_pyright(self) -> Dict:
         """Run pyright static analysis with structured JSON handling."""
         logger.debug("Analyzing pyright diagnostics...")
+        # Try mtime cache first (skip run if source unchanged)
+        cached = self._try_static_check_cache("analyze_pyright", "static_checks")
+        if cached is not None:
+            result = {
+                "success": True,
+                "output": "",
+                "error": "",
+                "data": cached,
+                "returncode": 0,
+            }
+            summary = cached.get("summary", {}) if isinstance(cached, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            self.results_cache["analyze_pyright"] = cached
+            logger.debug("Using cached analyze_pyright result (source unchanged)")
+            return result
         result = self.run_script("analyze_pyright", "--json", timeout=900)
         output = result.get("output", "")
         data = None
@@ -1457,6 +1476,7 @@ class ToolWrappersMixin:
                     data,
                     project_root=self.project_root,
                 )
+                self._save_static_check_cache("analyze_pyright", "static_checks", data)
             except Exception as e:
                 logger.warning(f"Failed to save analyze_pyright result: {e}")
         else:
@@ -1468,6 +1488,21 @@ class ToolWrappersMixin:
     def run_analyze_ruff(self) -> Dict:
         """Run ruff static analysis with structured JSON handling."""
         logger.debug("Analyzing ruff diagnostics...")
+        # Try mtime cache first (skip run if source unchanged)
+        cached = self._try_static_check_cache("analyze_ruff", "static_checks")
+        if cached is not None:
+            result = {
+                "success": True,
+                "output": "",
+                "error": "",
+                "data": cached,
+                "returncode": 0,
+            }
+            summary = cached.get("summary", {}) if isinstance(cached, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            self.results_cache["analyze_ruff"] = cached
+            logger.debug("Using cached analyze_ruff result (source unchanged)")
+            return result
         result = self.run_script("analyze_ruff", "--json", timeout=900)
         output = result.get("output", "")
         data = None
@@ -1490,6 +1525,7 @@ class ToolWrappersMixin:
                     data,
                     project_root=self.project_root,
                 )
+                self._save_static_check_cache("analyze_ruff", "static_checks", data)
             except Exception as e:
                 logger.warning(f"Failed to save analyze_ruff result: {e}")
         else:
@@ -1497,6 +1533,70 @@ class ToolWrappersMixin:
                 result["error"] = "No parseable JSON output from analyze_ruff"
             result["success"] = False
         return result
+
+    def _compute_source_signature(self) -> Optional[str]:
+        """Compute hash of .py file mtimes for cache invalidation (static checks)."""
+        try:
+            import hashlib
+            from ..standard_exclusions import should_exclude_file
+            sig = hashlib.sha256()
+            root = Path(self.project_root)
+            py_files = sorted(root.rglob("*.py"))
+            for p in py_files:
+                try:
+                    rel = str(p.relative_to(root)).replace("\\", "/")
+                    if should_exclude_file(rel, tool_type="analysis"):
+                        continue
+                    sig.update((rel + ":" + str(p.stat().st_mtime)).encode("utf-8"))
+                except (OSError, ValueError):
+                    continue
+            return sig.hexdigest()
+        except Exception as e:
+            logger.debug(f"Could not compute source signature: {e}")
+            return None
+
+    def _try_static_check_cache(self, tool_name: str, domain: str) -> Optional[Dict]:
+        """Return cached result if source unchanged; None to run tool."""
+        sig = self._compute_source_signature()
+        if not sig:
+            return None
+        cache_file = (
+            self.project_root / "development_tools" / domain / "jsons"
+            / f".{tool_name}_mtime_cache.json"
+        )
+        if not cache_file.exists():
+            return None
+        try:
+            with open(cache_file, "r", encoding="utf-8") as f:
+                cache_data = json.load(f)
+            if cache_data.get("source_signature") != sig:
+                return None
+        except (json.JSONDecodeError, OSError):
+            return None
+        loaded = load_tool_result(
+            tool_name, domain, project_root=self.project_root, normalize=False
+        )
+        if loaded and isinstance(loaded, dict):
+            return loaded
+        return None
+
+    def _save_static_check_cache(
+        self, tool_name: str, domain: str, data: Dict
+    ) -> None:
+        """Save source signature after successful tool run."""
+        sig = self._compute_source_signature()
+        if not sig:
+            return
+        cache_file = (
+            self.project_root / "development_tools" / domain / "jsons"
+            / f".{tool_name}_mtime_cache.json"
+        )
+        cache_file.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with open(cache_file, "w", encoding="utf-8") as f:
+                json.dump({"source_signature": sig}, f)
+        except OSError as e:
+            logger.debug(f"Could not save static check cache: {e}")
 
     def run_generate_unused_imports_report(self) -> Dict:
         """Run generate_unused_imports_report to generate markdown report from analysis results."""
@@ -1507,7 +1607,7 @@ class ToolWrappersMixin:
             setattr(self, "_tools_run_in_current_tier", tools_run)
         if "analyze_unused_imports" not in tools_run:
             logger.debug("Running unused imports analysis before generating the report.")
-            analysis_result = self.run_unused_imports()
+            analysis_result = self.run_analyze_unused_imports()
             if not analysis_result.get("success", False):
                 logger.warning(
                     "Unused imports analysis failed; the report will use cached data (if available)."

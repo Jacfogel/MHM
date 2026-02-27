@@ -316,8 +316,8 @@ def main():
         if not sys.stdin.isatty():
             findings = json.load(sys.stdin)
         else:
-            print(
-                "Error: No findings provided. Use --findings-file or pipe JSON to stdin."
+            logger.error(
+                "No findings provided. Use --findings-file or pipe JSON to stdin."
             )
             return 1
 
@@ -328,8 +328,8 @@ def main():
     output_file = Path(args.output_file) if args.output_file else None
     saved_path = generator.save_report(report, output_file)
 
-    print(f"\nLegacy Reference Report Generated")
-    print(f"   Report saved to: {saved_path}")
+    logger.info("Legacy Reference Report Generated")
+    logger.info("Report saved to: %s" % saved_path)
 
     return 0
 

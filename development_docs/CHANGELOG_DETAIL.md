@@ -33,6 +33,23 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-27 - Pyright/Ruff mtime caching + module deps DEBUG + AI_PRIORITIES simplification + dev-tools consolidation
+- **Feature/Fix**: Added mtime caching for Pyright and Ruff static checks; moved module dependencies report to DEBUG; streamlined AI_PRIORITIES; moved scripts to `development_tools/shared/`; consolidated unused-imports; retired standalone docs into DEVELOPMENT_TOOLS_GUIDE; renamed `generate_function_docstrings` to `fix_function_docstrings`; fixed `test_email_user_creation` parallel failure.
+- **Technical Changes**:
+  - `tool_wrappers.py`: Added `_compute_source_signature()`, `_try_static_check_cache()`, `_save_static_check_cache()`; `run_analyze_pyright` and `run_analyze_ruff` now return cached results when `.py` file mtimes unchanged. Cache files: `.analyze_pyright_mtime_cache.json`, `.analyze_ruff_mtime_cache.json` in `development_tools/static_checks/jsons/`.
+  - `analyze_module_dependencies.py`: Changed MODULE DEPENDENCIES AUDIT REPORT and ENHANCED MODULE ANALYSIS REPORT logging from `logger.info` to `logger.debug`; removed dead `generate_dependency_report_extended()`; print-to-logger migration.
+  - `report_generation.py`: Removed unused-imports from Quick Wins (already in Immediate Focus); removed Watch List section from AI_PRIORITIES output.
+  - `test_analyze_module_dependencies.py`: Updated assertion to use `logger.debug` instead of `logger.info`; `test_quick_wins_exclude_unused_imports_when_in_immediate_focus` renamed from prior unused-imports quick-win test.
+  - `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`: Documented Pyright/Ruff mtime caching; added task 1.8 for improving slow dev tools tests.
+  - `measure_tool_timings.py`, `verify_tool_storage.py`: moved to `development_tools/shared/`; removed unused `List` and `AIToolsService` imports; scripts dir removed.
+  - `commands.py`, `tool_wrappers.py`, `audit_orchestration.py`, `cli_interface.py`: switched to `run_analyze_unused_imports`; removed `run_unused_imports`.
+  - Retired `EXCLUSION_RULES.md`, `OUTPUT_STORAGE_STANDARDS.md`, `RESULT_FORMAT_STANDARD.md`; content incorporated into DEVELOPMENT_TOOLS_GUIDE and AI_DEVELOPMENT_TOOLS_GUIDE (sections 7-8).
+  - Renamed `generate_function_docstrings` -> `fix_function_docstrings` (new module, config fallback); deleted old module and test.
+  - `test_utilities_demo.py`: added `@pytest.mark.no_parallel` to `test_email_user_creation`.
+  - Print-to-logger migration in `generate_legacy_reference_report.py`.
+  - Added `tests/development_tools/test_commands_coverage_helpers.py` for fix_legacy_references and commands coverage helpers.
+- **Impact**: Faster repeat audits when source unchanged; cleaner logs; leaner AI_PRIORITIES; cleaner dev-tools structure; fewer aliases; less dead code; consolidated docs; stable parallel tests.
+
 ### 2026-02-27 - Static-analysis integration hardening + Ruff/Pyright report clarity + portability follow-ups
 - **Feature/Fix**: Completed the Ruff/Pyright development-tools integration pass by fixing interpreter drift, improving static-analysis report fidelity, and recording portability-oriented follow-up work in the dev-tools roadmap.
 - **Technical Changes**:
@@ -51,10 +68,10 @@ When adding new changes, follow this format:
       - `Top Pyright Warning Files`
       - each line is conditionally rendered only when that severity exists.
   - Planning/documentation follow-up updates:
-    - Expanded `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` with:
+    - Expanded [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) with:
       - static tooling + packaging portability follow-up (`7.6`)
       - directory taxonomy/config-boundary cleanup follow-up (`7.7`)
-    - Updated `development_docs/PLANS.md` to reference the new follow-up scope.
+    - Updated [PLANS.md](development_docs/PLANS.md) to reference the new follow-up scope.
 - **Validation**:
   - Targeted static-analysis/reporting tests passed:
     - `pytest tests/development_tools/test_static_analysis_tools.py tests/development_tools/test_report_generation_static_analysis.py -q`
@@ -168,7 +185,7 @@ When adding new changes, follow this format:
     - updated targeted coverage in:
       - `tests/development_tools/test_analyze_dependency_patterns.py`
       - `tests/development_tools/test_analyze_test_markers.py`
-      - `tests/development_tools/test_generate_function_docstrings.py`
+      - `tests/development_tools/test_fix_function_docstrings.py`
       - `tests/development_tools/test_generate_unused_imports_report.py`
       - `tests/development_tools/test_regenerate_coverage_metrics.py`
       - `tests/development_tools/test_test_file_coverage_cache.py`

@@ -412,12 +412,12 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="experimental",
         description="Attempts cross-file version synchronization (fragile).",
     ),
-    "generate_function_docstrings": ToolInfo(
-        name="generate_function_docstrings",
-        path="development_tools/functions/generate_function_docstrings.py",
+    "fix_function_docstrings": ToolInfo(
+        name="fix_function_docstrings",
+        path="development_tools/functions/fix_function_docstrings.py",
         tier="experimental",
         trust="experimental",
-        description="Auto-generates docstrings—high-risk, use with caution.",
+        description="Auto-generates docstrings for undocumented functions—high-risk, use with caution.",
     ),
     "generate_consolidated_report": ToolInfo(
         name="generate_consolidated_report",

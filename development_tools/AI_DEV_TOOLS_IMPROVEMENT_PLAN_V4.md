@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-02-26
+> **Last Updated**: 2026-02-27
 
 This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -30,7 +30,7 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - Standard JSON output format and unified report data flow
 - Report integrity improvements (file locks, consistent snapshot data)
 - Coverage tools split/renamed and audit orchestration fixes
-- Caching infrastructure (file-based caching + test-file coverage caching)
+- Caching infrastructure (file-based caching + test-file coverage caching + Pyright/Ruff mtime caching)
 - System signals enhancement and tool naming consistency cleanup
 - Major report generation fixes (error handling section, unused imports reporting cleanup)
 
@@ -95,6 +95,7 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
     - Added report-generation path coverage in `tests/development_tools/test_analyze_module_dependencies.py` (`generate_updated_dependency_sections`, `generate_enhanced_dependency_report`, orchestrated `generate_dependency_report` helper-call flow)
     - Added static-check coverage in `tests/development_tools/test_check_channel_loggers.py` (`check_file` rule branches, allowlist behavior, and `main()` pass/fail CLI paths)
     - Added shared-helper coverage in `tests/development_tools/test_common_shared.py` (`ProjectPaths`, `iter_python_sources`, `run_cli`, file/text/json helpers, summary rendering)
+    - Added coverage for `commands.py` helpers in `tests/development_tools/test_commands_coverage_helpers.py` (`_resolve_coverage_workers`, `_infer_coverage_cache_mode_from_output`, `_extract_coverage_invalidation_reason`, `_extract_changed_domains`)
     - Added output-storage helper coverage in `tests/development_tools/test_output_storage_helpers.py` (domain inference fallback matrix, stale file-reference validation recursion, corrupted-cache cleanup, newest-result aggregation preference, normalization failure handling)
 - [ ] Update all dev tools tests to use `tests/development_tools/test_config.json` fixture
 - [x] Re-run dev-tools coverage and document updated baseline/progress toward 60% target
@@ -159,6 +160,7 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Compare full vs domain-filtered runs and document results in changelog
 - [x] Add cross-domain dependency tracking (invalidate dependent domains)
 - [x] Extend MtimeFileCache to high-cost analyzers (`analyze_error_handling`, `analyze_functions`, `analyze_module_imports`, `analyze_module_dependencies`)
+- [x] Add mtime caching for Pyright and Ruff static checks in `tool_wrappers.py` (`_compute_source_signature`, `_try_static_check_cache`, `_save_static_check_cache`); skips runs when `.py` file mtimes unchanged
 - [x] Ensure cached test results are invalidated when covered domains change
 - [x] Do not cache results for test files that fail or error
 - [x] Add tool mtime/hash tracking to `TestFileCoverageCache` to invalidate coverage cache globally when test coverage tool code changes (e.g., `run_test_coverage.py`, `test_file_coverage_cache.py`, `dev_tools_coverage_cache.py`, `domain_mapper.py`)
@@ -180,6 +182,15 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
   - [x] Added tool hash/mtime metadata to `tests/dev_tools_coverage_cache.py` and explicit invalidation reason logging in `tests/run_test_coverage.py`
   - [x] Added tests: `tests/development_tools/test_mtime_cache.py`, `tests/development_tools/test_dev_tools_coverage_cache.py`
   - [x] Cache opportunities identified (currently uncached): `ai_work/analyze_ai_work.py`, `config/analyze_config.py`, `docs/analyze_documentation.py`, `docs/analyze_documentation_sync.py`, `functions/analyze_function_patterns.py`, `functions/analyze_function_registry.py`, `imports/analyze_dependency_patterns.py`, `imports/analyze_module_dependencies.py`, `tests/analyze_test_markers.py`
+
+#### 1.8 Improve slow development tools tests
+**Status**: PENDING  
+**Tasks**:
+- [ ] Run `pytest tests/development_tools/ --durations=20` to identify slowest tests
+- [ ] Target high-impact improvements: `temp_project_copy` scope (module vs function where safe), AIToolsService mocking (avoid full project scan), audit-tier test isolation
+- [ ] Document slow-test patterns and recommendations (e.g., `test_report_generation_quick_wins.py` style mocking; `@pytest.mark.slow` for audit e2e)
+- [ ] Consider `scope="module"` for `temp_project_copy` where tests do not mutate shared state
+- [ ] Add `@pytest.mark.slow` to audit-tier/e2e tests if excluding from default CI runs would help
 
 #### 1.6 Fixture status file regeneration
 **Status**: COMPLETED  
@@ -216,11 +227,13 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
   - [x] Replaced internal print-based output assembly in `shared/service/tool_wrappers.py::run_analyze_path_drift` with direct string construction (no stdout redirection/print calls)
   - [x] Replaced `print(output)` with structured `logger.info(...)` in `shared/service/commands.py::run_config`
 - [x] Review noisy logs in config validation and package auditing (demoted multiline/non-actionable internals to DEBUG)
-- [ ] Complete remaining print-to-logger migration in standalone analyzer scripts where still appropriate
+- [x] Complete remaining print-to-logger migration in standalone analyzer scripts where still appropriate
   - [x] Converted `development_tools/imports/analyze_dependency_patterns.py` standalone entrypoint guidance from `print(...)` to `logger.info(...)` with explicit `main()` entrypoint and test coverage in `tests/development_tools/test_analyze_dependency_patterns.py`
   - [x] Converted `development_tools/imports/analyze_module_imports.py` standalone `--file/--scan` summary output from `print(...)` to `logger.info(...)` with explicit `main()` entrypoint and CLI-path tests in `tests/development_tools/test_analyze_module_imports_cli.py`
   - [x] Converted non-JSON CLI summary output in `development_tools/imports/generate_unused_imports_report.py` from `print(...)` to `logger.info(...)` (kept `--json` stdout behavior), with coverage in `tests/development_tools/test_generate_unused_imports_report.py::test_main_logs_summary_in_non_json_mode`
   - [x] Converted `development_tools/ai_work/analyze_ai_work.py` non-JSON CLI output from `print(...)` to `logger.info(...)`, extracted reusable `main()` entrypoint, and added regression test `tests/development_tools/test_analyze_ai_work.py::test_main_logs_summary_in_non_json_mode`
+  - [x] Converted `development_tools/legacy/generate_legacy_reference_report.py` completion messages from `print(...)` to `logger.info/error(...)`
+  - [x] Converted `development_tools/imports/analyze_module_dependencies.py` `generate_dependency_report` and `generate_enhanced_dependency_report` output from `print(...)` to `logger.info(...)`; updated tests to assert on mocked logger
 - [x] Add "Top offenders" list to Quick Wins in AI_PRIORITIES.md
   - [x] Added unused-imports Quick Win in `shared/service/report_generation.py` with top offender files + fix/verify commands
   - [x] Added unit coverage in `tests/development_tools/test_report_generation_quick_wins.py`
@@ -348,13 +361,11 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Document version sync process
 
 #### 3.4 dev tools scripts and tool_timings.json location
-**Status**: PENDING  
+**Status**: REVIEWED  
 **Tasks**:
-- [ ] Review `development_tools/scripts/` purpose and contents
-- [ ] Decide whether scripts belong under project `scripts/`
-- [ ] Decide proper location for `tool_timings.json`
-- [ ] Update `_save_timing_data()` if location changes
-- [ ] Document the decision
+- [x] Review `development_tools/scripts/` purpose and contents - **Moved and removed**: `measure_tool_timings.py` and `verify_tool_storage.py` moved to `development_tools/shared/`; `development_tools/scripts/` deleted
+- [x] Decide proper location for `tool_timings.json` - **Canonical**: `development_tools/reports/tool_timings.json` (used by `_save_timing_data()` in audit_orchestration.py)
+- [x] Document the decision - tool_timings.json is written by audit orchestration after tier execution; location is correct
 
 #### 3.5 Expand analyze_duplicate_functions with body/structural similarity
 **Status**: PENDING  
@@ -372,20 +383,19 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Ensure reports show consistent values
 
 #### 3.7 Pyright duplicate declaration investigation
-**Status**: PENDING  
+**Status**: REVIEWED  
 **Tasks**:
-- [ ] Compare duplicate `generate_dependency_report()` implementations and merge/remove
-- [ ] Ensure logger usage (no print) when consolidating
-- [ ] Investigate duplicate methods in `tool_wrappers.py` and merge/remove
-- [ ] Document the decision and remove orphaned code
+- [x] `generate_dependency_report()` vs `generate_dependency_report_extended()` - **Removed dead code**: `generate_dependency_report_extended()` was never called; removed. `generate_dependency_report()` remains the sole entry point (runs during audit).
+- [x] Investigate duplicate methods in `tool_wrappers.py` - **No duplicates found**: each `run_*` in `tool_wrappers.py` is unique.
+- [x] **run_unused_imports** - **Consolidated**: All usages now call `run_analyze_unused_imports`; removed `run_unused_imports` alias from commands.py.
 
 #### 3.8 Rename generate_function_docstrings to fix_function_docstrings
-**Status**: PENDING  
+**Status**: COMPLETED  
 **Tasks**:
-- [ ] Rename file: `development_tools/functions/generate_function_docstrings.py` -> `fix_function_docstrings.py`
-- [ ] Update tool metadata and CLI wrappers to use new name
-- [ ] Update documentation references (AI + human guides)
-- [ ] Preserve experimental tier and any backward-compat wrapper if needed
+- [x] Rename file: `development_tools/functions/generate_function_docstrings.py` -> `fix_function_docstrings.py`
+- [x] Update tool metadata and CLI wrappers to use new name
+- [x] Update documentation references (AI + human guides)
+- [x] Preserve experimental tier and backward-compat (config key fallback, get_generate_function_docstrings_config alias)
 
 #### 3.9 Config portability and defaults
 **Status**: COMPLETED  
@@ -416,7 +426,7 @@ This is an updated, condensed roadmap based on V3 and the 2026-01-13 full audit.
 - [ ] Exclude `scripts/` where appropriate
 - [ ] Exclude `tests/ai/results/` where appropriate
 - [ ] Exclude `tests/coverage_html/` where appropriate
-  - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/functions/generate_function_docstrings.py` scanner loop (analysis/production context), with coverage in `tests/development_tools/test_generate_function_docstrings.py::test_scan_and_document_respects_standard_exclusions`
+  - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/functions/fix_function_docstrings.py` scanner loop (analysis/production context), with coverage in `tests/development_tools/test_fix_function_docstrings.py::test_scan_and_document_respects_standard_exclusions`
   - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/tests/domain_mapper.py` when discovering `tests/**/test_*.py` (analysis/development context, using project-relative paths), with coverage in `tests/development_tools/test_test_file_coverage_cache.py` for include + `tests/data/**` exclusion behavior
   - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/tests/analyze_test_markers.py::find_test_files` (analysis/development context, project-relative paths), with coverage update in `tests/development_tools/test_analyze_test_markers.py` confirming `tests/data/**` exclusion
   - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/static_checks/check_channel_loggers.py::iter_python_files` (analysis/development context, project-relative paths), with unit coverage in `tests/development_tools/test_check_channel_loggers.py`

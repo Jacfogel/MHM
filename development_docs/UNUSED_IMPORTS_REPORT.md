@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-27 01:18:05
+> **Last Generated**: 2026-02-27 12:29:32
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 482
-- **Files with Unused Imports**: 125
-- **Total Unused Imports**: 388
+- **Total Files Scanned**: 485
+- **Files with Unused Imports**: 124
+- **Total Unused Imports**: 387
 
 ## Breakdown by Category
 
@@ -20,7 +20,7 @@
 - **Star Imports**: 0 imports
 - **Test Mocking**: 146 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 153 imports
+- **Test Infrastructure**: 152 imports
 - **Production Test Mocking**: 2 imports
 - **Ui Imports**: 5 imports
 
@@ -227,17 +227,17 @@
 
 - **Line 10**: `unittest.mock.MagicMock` imported but unused
 
+### `tests/development_tools/test_fix_function_docstrings.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 10**: `unittest.mock.MagicMock` imported but unused
+
 ### `tests/development_tools/test_generate_error_handling_report.py`
 
 **Count**: 1 unused import(s)
 
 - **Line 11**: `unittest.mock.MagicMock` imported but unused
-
-### `tests/development_tools/test_generate_function_docstrings.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/development_tools/test_generate_unused_imports_report.py`
 
@@ -995,6 +995,14 @@
 
 - **Line 11**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
+### `tests/development_tools/test_fix_function_docstrings.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 9**: `pathlib.Path` imported but unused
+- **Line 12**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 12**: `tests.development_tools.conftest.test_config_path` imported but unused
+
 ### `tests/development_tools/test_fix_project_cleanup.py`
 
 **Count**: 2 unused import(s)
@@ -1021,14 +1029,6 @@
 
 - **Line 10**: `pathlib.Path` imported but unused
 
-### `tests/development_tools/test_generate_function_docstrings.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 9**: `pathlib.Path` imported but unused
-- **Line 12**: `tests.development_tools.conftest.demo_project_root` imported but unused
-- **Line 12**: `tests.development_tools.conftest.test_config_path` imported but unused
-
 ### `tests/development_tools/test_generate_function_registry.py`
 
 **Count**: 1 unused import(s)
@@ -1048,12 +1048,6 @@
 - **Line 8**: `json` imported but unused
 - **Line 9**: `pathlib.Path` imported but unused
 - **Line 12**: `tests.development_tools.conftest.temp_project_copy` imported but unused
-
-### `tests/development_tools/test_legacy_reference_cleanup.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 11**: `pathlib.Path` imported but unused
 
 ### `tests/development_tools/test_output_storage_archiving.py`
 

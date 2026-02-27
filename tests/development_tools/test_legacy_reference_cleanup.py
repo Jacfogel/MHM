@@ -9,6 +9,7 @@ Tests scanning, verification, and safe cleanup operations.
 
 import pytest
 from pathlib import Path
+from unittest.mock import patch
 
 # Import helper from conftest
 from tests.development_tools.conftest import load_development_tools_module
@@ -241,21 +242,98 @@ class TestReportGeneration:
 
 class TestReplacementMappings:
     """Test replacement mappings."""
-    
+
     @pytest.mark.unit
     def test_get_replacement_mappings(self, demo_project_root):
         """Test that replacement mappings work correctly."""
         fixer = LegacyReferenceFixer(str(demo_project_root))
-        
+
         # Test various replacements
         test_cases = [
             ('bot/', 'communication/'),
             ('from bot.', 'from communication.'),
             ('import bot.', 'import communication.'),
         ]
-        
+
         for original, expected_start in test_cases:
             replacement = fixer.get_replacement(original)
             # Should start with expected replacement
             assert replacement.startswith(expected_start) or original not in fixer.replacement_mappings
+
+    @pytest.mark.unit
+    def test_get_replacement_with_custom_mappings(self, demo_project_root):
+        """Test get_replacement with explicit replacement_mappings."""
+        replacement_mappings = {"LEGACY": "MODERN", "old_pattern": "new_pattern"}
+        fixer = LegacyReferenceFixer(
+            str(demo_project_root), replacement_mappings=replacement_mappings
+        )
+        assert fixer.get_replacement("LEGACY code") == "MODERN code"
+        assert fixer.get_replacement("old_pattern only") == "new_pattern only"
+        assert fixer.get_replacement("no_match_here") == "no_match_here"
+
+
+class TestLegacyFixerRun:
+    """Test LegacyReferenceFixer.run() flow."""
+
+    @pytest.mark.unit
+    def test_run_scan_only(self, demo_project_root, caplog):
+        """Test run with scan=True, clean=False produces findings and report."""
+        fixer = LegacyReferenceFixer(str(demo_project_root))
+        results = fixer.run(scan=True, clean=False, dry_run=True)
+        assert "findings" in results
+        assert "report_file" in results
+        assert isinstance(results["findings"], dict)
+        assert Path(results["report_file"]).exists()
+
+    @pytest.mark.unit
+    def test_run_scan_and_clean_dry_run(self, demo_project_root):
+        """Test run with scan and clean (dry_run) returns cleanup structure."""
+        fixer = LegacyReferenceFixer(str(demo_project_root))
+        results = fixer.run(scan=True, clean=True, dry_run=True)
+        assert "findings" in results
+        assert "cleanup" in results
+        cleanup = results["cleanup"]
+        assert "files_would_update" in cleanup or "files_updated" in cleanup
+        assert "changes" in cleanup
+
+    @pytest.mark.unit
+    def test_run_scan_false_requires_findings(self, demo_project_root):
+        """Test run with scan=False and clean=True needs prior findings (no-op)."""
+        fixer = LegacyReferenceFixer(str(demo_project_root))
+        results = fixer.run(scan=False, clean=False, dry_run=True)
+        assert "findings" not in results
+        assert "cleanup" not in results
+
+
+class TestFixLegacyReferencesMain:
+    """Test fix_legacy_references main() CLI paths."""
+
+    @pytest.mark.unit
+    def test_main_find_mode(self, demo_project_root, capsys):
+        """Test --find delegates to analyzer and prints references."""
+        with patch("sys.argv", ["fix_legacy_references.py", "--find", "NonExistentItemXYZ"]):
+            cleanup_module.main()
+        out, _ = capsys.readouterr()
+        assert "References to" in out or "Total files" in out
+        assert "NonExistentItemXYZ" in out
+
+    @pytest.mark.unit
+    def test_main_verify_mode(self, demo_project_root, capsys):
+        """Test --verify delegates to analyzer and prints verification."""
+        with patch("sys.argv", ["fix_legacy_references.py", "--verify", "NonExistentItemXYZ"]):
+            cleanup_module.main()
+        out, _ = capsys.readouterr()
+        assert "Removal Readiness" in out or "Reference Summary" in out
+        assert "NonExistentItemXYZ" in out
+
+    @pytest.mark.unit
+    def test_main_scan_default(self, demo_project_root):
+        """Test main with default args runs fixer.run(scan=True)."""
+        with patch.object(LegacyReferenceFixer, "run", return_value={"findings": {}, "report_file": ""}) as mock_run:
+            with patch("sys.argv", ["fix_legacy_references.py"]):
+                cleanup_module.main()
+        mock_run.assert_called_once()
+        call_kwargs = mock_run.call_args[1]
+        assert call_kwargs["scan"] is True
+        assert call_kwargs["dry_run"] is True
 

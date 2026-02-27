@@ -2,16 +2,16 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-27 01:18:18
+> **Last Generated**: 2026-02-27 12:29:48
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 8
-**Legacy Compatibility Markers Detected**: 13
+**Total Files with Issues**: 9
+**Legacy Compatibility Markers Detected**: 14
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
 - Changelogs, archive folders, and planning documents are intentionally historical and excluded from this report.
 - Legacy compatibility markers remain in 2 file(s) (4 total markers).
-- Remaining counts come from legacy inventory tracking categories (6 file(s), 9 marker(s)).
+- Remaining counts come from legacy inventory tracking categories (7 file(s), 10 marker(s)).
 
 ## Recommended Follow-Up
 - Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)
@@ -49,7 +49,15 @@
   ```
 
 ## Legacy Inventory Tracking
-**Files Affected**: 5
+**Files Affected**: 6
+
+### development_tools\config\config.py
+**Issues Found**: 1
+
+- **Line 1039**: `backward compatibility`
+  ```
+  Checks 'fix_function_docstrings' first, then 'generate_function_docstrings' for backward compatibility."""
+  ```
 
 ### development_tools\shared\mtime_cache.py
 **Issues Found**: 1

@@ -363,20 +363,28 @@ class TestDependencyReportGeneration:
         assert not any("#### `core/b.py`" in line for line in debug_lines)
 
     @pytest.mark.unit
-    def test_generate_enhanced_dependency_report_prints_module_analysis(self, capsys):
-        """Enhanced report should print module sections with analysis details."""
-        actual_imports = {
-            "core/a.py": {"imports": {"local": ["core.b"], "standard_library": [], "third_party": []}, "total_imports": 1},
-            "core/b.py": {"imports": {"local": [], "standard_library": [], "third_party": []}, "total_imports": 0},
-        }
-        documented = {"core/a.py": ["core.b"]}
+    def test_generate_enhanced_dependency_report_prints_module_analysis(self):
+        """Enhanced report should log module sections with analysis details."""
+        from unittest.mock import patch, MagicMock
+        mock_logger = MagicMock()
+        with patch(
+            "development_tools.imports.analyze_module_dependencies.logger",
+            mock_logger,
+        ):
+            actual_imports = {
+                "core/a.py": {"imports": {"local": ["core.b"], "standard_library": [], "third_party": []}, "total_imports": 1},
+                "core/b.py": {"imports": {"local": [], "standard_library": [], "third_party": []}, "total_imports": 0},
+            }
+            documented = {"core/a.py": ["core.b"]}
 
-        generate_enhanced_dependency_report(actual_imports, documented)
-        output = capsys.readouterr().out
+            generate_enhanced_dependency_report(actual_imports, documented)
 
-        assert "ENHANCED MODULE ANALYSIS REPORT" in output
-        assert "#### `core/a.py`" in output
-        assert "**Complexity**" in output
+        # Report uses logger.debug (verbose per-module analysis)
+        debug_calls = [str(c.args[0]) for c in mock_logger.debug.call_args_list if c.args]
+        logged = " ".join(debug_calls)
+        assert "ENHANCED MODULE ANALYSIS REPORT" in logged
+        assert "#### `core/a.py`" in logged
+        assert "**Complexity**" in logged
 
     @pytest.mark.unit
     @patch('development_tools.imports.analyze_module_dependencies.analyze_circular_dependencies')
@@ -393,7 +401,6 @@ class TestDependencyReportGeneration:
         mock_enhanced,
         mock_updated,
         mock_circular,
-        capsys,
     ):
         """Main report generator should call enhancement/circular/update helpers."""
         mock_scan.return_value = {
@@ -406,9 +413,7 @@ class TestDependencyReportGeneration:
         mock_identify.return_value = {"core/a.py": "enhanced"}
 
         generate_dependency_report()
-        output = capsys.readouterr().out
-
-        assert "MODULE DEPENDENCIES AUDIT REPORT" in output
+        # Report uses logger.debug for verbose output; verify helpers were called
         mock_enhanced.assert_called_once()
         mock_updated.assert_called_once()
         mock_circular.assert_called_once()

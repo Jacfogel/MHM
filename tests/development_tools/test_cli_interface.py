@@ -121,7 +121,7 @@ class _StubService:
         self.legacy_calls += 1
         return True
 
-    def run_unused_imports(self):
+    def run_analyze_unused_imports(self):
         return self.unused_imports_result
 
     def run_unused_imports_report(self):

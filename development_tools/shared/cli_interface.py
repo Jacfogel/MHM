@@ -336,7 +336,7 @@ def _unused_imports_command(service: "AIToolsService", argv: Sequence[str]) -> i
             print("Usage: unused-imports")
             return 2
 
-    result = service.run_unused_imports()
+    result = service.run_analyze_unused_imports()
     success = result.get("success", False) if isinstance(result, dict) else bool(result)
     return 0 if success else 1
 

@@ -1034,9 +1034,12 @@ AUTO_DOCUMENT_FUNCTIONS = {
 }
 
 
-def get_generate_function_docstrings_config():
-    """Get generate function docstrings configuration (from external config if available, otherwise default)."""
-    external_config = _get_external_value("generate_function_docstrings", None)
+def get_fix_function_docstrings_config():
+    """Get fix function docstrings configuration (from external config if available, otherwise default).
+    Checks 'fix_function_docstrings' first, then 'generate_function_docstrings' for backward compatibility."""
+    external_config = _get_external_value("fix_function_docstrings", None)
+    if external_config is None:
+        external_config = _get_external_value("generate_function_docstrings", None)
     if external_config:
         result = AUTO_DOCUMENT_FUNCTIONS.copy()
         # Deep merge for nested dicts
@@ -1062,3 +1065,9 @@ def get_generate_function_docstrings_config():
                 result[key] = value
         return result
     return AUTO_DOCUMENT_FUNCTIONS
+
+
+def get_generate_function_docstrings_config():
+    """LEGACY COMPATIBILITY: Alias for get_fix_function_docstrings_config.
+    Use get_fix_function_docstrings_config for new code."""
+    return get_fix_function_docstrings_config()

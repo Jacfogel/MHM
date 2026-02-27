@@ -1712,18 +1712,6 @@ class CommandsMixin:
         
         return result
     
-    def run_unused_imports(self):
-        """Run unused imports analysis (analysis only)"""
-        logger.debug("Analyzing unused imports...")
-        result = self.run_analyze_unused_imports()
-        if result.get('success'):
-            logger.debug("Unused imports analysis completed!")
-        else:
-            logger.warning(f"Unused imports analysis completed with issues: {result.get('error', 'Unknown error')}")
-        if hasattr(self, '_tools_run_in_current_tier'):
-            self._tools_run_in_current_tier.add('analyze_unused_imports')
-        return result
-    
     def run_unused_imports_report(self):
         """Run unused imports report generation (generates markdown report from analysis results)"""
         logger.info("Generating unused imports report...")

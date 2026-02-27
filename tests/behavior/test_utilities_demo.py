@@ -161,6 +161,7 @@ class TestUtilitiesDemo:
                 user_dir = get_user_data_dir(actual_user_id)
                 assert os.path.exists(user_dir), f"User directory should exist for {user_id}"
     
+    @pytest.mark.no_parallel  # shared user index and test_data_dir under xdist; user creation + lookup can race
     def test_email_user_creation(self, test_data_dir):
         """Test creating an email user with specific email address."""
         import uuid

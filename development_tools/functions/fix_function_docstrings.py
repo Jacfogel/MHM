@@ -2,14 +2,15 @@
 # TOOL_TIER: experimental
 
 """
-Auto Document Functions - Automatically add docstrings to Python functions
+Fix Function Docstrings - Automatically add docstrings to Python functions
 
 This tool analyzes the codebase and automatically generates appropriate docstrings
 for functions that lack documentation. It uses the same template generation logic as
 the function registry generator to ensure consistency.
 
 Configuration is loaded from external config file (development_tools_config.json)
-if available, making this tool portable across different projects.
+under key "fix_function_docstrings" (or "generate_function_docstrings" for backward
+compatibility), making this tool portable across different projects.
 """
 
 import ast
@@ -37,7 +38,7 @@ from core.time_utilities import now_timestamp_filename
 logger = get_component_logger("development_tools")
 
 # Load config at module level
-AUTO_DOC_CONFIG = config.get_generate_function_docstrings_config()
+AUTO_DOC_CONFIG = config.get_fix_function_docstrings_config()
 
 
 def detect_function_type(
@@ -384,7 +385,7 @@ def scan_and_document_functions(project_root_path: Optional[Path] = None):
 def execute(
     project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs
 ) -> Dict:
-    """Execute auto document functions (for use by run_development_tools)."""
+    """Execute fix function docstrings (for use by run_development_tools)."""
     global AUTO_DOC_CONFIG
 
     # Load config if project_root or config_path provided
@@ -392,7 +393,7 @@ def execute(
         if config_path:
             config.load_external_config(config_path)
         # Reload config (project_root is handled via config file)
-        AUTO_DOC_CONFIG = config.get_generate_function_docstrings_config()
+        AUTO_DOC_CONFIG = config.get_fix_function_docstrings_config()
 
     if project_root:
         project_root_path = Path(project_root).resolve()
@@ -407,17 +408,17 @@ def execute(
 
 def main():
     """Main function to run the automatic documentation process."""
-    logger.info("[AUTO-DOC] Starting automatic function documentation...")
+    logger.info("[FIX-DOCSTRINGS] Starting automatic function documentation...")
 
     # Create backup before making changes
-    project_root = Path(__file__).parent.parent
-    backup_dir = project_root.parent / f"backup_auto_doc_{now_timestamp_filename()}"
+    dev_tools_root = Path(__file__).parent.parent
+    backup_dir = dev_tools_root.parent / f"backup_auto_doc_{now_timestamp_filename()}"
 
     logger.info(f"Creating backup at {backup_dir}")
     try:
         import shutil
 
-        shutil.copytree(project_root, backup_dir)
+        shutil.copytree(dev_tools_root, backup_dir)
         logger.info("Backup created successfully")
     except Exception as e:
         logger.error(f"Failed to create backup: {e}")
@@ -427,8 +428,8 @@ def main():
     results = scan_and_document_functions()
 
     # Print results
-    logger.info(f"[AUTO-DOC] Documentation process complete!")
-    logger.info(f"[STATS] Results:")
+    logger.info("[FIX-DOCSTRINGS] Documentation process complete!")
+    logger.info("[STATS] Results:")
     logger.info(f"   Files processed: {results['files_processed']}")
     logger.info(f"   Functions documented: {results['functions_documented']}")
     logger.info(
@@ -443,7 +444,7 @@ def main():
         logger.info(f"[NOTE] Backup available at: {backup_dir}")
     else:
         logger.info(
-            f"[INFO] No new docstrings were added (all functions already documented or not eligible)"
+            "[INFO] No new docstrings were added (all functions already documented or not eligible)"
         )
 
 

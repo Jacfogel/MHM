@@ -652,7 +652,7 @@ class AuditOrchestrationMixin:
             ],
             # Unused imports group: moved from Tier 3 (both <=10s)
             [
-                ('analyze_unused_imports', self.run_unused_imports),  # 7.82s
+                ('analyze_unused_imports', self.run_analyze_unused_imports),  # 7.82s
                 ('generate_unused_imports_report', self.run_generate_unused_imports_report),  # 0.98s
             ],
         ]

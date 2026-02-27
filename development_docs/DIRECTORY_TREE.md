@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-26 13:13:50
+> **Last Generated**: 2026-02-27 12:15:56
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -12,6 +12,7 @@ Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
 |   .coverage
+|   .ruff.toml
 |   ARCHITECTURE.md
 |   CONFIGURATION_REFERENCE.md
 |   DEVELOPMENT_WORKFLOW.md
@@ -214,6 +215,7 @@ C:.
 |   |   |   config.py
 |   |   |   development_tools_config.json
 |   |   |   development_tools_config.json.example
+|   |   |   sync_ruff_toml.py
 |   |   |   __init__.py
 |   |   |   
 |   |   +---jsons
@@ -251,7 +253,7 @@ C:.
 |   |   |   analyze_function_registry.py
 |   |   |   analyze_module_refactor_candidates.py
 |   |   |   analyze_package_exports.py
-|   |   |   generate_function_docstrings.py
+|   |   |   fix_function_docstrings.py
 |   |   |   generate_function_registry.py
 |   |   |   __init__.py
 |   |   |   
@@ -296,21 +298,20 @@ C:.
 |   |   |   cli_interface.py
 |   |   |   common.py
 |   |   |   constants.py
-|   |   |   EXCLUSION_RULES.md
 |   |   |   exclusion_utilities.py
 |   |   |   export_code_snapshot.py
 |   |   |   export_docs_snapshot.py
 |   |   |   file_rotation.py
 |   |   |   fix_project_cleanup.py
+|   |   |   measure_tool_timings.py
 |   |   |   mtime_cache.py
 |   |   |   output_storage.py
-|   |   |   OUTPUT_STORAGE_STANDARDS.md
 |   |   |   result_format.py
-|   |   |   RESULT_FORMAT_STANDARD.md
 |   |   |   retention_engine.py
 |   |   |   standard_exclusions.py
 |   |   |   tool_guide.py
 |   |   |   tool_metadata.py
+|   |   |   verify_tool_storage.py
 |   |   |   __init__.py
 |   |   |   
 |   |   +---data
@@ -329,48 +330,14 @@ C:.
 |   |   |   |   __init__.py
 |   |   |   |   
 |   +---static_checks
+|   |   |   analyze_pyright.py
+|   |   |   analyze_ruff.py
 |   |   |   check_channel_loggers.py
 |   |   |   
+|   |   +---jsons
+    (JSON files created by development tools)
 |   +---tests
 |   |   |   .coverage
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.10156.XiQkACpx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.10156.XXtmbFAx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.13184.XQGedtUx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.13184.XRPvGNHx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.13772.XSmbLTbx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.13772.XUoBGoox
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.14640.XRIefwXx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.14640.XvHceHLx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.16336.XfezIhOx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.16336.XToKGLOx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.18972.XGggeCix
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.18972.XkcyoEix
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.22568.XeDRXQQx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.22568.XgAjJLtx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.25668.XHqRmNJx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.25668.XubNTivx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.27736.Xcfgpvjx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.27736.XgdUBIQx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.30464.XijYfaHx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.30464.XJPdsGCx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.32264.XcPqSWix
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.32264.XcUyJPox
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.34792.XEVNyeSx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.34792.XlWIoNzx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.36652.XGIqRLax
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.36652.XyKKvcFx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.36996.XkoYvHIx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.36996.XvUcgvGx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.37448.XAIyubOx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.37448.XQPLqtRx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.38096.XdYwexXx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.38096.XjsJEDzx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.5772.XhErniPx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.5772.XkZDqXvx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.7536.XdMoyhbx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.7536.XFqiDcgx
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.8928.XcFzJGox
-|   |   |   .coverage_dev_tools.DESKTOP-6UH6TPA.8928.XxTTwYbx
 |   |   |   analyze_test_coverage.py
 |   |   |   analyze_test_markers.py
 |   |   |   coverage.ini
@@ -576,6 +543,7 @@ C:.
 |   |   |   test_changelog_trim_tooling.py
 |   |   |   test_check_channel_loggers.py
 |   |   |   test_cli_interface.py
+|   |   |   test_commands_coverage_helpers.py
 |   |   |   test_commands_docs_locks.py
 |   |   |   test_common_shared.py
 |   |   |   test_config.json
@@ -595,6 +563,7 @@ C:.
 |   |   |   test_fix_documentation_ascii.py
 |   |   |   test_fix_documentation_headings.py
 |   |   |   test_fix_documentation_links.py
+|   |   |   test_fix_function_docstrings.py
 |   |   |   test_fix_project_cleanup.py
 |   |   |   test_fix_test_markers.py
 |   |   |   test_fix_version_sync_file_discovery.py
@@ -603,7 +572,6 @@ C:.
 |   |   |   test_generate_directory_tree.py
 |   |   |   test_generate_error_handling_recommendations.py
 |   |   |   test_generate_error_handling_report.py
-|   |   |   test_generate_function_docstrings.py
 |   |   |   test_generate_function_registry.py
 |   |   |   test_generate_module_dependencies.py
 |   |   |   test_generate_unused_imports_report.py
@@ -617,11 +585,13 @@ C:.
 |   |   |   test_path_drift_verification_comprehensive.py
 |   |   |   test_regenerate_coverage_metrics.py
 |   |   |   test_report_generation_quick_wins.py
+|   |   |   test_report_generation_static_analysis.py
 |   |   |   test_retention_engine.py
 |   |   |   test_run_development_tools.py
 |   |   |   test_run_dev_tools.py
 |   |   |   test_service_utilities.py
 |   |   |   test_standard_exclusions.py
+|   |   |   test_static_analysis_tools.py
 |   |   |   test_status_file_timing.py
 |   |   |   test_supporting_tools.py
 |   |   |   test_test_file_coverage_cache.py
@@ -629,6 +599,7 @@ C:.
 |   |   |   test_tool_wrappers_additional.py
 |   |   |   test_tool_wrappers_branch_paths.py
 |   |   |   test_tool_wrappers_package_exports.py
+|   |   |   test_tool_wrappers_static_analysis.py
 |   |   |   test_verification_summary.py
 |   |   |   __init__.py
 |   |   |   

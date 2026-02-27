@@ -258,8 +258,8 @@ def test_tier3_crash_metadata_surfaces_in_status_and_priorities(temp_project_cop
 
 
 @pytest.mark.unit
-def test_quick_wins_include_unused_imports_top_offenders(temp_project_copy):
-    """Quick wins should include unused-import top offenders when analysis finds issues."""
+def test_quick_wins_exclude_unused_imports_when_in_immediate_focus(temp_project_copy):
+    """Unused imports are surfaced in Immediate Focus Ranked only; omitted from Quick Wins to avoid duplication."""
     service = AIToolsService(project_root=str(temp_project_copy))
 
     payloads = {
@@ -279,10 +279,9 @@ def test_quick_wins_include_unused_imports_top_offenders(temp_project_copy):
 
     doc = service._generate_ai_priorities_document()
 
-    assert "Unused imports (obvious): 3 obvious import(s) out of 7 total across 3 file(s)." in doc
-    assert "Top offenders: core/a.py (4), core/b.py (2), core/c.py (1)." in doc
-    assert "run_development_tools.py unused-imports" in doc
-    assert "run_development_tools.py unused-imports-report" in doc
+    # Unused imports appear in Immediate Focus, not Quick Wins
+    assert "Remove obvious unused imports" in doc
+    assert "Unused imports (obvious):" not in doc
 
 
 @pytest.mark.unit

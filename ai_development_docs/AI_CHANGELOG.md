@@ -30,6 +30,17 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-27 - Pyright/Ruff mtime caching + AI_PRIORITIES simplification + dev-tools consolidation **COMPLETED**
+- Added mtime caching for Pyright and Ruff: skip runs when source unchanged; cache in `static_checks/jsons/`.
+- Moved module dependencies report (MODULE DEPENDENCIES AUDIT REPORT, ENHANCED MODULE ANALYSIS) to DEBUG level.
+- Removed Watch List from AI_PRIORITIES; removed unused imports from Quick Wins (already in Immediate Focus).
+- Added task 1.8 in AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md for improving slow dev tools tests.
+- Moved `measure_tool_timings.py` and `verify_tool_storage.py` to `development_tools/shared/`; removed `scripts/` dir.
+- Consolidated to `run_analyze_unused_imports`; removed `run_unused_imports` alias; removed dead `generate_dependency_report_extended`.
+- Retired EXCLUSION_RULES, OUTPUT_STORAGE_STANDARDS, RESULT_FORMAT_STANDARD into DEVELOPMENT_TOOLS_GUIDE.
+- Renamed `generate_function_docstrings` -> `fix_function_docstrings`; removed 2 obvious unused imports; fixed `test_email_user_creation` parallel failure.
+- Added `test_commands_coverage_helpers.py`; print-to-logger migration for legacy reference and module-dependencies analyzers.
+
 ### 2026-02-27 - Static-analysis pipeline hardening + report clarity improvements **COMPLETED**
 - Fixed Ruff/Pyright audit-runtime drift by normalizing configured `python -m ...` launchers to the active interpreter, eliminating false "tool unavailable" states in static-check wrappers.
 - Added portable Ruff config sync scaffolding via `development_tools/config/sync_ruff_toml.py`; generated root `.ruff.toml` from shared exclusions; removed Ruff settings from `pyproject.toml` to avoid split ownership.
