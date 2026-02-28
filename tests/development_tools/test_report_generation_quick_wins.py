@@ -546,6 +546,80 @@ def test_ai_priorities_warn_and_support_legacy_raw_dev_tools_shape(
 
 
 @pytest.mark.unit
+def test_ai_priorities_keeps_dev_tools_coverage_when_modules_below_80(
+    temp_project_copy,
+):
+    """Keep dev-tools coverage priority when module-level coverage remains below 80%."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    service.dev_tools_coverage_results = {
+        "summary": {"total_issues": 9000, "files_affected": 0},
+        "details": {
+            "overall": {
+                "overall_coverage": 60.0,
+                "total_statements": 25000,
+                "total_missed": 10000,
+            },
+            "modules": {
+                "development_tools/run_test_coverage.py": {
+                    "coverage": 32.0,
+                    "missed": 1000,
+                    "statements": 1500,
+                },
+            },
+        },
+    }
+
+    service._load_tool_data = lambda *args, **kwargs: {}
+    service._load_coverage_summary = lambda: {}
+    service._load_dev_tools_coverage = lambda: None
+
+    doc = service._generate_ai_priorities_document()
+
+    assert "Raise development tools coverage" in doc
+    assert "remain below the 80% target" in doc
+
+
+@pytest.mark.unit
+def test_ai_priorities_omits_dev_tools_coverage_when_overall_and_modules_meet_target(
+    temp_project_copy,
+):
+    """Do not surface dev-tools coverage priority when overall >=60 and modules >=80."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    service.dev_tools_coverage_results = {
+        "summary": {"total_issues": 1000, "files_affected": 0},
+        "details": {
+            "overall": {
+                "overall_coverage": 60.0,
+                "total_statements": 1000,
+                "total_missed": 400,
+            },
+            "modules": {
+                "development_tools/high_coverage_a.py": {
+                    "coverage": 80.0,
+                    "missed": 20,
+                    "statements": 100,
+                },
+                "development_tools/high_coverage_b.py": {
+                    "coverage": 85.0,
+                    "missed": 15,
+                    "statements": 100,
+                },
+            },
+        },
+    }
+
+    service._load_tool_data = lambda *args, **kwargs: {}
+    service._load_coverage_summary = lambda: {}
+    service._load_dev_tools_coverage = lambda: None
+
+    doc = service._generate_ai_priorities_document()
+
+    assert "Raise development tools coverage" not in doc
+
+
+@pytest.mark.unit
 def test_consolidated_report_marks_cached_overlap_data(temp_project_copy):
     """Consolidated report should identify cached overlap data instead of showing not-run."""
     service = AIToolsService(project_root=str(temp_project_copy))

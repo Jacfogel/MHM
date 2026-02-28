@@ -3401,15 +3401,21 @@ class ReportGenerationMixin:
         if dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
             dev_pct = dev_tools_insights["overall_pct"]
             low_dev_modules = dev_tools_insights.get("low_modules") or []
-            if dev_pct < 60 or low_dev_modules:
+            low_dev_modules_below_target = [
+                item
+                for item in low_dev_modules
+                if isinstance(item.get("coverage"), (int, float))
+                and float(item.get("coverage")) < 80
+            ]
+            if dev_pct < 60 or low_dev_modules_below_target:
                 dev_bullets: List[str] = []
                 dev_bullets.append(
                     "Review for Guidance: development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md and ai_development_docs/AI_TESTING_GUIDE.md"
                 )
-                if low_dev_modules:
+                if low_dev_modules_below_target:
                     highlights = [
                         f"{Path(item['path']).name} ({percent_text(item.get('coverage'), 1)})"
-                        for item in low_dev_modules
+                        for item in low_dev_modules_below_target
                     ]
                     dev_bullets.append(
                         f"Top target modules: {self._format_list_for_display(highlights, limit=3)}"
@@ -3424,10 +3430,18 @@ class ReportGenerationMixin:
                 dev_bullets.append(
                     "Action: Strengthen tests in `tests/development_tools/` for fragile helpers and low-coverage modules"
                 )
+                if dev_pct < 60:
+                    dev_reason = (
+                        f"Development tools coverage is {percent_text(dev_pct, 1)} (target 60%+)."
+                    )
+                else:
+                    dev_reason = (
+                        f"{len(low_dev_modules_below_target)} key development-tools module(s) remain below the 80% target."
+                    )
                 add_priority(
                     tier=2,  # Tier 2: High
                     title="Raise development tools coverage",
-                    reason=f"Development tools coverage is {percent_text(dev_pct, 1)} (target 60%+).",
+                    reason=dev_reason,
                     bullets=dev_bullets,
                 )
 
