@@ -33,6 +33,22 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-28 - Planning consolidation + dating standard
+- **Planning Consolidation**:
+  - AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4: Replaced stale snapshot with reference to AI_STATUS/AI_PRIORITIES; updated Last Updated 2026-02-28.
+  - TEST_PLAN: Refreshed baseline (72.5% coverage, no-parallel verify command); added status dates to phases; Last Updated 2026-02-28.
+  - NOTES_PLAN: Added Last Updated header; refreshed milestone and testing dates; corrected short-ID format example.
+  - TASKS_PLAN: Updated Last Updated; added recurring-task test reference; status dates.
+  - PLANS: Archived Account Management (MOSTLY COMPLETE); added dating convention to "How to Update"; status dates on active plans.
+  - TODO: Moved headless and email service issues from Low to Medium (Operational Reliability); shortened Testing Roadmap Consolidation to pointer; added dating guideline; Last Updated 2026-02-28.
+  - **PLANS.md priority adjustments** (2026-02-28): Each plan item now has explicit "Use / fit" notes and priority labels aligned with user preferences-Flow/Check-in (High), Backup (High, user_data_cli defer documented), Error Handling (Medium, focus on clearer logs), Discord (Low, planning-only), Mood-Aware (High but deferred), Message Dedup (Low deferred, analytics/ML-style overkill), Phase 1 (Check-in Response Analysis first, AI context deprioritized), Phase 2 (noticeably more adaptive), Phase 3 (proactive examples added), UI (Low), Channel Sync (Low deferred).
+  - **TEST_PLAN.md**: Added "Use / fit" (stability, confident changes, backup/flow support); clarified 4.1 priority mode with rationale.
+  - **TEST_PLAN.md user-priority Q&A** (2026-02-28): Applied stakeholder answers-stability > speed; higher coverage > consistency; production-log isolation priority; Phase 1 closure note; Phase 5 keep markers if stable; Phase 6 low priority; Phase 7 exclude AI/context; Phase 8 expand+tighten policy, on-demand primary; Section 6 minimize manual testing.
+  - **TASKS_PLAN.md user-priority Q&A** (2026-02-28): Discord primary; recurring-task discoverability gap; prioritize templates, natural language, interactive follow-up (skip + flow timeout), notes & attachments; defer Smart Suggestions (AI overhaul), Time Tracking; Phase 3 priority escalation/sync/calendar noted; success criteria updated.
+  - **TODO.md**: Added "Continue planning-doc user-priority Q&A" under Planning & Prioritization; remaining: NOTES_PLAN.md, AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md.
+  - Dating standard: Added section 3.9 to [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) and [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md); added dating convention to PLANS "How to Update".
+- **Impact**: Reduced dev-tools test runtime versus recent baseline (`328.23s` -> `314.59s`), lifted key low-coverage shared scripts from 0% to strong coverage, advanced roadmap follow-through with concrete next setup/teardown optimization targets, and established ongoing dating convention for plan/TODO items so new and progressed work is traceable.
+
 ### 2026-02-28 - Dev-tools slow-test optimization pass + coverage and roadmap closeout updates
 - **Feature/Fix**: Executed a focused development-tools test-throughput optimization pass driven by repeated `--durations=20` profiling, while continuing roadmap item `1.8` and preserving test intent/coverage assertions.
 - **Technical Changes**:

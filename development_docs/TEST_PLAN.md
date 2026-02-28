@@ -5,9 +5,11 @@
 > **Status**: **IN PROGRESS**  
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
-> **Last Updated**: 2026-02-24 (Session 5 checkin-view isolation fix)
+> **Last Updated**: 2026-02-28 (User-priority Q&A: stability > speed, coverage growth, policy expand/tighten)
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
+
+**Use / fit**: Tests are validation checks that we haven't broken things—every bit helps (beginner + AI coding). Priorities: stability over speed; higher coverage; avoid production-log pollution and tests executing real operations; minimize manual testing. Full audits run often; fast runs matter.
 
 ---
 
@@ -21,25 +23,23 @@ This document is the canonical source for testing program planning and execution
 
 ---
 
-## 2. Baseline Snapshot (2026-02-22)
+## 2. Baseline Snapshot
+
+**Refresh baseline from latest audit**: Run `python development_tools/run_development_tools.py audit --full` and verify numbers below. Last verified: 2026-02-28.
 
 ### 2.1 Reliability baseline
 
-- Latest full Tier-3 audit (`2026-02-22 21:20`): **clean/successful**.
-- Notable same-day regression window:
+- Latest full Tier-3 audit: verify from most recent audit run.
+- Notable regression window (2026-02-22):
   - Full audit at `2026-02-22 21:11` failed with 2 parallel UI nodes.
   - Follow-up full audit at `2026-02-22 21:20` passed clean.
-- Previously failing node:
-  - `tests/ui/test_account_creation_ui.py::TestAccountCreationErrorHandling::test_invalid_data_handling_real_behavior`
-  - Current status: **stable in repeated parallel reruns** this session (`x5`) and module rerun.
+- `tests/ui/test_account_creation_ui.py::TestAccountCreationErrorHandling::test_invalid_data_handling_real_behavior`: status **stable** in repeated parallel reruns (2026-02-22 session).
 
 ### 2.2 No-parallel baseline
 
-- `@pytest.mark.no_parallel` markers in test code:
-  - **94 total markers** across `tests/*.py` (includes policy/e2e-support files).
-  - **90 markers across 14 product test files** when excluding:
-    - `tests/unit/test_test_policy_guards.py`
-    - `tests/development_tools/test_audit_tier_e2e_verification.py`
+- `@pytest.mark.no_parallel` markers: run `rg '@pytest.mark.no_parallel' tests/ -c` to get current count.
+- As of 2026-02-22: **94 total markers** across `tests/*.py`; **90 markers across 14 product test files** when excluding `test_test_policy_guards.py` and `test_audit_tier_e2e_verification.py`.
+- Excluded files: `tests/unit/test_test_policy_guards.py`, `tests/development_tools/test_audit_tier_e2e_verification.py`.
 
 ### 2.3 Harness and logging baseline
 
@@ -54,7 +54,8 @@ Signals currently present in logs and/or recent outputs:
 
 ### 2.4 Coverage baseline
 
-- `development_docs/TEST_COVERAGE_REPORT.md` baseline: **72.6% overall**.
+- See `development_docs/TEST_COVERAGE_REPORT.md` (auto-generated) for current coverage.
+- As of 2026-02-28: **72.5% overall** (21,872 of 30,149 statements).
 - Coverage variability remains unresolved across unchanged code runs (historical spread includes low-40s to low-70s percentages).
 
 ---
@@ -63,6 +64,7 @@ Signals currently present in logs and/or recent outputs:
 
 ### Completed in this session
 
+- Fixed parallel test race in [test_logger_behavior.py](tests/behavior/test_logger_behavior.py): replaced shared `tests/data/logs` teardown fixtures with per-test `tmp_path` log fixture.
 - Hardened `test_checkin_view` parallel isolation for Discord button-handler tests:
   - File: `tests/unit/test_checkin_view.py`
   - Replaced fixed IDs with per-test unique `user_id` / `discord_user_id` values.
@@ -143,10 +145,12 @@ Signals currently present in logs and/or recent outputs:
 
 ### 4.1 Priority mode
 
-1. Reliability correctness and deterministic test outcomes.
-2. Harness stability (Windows temp/IO/logging behavior).
-3. Throughput (no-parallel reduction, selective rerun quality).
-4. Coverage consistency, then coverage growth.
+Order reflects what matters most for day-to-day development: reliability first, then harness stability, then throughput, then coverage.
+
+1. **Reliability correctness** — deterministic outcomes; no flaky passes/fails. (Stability preferred over speed.)
+2. **Harness stability** — no test-run pollution of production logs; tests must not execute real operations/interactions.
+3. **Coverage** — higher overall coverage; tests as checks that critical paths aren't broken. (Not AI/context until AI overhaul.)
+4. **Throughput** — faster runs desired, but not at the cost of stability; keep no-parallel markers if needed for reliability.
 
 ### 4.2 Program-level success criteria
 
@@ -154,8 +158,8 @@ Signals currently present in logs and/or recent outputs:
 - [ ] No recurring `tool hash missing ... cache metadata` invalidation messages on unchanged consecutive audits.
 - [ ] No recurring `Access is denied`/`WinError 123` warnings in fresh test-tool runs.
 - [ ] Production logs remain clean of test-run traffic in test-tool execution.
-- [ ] No-parallel markers reduced by >=50% from 90 baseline (target <=45), with reason comments for all remaining markers.
-- [ ] Coverage variability narrowed to a stable envelope on unchanged code.
+- [ ] No-parallel markers reduced only when stability is preserved; keep markers if needed for reliability.
+- [ ] Coverage growth in priority domains (communication, check-in flow, backup, UI); deprioritize AI/context until AI overhaul.
 
 ---
 
@@ -163,9 +167,13 @@ Signals currently present in logs and/or recent outputs:
 
 ### 5.1 Phase 1: Canonicalization and baseline freeze
 
-Status: **IN PROGRESS**
+**What it is**: Consolidating all testing items into one source of truth; migrating scattered items from PLANS/TODO here; freezing baselines for comparison.
 
-- [x] Create canonical plan in `development_docs/TEST_PLAN.md`.
+**Use / fit**: User prefers formal closure. Items mostly complete; parity checklist done. Closure = mark complete with date + evidence.
+
+Status: **IN PROGRESS** (since 2026-02-22)
+
+- [x] Create canonical plan (2026-02-22) in `development_docs/TEST_PLAN.md`.
 - [x] Complete parity review: every open testing item from `PLANS.md` and `TODO.md` either:
   - migrated here,
   - explicitly marked monitor-only here, or
@@ -178,7 +186,9 @@ Acceptance:
 
 ### 5.2 Phase 2: Immediate reliability blockers
 
-Status: **FIXED (Monitor)**
+**Use / fit**: Parallel flakes occur a few times per week. All aspects matter: hard-to-interpret errors, not knowing if failure is "real" vs flaky. Continue monitoring; fix when recurrence is clear.
+
+Status: **FIXED (Monitor)** (2026-02-22)
 
 - [x] Harden `test_invalid_data_handling_real_behavior` assertion path for index/persistence lag.
 - [x] Validate node stability with:
@@ -193,9 +203,11 @@ Acceptance:
 
 ### 5.3 Phase 3: Harness stability (Windows/IO/retention/logging)
 
-Status: **IN PROGRESS**
+**Use / fit**: Windows temp/ACL issues are infra/AI-observed, not user-visible. **User priority**: avoid production-log pollution; ensure tests do not execute real operations or interact with live systems. Test artifact isolation matters.
 
-### Windows temp/ACL hardening
+Status: **IN PROGRESS** (since 2026-02-22)
+
+### Windows temp/ACL hardening *(infra; user does not encounter)*
 - [x] Eliminate tmp-path `Access is denied` races under `tests/data/tmp/pytest_runner/...` for coverage/test tracks via pytest temp-root and mkdir-mode hardening.
 - [x] Ensure deterministic cleanup ownership/retry behavior for temp dirs.
 - [x] Validate with parallel reruns and verify no tmp_path setup/teardown PermissionError in latest clean Tier-3 run.
@@ -249,7 +261,9 @@ Acceptance:
 
 ### 5.4 Phase 4: Coverage cache metadata stabilization
 
-Status: **IN PROGRESS**
+**Use / fit**: Full audits run often; speed and cache invalidation matter. Prefer higher overall coverage over strict consistency of numbers on unchanged code.
+
+Status: **IN PROGRESS** (since 2026-02-22)
 
 - [x] Add schema + metadata backfill-on-load for test-file and dev-tools coverage caches.
 - [x] Add regression tests for missing tool-hash metadata backfill.
@@ -263,9 +277,11 @@ Acceptance:
 
 ### 5.5 Phase 5: No-parallel marker reduction (waves)
 
-Status: **IN PROGRESS**
+**Use / fit**: Stability preferred over speed. User always runs in parallel. Keep markers if removing them risks flakiness; reduce only when stability is preserved.
 
-Baseline for burn-down: **90 markers / 14 product files**.
+Status: **IN PROGRESS** (since 2026-02-22)
+
+Baseline for burn-down: **90 markers / 14 product files** (verify with `rg '@pytest.mark.no_parallel' tests/ -c`). Target ≤45 is secondary to stability.
 
 ### Wave A (1-4 marker files)
 - [ ] `tests/behavior/test_message_behavior.py`
@@ -294,12 +310,14 @@ Per-file conversion checklist:
 - [ ] Add explicit reason comments for any marker kept.
 
 Acceptance:
-- [ ] Marker count <=45.
-- [ ] Remaining markers all have explicit technical reason comments.
+- [ ] Marker count reduced only when stable; remaining markers have explicit reason comments.
+- [ ] No new flakiness introduced.
 
 ### 5.6 Phase 6: Intermittent failure backlog triage
 
-Status: **IN PROGRESS**
+**Use / fit**: User does not worry much about suspect list. When tests fail: AI investigates; if flaky, note in suspect list. Low priority; useful for context when recurrence happens.
+
+Status: **IN PROGRESS** (since 2026-02-22)
 
 ### Active suspect queue (high-signal)
 - [ ] `tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_feature_enablement_persistence_real_behavior`
@@ -341,9 +359,11 @@ Acceptance:
 
 ### 5.7 Phase 7: Coverage consistency, then growth
 
-Status: **IN PROGRESS**
+**Use / fit**: Tests as validation checks; every bit helps. Higher overall coverage preferred. Priority domains: communication, check-in flow, backup, UI. **Deprioritize AI/context** until AI overhaul.
 
-### Consistency first
+Status: **IN PROGRESS** (since 2026-02-22)
+
+### Consistency first *(secondary to growth for user)*
 - [ ] Instrument run metadata: collected files count, combine path, per-track merge status, total statements.
 - [ ] Identify variance drivers:
   - partial combine behavior
@@ -352,11 +372,10 @@ Status: **IN PROGRESS**
   - unstable test selection under cache states
 - [ ] Define variance envelope for unchanged code runs and enforce monitoring.
 
-### Growth second
+### Growth second *(primary for user)*
 - [ ] Expand tests in priority domains:
-  - communication
-  - ui
-  - core
+  - communication, check-in flow, backup, ui, core
+- [ ] **Exclude AI/context** from coverage push until AI overhaul.
 - [ ] Prioritize high-miss modules from latest coverage report.
 
 Acceptance:
@@ -365,13 +384,15 @@ Acceptance:
 
 ### 5.8 Phase 8: Governance and automation
 
-Status: **IN PROGRESS**
+**Use / fit**: On-demand testing OK if runs are fast enough. Regression tracking = recording which tests fail over time to spot recurring problems. User wants to **expand and tighten** policy allowlists. Nightly runs optional.
 
-- [ ] Nightly no-shim burn-in run:
+Status: **IN PROGRESS** (since 2026-02-22)
+
+- [ ] Nightly no-shim burn-in run *(optional; on-demand primary)*:
   - `run_tests.py --burnin-mode` or equivalent no-shim+random-order path
   - archive run summaries and regressions
-- [ ] Policy strictness burn-down in `tests/unit/test_test_policy_guards.py`:
-  - shrink allowlists in small batches
+- [ ] Policy strictness in `tests/unit/test_test_policy_guards.py`:
+  - expand policy coverage and tighten (shrink) allowlist exceptions in small batches
   - converge to strict defaults
 - [ ] Add weekly plan review block in this file (updates + blocker summary).
 
@@ -382,6 +403,8 @@ Acceptance:
 ---
 
 ## 6. Testing Strategy and Coverage Work Migration
+
+**Use / fit**: User does not want a lot of manual testing. UI/integration/E2E unclear—E2E automation could reduce manual testing. Defer decisions until needed.
 
 Migrated from prior testing strategy items:
 

@@ -117,6 +117,16 @@ Verify that referenced paths exist before asserting them.
 Metadata link deduplication rule (human doc behavior):
 - In metadata blocks, link each unique path once; subsequent repeats should remain as backticks.
 
+### 3.9. Dating convention for plan and TODO items
+
+New items and progressed items in plan files ([PLANS.md](../development_docs/PLANS.md), [TODO.md](../TODO.md), child plans) must be dated so you can track when work was added or changed.
+
+- **Format**: Use `YYYY-MM-DD` (ISO 8601).
+- **New items**: Add `**Date**: YYYY-MM-DD` or `- *Created*: YYYY-MM-DD` when adding plans or tasks.
+- **Progressed items**: When changing status (e.g., PLANNED -> IN PROGRESS) or checking off items, add the date: `- [x] Item (YYYY-MM-DD)` or `**Status**: IN PROGRESS (since YYYY-MM-DD)`.
+- **Plan headers**: Each plan file should include `**Last Updated**: YYYY-MM-DD` and update it when substantive changes are made.
+- **Placement**: Put dates near the item title or status line so they are visible without expanding collapsed sections.
+
 ## 4. Documentation Synchronization Checklist
 
 ### 4.1. Paired documentation files (canonical list)

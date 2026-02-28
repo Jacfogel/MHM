@@ -15,11 +15,12 @@
 ## [IN PROGRESS] **Plan Maintenance**
 
 ### **How to Update This Plan**
-1. **Add new plans** with clear goals and checklist format
-2. **Update progress** by checking off completed items
-3. **Remove fully completed plans** - document them in CHANGELOG files instead
-4. **Keep reference information** current and useful
-5. **Remove outdated information** to maintain relevance
+1. **Add new plans** with clear goals and checklist format; include **Date** and **Last Updated** (YYYY-MM-DD).
+2. **Update progress** by checking off completed items; add completion date when marking items done (e.g., `- [x] Item (2026-02-28)`).
+3. **Remove fully completed plans** - document them in CHANGELOG files instead.
+4. **Keep reference information** current and useful.
+5. **Remove outdated information** to maintain relevance.
+6. **Dating convention**: New items and status changes get dates. See [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) for the full dating standard.
 
 ### **Success Criteria**
 - **Actionable**: Each item is a specific, testable action
@@ -31,246 +32,60 @@
 
 ## [ACTIVE] **Current Active Plans**
 
-### **Development-Tools Test Runtime Optimization Follow-up** **IN PROGRESS**
+### **Development-Tools Test Runtime & Audit Throughput** - see child plan
 
-**Status**: **IN PROGRESS**  
-**Priority**: Medium  
-**Effort**: Small/Medium  
-**Date**: 2026-02-28  
-**Last Updated**: 2026-02-28
+**Tracked in**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
 
-**Objective**: Reduce development-tools test-suite wall-clock time while preserving branch/integration intent.
-
-**Completed in this session**:
-- [x] Profiled full suite repeatedly with `pytest tests/development_tools/ --durations=20 -q`.
-- [x] Reduced top slow call paths in targeted tests by replacing expensive subprocess/full-scan behavior with focused mocks where assertions did not depend on external execution:
-  - [x] `tests/development_tools/test_legacy_reference_cleanup.py`
-  - [x] `tests/development_tools/test_regenerate_coverage_metrics.py`
-  - [x] `tests/development_tools/test_path_drift_integration.py`
-  - [x] `tests/development_tools/test_status_file_timing.py`
-  - [x] `tests/development_tools/test_false_negative_detection.py`
-  - [x] `tests/development_tools/test_generate_directory_tree.py`
-  - [x] `tests/development_tools/test_run_development_tools.py`
-  - [x] `tests/development_tools/test_changelog_trim_tooling.py`
-- [x] Updated development-tools roadmap tracking in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.8`.
-
-**Observed outcome**:
-- [x] Full-suite timing improved from a recent baseline `328.23s` (5m28s) to `314.59s` (5m14s), with all tests passing.
-
-**Remaining follow-ups**:
-- [ ] Target setup/teardown-heavy offenders that now dominate durations (notably `test_fix_project_cleanup.py`, `test_tool_wrappers_branch_paths.py`, and teardown-heavy `test_standard_exclusions.py` paths).
-- [ ] Evaluate selective fixture-scope adjustments (`scope="module"`) where tests are proven non-mutating.
-
-### **Development-Tools Audit Throughput Stabilization Follow-up** **IN PROGRESS**
-
-**Status**: **IN PROGRESS**  
-**Priority**: High  
-**Effort**: Small/Medium  
-**Date**: 2026-02-23  
-**Last Updated**: 2026-02-23
-
-**Objective**: Keep `audit --full --clear-cache` reliably in the fast path by preserving Tier 3 concurrency while eliminating slow/timeout behavior in `analyze_unused_imports`.
-
-**Completed in this session**:
-- [x] Restored concurrent Tier 3 coverage orchestration while preserving stability:
-  - [x] `development_tools/shared/service/audit_orchestration.py` now runs main + dev-tools coverage groups in parallel again.
-  - [x] Added Tier 3 concurrent-execution flagging to support contention-aware runtime behavior.
-- [x] Added worker-cap controls for concurrent coverage runs:
-  - [x] `development_tools/shared/service/commands.py` resolves per-track worker caps (`main`/`dev_tools`) with concurrency-aware defaults.
-  - [x] Coverage invocations now apply explicit `--workers` values in concurrent Tier 3 mode.
-- [x] Added temporary cache-clear policy to preserve unused-imports cache:
-  - [x] `development_tools/shared/fix_project_cleanup.py` now excludes `.analyze_unused_imports_cache.json` from tool-cache artifact clearing.
-- [x] Added roadmap tasks for structural unused-imports performance improvements in:
-  - [x] [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `5.1.1`.
-- [x] Validated targeted regression suites:
-  - [x] `pytest tests/development_tools/test_run_development_tools.py -q`
-  - [x] `pytest tests/development_tools/test_regenerate_coverage_metrics.py -q`
-  - [x] `pytest tests/development_tools/test_fix_project_cleanup.py -q`
-
-**Observed outcome (user-run full audit after changes)**:
-- [x] Full audit wall-clock improved to ~`277s` (~4m37s) with no tool failures.
-- [x] `analyze_unused_imports` completed in ~`6.30s` with `partial_cache` (`hits=448`, `misses=1`) instead of prior long sequential/timeout behavior.
-- [x] Tier 3 coverage parallel savings reported (~`237s`) with both coverage tracks passing.
-
-**Remaining follow-ups**:
-- [ ] Implement `analyze_unused_imports` backend/perf redesign from V4 plan section `5.1.1` (batched fast backend + incremental path).
-- [ ] Decide whether preserved unused-imports cache policy should remain temporary or become config-driven.
-- [ ] Add explicit audit-time telemetry for unused-imports analyzer backend/path selection (fast path vs degraded path).
-- [ ] Re-run multiple full clear-cache audits to confirm stable median/variance (not just single-run success).
+- **Test runtime** (section 1.8): Optimized 8 slow tests; timing 328s->314s. Remaining: setup/teardown offenders, fixture scope.
+- **Audit throughput** (section 5.1.1): Tier 3 concurrency restored; audit ~277s. Remaining: unused-imports backend redesign, cache policy, telemetry.
 
 ### **Flow/Check-in Scheduled Send Stability Follow-up** **IN PROGRESS**
 
-**Status**: **IN PROGRESS**  
-**Priority**: High  
-**Effort**: Small/Medium  
-**Date**: 2026-02-22  
-**Last Updated**: 2026-02-22
+**Status**: IN PROGRESS (since 2026-02-22) | **Priority**: High
 
-**Objective**: Complete post-implementation validation for scheduled-send deferral and cooldown behavior, plus Discord command registry wiring coverage.
+**Use / fit**: Stability is critical. Check-ins and scheduled sends work well enough day to day, but reliability and debugging matter most-selecting the right number of questions from the right lists, responding dynamically, saving results properly, and flexible response formats.
 
-**Completed in this session**:
-- [x] Added scheduled-send flow gating and post-flow cooldown behavior in runtime paths (`communication/message_processing/conversation_flow_manager.py`, `communication/core/channel_orchestrator.py`, `core/scheduler.py`).
-- [x] Added one-time deferred retry scheduling (+10 minutes, non-recursive deferral path) in scheduler behavior.
-- [x] Added coverage for deferral/cooldown in unit and behavior tests:
-  - [x] `tests/unit/test_channel_orchestrator.py`
-  - [x] `tests/behavior/test_conversation_flow_manager_behavior.py`
-  - [x] `tests/behavior/test_scheduler_coverage_expansion.py`
-- [x] Added Discord dynamic command behavior coverage:
-  - [x] app-command callback mapping test
-  - [x] on-ready app-command sync test
-  - [x] classic command mapping + `help` skip test
-  - [x] file: `tests/behavior/test_discord_bot_behavior.py`
-- [x] Compliance verification against [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) completed with policy guard checks.
+**Done**: Deferral + cooldown in runtime; one-time retry scheduling; unit/behavior tests (206 passed). See CHANGELOG_DETAIL 2026-02-22.
 
-**Remaining follow-ups**:
-- [ ] Run live Discord manual validation for active-flow deferral, 10-minute cooldown, and one-time retry behavior.
-- [ ] Monitor logs during live runs for unexpected legacy compatibility warnings in check-in flow paths.
-- [ ] Monitor `MESSAGE_SELECTION` diagnostics during live runs to confirm expected category/period matching behavior.
-
-**Validation completed**:
-- [x] `pytest tests/unit/test_test_policy_guards.py tests/unit/test_channel_orchestrator.py tests/behavior/test_conversation_flow_manager_behavior.py tests/behavior/test_scheduler_coverage_expansion.py tests/behavior/test_discord_bot_behavior.py -q` -> `206 passed`
-- [x] User-confirmed full audit run completed with no new issues raised and all tests passing.
+**Remaining**:
+- [ ] Live Discord manual validation (active-flow deferral, 10-min cooldown, retry)
+- [ ] Monitor logs for legacy warnings in check-in flow paths
+- [ ] Monitor `MESSAGE_SELECTION` diagnostics
 
 ### **Backup Reliability and Restore Confidence Plan** **IN PROGRESS**
 
-**Status**: **IN PROGRESS**  
-**Priority**: High  
-**Effort**: Medium  
-**Date**: 2026-02-16  
-**Last Updated**: 2026-02-25
+**Status**: IN PROGRESS (since 2026-02-16) | **Priority**: High
 
-**Objective**: Verify that existing backup mechanisms are reliably producing restorable artifacts and define improvements where gaps are found.
+**Use / fit**: Important for peace of mind and occasional rollbacks; user dislikes redoing work and makes mistakes (beginner). Migration of `user_data_cli.py` not used; decision: defer migration, document as optional tool only.
 
-**Scope**:
-- [x] Inventory all active backup producers (scheduled and manual), including what each one backs up, where outputs are written, and retention behavior.
-- [x] Confirm whether weekly/user-data backups are consistently created by `core/scheduler.py` + `core/backup_manager.py` in real runs.
-- [x] Run a controlled restore drill from recent backup artifacts into an isolated location and verify critical data integrity.
-- [x] Validate backup logging/health visibility (what failures surface where, and whether alerts are actionable).
-- [ ] Evaluate whether useful parts of `scripts/utilities/user_data_cli.py` should be migrated into tracked runtime/admin tooling.
-- [x] Define canonical backup/restore runbooks and update backup guides after verification.
+**Done**: Inventory, restore drill, ownership map, runbooks. Weekly gating + retention buckets restored; guides synced. See CHANGELOG_DETAIL 2026-02-25.
 
-**Success Criteria**:
-- [x] At least one recent backup set is proven restorable end-to-end in an isolated test restore.
-- [x] Backup ownership map is documented (which module/script is authoritative for each backup type).
-- [x] Known gaps are converted into prioritized implementation tasks with clear owners.
+**Remaining**:
+- [ ] Document decision: `user_data_cli.py` remains optional; no migration to admin tooling (user does not use it)
 
-**Completed in this session (2026-02-25)**:
-- [x] Restored weekly-first scheduler gating so weekly backup creation decisions use `weekly_backup_*` recency rather than generic latest-backup recency.
-- [x] Restored explicit weekly backup health checks in development tools (`weekly_backup_present`, `weekly_backup_recent_enough`).
-- [x] Restored separate retention buckets for backup cleanup:
-  - [x] non-weekly backups keep window (`max_backups=10`)
-  - [x] weekly backups keep window (`WEEKLY_BACKUP_MAX_KEEP`, default 4)
-- [x] Synced paired backup guides to match implementation semantics:
-  - [x] [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md)
-  - [x] [AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md)
-- [x] Added/validated retention coverage test for weekly bucket preservation behavior.
+### **Testing Program Consolidation** - see child plan
 
-### **Testing Program Consolidation** **IN PROGRESS**
+**Tracked in**: [TEST_PLAN.md](development_docs/TEST_PLAN.md)
 
-**Status**: **IN PROGRESS**  
-**Last Updated**: 2026-02-24
-
-- Canonical testing roadmap is now tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md).
-- Migrated areas include:
-  - test reliability and intermittent failure triage
-  - no-parallel marker reduction waves
-  - harness/logging/retention/cleanup hardening
-  - coverage cache metadata stabilization
-  - coverage consistency and growth strategy
-  - nightly no-shim governance
-- Recent completion:
-  - [x] Fixed parallel test race in [test_logger_behavior.py](tests/behavior/test_logger_behavior.py) by replacing shared `tests/data/logs` teardown fixtures with a per-test `tmp_path` log fixture.
-  - [x] Fixed Tier-3 recurrent checkin-view test setup flake in [test_checkin_view.py](tests/unit/test_checkin_view.py) by using per-test unique IDs and explicit user-creation assertions.
-  - [x] Fixed Tier-3 recurrent user-management failure in [test_user_management.py](tests/unit/test_user_management.py) by resolving created user UUID directly from `TestUserFactory.create_minimal_user_and_get_id(...)` instead of post-create index lookup.
-  - [x] Added focused development-tools low-coverage tests for `utilities.py`, `tool_wrappers.py`, and `analyze_system_signals.py`; targeted validations passed and no new issues were identified during full audit follow-up.
-- Remaining follow-up:
-  - [ ] Sweep other tests for shared/destructive log-directory fixture patterns and migrate to xdist-safe isolated temp paths.
-- Keep testing execution details and checklists in `TEST_PLAN.md`; do not duplicate them in this file.
+Migrated: reliability, no-parallel, harness, coverage cache, consistency, nightly governance. Fixed: test_logger_behavior, test_checkin_view, test_user_management, dev-tools low-coverage. **Remaining**: Sweep log fixtures for xdist-safe isolation.
 
 ### **Error Handling Quality Improvement Plan** **IN PROGRESS**
 
-**Status**: **IN PROGRESS**  
-**Priority**: Medium  
-**Effort**: Medium  
-**Date**: 2025-11-20  
-**Last Updated**: 2025-11-21
+**Status**: IN PROGRESS (since 2025-11-20) | **Priority**: Medium
 
-**Objective**: Improve error handling quality beyond coverage by enhancing error messages, expanding recovery strategies, and standardizing context payloads. Phase 1/2 candidate tracking is handled in development tools.
+**Use / fit**: Validation helps (beginner + AI coding). Focus on **noisy/unclear logs when something fails** over cryptic user-facing errors. Coverage at 100%; continue improving clarity and log quality.
 
-**Current Status**: 
-- [x] **100% coverage achieved** (see [AI_STATUS.md](development_tools/AI_STATUS.md) for current counts)
-- [x] Phase 1/2 candidate tracking is handled by `analyze_error_handling.py` and surfaced in AI reports
-- [ ] Phase 3+ work below remains open
+**Done**: 100% coverage; Phase 1/2 tooling in `analyze_error_handling.py`. Metrics in [AI_STATUS.md](development_tools/AI_STATUS.md).
 
-**Phase 3: Enhance Error Messages** (Priority: Medium, Ongoing)
-- [ ] Review user-facing error messages for clarity and actionability
-- [ ] Ensure user messages are:
-  - Short, clear, and non-technical
-  - Focused on what the user can do
-  - Free of stack traces, internal names, or sensitive data
-- [ ] Review log messages for completeness:
-  - Include component, operation, and relevant context (IDs, file paths)
-  - Never include secrets (tokens, passwords)
-  - Include exception details and stack traces in logs
-- [ ] Create guidelines document for error message patterns
-- [ ] Audit and improve error messages in batches
-
-**Phase 4: Expand Recovery Strategies** (Priority: Low)
-- [ ] Identify common error patterns that could benefit from automatic recovery
-- [ ] Evaluate adding recovery strategies for:
-  - Temporary file locks (retry with backoff)
-  - Rate limiting (Discord/email API throttling)
-  - Database connection issues (if database is added)
-  - Network timeouts (extend existing NetworkRecovery)
-- [ ] Implement new recovery strategies following existing patterns:
-  - Keep strategies idempotent and side-effect safe
-  - Test recovery behavior thoroughly
-  - Document recovery behavior in error handling guide
-- [ ] Integrate new strategies into `ErrorHandler`
-
-**Phase 5: Improve Context Information** (Priority: Low, Ongoing)
-- [ ] Audit error handling context payloads for completeness
-- [ ] Ensure context includes:
-  - User IDs in user operations
-  - File paths in file operations
-  - Descriptive, stable operation names
-  - Component information for log routing
-- [ ] Standardize context payload structure across modules
-- [ ] Update error handling guide with context best practices
-
-**Phase 6: Investigate Direct error_handler.handle_error Calls** (Priority: Low)
-- [ ] Review all direct calls to `error_handler.handle_error()` (found in `core/error_handling.py` and test files)
-- [ ] Determine if these should use `@handle_errors` decorator or other centralized patterns
-- [ ] Update direct calls to use preferred error handling approach where appropriate
-- [ ] Document when direct calls are appropriate vs. decorators
-
-**Success Criteria**:
-- [ ] Error messages reviewed and improved in high-traffic modules
-- [ ] At least 2 new recovery strategies added (if applicable)
-- [ ] Context information standardized across modules
-- [ ] All tests pass after changes
-- [ ] Error handling quality distribution shows improvement (more "excellent", fewer "basic")
-
-**Progress Summary**:
-- **Tooling Complete**: Phase 1 and Phase 2 auditing fully integrated into `analyze_error_handling.py` and AI tools
-- **Current Metrics**: See latest counts in [AI_STATUS.md](development_tools/AI_STATUS.md) and [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md)
-- **Next Priority**: Execute Phase 3 improvements, then Phase 4-6 hardening
-- **Tracking**: Progress visible in [AI_STATUS.md](development_tools/AI_STATUS.md), [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), and [consolidated_report.md](development_tools/consolidated_report.md) after each audit
-
-**Notes**:
-- Coverage is already at 100%, so this plan focuses on quality improvements
-- Phase 1 and Phase 2 tooling is complete - now focus on actual replacements
-- Use `analyze_error_handling.py` to track progress and measure quality improvements
-- Keep changes small and well-tested - verify behavior after each batch of replacements
-- Reference [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) for patterns and best practices
-- Monitor [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md) for updated priority counts as replacements are made
+**Remaining**: Phase 3 (enhance user/log messages), Phase 4 (recovery strategies), Phase 5 (context payloads), Phase 6 (direct `handle_error` calls). Emphasize clearer, less noisy logs. See [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md).
 
 ### **Discord App/Bot Capabilities Exploration** **PLANNING**
 
-**Status**: **PLANNING**
-**Priority**: Medium
-**Effort**: Medium
-**Date**: 2025-11-13
+**Status**: **PLANNING** | **Priority**: Low
+
+**Use / fit**: Discord is the main interface. Interest in message/menu features. Main improvement wanted: **more buttons that work consistently**. Stay planning-only or deferred until other work is done.
+
+**Effort**: Medium | **Date**: 2025-11-13
 
 **Objective**: Explore Discord's app/bot capabilities more thoroughly to identify additional features and integrations that could enhance the MHM Discord experience.
 
@@ -293,47 +108,18 @@
 - Focus on capabilities that align with MHM's communication-first, AI-led experience
 - Consider both user-installable app features and potential server bot features
 
-### **Account Management System Improvements** **MOSTLY COMPLETE**
+### **Account Management System Improvements** **ARCHIVED (MOSTLY COMPLETE)**
 
-**Status**: **MOSTLY COMPLETE**  
-**Priority**: High  
-**Effort**: Medium  
-**Date**: 2025-11-13  
-**Last Updated**: 2025-11-20
-
-**Objective**: Complete account linking functionality and enhance account creation with proper feature configuration and user preferences.
-
-**Completed**:
-- [x] **Fix Account Linking**: Confirmation code sending working (COMPLETED 2025-11-13)
-  - [x] Confirmation codes sent via email (not Discord) for security
-- [x] **Fix Account Creation Feature Enablement**: Feature flags now set correctly (COMPLETED 2025-11-14)
-  - [x] Account creation sets proper feature flags (task_management, checkins, automated_messages)
-- [x] **Enhance Account Creation Flow**: Discord flow enhanced (COMPLETED 2025-11-14)
-  - [x] Feature selection (tasks, checkins, automated messages)
-  - [x] Timezone selection/configuration
-  - [x] Multi-step flow with modal + view pattern
-
-**Remaining Work**:
-- [ ] Test end-to-end account linking flow
-- [ ] Handle edge cases (user already linked, invalid codes, expired codes)
-- [ ] Add profile information collection during account creation (name, preferences, etc.) - Future enhancement
-
-**Success Criteria**:
-- [x] Account creation sets correct feature enablement flags (COMPLETED)
-- [x] New users can configure preferences during account creation (COMPLETED for Discord)
-- [x] Account creation flow is intuitive (COMPLETED)
-- [ ] Account linking works end-to-end with edge case handling (in progress)
-
-**Notes**:
-- Core functionality complete; remaining work is testing and edge case handling
-- Future: Consider adding profile information collection during account creation
+**Status**: **ARCHIVED** (2026-02-28)  
+**Outcome**: Core account creation and feature enablement complete. Remaining work (e2e linking, edge cases) tracked in [TODO.md](TODO.md) if needed. Full details in changelog history (2025-11-13 through 2025-11-20).
 
 ### **Mood-Aware Support Calibration** **PLANNING**
 
-**Status**: **PLANNING**
-**Priority**: High
-**Effort**: Medium
-**Date**: 2025-11-10
+**Status**: **PLANNING** | **Priority**: High (deferred-do foundational work first)
+
+**Use / fit**: Very important for daily use. In practice: gentler when low, less nagging when overwhelmed, mood/energy-appropriate actions (e.g. water/breathing when low; walk/laundry when better). Sounds hard; sequence after Phase 1 and flow stability.
+
+**Effort**: Medium | **Date**: 2025-11-10
 
 **Objective**: Define how the assistant adapts tone, reminders, and check-ins based on user mood/energy cues while protecting quiet time boundaries.
 
@@ -356,11 +142,13 @@
 
 ### **Message Deduplication Advanced Features**
 
-**Status**: **IN PROGRESS**  
-**Priority**: Low  
+**Status**: **IN PROGRESS** (analytics/deep ML deferred)  
+**Priority**: Low (deferred)  
 **Effort**: Large  
 **Started**: 2025-11-11  
-**Last Updated**: 2025-11-20
+**Last Updated**: 2026-02-28
+
+**Use / fit**: Analytics and ML-style features (predictive scheduling, pattern-based personalization) feel overkill for 1-2 users; mostly long-term. Desired improvement: more personalized, time-appropriate messages. Smart scheduling maybe; analytics no.
 
 **Objective**: Implement advanced analytics, insights, and intelligent scheduling features for the message deduplication system.
 
@@ -417,18 +205,14 @@
 
 ---
 
-### **Test Standardization Burn-in**
-
-Moved to [TEST_PLAN.md](development_docs/TEST_PLAN.md) under governance/automation tracking.
-
----
-
 
 ### **Phase 1: Enhanced Task & Check-in Systems** **PARTIALLY COMPLETE**
 
 **Status**: **PARTIALLY COMPLETE**  
 **Priority**: High  
-**Last Updated**: 2025-11-20
+**Last Updated**: 2026-02-28
+
+**Use / fit**: Check-in Response Analysis matters more than AI context in chat. Biggest impact: **better insights from check-ins** and **better phrased questions**. AI conversations need a major overhaul separately; deprioritize Enhanced Context-Aware Conversations for now.
 
 **Completed** (documented in changelog):
 - [x] **Enhanced Task Reminder System** (COMPLETED - documented in changelog)
@@ -437,14 +221,14 @@ Moved to [TEST_PLAN.md](development_docs/TEST_PLAN.md) under governance/automati
   - Weighted selection, question variety, category balancing
 
 **Remaining Work**:
-- [ ] **Check-in Response Analysis** (High Impact, Medium Effort)
+- [ ] **Check-in Response Analysis** (High Impact, Medium Effort) - *prioritize first*
   - [ ] Implement pattern analysis of responses over time
   - [ ] Add progress tracking for mood trends
   - [ ] Create response categorization and sentiment analysis
   - [ ] Generate insights for AI context enhancement
   - [ ] Test pattern analysis accuracy
   - [ ] Validate progress tracking metrics
-- [ ] **Enhanced Context-Aware Conversations** (Medium Impact, Medium Effort)
+- [ ] **Enhanced Context-Aware Conversations** (Medium Impact, Medium Effort) - *deprioritized: AI needs major overhaul*
   - [ ] Expand user context with check-in history
   - [ ] Add conversation history analysis
   - [ ] Implement preference learning from interactions
@@ -459,7 +243,10 @@ Moved to [TEST_PLAN.md](development_docs/TEST_PLAN.md) under governance/automati
 **Status**: [WARNING] **PARTIALLY COMPLETE**  
 **Priority**: High  
 **Effort**: High  
-**Date**: 2025-11-10
+**Date**: 2025-11-10  
+**Last Updated**: 2026-02-28
+
+**Use / fit**: Very important; MHM often feels rigid or tone-deaf. Goal: **noticeably more adaptive**-gentler when low, less nagging when overwhelmed, mood/energy-appropriate actions (water/breathing when low; walk/laundry when better).
 
 **Goal**: Implement mood-responsive AI conversations and advanced emotional intelligence
 
@@ -486,9 +273,13 @@ Moved to [TEST_PLAN.md](development_docs/TEST_PLAN.md) under governance/automati
 
 ### **Phase 3: Proactive Intelligence & Advanced Features** [WARNING] **NEW**
 
-**Goal**: Implement proactive suggestion system and advanced AI capabilities  
-**Status**: Planning Phase  
-**Estimated Duration**: 3-4 weeks
+**Status**: Planning Phase | **Priority**: Medium  
+**Estimated Duration**: 3-4 weeks  
+**Last Updated**: 2026-02-28
+
+**Use / fit**: Proactive suggestions useful if they're good. Target examples: "You haven't checked in today"; "Your recent check-ins indicate you haven't been brushing your teeth much lately..."; "[Task] has been open for weeks-identify barriers, ask for help, break it down."
+
+**Goal**: Implement proactive suggestion system and advanced AI capabilities
 
 **Checklist**:
 - [ ] **Proactive Suggestion System** (Medium Impact, High Effort)
@@ -519,7 +310,10 @@ Moved to [TEST_PLAN.md](development_docs/TEST_PLAN.md) under governance/automati
 ### **UI Migration Plan**
 
 **Status**: Foundation, Dialogs, and Widgets Complete; Testing Remaining  
-**Last Updated**: 2025-11-20
+**Priority**: Low  
+**Last Updated**: 2026-02-28
+
+**Use / fit**: Discord is the main interface; UI not used regularly. Polish secondary. If fixing: sizing/spacing, confirm everything works as intended.
 
 **Completed** (documented in changelogs):
 - [x] **Foundation**: PySide6/Qt migration, file reorganization, naming conventions, widget refactoring, user data migration, signal-based updates, 100% function documentation
@@ -547,7 +341,10 @@ Moved to [TEST_PLAN.md](development_docs/TEST_PLAN.md) as part of testing roadma
 ### **Channel Interaction Implementation Plan**
 
 **Status**: Email Integration Complete, Cross-Channel Sync Remaining  
-**Last Updated**: 2025-11-20
+**Priority**: Low (deferred)  
+**Last Updated**: 2026-02-28
+
+**Use / fit**: Discord primary; friend uses email. Cross-channel sync not important at this point.
 
 **Completed**:
 - [x] Email Integration - Full email-based interaction system (COMPLETED 2025-11-11, documented in changelog)
@@ -556,11 +353,5 @@ Moved to [TEST_PLAN.md](development_docs/TEST_PLAN.md) as part of testing roadma
 **Remaining Work**:
 - [ ] Cross-Channel Sync - Synchronize data across supported channels
   - Note: Telegram integration has been removed from scope
-
----
-
-
-
-**Note**: Task system work is tracked in [TASKS_PLAN.md](development_docs/TASKS_PLAN.md). Individual Task Reminders and Recurring Tasks are completed (custom reminder times implemented in scheduler.py and task_management.py). All remaining items should be updated in the tasks plan.
 
 ---

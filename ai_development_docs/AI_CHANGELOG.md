@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-28 - Planning consolidation + dating standard **Progressed**
+- **Planning consolidation**: Reviewed and updated six planning documents (AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4, TEST_PLAN, NOTES_PLAN, TASKS_PLAN, PLANS, TODO) for currency, accuracy, and priority alignment; archived Account Management plan; moved headless/email service issues to Medium Priority.
+- **PLANS.md priorities**: Added "Use / fit" notes to each plan item; adjusted priorities (Discord/UI/Channel Sync low; Check-in Response Analysis first; Mood-Aware deferred; Backup user_data_cli decision documented).
+- **TEST_PLAN.md**: Added "Use / fit" and clarified priority-mode rationale. User-priority Q&A applied: stability > speed; higher coverage; production-log isolation; Phase 5 keep no-parallel if stable; Phase 7 exclude AI/context; Phase 8 expand+tighten policy; minimize manual testing.
+- **TASKS_PLAN.md**: User-priority Q&A applied. Discord primary; recurring-task discoverability gap; prioritize templates, natural language, interactive follow-up (skip + flow timeout), notes & attachments; defer Smart Suggestions; Phase 3: priority escalation, sync, calendar view.
+- **TODO.md**: Added task "Continue planning-doc user-priority Q&A" for NOTES_PLAN and AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.
+- **Dating standard**: New items and progressed items in plans/TODO must be dated (YYYY-MM-DD); documented in AI_DOCUMENTATION_GUIDE 3.9 and PLANS "How to Update".
+
 ### 2026-02-28 - Dev-tools slow-test optimization + maintenance-script coverage uplift **COMPLETED**
 - Added focused tests for `development_tools/shared/measure_tool_timings.py` and `development_tools/shared/verify_tool_storage.py` in `tests/development_tools/test_shared_maintenance_scripts.py`, lifting those modules from prior 0% coverage states.
 - Executed iterative slow-test optimization driven by `--durations=20`, replacing unnecessary heavy subprocess/full-scan paths with focused mocks in top offenders (`test_legacy_reference_cleanup`, `test_regenerate_coverage_metrics`, `test_path_drift_integration`, `test_status_file_timing`, `test_generate_directory_tree`, `test_run_development_tools`, `test_changelog_trim_tooling`, and related false-negative path-drift coverage test).

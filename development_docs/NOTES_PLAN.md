@@ -4,6 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Implementation plan for notebook feature  
 > **Style**: Actionable, checklist-focused, roadmap-oriented  
+> **Last Updated**: 2026-02-28  
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -95,8 +96,8 @@ Each item:
 
 ### External IDs (Discord-friendly)
 - Internal IDs stay UUID.
-- Optionally display short IDs:
-  - `n-3f2a9c`, `l-91ab20`, `j-0c77e2`
+- Optionally display short IDs (no dash for mobile UX):
+  - `n3f2a9c`, `l91ab20`, `j0c77e2`
 - Short IDs are derived from UUID prefix, and only used for lookup convenience.
 
 ---
@@ -375,10 +376,10 @@ If you follow this structure, the migration is **not** a rewrite—just a backen
 
 ## Current Implementation Status
 
-### Milestone Completion Summary
-- **Milestone 1 (Foundations + V0 Notes)**: ✅ **COMPLETED** - Core infrastructure, data handlers, command handler, and basic commands all implemented
-- **Milestone 2 (Lists)**: ✅ **COMPLETED** - List operations and commands fully implemented
-- **Milestone 3 (Organization Views)**: ✅ **COMPLETED** - Group support, smart views (pinned, inbox, tag view) implemented
+### Milestone Completion Summary (last verified 2026-02-28)
+- **Milestone 1 (Foundations + V0 Notes)**: ✅ **COMPLETED** (prior sessions) - Core infrastructure, data handlers, command handler, and basic commands all implemented
+- **Milestone 2 (Lists)**: ✅ **COMPLETED** (prior sessions) - List operations and commands fully implemented
+- **Milestone 3 (Organization Views)**: ✅ **COMPLETED** (prior sessions) - Group support, smart views (pinned, inbox, tag view) implemented
 - **Milestone 4 (Edit Sessions)**: ⏳ **PENDING** - Not yet implemented
 - **Milestone 5 (Skip Integration)**: ⏳ **PENDING** - Not yet implemented
 - **Milestone 6 (AI Extraction)**: ⏳ **PENDING** - Not yet implemented
@@ -621,7 +622,7 @@ Note-specific: `!pin`, `!unpin`, `!archive`, `!unarchive` (notes only)
 ### Testing Status ✅
 **Comprehensive Automated Test Suite** - Full test coverage created to replace manual Discord testing. All tests located in `tests/behavior/test_notebook_handler_behavior.py` with 54 total tests covering all notebook functionality.
 
-**Test Execution Results** (Verified 2025-01-27):
+**Test Execution Results** (Verified in prior sessions; automated suite added 2025-01-27):
 - ✅ **54/54 tests PASSED** in 19.89 seconds
 - ✅ All test categories passing:
   - Core handler tests (29 tests) - Note/list creation, viewing, editing, operations

@@ -4,6 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
+> **Last Updated**: 2026-02-28 (Planning Q&A follow-up task added)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -27,6 +28,7 @@ When adding new tasks, follow this format:
 - Add status indicators (**IN PROGRESS**) when relevant
 - Don't include priority field since tasks are already grouped by priority
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
+- **Dating**: Add `- *Created*: YYYY-MM-DD` when adding new tasks; add completion date when marking progress
 
 
 **Note**: Phase 1: Enhanced Task & Check-in Systems is tracked in [PLANS.md](development_docs/PLANS.md). 
@@ -70,6 +72,20 @@ When adding new tasks, follow this format:
 
 
 ## Medium Priority
+
+### Operational Reliability
+
+**headless service not working**
+- *What it means*: Investigate and fix headless service failure.
+- *Why it helps*: Restores normal operation when running in headless mode.
+- *Estimated effort*: Small/Medium
+- *Created*: 2026-02-28 (moved from Low; blocking when headless is needed)
+
+**Email service not showing as active**
+- *What it means*: After running for some time, UI shows Discord and ngrok active but email inactive; logs don't indicate failure. Investigate and resolve.
+- *Why it helps*: Restores email channel operation.
+- *Estimated effort*: Small/Medium
+- *Created*: 2026-02-28 (moved from Low; blocking when email channel is needed)
 
 ### Quality & Operations
 
@@ -127,6 +143,15 @@ When adding new tasks, follow this format:
   - [ ] Investigate persistent setup-heavy offenders (`tests/development_tools/test_fix_project_cleanup.py`, `tests/development_tools/test_tool_wrappers_branch_paths.py`, `tests/development_tools/test_report_generation_quick_wins.py`) and reduce fixture overhead where safe
   - [ ] Investigate teardown-heavy offender in `test_standard_exclusions.py::TestPathObjectHandling::test_mixed_path_formats`
   - [ ] Re-measure with `pytest tests/development_tools/ --durations=20 -q` after each optimization batch
+
+### Planning & Prioritization
+
+**Continue planning-doc user-priority Q&A** - ask about remaining plans
+- *What it means*: Ask user about items in remaining planning docs (NOTES_PLAN.md, AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)-how important each item is, what matters about them, etc.-then update priorities and add use/fit notes, as done for PLANS.md, TEST_PLAN.md, and TASKS_PLAN.md.
+- *Why it helps*: Ensures planning docs reflect actual user priorities and context; prevents wasted effort on low-priority items and clarifies deferred work.
+- *Estimated effort*: Small (per doc; ~15-20 questions per plan)
+- *Remaining*: [ ] NOTES_PLAN.md; [ ] AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md
+- *Created*: 2026-02-28
 
 ### Documentation
 
@@ -269,10 +294,7 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Small
 
 **Testing Roadmap Consolidation**
-- Testing program tasks (reliability, no-parallel reduction, flaky triage, log isolation/retention, policy strictness, coverage consistency, artifact cleanup, and nightly burn-in) are tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md).
-
-**headless service not working**
-- Investigate and fix
+- See [TEST_PLAN.md](development_docs/TEST_PLAN.md) for all testing program tasks (source of truth).
 
 **Investigate naive vs timezone-aware datetime usage in scheduler & task reminders**
 Context: During the datetime canonicalization audit, a potential split was identified between:
@@ -318,11 +340,6 @@ Priority
 - Medium  
 - Blocker only if a real bug or undefined behavior is confirmed
 
-**Email service not showing as active**
-- after running for some time, checking the UI will show the service discord and ngrok running, but email not running
-- logs don't indicate email service failure
-- investigate and resolve
-
 **Possible Duplicate Lists**
 - investigate documentation and code in detail for potential duplicate lists
 - whenever there are lists that may be used or referenced in multiple locations, they should have one canonical location
@@ -341,6 +358,3 @@ Priority
    - Windows file cache behavior during large test runs
    - Identify safe optimizations without reducing usability
 
-**Refactor large modules**
-- identify overly large modules that could benefit from refactoring into multiple smaller modules, that cover separate  concerns 
-- determine whether a tool for this purpose could be added to development tools. 

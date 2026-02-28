@@ -4,15 +4,17 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Plan for multi-phase task system enhancements (recurrence, templates, intelligence, and advanced workflows)  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2025-11-20  
+> **Last Updated**: 2026-02-28 (User-priority Q&A: Discord primary, templates/follow-up/notes prioritize, Smart Suggestions defer)  
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
+**Use / fit**: Discord is the primary task interface; user doesn't use tasks much yet but wants them to work well. Discord commands and natural-language task creation are extremely important. Prioritize: recurring-task discoverability, templates, interactive follow-up with skip/flow-timeout, notes & attachments. Defer AI-based suggestions until AI overhaul.
+
 ---
 
-### **2025-08-25 - Comprehensive Task System Improvements** [IN PROGRESS] **IN PROGRESS**
+### **2025-08-25 - Comprehensive Task System Improvements** [IN PROGRESS]
 
-**Status**: [IN PROGRESS] **IN PROGRESS**  
+**Status**: IN PROGRESS (since 2025-08-25; last updated 2026-02-28)  
 **Priority**: High  
 **Effort**: Large (Multi-phase implementation)  
 **Dependencies**: None
@@ -23,12 +25,13 @@
 
 **Implementation Plan**:
 
-#### **Phase 1: Foundation Improvements (High Impact, Low-Medium Effort)** **PARTIALLY COMPLETE**
+#### **Phase 1: Foundation Improvements (High Impact, Low-Medium Effort)** **PARTIALLY COMPLETE** (since 2025-11-20)
 
-**1. Recurring Tasks System** **COMPLETED**
-- **Status**: **COMPLETED**
-- **Note**: Recurring tasks functionality implemented (recurrence_pattern, recurrence_interval, next_due_date, auto-creation, UI components)
-- Testing required
+**1. Recurring Tasks System** **COMPLETED** (prior sessions)
+- **Status**: **COMPLETED** *(user has not tried; discoverability gap)*
+- **Note**: Recurring tasks functionality implemented (recurrence_pattern, recurrence_interval, next_due_date, auto-creation, UI components). **Gap**: User does not know how to create or use recurring tasks via Discord; add documentation/discoverability.
+- **Follow-up**: [ ] Document how to create recurring tasks via Discord; [ ] Verify Discord command/flow supports recurrence.
+- **Testing**: `tests/unit/test_recurring_tasks.py` and related task tests exist; verify coverage via `pytest tests/ -k recurring` (last verified 2026-02-28)
 
 **2. Task Templates & Quick Actions** [WARNING] **PLANNED**
 - **Why it matters**: Reduces friction for common task creation patterns
@@ -39,7 +42,8 @@
   - [ ] Custom user templates with saved preferences
   - [ ] Template management UI
 
-**3. Smart Task Suggestions** [WARNING] **PLANNED**
+**3. Smart Task Suggestions** [WARNING] **DEFERRED**
+- **Use / fit**: Defer until AI overhaul. AI-powered suggestions blocked by AI overhaul.
 - **Why it matters**: Helps users discover what they might need to do based on patterns
 - **Implementation**:
   - [ ] AI-powered task suggestions based on time patterns
@@ -48,7 +52,8 @@
   - [ ] "Suggested for you" section in task list
   - [ ] One-click task creation from suggestions
 
-**4. Natural Language Task Creation** [WARNING] **PLANNED**
+**4. Natural Language Task Creation** [WARNING] **PLANNED** — *prioritize*
+- **Use / fit**: Discord commands extremely important; user adds tasks via Discord only.
 - **Why it matters**: Makes task creation more intuitive and faster
 - **Implementation**:
   - [ ] Natural language parsing for task creation
@@ -57,7 +62,8 @@
   - [ ] Support for "Schedule a task for cleaning the kitchen every Sunday"
   - [ ] Smart parsing of natural language into structured task data
 
-**4a. Interactive Task Creation Follow-up Questions** [WARNING] **PLANNED**
+**4a. Interactive Task Creation Follow-up Questions** [WARNING] **PLANNED** — *prioritize*
+- **Use / fit**: User wants follow-up prompts with skip buttons and flow timeouts. Generally adds details at creation or not at all.
 - **Why it matters**: Allows users to provide additional task information (due date, priority, reminders) without requiring all details upfront
 - **Implementation**:
   - [ ] Implement follow-up question system in conversation manager/command handler
@@ -65,7 +71,7 @@
     - [ ] Due date (with 2-3 quick selectable options + custom input + skip)
     - [ ] Priority level (with 2-3 quick selectable options + custom input + skip)
     - [ ] Reminder preferences (with 2-3 quick selectable options + custom input + skip)
-  - [ ] Provide skip option for individual questions and "skip all" option
+  - [ ] Provide skip option for individual questions and "skip all" option; **flow timeouts** so prompts don't hang indefinitely
   - [ ] Store task with minimal info initially, update as user provides additional details
   - [ ] Integrate with command parser to recognize task creation commands
   - [ ] Add conversation state tracking for multi-turn task creation flow
@@ -74,7 +80,8 @@
 
 #### **Phase 2: Intelligence & Workflow Improvements (Medium Impact, Medium Effort)** [WARNING] **PLANNED**
 
-**5. Task Dependencies & Prerequisites** [WARNING] **PLANNED**
+**5. Task Dependencies & Prerequisites** [WARNING] **PLANNED** — *eventually quite important*
+- **Use / fit**: User often has tasks that depend on others; important but can sequence after Phase 1.
 - **Why it matters**: Many tasks have logical dependencies that affect completion
 - **Implementation**:
   - [ ] "Blocked by" and "Blocks" relationships between tasks
@@ -82,7 +89,8 @@
   - [ ] Automatic unblocking when prerequisites are completed
   - [ ] Smart task ordering suggestions
 
-**6. Context-Aware Task Reminders** [WARNING] **PLANNED**
+**6. Context-Aware Task Reminders** [WARNING] **PLANNED** — *eventually quite important*
+- **Use / fit**: Mood-aware, location-based, calendar-linked reminders eventually; time-based enough for now. Overlaps with PLANS Mood-Aware Support.
 - **Why it matters**: Reminders are more effective when delivered at the right moment
 - **Implementation**:
   - [ ] Location-based reminders (when near relevant places)
@@ -90,7 +98,8 @@
   - [ ] Mood-aware suggestions (easier tasks when energy is low)
   - [ ] Integration with external calendar events
 
-**7. Batch Task Operations** [WARNING] **PLANNED**
+**7. Batch Task Operations** [WARNING] **PLANNED** — *later, if tasks work well*
+- **Use / fit**: Not often needed yet; may want if task usage grows.
 - **Why it matters**: Reduces friction when managing multiple related tasks
 - **Implementation**:
   - [ ] Select multiple tasks for bulk operations
@@ -98,7 +107,8 @@
   - [ ] Bulk priority changes
   - [ ] Mass tag assignment
 
-**8. Task Time Tracking** [WARNING] **PLANNED**
+**8. Task Time Tracking** [WARNING] **DEFERRED**
+- **Use / fit**: Maybe eventually; completion itself enough for now.
 - **Why it matters**: Helps users estimate task duration and plan their time better
 - **Implementation**:
   - [ ] Start/stop timer for tasks
@@ -106,7 +116,8 @@
   - [ ] Time-based task suggestions
   - [ ] Productivity insights based on time data
 
-**9. Task Notes & Attachments** [WARNING] **PLANNED**
+**9. Task Notes & Attachments** [WARNING] **PLANNED** — *prioritize*
+- **Use / fit**: User would like notes and attachments (links, screenshots, docs).
 - **Why it matters**: Keeps all relevant information with the task
 - **Implementation**:
   - [ ] Rich text notes for tasks
@@ -114,7 +125,8 @@
   - [ ] Voice notes for quick task capture
   - [ ] Link attachments (URLs, references)
 
-**10. Task Difficulty & Energy Tracking** [WARNING] **PLANNED**
+**10. Task Difficulty & Energy Tracking** [WARNING] **PLANNED** — *eventually quite important*
+- **Use / fit**: Eventually quite; overlaps with PLANS Mood-Aware Support (gentler when low, mood-appropriate actions).
 - **Why it matters**: Helps users match tasks to their current energy levels
 - **Implementation**:
   - [ ] Self-rated task difficulty (1-5 scale)
@@ -124,7 +136,9 @@
 
 #### **Phase 3: Advanced Features (Medium Impact, High Effort)** [WARNING] **FUTURE CONSIDERATION**
 
-**11. Priority Escalation System** [WARNING] **FUTURE CONSIDERATION**
+**Use / fit**: Phase 3 can wait. User cares about: priority escalation for overdue, task sync/backup, calendar view. Other items long-term.
+
+**11. Priority Escalation System** [WARNING] **FUTURE CONSIDERATION** — *user cares*
 - **Why it matters**: Prevents tasks from being forgotten when they become urgent
 - **Implementation**:
   - [ ] Automatic priority increase for overdue tasks
@@ -151,7 +165,7 @@
   - [ ] Identify potential task conflicts
   - [ ] **Note**: To be optional and configurable
 
-**14. Advanced Task Views** [WARNING] **FUTURE CONSIDERATION**
+**14. Advanced Task Views** [WARNING] **FUTURE CONSIDERATION** — *user cares: calendar view*
 - **Why it matters**: Different views help users organize and focus on what matters
 - **Implementation**:
   - [ ] Calendar view (daily, weekly, monthly)
@@ -167,7 +181,7 @@
   - [ ] Smart tags based on task content
   - [ ] Dynamic task lists based on criteria
 
-**16. Task Sync & Backup** [WARNING] **FUTURE CONSIDERATION**
+**16. Task Sync & Backup** [WARNING] **FUTURE CONSIDERATION** — *user cares*
 - **Why it matters**: Ensures tasks are never lost and accessible everywhere
 - **Implementation**:
   - [ ] Cloud sync for task data
@@ -184,10 +198,10 @@
   - [ ] Background task processing
 
 **Success Criteria**:
-- Recurring tasks work seamlessly with existing task system
-- Task templates reduce task creation time by 50%
-- Smart suggestions improve task discovery and completion
-- Natural language creation is intuitive and accurate
+- Recurring tasks discoverable and usable via Discord (document how to create/use)
+- Task templates reduce task creation time for common patterns
+- Natural language task creation via Discord is intuitive and accurate
+- Interactive follow-up has skip options and flow timeouts
 - All improvements maintain backward compatibility
 - System performance remains optimal
 

@@ -461,6 +461,35 @@ Subsequent references to the same path in metadata remain as backticks
 
 In body content, multiple links to the same file are allowed.
 
+### 3.9. Dating convention for plan and TODO items
+
+Plan files ([PLANS.md](development_docs/PLANS.md), [TODO.md](TODO.md),
+and child plans such as [TEST_PLAN.md](development_docs/TEST_PLAN.md))
+must date new items and status changes so you can track when work was
+added or changed. This avoids stale "when did we last touch this?"
+confusion and supports systematic plan consolidation.
+
+**Format**: Use `YYYY-MM-DD` (ISO 8601) for consistency and sortability.
+
+**New items**:
+
+-   Plan entries: Add `**Date**: YYYY-MM-DD` or inline (e.g., "Added
+    2026-02-28") when adding a new plan, phase, or checklist item.
+-   TODO tasks: Add `- *Created*: YYYY-MM-DD` when adding a task.
+
+**Progressed items**:
+
+-   Status changes: When changing status (e.g., PLANNED -> IN PROGRESS),
+    add the date: `**Status**: IN PROGRESS (since YYYY-MM-DD)`.
+-   Checkbox completions: When checking off an item, append the date:
+    `- [x] Item (YYYY-MM-DD)`.
+-   Plan-level "Last Updated": Each plan file header should include
+    `**Last Updated**: YYYY-MM-DD` and be updated when any substantive
+    change is made.
+
+**Placement**: Put dates near the item title or status line so they are
+visible without expanding collapsed sections.
+
 ## 4. Documentation Synchronization Checklist
 
 This section defines how to keep doc pairs and related references
