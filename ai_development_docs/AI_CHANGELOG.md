@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-28 - Tier 3 stabilization + dev-tools helper-coverage continuation **Progressed**
+- Resolved the three Tier 3 failures from `AI_PRIORITIES.md` (`test_create_user_files_success` and two `test_data_loading_helpers` failures) and hardened those tests against module-aliasing and transient parallel filesystem timing issues.
+- Added targeted helper tests across `analyze_function_patterns`, `audit_orchestration`, `run_test_coverage`, `commands`, `data_loading`, `tool_wrappers`, and docs workflow paths; roadmap tracking updated in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` section `1.1`.
+- Validation highlights: Tier 3 targeted failures `3 passed` (including `-n 4`), continuation suites `28 passed` and `47 passed`, dev-tools suite `920 passed, 0 skipped`.
+- Dev-tools no-cache coverage progressed `58.1%` (`14906/25657`) -> `58.6%` (`15026/25657`) -> `59.3%` (`15224/25657`), with module gains including `audit_orchestration` `30%`, `run_test_coverage` `33%`, `data_loading` `56%`, `tool_wrappers` `49%`, and `commands` `39%`.
+
 ### 2026-02-28 - Planning consolidation + dating standard **Progressed**
 - **Planning consolidation**: Reviewed and updated six planning documents (AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4, TEST_PLAN, NOTES_PLAN, TASKS_PLAN, PLANS, TODO) for currency, accuracy, and priority alignment; archived Account Management plan; moved headless/email service issues to Medium Priority.
 - **PLANS.md priorities**: Added "Use / fit" notes to each plan item; adjusted priorities (Discord/UI/Channel Sync low; Check-in Response Analysis first; Mood-Aware deferred; Backup user_data_cli decision documented).
@@ -114,60 +120,6 @@ Guidelines:
 
 ### 2026-02-24 - Module refactor candidates tool and development tools refinements **COMPLETED**
 - Added `analyze_module_refactor_candidates`: identifies large/high-complexity modules; configurable thresholds; Tier 2 audit; AI_STATUS, AI_PRIORITIES, consolidated report. Refinements: `total_function_complexity` naming, short threshold message, legacy guide in refactor guidance, top-level tests/ included; AI_PRIORITIES standard order, "Top target modules", no Effort lines, sub-indent for top-3 lists; improvement plan Section 2.8 (dev-tools-only audit mode). analyze_functions JSON: `files_affected`, `critical_complexity_examples`/`high_complexity_examples` (relative paths) from script; wrapper no longer merges cache. Test: `test_cleanup_test_temp_dirs_pytest_dirs` verified passing.
-
-### 2026-02-24 - Checkin-view Tier 3 fix + tool-wrappers branch coverage push **Progressed**
-- Investigated Tier 3 failure from `development_tools/tests/logs/pytest_parallel_stdout_2026-02-24_13-16-22.log` and fixed `tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user` recurrence by removing collision-prone fixed IDs.
-- Hardened `tests/unit/test_checkin_view.py` valid-user button-handler tests to use per-test unique `user_id` / `discord_user_id` values and explicit user-creation assertions, reducing parallel isolation risk.
-- Added branch-focused dev-tools coverage tests in `tests/development_tools/test_tool_wrappers_branch_paths.py` targeting low-coverage `development_tools/shared/service/tool_wrappers.py` wrapper decision paths (`run_script`, `run_analyze_documentation`, `run_analyze_error_handling`, `run_generate_test_coverage_report`).
-- Updated planning docs with this session's progress and follow-up tracking:
-  - [TEST_PLAN.md](development_docs/TEST_PLAN.md)
-  - [PLANS.md](development_docs/PLANS.md)
-  - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
-- Validation:
-  - `pytest -q tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user tests/unit/test_checkin_view.py::TestCheckinView::test_skip_question_button_handler_with_valid_user` -> `2 passed`
-  - `pytest -q tests/unit/test_test_policy_guards.py tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user` -> `7 passed`
-  - `pytest -q tests/development_tools/test_tool_wrappers_branch_paths.py` -> `9 passed`
-  - `pytest -q tests/unit/test_test_policy_guards.py tests/development_tools/test_tool_wrappers_branch_paths.py` -> `15 passed`
-- Full diff review executed (`git diff --stat`, `git diff --name-only`); per user confirmation, all files currently present in the working-tree diff are session-scoped and actioned in this session.
-- Session-scoped added tests also include:
-  - `tests/development_tools/test_retention_engine.py`
-  - `tests/development_tools/test_tool_wrappers_branch_paths.py`
-
-### 2026-02-24 - Tier 3 stabilization + portability hardening + unused-imports perf completion **Progressed**
-- Closed the Tier 3 parallel race in logger behavior tests by replacing shared `tests/data/logs` teardown fixtures with isolated per-test `tmp_path` log directories (`tests/behavior/test_logger_behavior.py`).
-- Hardened test-runtime temp handling and cleanup in `tests/conftest.py` + `development_tools/tests/run_test_coverage.py` + `development_tools/run_development_tools.py` (Windows mkdir/cleanup patching, safer pytest runner temp-root handling, and transient test-artifact cleanup under `tests/data/tmp*`).
-- Completed roadmap item `5.1.1` in code: `development_tools/imports/analyze_unused_imports.py` now uses batched `ruff` (`F401`) with `pylint` fallback, changed-file incremental cache flow, no multiprocessing primary path, preserved categorization semantics, and explicit performance telemetry; report output now includes backend/scan-mode/throughput in `report_generation.py`.
-- Advanced portability/config independence: added config-driven `tests_dir/tests_data_dir` and test-marker settings in `development_tools/config/*`; updated `shared/common.py`, `shared/constants.py`, `tests/analyze_test_markers.py`, and `shared/standard_exclusions.py` to remove hardcoded assumptions and better exclude pytest runtime artifacts.
-- Updated and validated regression coverage in `tests/development_tools/test_analyze_unused_imports.py`, `test_analyze_test_markers.py`, `test_standard_exclusions.py`, `test_fix_project_cleanup.py`, and `test_regenerate_coverage_metrics.py`; refreshed generated status/priorities/reports and planning docs.
-- Validation evidence included targeted reruns (`1 passed` targeted logger test; `15 passed` logger file with `-n 6`) plus user-provided full audit completion in-session (`2026-02-24 04:17:43`).
-- Full diff review completed (`git diff --stat`, `git diff --name-only`); per user confirmation, **all files currently in the working tree diff were actioned in this session**.
-
-### 2026-02-23 - TEST_PLAN consolidation + audit throughput recovery **Progressed**
-- Primary objective completed: created [TEST_PLAN.md](development_docs/TEST_PLAN.md) and consolidated/organized test-related planning into it as the canonical testing roadmap (with [TODO.md](TODO.md)/`PLANS.md` pointing to it as source of truth).
-- Restored safe Tier 3 coverage concurrency and added concurrency-aware worker caps in `audit_orchestration.py` + `commands.py`, recovering full-audit speed without reintroducing earlier timeout failures.
-- Temporarily preserved `.analyze_unused_imports_cache.json` during `--clear-cache` (`fix_project_cleanup.py`), preventing repeated cold scans while the analyzer performance redesign is pending.
-- Added explicit unused-imports performance follow-up tasks in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (section `5.1.1`) and synced planning pointers in [TODO.md](TODO.md) + [PLANS.md](development_docs/PLANS.md).
-- User-verified full run result after changes: `audit --full --clear-cache` completed successfully in ~`277s` wall-clock, with Tier 3 parallel savings and no tool failures.
-
-### 2026-02-22 - Flow deferral/cooldown hardening + Discord wiring tests **COMPLETED**
-- Implemented scheduled-send flow protection end-to-end: active-flow and post-flow cooldown gating now defer scheduled sends, and scheduler performs a one-time +10 minute retry without recursive deferral.
-- Added flow completion/cooldown tracking APIs in `conversation_flow_manager` and updated `channel_orchestrator` send-status handling (`sent`/`deferred`/`skipped`/`failed`), with scheduler branching on deferred behavior.
-- Added focused coverage for the new behavior in `tests/unit/test_channel_orchestrator.py`, `tests/behavior/test_conversation_flow_manager_behavior.py`, and `tests/behavior/test_scheduler_coverage_expansion.py`.
-- Added Discord behavior coverage for dynamic app command callback routing, `on_ready` app-command sync, and classic dynamic command mapping with explicit `help` skip in `tests/behavior/test_discord_bot_behavior.py`.
-- Compliance re-check against [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) plus policy-guard run passed (`206 passed`), and user-reported full audit run raised no new issues with all tests passing.
-- Completed live runtime validation on February 21, 2026: observed active-flow and cooldown deferral reasons, verified one-time +10 minute deferred retry execution (`allow_deferral=False`), confirmed outbound-triggered check-in flow expiry behavior, and confirmed restart/persistence behavior from logs.
-- Resolved `MESSAGE_SELECTION_NO_MATCH` period-label mismatches for affected users by normalizing message library `time_periods` to include canonical schedule period names in:
-  - `data/users/c59410b9-5872-41e5-ac30-2496b9dd8938/messages/motivational.json`
-  - `data/users/05187f39-64a0-4766-a152-59738af01e97/messages/motivational.json`
-  - `data/users/05187f39-64a0-4766-a152-59738af01e97/messages/word_of_the_day.json`
-- Session closeout updates applied: completed TODO items removed from [TODO.md](TODO.md), follow-up validation/monitoring tracked in [PLANS.md](development_docs/PLANS.md), and full diff review (`git diff --stat` + `git diff --name-only`) completed before finalizing changelog entries.
-
-### 2026-02-21 - Backup reliability hardening + JSON-only reporting **COMPLETED**
-- Runtime backups are now directory-first with zip kept only as a temporary `# LEGACY COMPATIBILITY:` read-path bridge for historical artifacts.
-- Weekly backup reliability was hardened: scheduler now checks weekly cadence from `weekly_backup_*` artifacts, and retention no longer lets frequent auto backups evict weekly backups.
-- `analyze_backup_health` now validates weekly presence/recency explicitly and feeds `AI_STATUS.md`, `consolidated_report.md`, and `AI_PRIORITIES.md` (priority item appears automatically on backup-health failure).
-- Backup tooling outputs are now JSON-only in `development_tools/reports/jsons`, and drill restore extraction folders are temporary/auto-cleaned after verification.
-- `backup_zip_compat_bridge` legacy tracking remains registered; removal plan is unchanged (remove bridge after no zip backups remain for one full 30-day Category-A retention window).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

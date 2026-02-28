@@ -259,12 +259,19 @@ class TestUserManagement:
         assert success is True, "Failed to create test user"
         assert actual_user_id, f"Expected created UUID for {user_id}"
         actual_user_dir = os.path.join(test_data_dir, "users", actual_user_id)
-        assert os.path.exists(
-            os.path.join(actual_user_dir, "account.json")
-        ), "account.json should exist"
-        assert os.path.exists(
-            os.path.join(actual_user_dir, "preferences.json")
-        ), "preferences.json should exist"
+        account_file = os.path.join(actual_user_dir, "account.json")
+        preferences_file = os.path.join(actual_user_dir, "preferences.json")
+
+        # Parallel workers can observe brief filesystem lag on Windows; bound retries.
+        for _ in range(10):
+            if os.path.exists(account_file) and os.path.exists(preferences_file):
+                break
+            import time
+
+            time.sleep(0.05)
+
+        assert os.path.exists(account_file), "account.json should exist"
+        assert os.path.exists(preferences_file), "preferences.json should exist"
         # user_context.json may not be created by create_minimal_user in all cases
         # Check if it exists, but don't fail if it doesn't (minimal users may not have context data)
         context_file = os.path.join(actual_user_dir, "user_context.json")

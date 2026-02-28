@@ -33,6 +33,27 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-28 - Tier 3 stabilization + dev-tools helper-coverage continuation
+- **Feature/Fix**: Resolved the three Tier 3 failures in `AI_PRIORITIES.md` and continued roadmap item `1.1` with targeted helper-level dev-tools coverage work.
+- **Technical Changes**:
+  - Stabilized `tests/development_tools/test_data_loading_helpers.py` by patching `load_tool_result` against the active `development_tools.shared.output_storage` module instance (including `sys.modules` live instance when needed).
+  - Stabilized `tests/unit/test_user_management.py::test_create_user_files_success` with short bounded retries before asserting `account.json` / `preferences.json` existence (parallel Windows timing resilience).
+  - Added focused test modules:
+    - `tests/development_tools/test_analyze_function_patterns.py`
+    - `tests/development_tools/test_audit_orchestration_helpers.py`
+    - `tests/development_tools/test_run_test_coverage_helpers.py`
+    - `tests/development_tools/test_commands_additional_helpers.py`
+    - `tests/development_tools/test_data_loading_helpers.py`
+    - `tests/development_tools/test_tool_wrappers_cache_helpers.py`
+    - `tests/development_tools/test_commands_docs_workflow.py`
+  - Updated roadmap tracking in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` section `1.1`.
+- **Validation**:
+  - Tier 3 failing tests: targeted run `3 passed`; parallel check (`-n 4`) `3 passed`.
+  - Coverage suites: continuation batches `28 passed` and `47 passed`; function-pattern suite `4 passed`; dev-tools suite skip-state check `920 passed`, `0 skipped`.
+  - Dev-tools no-cache coverage progression:
+    - `58.1%` (`14906/25657`) -> `58.6%` (`15026/25657`) -> `59.3%` (`15224/25657`)
+- **Impact**: Removed current Tier 3 blockers, reduced recurrence risk from module aliasing/filesystem timing races, and improved key low-coverage modules (`audit_orchestration` `30%`, `run_test_coverage` `33%`, `data_loading` `56%`, `tool_wrappers` `49%`, `commands` `39%`).
+
 ### 2026-02-28 - Planning consolidation + dating standard
 - **Planning Consolidation**:
   - AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4: Replaced stale snapshot with reference to AI_STATUS/AI_PRIORITIES; updated Last Updated 2026-02-28.

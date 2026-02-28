@@ -59,6 +59,8 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
     - `tests/development_tools/test_cli_interface.py` (docs/workflow/doc-fix/status/unused-imports/backup/list command paths)
     - `tests/development_tools/test_generate_function_registry.py` (function-type/template/stats-and-attention helpers)
 - [ ] Investigate skipped test increase (1 -> 2 skipped)
+  - [x] Verified current `tests/development_tools/` suite skip state: `pytest tests/development_tools -q -rs` -> `920 passed`, **0 skipped** (2026-02-28)
+  - [ ] Reconcile where prior skip count (1 -> 2) originated (likely non-dev-tools or prior fixture-dependent runs)
 - [ ] Strengthen tests for fragile helpers across `tests/development_tools/`
   - [x] Added branch-focused wrapper tests for low-coverage service paths:
     - `tests/development_tools/test_tool_wrappers_branch_paths.py`
@@ -94,6 +96,27 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
   - [x] Added targeted low-coverage tests for shared maintenance scripts moved from `scripts/`:
     - Added `tests/development_tools/test_shared_maintenance_scripts.py` for `development_tools/shared/measure_tool_timings.py` and `development_tools/shared/verify_tool_storage.py`
     - Covered timing helper execution/error handling, report generation outputs, mocked timing orchestration, and storage-verification pass/fail paths
+  - [x] Added dedicated low-coverage tests for `development_tools/functions/analyze_function_patterns.py`:
+    - Added `tests/development_tools/test_analyze_function_patterns.py`
+    - Covered class/function pattern buckets, exclusion behavior, test-file gating, JSON `--input` CLI path, and scanner fallback CLI path
+  - [x] Added targeted helper-coverage tests for `development_tools/shared/service/audit_orchestration.py`:
+    - Added `tests/development_tools/test_audit_orchestration_helpers.py`
+    - Covered status-file mtime helpers, lock-state detection, Tier 3 state derivation, expected-tool tier mapping, and timing metadata persistence
+  - [x] Added targeted helper-coverage tests for `development_tools/tests/run_test_coverage.py`:
+    - Added `tests/development_tools/test_run_test_coverage_helpers.py`
+    - Covered xdist-arg stripping, retrying tree cleanup, isolated test logging env setup, crash/outcome helper classification paths, log rotation behavior, and fallback summary/timestamp helpers
+  - [x] Added targeted helper-coverage tests for `development_tools/shared/service/commands.py`:
+    - Added `tests/development_tools/test_commands_additional_helpers.py`
+    - Covered coverage metadata builders, mtime freshness helpers, dev-tools coverage standardization, cached-outcome state derivation, and failure-state helpers
+  - [x] Added targeted helper-coverage tests for `development_tools/shared/service/data_loading.py`:
+    - Added `tests/development_tools/test_data_loading_helpers.py`
+    - Covered data-source fallback loading, doc-sync output parsing, doc-sync aggregation, ASCII/heading parse fallbacks, legacy-output parsing, and missing-doc-file extraction helpers
+  - [x] Added targeted helper-coverage tests for `development_tools/shared/service/tool_wrappers.py` cache paths:
+    - Added `tests/development_tools/test_tool_wrappers_cache_helpers.py`
+    - Covered static-check mtime signature helpers (`_compute_source_signature`, `_try_static_check_cache`, `_save_static_check_cache`) and multiline JSON extraction/cache-metadata handling in `run_analyze_unused_imports`
+  - [x] Added targeted docs-workflow tests for `development_tools/shared/service/commands.py`:
+    - Added `tests/development_tools/test_commands_docs_workflow.py`
+    - Covered successful and failing `run_docs()` orchestration paths plus audit-lock discovery helper behavior
 - [ ] Update all dev tools tests to use `tests/development_tools/test_config.json` fixture
 - [x] Re-run dev-tools coverage and document updated baseline/progress toward 60% target
   - [x] Coverage refresh: `python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel`
@@ -115,6 +138,20 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
   - [x] Confirmed current-session gains:
     - `development_tools/shared/measure_tool_timings.py`: **86%** (from prior 0% target state)
     - `development_tools/shared/verify_tool_storage.py`: **79%** (from prior 0% target state)
+  - [x] Coverage refresh (2026-02-28, post-recent code churn): `.venv\Scripts\python.exe development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache`
+  - [x] Current measured baseline: **58.1%** (`14906/25657`) - target remains open; prioritize `audit_orchestration.py`, `run_test_coverage.py`, and other low-coverage service modules from current `AI_PRIORITIES.md`
+  - [x] Coverage refresh (2026-02-28, continuation session): `.venv\Scripts\python.exe development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache`
+  - [x] Updated measured baseline: **58.6%** (`15026/25657`) - target remains open
+  - [x] Confirmed continuation-session module gains:
+    - `development_tools/shared/service/audit_orchestration.py`: **30%** (up from **26%** prior baseline)
+    - `development_tools/tests/run_test_coverage.py`: **33%** (up from **31%** prior baseline)
+    - `development_tools/shared/service/commands.py`: **38%** (up from **37%** prior baseline)
+  - [x] Coverage refresh (2026-02-28, continued helper-coverage pass): `.venv\Scripts\python.exe development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache`
+  - [x] Updated measured baseline: **59.3%** (`15224/25657`) - target remains open but closer to 60%
+  - [x] Confirmed additional module gains:
+    - `development_tools/shared/service/data_loading.py`: **56%** (up from **40%** prior baseline)
+    - `development_tools/shared/service/tool_wrappers.py`: **49%** (up from **41%** prior baseline)
+    - `development_tools/shared/service/commands.py`: **39%** (up from **38%** prior continuation baseline)
 - [x] Hardened docs command behavior around audit locks:
   - `development_tools/shared/service/commands.py::run_docs` now fails fast when audit/coverage lock files are present, preventing partial noisy doc-generation failures.
   - Added tests: `tests/development_tools/test_commands_docs_locks.py`.
