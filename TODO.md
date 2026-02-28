@@ -124,7 +124,7 @@ When adding new tasks, follow this format:
 - *Why it helps*: Keeps `pytest tests/development_tools/` throughput stable and reduces feedback-loop time during tool development.
 - *Estimated effort*: Small/Medium
 - *Subtasks*:
-  - [ ] Investigate persistent setup-heavy offenders (`test_fix_project_cleanup.py`, `test_tool_wrappers_branch_paths.py`, `test_report_generation_quick_wins.py`) and reduce fixture overhead where safe
+  - [ ] Investigate persistent setup-heavy offenders (`tests/development_tools/test_fix_project_cleanup.py`, `tests/development_tools/test_tool_wrappers_branch_paths.py`, `tests/development_tools/test_report_generation_quick_wins.py`) and reduce fixture overhead where safe
   - [ ] Investigate teardown-heavy offender in `test_standard_exclusions.py::TestPathObjectHandling::test_mixed_path_formats`
   - [ ] Re-measure with `pytest tests/development_tools/ --durations=20 -q` after each optimization batch
 

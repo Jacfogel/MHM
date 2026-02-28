@@ -50,9 +50,9 @@ When adding new changes, follow this format:
     - `tests/development_tools/test_changelog_trim_tooling.py`
   - Added/kept `@pytest.mark.slow` tagging for top-duration dev-tools tests to improve profiling/filtering workflows.
   - Updated planning and roadmap tracking:
-    - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` section `1.1` and `1.8` (coverage gains, slow-test optimization progress, latest timing baseline).
-    - `development_docs/PLANS.md` with active follow-up plan for development-tools test runtime optimization.
-    - `TODO.md` with outstanding setup/teardown optimization follow-up tasks.
+    - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.1` and `1.8` (coverage gains, slow-test optimization progress, latest timing baseline).
+    - [PLANS.md](development_docs/PLANS.md) with active follow-up plan for development-tools test runtime optimization.
+    - [TODO.md](TODO.md) with outstanding setup/teardown optimization follow-up tasks.
   - Regenerated audit/report artifacts from dev-tools runs:
     - `development_tools/AI_STATUS.md`
     - `development_tools/AI_PRIORITIES.md`

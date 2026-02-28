@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-27 17:16:44
+> **Last Generated**: 2026-02-28 00:07:41
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 485
 - **Files with Unused Imports**: 124
-- **Total Unused Imports**: 387
+- **Total Unused Imports**: 385
 
 ## Breakdown by Category
 
@@ -20,7 +20,7 @@
 - **Star Imports**: 0 imports
 - **Test Mocking**: 146 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 152 imports
+- **Test Infrastructure**: 150 imports
 - **Production Test Mocking**: 2 imports
 - **Ui Imports**: 5 imports
 
@@ -257,7 +257,7 @@
 **Count**: 2 unused import(s)
 
 - **Line 10**: `unittest.mock.MagicMock` imported but unused
-- **Line 299**: `unittest.mock.MagicMock` imported but unused
+- **Line 310**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/integration/test_account_lifecycle.py`
 
@@ -966,8 +966,8 @@
 **Count**: 3 unused import(s)
 
 - **Line 14**: `pathlib.Path` imported but unused
-- **Line 18**: `tests.development_tools.conftest.demo_project_root` imported but unused
-- **Line 18**: `tests.development_tools.conftest.test_config_path` imported but unused
+- **Line 17**: `tests.development_tools.conftest.demo_project_root` imported but unused
+- **Line 17**: `tests.development_tools.conftest.test_config_path` imported but unused
 
 ### `tests/development_tools/test_fix_documentation_addresses.py`
 
@@ -1072,11 +1072,10 @@
 
 ### `tests/development_tools/test_path_drift_integration.py`
 
-**Count**: 3 unused import(s)
+**Count**: 2 unused import(s)
 
-- **Line 9**: `tempfile` imported but unused
-- **Line 10**: `pathlib.Path` imported but unused
-- **Line 13**: `tests.development_tools.conftest.temp_project_copy` imported but unused
+- **Line 9**: `pathlib.Path` imported but unused
+- **Line 12**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
 ### `tests/development_tools/test_path_drift_verification_comprehensive.py`
 
@@ -1093,10 +1092,9 @@
 
 ### `tests/development_tools/test_status_file_timing.py`
 
-**Count**: 2 unused import(s)
+**Count**: 1 unused import(s)
 
 - **Line 10**: `time` imported but unused
-- **Line 20**: `tests.development_tools.conftest.temp_project_copy` imported but unused
 
 ### `tests/integration/test_account_management.py`
 
