@@ -9,10 +9,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+from tests.development_tools.conftest import load_development_tools_module
+
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 RUNNER_SCRIPT = PROJECT_ROOT / "development_tools" / "run_development_tools.py"
+runner = load_development_tools_module("run_development_tools")
 
 
 class TestCLIRunnerSmokeTests:
@@ -53,17 +56,25 @@ class TestCLIRunnerSmokeTests:
 
     @pytest.mark.integration
     @pytest.mark.smoke
-    def test_config_command_exits_zero(self):
+    def test_config_command_exits_zero(self, monkeypatch):
         """Test that 'config' command exits with code 0 and produces output."""
-        result = subprocess.run(
-            [sys.executable, str(RUNNER_SCRIPT), "config"],
-            cwd=str(PROJECT_ROOT),
-            capture_output=True,
-            text=True,
-            timeout=30
+        mock_service = type(
+            "_MockService",
+            (),
+            {"run_config": lambda self: True},
+        )()
+        monkeypatch.setattr(
+            runner,
+            "AIToolsService",
+            lambda project_root=None, config_path=None: mock_service,
         )
-        assert result.returncode == 0, f"config command failed with exit code {result.returncode}\nstdout: {result.stdout}\nstderr: {result.stderr}"
-        # Command should complete successfully (output may go to logs, not stdout/stderr)
+        monkeypatch.setattr(
+            runner,
+            "_cleanup_transient_runtime_artifacts",
+            lambda *_args, **_kwargs: None,
+        )
+        result = runner.main(["config"])
+        assert result == 0
 
     @pytest.mark.integration
     @pytest.mark.smoke

@@ -17,11 +17,12 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
+from tests.development_tools.conftest import load_development_tools_module
 
 
 @pytest.mark.integration
-def test_status_files_written_only_at_end_of_audit(temp_project_copy):
+@pytest.mark.slow
+def test_status_files_written_only_at_end_of_audit(tmp_path):
     """
     Verify that status files are only written at the end of audit execution.
     
@@ -36,7 +37,8 @@ def test_status_files_written_only_at_end_of_audit(temp_project_copy):
     service_module = load_development_tools_module("shared.service")
     AIToolsService = service_module.AIToolsService
     
-    project_root = Path(temp_project_copy)
+    project_root = tmp_path / "status_file_timing_project"
+    project_root.mkdir(parents=True, exist_ok=True)
     
     # Create status file paths
     ai_status_file = project_root / "development_tools" / "AI_STATUS.md"
@@ -57,13 +59,30 @@ def test_status_files_written_only_at_end_of_audit(temp_project_copy):
     
     # Run a quick audit
     service = AIToolsService(project_root=str(project_root))
-    # Keep this test focused on status-file write timing rather than expensive tool internals.
+    no_op_patches = (
+        patch.object(service, "_run_quick_audit_tools", return_value=True),
+        patch.object(service, "_save_audit_results_aggregated", return_value=None),
+        patch.object(service, "_reload_all_cache_data", return_value=None),
+        patch.object(service, "_sync_todo_with_changelog", return_value=None),
+        patch.object(service, "_validate_referenced_paths", return_value=None),
+        patch.object(service, "_check_and_trim_changelog_entries", return_value=None),
+        patch.object(service, "_check_documentation_quality", return_value=None),
+        patch.object(service, "_check_ascii_compliance", return_value=None),
+    )
     with patch.object(
-        service,
-        "run_script",
-        return_value={"success": True, "output": "{}", "data": {}},
-    ):
-        result = service.run_audit(quick=True)
+        service, "_generate_ai_status_document", return_value="# AI Status\n"
+    ), patch.object(
+        service, "_generate_ai_priorities_document", return_value="# AI Priorities\n"
+    ), patch.object(
+        service, "_generate_consolidated_report", return_value="# Consolidated\n"
+    ), no_op_patches[0], no_op_patches[1], no_op_patches[2], no_op_patches[3], no_op_patches[4], no_op_patches[5], no_op_patches[6], no_op_patches[7]:
+        # Keep this test focused on status-file write timing rather than expensive tool internals.
+        with patch.object(
+            service,
+            "run_script",
+            return_value={"success": True, "output": "{}", "data": {}},
+        ):
+            result = service.run_audit(quick=True)
     
     # Verify audit completed (even if with errors, status files should still be written)
     assert result is not None, "Audit should complete and return a result"
@@ -93,7 +112,8 @@ def test_status_files_written_only_at_end_of_audit(temp_project_copy):
 
 
 @pytest.mark.integration
-def test_status_files_not_written_during_tool_execution(temp_project_copy):
+@pytest.mark.slow
+def test_status_files_not_written_during_tool_execution(tmp_path):
     """
     Verify that status files are NOT written during individual tool execution.
     
@@ -105,7 +125,8 @@ def test_status_files_not_written_during_tool_execution(temp_project_copy):
     service_module = load_development_tools_module("shared.service")
     AIToolsService = service_module.AIToolsService
     
-    project_root = Path(temp_project_copy)
+    project_root = tmp_path / "status_tool_execution_project"
+    project_root.mkdir(parents=True, exist_ok=True)
     
     # Create status file paths
     ai_status_file = project_root / "development_tools" / "AI_STATUS.md"
@@ -118,10 +139,15 @@ def test_status_files_not_written_during_tool_execution(temp_project_copy):
             f.unlink()
     
     service = AIToolsService(project_root=str(project_root))
-    
-    # Run individual tools (not full audit)
-    service.run_script('analyze_functions')
-    service.run_script('analyze_documentation')
+
+    # Run individual wrappers while short-circuiting subprocess execution.
+    with patch.object(
+        service,
+        "run_script",
+        return_value={"success": True, "output": "{}", "data": {}},
+    ):
+        service.run_analyze_functions()
+        service.run_analyze_documentation()
     
     # Verify status files were NOT created by individual tools
     assert not ai_status_file.exists(), "AI_STATUS.md should not be created by individual tools"

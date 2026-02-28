@@ -304,21 +304,19 @@ class TestMainFunction:
         demo_project_root instead of the real project root. If the patch fails, the
         safeguard in create_output_file() should still prevent writes to the real project.
         """
-        # This test may fail if tree command is not available on the system
-        # That's okay - it's an integration test
-        try:
-            with patch('sys.argv', ['generate_directory_tree.py']):
-                # Patch the config module that's actually imported in generate_directory_tree.py
-                # The module imports config as 'from development_tools import config'
-                # So we need to patch it where it's used, not where it's defined
-                # Also patch it in the config module itself as a fallback
-                with patch.object(directory_tree_module.config, 'get_project_root', return_value=str(demo_project_root)), \
-                     patch('development_tools.config.config.get_project_root', return_value=str(demo_project_root)):
-                    result = main()
-                    # Result may be 0 or 1 depending on whether tree command exists
-                    # Since demo_project_root is a test directory, generation will proceed
-                    assert result in [0, 1]
-        except Exception:
-            # If tree command doesn't exist, that's expected
-            pytest.skip("tree command not available on this system")
-
+        with patch("sys.argv", ["generate_directory_tree.py"]):
+            # Keep integration scope focused on CLI + config wiring while mocking OS command.
+            with patch.object(
+                directory_tree_module.config,
+                "get_project_root",
+                return_value=str(demo_project_root),
+            ), patch(
+                "development_tools.config.config.get_project_root",
+                return_value=str(demo_project_root),
+            ), patch.object(
+                directory_tree_module.subprocess,
+                "run",
+                return_value=MagicMock(returncode=0, stdout="C:\\TEST\n+---docs\n"),
+            ):
+                result = main()
+                assert result == 0

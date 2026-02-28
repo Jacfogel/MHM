@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-28 - Dev-tools slow-test optimization + maintenance-script coverage uplift **COMPLETED**
+- Added focused tests for `development_tools/shared/measure_tool_timings.py` and `development_tools/shared/verify_tool_storage.py` in `tests/development_tools/test_shared_maintenance_scripts.py`, lifting those modules from prior 0% coverage states.
+- Executed iterative slow-test optimization driven by `--durations=20`, replacing unnecessary heavy subprocess/full-scan paths with focused mocks in top offenders (`test_legacy_reference_cleanup`, `test_regenerate_coverage_metrics`, `test_path_drift_integration`, `test_status_file_timing`, `test_generate_directory_tree`, `test_run_development_tools`, `test_changelog_trim_tooling`, and related false-negative path-drift coverage test).
+- Kept/expanded `@pytest.mark.slow` tagging for highest-duration dev-tools cases to improve filtering/profiling workflows.
+- Re-ran dev-tools-only coverage with forced cache bypass (`--no-domain-cache`): overall dev-tools coverage reached **60.5%** (`15528/25653`), above the 60% target.
+- Re-profiled full dev-tools suite after optimizations: `pytest tests/development_tools/ -q --durations=20` finished at `914 passed in 314.59s` (recent baseline improvement from `328.23s` to `314.59s`); updated roadmap/planning follow-ups in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`, `PLANS.md`, and `TODO.md`.
+
 ### 2026-02-27 - Pyright/Ruff mtime caching + AI_PRIORITIES simplification + dev-tools consolidation **COMPLETED**
 - Added mtime caching for Pyright and Ruff: skip runs when source unchanged; cache in `static_checks/jsons/`.
 - Moved module dependencies report (MODULE DEPENDENCIES AUDIT REPORT, ENHANCED MODULE ANALYSIS) to DEBUG level.

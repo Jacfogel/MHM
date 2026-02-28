@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-27 12:29:32
+> **Last Generated**: 2026-02-27 17:16:44
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
@@ -257,7 +257,7 @@
 **Count**: 2 unused import(s)
 
 - **Line 10**: `unittest.mock.MagicMock` imported but unused
-- **Line 298**: `unittest.mock.MagicMock` imported but unused
+- **Line 299**: `unittest.mock.MagicMock` imported but unused
 
 ### `tests/integration/test_account_lifecycle.py`
 

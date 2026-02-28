@@ -25,11 +25,11 @@ def _write_recent_changes(changelog_path: Path, entry_count: int) -> None:
 
 @pytest.mark.unit
 def test_check_and_trim_changelog_entries_skips_trim_when_within_limit(
-    temp_project_copy, monkeypatch
+    tmp_path, monkeypatch
 ):
     """When changelog is within limit, trim should not create archive output."""
-    monkeypatch.chdir(temp_project_copy)
-    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.chdir(tmp_path)
+    service = AIToolsService(project_root=str(tmp_path))
     logger_mock = MagicMock()
     monkeypatch.setitem(
         service._check_and_trim_changelog_entries.__func__.__globals__,
@@ -51,11 +51,11 @@ def test_check_and_trim_changelog_entries_skips_trim_when_within_limit(
 
 @pytest.mark.unit
 def test_check_and_trim_changelog_entries_trims_when_over_limit(
-    temp_project_copy, monkeypatch
+    tmp_path, monkeypatch
 ):
     """When changelog exceeds limit, trim should run and log summary."""
-    monkeypatch.chdir(temp_project_copy)
-    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.chdir(tmp_path)
+    service = AIToolsService(project_root=str(tmp_path))
     logger_mock = MagicMock()
     monkeypatch.setitem(
         service._check_and_trim_changelog_entries.__func__.__globals__,

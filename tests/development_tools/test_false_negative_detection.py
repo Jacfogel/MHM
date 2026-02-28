@@ -13,7 +13,6 @@ Test fixtures contain intentional issues that should be detected:
 import pytest
 from pathlib import Path
 from unittest.mock import patch
-import shutil
 
 from tests.development_tools.conftest import load_development_tools_module, demo_project_root, test_config_path
 
@@ -103,12 +102,20 @@ class TestFalseNegativeDetection:
             f"All functions: {[f.name for f in functions]}"
     
     @pytest.mark.integration
-    def test_path_drift_detects_broken_references(self, demo_project_root, test_config_path, false_negative_doc_file, tmp_path):
+    def test_path_drift_detects_broken_references(self, test_config_path, tmp_path):
         """Verify path drift analyzer detects broken file references."""
-        # Use a per-test project copy to avoid cross-test interference on shared demo fixtures.
+        # Build a minimal isolated fixture to avoid expensive full-project copies.
         isolated_root = tmp_path / "demo_project_copy"
-        shutil.copytree(demo_project_root, isolated_root)
+        (isolated_root / "docs").mkdir(parents=True, exist_ok=True)
         false_negative_doc_file = isolated_root / "docs" / "false_negative_test_doc.md"
+        false_negative_doc_file.write_text(
+            "# False Negative Path Drift Fixture\n\n"
+            "Broken refs:\n"
+            "- `core/nonexistent_module.py`\n"
+            "- `ui/missing_dialog.py`\n"
+            "- `tests/fake_test_file.py`\n",
+            encoding="utf-8",
+        )
 
         # Load path drift analyzer
         path_drift_module = load_development_tools_module("docs.analyze_path_drift")

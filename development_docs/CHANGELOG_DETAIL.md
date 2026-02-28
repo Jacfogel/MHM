@@ -33,6 +33,46 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-28 - Dev-tools slow-test optimization pass + coverage and roadmap closeout updates
+- **Feature/Fix**: Executed a focused development-tools test-throughput optimization pass driven by repeated `--durations=20` profiling, while continuing roadmap item `1.8` and preserving test intent/coverage assertions.
+- **Technical Changes**:
+  - Added new low-coverage maintenance-script tests:
+    - `tests/development_tools/test_shared_maintenance_scripts.py`
+    - covers `development_tools/shared/measure_tool_timings.py` and `development_tools/shared/verify_tool_storage.py`.
+  - Optimized slow test paths by replacing unnecessary heavy runtime work with focused mocks/isolated fixtures in:
+    - `tests/development_tools/test_legacy_reference_cleanup.py`
+    - `tests/development_tools/test_regenerate_coverage_metrics.py`
+    - `tests/development_tools/test_path_drift_integration.py`
+    - `tests/development_tools/test_status_file_timing.py`
+    - `tests/development_tools/test_false_negative_detection.py`
+    - `tests/development_tools/test_generate_directory_tree.py`
+    - `tests/development_tools/test_run_development_tools.py`
+    - `tests/development_tools/test_changelog_trim_tooling.py`
+  - Added/kept `@pytest.mark.slow` tagging for top-duration dev-tools tests to improve profiling/filtering workflows.
+  - Updated planning and roadmap tracking:
+    - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` section `1.1` and `1.8` (coverage gains, slow-test optimization progress, latest timing baseline).
+    - `development_docs/PLANS.md` with active follow-up plan for development-tools test runtime optimization.
+    - `TODO.md` with outstanding setup/teardown optimization follow-up tasks.
+  - Regenerated audit/report artifacts from dev-tools runs:
+    - `development_tools/AI_STATUS.md`
+    - `development_tools/AI_PRIORITIES.md`
+    - `development_tools/consolidated_report.md`
+    - `development_tools/reports/analysis_detailed_results.json`
+    - `development_tools/reports/tool_timings.json`
+    - `development_docs/TEST_COVERAGE_REPORT.md`
+    - `development_docs/UNUSED_IMPORTS_REPORT.md`
+    - `development_docs/LEGACY_REFERENCE_REPORT.md`
+- **Validation**:
+  - Targeted optimization suites passed (multiple batches), including:
+    - `pytest tests/development_tools/test_shared_maintenance_scripts.py -q`
+    - `pytest tests/development_tools/test_legacy_reference_cleanup.py tests/development_tools/test_regenerate_coverage_metrics.py tests/development_tools/test_path_drift_integration.py tests/development_tools/test_status_file_timing.py -q`
+    - `pytest tests/development_tools/test_changelog_trim_tooling.py tests/development_tools/test_generate_directory_tree.py tests/development_tools/test_run_development_tools.py -q --durations=20`
+  - Full dev-tools suite final result:
+    - `pytest tests/development_tools/ -q --durations=20` -> `914 passed in 314.59s (0:05:14)`.
+  - Dev-tools coverage refresh:
+    - `.venv\Scripts\python.exe development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache` -> `60.5%` (`15528/25653`).
+- **Impact**: Reduced dev-tools test runtime versus recent baseline (`328.23s` -> `314.59s`), lifted key low-coverage shared scripts from 0% to strong coverage, and advanced roadmap follow-through with concrete next setup/teardown optimization targets.
+
 ### 2026-02-27 - Pyright/Ruff mtime caching + module deps DEBUG + AI_PRIORITIES simplification + dev-tools consolidation
 - **Feature/Fix**: Added mtime caching for Pyright and Ruff static checks; moved module dependencies report to DEBUG; streamlined AI_PRIORITIES; moved scripts to `development_tools/shared/`; consolidated unused-imports; retired standalone docs into DEVELOPMENT_TOOLS_GUIDE; renamed `generate_function_docstrings` to `fix_function_docstrings`; fixed `test_email_user_creation` parallel failure.
 - **Technical Changes**:

@@ -309,19 +309,53 @@ class TestFixLegacyReferencesMain:
     """Test fix_legacy_references main() CLI paths."""
 
     @pytest.mark.unit
+    @pytest.mark.slow
     def test_main_find_mode(self, demo_project_root, capsys):
         """Test --find delegates to analyzer and prints references."""
-        with patch("sys.argv", ["fix_legacy_references.py", "--find", "NonExistentItemXYZ"]):
-            cleanup_module.main()
+        fake_references = {
+            "legacy_code.py": [{"line": 12, "line_content": "class LegacyChannelWrapper:"}]
+        }
+        with patch.object(
+            cleanup_module,
+            "LegacyReferenceAnalyzer",
+        ) as mock_analyzer_cls:
+            mock_analyzer = mock_analyzer_cls.return_value
+            mock_analyzer.find_all_references.return_value = fake_references
+            with patch(
+                "sys.argv", ["fix_legacy_references.py", "--find", "NonExistentItemXYZ"]
+            ):
+                cleanup_module.main()
         out, _ = capsys.readouterr()
         assert "References to" in out or "Total files" in out
         assert "NonExistentItemXYZ" in out
 
     @pytest.mark.unit
+    @pytest.mark.slow
     def test_main_verify_mode(self, demo_project_root, capsys):
         """Test --verify delegates to analyzer and prints verification."""
-        with patch("sys.argv", ["fix_legacy_references.py", "--verify", "NonExistentItemXYZ"]):
-            cleanup_module.main()
+        fake_verification = {
+            "ready_for_removal": False,
+            "counts": {
+                "total_files": 1,
+                "active_code": 1,
+                "test_files": 0,
+                "documentation": 0,
+                "config_files": 0,
+                "archive_files": 0,
+            },
+            "categorized": {"active_code": [("legacy_code.py", [{"line": 12}])], "test_files": []},
+            "recommendations": ["[WARNING] Update active references first"],
+        }
+        with patch.object(
+            cleanup_module,
+            "LegacyReferenceAnalyzer",
+        ) as mock_analyzer_cls:
+            mock_analyzer = mock_analyzer_cls.return_value
+            mock_analyzer.verify_removal_readiness.return_value = fake_verification
+            with patch(
+                "sys.argv", ["fix_legacy_references.py", "--verify", "NonExistentItemXYZ"]
+            ):
+                cleanup_module.main()
         out, _ = capsys.readouterr()
         assert "Removal Readiness" in out or "Reference Summary" in out
         assert "NonExistentItemXYZ" in out
@@ -336,4 +370,3 @@ class TestFixLegacyReferencesMain:
         call_kwargs = mock_run.call_args[1]
         assert call_kwargs["scan"] is True
         assert call_kwargs["dry_run"] is True
-

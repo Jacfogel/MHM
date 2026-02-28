@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-27
+> **Last Updated**: 2026-02-28
 > **Children**: [TEST_PLAN.md](development_docs\TEST_PLAN.md), [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).  
 
 ---
@@ -30,6 +30,36 @@
 ---
 
 ## [ACTIVE] **Current Active Plans**
+
+### **Development-Tools Test Runtime Optimization Follow-up** **IN PROGRESS**
+
+**Status**: **IN PROGRESS**  
+**Priority**: Medium  
+**Effort**: Small/Medium  
+**Date**: 2026-02-28  
+**Last Updated**: 2026-02-28
+
+**Objective**: Reduce development-tools test-suite wall-clock time while preserving branch/integration intent.
+
+**Completed in this session**:
+- [x] Profiled full suite repeatedly with `pytest tests/development_tools/ --durations=20 -q`.
+- [x] Reduced top slow call paths in targeted tests by replacing expensive subprocess/full-scan behavior with focused mocks where assertions did not depend on external execution:
+  - [x] `tests/development_tools/test_legacy_reference_cleanup.py`
+  - [x] `tests/development_tools/test_regenerate_coverage_metrics.py`
+  - [x] `tests/development_tools/test_path_drift_integration.py`
+  - [x] `tests/development_tools/test_status_file_timing.py`
+  - [x] `tests/development_tools/test_false_negative_detection.py`
+  - [x] `tests/development_tools/test_generate_directory_tree.py`
+  - [x] `tests/development_tools/test_run_development_tools.py`
+  - [x] `tests/development_tools/test_changelog_trim_tooling.py`
+- [x] Updated development-tools roadmap tracking in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.8`.
+
+**Observed outcome**:
+- [x] Full-suite timing improved from a recent baseline `328.23s` (5m28s) to `314.59s` (5m14s), with all tests passing.
+
+**Remaining follow-ups**:
+- [ ] Target setup/teardown-heavy offenders that now dominate durations (notably `test_fix_project_cleanup.py`, `test_tool_wrappers_branch_paths.py`, and teardown-heavy `test_standard_exclusions.py` paths).
+- [ ] Evaluate selective fixture-scope adjustments (`scope="module"`) where tests are proven non-mutating.
 
 ### **Development-Tools Audit Throughput Stabilization Follow-up** **IN PROGRESS**
 

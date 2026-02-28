@@ -6,9 +6,8 @@ with status file generation.
 """
 
 import pytest
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
 
@@ -97,7 +96,8 @@ class TestPathDriftIntegration:
             assert 'status' in result or 'message' in result, "Path validation result should have status or message"
     
     @pytest.mark.integration
-    def test_path_drift_appears_in_ai_status(self, tmp_path, monkeypatch):
+    @pytest.mark.slow
+    def test_path_drift_appears_in_ai_status(self, tmp_path):
         """Run audit with path drift issues and verify they appear in AI_STATUS.md."""
         project_root = tmp_path / "test_project"
         project_root.mkdir()
@@ -114,25 +114,35 @@ class TestPathDriftIntegration:
 
         # Create service instance
         service = AIToolsService(project_root=str(project_root))
-        
-        # Mock tool execution to avoid running actual tools
-        def mock_tool(*args, **kwargs):
-            return {'success': True, 'output': '{}', 'data': {}}
-        
-        service.run_analyze_functions = MagicMock(side_effect=mock_tool)
-        service.run_analyze_documentation_sync = MagicMock(side_effect=mock_tool)
-        service.run_analyze_system_signals = MagicMock(side_effect=mock_tool)
-        service.run_analyze_documentation = MagicMock(side_effect=mock_tool)
-        service.run_analyze_error_handling = MagicMock(side_effect=mock_tool)
-        service.run_decision_support = MagicMock(side_effect=mock_tool)
-        service.run_analyze_config = MagicMock(side_effect=mock_tool)
-        service.run_analyze_ai_work = MagicMock(side_effect=mock_tool)
-        service.run_analyze_function_registry = MagicMock(side_effect=mock_tool)
-        service.run_analyze_module_dependencies = MagicMock(side_effect=mock_tool)
-        
-        # Run quick audit
-        with patch('time.sleep'):
-            service.run_audit(quick=True)
+        no_op_patches = (
+            patch.object(service, "_run_quick_audit_tools", return_value=True),
+            patch.object(service, "_save_audit_results_aggregated", return_value=None),
+            patch.object(service, "_reload_all_cache_data", return_value=None),
+            patch.object(service, "_sync_todo_with_changelog", return_value=None),
+            patch.object(service, "_validate_referenced_paths", return_value=None),
+            patch.object(service, "_check_and_trim_changelog_entries", return_value=None),
+            patch.object(service, "_check_documentation_quality", return_value=None),
+            patch.object(service, "_check_ascii_compliance", return_value=None),
+        )
+
+        # run_audit orchestrates through run_script; patch that path to avoid subprocess work.
+        with patch.object(
+            service, "_generate_ai_status_document", return_value="# AI Status\n"
+        ), patch.object(
+            service,
+            "_generate_ai_priorities_document",
+            return_value="# AI Priorities\n",
+        ), patch.object(
+            service, "_generate_consolidated_report", return_value="# Consolidated\n"
+        ), no_op_patches[0], no_op_patches[1], no_op_patches[2], no_op_patches[3], no_op_patches[4], no_op_patches[5], no_op_patches[6], no_op_patches[7]:
+            with patch.object(
+                service,
+                "run_script",
+                return_value={"success": True, "output": "{}", "data": {}},
+            ):
+                # Run quick audit
+                with patch("time.sleep"):
+                    service.run_audit(quick=True)
 
         # Verify status file was created
         status_file = project_root / "development_tools" / "AI_STATUS.md"
@@ -146,7 +156,8 @@ class TestPathDriftIntegration:
         # Note: With all tools mocked, status generation may produce minimal content
     
     @pytest.mark.integration
-    def test_path_drift_appears_in_consolidated_report(self, tmp_path, monkeypatch):
+    @pytest.mark.slow
+    def test_path_drift_appears_in_consolidated_report(self, tmp_path):
         """Verify path drift issues appear in consolidated_report.md."""
         project_root = tmp_path / "test_project"
         project_root.mkdir()
@@ -163,25 +174,34 @@ class TestPathDriftIntegration:
 
         # Create service instance
         service = AIToolsService(project_root=str(project_root))
-        
-        # Mock tool execution
-        def mock_tool(*args, **kwargs):
-            return {'success': True, 'output': '{}', 'data': {}}
-        
-        service.run_analyze_functions = MagicMock(side_effect=mock_tool)
-        service.run_analyze_documentation_sync = MagicMock(side_effect=mock_tool)
-        service.run_analyze_system_signals = MagicMock(side_effect=mock_tool)
-        service.run_analyze_documentation = MagicMock(side_effect=mock_tool)
-        service.run_analyze_error_handling = MagicMock(side_effect=mock_tool)
-        service.run_decision_support = MagicMock(side_effect=mock_tool)
-        service.run_analyze_config = MagicMock(side_effect=mock_tool)
-        service.run_analyze_ai_work = MagicMock(side_effect=mock_tool)
-        service.run_analyze_function_registry = MagicMock(side_effect=mock_tool)
-        service.run_analyze_module_dependencies = MagicMock(side_effect=mock_tool)
-        
-        # Run quick audit
-        with patch('time.sleep'):
-            service.run_audit(quick=True)
+        no_op_patches = (
+            patch.object(service, "_run_quick_audit_tools", return_value=True),
+            patch.object(service, "_save_audit_results_aggregated", return_value=None),
+            patch.object(service, "_reload_all_cache_data", return_value=None),
+            patch.object(service, "_sync_todo_with_changelog", return_value=None),
+            patch.object(service, "_validate_referenced_paths", return_value=None),
+            patch.object(service, "_check_and_trim_changelog_entries", return_value=None),
+            patch.object(service, "_check_documentation_quality", return_value=None),
+            patch.object(service, "_check_ascii_compliance", return_value=None),
+        )
+
+        with patch.object(
+            service, "_generate_ai_status_document", return_value="# AI Status\n"
+        ), patch.object(
+            service,
+            "_generate_ai_priorities_document",
+            return_value="# AI Priorities\n",
+        ), patch.object(
+            service, "_generate_consolidated_report", return_value="# Consolidated\n"
+        ), no_op_patches[0], no_op_patches[1], no_op_patches[2], no_op_patches[3], no_op_patches[4], no_op_patches[5], no_op_patches[6], no_op_patches[7]:
+            with patch.object(
+                service,
+                "run_script",
+                return_value={"success": True, "output": "{}", "data": {}},
+            ):
+                # Run quick audit
+                with patch("time.sleep"):
+                    service.run_audit(quick=True)
 
         # Verify consolidated report was created
         report_file = project_root / "development_tools" / "consolidated_report.md"

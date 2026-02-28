@@ -191,6 +191,7 @@ class TestCoverageAnalysis:
                 assert 'modules' in results or 'overall' in results
 
     @pytest.mark.unit
+    @pytest.mark.slow
     def test_parallel_outcome_uses_parallel_results_only(self, demo_project_root):
         """Parallel outcome should not inherit no_parallel failure counts."""
         regenerator = CoverageMetricsRegenerator(
@@ -254,9 +255,20 @@ class TestCoverageAnalysis:
                 regenerator.report_generator, "finalize_coverage_outputs"
             ):
                 with patch.object(
-                    regenerator, "_parse_pytest_test_results", side_effect=fake_parse
+                    regenerator,
+                    "_wait_for_parallel_coverage_artifacts",
+                    return_value={
+                        "waited_seconds": 0.0,
+                        "parallel_shards": [],
+                        "project_root_shards": [],
+                    },
                 ):
-                    results = regenerator.run_coverage_analysis()
+                    with patch.object(
+                        regenerator,
+                        "_parse_pytest_test_results",
+                        side_effect=fake_parse,
+                    ):
+                        results = regenerator.run_coverage_analysis()
 
         coverage_outcome = results.get("coverage_outcome", {})
         parallel_outcome = coverage_outcome.get("parallel", {})
