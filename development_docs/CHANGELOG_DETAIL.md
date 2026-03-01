@@ -33,6 +33,27 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-02-28 - Planning-doc user-priority Q&A completion (NOTES_PLAN, AI_DEV, TODO)
+- **Scope**: Completed user-priority Q&A for remaining planning docs and TODO.md; updated priorities, use/fit notes, and structure per stakeholder answers.
+- **NOTES_PLAN.md**:
+  - Use/fit header; notebook intended as primary daily tool but not yet there.
+  - Show More pagination fix first, then search feedback; edit sessions medium; AI extraction and slash-command deferred until AI overhaul.
+  - Milestone 5 (Skip Integration) clarified; Milestone 6 deferred.
+  - Ranked known issues (search feedback > Show More > help > group ambiguity > bulk ops > journal visual); Implementation Remaining reordered.
+- **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md**:
+  - Use/fit header; section-level user priorities throughout.
+  - Stale-lock recovery yes; Tier 3 legacy cleanup high; duplicate-function body similarity high; CLI/exclusion consistency high; portability high.
+  - Retire-unapproved-docs verified complete; consolidate_report→CONSOLIDATED_REPORT.md task added; Tier 3/coverage split consideration; workers 4→6.
+  - Added 7.8 Possible Duplicate Lists, 7.9 Audit MHM backups; memory_profiler description for 5.6; test_config.json clarification.
+- **TODO.md**:
+  - Planning-doc Q&A task removed (completed for NOTES_PLAN, AI_DEV).
+  - Removed: Fix AI response quality; Systematic doc review; dev-tools test runtime; Create development guidelines.
+  - High: headless + email fix soon; Script ownership + sent_messages elevated.
+  - Deferred (AI overhaul): AI Chatbot Actionability Sprint, NLP, AI command list, AI response times.
+  - Ruff outside>inside; wake timer one-time; backup in dev tools; xdist clarification; markdown links→Medium; performance monitoring includes RAM/caching; duplicate lists and backup audit→AI_DEV 7.8/7.9.
+  - Use/fit header added.
+- **Impact**: Planning docs and TODO now reflect user priorities; deferred AI work clearly scoped; operational and quality items appropriately elevated.
+
 ### 2026-02-28 - Tier 3 stabilization + dev-tools helper-coverage continuation
 - **Feature/Fix**: Resolved the three Tier 3 failures in `AI_PRIORITIES.md` and continued roadmap item `1.1` with targeted helper-level dev-tools coverage work.
 - **Technical Changes**:
@@ -46,7 +67,7 @@ When adding new changes, follow this format:
     - `tests/development_tools/test_data_loading_helpers.py`
     - `tests/development_tools/test_tool_wrappers_cache_helpers.py`
     - `tests/development_tools/test_commands_docs_workflow.py`
-  - Updated roadmap tracking in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` section `1.1`.
+  - Updated roadmap tracking in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.1`.
 - **Validation**:
   - Tier 3 failing tests: targeted run `3 passed`; parallel check (`-n 4`) `3 passed`.
   - Coverage suites: continuation batches `28 passed` and `47 passed`; function-pattern suite `4 passed`; dev-tools suite skip-state check `920 passed`, `0 skipped`.

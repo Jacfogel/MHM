@@ -4,9 +4,11 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-02-28
+> **Last Updated**: 2026-02-28 (User-priority Q&A applied)
 
 This is an updated, condensed roadmap based on V3 and prior audits. Completed work is summarized, and all remaining tasks are grouped and ordered.
+
+**Use / fit**: Audit is used constantly to assess codebase state and regressions; coverage is secondary. Priorities: stale-lock recovery; Tier 3 legacy cleanup; CLI/exclusion consistency; duplicate-function body similarity; portability; AI work validation value. Consider: Tier 3 audit without coverage (coverage run separately); parallel workers 4→6; consolidated_report → CONSOLIDATED_REPORT.md. Retire unapproved docs: verified complete (files removed). See section-level *User priority* notes.
 
 ---
 
@@ -34,8 +36,13 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 ### 1. Reliability, Coverage, and Test Health (HIGH)
 
+*User priority*: Coverage 60%+ = medium/low. Stale-lock recovery = yes (prioritize). test_config.json fixture = optional (see note below). Tier 3/coverage split: consider audit Tier 3 without coverage; run coverage independently. Parallel workers: increase from 4 to 6.
+
+*test_config.json fixture*: `tests/development_tools/test_config.json` is a config that does NOT exclude `tests/fixtures/`, so analyzers can process fixture files. "Migration" = ensure all dev-tools tests that invoke analyzers pass `test_config_path` instead of default config. Low priority per user.
+
 #### 1.1 Raise development tools coverage to 60%+
 **Status**: IN PROGRESS  
+**User priority**: Medium/low  
 **Tasks**:
 - [ ] Use `development_tools/AI_PRIORITIES.md` (audit-generated) to identify actionable coverage priorities; only mirror specific module targets here when they need explicit follow-up
 - [x] Add targeted tests for current top low-coverage offenders identified from latest coverage output:
@@ -158,10 +165,11 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [x] Added interrupted-audit lock cleanup in CLI runner:
   - `development_tools/run_development_tools.py` now catches `KeyboardInterrupt` for `audit`/`full-audit` and removes audit/coverage lock files before exiting.
   - Added regression test: `tests/development_tools/test_integration_workflows.py::test_audit_keyboard_interrupt_cleans_up_lock_files`.
-- [ ] Extend lock handling beyond `KeyboardInterrupt` path to robust stale-lock recovery for hard-kill/process-crash scenarios (metadata-backed active/stale detection).
+- [ ] Extend lock handling beyond `KeyboardInterrupt` path to robust stale-lock recovery for hard-kill/process-crash scenarios (metadata-backed active/stale detection). *User priority*: Yes—prioritize.
 
 #### 1.2 Restore audit status tests without memory leak
 **Status**: PENDING  
+**User priority**: Replace with simpler/integration tests (not fix-and-re-enable).  
 **Tasks**:
 - [ ] Review commented-out tests in `tests/development_tools/test_audit_status_updates.py`
 - [ ] Identify memory leak sources (file tracking, mocks, temp FS ops, service cleanup)
@@ -172,7 +180,8 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [ ] Re-enable `tests/development_tools/test_audit_tier_comprehensive.py` if possible
 
 #### 1.3 Investigate intermittent low coverage warning
-**Status**: IN PROGRESS  
+**Status**: IN PROGRESS (defer—issue has not resurfaced recently).  
+**User priority**: Defer.  
 **Tasks**:
 - [x] Review coverage merge flow in `run_test_coverage.py`
 - [x] Verify timing of coverage merge vs analysis
@@ -194,6 +203,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 1.5 Coverage caching follow-ups (test-file cache)
 **Status**: IN PROGRESS  
+**User priority**: Medium/low. Prefer improving coverage caching for more savings without decreasing quality; OR consider Tier 3 audit without coverage (run coverage independently)—audit used for state/regressions; coverage adds latency without that value.  
 **Tasks**:
 - [ ] Measure actual time savings of domain-based test execution
 - [ ] Compare full vs domain-filtered runs and document results in changelog
@@ -224,6 +234,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 1.8 Improve slow development tools tests
 **Status**: IN PROGRESS  
+**User priority**: No further optimization needed (no test >5s). Prefer: increase parallel workers from 4 to 6.  
 **Tasks**:
 - [x] Run `pytest tests/development_tools/ --durations=20` to identify slowest tests
   - Slowest calls observed (top set): `test_main_verify_mode` (~5.42s), `test_main_find_mode` (~5.32s), `test_parallel_outcome_uses_parallel_results_only` (~5.16s), and path-drift/status integration tests (~3.44-4.69s)
@@ -264,6 +275,8 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 ### 2. Reporting, Recommendations, and Output Quality (HIGH/MEDIUM)
 
+*User priority*: Logging (print→logger) = medium. System signals = investigate then decide keep/enhance/remove. development_tools-only mode = medium; use DEV_TOOLS_STATUS, DEV_TOOLS_PRIORITIES, DEV_TOOLS_CONSOLIDATED_REPORT naming; tools should run with dev-tools as root. Rename consolidated_report.md → CONSOLIDATED_REPORT.md (uppercase to match AI_STATUS/AI_PRIORITIES). Retire unapproved docs = **COMPLETE** (RESULT_FORMAT_STANDARD, OUTPUT_STORAGE_STANDARDS, EXCLUSION_RULES removed). Console output: shift timing/cache summary to logging; progress indicators TBD. Tier 3 follow-ups = high (proper legacy removal, clean codebase).
+
 #### 2.1 Enhance Quick Wins with file details
 **Status**: COMPLETED  
 **Tasks**:
@@ -275,6 +288,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 2.2 Standardize logging and surface top offenders
 **Status**: IN PROGRESS  
+**User priority**: Medium. Also: shift audit timing/cache summary (Total tool execution time, Slowest tools, Coverage mode summary, Cache mode summary) to logging instead of stdout if not already.  
 **Tasks**:
 - [x] Standardize log levels across core orchestration/reporting/coverage paths (INFO lifecycle, DEBUG internals, WARNING actionable anomalies)
 - [x] Remove duplicate log entries and demote verbose enhancement logs in high-noise paths
@@ -307,6 +321,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 2.5 System signals purpose and redundancy cleanup
 **Status**: PENDING  
+**User priority**: Investigate, then decide (a) keep and clarify, (b) enhance, or (c) remove.  
 **Tasks**:
 - [ ] Identify unique value provided by `analyze_system_signals`
 - [x] Remove redundant doc-sync statement from system signals section
@@ -314,13 +329,15 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [ ] Update report_generation to reflect decision
 
 #### 2.6 Consolidated report improvements
-**Status**: COMPLETED  
+**Status**: COMPLETED (follow-up: uppercase rename)  
 **Tasks**:
 - [x] Standardize consolidated report filename to `consolidated_report.md`
+- [ ] Rename `consolidated_report.md` → `CONSOLIDATED_REPORT.md` to match AI_STATUS.md, AI_PRIORITIES.md uppercase convention
 - [x] Expand consolidated report detail to at least AI_STATUS level
 
 #### 2.8 Run all tools in development_tools-only mode
 **Status**: PENDING  
+**User priority**: Medium. Output names: DEV_TOOLS_STATUS, DEV_TOOLS_PRIORITIES, DEV_TOOLS_CONSOLIDATED_REPORT (differentiate from project-level). Other dev tools should run with development_tools as root.  
 **Tasks**:
 - [ ] Add a way to run the full audit (or equivalent) with `development_tools/` as the project root instead of the MHM project
 - [ ] Separate this from the current "include dev tools in scan" behavior so it is explicit and clean (e.g. a dedicated mode or flag)
@@ -332,6 +349,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 2.9 Console output polish (optional)
 **Status**: PENDING  
+**User priority**: Shift audit timing/cache summary to logging. Progress indicators for long-running tools TBD. Verify no raw dict/list dumps.  
 **Tasks**:
 - [ ] Verify no raw dict/list dumps during audits
 - [ ] Consider progress indicators for long-running tools
@@ -350,6 +368,8 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [x] Include development-tools test track in Tier 3 outcome state handling and strict-exit decisioning
 - [x] Surface actionable `classification_reason`, `return_code_hex`, and relevant `log_file` paths in Tier 3 report sections
 - [ ] Follow-up: refine cache-only legacy outcome normalization so valid cached coverage runs do not emit false `coverage_failed` states when legacy state-only track payloads are bridged
+
+*User priority for Tier 3 follow-ups*: High. Proper legacy removal and clean, efficient codebase important.
 
 **Temporary compatibility bridge note**:
 - [x] Added explicit `# LEGACY COMPATIBILITY:` marker and bridge-use logging for state-only Tier3 payload fallback paths
@@ -377,15 +397,18 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [x] Removed duplicate footer "Last Updated" line from AI function registry generator
 
 #### 2.8 retire unapproved docs
-- incorporate information from unapproved docs development_tools\shared\RESULT_FORMAT_STANDARD.md, development_tools\shared\OUTPUT_STORAGE_STANDARDS.md and development_tools\shared\EXCLUSION_RULES.md into development_tools\DEVELOPMENT_TOOLS_GUIDE.md and development_tools\AI_DEVELOPMENT_TOOLS_GUIDE.md
-- then remove docs
+**Status**: COMPLETED (verified 2026-02-28)  
+- ~~incorporate information from unapproved docs~~ — RESULT_FORMAT_STANDARD.md, OUTPUT_STORAGE_STANDARDS.md, EXCLUSION_RULES.md no longer exist; content absorbed into guides/code (result_format.py, output_storage.py, standard_exclusions.py). Task can be removed from active backlog.
 
 ---
 
 ### 3. Tooling Integrity and Validation (MEDIUM/HIGH)
 
+*User priority*: Example marking = low. Validation 3.2 = yes (investigate; consider ditching manual enhancements, rely on docstrings). Version sync = medium. Error-handling metrics = high (must be consistent). Duplicate-function body similarity = high. CLI inventory = high. Exclusion rules = high. Flaky detector = medium/low. Scripts migration = continue; review = systematic. Gap tasks = low. Refactor complex files = medium/low (covered by AI_PRIORITIES). Portability = high.
+
 #### 3.0 Example marking standards checker (doc-sync validation)
 **Status**: PENDING  
+**User priority**: Low. Nice eventually; related doc policies may matter more.  
 **Tasks**:
 - [ ] Add example marking validation to `development_tools/docs/analyze_documentation_sync.py` or create a new validation module
 - [ ] Detect file path references in example contexts missing `[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]` markers
@@ -403,6 +426,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 3.2 Validation warnings cleanup
 **Status**: PENDING  
+**User priority**: Yes—investigate. Likely fix: pull up old enhancements, verify validity, copy missing. Alternative: ditch manual enhancements, rely solely on docstrings (ensure good descriptive docstrings).  
 **Tasks**:
 - [ ] Investigate "Only 60/82 manual enhancements found in written file"
 - [ ] Review "needs_enhancement" and "new_module" triggers
@@ -411,6 +435,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 3.3 Version sync functionality
 **Status**: PENDING  
+**User priority**: Medium.  
 **Tasks**:
 - [ ] Determine what `version_sync` does and intended scope
 - [ ] Verify it is operating correctly
@@ -425,6 +450,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 3.5 Expand analyze_duplicate_functions with body/structural similarity
 **Status**: PENDING  
+**User priority**: High.  
 **Tasks**:
 - [ ] Extend `development_tools/functions/analyze_duplicate_functions.py` to improve recall: pairing is currently name-token only, so functions with different names but similar logic are never compared.
 - [ ] Add an optional body/structural similarity pass: e.g. normalize function body (or AST node-type sequence), compute similarity for candidate pairs (same file/module or expanded set), merge or report alongside name-based groups.
@@ -432,6 +458,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 3.6 Error handling coverage metric consistency
 **Status**: PENDING  
+**User priority**: High—must be consistent across reports.  
 **Tasks**:
 - [ ] Validate metrics when missing functions are non-zero
 - [ ] Verify missing count vs percentage calculation
@@ -463,6 +490,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 3.10 CLI argument standardization and aliases
 **Status**: PENDING  
+**User priority**: High.  
 **Tasks**:
 - [x] Inventory CLI flags in `shared/cli_interface.py` and `run_development_tools.py` (audit: `--full/--quick/--include-tests/--include-dev-tools/--include-all/--overlap`, doc-fix: `--all/--dry-run/--add-addresses/--fix-ascii/--number-headings/--convert-links`, cleanup: `--full/--cache/--test-data/--coverage/--dry-run`, duplicate-functions: `--include-tests/--include-dev-tools/--include-all/--min-overall/--min-name`, version-sync: `scope`, workflow: `task_type`, global: `--project-root/--config-path/--clear-cache`)
 - [x] Inventory standalone script flags (analyze_package_exports: `--package/--all/--recommendations`, run_test_coverage: `--update-plan/--output-file/--no-parallel/--workers/--dev-tools-only/--no-domain-cache`, analyze_test_coverage: `--input/--json/--output`)
@@ -472,6 +500,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 3.11 Exclusion rules consistency
 **Status**: PENDING  
+**User priority**: High.  
 **Tasks**:
 - [x] Verified base exclusions already include `.ruff_cache/`, `mhm.egg-info/`, `scripts/`, `tests/ai/results/`, `tests/coverage_html/` in `development_tools/shared/standard_exclusions.py`
 - [x] Audited tool usage: 17/43 tool-like scripts reference `standard_exclusions`/`should_exclude_file`; missing includes scanning tools (`docs/analyze_*`, `docs/fix_*`, `ai_work/analyze_ai_work.py`, `config/analyze_config.py`, `functions/analyze_function_patterns.py`) plus non-scanners (report generators, CLI runners)
@@ -493,6 +522,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 3.12 Integrate flaky detector into development tools suite
 **Status**: PENDING  
+**User priority**: Medium/low.  
 **Tasks**:
 - [ ] Move `scripts/flaky_detector.py` to `development_tools/tests/` with clear ownership and module boundaries
 - [ ] Wire flaky detection into development tools CLI/tool metadata (standalone command + optional audit hook)
@@ -502,6 +532,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 3.13 Scripts-to-development-tools migration (persistent scripts)
 **Status**: PENDING  
+**User priority**: Continue.  
 **Tasks**:
 - [ ] Build a definitive migration inventory from current tracked references to `scripts/` (exclude changelog-history-only references)
 - [x] Moved static logging checker to `development_tools/static_checks/check_channel_loggers.py` and updated references (`run_tests.py`, CI workflow, tests, and logging docs)
@@ -521,6 +552,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 3.14 Scripts review candidates (evaluate value before retire/migrate)
 **Status**: PENDING  
+**User priority**: Systematic review.  
 **Tasks**:
 - [ ] Review `scripts/utilities/cleanup/cleanup_test_data.py` for reusable behavior; migrate only durable logic, otherwise retire
 - [ ] Review `scripts/utilities/cleanup/cleanup_user_message_files.py` for reusable behavior; migrate only durable logic, otherwise retire
@@ -532,12 +564,14 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 3.15 Gap tasks from retired scripts (development-tools scope)
 **Status**: PENDING  
+**User priority**: Low.  
 **Tasks**:
 - [ ] Evaluate whether to incorporate `scripts/cleanup_unused_imports.py` report-text categorization heuristics (missing logging/error-handling/type-hints) into `development_tools/imports/analyze_unused_imports.py` and/or `development_tools/imports/generate_unused_imports_report.py`
 - [ ] Evaluate whether to add a dedicated per-function AST helper/fixer for try-except to decorator migration (inspired by `scripts/replace_try_except_with_decorator.py`) to complement `development_tools/error_handling/analyze_error_handling.py` recommendations
 
 #### 3.16 Explore refactoring report_generation.py and run_test_coverage.py
 **Status**: PENDING  
+**User priority**: Medium/low. Essentially covered by AI_PRIORITIES "Consider refactoring large or high-complexity modules" (61 module candidates).  
 **Rationale**: Both files trigger Pyright "code too complex to analyze" (reportGeneralTypeIssues). Refactoring would improve maintainability and type-checker clarity.  
 **Tasks**:
 - [ ] **report_generation.py** (`development_tools/shared/service/report_generation.py`): Map current structure (sections, helpers, data flow); identify natural split points (e.g. by report type or by section builder); document a refactor plan (extract helpers, optional submodules) and effort estimate; decide whether to proceed in phases or defer
@@ -546,6 +580,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 3.17 Portability and Project-Independence Compliance Sweep
 **Status**: PENDING  
+**User priority**: High.  
 **Tasks**:
 - [ ] Audit all tools under `development_tools/**` for hardcoded project paths and replace with config/shared helpers (`config.py`, `shared/common.py`, `shared/constants.py`, `shared/standard_exclusions.py`)
 - [ ] Ensure test/discovery paths are config-driven (for example `paths.tests_dir`, `paths.tests_data_dir`) with generic defaults and project overrides in `development_tools/config/development_tools_config.json`
@@ -558,8 +593,11 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 ### 4. External Tool Evaluation and Integration (MEDIUM)
 
+*User priority*: bandit/pip-audit = evaluate. ruff/radon = evaluate (ruff already in use). pre-commit = yes, evaluate.
+
 #### 4.1 Evaluate and integrate complementary tools
 **Status**: PENDING  
+**User priority**: Evaluate bandit, pip-audit, radon, pre-commit.  
 **Tasks**:
 - [ ] Evaluate ruff (lint/format) and radon (complexity) for integration
 - [ ] Evaluate pydeps for dependency graphs vs existing dependency tool
@@ -573,6 +611,8 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 ### 5. Future Enhancements (LOW)
 
+*User priority*: Unused-imports fix module = low. Doc overlap = medium. AI work validation = high/medium (currently may provide no value). TODO sync = low. New tools: Documentation, Code quality, Testing, Config/env. Memory profiler = TBD (see 5.6).
+
 #### 5.0 Explore adding a possible duplicate function/method analysis
 **Status**: COMPLETED  
 **Tasks**:
@@ -583,6 +623,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 5.1 Unused imports cleanup module
 **Status**: PENDING  
+**User priority**: Low.  
 **Tasks**:
 - [ ] Create categorization logic for unused imports
 - [ ] Add category-based reporting
@@ -601,6 +642,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 5.2 Documentation overlap analysis enhancements
 **Status**: PENDING  
+**User priority**: Medium.  
 **Tasks**:
 - [ ] Review consolidation opportunities (Development Workflow, Testing)
 - [ ] Create consolidation plan for identified groups
@@ -608,6 +650,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 5.3 AI work validation improvements
 **Status**: PENDING  
+**User priority**: High/medium. User unsure this tool currently provides any value.  
 **Tasks**:
 - [ ] Review current AI work validation logic
 - [ ] Add actionable recommendations beyond status text
@@ -615,6 +658,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 
 #### 5.4 TODO sync cleanup automation
 **Status**: PENDING  
+**User priority**: Low.  
 **Tasks**:
 - [x] Review current TODO sync logic
 - [x] Improve detection of completed entries
@@ -625,6 +669,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 #### 5.5 New tool creation based on gap analysis
 **Status**: IN PROGRESS  
 **Effort**: Large  
+**User priority**: Gap domains that matter most: Documentation, Code quality, Testing, Config/env.  
 **Tasks**:
 - [x] **Module refactor candidates**: Added `functions/analyze_module_refactor_candidates.py` to identify high-complexity or very large modules as candidates for refactoring into smaller modules. Configurable thresholds (max lines, max functions, max total complexity, high+critical function count). Runs in Tier 2 audit; surfaces in AI_STATUS, AI_PRIORITIES, and consolidated report. Command: `module-refactor-candidates` (optional `--json`, `--include-tests`, `--include-dev-tools`).
 - [ ] Prioritize remaining gaps across 6 domains:
@@ -642,6 +687,8 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 #### 5.6 Memory profiler integration
 **Status**: PENDING  
 **Source**: `scripts/testing/memory_profiler.py`  
+**What it does**: Identifies which tests consume the most memory during pytest execution; runs with memory monitoring (psutil), reports top memory-heavy tests. Useful for debugging memory leaks or high-memory tests.  
+**User priority**: TBD (user doesn't recall; defer until value is clear).  
 **Tasks**:
 - [ ] Decide whether to integrate `scripts/testing/memory_profiler.py`
 - [ ] Choose approach (new tool vs enhancement vs standalone monitor)
@@ -654,6 +701,12 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 ### 6. Audit-Driven Remediation (Non-Tool Code, Current Backlog)
 
 These are surfaced by the tools and remain outstanding but are not tool-suite changes.
+
+*User priority*:
+- **Retire legacy markers**: (a) Actively work down; focus on proper retirement/removal of legacy code, then related markers.
+- **Reduce unused imports**: (d) Most classified as "keep" for various reasons; improve classification (ruff integration would help). Prefer: rely solely on ruff; carefully remove our system (currently fallback). Consider: suppress unused-import results in audit to avoid duplication with dedicated unused-imports tool.
+- **Raise domain coverage** (communication, ui, core): (d) When nothing better to do, or while user is away.
+- **Refactor critical-complexity functions**: (a) Actively work down, but not high priority.
 
 - [ ] Retire legacy reference markers (38 files, 71 markers); update references and rerun `legacy`
 - [ ] Reduce unused imports (358 in 124 files) and verify via `unused-imports-report`
@@ -705,6 +758,7 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 - [x] Added `--cache-clear` as a global alias for `--clear-cache` in `run_development_tools.py` and documented in AI + human tool guides.
 
 ## 7.6 Portability Follow-Up: Static Tooling and Packaging
+**User priority**: High/medium.  
 - [ ] Document current compromise: `.ruff.toml` currently lives at repo root for compatibility with direct `ruff check .` workflows; this is acceptable short-term but not ideal for a drop-in `development_tools/` suite.
 - [ ] Explore moving Ruff config ownership fully under `development_tools/config/` while preserving UX:
   - Evaluate wrappers/commands that always pass `--config development_tools/config/ruff.toml` (or generated equivalent).
@@ -722,6 +776,7 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
   - Validation that reports remain complete when host-repo lint/type configs differ from dev-tools defaults.
 
 ## 7.7 Directory Taxonomy and Config Boundary Cleanup
+**User priority**: High/medium.  
 - [ ] Define a target taxonomy for `development_tools/` that is intuitive for new contributors and portable across host repos.
 - [ ] Document current pain point: `development_tools/config/` currently mixes public tool configuration surface with runtime/platform implementation concerns, which makes discovery and ownership unclear.
 - [ ] Establish and document a stable "configuration surface" directory contract for development tools configuration files, including:
@@ -741,6 +796,19 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
   - New contributors can find config entrypoints in under 2 minutes.
   - Core commands run unchanged during migration.
   - Existing import paths remain supported until deprecation window ends.
+
+## 7.8 Possible Duplicate Lists (moved from TODO.md)
+**Source**: TODO.md user-priority Q&A (2026-02-28).  
+- [ ] Investigate documentation and code for duplicate or partially duplicated lists (docs, constants, commands, files, etc.)
+- [ ] Establish canonical location per list type; code pulls dynamically, docs point to canonical
+- [ ] Implement or extend development tools to detect and report duplicate-list candidates
+- [ ] Reduce drift and improve accuracy across codebase and docs
+
+## 7.9 Audit MHM project for duplicate, outdated, unnecessary backups (moved from TODO.md)
+**Source**: TODO.md user-priority Q&A (2026-02-28).  
+- [ ] Audit for duplicate, outdated, unnecessary backups and archive copies
+- [ ] Implement structured regular local backups with compression and rotation
+- [ ] Integrate with or extend existing `backup verify` and retention tooling
 
 ## Related Documents
 

@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-02-28 (Planning Q&A follow-up task added)
+> **Last Updated**: 2026-02-28 (User-priority Q&A applied)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -36,76 +36,31 @@ When adding new tasks, follow this format:
 **Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
 **Testing Source of Truth**: All testing roadmap items are tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md). Keep only non-testing TODO items here.
 
+**Use / fit** (2026-02-28 user-priority Q&A): Operational reliability (headless, email) fix soon. AI items deferred until system overhaul. Script ownership, sent_messages high priority. Ruff outside tests > inside. Duplicate lists and backup audit moved to dev tools. Performance monitoring includes RAM/caching.
+
 ## High Priority
 
-### AI & Chatbot
-
-**AI Chatbot Actionability Sprint** - Plan and implement actionable AI responses
-- *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
-- *Why it helps*: Addresses the user's biggest friction and increases real utility.
-- *Estimated effort*: Large
-
-**Fix AI response quality issues identified in test results**
-- *What it means*: Address 10 issues identified in AI functionality test results: prompt-response mismatches (greetings not acknowledged, questions redirected), fabricated check-in data, incorrect facts, repetitive responses, code fragments in command responses, and system prompt leaks
-- *Why it helps*: Improves AI response quality and ensures responses actually address user prompts appropriately
-- *Estimated effort*: Medium
-- *Current Status*: [OK] **IN PROGRESS** - Significant improvements made:
-  - [OK] T-1.1, T-12.2: Greeting handling instructions strengthened with BAD/GOOD examples (prompt updated, monitoring)
-  - [OK] T-1.2, T-12.4, T-15.2: Information request handling strengthened with explicit BAD/GOOD examples for "Tell me about your capabilities", "Tell me a fact", and "Tell me about yourself" (prompt updated, monitoring)
-  - [OK] T-2.1, T-2.3, T-8.1, T-14.1: Vague reference instructions strengthened (improved, still some remaining)
-  - [OK] T-4.1, T-9.2, T-13.3: Fabricated data prevention added
-  - [OK] T-13.3: Meta-text leak cleaning enhanced
-  - [OK] T-12.1: Information request handling added (should provide helpful info, not redirect)
-  - [OK] T-15.2: "Tell me about yourself" handling strengthened with explicit examples
-  - [OK] T-11.1: Code fragments in command responses - FIXED (added cleaning for cached responses and enhanced fragment detection)
-  - [OK] T-12.4: Incorrect fact with self-contradiction - PREVENTION ADDED (logical consistency instructions)
-  - [WARNING] T-15.1: System prompt instructions leaked (cleaning added, monitor)
-- *Specific Issues*:
-  - [OK] T-1.1, T-12.2: Prompt-response mismatches (greetings) - PROMPT UPDATED with BAD/GOOD examples (monitoring)
-  - [OK] T-1.2, T-12.4, T-15.2: Prompt-response mismatches (information requests) - PROMPT UPDATED with explicit BAD/GOOD examples (monitoring)
-  - [WARNING] T-8.1, T-9.3: Prompt-response mismatches (questions redirected) - IMPROVED (still monitoring)
-  - [OK] T-11.1: Code fragments in command responses - FIXED
-  - [OK] T-12.1: Generic motivational content instead of helpful information - IMPROVED
-  - [OK] T-12.4: Incorrect fact with self-contradiction - PREVENTION ADDED
-  - [OK] T-14.1, T-16.2: Fabricated check-in details/statistics - PREVENTION ADDED
-  - [OK] T-13.3: System prompt instructions leaked - CLEANING ENHANCED
-
-
-## Medium Priority
-
-### Operational Reliability
+### Operational Reliability (fix soon)
 
 **headless service not working**
 - *What it means*: Investigate and fix headless service failure.
 - *Why it helps*: Restores normal operation when running in headless mode.
 - *Estimated effort*: Small/Medium
-- *Created*: 2026-02-28 (moved from Low; blocking when headless is needed)
+- *User priority*: Fix soon. *Created*: 2026-02-28
 
 **Email service not showing as active**
 - *What it means*: After running for some time, UI shows Discord and ngrok active but email inactive; logs don't indicate failure. Investigate and resolve.
 - *Why it helps*: Restores email channel operation.
 - *Estimated effort*: Small/Medium
-- *Created*: 2026-02-28 (moved from Low; blocking when email channel is needed)
+- *User priority*: Fix soon. *Created*: 2026-02-28
 
-### Quality & Operations
-
-**Continue Ruff Remediation Outside Tests**
-- *What it means*: Continue fixing Ruff issues in non-test modules (core runtime, communication handlers, AI modules, tooling) in small batches, prioritizing rule classes with low behavior risk first.
-- *Why it helps*: Reduces lint debt and keeps production code consistency high without destabilizing the test suite.
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Run Ruff on non-test paths and group findings by safe autofix vs manual refactor
-  - [ ] Apply fixes in small batches with focused behavior validation between batches
-  - [ ] Track any behavior-impacting lint fixes separately from style-only cleanups
-  - [ ] Re-baseline remaining Ruff counts after each batch
-
-**Confirm wake timer fix in production**
-- [ ] After a 01:00 run, confirm errors.log no longer fills with wake timer (Register-ScheduledTask) errors.
+### Quality & Operations (high priority within medium)
 
 **Script Ownership and Retirement Decisions (project-specific, not development-tools portability)**
 - *What it means*: Resolve ownership for persistent project scripts currently under untracked `scripts/`, retire obsolete ones, and migrate any still-needed functionality into tracked runtime locations.
 - *Why it helps*: Prevents drift between docs and reality, reduces maintenance risk, and keeps `development_tools/` project-agnostic.
 - *Estimated effort*: Medium
+- *User priority*: High/medium.
 - *Subtasks*:
   - [ ] Decide destination for `scripts/utilities/user_data_cli.py` (migrate to tracked runtime ownership such as `core/`/`user/`/app-tools, or retire if superseded).
   - [ ] Decide destination for project-maintenance scripts `scripts/create_project_snapshot.py` and `scripts/cleanup_windows_tasks.py` (tracked runtime ownership, not `development_tools/`).
@@ -115,14 +70,34 @@ When adding new tasks, follow this format:
 - *What it means*: Review `data/users/{user_id}/messages/sent_messages.json` growth (e.g. ~512KB observed). Confirm whether archiving or trimming of sent message history is needed and implement or document policy.
 - *Why it helps*: Prevents unbounded growth, keeps file_ops audit trail manageable, and may improve I/O and backup size.
 - *Estimated effort*: Small/Medium
+- *User priority*: Investigate soon.
 - *Subtasks*:
   - [ ] Check existing archiving/trimming in message_management or message.log for sent_messages
   - [ ] Define retention or max-size policy for sent_messages.json
   - [ ] Implement archiving/trimming if needed; document in USER_DATA_MODEL or config
 
+## Medium Priority
+
+### Quality & Operations
+
+**Continue Ruff Remediation Outside Tests**
+- *What it means*: Continue fixing Ruff issues in non-test modules (core runtime, communication handlers, AI modules, tooling) in small batches, prioritizing rule classes with low behavior risk first. Outside tests is higher priority than inside tests.
+- *Why it helps*: Reduces lint debt and keeps production code consistency high without destabilizing the test suite.
+- *Estimated effort*: Medium
+- *User priority*: Medium; outside tests > inside tests.
+- *Subtasks*:
+  - [ ] Run Ruff on non-test paths and group findings by safe autofix vs manual refactor
+  - [ ] Apply fixes in small batches with focused behavior validation between batches
+  - [ ] Track any behavior-impacting lint fixes separately from style-only cleanups
+  - [ ] Re-baseline remaining Ruff counts after each batch
+
+**Confirm wake timer fix in production**
+- [ ] After a 01:00 run, confirm errors.log no longer fills with wake timer (Register-ScheduledTask) errors.
+- *User priority*: One-time check.
+
 **Monitor weekly backup health after retention split restoration**
 - *Created* 2026-02-25
-- *What it means*: After the next scheduled run, confirm weekly backup checks remain healthy with separate weekly/non-weekly retention buckets.
+- *What it means*: After the next scheduled run, confirm weekly backup checks remain healthy with separate weekly/non-weekly retention buckets. Now in development tools; one-time verification plus recurring via `backup verify`.
 - *Why it helps*: Verifies that `weekly_backup_*` artifacts are preserved and weekly cadence remains reliable under frequent auto backups.
 - *Estimated effort*: Small
 - *Subtasks*:
@@ -131,60 +106,35 @@ When adding new tasks, follow this format:
   - [ ] Review `logs/scheduler.log` for weekly backup decision logging and unexpected fallback behavior
 
 **Sweep test log fixtures for xdist-safe isolation**
-- *What it means*: Audit tests that write to shared log paths (for example under `tests/data/logs`) and migrate them to per-test isolated paths (`tmp_path`) where destructive teardown can race in parallel runs.
+- *What it means*: Audit tests that write to shared log paths (for example under `tests/data/logs`) and migrate them to per-test isolated paths (`tmp_path`) where destructive teardown can race in parallel runs. xdist = pytest parallel workers; isolation = each test uses its own paths so parallel runs don't conflict.
 - *Why it helps*: Prevents intermittent `FileNotFoundError` and similar races during Tier 3 parallel coverage runs.
 - *Estimated effort*: Small/Medium
-
-**Continue development-tools test runtime optimization (setup/teardown overhead)**
-- *What it means*: Continue reducing the slowest `tests/development_tools/` setup/teardown paths by replacing expensive fixture copies/subprocess calls with focused mocks or lighter isolated fixtures where behavior assertions allow.
-- *Why it helps*: Keeps `pytest tests/development_tools/` throughput stable and reduces feedback-loop time during tool development.
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Investigate persistent setup-heavy offenders (`tests/development_tools/test_fix_project_cleanup.py`, `tests/development_tools/test_tool_wrappers_branch_paths.py`, `tests/development_tools/test_report_generation_quick_wins.py`) and reduce fixture overhead where safe
-  - [ ] Investigate teardown-heavy offender in `test_standard_exclusions.py::TestPathObjectHandling::test_mixed_path_formats`
-  - [ ] Re-measure with `pytest tests/development_tools/ --durations=20 -q` after each optimization batch
-
-### Planning & Prioritization
-
-**Continue planning-doc user-priority Q&A** - ask about remaining plans
-- *What it means*: Ask user about items in remaining planning docs (NOTES_PLAN.md, AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)-how important each item is, what matters about them, etc.-then update priorities and add use/fit notes, as done for PLANS.md, TEST_PLAN.md, and TASKS_PLAN.md.
-- *Why it helps*: Ensures planning docs reflect actual user priorities and context; prevents wasted effort on low-priority items and clarifies deferred work.
-- *Estimated effort*: Small (per doc; ~15-20 questions per plan)
-- *Remaining*: [ ] NOTES_PLAN.md; [ ] AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md
-- *Created*: 2026-02-28
+- *User priority*: Test isolation is key.
 
 ### Documentation
 
 **Update Inter-Documentation References to Include Section Numbers**
-- *What it means*: Update cross-references between documentation files to include section numbers and titles (e.g., "See section 3.2. Logging Architecture in LOGGING_GUIDE.md" instead of just "See LOGGING_GUIDE.md")
+- *What it means*: Update cross-references between documentation files to include section numbers and titles (e.g., "See section 3.2. Logging Architecture in LOGGING_GUIDE.md" instead of just "See LOGGING_GUIDE.md"). Expand development tools to assist (e.g., doc-sync or new analyzer).
 - *Why it helps*: Makes references more precise and easier to navigate, especially with numbered headings now standardized; improves documentation usability
 - *Estimated effort*: Medium
+- *User priority*: Medium.
 - *Subtasks*:
   - [ ] Audit all documentation files for cross-references
   - [ ] Update references to include section numbers and titles where applicable
-  - [ ] Create script or tool to help identify and update references automatically
+  - [ ] Create script or tool to help identify and update references automatically (or extend development tools)
   - [ ] Update documentation standards to require section numbers in references
 
-**Systematic Documentation Review and Update**
-- *What it means*: Systematically review and update documentation to ensure information is current and accurate across all documentation files
-- *Why it helps*: Ensures documentation remains useful and prevents confusion from outdated information
-- *Estimated effort*: Large
-- *Areas to review*:
-  - Development guides (human and AI versions)
-  - Architecture documentation
-  - Testing guides
-  - Error handling guides
-  - Logging guides
-  - User-facing documentation
-  - API documentation
-  - Configuration documentation
-
-
+**Investigate markdown link issues**
+- *What it means*: Some markdown links work in the editor while others don't, even with the same format. Need to investigate why relative paths work for some files but not others.
+- *Why it helps*: Ensures all report links are clickable and functional in the editor
+- *Estimated effort*: Small
+- *User priority*: Medium.
 
 ### User Experience Improvements
 
 **Investigate Check-in Settings UI Issues**
 - *What it means*: Fix two outstanding issues in the check-in management dialog: (1) Maximum spinbox cannot be reduced below minimum value - it should dynamically adjust minimum to match when maximum is reduced, similar to how minimum adjustment works in reverse; (2) Questions section blanks out visually when adding or deleting custom questions, even though the data is preserved correctly.
+- *User priority*: Low.
 - *Why it helps*: Improves user experience by making the UI more intuitive and preventing visual glitches that can be confusing
 - *Estimated effort*: Medium
 - *Subtasks*:
@@ -198,12 +148,12 @@ When adding new tasks, follow this format:
 
 ### AI & Conversation
 
-**Improve Natural Language Processing Accuracy**
-- *What it means*: Refine parsing patterns and thresholds to better recognize intents and entities
+**Improve Natural Language Processing (NLP) Accuracy** — *Deferred (AI overhaul)*
+- *What it means*: Refine parsing patterns and thresholds to better recognize intents and entities. NLP = how the system interprets user commands and natural language (e.g., "create a task to buy milk" → task creation intent).
 - *Why it helps*: More reliable command understanding and fewer misinterpretations
 - *Estimated effort*: Medium
 
-**Investigate and Refactor AI Command List Generation**
+**Investigate and Refactor AI Command List Generation** — *Deferred (AI overhaul)*
 - *What it means*: Investigate why there are two separate hardcoded command lists for the AI chatbot (in `ai/prompt_manager.py` and `ai/chatbot.py`) and explore generating these lists dynamically from the handlers' `can_handle()` methods or the command parser's `intent_patterns` dictionary
 - *Why it helps*: Prevents maintenance issues where new commands (like `create_quick_note`) need to be manually added to multiple places, reduces risk of inconsistencies between lists, and ensures the AI always knows about all available commands automatically
 - *Estimated effort*: Medium
@@ -221,27 +171,38 @@ When adding new tasks, follow this format:
 
 **Conversation Flow Management**
 - *What it means*: Improve conversational state transitions and fallbacks to keep interactions smooth
+- *User priority*: Medium.
 - *Why it helps*: More predictable user experience and fewer dead-ends
 - *Estimated effort*: Medium
 
 ### Performance Optimizations
 
-**Optimize AI Response Times**
+**Optimize AI Response Times** — *Deferred (AI overhaul)*
 - *What it means*: Reduce latency for AI-backed responses via batching, caching, or configuration tuning
 - *Why it helps*: Snappier interactions and better UX
 - *Estimated effort*: Medium
 
 **Improve Message Processing Efficiency**
 - *What it means*: Profile and streamline message pipelines (I/O, parsing, scheduling)
+- *User priority*: Medium.
 - *Why it helps*: Lower CPU usage and faster processing
 - *Estimated effort*: Medium
 
 **Reduce Memory Usage**
-- *What it means*: Identify hotspots (caches, data copies) and right-size buffers/limits
+- *What it means*: Identify hotspots (caches, data copies) and right-size buffers/limits. See also Add Performance Monitoring.
+- *User priority*: Medium/low.
 - *Why it helps*: Improves stability on constrained systems
 - *Estimated effort*: Medium
 
 ## Low Priority
+
+### Deferred (AI overhaul)
+
+**AI Chatbot Actionability Sprint** — *Deferred (AI overhaul)*
+- *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
+- *Why it helps*: Addresses the user's biggest friction and increases real utility.
+- *Estimated effort*: Large
+- *User priority*: Defer until system AI receives major overhaul.
 
 **Differentiate Between New and Returning Users**
 - *What it means*: Implement logic to distinguish between users who are authorizing the app for the first time versus users who are returning after deauthorizing
@@ -252,23 +213,18 @@ When adding new tasks, follow this format:
 ### Documentation
 
 **Update User Guides**
-- *What it means*: Refresh user-facing guides to reflect current features and workflows
+- *What it means*: Refresh user-facing guides to reflect current features and workflows. (Clarify which guides—user-facing feature docs, setup guides, etc.)
 - *Why it helps*: Reduces confusion and accelerates onboarding
 - *Estimated effort*: Small
 
 **Improve Code Documentation**
-- *What it means*: Add/refresh docstrings and inline docs where clarity is lacking
+- *What it means*: Add/refresh docstrings and inline docs where clarity is lacking. Make specific and actionable; consider expanding development tools to assist (e.g., docstring coverage, missing-doc detection).
 - *Why it helps*: Speeds up development and AI assistance accuracy
 - *Estimated effort*: Small
 
-**Create Troubleshooting Guides**
+**Create Troubleshooting Guides** — *Deferred*
 - *What it means*: Document common issues and resolution steps for channels, UI, and data
 - *Why it helps*: Faster recovery when issues occur
-- *Estimated effort*: Small
-
-**Investigate markdown link issues**
-- *What it means*: Some markdown links work in the editor while others don't, even with the same format. Need to investigate why relative paths work for some files but not others.
-- *Why it helps*: Ensures all report links are clickable and functional in the editor
 - *Estimated effort*: Small
 
 ### Testing
@@ -284,14 +240,9 @@ When adding new tasks, follow this format:
   - [ ] Document channel-agnostic architecture patterns and guidelines
 
 **Add Performance Monitoring**
-- *What it means*: Track how long operations take across subsystems
+- *What it means*: Track how long operations take across subsystems. Includes: Python worker memory usage, LM Studio model residency in RAM, Windows file cache behavior during large test runs. Identify safe optimizations without reducing usability.
 - *Why it helps*: Helps identify and fix performance problems proactively
 - *Estimated effort*: Medium
-
-**Create Development Guidelines**
-- *What it means*: Establish coding standards and best practices
-- *Why it helps*: Consistency and clarity, especially when collaborating with AI tools
-- *Estimated effort*: Small
 
 **Testing Roadmap Consolidation**
 - See [TEST_PLAN.md](development_docs/TEST_PLAN.md) for all testing program tasks (source of truth).
@@ -340,21 +291,12 @@ Priority
 - Medium  
 - Blocker only if a real bug or undefined behavior is confirmed
 
-**Possible Duplicate Lists**
-- investigate documentation and code in detail for potential duplicate lists
-- whenever there are lists that may be used or referenced in multiple locations, they should have one canonical location
-  - that cannonical list location should be updated when there are changes and all other locations should, in the case of code, dynamically pull the list from the canonical location or in the case of documentation, primarily point to the canonical location  
-  - this will reduce drift and improve accuracy and completeness
-- I'm thinking lists like lists of docs, constants, commands, files, etc. etc. 
-- Perform some careful searches and sweeps to find any such duplicated or partially duplicated lists.
-- explore how we would go about setting a canonical location/source for each such list and implement it
+**Possible Duplicate Lists** — *Tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section 7.8*
+- *What it means*: Investigate documentation and code for duplicate or partially duplicated lists (docs, constants, commands, files, etc.). Establish canonical locations; code should pull dynamically, docs should point to canonical source.
+- *Why it helps*: Reduces drift and improves accuracy.
 
-**Audit MHM project for duplicate, outdated, unnecessary backups and archive copies**
-  - implement structured regular local backups with compression and rotation 
+**Audit MHM project for duplicate, outdated, unnecessary backups and archive copies** — *Tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section 7.9*
+- *What it means*: Implement structured regular local backups with compression and rotation.
 
-**Review RAM usage and caching behavior during development**
-   - Python worker memory usage
-   - LM Studio model residency in RAM
-   - Windows file cache behavior during large test runs
-   - Identify safe optimizations without reducing usability
+*Note*: Review RAM usage and caching—rolled into **Add Performance Monitoring** (above).
 

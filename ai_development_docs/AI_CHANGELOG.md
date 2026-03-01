@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-02-28 - Planning-doc user-priority Q&A completion **COMPLETED**
+- **NOTES_PLAN**: Use/fit; Show More first, search feedback second; edit sessions medium; AI deferred; ranked known issues.
+- **AI_DEV_TOOLS**: Use/fit; section priorities (stale-lock yes, Tier 3 legacy high, duplicate-function body high, CLI/exclusions high); retire-unapproved-docs complete; 7.8/7.9 duplicate lists + backup audit.
+- **TODO.md**: Planning Q&A done; AI deferred; headless/email fix soon; Script/sent_messages high; Use/fit header.
+
 ### 2026-02-28 - Tier 3 stabilization + dev-tools helper-coverage continuation **Progressed**
 - Resolved the three Tier 3 failures from `AI_PRIORITIES.md` (`test_create_user_files_success` and two `test_data_loading_helpers` failures) and hardened those tests against module-aliasing and transient parallel filesystem timing issues.
 - Added targeted helper tests across `analyze_function_patterns`, `audit_orchestration`, `run_test_coverage`, `commands`, `data_loading`, `tool_wrappers`, and docs workflow paths; roadmap tracking updated in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` section `1.1`.

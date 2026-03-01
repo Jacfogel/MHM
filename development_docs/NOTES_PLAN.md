@@ -4,9 +4,11 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Implementation plan for notebook feature  
 > **Style**: Actionable, checklist-focused, roadmap-oriented  
-> **Last Updated**: 2026-02-28  
+> **Last Updated**: 2026-02-28 (User-priority Q&A: Show More fix first, search feedback, edit sessions medium)
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
+
+**Use / fit**: Notebook is intended as a primary daily tool but not yet there. Focus: get "Show More" pagination working first, then improve search feedback; edit sessions medium; AI extraction and slash-command discovery deferred until AI/command-parsing overhaul. User priority order for known issues: search feedback > Show More > help system > group ambiguity > bulk ops > journal visual distinction.
 
 **Purpose:** Add a **global personal notebook** to MHM that works **Discord-first** (phone-friendly), is **channel-agnostic**, and is built to share foundations with Tasks (tags, validation, persistence patterns) **without forcing a big refactor now**.
 
@@ -380,9 +382,9 @@ If you follow this structure, the migration is **not** a rewrite—just a backen
 - **Milestone 1 (Foundations + V0 Notes)**: ✅ **COMPLETED** (prior sessions) - Core infrastructure, data handlers, command handler, and basic commands all implemented
 - **Milestone 2 (Lists)**: ✅ **COMPLETED** (prior sessions) - List operations and commands fully implemented
 - **Milestone 3 (Organization Views)**: ✅ **COMPLETED** (prior sessions) - Group support, smart views (pinned, inbox, tag view) implemented
-- **Milestone 4 (Edit Sessions)**: ⏳ **PENDING** - Not yet implemented
-- **Milestone 5 (Skip Integration)**: ⏳ **PENDING** - Not yet implemented
-- **Milestone 6 (AI Extraction)**: ⏳ **PENDING** - Not yet implemented
+- **Milestone 4 (Edit Sessions)**: ⏳ **PENDING** - Not yet implemented. *User priority*: Medium.
+- **Milestone 5 (Skip Integration)**: ⏳ **PENDING** - When you repeatedly skip a task reminder, MHM would create a notebook entry (tagged `blocker` + `task:<id>`) or prompt "Capture why?" instead of nagging—reducing repeat reminders and externalizing blockers. *User priority*: Clarify value before implementing.
+- **Milestone 6 (AI Extraction)**: ⏳ **DEFERRED** - Important but not actionable until AI and command parsing receive full overhaul. *User priority*: Defer.
 
 ### Recent Fixes & Improvements ✅
 - **Regex Pattern Fix**: Removed `!` prefix from all regex patterns in `command_parser.py` to match messages after prefix stripping
@@ -437,19 +439,22 @@ If you follow this structure, the migration is **not** a rewrite—just a backen
 
 #### Known Issues & Opportunities for Improvement ⚠️
 
-**High Priority Issues:**
-- ~~**Set Entry Body Command**: Handler exists (`set_entry_body`) but no command patterns (`!set` or similar) - needs implementation~~ ✅ **FIXED** - Added `!set`, `!replace`, `!update` command patterns
-- ~~**Create Journal Commands**: Handler exists (`create_journal`) but no command patterns - needs implementation~~ ✅ **FIXED** - Added `!j`, `!journal`, `!newjournal`, etc. command patterns
-- ~~**Short ID Format**: Currently uses dash (`n-123abc`) which is harder to type on mobile - should remove dash for better mobile UX~~ ✅ **FIXED** - Changed to `n123abc` format (no dash), backward compatible with old format
-- **Group Command Ambiguity**: `!group <entry> <group>` vs `!group <group>` - parser may incorrectly route single-word group names
+*User-priority order (2026-02-28): 1=most bothersome, 6=least*
+- **1. Search Feedback**: No helpful feedback when search returns no results (just "No entries found")
+- **2. Pagination "Show More" Button**: Button click loses pagination context (offset, query, intent); must re-run command to see more
+- **3. Command Discovery**: No help system for discovering notebook commands (e.g., `!help notebook`)
+- **4. Group Command Ambiguity**: `!group <entry> <group>` vs `!group <group>` - parser may incorrectly route single-word group names
+- **5. No Bulk Operations**: Can't tag multiple entries at once, or perform other bulk actions
+- **6. Journal Visual Distinction**: Journal entries look identical to notes in responses (no visual distinction)
 
-**User Experience Issues:**
-- **Edit Sessions (Milestone 4)**: Not implemented - users can't easily rewrite long notes (must use `!set` or `!append`)
-- **No Bulk Operations**: Can't tag multiple entries at once, or perform other bulk actions
+**Fixed (historical):**
+- ~~**Set Entry Body Command**~~ ✅ **FIXED** - Added `!set`, `!replace`, `!update` command patterns
+- ~~**Create Journal Commands**~~ ✅ **FIXED** - Added `!j`, `!journal`, `!newjournal`, etc. command patterns
+- ~~**Short ID Format**~~ ✅ **FIXED** - Changed to `n123abc` format (no dash)
+
+**Other User Experience Issues:**
+- **Edit Sessions (Milestone 4)**: Not implemented - users can't easily rewrite long notes (must use `!set` or `!append`). *User priority*: Medium.
 - **Error Messages**: Some error messages could be more actionable (e.g., suggest similar entry IDs when not found)
-- **Search Feedback**: No helpful feedback when search returns no results (just "No entries found")
-- **Command Discovery**: No help system for discovering notebook commands (e.g., `!help notebook`)
-- **Journal Visual Distinction**: Journal entries look identical to notes in responses (no visual distinction)
 - **Group vs Tag Clarity**: Group vs tag distinction might be unclear to users (single group vs multiple tags)
 - **Command Consistency**: Some commands note-specific (`!pin`, `!archive`) while others are shared (could be confusing)
 - **List Command Prefix**: List operations use `!l` prefix while note operations don't (inconsistent)
@@ -747,22 +752,21 @@ python -m pytest tests/behavior/test_notebook_handler_behavior.py --cov=notebook
 
 ### Implementation Remaining
 
-#### High Priority
-1. ~~**Comprehensive Test Suite**~~ ✅ **COMPLETED** - Comprehensive test suite with 54 tests covering all implemented functionality, entity extraction, flow state edge cases, and error handling
-2. ~~**Validation System**~~ ✅ **COMPLETED** - Implemented comprehensive validation system with proper separation of concerns (general validators in `core/user_data_validation.py`, notebook-specific in `notebook/notebook_validation.py`), error handling compliance, and extensive test coverage (28 unit validation + 10 unit error handling + 13 integration tests)
-3. ~~**Set Entry Body Command**~~ ✅ **COMPLETED** - Added `!set`, `!replace`, `!update` command patterns to trigger `set_entry_body`
-4. ~~**Create Journal Command**~~ ✅ **COMPLETED** - Added `!j`, `!journal`, `!newjournal`, `!createjournal` and other aliases
-5. ~~**Short ID Format**~~ ✅ **COMPLETED** - Removed dash from short ID format (`n123abc` instead of `n-123abc`) for easier mobile typing, maintained backward compatibility
-6. ~~**TaskManagementHandler Deduplication**~~ ✅ **COMPLETED** - Consolidated duplicate `TaskManagementHandler` classes (see CHANGELOG_DETAIL.md for details)
+*Order reflects user-priority Q&A (2026-02-28): Show More fix first, then search feedback, then edit sessions.*
+
+#### High Priority (user-identified)
+1. **Pagination "Show More" Button** - Fix button click handler to preserve pagination state (offset, query, intent). User needs this to work correctly.
+2. **Search Feedback** - Add helpful feedback when search returns no results (e.g., suggestions, query tips, or "Try different keywords") instead of just "No entries found".
 
 #### Medium Priority
-1. **Pagination Button Handler** - Fix "Show More" button click handler to preserve pagination state (offset, query, intent)
-2. **Edit Sessions (Milestone 4)** - Implement `!edit` command with flow state
-3. **Slash Command Registration** - Explicitly register notebook commands in `_command_definitions` for better discoverability
+3. **Edit Sessions (Milestone 4)** - Implement `!edit` command with flow state for rewriting long notes from phone.
+4. **Command Discovery (!help notebook)** - Add help system for discovering notebook commands.
+5. **Group Command Ambiguity** - Resolve `!group <group>` vs `!group <entry> <group>` parser routing for single-word group names.
 
 #### Low Priority
-6. **Skip Integration (Milestone 5)** - Task skip tracking and notebook integration
-7. **AI Extraction (Milestone 6)** - Natural language intent extraction
+6. **Slash Command Registration** - Deferred until AI/command-parsing overhaul. User cares about discoverability but it's blocked.
+7. **Skip Integration (Milestone 5)** - Clarify value with user before implementing; see milestone summary for description.
+8. **AI Extraction (Milestone 6)** - Deferred until AI overhaul; important but not actionable now.
 
 ---
 
