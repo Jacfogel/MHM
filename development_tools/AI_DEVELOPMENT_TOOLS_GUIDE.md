@@ -43,6 +43,7 @@ python development_tools/run_development_tools.py help
 - `audit --full` - Full audit (Tier 3 - comprehensive analysis, ~10-30min). Alias: `full-audit`.
 - `audit --full --strict` - Full audit with fail-fast exit semantics for Tier 3 test failures/crashes.
 - `status` - Quick system status (uses cached audit data)
+- `tooling-consistency` - Validate CLI alias/flag and scanner exclusion consistency (`--strict` to fail on findings)
 - `docs` - Regenerate static documentation artifacts (FUNCTION_REGISTRY, MODULE_DEPENDENCIES, DIRECTORY_TREE)
 - `doc-sync` - Check documentation synchronization
 - `doc-fix` - Fix documentation issues (addresses, ASCII, headings, links). Alias: `--full` == `--all`.
@@ -52,7 +53,7 @@ python development_tools/run_development_tools.py help
 - `unused-imports-report` - Generate unused imports report from analysis results
 - `config` - Check configuration consistency
 
-**Additional commands**: `system-signals`, `validate`, `decision-support`, `duplicate-functions`, `module-refactor-candidates`, `workflow`, `trees`, `cleanup` (alias: `clean-up`), `backup`, `export-code`, `version-sync` (experimental)
+**Additional commands**: `system-signals`, `validate`, `decision-support`, `duplicate-functions`, `module-refactor-candidates`, `workflow`, `trees`, `cleanup` (alias: `clean-up`), `backup`, `export-code`, `tooling-consistency`, `version-sync` (experimental)
 
 **Note**: Test marker analysis is automatically run during `audit --full` when coverage is generated. For fixing markers, use `development_tools/tests/fix_test_markers.py` directly.
 

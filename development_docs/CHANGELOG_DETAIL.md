@@ -33,6 +33,50 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-02 - Tooling consistency checks, policy-test alignment, and Tier 3 failure fixes
+- **Feature/Fix**: Added a new development-tools consistency validation path, then pivoted roadmap direction toward policy-test ownership, and fixed the two active `AI_PRIORITIES` test failures from the latest Tier 3 output.
+- **Technical Changes**:
+  - Added tooling consistency analyzer and command wiring:
+    - `development_tools/config/analyze_tooling_consistency.py`
+    - `development_tools/shared/cli_interface.py`
+    - `development_tools/shared/service/tool_wrappers.py`
+    - `development_tools/shared/tool_metadata.py`
+  - Implemented default human-readable `tooling-consistency` command output (status/issues/files/scanner compliance), with `--json` and `--strict` behavior retained.
+  - Applied scanner exclusion fix for root-level scan paths in:
+    - `development_tools/functions/analyze_function_registry.py`
+  - Added/updated tests for analyzer + CLI + regression coverage:
+    - `tests/development_tools/test_analyze_tooling_consistency.py`
+    - `tests/development_tools/test_cli_interface.py`
+    - `tests/development_tools/test_analyze_function_registry.py`
+  - Fixed active Tier 3 priority failures:
+    - `tests/unit/test_no_prints_policy.py::test_no_print_calls_in_tests`
+      - updated policy test to skip generated/runtime artifacts under `tests/data/**` to avoid false positives from copied temp files.
+    - `tests/development_tools/test_tool_wrappers_cache_helpers.py::test_compute_source_signature_changes_when_source_changes`
+      - hardened `_compute_source_signature()` to include per-file content hashing, eliminating same-size rapid-edit collisions.
+  - Planning/doc updates:
+    - Added roadmap follow-up task section `3.11.1` in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` and refined it to policy-test-first ownership (no audit-tier wiring).
+    - Updated paired tool guides for the new command behavior:
+      - `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`
+      - `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`
+  - Session also regenerated standard dev-tools report artifacts during validation runs:
+    - `development_tools/AI_STATUS.md`
+    - `development_tools/AI_PRIORITIES.md`
+    - `development_tools/consolidated_report.md`
+    - `development_tools/reports/analysis_detailed_results.json`
+    - `development_tools/reports/tool_timings.json`
+    - `development_docs/TEST_COVERAGE_REPORT.md`
+    - `development_docs/UNUSED_IMPORTS_REPORT.md`
+    - `development_docs/LEGACY_REFERENCE_REPORT.md`
+- **Validation**:
+  - `python development_tools/run_development_tools.py tooling-consistency --strict` -> pass (exit `0`)
+  - `pytest tests/development_tools/test_analyze_tooling_consistency.py -q` -> pass
+  - `pytest tests/development_tools/test_cli_interface.py -q -k tooling_consistency` -> pass
+  - `pytest tests/development_tools/test_tool_wrappers_cache_helpers.py::test_compute_source_signature_changes_when_source_changes -q` -> pass
+  - `pytest tests/unit/test_no_prints_policy.py::test_no_print_calls_in_tests -q` -> pass
+- **Outstanding Follow-up**:
+  - Intermittent environment/runtime issue still observed in broader combined runs: `tmp_path` root under `tests/data/tmp_pytest_runtime/...` can be missing in some invocation orders. Tracked as planning follow-up in `TODO.md` and `development_docs/PLANS.md`.
+- **Impact**: Dev-tools consistency checks are now explicit and usable from CLI, test-policy direction is codified in roadmap planning, and the current Tier 3 failure pair from `AI_PRIORITIES` is resolved.
+
 ### 2026-03-01 - Tier 3 coverage reliability hardening + cache-outcome normalization + timing/reporting cleanup
 - **Feature/Fix**: Completed a full Tier 3 reliability pass focused on Windows signal-noise handling, coverage orchestration semantics, cache-only outcome normalization, worker-cap alignment, and session-level planning/changelog reconciliation.
 - **Technical Changes**:

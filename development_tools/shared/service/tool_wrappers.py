@@ -25,6 +25,7 @@ SCRIPT_REGISTRY = {
     "analyze_function_registry": "functions/analyze_function_registry.py",
     "analyze_module_dependencies": "imports/analyze_module_dependencies.py",
     "analyze_config": "config/analyze_config.py",
+    "analyze_tooling_consistency": "config/analyze_tooling_consistency.py",
     "decision_support": "reports/decision_support.py",
     "analyze_documentation_sync": "docs/analyze_documentation_sync.py",
     "analyze_path_drift": "docs/analyze_path_drift.py",
@@ -1554,8 +1555,50 @@ class ToolWrappersMixin:
             result["success"] = False
         return result
 
+    def run_analyze_tooling_consistency(self, *, strict: bool = False) -> Dict:
+        """Run tooling consistency analyzer with structured JSON handling."""
+        logger.debug("Analyzing tooling consistency...")
+        args = ["--json"]
+        if strict:
+            args.append("--strict")
+        result = self.run_script("analyze_tooling_consistency", *args)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            # Respect strict-mode subprocess exit code while still retaining parsed data.
+            result["success"] = result.get("returncode", 1) == 0
+            if result["success"]:
+                result["error"] = ""
+            self.results_cache["analyze_tooling_consistency"] = data
+            try:
+                save_tool_result(
+                    "analyze_tooling_consistency",
+                    "config",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(
+                    f"Failed to save analyze_tooling_consistency result: {e}"
+                )
+        else:
+            if not result.get("error"):
+                result["error"] = (
+                    "No parseable JSON output from analyze_tooling_consistency"
+                )
+            result["success"] = False
+        return result
+
     def _compute_source_signature(self) -> Optional[str]:
-        """Compute hash of .py file metadata for static-check cache invalidation."""
+        """Compute hash of .py sources for static-check cache invalidation."""
         try:
             import hashlib
             from ..standard_exclusions import should_exclude_file
@@ -1567,12 +1610,17 @@ class ToolWrappersMixin:
                     rel = str(p.relative_to(root)).replace("\\", "/")
                     if should_exclude_file(rel, tool_type="analysis"):
                         continue
-                    # Use nanosecond mtime + file size to reduce false cache hits on fast edits.
                     stat = p.stat()
-                    mtime_ns = getattr(stat, "st_mtime_ns", int(stat.st_mtime * 1_000_000_000))
-                    sig.update(
-                        f"{rel}:{mtime_ns}:{stat.st_size}".encode("utf-8")
+                    mtime_ns = getattr(
+                        stat, "st_mtime_ns", int(stat.st_mtime * 1_000_000_000)
                     )
+                    sig.update(f"{rel}:{mtime_ns}:{stat.st_size}".encode("utf-8"))
+                    # Include file bytes digest so same-size rapid edits still invalidate.
+                    file_hash = hashlib.sha256()
+                    with open(p, "rb") as handle:
+                        for chunk in iter(lambda: handle.read(8192), b""):
+                            file_hash.update(chunk)
+                    sig.update(file_hash.digest())
                 except (OSError, ValueError):
                     continue
             return sig.hexdigest()

@@ -512,17 +512,18 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [x] Updated docs/comments claiming config JSON lives in project root (it lives in `development_tools/config/`)
 
 #### 3.10 CLI argument standardization and aliases
-**Status**: PENDING  
+**Status**: COMPLETED (2026-03-02)  
 **User priority**: High.  
 **Tasks**:
 - [x] Inventory CLI flags in `shared/cli_interface.py` and `run_development_tools.py` (audit: `--full/--quick/--include-tests/--include-dev-tools/--include-all/--overlap`, doc-fix: `--all/--dry-run/--add-addresses/--fix-ascii/--number-headings/--convert-links`, cleanup: `--full/--cache/--test-data/--coverage/--dry-run`, duplicate-functions: `--include-tests/--include-dev-tools/--include-all/--min-overall/--min-name`, version-sync: `scope`, workflow: `task_type`, global: `--project-root/--config-path/--clear-cache`)
 - [x] Inventory standalone script flags (analyze_package_exports: `--package/--all/--recommendations`, run_test_coverage: `--update-plan/--output-file/--no-parallel/--workers/--dev-tools-only/--no-domain-cache`, analyze_test_coverage: `--input/--json/--output`)
-- [ ] Inventory CLI flags across tools (e.g., `audit --full`, `cleanup --full`, `doc-fix --all`)
+- [x] Inventory CLI flags across tools (e.g., `audit --full`, `cleanup --full`, `doc-fix --all`)
+- [x] Added automated CLI/alias inventory + validation command: `tooling-consistency` (`development_tools/config/analyze_tooling_consistency.py`) with advisory default and `--strict` enforcement mode
 - [x] Standardize "full/all" semantics in CLI handlers: add `--all` alias for `cleanup --full`, `--full` alias for `doc-fix --all`, and `full-audit` alias for `audit --full`
  - [x] Add common aliases (e.g., `clean-up`, `full-audit`) and document them
 
 #### 3.11 Exclusion rules consistency
-**Status**: PENDING  
+**Status**: COMPLETED (2026-03-02)  
 **User priority**: High.  
 **Tasks**:
 - [x] Verified base exclusions already include `.ruff_cache/`, `mhm.egg-info/`, `scripts/`, `tests/ai/results/`, `tests/coverage_html/` in `development_tools/shared/standard_exclusions.py`
@@ -530,10 +531,11 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [x] Added `should_exclude_file` to docs analyzers (`analyze_documentation`, `analyze_ascii_compliance`, `analyze_heading_numbering`)
 - [x] Added `should_exclude_file` to `ai_work/analyze_ai_work.py`, `config/analyze_config.py`, and `functions/analyze_function_patterns.py`
 - [x] Added `should_exclude_file` to doc fixers (`fix_documentation_ascii`, `fix_documentation_headings`, `fix_documentation_links`, `fix_documentation_addresses`)
-- [ ] Ensure `.ruff_cache/` and `mhm.egg-info/` are excluded across applicable tools
-- [ ] Exclude `scripts/` where appropriate
-- [ ] Exclude `tests/ai/results/` where appropriate
-- [ ] Exclude `tests/coverage_html/` where appropriate
+- [x] Ensure `.ruff_cache/` and `mhm.egg-info/` are excluded across applicable tools
+- [x] Exclude `scripts/` where appropriate
+- [x] Exclude `tests/ai/results/` where appropriate
+- [x] Exclude `tests/coverage_html/` where appropriate
+  - [x] Added automated exclusion consistency validation in `tooling-consistency` and fixed root-level scan exclusion filtering in `development_tools/functions/analyze_function_registry.py`
   - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/functions/fix_function_docstrings.py` scanner loop (analysis/production context), with coverage in `tests/development_tools/test_fix_function_docstrings.py::test_scan_and_document_respects_standard_exclusions`
   - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/tests/domain_mapper.py` when discovering `tests/**/test_*.py` (analysis/development context, using project-relative paths), with coverage in `tests/development_tools/test_test_file_coverage_cache.py` for include + `tests/data/**` exclusion behavior
   - [x] Added `standard_exclusions.should_exclude_file(...)` filtering to `development_tools/tests/analyze_test_markers.py::find_test_files` (analysis/development context, project-relative paths), with coverage update in `tests/development_tools/test_analyze_test_markers.py` confirming `tests/data/**` exclusion
@@ -542,6 +544,17 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
   - [x] Added shared exclusion filtering in `development_tools/tests/test_file_coverage_cache.py` for test-path validation and source-domain mtime discovery, and aligned full-run test discovery to `_iter_test_files()`, with coverage in `tests/development_tools/test_test_file_coverage_cache.py` (`tests/coverage_html` + `domain/scripts` exclusions)
   - [x] Added shared exclusion filtering in `development_tools/tests/run_test_coverage.py` for `_get_dev_tools_source_mtimes()` and `_get_dev_tools_test_mtimes()`, with coverage in `tests/development_tools/test_regenerate_coverage_metrics.py`
   - [x] Hardened `development_tools/static_checks/check_channel_loggers.py` standalone execution by making exclusions loading resilient in minimal CI environments (direct script path + safe fallback), keeping static logging enforcement runnable without optional runtime dependencies
+
+#### 3.11.1 Tooling consistency as policy tests (replace standalone checker)
+**Status**: PENDING  
+**User priority**: Medium/high.  
+**Tasks**:
+- [ ] Move tooling-consistency rule enforcement into policy-style tests under `tests/development_tools/` (CLI/metadata/wrapper parity, exclusion-context correctness, command-doc parity)
+- [ ] Keep policy checks deterministic and fast so they can run in normal test workflows
+- [ ] Mark `tooling-consistency` command as transitional/deprecated once policy tests cover all current rules
+- [ ] Remove standalone checker command and wrapper/metadata wiring after parity is confirmed
+- [ ] Explicitly do **not** wire tooling-consistency checks into `audit` tiers; enforcement lives in tests
+- [ ] Update AI + human development-tools guides to document policy-test ownership and migration away from standalone command
 
 #### 3.12 Integrate flaky detector into development tools suite
 **Status**: PENDING  

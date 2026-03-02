@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-02 - Tooling consistency command + policy-test direction + Tier 3 test fixes **Progressed**
+- Added `tooling-consistency` validation flow (CLI alias/exclusion consistency), wired through CLI/service/metadata, and fixed default UX so non-JSON runs now print a readable summary.
+- Fixed two active Tier 3 priority failures: `test_no_print_calls_in_tests` (ignore `tests/data/**` runtime artifacts) and `test_compute_source_signature_changes_when_source_changes` (content-aware source signature hashing).
+- Updated roadmap direction in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` to make tooling-consistency enforcement policy-test-first (`tests/development_tools/`) and explicitly keep it out of audit tiers for now.
+- Synced paired tool guides and validated key paths (`tooling-consistency --strict`, targeted pytest suites); regenerated standard dev-tools report artifacts during verification runs.
+
 ### 2026-03-01 - Tier 3 coverage reliability + cache outcome normalization **Progressed**
 - Hardened Tier 3 coverage orchestration on Windows: reduced false interrupt/failure behavior, preserved finalization paths, and improved signal-noise handling in coverage completion loops.
 - Fixed cache-only regression where `run_test_coverage` could be marked `coverage_failed` when payload had `coverage_collected=true` but no `coverage_outcome`; added normalization + compatibility synthesis in `commands.py`.

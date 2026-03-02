@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-03-01
+> **Last Updated**: 2026-03-02
 > **Children**: [TEST_PLAN.md](development_docs\TEST_PLAN.md), [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).  
 
 ---
@@ -61,6 +61,7 @@
 **Tracked in**: [TEST_PLAN.md](development_docs/TEST_PLAN.md)
 
 Migrated: reliability, no-parallel, harness, coverage cache, consistency, nightly governance. Fixed: test_logger_behavior, test_checkin_view, test_user_management, dev-tools low-coverage. **Remaining**: Sweep log fixtures for xdist-safe isolation.
+- 2026-03-02 follow-up: investigate intermittent `tmp_path` runtime-root missing errors under `tests/data/tmp_pytest_runtime/pytest-of-*/pytest-*` observed in some combined local runs.
 
 ### **Error Handling Quality Improvement Plan** **IN PROGRESS**
 

@@ -110,6 +110,9 @@ When adding new tasks, follow this format:
 - *Why it helps*: Prevents intermittent `FileNotFoundError` and similar races during Tier 3 parallel coverage runs.
 - *Estimated effort*: Small/Medium
 - *User priority*: Test isolation is key.
+- *Updated*: 2026-03-02
+- *Subtasks*:
+  - [ ] Investigate intermittent `tmp_path` root-missing errors under `tests/data/tmp_pytest_runtime/pytest-of-*/pytest-*` seen in combined/local runs; stabilize test-runtime directory provisioning/cleanup ordering
 
 ### Documentation
 

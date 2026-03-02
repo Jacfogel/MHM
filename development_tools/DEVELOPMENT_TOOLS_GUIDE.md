@@ -59,6 +59,7 @@ python development_tools/run_development_tools.py audit --full
 python development_tools/run_development_tools.py docs
 python development_tools/run_development_tools.py doc-fix --full
 python development_tools/run_development_tools.py status
+python development_tools/run_development_tools.py tooling-consistency
 python development_tools/run_development_tools.py legacy
 python development_tools/run_development_tools.py coverage
 python development_tools/run_development_tools.py unused-imports
@@ -101,6 +102,7 @@ Coverage worker config (`coverage` section):
 - `duplicate-functions` - detects possible duplicate or similar functions (analysis only).
 - `module-refactor-candidates` - identifies large or high-complexity modules as refactoring candidates (analysis only).
 - `workflow` - executes an audit-first workflow task.
+- `tooling-consistency` - validates CLI aliases/flags and scanner exclusion filtering consistency (`--strict` fails on findings; default is advisory).
 - `export-code` - Exports Python source files from a specified directory into a single Markdown snapshot for LLM context (portable, project-root-relative paths).
 - `trees` - generates directory tree reports.
 - `cleanup` - cleans up project cache files, temporary directories, and artifacts. (alias: clean-up)

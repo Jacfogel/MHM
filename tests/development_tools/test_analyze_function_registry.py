@@ -372,6 +372,35 @@ class TestBuildMetrics:
         assert 'func2' in metrics['extra_by_file']['file1.py']
 
 
+class TestCollectProjectInventory:
+    """Test collect_project_inventory scanning behavior."""
+
+    @pytest.mark.unit
+    def test_collect_inventory_skips_excluded_root_files(self, tmp_path, monkeypatch):
+        included_file = tmp_path / "included.py"
+        excluded_file = tmp_path / "excluded.py"
+        included_file.write_text("def keep_me():\n    return 1\n", encoding="utf-8")
+        excluded_file.write_text("def skip_me():\n    return 2\n", encoding="utf-8")
+
+        monkeypatch.setattr(registry_module.PATHS, "root", tmp_path)
+        monkeypatch.setattr(registry_module, "CURRENT_DIR", tmp_path)
+        monkeypatch.setattr(
+            registry_module.config, "get_scan_directories", lambda: []
+        )
+        monkeypatch.setattr(
+            registry_module,
+            "should_exclude_file",
+            lambda path, *_args, **_kwargs: str(path).endswith("excluded.py"),
+        )
+
+        errors = []
+        inventory = registry_module.collect_project_inventory(errors)
+
+        assert "included.py" in inventory
+        assert "excluded.py" not in inventory
+        assert errors == []
+
+
 class TestBuildAnalysis:
     """Test build_analysis function."""
     

@@ -138,6 +138,49 @@ def _config_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     return 0 if success else 1
 
 
+def _tooling_consistency_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Analyze CLI alias and scanner exclusion consistency."""
+    parser = argparse.ArgumentParser(prog="tooling-consistency", add_help=False)
+    parser.add_argument("--json", action="store_true", help="Output JSON to stdout.")
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Return non-zero when consistency findings exist.",
+    )
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+    result = service.run_analyze_tooling_consistency(strict=ns.strict)
+    success = result.get("success", False) if isinstance(result, dict) else bool(result)
+    if ns.json and isinstance(result, dict) and "data" in result:
+        import json as _json
+
+        print(_json.dumps(result["data"], indent=2))
+    elif isinstance(result, dict) and isinstance(result.get("data"), dict):
+        data = result["data"]
+        summary = data.get("summary", {}) if isinstance(data, dict) else {}
+        details = data.get("details", {}) if isinstance(data, dict) else {}
+        scanner = (
+            details.get("scanner_exclusion_checks", {})
+            if isinstance(details, dict)
+            else {}
+        )
+        print("Tooling Consistency Check")
+        print(f"Status: {summary.get('status', 'UNKNOWN')}")
+        print(f"Total issues: {summary.get('total_issues', 0)}")
+        print(f"Files affected: {summary.get('files_affected', 0)}")
+        if isinstance(scanner, dict):
+            print(
+                "Scanner checks: "
+                f"{scanner.get('compliant_scanners', 0)}/"
+                f"{scanner.get('scanner_candidates', 0)} compliant"
+            )
+    return 0 if success else 1
+
+
 def _workflow_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     parser = argparse.ArgumentParser(prog="workflow", add_help=False)
     parser.add_argument("task_type", help="Workflow task to execute")
@@ -741,6 +784,14 @@ COMMAND_REGISTRY = OrderedDict(
             "workflow",
             CommandRegistration(
                 "workflow", _workflow_command, "Execute an audit-first workflow task."
+            ),
+        ),
+        (
+            "tooling-consistency",
+            CommandRegistration(
+                "tooling-consistency",
+                _tooling_consistency_command,
+                "Validate CLI aliases/flags and scanner exclusion consistency.",
             ),
         ),
         (

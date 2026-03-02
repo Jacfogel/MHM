@@ -23,6 +23,7 @@ if str(project_root) not in sys.path:
 try:
     from .. import config  # Go up one level from functions/ to development_tools/
     from ..shared.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli
+    from ..shared.standard_exclusions import should_exclude_file
 except ImportError:
     import sys
     from pathlib import Path
@@ -38,6 +39,7 @@ except ImportError:
         iter_python_sources,
         run_cli,
     )
+    from development_tools.shared.standard_exclusions import should_exclude_file
 
 # Import component logger
 from core.logger import get_component_logger
@@ -216,6 +218,8 @@ def collect_project_inventory(errors: List[str]) -> Dict[str, InventoryEntry]:
 
     for source_path in PATHS.root.glob("*.py"):
         resolved = source_path.resolve()
+        if should_exclude_file(str(resolved), "analysis", "production"):
+            continue
         if resolved in seen or resolved == (
             CURRENT_DIR / "analyze_function_registry.py"
         ):

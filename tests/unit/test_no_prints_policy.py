@@ -49,6 +49,9 @@ def test_no_print_calls_in_tests():
                 # Skip fixture files (they're test data, not test code)
                 if '/tests/fixtures/' in normalized_path or normalized_path.endswith('tests/fixtures') or normalized_file_path.startswith(f'{normalized_root}/tests/fixtures/'):
                     continue
+                # Skip runtime/generated test data under tests/data (temporary artifacts, copied fixtures).
+                if '/tests/data/' in normalized_path or normalized_path.endswith('tests/data') or normalized_file_path.startswith(f'{normalized_root}/tests/data/'):
+                    continue
                 # Heuristic: flag print( usages
                 if 'print(' in text:
                     violations.append(path)
@@ -56,5 +59,4 @@ def test_no_print_calls_in_tests():
                 continue
 
     assert not violations, "print() found in test files (use logging or assertions).\n" + "\n".join(sorted(violations))
-
 

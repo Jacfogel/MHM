@@ -314,6 +314,13 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="partial",
         description="Detects config drift and missing values across tools.",
     ),
+    "analyze_tooling_consistency": ToolInfo(
+        name="analyze_tooling_consistency",
+        path="development_tools/config/analyze_tooling_consistency.py",
+        tier="supporting",
+        trust="advisory",
+        description="Validates CLI alias/flag consistency and scanner exclusion coverage.",
+    ),
     "analyze_ai_work": ToolInfo(
         name="analyze_ai_work",
         path="development_tools/ai_work/analyze_ai_work.py",
@@ -455,6 +462,7 @@ COMMAND_GROUPS = OrderedDict(
                 "unused-imports",
                 "duplicate-functions",
                 "workflow",
+                "tooling-consistency",
                 "trees",
                 "cleanup",
                 "backup",
