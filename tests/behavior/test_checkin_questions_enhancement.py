@@ -169,6 +169,11 @@ class TestSleepScheduleQuestion:
                 "22:30-23:30, 00:15-03:00, 03:30-06:30",
                 {"sleep_time": "22:30", "wake_time": "06:30", "total_sleep_hours": 6.8},
             ),
+            # Multi-chunk with "and" within each chunk (e.g. user: "1:00 AM and 4:00 AM, 6:00 and 11:00")
+            (
+                "1:00 AM and 4:00 AM, 6:00 and 11:00",
+                {"sleep_time": "01:00", "wake_time": "11:00", "total_sleep_hours": 8.0},
+            ),
         ]
 
         for answer, expected in test_cases:

@@ -457,7 +457,10 @@ class DynamicCheckinManager:
             for segment in re.split(r"[;,\n\r]+", normalized_answer)
             if segment.strip()
         ]
-        chunk_pattern = re.compile(r"^\s*(.*?)\s*(?:-|to|until|->)\s*(.*?)\s*$", re.IGNORECASE)
+        # Accept "-", "to", "until", "->", or "and" as range separator within each chunk
+        chunk_pattern = re.compile(
+            r"^\s*(.*?)\s*(?:-|to|until|->|\s+and\s+)\s*(.*?)\s*$", re.IGNORECASE
+        )
         chunk_pairs: list[tuple[str, str]] = []
         for segment in chunk_segments:
             match = chunk_pattern.match(segment)

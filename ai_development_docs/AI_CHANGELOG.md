@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-02 - Sleep schedule parsing + prompt concision **COMPLETED**
+- Sleep schedule time_pair parser now accepts "and" inside each chunk (e.g. "1:00 AM and 4:00 AM, 6:00 and 11:00"); previously only `-`, `to`, `until`, `->` were accepted, so the first response was rejected.
+- Shortened `sleep_schedule` question_text and error_message in `resources/default_checkin/questions.json` to one line each.
+- Regression test added in `test_checkin_questions_enhancement.py` for multi-chunk "and" format.
+
 ### 2026-03-02 - Coverage-gap push + Phase1/2 error-handling closeout
 - Added a broad targeted test pass for uncovered branches (profile handler, auto-cleanup, notebook/analytics/email/webhook helpers, file locking, tags, UI generation script, file auditor), with focused gains including `profile_handler` ~97% and `auto_cleanup` ~94% in module-targeted runs.
 - Fixed `file_auditor` fallback decorator path so analyzer noise is removed in degraded-import mode; after cache-clear re-analysis, error-handling metrics now show `functions_missing_error_handling=0`, `phase1_total=0`, `phase2_total=0`.
@@ -134,20 +139,6 @@ Guidelines:
 - Logging enforcement follow-up: hardened `development_tools/static_checks/check_channel_loggers.py` standalone CI execution with resilient exclusions loading + fallback path so `python development_tools/static_checks/check_channel_loggers.py` works in minimal environments without optional runtime deps.
 - Added/updated regression coverage in `test_analyze_module_imports_cli.py`, `test_check_channel_loggers.py`, `test_fix_version_sync_file_discovery.py`, and related existing dev-tools test modules.
 - Updated V4 roadmap tracking ([AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) sections `2.2`/`3.11`), re-ran full diff review (`git diff --stat`, `git diff --name-only`, `git status --short`), and user confirmed no new issues during `audit --full --clear-cache` follow-up.
-
-### 2026-02-25 - Tier 3 failure fix + dev-tools coverage uplift **Progressed**
-- Fixed Tier 3 recurrent failure `tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success` by switching to factory-returned UUID (`create_minimal_user_and_get_id`) instead of a separate post-create index lookup.
-- Added focused low-coverage dev-tools tests: `test_service_utilities.py`, `test_tool_wrappers_additional.py`, `test_analyze_system_signals_additional.py`, plus strengthened `test_fix_documentation.py` and new `test_backup_inventory.py`.
-- Validated targeted suites (`20 passed`) and repeated parallel checks for the previously failing user-management test; no new issues were identified during full audit follow-up.
-- Dev-tools coverage follow-up (`run_test_coverage.py --dev-tools-only --no-parallel`) improved overall from `54.5%` to `55.7%`, with target module improvements: `tool_wrappers.py 38%`, `utilities.py 69%`, `analyze_system_signals.py 53%`.
-
-### 2026-02-25 - Weekly backup semantics restored + backup guides synced **COMPLETED**
-- Restored weekly-first backup behavior in runtime: scheduler now checks `weekly_backup_*` recency for weekly creation decisions, and cleanup retention now preserves weekly artifacts in a dedicated keep window (`WEEKLY_BACKUP_MAX_KEEP`, default 4) separate from non-weekly (`max_backups=10`).
-- Restored explicit weekly backup health checks in dev-tools (`weekly_backup_present`, `weekly_backup_recent_enough`) and weekly-focused backup-health reporting labels in AI status/consolidated reporting.
-- Synced paired backup docs to implementation semantics: [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md) and [AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md).
-- Added/updated coverage for retention behavior (`tests/unit/test_auto_cleanup_backup_retention.py`) and related dev-tools low-coverage tests (`test_cli_interface.py`, `test_analyze_module_refactor_candidates.py`, plus expanded `test_generate_function_registry.py` branches).
-- Regenerated in-session audit/report artifacts and derived docs (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.md`, `analysis_detailed_results.json`, `tool_timings.json`, `TEST_COVERAGE_REPORT.md`, `UNUSED_IMPORTS_REPORT.md`, `LEGACY_REFERENCE_REPORT.md`) and updated planning/changelog trackers ([TODO.md](TODO.md), `PLANS.md`, `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`, both changelog tracks).
-- Full working tree was reviewed (`git diff --stat`, `git diff --name-only`, `git status --short`) and, per user confirmation, all working-tree changes were actioned in this session; user confirmed full audit pass with no new issues.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

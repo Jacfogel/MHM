@@ -33,6 +33,15 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-02 - Sleep schedule parsing and prompt concision
+- **Feature/Fix**: Accept "and" as a range separator in multi-chunk sleep schedule answers so responses like "1:00 AM and 4:00 AM, 6:00 and 11:00" are accepted; shortened the sleep schedule question and error text.
+- **Technical Changes**:
+  - `core/checkin_dynamic_manager.py`: extended chunk regex in `_parse_time_pair_response` to allow `\s+and\s+` alongside `-`, `to`, `until`, `->` so each segment can use "and" (e.g. "1:00 AM and 4:00 AM").
+  - `resources/default_checkin/questions.json`: shortened `sleep_schedule.question_text` and `validation.error_message` to one line each with concise examples.
+  - `tests/behavior/test_checkin_questions_enhancement.py`: added a test case for multi-chunk with "and" within chunks.
+- **Validation**: `pytest tests/behavior/test_checkin_questions_enhancement.py tests/behavior/test_dynamic_checkin_behavior.py -k "sleep_schedule or time_pair"` - 3 passed.
+- **Impact**: User's first reply is now accepted; prompt is easier to scan.
+
 ### 2026-03-02 - Coverage gap expansion + error-handling modernization closeout + docs/audit refresh
 - **Feature/Fix**: Completed a single session focused on targeted coverage-gap closure, resolving active analyzer/test blockers, and synchronizing generated planning/reporting documentation for closeout.
 - **Technical Changes**:

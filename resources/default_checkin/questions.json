@@ -50,12 +50,12 @@
     },
     "sleep_schedule": {
       "type": "time_pair",
-      "question_text": "What was your sleep schedule last night? You can log one sleep window or interrupted sleep in up to 3 chunks (e.g., '11:30 PM and 7:00 AM', 'from 930pm to 645am', 'between 930pm and 645am', or '11:30 PM - 1:30 AM; 2:15 AM to 6:45 AM'). You can separate chunks with commas, semicolons, or new lines.",
+      "question_text": "What was your sleep schedule last night? One window or up to 3 chunks (e.g. 11:30 PM to 7 AM, or 11:30 PM–1:30 AM; 2:15–6:45 AM). Separate chunks with commas, semicolons, or new lines.",
       "ui_display_name": "Sleep schedule (time pair)",
       "enabled_by_default": false,
       "category": "energy",
       "validation": {
-        "error_message": "Please provide a sleep schedule as one window (e.g., '23:30 and 07:00', 'from 930pm to 645am', or 'between 930pm and 645am') or up to 3 chunks (e.g., '23:30 - 01:30; 02:15 to 06:45'). Separate chunks with commas, semicolons, or new lines."
+        "error_message": "Please give one window (e.g. 23:30 and 07:00) or up to 3 chunks (e.g. 23:30–01:30; 02:15 to 06:45). Separate with commas, semicolons, or new lines."
       }
     },
     "anxiety_level": {
