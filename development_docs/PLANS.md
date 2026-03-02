@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-28
+> **Last Updated**: 2026-03-01
 > **Children**: [TEST_PLAN.md](development_docs\TEST_PLAN.md), [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).  
 
 ---
@@ -31,13 +31,6 @@
 ---
 
 ## [ACTIVE] **Current Active Plans**
-
-### **Development-Tools Test Runtime & Audit Throughput** - see child plan
-
-**Tracked in**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
-
-- **Test runtime** (section 1.8): Optimized 8 slow tests; timing 328s->314s. Remaining: setup/teardown offenders, fixture scope.
-- **Audit throughput** (section 5.1.1): Tier 3 concurrency restored; audit ~277s. Remaining: unused-imports backend redesign, cache policy, telemetry.
 
 ### **Flow/Check-in Scheduled Send Stability Follow-up** **IN PROGRESS**
 

@@ -8,10 +8,11 @@ from tests.development_tools.conftest import load_development_tools_module
 
 
 commands_module = load_development_tools_module("shared.service.commands")
+lock_state_module = load_development_tools_module("shared.lock_state")
 CommandsMixin = commands_module.CommandsMixin
 
 
-class _DummyService(CommandsMixin):
+class _BlockingService(CommandsMixin):
     """Minimal service surface for testing docs lock behavior."""
 
     def __init__(self, project_root: Path):
@@ -32,10 +33,12 @@ class _DummyService(CommandsMixin):
 
 
 @pytest.mark.unit
-def test_run_docs_fails_fast_when_default_audit_lock_exists(tmp_path):
-    """run_docs should return False and skip generation when lock files exist."""
-    (tmp_path / ".audit_in_progress.lock").write_text("", encoding="utf-8")
-    service = _DummyService(tmp_path)
+def test_run_docs_fails_fast_when_active_default_audit_lock_exists(tmp_path):
+    """run_docs should return False and skip generation for active lock files."""
+    lock_state_module.write_lock_metadata(
+        tmp_path / ".audit_in_progress.lock", lock_type="audit"
+    )
+    service = _BlockingService(tmp_path)
 
     result = service.run_docs()
 
@@ -43,11 +46,10 @@ def test_run_docs_fails_fast_when_default_audit_lock_exists(tmp_path):
 
 
 @pytest.mark.unit
-def test_run_docs_detects_configured_lock_paths(tmp_path, monkeypatch):
-    """Configured lock-file paths should also block docs generation."""
+def test_run_docs_detects_active_configured_lock_paths(tmp_path, monkeypatch):
+    """Configured active lock-file paths should also block docs generation."""
     custom_lock = tmp_path / "development_tools" / ".custom_audit.lock"
-    custom_lock.parent.mkdir(parents=True, exist_ok=True)
-    custom_lock.write_text("", encoding="utf-8")
+    lock_state_module.write_lock_metadata(custom_lock, lock_type="audit")
 
     monkeypatch.setattr(
         commands_module,
@@ -68,8 +70,47 @@ def test_run_docs_detects_configured_lock_paths(tmp_path, monkeypatch):
         raising=False,
     )
 
-    service = _DummyService(tmp_path)
+    service = _BlockingService(tmp_path)
 
     result = service.run_docs()
 
     assert result is False
+
+
+class _PassingService(CommandsMixin):
+    """Service that allows docs workflow to complete."""
+
+    def __init__(self, project_root: Path):
+        self.project_root = project_root
+
+    def run_script(self, *_args, **_kwargs):
+        return {"success": True, "output": "", "error": ""}
+
+    def generate_directory_trees(self):
+        return None
+
+    def _run_doc_sync_check(self, *_args):
+        return True
+
+
+@pytest.mark.unit
+def test_run_docs_proceeds_when_stale_or_legacy_lock_exists(tmp_path):
+    """Stale/malformed lock files should be auto-cleaned and not block docs."""
+    stale_payload = {
+        "version": 1,
+        "lock_type": "audit",
+        "pid": 999999,
+        "ppid": 1,
+        "created_at": 1.0,
+        "stale_after_seconds": 5400,
+        "host": "test-host",
+        "command": "python -m pytest",
+    }
+    stale_lock = tmp_path / ".audit_in_progress.lock"
+    stale_lock.write_text(str(stale_payload), encoding="utf-8")  # malformed JSON legacy payload
+    service = _PassingService(tmp_path)
+
+    result = service.run_docs()
+
+    assert result is True
+    assert not stale_lock.exists()

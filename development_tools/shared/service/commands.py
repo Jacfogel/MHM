@@ -24,6 +24,7 @@ from ..backup_policy_models import load_backup_policy, resolve_policy_path
 from ..backup_reports import (
     write_json_report,
 )
+from ..lock_state import cleanup_lock_paths, evaluate_lock_set, write_lock_metadata
 from ..retention_engine import apply_retention_plan, build_retention_plan
 
 
@@ -32,11 +33,7 @@ class CommandsMixin:
 
     def _get_audit_related_lock_paths(self) -> List[Path]:
         """Return audit/coverage lock file paths anchored at project root."""
-        lock_names = [
-            ".audit_in_progress.lock",
-            ".coverage_in_progress.lock",
-            ".coverage_dev_tools_in_progress.lock",
-        ]
+        lock_names = [".audit_in_progress.lock", ".coverage_in_progress.lock"]
         try:
             from ... import config
 
@@ -53,11 +50,28 @@ class CommandsMixin:
         except Exception:
             pass
 
-        return [self.project_root / Path(name) for name in lock_names]
+        audit_lock = self.project_root / Path(lock_names[0])
+        coverage_lock = self.project_root / Path(lock_names[1])
+        dev_tools_coverage_lock = (
+            coverage_lock.parent / ".coverage_dev_tools_in_progress.lock"
+        )
+        return [audit_lock, coverage_lock, dev_tools_coverage_lock]
 
     def _get_existing_audit_related_locks(self) -> List[Path]:
-        """Return currently present audit/coverage lock files."""
-        return [lock for lock in self._get_audit_related_lock_paths() if lock.exists()]
+        """Return active lock files after cleaning stale/malformed entries."""
+        lock_paths = self._get_audit_related_lock_paths()
+        lock_states = evaluate_lock_set(lock_paths)
+        cleanup_targets = [
+            entry["path"]
+            for entry in (lock_states["stale"] + lock_states["malformed"])
+            if isinstance(entry.get("path"), Path)
+        ]
+        if cleanup_targets:
+            removed = cleanup_lock_paths(cleanup_targets)
+            logger.warning(
+                f"Removed {removed} stale/malformed audit lock file(s) before command execution"
+            )
+        return [entry["path"] for entry in lock_states["active"] if isinstance(entry.get("path"), Path)]
 
     def _resolve_coverage_workers(self, target: str) -> Optional[str]:
         """Resolve pytest-xdist worker count for coverage runs."""
@@ -67,7 +81,7 @@ class CommandsMixin:
         try:
             from ... import config
 
-            coverage_cfg = config.get_external_value("coverage", {}) or {}
+            coverage_cfg = config.get_coverage_runtime_config() or {}
         except Exception:
             coverage_cfg = {}
 
@@ -100,7 +114,17 @@ class CommandsMixin:
         if concurrent:
             cpu_count = os.cpu_count() or 4
             if target == "main":
-                return str(max(2, cpu_count // 2))
+                if cpu_count >= 8:
+                    return "6"
+                if cpu_count >= 6:
+                    return "4"
+                return str(max(2, cpu_count - 1))
+            if bool(getattr(self, "_tier3_coverage_serialized", False)):
+                if cpu_count >= 8:
+                    return "6"
+                if cpu_count >= 6:
+                    return "4"
+                return str(max(2, cpu_count - 1))
             return str(max(1, cpu_count // 3))
 
         return None
@@ -156,6 +180,16 @@ class CommandsMixin:
                         pass
                 return [part.strip().strip("'\"") for part in value.strip("[]").split(",") if part.strip()]
         return []
+
+    def _is_interrupt_signature(self, output: str, returncode: Optional[int]) -> bool:
+        """Detect likely interrupt/console control event signatures."""
+        text = (output or "").lower()
+        if "keyboardinterrupt" in text:
+            return True
+        # 130 is common for SIGINT-style exits.
+        if returncode == 130:
+            return True
+        return False
 
     def _build_coverage_metadata(self, output: str, source: str) -> Dict[str, object]:
         """Build normalized coverage cache metadata payload."""
@@ -614,8 +648,12 @@ class CommandsMixin:
         # Use a separate lock file for dev tools to avoid file conflicts when running in parallel
         coverage_lock_file = coverage_lock_file.parent / '.coverage_dev_tools_in_progress.lock'
         try:
-            coverage_lock_file.parent.mkdir(parents=True, exist_ok=True)
-            coverage_lock_file.touch()
+            if not write_lock_metadata(
+                coverage_lock_file, lock_type="coverage_dev_tools"
+            ):
+                raise RuntimeError(
+                    "write_lock_metadata returned False for dev-tools coverage lock"
+                )
         except Exception as e:
             logger.warning(f"Failed to create coverage lock file: {e}")
         
@@ -643,6 +681,9 @@ class CommandsMixin:
             output_text = "\n".join(
                 [result.get("output", "") or "", result.get("error", "") or ""]
             )
+            interrupted = self._is_interrupt_signature(
+                output_text, result.get("returncode")
+            )
             initial_dev_tools_state = "unknown"
             if result.get("returncode") not in (None, 0):
                 initial_dev_tools_state = "failed"
@@ -666,6 +707,18 @@ class CommandsMixin:
                 "skipped_count": 0,
                 "failed_node_ids": [],
             }
+            if interrupted:
+                setattr(self, "_internal_interrupt_detected", True)
+                dev_tools_outcome["classification"] = "crashed"
+                dev_tools_outcome["classification_reason"] = "subprocess_keyboard_interrupt"
+                dev_tools_outcome["actionable_context"] = (
+                    "Coverage subprocess reported KeyboardInterrupt/SIGINT. "
+                    "Check terminal/host signal events and pytest logs."
+                )
+                logger.error(
+                    "Detected interrupt signature while running dev-tools coverage subprocess "
+                    f"(returncode={result.get('returncode')})."
+                )
             if dev_tools_output_file.exists():
                 try:
                     with open(dev_tools_output_file, "r", encoding="utf-8") as f:
@@ -995,8 +1048,10 @@ class CommandsMixin:
         # Use helper method if available, otherwise default location
         coverage_lock_file = self._get_coverage_lock_file_path() if hasattr(self, '_get_coverage_lock_file_path') else (self.project_root / 'development_tools' / '.coverage_in_progress.lock')
         try:
-            coverage_lock_file.parent.mkdir(parents=True, exist_ok=True)
-            coverage_lock_file.touch()
+            if not write_lock_metadata(coverage_lock_file, lock_type="coverage_main"):
+                raise RuntimeError(
+                    "write_lock_metadata returned False for main coverage lock"
+                )
         except Exception as e:
             logger.warning(f"Failed to create coverage lock file: {e}")
         
@@ -1026,6 +1081,9 @@ class CommandsMixin:
             result = self.run_script(*coverage_args, timeout=1200)
             output_text = "\n".join(
                 [result.get("output", "") or "", result.get("error", "") or ""]
+            )
+            interrupted = self._is_interrupt_signature(
+                output_text, result.get("returncode")
             )
             cache_metadata = self._build_coverage_metadata(output_text, source="run_test_coverage")
             if cache_metadata.get("cache_mode") == "unknown":
@@ -1057,13 +1115,19 @@ class CommandsMixin:
                 },
                 "failed_node_ids": [],
             }
+            payload_coverage_collected = False
+            payload_from_cache = False
             if coverage_output_file.exists():
                 try:
                     with open(coverage_output_file, "r", encoding="utf-8") as f:
                         coverage_payload = json.load(f)
                     if isinstance(coverage_payload, dict):
+                        payload_coverage_collected = bool(
+                            coverage_payload.get("coverage_collected")
+                        )
+                        payload_from_cache = bool(coverage_payload.get("from_cache"))
                         structured = coverage_payload.get("coverage_outcome", {})
-                        if isinstance(structured, dict):
+                        if isinstance(structured, dict) and structured:
                             structured_outcome = {
                                 "state": structured.get("state", "coverage_failed"),
                                 "parallel": structured.get("parallel", {}),
@@ -1091,10 +1155,65 @@ class CommandsMixin:
                                     )
                                     track["log_file"] = track.get("log_file")
                                     track["return_code_hex"] = track.get("return_code_hex")
+                        elif payload_coverage_collected:
+                            synthesized_classification = (
+                                "skipped" if payload_from_cache else "unknown"
+                            )
+                            synthesized_reason = (
+                                "cache_only_payload_without_coverage_outcome"
+                                if payload_from_cache
+                                else "legacy_payload_without_coverage_outcome"
+                            )
+                            logger.info(
+                                "LEGACY COMPATIBILITY: coverage_outcome missing; "
+                                "synthesizing Tier 3 outcome from coverage_collected payload."
+                            )
+                            structured_outcome = {
+                                "state": "clean",
+                                "parallel": {
+                                    "state": synthesized_classification,
+                                    "classification": synthesized_classification,
+                                    "classification_reason": synthesized_reason,
+                                    "actionable_context": (
+                                        "Coverage was collected without explicit per-track outcome payload."
+                                    ),
+                                    "log_file": None,
+                                    "return_code_hex": None,
+                                },
+                                "no_parallel": {
+                                    "state": synthesized_classification,
+                                    "classification": synthesized_classification,
+                                    "classification_reason": synthesized_reason,
+                                    "actionable_context": (
+                                        "Coverage was collected without explicit per-track outcome payload."
+                                    ),
+                                    "log_file": None,
+                                    "return_code_hex": None,
+                                },
+                                "failed_node_ids": [],
+                            }
                 except Exception as parse_error:
                     logger.debug(
                         f"Failed to parse run_test_coverage structured output: {parse_error}"
                     )
+            inferred_tier3_state = self._derive_tier3_state_from_classifications(
+                structured_outcome
+            )
+            raw_tier3_state = str(structured_outcome.get("state", "")).strip()
+            if raw_tier3_state in ("", "unknown"):
+                if inferred_tier3_state:
+                    structured_outcome["state"] = inferred_tier3_state
+            elif (
+                raw_tier3_state == "coverage_failed"
+                and payload_coverage_collected
+                and inferred_tier3_state
+                and inferred_tier3_state != "coverage_failed"
+            ):
+                logger.warning(
+                    "Tier 3 coverage payload reported coverage_failed while "
+                    f"coverage_collected=True; normalizing state to {inferred_tier3_state}."
+                )
+                structured_outcome["state"] = inferred_tier3_state
             existing_tier3 = (
                 self.tier3_test_outcome
                 if isinstance(getattr(self, "tier3_test_outcome", None), dict)
@@ -1108,6 +1227,12 @@ class CommandsMixin:
             }
             tier3_state = structured_outcome.get("state", "coverage_failed")
             if tier3_state == "coverage_failed":
+                if interrupted:
+                    setattr(self, "_internal_interrupt_detected", True)
+                    logger.error(
+                        "Tier 3 coverage failed with interrupt signature "
+                        f"(returncode={result.get('returncode')})."
+                    )
                 logger.error(
                     "Tier 3 coverage outcome is coverage_failed; treating run_test_coverage as failed"
                 )

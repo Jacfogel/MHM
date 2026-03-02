@@ -344,6 +344,22 @@
   },
   "coverage": {
     "_comment": "Coverage regeneration settings. Customize pytest command, config, and artifact directories for your project.",
+    "main_workers": {
+      "_comment": "Optional worker override for main coverage when run standalone (integer or 'auto'). Null uses built-in behavior.",
+      "_example": 8
+    },
+    "dev_tools_workers": {
+      "_comment": "Optional worker override for dev-tools coverage when run standalone (integer or 'auto'). Null uses built-in behavior.",
+      "_example": 4
+    },
+    "main_workers_when_concurrent": {
+      "_comment": "Worker cap for main coverage when Tier 3 runs main + dev-tools coverage concurrently.",
+      "_example": 6
+    },
+    "dev_tools_workers_when_concurrent": {
+      "_comment": "Worker cap for dev-tools coverage when Tier 3 coverage orchestration is concurrent-enabled (including Windows serialized-coverage guardrail mode).",
+      "_example": 6
+    },
     "pytest_command": {
       "_comment": "Pytest command as array (e.g., ['python', '-m', 'pytest'] or ['pytest'])",
       "_example": [

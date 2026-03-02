@@ -33,6 +33,51 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-01 - Tier 3 coverage reliability hardening + cache-outcome normalization + timing/reporting cleanup
+- **Feature/Fix**: Completed a full Tier 3 reliability pass focused on Windows signal-noise handling, coverage orchestration semantics, cache-only outcome normalization, worker-cap alignment, and session-level planning/changelog reconciliation.
+- **Technical Changes**:
+  - `development_tools/shared/service/commands.py`:
+    - Hardened `run_coverage_regeneration` outcome parsing so cache-only payloads with `coverage_collected=true` and missing `coverage_outcome` no longer default to false `coverage_failed`.
+    - Added compatibility synthesis/normalization for legacy payloads and explicit state derivation from per-track classification.
+    - Added stronger interrupt-signature handling and state propagation for coverage subprocess paths.
+  - `development_tools/shared/service/audit_orchestration.py` and `development_tools/run_development_tools.py`:
+    - Refined Tier 3 completion-loop handling so post-completion KeyboardInterrupt signal noise is treated as non-blocking.
+    - Preserved audit finalization/report generation instead of collapsing into user-interrupt style exits.
+  - Coverage runtime/concurrency tuning:
+    - Increased dev-tools coverage worker cap behavior to 6 when serialized/sequential guard paths apply.
+    - Kept Windows Tier 3 coverage guard in place for stability while reducing warning severity/noise for expected paths.
+  - Timing/report visibility:
+    - Restored and normalized tool timing persistence behavior for recent runs.
+    - Standardized timing run timestamps to human-readable format in `development_tools/reports/tool_timings.json`.
+  - Test stabilization and regression hardening:
+    - Added/updated targeted tests in:
+      - `tests/development_tools/test_audit_strict_mode.py`
+      - `tests/development_tools/test_audit_orchestration_helpers.py`
+      - `tests/development_tools/test_commands_coverage_helpers.py`
+      - `tests/development_tools/test_commands_docs_locks.py`
+      - `tests/development_tools/test_commands_docs_workflow.py`
+      - `tests/development_tools/test_integration_workflows.py`
+      - `tests/development_tools/test_run_test_coverage_helpers.py`
+      - `tests/development_tools/test_tool_wrappers_branch_paths.py`
+    - Added regression specifically for cache-only missing-`coverage_outcome` payload handling.
+  - Config/docs alignment:
+    - Updated coverage worker defaults and related guide/config surfaces:
+      - `development_tools/config/config.py`
+      - `development_tools/config/development_tools_config.json`
+      - `development_tools/config/development_tools_config.json.example`
+      - [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)
+      - [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
+- **Validation**:
+  - `pytest tests/development_tools/test_audit_strict_mode.py -q` -> passed.
+  - `pytest tests/development_tools/test_commands_coverage_helpers.py -q` -> passed.
+  - `pytest tests/development_tools/test_audit_orchestration_helpers.py -q` -> passed.
+  - Targeted previously failing tests now pass in isolation:
+    - `tests/development_tools/test_tool_wrappers_cache_helpers.py::test_compute_source_signature_changes_when_source_changes`
+    - `tests/development_tools/test_integration_workflows.py::TestCommandRouting::{test_audit_command_success,test_cache_clear_alias_routes_to_clear_cache,test_audit_command_strict_passthrough}`
+- **Outstanding Follow-up**:
+  - Intermittent `test_tool_wrappers_cache_helpers.py` flake is still tracked as open follow-up for Tier 3-equivalent execution context reproducibility and root-cause capture.
+- **Impact**: Tier 3 audits now complete with materially fewer false failures/noisy interrupt behaviors, cache-only coverage paths are no longer misclassified as hard failures, and session observability/planning records are synchronized for handoff/closeout.
+
 ### 2026-02-28 - Planning-doc user-priority Q&A completion (NOTES_PLAN, AI_DEV, TODO)
 - **Scope**: Completed user-priority Q&A for remaining planning docs and TODO.md; updated priorities, use/fit notes, and structure per stakeholder answers.
 - **NOTES_PLAN.md**:
@@ -43,14 +88,14 @@ When adding new changes, follow this format:
 - **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md**:
   - Use/fit header; section-level user priorities throughout.
   - Stale-lock recovery yes; Tier 3 legacy cleanup high; duplicate-function body similarity high; CLI/exclusion consistency high; portability high.
-  - Retire-unapproved-docs verified complete; consolidate_report→CONSOLIDATED_REPORT.md task added; Tier 3/coverage split consideration; workers 4→6.
+  - Retire-unapproved-docs verified complete; consolidate_report->CONSOLIDATED_REPORT.md task added; Tier 3/coverage split consideration; workers 4->6.
   - Added 7.8 Possible Duplicate Lists, 7.9 Audit MHM backups; memory_profiler description for 5.6; test_config.json clarification.
 - **TODO.md**:
   - Planning-doc Q&A task removed (completed for NOTES_PLAN, AI_DEV).
   - Removed: Fix AI response quality; Systematic doc review; dev-tools test runtime; Create development guidelines.
   - High: headless + email fix soon; Script ownership + sent_messages elevated.
   - Deferred (AI overhaul): AI Chatbot Actionability Sprint, NLP, AI command list, AI response times.
-  - Ruff outside>inside; wake timer one-time; backup in dev tools; xdist clarification; markdown links→Medium; performance monitoring includes RAM/caching; duplicate lists and backup audit→AI_DEV 7.8/7.9.
+  - Ruff outside>inside; wake timer one-time; backup in dev tools; xdist clarification; markdown links->Medium; performance monitoring includes RAM/caching; duplicate lists and backup audit->AI_DEV 7.8/7.9.
   - Use/fit header added.
 - **Impact**: Planning docs and TODO now reflect user priorities; deferred AI work clearly scoped; operational and quality items appropriately elevated.
 

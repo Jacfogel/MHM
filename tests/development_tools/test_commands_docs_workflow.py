@@ -9,6 +9,7 @@ import pytest
 from tests.development_tools.conftest import load_development_tools_module
 
 service_module = load_development_tools_module("shared.service")
+lock_state_module = load_development_tools_module("shared.lock_state")
 AIToolsService = service_module.AIToolsService
 
 
@@ -68,8 +69,8 @@ def test_get_existing_audit_related_locks_returns_only_present(
     lock_a = tmp_path / ".audit_in_progress.lock"
     lock_b = tmp_path / ".coverage_in_progress.lock"
     lock_c = tmp_path / ".coverage_dev_tools_in_progress.lock"
-    lock_a.write_text("", encoding="utf-8")
-    lock_c.write_text("", encoding="utf-8")
+    lock_state_module.write_lock_metadata(lock_a, lock_type="audit")
+    lock_state_module.write_lock_metadata(lock_c, lock_type="coverage_dev_tools")
 
     locks = service._get_existing_audit_related_locks()
     lock_set = {str(p) for p in locks}
@@ -77,4 +78,3 @@ def test_get_existing_audit_related_locks_returns_only_present(
     assert str(lock_a) in lock_set
     assert str(lock_c) in lock_set
     assert str(lock_b) not in lock_set
-

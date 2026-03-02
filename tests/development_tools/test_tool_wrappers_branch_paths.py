@@ -55,6 +55,56 @@ def test_run_script_handles_timeout(temp_project_copy, monkeypatch):
 
 
 @pytest.mark.unit
+def test_run_script_handles_keyboard_interrupt(temp_project_copy, monkeypatch):
+    """run_script should return structured interrupt payload for KeyboardInterrupt."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    def _raise_interrupt(*_args, **_kwargs):
+        raise KeyboardInterrupt()
+
+    monkeypatch.setattr(
+        tool_wrappers_module.subprocess, "run", _raise_interrupt, raising=True
+    )
+
+    result = service.run_script("quick_status", timeout=120)
+
+    assert result["success"] is False
+    assert result["returncode"] == 130
+    assert result.get("interrupted") is True
+    assert "KeyboardInterrupt" in result["error"]
+
+
+@pytest.mark.unit
+def test_run_script_uses_windows_process_group_for_coverage(
+    temp_project_copy, monkeypatch
+):
+    """run_script should isolate run_test_coverage subprocess group on Windows."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    captured = {}
+
+    class _FakeResult:
+        returncode = 0
+        stdout = "ok"
+        stderr = ""
+
+    def _fake_run(cmd, **kwargs):
+        captured["cmd"] = cmd
+        captured["kwargs"] = kwargs
+        return _FakeResult()
+
+    monkeypatch.setattr(tool_wrappers_module.os, "name", "nt", raising=True)
+    monkeypatch.setattr(
+        tool_wrappers_module.subprocess, "CREATE_NEW_PROCESS_GROUP", 512, raising=False
+    )
+    monkeypatch.setattr(tool_wrappers_module.subprocess, "run", _fake_run, raising=True)
+
+    result = service.run_script("run_test_coverage")
+
+    assert result["success"] is True
+    assert captured["kwargs"].get("creationflags") == 512
+
+
+@pytest.mark.unit
 def test_run_analyze_documentation_merges_cached_overlap_data(temp_project_copy, monkeypatch):
     """Wrapper should preserve cached overlap fields when fresh output omits them."""
     service = AIToolsService(project_root=str(temp_project_copy))

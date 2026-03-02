@@ -70,6 +70,9 @@ def test_windows_crash_classification_helpers(tmp_path: Path):
 
     assert regenerator._is_windows_crash_return_code(3221226505) is True
     assert regenerator._is_windows_crash_return_code(3221225477) is True
+    assert regenerator._is_windows_crash_return_code(3221225786) is False
+    assert regenerator._is_interrupt_return_code(3221225786) is True
+    assert regenerator._is_interrupt_return_code(130) is True
     assert regenerator._is_windows_crash_return_code(1) is False
 
     reason, context = regenerator._classify_windows_crash_return_code(3221226505)
@@ -86,6 +89,7 @@ def test_format_return_code_hex_known_and_generic_codes(tmp_path: Path):
     regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
     assert regenerator._format_return_code_hex(3221226505) == "0xC0000135"
     assert regenerator._format_return_code_hex(3221225477) == "0xC0000005"
+    assert regenerator._format_return_code_hex(3221225786) == "0xC000013A"
     assert regenerator._format_return_code_hex(5) == "0x00000005"
     assert regenerator._format_return_code_hex(None) is None
 
@@ -130,6 +134,22 @@ def test_build_track_outcome_passed_and_skipped_branches(tmp_path: Path):
     assert passed["classification_reason"] == "pytest_passed"
     assert skipped["classification"] == "skipped"
     assert skipped["classification_reason"] == "no_output_no_return_code"
+
+
+@pytest.mark.unit
+def test_build_track_outcome_interrupt_signature(tmp_path: Path):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+
+    interrupt = regenerator._build_track_outcome(
+        return_code=3221225786,
+        parsed_results={"total_tests": 0},
+        output="KeyboardInterrupt",
+        track_name="parallel",
+    )
+
+    assert interrupt["classification"] == "crashed"
+    assert interrupt["classification_reason"] == "interrupt_signal"
+    assert interrupt["return_code_hex"] == "0xC000013A"
 
 
 @pytest.mark.unit

@@ -1299,6 +1299,24 @@ class CoverageMetricsRegenerator:
                     encoding="utf-8", errors="ignore"
                 )
                 result.stderr = ""  # Stderr was merged into stdout
+            except KeyboardInterrupt:
+                interrupt_msg = (
+                    "KeyboardInterrupt while waiting for pytest subprocess "
+                    "(SIGINT/control event)."
+                )
+                if logger:
+                    logger.error(interrupt_msg)
+                partial_output = ""
+                if stdout_log_path.exists():
+                    partial_output = stdout_log_path.read_text(
+                        encoding="utf-8", errors="ignore"
+                    )
+                result = subprocess.CompletedProcess(
+                    cmd,
+                    returncode=130,
+                    stdout=partial_output,
+                    stderr=interrupt_msg,
+                )
             except subprocess.TimeoutExpired:
                 # Pytest hung or took too long
                 # Read log files to check for progress (they should exist since we created them before running)
@@ -1400,6 +1418,16 @@ class CoverageMetricsRegenerator:
                                 env=env,
                                 timeout=pytest_timeout,
                             )
+                        except KeyboardInterrupt:
+                            retry_result = subprocess.CompletedProcess(
+                                fallback_cmd,
+                                returncode=130,
+                                stdout="",
+                                stderr=(
+                                    "KeyboardInterrupt while waiting for retry subprocess "
+                                    "(SIGINT/control event)."
+                                ),
+                            )
                         except subprocess.TimeoutExpired:
                             retry_result = subprocess.CompletedProcess(
                                 fallback_cmd,
@@ -1415,6 +1443,12 @@ class CoverageMetricsRegenerator:
                     retry_result.stderr = ""
                     result = retry_result
                     cmd = fallback_cmd
+
+            if self._is_interrupt_return_code(result.returncode) and logger:
+                logger.error(
+                    "Main coverage pytest subprocess terminated with interrupt signature "
+                    f"(returncode={result.returncode}, hex={self._format_return_code_hex(result.returncode) or 'n/a'})."
+                )
 
             # Log if the command completed too quickly (suspicious)
             if result.returncode is not None and logger:
@@ -2013,6 +2047,27 @@ class CoverageMetricsRegenerator:
                         logger.info(
                             f"Saved no_parallel pytest output to {no_parallel_stdout_log}"
                         )
+                except KeyboardInterrupt:
+                    if logger:
+                        logger.error(
+                            "KeyboardInterrupt while waiting for no_parallel pytest subprocess "
+                            "(SIGINT/control event)."
+                        )
+                    no_parallel_result = subprocess.CompletedProcess(
+                        no_parallel_cmd,
+                        returncode=130,
+                        stdout=(
+                            no_parallel_stdout_log.read_text(
+                                encoding="utf-8", errors="ignore"
+                            )
+                            if no_parallel_stdout_log.exists()
+                            else ""
+                        ),
+                        stderr=(
+                            "KeyboardInterrupt while waiting for no_parallel pytest subprocess "
+                            "(SIGINT/control event)."
+                        ),
+                    )
                 except subprocess.TimeoutExpired:
                     if logger:
                         logger.warning(
@@ -2035,6 +2090,14 @@ class CoverageMetricsRegenerator:
                 # Read from log file if stdout is empty (can happen with quiet mode)
                 no_parallel_output = no_parallel_result.stdout or ""
                 no_parallel_return_code = no_parallel_result.returncode
+                if (
+                    logger
+                    and self._is_interrupt_return_code(no_parallel_return_code)
+                ):
+                    logger.error(
+                        "No_parallel pytest subprocess terminated with interrupt signature "
+                        f"(returncode={no_parallel_return_code}, hex={self._format_return_code_hex(no_parallel_return_code) or 'n/a'})."
+                    )
                 if not no_parallel_output and no_parallel_stdout_log.exists():
                     no_parallel_output = no_parallel_stdout_log.read_text(
                         encoding="utf-8", errors="ignore"
@@ -3728,6 +3791,24 @@ class CoverageMetricsRegenerator:
                     if result.stderr and result.stderr != result.stdout:
                         log_file.write("\n\n=== STDERR ===\n")
                         log_file.write(result.stderr)
+            except KeyboardInterrupt:
+                interrupt_msg = (
+                    "KeyboardInterrupt while waiting for dev-tools coverage pytest subprocess "
+                    "(SIGINT/control event)."
+                )
+                if logger:
+                    logger.error(interrupt_msg)
+                with open(
+                    dev_tools_stdout_log, "w", encoding="utf-8", errors="replace"
+                ) as log_file:
+                    log_file.write(interrupt_msg + "\n")
+
+                result = subprocess.CompletedProcess(
+                    cmd,
+                    returncode=130,
+                    stdout=interrupt_msg + "\n",
+                    stderr=interrupt_msg,
+                )
             except subprocess.TimeoutExpired:
                 if logger:
                     logger.error(
@@ -3762,6 +3843,13 @@ class CoverageMetricsRegenerator:
                     stderr = ""
 
                 result = FakeResultException()
+
+            if self._is_interrupt_return_code(getattr(result, "returncode", None)):
+                if logger:
+                    logger.error(
+                        "Dev tools coverage pytest subprocess terminated with interrupt signature "
+                        f"(returncode={result.returncode}, hex={self._format_return_code_hex(result.returncode) or 'n/a'})."
+                    )
 
             if logger:
                 log_size = (
@@ -4274,6 +4362,14 @@ class CoverageMetricsRegenerator:
             return False
         return return_code in {3221226505, 3221225477}
 
+    def _is_interrupt_return_code(self, return_code: Optional[int]) -> bool:
+        """Check whether return code indicates interrupt/control-event termination."""
+        if return_code is None:
+            return False
+        # 130 is standard SIGINT-style shell exit.
+        # 0xC000013A (3221225786) is Windows STATUS_CONTROL_C_EXIT.
+        return return_code in {130, 3221225786}
+
     def _format_return_code_hex(self, return_code: Optional[int]) -> Optional[str]:
         """Return normalized hex code string for process return codes."""
         if return_code is None:
@@ -4282,6 +4378,7 @@ class CoverageMetricsRegenerator:
         canonical_codes = {
             3221226505: "0xC0000135",
             3221225477: "0xC0000005",
+            3221225786: "0xC000013A",
         }
         if return_code in canonical_codes:
             return canonical_codes[return_code]
@@ -4379,6 +4476,14 @@ class CoverageMetricsRegenerator:
             classification_reason = "cleanup_dead_symlinks_permission_error"
             actionable_context = (
                 "Pytest teardown cleanup permission issue detected. Review temp-dir cleanup permissions and retry."
+            )
+        elif self._is_interrupt_return_code(return_code):
+            state = "crashed"
+            classification = "crashed"
+            classification_reason = "interrupt_signal"
+            actionable_context = (
+                "Subprocess terminated by interrupt/control event (SIGINT/CTRL+C). "
+                "This is not always a direct user Ctrl+C; inspect terminal/host signal propagation."
             )
         elif self._is_xdist_worker_crash_output(output):
             state = "crashed"

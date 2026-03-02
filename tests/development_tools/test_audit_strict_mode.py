@@ -273,6 +273,45 @@ def test_run_coverage_regeneration_fails_when_coverage_outcome_failed(
 
 
 @pytest.mark.unit
+def test_run_coverage_regeneration_cache_only_payload_without_coverage_outcome(
+    temp_project_copy, monkeypatch
+):
+    """Cache-only coverage payloads without coverage_outcome should normalize to clean."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    output_file = (
+        temp_project_copy
+        / "development_tools"
+        / "tests"
+        / "jsons"
+        / "run_test_coverage_results.json"
+    )
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file.write_text(
+        json.dumps(
+            {
+                "modules": {},
+                "overall": {"total_missed": 0},
+                "coverage_collected": True,
+                "from_cache": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *args, **kwargs: {"success": True, "output": "", "error": ""},
+    )
+    monkeypatch.setattr(service, "_load_coverage_summary", lambda: {"overall": {"missed": 0}})
+
+    assert service.run_coverage_regeneration() is True
+    assert service.tier3_test_outcome.get("state") == "clean"
+    assert service.tier3_test_outcome.get("parallel", {}).get("classification") == "skipped"
+    assert service.tier3_test_outcome.get("no_parallel", {}).get("classification") == "skipped"
+
+
+@pytest.mark.unit
 def test_tier3_outcome_includes_development_tools_line(temp_project_copy):
     """Tier 3 report section should include a separate development tools track line."""
     service = AIToolsService(project_root=str(temp_project_copy))

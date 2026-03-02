@@ -90,20 +90,40 @@ class ToolWrappersMixin:
         cmd = [sys.executable, str(script_path)] + list(args)
         env = os.environ.copy()
         env["MHM_DEV_TOOLS_RUN"] = "1"
+        run_kwargs = {
+            "capture_output": True,
+            "text": True,
+            "cwd": str(self.project_root),
+            "timeout": timeout,
+            "env": env,
+        }
+        if os.name == "nt" and script_name == "run_test_coverage":
+            create_new_group = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+            if create_new_group:
+                run_kwargs["creationflags"] = create_new_group
+                logger.debug(
+                    "Launching run_test_coverage in isolated Windows process group "
+                    "to reduce console control-event propagation."
+                )
         try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                cwd=str(self.project_root),
-                timeout=timeout,
-                env=env,
-            )
+            result = subprocess.run(cmd, **run_kwargs)
             return {
                 "success": result.returncode == 0,
                 "output": result.stdout,
                 "error": result.stderr,
                 "returncode": result.returncode,
+            }
+        except KeyboardInterrupt:
+            # KeyboardInterrupt can be raised from console control events while waiting on subprocess I/O.
+            return {
+                "success": False,
+                "output": "",
+                "error": (
+                    f"Script '{script_name}' interrupted by KeyboardInterrupt "
+                    "(SIGINT/console control event while waiting for subprocess)"
+                ),
+                "returncode": 130,
+                "interrupted": True,
             }
         except subprocess.TimeoutExpired:
             return {
@@ -1535,7 +1555,7 @@ class ToolWrappersMixin:
         return result
 
     def _compute_source_signature(self) -> Optional[str]:
-        """Compute hash of .py file mtimes for cache invalidation (static checks)."""
+        """Compute hash of .py file metadata for static-check cache invalidation."""
         try:
             import hashlib
             from ..standard_exclusions import should_exclude_file
@@ -1547,7 +1567,12 @@ class ToolWrappersMixin:
                     rel = str(p.relative_to(root)).replace("\\", "/")
                     if should_exclude_file(rel, tool_type="analysis"):
                         continue
-                    sig.update((rel + ":" + str(p.stat().st_mtime)).encode("utf-8"))
+                    # Use nanosecond mtime + file size to reduce false cache hits on fast edits.
+                    stat = p.stat()
+                    mtime_ns = getattr(stat, "st_mtime_ns", int(stat.st_mtime * 1_000_000_000))
+                    sig.update(
+                        f"{rel}:{mtime_ns}:{stat.st_size}".encode("utf-8")
+                    )
                 except (OSError, ValueError):
                     continue
             return sig.hexdigest()

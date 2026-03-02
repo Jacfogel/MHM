@@ -878,6 +878,31 @@ def get_static_analysis_config():
     return STATIC_ANALYSIS
 
 
+# Coverage runtime worker defaults for orchestration helpers.
+COVERAGE_RUNTIME = {
+    "main_workers": None,
+    "dev_tools_workers": None,
+    "main_workers_when_concurrent": 6,
+    "dev_tools_workers_when_concurrent": 6,
+}
+
+
+def get_coverage_runtime_config():
+    """Get coverage worker/runtime config (external overrides default values)."""
+    external_config = _get_external_value("coverage", None)
+    result = COVERAGE_RUNTIME.copy()
+    if isinstance(external_config, dict):
+        for key in (
+            "main_workers",
+            "dev_tools_workers",
+            "main_workers_when_concurrent",
+            "dev_tools_workers_when_concurrent",
+        ):
+            if key in external_config:
+                result[key] = external_config[key]
+    return result
+
+
 # Quick status configuration
 QUICK_STATUS = {
     "core_files": [],  # Will use project.key_files if empty

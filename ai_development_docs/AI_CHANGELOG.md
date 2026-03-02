@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-01 - Tier 3 coverage reliability + cache outcome normalization **Progressed**
+- Hardened Tier 3 coverage orchestration on Windows: reduced false interrupt/failure behavior, preserved finalization paths, and improved signal-noise handling in coverage completion loops.
+- Fixed cache-only regression where `run_test_coverage` could be marked `coverage_failed` when payload had `coverage_collected=true` but no `coverage_outcome`; added normalization + compatibility synthesis in `commands.py`.
+- Updated coverage runtime/config/docs alignment (dev-tools worker cap behavior, runtime config surfaces) and refreshed timing/reporting behavior including human-readable timestamps in `tool_timings.json`.
+- Added/updated targeted regression tests across audit strict/outcome, orchestration helpers, coverage helper paths, docs-lock workflow, and command-routing integration; remaining follow-up is intermittent `test_tool_wrappers_cache_helpers` flake under full Tier 3 context.
+
 ### 2026-02-28 - Planning-doc user-priority Q&A completion **COMPLETED**
 - **NOTES_PLAN**: Use/fit; Show More first, search feedback second; edit sessions medium; AI deferred; ranked known issues.
 - **AI_DEV_TOOLS**: Use/fit; section priorities (stale-lock yes, Tier 3 legacy high, duplicate-function body high, CLI/exclusions high); retire-unapproved-docs complete; 7.8/7.9 duplicate lists + backup audit.

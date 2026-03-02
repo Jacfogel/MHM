@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-02-28 (User-priority Q&A applied)
+> **Last Updated**: 2026-03-01 (Tier 3 coverage/outcome follow-up)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -148,12 +148,12 @@ When adding new tasks, follow this format:
 
 ### AI & Conversation
 
-**Improve Natural Language Processing (NLP) Accuracy** — *Deferred (AI overhaul)*
-- *What it means*: Refine parsing patterns and thresholds to better recognize intents and entities. NLP = how the system interprets user commands and natural language (e.g., "create a task to buy milk" → task creation intent).
+**Improve Natural Language Processing (NLP) Accuracy** - *Deferred (AI overhaul)*
+- *What it means*: Refine parsing patterns and thresholds to better recognize intents and entities. NLP = how the system interprets user commands and natural language (e.g., "create a task to buy milk" -> task creation intent).
 - *Why it helps*: More reliable command understanding and fewer misinterpretations
 - *Estimated effort*: Medium
 
-**Investigate and Refactor AI Command List Generation** — *Deferred (AI overhaul)*
+**Investigate and Refactor AI Command List Generation** - *Deferred (AI overhaul)*
 - *What it means*: Investigate why there are two separate hardcoded command lists for the AI chatbot (in `ai/prompt_manager.py` and `ai/chatbot.py`) and explore generating these lists dynamically from the handlers' `can_handle()` methods or the command parser's `intent_patterns` dictionary
 - *Why it helps*: Prevents maintenance issues where new commands (like `create_quick_note`) need to be manually added to multiple places, reduces risk of inconsistencies between lists, and ensures the AI always knows about all available commands automatically
 - *Estimated effort*: Medium
@@ -177,7 +177,7 @@ When adding new tasks, follow this format:
 
 ### Performance Optimizations
 
-**Optimize AI Response Times** — *Deferred (AI overhaul)*
+**Optimize AI Response Times** - *Deferred (AI overhaul)*
 - *What it means*: Reduce latency for AI-backed responses via batching, caching, or configuration tuning
 - *Why it helps*: Snappier interactions and better UX
 - *Estimated effort*: Medium
@@ -198,7 +198,7 @@ When adding new tasks, follow this format:
 
 ### Deferred (AI overhaul)
 
-**AI Chatbot Actionability Sprint** — *Deferred (AI overhaul)*
+**AI Chatbot Actionability Sprint** - *Deferred (AI overhaul)*
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
 - *Why it helps*: Addresses the user's biggest friction and increases real utility.
 - *Estimated effort*: Large
@@ -213,7 +213,7 @@ When adding new tasks, follow this format:
 ### Documentation
 
 **Update User Guides**
-- *What it means*: Refresh user-facing guides to reflect current features and workflows. (Clarify which guides—user-facing feature docs, setup guides, etc.)
+- *What it means*: Refresh user-facing guides to reflect current features and workflows. (Clarify which guides-user-facing feature docs, setup guides, etc.)
 - *Why it helps*: Reduces confusion and accelerates onboarding
 - *Estimated effort*: Small
 
@@ -222,7 +222,7 @@ When adding new tasks, follow this format:
 - *Why it helps*: Speeds up development and AI assistance accuracy
 - *Estimated effort*: Small
 
-**Create Troubleshooting Guides** — *Deferred*
+**Create Troubleshooting Guides** - *Deferred*
 - *What it means*: Document common issues and resolution steps for channels, UI, and data
 - *Why it helps*: Faster recovery when issues occur
 - *Estimated effort*: Small
@@ -291,12 +291,12 @@ Priority
 - Medium  
 - Blocker only if a real bug or undefined behavior is confirmed
 
-**Possible Duplicate Lists** — *Tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section 7.8*
+**Possible Duplicate Lists** - *Tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section 7.8*
 - *What it means*: Investigate documentation and code for duplicate or partially duplicated lists (docs, constants, commands, files, etc.). Establish canonical locations; code should pull dynamically, docs should point to canonical source.
 - *Why it helps*: Reduces drift and improves accuracy.
 
-**Audit MHM project for duplicate, outdated, unnecessary backups and archive copies** — *Tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section 7.9*
+**Audit MHM project for duplicate, outdated, unnecessary backups and archive copies** - *Tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section 7.9*
 - *What it means*: Implement structured regular local backups with compression and rotation.
 
-*Note*: Review RAM usage and caching—rolled into **Add Performance Monitoring** (above).
+*Note*: Review RAM usage and caching-rolled into **Add Performance Monitoring** (above).
 

@@ -37,6 +37,7 @@ except ImportError as e:
     raise
 
 from core.logger import get_component_logger
+from development_tools.shared.lock_state import cleanup_lock_paths, evaluate_lock_set
 
 logger = get_component_logger("development_tools")
 
@@ -180,8 +181,6 @@ def _get_audit_related_lock_paths(project_root: Path) -> list[Path]:
     """Return audit/coverage lock file paths anchored at project root."""
     audit_lock_name = ".audit_in_progress.lock"
     coverage_lock_name = ".coverage_in_progress.lock"
-    dev_tools_coverage_lock_name = ".coverage_dev_tools_in_progress.lock"
-
     try:
         from development_tools import config
 
@@ -194,24 +193,44 @@ def _get_audit_related_lock_paths(project_root: Path) -> list[Path]:
     except Exception:
         pass
 
+    coverage_lock_path = project_root / Path(coverage_lock_name)
     return [
         project_root / Path(audit_lock_name),
-        project_root / Path(coverage_lock_name),
-        project_root / Path(dev_tools_coverage_lock_name),
+        coverage_lock_path,
+        coverage_lock_path.parent / Path(".coverage_dev_tools_in_progress.lock"),
     ]
 
 
 def _cleanup_audit_related_locks(project_root: Path) -> int:
     """Best-effort removal of audit/coverage lock files."""
-    removed = 0
-    for lock_path in _get_audit_related_lock_paths(project_root):
-        try:
-            if lock_path.exists():
-                lock_path.unlink()
-                removed += 1
-        except Exception as exc:
-            logger.warning(f"Failed to remove lock file {lock_path}: {exc}")
-    return removed
+    return cleanup_lock_paths(_get_audit_related_lock_paths(project_root))
+
+
+def _preflight_handle_stale_audit_locks(project_root: Path) -> tuple[bool, int]:
+    """Cleanup stale/malformed audit locks and report active-lock blocking state."""
+    lock_states = evaluate_lock_set(_get_audit_related_lock_paths(project_root))
+    cleanup_targets = [
+        entry["path"]
+        for entry in (lock_states["stale"] + lock_states["malformed"])
+        if isinstance(entry.get("path"), Path)
+    ]
+    removed = cleanup_lock_paths(cleanup_targets) if cleanup_targets else 0
+    has_active = len(lock_states["active"]) > 0
+    if has_active:
+        lock_list = ", ".join(
+            str(entry["path"])
+            for entry in lock_states["active"]
+            if isinstance(entry.get("path"), Path)
+        )
+        logger.error(
+            "Audit blocked: active audit/coverage lock file(s) present: "
+            f"{lock_list}"
+        )
+        print(
+            "Audit blocked: active audit/coverage lock file(s) present: "
+            f"{lock_list}"
+        )
+    return has_active, removed
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -330,12 +349,32 @@ def main(argv=None) -> int:
         _print_available_commands()
         return 2
 
+    service = None
     try:
+        if command_name in {"audit", "full-audit"}:
+            has_active_locks, removed = _preflight_handle_stale_audit_locks(
+                project_root_path
+            )
+            if removed > 0:
+                logger.warning(
+                    f"Removed {removed} stale/malformed audit lock file(s) in preflight"
+                )
+                print(
+                    f"Removed {removed} stale/malformed audit lock file(s) before audit."
+                )
+            if has_active_locks:
+                return 1
         service = AIToolsService(project_root=project_root, config_path=config_path)
         command = commands[command_name]
         exit_code = command.handler(service, remaining_args)
         return exit_code
     except KeyboardInterrupt:
+        internal_flag = (
+            getattr(service, "_internal_interrupt_detected", False)
+            if service is not None
+            else False
+        )
+        internal_interrupt = isinstance(internal_flag, bool) and internal_flag
         if command_name in {"audit", "full-audit"}:
             removed = _cleanup_audit_related_locks(project_root_path)
             if removed > 0:
@@ -345,7 +384,24 @@ def main(argv=None) -> int:
                 print(
                     f"Interrupted audit; cleaned up {removed} audit/coverage lock file(s)."
                 )
-        print("Interrupted by user.")
+        if internal_interrupt:
+            logger.error(
+                "Execution hit KeyboardInterrupt after internal interrupt signature "
+                "was already detected; returning failure state instead of user-interrupt exit."
+            )
+            print(
+                "WARNING: Internal interrupt signature was detected earlier in this run. "
+                "Treating this as tool failure (exit code 1), not direct user interrupt."
+            )
+            return 1
+        logger.warning(
+            "Execution interrupted by KeyboardInterrupt (SIGINT/console control event). "
+            "This is not always a direct user Ctrl+C and can originate from host/terminal signal propagation."
+        )
+        print(
+            "Execution interrupted by KeyboardInterrupt (SIGINT/console control event). "
+            "This may come from terminal/host signal propagation, not only direct Ctrl+C."
+        )
         return 130
     except Exception as e:
         logger.error(f"Error executing command '{command_name}': {e}", exc_info=True)

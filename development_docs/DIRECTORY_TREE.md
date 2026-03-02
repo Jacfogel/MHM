@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-02-27 12:15:56
+> **Last Generated**: 2026-03-01 19:58:37
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -46,6 +46,7 @@ C:.
 |   |       
 |   +---plans
 |   |   |   conftest_refactor_plan_4aa2eb26.plan.md
+|   |   |   planning_documents_consolidation_f3a74815.plan.md
 |   |   |   
 |   \---rules
 |           communication-guidelines.mdc
@@ -303,6 +304,7 @@ C:.
 |   |   |   export_docs_snapshot.py
 |   |   |   file_rotation.py
 |   |   |   fix_project_cleanup.py
+|   |   |   lock_state.py
 |   |   |   measure_tool_timings.py
 |   |   |   mtime_cache.py
 |   |   |   output_storage.py
@@ -522,6 +524,7 @@ C:.
 |   |   |   test_analyze_duplicate_functions.py
 |   |   |   test_analyze_error_handling.py
 |   |   |   test_analyze_functions.py
+|   |   |   test_analyze_function_patterns.py
 |   |   |   test_analyze_function_registry.py
 |   |   |   test_analyze_heading_numbering.py
 |   |   |   test_analyze_missing_addresses.py
@@ -533,6 +536,7 @@ C:.
 |   |   |   test_analyze_test_markers.py
 |   |   |   test_analyze_unconverted_links.py
 |   |   |   test_analyze_unused_imports.py
+|   |   |   test_audit_orchestration_helpers.py
 |   |   |   test_audit_status_updates.py
 |   |   |   test_audit_strict_mode.py
 |   |   |   test_audit_tier_comprehensive.py
@@ -543,13 +547,16 @@ C:.
 |   |   |   test_changelog_trim_tooling.py
 |   |   |   test_check_channel_loggers.py
 |   |   |   test_cli_interface.py
+|   |   |   test_commands_additional_helpers.py
 |   |   |   test_commands_coverage_helpers.py
 |   |   |   test_commands_docs_locks.py
+|   |   |   test_commands_docs_workflow.py
 |   |   |   test_common_shared.py
 |   |   |   test_config.json
 |   |   |   test_config.py
 |   |   |   test_constants.py
 |   |   |   test_data_freshness_audit.py
+|   |   |   test_data_loading_helpers.py
 |   |   |   test_decision_support.py
 |   |   |   test_dev_tools_coverage_cache.py
 |   |   |   test_documentation_sync_checker.py
@@ -589,6 +596,7 @@ C:.
 |   |   |   test_retention_engine.py
 |   |   |   test_run_development_tools.py
 |   |   |   test_run_dev_tools.py
+|   |   |   test_run_test_coverage_helpers.py
 |   |   |   test_service_utilities.py
 |   |   |   test_standard_exclusions.py
 |   |   |   test_static_analysis_tools.py
@@ -598,6 +606,7 @@ C:.
 |   |   |   test_tool_guide.py
 |   |   |   test_tool_wrappers_additional.py
 |   |   |   test_tool_wrappers_branch_paths.py
+|   |   |   test_tool_wrappers_cache_helpers.py
 |   |   |   test_tool_wrappers_package_exports.py
 |   |   |   test_tool_wrappers_static_analysis.py
 |   |   |   test_verification_summary.py

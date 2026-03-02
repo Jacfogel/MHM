@@ -357,6 +357,18 @@ Acceptance:
 - [ ] Active queue contains only reproducible/high-confidence suspects.
 - [ ] Each open suspect has explicit repro metadata.
 
+**Stabilize intermittent `test_tool_wrappers_cache_helpers` failure**
+- *What it means*: Investigate and fix the intermittent failure in `tests/development_tools/test_tool_wrappers_cache_helpers.py` observed during full Tier 3/dev-tools coverage runs.
+- *Why it helps*: Keeps development-tools coverage runs reliable and prevents false audit failures from test flakiness.
+- *Estimated effort*: Small/Medium
+- *User priority*: High/medium.
+- *Created*: 2026-03-01
+- *Subtasks*:
+  - [ ] Reproduce under the same execution mode used by Tier 3 coverage (`--dev-tools-only`, workerized runs)
+  - [ ] Capture root-cause evidence (mtime granularity, file-handle timing, cache key race, or environment leakage)
+  - [ ] Implement deterministic fix and keep the helper assertions strict (no silent weakening)
+  - [ ] Add regression coverage for the discovered failure mode
+
 ### 5.7 Phase 7: Coverage consistency, then growth
 
 **Use / fit**: Tests as validation checks; every bit helps. Higher overall coverage preferred. Priority domains: communication, check-in flow, backup, UI. **Deprioritize AI/context** until AI overhaul.

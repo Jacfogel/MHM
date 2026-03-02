@@ -317,6 +317,10 @@
     }
   },
   "coverage": {
+    "main_workers": null,
+    "dev_tools_workers": null,
+    "main_workers_when_concurrent": 6,
+    "dev_tools_workers_when_concurrent": 6,
     "pytest_command": [
       "python",
       "-m",

@@ -8,7 +8,7 @@ import pytest
 from tests.development_tools.conftest import load_development_tools_module
 
 # Patch at the module where config is imported from (development_tools.config)
-CONFIG_PATCH = "development_tools.config.get_external_value"
+CONFIG_PATCH = "development_tools.config.get_coverage_runtime_config"
 
 commands_module = load_development_tools_module("shared.service.commands")
 CommandsMixin = commands_module.CommandsMixin
@@ -84,8 +84,20 @@ def test_resolve_coverage_workers_concurrent_fallback(tmp_path):
         with patch("os.cpu_count", return_value=8):
             main_result = service._resolve_coverage_workers("main")
             dev_result = service._resolve_coverage_workers("dev_tools")
-    assert main_result == "4"
+    assert main_result == "6"
     assert dev_result == "2"
+
+
+@pytest.mark.unit
+def test_resolve_coverage_workers_dev_tools_serialized_windows_path(tmp_path):
+    """When coverage is serialized (Windows guardrail), dev-tools fallback matches main cap."""
+    service = _DummyService(tmp_path)
+    service._tier3_coverage_concurrent = True
+    service._tier3_coverage_serialized = True
+    with patch(CONFIG_PATCH, return_value={}):
+        with patch("os.cpu_count", return_value=8):
+            dev_result = service._resolve_coverage_workers("dev_tools")
+    assert dev_result == "6"
 
 
 @pytest.mark.unit
@@ -96,7 +108,7 @@ def test_resolve_coverage_workers_config_exception_uses_empty(tmp_path):
     with patch(CONFIG_PATCH, side_effect=ValueError("simulated")):
         with patch("os.cpu_count", return_value=8):
             result = service._resolve_coverage_workers("main")
-    assert result == "4"
+    assert result == "6"
 
 
 @pytest.mark.unit

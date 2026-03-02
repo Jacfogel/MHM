@@ -7,6 +7,7 @@ and managing audit state.
 # pyright: reportAttributeAccessIssue=false
 
 import json
+import os
 import time
 from datetime import datetime
 from pathlib import Path
@@ -19,6 +20,7 @@ logger = get_component_logger("development_tools")
 # Import output storage
 from ..output_storage import save_tool_result, get_all_tool_results, load_tool_result
 from ..file_rotation import create_output_file
+from ..lock_state import cleanup_lock_paths, evaluate_lock_set, write_lock_metadata
 
 # Module-level flag to track if ANY audit is in progress
 _AUDIT_IN_PROGRESS_GLOBAL = False
@@ -65,34 +67,42 @@ def _get_status_file_mtimes(project_root: Path) -> Dict[str, float]:
 
 
 def _is_audit_in_progress(project_root: Path) -> bool:
-    """Check if audit is in progress using both in-memory flag and file-based lock."""
+    """Check if audit is in progress using in-memory flag + active metadata locks."""
     global _AUDIT_IN_PROGRESS_GLOBAL, _AUDIT_LOCK_FILE
     if _AUDIT_IN_PROGRESS_GLOBAL:
         return True
-    if _AUDIT_LOCK_FILE is None:
-        # Use generic path relative to project root (no development_tools/ assumption)
-        try:
-            from ... import config
-            lock_file_path = config.get_external_value('paths.audit_lock_file', '.audit_in_progress.lock')
-            _AUDIT_LOCK_FILE = project_root / lock_file_path
-        except (ImportError, AttributeError):
-            _AUDIT_LOCK_FILE = project_root / '.audit_in_progress.lock'
-    audit_lock_exists = _AUDIT_LOCK_FILE.exists()
-    # Use generic path relative to project root (no development_tools/ assumption)
+
     try:
         from ... import config
-        coverage_lock_path = config.get_external_value('paths.coverage_lock_file', '.coverage_in_progress.lock')
-        coverage_lock_file = project_root / coverage_lock_path
+
+        audit_lock_path = config.get_external_value(
+            "paths.audit_lock_file", ".audit_in_progress.lock"
+        )
+        coverage_lock_path = config.get_external_value(
+            "paths.coverage_lock_file", ".coverage_in_progress.lock"
+        )
+        audit_lock_file = project_root / Path(audit_lock_path)
+        coverage_lock_file = project_root / Path(coverage_lock_path)
     except (ImportError, AttributeError):
-        coverage_lock_file = project_root / '.coverage_in_progress.lock'
-    coverage_lock_exists = coverage_lock_file.exists()
-    # Also check for dev tools coverage lock file (used when running in parallel)
-    dev_tools_coverage_lock_file = project_root / '.coverage_dev_tools_in_progress.lock'
-    dev_tools_coverage_lock_exists = dev_tools_coverage_lock_file.exists()
-    lock_exists = audit_lock_exists or coverage_lock_exists or dev_tools_coverage_lock_exists
-    if lock_exists:
-        logger.debug(f"Audit/coverage lock file check: audit={audit_lock_exists}, coverage={coverage_lock_exists}, dev_tools_coverage={dev_tools_coverage_lock_exists}")
-    return lock_exists
+        audit_lock_file = project_root / ".audit_in_progress.lock"
+        coverage_lock_file = project_root / ".coverage_in_progress.lock"
+    dev_tools_coverage_lock_file = (
+        coverage_lock_file.parent / ".coverage_dev_tools_in_progress.lock"
+    )
+    lock_states = evaluate_lock_set(
+        [audit_lock_file, coverage_lock_file, dev_tools_coverage_lock_file]
+    )
+    cleanup_targets = [
+        entry["path"]
+        for entry in (lock_states["stale"] + lock_states["malformed"])
+        if isinstance(entry.get("path"), Path)
+    ]
+    if cleanup_targets:
+        removed = cleanup_lock_paths(cleanup_targets)
+        logger.warning(
+            f"Removed {removed} stale/malformed audit lock file(s) during in-progress check"
+        )
+    return len(lock_states["active"]) > 0
 
 
 class AuditOrchestrationMixin:
@@ -180,6 +190,33 @@ class AuditOrchestrationMixin:
     ):
         """Run audit workflow with three-tier structure."""
         global _AUDIT_IN_PROGRESS_GLOBAL, _AUDIT_LOCK_FILE
+
+        lock_states = evaluate_lock_set(self._get_audit_related_lock_paths())
+        cleanup_targets = [
+            entry["path"]
+            for entry in (lock_states["stale"] + lock_states["malformed"])
+            if isinstance(entry.get("path"), Path)
+        ]
+        if cleanup_targets:
+            removed = cleanup_lock_paths(cleanup_targets)
+            logger.warning(
+                f"Removed {removed} stale/malformed audit lock file(s) before starting audit"
+            )
+        if lock_states["active"]:
+            lock_list = ", ".join(
+                str(entry["path"])
+                for entry in lock_states["active"]
+                if isinstance(entry.get("path"), Path)
+            )
+            print(
+                "Audit blocked: active audit/coverage lock file(s) present: "
+                f"{lock_list}"
+            )
+            logger.error(
+                "Audit blocked: active audit/coverage lock file(s) present: "
+                f"{lock_list}"
+            )
+            return False
         
         # Determine audit tier
         if quick:
@@ -210,6 +247,7 @@ class AuditOrchestrationMixin:
         # Track cache metadata per tool for timing diagnostics
         self._tool_cache_metadata = {}
         self.tier3_test_outcome = {}
+        self._internal_interrupt_detected = False
         # Track wall-clock runtime (accurate total audit duration with parallel execution)
         self._audit_wall_clock_start = time.perf_counter()
         
@@ -217,8 +255,8 @@ class AuditOrchestrationMixin:
         if _AUDIT_LOCK_FILE is None:
             _AUDIT_LOCK_FILE = self._get_audit_lock_file_path()
         try:
-            _AUDIT_LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
-            _AUDIT_LOCK_FILE.touch()
+            if not write_lock_metadata(_AUDIT_LOCK_FILE, lock_type="audit"):
+                raise RuntimeError("write_lock_metadata returned False for audit lock")
         except Exception as e:
             logger.warning(f"Failed to create audit lock file: {e}")
         
@@ -258,6 +296,20 @@ class AuditOrchestrationMixin:
                 tier3_success = self._run_full_audit_tools()
                 if not tier3_success:
                     success = False
+        except KeyboardInterrupt:
+            if bool(getattr(self, "_internal_interrupt_detected", False)):
+                print(
+                    "WARNING: Internal interrupt signature detected during Tier 3 coverage "
+                    "(SIGINT/control event propagated from subprocess). "
+                    "Treating audit as failed without user-interrupt exit."
+                )
+                logger.error(
+                    "Internal interrupt signature detected during Tier 3 coverage; "
+                    "continuing audit finalization with failure state."
+                )
+                success = False
+            else:
+                raise
         except Exception as e:
             print(f"ERROR: Error during audit execution: {e}")
             logger.error(f"Error during audit execution: {e}", exc_info=True)
@@ -270,10 +322,26 @@ class AuditOrchestrationMixin:
             logger.warning(f"Failed to save aggregated audit results: {e}", exc_info=True)
         
         # Reload cache data
-        self._reload_all_cache_data()
+        try:
+            self._reload_all_cache_data()
+        except KeyboardInterrupt:
+            setattr(self, "_internal_interrupt_detected", True)
+            success = False
+            logger.error(
+                "KeyboardInterrupt during audit finalization (_reload_all_cache_data); "
+                "treating as internal failure state."
+            )
         
         # Sync TODO.md with changelog
-        self._sync_todo_with_changelog()
+        try:
+            self._sync_todo_with_changelog()
+        except KeyboardInterrupt:
+            setattr(self, "_internal_interrupt_detected", True)
+            success = False
+            logger.error(
+                "KeyboardInterrupt during audit finalization (_sync_todo_with_changelog); "
+                "treating as internal failure state."
+            )
         
         # Validate referenced paths
         try:
@@ -429,6 +497,17 @@ class AuditOrchestrationMixin:
                 else:
                     print(f"Completed {operation_name} with tool failures")
                     logger.warning(f"Completed {operation_name} with tool failures")
+        except KeyboardInterrupt:
+            setattr(self, "_internal_interrupt_detected", True)
+            success = False
+            print(
+                "WARNING: KeyboardInterrupt occurred during audit finalization/report generation. "
+                "Treating as internal failure state, not direct user interrupt."
+            )
+            logger.error(
+                "KeyboardInterrupt during audit finalization/report generation; "
+                "treating as internal failure state."
+            )
         except Exception as e:
             print(f"ERROR: Error generating status files: {e}")
             logger.error(f"Error generating status files: {e}", exc_info=True)
@@ -1041,12 +1120,26 @@ class AuditOrchestrationMixin:
         ]
         
         # Independent groups that can run in parallel with each other.
-        tier3_parallel_groups = [
-            tier3_coverage_main_group,
-            tier3_coverage_dev_tools_group,
-            tier3_legacy_group,
-            tier3_static_analysis_group,
-        ]
+        if os.name == "nt":
+            # Windows guardrail: avoid running two nested coverage subprocess trees concurrently.
+            # This mitigates intermittent control-event propagation (STATUS_CONTROL_C_EXIT / KeyboardInterrupt)
+            # observed when both coverage commands launch pytest subprocesses at the same time.
+            logger.info(
+                "Windows Tier 3 coverage concurrency guard enabled: "
+                "running main + dev-tools coverage groups sequentially."
+            )
+            tier3_parallel_groups = [
+                tier3_coverage_main_group + tier3_coverage_dev_tools_group,
+                tier3_legacy_group,
+                tier3_static_analysis_group,
+            ]
+        else:
+            tier3_parallel_groups = [
+                tier3_coverage_main_group,
+                tier3_coverage_dev_tools_group,
+                tier3_legacy_group,
+                tier3_static_analysis_group,
+            ]
         
         # Run coverage and legacy groups in parallel (each group runs its tools sequentially)
         if tier3_parallel_groups:
@@ -1065,13 +1158,67 @@ class AuditOrchestrationMixin:
                     try:
                         result, elapsed_time = self._run_tool_with_timing(tool_name, tool_func)
                         group_results[tool_name] = (result, elapsed_time)
+                    except KeyboardInterrupt as exc:
+                        # Treat propagated control events from subprocess trees as internal failures,
+                        # not direct user interrupts of the top-level audit command.
+                        setattr(self, "_internal_interrupt_detected", True)
+                        logger.error(
+                            f"  - {tool_name} raised KeyboardInterrupt during Tier 3 group execution; "
+                            "recording tool failure and continuing audit finalization."
+                        )
+                        group_results[tool_name] = (
+                            {
+                                "success": False,
+                                "error": (
+                                    "Tool interrupted by KeyboardInterrupt "
+                                    "(SIGINT/control event propagated from subprocess)"
+                                ),
+                                "returncode": 130,
+                                "interrupted": True,
+                            },
+                            0.0,
+                        )
                     except Exception as exc:
                         logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
                         elapsed_time = exc.elapsed_time if isinstance(exc, ToolExecutionError) else 0.0
                         group_results[tool_name] = ({'success': False, 'error': str(exc)}, elapsed_time)
                 return group_results
             
+            def _apply_group_results(
+                group_results: Dict[str, Any],
+                group_wall_clock: float,
+                successful_tools: List[str],
+                failed_tools: List[str],
+                parallel_times: Dict[str, float],
+            ) -> None:
+                """Apply completed group results into orchestration state."""
+                for tool_name, (result, elapsed_time) in group_results.items():
+                    self._tool_timings[tool_name] = elapsed_time
+                    parallel_times[tool_name] = group_wall_clock
+                    logger.debug(
+                        f"  - {tool_name} completed in {elapsed_time:.2f}s "
+                        f"(wall-clock: {group_wall_clock:.2f}s)"
+                    )
+                    if isinstance(result, dict):
+                        success = result.get('success', False)
+                        if 'data' in result:
+                            self._extract_key_info(tool_name, result)
+                    else:
+                        success = bool(result)
+                    self._record_tool_cache_metadata(tool_name, result)
+                    if success:
+                        self._tool_execution_status[tool_name] = 'success'
+                        successful_tools.append(tool_name)
+                        self._tools_run_in_current_tier.add(tool_name)
+                    else:
+                        self._tool_execution_status[tool_name] = 'failed'
+                        failed_tools.append(tool_name)
+                        logger.warning(
+                            f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data"
+                        )
+
             self._tier3_coverage_concurrent = True
+            self._tier3_coverage_serialized = os.name == "nt"
             try:
                 with ThreadPoolExecutor(max_workers=len(tier3_parallel_groups)) as executor:
                     future_to_group = {
@@ -1081,31 +1228,68 @@ class AuditOrchestrationMixin:
                     
                     # Track when all parallel groups complete for accurate timing
                     parallel_group_times = {}
-                    for future in as_completed(future_to_group):
-                        group_results = future.result()
-                        group_end_time = time.time()
-                        group_wall_clock = group_end_time - parallel_start_time
-                        for tool_name, (result, elapsed_time) in group_results.items():
-                            self._tool_timings[tool_name] = elapsed_time
-                            parallel_group_times[tool_name] = group_wall_clock
-                            logger.debug(f"  - {tool_name} completed in {elapsed_time:.2f}s (wall-clock: {group_wall_clock:.2f}s)")
-                            if isinstance(result, dict):
-                                success = result.get('success', False)
-                                if 'data' in result:
-                                    self._extract_key_info(tool_name, result)
-                            else:
-                                success = bool(result)
-                            self._record_tool_cache_metadata(tool_name, result)
-                            if success:
-                                self._tool_execution_status[tool_name] = 'success'
-                                successful.append(tool_name)
-                                self._tools_run_in_current_tier.add(tool_name)
-                            else:
-                                self._tool_execution_status[tool_name] = 'failed'
-                                failed.append(tool_name)
-                                logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+                    processed_futures = set()
+                    try:
+                        for future in as_completed(future_to_group):
+                            try:
+                                group_results = future.result()
+                            except KeyboardInterrupt:
+                                setattr(self, "_internal_interrupt_detected", True)
+                                logger.error(
+                                    "Tier 3 worker group future raised KeyboardInterrupt; "
+                                    "continuing with failure state."
+                                )
+                                continue
+                            processed_futures.add(future)
+                            group_end_time = time.time()
+                            group_wall_clock = group_end_time - parallel_start_time
+                            _apply_group_results(
+                                group_results=group_results,
+                                group_wall_clock=group_wall_clock,
+                                successful_tools=successful,
+                                failed_tools=failed,
+                                parallel_times=parallel_group_times,
+                            )
+                    except KeyboardInterrupt:
+                        def _is_done(fut) -> bool:
+                            try:
+                                return bool(fut.done())
+                            except Exception:
+                                return False
+
+                        all_done = all(_is_done(fut) for fut in future_to_group)
+                        if all_done:
+                            # Drain any completed futures not yet applied so tool timings remain complete.
+                            for fut in future_to_group:
+                                if fut in processed_futures or not _is_done(fut):
+                                    continue
+                                try:
+                                    drained_results = fut.result()
+                                except Exception:
+                                    continue
+                                _apply_group_results(
+                                    group_results=drained_results,
+                                    group_wall_clock=time.time() - parallel_start_time,
+                                    successful_tools=successful,
+                                    failed_tools=failed,
+                                    parallel_times=parallel_group_times,
+                                )
+                                processed_futures.add(fut)
+                            logger.info(
+                                "Tier 3 parallel completion loop received KeyboardInterrupt "
+                                "after all futures completed; treated as non-blocking signal noise."
+                            )
+                        else:
+                            setattr(self, "_internal_interrupt_detected", True)
+                            logger.error(
+                                "Tier 3 parallel completion loop interrupted by KeyboardInterrupt; "
+                                "marking Tier 3 as failed and continuing finalization."
+                            )
+                            if "tier3_parallel_execution" not in failed:
+                                failed.append("tier3_parallel_execution")
             finally:
                 self._tier3_coverage_concurrent = False
+                self._tier3_coverage_serialized = False
             
             # Log parallel execution summary
             if parallel_group_times:
@@ -1135,6 +1319,19 @@ class AuditOrchestrationMixin:
                     self._tool_execution_status[tool_name] = 'failed'
                     failed.append(tool_name)
                     logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+            except KeyboardInterrupt:
+                setattr(self, "_internal_interrupt_detected", True)
+                elapsed_time = 0.0
+                self._tool_timings[tool_name] = elapsed_time
+                self._tool_execution_status[tool_name] = 'failed'
+                failed.append(tool_name)
+                logger.error(
+                    f"  - {tool_name} raised KeyboardInterrupt during Tier 3 dependent execution; "
+                    "recording failure and continuing."
+                )
+                logger.warning(
+                    f"[TOOL FAILURE] {tool_name} interrupted by control event - reports may use cached/fallback data"
+                )
             except Exception as exc:
                 elapsed_time = exc.elapsed_time if isinstance(exc, ToolExecutionError) else 0.0
                 self._tool_timings[tool_name] = elapsed_time
@@ -1706,8 +1903,29 @@ class AuditOrchestrationMixin:
                 except (json.JSONDecodeError, OSError):
                     existing_data = {}
             
+            def _to_human_timestamp(raw_value: object) -> str:
+                """Normalize timestamps to human-readable format."""
+                if isinstance(raw_value, str) and raw_value.strip():
+                    candidate = raw_value.strip()
+                    for parser in (
+                        lambda v: datetime.strptime(v, "%Y-%m-%d %H:%M:%S"),
+                        lambda v: datetime.fromisoformat(v.replace("Z", "")),
+                    ):
+                        try:
+                            return parser(candidate).strftime("%Y-%m-%d %H:%M:%S")
+                        except Exception:
+                            continue
+                return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            # Normalize any pre-existing run timestamps.
+            for existing_run in existing_data.get("runs", []) if isinstance(existing_data.get("runs"), list) else []:
+                if isinstance(existing_run, dict):
+                    existing_run["timestamp"] = _to_human_timestamp(
+                        existing_run.get("timestamp")
+                    )
+
             # Add new timing entry
-            timestamp = datetime.now().isoformat()
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             tier_name = {1: 'quick', 2: 'standard', 3: 'full'}.get(tier, 'unknown')
             tool_timings = self._tool_timings.copy()
             expected_tools = self._get_expected_tools_for_tier(tier)
@@ -1783,3 +2001,11 @@ class AuditOrchestrationMixin:
                     logger.warning(f"   TODO sync: {message}")
         except Exception as exc:
             logger.warning(f"   TODO sync failed: {exc}")
+    def _get_audit_related_lock_paths(self) -> List[Path]:
+        """Return lock paths used by audit/coverage operations."""
+        audit_lock = self._get_audit_lock_file_path()
+        coverage_lock = self._get_coverage_lock_file_path()
+        dev_tools_coverage_lock = (
+            coverage_lock.parent / ".coverage_dev_tools_in_progress.lock"
+        )
+        return [audit_lock, coverage_lock, dev_tools_coverage_lock]

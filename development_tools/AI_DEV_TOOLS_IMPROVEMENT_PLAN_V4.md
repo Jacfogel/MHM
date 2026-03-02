@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-02-28 (User-priority Q&A applied)
+> **Last Updated**: 2026-03-01 (Tier 3 outcome and coverage-runtime follow-ups)
 
 This is an updated, condensed roadmap based on V3 and prior audits. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -165,7 +165,15 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [x] Added interrupted-audit lock cleanup in CLI runner:
   - `development_tools/run_development_tools.py` now catches `KeyboardInterrupt` for `audit`/`full-audit` and removes audit/coverage lock files before exiting.
   - Added regression test: `tests/development_tools/test_integration_workflows.py::test_audit_keyboard_interrupt_cleans_up_lock_files`.
-- [ ] Extend lock handling beyond `KeyboardInterrupt` path to robust stale-lock recovery for hard-kill/process-crash scenarios (metadata-backed active/stale detection). *User priority*: Yes—prioritize.
+- [x] Extend lock handling beyond `KeyboardInterrupt` path to robust stale-lock recovery for hard-kill/process-crash scenarios (metadata-backed active/stale detection). *User priority*: Yes—prioritize.
+  - Added `development_tools/shared/lock_state.py` for lock metadata writes/reads, PID liveness, lock-state evaluation, and cleanup helpers.
+  - `audit_orchestration` now auto-cleans stale/malformed locks and blocks only on active locks before starting audit.
+  - `run_development_tools.py` now performs audit preflight stale-lock cleanup and active-lock blocking.
+  - `commands.py` lock checks are state-aware; `run_docs()` blocks only on active locks.
+  - Added/updated tests:
+    - `tests/development_tools/test_audit_orchestration_helpers.py`
+    - `tests/development_tools/test_commands_docs_locks.py`
+    - `tests/development_tools/test_integration_workflows.py`
 
 #### 1.2 Restore audit status tests without memory leak
 **Status**: PENDING  
@@ -250,6 +258,16 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [x] Document slow-test patterns and recommendations (e.g., `test_report_generation_quick_wins.py` style mocking; `@pytest.mark.slow` for audit e2e)
   - Immediate pattern: CLI/integration-style tests that invoke real `AIToolsService` and filesystem-heavy fixture copies dominate total runtime
   - Recommendation: prioritize service mocking in legacy/path-drift/status timing tests first, then evaluate `temp_project_copy` module-scoping where shared-state risk is low
+- [x] Increase concurrent coverage worker fallback from 4 to 6 for main coverage track
+  - Updated `development_tools/shared/service/commands.py::_resolve_coverage_workers` concurrent main fallback to return `6` workers on typical 8-core hosts (with safe lower-bound behavior on smaller hosts).
+  - Added explicit coverage runtime keys/defaults: `main_workers`, `dev_tools_workers`, `main_workers_when_concurrent`, `dev_tools_workers_when_concurrent`.
+  - Updated config/docs surfaces:
+    - `development_tools/config/config.py`
+    - `development_tools/config/development_tools_config.json`
+    - `development_tools/config/development_tools_config.json.example`
+    - `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`
+    - `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`
+  - Updated tests: `tests/development_tools/test_commands_coverage_helpers.py`
 - [ ] Consider `scope="module"` for `temp_project_copy` where tests do not mutate shared state
 - [x] Add `@pytest.mark.slow` to audit-tier/e2e tests if excluding from default CI runs would help
   - Added `@pytest.mark.slow` to top-duration dev-tools tests in:
@@ -367,7 +385,12 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [x] Ensure AI_STATUS/AI_PRIORITIES/consolidated report carry the same failure state and do not imply a clean run
 - [x] Include development-tools test track in Tier 3 outcome state handling and strict-exit decisioning
 - [x] Surface actionable `classification_reason`, `return_code_hex`, and relevant `log_file` paths in Tier 3 report sections
-- [ ] Follow-up: refine cache-only legacy outcome normalization so valid cached coverage runs do not emit false `coverage_failed` states when legacy state-only track payloads are bridged
+- [x] Follow-up: refine cache-only legacy outcome normalization so valid cached coverage runs do not emit false `coverage_failed` states when legacy state-only track payloads are bridged (2026-03-01)
+  - Updated `development_tools/shared/service/commands.py::run_coverage_regeneration` to synthesize/normalize Tier 3 state from `coverage_collected` payloads when `coverage_outcome` is missing in cache-only legacy paths.
+  - Added regression test: `tests/development_tools/test_audit_strict_mode.py::test_run_coverage_regeneration_cache_only_payload_without_coverage_outcome`.
+
+- [ ] Follow-up: stabilize intermittent `tests/development_tools/test_tool_wrappers_cache_helpers.py::test_compute_source_signature_changes_when_source_changes` failures under full Tier 3/dev-tools coverage runs
+  - Reproduce with Tier 3-equivalent execution mode and capture root-cause timing/signature evidence before adjusting helper behavior.
 
 *User priority for Tier 3 follow-ups*: High. Proper legacy removal and clean, efficient codebase important.
 

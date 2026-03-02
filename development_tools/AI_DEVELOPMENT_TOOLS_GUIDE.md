@@ -65,6 +65,10 @@ python development_tools/run_development_tools.py help
 
 **Configuration**: External config file `development_tools/config/development_tools_config.json` can override paths, project settings, audit behavior, and other configuration. See `development_tools/development_tools_config.json.example` for structure.
 
+**Lock handling**: Audit/coverage locks use metadata JSON payloads in the existing lock files. Stale or malformed locks are auto-cleaned; active locks (live PID within stale window) block conflicting `audit`, `full-audit`, and `docs` operations.
+
+**Coverage worker config keys** (`coverage` section): `main_workers`, `dev_tools_workers`, `main_workers_when_concurrent`, `dev_tools_workers_when_concurrent`. Tier 3 concurrent defaults are `6` (main) and `2` (dev-tools) unless overridden.
+
 ---
 
 ## 3. Audit Modes and Outputs
