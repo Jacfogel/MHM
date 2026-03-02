@@ -70,15 +70,36 @@ def render_ruff_toml(exclusions: List[str]) -> str:
     )
 
 
-def sync_ruff_toml(project_root: Path) -> Path:
-    path = project_root / ".ruff.toml"
-    content = render_ruff_toml(collect_ruff_exclusions())
+def _resolve_config_path(project_root: Path, config_path: Path | str | None) -> Path:
+    if config_path is None:
+        return project_root / "development_tools" / "config" / "ruff.toml"
+    path = Path(config_path)
+    if path.is_absolute():
+        return path
+    return project_root / path
+
+
+def _write_if_changed(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     existing = ""
     if path.exists():
         existing = path.read_text(encoding="utf-8")
     if content != existing:
         path.write_text(content, encoding="utf-8")
-    return path
+
+
+def sync_ruff_toml(
+    project_root: Path,
+    *,
+    config_path: Path | str | None = None,
+    sync_root_compat: bool = True,
+) -> Path:
+    owned_path = _resolve_config_path(project_root, config_path)
+    content = render_ruff_toml(collect_ruff_exclusions())
+    _write_if_changed(owned_path, content)
+    if sync_root_compat:
+        _write_if_changed(project_root / ".ruff.toml", content)
+    return owned_path
 
 
 def main() -> int:
@@ -88,10 +109,27 @@ def main() -> int:
         default=".",
         help="Project root where ruff.toml is written.",
     )
+    parser.add_argument(
+        "--config-path",
+        default="development_tools/config/ruff.toml",
+        help="Owned Ruff config path relative to project root (or absolute).",
+    )
+    parser.add_argument(
+        "--no-root-compat",
+        action="store_true",
+        help="Do not generate compatibility .ruff.toml at repository root.",
+    )
     args = parser.parse_args()
     project_root = Path(args.project_root).resolve()
-    output_path = sync_ruff_toml(project_root)
-    print(f"Generated {output_path}")
+    output_path = sync_ruff_toml(
+        project_root,
+        config_path=args.config_path,
+        sync_root_compat=not args.no_root_compat,
+    )
+    if args.no_root_compat:
+        print(f"Generated {output_path}")
+    else:
+        print(f"Generated {output_path} and {project_root / '.ruff.toml'}")
     return 0
 
 

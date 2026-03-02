@@ -862,8 +862,11 @@ def get_unused_imports_config():
 STATIC_ANALYSIS = {
     "pyright_command": ["python", "-m", "pyright"],
     "pyright_args": ["--outputjson"],
+    "pyright_project_path": "development_tools/config/pyrightconfig.json",
     "ruff_command": ["python", "-m", "ruff"],
     "ruff_args": ["check", ".", "--output-format", "json"],
+    "ruff_config_path": "development_tools/config/ruff.toml",
+    "ruff_sync_root_compat": True,
     "timeout_seconds": 600,
 }
 

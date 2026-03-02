@@ -1,5 +1,6 @@
 """Tests for static analysis wrapper scripts (ruff + pyright)."""
 
+from pathlib import Path
 import pytest
 
 from tests.development_tools.conftest import load_development_tools_module
@@ -65,3 +66,127 @@ def test_analyze_ruff_unavailable_command_returns_warn(monkeypatch, temp_project
 
     assert result["summary"]["status"] == "WARN"
     assert result["details"]["tool_available"] is False
+
+
+@pytest.mark.unit
+def test_analyze_ruff_passes_owned_config_path(monkeypatch, temp_project_copy):
+    calls = []
+
+    monkeypatch.setattr(
+        ruff_module.config,
+        "get_static_analysis_config",
+        lambda: {
+            "ruff_command": ["python", "-m", "ruff"],
+            "ruff_args": ["check", ".", "--output-format", "json"],
+            "ruff_config_path": "development_tools/config/ruff.toml",
+            "ruff_sync_root_compat": False,
+            "timeout_seconds": 10,
+        },
+    )
+    monkeypatch.setattr(
+        ruff_module,
+        "sync_ruff_toml",
+        lambda project_root, config_path, sync_root_compat: Path(project_root)
+        / Path(config_path),
+    )
+
+    def _fake_run(cmd, **kwargs):
+        calls.append((cmd, kwargs))
+
+        class _Result:
+            returncode = 0
+            stdout = "[]"
+            stderr = ""
+
+        return _Result()
+
+    monkeypatch.setattr(ruff_module.subprocess, "run", _fake_run)
+
+    result = ruff_module.run_ruff(temp_project_copy)
+
+    assert result["summary"]["status"] == "PASS"
+    cmd, kwargs = calls[0]
+    assert "--config" in cmd
+    config_index = cmd.index("--config") + 1
+    assert cmd[config_index].replace("\\", "/").endswith(
+        "development_tools/config/ruff.toml"
+    )
+    assert kwargs["cwd"] == str(temp_project_copy)
+
+
+@pytest.mark.unit
+def test_analyze_pyright_passes_owned_project_path(monkeypatch, temp_project_copy):
+    calls = []
+
+    monkeypatch.setattr(
+        pyright_module.config,
+        "get_static_analysis_config",
+        lambda: {
+            "pyright_command": ["python", "-m", "pyright"],
+            "pyright_args": ["--outputjson"],
+            "pyright_project_path": "development_tools/config/pyrightconfig.json",
+            "timeout_seconds": 10,
+        },
+    )
+
+    def _fake_run(cmd, **kwargs):
+        calls.append((cmd, kwargs))
+
+        class _Result:
+            returncode = 0
+            stdout = (
+                '{"summary":{"filesAnalyzed":1,"errorCount":0,'
+                '"warningCount":0,"informationCount":0},"generalDiagnostics":[]}'
+            )
+            stderr = ""
+
+        return _Result()
+
+    monkeypatch.setattr(pyright_module.subprocess, "run", _fake_run)
+
+    result = pyright_module.run_pyright(temp_project_copy)
+
+    assert result["summary"]["status"] == "PASS"
+    cmd, kwargs = calls[0]
+    assert "--project" in cmd
+    project_index = cmd.index("--project") + 1
+    assert cmd[project_index].replace("\\", "/").endswith(
+        "development_tools/config/pyrightconfig.json"
+    )
+    assert kwargs["cwd"] == str(temp_project_copy)
+
+
+@pytest.mark.unit
+def test_analyze_pyright_respects_existing_project_arg(monkeypatch, temp_project_copy):
+    calls = []
+
+    monkeypatch.setattr(
+        pyright_module.config,
+        "get_static_analysis_config",
+        lambda: {
+            "pyright_command": ["python", "-m", "pyright"],
+            "pyright_args": ["--outputjson", "--project", "custom_pyright.json"],
+            "pyright_project_path": "development_tools/config/pyrightconfig.json",
+            "timeout_seconds": 10,
+        },
+    )
+
+    def _fake_run(cmd, **_kwargs):
+        calls.append(cmd)
+
+        class _Result:
+            returncode = 0
+            stdout = (
+                '{"summary":{"filesAnalyzed":1,"errorCount":0,'
+                '"warningCount":0,"informationCount":0},"generalDiagnostics":[]}'
+            )
+            stderr = ""
+
+        return _Result()
+
+    monkeypatch.setattr(pyright_module.subprocess, "run", _fake_run)
+    pyright_module.run_pyright(temp_project_copy)
+
+    cmd = calls[0]
+    assert cmd.count("--project") == 1
+    assert "custom_pyright.json" in cmd

@@ -66,6 +66,13 @@ python development_tools/run_development_tools.py help
 
 **Configuration**: External config file `development_tools/config/development_tools_config.json` can override paths, project settings, audit behavior, and other configuration. See `development_tools/development_tools_config.json.example` for structure.
 
+**Static analysis config ownership**:
+- Ruff owned config path: `static_analysis.ruff_config_path` (default `development_tools/config/ruff.toml`)
+- Pyright owned project config path: `static_analysis.pyright_project_path` (default `development_tools/config/pyrightconfig.json`)
+- Root Ruff compatibility mirror toggle: `static_analysis.ruff_sync_root_compat` (default `true`)
+- `analyze_ruff` always passes explicit `--config` to the owned Ruff config path.
+- `analyze_pyright` always passes explicit `--project` to the owned Pyright config path unless `--project` is already present in `static_analysis.pyright_args`.
+
 **Lock handling**: Audit/coverage locks use metadata JSON payloads in the existing lock files. Stale or malformed locks are auto-cleaned; active locks (live PID within stale window) block conflicting `audit`, `full-audit`, and `docs` operations.
 
 **Coverage worker config keys** (`coverage` section): `main_workers`, `dev_tools_workers`, `main_workers_when_concurrent`, `dev_tools_workers_when_concurrent`. Tier 3 concurrent defaults are `6` (main) and `2` (dev-tools) unless overridden.

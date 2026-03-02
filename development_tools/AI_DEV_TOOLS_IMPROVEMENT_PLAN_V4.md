@@ -468,8 +468,8 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 **Status**: REVIEWED  
 **Tasks**:
 - [x] Review `development_tools/scripts/` purpose and contents - **Moved and removed**: `measure_tool_timings.py` and `verify_tool_storage.py` moved to `development_tools/shared/`; `development_tools/scripts/` deleted
-- [x] Decide proper location for `tool_timings.json` - **Canonical**: `development_tools/reports/tool_timings.json` (used by `_save_timing_data()` in audit_orchestration.py)
-- [x] Document the decision - tool_timings.json is written by audit orchestration after tier execution; location is correct
+- [x] Decide proper location for `tool_timings.json` - **Canonical**: `development_tools/reports/jsons/tool_timings.json` (used by `_save_timing_data()` in audit_orchestration.py)
+- [x] Document the decision - tool_timings.json is written by audit orchestration after tier execution; location is under `reports/jsons/` with other JSON artifacts
 
 #### 3.5 Expand analyze_duplicate_functions with body/structural similarity
 **Status**: PENDING  
@@ -614,12 +614,25 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [ ] If proceeding: implement refactors in small steps with tests and full audit validation after each step
 
 #### 3.17 Portability and Project-Independence Compliance Sweep
-**Status**: PENDING  
+**Status**: IN PROGRESS  
 **User priority**: High.  
+**2026-03-02 Progress (Portability inventory + static-tooling slice):**
+- Implemented config-owned static analysis paths and explicit invocation:
+  - Ruff now syncs/uses `development_tools/config/ruff.toml` as owned config and can optionally mirror root `.ruff.toml` for compatibility.
+  - Pyright now uses explicit `--project development_tools/config/pyrightconfig.json` unless `--project` is already provided in config args.
+- Added inventory snapshot of hardcoded path hotspots still pending refactor:
+  - `development_tools/run_dev_tools.py` (`Path(__file__).parent.parent` bootstrap path assumptions)
+  - `development_tools/run_development_tools.py` (`tests/data` cleanup path and lock-file default path assumptions)
+  - `development_tools/config/analyze_config.py` (`Path(__file__).parent.parent.parent` + fixed dev-tools directory assumptions)
+  - `development_tools/functions/generate_function_registry.py` (project-root inference from module location)
+- Exclusion consistency status: core scanner paths are now broadly standardized on `should_exclude_file(...)`; remaining work is verification-depth hardening and import-boundary enforcement.
+- Validation this session:
+  - Passed: targeted static-analysis/config/sync tests and `audit --quick`
+  - Blocked in this environment: `audit --full --strict` run terminated by runtime limit (~304s), so full portability validation remains open
 **Tasks**:
-- [ ] Audit all tools under `development_tools/**` for hardcoded project paths and replace with config/shared helpers (`config.py`, `shared/common.py`, `shared/constants.py`, `shared/standard_exclusions.py`)
+- [x] Audit representative tools under `development_tools/**` for portability hotspots and document concrete hardcoded-path follow-up targets (2026-03-02 inventory above)
 - [ ] Ensure test/discovery paths are config-driven (for example `paths.tests_dir`, `paths.tests_data_dir`) with generic defaults and project overrides in `development_tools/config/development_tools_config.json`
-- [ ] Remove project-specific runtime artifact name assumptions from analyzers/exclusions (use generic patterns and config-driven markers)
+- [x] Remove static-tooling root-config assumptions by making Ruff/Pyright use explicit config-owned paths with external-config overrides
 - [ ] Validate each scanning tool applies standard exclusions consistently via `should_exclude_file(...)` where applicable
 - [ ] TODO: add/enable an import-boundary check that flags non-approved imports from project business domains inside `development_tools/**` (keep tools isolated from MHM business logic)
 - [ ] Run portability validation pass (targeted tests + `audit --full`) and document findings/fixes in changelog and this roadmap
@@ -794,12 +807,12 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 
 ## 7.6 Portability Follow-Up: Static Tooling and Packaging
 **User priority**: High/medium.  
-- [ ] Document current compromise: `.ruff.toml` currently lives at repo root for compatibility with direct `ruff check .` workflows; this is acceptable short-term but not ideal for a drop-in `development_tools/` suite.
-- [ ] Explore moving Ruff config ownership fully under `development_tools/config/` while preserving UX:
+- [x] Document current compromise: `.ruff.toml` remains at repo root as a compatibility mirror for direct `ruff check .` workflows; owned config now lives under `development_tools/config/ruff.toml`.
+- [x] Explore moving Ruff config ownership fully under `development_tools/config/` while preserving UX:
   - Evaluate wrappers/commands that always pass `--config development_tools/config/ruff.toml` (or generated equivalent).
   - Evaluate a sync strategy that avoids requiring a root-level `.ruff.toml` in host repos.
   - Define migration path and backward compatibility expectations for existing repos.
-- [ ] Explore Pyright parity with Ruff config strategy:
+- [x] Explore Pyright parity with Ruff config strategy:
   - Assess whether `pyrightconfig.json` can be owned under `development_tools/config/` with explicit `--project` usage in wrappers.
   - Define how to avoid collisions with host-repo Pyright settings while keeping dev-tools audits reproducible.
 - [ ] Evaluate development-tools-specific dependency management:
@@ -809,6 +822,20 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 - [ ] Add portability acceptance criteria and tests:
   - Fixture-based validation that the suite runs in a minimal external repo with no root lint/type config files.
   - Validation that reports remain complete when host-repo lint/type configs differ from dev-tools defaults.
+
+**2026-03-02 Current situation (dual config files):**
+- Keep both Pyright configs for now:
+  - Root `pyrightconfig.json` remains the current whole-repo baseline used by direct/IDE workflows.
+  - `development_tools/config/pyrightconfig.json` remains dev-tools-owned for portability work, but current diagnostics are not yet comparable to root baseline.
+- Keep both Ruff configs for now:
+  - Root `.ruff.toml` remains compatibility mirror for direct `ruff check .`.
+  - `development_tools/config/ruff.toml` is the owned config path for dev-tools wrappers.
+
+**2026-03-02 Next steps (required before reducing to a single baseline):**
+- [ ] Align dev-tools Pyright invocation/config so `analyze_pyright` produces diagnostics comparable to the root baseline (no artificial drops from config scope/resolution drift).
+- [ ] Add regression tests that run both root and dev-tools Pyright paths and fail if error/warning deltas exceed agreed tolerance without explicit exclusions.
+- [ ] Decide whether to keep root `.ruff.toml` permanently as compatibility mirror or deprecate it after external-repo portability acceptance criteria are met.
+- [ ] If root configs are later deprecated, document migration and fallback behavior clearly in both AI and human guides before removal.
 
 ## 7.7 Directory Taxonomy and Config Boundary Cleanup
 **User priority**: High/medium.  

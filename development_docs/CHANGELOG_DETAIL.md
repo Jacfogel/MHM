@@ -33,6 +33,50 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-02 - Portability compliance sweep + closeout (static-tooling ownership and timing-path relocation)
+- **Feature/Fix**: Completed a single portability session that implemented static-analysis config ownership, relocated timing artifacts to the standard reports JSON location, documented follow-ups, and validated no regressions in the user-run full audit.
+- **Technical Changes**:
+  - Static-tooling ownership slice:
+    - `development_tools/config/config.py`: extended `STATIC_ANALYSIS` with `ruff_config_path`, `pyright_project_path`, and `ruff_sync_root_compat`.
+    - `development_tools/config/sync_ruff_toml.py`: added owned-config support (`config_path`) and root compatibility mirror toggle (`sync_root_compat`), plus CLI options `--config-path` and `--no-root-compat`.
+    - `development_tools/static_checks/analyze_ruff.py`: now always passes explicit `--config` to owned Ruff config path.
+    - `development_tools/static_checks/analyze_pyright.py`: appends explicit `--project <owned path>` when `--project` is not already configured.
+    - Added owned config files/surfaces:
+      - `development_tools/config/pyrightconfig.json`
+      - `development_tools/config/development_tools_config.json`
+      - `development_tools/config/development_tools_config.json.example`
+  - Timing artifact relocation:
+    - `development_tools/shared/service/audit_orchestration.py` now writes timing data to `development_tools/reports/jsons/tool_timings.json` (previously `development_tools/reports/tool_timings.json`).
+    - Updated impacted tests/fixtures:
+      - `tests/development_tools/test_audit_orchestration_helpers.py`
+      - `tests/development_tools/test_output_storage_archiving.py`
+      - `tests/fixtures/development_tools_demo/development_tools/reports/jsons/tool_timings.json`
+  - Documentation/planning sync:
+    - Updated paired tool guides:
+      - [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
+      - [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)
+    - Updated [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md):
+      - `3.4` canonical timing location set to `reports/jsons`
+      - `3.17` portability inventory/progress updated
+      - `7.6` expanded with dual-config status (root + dev-tools Pyright/Ruff) and explicit next-step criteria
+    - Updated `TODO.md` and `development_docs/PLANS.md` to keep follow-up ownership in the dev-tools planning track.
+  - Regression coverage added/updated:
+    - `tests/development_tools/test_static_analysis_tools.py`
+    - `tests/development_tools/test_config.py`
+    - `tests/development_tools/test_sync_ruff_toml.py` (new)
+  - Regenerated audit/report artifacts and paired generated docs in working tree (`AI_STATUS`, `AI_PRIORITIES`, `consolidated_report`, `analysis_detailed_results`, and paired generated registries/reports).
+- **Validation**:
+  - `pytest tests/development_tools/test_static_analysis_tools.py -q` -> pass
+  - `pytest tests/development_tools/test_tool_wrappers_static_analysis.py -q` -> pass
+  - `pytest tests/development_tools/test_config.py -q` -> pass
+  - `pytest tests/development_tools/test_sync_ruff_toml.py -q` -> pass
+  - `pytest tests/development_tools/test_audit_orchestration_helpers.py -k save_timing_data_writes_expected_metadata -q` -> pass
+  - `pytest tests/development_tools/test_output_storage_archiving.py -k no_json_files_in_domain_root -q` -> pass
+  - `python development_tools/run_development_tools.py audit --quick` -> pass
+  - `python development_tools/run_development_tools.py audit --full --strict` -> blocked earlier in this execution environment (process terminated around 304s)
+  - User-run: `python development_tools/run_development_tools.py audit --full` -> no regressions reported (doc-fix-only follow-up).
+- **Impact**: Development-tools static analysis and timing outputs now follow clearer portability/storage contracts, with explicit compatibility posture (root + owned configs) and documented next steps to align diagnostics before any deprecation of root-level compatibility files.
+
 ### 2026-03-02 - Tooling policy hardening, CI enforcement, and dev-tools coverage parallelization
 - **Feature/Fix**: Completed the tooling-consistency migration from standalone command to policy-test ownership, hardened policy enforcement, added CI gating, and fixed dev-tools coverage worker scaling so configured xdist workers are actually used.
 - **Technical Changes**:
@@ -70,11 +114,11 @@ When adding new changes, follow this format:
     - Added regression test:
       - `tests/development_tools/test_regenerate_coverage_metrics.py::test_run_dev_tools_coverage_uses_parallel_worker_flags_when_enabled`
   - Planning/doc updates:
-    - Marked roadmap item `3.11.1` complete in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`.
+    - Marked roadmap item `3.11.1` complete in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
     - Updated paired guides:
-      - `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`
-      - `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`
-    - Updated AI summary changelog entry in `ai_development_docs/AI_CHANGELOG.md`.
+      - [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
+      - [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)
+    - Updated AI summary changelog entry in [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md).
   - Session regenerated standard dev-tools report artifacts during validation/smoke runs:
     - `development_tools/AI_STATUS.md`
     - `development_tools/AI_PRIORITIES.md`

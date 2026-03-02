@@ -729,6 +729,7 @@
     "pyright_args": [
       "--outputjson"
     ],
+    "pyright_project_path": "development_tools/config/pyrightconfig.json",
     "ruff_command": [
       "python",
       "-m",
@@ -740,6 +741,8 @@
       "--output-format",
       "json"
     ],
+    "ruff_config_path": "development_tools/config/ruff.toml",
+    "ruff_sync_root_compat": true,
     "timeout_seconds": 600
   },
   "quick_status": {

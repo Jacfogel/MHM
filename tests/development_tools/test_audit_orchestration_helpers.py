@@ -130,7 +130,13 @@ def test_save_timing_data_writes_expected_metadata(temp_project_copy: Path):
 
     service._save_timing_data(tier=2, audit_success=True)
 
-    timing_file = temp_project_copy / "development_tools" / "reports" / "tool_timings.json"
+    timing_file = (
+        temp_project_copy
+        / "development_tools"
+        / "reports"
+        / "jsons"
+        / "tool_timings.json"
+    )
     assert timing_file.exists()
 
     payload = json.loads(timing_file.read_text(encoding="utf-8"))

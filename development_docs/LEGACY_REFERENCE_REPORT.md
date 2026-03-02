@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-01 23:50:52
+> **Last Generated**: 2026-03-02 00:54:39
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 9
 **Legacy Compatibility Markers Detected**: 14
@@ -54,7 +54,7 @@
 ### development_tools\config\config.py
 **Issues Found**: 1
 
-- **Line 1064**: `backward compatibility`
+- **Line 1067**: `backward compatibility`
   ```
   Checks 'fix_function_docstrings' first, then 'generate_function_docstrings' for backward compatibility."""
   ```
@@ -70,7 +70,7 @@
 ### development_tools\shared\service\audit_orchestration.py
 **Issues Found**: 1
 
-- **Line 1953**: `Backward compatibility`
+- **Line 1959**: `Backward compatibility`
   ```
   # Backward compatibility: retained as sum of per-tool durations
   ```

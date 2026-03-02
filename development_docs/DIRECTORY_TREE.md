@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-01 23:11:21
+> **Last Generated**: 2026-03-02 00:37:49
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -216,6 +216,8 @@ C:.
 |   |   |   config.py
 |   |   |   development_tools_config.json
 |   |   |   development_tools_config.json.example
+|   |   |   pyrightconfig.json
+|   |   |   ruff.toml
 |   |   |   sync_ruff_toml.py
 |   |   |   __init__.py
 |   |   |   
@@ -602,6 +604,7 @@ C:.
 |   |   |   test_static_analysis_tools.py
 |   |   |   test_status_file_timing.py
 |   |   |   test_supporting_tools.py
+|   |   |   test_sync_ruff_toml.py
 |   |   |   test_test_file_coverage_cache.py
 |   |   |   test_tooling_policy_consistency.py
 |   |   |   test_tool_guide.py

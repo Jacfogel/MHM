@@ -240,6 +240,37 @@ class TestConfigHelperFunctions:
         result = config.get_fix_version_sync_config()
         assert isinstance(result, dict)
 
+    @pytest.mark.unit
+    def test_get_static_analysis_config_includes_owned_config_paths(self):
+        """Static analysis config should include explicit owned config paths."""
+        result = config.get_static_analysis_config()
+        assert isinstance(result, dict)
+        assert "ruff_config_path" in result
+        assert "pyright_project_path" in result
+        assert "ruff_sync_root_compat" in result
+
+    @pytest.mark.unit
+    def test_get_static_analysis_config_honors_external_overrides(self):
+        """External static-analysis overrides should merge over defaults."""
+        config_impl = sys.modules.get("development_tools.config.config", config)
+        previous_get_external_value = getattr(config_impl, "_get_external_value", None)
+        try:
+            config_impl._get_external_value = (  # type: ignore[attr-defined]
+                lambda key, default: {
+                    "ruff_config_path": "custom/ruff.toml",
+                    "pyright_project_path": "custom/pyrightconfig.json",
+                    "ruff_sync_root_compat": False,
+                }
+                if key == "static_analysis"
+                else default
+            )
+            result = config.get_static_analysis_config()
+            assert result["ruff_config_path"] == "custom/ruff.toml"
+            assert result["pyright_project_path"] == "custom/pyrightconfig.json"
+            assert result["ruff_sync_root_compat"] is False
+        finally:
+            config_impl._get_external_value = previous_get_external_value  # type: ignore[attr-defined]
+
 
 class TestConfigPaths:
     """Test that paths used in tests/fixtures are valid."""

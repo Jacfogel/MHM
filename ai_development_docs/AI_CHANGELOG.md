@@ -30,6 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-02 - Portability sweep static-tooling config ownership slice and closeout: timing-path relocation + audit validation **Progressed**
+- Moved timing artifact path from `development_tools/reports/tool_timings.json` to `development_tools/reports/jsons/tool_timings.json` in audit orchestration; updated impacted tests/fixtures accordingly.
+- Added roadmap clarification in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` for dual-config static-analysis state: keep both root + dev-tools `pyrightconfig.json` and both root + dev-tools Ruff config for now, with explicit next-step criteria.
+- Session validation confirmed: targeted tests passed for timing-path changes, and user-run full audit reported no regressions after doc-fix follow-up.
+- Regenerated and synced standard development-tools outputs/docs as part of full-audit closeout.
+- Implemented explicit static-analysis config ownership paths: Ruff now syncs/uses `development_tools/config/ruff.toml` (with optional root `.ruff.toml` compatibility mirror), and Pyright now uses explicit `--project development_tools/config/pyrightconfig.json` unless overridden.
+- Extended static-analysis config surface in `development_tools/config/config.py` and both config JSON files with `ruff_config_path`, `pyright_project_path`, and `ruff_sync_root_compat`.
+- Added/expanded regression coverage for static-analysis invocation args, config override handling, and Ruff sync determinism (`test_static_analysis_tools.py`, `test_config.py`, new `test_sync_ruff_toml.py`).
+- Updated portability roadmap tracking (`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` sections `3.17` and `7.6`) plus paired development-tools guides with compatibility/ownership notes.
+
 ### 2026-03-02 - Tooling policy hardening + dev-tools coverage parallel fix **COMPLETED**
 - Replaced standalone tooling-consistency enforcement with deterministic policy tests and removed the `tooling-consistency` command/analyzer wiring (`cli_interface.py`, `tool_wrappers.py`, `tool_metadata.py`, deleted `development_tools/config/analyze_tooling_consistency.py`).
 - Hardened policy coverage in `tests/development_tools/test_tooling_policy_consistency.py`: command-group parity checks, runtime-budget guard, stricter command-doc parity (including stale-command detection in command sections), and AST-based scanner-candidate detection.
@@ -132,14 +142,6 @@ Guidelines:
 - Added/updated coverage for retention behavior (`tests/unit/test_auto_cleanup_backup_retention.py`) and related dev-tools low-coverage tests (`test_cli_interface.py`, `test_analyze_module_refactor_candidates.py`, plus expanded `test_generate_function_registry.py` branches).
 - Regenerated in-session audit/report artifacts and derived docs (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.md`, `analysis_detailed_results.json`, `tool_timings.json`, `TEST_COVERAGE_REPORT.md`, `UNUSED_IMPORTS_REPORT.md`, `LEGACY_REFERENCE_REPORT.md`) and updated planning/changelog trackers ([TODO.md](TODO.md), `PLANS.md`, `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`, both changelog tracks).
 - Full working tree was reviewed (`git diff --stat`, `git diff --name-only`, `git status --short`) and, per user confirmation, all working-tree changes were actioned in this session; user confirmed full audit pass with no new issues.
-
-### 2026-02-25 - Conftest refactor and AI priorities follow-up **COMPLETED**
-- Conftest plan Phase 1.1: Extracted test helpers to `tests/support/test_helpers.py`; added `tests/conftest_mocks.py` plugin (mock/temp fixtures), wired in pytest_plugins. Updated TESTING_GUIDE.md and AI_TESTING_GUIDE.md. Re-exports later removed; call sites use tests.support.test_helpers.
-- Conftest plan Phase 1.2 (logging impl): Extracted logging to `tests/support/conftest_logging_impl.py`; ~500 lines removed from conftest. Phase 1.2 (cleanup impl): Extracted to `conftest_cleanup_impl.py`. Unused-imports: marked `import sys` with noqa in conftest; Obvious Unused: 0.
-- Phase 2 plugins: cleanup, logging, hooks, user_data, env-all conftest_* plugins added and wired; run_tests imports `_consolidate_worker_logs` from conftest_hooks. Test support layout: renamed `tests/support` to `tests/test_support`; moved all six plugins there; all imports now `tests.test_support`.
-- Tier 3 / AI priorities: checkin_view hardened with tmp_path; hashlib removed from conftest. Policy: allowlist conftest_hooks for datetime; removed 10 obvious unused imports (conftest + conftest_cleanup).
-- AI priorities (2026-02-25): Documentation drift: DIRECTORY_TREE.md updated for tests/test_support/; path drift 0. Five UI tests marked no_parallel (shared user index/test_data_dir). Two obvious unused imports removed from conftest. ASCII: doc-fix and doc-sync verified.
-- run_tests.py: `--full` parallel timeout 60 min; stuck detection (10 min no output) saves partial results then terminates.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -135,6 +135,15 @@ def run_pyright(project_root: Path) -> Dict[str, Any]:
         list(static_cfg.get("pyright_command", [sys.executable, "-m", "pyright"]))
     )
     args = list(static_cfg.get("pyright_args", ["--outputjson"]))
+    if "--project" not in args:
+        configured_project = static_cfg.get(
+            "pyright_project_path", "development_tools/config/pyrightconfig.json"
+        )
+        if configured_project:
+            project_config_path = Path(str(configured_project))
+            if not project_config_path.is_absolute():
+                project_config_path = project_root / project_config_path
+            args.extend(["--project", str(project_config_path)])
     timeout_seconds = int(static_cfg.get("timeout_seconds", 600) or 600)
 
     try:

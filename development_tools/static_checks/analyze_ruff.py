@@ -131,7 +131,15 @@ def _resolve_top_rule_names(
 
 def run_ruff(project_root: Path) -> Dict[str, Any]:
     static_cfg = config.get_static_analysis_config()
-    ruff_toml_path = sync_ruff_toml(project_root)
+    configured_ruff_path = static_cfg.get(
+        "ruff_config_path", "development_tools/config/ruff.toml"
+    )
+    sync_root_compat = bool(static_cfg.get("ruff_sync_root_compat", True))
+    ruff_toml_path = sync_ruff_toml(
+        project_root,
+        config_path=configured_ruff_path,
+        sync_root_compat=sync_root_compat,
+    )
     command = _resolve_python_command(
         list(static_cfg.get("ruff_command", [sys.executable, "-m", "ruff"]))
     )

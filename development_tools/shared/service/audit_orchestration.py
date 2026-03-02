@@ -1891,7 +1891,13 @@ class AuditOrchestrationMixin:
     def _save_timing_data(self, tier: int, audit_success: bool) -> None:
         """Save timing data to a JSON file for analysis."""
         try:
-            timing_file = self.project_root / 'development_tools' / 'reports' / 'tool_timings.json'
+            timing_file = (
+                self.project_root
+                / 'development_tools'
+                / 'reports'
+                / 'jsons'
+                / 'tool_timings.json'
+            )
             timing_file.parent.mkdir(parents=True, exist_ok=True)
             
             # Load existing timing data

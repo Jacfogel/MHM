@@ -124,6 +124,8 @@ python -m pyright
 
 Ensure `pyright` is installed in the venv (`pip install pyright` or `requirements.txt`). Exit code 1 means errors or warnings were reported; the summary line at the end shows error/warning counts. This is the same checker used by the basedpyright/Pyright extension, so results match what the language server would report for the full codebase.
 
+Note: this direct command uses the host/root `pyrightconfig.json` workflow. Development-tools audit wrappers (`analyze_pyright`) use an explicit owned config path (`development_tools/config/pyrightconfig.json`) unless overridden in `development_tools_config.json`.
+
 ### 2.5. Entry Point Expectations
 
 Regardless of command:
@@ -139,6 +141,13 @@ Regardless of command:
 3. Environment-specific detection (project root, scan directories, etc.)
 
 **Portability**: All tools are portable and can be used in other projects. Create a `development_tools/config/development_tools_config.json` file (see `development_tools/development_tools_config.json.example` for a template) to customize paths, exclusions, constants, and other project-specific settings.
+
+**Static analysis config ownership**:
+- Ruff owned config path: `static_analysis.ruff_config_path` (default `development_tools/config/ruff.toml`)
+- Pyright owned project config path: `static_analysis.pyright_project_path` (default `development_tools/config/pyrightconfig.json`)
+- Root Ruff compatibility mirror toggle: `static_analysis.ruff_sync_root_compat` (default `true`)
+- `analyze_ruff` always passes explicit `--config` to the owned Ruff config path.
+- `analyze_pyright` always passes explicit `--project` to the owned Pyright config path unless `--project` already exists in `static_analysis.pyright_args`.
 
 ### 2.6. Service Architecture
 
