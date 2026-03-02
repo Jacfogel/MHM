@@ -33,6 +33,43 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-02 - Coverage gap expansion + error-handling modernization closeout + docs/audit refresh
+- **Feature/Fix**: Completed a single session focused on targeted coverage-gap closure, resolving active analyzer/test blockers, and synchronizing generated planning/reporting documentation for closeout.
+- **Technical Changes**:
+  - Added targeted gap-coverage tests across high-priority modules to raise branch/path confidence for low-to-mid coverage areas, including:
+    - `tests/unit/test_profile_handler_gap_coverage.py`
+    - `tests/unit/test_auto_cleanup_gap_coverage.py`
+    - plus additional focused suites for interaction handlers, notebook data manager, analytics handler helpers, file locking platform branches, email bot, webhook handler, user package exports, tags, UI generation script behavior, and file auditor gaps.
+  - Updated `core/file_auditor.py` fallback decorator path:
+    - Added explicit fallback docstrings and clarified degraded-mode behavior.
+    - Simplified fallback `handle_errors` path to a stable no-op decorator shape for analyzer compatibility.
+    - Marked intentional fallback stubs with `error_handling_exclude` to avoid false-positive quality findings when core error-handling imports are unavailable.
+  - Resolved flaky/parallel UI generation test interference:
+    - Updated `tests/unit/test_generate_ui_files_script.py` to load `ui/generate_ui_files.py` under an isolated module name instead of mutating shared `sys.modules['ui.generate_ui_files']`, preventing cross-test patch target drift.
+    - Revalidated the previously failing Tier 3 subset in `tests/ui/test_ui_generation.py` under `-n auto`.
+  - Regenerated and synchronized development-tools output artifacts during workflow execution:
+    - docs/doc-fix/doc-sync and quick-audit refresh updated AI status/priorities, consolidated report, dependency/registry/tree/static report docs, and generated UI files in `ui/generated/`.
+  - Full-audit execution note:
+    - `audit --full` repeatedly encountered environment-level interruption/exit-137 behavior in this runtime; lock-file cleanup/retry handling was applied and quick-audit regeneration was used for reliable end-state verification.
+- **Validation**:
+  - Focused module validation:
+    - `pytest ... --cov=communication.command_handlers.profile_handler` -> 97% focused coverage.
+    - `pytest ... --cov=core.auto_cleanup` -> 94% focused coverage.
+  - Consolidated new gap-suite run: `127 passed`.
+  - UI generation validation:
+    - `pytest -n auto tests/ui/test_ui_generation.py::<5 previously failing tests>` -> `5 passed`.
+    - `pytest tests/unit/test_generate_ui_files_script.py tests/ui/test_ui_generation.py -q` -> pass.
+  - Analyzer validation:
+    - `development_tools/functions/analyze_functions.py --json` -> undocumented functions reduced to 0.
+    - `development_tools/error_handling/analyze_error_handling.py --json` -> `functions_missing_error_handling=0`, `phase1_total=0`, `phase2_total=0` after cache-clear refresh.
+  - Closeout validation:
+    - `run_development_tools.py audit --quick` completed and refreshed `AI_STATUS.md`/`AI_PRIORITIES.md`.
+- **Impact**:
+  - Reduced immediate reliability risk from known failing Tier 3 UI tests.
+  - Cleared active error-handling modernization blockers in `AI_PRIORITIES`.
+  - Increased confidence in key operational modules via targeted branch coverage.
+  - Kept generated planning/reporting documents aligned with current analyzer/audit state for handoff and commit.
+
 ### 2026-03-02 - Portability compliance sweep + closeout (static-tooling ownership and timing-path relocation)
 - **Feature/Fix**: Completed a single portability session that implemented static-analysis config ownership, relocated timing artifacts to the standard reports JSON location, documented follow-ups, and validated no regressions in the user-run full audit.
 - **Technical Changes**:
@@ -59,7 +96,7 @@ When adding new changes, follow this format:
       - `3.4` canonical timing location set to `reports/jsons`
       - `3.17` portability inventory/progress updated
       - `7.6` expanded with dual-config status (root + dev-tools Pyright/Ruff) and explicit next-step criteria
-    - Updated `TODO.md` and `development_docs/PLANS.md` to keep follow-up ownership in the dev-tools planning track.
+    - Updated [TODO.md](TODO.md) and [PLANS.md](development_docs/PLANS.md) to keep follow-up ownership in the dev-tools planning track.
   - Regression coverage added/updated:
     - `tests/development_tools/test_static_analysis_tools.py`
     - `tests/development_tools/test_config.py`

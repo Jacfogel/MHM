@@ -53,6 +53,17 @@ except Exception:
 
     _logger = _DummyLogger()
 
+    # error_handling_exclude: fallback no-op used only when core.error_handling import fails.
+    def handle_errors(*_args, **_kwargs):
+        """Create a fallback no-op decorator when error handling imports are unavailable."""
+
+        # error_handling_exclude: fallback passthrough decorator for degraded import mode.
+        def _decorator(func):
+            """Return the wrapped function unchanged in fallback mode."""
+            return func
+
+        return _decorator
+
 
 @handle_errors("splitting environment list", default_return=[])
 def _split_env_list(value: str | None) -> list[str]:

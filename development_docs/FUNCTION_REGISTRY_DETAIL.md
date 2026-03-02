@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-02 00:37:40
+> **Last Generated**: 2026-03-02 06:34:04
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1628
+- **Functions Found**: 1631
 - **Methods Found**: 1182
 - **Classes Found**: 154
-- **Total Items**: 2810
-- **Functions Documented**: 1555
+- **Total Items**: 2813
+- **Functions Documented**: 1558
 - **Methods Documented**: 1142
 - **Classes Documented**: 120
-- **Total Documented**: 2697
+- **Total Documented**: 2700
 - **Template-Generated**: 5
 - **Last Updated**: 2026-03-02
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (592)
+### **Core System Functions** (595)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (424)
@@ -3136,11 +3136,14 @@ Args:
 **Functions:**
 - [OK] `__init__(self)` - Special Python method
 - [MISSING] `_classify_path(path)` - No description
+- [OK] `_decorator(func)` - Return the wrapped function unchanged in fallback mode.
+- [OK] `_decorator(func)` - Return the wrapped function unchanged if fallback decorator setup fails.
 - [OK] `_get_audit_directories(self)` - Get configurable audit directories from environment or use defaults.
 - [MISSING] `_split_env_list(value)` - No description
 - [OK] `critical(self)` - No-op critical logging for fallback logger.
 - [OK] `debug(self)` - No-op debug logging for fallback logger.
 - [OK] `error(self)` - No-op error logging for fallback logger.
+- [OK] `handle_errors()` - Create a fallback no-op decorator when error handling imports are unavailable.
 - [OK] `info(self)` - No-op info logging for fallback logger.
 - [OK] `record_created(path, reason, extra)` - Programmatically record a file creation event.
 

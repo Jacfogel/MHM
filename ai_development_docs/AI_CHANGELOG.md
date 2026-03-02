@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-02 - Coverage-gap push + Phase1/2 error-handling closeout
+- Added a broad targeted test pass for uncovered branches (profile handler, auto-cleanup, notebook/analytics/email/webhook helpers, file locking, tags, UI generation script, file auditor), with focused gains including `profile_handler` ~97% and `auto_cleanup` ~94% in module-targeted runs.
+- Fixed `file_auditor` fallback decorator path so analyzer noise is removed in degraded-import mode; after cache-clear re-analysis, error-handling metrics now show `functions_missing_error_handling=0`, `phase1_total=0`, `phase2_total=0`.
+- Resolved the previously failing parallel UI generation tests by isolating script-module loading in `test_generate_ui_files_script.py` (no shared `sys.modules['ui.generate_ui_files']` mutation); validated failing subset now passes under `-n auto`.
+- Regenerated docs/audit outputs (`docs`, `doc-fix --convert-links`, `doc-sync`, `audit --quick`) and synced status/priorities/report artifacts for closeout; `audit --full` remained intermittently interrupted in this environment and is tracked as a follow-up reliability task.
+
 ### 2026-03-02 - Portability sweep static-tooling config ownership slice and closeout: timing-path relocation + audit validation **Progressed**
 - Moved timing artifact path from `development_tools/reports/tool_timings.json` to `development_tools/reports/jsons/tool_timings.json` in audit orchestration; updated impacted tests/fixtures accordingly.
 - Added roadmap clarification in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` for dual-config static-analysis state: keep both root + dev-tools `pyrightconfig.json` and both root + dev-tools Ruff config for now, with explicit next-step criteria.

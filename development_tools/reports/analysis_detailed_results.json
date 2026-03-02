@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-03-02 01:00:53",
+  "last_generated": "2026-03-02 12:56:17",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-03-02T01:00:53.460850",
+  "timestamp": "2026-03-02T12:56:17.517501",
   "successful": [
     "analyze_duplicate_functions",
     "analyze_functions",
@@ -49,14 +49,14 @@
           "files_affected": 19
         },
         "details": {
-          "total_functions": 1603,
+          "total_functions": 1604,
           "functions_excluded": 9,
           "records_deduplicated": 0,
           "groups_filtered_single_function": 11,
           "cache": {
             "total_files": 108,
-            "cached_files": 108,
-            "scanned_files": 0
+            "cached_files": 0,
+            "scanned_files": 108
           },
           "pairs_considered": 20000,
           "pairs_reported": 38,
@@ -111,6 +111,33 @@
               "locals_similarity": 1.0,
               "imports_similarity": 1.0,
               "a": {
+                "name": "_get_user_id_by_identifier__by_chat_id",
+                "full_name": "_get_user_id_by_identifier__by_chat_id",
+                "class": null,
+                "file": "core/user_data_handlers.py",
+                "line": 2514,
+                "args": [
+                  "chat_id"
+                ]
+              },
+              "b": {
+                "name": "_get_user_id_by_identifier__by_chat_id",
+                "full_name": "_get_user_id_by_identifier__by_chat_id",
+                "class": null,
+                "file": "core/user_data_handlers.py",
+                "line": 2514,
+                "args": [
+                  "chat_id"
+                ]
+              }
+            },
+            {
+              "overall_similarity": 1.0,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "locals_similarity": 1.0,
+              "imports_similarity": 1.0,
+              "a": {
                 "name": "send_message_sync__queue_failed_message",
                 "full_name": "CommunicationManager.send_message_sync__queue_failed_message",
                 "class": "CommunicationManager",
@@ -163,33 +190,6 @@
                 "line": 733,
                 "args": [
                   "last_cleanup_timestamp"
-                ]
-              }
-            },
-            {
-              "overall_similarity": 1.0,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "locals_similarity": 1.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "_get_user_id_by_identifier__by_internal_username",
-                "full_name": "_get_user_id_by_identifier__by_internal_username",
-                "class": null,
-                "file": "core/user_data_handlers.py",
-                "line": 2425,
-                "args": [
-                  "internal_username"
-                ]
-              },
-              "b": {
-                "name": "_get_user_id_by_identifier__by_internal_username",
-                "full_name": "_get_user_id_by_identifier__by_internal_username",
-                "class": null,
-                "file": "core/user_data_handlers.py",
-                "line": 2425,
-                "args": [
-                  "internal_username"
                 ]
               }
             },
@@ -256,33 +256,6 @@
               "locals_similarity": 1.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_get_user_id_by_identifier__by_phone",
-                "full_name": "_get_user_id_by_identifier__by_phone",
-                "class": null,
-                "file": "core/user_data_handlers.py",
-                "line": 2486,
-                "args": [
-                  "phone"
-                ]
-              },
-              "b": {
-                "name": "_get_user_id_by_identifier__by_phone",
-                "full_name": "_get_user_id_by_identifier__by_phone",
-                "class": null,
-                "file": "core/user_data_handlers.py",
-                "line": 2486,
-                "args": [
-                  "phone"
-                ]
-              }
-            },
-            {
-              "overall_similarity": 1.0,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "locals_similarity": 1.0,
-              "imports_similarity": 1.0,
-              "a": {
                 "name": "_get_user_id_by_identifier__by_email",
                 "full_name": "_get_user_id_by_identifier__by_email",
                 "class": null,
@@ -310,23 +283,50 @@
               "locals_similarity": 1.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_get_user_id_by_identifier__by_chat_id",
-                "full_name": "_get_user_id_by_identifier__by_chat_id",
+                "name": "_get_user_id_by_identifier__by_internal_username",
+                "full_name": "_get_user_id_by_identifier__by_internal_username",
                 "class": null,
                 "file": "core/user_data_handlers.py",
-                "line": 2514,
+                "line": 2425,
                 "args": [
-                  "chat_id"
+                  "internal_username"
                 ]
               },
               "b": {
-                "name": "_get_user_id_by_identifier__by_chat_id",
-                "full_name": "_get_user_id_by_identifier__by_chat_id",
+                "name": "_get_user_id_by_identifier__by_internal_username",
+                "full_name": "_get_user_id_by_identifier__by_internal_username",
                 "class": null,
                 "file": "core/user_data_handlers.py",
-                "line": 2514,
+                "line": 2425,
                 "args": [
-                  "chat_id"
+                  "internal_username"
+                ]
+              }
+            },
+            {
+              "overall_similarity": 1.0,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "locals_similarity": 1.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "_get_user_id_by_identifier__by_phone",
+                "full_name": "_get_user_id_by_identifier__by_phone",
+                "class": null,
+                "file": "core/user_data_handlers.py",
+                "line": 2486,
+                "args": [
+                  "phone"
+                ]
+              },
+              "b": {
+                "name": "_get_user_id_by_identifier__by_phone",
+                "full_name": "_get_user_id_by_identifier__by_phone",
+                "class": null,
+                "file": "core/user_data_handlers.py",
+                "line": 2486,
+                "args": [
+                  "phone"
                 ]
               }
             },
@@ -415,28 +415,33 @@
             },
             {
               "overall_similarity": 0.8,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "locals_similarity": 0.0,
+              "name_similarity": 0.778,
+              "args_similarity": 0.75,
+              "locals_similarity": 0.75,
               "imports_similarity": 1.0,
               "a": {
-                "name": "update_message_references",
-                "full_name": "UserDataManager.update_message_references",
+                "name": "_get_user_data_summary__process_enabled_message_files",
+                "full_name": "UserDataManager._get_user_data_summary__process_enabled_message_files",
                 "class": "UserDataManager",
                 "file": "core/user_data_manager.py",
-                "line": 56,
+                "line": 601,
                 "args": [
-                  "user_id"
+                  "user_id",
+                  "categories",
+                  "summary"
                 ]
               },
               "b": {
-                "name": "update_message_references",
-                "full_name": "update_message_references",
-                "class": null,
+                "name": "_get_user_data_summary__process_orphaned_message_files",
+                "full_name": "UserDataManager._get_user_data_summary__process_orphaned_message_files",
+                "class": "UserDataManager",
                 "file": "core/user_data_manager.py",
-                "line": 1195,
+                "line": 625,
                 "args": [
-                  "user_id"
+                  "user_id",
+                  "categories",
+                  "message_files",
+                  "summary"
                 ]
               }
             },
@@ -447,25 +452,25 @@
               "locals_similarity": 0.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "export_user_data",
-                "full_name": "UserDataManager.export_user_data",
+                "name": "backup_user_data",
+                "full_name": "UserDataManager.backup_user_data",
                 "class": "UserDataManager",
                 "file": "core/user_data_manager.py",
-                "line": 263,
+                "line": 191,
                 "args": [
                   "user_id",
-                  "export_format"
+                  "include_messages"
                 ]
               },
               "b": {
-                "name": "export_user_data",
-                "full_name": "export_user_data",
+                "name": "backup_user_data",
+                "full_name": "backup_user_data",
                 "class": null,
                 "file": "core/user_data_manager.py",
-                "line": 1267,
+                "line": 1228,
                 "args": [
                   "user_id",
-                  "export_format"
+                  "include_messages"
                 ]
               }
             },
@@ -532,79 +537,23 @@
               "locals_similarity": 0.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "get_user_data_summary",
-                "full_name": "UserDataManager.get_user_data_summary",
+                "name": "update_message_references",
+                "full_name": "UserDataManager.update_message_references",
                 "class": "UserDataManager",
                 "file": "core/user_data_manager.py",
-                "line": 398,
+                "line": 56,
                 "args": [
                   "user_id"
                 ]
               },
               "b": {
-                "name": "get_user_data_summary",
-                "full_name": "get_user_data_summary",
+                "name": "update_message_references",
+                "full_name": "update_message_references",
                 "class": null,
                 "file": "core/user_data_manager.py",
-                "line": 1351,
+                "line": 1195,
                 "args": [
                   "user_id"
-                ]
-              }
-            },
-            {
-              "overall_similarity": 0.8,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "update_user_index",
-                "full_name": "UserDataManager.update_user_index",
-                "class": "UserDataManager",
-                "file": "core/user_data_manager.py",
-                "line": 799,
-                "args": [
-                  "user_id"
-                ]
-              },
-              "b": {
-                "name": "update_user_index",
-                "full_name": "update_user_index",
-                "class": null,
-                "file": "core/user_data_manager.py",
-                "line": 1384,
-                "args": [
-                  "user_id"
-                ]
-              }
-            },
-            {
-              "overall_similarity": 0.8,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "format_message",
-                "full_name": "MessageFormatter.format_message",
-                "class": "MessageFormatter",
-                "file": "communication/communication_channels/base/message_formatter.py",
-                "line": 19,
-                "args": [
-                  "message",
-                  "rich_data"
-                ]
-              },
-              "b": {
-                "name": "format_message",
-                "full_name": "TextMessageFormatter.format_message",
-                "class": "TextMessageFormatter",
-                "file": "communication/communication_channels/base/message_formatter.py",
-                "line": 42,
-                "args": [
-                  "message",
-                  "rich_data"
                 ]
               }
             },
@@ -671,6 +620,64 @@
               "locals_similarity": 0.0,
               "imports_similarity": 1.0,
               "a": {
+                "name": "format_message",
+                "full_name": "MessageFormatter.format_message",
+                "class": "MessageFormatter",
+                "file": "communication/communication_channels/base/message_formatter.py",
+                "line": 19,
+                "args": [
+                  "message",
+                  "rich_data"
+                ]
+              },
+              "b": {
+                "name": "format_message",
+                "full_name": "TextMessageFormatter.format_message",
+                "class": "TextMessageFormatter",
+                "file": "communication/communication_channels/base/message_formatter.py",
+                "line": 42,
+                "args": [
+                  "message",
+                  "rich_data"
+                ]
+              }
+            },
+            {
+              "overall_similarity": 0.8,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "export_user_data",
+                "full_name": "UserDataManager.export_user_data",
+                "class": "UserDataManager",
+                "file": "core/user_data_manager.py",
+                "line": 263,
+                "args": [
+                  "user_id",
+                  "export_format"
+                ]
+              },
+              "b": {
+                "name": "export_user_data",
+                "full_name": "export_user_data",
+                "class": null,
+                "file": "core/user_data_manager.py",
+                "line": 1267,
+                "args": [
+                  "user_id",
+                  "export_format"
+                ]
+              }
+            },
+            {
+              "overall_similarity": 0.8,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 1.0,
+              "a": {
                 "name": "_create_user_files__update_user_references",
                 "full_name": "_create_user_files__update_user_references",
                 "class": null,
@@ -693,33 +700,55 @@
             },
             {
               "overall_similarity": 0.8,
-              "name_similarity": 0.778,
-              "args_similarity": 0.75,
-              "locals_similarity": 0.75,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "locals_similarity": 0.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_get_user_data_summary__process_enabled_message_files",
-                "full_name": "UserDataManager._get_user_data_summary__process_enabled_message_files",
+                "name": "get_user_data_summary",
+                "full_name": "UserDataManager.get_user_data_summary",
                 "class": "UserDataManager",
                 "file": "core/user_data_manager.py",
-                "line": 601,
+                "line": 398,
                 "args": [
-                  "user_id",
-                  "categories",
-                  "summary"
+                  "user_id"
                 ]
               },
               "b": {
-                "name": "_get_user_data_summary__process_orphaned_message_files",
-                "full_name": "UserDataManager._get_user_data_summary__process_orphaned_message_files",
+                "name": "get_user_data_summary",
+                "full_name": "get_user_data_summary",
+                "class": null,
+                "file": "core/user_data_manager.py",
+                "line": 1351,
+                "args": [
+                  "user_id"
+                ]
+              }
+            },
+            {
+              "overall_similarity": 0.8,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "update_user_index",
+                "full_name": "UserDataManager.update_user_index",
                 "class": "UserDataManager",
                 "file": "core/user_data_manager.py",
-                "line": 625,
+                "line": 799,
                 "args": [
-                  "user_id",
-                  "categories",
-                  "message_files",
-                  "summary"
+                  "user_id"
+                ]
+              },
+              "b": {
+                "name": "update_user_index",
+                "full_name": "update_user_index",
+                "class": null,
+                "file": "core/user_data_manager.py",
+                "line": 1384,
+                "args": [
+                  "user_id"
                 ]
               }
             },
@@ -747,35 +776,6 @@
                 "line": 195,
                 "args": [
                   "content_type"
-                ]
-              }
-            },
-            {
-              "overall_similarity": 0.8,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "backup_user_data",
-                "full_name": "UserDataManager.backup_user_data",
-                "class": "UserDataManager",
-                "file": "core/user_data_manager.py",
-                "line": 191,
-                "args": [
-                  "user_id",
-                  "include_messages"
-                ]
-              },
-              "b": {
-                "name": "backup_user_data",
-                "full_name": "backup_user_data",
-                "class": null,
-                "file": "core/user_data_manager.py",
-                "line": 1228,
-                "args": [
-                  "user_id",
-                  "include_messages"
                 ]
               }
             },
@@ -980,33 +980,6 @@
               "locals_similarity": 0.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_get_user_data_summary__initialize_summary",
-                "full_name": "UserDataManager._get_user_data_summary__initialize_summary",
-                "class": "UserDataManager",
-                "file": "core/user_data_manager.py",
-                "line": 438,
-                "args": [
-                  "user_id"
-                ]
-              },
-              "b": {
-                "name": "get_user_data_summary",
-                "full_name": "get_user_data_summary",
-                "class": null,
-                "file": "core/user_data_manager.py",
-                "line": 1351,
-                "args": [
-                  "user_id"
-                ]
-              }
-            },
-            {
-              "overall_similarity": 0.71,
-              "name_similarity": 0.8,
-              "args_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
                 "name": "get_user_data_summary",
                 "full_name": "UserDataManager.get_user_data_summary",
                 "class": "UserDataManager",
@@ -1022,6 +995,33 @@
                 "class": "UserDataManager",
                 "file": "core/user_data_manager.py",
                 "line": 438,
+                "args": [
+                  "user_id"
+                ]
+              }
+            },
+            {
+              "overall_similarity": 0.71,
+              "name_similarity": 0.8,
+              "args_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "_get_user_data_summary__initialize_summary",
+                "full_name": "UserDataManager._get_user_data_summary__initialize_summary",
+                "class": "UserDataManager",
+                "file": "core/user_data_manager.py",
+                "line": 438,
+                "args": [
+                  "user_id"
+                ]
+              },
+              "b": {
+                "name": "get_user_data_summary",
+                "full_name": "get_user_data_summary",
+                "class": null,
+                "file": "core/user_data_manager.py",
+                "line": 1351,
                 "args": [
                   "user_id"
                 ]
@@ -1053,33 +1053,6 @@
                 "args": [
                   "recipient",
                   "message"
-                ]
-              }
-            },
-            {
-              "overall_similarity": 0.7,
-              "name_similarity": 0.6,
-              "args_similarity": 1.0,
-              "locals_similarity": 0.4,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "edit_message_by_row",
-                "full_name": "MessageEditorDialog.edit_message_by_row",
-                "class": "MessageEditorDialog",
-                "file": "ui/dialogs/message_editor_dialog.py",
-                "line": 376,
-                "args": [
-                  "row"
-                ]
-              },
-              "b": {
-                "name": "delete_message_by_row",
-                "full_name": "MessageEditorDialog.delete_message_by_row",
-                "class": "MessageEditorDialog",
-                "file": "ui/dialogs/message_editor_dialog.py",
-                "line": 385,
-                "args": [
-                  "row"
                 ]
               }
             },
@@ -1136,6 +1109,33 @@
                 "line": 241,
                 "args": [
                   "prompt_type"
+                ]
+              }
+            },
+            {
+              "overall_similarity": 0.7,
+              "name_similarity": 0.6,
+              "args_similarity": 1.0,
+              "locals_similarity": 0.4,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "edit_message_by_row",
+                "full_name": "MessageEditorDialog.edit_message_by_row",
+                "class": "MessageEditorDialog",
+                "file": "ui/dialogs/message_editor_dialog.py",
+                "line": 376,
+                "args": [
+                  "row"
+                ]
+              },
+              "b": {
+                "name": "delete_message_by_row",
+                "full_name": "MessageEditorDialog.delete_message_by_row",
+                "class": "MessageEditorDialog",
+                "file": "ui/dialogs/message_editor_dialog.py",
+                "line": 385,
+                "args": [
+                  "row"
                 ]
               }
             }
@@ -1456,6 +1456,134 @@
               },
               "functions": [
                 {
+                  "name": "_get_user_data_summary__process_enabled_message_files",
+                  "full_name": "UserDataManager._get_user_data_summary__process_enabled_message_files",
+                  "class": "UserDataManager",
+                  "file": "core/user_data_manager.py",
+                  "line": 601,
+                  "args": [
+                    "user_id",
+                    "categories",
+                    "summary"
+                  ]
+                },
+                {
+                  "name": "_get_user_data_summary__process_orphaned_message_files",
+                  "full_name": "UserDataManager._get_user_data_summary__process_orphaned_message_files",
+                  "class": "UserDataManager",
+                  "file": "core/user_data_manager.py",
+                  "line": 625,
+                  "args": [
+                    "user_id",
+                    "categories",
+                    "message_files",
+                    "summary"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.8,
+                  "name_similarity": 0.778,
+                  "args_similarity": 0.75,
+                  "locals_similarity": 0.75,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "_get_user_data_summary__process_enabled_message_files",
+                    "full_name": "UserDataManager._get_user_data_summary__process_enabled_message_files",
+                    "class": "UserDataManager",
+                    "file": "core/user_data_manager.py",
+                    "line": 601,
+                    "args": [
+                      "user_id",
+                      "categories",
+                      "summary"
+                    ]
+                  },
+                  "b": {
+                    "name": "_get_user_data_summary__process_orphaned_message_files",
+                    "full_name": "UserDataManager._get_user_data_summary__process_orphaned_message_files",
+                    "class": "UserDataManager",
+                    "file": "core/user_data_manager.py",
+                    "line": 625,
+                    "args": [
+                      "user_id",
+                      "categories",
+                      "message_files",
+                      "summary"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.8,
+                "max": 0.8
+              },
+              "functions": [
+                {
+                  "name": "backup_user_data",
+                  "full_name": "UserDataManager.backup_user_data",
+                  "class": "UserDataManager",
+                  "file": "core/user_data_manager.py",
+                  "line": 191,
+                  "args": [
+                    "user_id",
+                    "include_messages"
+                  ]
+                },
+                {
+                  "name": "backup_user_data",
+                  "full_name": "backup_user_data",
+                  "class": null,
+                  "file": "core/user_data_manager.py",
+                  "line": 1228,
+                  "args": [
+                    "user_id",
+                    "include_messages"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.8,
+                  "name_similarity": 1.0,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.0,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "backup_user_data",
+                    "full_name": "UserDataManager.backup_user_data",
+                    "class": "UserDataManager",
+                    "file": "core/user_data_manager.py",
+                    "line": 191,
+                    "args": [
+                      "user_id",
+                      "include_messages"
+                    ]
+                  },
+                  "b": {
+                    "name": "backup_user_data",
+                    "full_name": "backup_user_data",
+                    "class": null,
+                    "file": "core/user_data_manager.py",
+                    "line": 1228,
+                    "args": [
+                      "user_id",
+                      "include_messages"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.8,
+                "max": 0.8
+              },
+              "functions": [
+                {
                   "name": "update_message_references",
                   "full_name": "UserDataManager.update_message_references",
                   "class": "UserDataManager",
@@ -1501,6 +1629,67 @@
                     "line": 1195,
                     "args": [
                       "user_id"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.8,
+                "max": 0.8
+              },
+              "functions": [
+                {
+                  "name": "delete_user_completely",
+                  "full_name": "UserDataManager.delete_user_completely",
+                  "class": "UserDataManager",
+                  "file": "core/user_data_manager.py",
+                  "line": 338,
+                  "args": [
+                    "user_id",
+                    "create_backup"
+                  ]
+                },
+                {
+                  "name": "delete_user_completely",
+                  "full_name": "delete_user_completely",
+                  "class": null,
+                  "file": "core/user_data_manager.py",
+                  "line": 1310,
+                  "args": [
+                    "user_id",
+                    "create_backup"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.8,
+                  "name_similarity": 1.0,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.0,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "delete_user_completely",
+                    "full_name": "UserDataManager.delete_user_completely",
+                    "class": "UserDataManager",
+                    "file": "core/user_data_manager.py",
+                    "line": 338,
+                    "args": [
+                      "user_id",
+                      "create_backup"
+                    ]
+                  },
+                  "b": {
+                    "name": "delete_user_completely",
+                    "full_name": "delete_user_completely",
+                    "class": null,
+                    "file": "core/user_data_manager.py",
+                    "line": 1310,
+                    "args": [
+                      "user_id",
+                      "create_backup"
                     ]
                   }
                 }
@@ -1639,33 +1828,6 @@
                   "locals_similarity": 0.0,
                   "imports_similarity": 1.0,
                   "a": {
-                    "name": "_get_user_data_summary__initialize_summary",
-                    "full_name": "UserDataManager._get_user_data_summary__initialize_summary",
-                    "class": "UserDataManager",
-                    "file": "core/user_data_manager.py",
-                    "line": 438,
-                    "args": [
-                      "user_id"
-                    ]
-                  },
-                  "b": {
-                    "name": "get_user_data_summary",
-                    "full_name": "get_user_data_summary",
-                    "class": null,
-                    "file": "core/user_data_manager.py",
-                    "line": 1351,
-                    "args": [
-                      "user_id"
-                    ]
-                  }
-                },
-                {
-                  "overall_similarity": 0.71,
-                  "name_similarity": 0.8,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 0.0,
-                  "imports_similarity": 1.0,
-                  "a": {
                     "name": "get_user_data_summary",
                     "full_name": "UserDataManager.get_user_data_summary",
                     "class": "UserDataManager",
@@ -1681,6 +1843,33 @@
                     "class": "UserDataManager",
                     "file": "core/user_data_manager.py",
                     "line": 438,
+                    "args": [
+                      "user_id"
+                    ]
+                  }
+                },
+                {
+                  "overall_similarity": 0.71,
+                  "name_similarity": 0.8,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.0,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "_get_user_data_summary__initialize_summary",
+                    "full_name": "UserDataManager._get_user_data_summary__initialize_summary",
+                    "class": "UserDataManager",
+                    "file": "core/user_data_manager.py",
+                    "line": 438,
+                    "args": [
+                      "user_id"
+                    ]
+                  },
+                  "b": {
+                    "name": "get_user_data_summary",
+                    "full_name": "get_user_data_summary",
+                    "class": null,
+                    "file": "core/user_data_manager.py",
+                    "line": 1351,
                     "args": [
                       "user_id"
                     ]
@@ -1740,195 +1929,6 @@
                     "line": 1384,
                     "args": [
                       "user_id"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 0.8,
-                "max": 0.8
-              },
-              "functions": [
-                {
-                  "name": "delete_user_completely",
-                  "full_name": "UserDataManager.delete_user_completely",
-                  "class": "UserDataManager",
-                  "file": "core/user_data_manager.py",
-                  "line": 338,
-                  "args": [
-                    "user_id",
-                    "create_backup"
-                  ]
-                },
-                {
-                  "name": "delete_user_completely",
-                  "full_name": "delete_user_completely",
-                  "class": null,
-                  "file": "core/user_data_manager.py",
-                  "line": 1310,
-                  "args": [
-                    "user_id",
-                    "create_backup"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 0.8,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 0.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "delete_user_completely",
-                    "full_name": "UserDataManager.delete_user_completely",
-                    "class": "UserDataManager",
-                    "file": "core/user_data_manager.py",
-                    "line": 338,
-                    "args": [
-                      "user_id",
-                      "create_backup"
-                    ]
-                  },
-                  "b": {
-                    "name": "delete_user_completely",
-                    "full_name": "delete_user_completely",
-                    "class": null,
-                    "file": "core/user_data_manager.py",
-                    "line": 1310,
-                    "args": [
-                      "user_id",
-                      "create_backup"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 0.8,
-                "max": 0.8
-              },
-              "functions": [
-                {
-                  "name": "_get_user_data_summary__process_enabled_message_files",
-                  "full_name": "UserDataManager._get_user_data_summary__process_enabled_message_files",
-                  "class": "UserDataManager",
-                  "file": "core/user_data_manager.py",
-                  "line": 601,
-                  "args": [
-                    "user_id",
-                    "categories",
-                    "summary"
-                  ]
-                },
-                {
-                  "name": "_get_user_data_summary__process_orphaned_message_files",
-                  "full_name": "UserDataManager._get_user_data_summary__process_orphaned_message_files",
-                  "class": "UserDataManager",
-                  "file": "core/user_data_manager.py",
-                  "line": 625,
-                  "args": [
-                    "user_id",
-                    "categories",
-                    "message_files",
-                    "summary"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 0.8,
-                  "name_similarity": 0.778,
-                  "args_similarity": 0.75,
-                  "locals_similarity": 0.75,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "_get_user_data_summary__process_enabled_message_files",
-                    "full_name": "UserDataManager._get_user_data_summary__process_enabled_message_files",
-                    "class": "UserDataManager",
-                    "file": "core/user_data_manager.py",
-                    "line": 601,
-                    "args": [
-                      "user_id",
-                      "categories",
-                      "summary"
-                    ]
-                  },
-                  "b": {
-                    "name": "_get_user_data_summary__process_orphaned_message_files",
-                    "full_name": "UserDataManager._get_user_data_summary__process_orphaned_message_files",
-                    "class": "UserDataManager",
-                    "file": "core/user_data_manager.py",
-                    "line": 625,
-                    "args": [
-                      "user_id",
-                      "categories",
-                      "message_files",
-                      "summary"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 0.8,
-                "max": 0.8
-              },
-              "functions": [
-                {
-                  "name": "backup_user_data",
-                  "full_name": "UserDataManager.backup_user_data",
-                  "class": "UserDataManager",
-                  "file": "core/user_data_manager.py",
-                  "line": 191,
-                  "args": [
-                    "user_id",
-                    "include_messages"
-                  ]
-                },
-                {
-                  "name": "backup_user_data",
-                  "full_name": "backup_user_data",
-                  "class": null,
-                  "file": "core/user_data_manager.py",
-                  "line": 1228,
-                  "args": [
-                    "user_id",
-                    "include_messages"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 0.8,
-                  "name_similarity": 1.0,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 0.0,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "backup_user_data",
-                    "full_name": "UserDataManager.backup_user_data",
-                    "class": "UserDataManager",
-                    "file": "core/user_data_manager.py",
-                    "line": 191,
-                    "args": [
-                      "user_id",
-                      "include_messages"
-                    ]
-                  },
-                  "b": {
-                    "name": "backup_user_data",
-                    "full_name": "backup_user_data",
-                    "class": null,
-                    "file": "core/user_data_manager.py",
-                    "line": 1228,
-                    "args": [
-                      "user_id",
-                      "include_messages"
                     ]
                   }
                 }
@@ -2411,63 +2411,6 @@
               },
               "functions": [
                 {
-                  "name": "edit_message_by_row",
-                  "full_name": "MessageEditorDialog.edit_message_by_row",
-                  "class": "MessageEditorDialog",
-                  "file": "ui/dialogs/message_editor_dialog.py",
-                  "line": 376,
-                  "args": [
-                    "row"
-                  ]
-                },
-                {
-                  "name": "delete_message_by_row",
-                  "full_name": "MessageEditorDialog.delete_message_by_row",
-                  "class": "MessageEditorDialog",
-                  "file": "ui/dialogs/message_editor_dialog.py",
-                  "line": 385,
-                  "args": [
-                    "row"
-                  ]
-                }
-              ],
-              "pair_examples": [
-                {
-                  "overall_similarity": 0.7,
-                  "name_similarity": 0.6,
-                  "args_similarity": 1.0,
-                  "locals_similarity": 0.4,
-                  "imports_similarity": 1.0,
-                  "a": {
-                    "name": "edit_message_by_row",
-                    "full_name": "MessageEditorDialog.edit_message_by_row",
-                    "class": "MessageEditorDialog",
-                    "file": "ui/dialogs/message_editor_dialog.py",
-                    "line": 376,
-                    "args": [
-                      "row"
-                    ]
-                  },
-                  "b": {
-                    "name": "delete_message_by_row",
-                    "full_name": "MessageEditorDialog.delete_message_by_row",
-                    "class": "MessageEditorDialog",
-                    "file": "ui/dialogs/message_editor_dialog.py",
-                    "line": 385,
-                    "args": [
-                      "row"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "similarity_range": {
-                "min": 0.7,
-                "max": 0.7
-              },
-              "functions": [
-                {
                   "name": "cleanup_task_reminders",
                   "full_name": "SchedulerManager.cleanup_task_reminders",
                   "class": "SchedulerManager",
@@ -2578,11 +2521,68 @@
                   }
                 }
               ]
+            },
+            {
+              "similarity_range": {
+                "min": 0.7,
+                "max": 0.7
+              },
+              "functions": [
+                {
+                  "name": "edit_message_by_row",
+                  "full_name": "MessageEditorDialog.edit_message_by_row",
+                  "class": "MessageEditorDialog",
+                  "file": "ui/dialogs/message_editor_dialog.py",
+                  "line": 376,
+                  "args": [
+                    "row"
+                  ]
+                },
+                {
+                  "name": "delete_message_by_row",
+                  "full_name": "MessageEditorDialog.delete_message_by_row",
+                  "class": "MessageEditorDialog",
+                  "file": "ui/dialogs/message_editor_dialog.py",
+                  "line": 385,
+                  "args": [
+                    "row"
+                  ]
+                }
+              ],
+              "pair_examples": [
+                {
+                  "overall_similarity": 0.7,
+                  "name_similarity": 0.6,
+                  "args_similarity": 1.0,
+                  "locals_similarity": 0.4,
+                  "imports_similarity": 1.0,
+                  "a": {
+                    "name": "edit_message_by_row",
+                    "full_name": "MessageEditorDialog.edit_message_by_row",
+                    "class": "MessageEditorDialog",
+                    "file": "ui/dialogs/message_editor_dialog.py",
+                    "line": 376,
+                    "args": [
+                      "row"
+                    ]
+                  },
+                  "b": {
+                    "name": "delete_message_by_row",
+                    "full_name": "MessageEditorDialog.delete_message_by_row",
+                    "class": "MessageEditorDialog",
+                    "file": "ui/dialogs/message_editor_dialog.py",
+                    "line": 385,
+                    "args": [
+                      "row"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         }
       },
-      "timestamp": "2026-03-02T00:54:25"
+      "timestamp": "2026-03-02T12:48:34"
     },
     "analyze_functions": {
       "success": true,
@@ -2592,7 +2592,7 @@
           "files_affected": 75
         },
         "details": {
-          "total_functions": 1487,
+          "total_functions": 1490,
           "moderate_complexity": 162,
           "high_complexity": 145,
           "critical_complexity": 142,
@@ -2782,12 +2782,12 @@
               "complexity": 189
             }
           ],
-          "handlers": 781,
+          "handlers": 782,
           "tests": 59,
           "utilities": 0
         }
       },
-      "timestamp": "2026-03-02T00:54:25"
+      "timestamp": "2026-03-02T12:48:32"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -3009,6 +3009,11 @@
             {
               "file": "core/error_handling.py",
               "function": "handle_error",
+              "has_doc": true
+            },
+            {
+              "file": "core/file_auditor.py",
+              "function": "handle_errors",
               "has_doc": true
             }
           ],
@@ -4674,6 +4679,11 @@
               "file": "core/error_handling.py",
               "function": "handle_error",
               "has_doc": true
+            },
+            {
+              "file": "core/file_auditor.py",
+              "function": "handle_errors",
+              "has_doc": true
             }
           ],
           "schedulers": [
@@ -4745,14 +4755,14 @@
           ]
         }
       },
-      "timestamp": "2026-03-02T00:54:22"
+      "timestamp": "2026-03-02T12:48:29"
     },
     "analyze_function_registry": {
       "success": true,
       "data": {
         "details": {
           "analysis": {
-            "duplicate_count": 74,
+            "duplicate_count": 75,
             "duplicate_sample": [
               {
                 "files": [
@@ -5127,6 +5137,10 @@
                 "communication/command_handlers/profile_handler.py",
                 "communication/command_handlers/schedule_handler.py",
                 "communication/command_handlers/task_handler.py"
+              ],
+              "handle_errors": [
+                "core/error_handling.py",
+                "core/file_auditor.py"
               ],
               "handle_task_reminder": [
                 "communication/core/channel_orchestrator.py",
@@ -6780,7 +6794,7 @@
             ],
             "undocumented_other_total": 32
           },
-          "coverage": 98.48,
+          "coverage": 98.42,
           "errors": [],
           "extra": {
             "count": 48,
@@ -6848,8 +6862,8 @@
           "totals": {
             "classes_found": 154,
             "files_scanned": 108,
-            "functions_documented": 1556,
-            "functions_found": 1580
+            "functions_documented": 1558,
+            "functions_found": 1583
           }
         },
         "summary": {
@@ -6857,7 +6871,7 @@
           "total_issues": 48
         }
       },
-      "timestamp": "2026-03-02T00:54:28"
+      "timestamp": "2026-03-02T12:48:37"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -7611,7 +7625,7 @@
           }
         }
       },
-      "timestamp": "2026-03-02T00:54:27"
+      "timestamp": "2026-03-02T12:48:35"
     },
     "analyze_package_exports": {
       "success": true,
@@ -12810,7 +12824,7 @@
                 "_check_and_fix_logging__check_recent_activity_timestamps",
                 "_classify_path",
                 "_create_user_files__account_file",
-                "_get_audit_directories",
+                "_decorator",
                 "_get_last_interaction",
                 "_get_response_log_filename",
                 "_load_default_tags_from_resources",
@@ -15123,84 +15137,6 @@
                 "_calculate_next_due_date"
               ]
             },
-            "user": {
-              "package": "user",
-              "current_exports_count": 4,
-              "should_export_count": 4,
-              "already_exported": [
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences",
-                "user_context_manager"
-              ],
-              "missing_exports": [],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "user_context_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/context_builder.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "UserContext": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "core/schedule_management.py",
-                    "ui/ui_app_qt.py",
-                    "user/context_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                }
-              },
-              "import_usage_details": {
-                "user_context_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/context_builder.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "UserContext": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "core/schedule_management.py",
-                    "ui/ui_app_qt.py",
-                    "user/context_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                }
-              },
-              "package_api_items": [
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences"
-              ],
-              "registry_items": [
-                "__getattr__",
-                "__init__",
-                "__new__",
-                "_get_conversation_history",
-                "get_all_preferences",
-                "get_instance_context"
-              ]
-            },
             "ai": {
               "package": "ai",
               "current_exports_count": 22,
@@ -15325,11 +15261,89 @@
                 "add_prompt_template",
                 "ensure_lm_studio_ready"
               ]
+            },
+            "user": {
+              "package": "user",
+              "current_exports_count": 4,
+              "should_export_count": 4,
+              "already_exported": [
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences",
+                "user_context_manager"
+              ],
+              "missing_exports": [],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "user_context_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/context_builder.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.context_manager"
+                },
+                "UserContext": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/scheduler.py",
+                    "core/schedule_management.py",
+                    "ui/ui_app_qt.py",
+                    "user/context_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.user_context"
+                }
+              },
+              "import_usage_details": {
+                "user_context_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/context_builder.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.context_manager"
+                },
+                "UserContext": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/scheduler.py",
+                    "core/schedule_management.py",
+                    "ui/ui_app_qt.py",
+                    "user/context_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.user_context"
+                }
+              },
+              "package_api_items": [
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences"
+              ],
+              "registry_items": [
+                "__getattr__",
+                "__init__",
+                "__new__",
+                "_get_conversation_history",
+                "get_all_preferences",
+                "get_instance_context"
+              ]
             }
           }
         }
       },
-      "timestamp": "2026-03-02T00:54:25"
+      "timestamp": "2026-03-02T12:48:34"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -15347,7 +15361,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-02T00:52:48"
+      "timestamp": "2026-03-02T12:48:41"
     },
     "analyze_documentation": {
       "success": true,
@@ -15386,7 +15400,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19959323287947223,
+              "similarity_score": 0.19969155489890542,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -15569,7 +15583,7 @@
               ]
             },
             "TODO.md": {
-              "content_length": 19624,
+              "content_length": 19634,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
               "section_count": 14,
               "sections": [
@@ -15618,7 +15632,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 19028,
+              "content_length": 19777,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -15627,7 +15641,7 @@
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
-                "2026-03-02 - Portability sweep static-tooling config ownership slice **COMPLETED**",
+                "2026-03-02 - Portability sweep static-tooling config ownership slice and closeout: timing-path relocation + audit validation **Progressed**",
                 "2026-03-02 - Tooling policy hardening + dev-tools coverage parallel fix **COMPLETED**",
                 "2026-03-02 - Tooling consistency command + policy-test direction + Tier 3 test fixes **Progressed**",
                 "2026-03-01 - Tier 3 coverage reliability + cache outcome normalization **Progressed**",
@@ -15820,7 +15834,7 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 252840,
+              "content_length": 254040,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
               "section_count": 92,
               "sections": [
@@ -15830,14 +15844,14 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
-                "2026-03-02 - Portability compliance sweep (static-tooling ownership slice)",
+                "2026-03-02 - Portability compliance sweep + closeout (static-tooling ownership and timing-path relocation)",
                 "2026-03-02 - Tooling policy hardening, CI enforcement, and dev-tools coverage parallelization",
                 "2026-03-01 - Tier 3 coverage reliability hardening + cache-outcome normalization + timing/reporting cleanup",
                 "2026-02-28 - Planning-doc user-priority Q&A completion (NOTES_PLAN, AI_DEV, TODO)"
               ]
             },
             "development_docs/PLANS.md": {
-              "content_length": 19678,
+              "content_length": 19704,
               "header_info": "# MHM Development Plans\n\n\n> **File**: `development_docs/PLANS.md`\n> **Audience**: Human Developer & AI Collaborators  \n> **Purpose**: Consolidated development plans (grouped, interdependent work) with",
               "section_count": 19,
               "sections": [
@@ -16035,7 +16049,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-03-02T00:54:21"
+      "timestamp": "2026-03-02T12:48:26"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -16112,7 +16126,7 @@
           }
         }
       },
-      "timestamp": "2026-03-02T00:54:33"
+      "timestamp": "2026-03-02T12:48:47"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -16127,7 +16141,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-02T00:54:29"
+      "timestamp": "2026-03-02T12:48:42"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -16142,7 +16156,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-02T00:54:32"
+      "timestamp": "2026-03-02T12:48:45"
     },
     "analyze_path_drift": {
       "success": true,
@@ -16155,7 +16169,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-02T00:54:28"
+      "timestamp": "2026-03-02T12:48:40"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -16170,7 +16184,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-02T00:54:33"
+      "timestamp": "2026-03-02T12:48:47"
     },
     "analyze_error_handling": {
       "success": true,
@@ -16180,40 +16194,54 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1540,
-          "functions_with_try_except": 613,
-          "functions_with_error_handling": 1540,
+          "total_functions": 1543,
+          "functions_with_try_except": 616,
+          "functions_with_error_handling": 1543,
           "functions_with_decorators": 1525,
           "functions_missing_error_handling": 0,
           "analyze_error_handling": 100.0,
           "error_patterns": {
             "handle_errors_decorator": 1504,
-            "try_except": 716,
+            "try_except": 719,
             "handle_ai_error": 15,
-            "handle_communication_error": 4,
             "handle_network_error": 5,
+            "handle_communication_error": 4,
             "DataError": 15,
             "ConfigurationError": 4,
             "ValidationError": 24,
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "AIError": 2,
-            "FileOperationError": 8,
-            "safe_file_operation": 1,
             "CommunicationError": 2,
+            "safe_file_operation": 1,
+            "AIError": 2,
             "MHMError": 2,
-            "handle_file_error": 3
+            "handle_file_error": 3,
+            "FileOperationError": 8
           },
           "missing_error_handling": [],
           "error_handling_quality": {
             "excellent": 1525,
-            "good": 15
+            "good": 17,
+            "basic": 1
           },
           "recommendations": [],
-          "phase1_candidates": [],
-          "phase1_total": 0,
-          "phase1_by_priority": {},
+          "phase1_candidates": [
+            {
+              "file_path": "core\\file_auditor.py",
+              "function_name": "handle_errors",
+              "line_start": 56,
+              "line_end": 76,
+              "is_async": false,
+              "operation_type": "file_io",
+              "is_entry_point": true,
+              "priority": "high"
+            }
+          ],
+          "phase1_total": 1,
+          "phase1_by_priority": {
+            "high": 1
+          },
           "phase2_exceptions": [],
           "phase2_total": 0,
           "phase2_by_type": {},
@@ -16251,84 +16279,84 @@
           ]
         }
       },
-      "timestamp": "2026-03-02T00:54:24"
+      "timestamp": "2026-03-02T12:48:34"
     },
     "analyze_test_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 8278,
+          "total_issues": 7479,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "coverage": 72.8,
-            "statements": 30449,
-            "covered": 22171,
-            "missed": 8278,
-            "generated": null
+            "coverage": 75.2,
+            "statements": 30164,
+            "covered": 22685,
+            "missed": 7479,
+            "generated": "2026-03-02T12:53:18.177208"
           },
           "modules": [
             {
-              "module": "communication",
-              "coverage": 71.2,
-              "missed": 2760
-            },
-            {
               "module": "ui",
-              "coverage": 71.7,
-              "missed": 1905
+              "coverage": 71.5,
+              "missed": 1904
             },
             {
               "module": "core",
-              "coverage": 72.8,
-              "missed": 2980
+              "coverage": 74.7,
+              "missed": 2750
             },
             {
-              "module": "notebook",
-              "coverage": 76.4,
-              "missed": 145
+              "module": "communication",
+              "coverage": 75.4,
+              "missed": 2320
             },
             {
               "module": "ai",
-              "coverage": 79.0,
+              "coverage": 78.8,
               "missed": 364
             },
             {
               "module": "tasks",
-              "coverage": 81.3,
+              "coverage": 81.2,
               "missed": 102
             },
             {
+              "module": "notebook",
+              "coverage": 95.6,
+              "missed": 27
+            },
+            {
               "module": "user",
-              "coverage": 92.7,
-              "missed": 22
+              "coverage": 96.0,
+              "missed": 12
             }
           ],
           "worst_files": [
             {
-              "path": "user/__init__.py",
-              "coverage": 23.1,
-              "missing": 10
+              "path": "notebook/__init__.py",
+              "coverage": 0.0,
+              "missing": 0
             },
             {
               "path": "communication/communication_channels/discord/bot.py",
-              "coverage": 50.6,
+              "coverage": 50.5,
               "missing": 630
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 51.7,
-              "missing": 680
+              "coverage": 50.7,
+              "missing": 692
             },
             {
               "path": "core/backup_manager.py",
-              "coverage": 53.9,
+              "coverage": 53.8,
               "missing": 351
             },
             {
               "path": "ui/widgets/checkin_settings_widget.py",
-              "coverage": 54.3,
+              "coverage": 54.1,
               "missing": 294
             }
           ],
@@ -16339,10 +16367,10 @@
               "classification": "passed",
               "classification_reason": "pytest_passed",
               "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-03-02_00-54-37.log",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-03-02_12-48-51.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
-              "passed_count": 3899,
+              "passed_count": 4026,
               "failed_count": 0,
               "error_count": 0,
               "skipped_count": 1,
@@ -16353,7 +16381,7 @@
               "classification": "passed",
               "classification_reason": "pytest_passed",
               "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-03-02_00-56-31.log",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-03-02_12-51-01.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
               "passed_count": 99,
@@ -16374,7 +16402,7 @@
           "source": "run_test_coverage"
         }
       },
-      "timestamp": "2026-03-02T00:58:15"
+      "timestamp": "2026-03-02T12:53:21"
     },
     "analyze_test_markers": {
       "success": true,
@@ -16388,20 +16416,20 @@
           "missing": []
         }
       },
-      "timestamp": "2026-03-02T01:00:51"
+      "timestamp": "2026-03-02T12:56:15"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 10375,
+          "total_issues": 10413,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "overall_coverage": 60.1,
+            "overall_coverage": 60.0,
             "total_statements": 26021,
-            "total_missed": 10375
+            "total_missed": 10413
           },
           "modules": {
             "development_tools\\__init__.py": {
@@ -16634,8 +16662,8 @@
             },
             "development_tools\\config\\config.py": {
               "statements": 375,
-              "missed": 63,
-              "coverage": 83,
+              "missed": 59,
+              "coverage": 84,
               "missing_lines": [
                 "58",
                 "60",
@@ -16650,13 +16678,9 @@
                 "418",
                 "443",
                 "453",
-                "460",
-                "461",
-                "462",
+                "463",
                 "483",
-                "490",
-                "491",
-                "492",
+                "493",
                 "524",
                 "540",
                 "541",
@@ -16701,7 +16725,7 @@
                 "1095",
                 "1101"
               ],
-              "covered": 312
+              "covered": 316
             },
             "development_tools\\config\\sync_ruff_toml.py": {
               "statements": 67,
@@ -19301,8 +19325,8 @@
             },
             "development_tools\\imports\\analyze_module_imports.py": {
               "statements": 311,
-              "missed": 125,
-              "coverage": 60,
+              "missed": 130,
+              "coverage": 58,
               "missing_lines": [
                 "18",
                 "27",
@@ -19323,6 +19347,11 @@
                 "175",
                 "201",
                 "208",
+                "219",
+                "221",
+                "227",
+                "228",
+                "229",
                 "241",
                 "251",
                 "253",
@@ -19430,7 +19459,7 @@
                 "492",
                 "558"
               ],
-              "covered": 186
+              "covered": 181
             },
             "development_tools\\imports\\analyze_unused_imports.py": {
               "statements": 554,
@@ -20128,7 +20157,7 @@
             },
             "development_tools\\reports\\analyze_system_signals.py": {
               "statements": 435,
-              "missed": 203,
+              "missed": 204,
               "coverage": 53,
               "missing_lines": [
                 "24",
@@ -20253,6 +20282,7 @@
                 "443",
                 "467",
                 "468",
+                "491",
                 "499",
                 "501",
                 "502",
@@ -20335,7 +20365,7 @@
                 "793",
                 "803"
               ],
-              "covered": 232
+              "covered": 231
             },
             "development_tools\\reports\\decision_support.py": {
               "statements": 107,
@@ -20446,8 +20476,8 @@
             },
             "development_tools\\run_development_tools.py": {
               "statements": 219,
-              "missed": 65,
-              "coverage": 70,
+              "missed": 63,
+              "coverage": 71,
               "missing_lines": [
                 "30",
                 "32",
@@ -20474,8 +20504,6 @@
                 "74",
                 "75",
                 "76",
-                "126",
-                "127",
                 "128",
                 "129",
                 "130",
@@ -20515,7 +20543,7 @@
                 "408",
                 "409"
               ],
-              "covered": 154
+              "covered": 156
             },
             "development_tools\\shared\\__init__.py": {
               "statements": 4,
@@ -21208,7 +21236,7 @@
             },
             "development_tools\\shared\\mtime_cache.py": {
               "statements": 253,
-              "missed": 54,
+              "missed": 53,
               "coverage": 79,
               "missing_lines": [
                 "40",
@@ -21218,7 +21246,6 @@
                 "111",
                 "130",
                 "131",
-                "144",
                 "145",
                 "146",
                 "172",
@@ -21266,7 +21293,7 @@
                 "481",
                 "483"
               ],
-              "covered": 199
+              "covered": 200
             },
             "development_tools\\shared\\output_storage.py": {
               "statements": 233,
@@ -22892,8 +22919,8 @@
             },
             "development_tools\\shared\\service\\data_loading.py": {
               "statements": 733,
-              "missed": 323,
-              "coverage": 56,
+              "missed": 356,
+              "coverage": 51,
               "missing_lines": [
                 "65",
                 "68",
@@ -23005,7 +23032,6 @@
                 "423",
                 "426",
                 "437",
-                "449",
                 "456",
                 "463",
                 "494",
@@ -23017,17 +23043,50 @@
                 "517",
                 "521",
                 "522",
-                "530",
+                "531",
+                "532",
+                "533",
                 "534",
                 "535",
+                "536",
+                "537",
                 "538",
+                "539",
+                "540",
+                "541",
+                "542",
+                "543",
+                "544",
+                "545",
+                "546",
+                "547",
                 "548",
+                "550",
+                "551",
+                "553",
+                "573",
+                "574",
+                "575",
                 "576",
                 "577",
+                "578",
+                "579",
+                "580",
+                "581",
+                "582",
+                "583",
+                "584",
+                "585",
+                "586",
+                "587",
                 "589",
                 "590",
                 "591",
                 "592",
+                "593",
+                "594",
+                "595",
+                "602",
                 "632",
                 "633",
                 "634",
@@ -23040,6 +23099,7 @@
                 "670",
                 "673",
                 "680",
+                "688",
                 "704",
                 "705",
                 "706",
@@ -23219,11 +23279,11 @@
                 "1132",
                 "1135"
               ],
-              "covered": 410
+              "covered": 377
             },
             "development_tools\\shared\\service\\report_generation.py": {
               "statements": 3705,
-              "missed": 1471,
+              "missed": 1479,
               "coverage": 60,
               "missing_lines": [
                 "32",
@@ -23283,11 +23343,6 @@
                 "324",
                 "346",
                 "355",
-                "368",
-                "369",
-                "374",
-                "375",
-                "376",
                 "377",
                 "382",
                 "383",
@@ -23297,7 +23352,6 @@
                 "387",
                 "388",
                 "389",
-                "391",
                 "399",
                 "408",
                 "464",
@@ -23525,18 +23579,9 @@
                 "1514",
                 "1515",
                 "1539",
-                "1551",
-                "1558",
                 "1559",
-                "1561",
-                "1562",
-                "1563",
-                "1564",
                 "1565",
-                "1566",
                 "1567",
-                "1569",
-                "1570",
                 "1582",
                 "1588",
                 "1589",
@@ -23589,6 +23634,13 @@
                 "1705",
                 "1708",
                 "1709",
+                "1734",
+                "1735",
+                "1736",
+                "1737",
+                "1740",
+                "1741",
+                "1742",
                 "1748",
                 "1749",
                 "1750",
@@ -23596,11 +23648,19 @@
                 "1754",
                 "1755",
                 "1756",
+                "1761",
+                "1762",
+                "1763",
+                "1764",
+                "1765",
                 "1767",
                 "1768",
+                "1770",
                 "1771",
                 "1772",
                 "1777",
+                "1781",
+                "1782",
                 "1808",
                 "1835",
                 "1836",
@@ -23933,6 +23993,12 @@
                 "3730",
                 "3733",
                 "3736",
+                "3745",
+                "3746",
+                "3747",
+                "3748",
+                "3751",
+                "3757",
                 "3758",
                 "3761",
                 "3762",
@@ -24166,13 +24232,21 @@
                 "5002",
                 "5005",
                 "5008",
+                "5019",
+                "5020",
                 "5022",
+                "5023",
                 "5024",
                 "5038",
                 "5039",
                 "5040",
                 "5042",
                 "5045",
+                "5059",
+                "5060",
+                "5063",
+                "5067",
+                "5068",
                 "5070",
                 "5073",
                 "5074",
@@ -24358,36 +24432,11 @@
                 "5681",
                 "5682",
                 "5685",
-                "5699",
-                "5700",
                 "5701",
-                "5703",
-                "5704",
-                "5705",
-                "5706",
                 "5707",
-                "5708",
                 "5709",
-                "5711",
-                "5714",
-                "5718",
-                "5719",
                 "5720",
-                "5721",
-                "5722",
-                "5724",
-                "5726",
-                "5727",
-                "5728",
-                "5729",
-                "5730",
-                "5731",
-                "5733",
-                "5734",
-                "5737",
-                "5740",
                 "5741",
-                "5742",
                 "5750",
                 "5751",
                 "5752",
@@ -24419,8 +24468,25 @@
                 "5802",
                 "5829",
                 "5831",
+                "5860",
+                "5861",
+                "5862",
+                "5863",
+                "5866",
+                "5867",
+                "5868",
+                "5869",
+                "5870",
+                "5871",
+                "5875",
+                "5882",
+                "5883",
+                "5884",
+                "5885",
+                "5886",
                 "5888",
                 "5889",
+                "5891",
                 "5892",
                 "5893",
                 "5898",
@@ -24438,6 +24504,8 @@
                 "5921",
                 "5922",
                 "5925",
+                "5927",
+                "5928",
                 "5933",
                 "5957",
                 "6002",
@@ -24698,7 +24766,7 @@
                 "7389",
                 "7392"
               ],
-              "covered": 2234
+              "covered": 2226
             },
             "development_tools\\shared\\service\\tool_wrappers.py": {
               "statements": 875,
@@ -25973,7 +26041,7 @@
             },
             "development_tools\\tests\\run_test_coverage.py": {
               "statements": 2102,
-              "missed": 1333,
+              "missed": 1331,
               "coverage": 37,
               "missing_lines": [
                 "43",
@@ -25990,11 +26058,9 @@
                 "77",
                 "133",
                 "139",
-                "150",
                 "168",
                 "175",
                 "184",
-                "191",
                 "258",
                 "259",
                 "260",
@@ -27310,7 +27376,7 @@
                 "4908",
                 "4909"
               ],
-              "covered": 769
+              "covered": 771
             },
             "development_tools\\tests\\test_file_coverage_cache.py": {
               "statements": 629,
@@ -27550,7 +27616,7 @@
           "source": "run_test_coverage --dev-tools-only"
         }
       },
-      "timestamp": "2026-03-02T01:00:49"
+      "timestamp": "2026-03-02T12:56:12"
     },
     "_debug_dev_tools_cov": {
       "success": true,
@@ -48458,7 +48524,7 @@
           "failed_node_ids": []
         }
       },
-      "timestamp": "2026-03-02T01:00:53.460850"
+      "timestamp": "2026-03-02T12:56:17.517501"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -51542,7 +51608,7 @@
           ]
         }
       },
-      "timestamp": "2026-03-02T00:54:26"
+      "timestamp": "2026-03-02T12:48:38"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -63537,7 +63603,7 @@
           }
         }
       },
-      "timestamp": "2026-03-02T00:54:26"
+      "timestamp": "2026-03-02T12:48:38"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -66390,28 +66456,28 @@
             ]
           },
           "stats": {
-            "files_scanned": 495,
+            "files_scanned": 507,
             "files_with_issues": 124,
             "total_unused": 385,
-            "cache_hits": 492,
-            "cache_misses": 3,
-            "changed_files": 3,
-            "cache_mode": "partial_cache",
+            "cache_hits": 0,
+            "cache_misses": 507,
+            "changed_files": 507,
+            "cache_mode": "cold_scan",
             "backend": "ruff"
           },
           "performance": {
             "backend": "ruff",
-            "scan_mode": "partial_cache",
+            "scan_mode": "cold_scan",
             "timings": {
-              "discovery_seconds": 1.3816,
-              "detection_seconds": 0.3781,
-              "categorization_seconds": 0.1044,
-              "total_seconds": 2.1059
+              "discovery_seconds": 1.8503,
+              "detection_seconds": 0.9553,
+              "categorization_seconds": 0.0928,
+              "total_seconds": 3.0462
             },
-            "files_per_second": 235.06,
-            "cache_hits": 492,
-            "cache_misses": 3,
-            "changed_files": 3,
+            "files_per_second": 166.44,
+            "cache_hits": 0,
+            "cache_misses": 507,
+            "changed_files": 507,
             "batch_size": 200,
             "fallback_used": false,
             "fallback_reason": ""
@@ -66428,24 +66494,24 @@
             "production_test_mocking": 2,
             "ui_imports": 5
           },
-          "files_scanned": 495,
+          "files_scanned": 507,
           "_cache_metadata": {
-            "cache_mode": "partial_cache",
-            "hits": 492,
-            "misses": 3,
-            "total_cache_checks": 495,
-            "hit_rate": 99.4
+            "cache_mode": "cold_scan",
+            "hits": 0,
+            "misses": 507,
+            "total_cache_checks": 507,
+            "hit_rate": 0.0
           }
         },
         "_cache_metadata": {
-          "cache_mode": "partial_cache",
-          "hits": 492,
-          "misses": 3,
-          "total_cache_checks": 495,
-          "hit_rate": 99.4
+          "cache_mode": "cold_scan",
+          "hits": 0,
+          "misses": 507,
+          "total_cache_checks": 507,
+          "hit_rate": 0.0
         }
       },
-      "timestamp": "2026-03-02T00:54:30"
+      "timestamp": "2026-03-02T12:48:40"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -66639,15 +66705,15 @@
           "legacy_markers": 14,
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
           "cache": {
-            "cache_mode": "partial_cache",
-            "hits": 490,
-            "misses": 3,
-            "total_cache_checks": 493,
-            "hit_rate": 99.4
+            "cache_mode": "cold_scan",
+            "hits": 0,
+            "misses": 507,
+            "total_cache_checks": 507,
+            "hit_rate": 0.0
           }
         }
       },
-      "timestamp": "2026-03-02T00:54:38"
+      "timestamp": "2026-03-02T12:48:56"
     },
     "analyze_config": {
       "success": true,
@@ -67167,12 +67233,12 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-03-02T00:54:21"
+      "timestamp": "2026-03-02T12:48:26"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-03-02T01:00:53",
+        "generated_at": "2026-03-02T12:56:17",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -67217,7 +67283,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-02-22T01:00:53",
+                "recent_cutoff": "2026-02-22T12:56:17",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-02-25_10-26-52",
                 "latest_weekly_created_at": "2026-02-25 10:26:52"
               }
@@ -67228,7 +67294,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-02-25_10-26-52",
                 "latest_created_at": "2026-02-25 10:26:52",
-                "recent_cutoff": "2026-02-22T01:00:53"
+                "recent_cutoff": "2026-02-22T12:56:17"
               }
             },
             {
@@ -67283,7 +67349,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-02-22T01:00:53",
+              "recent_cutoff": "2026-02-22T12:56:17",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-02-25_10-26-52",
               "latest_weekly_created_at": "2026-02-25 10:26:52"
             }
@@ -67294,7 +67360,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-02-25_10-26-52",
               "latest_created_at": "2026-02-25 10:26:52",
-              "recent_cutoff": "2026-02-22T01:00:53"
+              "recent_cutoff": "2026-02-22T12:56:17"
             }
           },
           {
@@ -67317,18 +67383,18 @@
           }
         ]
       },
-      "timestamp": "2026-03-02T01:00:53"
+      "timestamp": "2026-03-02T12:56:17"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 2,
+          "total_issues": 1,
           "files_affected": 0,
           "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-03-02T00:54:19.878510",
+          "timestamp": "2026-03-02T12:48:24.643021",
           "system_health": {
             "overall_status": "ISSUES",
             "core_files": {
@@ -67348,15 +67414,15 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-03-02T00:52:46.352249",
-            "audit_freshness": "<1 hour",
+            "last_audit": "2026-03-02T11:04:20.603306",
+            "audit_freshness": "<24 hours",
             "test_coverage_status": "Unknown",
-            "documentation_sync_status": "Issues",
+            "documentation_sync_status": "Synchronized",
             "health_indicators": [
-              "Audit data is very recent (<1 hour)"
+              "Audit data is recent (1 hours ago)",
+              "Documentation is synchronized"
             ],
             "recommendations": [
-              "Run `python development_tools/run_development_tools.py doc-fix` to address documentation issues",
               "Check logs/errors.log for recent errors"
             ],
             "warnings": [],
@@ -67364,7 +67430,6 @@
             "severity_levels": {
               "INFO": [],
               "WARNING": [
-                "Documentation has 7 sync issue(s)",
                 "Errors detected in logs/errors.log (last 24 hours)"
               ],
               "CRITICAL": []
@@ -67372,16 +67437,16 @@
           },
           "recent_activity": {
             "recent_changes": [
-              "development_tools/tests/run_test_coverage.py",
-              "development_tools/config/sync_ruff_toml.py",
-              "tests/development_tools/test_config.py",
-              "tests/development_tools/test_tooling_policy_consistency.py",
-              "tests/development_tools/test_regenerate_coverage_metrics.py",
-              "tests/development_tools/test_output_storage_archiving.py",
               "development_tools/static_checks/analyze_pyright.py",
+              "tests/development_tools/test_config.py",
+              "development_tools/shared/service/audit_orchestration.py",
+              "tests/development_tools/test_output_storage_archiving.py",
+              "tests/unit/test_user_package_exports.py",
+              "tests/development_tools/test_sync_ruff_toml.py",
               "development_tools/static_checks/analyze_ruff.py",
-              "development_tools/shared/cli_interface.py",
-              "development_tools/shared/service/tool_wrappers.py"
+              "tests/unit/test_email_bot_gap_coverage.py",
+              "tests/unit/test_tags_gap_coverage.py",
+              "tests/unit/test_analytics_handler_helper_branches.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -67408,7 +67473,7 @@
           }
         }
       },
-      "timestamp": "2026-03-02T00:54:20"
+      "timestamp": "2026-03-02T12:48:24"
     },
     "decision_support": {
       "success": true,
@@ -67418,7 +67483,7 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1487,
+          "total_functions": 1490,
           "moderate_complexity": 162,
           "high_complexity": 145,
           "critical_complexity": 142,
@@ -67428,7 +67493,7 @@
             "[COMPLEXITY] Functions needing attention: 449",
             "[CRITICAL] Critical Complexity (>199 nodes): 142",
             "[DOC] Undocumented Handlers: 6",
-            "[DUPE] Duplicate Function Names: 89",
+            "[DUPE] Duplicate Function Names: 91",
             "- [CRITICAL] Refactor critical complexity functions immediately."
           ],
           "critical_complexity_examples": [
@@ -67549,7 +67614,7 @@
           ]
         }
       },
-      "timestamp": "2026-03-02T00:54:22"
+      "timestamp": "2026-03-02T12:48:30"
     },
     "quick_status": {
       "success": true,
@@ -67560,7 +67625,7 @@
           "status": "OK"
         },
         "details": {
-          "timestamp": "2026-03-02T00:52:46.048563",
+          "timestamp": "2026-03-02T11:15:37.066763",
           "system_health": {
             "core_files": {
               "run_mhm.py": "OK",
@@ -67581,7 +67646,7 @@
           },
           "documentation_status": {
             "coverage": "Unknown",
-            "recent_audit": "2026-03-02T00:32:09.955992",
+            "recent_audit": "2026-03-02T11:04:20.552111",
             "key_files": {
               "README.md": "OK",
               "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -67594,8 +67659,9 @@
           "critical_issues": [],
           "action_items": [],
           "recent_activity": {
-            "last_audit": "2026-03-02T00:32:09.955992",
+            "last_audit": "2026-03-02T11:04:20.552111",
             "recent_changes": [
+              "core/file_auditor.py",
               "ai_development_docs/AI_CHANGELOG.md",
               "TODO.md",
               ".audit_in_progress.lock"
@@ -67603,14 +67669,14 @@
           }
         }
       },
-      "timestamp": "2026-03-02T00:52:46"
+      "timestamp": "2026-03-02T11:15:37"
     },
     "analyze_ruff": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 3874,
-          "files_affected": 276,
+          "total_issues": 3879,
+          "files_affected": 279,
           "status": "FAIL"
         },
         "details": {
@@ -67645,8 +67711,8 @@
             "E402": 370,
             "UP045": 248,
             "UP035": 176,
+            "SIM117": 174,
             "F841": 173,
-            "SIM117": 171,
             "F541": 157,
             "E712": 156,
             "UP015": 156
@@ -67678,14 +67744,14 @@
               "count": 176
             },
             {
+              "code": "SIM117",
+              "name": "multiple-with-statements",
+              "count": 174
+            },
+            {
               "code": "F841",
               "name": "unused-variable",
               "count": 173
-            },
-            {
-              "code": "SIM117",
-              "name": "multiple-with-statements",
-              "count": 171
             },
             {
               "code": "F541",
@@ -67705,7 +67771,7 @@
           ]
         }
       },
-      "timestamp": "2026-03-02T01:00:53.460850"
+      "timestamp": "2026-03-02T12:56:17.517501"
     },
     "analyze_pyright": {
       "success": true,
@@ -67746,7 +67812,7 @@
           "top_warning_files": []
         }
       },
-      "timestamp": "2026-03-02T01:00:53.460850"
+      "timestamp": "2026-03-02T12:56:17.517501"
     }
   }
 }

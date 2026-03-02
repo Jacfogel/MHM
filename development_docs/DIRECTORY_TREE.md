@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-02 00:37:49
+> **Last Generated**: 2026-03-02 06:34:12
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -287,7 +287,6 @@ C:.
 |   |   |   decision_support.py
 |   |   |   generate_consolidated_report.py
 |   |   |   quick_status.py
-|   |   |   tool_timings.json
 |   |   |   __init__.py
 |   |   |   
 |   |   +---jsons
@@ -506,6 +505,7 @@ C:.
 |   |   |   
 |   +---core
 |   |   |   test_file_auditor.py
+|   |   |   test_file_auditor_gap_coverage.py
 |   |   |   test_message_management.py
 |   |   |   test_python_interpreter_selection.py
 |   |   |   test_schedule_utilities.py
@@ -675,7 +675,9 @@ C:.
 |   |   |   test_ai_chatbot_helpers.py
 |   |   |   test_ai_deterministic.py
 |   |   |   test_analytics_handler.py
+|   |   |   test_analytics_handler_helper_branches.py
 |   |   |   test_auto_cleanup_backup_retention.py
+|   |   |   test_auto_cleanup_gap_coverage.py
 |   |   |   test_auto_cleanup_logic.py
 |   |   |   test_auto_cleanup_paths.py
 |   |   |   test_channel_orchestrator.py
@@ -694,22 +696,28 @@ C:.
 |   |   |   test_discord_api_client.py
 |   |   |   test_discord_event_handler.py
 |   |   |   test_email_bot_body_extraction.py
+|   |   |   test_email_bot_gap_coverage.py
 |   |   |   test_enhanced_checkin_responses.py
 |   |   |   test_error_categorization.py
 |   |   |   test_error_handling.py
 |   |   |   test_file_locking.py
+|   |   |   test_file_locking_platform_branches.py
 |   |   |   test_file_operations.py
+|   |   |   test_generate_ui_files_script.py
 |   |   |   test_interaction_handlers_helpers.py
+|   |   |   test_interaction_handlers_help_and_registry.py
 |   |   |   test_lm_studio_manager.py
 |   |   |   test_logger_unit.py
 |   |   |   test_logging_components.py
 |   |   |   test_message_formatter.py
+|   |   |   test_notebook_data_manager_gap_coverage.py
 |   |   |   test_notebook_handler_edge_cases.py
 |   |   |   test_notebook_handler_pagination_formatting.py
 |   |   |   test_notebook_validation.py
 |   |   |   test_notebook_validation_error_handling.py
 |   |   |   test_no_prints_policy.py
 |   |   |   test_profile_handler.py
+|   |   |   test_profile_handler_gap_coverage.py
 |   |   |   test_prompt_manager.py
 |   |   |   test_recurring_tasks.py
 |   |   |   test_rich_formatter.py
@@ -719,6 +727,7 @@ C:.
 |   |   |   test_service_utilities_network.py
 |   |   |   test_tags.py
 |   |   |   test_tags_expansion.py
+|   |   |   test_tags_gap_coverage.py
 |   |   |   test_test_policy_guards.py
 |   |   |   test_ui_management.py
 |   |   |   test_user_context.py
@@ -727,8 +736,10 @@ C:.
 |   |   |   test_user_data_loader_order_insensitivity.py
 |   |   |   test_user_data_manager.py
 |   |   |   test_user_management.py
+|   |   |   test_user_package_exports.py
 |   |   |   test_user_preferences.py
 |   |   |   test_validation.py
+|   |   |   test_webhook_handler_gap_coverage.py
 |   |   |   
 +---ui
 |   |   generate_ui_files.py
