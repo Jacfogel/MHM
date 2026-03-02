@@ -416,6 +416,52 @@ directory = development_tools/tests/coverage_html
         assert "tests/development_tools/test_keep.py" in normalized_keys
         assert "tests/development_tools/.ruff_cache/test_skip.py" not in normalized_keys
 
+    @pytest.mark.unit
+    def test_run_dev_tools_coverage_uses_parallel_worker_flags_when_enabled(
+        self, tmp_path, monkeypatch
+    ):
+        """Dev-tools coverage command should include xdist flags when parallel mode is enabled."""
+        # Minimal tree expected by run_dev_tools_coverage
+        (tmp_path / "tests" / "development_tools").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "tests" / "development_tools" / "test_smoke.py").write_text(
+            "def test_smoke():\n    assert True\n", encoding="utf-8"
+        )
+
+        regenerator = CoverageMetricsRegenerator(
+            str(tmp_path),
+            parallel=True,
+            num_workers="6",
+            use_domain_cache=False,
+        )
+
+        captured = {"cmd": None}
+
+        def _fake_run(cmd, **kwargs):
+            captured["cmd"] = list(cmd)
+            mock = Mock()
+            mock.returncode = 0
+            mock.stdout = ""
+            mock.stderr = ""
+            return mock
+
+        monkeypatch.setattr(coverage_module.subprocess, "run", _fake_run)
+        monkeypatch.setattr(
+            regenerator, "_cleanup_coverage_data_files", lambda *args, **kwargs: None
+        )
+        monkeypatch.setattr(
+            regenerator,
+            "_cleanup_process_specific_coverage_files",
+            lambda *args, **kwargs: None,
+        )
+
+        regenerator.run_dev_tools_coverage()
+
+        cmd = captured["cmd"]
+        assert cmd is not None
+        assert "-n" in cmd
+        assert cmd[cmd.index("-n") + 1] == "6"
+        assert "--dist=loadscope" in cmd
+
 
 class TestCoverageJSON:
     """Test coverage JSON loading."""

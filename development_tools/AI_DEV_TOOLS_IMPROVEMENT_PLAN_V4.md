@@ -546,15 +546,14 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
   - [x] Hardened `development_tools/static_checks/check_channel_loggers.py` standalone execution by making exclusions loading resilient in minimal CI environments (direct script path + safe fallback), keeping static logging enforcement runnable without optional runtime dependencies
 
 #### 3.11.1 Tooling consistency as policy tests (replace standalone checker)
-**Status**: PENDING  
+**Status**: COMPLETED (2026-03-02)  
 **User priority**: Medium/high.  
 **Tasks**:
-- [ ] Move tooling-consistency rule enforcement into policy-style tests under `tests/development_tools/` (CLI/metadata/wrapper parity, exclusion-context correctness, command-doc parity)
-- [ ] Keep policy checks deterministic and fast so they can run in normal test workflows
-- [ ] Mark `tooling-consistency` command as transitional/deprecated once policy tests cover all current rules
-- [ ] Remove standalone checker command and wrapper/metadata wiring after parity is confirmed
-- [ ] Explicitly do **not** wire tooling-consistency checks into `audit` tiers; enforcement lives in tests
-- [ ] Update AI + human development-tools guides to document policy-test ownership and migration away from standalone command
+- [x] Move tooling-consistency rule enforcement into policy-style tests under `tests/development_tools/` (CLI alias invariants, exclusion-context correctness, command-doc parity)
+- [x] Keep policy checks deterministic and fast so they can run in normal test workflows
+- [x] Remove standalone checker command and wrapper/metadata wiring after policy parity was confirmed
+- [x] Keep tooling-consistency enforcement out of `audit` tiers; enforcement now lives in tests
+- [x] Update AI + human development-tools guides to document policy-test ownership and remove standalone command references
 
 #### 3.12 Integrate flaky detector into development tools suite
 **Status**: PENDING  

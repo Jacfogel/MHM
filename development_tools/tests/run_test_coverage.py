@@ -3719,6 +3719,19 @@ class CoverageMetricsRegenerator:
                 "no:cacheprovider",
                 "-m",
                 "not e2e",  # Exclude e2e tests (slow, excluded from regular runs per pytest.ini)
+            ]
+
+            # Respect parallel mode for dev-tools coverage runs.
+            # This aligns with main coverage behavior so configured worker caps are effective.
+            if self.parallel:
+                cmd.extend(["-n", str(self.num_workers), "--dist=loadscope"])
+                if logger:
+                    logger.info(
+                        f"Using parallel execution for dev tools coverage with {self.num_workers} workers (loadscope distribution)"
+                    )
+
+            cmd.extend(
+                [
                 "--cov=development_tools",
                 "--cov-report=term-missing",
                 f"--cov-report=json:{coverage_output_abs}",
@@ -3731,7 +3744,8 @@ class CoverageMetricsRegenerator:
                 "--ignore=tests/data/pytest-tmp-*",
                 "--ignore=tests/data/pytest-of-*",
                 "tests/development_tools/",
-            ]
+                ]
+            )
 
             if logger:
                 logger.debug(

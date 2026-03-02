@@ -56,10 +56,10 @@ python development_tools/run_development_tools.py --project-root . --config-path
 python development_tools/run_development_tools.py --help
 python development_tools/run_development_tools.py audit
 python development_tools/run_development_tools.py audit --full
+python development_tools/run_development_tools.py full-audit
 python development_tools/run_development_tools.py docs
 python development_tools/run_development_tools.py doc-fix --full
 python development_tools/run_development_tools.py status
-python development_tools/run_development_tools.py tooling-consistency
 python development_tools/run_development_tools.py legacy
 python development_tools/run_development_tools.py coverage
 python development_tools/run_development_tools.py unused-imports
@@ -73,6 +73,7 @@ python development_tools/run_development_tools.py config
 - `audit` - Standard audit (Tier 2, default); regenerates quality checks and cached signals.
 - `audit --quick` - Quick audit (Tier 1); core metrics only (~30-60s).
 - `audit --full` - Full audit (Tier 3); comprehensive analysis including coverage (~10-30min, alias: full-audit).
+- `full-audit` - alias command for `audit --full`.
 - `audit --full --strict` - Full audit with fail-fast exit semantics for Tier 3 test failures/crashes.
 - `docs` - regenerates registries, dependency maps, and doc-signals.
 - `doc-sync` - verifies paired doc headings, path drift, ASCII compliance.
@@ -102,8 +103,8 @@ Coverage worker config (`coverage` section):
 - `duplicate-functions` - detects possible duplicate or similar functions (analysis only).
 - `module-refactor-candidates` - identifies large or high-complexity modules as refactoring candidates (analysis only).
 - `workflow` - executes an audit-first workflow task.
-- `tooling-consistency` - validates CLI aliases/flags and scanner exclusion filtering consistency (`--strict` fails on findings; default is advisory).
 - `export-code` - Exports Python source files from a specified directory into a single Markdown snapshot for LLM context (portable, project-root-relative paths).
+- `export-docs` - Exports documentation files into a single Markdown snapshot for LLM context.
 - `trees` - generates directory tree reports.
 - `cleanup` - cleans up project cache files, temporary directories, and artifacts. (alias: clean-up)
 - `backup` - policy-driven backup inventory, retention, and restore drill operations.

@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-02 - Tooling policy hardening + dev-tools coverage parallel fix **COMPLETED**
+- Replaced standalone tooling-consistency enforcement with deterministic policy tests and removed the `tooling-consistency` command/analyzer wiring (`cli_interface.py`, `tool_wrappers.py`, `tool_metadata.py`, deleted `development_tools/config/analyze_tooling_consistency.py`).
+- Hardened policy coverage in `tests/development_tools/test_tooling_policy_consistency.py`: command-group parity checks, runtime-budget guard, stricter command-doc parity (including stale-command detection in command sections), and AST-based scanner-candidate detection.
+- Added CI enforcement via `.github/workflows/logging-enforcement.yml` job `tooling-policy-consistency` to run `pytest tests/development_tools/test_tooling_policy_consistency.py -q` on push/PR.
+- Fixed dev-tools coverage worker scaling: `run_dev_tools_coverage()` now actually applies xdist flags (`-n <workers>`, `--dist=loadscope`) when parallel mode is enabled; added regression coverage in `tests/development_tools/test_regenerate_coverage_metrics.py`.
+
 ### 2026-03-02 - Tooling consistency command + policy-test direction + Tier 3 test fixes **Progressed**
 - Added `tooling-consistency` validation flow (CLI alias/exclusion consistency), wired through CLI/service/metadata, and fixed default UX so non-JSON runs now print a readable summary.
 - Fixed two active Tier 3 priority failures: `test_no_print_calls_in_tests` (ignore `tests/data/**` runtime artifacts) and `test_compute_source_signature_changes_when_source_changes` (content-aware source signature hashing).
@@ -134,9 +140,6 @@ Guidelines:
 - Tier 3 / AI priorities: checkin_view hardened with tmp_path; hashlib removed from conftest. Policy: allowlist conftest_hooks for datetime; removed 10 obvious unused imports (conftest + conftest_cleanup).
 - AI priorities (2026-02-25): Documentation drift: DIRECTORY_TREE.md updated for tests/test_support/; path drift 0. Five UI tests marked no_parallel (shared user index/test_data_dir). Two obvious unused imports removed from conftest. ASCII: doc-fix and doc-sync verified.
 - run_tests.py: `--full` parallel timeout 60 min; stuck detection (10 min no output) saves partial results then terminates.
-
-### 2026-02-24 - Module refactor candidates tool and development tools refinements **COMPLETED**
-- Added `analyze_module_refactor_candidates`: identifies large/high-complexity modules; configurable thresholds; Tier 2 audit; AI_STATUS, AI_PRIORITIES, consolidated report. Refinements: `total_function_complexity` naming, short threshold message, legacy guide in refactor guidance, top-level tests/ included; AI_PRIORITIES standard order, "Top target modules", no Effort lines, sub-indent for top-3 lists; improvement plan Section 2.8 (dev-tools-only audit mode). analyze_functions JSON: `files_affected`, `critical_complexity_examples`/`high_complexity_examples` (relative paths) from script; wrapper no longer merges cache. Test: `test_cleanup_test_temp_dirs_pytest_dirs` verified passing.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

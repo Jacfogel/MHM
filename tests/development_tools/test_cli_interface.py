@@ -21,8 +21,6 @@ class _StubService:
         self.workflow_calls = []
         self.decision_support_result = {"success": True}
         self.version_sync_scopes = []
-        self.tooling_consistency_calls = []
-        self.tooling_consistency_result = {"success": True, "data": {"summary": {}}}
         self.status_should_raise = False
         self.system_signals_calls = 0
         self.doc_sync_calls = 0
@@ -98,10 +96,6 @@ class _StubService:
     def run_version_sync(self, scope):
         self.version_sync_scopes.append(scope)
         return True
-
-    def run_analyze_tooling_consistency(self, *, strict):
-        self.tooling_consistency_calls.append(strict)
-        return self.tooling_consistency_result
 
     def run_status(self):
         if self.status_should_raise:
@@ -347,35 +341,3 @@ def test_list_commands_contains_expected_aliases(cli_module):
     assert "audit" in names
     assert "full-audit" in names
     assert "clean-up" in names
-    assert "tooling-consistency" in names
-
-
-@pytest.mark.unit
-def test_tooling_consistency_command_wires_strict_and_json(cli_module, monkeypatch):
-    service = _StubService()
-    service.tooling_consistency_result = {
-        "success": True,
-        "data": {"summary": {"status": "PASS"}},
-    }
-    printed = []
-    monkeypatch.setattr(builtins, "print", lambda msg="": printed.append(msg))
-
-    code = cli_module._tooling_consistency_command(service, ["--strict", "--json"])
-
-    assert code == 0
-    assert service.tooling_consistency_calls == [True]
-    assert '"status": "PASS"' in printed[0]
-
-
-@pytest.mark.unit
-def test_tooling_consistency_command_strict_failure_returns_nonzero(cli_module):
-    service = _StubService()
-    service.tooling_consistency_result = {
-        "success": False,
-        "data": {"summary": {"status": "FAIL"}},
-    }
-
-    code = cli_module._tooling_consistency_command(service, ["--strict"])
-
-    assert code == 1
-    assert service.tooling_consistency_calls == [True]

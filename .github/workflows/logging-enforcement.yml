@@ -50,3 +50,22 @@ jobs:
           result = subprocess.run([sys.executable, str(script)], check=False)
           raise SystemExit(result.returncode)
           PY
+
+  tooling-policy-consistency:
+    name: Tooling Policy Consistency
+    needs: static-logging-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        run: python -m pip install pytest
+
+      - name: Run tooling policy consistency tests
+        run: python -m pytest tests/development_tools/test_tooling_policy_consistency.py -q
