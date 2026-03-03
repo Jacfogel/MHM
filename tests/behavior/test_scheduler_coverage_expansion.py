@@ -401,7 +401,7 @@ class TestTaskReminderScheduling:
         """Test scheduling all task reminders for a user."""
         user_id = "test-user"
 
-        with patch("tasks.task_management.are_tasks_enabled") as mock_tasks_enabled:
+        with patch("tasks.are_tasks_enabled") as mock_tasks_enabled:
             mock_tasks_enabled.return_value = True
 
             with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
@@ -414,7 +414,7 @@ class TestTaskReminderScheduling:
                 }
 
                 with patch(
-                    "tasks.task_management.load_active_tasks"
+                    "tasks.load_active_tasks"
                 ) as mock_load_tasks:
                     mock_load_tasks.return_value = [
                         {
@@ -463,12 +463,12 @@ class TestTaskReminderScheduling:
         """Test scheduling task reminders when tasks are disabled."""
         user_id = "test-user"
 
-        with patch("tasks.task_management.are_tasks_enabled") as mock_tasks_enabled:
+        with patch("tasks.are_tasks_enabled") as mock_tasks_enabled:
             mock_tasks_enabled.return_value = False
 
             with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods, \
                  patch(
-                     "tasks.task_management.load_active_tasks"
+                     "tasks.load_active_tasks"
                  ) as mock_load_tasks:
                 # Test real behavior: function should exit early when tasks disabled
                 scheduler_manager.schedule_all_task_reminders(user_id)
@@ -487,7 +487,7 @@ class TestTaskReminderScheduling:
         task_id = "task-1"
         reminder_time = "10:30"
 
-        with patch("tasks.task_management.get_task_by_id") as mock_get_task:
+        with patch("tasks.get_task_by_id") as mock_get_task:
             mock_get_task.return_value = {
                 "task_id": task_id,
                 "title": "Test Task",
@@ -515,7 +515,7 @@ class TestTaskReminderScheduling:
         task_id = "task-1"
         reminder_time = "10:30"
 
-        with patch("tasks.task_management.get_task_by_id") as mock_get_task:
+        with patch("tasks.get_task_by_id") as mock_get_task:
             mock_get_task.return_value = {
                 "task_id": task_id,
                 "title": "Test Task",
@@ -790,14 +790,14 @@ class TestMessageHandling:
         user_id = "test-user"
         task_id = "task-1"
 
-        with patch("tasks.task_management.get_task_by_id") as mock_get_task:
+        with patch("tasks.get_task_by_id") as mock_get_task:
             mock_get_task.return_value = {
                 "task_id": task_id,
                 "title": "Test Task",
                 "completed": False,
             }
 
-            with patch("tasks.task_management.update_task") as mock_update_task:
+            with patch("tasks.update_task") as mock_update_task:
                 # Test real behavior: function should send task reminder
                 scheduler_manager.handle_task_reminder(user_id, task_id)
 
@@ -817,14 +817,14 @@ class TestMessageHandling:
         user_id = "test-user"
         task_id = "task-1"
 
-        with patch("tasks.task_management.get_task_by_id") as mock_get_task:
+        with patch("tasks.get_task_by_id") as mock_get_task:
             mock_get_task.return_value = {
                 "task_id": task_id,
                 "title": "Test Task",
                 "completed": True,
             }
 
-            with patch("tasks.task_management.update_task") as mock_update_task:
+            with patch("tasks.update_task") as mock_update_task:
                 # Test real behavior: function should not send reminder for completed task
                 scheduler_manager.handle_task_reminder(user_id, task_id)
 
@@ -950,7 +950,7 @@ class TestStandaloneFunctions:
         """Test standalone schedule_all_task_reminders function."""
         user_id = "test-user"
 
-        with patch("tasks.task_management.are_tasks_enabled") as mock_tasks_enabled:
+        with patch("tasks.are_tasks_enabled") as mock_tasks_enabled:
             mock_tasks_enabled.return_value = True
 
             # Test real behavior: function should log scheduling request
@@ -1342,8 +1342,8 @@ class TestTaskReminderSchedulingCoverage:
             patch(
                 "core.schedule_management.get_schedule_time_periods"
             ) as mock_get_periods,
-            patch("tasks.task_management.load_active_tasks") as mock_load_tasks,
-            patch("tasks.task_management.are_tasks_enabled") as mock_tasks_enabled,
+            patch("tasks.load_active_tasks") as mock_load_tasks,
+            patch("tasks.are_tasks_enabled") as mock_tasks_enabled,
             patch.object(
                 scheduler_manager, "select_task_for_reminder"
             ) as mock_select_task,
@@ -1395,7 +1395,7 @@ class TestTaskReminderSchedulingCoverage:
 
         with (
             patch("core.scheduler.get_schedule_time_periods") as mock_get_periods,
-            patch("tasks.task_management.load_active_tasks") as mock_load_tasks,
+            patch("tasks.load_active_tasks") as mock_load_tasks,
         ):
 
             # Mock task periods
@@ -1422,7 +1422,7 @@ class TestTaskReminderSchedulingCoverage:
 
         with (
             patch("core.scheduler.get_schedule_time_periods") as mock_get_periods,
-            patch("tasks.task_management.load_active_tasks") as mock_load_tasks,
+            patch("tasks.load_active_tasks") as mock_load_tasks,
             patch.object(
                 scheduler_manager, "select_task_for_reminder"
             ) as mock_select_task,

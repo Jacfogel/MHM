@@ -107,6 +107,7 @@ def handle_errors(
     context: Dict[str, Any] = None,
     user_friendly: bool = True,
     default_return=None,
+    re_raise: bool = False,
 )
 ```
 
@@ -117,7 +118,7 @@ Key behavior:
   - Builds a context dict (merging decorator-level and call-time data where applicable).  
   - Invokes `error_handler.handle_error(...)`.  
   - If recovery succeeds, retries the operation once (up to `max_retries`).  
-  - If recovery fails, logs final details and returns `default_return`.
+  - If recovery fails: when `re_raise=True`, logs and re-raises; otherwise logs and returns `default_return`.
 
 Use this decorator instead of manual try/except at **module entry points** (scheduler jobs, user-data operations, service utilities, logger helpers). See section 3 for usage patterns.
 

@@ -6,8 +6,16 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.user_data_handlers import get_user_data, save_user_data
 from core.response_tracking import get_recent_checkins
-from tasks.task_management import get_user_task_stats
+
 from communication.command_handlers.base_handler import InteractionHandler
+
+# Lazy import to avoid circular dependency: tasks -> core -> service -> communication -> profile_handler -> tasks
+@handle_errors("loading tasks module", default_return=None, re_raise=True)
+def _get_tasks():
+    import tasks as _tasks_mod
+    return _tasks_mod
+
+
 from communication.command_handlers.shared_types import (
     InteractionResponse,
     ParsedCommand,
@@ -350,7 +358,7 @@ class ProfileHandler(InteractionHandler):
     def _handle_profile_stats(self, user_id: str) -> InteractionResponse:
         """Handle profile statistics"""
         # Get task stats
-        task_stats = get_user_task_stats(user_id)
+        task_stats = _get_tasks().get_user_task_stats(user_id)
 
         # Get check-in stats
         recent_checkins = get_recent_checkins(user_id, limit=30)

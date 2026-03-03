@@ -181,7 +181,7 @@ Each item:
 **Acceptance:**
 - tags are stored consistently (no duplicates like `Work` vs `work`).
 
-#### 1.2 Add Notebook schemas (`notebook/schemas.py`)
+#### 1.2 Add Notebook schemas (`notebook/notebook_schemas.py`)
 - Define `EntryKind`, `Entry`, `ListItem`.
 - Use Pydantic validation:
   - required fields, timestamp formats, tag normalization via `core/tags.py`
@@ -362,7 +362,7 @@ If you follow this structure, the migration is **not** a rewrite—just a backen
 
 ## Suggested Implementation Order (short version)
 1. `core/tags.py`
-2. `notebook/schemas.py`
+2. `notebook/notebook_schemas.py`
 3. `notebook/notebook_data_handlers.py`
 4. `notebook/notebook_data_manager.py`
 5. `communication/command_handlers/notebook_handler.py`

@@ -10,7 +10,7 @@ Task settings widget implementation.
 
 from PySide6.QtWidgets import QWidget, QMessageBox
 from ui.generated.task_settings_widget_pyqt import Ui_Form_task_settings
-from tasks.task_management import get_user_task_stats
+from tasks import get_user_task_stats
 
 # Import core functionality
 from core.ui_management import (

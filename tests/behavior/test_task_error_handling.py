@@ -9,7 +9,7 @@ from unittest.mock import patch, MagicMock
 from datetime import timedelta
 import uuid
 
-from tasks.task_management import (
+from tasks import (
     create_task,
     update_task,
     complete_task,

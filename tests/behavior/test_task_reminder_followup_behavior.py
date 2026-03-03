@@ -15,7 +15,7 @@ from communication.message_processing.conversation_flow_manager import (
     FLOW_TASK_REMINDER,
 )
 from communication.command_handlers.task_handler import TaskManagementHandler
-from tasks.task_management import create_task, get_task_by_id
+from tasks import create_task, get_task_by_id
 from tests.test_utilities import TestUserFactory
 from core.time_utilities import (
     DATE_ONLY,

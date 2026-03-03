@@ -1078,6 +1078,7 @@ def get_component_logger(component_name: str) -> ComponentLogger:
             "ai_dev_tools": log_paths["ai_dev_tools_file"],
             # File rotation operations should go to file_ops.log
             "file_rotation": log_paths["file_ops_file"],
+            "user_item_storage": log_paths["main_file"],
         }
 
         log_file = log_file_map.get(component_name, log_paths["main_file"])

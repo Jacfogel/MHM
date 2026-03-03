@@ -263,18 +263,18 @@ class TestAnalyticsHandlerHelperBranches:
                 return self._payload
 
         monkeypatch.setattr(
-            "tasks.task_management.get_user_task_stats",
+            "tasks.get_user_task_stats",
             lambda user_id: {"active_count": 0, "completed_count": 0, "total_count": 0},
         )
-        monkeypatch.setattr("tasks.task_management.load_active_tasks", lambda user_id: [])
-        monkeypatch.setattr("tasks.task_management.load_completed_tasks", lambda user_id: [])
+        monkeypatch.setattr("tasks.load_active_tasks", lambda user_id: [])
+        monkeypatch.setattr("tasks.load_completed_tasks", lambda user_id: [])
         monkeypatch.setattr("core.checkin_analytics.CheckinAnalytics", lambda: _FakeAnalytics({"error": "none"}))
         response_zero = self.handler._handle_task_analytics("u1", {"days": 30})
         assert "No detailed task completion data available" in response_zero.message
         assert "No active tasks - great job" in response_zero.message
 
         monkeypatch.setattr(
-            "tasks.task_management.get_user_task_stats",
+            "tasks.get_user_task_stats",
             lambda user_id: {"active_count": 6, "completed_count": 2, "total_count": 8},
         )
         monkeypatch.setattr("core.checkin_analytics.CheckinAnalytics", lambda: _FakeAnalytics({"Task A": {"completion_rate": 90, "completed_days": 9, "total_days": 10}}))
@@ -284,7 +284,7 @@ class TestAnalyticsHandlerHelperBranches:
 
     def test_task_analytics_and_task_stats_exception_paths(self, monkeypatch):
         monkeypatch.setattr(
-            "tasks.task_management.get_user_task_stats",
+            "tasks.get_user_task_stats",
             lambda user_id: (_ for _ in ()).throw(RuntimeError("boom")),
         )
         seen = []
@@ -302,15 +302,15 @@ class TestAnalyticsHandlerHelperBranches:
 
     def test_task_stats_success_and_basic_line_variants(self, monkeypatch):
         monkeypatch.setattr(
-            "tasks.task_management.get_user_task_stats",
+            "tasks.get_user_task_stats",
             lambda user_id: {"active_count": 3, "completed_count": 2, "total_count": 5},
         )
         monkeypatch.setattr(
-            "tasks.task_management.load_active_tasks",
+            "tasks.load_active_tasks",
             lambda user_id: [{"priority": "high"}, {"priority": "medium"}, {"priority": "low"}],
         )
         monkeypatch.setattr(
-            "tasks.task_management.load_completed_tasks",
+            "tasks.load_completed_tasks",
             lambda user_id: [{"title": "Done 1"}, {"title": "Done 2"}],
         )
         result = self.handler._handle_task_stats("u1", {"days": 14})

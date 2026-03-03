@@ -10,7 +10,7 @@ Flexible tag widget for both management and selection
 from PySide6.QtWidgets import QWidget, QListWidgetItem, QInputDialog, QMessageBox
 from PySide6.QtCore import Qt, Signal
 from ui.generated.tag_widget_pyqt import Ui_Widget_tag
-from tasks.task_management import add_user_task_tag, remove_user_task_tag
+from tasks import add_user_task_tag, remove_user_task_tag
 from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger

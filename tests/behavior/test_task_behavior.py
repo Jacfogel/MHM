@@ -18,8 +18,8 @@ from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 
 # Do not modify sys.path; rely on package imports
 
-# Import the actual functions from task_management
-from tasks.task_management import (
+# Import the actual functions from tasks package
+from tasks import (
     ensure_task_directory,
     load_active_tasks,
     save_active_tasks,
@@ -50,7 +50,7 @@ class TestTaskManagement:
         return "test-user-123"
 
     @pytest.mark.tasks
-    @patch("tasks.task_management.get_user_data_dir")
+    @patch("core.user_item_storage.get_user_data_dir")
     def test_ensure_task_directory(self, mock_get_user_dir, user_id, temp_dir):
         """Test task directory creation."""
         mock_get_user_dir.return_value = temp_dir
@@ -66,7 +66,7 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.critical
-    @patch("tasks.task_management.get_user_data_dir")
+    @patch("core.user_item_storage.get_user_data_dir")
     def test_load_active_tasks(self, mock_get_user_dir, user_id, temp_dir):
         """Test loading active tasks."""
         mock_get_user_dir.return_value = temp_dir
@@ -91,7 +91,7 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.slow
-    @patch("tasks.task_management.get_user_data_dir")
+    @patch("core.user_item_storage.get_user_data_dir")
     def test_save_active_tasks(self, mock_get_user_dir, user_id, temp_dir):
         """Test saving active tasks."""
         mock_get_user_dir.return_value = temp_dir
@@ -117,7 +117,7 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
-    @patch("tasks.task_management.get_user_data_dir")
+    @patch("core.user_item_storage.get_user_data_dir")
     def test_create_task(self, mock_get_user_dir, temp_dir):
         """Test task creation with file verification."""
         user_id = "test-user-create-task"
@@ -151,7 +151,7 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
-    @patch("tasks.task_management.get_user_data_dir")
+    @patch("core.user_item_storage.get_user_data_dir")
     def test_update_task(self, mock_get_user_dir, temp_dir):
         """Test task updating with file verification."""
         user_id = "test-user-update-task"
@@ -184,7 +184,7 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.critical
-    @patch("tasks.task_management.get_user_data_dir")
+    @patch("core.user_item_storage.get_user_data_dir")
     def test_complete_task(self, mock_get_user_dir, temp_dir):
         """Test task completion with file and side effect verification."""
         user_id = "test-user-complete-task"
@@ -217,7 +217,7 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
-    @patch("tasks.task_management.get_user_data_dir")
+    @patch("core.user_item_storage.get_user_data_dir")
     def test_delete_task(self, mock_get_user_dir, temp_dir):
         """Test task deletion with file verification."""
         user_id = "test-user-delete-task"
@@ -239,7 +239,7 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
-    @patch("tasks.task_management.get_user_data_dir")
+    @patch("core.user_item_storage.get_user_data_dir")
     def test_get_task_by_id(self, mock_get_user_dir, temp_dir):
         """Test getting a task by ID with file verification."""
         user_id = "test-user-get-task"
@@ -260,7 +260,7 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.slow
-    @patch("tasks.task_management.get_user_data_dir")
+    @patch("core.user_item_storage.get_user_data_dir")
     def test_get_tasks_due_soon(self, mock_get_user_dir, temp_dir):
         """Test getting tasks due soon with file verification."""
         user_id = "test-user-due-soon"
@@ -301,7 +301,7 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
-    @patch("tasks.task_management.get_user_data")
+    @patch("tasks.task_data_manager.get_user_data")
     def test_are_tasks_enabled(self, mock_get_user_data):
         """Test checking if tasks are enabled with mock user data."""
         user_id = "test-user-tasks-enabled"
@@ -321,7 +321,7 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
-    @patch("tasks.task_management.get_user_data_dir")
+    @patch("core.user_item_storage.get_user_data_dir")
     def test_get_user_task_stats(self, mock_get_user_dir, temp_dir):
         """Test getting user task statistics with file verification."""
         user_id = "test-user-task-stats"

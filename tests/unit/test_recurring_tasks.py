@@ -8,9 +8,15 @@ from datetime import datetime
 from unittest.mock import patch
 import os
 
-from tasks.task_management import (
-    create_task, complete_task, load_active_tasks, load_completed_tasks,
-    _create_next_recurring_task_instance, _calculate_next_due_date
+from tasks import (
+    create_task,
+    complete_task,
+    load_active_tasks,
+    load_completed_tasks,
+)
+from tasks.task_data_manager import (
+    _create_next_recurring_task_instance,
+    _calculate_next_due_date,
 )
 
 
@@ -41,7 +47,7 @@ class TestRecurringTasks:
         
         yield user_id, temp_dir
     
-    @patch('tasks.task_management.get_user_data_dir')
+    @patch('core.user_item_storage.get_user_data_dir')
     def test_create_recurring_task(self, mock_get_user_data_dir, temp_user_dir):
         """Test creating a recurring task."""
         user_id, temp_dir = temp_user_dir
@@ -72,7 +78,7 @@ class TestRecurringTasks:
         assert task['repeat_after_completion'] is True
         assert task['next_due_date'] == "2025-01-15"
     
-    @patch('tasks.task_management.get_user_data_dir')
+    @patch('core.user_item_storage.get_user_data_dir')
     def test_complete_recurring_task_creates_next_instance(self, mock_get_user_data_dir, temp_user_dir):
         """Test that completing a recurring task creates the next instance."""
         user_id, temp_dir = temp_user_dir
@@ -173,7 +179,7 @@ class TestRecurringTasks:
         next_date = _calculate_next_due_date(base_date, "invalid_pattern", 1, True)
         assert next_date is None
     
-    @patch('tasks.task_management.get_user_data_dir')
+    @patch('core.user_item_storage.get_user_data_dir')
     def test_non_recurring_task_completion(self, mock_get_user_data_dir, temp_user_dir):
         """Test that completing a non-recurring task doesn't create a new instance."""
         user_id, temp_dir = temp_user_dir

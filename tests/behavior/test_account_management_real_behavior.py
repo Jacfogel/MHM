@@ -711,7 +711,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
         })
 
             # Ensure task directory is created when tasks are enabled
-            from tasks.task_management import ensure_task_directory
+            from tasks import ensure_task_directory
             from core.user_data_handlers import get_user_id_by_identifier
             actual_user_id = get_user_id_by_identifier(f"test-user-full-{test_id}")
             if actual_user_id:

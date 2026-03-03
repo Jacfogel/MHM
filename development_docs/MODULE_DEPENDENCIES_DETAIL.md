@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-02 06:34:05
+> **Last Generated**: 2026-03-02 22:57:16
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 108
-- **Total Imports Found**: 1454
-- **Dependencies Documented**: 108 (100% coverage)
-- **Standard Library Imports**: 382 (26.3%)
-- **Third-Party Imports**: 223 (15.3%)
-- **Local Imports**: 849 (58.4%)
+- **Files Scanned**: 112
+- **Total Imports Found**: 1471
+- **Dependencies Documented**: 112 (100% coverage)
+- **Standard Library Imports**: 384 (26.1%)
+- **Third-Party Imports**: 225 (15.3%)
+- **Local Imports**: 862 (58.6%)
 - **Last Updated**: 2026-03-02
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 382 imports (26.3%)
-- **Third-Party**: 223 imports (15.3%)
-- **Local**: 849 imports (58.4%)
+- **Standard Library**: 384 imports (26.1%)
+- **Third-Party**: 225 imports (15.3%)
+- **Local**: 862 imports (58.6%)
 
 ## Module Dependencies by Directory
 
@@ -91,7 +91,7 @@
     - `core.response_tracking (get_recent_responses, is_user_checkins_enabled, store_chat_interaction)` (NEW)
     - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
-    - `tasks.task_management (are_tasks_enabled, get_tasks_due_soon, get_user_task_stats, load_active_tasks)` (NEW)
+    - `tasks (are_tasks_enabled, get_tasks_due_soon, get_user_task_stats, load_active_tasks)` (NEW)
     - `user.context_manager (user_context_manager)` (NEW)
   - **Standard Library**:
     - `asyncio`
@@ -111,7 +111,7 @@
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
-- Added: ai.lm_studio_manager, core.config, core.error_handling, core.logger, core.message_management, core.response_tracking, core.time_utilities, core.user_data_handlers, tasks.task_management, user.context_manager
+- Added: ai.lm_studio_manager, core.config, core.error_handling, core.logger, core.message_management, core.response_tracking, core.time_utilities, core.user_data_handlers, tasks, user.context_manager
 - Removed: communication/core/channel_orchestrator.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -301,7 +301,7 @@
     - `core.response_tracking (get_checkins_by_days, get_recent_checkins)` (NEW)
     - `core.time_utilities (parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
-    - `tasks.task_management (get_user_task_stats, load_active_tasks, load_completed_tasks)` (NEW)
+    - `tasks (get_user_task_stats, load_active_tasks, load_completed_tasks)` (NEW)
   - **Standard Library**:
     - `collections (Counter)`
     - `typing (Any)`
@@ -310,7 +310,7 @@
   - `communication/message_processing/conversation_flow_manager.py`
 
 **Dependency Changes**:
-- Added: core.checkin_analytics, core.checkin_dynamic_manager, core.error_handling, core.logger, core.response_tracking, core.time_utilities, core.user_data_handlers, tasks.task_management
+- Added: core.checkin_analytics, core.checkin_dynamic_manager, core.error_handling, core.logger, core.response_tracking, core.time_utilities, core.user_data_handlers, tasks
 - Removed: communication/command_handlers/interaction_handlers.py, communication/message_processing/conversation_flow_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -385,7 +385,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (get_recent_checkins, is_user_checkins_enabled)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
-    - `tasks.task_management (load_active_tasks)` (NEW)
+    - `tasks (load_active_tasks)` (NEW)
   - **Standard Library**:
     - `typing (Any)`
 - **Used by**: 
@@ -394,7 +394,7 @@
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
-- Added: communication.command_handlers.account_handler, communication.command_handlers.analytics_handler, communication.command_handlers.base_handler, communication.command_handlers.checkin_handler, communication.command_handlers.notebook_handler, communication.command_handlers.profile_handler, communication.command_handlers.schedule_handler, communication.command_handlers.task_handler, core.error_handling, core.logger, core.response_tracking, core.user_data_handlers, tasks.task_management
+- Added: communication.command_handlers.account_handler, communication.command_handlers.analytics_handler, communication.command_handlers.base_handler, communication.command_handlers.checkin_handler, communication.command_handlers.notebook_handler, communication.command_handlers.profile_handler, communication.command_handlers.schedule_handler, communication.command_handlers.task_handler, core.error_handling, core.logger, core.response_tracking, core.user_data_handlers, tasks
 - Removed: communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -413,8 +413,8 @@
     - `core.tags (parse_tags_from_text)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
     - `notebook.notebook_data_manager (add_list_item, add_tags, append_to_entry_body, archive_entry, create_journal, create_list, create_note, get_entry, list_archived, list_by_group, list_by_tag, list_inbox, list_pinned, list_recent, pin_entry, remove_list_item, remove_tags, search_entries, set_entry_body, set_group, toggle_list_item_done)`
+    - `notebook.notebook_schemas (Entry)`
     - `notebook.notebook_validation (format_short_id)`
-    - `notebook.schemas (Entry)`
   - **Standard Library**:
     - `typing (Any)`
 - **Used by**: 
@@ -438,7 +438,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (get_recent_checkins)` (NEW)
     - `core.user_data_handlers (get_user_data, save_user_data)` (NEW)
-    - `tasks.task_management (get_user_task_stats)` (NEW)
+    - `tasks` (NEW)
   - **Standard Library**:
     - `typing (Any)`
 - **Used by**: 
@@ -446,7 +446,7 @@
   - `communication/message_processing/conversation_flow_manager.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.response_tracking, core.user_data_handlers, tasks.task_management
+- Added: core.error_handling, core.logger, core.response_tracking, core.user_data_handlers, tasks
 - Removed: communication/command_handlers/interaction_handlers.py, communication/message_processing/conversation_flow_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -514,7 +514,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, parse_date_only)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
-    - `tasks.task_management (complete_task, create_task, delete_task, get_tasks_due_soon, get_user_task_stats, load_active_tasks, load_completed_tasks, restore_task, update_task)` (NEW)
+    - `tasks` (NEW)
   - **Standard Library**:
     - `datetime (timedelta)`
     - `re`
@@ -527,7 +527,7 @@
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.conversation_flow_manager, core.checkin_analytics, core.error_handling, core.logger, core.time_utilities, core.user_data_handlers, tasks.task_management
+- Added: communication.message_processing.conversation_flow_manager, core.checkin_analytics, core.error_handling, core.logger, core.time_utilities, core.user_data_handlers, tasks
 - Removed: communication/command_handlers/interaction_handlers.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -954,7 +954,7 @@
     - `core.schemas (validate_messages_file_dict)` (NEW)
     - `core.service_utilities (wait_for_network)` (NEW)
     - `core.user_data_handlers (get_user_data, get_user_id_by_identifier)` (NEW)
-    - `tasks.task_management (are_tasks_enabled, get_task_by_id)` (NEW)
+    - `tasks (are_tasks_enabled, get_task_by_id)` (NEW)
   - **Standard Library**:
     - `asyncio`
     - `pathlib (Path)`
@@ -971,7 +971,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: communication.communication_channels.discord.checkin_view, communication.communication_channels.discord.task_reminder_view, communication.message_processing.interaction_manager, core.config, core.error_handling, core.file_operations, core.logger, core.message_management, core.schedule_management, core.schemas, core.service_utilities, core.user_data_handlers, tasks.task_management
+- Added: communication.communication_channels.discord.checkin_view, communication.communication_channels.discord.task_reminder_view, communication.message_processing.interaction_manager, core.config, core.error_handling, core.file_operations, core.logger, core.message_management, core.schedule_management, core.schemas, core.service_utilities, core.user_data_handlers, tasks
 - Removed: communication/command_handlers/account_handler.py, core/scheduler.py, core/service.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1109,7 +1109,7 @@
     - `core.time_utilities (DATE_ONLY, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, now_timestamp_full, parse_date_and_time_minute, parse_date_only, parse_time_only_minute, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
     - `notebook.notebook_data_manager (create_list, create_note)`
-    - `tasks.task_management (get_task_by_id, update_task)` (NEW)
+    - `tasks (get_task_by_id, update_task)` (NEW)
   - **Standard Library**:
     - `contextlib (suppress)`
     - `datetime (datetime, timedelta)`
@@ -1126,7 +1126,7 @@
   - `core/service.py`
 
 **Dependency Changes**:
-- Added: communication.command_handlers.shared_types, core.checkin_dynamic_manager, core.config, core.error_handling, core.logger, core.response_tracking, core.tags, core.time_utilities, core.user_data_handlers, tasks.task_management
+- Added: communication.command_handlers.shared_types, core.checkin_dynamic_manager, core.config, core.error_handling, core.logger, core.response_tracking, core.tags, core.time_utilities, core.user_data_handlers, tasks
 - Removed: communication/command_handlers/checkin_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_orchestrator.py, communication/message_processing/interaction_manager.py, core/service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1170,7 +1170,7 @@
     - `core.response_tracking (get_recent_checkins, is_user_checkins_enabled)` (NEW)
     - `core.time_utilities (DATE_DISPLAY_MONTH_DAY, format_timestamp, now_datetime_full, parse_date_and_time_minute, parse_date_only, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_categories)` (NEW)
-    - `tasks.task_management (load_active_tasks)` (NEW)
+    - `tasks (load_active_tasks)` (NEW)
   - **Standard Library**:
     - `dataclasses (dataclass)`
     - `datetime`
@@ -1186,7 +1186,7 @@
   - `communication/message_processing/conversation_flow_manager.py`
 
 **Dependency Changes**:
-- Added: communication.command_handlers.task_handler, communication.message_processing.intent_validation, core.config, core.error_handling, core.logger, core.response_tracking, core.time_utilities, core.user_data_handlers, tasks.task_management
+- Added: communication.command_handlers.task_handler, communication.message_processing.intent_validation, core.config, core.error_handling, core.logger, core.response_tracking, core.time_utilities, core.user_data_handlers, tasks
 - Removed: communication/communication_channels/discord/bot.py, communication/communication_channels/discord/checkin_view.py, communication/communication_channels/discord/event_handler.py, communication/communication_channels/discord/task_reminder_view.py, communication/core/channel_orchestrator.py, communication/message_processing/conversation_flow_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1398,7 +1398,7 @@
   - `core/user_data_handlers.py`
   - `core/user_data_manager.py`
   - `core/user_data_validation.py`
-  - `tasks/task_management.py`
+  - `core/user_item_storage.py`
   - `ui/dialogs/account_creator_dialog.py`
   - `ui/dialogs/schedule_editor_dialog.py`
   - `ui/ui_app_qt.py`
@@ -1496,8 +1496,11 @@
   - `core/user_data_handlers.py`
   - `core/user_data_manager.py`
   - `core/user_data_validation.py`
+  - `core/user_item_storage.py`
   - `run_headless_service.py`
-  - `tasks/task_management.py`
+  - `tasks/task_data_handlers.py`
+  - `tasks/task_data_manager.py`
+  - `tasks/task_validation.py`
   - `ui/dialogs/account_creator_dialog.py`
   - `ui/dialogs/admin_panel.py`
   - `ui/dialogs/category_management_dialog.py`
@@ -1613,7 +1616,7 @@
   - `core/tags.py`
   - `core/user_data_handlers.py`
   - `core/user_data_manager.py`
-  - `tasks/task_management.py`
+  - `core/user_item_storage.py`
   - `ui/dialogs/account_creator_dialog.py`
 
 **Dependency Changes**:
@@ -1734,8 +1737,11 @@
   - `core/user_data_handlers.py`
   - `core/user_data_manager.py`
   - `core/user_data_validation.py`
+  - `core/user_item_storage.py`
   - `run_headless_service.py`
-  - `tasks/task_management.py`
+  - `tasks/task_data_handlers.py`
+  - `tasks/task_data_manager.py`
+  - `tasks/task_validation.py`
   - `ui/dialogs/account_creator_dialog.py`
   - `ui/dialogs/admin_panel.py`
   - `ui/dialogs/category_management_dialog.py`
@@ -1937,7 +1943,7 @@
     - `core.service_utilities (load_and_localize_datetime)` (NEW)
     - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, now_timestamp_filename, parse_date_only, parse_time_only_minute, parse_timestamp_full, parse_timestamp_minute)` (NEW)
     - `core.user_data_handlers (get_all_user_ids, get_user_data)` (NEW)
-    - `tasks.task_management (are_tasks_enabled, get_task_by_id, load_active_tasks, update_task)` (NEW)
+    - `tasks (are_tasks_enabled, get_task_by_id, load_active_tasks, update_task)` (NEW)
     - `user.user_context (UserContext)` (NEW)
   - **Standard Library**:
     - `calendar`
@@ -1957,7 +1963,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: communication.core.channel_orchestrator, core.auto_cleanup, core.backup_manager, core.config, core.error_handling, core.logger, core.schedule_management, core.scheduler, core.service_utilities, core.time_utilities, core.user_data_handlers, tasks.task_management, user.user_context
+- Added: communication.core.channel_orchestrator, core.auto_cleanup, core.backup_manager, core.config, core.error_handling, core.logger, core.schedule_management, core.scheduler, core.service_utilities, core.time_utilities, core.user_data_handlers, tasks, user.user_context
 - Removed: core/scheduler.py, core/service.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2025,7 +2031,7 @@
   - **Third-party**:
     - `psutil`
 - **Used by**: 
-  - `tasks/task_management.py`
+  - `tasks/task_data_manager.py`
   - `ui/dialogs/account_creator_dialog.py`
 
 **Dependency Changes**:
@@ -2091,7 +2097,7 @@
   - `communication/message_processing/command_parser.py`
   - `communication/message_processing/conversation_flow_manager.py`
   - `core/user_data_handlers.py`
-  - `tasks/task_management.py`
+  - `tasks/task_data_manager.py`
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities
@@ -2140,7 +2146,8 @@
   - `core/user_data_handlers.py`
   - `core/user_data_manager.py`
   - `core/user_data_validation.py`
-  - `tasks/task_management.py`
+  - `tasks/task_data_manager.py`
+  - `tasks/task_validation.py`
   - `ui/dialogs/message_editor_dialog.py`
   - `ui/dialogs/process_watcher_dialog.py`
   - `ui/dialogs/schedule_editor_dialog.py`
@@ -2234,7 +2241,7 @@
   - `core/service.py`
   - `core/user_data_manager.py`
   - `core/user_data_validation.py`
-  - `tasks/task_management.py`
+  - `tasks/task_data_manager.py`
   - `ui/dialogs/account_creator_dialog.py`
   - `ui/dialogs/category_management_dialog.py`
   - `ui/dialogs/channel_management_dialog.py`
@@ -2318,6 +2325,7 @@
 - **Used by**: 
   - `core/schemas.py`
   - `core/user_data_handlers.py`
+  - `tasks/task_data_handlers.py`
   - `ui/dialogs/account_creator_dialog.py`
   - `ui/dialogs/channel_management_dialog.py`
   - `ui/dialogs/checkin_management_dialog.py`
@@ -2333,6 +2341,26 @@
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: User data validation - validates user input and data integrity
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `core/user_item_storage.py`
+- **Purpose**: Core system module for user_item_storage
+- **Dependencies**: 
+  - **Local**:
+    - `core.config (get_user_data_dir)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.file_operations (load_json_data, save_json_data)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+- **Used by**: 
+  - `tasks/task_data_handlers.py`
+
+**Dependency Changes**:
+- Added: core.config, core.error_handling, core.file_operations, core.logger
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
 ### `root/` - Project root files
@@ -2361,77 +2389,90 @@
 - **Purpose**: Task management and scheduling
 - **Dependencies**: 
   - **Third-party**:
-    - `task_management (TaskManagementError, add_user_task_tag, are_tasks_enabled, cleanup_task_reminders, complete_task, create_task, delete_task, ensure_task_directory, get_task_by_id, get_tasks_due_soon, get_user_task_stats, load_active_tasks, load_completed_tasks, remove_user_task_tag, restore_task, save_active_tasks, save_completed_tasks, schedule_task_reminders, setup_default_task_tags, update_task)`
+    - `task_data_handlers (ensure_task_directory, load_active_tasks, load_completed_tasks, save_active_tasks, save_completed_tasks)`
+    - `task_data_manager (add_user_task_tag, are_tasks_enabled, cleanup_task_reminders, complete_task, create_task, delete_task, get_task_by_id, get_tasks_due_soon, get_user_task_stats, remove_user_task_tag, restore_task, schedule_task_reminders, setup_default_task_tags, update_task)`
+    - `task_schemas (TaskManagementError)`
 - **Used by**: None (not imported by other modules)
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `tasks/task_management.py`
+#### `tasks/task_data_handlers.py`
 - **Purpose**: Task management and scheduling
 - **Dependencies**: 
   - **Local**:
-    - `core.config (get_user_data_dir)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
-    - `core.file_operations (load_json_data, save_json_data)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.user_data_validation (is_valid_user_id)` (NEW)
+    - `core.user_item_storage (ensure_user_subdir, load_user_json_file, save_user_json_file)` (NEW)
+    - `tasks.task_schemas (ACTIVE_TASKS_FILENAME, COMPLETED_TASKS_FILENAME, TASK_SCHEDULES_FILENAME)` (NEW)
+  - **Standard Library**:
+    - `typing (Any)`
+- **Used by**: 
+  - `tasks/task_data_manager.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.logger, core.user_data_validation, core.user_item_storage, tasks.task_schemas
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tasks/task_data_manager.py`
+- **Purpose**: Task management and scheduling
+- **Dependencies**: 
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.service (get_scheduler_manager)` (NEW)
     - `core.tags (add_user_tag, get_user_tags, remove_user_tag)` (NEW)
     - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, now_timestamp_full, parse_date_only, parse_timestamp_full)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
+    - `tasks.task_data_handlers (load_active_tasks, load_completed_tasks, save_active_tasks, save_completed_tasks)` (NEW)
+    - `tasks.task_validation (is_valid_priority, is_valid_task_title, validate_update_field)` (NEW)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
-    - `pathlib (Path)`
     - `typing (Any)`
     - `uuid`
-- **Used by**: 
-  - `ai/chatbot.py`
-  - `communication/command_handlers/analytics_handler.py`
-  - `communication/command_handlers/interaction_handlers.py`
-  - `communication/command_handlers/profile_handler.py`
-  - `communication/command_handlers/task_handler.py`
-  - `communication/core/channel_orchestrator.py`
-  - `communication/message_processing/conversation_flow_manager.py`
-  - `communication/message_processing/interaction_manager.py`
-  - `core/scheduler.py`
-  - `ui/dialogs/account_creator_dialog.py`
-  - `ui/dialogs/task_crud_dialog.py`
-  - `ui/dialogs/task_edit_dialog.py`
-  - `ui/dialogs/task_management_dialog.py`
-  - `ui/ui_app_qt.py`
-  - `ui/widgets/tag_widget.py`
-  - `ui/widgets/task_settings_widget.py`
+- **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.file_operations, core.logger, core.service, core.tags, core.time_utilities, core.user_data_handlers
-- Removed: ai/chatbot.py, communication/command_handlers/analytics_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/profile_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_orchestrator.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/scheduler.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/ui_app_qt.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py
+- Added: core.error_handling, core.logger, core.service, core.tags, core.time_utilities, core.user_data_handlers, tasks.task_data_handlers, tasks.task_validation
 
 <!-- MANUAL_ENHANCEMENT_START -->
-**Enhanced Purpose**: Comprehensive task management system for user task CRUD operations, scheduling, and data persistence
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
 
-**Key Functions**:
-- `ensure_task_directory()`: Creates and initializes task directory structure for users
-- `load_active_tasks()` / `save_active_tasks()`: Active task data management
-- `load_completed_tasks()` / `save_completed_tasks()`: Completed task data management
-- `create_task()`: Creates new tasks with full metadata (title, description, due dates, priority, category)
-- `update_task()`: Updates existing task properties
-- `complete_task()`: Marks tasks as completed and moves to completed tasks
-- `delete_task()`: Removes tasks from active list
-- `get_task_by_id()`: Retrieves specific task by ID
-- `get_tasks_due_soon()`: Finds tasks due within specified timeframe
-- `are_tasks_enabled()`: Checks if task features are enabled for user
-- `get_user_task_stats()`: Provides task completion statistics
+#### `tasks/task_schemas.py`
+- **Purpose**: Task management and scheduling
+- **Dependencies**: None (no imports)
+- **Used by**: 
+  - `tasks/task_data_handlers.py`
+  - `tasks/task_validation.py`
 
-**Special Considerations**:
-- **Data Persistence**: Uses JSON files for task storage (active_tasks.json, completed_tasks.json, task_schedules.json)
-- **User Isolation**: All task data is user-specific with proper directory structure
-- **Error Handling**: Comprehensive error handling with logging and graceful fallbacks
-- **Task Metadata**: Supports rich task data including due dates, priorities, categories, and reminders
-- **Directory Management**: Automatically creates necessary directory structure and initializes files
-- **Validation**: Input validation for user IDs and task data integrity
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
 
-**Usage**: Core task management functionality used by UI components and communication channels for task operations.
+#### `tasks/task_validation.py`
+- **Purpose**: Task management and scheduling
+- **Dependencies**: 
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.time_utilities (parse_date_only)` (NEW)
+    - `tasks.task_schemas (ALLOWED_UPDATE_FIELDS, VALID_PRIORITIES)` (NEW)
+  - **Standard Library**:
+    - `typing (Any)`
+- **Used by**: 
+  - `tasks/task_data_manager.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.logger, core.time_utilities, tasks.task_schemas
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
 ### `ui/` - User interface components
@@ -2503,7 +2544,7 @@
     - `core.user_data_handlers (get_user_data, get_user_id_by_identifier)` (NEW)
     - `core.user_data_manager (update_user_index)` (NEW)
     - `core.user_data_validation (is_valid_discord_id, is_valid_email, is_valid_phone, validate_schedule_periods)` (NEW)
-    - `tasks.task_management (add_user_task_tag, setup_default_task_tags)` (NEW)
+    - `tasks (add_user_task_tag, setup_default_task_tags)` (NEW)
     - `ui.dialogs.user_profile_dialog (open_personalization_dialog)` (NEW)
     - `ui.generated.account_creator_dialog_pyqt (Ui_Dialog_create_account)` (NEW)
     - `ui.widgets.category_selection_widget (CategorySelectionWidget)` (NEW)
@@ -2523,7 +2564,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.file_operations, core.logger, core.service, core.user_data_handlers, core.user_data_manager, core.user_data_validation, tasks.task_management, ui.dialogs.user_profile_dialog, ui.generated.account_creator_dialog_pyqt, ui.widgets.category_selection_widget, ui.widgets.channel_selection_widget, ui.widgets.checkin_settings_widget, ui.widgets.task_settings_widget
+- Added: core.config, core.error_handling, core.file_operations, core.logger, core.service, core.user_data_handlers, core.user_data_manager, core.user_data_validation, tasks, ui.dialogs.user_profile_dialog, ui.generated.account_creator_dialog_pyqt, ui.widgets.category_selection_widget, ui.widgets.channel_selection_widget, ui.widgets.checkin_settings_widget, ui.widgets.task_settings_widget
 - Removed: PySide6.QtCore, PySide6.QtWidgets, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2747,7 +2788,7 @@
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
-    - `tasks.task_management (complete_task, delete_task, get_task_by_id, get_tasks_due_soon, get_user_task_stats, load_active_tasks, load_completed_tasks, restore_task)` (NEW)
+    - `tasks (complete_task, delete_task, get_task_by_id, get_tasks_due_soon, get_user_task_stats, load_active_tasks, load_completed_tasks, restore_task)` (NEW)
     - `ui.dialogs.task_completion_dialog (TaskCompletionDialog)` (NEW)
     - `ui.dialogs.task_edit_dialog (TaskEditDialog)` (NEW)
     - `ui.generated.task_crud_dialog_pyqt (Ui_Dialog_task_crud)` (NEW)
@@ -2758,7 +2799,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, tasks.task_management, ui.dialogs.task_completion_dialog, ui.dialogs.task_edit_dialog, ui.generated.task_crud_dialog_pyqt
+- Added: core.error_handling, core.logger, tasks, ui.dialogs.task_completion_dialog, ui.dialogs.task_edit_dialog, ui.generated.task_crud_dialog_pyqt
 - Removed: PySide6.QtCore, PySide6.QtWidgets, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2771,7 +2812,7 @@
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
-    - `tasks.task_management (create_task, update_task)` (NEW)
+    - `tasks (create_task, update_task)` (NEW)
     - `ui.generated.task_edit_dialog_pyqt (Ui_Dialog_task_edit)` (NEW)
     - `ui.widgets.tag_widget (TagWidget)` (NEW)
   - **Third-party**:
@@ -2781,7 +2822,7 @@
   - `ui/dialogs/task_crud_dialog.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, tasks.task_management, ui.generated.task_edit_dialog_pyqt, ui.widgets.tag_widget
+- Added: core.error_handling, core.logger, tasks, ui.generated.task_edit_dialog_pyqt, ui.widgets.tag_widget
 - Removed: PySide6.QtCore, PySide6.QtWidgets, ui/dialogs/task_crud_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2797,7 +2838,7 @@
     - `core.schedule_management (clear_schedule_periods_cache, set_schedule_periods)` (NEW)
     - `core.user_data_handlers (get_user_data, update_user_account)` (NEW)
     - `core.user_data_validation (validate_schedule_periods)` (NEW)
-    - `tasks.task_management (setup_default_task_tags)` (NEW)
+    - `tasks (setup_default_task_tags)` (NEW)
     - `ui.generated.task_management_dialog_pyqt (Ui_Dialog_task_management)` (NEW)
     - `ui.widgets.task_settings_widget (TaskSettingsWidget)` (NEW)
   - **Third-party**:
@@ -2807,7 +2848,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.schedule_management, core.user_data_handlers, core.user_data_validation, tasks.task_management, ui.generated.task_management_dialog_pyqt, ui.widgets.task_settings_widget
+- Added: core.error_handling, core.logger, core.schedule_management, core.user_data_handlers, core.user_data_validation, tasks, ui.generated.task_management_dialog_pyqt, ui.widgets.task_settings_widget
 - Removed: PySide6.QtCore, PySide6.QtWidgets, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2906,7 +2947,7 @@
     - `core.user_data_handlers (get_all_user_ids, get_user_data, save_user_data, update_user_context)` (NEW)
     - `core.user_data_manager (rebuild_user_index)` (NEW)
     - `core.user_data_validation (_shared__title_case)` (NEW)
-    - `tasks.task_management (are_tasks_enabled, load_active_tasks)` (NEW)
+    - `tasks (are_tasks_enabled, load_active_tasks)` (NEW)
     - `ui.dialogs.account_creator_dialog (AccountCreatorDialog)` (NEW)
     - `ui.dialogs.category_management_dialog (CategoryManagementDialog)` (NEW)
     - `ui.dialogs.channel_management_dialog (ChannelManagementDialog)` (NEW)
@@ -2939,7 +2980,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: communication.core.channel_orchestrator, core.auto_cleanup, core.config, core.error_handling, core.logger, core.scheduler, core.service_utilities, core.time_utilities, core.user_data_handlers, core.user_data_manager, core.user_data_validation, tasks.task_management, ui.dialogs.account_creator_dialog, ui.dialogs.category_management_dialog, ui.dialogs.channel_management_dialog, ui.dialogs.checkin_management_dialog, ui.dialogs.message_editor_dialog, ui.dialogs.process_watcher_dialog, ui.dialogs.schedule_editor_dialog, ui.dialogs.task_crud_dialog, ui.dialogs.task_management_dialog, ui.dialogs.user_analytics_dialog, ui.dialogs.user_profile_dialog, ui.generated.admin_panel_pyqt, user.user_context
+- Added: communication.core.channel_orchestrator, core.auto_cleanup, core.config, core.error_handling, core.logger, core.scheduler, core.service_utilities, core.time_utilities, core.user_data_handlers, core.user_data_manager, core.user_data_validation, tasks, ui.dialogs.account_creator_dialog, ui.dialogs.category_management_dialog, ui.dialogs.channel_management_dialog, ui.dialogs.checkin_management_dialog, ui.dialogs.message_editor_dialog, ui.dialogs.process_watcher_dialog, ui.dialogs.schedule_editor_dialog, ui.dialogs.task_crud_dialog, ui.dialogs.task_management_dialog, ui.dialogs.user_analytics_dialog, ui.dialogs.user_profile_dialog, ui.generated.admin_panel_pyqt, user.user_context
 - Removed: PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3112,7 +3153,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
     - `core.user_data_handlers (get_user_data)` (NEW)
-    - `tasks.task_management (add_user_task_tag, remove_user_task_tag)` (NEW)
+    - `tasks (add_user_task_tag, remove_user_task_tag)` (NEW)
     - `ui.generated.tag_widget_pyqt (Ui_Widget_tag)` (NEW)
   - **Third-party**:
     - `PySide6.QtCore (Qt, Signal)`
@@ -3122,7 +3163,7 @@
   - `ui/widgets/task_settings_widget.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.user_data_handlers, tasks.task_management, ui.generated.tag_widget_pyqt
+- Added: core.error_handling, core.logger, core.user_data_handlers, tasks, ui.generated.tag_widget_pyqt
 - Removed: PySide6.QtCore, PySide6.QtWidgets, ui/dialogs/task_edit_dialog.py, ui/widgets/task_settings_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3137,7 +3178,7 @@
     - `core.logger (get_component_logger, setup_logging)` (NEW)
     - `core.ui_management (_DEFAULT_PERIOD_DATA, _number_after_prefix, add_period_row_to_layout, collect_period_data_from_widgets, find_lowest_available_period_number, load_period_widgets_for_category, remove_period_row_from_layout)` (NEW)
     - `core.user_data_handlers (get_user_data, update_user_preferences)` (NEW)
-    - `tasks.task_management (get_user_task_stats)` (NEW)
+    - `tasks (get_user_task_stats)` (NEW)
     - `ui.generated.task_settings_widget_pyqt (Ui_Form_task_settings)` (NEW)
     - `ui.widgets.tag_widget (TagWidget)` (NEW)
   - **Third-party**:
@@ -3147,7 +3188,7 @@
   - `ui/dialogs/task_management_dialog.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.ui_management, core.user_data_handlers, tasks.task_management, ui.generated.task_settings_widget_pyqt, ui.widgets.tag_widget
+- Added: core.error_handling, core.logger, core.ui_management, core.user_data_handlers, tasks, ui.generated.task_settings_widget_pyqt, ui.widgets.tag_widget
 - Removed: PySide6.QtWidgets, ui/dialogs/account_creator_dialog.py, ui/dialogs/task_management_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

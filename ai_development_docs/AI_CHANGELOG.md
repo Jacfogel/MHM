@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-02 - Task split, notebook rename, error handling Phase 1, follow-ups **COMPLETED**
+- Unified user items: added `core/user_item_storage.py` and `is_valid_user_id`; split `tasks/task_management.py` into task_schemas, task_validation, task_data_handlers, task_data_manager; renamed `notebook/schemas.py` to `notebook/notebook_schemas.py`. All call sites use `from tasks import ...`; task_handler and profile_handler use lazy `_get_tasks()`.
+- Test fixes: patches updated to `tasks.*` / `tasks.task_data_manager.*`; due_date in update path resolved (e.g. "tomorrow") via relative-date parsing; get_user_task_stats default and title=None validation aligned.
+- Error handling Phase 1: `@handle_errors` now supports `re_raise=True`; `_get_tasks()` in both handlers use decorator with re_raise; `validate_update_field` decorated; static logging single-arg fix; unused imports removed (user_item_storage, task_schemas, task_validation). MODULE_DEPENDENCIES_DETAIL and error-handling guides updated.
+
 ### 2026-03-02 - Sleep schedule parsing + prompt concision **COMPLETED**
 - Sleep schedule time_pair parser now accepts "and" inside each chunk (e.g. "1:00 AM and 4:00 AM, 6:00 and 11:00"); previously only `-`, `to`, `until`, `->` were accepted, so the first response was rejected.
 - Shortened `sleep_schedule` question_text and error_message in `resources/default_checkin/questions.json` to one line each.
@@ -125,20 +130,6 @@ Guidelines:
 - Hardened docs/audit lock behavior: `run_docs` now fails fast when audit/coverage locks exist, and `run_development_tools.py` now cleans audit/coverage lock files on interrupted `audit`/`full-audit` (`KeyboardInterrupt`) to reduce stale-lock blockers.
 - Final user-run verification: `audit --full --clear-cache` completed with no new issues.
 - Updated roadmap tracking in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.1`; full detailed breakdown is recorded in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md).
-
-### 2026-02-26 - Sleep check-in multi-period parsing + schedule-style time formats **COMPLETED**
-- Sleep check-in answers now support interrupted sleep in up to 3 chunks with flexible connectors (`and`, `to`, `-`, ` - `) plus `from`/`between` phrasing.
-- Time parsing for sleep schedule now accepts schedule-style variants (`9pm`, `930pm`, `21:30`, hour-only values, `noon`, `midnight`) and chunk separators via commas, semicolons, or new lines.
-- Analytics now consume chunk payloads (`sleep_chunks`/`total_sleep_hours`) so interrupted sleep totals are calculated correctly and check-in history formatting shows chunk ranges + totals.
-- Updated question text/examples in `resources/default_checkin/questions.json`; behavior validation passed: `pytest tests/behavior/test_checkin_questions_enhancement.py tests/behavior/test_dynamic_checkin_behavior.py -q` (`27 passed`).
-- Per user instruction, generated/audit artifact files in working-tree diff were excluded from this session's changelog attribution.
-
-### 2026-02-26 - Dev-tools exclusions consistency + CLI logging cleanup **Progressed**
-- Applied shared exclusion filtering (`standard_exclusions.should_exclude_file`) to additional non-orchestration scanners/tests paths: function docstrings, domain mapper, test marker analyzer, channel logger checker, version-sync discovery, and dev-tools coverage cache/source mtime discovery paths.
-- Converted remaining standalone analyzer summary prints to structured logging in `analyze_dependency_patterns.py`, `analyze_module_imports.py`, and non-JSON mode of `generate_unused_imports_report.py` (kept JSON stdout behavior).
-- Logging enforcement follow-up: hardened `development_tools/static_checks/check_channel_loggers.py` standalone CI execution with resilient exclusions loading + fallback path so `python development_tools/static_checks/check_channel_loggers.py` works in minimal environments without optional runtime deps.
-- Added/updated regression coverage in `test_analyze_module_imports_cli.py`, `test_check_channel_loggers.py`, `test_fix_version_sync_file_discovery.py`, and related existing dev-tools test modules.
-- Updated V4 roadmap tracking ([AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) sections `2.2`/`3.11`), re-ran full diff review (`git diff --stat`, `git diff --name-only`, `git status --short`), and user confirmed no new issues during `audit --full --clear-cache` follow-up.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

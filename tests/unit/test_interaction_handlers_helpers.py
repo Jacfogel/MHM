@@ -127,7 +127,7 @@ class TestTaskManagementHandlerHelpers:
 
         # Patch where the function is imported/used, not where it's defined
         with patch(
-            "communication.command_handlers.task_handler.get_tasks_due_soon",
+            "tasks.get_tasks_due_soon",
             return_value=[tasks[0]],
         ):
             result = self.handler._handle_list_tasks__apply_filters(

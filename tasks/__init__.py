@@ -6,28 +6,30 @@ updating, and managing user tasks within the MHM system.
 This file deliberately modified to test coverage caching.
 """
 
-# Main public API - package-level exports for easier refactoring
-from .task_management import (
-    TaskManagementError,
+# Main public API - package-level exports from split modules
+from .task_schemas import TaskManagementError
+from .task_data_handlers import (
+    ensure_task_directory,
+    load_active_tasks,
+    save_active_tasks,
+    load_completed_tasks,
+    save_completed_tasks,
+)
+from .task_data_manager import (
     create_task,
     update_task,
     complete_task,
     delete_task,
-    load_active_tasks,
-    save_active_tasks,
+    restore_task,
     get_task_by_id,
     get_tasks_due_soon,
     get_user_task_stats,
-    ensure_task_directory,
     add_user_task_tag,
     remove_user_task_tag,
     setup_default_task_tags,
-    are_tasks_enabled,  # High usage
-    load_completed_tasks,  # Medium usage
-    restore_task,  # Low usage
-    save_completed_tasks,  # Public API
-    schedule_task_reminders,  # Public API
-    cleanup_task_reminders,  # Public API
+    are_tasks_enabled,
+    schedule_task_reminders,
+    cleanup_task_reminders,
 )
 
 __all__ = [

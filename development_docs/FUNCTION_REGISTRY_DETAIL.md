@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-02 06:34:04
+> **Last Generated**: 2026-03-02 22:57:14
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
-- **Files Scanned**: 110
-- **Functions Found**: 1631
+### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
+- **Files Scanned**: 114
+- **Functions Found**: 1641
 - **Methods Found**: 1182
 - **Classes Found**: 154
-- **Total Items**: 2813
-- **Functions Documented**: 1558
+- **Total Items**: 2823
+- **Functions Documented**: 1566
 - **Methods Documented**: 1142
 - **Classes Documented**: 120
-- **Total Documented**: 2700
+- **Total Documented**: 2708
 - **Template-Generated**: 5
 - **Last Updated**: 2026-03-02
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (595)
+### **Core System Functions** (599)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (424)
+### **Communication Functions** (426)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (411)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (33)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (21)
+### **Task Management Functions** (25)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -962,6 +962,7 @@ Returns:
 #### `communication/command_handlers/profile_handler.py`
 **Functions:**
 - [OK] `_format_profile_text(self, account_data, context_data, preferences_data)` - Create a clean, readable profile string for channels like Discord.
+- [MISSING] `_get_tasks()` - No description
 - [OK] `_handle_profile_stats(self, user_id)` - Handle profile statistics
 - [OK] `_handle_show_profile(self, user_id)` - Handle showing user profile with comprehensive personalization data
 - [OK] `_handle_update_profile(self, user_id, entities)` - Handle comprehensive profile updates
@@ -1055,6 +1056,7 @@ Args:
 Returns:
     Task dictionary if found, None otherwise
 - [OK] `_get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
+- [MISSING] `_get_tasks()` - No description
 - [OK] `_handle_complete_task(self, user_id, entities)` - Handle task completion
 - [OK] `_handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
 - [OK] `_handle_create_task(self, user_id, entities)` - Handle task creation
@@ -3137,7 +3139,6 @@ Args:
 - [OK] `__init__(self)` - Special Python method
 - [MISSING] `_classify_path(path)` - No description
 - [OK] `_decorator(func)` - Return the wrapped function unchanged in fallback mode.
-- [OK] `_decorator(func)` - Return the wrapped function unchanged if fallback decorator setup fails.
 - [OK] `_get_audit_directories(self)` - Get configurable audit directories from environment or use defaults.
 - [MISSING] `_split_env_list(value)` - No description
 - [OK] `critical(self)` - No-op critical logging for fallback logger.
@@ -4946,6 +4947,9 @@ Args:
 
 Returns:
     True if string length is valid, False otherwise
+- [OK] `is_valid_user_id(user_id)` - Validate that user_id is a non-empty string (stripped).
+
+Used by notebook, tasks, and other user-scoped item handlers.
 - [OK] `validate_new_user_data(user_id, data_updates)` - Validate complete dataset required for a brand-new user.
 - [OK] `validate_personalization_data(data)` - Validate *context/personalization* structure.
 
@@ -4961,6 +4965,47 @@ Returns:
     Tuple of (is_valid, list_of_error_messages)
 - [MISSING] `validate_schedule_periods__validate_time_format(time_str)` - No description
 - [OK] `validate_user_update(user_id, data_type, updates)` - Validate partial updates to an existing user's data.
+
+#### `core/user_item_storage.py`
+**Functions:**
+- [OK] `ensure_user_subdir(user_id, subdir, init_files)` - Ensure the user's subdirectory exists and optionally create default JSON files.
+
+Args:
+    user_id: User identifier.
+    subdir: Subdirectory name (e.g. 'notebook', 'tasks').
+    init_files: Optional mapping of filename -> default JSON-serializable data.
+                Files are created only if missing (e.g. {"active_tasks.json": {"tasks": []}}).
+
+Returns:
+    Path to the subdir, or None on failure.
+- [OK] `get_user_subdir_path(user_id, subdir)` - Return the path for a user's subdirectory (e.g. notebook, tasks, events).
+
+Args:
+    user_id: User identifier.
+    subdir: Subdirectory name under the user data dir (e.g. 'notebook', 'tasks').
+
+Returns:
+    Path to the subdir, or None if user_id is invalid.
+- [OK] `load_user_json_file(user_id, subdir, filename, default_data)` - Load a JSON file from a user's subdirectory.
+
+Args:
+    user_id: User identifier.
+    subdir: Subdirectory name (e.g. 'notebook', 'tasks').
+    filename: JSON filename (e.g. 'entries.json', 'active_tasks.json').
+    default_data: Returned when file is missing or load fails (must match expected type).
+
+Returns:
+    Loaded data (dict or list), or default_data on failure. None if path invalid.
+- [OK] `save_user_json_file(user_id, subdir, filename, data)` - Save JSON data to a user's subdirectory. Creates subdir if missing.
+
+Args:
+    user_id: User identifier.
+    subdir: Subdirectory name (e.g. 'notebook', 'tasks').
+    filename: JSON filename.
+    data: JSON-serializable dict or list.
+
+Returns:
+    True if save succeeded, False otherwise.
 
 ### `root/` - Root Files
 
@@ -5089,7 +5134,24 @@ Returns:
 
 #### `tasks/__init__.py`
 
-#### `tasks/task_management.py`
+#### `tasks/task_data_handlers.py`
+**Functions:**
+- [OK] `ensure_task_directory(user_id)` - Ensure the task directory and default JSON files exist for a user.
+
+Returns:
+    True if successful, False if user_id invalid or creation failed.
+- [OK] `load_active_tasks(user_id)` - Load active tasks for a user.
+
+Returns:
+    List of task dicts; empty list if user_id invalid or load failed.
+- [OK] `load_completed_tasks(user_id)` - Load completed tasks for a user.
+
+Returns:
+    List of task dicts; empty list if user_id invalid or load failed.
+- [OK] `save_active_tasks(user_id, tasks)` - Save active tasks for a user. Returns True on success.
+- [OK] `save_completed_tasks(user_id, tasks)` - Save completed tasks for a user. Returns True on success.
+
+#### `tasks/task_data_manager.py`
 **Functions:**
 - [OK] `_calculate_next_due_date(completion_date, recurrence_pattern, recurrence_interval, repeat_after_completion)` - Calculate the next due date for a recurring task.
 - [OK] `_create_next_recurring_task_instance(user_id, completed_task)` - Create the next instance of a recurring task when the current one is completed.
@@ -5099,28 +5161,28 @@ Returns:
 - [OK] `complete_task(user_id, task_id, completion_data)` - Mark a task as completed.
 - [OK] `create_task(user_id, title, description, due_date, due_time, priority, reminder_periods, tags, quick_reminders, recurrence_pattern, recurrence_interval, repeat_after_completion)` - Create a new task for a user.
 - [OK] `delete_task(user_id, task_id)` - Delete a task (permanently remove it).
-- [OK] `ensure_task_directory(user_id)` - Ensure the task directory structure exists for a user with validation.
-
-Returns:
-    bool: True if successful, False if failed
 - [OK] `get_task_by_id(user_id, task_id)` - Get a specific task by ID.
 - [OK] `get_tasks_due_soon(user_id, days_ahead)` - Get tasks due within the specified number of days.
 - [OK] `get_user_task_stats(user_id)` - Get task statistics for a user.
-- [OK] `load_active_tasks(user_id)` - Load active tasks for a user with validation.
-
-Returns:
-    List[Dict[str, Any]]: List of active tasks, empty list if failed
-- [OK] `load_completed_tasks(user_id)` - Load completed tasks for a user.
 - [OK] `remove_user_task_tag(user_id, tag)` - Remove a tag from the user's tag list (shared tag system).
 - [OK] `restore_task(user_id, task_id)` - Restore a completed task to active status.
-- [OK] `save_active_tasks(user_id, tasks)` - Save active tasks for a user.
-- [OK] `save_completed_tasks(user_id, tasks)` - Save completed tasks for a user.
 - [OK] `schedule_task_reminders(user_id, task_id, reminder_periods)` - Schedule reminders for a specific task based on its reminder periods.
 - [OK] `setup_default_task_tags(user_id)` - Set up default tags for a user when task management is first enabled.
-This initializes the tags directory and tags.json with default tags if they don't exist.
 - [OK] `update_task(user_id, task_id, updates)` - Update an existing task.
+
+#### `tasks/task_schemas.py`
 **Classes:**
 - [OK] `TaskManagementError` - Custom exception for task management errors.
+
+#### `tasks/task_validation.py`
+**Functions:**
+- [OK] `is_valid_due_date(value)` - Return True if value is None or a parseable date-only string (YYYY-MM-DD).
+- [OK] `is_valid_priority(priority)` - Return True if priority is one of VALID_PRIORITIES (case-insensitive).
+- [OK] `is_valid_task_title(title)` - Return True if title is a non-empty string after strip.
+- [OK] `validate_update_field(field, value)` - Validate a single update field/value for update_task.
+
+Returns:
+    (True, None) if valid; (False, reason) if invalid.
 
 ### `ui/` - User Interface Components
 

@@ -366,7 +366,7 @@ class TestTaskCrudDialog:
         with patch('ui.dialogs.task_crud_dialog.load_active_tasks') as mock_load_active:
             with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
                 with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
-                    with patch('tasks.task_management.complete_task') as mock_complete:
+                    with patch('tasks.complete_task') as mock_complete:
                         # Mock return values
                         mock_load_active.return_value = mock_task_data['active_tasks']
                         mock_load_completed.return_value = []
@@ -418,8 +418,8 @@ class TestTaskCrudDialog:
         with patch('ui.dialogs.task_crud_dialog.load_active_tasks') as mock_load_active:
             with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
                 with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
-                    with patch('tasks.task_management.delete_task') as mock_delete:
-                        with patch('tasks.task_management.get_task_by_id') as mock_get_task:
+                    with patch('tasks.delete_task') as mock_delete:
+                        with patch('tasks.get_task_by_id') as mock_get_task:
                             # Mock return values
                             mock_load_active.return_value = mock_task_data['active_tasks']
                             mock_load_completed.return_value = []
@@ -472,7 +472,7 @@ class TestTaskCrudDialog:
         with patch('ui.dialogs.task_crud_dialog.load_active_tasks') as mock_load_active:
             with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
                 with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
-                    with patch('tasks.task_management.restore_task') as mock_restore:
+                    with patch('tasks.restore_task') as mock_restore:
                         # Mock return values
                         mock_load_active.return_value = []
                         mock_load_completed.return_value = mock_task_data['completed_tasks']
@@ -524,7 +524,7 @@ class TestTaskCrudDialog:
         with patch('ui.dialogs.task_crud_dialog.load_active_tasks') as mock_load_active:
             with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
                 with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
-                    with patch('tasks.task_management.delete_task') as mock_delete:
+                    with patch('tasks.delete_task') as mock_delete:
                         # Mock return values
                         mock_load_active.return_value = []
                         mock_load_completed.return_value = mock_task_data['completed_tasks']

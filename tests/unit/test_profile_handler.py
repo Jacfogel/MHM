@@ -78,7 +78,7 @@ def test_handle_profile_stats_formats_values(monkeypatch):
     handler = ProfileHandler()
 
     monkeypatch.setattr(
-        "communication.command_handlers.profile_handler.get_user_task_stats",
+        "tasks.get_user_task_stats",
         lambda user_id: {"active_count": 2, "completed_count": 5, "completion_rate": 80},
     )
     monkeypatch.setattr(

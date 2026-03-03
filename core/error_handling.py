@@ -740,6 +740,7 @@ def handle_errors(
     context: dict[str, Any] | None = None,
     user_friendly: bool = True,
     default_return=None,
+    re_raise: bool = False,
 ):
     """
     Decorator to automatically handle errors in functions.
@@ -749,6 +750,7 @@ def handle_errors(
         context: Additional context to pass to error handler
         user_friendly: Whether to show user-friendly error messages
         default_return: Value to return if error occurs and can't be recovered
+        re_raise: If True, log/handle the error then re-raise instead of returning default_return
     """
 
     def decorator(func: Callable) -> Callable:
@@ -789,9 +791,12 @@ def handle_errors(
                                 )
                             except Exception:
                                 pass  # Don't let logger failures break error handling
+                            if re_raise:
+                                raise
                             return default_return
-                    else:
-                        return default_return
+                    if re_raise:
+                        raise
+                    return default_return
 
             return async_wrapper
         else:
@@ -828,9 +833,12 @@ def handle_errors(
                                 )
                             except Exception:
                                 pass  # Don't let logger failures break error handling
+                            if re_raise:
+                                raise
                             return default_return
-                    else:
-                        return default_return
+                    if re_raise:
+                        raise
+                    return default_return
 
             return wrapper
 

@@ -1945,7 +1945,7 @@ class CommunicationManager:
             return
 
         # Import task management functions
-        from tasks.task_management import get_task_by_id, are_tasks_enabled
+        from tasks import get_task_by_id, are_tasks_enabled
 
         # Check if tasks are enabled for this user
         if not are_tasks_enabled(user_id):

@@ -8,7 +8,8 @@
 This document defines the expected on-disk layout for per-user persisted state.
 
 Key implementation references:
-- `core/user_data_handlers.py` (centralized loader/saver API)
+- `core/user_data_handlers.py` (centralized loader/saver API for top-level user files)
+- `core/user_item_storage.py` (shared helpers for user-scoped subdir JSON: notebook, tasks, future events)
 - `core/schemas.py` (schema validation and normalization rules)
 - `core/config.py` (root path configuration: `BASE_DATA_DIR`, `USER_INFO_DIR_PATH`)
 
@@ -87,7 +88,7 @@ Example (typical user directory):
 - `tasks/completed_tasks.json`
 - `tasks/task_schedules.json`
 
-These files represent the tasks framework state (open tasks, completed tasks, and scheduling metadata).
+These files represent the tasks framework state (open tasks, completed tasks, and scheduling metadata). Access via `tasks.task_data_handlers` (which uses `core.user_item_storage`). To add a new item type (e.g. events), use the same pattern: `ensure_user_subdir`, `load_user_json_file`, `save_user_json_file` from `core.user_item_storage`, and `is_valid_user_id` from `core.user_data_validation`.
 
 ---
 

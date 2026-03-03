@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 from datetime import datetime
 import logging
 
-from tasks.task_management import cleanup_task_reminders, complete_task
+from tasks import cleanup_task_reminders, complete_task
 from tests.test_utilities import TestUserFactory
 
 
@@ -36,7 +36,7 @@ class TestTaskCleanupSilentFailure:
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Create a task
-        from tasks.task_management import create_task
+        from tasks import create_task
         task_id = create_task(user_id=user_id, title="Test Task")
         
         # Set up logging capture for all levels
@@ -72,7 +72,7 @@ class TestTaskCleanupSilentFailure:
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Create a task
-        from tasks.task_management import create_task
+        from tasks import create_task
         task_id = create_task(user_id=user_id, title="Task to Complete")
         
         # Complete the task - this should succeed, but cleanup will fail

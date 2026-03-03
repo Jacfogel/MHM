@@ -1291,7 +1291,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
 
         # Get task-related suggestions if user has tasks
         try:
-            from tasks.task_management import load_active_tasks
+            from tasks import load_active_tasks
 
             tasks = load_active_tasks(user_id) or []
 

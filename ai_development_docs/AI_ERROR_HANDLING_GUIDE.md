@@ -30,7 +30,7 @@ Key components (see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.
 - **Exception hierarchy**: `MHMError` and its subclasses (`DataError`, `FileOperationError`, `ConfigurationError`, `CommunicationError`, `SchedulerError`, `UserInterfaceError`, `AIError`, `ValidationError`, `RecoveryError`).  
 - **Recovery strategies**: `FileNotFoundRecovery`, `JSONDecodeRecovery`, `NetworkRecovery`, `ConfigurationRecovery`.  
 - **`ErrorHandler`**: central object with `handle_error(error, context, operation, user_friendly=True) -> bool`.  
-- **Decorator**: `handle_errors(operation=None, context=None, user_friendly=True, default_return=None)` for wrapping entry points.  
+- **Decorator**: `handle_errors(operation=None, context=None, user_friendly=True, default_return=None, re_raise=False)` for wrapping entry points. Use `re_raise=True` when there is no safe default (e.g. lazy import helpers); the error is logged/handled then re-raised.  
 
 Constraints:
 

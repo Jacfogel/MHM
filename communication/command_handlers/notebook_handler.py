@@ -42,7 +42,7 @@ from notebook.notebook_data_manager import (
     create_list,
     create_journal,
 )
-from notebook.schemas import Entry
+from notebook.notebook_schemas import Entry
 from notebook.notebook_validation import format_short_id
 
 logger = get_component_logger("communication_manager")

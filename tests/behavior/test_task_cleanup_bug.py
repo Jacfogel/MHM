@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 from datetime import timedelta
 
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
-from tasks.task_management import create_task, cleanup_task_reminders
+from tasks import create_task, cleanup_task_reminders
 from tests.test_utilities import TestUserFactory
 
 
@@ -31,7 +31,7 @@ class TestTaskCleanupBug:
         """
         This test demonstrates that cleanup_task_reminders method doesn't exist.
 
-        BUG: tasks/task_management.py line 649 calls scheduler_manager.cleanup_task_reminders()
+        BUG: tasks/task_data_manager.py cleanup_task_reminders calls scheduler_manager.cleanup_task_reminders()
         but this method doesn't exist in SchedulerManager class.
 
         This test will FAIL until the bug is fixed.

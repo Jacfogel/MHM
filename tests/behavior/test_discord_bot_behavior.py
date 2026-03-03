@@ -469,7 +469,7 @@ class TestDiscordBotBehavior:
         """
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
-        from tasks.task_management import load_active_tasks
+        from tasks import load_active_tasks
 
         ok = TestUserFactory.create_basic_user("task_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert ok, "User creation should succeed"
@@ -523,7 +523,7 @@ class TestDiscordBotBehavior:
         """Complete a task by a fuzzy name match like 'complete per davey' -> 'Pet Davey'."""
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
-        from tasks.task_management import create_task, load_active_tasks
+        from tasks import create_task, load_active_tasks
 
         ok = TestUserFactory.create_basic_user("fuzzy_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert ok
@@ -546,7 +546,7 @@ class TestDiscordBotBehavior:
         """Simulate a user replying to a reminder by completing the first task."""
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
-        from tasks.task_management import create_task
+        from tasks import create_task
 
         ok = TestUserFactory.create_basic_user("reminder_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert ok

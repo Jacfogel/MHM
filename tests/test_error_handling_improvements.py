@@ -24,7 +24,7 @@ from communication.core.channel_orchestrator import CommunicationManager
 # from ui.ui_app_qt import ServiceManager  # Commented out to avoid Qt issues in tests
 from communication.command_handlers.base_handler import InteractionHandler
 from ai.chatbot import AIChatBotSingleton
-from tasks.task_management import create_task, load_active_tasks, ensure_task_directory
+from tasks import create_task, load_active_tasks, ensure_task_directory
 
 
 @pytest.mark.integration

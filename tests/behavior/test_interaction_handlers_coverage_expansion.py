@@ -19,7 +19,7 @@ from communication.command_handlers.shared_types import (
     ParsedCommand,
 )
 from core.user_data_handlers import get_user_data, save_user_data
-from tasks.task_management import create_task, load_active_tasks
+from tasks import create_task, load_active_tasks
 from tests.test_utilities import TestUserFactory
 from core.time_utilities import DATE_ONLY, format_timestamp
 

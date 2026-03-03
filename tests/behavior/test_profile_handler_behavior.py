@@ -500,7 +500,7 @@ class TestProfileHandlerBehavior:
     @pytest.mark.user_management
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.get_recent_checkins')
-    @patch('communication.command_handlers.profile_handler.get_user_task_stats')
+    @patch('tasks.get_user_task_stats')
     def test_profile_handler_profile_stats_success(self, mock_get_task_stats, mock_get_checkins, test_data_dir):
         """Test that ProfileHandler shows profile statistics successfully."""
         handler = ProfileHandler()
@@ -537,7 +537,7 @@ class TestProfileHandlerBehavior:
     @pytest.mark.user_management
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.get_recent_checkins')
-    @patch('communication.command_handlers.profile_handler.get_user_task_stats')
+    @patch('tasks.get_user_task_stats')
     def test_profile_handler_profile_stats_no_data(self, mock_get_task_stats, mock_get_checkins, test_data_dir):
         """Test that ProfileHandler handles profile statistics with no data."""
         handler = ProfileHandler()

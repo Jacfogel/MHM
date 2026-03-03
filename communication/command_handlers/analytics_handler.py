@@ -938,7 +938,7 @@ class AnalyticsHandler(InteractionHandler):
         days = entities.get("days", 30)
 
         try:
-            from tasks.task_management import (
+            from tasks import (
                 get_user_task_stats,
                 load_active_tasks,
                 load_completed_tasks,
@@ -1036,7 +1036,7 @@ class AnalyticsHandler(InteractionHandler):
         days = entities.get("days", 30)
 
         try:
-            from tasks.task_management import (
+            from tasks import (
                 get_user_task_stats,
                 load_active_tasks,
                 load_completed_tasks,

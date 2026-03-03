@@ -1,7 +1,7 @@
 """
 Task Management Test Coverage Expansion
 
-This module expands test coverage for tasks/task_management.py from 48% to 75%.
+This module expands test coverage for the tasks package (task_data_manager, task_data_handlers, etc.) from 48% to 75%.
 Focuses on real behavior testing to verify actual side effects and system changes.
 
 Coverage Areas:
@@ -25,7 +25,7 @@ from pathlib import Path
 # Import task management functions
 from core.user_data_handlers import get_user_data
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
-from tasks.task_management import (
+from tasks import (
     ensure_task_directory,
     load_active_tasks,
     save_active_tasks,
@@ -65,7 +65,7 @@ class TestTaskManagementCoverageExpansion:
     @pytest.fixture
     def mock_user_data_dir(self, temp_dir):
         """Mock user data directory."""
-        with patch("tasks.task_management.get_user_data_dir", return_value=temp_dir):
+        with patch("core.user_item_storage.get_user_data_dir", return_value=temp_dir):
             yield temp_dir
 
     # ============================================================================
@@ -390,8 +390,8 @@ class TestTaskManagementCoverageExpansion:
         }
 
         with (
-            patch("tasks.task_management.cleanup_task_reminders") as mock_cleanup,
-            patch("tasks.task_management.schedule_task_reminders") as mock_schedule,
+            patch("tasks.task_data_manager.cleanup_task_reminders") as mock_cleanup,
+            patch("tasks.task_data_manager.schedule_task_reminders") as mock_schedule,
         ):
 
             result = update_task(user_id, task_id, updates)
@@ -496,11 +496,11 @@ class TestTaskManagementCoverageExpansion:
 
         assert result is True  # Update should succeed despite invalid date format
 
-        # Verify update was applied (invalid date is stored but warning was logged)
+        # Verify title was updated; invalid due_date is skipped so original remains
         task = get_task_by_id(user_id, task_id)
         assert task is not None, "Updated task should still exist"
         assert task["title"] == "Updated Title"
-        assert task["due_date"] == "invalid-date-format"  # Invalid date is still stored
+        assert task["due_date"] == "2024-12-31"  # Invalid date skipped, original kept
 
     def test_update_task_invalid_title_real_behavior(self, mock_user_data_dir, user_id):
         """Test that invalid title updates are skipped but update continues."""
@@ -560,9 +560,9 @@ class TestTaskManagementCoverageExpansion:
 
         # Mock schedule_task_reminders to raise an exception
         with (
-            patch("tasks.task_management.cleanup_task_reminders") as mock_cleanup,
+            patch("tasks.task_data_manager.cleanup_task_reminders") as mock_cleanup,
             patch(
-                "tasks.task_management.schedule_task_reminders",
+                "tasks.task_data_manager.schedule_task_reminders",
                 side_effect=Exception("Scheduler error"),
             ) as mock_schedule,
         ):
@@ -590,7 +590,7 @@ class TestTaskManagementCoverageExpansion:
         task_id = create_task(user_id, "Test Task")
 
         # Mock save_active_tasks to return False
-        with patch("tasks.task_management.save_active_tasks", return_value=False):
+        with patch("tasks.task_data_manager.save_active_tasks", return_value=False):
             updates = {"title": "Updated Title"}
             result = update_task(user_id, task_id, updates)
 
@@ -615,7 +615,7 @@ class TestTaskManagementCoverageExpansion:
             "completion_notes": "Task completed successfully",
         }
 
-        with patch("tasks.task_management.cleanup_task_reminders") as mock_cleanup:
+        with patch("tasks.task_data_manager.cleanup_task_reminders") as mock_cleanup:
             result = complete_task(user_id, task_id, completion_data)
 
             assert result is True
@@ -640,7 +640,7 @@ class TestTaskManagementCoverageExpansion:
         # Create a task
         task_id = create_task(user_id, "Test Task")
 
-        with patch("tasks.task_management.cleanup_task_reminders") as mock_cleanup:
+        with patch("tasks.task_data_manager.cleanup_task_reminders") as mock_cleanup:
             result = complete_task(user_id, task_id)
 
             assert result is True
@@ -674,7 +674,7 @@ class TestTaskManagementCoverageExpansion:
             # Missing completion_date and completion_time
         }
 
-        with patch("tasks.task_management.cleanup_task_reminders") as mock_cleanup:
+        with patch("tasks.task_data_manager.cleanup_task_reminders") as mock_cleanup:
             result = complete_task(user_id, task_id, completion_data)
 
             assert result is True
@@ -698,8 +698,8 @@ class TestTaskManagementCoverageExpansion:
 
         # Mock save operations to fail
         with (
-            patch("tasks.task_management.save_active_tasks", return_value=False),
-            patch("tasks.task_management.cleanup_task_reminders"),
+            patch("tasks.task_data_manager.save_active_tasks", return_value=False),
+            patch("tasks.task_data_manager.cleanup_task_reminders"),
         ):
             result = complete_task(user_id, task_id)
 
@@ -725,12 +725,12 @@ class TestTaskManagementCoverageExpansion:
         # Mock save_active_tasks to succeed but save_completed_tasks to fail
         with (
             patch(
-                "tasks.task_management.save_active_tasks", return_value=True
+                "tasks.task_data_manager.save_active_tasks", return_value=True
             ) as mock_save_active,
             patch(
-                "tasks.task_management.save_completed_tasks", return_value=False
+                "tasks.task_data_manager.save_completed_tasks", return_value=False
             ) as mock_save_completed,
-            patch("tasks.task_management.cleanup_task_reminders"),
+            patch("tasks.task_data_manager.cleanup_task_reminders"),
         ):
             result = complete_task(user_id, task_id)
 
@@ -754,7 +754,7 @@ class TestTaskManagementCoverageExpansion:
         task_id = create_task(user_id, "Test Task")
 
         # Mock cleanup_task_reminders to return False (but completion should still succeed)
-        with patch("tasks.task_management.cleanup_task_reminders", return_value=False):
+        with patch("tasks.task_data_manager.cleanup_task_reminders", return_value=False):
             result = complete_task(user_id, task_id)
 
             # Completion should succeed even if cleanup fails
@@ -780,9 +780,9 @@ class TestTaskManagementCoverageExpansion:
 
         # Mock _create_next_recurring_task_instance to return False
         with (
-            patch("tasks.task_management.cleanup_task_reminders"),
+            patch("tasks.task_data_manager.cleanup_task_reminders"),
             patch(
-                "tasks.task_management._create_next_recurring_task_instance",
+                "tasks.task_data_manager._create_next_recurring_task_instance",
                 return_value=False,
             ),
         ):
@@ -834,7 +834,7 @@ class TestTaskManagementCoverageExpansion:
         complete_task(user_id, task_id)
 
         # Restore the task
-        with patch("tasks.task_management.schedule_task_reminders") as mock_schedule:
+        with patch("tasks.task_data_manager.schedule_task_reminders") as mock_schedule:
             result = restore_task(user_id, task_id)
 
             assert result is True
@@ -855,7 +855,7 @@ class TestTaskManagementCoverageExpansion:
         # Create a task
         task_id = create_task(user_id, "Test Task")
 
-        with patch("tasks.task_management.cleanup_task_reminders") as mock_cleanup:
+        with patch("tasks.task_data_manager.cleanup_task_reminders") as mock_cleanup:
             result = delete_task(user_id, task_id)
 
             assert result is True
@@ -1004,7 +1004,7 @@ class TestTaskManagementCoverageExpansion:
     ):
         """Test are_tasks_enabled with missing account data."""
         # Mock get_user_data to return empty result
-        with patch("tasks.task_management.get_user_data", return_value={}):
+        with patch("tasks.task_data_manager.get_user_data", return_value={}):
             result = are_tasks_enabled(user_id)
 
             assert result is False  # Should return False when account data is missing
@@ -1015,7 +1015,7 @@ class TestTaskManagementCoverageExpansion:
         """Test are_tasks_enabled with invalid account structure."""
         # Mock get_user_data to return invalid structure
         with patch(
-            "tasks.task_management.get_user_data", return_value={"account": None}
+            "tasks.task_data_manager.get_user_data", return_value={"account": None}
         ):
             result = are_tasks_enabled(user_id)
 
@@ -1043,7 +1043,7 @@ class TestTaskManagementCoverageExpansion:
 
     def test_are_tasks_enabled_real_behavior(self, mock_user_data_dir, user_id):
         """Test checking if tasks are enabled for a user."""
-        with patch("tasks.task_management.get_user_data") as mock_get_user_data:
+        with patch("tasks.task_data_manager.get_user_data") as mock_get_user_data:
             # Test enabled
             mock_get_user_data.return_value = {
                 "account": {"features": {"task_management": "enabled"}}
@@ -1258,7 +1258,7 @@ class TestTaskManagementCoverageExpansion:
         self, mock_user_data_dir, user_id
     ):
         """Test adding an existing task tag."""
-        with patch("tasks.task_management.get_user_data") as mock_get_user_data:
+        with patch("tasks.task_data_manager.get_user_data") as mock_get_user_data:
             mock_get_user_data.return_value = {
                 "preferences": {
                     "task_settings": {"tags": ["work", "personal", "health"]}
@@ -1297,7 +1297,7 @@ class TestTaskManagementCoverageExpansion:
         self, mock_user_data_dir, user_id
     ):
         """Test removing a non-existent task tag."""
-        with patch("tasks.task_management.get_user_data") as mock_get_user_data:
+        with patch("tasks.task_data_manager.get_user_data") as mock_get_user_data:
             mock_get_user_data.return_value = {
                 "preferences": {"task_settings": {"tags": ["work", "personal"]}}
             }
@@ -1378,14 +1378,14 @@ class TestTaskManagementCoverageExpansion:
         """Test getting task statistics with empty user ID."""
         stats = get_user_task_stats("")
 
-        assert stats == {}
+        assert stats == {"active_count": 0, "completed_count": 0, "total_count": 0}
 
     def test_get_user_task_stats_error_handling_real_behavior(
         self, mock_user_data_dir, user_id
     ):
         """Test task statistics error handling."""
         with patch(
-            "tasks.task_management.load_active_tasks",
+            "tasks.task_data_manager.load_active_tasks",
             side_effect=Exception("Test error"),
         ):
             stats = get_user_task_stats(user_id)

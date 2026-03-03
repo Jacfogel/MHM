@@ -33,6 +33,19 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-02 - Task package split, notebook rename, error handling Phase 1, and session follow-ups (combined)
+- **Feature**: Unified user-item storage, split tasks package to mirror notebook layout, renamed notebook schemas, fixed test failures and due-date handling, modernized error handling (Phase 1), and cleaned static logging/unused imports.
+- **Technical Changes**:
+  - **Core**: Added `core/user_item_storage.py` (get_user_subdir_path, ensure_user_subdir, load_user_json_file, save_user_json_file) and `is_valid_user_id` in `core/user_data_validation.py`; added `user_item_storage` to logger component map.
+  - **Notebook**: Renamed `notebook/schemas.py` to `notebook/notebook_schemas.py`; updated imports in notebook modules, notebook_handler, and tests; removed `notebook/schemas.py`.
+  - **Tasks**: Replaced monolithic `tasks/task_management.py` with `tasks/task_schemas.py`, `tasks/task_validation.py`, `tasks/task_data_handlers.py`, `tasks/task_data_manager.py`. Task data handlers use shared storage; all call sites use `from tasks import ...`; task_handler and profile_handler use lazy `_get_tasks()` to avoid circular dependency. Validation: `title` update with `None` rejected; `get_user_task_stats` error default_return set to `{"active_count": 0, "completed_count": 0, "total_count": 0}`.
+  - **Task handler**: Update-task path resolves relative due_date (e.g. "tomorrow") via `_handle_create_task__parse_relative_date` before calling `update_task`, so due_date is persisted correctly.
+  - **Tests**: Patches updated from `tasks.task_management.*` and handler-module attributes to `tasks.*` / `tasks.task_data_manager.*` / `tasks.task_data_handlers.*` and `core.user_item_storage.get_user_data_dir` where appropriate; recurring tests import from `tasks.task_data_manager`. Behavior/unit/UI test fixes for task_handler, profile_handler, task_management_coverage_expansion, task_crud_dialog, analytics_handler, channel_orchestrator, interaction_handlers_helpers.
+  - **Error handling**: Added `re_raise=True` to `@handle_errors` in `core/error_handling.py` so decorator can log/handle then re-raise when there is no safe default. Migrated `_get_tasks()` in task_handler and profile_handler from try/except to `@handle_errors("loading tasks module", default_return=None, re_raise=True)`. Added `@handle_errors` to `validate_update_field` in `tasks/task_validation.py`. Static logging: logger calls in handlers use single positional argument (f-string) to satisfy `check_channel_loggers.py`; `test_repo_static_logging_check_passes` passes.
+  - **Cleanup**: Removed unused imports in `core/user_item_storage.py` (typing.Any), `tasks/task_schemas.py` (typing.Any), `tasks/task_validation.py` (is_valid_user_id).
+  - **Docs**: `core/USER_DATA_MODEL.md` (user_item_storage, new item types); `development_docs/MODULE_DEPENDENCIES_DETAIL.md` (tasks.task_management → tasks); `core/ERROR_HANDLING_GUIDE.md` and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` (re_raise parameter and usage).
+- **Impact**: Consistent user-scoped JSON pattern (notebook, tasks, future events); clearer task package layout; Phase 1 error-handling migration complete for _get_tasks; static logging check and test suite passing.
+
 ### 2026-03-02 - Sleep schedule parsing and prompt concision
 - **Feature/Fix**: Accept "and" as a range separator in multi-chunk sleep schedule answers so responses like "1:00 AM and 4:00 AM, 6:00 and 11:00" are accepted; shortened the sleep schedule question and error text.
 - **Technical Changes**:
@@ -2010,7 +2023,7 @@ No behavioral changes intended beyond timestamp formatting consistency.
   - Tags registered in `user_data_handlers` as core data type with lazy initialization from `resources/default_tags.json`
 - **Background**: This work implements the notebook feature (notes, lists, journal entries) that enables users to capture and organize information via Discord commands. The feature includes full CRUD operations, search, tagging, grouping, and smart views (pinned, inbox, tag-based).
 - **Impact**: Users can now capture notes, create and manage lists, search entries, organize with tags and groups, and use smart views - all via Discord commands. Search commands (`!s`, `search`) now work correctly, finding entries by title, body, or list items. Comprehensive test plan provides clear roadmap for ensuring feature reliability.
-- **Files**: `notebook/notebook_data_manager.py`, `notebook/notebook_data_handlers.py`, `notebook/schemas.py`, `core/tags.py`, `communication/command_handlers/notebook_handler.py`, `tasks/task_management.py`
+- **Files**: `notebook/notebook_data_manager.py`, `notebook/notebook_data_handlers.py`, `notebook/notebook_schemas.py`, `core/tags.py`, `communication/command_handlers/notebook_handler.py`, `tasks/task_management.py`
 
 ### 2026-01-05 - Multiple Fixes: Message File Creation, Error Handling Analyzer, and Path Drift **COMPLETED**
 - **Feature**: Fixed three issues identified during development tools audit and user message category opt-in:

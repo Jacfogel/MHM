@@ -283,7 +283,7 @@ class AITestBase:
             # Get task counts
             if context_info["tasks_enabled"]:
                 try:
-                    from tasks.task_management import load_active_tasks
+                    from tasks import load_active_tasks
 
                     tasks_data = load_active_tasks(user_id) if user_id else []
                     context_info["active_tasks_count"] = (

@@ -2160,7 +2160,7 @@ class MHMManagerUI(QMainWindow):
             preferences = prefs_result.get("preferences")
 
             # Check if tasks are enabled for this user
-            from tasks.task_management import are_tasks_enabled, load_active_tasks
+            from tasks import are_tasks_enabled, load_active_tasks
 
             if not are_tasks_enabled(self.current_user):
                 QMessageBox.warning(

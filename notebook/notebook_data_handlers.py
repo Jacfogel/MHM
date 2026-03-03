@@ -12,7 +12,7 @@ from core.config import get_user_data_dir
 from core.file_operations import load_json_data, save_json_data
 from core.time_utilities import now_timestamp_full
 
-from notebook.schemas import Entry
+from notebook.notebook_schemas import Entry
 
 logger = get_component_logger("notebook_data_handlers")
 

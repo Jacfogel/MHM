@@ -19,7 +19,7 @@ from communication.command_handlers.interaction_handlers import (
     HelpHandler, get_interaction_handler, get_all_handlers
 )
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
-from tasks.task_management import create_task, load_active_tasks
+from tasks import create_task, load_active_tasks
 from tests.test_utilities import TestUserFactory
 
 

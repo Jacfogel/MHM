@@ -19,19 +19,15 @@ from core.time_utilities import (
     parse_date_only,
     now_datetime_full,
 )
-from tasks.task_management import (
-    create_task,
-    load_active_tasks,
-    load_completed_tasks,
-    complete_task,
-    restore_task,
-    delete_task,
-    update_task,
-    get_user_task_stats,
-    get_tasks_due_soon,
-)
 
 from .base_handler import InteractionHandler, InteractionResponse, ParsedCommand
+
+# Lazy import to avoid circular dependency: core -> service -> channel_orchestrator -> task_handler -> tasks -> core
+@handle_errors("loading tasks module", default_return=None, re_raise=True)
+def _get_tasks():
+    import tasks as _tasks_mod
+    return _tasks_mod
+
 
 logger = get_component_logger("communication_manager")
 handlers_logger = logger
@@ -250,7 +246,7 @@ class TaskManagementHandler(InteractionHandler):
                 # Default to True if there's an error loading preferences
                 task_data["repeat_after_completion"] = True
 
-        task_id = create_task(user_id=user_id, **task_data)
+        task_id = _get_tasks().create_task(user_id=user_id, **task_data)
 
         if task_id:
             response = f"✅ Task created: '{title}'"
@@ -466,7 +462,7 @@ class TaskManagementHandler(InteractionHandler):
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle task listing with enhanced filtering and details"""
-        tasks = load_active_tasks(user_id)
+        tasks = _get_tasks().load_active_tasks(user_id)
 
         if not tasks:
             return InteractionResponse(
@@ -525,7 +521,7 @@ class TaskManagementHandler(InteractionHandler):
 
         # Apply filter type
         if filter_type == "due_soon":
-            filtered_tasks = get_tasks_due_soon(user_id, days_ahead=7)
+            filtered_tasks = _get_tasks().get_tasks_due_soon(user_id, days_ahead=7)
         elif filter_type == "overdue":
             today = format_timestamp(now_datetime_full(), DATE_ONLY)
             filtered_tasks = [
@@ -771,7 +767,7 @@ class TaskManagementHandler(InteractionHandler):
         task_identifier = entities.get("task_identifier")
         if not task_identifier:
             # If no specific task mentioned, suggest the most likely task
-            tasks = load_active_tasks(user_id)
+            tasks = _get_tasks().load_active_tasks(user_id)
             if not tasks:
                 return InteractionResponse(
                     "Which task would you like to complete? You currently have no active tasks. "
@@ -811,7 +807,7 @@ class TaskManagementHandler(InteractionHandler):
                 )
 
         # Try to find task with disambiguation
-        tasks = load_active_tasks(user_id)
+        tasks = _get_tasks().load_active_tasks(user_id)
         candidates = self._get_task_candidates(tasks, task_identifier)
         if len(candidates) > 1:
             preview = "\n".join(
@@ -829,7 +825,7 @@ class TaskManagementHandler(InteractionHandler):
             )
 
         # Complete the task
-        if complete_task(user_id, task.get("task_id", task.get("id"))):
+        if _get_tasks().complete_task(user_id, task.get("task_id", task.get("id"))):
             return InteractionResponse(f"✅ Completed: {task['title']}", True)
         else:
             return InteractionResponse(
@@ -848,7 +844,7 @@ class TaskManagementHandler(InteractionHandler):
         """Handle uncomplete/restore: move a completed task back to active."""
         task_identifier = entities.get("task_identifier")
         if not task_identifier:
-            completed_tasks = load_completed_tasks(user_id)
+            completed_tasks = _get_tasks().load_completed_tasks(user_id)
             if not completed_tasks:
                 return InteractionResponse(
                     "You have no completed tasks to restore.", True
@@ -857,7 +853,7 @@ class TaskManagementHandler(InteractionHandler):
                 "Which task would you like to restore? Specify the task number or name, or use 'list tasks' to see completed ones.",
                 completed=False,
             )
-        completed_tasks = load_completed_tasks(user_id)
+        completed_tasks = _get_tasks().load_completed_tasks(user_id)
         candidates = [
             t
             for t in completed_tasks
@@ -886,7 +882,7 @@ class TaskManagementHandler(InteractionHandler):
                 True,
             )
         task_id = task.get("task_id", task.get("id"))
-        if restore_task(user_id, task_id):
+        if _get_tasks().restore_task(user_id, task_id):
             return InteractionResponse(
                 f"✅ Restored to active: {task.get('title', 'Task')}", True
             )
@@ -902,7 +898,7 @@ class TaskManagementHandler(InteractionHandler):
             # If user confirms without identifier, use pending deletion if available
             pending_id = PENDING_DELETIONS.pop(user_id, None)
             if pending_id:
-                if delete_task(user_id, pending_id):
+                if _get_tasks().delete_task(user_id, pending_id):
                     return InteractionResponse("🗑️ Deleted.", True)
                 return InteractionResponse(
                     "❌ Failed to delete task. Please try again.", True
@@ -914,7 +910,7 @@ class TaskManagementHandler(InteractionHandler):
                 )
 
         # Try to find task with disambiguation
-        tasks = load_active_tasks(user_id)
+        tasks = _get_tasks().load_active_tasks(user_id)
         candidates = self._get_task_candidates(tasks, task_identifier)
         if len(candidates) > 1:
             preview = "\n".join(
@@ -949,7 +945,7 @@ class TaskManagementHandler(InteractionHandler):
             )
 
         # Delete immediately for numeric or id-based selection
-        if delete_task(user_id, task.get("task_id", task.get("id"))):
+        if _get_tasks().delete_task(user_id, task.get("task_id", task.get("id"))):
             return InteractionResponse(f"🗑️ Deleted: {task['title']}", True)
         else:
             return InteractionResponse(
@@ -969,7 +965,7 @@ class TaskManagementHandler(InteractionHandler):
             )
 
         # Try to find the task with disambiguation
-        tasks = load_active_tasks(user_id)
+        tasks = _get_tasks().load_active_tasks(user_id)
         candidates = self._get_task_candidates(tasks, task_identifier)
         if len(candidates) > 1:
             preview = "\n".join(
@@ -993,7 +989,12 @@ class TaskManagementHandler(InteractionHandler):
         if "description" in entities:
             updates["description"] = entities["description"]
         if "due_date" in entities:
-            updates["due_date"] = entities["due_date"]
+            # Resolve relative dates (e.g. "tomorrow") to YYYY-MM-DD so task validation accepts them
+            raw_due = entities["due_date"]
+            resolved_due = self._handle_create_task__parse_relative_date(
+                raw_due if isinstance(raw_due, str) else str(raw_due)
+            )
+            updates["due_date"] = resolved_due
         if "priority" in entities:
             updates["priority"] = entities["priority"]
 
@@ -1016,7 +1017,7 @@ class TaskManagementHandler(InteractionHandler):
             return InteractionResponse(prompt, completed=False, suggestions=[])
 
         # Update the task
-        if update_task(user_id, task.get("task_id", task.get("id")), updates):
+        if _get_tasks().update_task(user_id, task.get("task_id", task.get("id")), updates):
             return InteractionResponse(f"✅ Updated: {task['title']}", True)
         else:
             return InteractionResponse(
@@ -1046,7 +1047,7 @@ class TaskManagementHandler(InteractionHandler):
                 )
 
             # Get overall task stats
-            overall_stats = get_user_task_stats(user_id)
+            overall_stats = _get_tasks().get_user_task_stats(user_id)
 
             response = f"**📊 Task Statistics for {period_name.title()}:**\n\n"
 

@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import time
 import uuid
 
-from tasks.task_management import (
+from tasks import (
     create_task,
     complete_task,
     delete_task,
@@ -352,7 +352,7 @@ class TestReminderDeliveryIntegration:
         scheduler = SchedulerManager(mock_comm_manager)
 
         # Create a completed task
-        from tasks.task_management import create_task, complete_task
+        from tasks import create_task, complete_task
         from tests.test_utilities import TestUserFactory
 
         TestUserFactory.create_basic_user(
@@ -382,7 +382,7 @@ class TestReminderDeliveryIntegration:
         scheduler = SchedulerManager(mock_comm_manager)
 
         # Create an active task
-        from tasks.task_management import create_task
+        from tasks import create_task
         from tests.test_utilities import TestUserFactory
 
         TestUserFactory.create_basic_user(

@@ -6,12 +6,12 @@ from unittest.mock import patch
 import pytest
 
 from communication.command_handlers.notebook_handler import NotebookHandler
-from notebook.schemas import Entry
+from notebook.notebook_schemas import Entry
 
 
 def _entry(title: str = "Sample", kind: str = "note") -> Entry:
     if kind == "list":
-        from notebook.schemas import ListItem
+        from notebook.notebook_schemas import ListItem
 
         return Entry(
             kind="list",

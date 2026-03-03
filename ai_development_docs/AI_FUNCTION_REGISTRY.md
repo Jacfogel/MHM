@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-02 06:34:04
+> **Last Generated**: 2026-03-02 22:57:14
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 96.0% [OK] EXCELLENT**
-- **Total Functions**: 1631
+### **Documentation Coverage: 95.9% [OK] EXCELLENT**
+- **Total Functions**: 1641
 - **Total Methods**: 1182
-- **Documented**: 2700/2813
-- **Files Scanned**: 110
+- **Documented**: 2708/2823
+- **Files Scanned**: 114
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -24,7 +24,7 @@ User Data Operations Decision Tree:
 +-- Core Data Access
 |   +-- `core/user_data_handlers.py` - Primary data access (58/59 functions)
 |   +-- `core/user_data_manager.py` - Data management (64 functions)
-|   `-- `core/user_data_validation.py` - Validation (8/11 functions)
+|   `-- `core/user_data_validation.py` - Validation (9/12 functions)
 +-- User Context
 |   +-- `user/user_context.py` - User context management (20 functions)
 |   `-- `user/user_preferences.py` - User preferences (20 functions)
@@ -176,7 +176,7 @@ Core System Decision Tree:
 
 ### **Data Access Patterns**
 - **User Data**: `core/user_data_handlers.py` - User data operations (58/59 functions)
-- **Validation**: `core/user_data_validation.py` - Data validation (8/11 functions)
+- **Validation**: `core/user_data_validation.py` - Data validation (9/12 functions)
 - **File Operations**: `core/file_operations.py` - File I/O (16 functions)
 
 ### **Communication Patterns**
@@ -196,7 +196,7 @@ Core System Decision Tree:
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
-- `core/user_data_validation.py` - 3/11 functions undocumented (73% coverage)
+- `core/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
 
 
 
@@ -230,11 +230,11 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (27 files, 886 functions)
-- `communication/` - Communication channels and message processing (39 files, 805 functions)
+- `core/` - System utilities and data management (28 files, 890 functions)
+- `communication/` - Communication channels and message processing (39 files, 807 functions)
 - `ai/` - AI chatbot functionality (7 files, 187 functions)
 - `ui/` - User interface components (28 files, 800 functions)
 - `user/` - User context and preferences (4 files, 65 functions)
-- `tasks/` - Task management system (2 files, 21 functions)
+- `tasks/` - Task management system (5 files, 25 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

@@ -14,7 +14,7 @@ from unittest.mock import patch, MagicMock
 import schedule
 
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
-from tasks.task_management import (
+from tasks import (
     create_task,
     complete_task,
     cleanup_task_reminders,

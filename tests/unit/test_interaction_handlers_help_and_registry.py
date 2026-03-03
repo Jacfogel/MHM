@@ -115,7 +115,7 @@ class TestHelpHandler:
             },
         )
         monkeypatch.setattr(
-            "tasks.task_management.load_active_tasks",
+            "tasks.load_active_tasks",
             lambda user_id: [{"title": "A"}, {"title": "B"}],
         )
         monkeypatch.setattr(

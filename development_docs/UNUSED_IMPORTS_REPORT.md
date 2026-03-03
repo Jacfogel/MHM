@@ -2,12 +2,12 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-02 16:11:21
+> **Last Generated**: 2026-03-03 00:20:42
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 507
+- **Total Files Scanned**: 511
 - **Files with Unused Imports**: 124
 - **Total Unused Imports**: 385
 
@@ -100,9 +100,9 @@
 
 **Count**: 3 unused import(s)
 
-- **Line 421**: `datetime.datetime` imported but unused
-- **Line 548**: `datetime.datetime` imported but unused
-- **Line 696**: `datetime.datetime` imported but unused
+- **Line 445**: `datetime.datetime` imported but unused
+- **Line 572**: `datetime.datetime` imported but unused
+- **Line 720**: `datetime.datetime` imported but unused
 
 ### `development_tools/tests/run_test_coverage.py`
 
@@ -579,7 +579,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 13**: `tasks.task_management._create_next_recurring_task_instance` imported but unused
+- **Line 18**: `tasks.task_data_manager._create_next_recurring_task_instance` imported but unused
 
 ### `tests/unit/test_ui_management.py`
 

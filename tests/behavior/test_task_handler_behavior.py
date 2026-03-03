@@ -112,7 +112,7 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     @pytest.mark.file_io
-    @patch("communication.command_handlers.task_handler.create_task")
+    @patch("tasks.create_task")
     def test_task_handler_create_task_success(self, mock_create_task, test_data_dir):
         """Test that TaskManagementHandler creates tasks successfully."""
         handler = TaskManagementHandler()
@@ -200,7 +200,7 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     @pytest.mark.file_io
-    @patch("communication.command_handlers.task_handler.create_task")
+    @patch("tasks.create_task")
     def test_task_handler_create_task_with_recurrence(
         self, mock_create_task, test_data_dir
     ):
@@ -335,7 +335,7 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     @pytest.mark.file_io
-    @patch("communication.command_handlers.task_handler.load_active_tasks")
+    @patch("tasks.load_active_tasks")
     def test_task_handler_list_tasks_success(self, mock_load_tasks, test_data_dir):
         """Test that TaskManagementHandler lists tasks successfully."""
         handler = TaskManagementHandler()
@@ -381,7 +381,7 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     @pytest.mark.file_io
-    @patch("communication.command_handlers.task_handler.load_active_tasks")
+    @patch("tasks.load_active_tasks")
     def test_task_handler_list_tasks_no_tasks(self, mock_load_tasks, test_data_dir):
         """Test that TaskManagementHandler handles no tasks gracefully."""
         handler = TaskManagementHandler()
@@ -414,8 +414,8 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     @pytest.mark.file_io
-    @patch("communication.command_handlers.task_handler.get_tasks_due_soon")
-    @patch("communication.command_handlers.task_handler.load_active_tasks")
+    @patch("tasks.get_tasks_due_soon")
+    @patch("tasks.load_active_tasks")
     def test_task_handler_list_tasks_filter_due_soon(
         self, mock_load_tasks, mock_due_soon, test_data_dir
     ):
@@ -461,8 +461,8 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     @pytest.mark.file_io
-    @patch("communication.command_handlers.task_handler.complete_task")
-    @patch("communication.command_handlers.task_handler.load_active_tasks")
+    @patch("tasks.complete_task")
+    @patch("tasks.load_active_tasks")
     def test_task_handler_complete_task_success(
         self, mock_load_tasks, mock_complete_task, test_data_dir
     ):
@@ -505,7 +505,7 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     @pytest.mark.file_io
-    @patch("communication.command_handlers.task_handler.load_active_tasks")
+    @patch("tasks.load_active_tasks")
     def test_task_handler_complete_task_not_found(self, mock_load_tasks, test_data_dir):
         """Test that TaskManagementHandler handles task not found."""
         handler = TaskManagementHandler()
@@ -558,8 +558,8 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     @pytest.mark.file_io
-    @patch("communication.command_handlers.task_handler.delete_task")
-    @patch("communication.command_handlers.task_handler.load_active_tasks")
+    @patch("tasks.delete_task")
+    @patch("tasks.load_active_tasks")
     def test_task_handler_delete_task_success(
         self, mock_load_tasks, mock_delete_task, test_data_dir
     ):
@@ -601,8 +601,8 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     @pytest.mark.file_io
-    @patch("communication.command_handlers.task_handler.update_task")
-    @patch("communication.command_handlers.task_handler.load_active_tasks")
+    @patch("tasks.update_task")
+    @patch("tasks.load_active_tasks")
     def test_task_handler_update_task_success(
         self, mock_load_tasks, mock_update_task, test_data_dir
     ):
@@ -655,7 +655,7 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     @pytest.mark.file_io
-    @patch("communication.command_handlers.task_handler.load_active_tasks")
+    @patch("tasks.load_active_tasks")
     def test_task_handler_update_task_missing_updates(
         self, mock_load_tasks, test_data_dir
     ):
@@ -691,7 +691,7 @@ class TestTaskHandlerBehavior:
     @pytest.mark.tasks
     @pytest.mark.file_io
     @patch("core.checkin_analytics.CheckinAnalytics")
-    @patch("communication.command_handlers.task_handler.get_user_task_stats")
+    @patch("tasks.get_user_task_stats")
     def test_task_handler_task_stats_success(
         self, mock_get_stats, mock_analytics_class, test_data_dir
     ):

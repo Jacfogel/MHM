@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import schedule
 
 from core.scheduler import SchedulerManager
-from tasks.task_management import (
+from tasks import (
     create_task,
     complete_task,
     delete_task,
@@ -166,7 +166,7 @@ class TestOrphanedReminderCleanup:
         task = get_task_by_id(user_id, task_id)
         # Note: completed tasks are moved to completed_tasks.json, so get_task_by_id might return None
         # We'll check that the task is no longer in active tasks
-        from tasks.task_management import load_active_tasks
+        from tasks import load_active_tasks
 
         active_tasks = load_active_tasks(user_id)
         active_task_ids = [t.get("task_id") for t in active_tasks]

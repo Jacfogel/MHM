@@ -15,7 +15,7 @@ from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
 from core.user_data_validation import validate_schedule_periods
-from tasks.task_management import setup_default_task_tags
+from tasks import setup_default_task_tags
 
 setup_logging()
 logger = get_component_logger("ui")

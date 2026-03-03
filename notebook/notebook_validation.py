@@ -12,7 +12,7 @@ from uuid import UUID
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.user_data_validation import is_valid_string_length, is_valid_category_name
-from notebook.schemas import EntryKind
+from notebook.notebook_schemas import EntryKind
 
 logger = get_component_logger("notebook_validation")
 

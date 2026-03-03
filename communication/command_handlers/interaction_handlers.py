@@ -296,7 +296,7 @@ class HelpHandler(InteractionHandler):
     )
     def _handle_status(self, user_id: str) -> InteractionResponse:
         """Handle status request with detailed system information"""
-        from tasks.task_management import load_active_tasks
+        from tasks import load_active_tasks
         from core.response_tracking import is_user_checkins_enabled
 
         # Load user data

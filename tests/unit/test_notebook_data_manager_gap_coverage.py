@@ -8,7 +8,7 @@ from uuid import UUID
 import pytest
 
 import notebook.notebook_data_manager as ndm
-from notebook.schemas import Entry, ListItem
+from notebook.notebook_schemas import Entry, ListItem
 from notebook.notebook_validation import MAX_BODY_LENGTH
 
 

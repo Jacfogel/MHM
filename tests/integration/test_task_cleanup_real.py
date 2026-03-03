@@ -14,7 +14,7 @@ from unittest.mock import patch, MagicMock
 from pathlib import Path
 import json
 
-from tasks.task_management import (
+from tasks import (
     create_task, complete_task, delete_task, update_task,
     load_active_tasks, load_completed_tasks, get_task_by_id
 )

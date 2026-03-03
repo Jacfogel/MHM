@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-02 06:34:12
+> **Last Generated**: 2026-03-02 22:57:24
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -47,6 +47,7 @@ C:.
 |   +---plans
 |   |   |   conftest_refactor_plan_4aa2eb26.plan.md
 |   |   |   planning_documents_consolidation_f3a74815.plan.md
+|   |   |   unified_user_items_and_shared_helpers.plan.md
 |   |   |   
 |   \---rules
 |           communication-guidelines.mdc
@@ -168,6 +169,7 @@ C:.
 |   |   user_data_manager.py
 |   |   USER_DATA_MODEL.md
 |   |   user_data_validation.py
+|   |   user_item_storage.py
 |   |   __init__.py
 |   |   
 +---data
@@ -362,8 +364,8 @@ C:.
 +---notebook
 |   |   notebook_data_handlers.py
 |   |   notebook_data_manager.py
+|   |   notebook_schemas.py
 |   |   notebook_validation.py
-|   |   schemas.py
 |   |   __init__.py
 |   |   
 +---resources
@@ -387,7 +389,10 @@ C:.
 |       admin_theme.qss
 |       
 +---tasks
-|   |   task_management.py
+|   |   task_data_handlers.py
+|   |   task_data_manager.py
+|   |   task_schemas.py
+|   |   task_validation.py
 |   |   __init__.py
 |   |   
 +---tests

@@ -113,6 +113,30 @@ def validate_schedule_periods__validate_time_format(time_str: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# User and identifier validation
+# ---------------------------------------------------------------------------
+
+
+@handle_errors("validating user id", default_return=False)
+def is_valid_user_id(user_id: str) -> bool:
+    """
+    Validate that user_id is a non-empty string (stripped).
+
+    Used by notebook, tasks, and other user-scoped item handlers.
+    """
+    if user_id is None:
+        logger.warning("user_id must not be None")
+        return False
+    if not isinstance(user_id, str):
+        logger.warning(f"user_id must be a string, got {type(user_id).__name__}")
+        return False
+    if not user_id.strip():
+        logger.warning("user_id must not be empty")
+        return False
+    return True
+
+
+# ---------------------------------------------------------------------------
 # General string validation helpers
 # ---------------------------------------------------------------------------
 

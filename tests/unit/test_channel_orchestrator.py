@@ -405,8 +405,8 @@ class TestChannelOrchestratorHelpers:
         }
 
         with (
-            patch("tasks.task_management.are_tasks_enabled", return_value=True),
-            patch("tasks.task_management.get_task_by_id", return_value=task),
+            patch("tasks.are_tasks_enabled", return_value=True),
+            patch("tasks.get_task_by_id", return_value=task),
             patch(
                 "communication.core.channel_orchestrator.get_user_data",
                 return_value={"preferences": {"channel": {"type": "email"}}},
@@ -439,8 +439,8 @@ class TestChannelOrchestratorHelpers:
         }
 
         with (
-            patch("tasks.task_management.are_tasks_enabled", return_value=True),
-            patch("tasks.task_management.get_task_by_id", return_value=task),
+            patch("tasks.are_tasks_enabled", return_value=True),
+            patch("tasks.get_task_by_id", return_value=task),
             patch(
                 "communication.core.channel_orchestrator.get_user_data",
                 return_value={"preferences": {"channel": {"type": "email"}}},
@@ -459,7 +459,7 @@ class TestChannelOrchestratorHelpers:
     def test_handle_task_reminder_exits_when_tasks_disabled(self):
         """Test tasks-disabled branch exits before any send attempts."""
         with (
-            patch("tasks.task_management.are_tasks_enabled", return_value=False),
+            patch("tasks.are_tasks_enabled", return_value=False),
             patch.object(self.manager, "send_message_sync") as mock_send,
         ):
             self.manager.handle_task_reminder("user_disabled", "task_x")
@@ -470,8 +470,8 @@ class TestChannelOrchestratorHelpers:
         """Test completed task branch exits without sending."""
         task = {"task_id": "task_done", "title": "Done", "completed": True}
         with (
-            patch("tasks.task_management.are_tasks_enabled", return_value=True),
-            patch("tasks.task_management.get_task_by_id", return_value=task),
+            patch("tasks.are_tasks_enabled", return_value=True),
+            patch("tasks.get_task_by_id", return_value=task),
             patch.object(self.manager, "send_message_sync") as mock_send,
         ):
             self.manager.handle_task_reminder("user_done", "task_done")
@@ -482,8 +482,8 @@ class TestChannelOrchestratorHelpers:
         """Test missing preferences branch exits without sending."""
         task = {"task_id": "task_ok", "title": "Active task", "completed": False}
         with (
-            patch("tasks.task_management.are_tasks_enabled", return_value=True),
-            patch("tasks.task_management.get_task_by_id", return_value=task),
+            patch("tasks.are_tasks_enabled", return_value=True),
+            patch("tasks.get_task_by_id", return_value=task),
             patch(
                 "communication.core.channel_orchestrator.get_user_data",
                 return_value={"preferences": None},
@@ -498,8 +498,8 @@ class TestChannelOrchestratorHelpers:
         """Test missing recipient branch exits without sending."""
         task = {"task_id": "task_ok", "title": "Active task", "completed": False}
         with (
-            patch("tasks.task_management.are_tasks_enabled", return_value=True),
-            patch("tasks.task_management.get_task_by_id", return_value=task),
+            patch("tasks.are_tasks_enabled", return_value=True),
+            patch("tasks.get_task_by_id", return_value=task),
             patch(
                 "communication.core.channel_orchestrator.get_user_data",
                 return_value={"preferences": {"channel": {"type": "email"}}},

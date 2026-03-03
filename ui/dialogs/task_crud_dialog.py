@@ -7,7 +7,7 @@ from PySide6.QtCore import Qt
 from ui.generated.task_crud_dialog_pyqt import Ui_Dialog_task_crud
 
 # Import core functionality
-from tasks.task_management import (
+from tasks import (
     load_active_tasks,
     load_completed_tasks,
     get_user_task_stats,
@@ -309,7 +309,7 @@ class TaskCrudDialog(QDialog):
             QMessageBox.warning(self, "No Selection", "Please select a task to edit.")
             return
 
-        from tasks.task_management import get_task_by_id
+        from tasks import get_task_by_id
 
         task_data = get_task_by_id(self.user_id, task_id)
         if not task_data:
@@ -333,7 +333,7 @@ class TaskCrudDialog(QDialog):
             return
 
         # Get task data for confirmation
-        from tasks.task_management import get_task_by_id
+        from tasks import get_task_by_id
 
         task_data = get_task_by_id(self.user_id, task_id)
         if not task_data:
@@ -366,7 +366,7 @@ class TaskCrudDialog(QDialog):
             return
 
         # Get task data for confirmation
-        from tasks.task_management import get_task_by_id
+        from tasks import get_task_by_id
 
         task_data = get_task_by_id(self.user_id, task_id)
         if not task_data:
@@ -398,7 +398,7 @@ class TaskCrudDialog(QDialog):
             return
 
         # Get task data for confirmation
-        from tasks.task_management import get_task_by_id
+        from tasks import get_task_by_id
 
         task_data = get_task_by_id(self.user_id, task_id)
         if not task_data:
@@ -413,7 +413,7 @@ class TaskCrudDialog(QDialog):
         )
 
         if result == QMessageBox.StandardButton.Yes:
-            from tasks.task_management import restore_task
+            from tasks import restore_task
 
             if restore_task(self.user_id, task_id):
                 QMessageBox.information(self, "Success", "Task restored successfully!")
@@ -431,7 +431,7 @@ class TaskCrudDialog(QDialog):
             return
 
         # Get task data for confirmation
-        from tasks.task_management import get_task_by_id
+        from tasks import get_task_by_id
 
         task_data = get_task_by_id(self.user_id, task_id)
         if not task_data:

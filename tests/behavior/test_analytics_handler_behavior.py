@@ -549,9 +549,9 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.analytics
     @pytest.mark.file_io
     @patch('core.checkin_analytics.CheckinAnalytics')
-    @patch('tasks.task_management.get_user_task_stats')
-    @patch('tasks.task_management.load_active_tasks')
-    @patch('tasks.task_management.load_completed_tasks')
+    @patch('tasks.get_user_task_stats')
+    @patch('tasks.load_active_tasks')
+    @patch('tasks.load_completed_tasks')
     def test_analytics_handler_task_analytics_success(self, mock_load_completed, mock_load_active, mock_get_stats, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler shows task analytics successfully."""
         handler = AnalyticsHandler()

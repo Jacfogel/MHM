@@ -1095,7 +1095,7 @@ class SchedulerManager:
         while attempt < retry_attempts:
             try:
                 # Import task management functions
-                from tasks.task_management import get_task_by_id, update_task
+                from tasks import get_task_by_id, update_task
 
                 # Get the task details
                 task = get_task_by_id(user_id, task_id)
@@ -1345,7 +1345,7 @@ class SchedulerManager:
         For each reminder period, pick one random task and schedule it at a random time within the period.
         """
         try:
-            from tasks.task_management import load_active_tasks, are_tasks_enabled
+            from tasks import load_active_tasks, are_tasks_enabled
             from core.schedule_management import get_schedule_time_periods
             import random
 
@@ -1666,7 +1666,7 @@ class SchedulerManager:
         Schedule a reminder for a specific task at the specified time (daily).
         """
         try:
-            from tasks.task_management import get_task_by_id
+            from tasks import get_task_by_id
 
             # Get the task to verify it exists and is active
             task = get_task_by_id(user_id, task_id)
@@ -1733,7 +1733,7 @@ class SchedulerManager:
         Schedule a reminder for a specific task at a specific date and time.
         """
         try:
-            from tasks.task_management import get_task_by_id
+            from tasks import get_task_by_id
             from datetime import datetime, timedelta
 
             # Get the task to verify it exists and is active
@@ -1930,7 +1930,7 @@ class SchedulerManager:
                     continue
 
             # Check each job's task still exists
-            from tasks.task_management import get_task_by_id
+            from tasks import get_task_by_id
 
             for job, user_id, task_id in jobs_to_check:
                 try:
@@ -2180,7 +2180,7 @@ def schedule_all_task_reminders(user_id):
     Standalone function to schedule all task reminders for a user.
     This can be called from the admin UI without needing a scheduler instance.
     """
-    from tasks.task_management import are_tasks_enabled
+    from tasks import are_tasks_enabled
 
     # Check if tasks are enabled for this user
     if not are_tasks_enabled(user_id):

@@ -17,7 +17,7 @@ from core.time_utilities import (
     parse_timestamp_full,
     now_datetime_full,
 )
-from notebook.schemas import Entry, ListItem, EntryKind
+from notebook.notebook_schemas import Entry, ListItem, EntryKind
 from notebook.notebook_data_handlers import load_entries, save_entries
 from notebook.notebook_validation import (
     is_valid_entry_reference,

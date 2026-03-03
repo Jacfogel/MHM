@@ -1356,7 +1356,7 @@ class ConversationManager:
         - "1 to 2 days before"
         - "No reminders needed" / "No" / "Skip"
         """
-        from tasks.task_management import get_task_by_id
+        from tasks import get_task_by_id
 
         try:
             task_id = user_state.get("data", {}).get("task_id")
@@ -1484,7 +1484,7 @@ class ConversationManager:
 
             if reminder_periods:
                 # Update task with reminder periods
-                from tasks.task_management import update_task
+                from tasks import update_task
 
                 logger.debug(
                     f"Updating task {task_id} with reminder periods: {reminder_periods}"
@@ -1592,7 +1592,7 @@ class ConversationManager:
         Returns list of reminder period dicts with date, start_time, end_time.
         """
         import re
-        from tasks.task_management import get_task_by_id
+        from tasks import get_task_by_id
 
         text_lower = text.lower().strip()
         reminder_periods = []
@@ -1780,7 +1780,7 @@ class ConversationManager:
         - Task due in 6 days (no time) -> "1 to 2 days before", "3 to 4 days before"
         - Task due in 12 days at 10:00 AM -> "1 to 2 hours before", "1 to 2 days before", "3 to 5 days before"
         """
-        from tasks.task_management import get_task_by_id
+        from tasks import get_task_by_id
 
         task = get_task_by_id(user_id, task_id)
         if not task or not task.get("due_date"):
@@ -1881,7 +1881,7 @@ class ConversationManager:
         self, user_id: str, user_state: dict, message_text: str
     ) -> tuple[str, bool]:
         """Handle continuation of task due date/time flow."""
-        from tasks.task_management import update_task
+        from tasks import update_task
 
         message_lower = message_text.lower().strip()
 

@@ -751,7 +751,7 @@ class AIChatBotSingleton:
             from core.response_tracking import is_user_checkins_enabled
 
             checkins_enabled = is_user_checkins_enabled(user_id)
-            from tasks.task_management import are_tasks_enabled
+            from tasks import are_tasks_enabled
 
             tasks_enabled = are_tasks_enabled(user_id) if user_id else False
 
@@ -1028,7 +1028,7 @@ class AIChatBotSingleton:
 
         # Task data (available if tasks are enabled)
         try:
-            from tasks.task_management import (
+            from tasks import (
                 load_active_tasks,
                 get_user_task_stats,
                 get_tasks_due_soon,

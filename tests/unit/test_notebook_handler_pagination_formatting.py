@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from communication.command_handlers.notebook_handler import NotebookHandler
-from notebook.schemas import Entry, ListItem
+from notebook.notebook_schemas import Entry, ListItem
 
 
 def _note_entry(title: str) -> Entry:

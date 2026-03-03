@@ -18,7 +18,7 @@ from PySide6.QtCore import QDate, QTime
 from ui.generated.task_edit_dialog_pyqt import Ui_Dialog_task_edit
 
 # Import core functionality
-from tasks.task_management import create_task, update_task
+from tasks import create_task, update_task
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
 from ui.widgets.tag_widget import TagWidget
