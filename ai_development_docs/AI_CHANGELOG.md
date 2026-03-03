@@ -33,7 +33,7 @@ Guidelines:
 ### 2026-03-03 - Tier 3 remediation continuation + closeout tracking **Progressed**
 - Fixed the previously remaining behavior failure `test_send_predefined_message_real_behavior` by restoring `channel_orchestrator` message path resolution through `determine_file_path`, matching real behavior and patch targets.
 - Removed one safe unused import in `communication/core/channel_orchestrator.py` (`get_user_data_dir`) after the path-resolution fix; targeted Ruff check for F401 passed.
-- Synced closeout planning docs (`TODO.md`, `development_docs/PLANS.md`) to keep the remaining Tier 3 `xdist_worker_crash_output` (`test_conversation_manager_expire_checkin_flow`) explicitly tracked as outstanding follow-up work.
+- Synced closeout planning docs ([TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md)) to keep the remaining Tier 3 `xdist_worker_crash_output` (`test_conversation_manager_expire_checkin_flow`) explicitly tracked as outstanding follow-up work.
 - Completed session wrap-up inventory with full working-tree diff review (`git diff --stat`, `git diff --name-only`) and created paired changelog entries for this session.
 
 ### 2026-03-02 - Task split, notebook rename, error handling Phase 1, follow-ups **COMPLETED**

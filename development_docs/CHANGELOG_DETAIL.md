@@ -38,7 +38,7 @@ When adding new changes, follow this format:
 - **Technical Changes**:
   - **Behavior test stabilization**: Restored the `channel_orchestrator` message-send path to use shared file path resolution via `determine_file_path`, which aligned runtime behavior with test patch expectations and cleared `test_send_predefined_message_real_behavior`.
   - **Import cleanup**: Removed one obvious unused import in `communication/core/channel_orchestrator.py` (`get_user_data_dir`) after the path-resolution update.
-  - **Planning sync**: Updated `TODO.md` and `development_docs/PLANS.md` to carry forward the current Tier 3 parallel follow-up (`xdist_worker_crash_output`) for `test_conversation_manager_expire_checkin_flow`, rather than treating it as completed work.
+  - **Planning sync**: Updated [TODO.md](TODO.md) and [PLANS.md](development_docs/PLANS.md) to carry forward the current Tier 3 parallel follow-up (`xdist_worker_crash_output`) for `test_conversation_manager_expire_checkin_flow`, rather than treating it as completed work.
   - **Session closeout alignment**: Performed full working-tree diff inventory (`git diff --stat` + `git diff --name-only`) and refreshed changelog tracking for this session.
 - **Validation**:
   - `ruff check communication/core/channel_orchestrator.py --select F401` -> pass.

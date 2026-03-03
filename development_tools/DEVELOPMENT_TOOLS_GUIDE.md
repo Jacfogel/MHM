@@ -144,10 +144,10 @@ Regardless of command:
 
 **Static analysis config ownership**:
 - Ruff owned config path: `static_analysis.ruff_config_path` (default `development_tools/config/ruff.toml`)
-- Pyright owned project config path: `static_analysis.pyright_project_path` (default `development_tools/config/pyrightconfig.json`)
+- Pyright owned project config path: `static_analysis.pyright_project_path` (default `pyrightconfig.json`)
 - Root Ruff compatibility mirror toggle: `static_analysis.ruff_sync_root_compat` (default `true`)
 - `analyze_ruff` always passes explicit `--config` to the owned Ruff config path.
-- `analyze_pyright` always passes explicit `--project` to the owned Pyright config path unless `--project` already exists in `static_analysis.pyright_args`.
+- `analyze_pyright` always passes explicit `--project` to the configured Pyright config path unless `--project` already exists in `static_analysis.pyright_args`.
 
 ### 2.6. Service Architecture
 

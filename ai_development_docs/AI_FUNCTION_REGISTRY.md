@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-02 22:57:14
+> **Last Generated**: 2026-03-03 03:15:02
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -219,7 +219,7 @@ Most complex functions (may need refactoring):
 1. [OK] `run_tests.py::run_command()` - Complexity: 2885
 2. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2783
 3. [OK] `run_tests.py::main()` - Complexity: 2683
-4. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2623
+4. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2620
 5. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2554
 
 

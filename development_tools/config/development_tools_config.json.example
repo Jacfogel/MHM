@@ -729,7 +729,7 @@
     "pyright_args": [
       "--outputjson"
     ],
-    "pyright_project_path": "development_tools/config/pyrightconfig.json",
+    "pyright_project_path": "pyrightconfig.json",
     "ruff_command": [
       "python",
       "-m",

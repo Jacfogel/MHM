@@ -137,7 +137,7 @@ def run_pyright(project_root: Path) -> dict[str, Any]:
     args = list(static_cfg.get("pyright_args", ["--outputjson"]))
     if "--project" not in args:
         configured_project = static_cfg.get(
-            "pyright_project_path", "development_tools/config/pyrightconfig.json"
+            "pyright_project_path", "pyrightconfig.json"
         )
         if configured_project:
             project_config_path = Path(str(configured_project))

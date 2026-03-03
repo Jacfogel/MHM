@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-02 22:57:14
+> **Last Generated**: 2026-03-03 03:15:01
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -25,7 +25,7 @@
 - **Classes Documented**: 120
 - **Total Documented**: 2708
 - **Template-Generated**: 5
-- **Last Updated**: 2026-03-02
+- **Last Updated**: 2026-03-03
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -2954,13 +2954,14 @@ Args:
 
 Returns:
     True if error was recovered from, False otherwise
-- [OK] `handle_errors(operation, context, user_friendly, default_return)` - Decorator to automatically handle errors in functions.
+- [OK] `handle_errors(operation, context, user_friendly, default_return, re_raise)` - Decorator to automatically handle errors in functions.
 
 Args:
     operation: Description of the operation (defaults to function name)
     context: Additional context to pass to error handler
     user_friendly: Whether to show user-friendly error messages
     default_return: Value to return if error occurs and can't be recovered
+    re_raise: If True, log/handle the error then re-raise instead of returning default_return
 - [OK] `handle_file_error(error, file_path, operation, user_id, category)` - Convenience function for handling file-related errors.
 - [OK] `handle_network_error(error, operation, user_id)` - Convenience function for handling network errors.
 - [OK] `handle_validation_error(error, field, operation, user_id)` - Convenience function for handling validation errors.
