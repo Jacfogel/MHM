@@ -66,7 +66,7 @@ class TestLMStudioManager:
         mock_result = Mock()
         mock_result.stdout = "No tasks are running which match the specified criteria."
         
-        with patch('subprocess.run', return_value=mock_result) as mock_run:
+        with patch('subprocess.run', return_value=mock_result):
             # Act
             result = manager.is_lm_studio_running()
             

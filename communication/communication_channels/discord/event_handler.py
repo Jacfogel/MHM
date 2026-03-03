@@ -2,7 +2,8 @@
 
 import discord
 import time
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 
@@ -262,7 +263,7 @@ class DiscordEventHandler:
         if user == self.bot.user:
             return
 
-        context = EventContext(
+        EventContext(
             event_type=EventType.REACTION_ADD,
             user_id=str(user.id),
             channel_id=str(reaction.message.channel.id),
@@ -283,7 +284,7 @@ class DiscordEventHandler:
         if user == self.bot.user:
             return
 
-        context = EventContext(
+        EventContext(
             event_type=EventType.REACTION_REMOVE,
             user_id=str(user.id),
             channel_id=str(reaction.message.channel.id),
@@ -297,7 +298,7 @@ class DiscordEventHandler:
     @handle_errors("handling Discord member join event")
     async def on_member_join(self, member: discord.Member):
         """Handle Discord member join event"""
-        context = EventContext(
+        EventContext(
             event_type=EventType.MEMBER_JOIN,
             user_id=str(member.id),
             guild_id=str(member.guild.id),
@@ -313,7 +314,7 @@ class DiscordEventHandler:
     @handle_errors("handling Discord member leave event")
     async def on_member_remove(self, member: discord.Member):
         """Handle Discord member leave event"""
-        context = EventContext(
+        EventContext(
             event_type=EventType.MEMBER_LEAVE,
             user_id=str(member.id),
             guild_id=str(member.guild.id),

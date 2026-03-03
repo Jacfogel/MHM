@@ -576,7 +576,7 @@ class AIResponseValidator:
                 "purpose",
                 "here to",
             ]
-            has_self_description = any(
+            any(
                 desc in response.lower() for desc in self_descriptors
             )
             # Should not ask for user info (name, etc.)

@@ -90,7 +90,7 @@ class SessionLogRotationManager:
         rotation_state_file = self._get_rotation_state_file()
         try:
             if rotation_state_file.exists():
-                with open(rotation_state_file, "r", encoding="utf-8") as f:
+                with open(rotation_state_file, encoding="utf-8") as f:
                     timestamp_str = f.read().strip()
                     if timestamp_str:
                         return parse_timestamp_full(timestamp_str)
@@ -187,7 +187,7 @@ class SessionLogRotationManager:
         Returns the datetime of the oldest entry, or None if it can't be determined.
         """
         try:
-            with open(log_file, "r", encoding="utf-8") as f:
+            with open(log_file, encoding="utf-8") as f:
                 # Read first few lines to find header or first log entry
                 for i, line in enumerate(f):
                     if i > 20:  # Don't read too far

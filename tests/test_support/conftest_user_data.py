@@ -8,7 +8,6 @@ import os
 import json
 import shutil
 import pytest
-from pathlib import Path
 from unittest.mock import patch
 
 from tests.conftest import (
@@ -200,7 +199,7 @@ def shim_get_user_data_to_invoke_loaders():
         if not os.path.exists(file_path):
             return None
         try:
-            with open(file_path, "r", encoding="utf-8") as fh:
+            with open(file_path, encoding="utf-8") as fh:
                 return json.load(fh)
         except Exception:
             return None
@@ -289,22 +288,22 @@ def shim_get_user_data_to_invoke_loaders():
 
     # Patch in place for the duration of the test
     # Patch both modules so all call sites are covered
-    setattr(um, "get_user_data", wrapped_get_user_data)
+    um.get_user_data = wrapped_get_user_data
     original_handlers_get = None
     if udh is not None and hasattr(udh, "get_user_data"):
         original_handlers_get = udh.get_user_data
-        setattr(udh, "get_user_data", wrapped_get_user_data)
+        udh.get_user_data = wrapped_get_user_data
     try:
         yield
     finally:
         # Restore originals at end of session
         try:
-            setattr(um, "get_user_data", original_get_user_data)
+            um.get_user_data = original_get_user_data
         except Exception:
             pass
         if udh is not None and original_handlers_get is not None:
             try:
-                setattr(udh, "get_user_data", original_handlers_get)
+                udh.get_user_data = original_handlers_get
             except Exception:
                 pass
 
@@ -405,7 +404,6 @@ def ensure_user_materialized(test_data_dir):
     """
     from pathlib import Path as _Path
     import json as _json
-    import os as _os
 
     def _helper(user_id: str):
         users_dir = _Path(test_data_dir) / "users"
@@ -1184,7 +1182,7 @@ def cleanup_test_users_after_session():
 
         # Clean up any stray test.log files in tests/data
         try:
-            for root, dirs, files in os.walk(base_test_data_dir):
+            for root, _dirs, files in os.walk(base_test_data_dir):
                 for file in files:
                     if file == "test.log":
                         file_path = os.path.join(root, file)

@@ -11,7 +11,6 @@ ensure_qt_runtime()
 
 import pytest
 
-from unittest.mock import Mock, patch
 
 
 @pytest.mark.ui

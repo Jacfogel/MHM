@@ -7,7 +7,6 @@ Tests file I/O operations, data loading/saving, and file path management.
 import pytest
 import os
 import json
-from pathlib import Path
 
 from core.file_operations import (
     load_json_data,
@@ -17,7 +16,6 @@ from core.file_operations import (
     get_user_file_path,
     ensure_user_directory
 )
-from core.error_handling import FileOperationError
 
 class TestFileOperations:
     """Test file operations functions."""
@@ -70,7 +68,7 @@ class TestFileOperations:
     def test_load_json_data_empty_file(self, temp_file):
         """Test loading from empty file."""
         # Create empty file
-        with open(temp_file, 'w') as f:
+        with open(temp_file, 'w'):
             pass
         
         data = load_json_data(temp_file)
@@ -86,7 +84,7 @@ class TestFileOperations:
         
         #[OK] VERIFY INITIAL STATE: Check file doesn't exist or is empty
         if os.path.exists(temp_file):
-            with open(temp_file, 'r') as f:
+            with open(temp_file) as f:
                 initial_content = f.read()
             assert initial_content == '', f"File should be empty initially: {initial_content}"
         else:
@@ -105,7 +103,7 @@ class TestFileOperations:
         assert os.access(temp_file, os.W_OK), f"File should be writable: {temp_file}"
         
         #[OK] VERIFY REAL BEHAVIOR: Check data was saved correctly
-        with open(temp_file, 'r') as f:
+        with open(temp_file) as f:
             saved_data = json.load(f)
         assert saved_data == test_data
         
@@ -116,14 +114,14 @@ class TestFileOperations:
         
         #[OK] VERIFY REAL BEHAVIOR: Check file is valid JSON
         try:
-            with open(temp_file, 'r') as f:
+            with open(temp_file) as f:
                 json.load(f)  # Should not raise exception
         except json.JSONDecodeError as e:
             assert False, f"Saved file should be valid JSON: {e}"
         
         #[OK] VERIFY REAL BEHAVIOR: Check file can be read multiple times
         for _ in range(3):
-            with open(temp_file, 'r') as f:
+            with open(temp_file) as f:
                 reloaded_data = json.load(f)
             assert reloaded_data == test_data, f"Data should be consistent across reads: {reloaded_data}"
     
@@ -233,7 +231,7 @@ class TestFileOperations:
                 if os.path.exists(protected_path):
                     # File exists - check if it contains our test data (it shouldn't on permission error)
                     try:
-                        with open(protected_path, 'r') as f:
+                        with open(protected_path) as f:
                             content = f.read()
                         # If file was read-only and couldn't be overwritten, content should be original
                         if is_windows and 'existing' in content:
@@ -323,7 +321,7 @@ class TestFileOperations:
         
         #[OK] VERIFY REAL BEHAVIOR: Check file exists and is readable before test
         assert os.path.exists(temp_file), f"Test file should exist before verification: {temp_file}"
-        with open(temp_file, 'r') as f:
+        with open(temp_file) as f:
             assert f.read() == test_content, "File content should be correct before test"
         
         result = verify_file_access([temp_file])
@@ -331,19 +329,19 @@ class TestFileOperations:
         
         #[OK] VERIFY REAL BEHAVIOR: Check file still exists and is unchanged after test
         assert os.path.exists(temp_file), f"File should still exist after verification: {temp_file}"
-        with open(temp_file, 'r') as f:
+        with open(temp_file) as f:
             assert f.read() == test_content, "File content should be unchanged after verification"
         
         #[OK] VERIFY REAL BEHAVIOR: Check file is still readable and writable
         try:
-            with open(temp_file, 'r') as f:
+            with open(temp_file) as f:
                 content = f.read()
             assert content == test_content, "File should still be readable"
             
             # Test write access
             with open(temp_file, 'a') as f:
                 f.write('\nappended content')
-            with open(temp_file, 'r') as f:
+            with open(temp_file) as f:
                 final_content = f.read()
             assert final_content == test_content + '\nappended content', "File should be writable"
             
@@ -378,7 +376,7 @@ class TestFileOperations:
         #[OK] VERIFY REAL BEHAVIOR: Check that the function didn't create any files in the current directory
         # This ensures the function doesn't have side effects
         current_dir_files_before = set(os.listdir('.'))
-        result2 = verify_file_access([missing_file])
+        verify_file_access([missing_file])
         current_dir_files_after = set(os.listdir('.'))
         
         # The set of files should be the same (no new files created)
@@ -434,7 +432,7 @@ class TestFileOperations:
         if os.path.exists(protected_file):
             # If the file exists, it should be inaccessible
             try:
-                with open(protected_file, 'r') as f:
+                with open(protected_file) as f:
                     f.read()
                 # If we get here, we can read the file, which means it's not really protected
                 # This might happen if running as root or with elevated privileges
@@ -449,7 +447,7 @@ class TestFileOperations:
         #[OK] VERIFY REAL BEHAVIOR: Check that the function didn't create any files in the current directory
         # This ensures the function doesn't have side effects
         current_dir_files_before = set(os.listdir('.'))
-        result2 = verify_file_access([protected_file])
+        verify_file_access([protected_file])
         current_dir_files_after = set(os.listdir('.'))
         
         # The set of files should be the same (no new files created)
@@ -550,7 +548,7 @@ class TestFileOperationsEdgeCases:
         assert result is True
         
         # Verify data was saved correctly
-        with open(temp_file, 'r') as f:
+        with open(temp_file) as f:
             saved_data = json.load(f)
         assert saved_data == test_data
     
@@ -587,7 +585,7 @@ class TestFileOperationsEdgeCases:
         user_dir = os.path.join(test_data_dir, 'users', user_id)
         
         #[OK] VERIFY INITIAL STATE: Check directory doesn't exist initially
-        initial_dir_exists = os.path.exists(user_dir)
+        os.path.exists(user_dir)
         
         # Create user directory
         ensure_user_directory(user_id)
@@ -609,7 +607,7 @@ class TestFileOperationsEdgeCases:
         )
         
         #[OK] VERIFY INITIAL STATE: Check file doesn't exist initially
-        initial_file_exists = os.path.exists(account_file_path)
+        os.path.exists(account_file_path)
         
         result = save_json_data(test_account_data, account_file_path)
         assert result is True
@@ -619,7 +617,7 @@ class TestFileOperationsEdgeCases:
         assert os.path.isfile(account_file_path), f"Account path should be a file: {account_file_path}"
         
         #[OK] VERIFY REAL BEHAVIOR: Check file content
-        with open(account_file_path, 'r') as f:
+        with open(account_file_path) as f:
             saved_data = json.load(f)
         assert saved_data == test_account_data
         
@@ -650,7 +648,7 @@ class TestFileOperationsEdgeCases:
         assert result is True
         
         #[OK] VERIFY REAL BEHAVIOR: Check data was updated
-        with open(account_file_path, 'r') as f:
+        with open(account_file_path) as f:
             modified_data = json.load(f)
         assert modified_data == updated_account_data
         assert 'updated_at' in modified_data
@@ -672,9 +670,9 @@ class TestFileOperationsEdgeCases:
         assert os.path.exists(preferences_file_path), f"Preferences file should be created: {preferences_file_path}"
         
         #[OK] VERIFY REAL BEHAVIOR: Check both files have correct content
-        with open(account_file_path, 'r') as f:
+        with open(account_file_path) as f:
             account_data = json.load(f)
-        with open(preferences_file_path, 'r') as f:
+        with open(preferences_file_path) as f:
             preferences_data = json.load(f)
         
         assert account_data == updated_account_data
@@ -772,7 +770,7 @@ class TestFileOperationsPerformance:
         assert file_size < 10000000, f"Large file should not be unreasonably large: {file_size} bytes"
         
         #[OK] VERIFY REAL BEHAVIOR: Check data integrity
-        with open(temp_file, 'r') as f:
+        with open(temp_file) as f:
             loaded_data = json.load(f)
         assert loaded_data == large_data
         
@@ -799,7 +797,7 @@ class TestFileOperationsPerformance:
         read_times = []
         for _ in range(5):
             start_time = time.time()
-            with open(temp_file, 'r') as f:
+            with open(temp_file) as f:
                 reloaded_data = json.load(f)
             read_time = time.time() - start_time
             read_times.append(read_time)
@@ -819,7 +817,7 @@ class TestFileOperationsPerformance:
         
         #[OK] VERIFY REAL BEHAVIOR: Check file is valid JSON
         try:
-            with open(temp_file, 'r') as f:
+            with open(temp_file) as f:
                 json.load(f)  # Should not raise exception
         except json.JSONDecodeError as e:
             assert False, f"Large file should be valid JSON: {e}"

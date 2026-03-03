@@ -7,7 +7,6 @@ written once at the end, not during tool execution.
 """
 
 import sys
-import time
 from pathlib import Path
 from unittest.mock import patch
 import pytest
@@ -51,11 +50,6 @@ def test_status_files_written_only_at_end_of_audit(tmp_path):
             f.unlink()
     
     # Get initial modification times (should be 0 since files don't exist)
-    initial_mtimes = {
-        'AI_STATUS.md': 0,
-        'AI_PRIORITIES.md': 0,
-        'consolidated_report.md': 0
-    }
     
     # Run a quick audit
     service = AIToolsService(project_root=str(project_root))

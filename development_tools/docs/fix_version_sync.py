@@ -410,7 +410,7 @@ def sync_todo_with_changelog():
         }
 
     try:
-        with open(todo_path, "r", encoding="utf-8") as f:
+        with open(todo_path, encoding="utf-8") as f:
             todo_content = f.read()
 
         lines = todo_content.split("\n")
@@ -507,7 +507,7 @@ def check_changelog_entry_count(max_entries=15):
         return {"status": "ok", "count": 0, "message": "Changelog not found"}
 
     try:
-        with open(changelog_path, "r", encoding="utf-8") as f:
+        with open(changelog_path, encoding="utf-8") as f:
             content = f.read()
 
         # Find the "Recent Changes" section
@@ -576,7 +576,7 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
         archive_dir = os.path.dirname(archive_path)
         os.makedirs(archive_dir, exist_ok=True)
 
-        with open(changelog_path, "r", encoding="utf-8") as f:
+        with open(changelog_path, encoding="utf-8") as f:
             content = f.read()
 
         # Find the "Recent Changes" section
@@ -667,7 +667,7 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
 
             existing_entries: list[str] = []
             if os.path.exists(archive_path):
-                with open(archive_path, "r", encoding="utf-8") as f:
+                with open(archive_path, encoding="utf-8") as f:
                     existing_content = f.read()
                 existing_entries = _parse_archive_entries(existing_content)
 
@@ -766,7 +766,7 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
     for file_path in files_to_process:
         if os.path.exists(file_path):
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = f.read()
 
                 old_version, old_date = extract_version_info(content)
@@ -829,7 +829,7 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
     for result in updated_files:
         logger.info(f"   {result}")
 
-    logger.info(f"Synchronization complete!")
+    logger.info("Synchronization complete!")
     logger.info(f"   Files processed: {len(files_to_process)}")
     logger.info(
         f"   Files updated: {len([f for f in updated_files if 'UPDATED' in f])}"
@@ -857,7 +857,7 @@ def show_current_versions(scope="ai_docs"):
     for file_path in files_to_show:
         if os.path.exists(file_path):
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = f.read()
 
                 version, date = extract_version_info(content)
@@ -966,7 +966,7 @@ if __name__ == "__main__":
                 )
                 if result["archive_created"]:
                     logger.info(
-                        f"Archive created: development_tools/reports/archive/AI_CHANGELOG_ARCHIVE.md"
+                        "Archive created: development_tools/reports/archive/AI_CHANGELOG_ARCHIVE.md"
                     )
         elif command == "check":
             max_entries = 15

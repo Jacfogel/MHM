@@ -6,7 +6,7 @@ Other functionality is provided via mixin classes.
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.logger import get_component_logger
 
@@ -34,8 +34,8 @@ class AIToolsService(
 ):
     """Comprehensive AI tools runner optimized for AI collaboration."""
     
-    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None, 
-                 project_name: Optional[str] = None, key_files: Optional[List[str]] = None):
+    def __init__(self, project_root: str | None = None, config_path: str | None = None, 
+                 project_name: str | None = None, key_files: list[str] | None = None):
         # Load external config if path provided, or try to auto-load from default location
         if config_path:
             config.load_external_config(config_path)
@@ -60,7 +60,7 @@ class AIToolsService(
         self.workflow_config = config.get_workflow_config() or {}
         
         # Store path validation result for status display
-        self.path_validation_result: Optional[Dict[str, Any]] = None
+        self.path_validation_result: dict[str, Any] | None = None
         
         self.validation_config = config.get_ai_validation_config() or {}
         self.ai_config = config.get_ai_collaboration_config() or {}

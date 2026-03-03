@@ -38,7 +38,7 @@ import datetime
 import fnmatch
 import sys
 from pathlib import Path
-from typing import Iterable, List, Sequence
+from collections.abc import Iterable, Sequence
 
 
 # ---------------------------------------------------------------------------
@@ -98,7 +98,7 @@ DOC_EXTENSIONS = {".md"}
 
 # Hard exclusions that match your "ignore archived / generated entirely" rule.
 # These patterns are applied to a *project-root-relative* normalized path.
-BASE_EXCLUDE_GLOBS: List[str] = [
+BASE_EXCLUDE_GLOBS: list[str] = [
     # VCS / venv / caches
     ".git/**",
     ".venv/**",
@@ -145,12 +145,12 @@ def _discover_markdown_files(
     *,
     project_root: Path,
     root_dir: Path,
-    exclude_globs: List[str],
+    exclude_globs: list[str],
     include_hidden: bool,
-) -> List[Path]:
+) -> list[Path]:
     """Discover .md files under root_dir while applying exclusions."""
 
-    files: List[Path] = []
+    files: list[Path] = []
 
     for path in root_dir.rglob("*"):
         if not path.is_file():
@@ -188,7 +188,7 @@ def _write_markdown_bundle(
     *,
     project_root: Path,
     root_dir: Path,
-    files: List[Path],
+    files: list[Path],
     output_path: Path,
 ) -> None:
     timestamp = datetime.datetime.now().isoformat(timespec="seconds")

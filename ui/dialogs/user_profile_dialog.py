@@ -7,7 +7,8 @@ Provides a comprehensive interface for collecting and editing user personalizati
 """
 
 import re
-from typing import Dict, Any, Optional, Callable
+from typing import Any
+from collections.abc import Callable
 
 # PySide6 imports
 from PySide6.QtWidgets import (
@@ -518,7 +519,7 @@ class UserProfileDialog(QDialog):
                 QMessageBox.warning(
                     self,
                     "Validation Error",
-                    f"Please fix the following issues:\n\n" + "\n".join(errors),
+                    "Please fix the following issues:\n\n" + "\n".join(errors),
                 )
                 return
 

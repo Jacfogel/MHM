@@ -13,8 +13,6 @@ import pytest
 from unittest.mock import Mock, patch
 
 from ui.dialogs.channel_management_dialog import ChannelManagementDialog
-from core.user_data_handlers import get_user_data, update_channel_preferences, update_user_account
-from core.user_data_validation import is_valid_email, is_valid_phone
 
 
 @pytest.mark.ui
@@ -331,8 +329,8 @@ class TestChannelManagementDialogCoverageExpansion:
         
         with patch('ui.dialogs.channel_management_dialog.get_user_data') as mock_get_data, \
              patch('ui.dialogs.channel_management_dialog.update_channel_preferences') as mock_update_prefs, \
-             patch('ui.dialogs.channel_management_dialog.update_user_account') as mock_update_account, \
-             patch('ui.dialogs.channel_management_dialog.QMessageBox.information') as mock_info:
+             patch('ui.dialogs.channel_management_dialog.update_user_account'), \
+             patch('ui.dialogs.channel_management_dialog.QMessageBox.information'):
             
             # Mock preferences with old settings that should be removed
             mock_get_data.side_effect = lambda user_id, data_type: {

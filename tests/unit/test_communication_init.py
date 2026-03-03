@@ -9,7 +9,6 @@ Tests for communication package initialization and exports:
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
 
 # Test direct imports (no circular dependencies)
 from communication import (

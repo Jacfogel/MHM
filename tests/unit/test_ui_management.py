@@ -13,7 +13,7 @@ Coverage Areas:
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 # Skip the module when Qt dependencies (e.g., libGL) are unavailable. This avoids
 # coverage runs failing during collection on environments without GUI support.
@@ -156,7 +156,7 @@ class TestUIManagement:
         delete_callback = Mock()
         
         with patch('ui.widgets.period_row_widget.PeriodRowWidget', return_value=mock_period_widget):
-            result = add_period_widget_to_layout(
+            add_period_widget_to_layout(
                 mock_layout, 'Morning', period_data, 'work',
                 parent_widget=None, widget_list=None, delete_callback=delete_callback
             )

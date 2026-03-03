@@ -27,7 +27,8 @@ import time
 import hashlib
 from copy import deepcopy
 from pathlib import Path
-from typing import Dict, Optional, Set, Any, List, Iterable
+from typing import Any
+from collections.abc import Iterable
 from datetime import datetime
 
 # Try to import file locking (Unix/Linux); use getattr so Pyright is happy on Windows stubs
@@ -82,7 +83,7 @@ class TestFileCoverageCache:
         "tests/data",  # Test data directory - contains temporary test data files
     ]
 
-    def __init__(self, project_root: Path, cache_dir: Optional[Path] = None):
+    def __init__(self, project_root: Path, cache_dir: Path | None = None):
         """
         Initialize test-file-based coverage cache.
 
@@ -101,7 +102,7 @@ class TestFileCoverageCache:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         self.cache_file = self.cache_dir / "test_file_coverage_cache.json"
-        self.cache_data: Dict[str, Any] = {}
+        self.cache_data: dict[str, Any] = {}
         self.tool_paths = self._get_default_tool_paths()
         # Full coverage JSON cache (for when no domains change)
         self.full_coverage_cache_key = "_full_coverage_json"
@@ -109,8 +110,8 @@ class TestFileCoverageCache:
         # Directories to exclude when discovering test files (test data, temp files, etc.)
         self.excluded_test_dirs = list(self.DEFAULT_EXCLUDED_TEST_DIRS)
         self._load_cache()
-        self._cached_changed_domains: Optional[Set[str]] = None
-        self.last_invalidation_reason: Optional[str] = None
+        self._cached_changed_domains: set[str] | None = None
+        self.last_invalidation_reason: str | None = None
 
     def _get_default_tool_paths(self) -> tuple[Path, ...]:
         """Return tool paths used to compute cache invalidation hash."""
@@ -131,7 +132,7 @@ class TestFileCoverageCache:
         ]
         return tuple(path for path in tool_files if path.exists())
 
-    def _default_cache_data(self) -> Dict[str, Any]:
+    def _default_cache_data(self) -> dict[str, Any]:
         """Return default cache payload for new/legacy cache files."""
         return {
             "cache_version": "2.1",
@@ -209,7 +210,7 @@ class TestFileCoverageCache:
 
         return changed
 
-    def _compute_tool_hash(self) -> Optional[str]:
+    def _compute_tool_hash(self) -> str | None:
         """Compute a hash for coverage tool source files."""
         if not self.tool_paths:
             return None
@@ -225,9 +226,9 @@ class TestFileCoverageCache:
                 return None
         return hasher.hexdigest() if has_data else None
 
-    def _get_tool_mtimes(self) -> Dict[str, float]:
+    def _get_tool_mtimes(self) -> dict[str, float]:
         """Return mtimes for tool source files."""
-        mtimes: Dict[str, float] = {}
+        mtimes: dict[str, float] = {}
         for path in self.tool_paths:
             try:
                 if not path.exists():
@@ -307,7 +308,7 @@ class TestFileCoverageCache:
                 retry_delay = 0.1
                 for attempt in range(max_retries):
                     try:
-                        with open(self.cache_file, "r", encoding="utf-8") as f:
+                        with open(self.cache_file, encoding="utf-8") as f:
                             if HAS_FCNTL:
                                 try:
                                     if FCNTL_FLOCK is not None:
@@ -342,7 +343,7 @@ class TestFileCoverageCache:
                                     f"Loaded test-file coverage cache with {test_files_count} test files"
                                 )
                             break
-                    except (IOError, OSError) as e:
+                    except OSError:
                         if attempt < max_retries - 1:
                             time.sleep(retry_delay)
                             retry_delay *= 2
@@ -437,9 +438,9 @@ class TestFileCoverageCache:
                     temp_file.replace(self.cache_file)
 
                     if logger:
-                        logger.debug(f"Saved test-file coverage cache")
+                        logger.debug("Saved test-file coverage cache")
                     break
-                except (IOError, OSError) as e:
+                except OSError:
                     if attempt < max_retries - 1:
                         time.sleep(retry_delay)
                         retry_delay *= 2
@@ -449,7 +450,7 @@ class TestFileCoverageCache:
             if logger:
                 logger.warning(f"Failed to save test-file coverage cache: {e}")
 
-    def _get_config_file_path(self) -> Optional[Path]:
+    def _get_config_file_path(self) -> Path | None:
         """Get the path to the development_tools_config.json file."""
         try:
             import development_tools.config.config as config_module
@@ -503,7 +504,7 @@ class TestFileCoverageCache:
         """Return True if tool hash differs from cached value."""
         return self._get_tool_change_reason() is not None
 
-    def _get_tool_change_reason(self) -> Optional[str]:
+    def _get_tool_change_reason(self) -> str | None:
         """
         Return explicit tool-change invalidation reason, if any.
 
@@ -522,9 +523,9 @@ class TestFileCoverageCache:
             return f"tool hash mismatch (cached={cached_hash[:12]}, current={current_hash[:12]})"
         return None
 
-    def _get_current_test_file_mtimes(self) -> Dict[str, float]:
+    def _get_current_test_file_mtimes(self) -> dict[str, float]:
         """Return current mtimes for all valid test files."""
-        mtimes: Dict[str, float] = {}
+        mtimes: dict[str, float] = {}
         for test_file in self._iter_test_files():
             try:
                 rel_path = str(test_file.relative_to(self.project_root))
@@ -533,14 +534,14 @@ class TestFileCoverageCache:
                 continue
         return mtimes
 
-    def _get_domains_affected_by_changed_test_files(self) -> Set[str]:
+    def _get_domains_affected_by_changed_test_files(self) -> set[str]:
         """
         Get domains affected by changed test files (new/modified/deleted).
 
         Returns:
             Set of domains that should be invalidated.
         """
-        affected_domains: Set[str] = set()
+        affected_domains: set[str] = set()
         current_mtimes = self._get_current_test_file_mtimes()
         cached_mtimes = self.cache_data.get("test_files_mtime", {}) or {}
         changed_test_files = {
@@ -577,11 +578,11 @@ class TestFileCoverageCache:
     def update_run_status(
         self,
         *,
-        parallel_ok: Optional[bool] = None,
-        no_parallel_ok: Optional[bool] = None,
-        no_parallel_coverage_present: Optional[bool] = None,
-        failed_domains: Optional[Iterable[str]] = None,
-        run_domains: Optional[Iterable[str]] = None,
+        parallel_ok: bool | None = None,
+        no_parallel_ok: bool | None = None,
+        no_parallel_coverage_present: bool | None = None,
+        failed_domains: Iterable[str] | None = None,
+        run_domains: Iterable[str] | None = None,
     ) -> None:
         """Record the last test coverage run status."""
         if parallel_ok is not None:
@@ -608,14 +609,14 @@ class TestFileCoverageCache:
             self.cache_data["last_run_at"] = datetime.now().isoformat()
         self._save_cache()
 
-    def _get_current_test_files(self) -> Set[str]:
+    def _get_current_test_files(self) -> set[str]:
         """Return relative paths for all valid test files on disk."""
         current_files = set()
         for test_file in self._iter_test_files():
             current_files.add(str(test_file.relative_to(self.project_root)))
         return current_files
 
-    def get_source_file_mtimes(self, domain: str) -> Dict[str, float]:
+    def get_source_file_mtimes(self, domain: str) -> dict[str, float]:
         """
         Get current modification times for all source files in a domain.
 
@@ -652,7 +653,7 @@ class TestFileCoverageCache:
 
         return mtimes
 
-    def get_changed_domains(self) -> Set[str]:
+    def get_changed_domains(self) -> set[str]:
         """
         Get set of domains that have changed source files.
 
@@ -796,7 +797,7 @@ class TestFileCoverageCache:
         self._cached_changed_domains = set(expanded_changed_domains)
         return set(expanded_changed_domains)
 
-    def get_test_files_to_run(self, changed_domains: Set[str]) -> List[Path]:
+    def get_test_files_to_run(self, changed_domains: set[str]) -> list[Path]:
         """
         Get list of test files that need to be re-run based on changed domains.
 
@@ -865,7 +866,7 @@ class TestFileCoverageCache:
 
     def get_test_files_domains(
         self, test_file: Path, force_refresh: bool = False
-    ) -> Set[str]:
+    ) -> set[str]:
         """
         Get set of domains that a test file covers.
 
@@ -958,7 +959,7 @@ class TestFileCoverageCache:
             self._save_cache()
 
     def cache_test_file_coverage(
-        self, test_file: Path, coverage_data: Dict[str, Any]
+        self, test_file: Path, coverage_data: dict[str, Any]
     ) -> None:
         """
         Cache coverage data for a test file.
@@ -997,7 +998,7 @@ class TestFileCoverageCache:
 
     def get_cached_test_file_coverage(
         self, test_file: Path
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Get cached coverage data for a test file.
 
@@ -1024,7 +1025,7 @@ class TestFileCoverageCache:
 
         return test_file_data.get("coverage_data")
 
-    def get_full_coverage_cache(self) -> Optional[Dict[str, Any]]:
+    def get_full_coverage_cache(self) -> dict[str, Any] | None:
         """
         Get the cached full coverage JSON (from a previous full test run).
 
@@ -1033,7 +1034,7 @@ class TestFileCoverageCache:
         """
         return self.cache_data.get(self.full_coverage_cache_key)
 
-    def cache_full_coverage(self, coverage_json: Dict[str, Any]) -> None:
+    def cache_full_coverage(self, coverage_json: dict[str, Any]) -> None:
         """
         Cache the full coverage JSON from a complete test run.
 
@@ -1047,8 +1048,8 @@ class TestFileCoverageCache:
             logger.debug("Cached full coverage JSON")
 
     def get_all_cached_coverage(
-        self, exclude_domains: Optional[Set[str]] = None
-    ) -> Dict[str, Dict[str, Any]]:
+        self, exclude_domains: set[str] | None = None
+    ) -> dict[str, dict[str, Any]]:
         """
         Get all cached coverage data, excluding test files that cover specified domains.
 
@@ -1106,7 +1107,7 @@ class TestFileCoverageCache:
         if logger:
             logger.info("Cleared all test-file coverage cache")
 
-    def get_unmapped_test_files(self) -> List[Path]:
+    def get_unmapped_test_files(self) -> list[Path]:
         """
         Get list of test files that are not mapped to any domain.
 
@@ -1123,7 +1124,7 @@ class TestFileCoverageCache:
 
         return sorted(unmapped)
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """
         Get statistics about the cache.
 

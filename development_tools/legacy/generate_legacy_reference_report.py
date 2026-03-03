@@ -19,7 +19,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -104,7 +104,7 @@ class LegacyReferenceReportGenerator:
         return False
 
     def generate_cleanup_report(
-        self, findings: Dict[str, List[Tuple[str, str, List[Dict[str, Any]]]]]
+        self, findings: dict[str, list[tuple[str, str, list[dict[str, Any]]]]]
     ) -> str:
         """
         Generate a report of all legacy references found.
@@ -129,7 +129,7 @@ class LegacyReferenceReportGenerator:
             "> **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator"
         )
 
-        filtered_findings: Dict[str, List[Tuple[str, str, List[Dict[str, Any]]]]] = {}
+        filtered_findings: dict[str, list[tuple[str, str, list[dict[str, Any]]]]] = {}
         for pattern_type, files in findings.items():
             kept = [
                 item
@@ -228,7 +228,7 @@ class LegacyReferenceReportGenerator:
             report_lines.append(f"**Files Affected**: {len(files)}")
             report_lines.append("")
 
-            for file_path, content, matches in sorted(files, key=lambda item: item[0]):
+            for file_path, _content, matches in sorted(files, key=lambda item: item[0]):
                 report_lines.append(f"### {file_path}")
                 report_lines.append(f"**Issues Found**: {len(matches)}")
                 report_lines.append("")
@@ -238,14 +238,14 @@ class LegacyReferenceReportGenerator:
                     match_text = match.get("match", "")
                     line_content = match.get("line_content", "")
                     report_lines.append(f"- **Line {line_num}**: `{match_text}`")
-                    report_lines.append(f"  ```")
+                    report_lines.append("  ```")
                     report_lines.append(f"  {line_content}")
-                    report_lines.append(f"  ```")
+                    report_lines.append("  ```")
                     report_lines.append("")
 
         return "\n".join(report_lines)
 
-    def save_report(self, report: str, output_file: Optional[Path] = None) -> Path:
+    def save_report(self, report: str, output_file: Path | None = None) -> Path:
         """
         Save the report to a file.
 
@@ -307,7 +307,7 @@ def main():
 
     # Load findings
     if args.findings_file:
-        with open(args.findings_file, "r", encoding="utf-8") as f:
+        with open(args.findings_file, encoding="utf-8") as f:
             findings = json.load(f)
     else:
         # Try to read from stdin (for piping from analyzer)

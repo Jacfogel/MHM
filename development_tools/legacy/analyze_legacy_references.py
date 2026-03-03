@@ -18,7 +18,7 @@ import re
 import argparse
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -50,7 +50,7 @@ class LegacyReferenceAnalyzer:
     def __init__(
         self,
         project_root: str = ".",
-        legacy_tokens: Optional[Dict[str, List[str]]] = None,
+        legacy_tokens: dict[str, list[str]] | None = None,
         use_cache: bool = True,
     ):
         """
@@ -123,7 +123,7 @@ class LegacyReferenceAnalyzer:
                 self.cache = None
         else:
             self.cache = None
-        self.cache_stats: Dict[str, int] = {"hits": 0, "misses": 0}
+        self.cache_stats: dict[str, int] = {"hits": 0, "misses": 0}
 
     def should_skip_file(self, file_path: Path) -> bool:
         """Check if a file should be skipped from scanning."""
@@ -173,7 +173,7 @@ class LegacyReferenceAnalyzer:
         # Demo/test projects need their legacy_code.py to be scanned for testing
         if is_main_project:
             try:
-                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                with open(file_path, encoding="utf-8", errors="ignore") as f:
                     # Read first 10 lines to check for marker
                     first_lines = "".join(f.readlines()[:10])
                     if (
@@ -188,7 +188,7 @@ class LegacyReferenceAnalyzer:
                             or rel_path_str.startswith("tests/")
                         ):
                             return True
-            except (IOError, UnicodeDecodeError):
+            except (OSError, UnicodeDecodeError):
                 # If we can't read the file, skip it
                 pass
 
@@ -240,7 +240,7 @@ class LegacyReferenceAnalyzer:
 
     def analyze_file_content(
         self, file_path: Path, content: str
-    ) -> Dict[str, List[Dict[str, Any]]]:
+    ) -> dict[str, list[dict[str, Any]]]:
         """Analyze file content for legacy patterns."""
         findings = defaultdict(list)
 
@@ -266,7 +266,7 @@ class LegacyReferenceAnalyzer:
 
     def scan_for_legacy_references(
         self,
-    ) -> Dict[str, List[Tuple[str, str, List[Dict[str, Any]]]]]:
+    ) -> dict[str, list[tuple[str, str, list[dict[str, Any]]]]]:
         """Scan the codebase for legacy references."""
         if logger:
             logger.debug("Analyzing legacy references...")
@@ -293,7 +293,7 @@ class LegacyReferenceAnalyzer:
                     if pattern_type in self.legacy_patterns and matches:
                         # Need to read content for the tuple format
                         try:
-                            with open(py_file, "r", encoding="utf-8") as f:
+                            with open(py_file, encoding="utf-8") as f:
                                 content = f.read()
                             findings[pattern_type].append(
                                 (
@@ -308,7 +308,7 @@ class LegacyReferenceAnalyzer:
             else:
                 cache_stats["misses"] += 1
                 try:
-                    with open(py_file, "r", encoding="utf-8") as f:
+                    with open(py_file, encoding="utf-8") as f:
                         content = f.read()
 
                     file_findings = self.analyze_file_content(py_file, content)
@@ -350,7 +350,7 @@ class LegacyReferenceAnalyzer:
                     if pattern_type in self.legacy_patterns and matches:
                         # Need to read content for the tuple format
                         try:
-                            with open(md_file, "r", encoding="utf-8") as f:
+                            with open(md_file, encoding="utf-8") as f:
                                 content = f.read()
                             findings[pattern_type].append(
                                 (
@@ -365,7 +365,7 @@ class LegacyReferenceAnalyzer:
             else:
                 cache_stats["misses"] += 1
                 try:
-                    with open(md_file, "r", encoding="utf-8") as f:
+                    with open(md_file, encoding="utf-8") as f:
                         content = f.read()
 
                     file_findings = self.analyze_file_content(md_file, content)
@@ -401,7 +401,7 @@ class LegacyReferenceAnalyzer:
         self.cache_stats = cache_stats
         return findings
 
-    def find_all_references(self, item_name: str) -> Dict[str, List[Dict[str, Any]]]:
+    def find_all_references(self, item_name: str) -> dict[str, list[dict[str, Any]]]:
         """
         Find all references to a specific legacy item (function, class, module, etc.).
 
@@ -439,9 +439,9 @@ class LegacyReferenceAnalyzer:
                 continue
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     lines = f.readlines()
-                    content = "".join(lines)
+                    "".join(lines)
 
                 file_refs = []
                 # Collect all matches first, then deduplicate overlapping ones
@@ -513,7 +513,7 @@ class LegacyReferenceAnalyzer:
                 continue
 
             try:
-                with open(md_file, "r", encoding="utf-8") as f:
+                with open(md_file, encoding="utf-8") as f:
                     lines = f.readlines()
 
                 file_refs = []
@@ -539,7 +539,7 @@ class LegacyReferenceAnalyzer:
         return dict(references)
 
     def _get_context(
-        self, lines: List[str], line_num: int, context_lines: int = 2
+        self, lines: list[str], line_num: int, context_lines: int = 2
     ) -> str:
         """Get context around a line for better reference understanding."""
         start = max(0, line_num - context_lines - 1)
@@ -547,7 +547,7 @@ class LegacyReferenceAnalyzer:
         context = lines[start:end]
         return "".join(context)
 
-    def verify_removal_readiness(self, item_name: str) -> Dict[str, Any]:
+    def verify_removal_readiness(self, item_name: str) -> dict[str, Any]:
         """
         Verify that a legacy item is ready for removal.
 
@@ -694,7 +694,7 @@ def main():
         print(
             f"   Status: {'READY' if verification['ready_for_removal'] else 'NOT READY'}"
         )
-        print(f"\n   Reference Summary:")
+        print("\n   Reference Summary:")
         print(f"      Total files: {verification['counts']['total_files']}")
         print(f"      Active code: {verification['counts']['active_code']}")
         print(f"      Test files: {verification['counts']['test_files']}")
@@ -702,7 +702,7 @@ def main():
         print(f"      Config files: {verification['counts']['config_files']}")
         print(f"      Archive files: {verification['counts']['archive_files']}")
 
-        print(f"\n   Recommendations:")
+        print("\n   Recommendations:")
         for rec in verification["recommendations"]:
             rec_clean = (
                 rec.replace("❌", "[ERROR]")
@@ -713,12 +713,12 @@ def main():
             print(f"      {rec_clean}")
 
         if verification["counts"]["active_code"] > 0:
-            print(f"\n   Active Code Files (must update):")
+            print("\n   Active Code Files (must update):")
             for file_path, refs in verification["categorized"]["active_code"]:
                 print(f"      - {file_path} ({len(refs)} reference(s))")
 
         if verification["counts"]["test_files"] > 0:
-            print(f"\n   Test Files (update or remove):")
+            print("\n   Test Files (update or remove):")
             for file_path, refs in verification["categorized"]["test_files"]:
                 print(f"      - {file_path} ({len(refs)} reference(s))")
 
@@ -729,7 +729,7 @@ def main():
 
     # Print summary
     total_issues = sum(len(files) for files in findings.values())
-    print(f"\nLegacy Reference Analysis Complete")
+    print("\nLegacy Reference Analysis Complete")
     print(f"   Files with issues: {total_issues}")
 
     if total_issues > 0:

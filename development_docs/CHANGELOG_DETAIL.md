@@ -33,6 +33,19 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-03 - Tier 3 failure remediation continuation and closeout tracking
+- **Feature/Fix**: Continued remediation for active Tier 3 and lint cleanup priorities, resolved the remaining behavior-test regression from the previous failing set, and updated planning docs with the current parallel-crash follow-up from the latest full-audit output.
+- **Technical Changes**:
+  - **Behavior test stabilization**: Restored the `channel_orchestrator` message-send path to use shared file path resolution via `determine_file_path`, which aligned runtime behavior with test patch expectations and cleared `test_send_predefined_message_real_behavior`.
+  - **Import cleanup**: Removed one obvious unused import in `communication/core/channel_orchestrator.py` (`get_user_data_dir`) after the path-resolution update.
+  - **Planning sync**: Updated `TODO.md` and `development_docs/PLANS.md` to carry forward the current Tier 3 parallel follow-up (`xdist_worker_crash_output`) for `test_conversation_manager_expire_checkin_flow`, rather than treating it as completed work.
+  - **Session closeout alignment**: Performed full working-tree diff inventory (`git diff --stat` + `git diff --name-only`) and refreshed changelog tracking for this session.
+- **Validation**:
+  - `ruff check communication/core/channel_orchestrator.py --select F401` -> pass.
+  - `pytest tests/behavior/test_communication_manager_coverage_expansion.py::TestCommunicationManagerCoverageExpansion::test_send_predefined_message_real_behavior -q` -> pass.
+  - Latest full-audit snapshot (2026-03-03 02:55 local) still reports a Tier 3 parallel crash classification and remaining static-analysis backlog; no new issue class was introduced during this remediation slice.
+- **Impact**: Removed one blocking behavior-test failure from the previous failing subset, reduced noise from a safe unused import, and left the remaining parallel crash explicitly tracked in planning docs for next-session stabilization.
+
 ### 2026-03-02 - Task package split, notebook rename, error handling Phase 1, and session follow-ups (combined)
 - **Feature**: Unified user-item storage, split tasks package to mirror notebook layout, renamed notebook schemas, fixed test failures and due-date handling, modernized error handling (Phase 1), and cleaned static logging/unused imports.
 - **Technical Changes**:
@@ -43,7 +56,7 @@ When adding new changes, follow this format:
   - **Tests**: Patches updated from `tasks.task_management.*` and handler-module attributes to `tasks.*` / `tasks.task_data_manager.*` / `tasks.task_data_handlers.*` and `core.user_item_storage.get_user_data_dir` where appropriate; recurring tests import from `tasks.task_data_manager`. Behavior/unit/UI test fixes for task_handler, profile_handler, task_management_coverage_expansion, task_crud_dialog, analytics_handler, channel_orchestrator, interaction_handlers_helpers.
   - **Error handling**: Added `re_raise=True` to `@handle_errors` in `core/error_handling.py` so decorator can log/handle then re-raise when there is no safe default. Migrated `_get_tasks()` in task_handler and profile_handler from try/except to `@handle_errors("loading tasks module", default_return=None, re_raise=True)`. Added `@handle_errors` to `validate_update_field` in `tasks/task_validation.py`. Static logging: logger calls in handlers use single positional argument (f-string) to satisfy `check_channel_loggers.py`; `test_repo_static_logging_check_passes` passes.
   - **Cleanup**: Removed unused imports in `core/user_item_storage.py` (typing.Any), `tasks/task_schemas.py` (typing.Any), `tasks/task_validation.py` (is_valid_user_id).
-  - **Docs**: `core/USER_DATA_MODEL.md` (user_item_storage, new item types); `development_docs/MODULE_DEPENDENCIES_DETAIL.md` (tasks.task_management → tasks); `core/ERROR_HANDLING_GUIDE.md` and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` (re_raise parameter and usage).
+  - **Docs**: [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) (user_item_storage, new item types); `development_docs/MODULE_DEPENDENCIES_DETAIL.md` (tasks.task_management -> tasks); [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) (re_raise parameter and usage).
 - **Impact**: Consistent user-scoped JSON pattern (notebook, tasks, future events); clearer task package layout; Phase 1 error-handling migration complete for _get_tasks; static logging check and test suite passing.
 
 ### 2026-03-02 - Sleep schedule parsing and prompt concision

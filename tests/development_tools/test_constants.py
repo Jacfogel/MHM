@@ -69,7 +69,7 @@ class TestPairedDocsPaths:
     def test_paired_docs_human_paths_exist(self):
         """Test that all human-side PAIRED_DOCS paths exist."""
         project_root = Path(__file__).parent.parent.parent
-        for human_path, ai_path in constants.PAIRED_DOCS.items():
+        for human_path, _ai_path in constants.PAIRED_DOCS.items():
             full_path = project_root / human_path
             assert full_path.exists(), f"PAIRED_DOCS human path does not exist: {human_path}"
 
@@ -77,7 +77,7 @@ class TestPairedDocsPaths:
     def test_paired_docs_ai_paths_exist(self):
         """Test that all AI-side PAIRED_DOCS paths exist."""
         project_root = Path(__file__).parent.parent.parent
-        for human_path, ai_path in constants.PAIRED_DOCS.items():
+        for _human_path, ai_path in constants.PAIRED_DOCS.items():
             full_path = project_root / ai_path
             assert full_path.exists(), f"PAIRED_DOCS AI path does not exist: {ai_path}"
 

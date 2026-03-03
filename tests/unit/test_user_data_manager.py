@@ -11,13 +11,11 @@ Tests the actual behavior, user interactions, and side effects for:
 """
 
 import pytest
-from unittest.mock import patch, Mock, MagicMock, mock_open
+from unittest.mock import patch
 import os
 import json
 import zipfile
 import shutil
-from pathlib import Path
-from datetime import datetime
 
 from core.user_data_manager import (
     UserDataManager,
@@ -87,7 +85,7 @@ class TestUserDataManagerInitialization:
              patch('core.user_data_manager.get_backups_dir', return_value=backup_dir):
             
             # Act: Create manager
-            manager = UserDataManager()
+            UserDataManager()
             
             # Assert: Verify backup directory was created
             assert os.path.exists(backup_dir), "Backup directory should be created"
@@ -419,7 +417,7 @@ class TestUserDataManagerIndex:
         
         # Assert: Index file should exist and contain user
         if os.path.exists(manager.index_file):
-            index_data = json.load(open(manager.index_file, 'r', encoding='utf-8'))
+            index_data = json.load(open(manager.index_file, encoding='utf-8'))
             # Should have last_updated
             assert 'last_updated' in index_data, "Index should have last_updated"
     
@@ -478,7 +476,7 @@ class TestUserDataManagerIndex:
         
         # Assert: Index file should exist
         if os.path.exists(manager.index_file):
-            index_data = json.load(open(manager.index_file, 'r', encoding='utf-8'))
+            index_data = json.load(open(manager.index_file, encoding='utf-8'))
             assert 'last_updated' in index_data, "Index should have last_updated"
 
 

@@ -13,7 +13,6 @@ This framework:
 """
 
 import pytest
-import json
 from pathlib import Path
 
 from tests.development_tools.conftest import load_development_tools_module
@@ -391,6 +390,7 @@ class TestFunctionCountingAccuracy:
         try:
             from development_tools.shared.service.data_loading import DataLoadingMixin
             from development_tools.shared.service import AIToolsService
+            assert DataLoadingMixin is not None
 
             # Create a minimal service instance to test canonical metrics
             # Use temporary directory to ensure test isolation
@@ -469,7 +469,7 @@ class TestThresholdValidation:
             if not config_path.exists():
                 pytest.skip(f"Config file not found: {config_path}")
 
-            with open(config_path, "r", encoding="utf-8") as f:
+            with open(config_path, encoding="utf-8") as f:
                 config_dict = json.load(f)
 
             # Get threshold values
@@ -511,6 +511,7 @@ class TestThresholdValidation:
             )
             from development_tools.shared.service import AIToolsService
             from development_tools import config
+            assert ReportGenerationMixin is not None
 
             config.load_external_config()
 

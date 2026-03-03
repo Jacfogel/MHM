@@ -17,7 +17,7 @@ Usage:
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -45,14 +45,14 @@ logger = get_component_logger("development_tools")
 class DocumentationAddressFixer:
     """Fixes missing file addresses in documentation files."""
 
-    def __init__(self, project_root: Optional[str] = None):
+    def __init__(self, project_root: str | None = None):
         """Initialize the documentation address fixer."""
         if project_root:
             self.project_root = Path(project_root).resolve()
         else:
             self.project_root = Path(config.get_project_root()).resolve()
 
-    def fix_add_addresses(self, dry_run: bool = False) -> Dict[str, Any]:
+    def fix_add_addresses(self, dry_run: bool = False) -> dict[str, Any]:
         """Add file addresses to documentation files that don't have them."""
         updated = 0
         skipped = 0
@@ -106,7 +106,7 @@ class DocumentationAddressFixer:
                 rel_path = str(file_path.relative_to(self.project_root)).replace(
                     "\\", "/"
                 )
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = f.read()
 
                 has_address = bool(

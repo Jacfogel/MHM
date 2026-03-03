@@ -28,7 +28,8 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Dict, Generic, Optional, Any, TypeVar, Iterable, Tuple
+from typing import Generic, Any, TypeVar
+from collections.abc import Iterable
 import hashlib
 
 T = TypeVar("T")  # Generic type for cached results
@@ -59,9 +60,9 @@ class MtimeFileCache(Generic[T]):
         self,
         project_root: Path,
         use_cache: bool = True,
-        tool_name: Optional[str] = None,
-        domain: Optional[str] = None,
-        tool_paths: Optional[Iterable[Path]] = None,
+        tool_name: str | None = None,
+        domain: str | None = None,
+        tool_paths: Iterable[Path] | None = None,
     ):
         """
         Initialize the cache.
@@ -77,7 +78,7 @@ class MtimeFileCache(Generic[T]):
 
         self.project_root = project_root.resolve()
         self.use_cache = use_cache
-        self.cache_data: Dict[str, Dict[str, Any]] = {}
+        self.cache_data: dict[str, dict[str, Any]] = {}
         self.tool_name = tool_name
         self.domain = domain
         self.use_standardized_storage = True
@@ -97,8 +98,8 @@ class MtimeFileCache(Generic[T]):
             self._check_previous_failure_staleness()
 
     def _normalize_tool_paths(
-        self, tool_paths: Optional[Iterable[Path]]
-    ) -> Tuple[Path, ...]:
+        self, tool_paths: Iterable[Path] | None
+    ) -> tuple[Path, ...]:
         """Normalize tool paths to a tuple of resolved Path objects."""
         if not tool_paths:
             return ()
@@ -111,7 +112,7 @@ class MtimeFileCache(Generic[T]):
                 continue
         return tuple(normalized)
 
-    def _get_config_file_path(self) -> Optional[Path]:
+    def _get_config_file_path(self) -> Path | None:
         """
         Get the path to the development_tools_config.json file.
 
@@ -222,7 +223,7 @@ class MtimeFileCache(Generic[T]):
         except Exception:
             pass
 
-    def _compute_tool_hash(self) -> Optional[str]:
+    def _compute_tool_hash(self) -> str | None:
         """Compute a hash for tool source files to detect code changes."""
         if not self.tool_paths:
             return None
@@ -238,9 +239,9 @@ class MtimeFileCache(Generic[T]):
                 return None
         return hasher.hexdigest() if has_data else None
 
-    def _get_tool_mtimes(self) -> Dict[str, float]:
+    def _get_tool_mtimes(self) -> dict[str, float]:
         """Return mtimes for tool source files for debug/traceability."""
-        mtimes: Dict[str, float] = {}
+        mtimes: dict[str, float] = {}
         for path in self.tool_paths:
             try:
                 if not path.exists():
@@ -277,7 +278,7 @@ class MtimeFileCache(Generic[T]):
             if logger:
                 logger.debug(f"Error checking tool code staleness: {e}")
 
-    def _update_tool_metadata_in_cache(self, tool_hash: Optional[str] = None) -> None:
+    def _update_tool_metadata_in_cache(self, tool_hash: str | None = None) -> None:
         """Store current tool code hash and mtimes in cache metadata."""
         if not tool_hash:
             tool_hash = self._compute_tool_hash()
@@ -308,7 +309,7 @@ class MtimeFileCache(Generic[T]):
         self.clear_cache()
         self.mark_run_result(success=True)
 
-    def mark_run_result(self, success: bool, error: Optional[str] = None) -> None:
+    def mark_run_result(self, success: bool, error: str | None = None) -> None:
         """Persist last run status for failure-aware invalidation."""
         self.cache_data[_RUN_STATUS_KEY] = {
             "status": "success" if success else "failed",
@@ -412,7 +413,7 @@ class MtimeFileCache(Generic[T]):
         except OSError:
             return False
 
-    def get_cached(self, file_path: Path) -> Optional[T]:
+    def get_cached(self, file_path: Path) -> T | None:
         """
         Get cached results for a file if available and still valid.
 
@@ -458,7 +459,7 @@ class MtimeFileCache(Generic[T]):
         """Clear all cached data (in memory only, call save_cache() to persist)."""
         self.cache_data = {}
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """
         Get statistics about the cache.
 

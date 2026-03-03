@@ -4,7 +4,7 @@ Tests for ai/cache_manager.py - Cache eviction and expiry functionality.
 
 import pytest
 import time
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 from ai.cache_manager import ResponseCache, ContextCache, CacheEntry, get_response_cache, get_context_cache
 
 

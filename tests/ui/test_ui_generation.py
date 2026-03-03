@@ -202,7 +202,6 @@ class Ui_MainWindow(object):
         """Test main function with specific UI file."""
         test_dir = Path(test_path_factory)
         ui_file = test_dir / "test.ui"
-        output_file = test_dir / "generated" / "test_pyqt.py"
         
         # Create test .ui file
         ui_content = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -354,7 +353,13 @@ class Ui_MainWindow(object):
                 # Verify file was written with headers
                 mock_open.assert_called()
                 # Check that write was called with headers
-                write_calls = [call for call in mock_open.call_args_list if 'w' in call[0][1]]
+                write_calls = []
+                for call in mock_open.call_args_list:
+                    args = call[0]
+                    kwargs = call[1]
+                    mode = args[1] if len(args) > 1 else kwargs.get("mode", "r")
+                    if "w" in mode:
+                        write_calls.append(call)
                 assert len(write_calls) > 0, "File should be written with headers"
     
     @pytest.mark.ui

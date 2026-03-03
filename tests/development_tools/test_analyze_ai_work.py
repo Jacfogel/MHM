@@ -6,11 +6,9 @@ changelog sync, and structural validation.
 """
 
 import pytest
-import tempfile
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-from tests.development_tools.conftest import load_development_tools_module, demo_project_root
+from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module
 ai_work_module = load_development_tools_module("ai_work.analyze_ai_work")

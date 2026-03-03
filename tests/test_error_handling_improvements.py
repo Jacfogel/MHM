@@ -10,10 +10,9 @@ import pytest
 import os
 import shutil
 import uuid
-from unittest.mock import patch, MagicMock
 from pathlib import Path
 
-from core.error_handling import handle_errors, DataError, FileOperationError
+from core.error_handling import handle_errors
 from core.file_operations import load_json_data, save_json_data, verify_file_access
 from core.user_data_handlers import get_user_data, save_user_data
 from core.user_data_manager import UserDataManager
@@ -514,7 +513,7 @@ class TestErrorHandlingImprovements:
         log_capture = []
         handler = logging.StreamHandler()
         handler.setLevel(logging.ERROR)
-        setattr(handler, "stream", log_capture)  # test-only: capture to list
+        handler.stream = log_capture  # test-only: capture to list
         
         logger.addHandler(handler)
         

@@ -6,10 +6,9 @@ with status file generation.
 """
 
 import pytest
-from pathlib import Path
 from unittest.mock import patch
 
-from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
+from tests.development_tools.conftest import load_development_tools_module
 
 # Load modules
 path_drift_module = load_development_tools_module("docs.analyze_path_drift")
@@ -250,7 +249,7 @@ class TestPathDriftIntegration:
         results = analyzer.check_path_drift()
         
         # Verify fixture doc is NOT in results (or if it is, it's for a different reason)
-        fixture_doc_str = str(fixture_doc.relative_to(project_dir)).replace('\\', '/')
+        str(fixture_doc.relative_to(project_dir)).replace('\\', '/')
         
         # Real doc should be in results
         real_doc_str = str(real_doc.relative_to(project_dir)).replace('\\', '/')

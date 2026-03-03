@@ -19,7 +19,7 @@ import re
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List, Set, Optional, Any
+from typing import Any
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -76,8 +76,8 @@ class PathDriftAnalyzer:
 
     def __init__(
         self,
-        project_root: Optional[str] = None,
-        config_path: Optional[str] = None,
+        project_root: str | None = None,
+        config_path: str | None = None,
         use_cache: bool = True,
     ):
         """
@@ -271,23 +271,15 @@ class PathDriftAnalyzer:
             "error",
             "handling",
             "exports",
-            "package",
-            "module",
-            "imports",
             "decision",
             "support",
             "system",
             "signals",
             "quick",
             "status",
-            "documentation",
             "validation",
             "work",
             "ai",
-            "patterns",
-            "function",
-            "registry",
-            "validation",
         }
         if (
             len(path.split(".")) == 1
@@ -519,7 +511,7 @@ class PathDriftAnalyzer:
         return False
 
     def _is_in_example_context(
-        self, line: str, lines: List[str], line_num: int
+        self, line: str, lines: list[str], line_num: int
     ) -> bool:
         """
         Check if a line is in an example context based on documentation standards.
@@ -687,7 +679,7 @@ class PathDriftAnalyzer:
 
         return False
 
-    def _is_valid_module_reference(self, path: str, code_paths: Set[str]) -> bool:
+    def _is_valid_module_reference(self, path: str, code_paths: set[str]) -> bool:
         """Check if a module reference is valid."""
         # Skip if it's a standard library module
         if path in self.stdlib_modules:
@@ -729,7 +721,7 @@ class PathDriftAnalyzer:
 
         return False
 
-    def scan_codebase_paths(self) -> Set[str]:
+    def scan_codebase_paths(self) -> set[str]:
         """Scan codebase for all file paths and imports."""
         paths = set()
 
@@ -738,7 +730,7 @@ class PathDriftAnalyzer:
             if code_path.exists():
                 for py_file in code_path.rglob("*.py"):
                     try:
-                        with open(py_file, "r", encoding="utf-8") as f:
+                        with open(py_file, encoding="utf-8") as f:
                             content = f.read()
 
                         # Extract import statements
@@ -758,7 +750,7 @@ class PathDriftAnalyzer:
 
         return paths
 
-    def scan_documentation_paths(self) -> Dict[str, List[str]]:
+    def scan_documentation_paths(self) -> dict[str, list[str]]:
         """Scan documentation files for path references."""
         # Ensure enhanced filters are set up (needed by filtering methods)
         if not hasattr(self, "stdlib_modules"):
@@ -791,7 +783,7 @@ class PathDriftAnalyzer:
                 continue
 
             try:
-                with open(md_file, "r", encoding="utf-8") as f:
+                with open(md_file, encoding="utf-8") as f:
                     content = f.read()
 
                 # Extract all path references with context awareness
@@ -873,7 +865,7 @@ class PathDriftAnalyzer:
                                                     ].append(link_text)
                                 else:
                                     # Single group match, process normally
-                                    for idx, group in enumerate(match):
+                                    for _idx, group in enumerate(match):
                                         if group and not group.startswith(
                                             ("http", "#")
                                         ):
@@ -922,7 +914,7 @@ class PathDriftAnalyzer:
 
         return doc_paths
 
-    def check_path_drift(self) -> Dict[str, List[str]]:
+    def check_path_drift(self) -> dict[str, list[str]]:
         """
         Check for path drift between code and documentation.
 
@@ -990,7 +982,7 @@ class PathDriftAnalyzer:
 
         return drift_issues
 
-    def run_analysis(self) -> Dict[str, Any]:
+    def run_analysis(self) -> dict[str, Any]:
         """
         Run path drift analysis and return results in standard format.
 
@@ -1046,10 +1038,10 @@ def main():
     results = details.get("detailed_issues", {})
 
     if results:
-        print(f"\nPath Drift Issues:")
+        print("\nPath Drift Issues:")
         print(f"   Total files with issues: {len(results)}")
         print(f"   Total issues found: {total_issues}")
-        print(f"   Top files with most issues:")
+        print("   Top files with most issues:")
         sorted_files = sorted(files.items(), key=lambda x: x[1], reverse=True)
         for doc_file, issue_count in sorted_files[:5]:
             print(f"     {doc_file}: {issue_count} issues")

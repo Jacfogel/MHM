@@ -242,7 +242,7 @@ class TestValidationIntegrationWithErrorHandling:
         """Test that validation functions work correctly with error handler."""
         from core.error_handling import ErrorHandler
         
-        handler = ErrorHandler()
+        ErrorHandler()
         
         # Validation functions should work even if error handler is involved
         # (they use @handle_errors decorator which integrates with ErrorHandler)

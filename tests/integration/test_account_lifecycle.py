@@ -141,7 +141,7 @@ class TestAccountLifecycle:
     @pytest.mark.no_parallel
     def test_create_basic_account(self):
         """Test creating a basic account with only messages enabled."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core.user_data_handlers import get_user_data
         
         # Arrange
         user_id = "test-basic-user"
@@ -235,7 +235,6 @@ class TestAccountLifecycle:
             "start_time": "18:00",
             "end_time": "20:00"
         }
-        from core.user_data_handlers import save_user_data
         result = save_user_data(actual_user_id, {'schedules': schedules_data})
         assert result.get('schedules', False), "Schedule data should save successfully"
         
@@ -301,39 +300,13 @@ class TestAccountLifecycle:
     @pytest.mark.no_parallel
     def test_enable_checkins_for_basic_user(self):
         """Test enabling check-ins for a user who only has messages enabled."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core.user_data_handlers import get_user_data
         import uuid
         
         # Arrange - Create basic user
         user_id = f"test-enable-checkins-{uuid.uuid4().hex[:8]}"
-        account_data = {
-            "internal_username": user_id,
-            "timezone": "America/New_York",
-            "channel": {"type": "discord", "contact": "test#1234"},
-            "features": {
-                "automated_messages": "enabled",
-                "task_management": "disabled",
-                "checkins": "disabled"
-            }
-        }
         
-        preferences_data = {
-            "categories": ["motivational"],
-            "channel": {"type": "discord", "contact": "test#1234"}
-        }
         
-        schedules_data = {
-            "motivational": {
-                "periods": {
-                    "morning": {
-                        "active": True,
-                        "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                        "start_time": "09:00",
-                        "end_time": "12:00"
-                    }
-                }
-            }
-        }
         
         # Create test user using centralized utilities for consistent setup
         from tests.test_utilities import TestUserFactory
@@ -404,7 +377,7 @@ class TestAccountLifecycle:
     @pytest.mark.no_parallel
     def test_disable_tasks_for_full_user(self):
         """Test disabling tasks for a user who has all features enabled."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core.user_data_handlers import get_user_data
         
         # Arrange - Create full user
         user_id = "test-disable-tasks"
@@ -503,7 +476,7 @@ class TestAccountLifecycle:
     @pytest.mark.no_parallel
     def test_reenable_tasks_for_user(self):
         """Test re-enabling tasks for a user who previously had them disabled."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core.user_data_handlers import get_user_data
         
         # Arrange - Create user with tasks disabled
         user_id = "test-reenable-tasks"
@@ -605,7 +578,7 @@ class TestAccountLifecycle:
     @pytest.mark.slow
     def test_add_message_category(self, update_user_index_for_test):
         """Test adding a new message category to user preferences."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core.user_data_handlers import get_user_data
         
         # Arrange - Create user with automated_messages enabled and basic categories
         user_id = "test-add-category"
@@ -693,7 +666,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_remove_message_category(self):
         """Test removing a message category from user preferences."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core.user_data_handlers import get_user_data
         
         # Arrange - Create user with multiple categories
         user_id = "test-remove-category"
@@ -761,7 +734,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_add_schedule_period(self):
         """Test adding a new schedule period to user schedules."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core.user_data_handlers import get_user_data
         
         # Arrange - Create user with basic schedule
         user_id = "test-add-period"
@@ -840,7 +813,7 @@ class TestAccountLifecycle:
     @pytest.mark.no_parallel
     def test_modify_schedule_period(self):
         """Test modifying an existing schedule period."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core.user_data_handlers import get_user_data
         
         # Arrange - Create user with schedule
         user_id = "test-modify-period"
@@ -904,7 +877,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_remove_schedule_period(self):
         """Test removing a schedule period from user schedules."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core.user_data_handlers import get_user_data
         
         # Arrange - Create user with multiple periods
         user_id = "test-remove-period"
@@ -1038,7 +1011,6 @@ class TestAccountLifecycle:
         self._materialize_and_verify(actual_user_id)
         from core.user_data_handlers import update_user_account
         update_user_account(actual_user_id, {"enabled_features": ["messages", "tasks", "checkins"]})
-        from core.user_data_handlers import save_user_data
         save_user_data(actual_user_id, {"preferences": {"task_settings": {"enabled": True, "reminder_frequency": "daily"}, "checkin_settings": {"enabled": True, "questions": ["How are you feeling?"]}}})
         
         # Create feature files

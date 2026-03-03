@@ -8,7 +8,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch
 
-from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
+from tests.development_tools.conftest import load_development_tools_module
 
 
 # Load the module
@@ -47,7 +47,7 @@ class TestDocumentationLinkFixer:
         target_file = temp_project_copy / "target.md"
         target_file.write_text("# Target")
         
-        doc_file.write_text(f"""# Test Documentation
+        doc_file.write_text("""# Test Documentation
 
 See the file at tests/target.md for more information.
 """)
@@ -75,7 +75,7 @@ See the file at tests/target.md for more information.
         target_file = temp_project_copy / "target.md"
         target_file.write_text("# Target")
         
-        doc_file.write_text(f"""# Test Documentation
+        doc_file.write_text("""# Test Documentation
 
 See the file at `tests/target.md` for more information.
 """)
@@ -122,7 +122,7 @@ See `tests/example.md` for reference.
         target_file = temp_project_copy / "target.md"
         target_file.write_text("# Target")
         
-        doc_file.write_text(f"""# Test Documentation
+        doc_file.write_text("""# Test Documentation
 
 ```python
 # This is a code block with a path: `tests/target.md`
@@ -150,7 +150,7 @@ import sys
         target_file = temp_project_copy / "target.md"
         target_file.write_text("# Target")
         
-        doc_file.write_text(f"""# Test Documentation
+        doc_file.write_text("""# Test Documentation
 
 [EXAMPLE] For example, see `tests/target.md` for usage.
 """)
@@ -171,7 +171,7 @@ import sys
         target_file = temp_project_copy / "target.md"
         target_file.write_text("# Target")
         
-        doc_file.write_text(f"""# Test Documentation
+        doc_file.write_text("""# Test Documentation
 
 See [the target file](tests/target.md) for more information.
 """)
@@ -214,7 +214,7 @@ See [the target file](tests/target.md) for more information.
             fixer = DocumentationLinkFixer(project_root=str(temp_project_copy))
             
             # Mock file read to raise exception
-            with patch('builtins.open', side_effect=IOError("Permission denied")):
+            with patch('builtins.open', side_effect=OSError("Permission denied")):
                 result = fixer.fix_convert_links(dry_run=False)
                 
                 assert isinstance(result, dict), "Result should be a dictionary"

@@ -133,5 +133,5 @@ class BaseChannel(ABC):
                 + (f" - {error_message}" if error_message else "")
             )
         elif status == ChannelStatus.READY:
-            self.logger.debug(f"Channel ready")
+            self.logger.debug("Channel ready")
         # Suppress other status changes to reduce log spam

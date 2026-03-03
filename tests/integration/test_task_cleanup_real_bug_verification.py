@@ -9,8 +9,8 @@ Following testing guidelines:
 """
 
 import pytest
-from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
+from datetime import timedelta
+from unittest.mock import patch
 import schedule
 
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
@@ -129,7 +129,7 @@ class TestTaskCleanupBugVerification:
         ]
 
         # Count scheduler jobs before
-        jobs_before = len(schedule.jobs)
+        len(schedule.jobs)
 
         # Act: Schedule reminders (mock Windows tasks per guidelines)
         with patch(

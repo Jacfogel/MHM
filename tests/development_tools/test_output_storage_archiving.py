@@ -7,10 +7,8 @@ Verifies that file rotation and archiving work correctly for tool result JSON fi
 import pytest
 import json
 import time
-from pathlib import Path
-from unittest.mock import patch
 
-from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
+from tests.development_tools.conftest import load_development_tools_module
 
 # Load modules
 output_storage_module = load_development_tools_module("shared.output_storage")
@@ -379,7 +377,7 @@ class TestOutputStorageArchiving:
         assert final_file.exists(), "Final result file should exist after concurrent saves"
         
         # Verify file is valid JSON and contains expected structure
-        with open(final_file, 'r') as f:
+        with open(final_file) as f:
             data = json.load(f)
             assert 'data' in data, "Result file should contain data"
             # Verify the data structure is correct
@@ -388,6 +386,6 @@ class TestOutputStorageArchiving:
         # Verify archive directory exists and has some archived files (if multiple saves succeeded)
         archive_dir = temp_project_copy / "development_tools" / "docs" / "jsons" / "archive"
         if archive_dir.exists() and len(results) > 1:
-            archived_files = list(archive_dir.glob("test_concurrent_results_*.json"))
+            list(archive_dir.glob("test_concurrent_results_*.json"))
             # If multiple saves succeeded, we should have archived files
             # But don't fail if only one save succeeded (no archiving needed)

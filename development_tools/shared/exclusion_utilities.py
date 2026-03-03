@@ -24,7 +24,6 @@ Usage:
         # Skip this function
 """
 
-from typing import Optional
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
@@ -66,7 +65,7 @@ def is_generated_file(file_path: str) -> bool:
 
     # --- Detect explicit "generated" markers in file header ---
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             first_lines = "".join(f.readlines()[:10]).lower()
             if (
                 "generated" in first_lines
@@ -148,7 +147,7 @@ def is_generated_function(func_name: str) -> bool:
 
 
 @handle_errors("checking if method is special Python method", default_return=False)
-def is_special_python_method(func_name: str, complexity: Optional[int] = None) -> bool:
+def is_special_python_method(func_name: str, complexity: int | None = None) -> bool:
     """
     Determine if a function is a special Python method that should be excluded from undocumented count.
 
@@ -216,7 +215,7 @@ def is_special_python_method(func_name: str, complexity: Optional[int] = None) -
 
 
 @handle_errors("checking if function is a test function", default_return=False)
-def is_test_function(func_name: str, file_path: Optional[str] = None) -> bool:
+def is_test_function(func_name: str, file_path: str | None = None) -> bool:
     """
     Determine if a function is a test function that should be excluded from certain analyses.
 

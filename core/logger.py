@@ -651,7 +651,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                     self.rolloverAt = self.computeRollover(current_time)
                     return
 
-            except OSError as check_error:
+            except OSError:
                 # If we can't check file stats, proceed with rollover anyway
                 # This is safer than blocking rollover on stat errors
                 pass
@@ -667,10 +667,8 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 os.rename(self.baseFilename, dfn)
 
                 # Now move to backup directory
-                move_successful = False
                 try:
                     shutil.move(dfn, backup_path)
-                    move_successful = True
                     # After successful move, the original file location should be empty
                     # Reopening the stream will create a new empty file, which is correct
                 except (PermissionError, OSError) as move_error:
@@ -685,7 +683,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                             self.baseFilename
                         ):
                             os.rename(dfn, self.baseFilename)
-                            print(f"Info: Restored log file after failed backup move")
+                            print("Info: Restored log file after failed backup move")
                             # Reopen the stream to continue logging to the restored file
                             self.stream = self._open()
                             return
@@ -700,7 +698,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                             pass
                         return
 
-            except PermissionError as e:
+            except PermissionError:
                 # File is locked, try alternative approach
                 try:
                     # Check file size again before copying (in case it changed)
@@ -742,10 +740,10 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                             else:
                                 # Backup was not created successfully, don't truncate
                                 print(
-                                    f"Warning: Backup file was not created successfully, skipping truncation"
+                                    "Warning: Backup file was not created successfully, skipping truncation"
                                 )
                                 raise OSError("Backup verification failed")
-                        except (PermissionError, OSError) as copy_error:
+                        except (PermissionError, OSError):
                             # Copy failed, raise to be caught by outer exception handler
                             raise
                     else:
@@ -786,7 +784,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
             else:
                 # Backup doesn't exist, something went wrong - try to restore
                 print(
-                    f"Warning: Backup file not found after rotation, attempting to restore"
+                    "Warning: Backup file not found after rotation, attempting to restore"
                 )
                 # If dfn still exists, restore it
                 if os.path.exists(dfn):
@@ -794,7 +792,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                         os.rename(dfn, self.baseFilename)
                         self.stream = self._open()
                         print(
-                            f"Info: Restored log file after backup verification failed"
+                            "Info: Restored log file after backup verification failed"
                         )
                     except Exception as restore_error:
                         print(f"Warning: Could not restore log file: {restore_error}")
@@ -1771,7 +1769,7 @@ def clear_log_file_locks():
             handler.close()
 
         # Clear component loggers too
-        for component_name, component_logger in _component_loggers.items():
+        for _component_name, component_logger in _component_loggers.items():
             for handler in component_logger.logger.handlers[:]:
                 if isinstance(handler, logging.StreamHandler):
                     continue

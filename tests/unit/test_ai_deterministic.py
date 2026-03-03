@@ -158,7 +158,7 @@ class TestAICacheDeterministic:
         
         # Test that different modes produce different cache entries
         cache.set(prompt, "command_response", user, prompt_type="command")
-        chat_result = cache.get(prompt, user, prompt_type="chat")
+        cache.get(prompt, user, prompt_type="chat")
         command_result = cache.get(prompt, user, prompt_type="command")
         
         # Results should be different (or chat might be None if not set)

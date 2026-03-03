@@ -5,7 +5,8 @@ from discord import app_commands
 import asyncio
 import threading
 from discord.ext import commands
-from typing import Any, Awaitable, cast
+from typing import Any, cast
+from collections.abc import Awaitable
 import queue
 import time
 import socket
@@ -261,7 +262,7 @@ class DiscordBot(BaseChannel):
                         f"Network connectivity successful to {endpoint_hostname}:{endpoint_port} (check #{self._network_success_count})"
                     )
                 return True
-            except (socket.gaierror, socket.timeout, OSError) as e:
+            except (TimeoutError, socket.gaierror, OSError) as e:
                 logger.debug(
                     f"Network connectivity failed to {endpoint_hostname}:{endpoint_port} - {e}"
                 )
@@ -273,10 +274,10 @@ class DiscordBot(BaseChannel):
             "port": port,
             "endpoints_tried": discord_endpoints,
             "error_type": "all_endpoints_failed",
-            "error_message": f"All Discord endpoints failed connectivity test",
+            "error_message": "All Discord endpoints failed connectivity test",
             "timestamp": time.time(),
         }
-        logger.error(f"All Discord endpoints failed network connectivity test")
+        logger.error("All Discord endpoints failed network connectivity test")
         self._connection_status = DiscordConnectionStatus.NETWORK_FAILURE
         return False
 
@@ -403,7 +404,7 @@ class DiscordBot(BaseChannel):
     async def _cleanup_aiohttp_sessions(self) -> bool:
         """Clean up any remaining aiohttp sessions to prevent warnings"""
         # Get current event loop
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
 
         # Find and close any aiohttp sessions
         import gc
@@ -844,7 +845,7 @@ class DiscordBot(BaseChannel):
                     # Log message is handled by WebhookServer.start() - don't duplicate
                     if self._ngrok_process:
                         discord_logger.info(
-                            f"ngrok tunnel active - check ngrok web interface at http://127.0.0.1:4040 for public URL"
+                            "ngrok tunnel active - check ngrok web interface at http://127.0.0.1:4040 for public URL"
                         )
                     else:
                         # Check if ngrok is running externally
@@ -864,7 +865,7 @@ class DiscordBot(BaseChannel):
                                             if proc.is_running():
                                                 ngrok_running = True
                                                 discord_logger.info(
-                                                    f"ngrok tunnel detected (external) - check http://127.0.0.1:4040 for public URL"
+                                                    "ngrok tunnel detected (external) - check http://127.0.0.1:4040 for public URL"
                                                 )
                                                 break
                                 except (
@@ -1310,7 +1311,7 @@ class DiscordBot(BaseChannel):
             # Don't respond to ourselves
             if self.bot and message.author == self.bot.user:
                 discord_logger.debug(
-                    f"DISCORD_MESSAGE_IGNORED: Message from bot itself, ignoring"
+                    "DISCORD_MESSAGE_IGNORED: Message from bot itself, ignoring"
                 )
                 return
 
@@ -1765,7 +1766,7 @@ class DiscordBot(BaseChannel):
         # Check for rich response data
         rich_data = kwargs.get("rich_data", {})
         suggestions = kwargs.get("suggestions", [])
-        custom_view = kwargs.get("view", None)
+        custom_view = kwargs.get("view")
 
         # Send command to Discord thread with rich data and optional custom view
         if custom_view:
@@ -2414,9 +2415,9 @@ class DiscordBot(BaseChannel):
                     discord_logger.info(
                         f"ngrok tunnel started successfully (PID: {self._ngrok_process.pid})"
                     )
-                    discord_logger.info(f"ngrok web interface: http://127.0.0.1:4040")
+                    discord_logger.info("ngrok web interface: http://127.0.0.1:4040")
                     discord_logger.info(
-                        f"Check ngrok web interface for public URL to configure in Discord Developer Portal"
+                        "Check ngrok web interface for public URL to configure in Discord Developer Portal"
                     )
                 else:
                     discord_logger.warning(

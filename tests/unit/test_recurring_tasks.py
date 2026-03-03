@@ -15,7 +15,6 @@ from tasks import (
     load_completed_tasks,
 )
 from tasks.task_data_manager import (
-    _create_next_recurring_task_instance,
     _calculate_next_due_date,
 )
 

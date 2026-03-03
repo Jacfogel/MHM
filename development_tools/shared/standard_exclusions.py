@@ -21,7 +21,6 @@ Usage:
     exclusions = get_exclusions('documentation')
 """
 
-from typing import Dict, List, Optional, Tuple
 
 # Import config to load external exclusions
 try:
@@ -124,7 +123,7 @@ def _get_exclusions_config_safe():
     return None
 
 
-def _load_base_exclusions() -> List[str]:
+def _load_base_exclusions() -> list[str]:
     """Load universal exclusions from config or return defaults."""
     exclusions_config = _get_exclusions_config_safe()
     if exclusions_config and "base_exclusions" in exclusions_config:
@@ -139,7 +138,7 @@ BASE_EXCLUSIONS = _load_base_exclusions()
 _DEFAULT_TOOL_EXCLUSIONS = {}
 
 
-def _load_tool_exclusions() -> Dict[str, List[str]]:
+def _load_tool_exclusions() -> dict[str, list[str]]:
     """Load tool-specific exclusions from config or return defaults."""
     exclusions_config = _get_exclusions_config_safe()
     if exclusions_config and "tool_exclusions" in exclusions_config:
@@ -184,7 +183,7 @@ _DEFAULT_CONTEXT_EXCLUSIONS = {
 }
 
 
-def _load_context_exclusions() -> Dict[str, List[str]]:
+def _load_context_exclusions() -> dict[str, list[str]]:
     """Load context-specific exclusions from config or return defaults.
 
     recent_changes will be built from generated files after they're loaded.
@@ -207,7 +206,7 @@ def _load_context_exclusions() -> Dict[str, List[str]]:
 _CONTEXT_EXCLUSIONS_TEMP = _load_context_exclusions()
 
 
-def get_exclusions(tool_type: Optional[str] = None, context: str = "development") -> list:
+def get_exclusions(tool_type: str | None = None, context: str = "development") -> list:
     """
     Get exclusion patterns for a specific tool type and context.
 
@@ -232,7 +231,7 @@ def get_exclusions(tool_type: Optional[str] = None, context: str = "development"
 
 
 def should_exclude_file(
-    file_path, tool_type: Optional[str] = None, context: str = "development"
+    file_path, tool_type: str | None = None, context: str = "development"
 ) -> bool:
     """
     Check if a file should be excluded based on standard patterns.
@@ -309,7 +308,7 @@ def get_file_operations_exclusions() -> list:
 # =============================================================================
 
 
-def _load_generated_files() -> Tuple[str, ...]:
+def _load_generated_files() -> tuple[str, ...]:
     """Load generated files list from config or return defaults.
 
     Generated files can include both specific file paths and glob patterns.
@@ -325,11 +324,11 @@ def _load_generated_files() -> Tuple[str, ...]:
 
 # All generated files (loaded from config)
 # Contains both specific file paths and glob patterns (e.g., "ui/generated/*")
-GENERATED_FILES: Tuple[str, ...] = _load_generated_files()
+GENERATED_FILES: tuple[str, ...] = _load_generated_files()
 
 
 # Separate generated files into exact paths and patterns for different use cases
-def _split_generated_files() -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+def _split_generated_files() -> tuple[tuple[str, ...], tuple[str, ...]]:
     """Split generated files into exact paths and patterns."""
     exact_paths = []
     patterns = []
@@ -345,7 +344,7 @@ GENERATED_FILE_PATHS, GENERATED_FILE_PATTERNS = _split_generated_files()
 
 # ALL_GENERATED_FILES contains only exact paths
 # (patterns are handled separately via should_exclude_file)
-ALL_GENERATED_FILES: Tuple[str, ...] = GENERATED_FILE_PATHS
+ALL_GENERATED_FILES: tuple[str, ...] = GENERATED_FILE_PATHS
 
 # Finalize context exclusions now that generated files are defined
 # Build recent_changes from generated files (always, regardless of config)
@@ -356,7 +355,7 @@ _CONTEXT_EXCLUSIONS_TEMP["recent_changes"] = list(ALL_GENERATED_FILES) + list(
 CONTEXT_EXCLUSIONS = _CONTEXT_EXCLUSIONS_TEMP
 
 
-def _load_base_exclusion_shortlist() -> Tuple[str, ...]:
+def _load_base_exclusion_shortlist() -> tuple[str, ...]:
     """Load standard exclusion patterns from config or return defaults."""
     exclusions_config = _get_exclusions_config_safe()
     if exclusions_config and "base_exclusion_shortlist" in exclusions_config:
@@ -384,14 +383,14 @@ def _load_base_exclusion_shortlist() -> Tuple[str, ...]:
 
 
 # Standard exclusion patterns (used by multiple tools)
-BASE_EXCLUSION_SHORTLIST: Tuple[str, ...] = _load_base_exclusion_shortlist()
+BASE_EXCLUSION_SHORTLIST: tuple[str, ...] = _load_base_exclusion_shortlist()
 
 # =============================================================================
 # TOOL-SPECIFIC EXCLUSIONS
 # =============================================================================
 
 
-def _load_historical_preserve_files() -> Tuple[str, ...]:
+def _load_historical_preserve_files() -> tuple[str, ...]:
     """Load historical preserve files from config or return defaults."""
     exclusions_config = _get_exclusions_config_safe()
     if exclusions_config and "historical_preserve_files" in exclusions_config:
@@ -401,10 +400,10 @@ def _load_historical_preserve_files() -> Tuple[str, ...]:
 
 
 # Legacy cleanup preserve files
-HISTORICAL_PRESERVE_FILES: Tuple[str, ...] = _load_historical_preserve_files()
+HISTORICAL_PRESERVE_FILES: tuple[str, ...] = _load_historical_preserve_files()
 
 # Documentation sync checker placeholders
-DOC_SYNC_PLACEHOLDERS: Dict[str, str] = {
+DOC_SYNC_PLACEHOLDERS: dict[str, str] = {
     "logs": "    (log files)",
     "data": "    (data files)",
     "htmlcov": "    (HTML coverage reports)",

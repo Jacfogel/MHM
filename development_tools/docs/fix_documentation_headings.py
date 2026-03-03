@@ -17,7 +17,7 @@ Usage:
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -47,7 +47,7 @@ logger = get_component_logger("development_tools")
 # ============================================================================
 
 
-def _parse_headings(content: str) -> List[Tuple[int, int, str, str, bool]]:
+def _parse_headings(content: str) -> list[tuple[int, int, str, str, bool]]:
     """Parse markdown content and extract heading information."""
     lines = content.split("\n")
     headings = []
@@ -78,7 +78,7 @@ def _parse_headings(content: str) -> List[Tuple[int, int, str, str, bool]]:
     return headings
 
 
-def _extract_numbered_prefix(text: str) -> Tuple[Optional[int], Optional[int], str]:
+def _extract_numbered_prefix(text: str) -> tuple[int | None, int | None, str]:
     """Extract number prefix from heading if present."""
     match = re.match(r"^(\d+(?:\.\d+)*)\.\s+(.+)$", text)
     if match:
@@ -188,10 +188,10 @@ def _should_skip_numbering(heading_text: str, is_changelog: bool = False) -> boo
 
 def _number_headings(
     content: str,
-    file_path: Optional[Path] = None,
+    file_path: Path | None = None,
     start_at_zero: bool = False,
     create_updates: bool = True,
-) -> Tuple[str, List[str]]:
+) -> tuple[str, list[str]]:
     """Number H2 and H3 headings in markdown content."""
     is_changelog = file_path is not None and _is_changelog_file(file_path)
     if is_changelog:
@@ -207,7 +207,7 @@ def _number_headings(
     start_at_zero_detected = None
 
     # First pass: detect starting number
-    for line_num, level, original_line, heading_text, in_code_block in headings:
+    for _line_num, level, _original_line, heading_text, in_code_block in headings:
         if in_code_block or _should_skip_numbering(heading_text, is_changelog):
             continue
         if level == 2:
@@ -224,7 +224,7 @@ def _number_headings(
         h2_counter = 0 if start_at_zero else 1
 
     # Second pass: number headings
-    for line_num, level, original_line, heading_text, in_code_block in headings:
+    for line_num, level, _original_line, heading_text, in_code_block in headings:
         if in_code_block:
             continue
 
@@ -368,7 +368,7 @@ def _number_headings(
 class DocumentationHeadingFixer:
     """Fixes heading numbering in documentation files."""
 
-    def __init__(self, project_root: Optional[str] = None):
+    def __init__(self, project_root: str | None = None):
         """Initialize the documentation heading fixer."""
         if project_root:
             self.project_root = Path(project_root).resolve()
@@ -377,7 +377,7 @@ class DocumentationHeadingFixer:
 
     def fix_number_headings(
         self, dry_run: bool = False, start_at_zero: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Number H2 and H3 headings in documentation files."""
         files_updated = 0
         issues_fixed = 0
@@ -400,7 +400,7 @@ class DocumentationHeadingFixer:
                 continue
 
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = f.read()
 
                 new_content, issues = _number_headings(

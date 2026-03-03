@@ -838,7 +838,7 @@ def print_configuration_report():
                 print(f"  {i}. {warning}")
 
         # Print current configuration values
-        print(f"\nCURRENT CONFIGURATION:")
+        print("\nCURRENT CONFIGURATION:")
         print(f"  Base Data Directory: {BASE_DATA_DIR}")
         print(f"  Log File: {LOG_MAIN_FILE}")
         print(f"  Log Level: {LOG_LEVEL}")

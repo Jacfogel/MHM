@@ -12,7 +12,7 @@ import sys
 import re
 import ast
 from pathlib import Path
-from typing import List, Tuple, Dict, Optional, Pattern
+from re import Pattern
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -52,7 +52,7 @@ logger = get_component_logger("development_tools")
 class TestMarkerAnalyzer:
     """Analyze and manage pytest category markers in test files."""
 
-    def __init__(self, project_root: Optional[Path] = None):
+    def __init__(self, project_root: Path | None = None):
         self.project_root = (project_root or Path(config.get_project_root())).resolve()
 
         paths = ProjectPaths(root=self.project_root)
@@ -79,13 +79,13 @@ class TestMarkerAnalyzer:
         )
         if not isinstance(configured_categories, list) or not configured_categories:
             configured_categories = list(TEST_CATEGORY_MARKERS)
-        self.category_markers: Tuple[str, ...] = tuple(
+        self.category_markers: tuple[str, ...] = tuple(
             str(marker).strip() for marker in configured_categories if str(marker).strip()
         )
         if not self.category_markers:
             self.category_markers = TEST_CATEGORY_MARKERS
 
-        self.category_marker_patterns: List[Pattern[str]] = [
+        self.category_marker_patterns: list[Pattern[str]] = [
             re.compile(rf"@pytest\.mark\.{re.escape(marker)}\b")
             for marker in self.category_markers
         ]
@@ -95,7 +95,7 @@ class TestMarkerAnalyzer:
         )
         if not isinstance(configured_dir_map, dict) or not configured_dir_map:
             configured_dir_map = TEST_MARKER_DIRECTORY_MAP
-        self.directory_to_marker: Dict[str, str] = {
+        self.directory_to_marker: dict[str, str] = {
             str(directory).strip("/\\"): str(marker).strip()
             for directory, marker in configured_dir_map.items()
             if str(directory).strip("/\\") and str(marker).strip()
@@ -109,7 +109,7 @@ class TestMarkerAnalyzer:
         )
         if not isinstance(configured_transient_markers, list):
             configured_transient_markers = list(TEST_MARKER_TRANSIENT_PATH_MARKERS)
-        self.transient_data_path_markers: Tuple[str, ...] = tuple(
+        self.transient_data_path_markers: tuple[str, ...] = tuple(
             str(marker).replace("\\", "/")
             for marker in configured_transient_markers
             if str(marker).strip()
@@ -121,7 +121,7 @@ class TestMarkerAnalyzer:
         )
         if not isinstance(configured_ai_tokens, list):
             configured_ai_tokens = list(TEST_MARKER_AI_PATH_TOKENS)
-        self.ai_path_tokens: Tuple[str, ...] = tuple(
+        self.ai_path_tokens: tuple[str, ...] = tuple(
             str(token).replace("\\", "/")
             for token in configured_ai_tokens
             if str(token).strip()
@@ -139,7 +139,7 @@ class TestMarkerAnalyzer:
             f"{self.tests_data_dir_rel}/"
         )
 
-    def find_test_files(self, exclude_ai: bool = True) -> List[Path]:
+    def find_test_files(self, exclude_ai: bool = True) -> list[Path]:
         """Find all test files in the tests directory."""
         test_files = []
         if not self.test_dir.exists():
@@ -179,7 +179,7 @@ class TestMarkerAnalyzer:
         """Check if content has any category marker."""
         return any(pattern.search(content) for pattern in self.category_marker_patterns)
 
-    def get_expected_marker(self, file_path: Path) -> Optional[str]:
+    def get_expected_marker(self, file_path: Path) -> str | None:
         """Determine expected marker based on directory structure."""
         f_str = str(file_path).replace("\\", "/")
 
@@ -190,7 +190,7 @@ class TestMarkerAnalyzer:
                 return marker
         return None
 
-    def analyze_markers(self) -> Dict:
+    def analyze_markers(self) -> dict:
         """Analyze all test files for marker usage."""
         test_files = self.find_test_files()
         files_needing_markers = []
@@ -225,7 +225,7 @@ class TestMarkerAnalyzer:
             "missing_markers": files_needing_markers,
         }
 
-    def find_missing_markers_ast(self) -> List[Tuple[str, int, str, str]]:
+    def find_missing_markers_ast(self) -> list[tuple[str, int, str, str]]:
         """Find missing markers using AST analysis (more accurate)."""
         finder = MissingMarkerFinder(category_markers=self.category_markers)
         test_files = self.find_test_files()
@@ -235,7 +235,7 @@ class TestMarkerAnalyzer:
 
         return finder.missing
 
-    def add_markers(self, dry_run: bool = False) -> Dict:
+    def add_markers(self, dry_run: bool = False) -> dict:
         """
         Add missing markers to test files based on directory structure.
         """
@@ -378,7 +378,7 @@ class TestMarkerAnalyzer:
 class MissingMarkerFinder:
     """AST-based finder for missing markers (more accurate than regex)."""
 
-    def __init__(self, category_markers: Optional[Tuple[str, ...]] = None):
+    def __init__(self, category_markers: tuple[str, ...] | None = None):
         self.missing = []
         self.category_markers = set(category_markers or TEST_CATEGORY_MARKERS)
 
@@ -445,9 +445,7 @@ class MissingMarkerFinder:
             return
         class_has = inherited_category or self.has_category_marker(node.decorator_list)
         for stmt in node.body:
-            if isinstance(stmt, ast.FunctionDef):
-                self.process_function(stmt, file_path, inherited_category=class_has)
-            elif isinstance(stmt, ast.AsyncFunctionDef):
+            if isinstance(stmt, ast.FunctionDef) or isinstance(stmt, ast.AsyncFunctionDef):
                 self.process_function(stmt, file_path, inherited_category=class_has)
             elif isinstance(stmt, ast.ClassDef):
                 self.process_class(stmt, file_path, inherited_category=class_has)
@@ -460,9 +458,7 @@ class MissingMarkerFinder:
             logger.warning(f"Skipping {file_path} due to syntax error: {exc}")
             return
         for node in tree.body:
-            if isinstance(node, ast.FunctionDef):
-                self.process_function(node, file_path)
-            elif isinstance(node, ast.AsyncFunctionDef):
+            if isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
                 self.process_function(node, file_path)
             elif isinstance(node, ast.ClassDef):
                 self.process_class(node, file_path)
@@ -510,11 +506,11 @@ def main():
         else:
             print(f"Total test files: {result['total_files']}")
             print(f"Files needing category markers: {result['files_needing_markers']}")
-            print(f"\nFiles by directory:")
+            print("\nFiles by directory:")
             for dir_name, count in result["files_by_dir"].items():
                 print(f"  {dir_name}: {count}")
             if result["missing_markers"]:
-                print(f"\nFiles needing markers (first 30):")
+                print("\nFiles needing markers (first 30):")
                 for f, expected in result["missing_markers"][:30]:
                     print(f"  {expected or 'unknown'}: {f}")
 

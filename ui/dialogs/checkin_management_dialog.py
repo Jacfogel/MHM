@@ -51,7 +51,6 @@ class CheckinManagementDialog(QDialog):
             self.checkin_widget = CheckinSettingsWidget(self, self.user_id)
 
             # Get references to the group boxes
-            questions_group = self.checkin_widget.ui.groupBox_checkin_questions
             periods_group = self.checkin_widget.ui.groupBox_checkin_time_periods
 
             # Remove periods group from original layout (keep questions in widget for now)
@@ -220,7 +219,7 @@ class CheckinManagementDialog(QDialog):
                         f"Maximum questions ({max_questions}) cannot exceed {max_allowed} "
                         f"(total enabled questions: {total_enabled}"
                         + (
-                            f", minus 1 because you have 'sometimes' questions enabled"
+                            ", minus 1 because you have 'sometimes' questions enabled"
                             if sometimes_count > 0
                             else ""
                         )

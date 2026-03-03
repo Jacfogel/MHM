@@ -7,7 +7,7 @@ Contains command handlers and COMMAND_REGISTRY for the command-line interface.
 import argparse
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Callable, Sequence
+from collections.abc import Callable, Sequence
 
 from core.logger import get_component_logger
 

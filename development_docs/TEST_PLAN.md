@@ -369,6 +369,16 @@ Acceptance:
   - [ ] Implement deterministic fix and keep the helper assertions strict (no silent weakening)
   - [ ] Add regression coverage for the discovered failure mode
 
+**Sweep test log fixtures for xdist-safe isolation**
+- *What it means*: Audit tests that write to shared log paths (for example under `tests/data/logs`) and migrate them to per-test isolated paths (`tmp_path`) where destructive teardown can race in parallel runs. xdist = pytest parallel workers; isolation = each test uses its own paths so parallel runs don't conflict.
+- *Why it helps*: Prevents intermittent `FileNotFoundError` and similar races during Tier 3 parallel coverage runs.
+- *Estimated effort*: Small/Medium
+- *User priority*: Test isolation is key.
+- *Updated*: 2026-03-03
+- *Subtasks*:
+  - [ ] Investigate intermittent `tmp_path` root-missing errors under `tests/data/tmp_pytest_runtime/pytest-of-*/pytest-*` seen in combined/local runs; stabilize test-runtime directory provisioning/cleanup ordering
+  - [ ] Investigate `xdist_worker_crash_output` in Tier 3 parallel runs (latest marker in `test_conversation_manager_expire_checkin_flow`) and harden for parallel execution
+
 ### 5.7 Phase 7: Coverage consistency, then growth
 
 **Use / fit**: Tests as validation checks; every bit helps. Higher overall coverage preferred. Priority domains: communication, check-in flow, backup, UI. **Deprioritize AI/context** until AI overhaul.

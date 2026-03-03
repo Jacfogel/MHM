@@ -45,7 +45,7 @@ class CheckinAnalytics:
             return [q for q in questions_asked if isinstance(q, str) and q]
         return [
             key
-            for key in checkin.keys()
+            for key in checkin
             if key not in self._RESERVED_CHECKIN_KEYS
         ]
 
@@ -366,7 +366,7 @@ class CheckinAnalytics:
                 if value:
                     habit_entry["completed_days"] += 1
 
-        for habit_key, habit_entry in habit_stats.items():
+        for _habit_key, habit_entry in habit_stats.items():
             answered_days = habit_entry.get("answered_days", 0)
             completed_days = habit_entry.get("completed_days", 0)
             completion_rate = (

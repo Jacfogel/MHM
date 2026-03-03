@@ -10,7 +10,6 @@ Extracts and analyzes imports from Python files.
 import ast
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -43,8 +42,8 @@ class ModuleImportAnalyzer:
 
     def __init__(
         self,
-        project_root: Optional[str] = None,
-        local_prefixes: Optional[Tuple[str, ...]] = None,
+        project_root: str | None = None,
+        local_prefixes: tuple[str, ...] | None = None,
     ):
         """Initialize the module import analyzer."""
         if project_root:
@@ -65,7 +64,7 @@ class ModuleImportAnalyzer:
         except Exception:
             self.cache = None
 
-    def extract_imports_from_file(self, file_path: str) -> Dict[str, List[Dict]]:
+    def extract_imports_from_file(self, file_path: str) -> dict[str, list[dict]]:
         """Extract all imports from a Python file with detailed information."""
         # Note: Exclusion logic is handled in scan_all_python_files() before calling this function.
         # This function processes any file passed to it (including test fixtures and files in tests/),
@@ -86,7 +85,7 @@ class ModuleImportAnalyzer:
         imports = {"standard_library": [], "third_party": [], "local": []}
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             tree = ast.parse(content)
@@ -163,7 +162,7 @@ class ModuleImportAnalyzer:
         # Use default from constants (which loads from config)
         return _is_local_module(module_name)
 
-    def format_import_details(self, import_info: Dict) -> str:
+    def format_import_details(self, import_info: dict) -> str:
         """Format import information for display - handles both list and set formats."""
         module = import_info["module"]
         imported_items = import_info.get("imported_items", [])
@@ -185,7 +184,7 @@ class ModuleImportAnalyzer:
             items_str = ", ".join(unique_items)
             return ensure_ascii(f"{module} ({items_str})")
 
-    def scan_all_python_files(self) -> Dict[str, Dict]:
+    def scan_all_python_files(self) -> dict[str, dict]:
         """Scan all Python files in the project and extract import information."""
         results = {}
 
@@ -266,8 +265,8 @@ class ModuleImportAnalyzer:
         return results
 
     def find_usage_of_module(
-        self, target_module: str, all_modules: Dict[str, Dict]
-    ) -> List[str]:
+        self, target_module: str, all_modules: dict[str, dict]
+    ) -> list[str]:
         """Find all modules that use the target module."""
         users = []
         for file_path, data in all_modules.items():
@@ -276,8 +275,8 @@ class ModuleImportAnalyzer:
         return sorted(users)
 
     def find_reverse_dependencies(
-        self, target_module: str, all_modules: Dict[str, Dict]
-    ) -> List[str]:
+        self, target_module: str, all_modules: dict[str, dict]
+    ) -> list[str]:
         """Find all modules that import the target module."""
         users = []
 
@@ -294,8 +293,8 @@ class ModuleImportAnalyzer:
         return sorted(users)
 
     def analyze_dependency_changes(
-        self, file_path: str, data: Dict, existing_content: str
-    ) -> Dict:
+        self, file_path: str, data: dict, existing_content: str
+    ) -> dict:
         """Analyze if dependencies have changed since last generation."""
         changes = {"added": [], "removed": [], "unchanged": True}
 
@@ -338,12 +337,12 @@ class ModuleImportAnalyzer:
         return changes
 
     def infer_module_purpose(
-        self, file_path: str, data: Dict, all_modules: Dict[str, Dict]
+        self, file_path: str, data: dict, all_modules: dict[str, dict]
     ) -> str:
         """Infer a more detailed purpose based on dependencies and usage patterns."""
         # Extract local dependencies from the new structure
         local_deps = [import_info["module"] for import_info in data["imports"]["local"]]
-        reverse_deps = self.find_reverse_dependencies(file_path, all_modules)
+        self.find_reverse_dependencies(file_path, all_modules)
 
         # Analyze dependency patterns
         core_deps = [d for d in local_deps if d.startswith("core.")]
@@ -483,32 +482,32 @@ class ModuleImportAnalyzer:
 
         # Fallback based on dependency patterns
         if len(core_deps) > len(local_deps) * 0.7:
-            return f"Core system module with heavy core dependencies"
+            return "Core system module with heavy core dependencies"
         elif len(bot_deps) > 0:
-            return f"Bot-related module with communication dependencies"
+            return "Bot-related module with communication dependencies"
         elif len(ui_deps) > 0:
-            return f"UI-related module with interface dependencies"
+            return "UI-related module with interface dependencies"
         elif len(test_deps) > 0:
-            return ensure_ascii(f"Test-related module")
+            return ensure_ascii("Test-related module")
         else:
             return ensure_ascii(f"Module for {file_path}")
 
 
-def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
+def extract_imports_from_file(file_path: str) -> dict[str, list[dict]]:
     """Module-level helper for tests and callers."""
     return ModuleImportAnalyzer().extract_imports_from_file(file_path)
 
 
 def find_reverse_dependencies(
-    target_module: str, all_modules: Dict[str, Dict]
-) -> List[str]:
+    target_module: str, all_modules: dict[str, dict]
+) -> list[str]:
     """Module-level helper for tests and callers."""
     return ModuleImportAnalyzer().find_reverse_dependencies(target_module, all_modules)
 
 
 def analyze_dependency_changes(
-    file_path: str, data: Dict, existing_content: str
-) -> Dict:
+    file_path: str, data: dict, existing_content: str
+) -> dict:
     """Module-level helper for tests and callers."""
     return ModuleImportAnalyzer().analyze_dependency_changes(
         file_path, data, existing_content
@@ -516,18 +515,18 @@ def analyze_dependency_changes(
 
 
 def infer_module_purpose(
-    file_path: str, data: Dict, all_modules: Dict[str, Dict]
+    file_path: str, data: dict, all_modules: dict[str, dict]
 ) -> str:
     """Module-level helper for tests and callers."""
     return ModuleImportAnalyzer().infer_module_purpose(file_path, data, all_modules)
 
 
-def format_import_details(import_info: Dict) -> str:
+def format_import_details(import_info: dict) -> str:
     """Module-level helper for tests and callers."""
     return ModuleImportAnalyzer().format_import_details(import_info)
 
 
-def scan_all_python_files() -> Dict[str, Dict]:
+def scan_all_python_files() -> dict[str, dict]:
     """Module-level helper for tests and callers."""
     return ModuleImportAnalyzer().scan_all_python_files()
 

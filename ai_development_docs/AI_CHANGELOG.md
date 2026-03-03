@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-03 - Tier 3 remediation continuation + closeout tracking **Progressed**
+- Fixed the previously remaining behavior failure `test_send_predefined_message_real_behavior` by restoring `channel_orchestrator` message path resolution through `determine_file_path`, matching real behavior and patch targets.
+- Removed one safe unused import in `communication/core/channel_orchestrator.py` (`get_user_data_dir`) after the path-resolution fix; targeted Ruff check for F401 passed.
+- Synced closeout planning docs (`TODO.md`, `development_docs/PLANS.md`) to keep the remaining Tier 3 `xdist_worker_crash_output` (`test_conversation_manager_expire_checkin_flow`) explicitly tracked as outstanding follow-up work.
+- Completed session wrap-up inventory with full working-tree diff review (`git diff --stat`, `git diff --name-only`) and created paired changelog entries for this session.
+
 ### 2026-03-02 - Task split, notebook rename, error handling Phase 1, follow-ups **COMPLETED**
 - Unified user items: added `core/user_item_storage.py` and `is_valid_user_id`; split `tasks/task_management.py` into task_schemas, task_validation, task_data_handlers, task_data_manager; renamed `notebook/schemas.py` to `notebook/notebook_schemas.py`. All call sites use `from tasks import ...`; task_handler and profile_handler use lazy `_get_tasks()`.
 - Test fixes: patches updated to `tasks.*` / `tasks.task_data_manager.*`; due_date in update path resolved (e.g. "tomorrow") via relative-date parsing; get_user_task_stats default and title=None validation aligned.

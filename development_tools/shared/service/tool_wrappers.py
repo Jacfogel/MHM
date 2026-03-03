@@ -10,7 +10,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from core.logger import get_component_logger
 
@@ -68,10 +68,10 @@ SCRIPT_REGISTRY = {
 class ToolWrappersMixin:
     """Mixin class providing tool execution methods to AIToolsService."""
 
-    exclusion_config: Dict[str, bool]
+    exclusion_config: dict[str, bool]
     project_root: Path
 
-    def run_script(self, script_name: str, *args, timeout: Optional[int] = 300) -> Dict:
+    def run_script(self, script_name: str, *args, timeout: int | None = 300) -> dict:
         """Run a registered helper script from development_tools."""
         script_rel_path = SCRIPT_REGISTRY.get(script_name)
         if not script_rel_path:
@@ -133,7 +133,7 @@ class ToolWrappersMixin:
                 "returncode": None,
             }
 
-    def run_analyze_documentation(self, include_overlap: bool = False) -> Dict:
+    def run_analyze_documentation(self, include_overlap: bool = False) -> dict:
         """Run analyze_documentation with structured JSON handling."""
         logger.debug("Analyzing documentation...")
         args = ["--json"]
@@ -264,7 +264,7 @@ class ToolWrappersMixin:
                 result["error"] = ""
         return result
 
-    def run_analyze_function_registry(self) -> Dict:
+    def run_analyze_function_registry(self) -> dict:
         """Run analyze_function_registry with structured JSON handling."""
         logger.debug("Analyzing function registry...")
         result = self.run_script("analyze_function_registry", "--json")
@@ -330,7 +330,7 @@ class ToolWrappersMixin:
                 result["error"] = ""
         return result
 
-    def run_analyze_module_dependencies(self) -> Dict:
+    def run_analyze_module_dependencies(self) -> dict:
         """Run analyze_module_dependencies and capture dependency drift summary."""
         logger.debug("Analyzing module dependencies...")
         result = self.run_script("analyze_module_dependencies")
@@ -369,7 +369,7 @@ class ToolWrappersMixin:
             self.results_cache["analyze_module_dependencies"] = summary
         return result
 
-    def run_analyze_functions(self) -> Dict:
+    def run_analyze_functions(self) -> dict:
         """Run analyze_functions with structured JSON handling."""
         logger.debug("Analyzing functions...")
         args = ["--json"]
@@ -398,8 +398,8 @@ class ToolWrappersMixin:
         return result
 
     def run_analyze_duplicate_functions(
-        self, min_overall: Optional[float] = None, min_name: Optional[float] = None
-    ) -> Dict:
+        self, min_overall: float | None = None, min_name: float | None = None
+    ) -> dict:
         """Run analyze_duplicate_functions with structured JSON handling."""
         logger.debug("Analyzing duplicate functions...")
         args = ["--json"]
@@ -440,7 +440,7 @@ class ToolWrappersMixin:
 
     def run_analyze_module_refactor_candidates(
         self, include_tests: bool = False, include_dev_tools: bool = False
-    ) -> Dict:
+    ) -> dict:
         """Run analyze_module_refactor_candidates with structured JSON handling."""
         logger.debug("Analyzing module refactor candidates...")
         args = ["--json"]
@@ -475,7 +475,7 @@ class ToolWrappersMixin:
             result["error"] = ""
         return result
 
-    def run_decision_support(self) -> Dict:
+    def run_decision_support(self) -> dict:
         """Run decision_support with structured JSON handling."""
         logger.debug("Running decision_support...")
         args = []
@@ -534,7 +534,7 @@ class ToolWrappersMixin:
             )
         return result
 
-    def run_analyze_function_patterns(self) -> Dict:
+    def run_analyze_function_patterns(self) -> dict:
         """Run analyze_function_patterns and save results."""
         logger.debug("Analyzing function patterns...")
         try:
@@ -565,7 +565,7 @@ class ToolWrappersMixin:
             logger.warning(f"Failed to run analyze_function_patterns: {e}")
             return {"success": False, "error": str(e)}
 
-    def run_analyze_module_imports(self) -> Dict:
+    def run_analyze_module_imports(self) -> dict:
         """Run analyze_module_imports and save results."""
         logger.debug("Analyzing module imports...")
         try:
@@ -592,7 +592,7 @@ class ToolWrappersMixin:
             logger.warning(f"Failed to run analyze_module_imports: {e}")
             return {"success": False, "error": str(e)}
 
-    def run_analyze_dependency_patterns(self) -> Dict:
+    def run_analyze_dependency_patterns(self) -> dict:
         """Run analyze_dependency_patterns and save results."""
         logger.debug("Analyzing dependency patterns...")
         try:
@@ -630,7 +630,7 @@ class ToolWrappersMixin:
             logger.warning(f"Failed to run analyze_dependency_patterns: {e}")
             return {"success": False, "error": str(e)}
 
-    def run_analyze_package_exports(self) -> Dict:
+    def run_analyze_package_exports(self) -> dict:
         """Run analyze_package_exports and save results."""
         logger.debug("Analyzing package exports...")
         try:
@@ -724,7 +724,7 @@ class ToolWrappersMixin:
             logger.warning(f"Failed to run analyze_package_exports: {e}")
             return {"success": False, "error": str(e)}
 
-    def run_analyze_error_handling(self) -> Dict:
+    def run_analyze_error_handling(self) -> dict:
         """Run analyze_error_handling with structured JSON handling."""
         args = ["--json"]
         if self.exclusion_config.get("include_tests", False):
@@ -806,7 +806,7 @@ class ToolWrappersMixin:
                 result["error"] = ""
         return result
 
-    def run_analyze_documentation_sync(self) -> Dict:
+    def run_analyze_documentation_sync(self) -> dict:
         """Run analyze_documentation_sync with structured data handling."""
         try:
             if self._run_doc_sync_check():
@@ -911,7 +911,7 @@ class ToolWrappersMixin:
             logger.error(f"Error running documentation sync: {e}", exc_info=True)
             return {"success": False, "error": str(e), "output": "", "returncode": 1}
 
-    def run_analyze_path_drift(self) -> Dict:
+    def run_analyze_path_drift(self) -> dict:
         """Run analyze_path_drift with structured data handling."""
         try:
             from development_tools.docs.analyze_path_drift import PathDriftAnalyzer
@@ -969,7 +969,7 @@ class ToolWrappersMixin:
             result = self.run_script("analyze_path_drift", "--json")
             try:
 
-                def path_drift_converter(file_data: Dict[str, Any]) -> Dict[str, Any]:
+                def path_drift_converter(file_data: dict[str, Any]) -> dict[str, Any]:
                     files_with_issues = {}
                     detailed_issues = {}
                     total_issues = 0
@@ -1031,7 +1031,7 @@ class ToolWrappersMixin:
                     result["error"] = f"Failed to parse path drift output: {e}"
             return result
 
-    def run_generate_legacy_reference_report(self) -> Dict:
+    def run_generate_legacy_reference_report(self) -> dict:
         """Run generate_legacy_reference_report to create LEGACY_REFERENCE_REPORT.md."""
         logger.debug("Generating legacy reference report...")
         # First, ensure we have legacy reference analysis results
@@ -1138,7 +1138,7 @@ class ToolWrappersMixin:
                 "returncode": None,
             }
 
-    def run_generate_test_coverage_report(self) -> Dict:
+    def run_generate_test_coverage_report(self) -> dict:
         """Run generate_test_coverage_report to generate TEST_COVERAGE_REPORT.md from existing coverage data.
 
         This tool generates TEST_COVERAGE_REPORT.md, HTML, and JSON reports from existing coverage.json.
@@ -1174,7 +1174,7 @@ class ToolWrappersMixin:
                     )
                     return {
                         "success": True,
-                        "output": f"TEST_COVERAGE_REPORT.md generated successfully",
+                        "output": "TEST_COVERAGE_REPORT.md generated successfully",
                         "error": "",
                         "returncode": 0,
                     }
@@ -1200,7 +1200,7 @@ class ToolWrappersMixin:
                 "returncode": None,
             }
 
-    def run_analyze_legacy_references(self) -> Dict:
+    def run_analyze_legacy_references(self) -> dict:
         """Run analyze_legacy_references with structured data handling."""
         try:
             from development_tools.legacy.analyze_legacy_references import (
@@ -1286,7 +1286,7 @@ class ToolWrappersMixin:
             )
             return {"success": False, "error": str(e), "output": "", "returncode": 1}
 
-    def run_analyze_unused_imports(self) -> Dict:
+    def run_analyze_unused_imports(self) -> dict:
         """Run analyze_unused_imports with structured JSON handling (analysis only)."""
         script_path = (
             Path(__file__).resolve().parent.parent.parent
@@ -1449,14 +1449,14 @@ class ToolWrappersMixin:
                 logger.debug(f"Traceback: {traceback.format_exc()}")
         else:
             logger.warning(
-                f"analyze_unused_imports: No data extracted, skipping save_tool_result()"
+                "analyze_unused_imports: No data extracted, skipping save_tool_result()"
             )
             if not result.get("error"):
                 result["error"] = "No parseable JSON output from analyze_unused_imports"
             result["success"] = False
         return result
 
-    def run_analyze_pyright(self) -> Dict:
+    def run_analyze_pyright(self) -> dict:
         """Run pyright static analysis with structured JSON handling."""
         logger.debug("Analyzing pyright diagnostics...")
         # Try mtime cache first (skip run if source unchanged)
@@ -1505,7 +1505,7 @@ class ToolWrappersMixin:
             result["success"] = False
         return result
 
-    def run_analyze_ruff(self) -> Dict:
+    def run_analyze_ruff(self) -> dict:
         """Run ruff static analysis with structured JSON handling."""
         logger.debug("Analyzing ruff diagnostics...")
         # Try mtime cache first (skip run if source unchanged)
@@ -1554,7 +1554,7 @@ class ToolWrappersMixin:
             result["success"] = False
         return result
 
-    def _compute_source_signature(self) -> Optional[str]:
+    def _compute_source_signature(self) -> str | None:
         """Compute hash of .py sources for static-check cache invalidation."""
         try:
             import hashlib
@@ -1571,7 +1571,7 @@ class ToolWrappersMixin:
                     mtime_ns = getattr(
                         stat, "st_mtime_ns", int(stat.st_mtime * 1_000_000_000)
                     )
-                    sig.update(f"{rel}:{mtime_ns}:{stat.st_size}".encode("utf-8"))
+                    sig.update(f"{rel}:{mtime_ns}:{stat.st_size}".encode())
                     # Include file bytes digest so same-size rapid edits still invalidate.
                     file_hash = hashlib.sha256()
                     with open(p, "rb") as handle:
@@ -1585,7 +1585,7 @@ class ToolWrappersMixin:
             logger.debug(f"Could not compute source signature: {e}")
             return None
 
-    def _try_static_check_cache(self, tool_name: str, domain: str) -> Optional[Dict]:
+    def _try_static_check_cache(self, tool_name: str, domain: str) -> dict | None:
         """Return cached result if source unchanged; None to run tool."""
         sig = self._compute_source_signature()
         if not sig:
@@ -1597,7 +1597,7 @@ class ToolWrappersMixin:
         if not cache_file.exists():
             return None
         try:
-            with open(cache_file, "r", encoding="utf-8") as f:
+            with open(cache_file, encoding="utf-8") as f:
                 cache_data = json.load(f)
             if cache_data.get("source_signature") != sig:
                 return None
@@ -1611,7 +1611,7 @@ class ToolWrappersMixin:
         return None
 
     def _save_static_check_cache(
-        self, tool_name: str, domain: str, data: Dict
+        self, tool_name: str, domain: str, data: dict
     ) -> None:
         """Save source signature after successful tool run."""
         sig = self._compute_source_signature()
@@ -1628,13 +1628,13 @@ class ToolWrappersMixin:
         except OSError as e:
             logger.debug(f"Could not save static check cache: {e}")
 
-    def run_generate_unused_imports_report(self) -> Dict:
+    def run_generate_unused_imports_report(self) -> dict:
         """Run generate_unused_imports_report to generate markdown report from analysis results."""
         logger.debug("Generating unused imports report...")
         tools_run = getattr(self, "_tools_run_in_current_tier", None)
         if tools_run is None:
             tools_run = set()
-            setattr(self, "_tools_run_in_current_tier", tools_run)
+            self._tools_run_in_current_tier = tools_run
         if "analyze_unused_imports" not in tools_run:
             logger.debug("Running unused imports analysis before generating the report.")
             analysis_result = self.run_analyze_unused_imports()

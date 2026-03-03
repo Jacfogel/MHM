@@ -5,7 +5,6 @@ Tests function extraction, scanning, categorization, and file generation.
 """
 
 import pytest
-from pathlib import Path
 from unittest.mock import patch
 
 # Import helper from conftest
@@ -694,7 +693,6 @@ class TestFileGeneration:
         _patch_should_exclude_file(monkeypatch, mock_should_exclude_file)
         
         # Mock the file writing to use temp directory
-        original_update = update_function_registry
         
         written_files = []
         

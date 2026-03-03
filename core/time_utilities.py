@@ -17,7 +17,8 @@ Design goals:
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Iterable, Literal
+from typing import Literal
+from collections.abc import Iterable
 
 from core.error_handling import handle_errors
 from core.logger import get_component_logger

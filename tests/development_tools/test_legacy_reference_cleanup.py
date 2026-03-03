@@ -51,7 +51,7 @@ class TestLegacyScanning:
         findings = analyzer.scan_for_legacy_references()
         
         # README.md should not appear in findings
-        for pattern_type, files in findings.items():
+        for _pattern_type, files in findings.items():
             for file_path, _, _ in files:
                 assert 'README.md' not in str(file_path)
         
@@ -158,7 +158,7 @@ class TestCleanupOperations:
         assert legacy_file.exists(), f"legacy_code.py should exist in {temp_project_copy}"
         
         # Verify the file is not being skipped
-        assert not analyzer.should_skip_file(legacy_file), f"legacy_code.py should not be skipped"
+        assert not analyzer.should_skip_file(legacy_file), "legacy_code.py should not be skipped"
         
         # Scan for legacy references
         findings = analyzer.scan_for_legacy_references()
@@ -201,7 +201,7 @@ class TestCleanupOperations:
         assert legacy_file.exists(), f"legacy_code.py should exist in {temp_project_copy}"
         
         # Verify the file is not being skipped
-        assert not analyzer.should_skip_file(legacy_file), f"legacy_code.py should not be skipped"
+        assert not analyzer.should_skip_file(legacy_file), "legacy_code.py should not be skipped"
         
         # Scan for legacy references
         findings = analyzer.scan_for_legacy_references()

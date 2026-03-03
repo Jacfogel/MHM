@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-03 00:20:58
+> **Last Generated**: 2026-03-03 02:51:59
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 9
 **Legacy Compatibility Markers Detected**: 14
@@ -25,12 +25,12 @@
 ### development_tools\shared\service\data_loading.py
 **Issues Found**: 2
 
-- **Line 59**: `# LEGACY COMPATIBILITY:`
+- **Line 60**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY:
   ```
 
-- **Line 651**: `# LEGACY COMPATIBILITY:`
+- **Line 652**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY:
   ```
@@ -43,7 +43,7 @@
   # LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)
   ```
 
-- **Line 4915**: `# LEGACY COMPATIBILITY:`
+- **Line 4913**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY:
   ```
@@ -62,7 +62,7 @@
 ### development_tools\shared\mtime_cache.py
 **Issues Found**: 1
 
-- **Line 384**: `legacy path`
+- **Line 385**: `legacy path`
   ```
   # This ensures we fix standardized storage issues rather than silently using legacy paths
   ```
@@ -70,7 +70,7 @@
 ### development_tools\shared\service\audit_orchestration.py
 **Issues Found**: 1
 
-- **Line 1959**: `Backward compatibility`
+- **Line 1958**: `Backward compatibility`
   ```
   # Backward compatibility: retained as sum of per-tool durations
   ```
@@ -110,12 +110,12 @@
 ### development_tools\shared\service\commands.py
 **Issues Found**: 2
 
-- **Line 1146**: `tier3_coverage_outcome_v1`
+- **Line 1145**: `tier3_coverage_outcome_v1`
   ```
   "LEGACY COMPATIBILITY: tier3_coverage_outcome_v1 bridge exercised; "
   ```
 
-- **Line 1151**: `legacy_state_only_payload`
+- **Line 1150**: `legacy_state_only_payload`
   ```
   track["classification_reason"] = "legacy_state_only_payload"
   ```

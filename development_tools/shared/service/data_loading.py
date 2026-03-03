@@ -9,7 +9,8 @@ import json
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
+from collections.abc import Callable
 
 from core.logger import get_component_logger
 
@@ -22,7 +23,7 @@ logger = get_component_logger("development_tools")
 class DataLoadingMixin:
     """Mixin class providing data loading and parsing methods to AIToolsService."""
 
-    def _load_tool_data(self, tool_name: str, domain: Optional[str] = None, log_source: bool = True) -> Dict[str, Any]:
+    def _load_tool_data(self, tool_name: str, domain: str | None = None, log_source: bool = True) -> dict[str, Any]:
         """
         Unified data loading helper with consistent fallback chain.
         
@@ -49,8 +50,8 @@ class DataLoadingMixin:
             )
 
         def _normalize_with_warning(
-            payload: Dict[str, Any], source_label: str
-        ) -> Optional[Dict[str, Any]]:
+            payload: dict[str, Any], source_label: str
+        ) -> dict[str, Any] | None:
             from ..result_format import normalize_to_standard_format
 
             if _is_standard_payload(payload):
@@ -74,7 +75,7 @@ class DataLoadingMixin:
                 return None
 
         # Determine if we're in an active audit (should have current data)
-        is_active_audit = hasattr(self, 'current_audit_tier') and self.current_audit_tier is not None
+        hasattr(self, 'current_audit_tier') and self.current_audit_tier is not None
         audit_tier = getattr(self, 'current_audit_tier', None)
         
         # Check if this tool was actually run in the current audit tier
@@ -122,9 +123,9 @@ class DataLoadingMixin:
             logger.warning(f"[DATA SOURCE] {tool_name}: no data found in any source (using empty fallback)")
         return {}
     
-    def _get_canonical_metrics(self) -> Dict[str, Any]:
+    def _get_canonical_metrics(self) -> dict[str, Any]:
         """Provide consistent totals across downstream documents."""
-        def _get_decision_support_details(raw: Any) -> Dict[str, Any]:
+        def _get_decision_support_details(raw: Any) -> dict[str, Any]:
             if not isinstance(raw, dict):
                 return {}
             try:
@@ -215,7 +216,7 @@ class DataLoadingMixin:
                 
                 results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
                 if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
+                    with open(results_file, encoding='utf-8') as f:
                         cached_data = json.load(f)
                     
                     # Try analyze_functions first
@@ -342,7 +343,7 @@ class DataLoadingMixin:
             'doc_coverage': doc_coverage
         }
     
-    def _get_missing_doc_files(self, limit: int = 5) -> List[str]:
+    def _get_missing_doc_files(self, limit: int = 5) -> list[str]:
         """Return the top documentation files missing from the registry."""
         metrics = self.results_cache.get('analyze_function_registry', {})
         missing_files = []
@@ -374,7 +375,7 @@ class DataLoadingMixin:
         results_file = self.project_root / results_file_name
         if results_file.exists():
             try:
-                with open(results_file, 'r') as f:
+                with open(results_file) as f:
                     data = json.load(f)
                     timestamp = data.get('timestamp', 'Unknown')
                     status_lines.append(f"[AUDIT] Last audit: {timestamp}")
@@ -384,7 +385,7 @@ class DataLoadingMixin:
             status_lines.append("[AUDIT] No recent audit found")
         return '\n'.join(status_lines)
     
-    def _load_coverage_summary(self) -> Optional[Dict[str, Any]]:
+    def _load_coverage_summary(self) -> dict[str, Any] | None:
         """Load overall and per-module coverage metrics from coverage.json."""
         # Check development_tools/tests/jsons for coverage results.
         coverage_path = self.project_root / "development_tools" / "tests" / "jsons" / "coverage.json"
@@ -427,7 +428,7 @@ class DataLoadingMixin:
         total_statements = 0
         total_covered = 0
         module_stats = defaultdict(lambda: {'statements': 0, 'covered': 0, 'missed': 0})
-        worst_files: List[Dict[str, Any]] = []
+        worst_files: list[dict[str, Any]] = []
         for path, info in files.items():
             summary = info.get('summary') or {}
             statements = summary.get('num_statements') or 0
@@ -456,7 +457,7 @@ class DataLoadingMixin:
             overall_coverage = 0.0
         else:
             overall_coverage = round((total_covered / total_statements) * 100, 1)
-        module_list: List[Dict[str, Any]] = []
+        module_list: list[dict[str, Any]] = []
         for module_name, stats in module_stats.items():
             statements = stats['statements']
             if statements == 0:
@@ -484,7 +485,7 @@ class DataLoadingMixin:
             'worst_files': worst_files[:5]
         }
     
-    def _load_config_validation_summary(self) -> Optional[Dict[str, Any]]:
+    def _load_config_validation_summary(self) -> dict[str, Any] | None:
         """Load config validation summary from JSON file."""
         try:
             config_file = self.project_root / "development_tools" / "config" / "jsons" / "analyze_config_results.json"
@@ -494,7 +495,7 @@ class DataLoadingMixin:
                     logger.debug(f"[DATA SOURCE] config_validation_summary: loaded from {config_file.name} (current Tier {audit_tier} audit)")
                 else:
                     logger.debug(f"[DATA SOURCE] config_validation_summary: loaded from {config_file.name} (cached)")
-                with open(config_file, 'r', encoding='utf-8') as f:
+                with open(config_file, encoding='utf-8') as f:
                     data = json.load(f)
                     if 'data' in data:
                         data = data['data']
@@ -538,7 +539,7 @@ class DataLoadingMixin:
             return
         total_statements = 0
         total_missed = 0
-        for path, info in files.items():
+        for _path, info in files.items():
             summary = info.get('summary') or {}
             statements = summary.get('num_statements') or 0
             missed = summary.get('missing_lines') or 0
@@ -568,7 +569,7 @@ class DataLoadingMixin:
             },
         }
     
-    def _load_coverage_json(self, json_path: Path) -> Dict[str, Dict[str, Any]]:
+    def _load_coverage_json(self, json_path: Path) -> dict[str, dict[str, Any]]:
         """Load module metrics from coverage JSON output."""
         try:
             with json_path.open('r', encoding='utf-8') as json_file:
@@ -576,7 +577,7 @@ class DataLoadingMixin:
         except (OSError, json.JSONDecodeError):
             return {}
         files = data.get('files', {})
-        coverage_data: Dict[str, Dict[str, Any]] = {}
+        coverage_data: dict[str, dict[str, Any]] = {}
         for module_name, file_data in files.items():
             summary = file_data.get('summary', {})
             statements = int(summary.get('num_statements', 0))
@@ -601,7 +602,7 @@ class DataLoadingMixin:
             }
         return coverage_data
     
-    def _get_dev_tools_coverage_insights(self) -> Optional[Dict[str, Any]]:
+    def _get_dev_tools_coverage_insights(self) -> dict[str, Any] | None:
         """Return summarized dev tools coverage insights."""
         results = getattr(self, 'dev_tools_coverage_results', None)
         if not results:
@@ -671,7 +672,7 @@ class DataLoadingMixin:
                 "[DATA SOURCE] dev_tools_coverage_insights: failed to parse dev-tools coverage payload (missing overall/modules data)."
             )
             return None
-        low_modules: List[Dict[str, Any]] = []
+        low_modules: list[dict[str, Any]] = []
         if modules:
             sorted_modules = sorted(modules.items(), key=lambda kv: kv[1].get('coverage', 101))
             for name, data in sorted_modules:
@@ -699,11 +700,11 @@ class DataLoadingMixin:
             'module_count': len(modules),
         }
     
-    def _parse_module_dependency_report(self, output: str) -> Optional[Dict[str, Any]]:
+    def _parse_module_dependency_report(self, output: str) -> dict[str, Any] | None:
         """Extract summary statistics from analyze_module_dependencies output."""
         if not output:
             return None
-        summary: Dict[str, Any] = {}
+        summary: dict[str, Any] = {}
         patterns = {
             'files_scanned': r"Files scanned:\s+(\d+)",
             'total_imports': r"Total imports found:\s+(\d+)",
@@ -728,7 +729,7 @@ class DataLoadingMixin:
         summary['missing_sections'] = missing_sections
         return summary
     
-    def _parse_test_results_from_output(self, output: str) -> Dict[str, Any]:
+    def _parse_test_results_from_output(self, output: str) -> dict[str, Any]:
         """Parse test results from pytest output."""
         results = {
             'random_seed': None,
@@ -767,9 +768,9 @@ class DataLoadingMixin:
                         results['failed_tests'].append(test_match.group(1).strip())
         return results
     
-    def _parse_doc_sync_output(self, output: str) -> Dict[str, Any]:
+    def _parse_doc_sync_output(self, output: str) -> dict[str, Any]:
         """Derive structured metrics from documentation sync output."""
-        summary: Dict[str, Any] = {
+        summary: dict[str, Any] = {
             'status': None,
             'total_issues': None,
             'paired_doc_issues': None,
@@ -838,7 +839,7 @@ class DataLoadingMixin:
                     summary['path_drift_files'].append(file_part)
         return summary
     
-    def _parse_path_drift_output(self, output: str) -> Dict[str, Any]:
+    def _parse_path_drift_output(self, output: str) -> dict[str, Any]:
         """Parse path drift analysis output."""
         if not isinstance(output, str) or not output.strip():
             return self._create_standard_format_result(0, 0, {})
@@ -851,7 +852,7 @@ class DataLoadingMixin:
                 return self._create_standard_format_result(0, 0, {})
         return self._create_standard_format_result(0, 0, {})
     
-    def _parse_ascii_compliance_output(self, output: str) -> Dict[str, Any]:
+    def _parse_ascii_compliance_output(self, output: str) -> dict[str, Any]:
         """Parse ASCII compliance check output. Returns standard format."""
         if not isinstance(output, str) or not output.strip():
             return self._create_standard_format_result(0, 0, {})
@@ -864,7 +865,7 @@ class DataLoadingMixin:
                 return self._create_standard_format_result(0, 0, {})
         return self._create_standard_format_result(0, 0, {})
     
-    def _parse_heading_numbering_output(self, output: str) -> Dict[str, Any]:
+    def _parse_heading_numbering_output(self, output: str) -> dict[str, Any]:
         """Parse heading numbering check output. Returns standard format."""
         if not isinstance(output, str) or not output.strip():
             return self._create_standard_format_result(0, 0, {})
@@ -877,7 +878,7 @@ class DataLoadingMixin:
                 return self._create_standard_format_result(0, 0, {})
         return self._create_standard_format_result(0, 0, {})
     
-    def _parse_missing_addresses_output(self, output: str) -> Dict[str, Any]:
+    def _parse_missing_addresses_output(self, output: str) -> dict[str, Any]:
         """Parse missing addresses check output."""
         if not isinstance(output, str) or not output.strip():
             return self._create_standard_format_result(0, 0, {})
@@ -890,7 +891,7 @@ class DataLoadingMixin:
                 return self._create_standard_format_result(0, 0, {})
         return self._create_standard_format_result(0, 0, {})
     
-    def _parse_unconverted_links_output(self, output: str) -> Dict[str, Any]:
+    def _parse_unconverted_links_output(self, output: str) -> dict[str, Any]:
         """Parse unconverted links check output."""
         if not isinstance(output, str) or not output.strip():
             return self._create_standard_format_result(0, 0, {})
@@ -903,9 +904,9 @@ class DataLoadingMixin:
                 return self._create_standard_format_result(0, 0, {})
         return self._create_standard_format_result(0, 0, {})
     
-    def _aggregate_doc_sync_results(self, all_results: Dict[str, Any]) -> Dict[str, Any]:
+    def _aggregate_doc_sync_results(self, all_results: dict[str, Any]) -> dict[str, Any]:
         """Aggregate results from all documentation sync tools into unified summary."""
-        summary: Dict[str, Any] = {
+        summary: dict[str, Any] = {
             'status': 'PASS',
             'total_issues': 0,
             'paired_doc_issues': 0,
@@ -919,7 +920,7 @@ class DataLoadingMixin:
         # Aggregate paired docs
         paired_docs = all_results.get('paired_docs', {})
         if isinstance(paired_docs, dict):
-            for issue_type, issues in paired_docs.items():
+            for _issue_type, issues in paired_docs.items():
                 if isinstance(issues, list):
                     summary['paired_doc_issues'] += len(issues)
                     summary['total_issues'] += len(issues)
@@ -958,9 +959,9 @@ class DataLoadingMixin:
             summary['status'] = 'PASS'
         return summary
     
-    def _parse_legacy_output(self, output: str) -> Dict[str, Any]:
+    def _parse_legacy_output(self, output: str) -> dict[str, Any]:
         """Extract headline metrics from the legacy cleanup output."""
-        summary: Dict[str, Any] = {
+        summary: dict[str, Any] = {
             'files_with_issues': None,
             'legacy_markers': None,
             'report_path': None
@@ -991,10 +992,10 @@ class DataLoadingMixin:
         self, 
         tool_name: str, 
         domain: str, 
-        result: Dict,
-        parse_output_func: Optional[Callable[[str], Dict[str, Any]]] = None,
-        cache_converter_func: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None
-    ) -> Dict[str, Any]:
+        result: dict,
+        parse_output_func: Callable[[str], dict[str, Any]] | None = None,
+        cache_converter_func: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+    ) -> dict[str, Any]:
         """
         Unified helper for loading results from mtime-cached tools.
         

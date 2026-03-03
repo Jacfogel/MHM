@@ -330,7 +330,7 @@ class TestUserUpdateValidation:
             is_valid, errors = validate_user_update(user_id, 'preferences', updates)
 
             # Pydantic validation now correctly validates category membership
-            assert is_valid is False, f"Preferences update should be invalid with invalid categories, got valid"
+            assert is_valid is False, "Preferences update should be invalid with invalid categories, got valid"
             assert "Invalid categories" in errors[0], f"Should have category validation error, got: {errors}"
     
     @pytest.mark.unit

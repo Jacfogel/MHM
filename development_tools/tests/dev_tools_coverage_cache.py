@@ -12,7 +12,7 @@ import time
 import hashlib
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 from core.time_utilities import now_timestamp_full, now_timestamp_filename
 
 # Try to import file locking (Unix/Linux); use getattr so Pyright is happy on Windows stubs
@@ -56,7 +56,7 @@ class DevToolsCoverageCache:
     - coverage_json: coverage report JSON payload
     """
 
-    def __init__(self, project_root: Path, cache_dir: Optional[Path] = None):
+    def __init__(self, project_root: Path, cache_dir: Path | None = None):
         self.project_root = Path(project_root).resolve()
         if cache_dir is None:
             cache_dir = self.project_root / "development_tools" / "tests" / "jsons"
@@ -64,11 +64,11 @@ class DevToolsCoverageCache:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         self.cache_file = self.cache_dir / "dev_tools_coverage_cache.json"
-        self.cache_data: Dict[str, Any] = {}
+        self.cache_data: dict[str, Any] = {}
         self.tool_paths = self._get_default_tool_paths()
         self._load_cache()
 
-    def _get_default_tool_paths(self) -> Tuple[Path, ...]:
+    def _get_default_tool_paths(self) -> tuple[Path, ...]:
         """Return tool paths used to compute cache invalidation hash."""
         tool_files = [
             self.project_root / "development_tools" / "tests" / "run_test_coverage.py",
@@ -79,7 +79,7 @@ class DevToolsCoverageCache:
         ]
         return tuple(path for path in tool_files if path.exists())
 
-    def _default_cache_data(self) -> Dict[str, Any]:
+    def _default_cache_data(self) -> dict[str, Any]:
         """Return default cache payload for new/legacy cache files."""
         return {
             "cache_version": "1.0",
@@ -95,7 +95,7 @@ class DevToolsCoverageCache:
             "last_updated": None,
         }
 
-    def _get_config_file_path(self) -> Optional[Path]:
+    def _get_config_file_path(self) -> Path | None:
         """Resolve development tools config file path if available."""
         try:
             import development_tools.config.config as config_module
@@ -118,7 +118,7 @@ class DevToolsCoverageCache:
         )
         return fallback_path if fallback_path.exists() else None
 
-    def _get_config_mtime(self) -> Optional[float]:
+    def _get_config_mtime(self) -> float | None:
         """Return config mtime for invalidation metadata."""
         config_path = self._get_config_file_path()
         if not config_path:
@@ -185,7 +185,7 @@ class DevToolsCoverageCache:
 
         return changed
 
-    def _compute_tool_hash(self) -> Optional[str]:
+    def _compute_tool_hash(self) -> str | None:
         """Compute a hash for coverage tool source files."""
         if not self.tool_paths:
             return None
@@ -201,9 +201,9 @@ class DevToolsCoverageCache:
                 return None
         return hasher.hexdigest() if has_data else None
 
-    def _get_tool_mtimes(self) -> Dict[str, float]:
+    def _get_tool_mtimes(self) -> dict[str, float]:
         """Return mtimes for tool source files."""
-        mtimes: Dict[str, float] = {}
+        mtimes: dict[str, float] = {}
         for path in self.tool_paths:
             try:
                 if not path.exists():
@@ -221,7 +221,7 @@ class DevToolsCoverageCache:
                 retry_delay = 0.1
                 for attempt in range(max_retries):
                     try:
-                        with open(self.cache_file, "r", encoding="utf-8") as f:
+                        with open(self.cache_file, encoding="utf-8") as f:
                             if HAS_FCNTL and FCNTL_FLOCK is not None:
                                 try:
                                     FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_SH)
@@ -246,7 +246,7 @@ class DevToolsCoverageCache:
                                 except (OSError, AttributeError):
                                     pass
                             break
-                    except (IOError, OSError):
+                    except OSError:
                         if attempt < max_retries - 1:
                             time.sleep(retry_delay)
                             retry_delay *= 2
@@ -338,7 +338,7 @@ class DevToolsCoverageCache:
 
                     temp_file.replace(self.cache_file)
                     break
-                except (IOError, OSError):
+                except OSError:
                     if attempt < max_retries - 1:
                         time.sleep(retry_delay)
                         retry_delay *= 2
@@ -348,30 +348,30 @@ class DevToolsCoverageCache:
             if logger:
                 logger.warning(f"Failed to save dev tools coverage cache: {e}")
 
-    def get_cached_coverage(self) -> Optional[Dict[str, Any]]:
+    def get_cached_coverage(self) -> dict[str, Any] | None:
         """Return cached coverage JSON if available."""
         coverage_json = self.cache_data.get("coverage_json")
         return coverage_json if isinstance(coverage_json, dict) else None
 
-    def get_cached_mtimes(self) -> Dict[str, float]:
+    def get_cached_mtimes(self) -> dict[str, float]:
         """Return cached source file mtimes."""
         return self.cache_data.get("source_files_mtime", {}) or {}
 
-    def get_cached_test_mtimes(self) -> Dict[str, float]:
+    def get_cached_test_mtimes(self) -> dict[str, float]:
         """Return cached test file mtimes."""
         return self.cache_data.get("test_files_mtime", {}) or {}
 
-    def get_cached_config_mtime(self) -> Optional[float]:
+    def get_cached_config_mtime(self) -> float | None:
         """Return cached config file mtime."""
         config_mtime = self.cache_data.get("config_mtime")
         return config_mtime if isinstance(config_mtime, (int, float)) else None
 
-    def get_last_run_ok(self) -> Optional[bool]:
+    def get_last_run_ok(self) -> bool | None:
         """Return whether the last dev tools coverage run succeeded."""
         last_run_ok = self.cache_data.get("last_run_ok")
         return last_run_ok if isinstance(last_run_ok, bool) else None
 
-    def get_tool_change_reason(self) -> Optional[str]:
+    def get_tool_change_reason(self) -> str | None:
         """Return explicit tool-change reason when cached tool metadata is stale."""
         current_hash = self._compute_tool_hash()
         if not current_hash:
@@ -388,7 +388,7 @@ class DevToolsCoverageCache:
             )
         return None
 
-    def update_run_status(self, last_run_ok: bool, last_exit_code: Optional[int]) -> None:
+    def update_run_status(self, last_run_ok: bool, last_exit_code: int | None) -> None:
         """Record dev tools coverage run status without modifying coverage data."""
         self.cache_data["last_run_ok"] = bool(last_run_ok)
         self.cache_data["last_exit_code"] = (
@@ -399,12 +399,12 @@ class DevToolsCoverageCache:
 
     def update_cache(
         self,
-        coverage_json: Dict[str, Any],
-        source_mtimes: Dict[str, float],
-        test_mtimes: Optional[Dict[str, float]] = None,
-        config_mtime: Optional[float] = None,
-        last_run_ok: Optional[bool] = None,
-        last_exit_code: Optional[int] = None,
+        coverage_json: dict[str, Any],
+        source_mtimes: dict[str, float],
+        test_mtimes: dict[str, float] | None = None,
+        config_mtime: float | None = None,
+        last_run_ok: bool | None = None,
+        last_exit_code: int | None = None,
     ) -> None:
         """Update cache with new coverage data and source mtimes."""
         self.cache_data["coverage_json"] = coverage_json

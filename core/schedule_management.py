@@ -447,7 +447,7 @@ def clear_schedule_periods_cache(user_id=None, category=None):
         # Clear all cache entries for a specific user
         keys_to_remove = [
             key
-            for key in _schedule_periods_cache.keys()
+            for key in _schedule_periods_cache
             if key.startswith(f"{user_id}_")
         ]
         for key in keys_to_remove:
@@ -592,7 +592,7 @@ def set_schedule_periods(user_id, category, periods_dict):
     if category not in schedules_data:
         schedules_data[category] = {}
 
-    category_data = schedules_data[category]
+    schedules_data[category]
 
     # Ensure periods sub-dict exists
     if "periods" not in schedules_data[category]:

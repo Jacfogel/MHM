@@ -180,7 +180,7 @@ def setup_consolidated_ai_test_logging():
         if log_file.exists():
             try:
                 # Copy content to consolidated log if it has useful content
-                with open(log_file, "r", encoding="utf-8") as f:
+                with open(log_file, encoding="utf-8") as f:
                     content = f.read().strip()
                     if len(content) > 0:
                         with open(consolidated_log_file, "a", encoding="utf-8") as cf:
@@ -434,7 +434,7 @@ class AITestResultsCollector:
                         meaningful_context["context_keys"] = context_keys
 
                     if meaningful_context:
-                        f.write(f"- **Context Available**:\n")
+                        f.write("- **Context Available**:\n")
                         for key, value in meaningful_context.items():
                             f.write(f"  - {key}: {value}\n")
                 if r["notes"]:

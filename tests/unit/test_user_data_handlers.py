@@ -7,7 +7,7 @@ and validation logic.
 
 import pytest
 import uuid
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, Mock
 from tests.test_utilities import TestUserFactory
 from core.file_locking import safe_json_read
 from core.user_data_handlers import (
@@ -543,7 +543,7 @@ class TestUserDataHandlersConvenienceFunctions:
         
         # Mock index update to verify it's called
         # update_user_index is imported inside the function, so patch the import location
-        with patch('core.user_data_manager.update_user_index') as mock_update_index:
+        with patch('core.user_data_manager.update_user_index'):
             result = save_user_data_transaction(user_id, data_updates, auto_create=True)
             
             # If transaction succeeded, index should be updated

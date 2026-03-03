@@ -448,7 +448,7 @@ class TestEntryContentValidation:
                 kind=content['kind']
             )
             assert is_valid is True, f"Valid content {content} should pass validation, got error: {error}"
-            assert error is None, f"Valid content should have no error message"
+            assert error is None, "Valid content should have no error message"
     
     @pytest.mark.unit
     @pytest.mark.critical
@@ -473,7 +473,7 @@ class TestEntryContentValidation:
                 kind=content['kind']
             )
             assert is_valid is False, f"Invalid content {content} should fail validation"
-            assert error is not None, f"Invalid content should have error message"
+            assert error is not None, "Invalid content should have error message"
             if 'expected_error' in content:
                 assert content['expected_error'].lower() in error.lower(), f"Error message should mention {content['expected_error']}"
 

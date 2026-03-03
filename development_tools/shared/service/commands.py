@@ -10,7 +10,6 @@ import os
 import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_filename
@@ -31,7 +30,7 @@ from ..retention_engine import apply_retention_plan, build_retention_plan
 class CommandsMixin:
     """Mixin class providing command execution methods to AIToolsService."""
 
-    def _get_audit_related_lock_paths(self) -> List[Path]:
+    def _get_audit_related_lock_paths(self) -> list[Path]:
         """Return audit/coverage lock file paths anchored at project root."""
         lock_names = [".audit_in_progress.lock", ".coverage_in_progress.lock"]
         try:
@@ -57,7 +56,7 @@ class CommandsMixin:
         )
         return [audit_lock, coverage_lock, dev_tools_coverage_lock]
 
-    def _get_existing_audit_related_locks(self) -> List[Path]:
+    def _get_existing_audit_related_locks(self) -> list[Path]:
         """Return active lock files after cleaning stale/malformed entries."""
         lock_paths = self._get_audit_related_lock_paths()
         lock_states = evaluate_lock_set(lock_paths)
@@ -73,7 +72,7 @@ class CommandsMixin:
             )
         return [entry["path"] for entry in lock_states["active"] if isinstance(entry.get("path"), Path)]
 
-    def _resolve_coverage_workers(self, target: str) -> Optional[str]:
+    def _resolve_coverage_workers(self, target: str) -> str | None:
         """Resolve pytest-xdist worker count for coverage runs."""
         if target not in {"main", "dev_tools"}:
             return None
@@ -161,7 +160,7 @@ class CommandsMixin:
                 return line
         return "unknown"
 
-    def _extract_changed_domains(self, output: str) -> List[str]:
+    def _extract_changed_domains(self, output: str) -> list[str]:
         """Extract changed domains list from run_test_coverage output."""
         if not output:
             return []
@@ -181,7 +180,7 @@ class CommandsMixin:
                 return [part.strip().strip("'\"") for part in value.strip("[]").split(",") if part.strip()]
         return []
 
-    def _is_interrupt_signature(self, output: str, returncode: Optional[int]) -> bool:
+    def _is_interrupt_signature(self, output: str, returncode: int | None) -> bool:
         """Detect likely interrupt/console control event signatures."""
         text = (output or "").lower()
         if "keyboardinterrupt" in text:
@@ -191,12 +190,12 @@ class CommandsMixin:
             return True
         return False
 
-    def _build_coverage_metadata(self, output: str, source: str) -> Dict[str, object]:
+    def _build_coverage_metadata(self, output: str, source: str) -> dict[str, object]:
         """Build normalized coverage cache metadata payload."""
         cache_mode = self._infer_coverage_cache_mode_from_output(output)
         reason = self._extract_coverage_invalidation_reason(output)
         changed_domains = self._extract_changed_domains(output)
-        metadata: Dict[str, object] = {
+        metadata: dict[str, object] = {
             "cache_mode": cache_mode,
             "invalidation_reason": reason,
             "source": source,
@@ -207,9 +206,9 @@ class CommandsMixin:
 
     def _latest_mtime_for_patterns(
         self,
-        patterns: List[str],
-        exclude_prefixes: Optional[List[str]] = None,
-        exclude_paths: Optional[List[str]] = None,
+        patterns: list[str],
+        exclude_prefixes: list[str] | None = None,
+        exclude_paths: list[str] | None = None,
     ) -> float:
         """Return latest mtime for files matching any glob pattern."""
         latest = 0.0
@@ -235,10 +234,10 @@ class CommandsMixin:
     def _is_coverage_file_fresh(
         self,
         coverage_file: Path,
-        source_patterns: List[str],
-        exclude_prefixes: Optional[List[str]] = None,
-        tool_names: Optional[List[str]] = None,
-        config_paths: Optional[List[str]] = None,
+        source_patterns: list[str],
+        exclude_prefixes: list[str] | None = None,
+        tool_names: list[str] | None = None,
+        config_paths: list[str] | None = None,
     ) -> bool:
         """Check whether a coverage file is newer than all relevant inputs."""
         if not coverage_file.exists():
@@ -283,7 +282,7 @@ class CommandsMixin:
 
         return coverage_mtime >= latest_input_mtime
 
-    def _load_cached_result_if_available(self, tool_name: str, domain: str) -> Optional[Dict]:
+    def _load_cached_result_if_available(self, tool_name: str, domain: str) -> dict | None:
         """Load cached standardized tool result if it exists."""
         try:
             from ..output_storage import load_tool_result
@@ -295,7 +294,7 @@ class CommandsMixin:
             return None
         return None
 
-    def _to_standard_dev_tools_coverage_result(self, raw_data: Dict) -> Dict:
+    def _to_standard_dev_tools_coverage_result(self, raw_data: dict) -> dict:
         """Normalize dev-tools coverage payload to standard summary/details format."""
         if (
             isinstance(raw_data, dict)
@@ -315,7 +314,7 @@ class CommandsMixin:
         }
         return standard
 
-    def _extract_cached_main_coverage_state(self, cached_result: Optional[Dict]) -> Optional[str]:
+    def _extract_cached_main_coverage_state(self, cached_result: dict | None) -> str | None:
         """Extract cached main coverage test outcome state when present."""
         if not isinstance(cached_result, dict):
             return None
@@ -334,7 +333,7 @@ class CommandsMixin:
                 return state
         return None
 
-    def _extract_cached_dev_tools_state(self, cached_result: Optional[Dict]) -> Optional[str]:
+    def _extract_cached_dev_tools_state(self, cached_result: dict | None) -> str | None:
         """Extract cached dev-tools test outcome state when present."""
         if not isinstance(cached_result, dict):
             return None
@@ -348,7 +347,7 @@ class CommandsMixin:
                 return state
         return None
 
-    def _extract_track_classification(self, track: Dict) -> str:
+    def _extract_track_classification(self, track: dict) -> str:
         """Return canonical per-track classification label."""
         if not isinstance(track, dict):
             return "unknown"
@@ -357,7 +356,7 @@ class CommandsMixin:
             return classification.strip()
         return "unknown"
 
-    def _derive_tier3_state_from_classifications(self, outcome: Dict) -> str:
+    def _derive_tier3_state_from_classifications(self, outcome: dict) -> str:
         """Derive aggregate Tier 3 state from per-track classifications."""
         if not isinstance(outcome, dict):
             return ""
@@ -392,7 +391,7 @@ class CommandsMixin:
             return "coverage_failed"
         return "unknown"
 
-    def _is_failure_state(self, state: Optional[str]) -> bool:
+    def _is_failure_state(self, state: str | None) -> bool:
         """Return True when cached test outcome state represents a failure."""
         if not state:
             return False
@@ -549,7 +548,7 @@ class CommandsMixin:
             logger.error(f"Configuration check failed: {result['error']}")
             return False
     
-    def run_workflow(self, task_type: str, task_data: Optional[Dict] = None) -> bool:
+    def run_workflow(self, task_type: str, task_data: dict | None = None) -> bool:
         """Run workflow with audit-first protocol"""
         logger.info(f"Running workflow: {task_type}")
         logger.info("=" * 50)
@@ -578,7 +577,7 @@ class CommandsMixin:
             logger.error(f"Version sync failed: {result['error']}")
             return False
     
-    def run_dev_tools_coverage(self) -> Dict:
+    def run_dev_tools_coverage(self) -> dict:
         """Run coverage analysis specifically for development_tools directory."""
         logger.debug("Generating dev tools coverage (development_tools/tests)...")
         dev_tools_coverage_file = self.project_root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
@@ -708,7 +707,7 @@ class CommandsMixin:
                 "failed_node_ids": [],
             }
             if interrupted:
-                setattr(self, "_internal_interrupt_detected", True)
+                self._internal_interrupt_detected = True
                 dev_tools_outcome["classification"] = "crashed"
                 dev_tools_outcome["classification_reason"] = "subprocess_keyboard_interrupt"
                 dev_tools_outcome["actionable_context"] = (
@@ -721,7 +720,7 @@ class CommandsMixin:
                 )
             if dev_tools_output_file.exists():
                 try:
-                    with open(dev_tools_output_file, "r", encoding="utf-8") as f:
+                    with open(dev_tools_output_file, encoding="utf-8") as f:
                         dev_tools_payload = json.load(f)
                     if isinstance(dev_tools_payload, dict):
                         details = dev_tools_payload.get("details")
@@ -1119,7 +1118,7 @@ class CommandsMixin:
             payload_from_cache = False
             if coverage_output_file.exists():
                 try:
-                    with open(coverage_output_file, "r", encoding="utf-8") as f:
+                    with open(coverage_output_file, encoding="utf-8") as f:
                         coverage_payload = json.load(f)
                     if isinstance(coverage_payload, dict):
                         payload_coverage_collected = bool(
@@ -1228,7 +1227,7 @@ class CommandsMixin:
             tier3_state = structured_outcome.get("state", "coverage_failed")
             if tier3_state == "coverage_failed":
                 if interrupted:
-                    setattr(self, "_internal_interrupt_detected", True)
+                    self._internal_interrupt_detected = True
                     logger.error(
                         "Tier 3 coverage failed with interrupt signature "
                         f"(returncode={result.get('returncode')})."
@@ -1345,7 +1344,7 @@ class CommandsMixin:
                 'error': str(e)
             }
 
-    def run_backup_inventory(self) -> Dict[str, object]:
+    def run_backup_inventory(self) -> dict[str, object]:
         """Generate backup ownership/producer inventory from policy config."""
         try:
             policy = load_backup_policy()
@@ -1372,7 +1371,7 @@ class CommandsMixin:
             logger.error(f"Backup inventory failed: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
 
-    def run_backup_retention(self, dry_run: bool = True, apply: bool = False) -> Dict[str, object]:
+    def run_backup_retention(self, dry_run: bool = True, apply: bool = False) -> dict[str, object]:
         """Apply or preview portable retention policy for development-tool artifacts."""
         execute_apply = bool(apply) and not bool(dry_run)
         try:
@@ -1409,12 +1408,12 @@ class CommandsMixin:
 
     def run_backup_drill(
         self,
-        backup_path: Optional[str] = None,
+        backup_path: str | None = None,
         restore_users: bool = True,
         restore_config: bool = False,
-    ) -> Dict[str, object]:
+    ) -> dict[str, object]:
         """Run isolated restore drill for latest core user backup."""
-        restore_destination: Optional[Path] = None
+        restore_destination: Path | None = None
         try:
             from core.backup_manager import backup_manager
         except Exception as e:
@@ -1465,7 +1464,7 @@ class CommandsMixin:
             if not isinstance(min_file_count, int):
                 min_file_count = 1
 
-            missing_required_paths: List[str] = []
+            missing_required_paths: list[str] = []
             for rel in required_paths:
                 rel_str = str(rel).strip()
                 if not rel_str:
@@ -1511,10 +1510,10 @@ class CommandsMixin:
             if restore_destination is not None:
                 shutil.rmtree(restore_destination, ignore_errors=True)
 
-    def run_backup_health_check(self, run_drill: bool = True) -> Dict[str, object]:
+    def run_backup_health_check(self, run_drill: bool = True) -> dict[str, object]:
         """Verify backup creation/discoverability/restorability end-to-end."""
-        checks: List[Dict[str, object]] = []
-        report_paths: Dict[str, str] = {}
+        checks: list[dict[str, object]] = []
+        report_paths: dict[str, str] = {}
         try:
             from core.backup_manager import backup_manager
         except Exception as e:
@@ -1549,7 +1548,7 @@ class CommandsMixin:
             if not has_backups:
                 raise RuntimeError("No backups available in data/backups for health check")
 
-            def _parse_backup_created_at(raw_value: object) -> Optional[datetime]:
+            def _parse_backup_created_at(raw_value: object) -> datetime | None:
                 if not isinstance(raw_value, str) or not raw_value.strip():
                     return None
                 try:
@@ -1634,7 +1633,7 @@ class CommandsMixin:
                 }
             )
 
-            drill_result: Dict[str, object] = {"success": True, "skipped": not run_drill}
+            drill_result: dict[str, object] = {"success": True, "skipped": not run_drill}
             if run_drill:
                 drill_result = self.run_backup_drill(
                     backup_path=latest_path,
@@ -1763,7 +1762,7 @@ class CommandsMixin:
             return False
     
     
-    def run_test_markers(self, action: str = 'check', dry_run: bool = False) -> Dict:
+    def run_test_markers(self, action: str = 'check', dry_run: bool = False) -> dict:
         """Run test markers analysis or fix"""
         logger.debug(f"Analyzing test markers: {action}")
         args = []
@@ -1875,7 +1874,7 @@ class CommandsMixin:
         # Implementation would check workflow config
         return True
     
-    def run_audit_first(self, task_type: str) -> Dict:
+    def run_audit_first(self, task_type: str) -> dict:
         """Run audit first as required by protocol"""
         logger.info("Running audit-first protocol...")
         audit_success = self._run_quick_audit_tools()
@@ -1884,7 +1883,7 @@ class CommandsMixin:
             'error': '' if audit_success else 'Audit failed'
         }
     
-    def execute_task(self, task_type: str, task_data: Optional[Dict] = None) -> bool:
+    def execute_task(self, task_type: str, task_data: dict | None = None) -> bool:
         """Execute the specific task"""
         if task_type == 'documentation':
             return self._execute_documentation_task()
@@ -1896,7 +1895,7 @@ class CommandsMixin:
             logger.error(f"Unknown task type: {task_type}")
             return False
     
-    def validate_work(self, work_type: str, work_data: Dict) -> Dict:
+    def validate_work(self, work_type: str, work_data: dict) -> dict:
         """Validate the work before presenting"""
         logger.info("Validating work...")
         # Use --json flag to prevent multiline print output from being captured
@@ -1913,7 +1912,7 @@ class CommandsMixin:
                 'issues': [f"Validation failed: {result['error']}"]
             }
     
-    def validate_audit_results(self, results: Dict) -> Dict:
+    def validate_audit_results(self, results: dict) -> dict:
         """Validate audit results"""
         return {
             'completeness': 95.0,
@@ -1924,7 +1923,7 @@ class CommandsMixin:
             'issues': []
         }
     
-    def show_validation_report(self, validation_results: Dict):
+    def show_validation_report(self, validation_results: dict):
         """Show validation report"""
         print("\n" + "=" * 50)
         print("VALIDATION REPORT")
@@ -1946,7 +1945,7 @@ class CommandsMixin:
             for issue in validation_results['issues']:
                 print(f"  [ISSUE] {issue}")
     
-    def print_audit_summary(self, successful: List, failed: List, results: Dict):
+    def print_audit_summary(self, successful: list, failed: list, results: dict):
         """Print concise audit summary"""
         print("\n" + "=" * 80)
         print("AUDIT SUMMARY")
@@ -2054,7 +2053,7 @@ class CommandsMixin:
         log_label: str,
         parser_func,
         run_callable,
-    ) -> Dict:
+    ) -> dict:
         """Run a docs subcheck only when stale; otherwise use cached result."""
         from ..output_storage import load_tool_result
 

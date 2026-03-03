@@ -13,7 +13,7 @@ Tests for user/user_context.py:
 
 import pytest
 import threading
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch
 
 from user.user_context import UserContext
 from tests.test_utilities import TestUserFactory

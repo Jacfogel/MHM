@@ -15,7 +15,7 @@ import sys
 import os
 import importlib.util
 from pathlib import Path
-from typing import Iterable
+from collections.abc import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 LOG_METHODS = {"debug", "info", "warning", "error", "exception", "critical"}
@@ -56,7 +56,7 @@ def _load_should_exclude_file():
             raise RuntimeError(f"Unable to load exclusions helper from {module_path}")
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        return getattr(module, "should_exclude_file")
+        return module.should_exclude_file
     except Exception:
         # Keep logging enforcement runnable in isolated CI environments where
         # optional runtime dependencies for full dev-tools config are unavailable.

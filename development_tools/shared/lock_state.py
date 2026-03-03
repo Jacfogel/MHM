@@ -7,7 +7,8 @@ import os
 import socket
 import time
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional
+from typing import Any
+from collections.abc import Iterable
 
 LOCK_VERSION = 1
 
@@ -34,7 +35,7 @@ def write_lock_metadata(
         return False
 
 
-def read_lock_metadata(path: Path) -> Optional[Dict[str, Any]]:
+def read_lock_metadata(path: Path) -> dict[str, Any] | None:
     """Read lock metadata, returning None for missing or invalid payloads."""
     if not path.exists() or not path.is_file():
         return None
@@ -64,10 +65,10 @@ def is_pid_alive(pid: Any) -> bool:
         return False
 
 
-def evaluate_lock(path: Path, now_ts: Optional[float] = None) -> Dict[str, Any]:
+def evaluate_lock(path: Path, now_ts: float | None = None) -> dict[str, Any]:
     """Evaluate a single lock file and return state metadata."""
     now = now_ts if isinstance(now_ts, (int, float)) else time.time()
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "path": path,
         "state": "missing",
         "reason": "file_missing",
@@ -131,10 +132,10 @@ def evaluate_lock(path: Path, now_ts: Optional[float] = None) -> Dict[str, Any]:
 
 
 def evaluate_lock_set(
-    paths: Iterable[Path], now_ts: Optional[float] = None
-) -> Dict[str, list[Dict[str, Any]]]:
+    paths: Iterable[Path], now_ts: float | None = None
+) -> dict[str, list[dict[str, Any]]]:
     """Evaluate a list of lock paths and bucket results by state."""
-    buckets: Dict[str, list[Dict[str, Any]]] = {
+    buckets: dict[str, list[dict[str, Any]]] = {
         "active": [],
         "stale": [],
         "malformed": [],

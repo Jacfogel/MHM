@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import re
 import sys
-from typing import Dict, Tuple
 
 # Import config to load external constants
 try:
@@ -33,14 +32,14 @@ except (AttributeError, ImportError):
     pass
 
 # Default constants (generic fallbacks if config doesn't provide them)
-_DEFAULT_DEFAULT_DOCS: Tuple[str, ...] = (
+_DEFAULT_DEFAULT_DOCS: tuple[str, ...] = (
     "README.md",
     "TODO.md",
 )
 
-_DEFAULT_PAIRED_DOCS: Dict[str, str] = {}
+_DEFAULT_PAIRED_DOCS: dict[str, str] = {}
 
-_DEFAULT_LOCAL_MODULE_PREFIXES: Tuple[str, ...] = (
+_DEFAULT_LOCAL_MODULE_PREFIXES: tuple[str, ...] = (
     "core",
     "tests",
 )
@@ -56,7 +55,7 @@ def _get_constants_config_safe():
     return None
 
 
-def _load_default_docs() -> Tuple[str, ...]:
+def _load_default_docs() -> tuple[str, ...]:
     """Load default docs list from config or return defaults."""
     constants_config = _get_constants_config_safe()
     if constants_config and "default_docs" in constants_config:
@@ -64,7 +63,7 @@ def _load_default_docs() -> Tuple[str, ...]:
     return _DEFAULT_DEFAULT_DOCS
 
 
-def _load_paired_docs() -> Dict[str, str]:
+def _load_paired_docs() -> dict[str, str]:
     """Load paired docs mapping from config or return defaults."""
     constants_config = _get_constants_config_safe()
     if constants_config and "paired_docs" in constants_config:
@@ -72,7 +71,7 @@ def _load_paired_docs() -> Dict[str, str]:
     return _DEFAULT_PAIRED_DOCS.copy()
 
 
-def _load_local_module_prefixes() -> Tuple[str, ...]:
+def _load_local_module_prefixes() -> tuple[str, ...]:
     """Load local module prefixes from config or return defaults."""
     constants_config = _get_constants_config_safe()
     if constants_config and "local_module_prefixes" in constants_config:
@@ -81,11 +80,11 @@ def _load_local_module_prefixes() -> Tuple[str, ...]:
 
 
 # Load constants from config or use defaults
-DEFAULT_DOCS: Tuple[str, ...] = _load_default_docs()
-PAIRED_DOCS: Dict[str, str] = _load_paired_docs()
-LOCAL_MODULE_PREFIXES: Tuple[str, ...] = _load_local_module_prefixes()
+DEFAULT_DOCS: tuple[str, ...] = _load_default_docs()
+PAIRED_DOCS: dict[str, str] = _load_paired_docs()
+LOCAL_MODULE_PREFIXES: tuple[str, ...] = _load_local_module_prefixes()
 
-STANDARD_LIBRARY_PREFIXES: Tuple[str, ...] = (
+STANDARD_LIBRARY_PREFIXES: tuple[str, ...] = (
     "asyncio",
     "concurrent",
     "contextlib",
@@ -170,7 +169,7 @@ CORRUPTED_ARTIFACT_PATTERNS = (
 )
 
 # Path drift detection constants
-THIRD_PARTY_LIBRARIES: Tuple[str, ...] = (
+THIRD_PARTY_LIBRARIES: tuple[str, ...] = (
     "PyQt5",
     "PyQt6",
     "PySide6",
@@ -201,7 +200,7 @@ THIRD_PARTY_LIBRARIES: Tuple[str, ...] = (
     "mypy",
 )
 
-COMMON_FUNCTION_NAMES: Tuple[str, ...] = (
+COMMON_FUNCTION_NAMES: tuple[str, ...] = (
     "get_logger",
     "handle_errors",
     "safe_file_operation",
@@ -221,7 +220,7 @@ COMMON_FUNCTION_NAMES: Tuple[str, ...] = (
     "TestConfigFactory",
 )
 
-COMMON_CLASS_NAMES: Tuple[str, ...] = (
+COMMON_CLASS_NAMES: tuple[str, ...] = (
     "TestUserFactory",
     "TestDataFactory",
     "TestPathFactory",
@@ -237,7 +236,7 @@ COMMON_CLASS_NAMES: Tuple[str, ...] = (
     "MessageRouter",
 )
 
-COMMON_VARIABLE_NAMES: Tuple[str, ...] = (
+COMMON_VARIABLE_NAMES: tuple[str, ...] = (
     "task",
     "and",
     "statements",
@@ -268,7 +267,7 @@ COMMON_VARIABLE_NAMES: Tuple[str, ...] = (
     "continue",
 )
 
-COMMON_CODE_PATTERNS: Tuple[str, ...] = (
+COMMON_CODE_PATTERNS: tuple[str, ...] = (
     "PyQt5.QtWidgets",
     "PyQt5.QtCore",
     "PyQt5.QtGui",
@@ -287,7 +286,7 @@ COMMON_CODE_PATTERNS: Tuple[str, ...] = (
 )
 
 # Common patterns that should be ignored in path drift detection
-IGNORED_PATH_PATTERNS: Tuple[str, ...] = (
+IGNORED_PATH_PATTERNS: tuple[str, ...] = (
     "Python Official Tutorial",
     "Real Python",
     "Troubleshooting",
@@ -303,7 +302,7 @@ IGNORED_PATH_PATTERNS: Tuple[str, ...] = (
 )
 
 # Common command patterns that should be ignored
-COMMAND_PATTERNS: Tuple[str, ...] = (
+COMMAND_PATTERNS: tuple[str, ...] = (
     "python ",
     "pip ",
     "git ",
@@ -314,7 +313,7 @@ COMMAND_PATTERNS: Tuple[str, ...] = (
 )
 
 # Common template patterns that should be ignored
-TEMPLATE_PATTERNS: Tuple[str, ...] = ("test_<", ">.py", "{", "}", "*", "?")
+TEMPLATE_PATTERNS: tuple[str, ...] = ("test_<", ">.py", "{", "}", "*", "?")
 
 # AI Development Tools Constants
 
@@ -323,7 +322,7 @@ TEMPLATE_PATTERNS: Tuple[str, ...] = ("test_<", ">.py", "{", "}", "*", "?")
 # =============================================================================
 
 
-def _load_project_directories() -> Tuple[str, ...]:
+def _load_project_directories() -> tuple[str, ...]:
     """Load project directories from config or return defaults."""
     constants_config = _get_constants_config_safe()
     if constants_config and "project_directories" in constants_config:
@@ -332,7 +331,7 @@ def _load_project_directories() -> Tuple[str, ...]:
     return (".",)
 
 
-def _load_core_modules() -> Tuple[str, ...]:
+def _load_core_modules() -> tuple[str, ...]:
     """Load core modules from config or return defaults."""
     constants_config = _get_constants_config_safe()
     if constants_config and "core_modules" in constants_config:
@@ -342,17 +341,17 @@ def _load_core_modules() -> Tuple[str, ...]:
 
 
 # Core project directories (used by multiple tools)
-PROJECT_DIRECTORIES: Tuple[str, ...] = _load_project_directories()
+PROJECT_DIRECTORIES: tuple[str, ...] = _load_project_directories()
 
 # Core modules for coverage and analysis (subset of PROJECT_DIRECTORIES)
-CORE_MODULES: Tuple[str, ...] = _load_core_modules()
+CORE_MODULES: tuple[str, ...] = _load_core_modules()
 
 # =============================================================================
 # TOOL-SPECIFIC CONSTANTS
 # =============================================================================
 
 
-def _load_test_category_markers() -> Tuple[str, ...]:
+def _load_test_category_markers() -> tuple[str, ...]:
     """Load test category markers from config or return defaults."""
     constants_config = _get_constants_config_safe()
     if constants_config and "test_category_markers" in constants_config:
@@ -360,7 +359,7 @@ def _load_test_category_markers() -> Tuple[str, ...]:
     return ("unit", "integration", "behavior", "ui")
 
 
-def _load_test_marker_directory_map() -> Dict[str, str]:
+def _load_test_marker_directory_map() -> dict[str, str]:
     """Load test directory-to-marker map from config or return defaults."""
     constants_config = _get_constants_config_safe()
     if constants_config and "test_marker_directory_map" in constants_config:
@@ -375,7 +374,7 @@ def _load_test_marker_directory_map() -> Dict[str, str]:
     }
 
 
-def _load_test_marker_transient_path_markers() -> Tuple[str, ...]:
+def _load_test_marker_transient_path_markers() -> tuple[str, ...]:
     """Load transient path markers used by test marker scans."""
     constants_config = _get_constants_config_safe()
     if constants_config and "test_marker_transient_path_markers" in constants_config:
@@ -388,7 +387,7 @@ def _load_test_marker_transient_path_markers() -> Tuple[str, ...]:
     )
 
 
-def _load_test_marker_ai_path_tokens() -> Tuple[str, ...]:
+def _load_test_marker_ai_path_tokens() -> tuple[str, ...]:
     """Load path tokens used to exclude AI tests from marker analysis."""
     constants_config = _get_constants_config_safe()
     if constants_config and "test_marker_ai_path_tokens" in constants_config:
@@ -396,15 +395,15 @@ def _load_test_marker_ai_path_tokens() -> Tuple[str, ...]:
     return ("ai/test_ai", "test_ai")
 
 
-TEST_CATEGORY_MARKERS: Tuple[str, ...] = _load_test_category_markers()
-TEST_MARKER_DIRECTORY_MAP: Dict[str, str] = _load_test_marker_directory_map()
-TEST_MARKER_TRANSIENT_PATH_MARKERS: Tuple[str, ...] = (
+TEST_CATEGORY_MARKERS: tuple[str, ...] = _load_test_category_markers()
+TEST_MARKER_DIRECTORY_MAP: dict[str, str] = _load_test_marker_directory_map()
+TEST_MARKER_TRANSIENT_PATH_MARKERS: tuple[str, ...] = (
     _load_test_marker_transient_path_markers()
 )
-TEST_MARKER_AI_PATH_TOKENS: Tuple[str, ...] = _load_test_marker_ai_path_tokens()
+TEST_MARKER_AI_PATH_TOKENS: tuple[str, ...] = _load_test_marker_ai_path_tokens()
 
 
-def _load_ascii_compliance_files() -> Tuple[str, ...]:
+def _load_ascii_compliance_files() -> tuple[str, ...]:
     """Load ASCII compliance files list from config or return defaults.
 
     ASCII compliance files are now the same as default_docs. If config has a note
@@ -426,10 +425,10 @@ def _load_ascii_compliance_files() -> Tuple[str, ...]:
 
 
 # Files to check for ASCII compliance (AI collaborator facing docs)
-ASCII_COMPLIANCE_FILES: Tuple[str, ...] = _load_ascii_compliance_files()
+ASCII_COMPLIANCE_FILES: tuple[str, ...] = _load_ascii_compliance_files()
 
 
-def _load_version_sync_directories() -> Dict[str, str]:
+def _load_version_sync_directories() -> dict[str, str]:
     """Load version sync directories from config or return defaults."""
     constants_config = _get_constants_config_safe()
     if constants_config and "fix_version_sync_directories" in constants_config:
@@ -439,7 +438,7 @@ def _load_version_sync_directories() -> Dict[str, str]:
 
 
 # Version sync key directories
-VERSION_SYNC_DIRECTORIES: Dict[str, str] = _load_version_sync_directories()
+VERSION_SYNC_DIRECTORIES: dict[str, str] = _load_version_sync_directories()
 
 
 def is_standard_library_module(module_name: str) -> bool:

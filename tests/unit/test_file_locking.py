@@ -11,7 +11,6 @@ import json
 import time
 import sys
 import threading
-from pathlib import Path
 from unittest.mock import patch, mock_open, MagicMock
 
 from core.file_locking import file_lock, safe_json_read, safe_json_write
@@ -237,7 +236,7 @@ class TestSafeJsonWrite:
         assert os.path.exists(test_file), "File should be created"
         
         # Verify content
-        with open(test_file, 'r') as f:
+        with open(test_file) as f:
             written_data = json.load(f)
         
         assert written_data == test_data, "Should write data correctly"
@@ -258,7 +257,7 @@ class TestSafeJsonWrite:
         assert result is True, "Should return True on success"
         
         # Verify content was updated
-        with open(test_file, 'r') as f:
+        with open(test_file) as f:
             written_data = json.load(f)
         
         assert written_data == new_data, "Should update file content"
@@ -266,8 +265,6 @@ class TestSafeJsonWrite:
 
     def test_safe_json_write_uses_atomic_write(self, test_data_dir):
         """Test that safe_json_write uses atomic write pattern."""
-        import tempfile
-        import shutil
         test_file = os.path.join(test_data_dir, "test_atomic.json")
         test_data = {"atomic": "write"}
         
@@ -275,13 +272,13 @@ class TestSafeJsonWrite:
         with patch('tempfile.mkstemp') as mock_mkstemp, \
              patch('shutil.move') as mock_move, \
              patch('core.file_locking.file_lock') as mock_lock, \
-             patch('builtins.open', mock_open()) as mock_file:
+             patch('builtins.open', mock_open()):
             
             mock_mkstemp.return_value = (1, "/tmp/temp_file.json")
             mock_lock.return_value.__enter__ = MagicMock(return_value=None)
             mock_lock.return_value.__exit__ = MagicMock(return_value=None)
             
-            result = safe_json_write(test_file, test_data)
+            safe_json_write(test_file, test_data)
             
             # Verify atomic write pattern was used
             assert mock_mkstemp.called, "Should create temp file"
@@ -289,7 +286,6 @@ class TestSafeJsonWrite:
 
     def test_safe_json_write_handles_write_errors(self, test_data_dir):
         """Test safe_json_write handles write errors gracefully."""
-        import tempfile
         test_file = os.path.join(test_data_dir, "test_error.json")
         test_data = {"test": "data"}
         
@@ -302,7 +298,6 @@ class TestSafeJsonWrite:
     def test_safe_json_write_cleans_up_temp_file_on_error(self, test_data_dir):
         """Test safe_json_write cleans up temp file on error."""
         import tempfile
-        import shutil
         test_file = os.path.join(test_data_dir, "test_cleanup.json")
         test_data = {"test": "data"}
         
@@ -418,7 +413,7 @@ class TestFileLockingConcurrency:
         assert len(write_results) == 5, "All threads should have written"
         
         # Verify file contains all thread data
-        with open(test_file, 'r') as f:
+        with open(test_file) as f:
             final_data = json.load(f)
         
         assert len(final_data) == 5, "File should contain data from all threads"

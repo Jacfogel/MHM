@@ -129,7 +129,7 @@ def setup_consolidated_test_logging():
             import threading
 
             rotation_complete = threading.Event()
-            rotation_error = [None]
+            rotation_error: list[Exception | None] = [None]
             rotation_success = [False]
 
             def do_rotation():
@@ -202,12 +202,10 @@ def setup_consolidated_test_logging():
         if test_logger:
             if test_logger.level > logging.INFO:
                 test_logger.setLevel(logging.INFO)
-            file_handler_found = False
             for handler in list(test_logger.handlers):
                 if isinstance(handler, logging.FileHandler):
                     handler.close()
                     test_logger.removeHandler(handler)
-                    file_handler_found = True
             worker_test_run_handler = logging.FileHandler(
                 test_run_log_file, encoding="utf-8", mode="a"
             )
@@ -291,6 +289,12 @@ def setup_consolidated_test_logging():
         from core.service import MHMService
         from communication.core.channel_orchestrator import CommunicationManager
         from ai.chatbot import AIChatBotSingleton
+        _ = (
+            SchedulerManager,
+            MHMService,
+            CommunicationManager,
+            AIChatBotSingleton,
+        )
     except ImportError:
         pass
 

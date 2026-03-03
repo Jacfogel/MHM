@@ -14,7 +14,7 @@ This script analyzes error handling patterns across the codebase to identify:
 import ast
 import sys
 from pathlib import Path
-from typing import Any, DefaultDict, Dict, List, Optional, Set, TypedDict, Union
+from typing import Any, TypedDict
 from collections import defaultdict
 import re
 
@@ -46,7 +46,7 @@ class ModuleStats(TypedDict):
     functions_with_error_handling: int
     functions_missing_error_handling: int
     analyze_error_handling: float
-    files: Set[str]
+    files: set[str]
 
 class ErrorHandlingAnalyzer:
     """Analyzes error handling patterns in Python code."""
@@ -153,7 +153,7 @@ class ErrorHandlingAnalyzer:
         }
         self.generic_exceptions = error_config.get('generic_exceptions', default_generic_exceptions)
     
-    def _to_standard_format(self) -> Dict[str, Any]:
+    def _to_standard_format(self) -> dict[str, Any]:
         """Convert results to standard format."""
         # Calculate files_affected from unique files in missing_error_handling list
         missing_error_handling = self.results.get('missing_error_handling', [])
@@ -173,10 +173,10 @@ class ErrorHandlingAnalyzer:
             'details': self.results.copy()
         }
 
-    def analyze_file(self, file_path: Path) -> Dict[str, Any]:
+    def analyze_file(self, file_path: Path) -> dict[str, Any]:
         """Analyze error handling in a single Python file."""
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding='utf-8') as f:
                 content = f.read()
             
             tree = ast.parse(content)
@@ -252,7 +252,7 @@ class ErrorHandlingAnalyzer:
                 'missing_error_handling': []
             }
 
-    def _should_exclude_function(self, func_node: Union[ast.FunctionDef, ast.AsyncFunctionDef], content: str, file_path: Optional[str] = None) -> bool:
+    def _should_exclude_function(self, func_node: ast.FunctionDef | ast.AsyncFunctionDef, content: str, file_path: str | None = None) -> bool:
         """
         Check if a function should be excluded from error handling analysis.
         
@@ -276,7 +276,7 @@ class ErrorHandlingAnalyzer:
         """
         # The content parameter now includes context lines before the function
         func_content_lower = content.lower()
-        file_path_lower = file_path.lower() if file_path else ""
+        file_path.lower() if file_path else ""
         func_name = func_node.name
         
         # Check for exclusion comment (the content includes context lines before the function)
@@ -393,7 +393,7 @@ class ErrorHandlingAnalyzer:
         
         return False
 
-    def _analyze_raise_statement(self, raise_node: ast.Raise, content: str, file_path: Path) -> Optional[Dict[str, Any]]:
+    def _analyze_raise_statement(self, raise_node: ast.Raise, content: str, file_path: Path) -> dict[str, Any] | None:
         """Phase 2: Analyze a raise statement for generic exceptions."""
         if not raise_node.exc:
             return None
@@ -446,7 +446,7 @@ class ErrorHandlingAnalyzer:
     def _suggest_exception_replacement(self, exc_type: str, file_path: str, func_name: str, line_content: str) -> str:
         """Suggest appropriate exception replacement for generic exception (using config)."""
         file_lower = file_path.lower()
-        func_lower = (func_name or '').lower()
+        (func_name or '').lower()
         line_lower = line_content.lower()
         
         # Use generic_exceptions mapping from config first
@@ -513,7 +513,7 @@ class ErrorHandlingAnalyzer:
         
         return self.generic_exceptions.get(exc_type, base_exception)
 
-    def _analyze_function(self, func_node: Union[ast.FunctionDef, ast.AsyncFunctionDef], content: str, file_path: Optional[str] = None) -> Dict[str, Any]:
+    def _analyze_function(self, func_node: ast.FunctionDef | ast.AsyncFunctionDef, content: str, file_path: str | None = None) -> dict[str, Any]:
         """Analyze error handling in a function."""
         func_name = func_node.name
         func_start = func_node.lineno
@@ -574,11 +574,7 @@ class ErrorHandlingAnalyzer:
                 analysis['has_error_handling'] = True
             elif isinstance(decorator, ast.Call):
                 # Check for @handle_errors(...) - direct name
-                if isinstance(decorator.func, ast.Name) and decorator.func.id == 'handle_errors':
-                    analysis['has_decorators'] = True
-                    analysis['has_error_handling'] = True
-                # Check for @module.handle_errors(...) - attribute access
-                elif isinstance(decorator.func, ast.Attribute) and decorator.func.attr == 'handle_errors':
+                if isinstance(decorator.func, ast.Name) and decorator.func.id == 'handle_errors' or isinstance(decorator.func, ast.Attribute) and decorator.func.attr == 'handle_errors':
                     analysis['has_decorators'] = True
                     analysis['has_error_handling'] = True
             # Check for @module.handle_errors (attribute without call)
@@ -669,7 +665,7 @@ class ErrorHandlingAnalyzer:
         
         return analysis
 
-    def _analyze_class(self, class_node: ast.ClassDef, content: str) -> Dict[str, Any]:
+    def _analyze_class(self, class_node: ast.ClassDef, content: str) -> dict[str, Any]:
         """Analyze error handling in a class."""
         class_name = class_node.name
         class_start = class_node.lineno
@@ -711,7 +707,7 @@ class ErrorHandlingAnalyzer:
         content_lower = content.lower()
         
         # Check for critical operation keywords
-        for category, keywords in self.critical_functions.items():
+        for _category, keywords in self.critical_functions.items():
             for keyword in keywords:
                 if keyword in func_lower or keyword in content_lower:
                     return True
@@ -730,7 +726,7 @@ class ErrorHandlingAnalyzer:
         
         return False
     
-    def _is_nested_function(self, func_node: Union[ast.FunctionDef, ast.AsyncFunctionDef], content: str, func_start_line: int) -> bool:
+    def _is_nested_function(self, func_node: ast.FunctionDef | ast.AsyncFunctionDef, content: str, func_start_line: int) -> bool:
         """
         Check if a function is nested inside another function.
         
@@ -778,7 +774,7 @@ class ErrorHandlingAnalyzer:
         
         return False
     
-    def _determine_operation_type(self, func_name: str, file_path: str, func_content: Optional[str] = None) -> str:
+    def _determine_operation_type(self, func_name: str, file_path: str, func_content: str | None = None) -> str:
         """Phase 1: Determine operation type from function name, file path, and content."""
         func_lower = func_name.lower()
         file_lower = file_path.lower()
@@ -805,7 +801,7 @@ class ErrorHandlingAnalyzer:
         
         return "general"
     
-    def _is_entry_point(self, func_name: str, file_path: str, func_content: Optional[str] = None) -> bool:
+    def _is_entry_point(self, func_name: str, file_path: str, func_content: str | None = None) -> bool:
         """Phase 1: Check if function is an entry point."""
         func_lower = func_name.lower()
         file_lower = file_path.lower()
@@ -881,7 +877,7 @@ class ErrorHandlingAnalyzer:
         else:
             return "root"
 
-    def analyze_project(self, include_tests: bool = False, include_dev_tools: bool = False) -> Dict[str, Any]:
+    def analyze_project(self, include_tests: bool = False, include_dev_tools: bool = False) -> dict[str, Any]:
         """Analyze error handling across the entire project."""
         logger.debug("Analyzing error handling coverage...")
         
@@ -964,7 +960,7 @@ class ErrorHandlingAnalyzer:
         # Convert to standard format
         return self._to_standard_format()
 
-    def _aggregate_results(self, file_results: List[Dict[str, Any]]):
+    def _aggregate_results(self, file_results: list[dict[str, Any]]):
         """Aggregate results from all files."""
         total_functions = 0
         functions_with_try_except = 0
@@ -984,7 +980,7 @@ class ErrorHandlingAnalyzer:
         phase2_by_type = defaultdict(int)
         
         # Module-level analysis
-        module_stats: DefaultDict[str, ModuleStats] = defaultdict(lambda: {
+        module_stats: defaultdict[str, ModuleStats] = defaultdict(lambda: {
             'total_functions': 0,
             'functions_with_error_handling': 0,
             'functions_missing_error_handling': 0,

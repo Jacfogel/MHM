@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -88,11 +89,13 @@ def test_build_retention_plan_applies_count_limit(tmp_path: Path) -> None:
     policy = _build_policy(max_age_days=None, min_keep=0, max_keep=2, rules=[rule])
 
     plan = build_retention_plan(tmp_path, policy, target_category="B")
-    action_paths = {Path(item["file_path"]).name for item in plan["actions"]}
+    actions = cast(list[dict[str, object]], plan["actions"])
+    action_paths = {Path(str(item["file_path"])).name for item in actions}
 
-    assert plan["summary"]["planned_actions"] == 1
+    summary = cast(dict[str, object], plan["summary"])
+    assert summary["planned_actions"] == 1
     assert action_paths == {"oldest.log"}
-    assert plan["actions"][0]["reason"] == "count>2"
+    assert actions[0]["reason"] == "count>2"
 
 
 @pytest.mark.unit
@@ -110,10 +113,12 @@ def test_build_retention_plan_applies_age_limit(tmp_path: Path) -> None:
     policy = _build_policy(max_age_days=30, min_keep=0, max_keep=10, rules=[rule])
 
     plan = build_retention_plan(tmp_path, policy, target_category="B")
+    summary = cast(dict[str, object], plan["summary"])
+    actions = cast(list[dict[str, object]], plan["actions"])
 
-    assert plan["summary"]["planned_actions"] == 1
-    assert Path(plan["actions"][0]["file_path"]).name == "stale.json"
-    assert plan["actions"][0]["reason"] == "age>30d"
+    assert summary["planned_actions"] == 1
+    assert Path(str(actions[0]["file_path"])).name == "stale.json"
+    assert actions[0]["reason"] == "age>30d"
 
 
 @pytest.mark.unit
@@ -134,9 +139,11 @@ def test_build_retention_plan_respects_disabled_local_retention(tmp_path: Path) 
     )
 
     plan = build_retention_plan(tmp_path, policy, target_category="B")
+    summary = cast(dict[str, object], plan["summary"])
+    rules = cast(list[dict[str, object]], plan["rules"])
 
-    assert plan["summary"]["planned_actions"] == 0
-    assert plan["rules"][0]["status"] == "retention_disabled"
+    assert summary["planned_actions"] == 0
+    assert rules[0]["status"] == "retention_disabled"
 
 
 @pytest.mark.unit
@@ -187,14 +194,16 @@ def test_build_retention_plan_filters_by_owner_and_category(tmp_path: Path) -> N
     )
 
     plan = build_retention_plan(tmp_path, policy, target_category="B")
+    summary = cast(dict[str, object], plan["summary"])
+    rules = cast(list[dict[str, object]], plan["rules"])
 
-    assert plan["summary"]["rules_scanned"] == 1
-    assert plan["rules"][0]["rule"] == "owned"
+    assert summary["rules_scanned"] == 1
+    assert rules[0]["rule"] == "owned"
 
 
 @pytest.mark.unit
 def test_apply_retention_plan_dry_run_marks_would_delete() -> None:
-    plan = {
+    plan: dict[str, object] = {
         "actions": [
             {"file_path": "C:/tmp/one.log", "reason": "count>1"},
             {"file_path": "C:/tmp/two.log", "reason": "age>7d"},
@@ -202,10 +211,12 @@ def test_apply_retention_plan_dry_run_marks_would_delete() -> None:
     }
 
     result = apply_retention_plan(plan, dry_run=True)
+    summary = cast(dict[str, object], result["summary"])
+    actions = cast(list[dict[str, object]], result["actions"])
 
-    assert result["summary"]["attempted"] == 2
-    assert result["summary"]["deleted"] == 0
-    assert all(item["status"] == "would_delete" for item in result["actions"])
+    assert summary["attempted"] == 2
+    assert summary["deleted"] == 0
+    assert all(item["status"] == "would_delete" for item in actions)
 
 
 @pytest.mark.unit
@@ -214,7 +225,7 @@ def test_apply_retention_plan_deletes_and_skips_missing(tmp_path: Path) -> None:
     _touch_file(existing, size_bytes=8)
     missing = tmp_path / "missing.log"
 
-    plan = {
+    plan: dict[str, object] = {
         "actions": [
             {"file_path": str(existing), "reason": "count>1"},
             {"file_path": str(missing), "reason": "age>1d"},
@@ -222,12 +233,14 @@ def test_apply_retention_plan_deletes_and_skips_missing(tmp_path: Path) -> None:
     }
 
     result = apply_retention_plan(plan, dry_run=False)
-    status_by_path = {item["file_path"]: item["status"] for item in result["actions"]}
+    summary = cast(dict[str, object], result["summary"])
+    actions = cast(list[dict[str, object]], result["actions"])
+    status_by_path = {str(item["file_path"]): item["status"] for item in actions}
 
-    assert result["summary"]["attempted"] == 2
-    assert result["summary"]["deleted"] == 1
-    assert result["summary"]["failed"] == 0
-    assert result["summary"]["freed_bytes"] == 8
+    assert summary["attempted"] == 2
+    assert summary["deleted"] == 1
+    assert summary["failed"] == 0
+    assert summary["freed_bytes"] == 8
     assert not existing.exists()
     assert status_by_path[str(existing)] == "deleted"
     assert status_by_path[str(missing)] == "skipped_missing"

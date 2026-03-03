@@ -7,7 +7,6 @@ and other edge cases.
 
 import json
 import os
-import shutil
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -205,7 +204,7 @@ class TestConcurrentAccessHandling:
         locked_file.write_text("test")
 
         if os.name == "nt":
-            with open(locked_file, "r"):
+            with open(locked_file):
                 try:
                     locked_file.write_text("new")
                 except (PermissionError, OSError):

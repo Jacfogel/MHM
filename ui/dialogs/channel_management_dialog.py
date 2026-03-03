@@ -38,7 +38,6 @@ class ChannelManagementDialog(QDialog):
                 if w:
                     w.setParent(None)
             layout.addWidget(self.channel_widget)
-            channel_enabled = False
             if self.user_id:
 
                 @handle_errors(
@@ -50,7 +49,7 @@ class ChannelManagementDialog(QDialog):
                     user_data_result = get_user_data(self.user_id, "account")
                     account = user_data_result.get("account") or {}
                     features = account.get("features", {})
-                    channel_enabled = features.get("automated_messages") == "enabled"
+                    features.get("automated_messages") == "enabled"
                     prefs_result = get_user_data(self.user_id, "preferences")
                     prefs = prefs_result.get("preferences") or {}
                     channel = prefs.get("channel", {}).get("type", "email")

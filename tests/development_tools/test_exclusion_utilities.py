@@ -6,7 +6,6 @@ Tests the function-level exclusion logic used across analysis tools.
 """
 
 import pytest
-from pathlib import Path
 
 from tests.development_tools.conftest import load_development_tools_module
 

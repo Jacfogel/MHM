@@ -6,9 +6,8 @@ types of broken path references and that issues appear in status reports.
 """
 
 import pytest
-from pathlib import Path
 
-from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
+from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module using the helper
 path_drift_module = load_development_tools_module("docs.analyze_path_drift")

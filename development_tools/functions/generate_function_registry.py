@@ -13,7 +13,6 @@ if available, making this tool portable across different projects.
 import sys
 import os
 from pathlib import Path
-from typing import Dict, List
 
 # Ensure we can import from development_tools
 # Add parent directory to path if running as script
@@ -49,7 +48,7 @@ logger = get_component_logger("development_tools")
 
 
 def detect_function_type(
-    file_path: str, func_name: str, decorators: List[str], args: List[str]
+    file_path: str, func_name: str, decorators: list[str], args: list[str]
 ) -> str:
     """Detect the type of function for template generation."""
     file_lower = file_path.lower()
@@ -86,7 +85,7 @@ def detect_function_type(
 
 
 def generate_function_template(
-    func_type: str, func_name: str, file_path: str, args: List[str]
+    func_type: str, func_name: str, file_path: str, args: list[str]
 ) -> str:
     """Generate appropriate documentation template based on function type."""
 
@@ -149,7 +148,7 @@ except ImportError:
     )
 
 
-def generate_function_registry_content(actual_functions: Dict[str, Dict]) -> str:
+def generate_function_registry_content(actual_functions: dict[str, dict]) -> str:
     """Generate the complete FUNCTION_REGISTRY_DETAIL.md content."""
 
     # Calculate statistics
@@ -308,7 +307,7 @@ def get_directory_description(dir_name: str) -> str:
     return descriptions.get(dir_name, "Unknown Directory")
 
 
-def generate_file_section(file_path: str, data: Dict) -> str:
+def generate_file_section(file_path: str, data: dict) -> str:
     """Generate a section for a single file."""
     content = f"#### `{file_path}`\n"
 
@@ -335,13 +334,13 @@ def generate_file_section(file_path: str, data: Dict) -> str:
     return content
 
 
-def generate_ai_function_registry_content(actual_functions: Dict[str, Dict]) -> str:
+def generate_ai_function_registry_content(actual_functions: dict[str, dict]) -> str:
     """Generate AI-optimized function registry content focusing on patterns and decision trees."""
 
     # Calculate statistics
     total_files = len(actual_functions)
     total_functions = sum(data["total_functions"] for data in actual_functions.values())
-    total_classes = sum(data["total_classes"] for data in actual_functions.values())
+    sum(data["total_classes"] for data in actual_functions.values())
     total_methods = sum(
         len(cls["methods"])
         for data in actual_functions.values()
@@ -576,7 +575,7 @@ def generate_ai_function_registry_content(actual_functions: Dict[str, Dict]) -> 
     return content
 
 
-def get_file_stats(file_path: str, actual_functions: Dict[str, Dict]) -> Dict[str, int]:
+def get_file_stats(file_path: str, actual_functions: dict[str, dict]) -> dict[str, int]:
     """Get statistics for a specific file from actual_functions."""
     if file_path not in actual_functions:
         return {"total": 0, "documented": 0, "functions": 0, "methods": 0}
@@ -604,7 +603,7 @@ def get_file_stats(file_path: str, actual_functions: Dict[str, Dict]) -> Dict[st
 
 
 def format_file_entry(
-    file_path: str, description: str, actual_functions: Dict[str, Dict]
+    file_path: str, description: str, actual_functions: dict[str, dict]
 ) -> str:
     """Format a file entry with dynamic function counts."""
     stats = get_file_stats(file_path, actual_functions)
@@ -618,8 +617,8 @@ def format_file_entry(
 
 
 def find_files_needing_attention(
-    actual_functions: Dict[str, Dict], threshold: float = 0.8
-) -> List[Dict]:
+    actual_functions: dict[str, dict], threshold: float = 0.8
+) -> list[dict]:
     """Find files that need documentation attention (below threshold coverage)."""
     needing_attention = []
 
@@ -663,7 +662,7 @@ def find_files_needing_attention(
 
 
 def generate_pattern_section(
-    patterns: Dict[str, List], actual_functions: Dict[str, Dict]
+    patterns: dict[str, list], actual_functions: dict[str, dict]
 ) -> str:
     """Generate dynamic pattern section based on ALL detected patterns - concise and high-signal."""
     section = ""
@@ -839,7 +838,7 @@ def generate_pattern_section(
 
 
 def generate_entry_points_section(
-    patterns: Dict[str, List], actual_functions: Dict[str, Dict]
+    patterns: dict[str, list], actual_functions: dict[str, dict]
 ) -> str:
     """Generate dynamic entry points section from detected entry points."""
     # Separate entry points by priority (higher priority functions first)
@@ -907,7 +906,7 @@ def generate_entry_points_section(
 
 
 def generate_common_operations_section(
-    actual_functions: Dict[str, Dict], patterns: Dict[str, List]
+    actual_functions: dict[str, dict], patterns: dict[str, list]
 ) -> str:
     """Generate dynamic common operations section - comprehensive and based on actual patterns."""
     found_ops = {}
@@ -927,7 +926,7 @@ def generate_common_operations_section(
     # Priority 2: Data access operations (skip internal helpers)
     for da in patterns.get("data_access", [])[:10]:
         func_name = da["function"]
-        file_lower = func_name.lower()
+        func_name.lower()
         # Skip internal helper functions (double underscore prefix or internal patterns)
         if func_name.startswith("_") and "__" in func_name:
             continue
@@ -978,12 +977,6 @@ def generate_common_operations_section(
                 break
 
     # Priority 6: Look for common utility functions by searching actual functions
-    utility_patterns = {
-        "validate": "Validation",
-        "parse_command": "Command Parsing",
-        "get_config": "Configuration",
-        "log": "Logging",
-    }
 
     for file_path, data in actual_functions.items():
         if "test" in file_path.lower():
@@ -1050,7 +1043,7 @@ def generate_common_operations_section(
     )
 
 
-def generate_complexity_section(actual_functions: Dict[str, Dict]) -> str:
+def generate_complexity_section(actual_functions: dict[str, dict]) -> str:
     """Generate complexity metrics section showing most complex functions."""
     all_functions = []
 
@@ -1102,12 +1095,12 @@ def generate_complexity_section(actual_functions: Dict[str, Dict]) -> str:
     return "\n".join(complexity_lines)
 
 
-def generate_file_organization_section(actual_functions: Dict[str, Dict]) -> str:
+def generate_file_organization_section(actual_functions: dict[str, dict]) -> str:
     """Generate dynamic file organization section based on actual directory structure."""
     directories = {}
 
     # Organize files by directory
-    for file_path in actual_functions.keys():
+    for file_path in actual_functions:
         parts = file_path.split("/")
         if len(parts) > 1:
             top_dir = parts[0]
@@ -1167,7 +1160,7 @@ def generate_file_organization_section(actual_functions: Dict[str, Dict]) -> str
 
 
 def generate_communication_patterns_section(
-    patterns: Dict[str, List], actual_functions: Dict[str, Dict]
+    patterns: dict[str, list], actual_functions: dict[str, dict]
 ) -> str:
     """Generate dynamic communication patterns section from detected communication functions."""
     comm_patterns = []
@@ -1342,15 +1335,15 @@ def update_function_registry():
         (documented_items / total_items * 100) if total_items > 0 else 0
     )
 
-    logger.info(f"[SUCCESS] Both function registry files updated successfully!")
-    logger.info(f"[FILES] Generated:")
+    logger.info("[SUCCESS] Both function registry files updated successfully!")
+    logger.info("[FILES] Generated:")
     logger.info(
-        f"   development_docs/FUNCTION_REGISTRY_DETAIL.md - Complete detailed registry"
+        "   development_docs/FUNCTION_REGISTRY_DETAIL.md - Complete detailed registry"
     )
     logger.info(
-        f"   ai_development_docs/AI_FUNCTION_REGISTRY.md - Concise AI-focused registry"
+        "   ai_development_docs/AI_FUNCTION_REGISTRY.md - Concise AI-focused registry"
     )
-    logger.info(f"[STATS] Statistics:")
+    logger.info("[STATS] Statistics:")
     logger.info(f"   Files scanned: {total_files}")
     logger.info(f"   Functions found: {total_functions}")
     logger.info(f"   Methods found: {total_methods}")
@@ -1365,7 +1358,7 @@ def update_function_registry():
 
     # Template breakdown
     if template_items > 0:
-        logger.info(f"[TEMPLATES] Template Breakdown:")
+        logger.info("[TEMPLATES] Template Breakdown:")
         template_types = {}
         for data in actual_functions.values():
             for func in data["functions"]:

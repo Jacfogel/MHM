@@ -289,7 +289,7 @@ class TestConfigConstants:
             expected = os.path.abspath('tests/data')
         else:
             expected = 'data'
-        assert BASE_DATA_DIR == expected
+        assert expected == BASE_DATA_DIR
     
     @pytest.mark.unit
     @pytest.mark.smoke
@@ -316,7 +316,7 @@ class TestConfigConstants:
         # Handle both relative and absolute paths, and Windows path separators
         expected_relative = 'resources/default_messages'
         path_normalized = DEFAULT_MESSAGES_DIR_PATH.replace('\\', '/')
-        assert (DEFAULT_MESSAGES_DIR_PATH == expected_relative or 
+        assert (expected_relative == DEFAULT_MESSAGES_DIR_PATH or 
                 path_normalized.endswith('resources/default_messages') or 
                 'resources/default_messages' in path_normalized)
     

@@ -150,7 +150,7 @@ def _cleanup_test_log_files(project_root: str | Path) -> None:
                 continue
 
             try:
-                with open(log_file, "r", encoding="utf-8") as f:
+                with open(log_file, encoding="utf-8") as f:
                     content = f.read().strip()
                     if (
                         content.startswith("# Log rotated at")

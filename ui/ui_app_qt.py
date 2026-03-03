@@ -438,7 +438,7 @@ class MHMManagerUI(QMainWindow):
             return
 
         if theme_path.exists():
-            with open(theme_path, "r", encoding="utf-8") as f:
+            with open(theme_path, encoding="utf-8") as f:
                 theme_content = f.read()
 
             # Apply the theme to the application
@@ -607,7 +607,7 @@ class MHMManagerUI(QMainWindow):
                 discord_log_file = Path(__file__).parent.parent / "logs" / "discord.log"
                 if discord_log_file.exists():
                     with open(
-                        discord_log_file, "r", encoding="utf-8", errors="ignore"
+                        discord_log_file, encoding="utf-8", errors="ignore"
                     ) as f:
                         lines = f.readlines()
 
@@ -800,7 +800,7 @@ class MHMManagerUI(QMainWindow):
                 email_log_file = Path(__file__).parent.parent / "logs" / "email.log"
                 if email_log_file.exists():
                     with open(
-                        email_log_file, "r", encoding="utf-8", errors="ignore"
+                        email_log_file, encoding="utf-8", errors="ignore"
                     ) as f:
                         lines = f.readlines()
 
@@ -1543,7 +1543,7 @@ class MHMManagerUI(QMainWindow):
         )
         try:
             from ui.dialogs.user_profile_dialog import UserProfileDialog
-            from core.user_data_handlers import get_user_data, update_user_context
+            from core.user_data_handlers import get_user_data
 
             # Load user context and account data
             user_data = get_user_data(self.current_user, ["context", "account"])
@@ -1639,7 +1639,7 @@ class MHMManagerUI(QMainWindow):
         )
 
         # Temporarily set the user context for editing
-        original_user = UserContext().get_user_id()
+        UserContext().get_user_id()
         UserContext().set_user_id(self.current_user)
 
         # Load the user's full data to get internal_username and other details
@@ -1731,7 +1731,7 @@ class MHMManagerUI(QMainWindow):
         )
 
         # Temporarily set the user context for editing
-        original_user = UserContext().get_user_id()
+        UserContext().get_user_id()
         UserContext().set_user_id(self.current_user)
 
         # Load the user's full data to get internal_username and other details
@@ -1948,7 +1948,7 @@ class MHMManagerUI(QMainWindow):
         for _ in range(30):  # Check 30 times over 3 seconds
             if response_file.exists():
                 try:
-                    with open(response_file, "r") as f:
+                    with open(response_file) as f:
                         response_data = json.load(f)
                     actual_message = response_data.get("message", actual_message)
                     # Clean up response file
@@ -2092,7 +2092,7 @@ class MHMManagerUI(QMainWindow):
         for _ in range(30):  # Check 30 times over 3 seconds
             if response_file.exists():
                 try:
-                    with open(response_file, "r") as f:
+                    with open(response_file) as f:
                         response_data = json.load(f)
                     first_question = response_data.get("first_question", first_question)
                     # Clean up response file
@@ -2425,7 +2425,7 @@ Current cache files found:
         """
         """Show detailed configuration validation report."""
         from core.config import validate_all_configuration
-        from PySide6.QtWidgets import QTabWidget, QTextEdit, QScrollArea
+        from PySide6.QtWidgets import QTabWidget, QTextEdit
 
         result = validate_all_configuration()
 
@@ -2691,7 +2691,7 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
                     summary_text += f"User: {username}"
                     if preferred_name:
                         summary_text += f" ({preferred_name})"
-                    summary_text += f"\n"
+                    summary_text += "\n"
                     summary_text += f"  ID: {user_id}\n"
                     summary_text += f"  Service: {messaging_service}\n"
                     summary_text += f"  Categories: {', '.join(categories) if categories else 'None'}\n"
@@ -2799,7 +2799,7 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
         # Check for orphaned message files
         if os.path.exists(core.config.USER_INFO_DIR_PATH):
             orphaned_files = 0
-            for root, dirs, files in os.walk(core.config.USER_INFO_DIR_PATH):
+            for _root, _dirs, files in os.walk(core.config.USER_INFO_DIR_PATH):
                 for file in files:
                     if file.endswith(".json"):
                         # Extract user_id from filename

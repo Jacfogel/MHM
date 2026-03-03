@@ -13,7 +13,6 @@ if available, making this tool portable across different projects.
 import ast
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -55,12 +54,12 @@ def _get_project_root() -> Path:
     return Path(config.get_project_root())
 
 
-def _get_scan_directories() -> List[str]:
+def _get_scan_directories() -> list[str]:
     """Get scan directories from config."""
     return config.get_scan_directories()
 
 
-def _get_analyze_functions_config() -> Dict:
+def _get_analyze_functions_config() -> dict:
     """Get analyze functions config from config module."""
     return config.get_analyze_functions_config()
 
@@ -85,7 +84,7 @@ CRITICAL_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get(
 
 
 @handle_errors("extracting decorator documentation", default_return="")
-def extract_decorator_documentation(decorator_list: List[ast.expr]) -> str:
+def extract_decorator_documentation(decorator_list: list[ast.expr]) -> str:
     """
     Extract documentation from decorators like @handle_errors("description").
 
@@ -103,10 +102,7 @@ def extract_decorator_documentation(decorator_list: List[ast.expr]) -> str:
             if (
                 isinstance(decorator.func, ast.Name)
                 and decorator.func.id == "handle_errors"
-            ):
-                if decorator.args and isinstance(decorator.args[0], ast.Constant):
-                    documentation.append(f"@handle_errors: {decorator.args[0].value}")
-            elif (
+            ) or (
                 isinstance(decorator.func, ast.Attribute)
                 and decorator.func.attr == "handle_errors"
             ):
@@ -118,10 +114,7 @@ def extract_decorator_documentation(decorator_list: List[ast.expr]) -> str:
             if (
                 isinstance(decorator.func, ast.Name)
                 and decorator.func.id == "error_handler"
-            ):
-                if decorator.args and isinstance(decorator.args[0], ast.Constant):
-                    documentation.append(f"@error_handler: {decorator.args[0].value}")
-            elif (
+            ) or (
                 isinstance(decorator.func, ast.Attribute)
                 and decorator.func.attr == "error_handler"
             ):
@@ -132,7 +125,7 @@ def extract_decorator_documentation(decorator_list: List[ast.expr]) -> str:
 
 
 def detect_function_type(
-    file_path: str, func_name: str, decorators: List[str], args: List[str]
+    file_path: str, func_name: str, decorators: list[str], args: list[str]
 ) -> str:
     """Detect the type of function for template generation."""
     file_lower = file_path.lower()
@@ -169,7 +162,7 @@ def detect_function_type(
 
 
 def generate_function_template(
-    func_type: str, func_name: str, file_path: str, args: List[str]
+    func_type: str, func_name: str, file_path: str, args: list[str]
 ) -> str:
     """Generate appropriate documentation template based on function type."""
 
@@ -210,7 +203,7 @@ def generate_function_template(
 
 
 @handle_errors("extracting functions from file", default_return=[])
-def extract_functions(file_path: str) -> List[Dict]:
+def extract_functions(file_path: str) -> list[dict]:
     """Extract all function definitions from a Python file."""
     # Note: Exclusion logic is handled in scan_all_python_files() before calling this function.
     # This function processes any file passed to it (including test fixtures and files in tests/),
@@ -230,7 +223,7 @@ def extract_functions(file_path: str) -> List[Dict]:
 
     functions = []
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
         tree = ast.parse(content)
         for node in ast.walk(tree):
@@ -298,7 +291,7 @@ def extract_functions(file_path: str) -> List[Dict]:
 
 
 @handle_errors("extracting functions from file for registry", default_return=[])
-def extract_functions_from_file(file_path: str) -> List[Dict]:
+def extract_functions_from_file(file_path: str) -> list[dict]:
     """Extract all function definitions from a Python file (registry format with templates)."""
     # Note: Exclusion logic is handled in scan_all_python_files() before calling this function.
     # This function processes any file passed to it (including test fixtures and files in tests/),
@@ -319,7 +312,7 @@ def extract_functions_from_file(file_path: str) -> List[Dict]:
     functions = []
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         tree = ast.parse(content)
@@ -403,7 +396,7 @@ def extract_functions_from_file(file_path: str) -> List[Dict]:
 
 
 @handle_errors("extracting classes from file", default_return=[])
-def extract_classes_from_file(file_path: str) -> List[Dict]:
+def extract_classes_from_file(file_path: str) -> list[dict]:
     """Extract all class definitions from a Python file."""
     # Note: Exclusion logic is handled in scan_all_python_files() before calling this function.
     # This function processes any file passed to it (including test fixtures and files in tests/),
@@ -424,7 +417,7 @@ def extract_classes_from_file(file_path: str) -> List[Dict]:
     classes = []
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         tree = ast.parse(content)
@@ -498,7 +491,7 @@ def extract_classes_from_file(file_path: str) -> List[Dict]:
 
 
 @handle_errors("scanning all Python files", default_return={})
-def scan_all_python_files() -> Dict[str, Dict]:
+def scan_all_python_files() -> dict[str, dict]:
     """Scan all Python files in the project and extract function/class information."""
     # Import config - check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
     if __name__ != "__main__" and __package__ and "." in __package__:
@@ -587,9 +580,9 @@ def scan_all_python_files() -> Dict[str, Dict]:
 def scan_all_functions(
     include_tests: bool = False,
     include_dev_tools: bool = False,
-    scan_directories: Optional[List[str]] = None,
-    project_root: Optional[Path] = None,
-) -> List[Dict]:
+    scan_directories: list[str] | None = None,
+    project_root: Path | None = None,
+) -> list[dict]:
     """
     Scan all Python files in scan directories and extract functions.
 
@@ -679,7 +672,7 @@ def scan_all_functions(
 
 
 @handle_errors("categorizing functions", default_return={})
-def categorize_functions(functions: List[Dict]) -> Dict[str, List[Dict]]:
+def categorize_functions(functions: list[dict]) -> dict[str, list[dict]]:
     """Categorize functions by type for easy discovery."""
     categories = {
         "handlers": [],
@@ -714,7 +707,7 @@ def categorize_functions(functions: List[Dict]) -> Dict[str, List[Dict]]:
 
 
 @handle_errors("printing function summary", default_return=None)
-def print_summary(categories: Dict[str, List[Dict]]):
+def print_summary(categories: dict[str, list[dict]]):
     logger.info("=== FUNCTION DISCOVERY SUMMARY ===")
 
     # Print complexity categories with clear descriptions
@@ -766,7 +759,7 @@ def print_summary(categories: Dict[str, List[Dict]]):
         )
 
 
-def validate_results(categories: Dict[str, List[Dict]]) -> bool:
+def validate_results(categories: dict[str, list[dict]]) -> bool:
     """
     Validate that the results are reasonable and not inflated.
 
@@ -854,7 +847,7 @@ def main():
             except (ValueError, TypeError, OSError):
                 return Path(fpath).name if fpath else ""
 
-        def _make_example(func: Dict) -> Dict:
+        def _make_example(func: dict) -> dict:
             return {
                 "name": func.get("name", "unknown"),
                 "function": func.get("name", "unknown"),

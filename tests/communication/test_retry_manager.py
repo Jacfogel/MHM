@@ -3,8 +3,6 @@ Tests for communication/core/retry_manager.py
 """
 
 import pytest
-import time
-import threading
 from datetime import datetime
 from unittest.mock import patch, Mock
 

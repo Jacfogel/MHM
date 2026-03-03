@@ -14,10 +14,8 @@ from tests.conftest import ensure_qt_runtime
 ensure_qt_runtime()
 
 import pytest
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch
 from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
 import logging
 logger = logging.getLogger("mhm_tests")
 
@@ -246,7 +244,7 @@ class TestAdminPanelDialogErrorHandling:
         # Arrange
         test_data = {"key": "value"}
         
-        with patch('ui.dialogs.admin_panel.logger') as mock_logger:
+        with patch('ui.dialogs.admin_panel.logger'):
             # Act & Assert
             # Should raise DataError on error (not caught by decorator)
             # This is expected behavior for set_admin_data

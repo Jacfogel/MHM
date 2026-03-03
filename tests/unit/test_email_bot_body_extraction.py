@@ -9,7 +9,7 @@ import pytest
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from communication.communication_channels.email.bot import EmailBot
 

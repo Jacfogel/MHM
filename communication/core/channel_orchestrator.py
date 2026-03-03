@@ -26,7 +26,7 @@ from core.file_operations import (
     determine_file_path,
     load_json_data,
 )  # determine_file_path needed for test mocking
-from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN, get_user_data_dir
+from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN
 from core.service_utilities import wait_for_network
 
 # Route orchestration logs to channels component; keep module logger for local debug if needed
@@ -138,7 +138,7 @@ class CommunicationManager:
                     self._main_loop = asyncio.new_event_loop()
                     self._event_loop = self._main_loop
                     asyncio.set_event_loop(self._main_loop)
-        except Exception as e:
+        except Exception:
             # Fallback: create new loop
             self._main_loop = asyncio.new_event_loop()
             self._event_loop = self._main_loop
@@ -546,7 +546,7 @@ class CommunicationManager:
                         )
                         if callable(is_connected_fn) and is_connected_fn():
                             logger.info(
-                                f"Discord bot is actually connected despite initialization returning False"
+                                "Discord bot is actually connected despite initialization returning False"
                             )
                             return True
 
@@ -563,7 +563,7 @@ class CommunicationManager:
                     )
                     if callable(is_connected_fn) and is_connected_fn():
                         logger.info(
-                            f"Discord bot is actually connected despite initialization timeout"
+                            "Discord bot is actually connected despite initialization timeout"
                         )
                         return True
 
@@ -798,7 +798,7 @@ class CommunicationManager:
                     )
                     if callable(is_connected_fn) and is_connected_fn():
                         logger.info(
-                            f"Discord bot is actually connected despite initialization returning False"
+                            "Discord bot is actually connected despite initialization returning False"
                         )
                         return True
 
@@ -888,10 +888,10 @@ class CommunicationManager:
             # Use == instead of is to handle mock return values correctly
             if success is True or success == True:
                 # Enhanced logging with message content and time period
-                message_preview = message[:50] + "..." if len(message) > 50 else message
-                time_period = kwargs.get("time_period", "unknown")
-                user_id = kwargs.get("user_id", "unknown")
-                category = kwargs.get("category", "unknown")
+                message[:50] + "..." if len(message) > 50 else message
+                kwargs.get("time_period", "unknown")
+                kwargs.get("user_id", "unknown")
+                kwargs.get("category", "unknown")
                 # Log will be handled by the deduplication logic below
                 return True
             elif success is False or success == False:
@@ -969,15 +969,11 @@ class CommunicationManager:
         # Queue immediately if channel is not ready
         channel = self._channels_dict.get(channel_name)
         not_ready = False
-        if not channel:
-            not_ready = True
-        elif (
+        if not channel or (
             channel_name == "discord"
             and hasattr(channel, "can_send_messages")
             and not channel.can_send_messages()
-        ):
-            not_ready = True
-        elif channel and not channel.is_ready():
+        ) or channel and not channel.is_ready():
             not_ready = True
         if not_ready:
             logger.error(
@@ -1707,14 +1703,11 @@ class CommunicationManager:
             # If no periods match (other than ALL), use ALL as fallback
             if not matching_periods and "ALL" in valid_periods:
                 matching_periods = ["ALL"]
-                logger.debug(f"MESSAGE_SELECTION: Using 'ALL' as fallback period")
+                logger.debug("MESSAGE_SELECTION: Using 'ALL' as fallback period")
 
-            # Use new user-specific message file structure
-            from pathlib import Path
-
-            user_messages_dir = Path(get_user_data_dir(user_id)) / "messages"
-            file_path = user_messages_dir / f"{category}.json"
-            data = load_json_data(str(file_path))  # Convert Path to string
+            # Use centralized path resolution helper for message files.
+            file_path = determine_file_path("messages", f"{category}/{user_id}")
+            data = load_json_data(file_path)
             # Normalize messages file shape for robust selection
             try:
                 from core.schemas import validate_messages_file_dict
@@ -2079,7 +2072,7 @@ class CommunicationManager:
         description = task.get("description", "")
         due_date = task.get("due_date", "")
         priority = task.get("priority", "medium")
-        task_id = task.get("task_id", "")
+        task.get("task_id", "")
         # Tasks now use tags instead of categories
 
         # Create priority emoji
@@ -2159,17 +2152,17 @@ class CommunicationManager:
             # Select from specific period messages
             selected_message = random.choice(specific_period_messages)
             logger.debug(
-                f"Selected message with specific time periods (weighted selection)"
+                "Selected message with specific time periods (weighted selection)"
             )
         elif all_period_messages:
             # Select from 'ALL' period messages
             selected_message = random.choice(all_period_messages)
             logger.debug(
-                f"Selected message with 'ALL' time periods (weighted selection)"
+                "Selected message with 'ALL' time periods (weighted selection)"
             )
         else:
             # Fallback to any available message
             selected_message = random.choice(available_messages)
-            logger.debug(f"Selected message (fallback selection)")
+            logger.debug("Selected message (fallback selection)")
 
         return selected_message

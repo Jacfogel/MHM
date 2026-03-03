@@ -11,7 +11,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 try:
     from .. import config
@@ -24,7 +24,7 @@ except ImportError:
     from development_tools.config.sync_ruff_toml import sync_ruff_toml
 
 
-def _build_unavailable_result(message: str) -> Dict[str, Any]:
+def _build_unavailable_result(message: str) -> dict[str, Any]:
     return {
         "summary": {"total_issues": 0, "files_affected": 0, "status": "WARN"},
         "details": {
@@ -38,7 +38,7 @@ def _build_unavailable_result(message: str) -> Dict[str, Any]:
     }
 
 
-def _resolve_python_command(command: List[str]) -> List[str]:
+def _resolve_python_command(command: list[str]) -> list[str]:
     """Normalize generic Python launcher commands to the current interpreter."""
     if not command:
         return command
@@ -48,12 +48,12 @@ def _resolve_python_command(command: List[str]) -> List[str]:
     return command
 
 
-def _build_result_from_payload(payload: List[Dict[str, Any]], returncode: int) -> Dict[str, Any]:
+def _build_result_from_payload(payload: list[dict[str, Any]], returncode: int) -> dict[str, Any]:
     if not isinstance(payload, list):
         return _build_unavailable_result("ruff output payload is not a JSON list")
 
-    per_file: Dict[str, int] = {}
-    by_rule: Dict[str, int] = {}
+    per_file: dict[str, int] = {}
+    by_rule: dict[str, int] = {}
     for item in payload:
         if not isinstance(item, dict):
             continue
@@ -103,13 +103,13 @@ def _extract_rule_name(rule_output: str, expected_code: str) -> str:
 
 
 def _resolve_top_rule_names(
-    command: List[str],
-    rule_codes: List[str],
+    command: list[str],
+    rule_codes: list[str],
     project_root: Path,
     timeout_seconds: int,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Resolve Ruff rule names for top rule codes using `ruff rule <CODE>`."""
-    resolved: Dict[str, str] = {}
+    resolved: dict[str, str] = {}
     per_rule_timeout = max(5, min(timeout_seconds, 20))
     for code in rule_codes:
         try:
@@ -129,7 +129,7 @@ def _resolve_top_rule_names(
     return resolved
 
 
-def run_ruff(project_root: Path) -> Dict[str, Any]:
+def run_ruff(project_root: Path) -> dict[str, Any]:
     static_cfg = config.get_static_analysis_config()
     configured_ruff_path = static_cfg.get(
         "ruff_config_path", "development_tools/config/ruff.toml"
@@ -198,7 +198,7 @@ def run_ruff(project_root: Path) -> Dict[str, Any]:
     return parsed_result
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Analyze ruff diagnostics.")
     parser.add_argument("--json", action="store_true", help="Print JSON output.")
     parser.add_argument(

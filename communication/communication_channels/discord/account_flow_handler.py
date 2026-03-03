@@ -6,7 +6,6 @@ Uses the channel-agnostic AccountManagementHandler for core logic.
 """
 
 import discord
-from typing import Optional
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from communication.command_handlers.shared_types import ParsedCommand
@@ -55,7 +54,7 @@ class FeatureSelectionView(discord.ui.View):
     async def on_timeout(self):
         """Handle view timeout."""
         for item in self.children:
-            setattr(item, "disabled", True)
+            item.disabled = True
         message = getattr(self, "message", None)
         if message is not None:
             try:
@@ -250,7 +249,7 @@ class CreateAccountButton(discord.ui.Button):
         """Create the account with selected features."""
         # Disable all items to prevent double-submission
         for item in self.parent_view.children:
-            setattr(item, "disabled", True)
+            item.disabled = True
 
         await interaction.response.defer()
 

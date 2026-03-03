@@ -9,14 +9,13 @@ Tests for communication/communication_channels/base/message_formatter.py:
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from communication.communication_channels.base.message_formatter import (
     TextMessageFormatter,
     EmailMessageFormatter,
     get_message_formatter
 )
-from core.error_handling import DataError
 
 
 class TestTextMessageFormatter:

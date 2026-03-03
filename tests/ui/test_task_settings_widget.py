@@ -15,10 +15,8 @@ from tests.conftest import ensure_qt_runtime
 ensure_qt_runtime()
 
 import pytest
-from unittest.mock import patch, Mock, MagicMock
-from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
-from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
+from unittest.mock import patch
+from PySide6.QtWidgets import QApplication
 import logging
 logger = logging.getLogger("mhm_tests")
 
@@ -179,7 +177,7 @@ class TestTaskSettingsWidgetPeriodManagement:
         """Test that undo_last_period_delete restores deleted period."""
         # Arrange
         period_widget = widget.add_new_period(period_name="Test Period")
-        period_data = period_widget.get_period_data()
+        period_widget.get_period_data()
         widget.remove_period_row(period_widget)
         initial_count = len(widget.period_widgets)
         
@@ -267,7 +265,7 @@ class TestTaskSettingsWidgetDataManagement:
     def test_set_task_settings_handles_empty_settings(self, widget):
         """Test that set_task_settings handles empty settings gracefully."""
         # Arrange
-        initial_count = len(widget.period_widgets)
+        len(widget.period_widgets)
         
         # Act
         widget.set_task_settings({})
@@ -412,7 +410,7 @@ class TestTaskSettingsWidgetRecurringSettings:
         
         # get_user_data is not imported in task_settings_widget, so we need to patch it where it's used
         with patch('core.user_data_handlers.get_user_data') as mock_get_data:
-            with patch('core.user_data_handlers.update_user_preferences') as mock_update:
+            with patch('core.user_data_handlers.update_user_preferences'):
                 mock_get_data.return_value = {
                     'preferences': {
                         'task_settings': {}
@@ -498,7 +496,7 @@ class TestTaskSettingsWidgetRealBehavior:
     def test_get_task_settings_returns_actual_data(self, widget, test_user):
         """Test that get_task_settings returns actual data from widgets."""
         # Arrange - Add a period with specific name
-        period_widget = widget.add_new_period(period_name="Test Period", period_data={
+        widget.add_new_period(period_name="Test Period", period_data={
             'start_time': '09:00',
             'end_time': '17:00',
             'active': True,
@@ -564,7 +562,7 @@ class TestTaskSettingsWidgetRealBehavior:
         # Arrange - Add some existing periods
         widget.add_new_period(period_name="Old Period 1")
         widget.add_new_period(period_name="Old Period 2")
-        initial_count = len(widget.period_widgets)
+        len(widget.period_widgets)
         
         # Act - Set new settings with different periods
         test_settings = {

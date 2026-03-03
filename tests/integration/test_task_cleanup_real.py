@@ -9,7 +9,6 @@ Following testing guidelines:
 """
 
 import pytest
-from datetime import datetime
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 import json
@@ -88,7 +87,7 @@ class TestTaskCleanupReal:
         completed_file = user_dir / 'tasks' / 'completed_tasks.json'
         assert completed_file.exists(), "completed_tasks.json should exist"
         
-        with open(completed_file, 'r') as f:
+        with open(completed_file) as f:
             file_data = json.load(f)
             assert any(t['task_id'] == task_id for t in file_data.get('completed_tasks', [])), \
                 "Task should persist in completed_tasks.json file"
@@ -149,7 +148,7 @@ class TestTaskCleanupReal:
         user_dir = Path(get_user_data_dir(user_id))
         active_file = user_dir / 'tasks' / 'active_tasks.json'
         
-        with open(active_file, 'r') as f:
+        with open(active_file) as f:
             file_data = json.load(f)
             assert not any(t['task_id'] == task_id for t in file_data.get('tasks', [])), \
                 "Task should not persist in active_tasks.json file"
@@ -214,7 +213,7 @@ class TestTaskCleanupReal:
         user_dir = Path(get_user_data_dir(user_id))
         active_file = user_dir / 'tasks' / 'active_tasks.json'
         
-        with open(active_file, 'r') as f:
+        with open(active_file) as f:
             file_data = json.load(f)
             file_task = next((t for t in file_data.get('tasks', []) if t['task_id'] == task_id), None)
             assert file_task is not None, "Task should exist in file"

@@ -19,21 +19,13 @@ ensure_qt_runtime()
 
 import pytest
 import json
-import tempfile
-import shutil
 import uuid
-from unittest.mock import patch, Mock, MagicMock
-from datetime import datetime, time
 from pathlib import Path
-from PySide6.QtWidgets import QApplication, QWidget, QMessageBox, QDialog, QVBoxLayout
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout
 
 # Do not modify sys.path; rely on package imports
 
-from core.user_data_handlers import save_user_data, get_user_data
-from core.file_operations import create_user_files, get_user_file_path
-from tests.test_utilities import TestUserFactory, TestUserDataFactory
+from tests.test_utilities import TestUserFactory
 from ui.widgets.tag_widget import TagWidget
 from ui.widgets.task_settings_widget import TaskSettingsWidget
 from ui.widgets.category_selection_widget import CategorySelectionWidget

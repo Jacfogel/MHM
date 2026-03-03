@@ -18,7 +18,6 @@ Usage:
 import ast
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
 
 from development_tools.shared.standard_exclusions import should_exclude_file
 
@@ -39,7 +38,7 @@ class DomainMapper:
 
     # Source domain to test domain mapping
     # Maps source directory -> (test directories, pytest markers)
-    SOURCE_TO_TEST_MAPPING: Dict[str, Tuple[List[str], List[str]]] = {
+    SOURCE_TO_TEST_MAPPING: dict[str, tuple[list[str], list[str]]] = {
         "core": (["tests/core/", "tests/unit/"], ["unit", "critical"]),
         "communication": (["tests/communication/"], ["communication", "integration"]),
         "ui": (["tests/ui/"], ["ui"]),
@@ -52,7 +51,7 @@ class DomainMapper:
 
     # Cross-domain coverage dependencies:
     # if a source domain changes, domains in this list should also be revalidated.
-    DOMAIN_DEPENDENCIES: Dict[str, List[str]] = {
+    DOMAIN_DEPENDENCIES: dict[str, list[str]] = {
         "core": ["communication", "ui", "tasks", "ai", "user", "notebook"],
         "communication": ["ui", "tasks", "ai", "user"],
         "tasks": ["communication", "ui"],
@@ -74,14 +73,14 @@ class DomainMapper:
         self.test_root = self.project_root / "tests"
 
         # Cache for parsed markers from test files
-        self._marker_cache: Dict[Path, Set[str]] = {}
+        self._marker_cache: dict[Path, set[str]] = {}
 
         # Build reverse mapping: source file -> domains/markers
-        self._source_domain_cache: Dict[str, str] = {}
-        self._test_domain_cache: Dict[str, List[str]] = {}
-        self._marker_cache_for_source: Dict[str, Set[str]] = {}
+        self._source_domain_cache: dict[str, str] = {}
+        self._test_domain_cache: dict[str, list[str]] = {}
+        self._marker_cache_for_source: dict[str, set[str]] = {}
 
-    def get_source_domain(self, source_file: str) -> Optional[str]:
+    def get_source_domain(self, source_file: str) -> str | None:
         """
         Get the source domain for a source file.
 
@@ -110,7 +109,7 @@ class DomainMapper:
 
         return None
 
-    def get_test_domains_for_source(self, source_file: str) -> List[str]:
+    def get_test_domains_for_source(self, source_file: str) -> list[str]:
         """
         Get test directories that cover a source file.
 
@@ -131,7 +130,7 @@ class DomainMapper:
 
         return []
 
-    def get_markers_for_source(self, source_file: str) -> Set[str]:
+    def get_markers_for_source(self, source_file: str) -> set[str]:
         """
         Get pytest markers that cover a source file.
 
@@ -153,7 +152,7 @@ class DomainMapper:
 
         return set()
 
-    def parse_markers_from_test_file(self, test_file: Path) -> Set[str]:
+    def parse_markers_from_test_file(self, test_file: Path) -> set[str]:
         """
         Parse pytest markers from a test file.
 
@@ -224,7 +223,7 @@ class DomainMapper:
         self._marker_cache[test_file] = markers
         return markers
 
-    def get_test_files_for_source(self, source_file: str) -> List[Path]:
+    def get_test_files_for_source(self, source_file: str) -> list[Path]:
         """
         Get test files that potentially cover a source file.
 
@@ -271,7 +270,7 @@ class DomainMapper:
 
         return test_files
 
-    def get_changed_domains(self, changed_files: List[str]) -> Set[str]:
+    def get_changed_domains(self, changed_files: list[str]) -> set[str]:
         """
         Get set of domains that have changed files.
 
@@ -288,7 +287,7 @@ class DomainMapper:
                 changed_domains.add(domain)
         return self.expand_domains_with_dependencies(changed_domains)
 
-    def expand_domains_with_dependencies(self, domains: Set[str]) -> Set[str]:
+    def expand_domains_with_dependencies(self, domains: set[str]) -> set[str]:
         """
         Expand domains to include transitive cross-domain dependencies.
 
@@ -310,7 +309,7 @@ class DomainMapper:
 
         return expanded
 
-    def get_pytest_marker_filter(self, domains: Set[str]) -> Optional[str]:
+    def get_pytest_marker_filter(self, domains: set[str]) -> str | None:
         """
         Get pytest marker filter expression for given domains.
 
@@ -336,7 +335,7 @@ class DomainMapper:
         # Create OR expression: 'marker1 or marker2 or marker3'
         return " or ".join(sorted(all_markers))
 
-    def get_test_directories_for_domains(self, domains: Set[str]) -> List[str]:
+    def get_test_directories_for_domains(self, domains: set[str]) -> list[str]:
         """
         Get test directories for given domains.
 
@@ -353,7 +352,7 @@ class DomainMapper:
                 test_dirs.update(dirs)
         return sorted(test_dirs)
 
-    def infer_domains_from_test_path(self, test_file: Path) -> Set[str]:
+    def infer_domains_from_test_path(self, test_file: Path) -> set[str]:
         """
         Infer test domains from file path/name when markers are missing.
 

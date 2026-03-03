@@ -12,7 +12,6 @@ import sys
 import json
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 
 # Add project root to path for imports
 # Script is at: development_tools/reports/quick_status.py
@@ -30,7 +29,7 @@ class QuickStatus:
     """Quick status checker for AI collaboration."""
 
     def __init__(
-        self, project_root: Optional[Path] = None, config_path: Optional[str] = None
+        self, project_root: Path | None = None, config_path: str | None = None
     ):
         if project_root:
             self.project_root = Path(project_root).resolve()
@@ -55,7 +54,7 @@ class QuickStatus:
 
         self.quick_status_config = config.get_quick_status_config()
 
-    def get_quick_status(self) -> Dict:
+    def get_quick_status(self) -> dict:
         """Get quick status overview"""
         status = {
             "timestamp": datetime.now().isoformat(),
@@ -67,7 +66,7 @@ class QuickStatus:
         }
         return status
 
-    def _check_system_health(self) -> Dict:
+    def _check_system_health(self) -> dict:
         """Check basic system health"""
         health = {"core_files": {}, "key_directories": {}, "overall_status": "OK"}
 
@@ -106,7 +105,7 @@ class QuickStatus:
 
         return health
 
-    def _check_documentation_status(self) -> Dict:
+    def _check_documentation_status(self) -> dict:
         """Check documentation status"""
         docs = {"coverage": "Unknown", "recent_audit": None, "key_files": {}}
 
@@ -120,7 +119,7 @@ class QuickStatus:
         )
         if audit_file.exists():
             try:
-                with open(audit_file, "r") as f:
+                with open(audit_file) as f:
                     audit_data = json.load(f)
                     docs["recent_audit"] = audit_data.get("timestamp")
 
@@ -158,7 +157,7 @@ class QuickStatus:
 
         return docs
 
-    def _identify_critical_issues(self) -> List[str]:
+    def _identify_critical_issues(self) -> list[str]:
         """Identify critical issues that need immediate attention"""
         issues = []
 
@@ -190,7 +189,7 @@ class QuickStatus:
 
         return issues
 
-    def _generate_action_items(self) -> List[str]:
+    def _generate_action_items(self) -> list[str]:
         """Generate actionable items for improvement"""
         actions = []
 
@@ -220,7 +219,7 @@ class QuickStatus:
 
         return actions
 
-    def _get_recent_activity(self) -> Dict:
+    def _get_recent_activity(self) -> dict:
         """Get information about recent activity using shared utilities."""
         # Handle both relative and absolute imports
         # Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
@@ -244,7 +243,7 @@ class QuickStatus:
         )
         if audit_file.exists():
             try:
-                with open(audit_file, "r") as f:
+                with open(audit_file) as f:
                     audit_data = json.load(f)
                     activity["last_audit"] = audit_data.get("timestamp")
             except:
@@ -457,7 +456,7 @@ def main():
         sys.exit(1)
 
 
-def _build_standard_result(status: Dict) -> Dict[str, Dict]:
+def _build_standard_result(status: dict) -> dict[str, dict]:
     """Wrap quick status in the standard format."""
     system_health = status.get("system_health", {}) if isinstance(status, dict) else {}
     docs = status.get("documentation_status", {}) if isinstance(status, dict) else {}

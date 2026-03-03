@@ -19,12 +19,10 @@ ensure_qt_runtime()
 import pytest
 import os
 import json
-import shutil
-from unittest.mock import patch, Mock, MagicMock
-from datetime import datetime
+from unittest.mock import patch, Mock
 from pathlib import Path
-from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
 import logging
 
@@ -34,11 +32,7 @@ logger = logging.getLogger("mhm_tests")
 
 from core.time_utilities import now_timestamp_filename
 from core.user_data_handlers import save_user_data, get_user_data
-from core.file_operations import create_user_files, get_user_file_path
-from core.user_data_validation import (
-    is_valid_email,
-    validate_schedule_periods__validate_time_format,
-)
+from core.file_operations import get_user_file_path
 
 
 def _resolve_user_id_with_retry(
@@ -135,10 +129,6 @@ def _wait_for_account_features(
 
 
 from ui.dialogs.account_creator_dialog import AccountCreatorDialog
-from ui.widgets.category_selection_widget import CategorySelectionWidget
-from ui.widgets.channel_selection_widget import ChannelSelectionWidget
-from ui.widgets.task_settings_widget import TaskSettingsWidget
-from ui.widgets.checkin_settings_widget import CheckinSettingsWidget
 
 
 # Create QApplication instance for testing
@@ -485,16 +475,15 @@ class TestAccountCreationDialogRealBehavior:
             dialog.category_widget,
             "get_selected_categories",
             return_value=["motivational"],
+        ), patch.object(
+            dialog.channel_widget,
+            "get_selected_channel",
+            return_value=("Email", "test@example.com"),
         ):
-            with patch.object(
-                dialog.channel_widget,
-                "get_selected_channel",
-                return_value=("Email", "test@example.com"),
-            ):
-                is_valid, error_message = dialog.validate_input()
-                assert (
-                    is_valid
-                ), "Messages enabled with categories and channel should pass validation"
+            is_valid, error_message = dialog.validate_input()
+            assert (
+                is_valid
+            ), "Messages enabled with categories and channel should pass validation"
 
         # [OK] VERIFY REAL BEHAVIOR: Only tasks enabled should pass validation (no categories required)
         dialog.ui.checkBox_enable_messages.setChecked(False)
@@ -554,66 +543,62 @@ class TestAccountCreationDialogRealBehavior:
             dialog.category_widget,
             "get_selected_categories",
             return_value=["motivational"],
+        ), patch.object(
+            dialog.channel_widget, "get_selected_channel", return_value=(None, None)
         ):
-            with patch.object(
-                dialog.channel_widget, "get_selected_channel", return_value=(None, None)
-            ):
-                is_valid, error_message = dialog.validate_input()
-                assert (
-                    not is_valid
-                ), "No channel should be invalid when messages enabled"
-                assert (
-                    "Please select a communication service" in error_message
-                ), "Should show channel requirement error"
+            is_valid, error_message = dialog.validate_input()
+            assert (
+                not is_valid
+            ), "No channel should be invalid when messages enabled"
+            assert (
+                "Please select a communication service" in error_message
+            ), "Should show channel requirement error"
 
         # Test with categories selected but no contact info
         with patch.object(
             dialog.category_widget,
             "get_selected_categories",
             return_value=["motivational"],
+        ), patch.object(
+            dialog.channel_widget,
+            "get_selected_channel",
+            return_value=("Email", ""),
         ):
-            with patch.object(
-                dialog.channel_widget,
-                "get_selected_channel",
-                return_value=("Email", ""),
-            ):
-                is_valid, error_message = dialog.validate_input()
-                assert (
-                    not is_valid
-                ), "No contact info should be invalid when messages enabled"
-                assert (
-                    "Please provide contact information for Email" in error_message
-                ), "Should show contact info requirement error"
+            is_valid, error_message = dialog.validate_input()
+            assert (
+                not is_valid
+            ), "No contact info should be invalid when messages enabled"
+            assert (
+                "Please provide contact information for Email" in error_message
+            ), "Should show contact info requirement error"
 
         # Test with valid configuration
         with patch.object(
             dialog.category_widget,
             "get_selected_categories",
             return_value=["motivational"],
+        ), patch.object(
+            dialog.channel_widget,
+            "get_selected_channel",
+            return_value=("Email", "test@example.com"),
         ):
-            with patch.object(
-                dialog.channel_widget,
-                "get_selected_channel",
-                return_value=("Email", "test@example.com"),
-            ):
-                is_valid, error_message = dialog.validate_input()
-                assert is_valid, "Valid messages configuration should pass validation"
+            is_valid, error_message = dialog.validate_input()
+            assert is_valid, "Valid messages configuration should pass validation"
 
         # Test with multiple categories
         with patch.object(
             dialog.category_widget,
             "get_selected_categories",
             return_value=["motivational", "health"],
+        ), patch.object(
+            dialog.channel_widget,
+            "get_selected_channel",
+            return_value=("Discord", "test#1234"),
         ):
-            with patch.object(
-                dialog.channel_widget,
-                "get_selected_channel",
-                return_value=("Discord", "test#1234"),
-            ):
-                is_valid, error_message = dialog.validate_input()
-                assert (
-                    is_valid
-                ), "Multiple categories with valid channel should pass validation"
+            is_valid, error_message = dialog.validate_input()
+            assert (
+                is_valid
+            ), "Multiple categories with valid channel should pass validation"
 
     @pytest.mark.ui
     def test_account_creation_real_behavior(self, dialog, test_data_dir, mock_config):
@@ -863,7 +848,7 @@ class TestAccountManagementRealBehavior:
                             import json
 
                             try:
-                                with open(account_file, "r", encoding="utf-8") as f:
+                                with open(account_file, encoding="utf-8") as f:
                                     account_data = json.load(f)
                                     if account_data.get("internal_username") == user_id:
                                         actual_user_id = entry
@@ -886,7 +871,6 @@ class TestAccountManagementRealBehavior:
         assert update_success, "User context should be updated successfully"
 
         # Ensure the context data is properly saved by calling save_user_data directly
-        from core.user_data_handlers import save_user_data
 
         context_result = save_user_data(
             actual_user_id,
@@ -1014,7 +998,7 @@ class TestAccountManagementRealBehavior:
         ), "User index file should exist"
 
         def _load_index_data():
-            with open(user_index_path, "r", encoding="utf-8") as f:
+            with open(user_index_path, encoding="utf-8") as f:
                 return json.load(f)
 
         # [OK] VERIFY REAL BEHAVIOR: All test users should be in the index (check flat lookups)
@@ -1048,7 +1032,7 @@ class TestAccountManagementRealBehavior:
                 timeout_seconds=3.0,
                 poll_seconds=0.02,
             ), f"Account file should exist for {user_id}"
-            with open(user_account_file, "r") as f:
+            with open(user_account_file) as f:
                 account = json.load(f)
             internal_username = account.get("internal_username")
             assert (
@@ -1626,7 +1610,7 @@ class TestAccountCreationIntegration:
             test_users.append((user_id, internal_username))
 
         # Update user index for each user
-        for user_id, expected_internal_username in test_users:
+        for user_id, _expected_internal_username in test_users:
             try:
                 success = update_user_index(user_id)
                 # [OK] VERIFY REAL BEHAVIOR: Index update should succeed
@@ -1645,7 +1629,7 @@ class TestAccountCreationIntegration:
         ), "User index should be rebuilt successfully"
 
         # Verify all users have same features
-        for user_id, expected_internal_username in test_users:
+        for user_id, _expected_internal_username in test_users:
             clear_user_caches()
             user_data = get_user_data(user_id, normalize_on_read=True)
             if "account" not in user_data:
@@ -1701,7 +1685,7 @@ class TestAccountCreationIntegration:
             # [OK] VERIFY REAL BEHAVIOR: User index file should exist
             assert os.path.exists(user_index_path), "User index file should exist"
 
-            with open(user_index_path, "r") as f:
+            with open(user_index_path) as f:
                 index_data = json.load(f)
 
             # [OK] VERIFY REAL BEHAVIOR: All test users should be in the index (check flat lookups)
@@ -1712,7 +1696,7 @@ class TestAccountCreationIntegration:
                     test_data_dir, "users", user_id, "account.json"
                 )
                 if os.path.exists(user_account_file):
-                    with open(user_account_file, "r") as f:
+                    with open(user_account_file) as f:
                         account = json.load(f)
                     internal_username = account.get("internal_username")
                     assert (
@@ -1722,7 +1706,7 @@ class TestAccountCreationIntegration:
                         index_data[internal_username] == user_id
                     ), f"Index should map {internal_username} to {user_id}"
 
-        except Exception as e:
+        except Exception:
             # If user index verification fails, that's okay for now
             # The important part is that the users were created and index was updated
             pass
@@ -1827,7 +1811,7 @@ class TestAccountCreatorDialogHelperMethods:
     def test_on_feature_toggled_updates_tabs(self, dialog):
         """Test that on_feature_toggled updates tab visibility."""
         # Arrange
-        initial_tab_count = dialog.ui.tabWidget.count()
+        dialog.ui.tabWidget.count()
 
         # Act - Toggle a feature
         dialog.ui.checkBox_enable_messages.setChecked(True)
@@ -1872,8 +1856,7 @@ class TestAccountCreatorDialogHelperMethods:
     def test_keyPressEvent_handles_escape(self, dialog):
         """Test that keyPressEvent handles Escape key."""
         from PySide6.QtGui import QKeyEvent
-        from PySide6.QtCore import Qt, QEvent
-        from PySide6.QtWidgets import QMessageBox
+        from PySide6.QtCore import QEvent
 
         # Arrange
         # The keyPressEvent method checks event.key() directly, so we need to ensure the event is properly created
@@ -1882,7 +1865,7 @@ class TestAccountCreatorDialogHelperMethods:
             "ui.dialogs.account_creator_dialog.QMessageBox.question"
         ) as mock_question:
             mock_question.return_value = QMessageBox.StandardButton.Yes
-            with patch.object(dialog, "reject") as mock_reject:
+            with patch.object(dialog, "reject"):
                 # Act - Create a proper key event
                 # Note: QKeyEvent constructor may require different parameters
                 try:
@@ -1913,7 +1896,7 @@ class TestAccountCreatorDialogHelperMethods:
     def test_keyPressEvent_ignores_enter(self, dialog):
         """Test that keyPressEvent ignores Enter key."""
         from PySide6.QtGui import QKeyEvent
-        from PySide6.QtCore import Qt, QEvent
+        from PySide6.QtCore import QEvent
 
         # Act
         event = QKeyEvent(
@@ -1930,7 +1913,7 @@ class TestAccountCreatorDialogHelperMethods:
         """Test that close_dialog calls accept."""
         # Arrange
         # close_dialog calls super().accept(), so we need to patch the parent's accept
-        with patch.object(dialog.__class__.__bases__[0], "accept") as mock_accept:
+        with patch.object(dialog.__class__.__bases__[0], "accept"):
             # Act
             dialog.close_dialog()
 
@@ -1991,11 +1974,6 @@ class TestAccountCreatorDialogHelperMethods:
     def test_validate_account_data_validates_data(self, dialog):
         """Test that validate_account_data validates account data."""
         # Arrange
-        valid_data = {
-            "username": "testuser",
-            "preferred_name": "Test User",
-            "timezone": "America/New_York",
-        }
 
         # Act
         is_valid, errors = dialog.validate_account_data()
@@ -2029,7 +2007,6 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     @pytest.mark.behavior
     def test_create_account_creates_user_files(self, dialog, test_data_dir):
         """Test that create_account actually creates user files on disk."""
-        from core.user_data_handlers import get_user_data
         import uuid
 
         # Arrange: Prepare account data with unique username
@@ -2316,7 +2293,6 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         self, dialog, test_data_dir
     ):
         """Test that create_account sets up default task tags when task management is enabled."""
-        from core.user_data_handlers import get_user_data
         import uuid
 
         # Arrange: Prepare account data with tasks enabled but no custom tags

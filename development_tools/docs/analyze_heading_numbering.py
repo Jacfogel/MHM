@@ -18,7 +18,7 @@ import re
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -51,8 +51,8 @@ class HeadingNumberingAnalyzer:
 
     def __init__(
         self,
-        project_root: Optional[str] = None,
-        config_path: Optional[str] = None,
+        project_root: str | None = None,
+        config_path: str | None = None,
         use_cache: bool = True,
     ):
         """
@@ -86,7 +86,7 @@ class HeadingNumberingAnalyzer:
             tool_paths=[Path(__file__)],
         )
 
-    def check_heading_numbering(self) -> Dict[str, List[str]]:
+    def check_heading_numbering(self) -> dict[str, list[str]]:
         """
         Check that H2 and H3 headings are numbered consecutively starting at 1 (or 0).
 
@@ -134,7 +134,7 @@ class HeadingNumberingAnalyzer:
                 continue
 
             try:
-                with open(full_path, "r", encoding="utf-8") as f:
+                with open(full_path, encoding="utf-8") as f:
                     content = f.read()
 
                 lines = content.split("\n")
@@ -373,7 +373,7 @@ class HeadingNumberingAnalyzer:
 
         return numbering_issues
 
-    def run_analysis(self) -> Dict[str, Any]:
+    def run_analysis(self) -> dict[str, Any]:
         """
         Run heading numbering analysis and return results in standard format.
 
@@ -448,12 +448,12 @@ def main():
 
     # Print results
     if results:
-        print(f"\nHeading Numbering Issues:")
+        print("\nHeading Numbering Issues:")
         print(f"   Total files with numbering issues: {len(results)}")
         print(
             f"   Total issues found: {sum(len(issues) for issues in results.values())}"
         )
-        print(f"   Files with numbering issues:")
+        print("   Files with numbering issues:")
         for doc_file, issues in results.items():
             print(f"     {doc_file}: {len(issues)} issues")
             for issue in issues[:5]:  # Show first 5 issues per file

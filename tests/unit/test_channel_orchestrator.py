@@ -6,7 +6,7 @@ helper methods and utility functions.
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from communication.core.channel_orchestrator import CommunicationManager
 
 
@@ -19,7 +19,7 @@ class TestChannelOrchestratorHelpers:
         """Set up test environment."""
         # Reset singleton instance for each test
         CommunicationManager._instance = None
-        setattr(CommunicationManager, "_initialized", False)
+        CommunicationManager._initialized = False
         self.manager = CommunicationManager()
 
     def test_get_active_channels_returns_list(self):

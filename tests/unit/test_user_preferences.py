@@ -13,11 +13,9 @@ Coverage Areas:
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
+from unittest.mock import patch
 
 from user.user_preferences import UserPreferences
-from core.user_data_handlers import get_user_data
 
 
 @pytest.mark.unit

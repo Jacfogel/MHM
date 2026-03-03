@@ -4,8 +4,8 @@ Tests the core schedule logic without external dependencies.
 """
 
 import pytest
-from datetime import datetime, time
-from unittest.mock import patch, Mock
+from datetime import datetime
+from unittest.mock import patch
 
 from core.schedule_utilities import (
     get_active_schedules,

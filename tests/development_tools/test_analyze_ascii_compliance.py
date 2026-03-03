@@ -7,7 +7,7 @@ Tests ASCII compliance analysis in documentation files.
 import pytest
 from pathlib import Path
 
-from tests.development_tools.conftest import load_development_tools_module, demo_project_root, test_config_path
+from tests.development_tools.conftest import load_development_tools_module
 
 
 # Load the module
@@ -125,7 +125,7 @@ class TestAnalyzeASCIICompliance:
         # Mock file read to raise exception
         with pytest.MonkeyPatch().context() as m:
             def mock_open(*args, **kwargs):
-                raise IOError("Permission denied")
+                raise OSError("Permission denied")
             
             m.setattr("builtins.open", mock_open)
             

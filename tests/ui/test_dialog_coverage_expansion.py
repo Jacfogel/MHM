@@ -22,25 +22,17 @@ ensure_qt_runtime()
 import pytest
 import os
 import json
-import shutil
-from unittest.mock import patch, Mock, MagicMock
-from datetime import datetime, time
-from pathlib import Path
-from PySide6.QtWidgets import QApplication, QWidget, QMessageBox, QDialog
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtTest import QTest
+from unittest.mock import patch
+from PySide6.QtWidgets import QApplication, QMessageBox, QDialog
 
 # Do not modify sys.path; rely on package imports
 
-from core.user_data_handlers import save_user_data, get_user_data
-from core.file_operations import create_user_files, get_user_file_path
-from core.schedule_management import get_schedule_time_periods, set_schedule_periods
+from core.file_operations import get_user_file_path
 from ui.dialogs.schedule_editor_dialog import ScheduleEditorDialog, open_schedule_editor
 from ui.dialogs.task_edit_dialog import TaskEditDialog
-from ui.dialogs.task_crud_dialog import TaskCrudDialog
 from ui.dialogs.task_completion_dialog import TaskCompletionDialog
 from ui.dialogs.user_profile_dialog import UserProfileDialog
-from tests.test_utilities import TestUserFactory, TestDataFactory
+from tests.test_utilities import TestUserFactory
 
 # Create QApplication instance for testing
 @pytest.fixture(scope="session")
@@ -188,7 +180,7 @@ class TestScheduleEditorDialogBehavior:
     @pytest.mark.critical
     def test_delete_period_real_behavior(self, dialog, test_user_data, test_data_dir):
         """Test deleting a period removes widget and tracks for undo."""
-        initial_count = len(dialog.period_widgets)
+        len(dialog.period_widgets)
         
         # Test period deletion through widget signal
         if dialog.period_widgets:
@@ -239,7 +231,7 @@ class TestScheduleEditorDialogBehavior:
         assert hasattr(dialog, 'handle_save')
         
         # Test validation through save method
-        with patch('PySide6.QtWidgets.QMessageBox.warning') as mock_warning:
+        with patch('PySide6.QtWidgets.QMessageBox.warning'):
             dialog.handle_save()
             
             # Verify save method handles validation
@@ -343,7 +335,7 @@ class TestTaskEditDialogBehavior:
             mock_info.return_value = QMessageBox.StandardButton.Ok
 
             # Trigger save by calling save_task method
-            result = dialog.save_task()
+            dialog.save_task()
 
             # Verify update was called
             mock_update.assert_called_once()
@@ -575,9 +567,9 @@ class TestTaskEditDialogBehavior:
         
         # Mock the create_task function
         with patch('ui.dialogs.task_edit_dialog.create_task', return_value='task123') as mock_create, \
-             patch('PySide6.QtWidgets.QMessageBox.information') as mock_info:
+             patch('PySide6.QtWidgets.QMessageBox.information'):
             
-            result = dialog.save_task()
+            dialog.save_task()
             
             # Verify create_task was called with recurring data
             mock_create.assert_called_once()
@@ -596,9 +588,9 @@ class TestTaskEditDialogBehavior:
         
         # Mock the update_task function
         with patch('ui.dialogs.task_edit_dialog.update_task', return_value=True) as mock_update, \
-             patch('PySide6.QtWidgets.QMessageBox.information') as mock_info:
+             patch('PySide6.QtWidgets.QMessageBox.information'):
             
-            result = dialog.save_task()
+            dialog.save_task()
             
             # Verify update_task was called with task_data containing None due_date
             mock_update.assert_called_once()

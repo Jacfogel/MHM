@@ -11,10 +11,9 @@ Test fixtures contain intentional issues that should be detected:
 """
 
 import pytest
-from pathlib import Path
 from unittest.mock import patch
 
-from tests.development_tools.conftest import load_development_tools_module, demo_project_root, test_config_path
+from tests.development_tools.conftest import load_development_tools_module
 
 
 class TestFalseNegativeDetection:
@@ -77,7 +76,6 @@ class TestFalseNegativeDetection:
         # Load function registry analyzer functions
         function_registry_module = load_development_tools_module("functions.analyze_function_registry")
         extract_functions_and_classes = function_registry_module.extract_functions_and_classes
-        FunctionRecord = function_registry_module.FunctionRecord
         
         # Extract functions directly from the test file
         errors = []

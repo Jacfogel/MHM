@@ -27,7 +27,7 @@ legacy patterns, follow these requirements:
 import argparse
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -70,7 +70,7 @@ class LegacyReferenceFixer:
     """Fixes legacy references in codebases (portable across projects)."""
 
     def __init__(
-        self, project_root: str = ".", replacement_mappings: Optional[Dict[str, str]] = None
+        self, project_root: str = ".", replacement_mappings: dict[str, str] | None = None
     ):
         """
         Initialize legacy reference fixer.
@@ -108,16 +108,16 @@ class LegacyReferenceFixer:
 
     def cleanup_legacy_references(
         self,
-        findings: Dict[str, List[Tuple[str, str, List[Dict[str, Any]]]]],
+        findings: dict[str, list[tuple[str, str, list[dict[str, Any]]]]],
         dry_run: bool = True,
-    ) -> Dict[str, List[str]]:
+    ) -> dict[str, list[str]]:
         """Clean up legacy references in the codebase."""
         if logger:
             logger.info(f"Cleaning up legacy references (dry_run={dry_run})...")
 
         cleanup_results = defaultdict(list)
 
-        for pattern_type, files in findings.items():
+        for _pattern_type, files in findings.items():
             for file_path, content, matches in files:
                 file_path_obj = self.project_root / file_path
 
@@ -178,7 +178,7 @@ class LegacyReferenceFixer:
 
     def run(
         self, scan: bool = True, clean: bool = False, dry_run: bool = True
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Run the legacy reference cleanup process.
 
@@ -216,7 +216,7 @@ class LegacyReferenceFixer:
 
             # Print summary
             total_issues = sum(len(files) for files in findings.values())
-            print(f"\nLegacy Reference Scan Complete")
+            print("\nLegacy Reference Scan Complete")
             print(f"   Files with issues: {total_issues}")
             print(f"   Report saved to: {report_file}")
 
@@ -236,13 +236,13 @@ class LegacyReferenceFixer:
 
             # Print cleanup summary
             if dry_run:
-                print(f"\nCleanup Preview (Dry Run)")
+                print("\nCleanup Preview (Dry Run)")
                 print(
                     f"   Files that would be updated: {len(cleanup_results['files_would_update'])}"
                 )
                 print(f"   Total changes: {len(cleanup_results['changes'])}")
             else:
-                print(f"\nCleanup Complete")
+                print("\nCleanup Complete")
                 print(f"   Files updated: {len(cleanup_results['files_updated'])}")
                 print(f"   Total changes: {len(cleanup_results['changes'])}")
 
@@ -321,7 +321,7 @@ def main():
             print(
                 f"   Status: {'READY' if verification['ready_for_removal'] else 'NOT READY'}"
             )
-            print(f"\n   Reference Summary:")
+            print("\n   Reference Summary:")
             print(f"      Total files: {verification['counts']['total_files']}")
             print(f"      Active code: {verification['counts']['active_code']}")
             print(f"      Test files: {verification['counts']['test_files']}")
@@ -329,7 +329,7 @@ def main():
             print(f"      Config files: {verification['counts']['config_files']}")
             print(f"      Archive files: {verification['counts']['archive_files']}")
 
-            print(f"\n   Recommendations:")
+            print("\n   Recommendations:")
             for rec in verification["recommendations"]:
                 rec_clean = (
                     rec.replace("❌", "[ERROR]")
@@ -340,12 +340,12 @@ def main():
                 print(f"      {rec_clean}")
 
             if verification["counts"]["active_code"] > 0:
-                print(f"\n   Active Code Files (must update):")
+                print("\n   Active Code Files (must update):")
                 for file_path, refs in verification["categorized"]["active_code"]:
                     print(f"      - {file_path} ({len(refs)} reference(s))")
 
             if verification["counts"]["test_files"] > 0:
-                print(f"\n   Test Files (update or remove):")
+                print("\n   Test Files (update or remove):")
                 for file_path, refs in verification["categorized"]["test_files"]:
                     print(f"      - {file_path} ({len(refs)} reference(s))")
 
@@ -357,13 +357,13 @@ def main():
 
     # Use fixer for cleanup operations
     fixer = LegacyReferenceFixer()
-    results = fixer.run(scan=args.scan, clean=args.clean, dry_run=args.dry_run)
+    fixer.run(scan=args.scan, clean=args.clean, dry_run=args.dry_run)
 
     if args.clean and not args.dry_run:
-        print(f"\nLegacy references have been cleaned up!")
-        print(f"   Please review the changes and test the system.")
+        print("\nLegacy references have been cleaned up!")
+        print("   Please review the changes and test the system.")
     elif args.clean and args.dry_run:
-        print(f"\nTo apply the cleanup, run with --force")
+        print("\nTo apply the cleanup, run with --force")
 
 
 if __name__ == "__main__":

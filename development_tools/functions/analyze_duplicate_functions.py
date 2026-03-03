@@ -37,7 +37,8 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, TypedDict, Union
+from typing import Any, TypedDict, Union
+from collections.abc import Iterable
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -63,43 +64,31 @@ FunctionSummary = TypedDict(
     {
         "name": str,
         "full_name": str,
-        "class": Optional[str],
+        "class": str | None,
         "file": str,
         "line": int,
-        "args": List[str],
+        "args": list[str],
     },
 )
 
-PairResult = TypedDict(
-    "PairResult",
-    {
-        "overall_similarity": float,
-        "name_similarity": float,
-        "args_similarity": float,
-        "locals_similarity": float,
-        "imports_similarity": float,
-        "a": FunctionSummary,
-        "b": FunctionSummary,
-    },
-)
+class PairResult(TypedDict):
+    overall_similarity: float
+    name_similarity: float
+    args_similarity: float
+    locals_similarity: float
+    imports_similarity: float
+    a: FunctionSummary
+    b: FunctionSummary
 
-GroupSummary = TypedDict(
-    "GroupSummary",
-    {
-        "similarity_range": Dict[str, float],
-        "functions": List[FunctionSummary],
-        "pair_examples": List[PairResult],
-    },
-)
+class GroupSummary(TypedDict):
+    similarity_range: dict[str, float]
+    functions: list[FunctionSummary]
+    pair_examples: list[PairResult]
 
-ClusterData = TypedDict(
-    "ClusterData",
-    {
-        "functions": Dict[str, FunctionSummary],
-        "similarities": List[float],
-        "pair_examples": List[PairResult],
-    },
-)
+class ClusterData(TypedDict):
+    functions: dict[str, FunctionSummary]
+    similarities: list[float]
+    pair_examples: list[PairResult]
 
 FunctionNode = Union[ast.FunctionDef, ast.AsyncFunctionDef]
 
@@ -108,22 +97,22 @@ FunctionNode = Union[ast.FunctionDef, ast.AsyncFunctionDef]
 class FunctionRecord:
     name: str
     full_name: str
-    class_name: Optional[str]
+    class_name: str | None
     file_path: str
     line: int
-    args: Tuple[str, ...]
-    locals_used: Tuple[str, ...]
-    imports_used: Tuple[str, ...]
-    name_tokens: Tuple[str, ...]
+    args: tuple[str, ...]
+    locals_used: tuple[str, ...]
+    imports_used: tuple[str, ...]
+    name_tokens: tuple[str, ...]
     excluded: bool = False  # True if # duplicate_functions_exclude (or variant) in function
 
 
-def _get_analysis_config() -> Dict:
+def _get_analysis_config() -> dict:
     return config.get_analyze_duplicate_functions_config()
 
 
-def _tokenize_name(name: str) -> List[str]:
-    tokens: List[str] = []
+def _tokenize_name(name: str) -> list[str]:
+    tokens: list[str] = []
     for part in re.split(r"_+", name):
         if not part:
             continue
@@ -143,8 +132,8 @@ def _jaccard(a: Iterable[str], b: Iterable[str]) -> float:
     return len(intersection) / len(union)
 
 
-def _collect_imports(tree: ast.AST) -> Set[str]:
-    imports: Set[str] = set()
+def _collect_imports(tree: ast.AST) -> set[str]:
+    imports: set[str] = set()
     for node in tree.body if isinstance(tree, ast.Module) else []:
         if isinstance(node, ast.Import):
             for alias in node.names:
@@ -164,8 +153,8 @@ def _collect_imports(tree: ast.AST) -> Set[str]:
 
 class _LocalNameCollector(ast.NodeVisitor):
     def __init__(self) -> None:
-        self.names: Set[str] = set()
-        self.self_attrs: Set[str] = set()
+        self.names: set[str] = set()
+        self.self_attrs: set[str] = set()
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         # Do not traverse nested functions
@@ -206,12 +195,12 @@ def _function_has_exclude_comment(content: str, node: FunctionNode) -> bool:
 
 
 class _FunctionCollector(ast.NodeVisitor):
-    def __init__(self, file_path: str, imports_used: Set[str], content: str = "") -> None:
+    def __init__(self, file_path: str, imports_used: set[str], content: str = "") -> None:
         self.file_path = file_path
         self.imports_used = tuple(sorted(imports_used))
         self.content = content
-        self.class_stack: List[str] = []
-        self.records: List[FunctionRecord] = []
+        self.class_stack: list[str] = []
+        self.records: list[FunctionRecord] = []
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         self.class_stack.append(node.name)
@@ -261,7 +250,7 @@ class _FunctionCollector(ast.NodeVisitor):
         self._handle_function(node)
 
 
-def _scan_file(file_path: Path) -> List[FunctionRecord]:
+def _scan_file(file_path: Path) -> list[FunctionRecord]:
     try:
         content = file_path.read_text(encoding="utf-8")
         tree = ast.parse(content)
@@ -275,7 +264,7 @@ def _scan_file(file_path: Path) -> List[FunctionRecord]:
     return collector.records
 
 
-def _serialize_records(records: List[FunctionRecord]) -> List[Dict[str, object]]:
+def _serialize_records(records: list[FunctionRecord]) -> list[dict[str, object]]:
     return [
         {
             "name": record.name,
@@ -293,8 +282,8 @@ def _serialize_records(records: List[FunctionRecord]) -> List[Dict[str, object]]
     ]
 
 
-def _deserialize_records(data: List[Dict[str, Any]]) -> List[FunctionRecord]:
-    records: List[FunctionRecord] = []
+def _deserialize_records(data: list[dict[str, Any]]) -> list[FunctionRecord]:
+    records: list[FunctionRecord] = []
     for item in data:
         if not isinstance(item, dict):
             continue
@@ -329,7 +318,7 @@ def _deserialize_records(data: List[Dict[str, Any]]) -> List[FunctionRecord]:
 
 def _gather_function_records(
     include_tests: bool, include_dev_tools: bool
-) -> Tuple[List[FunctionRecord], Dict[str, int]]:
+) -> tuple[list[FunctionRecord], dict[str, int]]:
     project_root = Path(config.get_project_root())
     scan_dirs = list(config.get_scan_directories())
     analysis_config = _get_analysis_config()
@@ -355,7 +344,7 @@ def _gather_function_records(
     else:
         context = "production"
 
-    records: List[FunctionRecord] = []
+    records: list[FunctionRecord] = []
     total_files = 0
     cached_files = 0
     scanned_files = 0
@@ -401,12 +390,12 @@ def _gather_function_records(
 
 
 def _build_candidate_pairs(
-    records: List[FunctionRecord],
-    stop_tokens: Set[str],
+    records: list[FunctionRecord],
+    stop_tokens: set[str],
     max_token_group_size: int,
     max_candidate_pairs: int,
-) -> Tuple[Set[Tuple[int, int]], Dict[str, int], bool]:
-    token_to_ids: Dict[str, List[int]] = {}
+) -> tuple[set[tuple[int, int]], dict[str, int], bool]:
+    token_to_ids: dict[str, list[int]] = {}
     for idx, record in enumerate(records):
         if getattr(record, "excluded", False):
             continue
@@ -415,8 +404,8 @@ def _build_candidate_pairs(
                 continue
             token_to_ids.setdefault(token, []).append(idx)
 
-    skipped_tokens: Dict[str, int] = {}
-    candidate_pairs: Set[Tuple[int, int]] = set()
+    skipped_tokens: dict[str, int] = {}
+    candidate_pairs: set[tuple[int, int]] = set()
     max_reached = False
 
     for token, ids in token_to_ids.items():
@@ -436,8 +425,8 @@ def _build_candidate_pairs(
 
 
 def _record_identity(
-    record: FunctionRecord, project_root: Optional[Path] = None
-) -> Tuple[str, int, str]:
+    record: FunctionRecord, project_root: Path | None = None
+) -> tuple[str, int, str]:
     """Return (file_path, line, full_name) for deduplication. Path normalized for cross-platform and project-relative consistency."""
     raw = (record.file_path or "").strip()
     if project_root is not None and raw:
@@ -453,11 +442,11 @@ def _record_identity(
 
 
 def _deduplicate_records(
-    records: List[FunctionRecord], project_root: Optional[Path] = None
-) -> List[FunctionRecord]:
+    records: list[FunctionRecord], project_root: Path | None = None
+) -> list[FunctionRecord]:
     """Remove duplicate records (same file, line, full_name). Keeps first occurrence. Uses project-relative path when project_root given."""
-    seen: Set[Tuple[str, int, str]] = set()
-    result: List[FunctionRecord] = []
+    seen: set[tuple[str, int, str]] = set()
+    result: list[FunctionRecord] = []
     for r in records:
         key = _record_identity(r, project_root)
         if key in seen:
@@ -468,8 +457,8 @@ def _deduplicate_records(
 
 
 def _compute_similarity(
-    a: FunctionRecord, b: FunctionRecord, weights: Dict[str, float]
-) -> Tuple[float, Dict[str, float]]:
+    a: FunctionRecord, b: FunctionRecord, weights: dict[str, float]
+) -> tuple[float, dict[str, float]]:
     name_score = _jaccard(a.name_tokens, b.name_tokens)
     args_score = _jaccard(a.args, b.args)
     locals_score = _jaccard(a.locals_used, b.locals_used)
@@ -492,10 +481,10 @@ def _compute_similarity(
 
 
 def _analyze_duplicates(
-    records: List[FunctionRecord],
-    config_values: Dict,
-    cache_stats: Optional[Dict[str, int]] = None,
-) -> Dict[str, Any]:
+    records: list[FunctionRecord],
+    config_values: dict,
+    cache_stats: dict[str, int] | None = None,
+) -> dict[str, Any]:
     weights = config_values.get("weights", {})
     min_name_similarity = float(config_values.get("min_name_similarity", 0.6))
     min_overall_similarity = float(config_values.get("min_overall_similarity", 0.7))
@@ -521,7 +510,7 @@ def _analyze_duplicates(
 
     record_by_id = {idx: record for idx, record in enumerate(records)}
 
-    pair_results: List[PairResult] = []
+    pair_results: list[PairResult] = []
     for a_id, b_id in candidate_pairs:
         a = record_by_id[a_id]
         b = record_by_id[b_id]
@@ -616,13 +605,13 @@ def _normalize_path(path: str) -> str:
 
 
 def _group_pairs(
-    pair_results: List[PairResult], max_groups: Optional[int] = None
-) -> List[GroupSummary]:
+    pair_results: list[PairResult], max_groups: int | None = None
+) -> list[GroupSummary]:
     if not pair_results:
         return []
 
     # Union-Find for grouping pairs into clusters
-    parent: Dict[str, str] = {}
+    parent: dict[str, str] = {}
 
     def find(node: str) -> str:
         root = node
@@ -647,7 +636,7 @@ def _group_pairs(
         parent.setdefault(b_key, b_key)
         union(a_key, b_key)
 
-    clusters: Dict[str, ClusterData] = {}
+    clusters: dict[str, ClusterData] = {}
     for item in pair_results:
         a_key = _pair_key(item["a"])
         b_key = _pair_key(item["b"])
@@ -666,7 +655,7 @@ def _group_pairs(
         if len(cluster["pair_examples"]) < 5:
             cluster["pair_examples"].append(item)
 
-    grouped: List[GroupSummary] = []
+    grouped: list[GroupSummary] = []
     for cluster in clusters.values():
         similarities = cluster["similarities"]
         if not similarities:
@@ -750,8 +739,8 @@ def main() -> int:
     if args.json:
         print(json.dumps(result, indent=2))
     else:
-        summary: Dict[str, Any] = result.get("summary") or {}
-        details: Dict[str, Any] = result.get("details") or {}
+        summary: dict[str, Any] = result.get("summary") or {}
+        details: dict[str, Any] = result.get("details") or {}
         print("Possible Duplicate Functions")
         print("=" * 30)
         print(f"Total functions analyzed: {details.get('total_functions', 0)}")

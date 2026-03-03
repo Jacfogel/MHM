@@ -11,7 +11,6 @@ and checks for configuration consistency and completeness.
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 # Add project root to path for core module imports
 # Script is at: development_tools/config/analyze_config.py
@@ -54,7 +53,7 @@ class ConfigValidator:
             "recommendations": [],
         }
 
-    def scan_tools_for_config_usage(self) -> Dict:
+    def scan_tools_for_config_usage(self) -> dict:
         """Scan all AI tools to check configuration usage."""
         logger.debug("Scanning AI tools for configuration usage...")
 
@@ -70,10 +69,10 @@ class ConfigValidator:
 
         return tools
 
-    def _analyze_tool_config_usage(self, file_path: Path) -> Dict:
+    def _analyze_tool_config_usage(self, file_path: Path) -> dict:
         """Analyze a single tool's configuration usage."""
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             analysis = {
@@ -212,7 +211,7 @@ class ConfigValidator:
                 "issues": [f"Error analyzing file: {e}"],
             }
 
-    def validate_configuration_consistency(self) -> Dict:
+    def validate_configuration_consistency(self) -> dict:
         """Validate that the configuration itself is consistent."""
         logger.debug("Validating configuration consistency...")
 
@@ -258,7 +257,7 @@ class ConfigValidator:
 
         return validation
 
-    def check_configuration_completeness(self) -> Dict:
+    def check_configuration_completeness(self) -> dict:
         """Check if all configuration sections have required fields."""
         logger.debug("Checking configuration completeness...")
 
@@ -323,8 +322,8 @@ class ConfigValidator:
         return completeness
 
     def generate_recommendations(
-        self, tools_analysis: Dict, config_validation: Dict, completeness: Dict
-    ) -> List[str]:
+        self, tools_analysis: dict, config_validation: dict, completeness: dict
+    ) -> list[str]:
         """Generate recommendations for improving configuration usage."""
         recommendations = []
         seen_recommendations = set()  # Track recommendations to avoid duplicates
@@ -393,7 +392,7 @@ class ConfigValidator:
 
         return recommendations
 
-    def run_validation(self) -> Dict:
+    def run_validation(self) -> dict:
         """Run the complete configuration validation."""
         logger.debug("Starting configuration validation...")
 
@@ -442,7 +441,7 @@ class ConfigValidator:
 
         return results
 
-    def print_validation_report(self, results: Dict):
+    def print_validation_report(self, results: dict):
         """Print a comprehensive validation report."""
         logger.debug("=" * 80)
         logger.debug("CONFIGURATION VALIDATION REPORT")
@@ -451,7 +450,7 @@ class ConfigValidator:
         if "details" not in results or "summary" not in results:
             raise ValueError("Config validation results must use standard format.")
 
-        top_summary = results["summary"]
+        results["summary"]
         details = results["details"]
         nested_summary = details.get("summary", {})
         tools_analysis = details.get("tools_analysis", {})
@@ -518,18 +517,18 @@ class ConfigValidator:
 
         # Configuration validation
         if config_validation.get("missing_directories"):
-            logger.warning(f"MISSING DIRECTORIES:")
+            logger.warning("MISSING DIRECTORIES:")
             for directory in config_validation["missing_directories"]:
                 logger.warning(f"   - {directory}")
 
         if config_validation.get("issues"):
-            logger.warning(f"CONFIGURATION ISSUES:")
+            logger.warning("CONFIGURATION ISSUES:")
             for issue in config_validation["issues"]:
                 logger.warning(f"   - {issue}")
 
         # Completeness
         if completeness.get("missing_fields"):
-            logger.warning(f"MISSING CONFIGURATION FIELDS:")
+            logger.warning("MISSING CONFIGURATION FIELDS:")
             for field in completeness["missing_fields"]:
                 logger.warning(f"   - {field}")
 

@@ -8,7 +8,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch
 
-from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
+from tests.development_tools.conftest import load_development_tools_module
 
 
 # Load the module
@@ -166,7 +166,7 @@ More content.
             fixer = DocumentationHeadingFixer(project_root=str(temp_project_copy))
             
             # Mock file read to raise exception
-            with patch('builtins.open', side_effect=IOError("Permission denied")):
+            with patch('builtins.open', side_effect=OSError("Permission denied")):
                 result = fixer.fix_number_headings(dry_run=False)
                 
                 assert isinstance(result, dict), "Result should be a dictionary"

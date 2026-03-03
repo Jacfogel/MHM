@@ -8,7 +8,6 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Set
 
 from core.logger import get_component_logger
 
@@ -26,7 +25,7 @@ class RetentionAction:
     size_bytes: int
 
 
-def _pattern_matches(project_root: Path, pattern: str) -> List[Path]:
+def _pattern_matches(project_root: Path, pattern: str) -> list[Path]:
     path_pattern = Path(pattern)
     if path_pattern.is_absolute():
         if path_pattern.exists():
@@ -35,9 +34,9 @@ def _pattern_matches(project_root: Path, pattern: str) -> List[Path]:
     return list(project_root.glob(pattern))
 
 
-def _collect_files_for_rule(project_root: Path, rule: ArtifactRule) -> List[Path]:
-    files: List[Path] = []
-    seen: Set[str] = set()
+def _collect_files_for_rule(project_root: Path, rule: ArtifactRule) -> list[Path]:
+    files: list[Path] = []
+    seen: set[str] = set()
     for pattern in rule.paths:
         for match in _pattern_matches(project_root, pattern):
             if match.is_file():
@@ -60,18 +59,18 @@ def _collect_files_for_rule(project_root: Path, rule: ArtifactRule) -> List[Path
 
 def _calculate_actions_for_rule(
     rule: ArtifactRule,
-    files: List[Path],
-    max_age_days: Optional[int],
+    files: list[Path],
+    max_age_days: int | None,
     min_keep: int,
     max_keep: int,
-) -> List[RetentionAction]:
+) -> list[RetentionAction]:
     if not files:
         return []
     now_ts = time.time()
     protected_count = min(min_keep, len(files))
     protected_files = set(files[:protected_count])
     retained_files = list(files)
-    actions: List[RetentionAction] = []
+    actions: list[RetentionAction] = []
 
     if max_age_days is not None:
         cutoff_ts = now_ts - (max_age_days * 24 * 3600)
@@ -115,7 +114,7 @@ def _calculate_actions_for_rule(
             )
             retained_files.remove(file_path)
 
-    unique_actions: Dict[str, RetentionAction] = {}
+    unique_actions: dict[str, RetentionAction] = {}
     for action in actions:
         unique_actions[action.file_path.lower()] = action
     return list(unique_actions.values())
@@ -126,10 +125,10 @@ def build_retention_plan(
     policy: BackupPolicy,
     target_category: str = "B",
     owner: str = "development_tools",
-) -> Dict[str, object]:
+) -> dict[str, object]:
     """Build retention plan for matching rules."""
-    planned_actions: List[RetentionAction] = []
-    rule_summaries: List[Dict[str, object]] = []
+    planned_actions: list[RetentionAction] = []
+    rule_summaries: list[dict[str, object]] = []
 
     category = policy.categories.get(target_category)
     if category is None:
@@ -199,7 +198,7 @@ def build_retention_plan(
     return plan
 
 
-def apply_retention_plan(plan: Dict[str, object], dry_run: bool = True) -> Dict[str, object]:
+def apply_retention_plan(plan: dict[str, object], dry_run: bool = True) -> dict[str, object]:
     """Apply retention plan by deleting selected files."""
     results = {
         "summary": {

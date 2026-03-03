@@ -6,8 +6,7 @@ Tests the complete flow from task creation through reminder scheduling to delive
 
 import pytest
 from unittest.mock import patch, MagicMock
-from datetime import datetime, timedelta
-import time
+from datetime import timedelta
 import uuid
 
 from tasks import (

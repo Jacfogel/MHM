@@ -9,7 +9,7 @@ Tests the new response parsing features:
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from core.checkin_dynamic_manager import DynamicCheckinManager
 from core.checkin_analytics import CheckinAnalytics
 

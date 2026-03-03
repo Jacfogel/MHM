@@ -5,8 +5,6 @@ Tests the documentation address fixer that adds file addresses to documentation 
 """
 
 import pytest
-import tempfile
-from pathlib import Path
 
 from tests.development_tools.conftest import load_development_tools_module
 
@@ -92,7 +90,7 @@ This document already has a file address.
         doc_file.write_text("# Title\n\nContent here.")
         
         fixer = DocumentationAddressFixer(project_root=str(tmp_path))
-        result = fixer.fix_add_addresses(dry_run=False)
+        fixer.fix_add_addresses(dry_run=False)
         
         content = doc_file.read_text(encoding='utf-8')
         # Address should be added after title
@@ -111,7 +109,7 @@ This document already has a file address.
         doc_file.write_text("---\nkey: value\n---\n\n# Content")
         
         fixer = DocumentationAddressFixer(project_root=str(tmp_path))
-        result = fixer.fix_add_addresses(dry_run=False)
+        fixer.fix_add_addresses(dry_run=False)
         
         content = doc_file.read_text(encoding='utf-8')
         # Should add file to frontmatter or as comment

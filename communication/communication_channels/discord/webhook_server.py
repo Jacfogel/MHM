@@ -130,7 +130,7 @@ class DiscordWebhookHandler(BaseHTTPRequestHandler):
                 # Try fallback locations (shouldn't be needed, but just in case)
                 event_type = event_data.get("event_type", "")
                 if not event_type:
-                    logger.error(f"Could not determine event type from payload")
+                    logger.error("Could not determine event type from payload")
                     self.send_response(400)
                     self.end_headers()
                     return

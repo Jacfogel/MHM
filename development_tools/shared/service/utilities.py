@@ -7,7 +7,8 @@ These can be used as mixin methods or standalone functions.
 # pyright: reportAttributeAccessIssue=false
 
 import re
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any
+from collections.abc import Sequence
 
 from core.logger import get_component_logger
 
@@ -37,7 +38,7 @@ def format_percentage(value: Any, decimals: int = 1) -> str:
         return str(value)
 
 
-def extract_first_int(text: str) -> Optional[int]:
+def extract_first_int(text: str) -> int | None:
     """Return the first integer found in the supplied text or None."""
     if not isinstance(text, str):
         return None
@@ -53,7 +54,7 @@ def extract_first_int(text: str) -> Optional[int]:
     return None
 
 
-def parse_function_entry(text: str) -> Optional[Dict[str, Any]]:
+def parse_function_entry(text: str) -> dict[str, Any] | None:
     """Parse a function discovery bullet into structured data."""
     if not text:
         return None
@@ -80,8 +81,8 @@ def parse_function_entry(text: str) -> Optional[Dict[str, Any]]:
 
 
 def create_standard_format_result(total_issues: int, files_affected: int, 
-                                  files: Optional[Dict[str, int]] = None, 
-                                  details: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                                  files: dict[str, int] | None = None, 
+                                  details: dict[str, Any] | None = None) -> dict[str, Any]:
     """Create a standard format result structure."""
     result = {
         'summary': {
@@ -107,21 +108,21 @@ class UtilitiesMixin:
         """Format a numeric value as a percentage string."""
         return format_percentage(value, decimals)
     
-    def _extract_first_int(self, text: str) -> Optional[int]:
+    def _extract_first_int(self, text: str) -> int | None:
         """Return the first integer found in the supplied text or None."""
         return extract_first_int(text)
     
-    def _parse_function_entry(self, text: str) -> Optional[Dict[str, Any]]:
+    def _parse_function_entry(self, text: str) -> dict[str, Any] | None:
         """Parse a function discovery bullet into structured data."""
         return parse_function_entry(text)
     
     def _create_standard_format_result(self, total_issues: int, files_affected: int, 
-                                       files: Optional[Dict[str, int]] = None, 
-                                       details: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                                       files: dict[str, int] | None = None, 
+                                       details: dict[str, Any] | None = None) -> dict[str, Any]:
         """Create a standard format result structure."""
         return create_standard_format_result(total_issues, files_affected, files, details)
     
-    def _extract_key_info(self, script_name: str, result: Dict[str, Any]):
+    def _extract_key_info(self, script_name: str, result: dict[str, Any]):
         """Extract key information from script result."""
         data = result.get("data")
         if script_name not in self.results_cache:
@@ -141,13 +142,13 @@ class UtilitiesMixin:
             # Store full standard-format result for tools without special extraction (e.g. analyze_module_refactor_candidates)
             self.results_cache[script_name] = data
     
-    def _extract_function_metrics(self, result: Dict[str, Any]):
+    def _extract_function_metrics(self, result: dict[str, Any]):
         """Extract function-related metrics"""
         output = result.get('output', '')
         if not isinstance(output, str):
             return
         lines = output.split('\n')
-        metrics: Dict[str, Any] = {}
+        metrics: dict[str, Any] = {}
         import re
         section_lookup = {
             'high_complexity_examples': 'HIGH COMPLEXITY',
@@ -217,9 +218,9 @@ class UtilitiesMixin:
         else:
             self.results_cache['analyze_functions'] = metrics
     
-    def _extract_documentation_metrics(self, result: Dict[str, Any]):
+    def _extract_documentation_metrics(self, result: dict[str, Any]):
         """Extract documentation-related metrics"""
-        metrics: Dict[str, Any] = {}
+        metrics: dict[str, Any] = {}
         data = result.get('data')
         if isinstance(data, dict):
             fd_metrics_raw = self.results_cache.get('analyze_functions', {}) or {}
@@ -290,16 +291,16 @@ class UtilitiesMixin:
                         metrics['missing_items'] = match.group(1)
         self.results_cache['analyze_function_registry'] = metrics
     
-    def _extract_decision_insights(self, result: Dict[str, Any]):
+    def _extract_decision_insights(self, result: dict[str, Any]):
         """Extract decision support insights and metrics (counts)."""
         output = result.get('output', '')
         if not isinstance(output, str):
             return
         lines = output.split('\n')
-        insights: List[str] = []
-        metrics: Dict[str, Any] = {}
-        critical_examples: List[Dict[str, Any]] = []
-        high_examples: List[Dict[str, Any]] = []
+        insights: list[str] = []
+        metrics: dict[str, Any] = {}
+        critical_examples: list[dict[str, Any]] = []
+        high_examples: list[dict[str, Any]] = []
         current_section = None
         i = 0
         if lines and len(lines) > 0:
@@ -424,7 +425,7 @@ class UtilitiesMixin:
                 existing['high_complexity_examples'] = high_examples
             self.results_cache['analyze_functions'] = existing
     
-    def _extract_error_handling_metrics(self, result: Dict[str, Any]):
+    def _extract_error_handling_metrics(self, result: dict[str, Any]):
         """Extract error handling coverage metrics"""
         data = result.get('data')
         if isinstance(data, dict):
@@ -471,9 +472,9 @@ class UtilitiesMixin:
                         metrics['analyze_error_handling'] = float(match.group(1))
         self.results_cache['analyze_error_handling'] = metrics
     
-    def _extract_key_metrics(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_key_metrics(self, results: dict[str, Any]) -> dict[str, Any]:
         """Collect combined metrics for audit summary output."""
-        combined: Dict[str, Any] = {}
+        combined: dict[str, Any] = {}
         for cache_key in ('analyze_functions', 'analyze_function_registry', 'analyze_error_handling'):
             cache = self.results_cache.get(cache_key)
             if isinstance(cache, dict):

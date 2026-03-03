@@ -17,7 +17,7 @@ import ast
 import sys
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -44,9 +44,9 @@ AUTO_DOC_CONFIG = config.get_fix_function_docstrings_config()
 def detect_function_type(
     file_path: str,
     func_name: str,
-    decorators: List[str],
-    args: List[str],
-    function_type_detection: Optional[Dict[str, Any]] = None,
+    decorators: list[str],
+    args: list[str],
+    function_type_detection: dict[str, Any] | None = None,
 ) -> str:
     """Detect the type of function for template generation using config rules."""
     if function_type_detection is None or not isinstance(function_type_detection, dict):
@@ -119,8 +119,8 @@ def generate_function_template(
     func_type: str,
     func_name: str,
     file_path: str,
-    args: List[str],
-    formatting_rules: Optional[Dict[str, Any]] = None,
+    args: list[str],
+    formatting_rules: dict[str, Any] | None = None,
 ) -> str:
     """Generate appropriate documentation template based on function type using config."""
     if formatting_rules is None or not isinstance(formatting_rules, dict):
@@ -192,7 +192,7 @@ def add_docstring_to_function(
 ) -> bool:
     """Add a docstring to a specific function in a Python file."""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             lines = f.readlines()
 
         # Start from the AST line number and look for the actual function definition
@@ -284,7 +284,7 @@ def add_docstring_to_function(
         return False
 
 
-def scan_and_document_functions(project_root_path: Optional[Path] = None):
+def scan_and_document_functions(project_root_path: Path | None = None):
     """Scan all Python files and add docstrings where missing."""
     global AUTO_DOC_CONFIG
 
@@ -320,7 +320,7 @@ def scan_and_document_functions(project_root_path: Optional[Path] = None):
             file_key = str(relative_path).replace("\\", "/")
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 tree = ast.parse(content)
@@ -383,8 +383,8 @@ def scan_and_document_functions(project_root_path: Optional[Path] = None):
 
 
 def execute(
-    project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs
-) -> Dict:
+    project_root: str | None = None, config_path: str | None = None, **kwargs
+) -> dict:
     """Execute fix function docstrings (for use by run_development_tools)."""
     global AUTO_DOC_CONFIG
 

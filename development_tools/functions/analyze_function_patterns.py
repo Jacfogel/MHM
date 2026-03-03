@@ -11,7 +11,7 @@ if available, making this tool portable across different projects.
 
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -33,7 +33,7 @@ config.load_external_config()
 logger = get_component_logger("development_tools")
 
 
-def analyze_function_patterns(actual_functions: Dict[str, Dict]) -> Dict[str, Any]:
+def analyze_function_patterns(actual_functions: dict[str, dict]) -> dict[str, Any]:
     """Analyze function patterns for AI consumption - enhanced with more pattern detection."""
     patterns = {
         "handlers": [],
@@ -267,7 +267,7 @@ def main():
 
     # Load function data
     if args.input:
-        with open(args.input, "r", encoding="utf-8") as f:
+        with open(args.input, encoding="utf-8") as f:
             actual_functions = json.load(f)
     else:
         # Import from analyze_functions to get discovery results

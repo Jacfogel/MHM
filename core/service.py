@@ -428,7 +428,7 @@ class MHMService:
 
         while self.running:
             # Check for shutdown file every 2 seconds for faster response
-            for i in range(30):  # 30 * 2 = 60 seconds total
+            for _i in range(30):  # 30 * 2 = 60 seconds total
                 if not self.running:
                     break
 
@@ -440,7 +440,7 @@ class MHMService:
                         if self.startup_time and file_mtime < self.startup_time:
                             # This is an old shutdown request from before service started
                             logger.debug(
-                                f"Ignoring old shutdown request file (created before service startup)"
+                                "Ignoring old shutdown request file (created before service startup)"
                             )
                             try:
                                 os.remove(shutdown_file)

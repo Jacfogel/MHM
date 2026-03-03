@@ -206,12 +206,12 @@ def _apply_get_user_data_shim_early():
         return result
 
     try:
-        setattr(um, "get_user_data", wrapped_get_user_data)
+        um.get_user_data = wrapped_get_user_data
     except Exception:
         pass
     try:
         if udh is not None and hasattr(udh, "get_user_data"):
-            setattr(udh, "get_user_data", wrapped_get_user_data)
+            udh.get_user_data = wrapped_get_user_data
     except Exception:
         pass
 

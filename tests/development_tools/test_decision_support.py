@@ -6,8 +6,7 @@ undocumented handlers detection, and duplicate name detection.
 """
 
 import pytest
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from tests.development_tools.conftest import load_development_tools_module
 

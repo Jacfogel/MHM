@@ -9,7 +9,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from tests.development_tools.conftest import load_development_tools_module, demo_project_root, test_config_path
+from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module
 directory_tree_module = load_development_tools_module("docs.generate_directory_tree")
@@ -145,7 +145,7 @@ C:\\TEST
         
         # Verify placeholder replacement occurred
         if output_file and Path(output_file).exists():
-            content = Path(output_file).read_text()
+            Path(output_file).read_text()
             # Should have placeholder text (check for common placeholder patterns)
             # The exact placeholder depends on DOC_SYNC_PLACEHOLDERS config
     
@@ -229,7 +229,7 @@ C:\\TEST
         
         # Verify placeholder logic (content after placeholder should be skipped until next dir)
         if output_file and Path(output_file).exists():
-            content = Path(output_file).read_text()
+            Path(output_file).read_text()
             # Should have placeholder and next directory, but not nested content from placeholder dir
 
 

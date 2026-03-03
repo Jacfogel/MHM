@@ -8,8 +8,6 @@ READ-ONLY - Does not modify any real user data
 import os
 import pytest
 import logging
-import time
-import tempfile
 
 # Do not modify sys.path; rely on package imports
 
@@ -59,8 +57,7 @@ def test_account_management_functions():
     
     try:
         from core.user_data_handlers import (
-            get_user_data, update_user_account, update_user_preferences, 
-            update_user_context, save_user_data, get_all_user_ids
+            get_user_data
         )
         from core.user_data_manager import UserDataManager
         from user.user_context import UserContext
@@ -129,7 +126,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
     logging.getLogger("mhm_tests").debug("Testing Account Management Data Structures...")
     
     try:
-        from core.user_data_handlers import get_user_data, save_user_data, update_user_account
+        from core.user_data_handlers import get_user_data, update_user_account
         from tests.test_utilities import TestUserFactory
         
         # Create a test user first (minimal user since we only need basic structure for data structure testing)
@@ -146,7 +143,6 @@ def test_account_management_data_structures(test_data_dir, mock_config):
             test_user = get_user_id_by_identifier(test_user_id)
         assert test_user is not None, "Should be able to get UUID for test user"
         
-        results = {}
         
         # Test account data structure
         try:
@@ -229,7 +225,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
         try:
             context_data = get_user_data(test_user, 'context')
             if context_data and 'context' in context_data:
-                context = context_data['context']
+                context_data['context']
                 logging.getLogger("mhm_tests").debug("Context data structure: data present")
                 assert True, "Context structure is valid"
             else:
@@ -331,7 +327,6 @@ def test_account_management_safe_operations():
         # Create a temporary test user for safe operations
         temp_user_id = f"temp-test-{int(time.time())}"
         
-        results = {}
         
         # Test creating temporary user data
         try:
@@ -434,7 +429,7 @@ def test_account_management_integration():
     logging.getLogger("mhm_tests").info("Testing Account Management Integration...")
     
     try:
-        from core.user_data_handlers import get_user_data, save_user_data
+        from core.user_data_handlers import get_user_data
         from core.user_data_manager import update_user_index
         from core.file_operations import get_user_file_path
         

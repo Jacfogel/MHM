@@ -235,7 +235,7 @@ class UserDataManager:
                 # Backup message files if requested (only if not already included in user directory)
                 if include_messages:
                     message_files = self.get_user_message_files(user_id)
-                    for category, file_path in message_files.items():
+                    for _category, file_path in message_files.items():
                         if os.path.exists(file_path):
                             arcname = os.path.relpath(file_path, BASE_DATA_DIR)
                             # Only add if not already in zip (prevents duplicate warnings)
@@ -374,7 +374,7 @@ class UserDataManager:
         # Delete message files
         try:
             message_files = self.get_user_message_files(user_id)
-            for category, file_path in message_files.items():
+            for _category, file_path in message_files.items():
                 if os.path.exists(file_path):
                     try:
                         os.remove(file_path)
@@ -1708,7 +1708,7 @@ def get_user_analytics_summary(user_id: str) -> dict[str, Any]:
             ("chat_interactions", "Chat Activity"),
         ]
 
-        for source, label in interaction_sources:
+        for source, _label in interaction_sources:
             file_path = get_user_file_path(user_id, source)
             if os.path.exists(file_path):
                 data = load_json_data(file_path) or []

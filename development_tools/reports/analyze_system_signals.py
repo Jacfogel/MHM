@@ -16,7 +16,7 @@ import json
 import subprocess
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -43,7 +43,7 @@ class SystemSignalsAnalyzer:
     """Analyze system health and status signals"""
 
     def __init__(
-        self, project_root: Optional[Path] = None, config_path: Optional[str] = None
+        self, project_root: Path | None = None, config_path: str | None = None
     ):
         if project_root:
             self.project_root = Path(project_root).resolve()
@@ -67,7 +67,7 @@ class SystemSignalsAnalyzer:
 
         self.system_signals_config = config.get_system_signals_config()
 
-    def analyze_system_signals(self) -> Dict[str, Any]:
+    def analyze_system_signals(self) -> dict[str, Any]:
         """Analyze comprehensive system signals"""
         signals = {
             "timestamp": datetime.now().isoformat(),
@@ -78,7 +78,7 @@ class SystemSignalsAnalyzer:
         }
         return signals
 
-    def _check_system_health(self) -> Dict[str, Any]:
+    def _check_system_health(self) -> dict[str, Any]:
         """Check comprehensive system health indicators with actionable insights"""
         health = {
             "overall_status": "OK",
@@ -189,7 +189,7 @@ class SystemSignalsAnalyzer:
                 try:
                     import json
 
-                    with open(audit_file, "r", encoding="utf-8") as f:
+                    with open(audit_file, encoding="utf-8") as f:
                         audit_data = json.load(f)
 
                     # Check test coverage status
@@ -328,9 +328,7 @@ class SystemSignalsAnalyzer:
         # Determine overall status based on severity levels
         if health["severity_levels"]["CRITICAL"]:
             health["overall_status"] = "CRITICAL"
-        elif health["severity_levels"]["WARNING"]:
-            health["overall_status"] = "ISSUES"
-        elif health["warnings"] or health["errors"]:
+        elif health["severity_levels"]["WARNING"] or health["warnings"] or health["errors"]:
             health["overall_status"] = "ISSUES"
         else:
             health["overall_status"] = "OK"
@@ -442,7 +440,7 @@ class SystemSignalsAnalyzer:
         # Other meaningful files: medium priority
         return 40
 
-    def _get_recent_activity(self) -> Dict[str, Any]:
+    def _get_recent_activity(self) -> dict[str, Any]:
         """Get recent activity indicators using git to detect actual changes."""
         activity = {
             "recent_changes": [],
@@ -624,7 +622,7 @@ class SystemSignalsAnalyzer:
         # Fallback to 24 hours ago if git is not available
         return datetime.now() - timedelta(hours=24)
 
-    def _identify_critical_alerts(self) -> List[str]:
+    def _identify_critical_alerts(self) -> list[str]:
         """Identify critical system alerts"""
         alerts = []
 
@@ -651,7 +649,7 @@ class SystemSignalsAnalyzer:
 
         return alerts
 
-    def _assess_performance_indicators(self) -> Dict[str, Any]:
+    def _assess_performance_indicators(self) -> dict[str, Any]:
         """Assess system performance indicators"""
         indicators = {
             "log_file_sizes": {},
@@ -714,7 +712,7 @@ def main():
         print(output)
 
 
-def _format_human_readable(signals: Dict[str, Any]) -> str:
+def _format_human_readable(signals: dict[str, Any]) -> str:
     """Format signals for human reading"""
     lines = []
     lines.append("SYSTEM SIGNALS ANALYSIS")
@@ -821,7 +819,7 @@ def _format_human_readable(signals: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _build_standard_result(signals: Dict[str, Any]) -> Dict[str, Any]:
+def _build_standard_result(signals: dict[str, Any]) -> dict[str, Any]:
     """Wrap signals in the standard format."""
     system_health = signals.get("system_health", {}) if isinstance(signals, dict) else {}
     core_files = system_health.get("core_files", {}) if isinstance(system_health, dict) else {}

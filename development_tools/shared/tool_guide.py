@@ -256,7 +256,7 @@ def show_tool_guide(tool_name=None):
             logger.warning(f"Tool '{tool_name}' not found in guide")
             # User-facing help messages stay as print() for immediate visibility
             print("Available tools:")
-            for tool in TOOL_GUIDE.keys():
+            for tool in TOOL_GUIDE:
                 print(f"   - {tool}")
     else:
         print("AI Tools Guide - When to Use Each Tool")

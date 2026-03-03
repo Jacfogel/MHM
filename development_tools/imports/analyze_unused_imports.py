@@ -26,7 +26,7 @@ import re
 import shutil
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any
 
 # Handle both relative and absolute imports
 try:
@@ -55,10 +55,10 @@ class UnusedImportsChecker:
     def __init__(
         self,
         project_root: str = ".",
-        max_workers: Optional[int] = None,
+        max_workers: int | None = None,
         use_cache: bool = True,
         verbose: bool = False,
-        config_path: Optional[str] = None,
+        config_path: str | None = None,
     ):
         self.project_root = Path(project_root).resolve()
 
@@ -153,7 +153,7 @@ class UnusedImportsChecker:
             "fallback_used": False,
             "fallback_reason": "",
         }
-        self._file_context_cache: Dict[Path, Tuple[List[str], str]] = {}
+        self._file_context_cache: dict[Path, tuple[list[str], str]] = {}
 
     def should_scan_file(self, file_path: Path) -> bool:
         """Determine if a file should be scanned."""
@@ -183,7 +183,7 @@ class UnusedImportsChecker:
 
         return True
 
-    def find_python_files(self) -> List[Path]:
+    def find_python_files(self) -> list[Path]:
         """Find all Python files to scan."""
         python_files = []
 
@@ -194,7 +194,7 @@ class UnusedImportsChecker:
 
         return sorted(python_files)
 
-    def _command_exists(self, command: List[str]) -> bool:
+    def _command_exists(self, command: list[str]) -> bool:
         """Return True when the command executable is available."""
         if not command:
             return False
@@ -222,7 +222,7 @@ class UnusedImportsChecker:
             return True
         return shutil.which(first) is not None
 
-    def _resolve_python_command(self, command: List[str]) -> List[str]:
+    def _resolve_python_command(self, command: list[str]) -> list[str]:
         """Normalize Python launcher commands to the current interpreter."""
         if not command:
             return command
@@ -239,12 +239,12 @@ class UnusedImportsChecker:
             return "ruff"
         return "pylint"
 
-    def _chunk_files(self, files: List[Path], chunk_size: Optional[int] = None) -> List[List[Path]]:
+    def _chunk_files(self, files: list[Path], chunk_size: int | None = None) -> list[list[Path]]:
         """Split files into stable chunks for batched backend calls."""
         size = chunk_size or self.batch_size
         return [files[i : i + size] for i in range(0, len(files), size)]
 
-    def _normalize_pylint_issue(self, issue: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _normalize_pylint_issue(self, issue: dict[str, Any]) -> dict[str, Any] | None:
         """Normalize pylint issue to unused-import issue payload."""
         message_id = issue.get("message-id")
         if message_id != "W0611":
@@ -257,7 +257,7 @@ class UnusedImportsChecker:
             "symbol": issue.get("symbol", "unused-import"),
         }
 
-    def _normalize_ruff_issue(self, issue: Dict[str, Any]) -> Optional[Tuple[Path, Dict[str, Any]]]:
+    def _normalize_ruff_issue(self, issue: dict[str, Any]) -> tuple[Path, dict[str, Any]] | None:
         """Normalize ruff issue to per-file unused-import payload."""
         if not isinstance(issue, dict):
             return None
@@ -279,9 +279,9 @@ class UnusedImportsChecker:
         }
         return (issue_path, normalized)
 
-    def _run_batched_ruff(self, files: List[Path]) -> Dict[Path, List[Dict[str, Any]]]:
+    def _run_batched_ruff(self, files: list[Path]) -> dict[Path, list[dict[str, Any]]]:
         """Run ruff in file batches and return issues keyed by file path."""
-        issues_by_file: Dict[Path, List[Dict[str, Any]]] = {fp: [] for fp in files}
+        issues_by_file: dict[Path, list[dict[str, Any]]] = {fp: [] for fp in files}
         for batch in self._chunk_files(files, chunk_size=self.batch_size):
             cmd = self._resolve_python_command(self.ruff_command) + [
                 "check",
@@ -322,9 +322,9 @@ class UnusedImportsChecker:
                 issues_by_file[issue_path].append(issue_payload)
         return issues_by_file
 
-    def _run_batched_pylint(self, files: List[Path]) -> Dict[Path, List[Dict[str, Any]]]:
+    def _run_batched_pylint(self, files: list[Path]) -> dict[Path, list[dict[str, Any]]]:
         """Run pylint in file batches and return issues keyed by file path."""
-        issues_by_file: Dict[Path, List[Dict[str, Any]]] = {fp: [] for fp in files}
+        issues_by_file: dict[Path, list[dict[str, Any]]] = {fp: [] for fp in files}
         for batch in self._chunk_files(files, chunk_size=self.pylint_batch_size):
             cmd = self._resolve_python_command(self.pylint_command) + [
                 "--disable=all",
@@ -372,8 +372,8 @@ class UnusedImportsChecker:
         return issues_by_file
 
     def _run_detection_backend(
-        self, files: List[Path]
-    ) -> Tuple[str, Dict[Path, List[Dict[str, Any]]], bool, str]:
+        self, files: list[Path]
+    ) -> tuple[str, dict[Path, list[dict[str, Any]]], bool, str]:
         """Run detection backend with ruff-first fallback semantics."""
         backend = self._detect_backend()
         fallback_used = False
@@ -407,7 +407,7 @@ class UnusedImportsChecker:
         except Exception as exc:
             raise RuntimeError(f"unused-import detection backend failed: pylint failed: {exc}")
 
-    def run_pylint_on_file(self, file_path: Path) -> Optional[List[Dict]]:
+    def run_pylint_on_file(self, file_path: Path) -> list[dict] | None:
         """Run pylint on a single file to detect unused imports."""
         # Check cache first
         cached = self.cache.get_cached(file_path)
@@ -459,13 +459,13 @@ class UnusedImportsChecker:
                 logger.error(f"Error running pylint on {file_path}: {e}")
             return None
 
-    def categorize_unused_import(self, file_path: Path, issue: Dict) -> str:
+    def categorize_unused_import(self, file_path: Path, issue: dict) -> str:
         """Categorize an unused import based on context."""
         try:
             rel_path = file_path.relative_to(self.project_root)
-            rel_path_str = str(rel_path).replace("\\", "/")
+            str(rel_path).replace("\\", "/")
         except ValueError:
-            rel_path_str = str(file_path)
+            str(file_path)
 
         # Extract import name from the message
         message = issue.get("message", "")
@@ -605,12 +605,12 @@ class UnusedImportsChecker:
                 logger.warning(f"Error categorizing import in {file_path}: {e}")
             return "obvious_unused"
 
-    def _get_file_context(self, file_path: Path) -> Tuple[List[str], str]:
+    def _get_file_context(self, file_path: Path) -> tuple[list[str], str]:
         """Load and cache file lines/content for categorization phase."""
         cached = self._file_context_cache.get(file_path)
         if cached is not None:
             return cached
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             lines = f.readlines()
         content = "".join(lines)
         payload = (lines, content)
@@ -722,10 +722,10 @@ class UnusedImportsChecker:
         if import_name in production_mock_functions:
             # Check if there are @patch decorators that might mock this function
             patch_patterns = [
-                f"@patch(",
-                f"patch.object(",
-                f"with patch(",
-                f"patch(",
+                "@patch(",
+                "patch.object(",
+                "with patch(",
+                "patch(",
             ]
             if any(pattern in file_content for pattern in patch_patterns):
                 if self.verbose:
@@ -1086,7 +1086,7 @@ class UnusedImportsChecker:
 
         return False
 
-    def scan_codebase(self) -> Dict:
+    def scan_codebase(self) -> dict:
         """Scan the entire codebase for unused imports."""
         self._file_context_cache = {}
         start_total = time.perf_counter()
@@ -1106,8 +1106,8 @@ class UnusedImportsChecker:
         print(f"Using cache: {self.use_cache}, preferred backend: {self.preferred_backend}")
         print("")
 
-        files_to_scan: List[Path] = []
-        issues_by_file: Dict[Path, List[Dict[str, Any]]] = {}
+        files_to_scan: list[Path] = []
+        issues_by_file: dict[Path, list[dict[str, Any]]] = {}
         for file_path in python_files:
             cached = self.cache.get_cached(file_path)
             if cached is not None:
@@ -1222,7 +1222,7 @@ class UnusedImportsChecker:
 
         return {"findings": self.findings, "stats": self.stats, "performance": self.performance}
 
-    def get_summary_data(self) -> Dict:
+    def get_summary_data(self) -> dict:
         """Get summary data for integration with AI tools."""
         return {
             "files_scanned": self.stats["files_scanned"],
@@ -1245,7 +1245,7 @@ class UnusedImportsChecker:
         else:
             return "CRITICAL"
 
-    def run_analysis(self) -> Dict[str, Any]:
+    def run_analysis(self) -> dict[str, Any]:
         """
         Run unused imports analysis and return results in standard format.
 
@@ -1258,7 +1258,7 @@ class UnusedImportsChecker:
 
         # Build files dict from findings
         files = {}
-        for category, items in self.findings.items():
+        for _category, items in self.findings.items():
             for item in items:
                 file_path = item.get("file", "")
                 if file_path:
@@ -1287,8 +1287,8 @@ class UnusedImportsChecker:
 
 
 def execute(
-    project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs
-) -> Dict:
+    project_root: str | None = None, config_path: str | None = None, **kwargs
+) -> dict:
     """Execute unused imports check (for use by run_development_tools)."""
     if project_root:
         root_path = Path(project_root).resolve()
@@ -1325,7 +1325,7 @@ def main():
 
     # Run the check
     checker = UnusedImportsChecker(str(project_root), verbose=args.verbose)
-    results = checker.scan_codebase()
+    checker.scan_codebase()
 
     # Output JSON if --json flag is provided
     if args.json:

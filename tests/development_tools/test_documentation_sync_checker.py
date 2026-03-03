@@ -6,7 +6,6 @@ and heading numbering validation.
 """
 
 import pytest
-from pathlib import Path
 
 # Import helper from conftest
 from tests.development_tools.conftest import load_development_tools_module
@@ -123,7 +122,7 @@ class TestPathDrift:
         
         # Should not flag valid existing files
         # Note: May have some false positives, but should not flag files that exist
-        for doc_file, issues in drift_issues.items():
+        for _doc_file, issues in drift_issues.items():
             # Check that issues are reasonable (not flagging existing files)
             for issue in issues:
                 # If it says "Missing file", verify the file actually doesn't exist

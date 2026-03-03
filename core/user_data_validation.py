@@ -442,7 +442,6 @@ def validate_user_update(
         dob = updates.get("date_of_birth")
         if dob:
             try:
-                from datetime import datetime as _dt
 
                 if parse_date_only(dob) is None:
                     raise ValidationError("invalid date")
@@ -569,7 +568,6 @@ def validate_schedule_periods(
             and validate_schedule_periods__validate_time_format(end_time)
         ):
             try:
-                from datetime import datetime as _dt
 
                 st = parse_time_only_minute(start_time)
                 et = parse_time_only_minute(end_time)
@@ -717,7 +715,6 @@ def validate_personalization_data(data: dict[str, Any]) -> tuple[bool, list[str]
     # date_of_birth format
     if dob := data.get("date_of_birth"):
         try:
-            from datetime import datetime as _dt
 
             if parse_date_only(dob) is None:
                 raise ValidationError("invalid date")

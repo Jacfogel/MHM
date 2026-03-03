@@ -43,7 +43,7 @@ def test_debug_file_paths(mock_user_data):
     # Check if the account file is readable
     if os.path.exists(account_file):
         try:
-            with open(account_file, 'r') as f:
+            with open(account_file) as f:
                 content = f.read()
                 logger.debug(f"Account file content length: {len(content)}")
                 logger.debug(f"Account file content preview: {content[:200]}...")

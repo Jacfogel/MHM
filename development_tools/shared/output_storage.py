@@ -10,7 +10,7 @@ with automatic archiving and rotation support.
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Any
 
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_full, now_timestamp_filename
@@ -80,10 +80,10 @@ def _get_project_root() -> Path:
 
 def save_tool_result(
     tool_name: str,
-    domain: Optional[str] = None,
-    data: Optional[Dict[str, Any]] = None,
+    domain: str | None = None,
+    data: dict[str, Any] | None = None,
     archive_count: int = 7,
-    project_root: Optional[Path] = None,
+    project_root: Path | None = None,
 ) -> Path:
     """
     Save tool result to domain-specific JSON file with automatic archiving.
@@ -172,8 +172,8 @@ def save_tool_result(
 
 
 def _validate_result_files_exist(
-    data: Dict[str, Any], project_root: Path
-) -> Dict[str, Any]:
+    data: dict[str, Any], project_root: Path
+) -> dict[str, Any]:
     """
     Validate that files referenced in result data still exist, removing references to deleted files.
 
@@ -246,10 +246,10 @@ def _validate_result_files_exist(
 
 def load_tool_result(
     tool_name: str,
-    domain: Optional[str] = None,
-    project_root: Optional[Path] = None,
+    domain: str | None = None,
+    project_root: Path | None = None,
     normalize: bool = True,
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Load tool result from domain-specific JSON file.
 
@@ -284,7 +284,7 @@ def load_tool_result(
         return None
 
     try:
-        with open(result_file, "r", encoding="utf-8") as f:
+        with open(result_file, encoding="utf-8") as f:
             result_data = json.load(f)
 
         data = result_data.get("data", result_data)
@@ -304,16 +304,16 @@ def load_tool_result(
                 return None
 
         return data
-    except (json.JSONDecodeError, IOError) as e:
+    except (OSError, json.JSONDecodeError) as e:
         logger.warning(f"Failed to load tool result from {result_file}: {e}")
         return None
 
 
 def save_tool_cache(
     tool_name: str,
-    domain: Optional[str] = None,
-    data: Optional[Dict[str, Any]] = None,
-    project_root: Optional[Path] = None,
+    domain: str | None = None,
+    data: dict[str, Any] | None = None,
+    project_root: Path | None = None,
 ) -> Path:
     """
     Save tool cache file to domain-specific jsons/ directory.
@@ -361,7 +361,7 @@ def save_tool_cache(
     try:
         with open(cache_file, "w", encoding="utf-8") as f:
             json.dump(cache_data, f, indent=2)
-    except (TypeError, ValueError, IOError) as e:
+    except (OSError, TypeError, ValueError) as e:
         logger.warning(f"Failed to write tool cache file {cache_file}: {e}")
         raise
 
@@ -370,8 +370,8 @@ def save_tool_cache(
 
 
 def load_tool_cache(
-    tool_name: str, domain: Optional[str] = None, project_root: Optional[Path] = None
-) -> Optional[Dict[str, Any]]:
+    tool_name: str, domain: str | None = None, project_root: Path | None = None
+) -> dict[str, Any] | None:
     """
     Load tool cache file from domain-specific jsons/ directory.
 
@@ -399,10 +399,10 @@ def load_tool_cache(
         return None
 
     try:
-        with open(cache_file, "r", encoding="utf-8") as f:
+        with open(cache_file, encoding="utf-8") as f:
             cache_data = json.load(f)
         return cache_data.get("data", cache_data)
-    except (json.JSONDecodeError, IOError) as e:
+    except (OSError, json.JSONDecodeError) as e:
         logger.warning(f"Failed to load tool cache from {cache_file}: {e}")
         # Remove corrupted cache file to allow regeneration on next run.
         try:
@@ -413,8 +413,8 @@ def load_tool_cache(
 
 
 def get_all_tool_results(
-    project_root: Optional[Path] = None,
-) -> Dict[str, Dict[str, Any]]:
+    project_root: Path | None = None,
+) -> dict[str, dict[str, Any]]:
     """
     Aggregate all tool results from all domain jsons/ directories.
 
@@ -446,7 +446,7 @@ def get_all_tool_results(
         "shared",
     ]
 
-    def _parse_result_timestamp(result_data: Dict[str, Any], result_file: Path) -> datetime:
+    def _parse_result_timestamp(result_data: dict[str, Any], result_file: Path) -> datetime:
         """Return a comparable timestamp for a tool result entry."""
         raw_ts = None
         if isinstance(result_data, dict):
@@ -484,7 +484,7 @@ def get_all_tool_results(
                     logger.debug(f"Skipping empty result file: {result_file}")
                     continue
 
-                with open(result_file, "r", encoding="utf-8") as f:
+                with open(result_file, encoding="utf-8") as f:
                     result_data = json.load(f)
                 if tool_name in all_results:
                     existing = all_results[tool_name]
@@ -498,7 +498,7 @@ def get_all_tool_results(
                 # File was deleted between existence check and open - skip gracefully
                 logger.debug(f"Result file disappeared: {result_file}")
                 continue
-            except (json.JSONDecodeError, IOError) as e:
+            except (OSError, json.JSONDecodeError) as e:
                 logger.warning(f"Failed to load result from {result_file}: {e}")
                 continue
 

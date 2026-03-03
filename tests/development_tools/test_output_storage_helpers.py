@@ -1,7 +1,6 @@
 """Additional helper-path tests for development_tools/shared/output_storage.py."""
 
 import json
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest

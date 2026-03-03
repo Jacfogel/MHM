@@ -14,10 +14,7 @@ Coverage Areas:
 """
 
 import pytest
-import os
-import tempfile
-from unittest.mock import Mock, patch, mock_open, MagicMock
-from pathlib import Path
+from unittest.mock import patch, mock_open
 
 from ai.prompt_manager import PromptManager, PromptTemplate, get_prompt_manager
 

@@ -19,7 +19,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -79,7 +79,7 @@ class TestCoverageAnalyzer:
         else:
             self.cache = None
 
-    def parse_coverage_output(self, output: str) -> Dict[str, Dict[str, Any]]:
+    def parse_coverage_output(self, output: str) -> dict[str, dict[str, Any]]:
         """Parse the coverage output to extract module-specific metrics."""
         coverage_data = {}
 
@@ -123,10 +123,10 @@ class TestCoverageAnalyzer:
 
         return coverage_data
 
-    def load_coverage_json(self, json_path: Path) -> Dict[str, Dict[str, Any]]:
+    def load_coverage_json(self, json_path: Path) -> dict[str, dict[str, Any]]:
         """Fallback parser that reads module metrics from coverage JSON output."""
         try:
-            with open(json_path, "r", encoding="utf-8") as json_file:
+            with open(json_path, encoding="utf-8") as json_file:
                 data = json.load(json_file)
         except (FileNotFoundError, json.JSONDecodeError) as exc:
             if logger:
@@ -134,7 +134,7 @@ class TestCoverageAnalyzer:
             return {}
 
         files = data.get("files", {})
-        coverage_data: Dict[str, Dict[str, Any]] = {}
+        coverage_data: dict[str, dict[str, Any]] = {}
 
         for module_name, file_data in files.items():
             # Normalize path to use backslashes (Windows format) to match plan file format
@@ -171,7 +171,7 @@ class TestCoverageAnalyzer:
 
         return coverage_data
 
-    def extract_missing_lines(self, missing_part: str) -> List[str]:
+    def extract_missing_lines(self, missing_part: str) -> list[str]:
         """Extract missing line numbers from coverage output."""
         missing_lines = []
 
@@ -192,7 +192,7 @@ class TestCoverageAnalyzer:
 
         return missing_lines
 
-    def extract_overall_coverage(self, output: str) -> Dict[str, Any]:
+    def extract_overall_coverage(self, output: str) -> dict[str, Any]:
         """Extract overall coverage metrics."""
         overall_data = {
             "total_statements": 0,
@@ -219,10 +219,10 @@ class TestCoverageAnalyzer:
 
         return overall_data
 
-    def extract_overall_from_json(self, json_path: Path) -> Dict[str, Any]:
+    def extract_overall_from_json(self, json_path: Path) -> dict[str, Any]:
         """Compute overall coverage using the JSON report."""
         try:
-            with open(json_path, "r", encoding="utf-8") as json_file:
+            with open(json_path, encoding="utf-8") as json_file:
                 data = json.load(json_file)
         except (FileNotFoundError, json.JSONDecodeError):
             return {"total_statements": 0, "total_missed": 0, "overall_coverage": 0.0}
@@ -250,8 +250,8 @@ class TestCoverageAnalyzer:
         }
 
     def categorize_modules(
-        self, coverage_data: Dict[str, Dict[str, Any]]
-    ) -> Dict[str, List[str]]:
+        self, coverage_data: dict[str, dict[str, Any]]
+    ) -> dict[str, list[str]]:
         """Categorize modules by coverage level."""
         categories = {
             "excellent": [],  # 80%+
@@ -279,10 +279,10 @@ class TestCoverageAnalyzer:
 
     def analyze_coverage(
         self,
-        coverage_output: Optional[str] = None,
-        coverage_json_path: Optional[Path] = None,
+        coverage_output: str | None = None,
+        coverage_json_path: Path | None = None,
         use_cache: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Analyze coverage data from either text output or JSON file.
 
@@ -383,7 +383,7 @@ def main():
     # Read input
     coverage_output = None
     if args.input:
-        with open(args.input, "r", encoding="utf-8") as f:
+        with open(args.input, encoding="utf-8") as f:
             coverage_output = f.read()
 
     coverage_json_path = None

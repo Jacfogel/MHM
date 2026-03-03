@@ -9,7 +9,7 @@ from pathlib import Path
 import json
 import uuid
 from datetime import datetime, timezone, timedelta
-from typing import List, Dict, Any, Optional
+from typing import Any
 from core.logger import get_component_logger
 from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, determine_file_path
@@ -938,9 +938,7 @@ def get_timestamp_for_sorting(item):
     Returns:
         float: Timestamp as float for sorting, or 0.0 for invalid items
     """
-    if isinstance(item, str):
-        return 0.0
-    elif not isinstance(item, dict):
+    if isinstance(item, str) or not isinstance(item, dict):
         return 0.0
     timestamp = item.get("timestamp", "1970-01-01 00:00:00")
     try:

@@ -89,7 +89,7 @@ class CleanupManager:
                 account_file = os.path.join(item_path, "account.json")
                 if os.path.exists(account_file):
                     try:
-                        with open(account_file, "r") as f:
+                        with open(account_file) as f:
                             account_data = json.load(f)
                             user_id = account_data.get("user_id", item)
                             # Consider it a test user if it starts with 'test' or has test-like patterns
@@ -234,7 +234,7 @@ class CleanupManager:
 
                 # Try to load JSON
                 try:
-                    with open(file_path, "r") as f:
+                    with open(file_path) as f:
                         json.load(f)
                 except json.JSONDecodeError:
                     logger.warning(f"Invalid JSON in {user_id}/{required_file}")

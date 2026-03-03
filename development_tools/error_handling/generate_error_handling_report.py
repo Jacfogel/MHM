@@ -13,7 +13,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -38,7 +38,7 @@ logger = get_component_logger("development_tools")
 class ErrorHandlingReportGenerator:
     """Generates reports from error handling analysis results."""
 
-    def __init__(self, analysis_results: Dict[str, Any]):
+    def __init__(self, analysis_results: dict[str, Any]):
         """Initialize with analysis results."""
         self.results = analysis_results
 
@@ -193,7 +193,7 @@ def main():
     args = parser.parse_args()
 
     # Load analysis results
-    with open(args.input, "r", encoding="utf-8") as f:
+    with open(args.input, encoding="utf-8") as f:
         analysis_results = json.load(f)
 
     # Create report generator

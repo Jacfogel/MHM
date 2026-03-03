@@ -17,6 +17,16 @@ from .file_rotation import create_output_file
 logger = get_component_logger("development_tools")
 
 
+def _as_dict(value: object) -> dict[str, object]:
+    return value if isinstance(value, dict) else {}
+
+
+def _as_list(value: object) -> list[dict[str, object]]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, dict)]
+
+
 def _resolve_output_path(project_root: Path, configured_path: str) -> Path:
     candidate = Path(configured_path)
     if candidate.is_absolute():
@@ -40,7 +50,7 @@ def write_json_report(
 
 
 def build_inventory_markdown(inventory: Dict[str, object]) -> str:
-    summary = inventory.get("summary", {})
+    summary = _as_dict(inventory.get("summary", {}))
     lines = [
         "# Backup Inventory Report",
         "",
@@ -53,7 +63,7 @@ def build_inventory_markdown(inventory: Dict[str, object]) -> str:
         "",
         "## Rules",
     ]
-    for entry in inventory.get("rules", []):
+    for entry in _as_list(inventory.get("rules", [])):
         lines.extend(
             [
                 f"- {entry.get('name', 'unknown')}",
@@ -69,8 +79,8 @@ def build_inventory_markdown(inventory: Dict[str, object]) -> str:
 
 
 def build_retention_markdown(plan: Dict[str, object], result: Dict[str, object]) -> str:
-    summary = plan.get("summary", {})
-    run_summary = result.get("summary", {})
+    summary = _as_dict(plan.get("summary", {}))
+    run_summary = _as_dict(result.get("summary", {}))
     lines = [
         "# Backup Retention Report",
         "",
@@ -91,7 +101,7 @@ def build_retention_markdown(plan: Dict[str, object], result: Dict[str, object])
         "",
         "## Actions",
     ]
-    for action in result.get("actions", []):
+    for action in _as_list(result.get("actions", [])):
         lines.append(
             f"- [{action.get('status', 'unknown')}] {action.get('file_path', '')} ({action.get('reason', '')})"
         )
@@ -99,8 +109,8 @@ def build_retention_markdown(plan: Dict[str, object], result: Dict[str, object])
 
 
 def build_restore_drill_markdown(report: Dict[str, object]) -> str:
-    summary = report.get("summary", {})
-    verification = report.get("verification", {})
+    summary = _as_dict(report.get("summary", {}))
+    verification = _as_dict(report.get("verification", {}))
     lines = [
         "# Backup Restore Drill Report",
         "",
@@ -116,7 +126,12 @@ def build_restore_drill_markdown(report: Dict[str, object]) -> str:
         f"- required_paths_ok: {verification.get('required_paths_ok', False)}",
         f"- min_file_count_ok: {verification.get('min_file_count_ok', False)}",
     ]
-    missing_paths = verification.get("missing_required_paths", [])
+    missing_paths_value = verification.get("missing_required_paths", [])
+    missing_paths = (
+        [str(path) for path in missing_paths_value]
+        if isinstance(missing_paths_value, list)
+        else []
+    )
     if missing_paths:
         lines.append(f"- missing_required_paths: {', '.join(missing_paths)}")
     if summary.get("error"):

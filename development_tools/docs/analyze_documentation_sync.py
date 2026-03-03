@@ -25,7 +25,7 @@ import re
 import argparse
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -50,7 +50,7 @@ class DocumentationSyncChecker:
     """Checks for paired AI/human documentation consistency."""
 
     def __init__(
-        self, project_root: Optional[str] = None, config_path: Optional[str] = None
+        self, project_root: str | None = None, config_path: str | None = None
     ):
         """
         Initialize documentation sync checker.
@@ -74,7 +74,7 @@ class DocumentationSyncChecker:
         # Load paired docs from constants (which loads from config)
         self.paired_docs = dict(PAIRED_DOCS)
 
-    def check_paired_documentation(self) -> Dict[str, List[str]]:
+    def check_paired_documentation(self) -> dict[str, list[str]]:
         """Check for inconsistencies in paired AI/human documentation."""
         issues = defaultdict(list)
 
@@ -90,9 +90,9 @@ class DocumentationSyncChecker:
             if human_path.exists() and ai_path.exists():
                 # Check for content synchronization issues
                 try:
-                    with open(human_path, "r", encoding="utf-8") as f:
+                    with open(human_path, encoding="utf-8") as f:
                         human_content = f.read()
-                    with open(ai_path, "r", encoding="utf-8") as f:
+                    with open(ai_path, encoding="utf-8") as f:
                         ai_content = f.read()
 
                     # Simple content comparison (could be enhanced)
@@ -122,7 +122,7 @@ class DocumentationSyncChecker:
 
         return issues
 
-    def run_checks(self) -> Dict[str, Any]:
+    def run_checks(self) -> dict[str, Any]:
         """
         Run paired documentation synchronization checks and return results in standard format.
 
@@ -152,20 +152,20 @@ class DocumentationSyncChecker:
             "details": {"paired_doc_issues": total_issues, "paired_docs": paired_docs},
         }
 
-    def print_report(self, results: Dict[str, Any]):
+    def print_report(self, results: dict[str, Any]):
         """Print a formatted report of the results."""
         summary = results["summary"]
         details = results["details"]
         paired_docs = details.get("paired_docs", {})
         paired_doc_issues = details.get("paired_doc_issues", 0)
-        print(f"\nSUMMARY:")
+        print("\nSUMMARY:")
         print(f"   Status: {summary['status']}")
         print(f"   Total Issues: {summary['total_issues']}")
         print(f"   Paired Doc Issues: {paired_doc_issues}")
 
         # Paired Documentation Issues
         if paired_docs:
-            print(f"\nPAIRED DOCUMENTATION ISSUES:")
+            print("\nPAIRED DOCUMENTATION ISSUES:")
             for issue_type, issues in paired_docs.items():
                 if issues:
                     print(f"   {issue_type}:")
@@ -175,7 +175,7 @@ class DocumentationSyncChecker:
                         print(f"     - {clean_issue}")
 
         if summary["total_issues"] == 0:
-            print(f"\nAll paired documentation synchronization checks passed!")
+            print("\nAll paired documentation synchronization checks passed!")
         else:
             print(
                 f"\nFound {summary['total_issues']} paired documentation synchronization issues."

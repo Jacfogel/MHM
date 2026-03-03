@@ -35,7 +35,7 @@ def test_no_direct_os_environ_mutations_in_tests():
                 continue
             path = os.path.join(dirpath, name)
             try:
-                with open(path, 'r', encoding='utf-8') as f:
+                with open(path, encoding='utf-8') as f:
                     text = f.read()
                 # Exclude this policy file itself from matches
                 if os.path.basename(path) != os.path.basename(__file__):

@@ -11,21 +11,16 @@ Tests all the possibilities and options for user creation, including:
 
 import pytest
 import os
-import json
-import tempfile
 from unittest.mock import patch
-from datetime import datetime
 
 from core.user_data_handlers import (
     get_user_data,
     save_user_data,
-    update_user_account,
     update_user_preferences,
-    update_user_context,
-    update_user_schedules
+    update_user_context
 )
 from tests.test_utilities import TestUserFactory
-from core.user_data_validation import is_valid_email, validate_schedule_periods__validate_time_format
+from core.user_data_validation import is_valid_email
 
 class TestUserCreationScenarios:
     """Test comprehensive user creation scenarios."""

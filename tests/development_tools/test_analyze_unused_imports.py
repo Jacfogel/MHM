@@ -7,11 +7,9 @@ and cache functionality.
 
 import pytest
 import json
-import tempfile
-from pathlib import Path
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch, MagicMock
 
-from tests.development_tools.conftest import load_development_tools_module, test_config_path
+from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module
 unused_imports_module = load_development_tools_module("imports.analyze_unused_imports")

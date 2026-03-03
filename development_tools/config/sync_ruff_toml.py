@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import Iterable, List
+from collections.abc import Iterable
 
 from development_tools.shared.standard_exclusions import (
     BASE_EXCLUSION_SHORTLIST,
@@ -33,9 +33,9 @@ def _normalize_pattern(pattern: str) -> str:
     return text.rstrip("/")
 
 
-def _dedupe_preserve_order(values: Iterable[str]) -> List[str]:
+def _dedupe_preserve_order(values: Iterable[str]) -> list[str]:
     seen = set()
-    result: List[str] = []
+    result: list[str] = []
     for value in values:
         if not value or value in seen:
             continue
@@ -44,8 +44,8 @@ def _dedupe_preserve_order(values: Iterable[str]) -> List[str]:
     return result
 
 
-def collect_ruff_exclusions() -> List[str]:
-    raw_patterns: List[str] = []
+def collect_ruff_exclusions() -> list[str]:
+    raw_patterns: list[str] = []
     raw_patterns.extend(get_exclusions("analysis", "development"))
     raw_patterns.extend(BASE_EXCLUSION_SHORTLIST)
     raw_patterns.extend(GENERATED_FILE_PATTERNS)
@@ -55,7 +55,7 @@ def collect_ruff_exclusions() -> List[str]:
     return sorted(exclusions)
 
 
-def render_ruff_toml(exclusions: List[str]) -> str:
+def render_ruff_toml(exclusions: list[str]) -> str:
     quoted = ",\n".join(f'  "{value}"' for value in exclusions)
     return (
         f"{_HEADER}\n"

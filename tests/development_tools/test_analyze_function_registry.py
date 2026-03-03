@@ -7,10 +7,9 @@ registry parsing, metrics building, and audit summarization.
 
 import pytest
 import ast
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-from tests.development_tools.conftest import load_development_tools_module, demo_project_root, test_config_path
+from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module
 registry_module = load_development_tools_module("functions.analyze_function_registry")

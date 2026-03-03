@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 
 from communication.command_handlers.interaction_handlers import (
@@ -10,6 +12,7 @@ from communication.command_handlers.interaction_handlers import (
     get_all_handlers,
     get_interaction_handler,
 )
+from communication.command_handlers.base_handler import InteractionHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 
 
@@ -21,6 +24,10 @@ class _DummyHandler:
 
     def can_handle(self, intent: str) -> bool:
         return intent in self._accepted_intents
+
+
+def _as_handler(handler: _DummyHandler) -> InteractionHandler:
+    return cast(InteractionHandler, handler)
 
 
 @pytest.mark.unit
@@ -211,14 +218,18 @@ class TestInteractionHandlerRegistry:
             INTERACTION_HANDLERS.clear()
             INTERACTION_HANDLERS.update(
                 {
-                    "TaskManagementHandler": _DummyHandler({"task_intent"}),
-                    "CheckinHandler": _DummyHandler({"checkin_intent"}),
-                    "ProfileHandler": _DummyHandler({"profile_intent"}),
-                    "HelpHandler": _DummyHandler({"help"}),
-                    "ScheduleManagementHandler": _DummyHandler({"schedule_intent"}),
-                    "AnalyticsHandler": _DummyHandler({"analytics_intent"}),
-                    "NotebookHandler": _DummyHandler({"notebook_intent"}),
-                    "AccountManagementHandler": _DummyHandler({"account_intent"}),
+                    "TaskManagementHandler": _as_handler(_DummyHandler({"task_intent"})),
+                    "CheckinHandler": _as_handler(_DummyHandler({"checkin_intent"})),
+                    "ProfileHandler": _as_handler(_DummyHandler({"profile_intent"})),
+                    "HelpHandler": _as_handler(_DummyHandler({"help"})),
+                    "ScheduleManagementHandler": _as_handler(
+                        _DummyHandler({"schedule_intent"})
+                    ),
+                    "AnalyticsHandler": _as_handler(_DummyHandler({"analytics_intent"})),
+                    "NotebookHandler": _as_handler(_DummyHandler({"notebook_intent"})),
+                    "AccountManagementHandler": _as_handler(
+                        _DummyHandler({"account_intent"})
+                    ),
                 }
             )
 
@@ -235,14 +246,18 @@ class TestInteractionHandlerRegistry:
             INTERACTION_HANDLERS.clear()
             INTERACTION_HANDLERS.update(
                 {
-                    "TaskManagementHandler": _DummyHandler({"task_intent"}),
-                    "CheckinHandler": _DummyHandler({"checkin_intent"}),
-                    "ProfileHandler": _DummyHandler({"profile_intent"}),
-                    "HelpHandler": _DummyHandler({"help"}),
-                    "ScheduleManagementHandler": _DummyHandler({"schedule_intent"}),
-                    "AnalyticsHandler": _DummyHandler({"analytics_intent"}),
-                    "NotebookHandler": _DummyHandler({"notebook_intent"}),
-                    "AccountManagementHandler": _DummyHandler({"account_intent"}),
+                    "TaskManagementHandler": _as_handler(_DummyHandler({"task_intent"})),
+                    "CheckinHandler": _as_handler(_DummyHandler({"checkin_intent"})),
+                    "ProfileHandler": _as_handler(_DummyHandler({"profile_intent"})),
+                    "HelpHandler": _as_handler(_DummyHandler({"help"})),
+                    "ScheduleManagementHandler": _as_handler(
+                        _DummyHandler({"schedule_intent"})
+                    ),
+                    "AnalyticsHandler": _as_handler(_DummyHandler({"analytics_intent"})),
+                    "NotebookHandler": _as_handler(_DummyHandler({"notebook_intent"})),
+                    "AccountManagementHandler": _as_handler(
+                        _DummyHandler({"account_intent"})
+                    ),
                 }
             )
 
@@ -257,13 +272,13 @@ class TestInteractionHandlerRegistry:
             INTERACTION_HANDLERS.clear()
             INTERACTION_HANDLERS.update(
                 {
-                    "TaskManagementHandler": _DummyHandler({"task_intent"}),
+                    "TaskManagementHandler": _as_handler(_DummyHandler({"task_intent"})),
                     "CheckinHandler": None,
-                    "ProfileHandler": _DummyHandler({"profile_intent"}),
-                    "HelpHandler": _DummyHandler({"help"}),
+                    "ProfileHandler": _as_handler(_DummyHandler({"profile_intent"})),
+                    "HelpHandler": _as_handler(_DummyHandler({"help"})),
                     "ScheduleManagementHandler": None,
-                    "AnalyticsHandler": _DummyHandler({"analytics_intent"}),
-                    "NotebookHandler": _DummyHandler({"notebook_intent"}),
+                    "AnalyticsHandler": _as_handler(_DummyHandler({"analytics_intent"})),
+                    "NotebookHandler": _as_handler(_DummyHandler({"notebook_intent"})),
                     "AccountManagementHandler": None,
                 }
             )

@@ -17,7 +17,7 @@ import re
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -48,8 +48,8 @@ class MissingAddressAnalyzer:
 
     def __init__(
         self,
-        project_root: Optional[str] = None,
-        config_path: Optional[str] = None,
+        project_root: str | None = None,
+        config_path: str | None = None,
         use_cache: bool = True,
     ):
         """
@@ -83,7 +83,7 @@ class MissingAddressAnalyzer:
             tool_paths=[Path(__file__)],
         )
 
-    def check_missing_addresses(self) -> Dict[str, List[str]]:
+    def check_missing_addresses(self) -> dict[str, list[str]]:
         """
         Check for documentation files missing file addresses.
 
@@ -177,7 +177,7 @@ class MissingAddressAnalyzer:
                 continue
 
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = f.read()
 
                 has_address = bool(
@@ -203,7 +203,7 @@ class MissingAddressAnalyzer:
 
         return missing_addresses
 
-    def run_analysis(self) -> Dict[str, Any]:
+    def run_analysis(self) -> dict[str, Any]:
         """
         Run missing addresses analysis and return results in standard format.
 
@@ -278,12 +278,12 @@ def main():
 
     # Print results
     if results:
-        print(f"\nMissing Address Issues:")
+        print("\nMissing Address Issues:")
         print(f"   Total files missing addresses: {len(results)}")
         print(
             f"   Total issues found: {sum(len(issues) for issues in results.values())}"
         )
-        print(f"   Files missing addresses:")
+        print("   Files missing addresses:")
         for doc_file, issues in results.items():
             print(f"     {doc_file}: {len(issues)} issues")
             for issue in issues[:3]:

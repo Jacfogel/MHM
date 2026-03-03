@@ -10,9 +10,6 @@ documentation references to files that don't exist.
 """
 
 import pytest
-import tempfile
-import shutil
-from pathlib import Path
 
 # Import helper from conftest
 from tests.development_tools.conftest import load_development_tools_module
@@ -86,7 +83,7 @@ class TestPathDriftDetection:
         docs_dir.mkdir()
         
         doc_file = docs_dir / "README.md"
-        doc_file.write_text(f"""
+        doc_file.write_text("""
 # Test Documentation
 
 This file references an existing file: `core/existing_module.py`

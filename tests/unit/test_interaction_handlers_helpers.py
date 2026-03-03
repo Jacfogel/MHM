@@ -6,7 +6,7 @@ helper methods and utility functions.
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch
 from datetime import datetime, timedelta
 from communication.command_handlers.task_handler import TaskManagementHandler
 from core.time_utilities import DATE_ONLY, format_timestamp
@@ -139,7 +139,7 @@ class TestTaskManagementHandlerHelpers:
     def test_apply_filters_overdue(self):
         """Test _handle_list_tasks__apply_filters with 'overdue' filter."""
         # Deterministic dates (no wall-clock dependence).
-        today = format_timestamp(TEST_NOW_DT, DATE_ONLY)
+        format_timestamp(TEST_NOW_DT, DATE_ONLY)
         yesterday = format_timestamp(TEST_NOW_DT - timedelta(days=1), DATE_ONLY)
         tomorrow = format_timestamp(TEST_NOW_DT + timedelta(days=1), DATE_ONLY)
 

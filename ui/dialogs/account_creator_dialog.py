@@ -4,7 +4,7 @@
 """Account Creator Dialog"""
 
 import uuid
-from typing import Dict, Any
+from typing import Any
 
 # PySide6 imports
 from PySide6.QtWidgets import QDialog, QMessageBox, QSizePolicy, QDialogButtonBox

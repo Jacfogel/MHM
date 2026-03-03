@@ -5,7 +5,6 @@ Tests the channel monitoring functionality without external dependencies.
 
 import pytest
 import threading
-from datetime import datetime
 from unittest.mock import Mock, patch
 
 from core.time_utilities import now_datetime_full
@@ -427,7 +426,7 @@ class TestChannelMonitor:
 
         # Test concurrent access to failure counts
         def record_failures():
-            for i in range(10):
+            for _i in range(10):
                 channel_monitor.record_channel_failure("test_channel")
 
         # Start multiple threads

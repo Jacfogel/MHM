@@ -19,7 +19,7 @@ import re
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -50,8 +50,8 @@ class UnconvertedLinkAnalyzer:
 
     def __init__(
         self,
-        project_root: Optional[str] = None,
-        config_path: Optional[str] = None,
+        project_root: str | None = None,
+        config_path: str | None = None,
         use_cache: bool = True,
     ):
         """
@@ -108,7 +108,7 @@ class UnconvertedLinkAnalyzer:
         # Heuristic detection (header markers, /generated/, suffix patterns, _pyqt.py)
         return is_generated_file(str(file_path))
 
-    def _is_in_code_block(self, lines: List[str], line_num: int) -> bool:
+    def _is_in_code_block(self, lines: list[str], line_num: int) -> bool:
         """Check if a line is inside a code block."""
         in_code = False
         for i in range(line_num + 1):
@@ -117,7 +117,7 @@ class UnconvertedLinkAnalyzer:
         return in_code
 
     def _is_in_example_context(
-        self, line: str, lines: List[str], line_num: int
+        self, line: str, lines: list[str], line_num: int
     ) -> bool:
         """
         Check if a line is in an example context based on documentation standards.
@@ -271,7 +271,7 @@ class UnconvertedLinkAnalyzer:
                 return True
         return False
 
-    def _is_metadata_section(self, lines: List[str], line_num: int) -> bool:
+    def _is_metadata_section(self, lines: list[str], line_num: int) -> bool:
         """Check if a line is in the metadata section (H1 + lines starting with >)."""
         current_line = lines[line_num].strip()
         if current_line.startswith("#") or current_line.startswith(">"):
@@ -319,7 +319,7 @@ class UnconvertedLinkAnalyzer:
         return False
 
     def _should_convert_path_to_link(
-        self, path: str, line: str, line_num: int, lines: List[str], source_file: Path
+        self, path: str, line: str, line_num: int, lines: list[str], source_file: Path
     ) -> bool:
         """
         Determine if a path should be converted to a link.
@@ -355,7 +355,7 @@ class UnconvertedLinkAnalyzer:
 
         return True
 
-    def check_unconverted_links(self) -> Dict[str, List[str]]:
+    def check_unconverted_links(self) -> dict[str, list[str]]:
         """
         Check for file path references that should be converted to markdown links.
 
@@ -392,7 +392,7 @@ class UnconvertedLinkAnalyzer:
                 continue
 
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = f.read()
 
                 lines = content.split("\n")
@@ -473,7 +473,7 @@ class UnconvertedLinkAnalyzer:
 
         return unconverted_links
 
-    def run_analysis(self) -> Dict[str, Any]:
+    def run_analysis(self) -> dict[str, Any]:
         """
         Run unconverted links analysis and return results in standard format.
 
@@ -548,12 +548,12 @@ def main():
 
     # Print results
     if results:
-        print(f"\nUnconverted Link Issues:")
+        print("\nUnconverted Link Issues:")
         print(f"   Total files with unconverted links: {len(results)}")
         print(
             f"   Total issues found: {sum(len(issues) for issues in results.values())}"
         )
-        print(f"   Files with unconverted links:")
+        print("   Files with unconverted links:")
         for doc_file, issues in results.items():
             print(f"     {doc_file}: {len(issues)} issues")
             for issue in issues[:5]:

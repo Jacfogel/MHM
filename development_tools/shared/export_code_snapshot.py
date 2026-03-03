@@ -16,7 +16,7 @@ import argparse
 import datetime
 import fnmatch
 from pathlib import Path
-from typing import List, Sequence
+from collections.abc import Sequence
 
 from development_tools.shared.common import _get_project_root
 from development_tools.shared.standard_exclusions import (
@@ -37,7 +37,7 @@ def _build_exclusions(
     include_tests: bool,
     include_dev_tools: bool,
     extra_excludes: Sequence[str],
-) -> List[str]:
+) -> list[str]:
     """
     Build a final exclusion list using the standard exclusion system,
     then optionally remove test/dev-tools filters based on CLI flags.
@@ -58,7 +58,7 @@ def _build_exclusions(
     return exclusions
 
 
-def _should_exclude(normalized_path: str, exclusions: List[str]) -> bool:
+def _should_exclude(normalized_path: str, exclusions: list[str]) -> bool:
     """
     Standardized file exclusion check.
 
@@ -80,8 +80,8 @@ def _should_exclude(normalized_path: str, exclusions: List[str]) -> bool:
     return False
 
 
-def _discover_python_files(root_dir: Path, exclusions: List[str]) -> List[Path]:
-    files: List[Path] = []
+def _discover_python_files(root_dir: Path, exclusions: list[str]) -> list[Path]:
+    files: list[Path] = []
     for path in root_dir.rglob("*.py"):
         if not path.is_file():
             continue
@@ -98,7 +98,7 @@ def _discover_python_files(root_dir: Path, exclusions: List[str]) -> List[Path]:
 
 
 def _write_markdown_bundle(
-    root_dir: Path, files: List[Path], output_path: Path
+    root_dir: Path, files: list[Path], output_path: Path
 ) -> None:
     timestamp = datetime.datetime.now().isoformat(timespec="seconds")
     project_root = _get_project_root()

@@ -14,7 +14,6 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Dict, Optional, Tuple
 
 # Add project root to path
 project_root = Path(__file__).resolve().parent.parent.parent
@@ -28,7 +27,7 @@ logger = get_component_logger("development_tools")
 
 def measure_tool_execution(
     service: AIToolsService, tool_name: str, tool_func
-) -> Tuple[bool, float, str]:
+) -> tuple[bool, float, str]:
     """Measure execution time for a single tool."""
     try:
         start_time = time.time()
@@ -48,7 +47,7 @@ def measure_tool_execution(
         return False, elapsed_time, str(e)
 
 
-def run_timing_analysis(output_file: Optional[Path] = None) -> Dict:
+def run_timing_analysis(output_file: Path | None = None) -> dict:
     """Run timing analysis for all tools."""
     if output_file is None:
         output_file = project_root / "development_tools" / "TIMING_ANALYSIS.md"
@@ -159,7 +158,7 @@ def run_timing_analysis(output_file: Optional[Path] = None) -> Dict:
     generate_timing_report(results, output_file)
 
     logger.info("\n" + "=" * 70)
-    logger.info(f"Timing analysis complete!")
+    logger.info("Timing analysis complete!")
     logger.info(f"  Total tools: {results['summary']['total_tools']}")
     logger.info(f"  Successful: {results['summary']['successful']}")
     logger.info(f"  Failed: {results['summary']['failed']}")
@@ -170,7 +169,7 @@ def run_timing_analysis(output_file: Optional[Path] = None) -> Dict:
     return results
 
 
-def generate_timing_report(results: Dict, output_file: Path) -> None:
+def generate_timing_report(results: dict, output_file: Path) -> None:
     """Generate markdown timing analysis report."""
     from datetime import datetime
 
@@ -178,7 +177,7 @@ def generate_timing_report(results: Dict, output_file: Path) -> None:
         "# Tool Execution Timing Analysis",
         "",
         f"**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-        f"**Source**: `development_tools/shared/measure_tool_timings.py`",
+        "**Source**: `development_tools/shared/measure_tool_timings.py`",
         "",
         "## Summary",
         "",

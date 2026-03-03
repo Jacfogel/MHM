@@ -170,7 +170,7 @@ class CheckinSettingsWidget(QWidget):
         total_enabled = 0
 
         # Check dynamic checkboxes
-        for question_key, widgets in self.dynamic_question_checkboxes.items():
+        for _question_key, widgets in self.dynamic_question_checkboxes.items():
             always_cb = widgets.get("always_checkbox")
             sometimes_cb = widgets.get("sometimes_checkbox")
 
@@ -277,7 +277,7 @@ class CheckinSettingsWidget(QWidget):
 
             # Temporarily remove min's minimum constraint to allow it to go down
             if self.min_questions_spinbox:
-                old_min_min = self.min_questions_spinbox.minimum()
+                self.min_questions_spinbox.minimum()
                 old_min_max = self.min_questions_spinbox.maximum()
                 # Set min to allow it to go down to at least the new max value
                 self.min_questions_spinbox.setMinimum(1)  # Absolute minimum
@@ -407,7 +407,6 @@ class CheckinSettingsWidget(QWidget):
         categories = dynamic_checkin_manager.get_categories()
 
         # Use QTimer to defer the update slightly to prevent blanking
-        from PySide6.QtCore import QTimer
 
         scroll_widget = self.ui.widget_checkin_questions_container
 
@@ -652,7 +651,7 @@ class CheckinSettingsWidget(QWidget):
     @handle_errors("clearing dynamic question checkboxes")
     def _clear_dynamic_question_checkboxes(self):
         """Remove all dynamically created question checkboxes."""
-        for question_key, widgets in list(self.dynamic_question_checkboxes.items()):
+        for _question_key, widgets in list(self.dynamic_question_checkboxes.items()):
             container = widgets.get("container")
             if container:
                 container.setParent(None)
@@ -796,11 +795,8 @@ class CheckinSettingsWidget(QWidget):
         from PySide6.QtWidgets import (
             QDialog,
             QVBoxLayout,
-            QHBoxLayout,
             QLabel,
             QLineEdit,
-            QComboBox,
-            QPushButton,
             QDialogButtonBox,
             QFormLayout,
             QGroupBox,
@@ -1143,7 +1139,7 @@ class CheckinSettingsWidget(QWidget):
                 QMessageBox.critical(
                     self,
                     "Error",
-                    f"Failed to save the custom question. Please try again.",
+                    "Failed to save the custom question. Please try again.",
                 )
 
     @handle_errors("editing custom question")

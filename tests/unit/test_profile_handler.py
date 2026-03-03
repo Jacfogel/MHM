@@ -1,6 +1,5 @@
 """Tests for profile handler utilities."""
 
-from unittest.mock import patch
 
 import pytest
 

@@ -35,7 +35,7 @@ class TestServiceManagerCore:
     def test_validate_configuration_before_start_success(self, service_manager):
         """Test configuration validation when valid."""
         with patch('ui.ui_app_qt.validate_all_configuration') as mock_validate:
-            with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
+            with patch('ui.ui_app_qt.QMessageBox'):
                 mock_validate.return_value = {
                     'valid': True,
                     'errors': [],
@@ -51,7 +51,7 @@ class TestServiceManagerCore:
     def test_validate_configuration_before_start_with_errors(self, service_manager):
         """Test configuration validation when errors exist."""
         with patch('ui.ui_app_qt.validate_all_configuration') as mock_validate:
-            with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
+            with patch('ui.ui_app_qt.QMessageBox'):
                 mock_validate.return_value = {
                     'valid': False,
                     'errors': ['Error 1', 'Error 2'],
@@ -66,7 +66,7 @@ class TestServiceManagerCore:
     def test_validate_configuration_before_start_with_critical_warnings(self, service_manager):
         """Test configuration validation with critical warnings."""
         with patch('ui.ui_app_qt.validate_all_configuration') as mock_validate:
-            with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
+            with patch('ui.ui_app_qt.QMessageBox'):
                 mock_validate.return_value = {
                     'valid': True,
                     'errors': [],
@@ -82,7 +82,7 @@ class TestServiceManagerCore:
     def test_validate_configuration_before_start_no_channels(self, service_manager):
         """Test configuration validation when no channels available."""
         with patch('ui.ui_app_qt.validate_all_configuration') as mock_validate:
-            with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
+            with patch('ui.ui_app_qt.QMessageBox'):
                 mock_validate.return_value = {
                     'valid': True,
                     'errors': [],
@@ -183,7 +183,7 @@ class TestServiceManagerCore:
                                 mock_popen.return_value = mock_process
                                 
                                 # Call the method directly to test core logic
-                                result = service_manager.start_service()
+                                service_manager.start_service()
                                 
                                 # The method should complete without raising exceptions
                                 # The actual return value depends on the error handling decorator
@@ -202,7 +202,7 @@ class TestServiceManagerCore:
         """Test starting service when already running."""
         with patch.object(service_manager, 'validate_configuration_before_start', return_value=True):
             with patch.object(service_manager, 'is_service_running', return_value=(True, 12345)):
-                with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
+                with patch('ui.ui_app_qt.QMessageBox'):
                     result = service_manager.start_service()
                     
                     assert result is True  # Returns True when already running
@@ -215,17 +215,16 @@ class TestServiceManagerCore:
             service_manager,
             'is_service_running',
             side_effect=[(True, 12345), (False, None)],
-        ):
-            with patch('ui.ui_app_qt.psutil.process_iter', return_value=[]):
-                with patch('ui.ui_app_qt.time.sleep', return_value=None):
-                    with patch('ui.ui_app_qt.QMessageBox'):
-                        result = service_manager.stop_service()
-                        assert result is True
+        ), patch('ui.ui_app_qt.psutil.process_iter', return_value=[]):
+            with patch('ui.ui_app_qt.time.sleep', return_value=None):
+                with patch('ui.ui_app_qt.QMessageBox'):
+                    result = service_manager.stop_service()
+                    assert result is True
     
     def test_stop_service_no_process(self, service_manager):
         """Test stopping service when no process."""
         with patch.object(service_manager, 'is_service_running', return_value=(False, None)):
-            with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
+            with patch('ui.ui_app_qt.QMessageBox'):
                 result = service_manager.stop_service()
                 
                 assert result is True  # Returns True when not running
@@ -233,7 +232,7 @@ class TestServiceManagerCore:
     def test_stop_service_process_already_terminated(self, service_manager):
         """Test stopping service when process already terminated."""
         with patch.object(service_manager, 'is_service_running', return_value=(False, None)):
-            with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
+            with patch('ui.ui_app_qt.QMessageBox'):
                 result = service_manager.stop_service()
                 
                 assert result is True

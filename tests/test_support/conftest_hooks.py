@@ -326,7 +326,7 @@ def _consolidate_worker_logs():
                                                 main_file.flush()
                                     else:
                                         with open(
-                                            worker_log, "r", encoding="utf-8"
+                                            worker_log, encoding="utf-8"
                                         ) as worker_file:
                                             while True:
                                                 chunk = worker_file.read(chunk_size)
@@ -335,7 +335,7 @@ def _consolidate_worker_logs():
                                                 main_file.write(chunk)
                                                 main_file.flush()
                                     break
-                                except (IOError, PermissionError, OSError) as e:
+                                except (PermissionError, OSError) as e:
                                     if attempt < max_retries - 1:
                                         time.sleep(retry_delay)
                                         continue
@@ -397,7 +397,7 @@ def _consolidate_worker_logs():
                                                 main_file.flush()
                                     else:
                                         with open(
-                                            worker_log, "r", encoding="utf-8"
+                                            worker_log, encoding="utf-8"
                                         ) as worker_file:
                                             while True:
                                                 chunk = worker_file.read(chunk_size)
@@ -406,7 +406,7 @@ def _consolidate_worker_logs():
                                                 main_file.write(chunk)
                                                 main_file.flush()
                                     break
-                                except (IOError, PermissionError, OSError) as e:
+                                except (PermissionError, OSError) as e:
                                     if attempt < max_retries - 1:
                                         time.sleep(retry_delay)
                                         continue
@@ -441,13 +441,11 @@ def _consolidate_worker_logs():
         for worker_log in all_worker_logs:
             max_retries = 5
             retry_delay = 0.1
-            deleted = False
 
             for attempt in range(max_retries):
                 try:
                     worker_log.unlink()
                     cleaned_count += 1
-                    deleted = True
                     break
                 except (OSError, PermissionError) as e:
                     if attempt < max_retries - 1:
@@ -608,7 +606,6 @@ def cleanup_communication_manager():
     yield
 
     import threading
-    import time
 
     cleanup_complete = threading.Event()
     cleanup_error: list[Exception | None] = [None]

@@ -47,7 +47,7 @@ DEFAULT_CLEANUP_INTERVAL_DAYS = 30
 def get_last_cleanup_timestamp() -> float:
     """Get the timestamp of the last cleanup from tracker file."""
     if os.path.exists(CLEANUP_TRACKER_FILE):
-        with open(CLEANUP_TRACKER_FILE, "r", encoding="utf-8") as f:
+        with open(CLEANUP_TRACKER_FILE, encoding="utf-8") as f:
             data = json.load(f)
 
             # Store is expected to be epoch seconds

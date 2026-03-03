@@ -17,10 +17,8 @@ ensure_qt_runtime()
 
 import pytest
 import uuid
-from unittest.mock import patch, Mock, MagicMock
-from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
-from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
+from unittest.mock import patch, Mock
+from PySide6.QtWidgets import QApplication, QWidget
 import logging
 logger = logging.getLogger("mhm_tests")
 
@@ -67,8 +65,6 @@ class TestCheckinManagementDialogInitialization:
         
         from core.user_data_handlers import (
             get_user_id_by_identifier,
-            get_user_data,
-            update_user_account,
         )
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
@@ -417,12 +413,12 @@ class TestCheckinManagementDialogSave:
                 
                 with patch('ui.dialogs.checkin_management_dialog.validate_schedule_periods') as mock_validate:
                     with patch('ui.dialogs.checkin_management_dialog.set_schedule_periods') as mock_set:
-                        with patch('ui.dialogs.checkin_management_dialog.update_user_preferences') as mock_update_prefs:
-                            with patch('ui.dialogs.checkin_management_dialog.update_user_account') as mock_update_account:
+                        with patch('ui.dialogs.checkin_management_dialog.update_user_preferences'):
+                            with patch('ui.dialogs.checkin_management_dialog.update_user_account'):
                                 with patch('ui.dialogs.checkin_management_dialog.get_user_data') as mock_get_data:
                                     mock_get_data.return_value = {'preferences': {}, 'account': {}}
                                     
-                                    with patch('PySide6.QtWidgets.QMessageBox.information') as mock_info:
+                                    with patch('PySide6.QtWidgets.QMessageBox.information'):
                                         # Act
                                         dialog.save_checkin_settings()
                                         

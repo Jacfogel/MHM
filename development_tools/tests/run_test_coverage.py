@@ -30,7 +30,7 @@ import tempfile
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from core.time_utilities import now_timestamp_full, now_timestamp_filename
 from development_tools.shared.standard_exclusions import should_exclude_file
@@ -97,11 +97,11 @@ class CoverageMetricsRegenerator:
         self,
         project_root: str = ".",
         parallel: bool = True,
-        num_workers: Optional[str] = None,
-        pytest_command: Optional[List[str]] = None,
-        coverage_config: Optional[str] = None,
-        artifact_directories: Optional[Dict[str, str]] = None,
-        maxfail: Optional[int] = None,
+        num_workers: str | None = None,
+        pytest_command: list[str] | None = None,
+        coverage_config: str | None = None,
+        artifact_directories: dict[str, str] | None = None,
+        maxfail: int | None = None,
         use_domain_cache: bool = True,
     ):
         """
@@ -218,14 +218,14 @@ class CoverageMetricsRegenerator:
         jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
         jsons_dir.mkdir(parents=True, exist_ok=True)
         self.dev_tools_coverage_json: Path = jsons_dir / "coverage_dev_tools.json"
-        self.dev_tools_coverage_html_dir: Optional[Path] = (
+        self.dev_tools_coverage_html_dir: Path | None = (
             None  # Disabled - no longer generating dev tools HTML
         )
 
-        self.pytest_stdout_log: Optional[Path] = None
-        self.pytest_stderr_log: Optional[Path] = None
-        self.archived_directories: List[Dict[str, str]] = []
-        self.command_logs: List[Path] = []
+        self.pytest_stdout_log: Path | None = None
+        self.pytest_stderr_log: Path | None = None
+        self.archived_directories: list[dict[str, str]] = []
+        self.command_logs: list[Path] = []
         self.parallel = parallel
         self.num_workers = (
             num_workers or "auto"
@@ -353,7 +353,7 @@ class CoverageMetricsRegenerator:
                     "TestCoverageReportGenerator not available - report generation may fail"
                 )
 
-    def _configure_test_logging_env(self, env: Dict[str, str]) -> Dict[str, str]:
+    def _configure_test_logging_env(self, env: dict[str, str]) -> dict[str, str]:
         """Force test subprocess logging into test-only log roots."""
         # Keep coverage stdout/stderr artifacts in development_tools/tests/logs,
         # but isolate runtime app/component logs from pytest subprocesses under
@@ -404,7 +404,7 @@ class CoverageMetricsRegenerator:
             Path(tempfile.gettempdir()) / "mhm_pytest_tmp",
         ]
         unique_id = f"{run_label}_{uuid.uuid4().hex[:8]}"
-        last_error: Optional[Exception] = None
+        last_error: Exception | None = None
 
         for root in candidates:
             try:
@@ -423,9 +423,9 @@ class CoverageMetricsRegenerator:
         raise RuntimeError("Unable to create pytest temporary directories")
 
     @staticmethod
-    def _strip_xdist_args(cmd: List[str]) -> List[str]:
+    def _strip_xdist_args(cmd: list[str]) -> list[str]:
         """Return command list without xdist-specific arguments."""
-        stripped: List[str] = []
+        stripped: list[str] = []
         skip_next = False
         for arg in cmd:
             if skip_next:
@@ -491,7 +491,7 @@ class CoverageMetricsRegenerator:
         self.coverage_data_file.parent.mkdir(parents=True, exist_ok=True)
         self.coverage_html_dir.parent.mkdir(parents=True, exist_ok=True)
 
-    def _ensure_python_path_in_env(self, env: Dict[str, str]) -> Dict[str, str]:
+    def _ensure_python_path_in_env(self, env: dict[str, str]) -> dict[str, str]:
         """Ensure PATH includes Python executable's directory for Windows DLL resolution.
 
         On Windows, subprocesses may fail with STATUS_DLL_NOT_FOUND (0xC0000135) if PATH
@@ -519,8 +519,8 @@ class CoverageMetricsRegenerator:
         return env
 
     def _merge_coverage_json(
-        self, coverage_json_1: Dict[str, Any], coverage_json_2: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, coverage_json_1: dict[str, Any], coverage_json_2: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Merge two coverage JSON dictionaries.
 
@@ -675,7 +675,7 @@ class CoverageMetricsRegenerator:
         total_covered = 0
         total_missing = 0
 
-        for file_path, file_data in merged["files"].items():
+        for _file_path, file_data in merged["files"].items():
             if not isinstance(file_data, dict):
                 continue
             summary = file_data.get("summary", {})
@@ -695,7 +695,7 @@ class CoverageMetricsRegenerator:
 
         return merged
 
-    def _detect_expected_parallel_workers(self, pytest_output: str) -> Optional[int]:
+    def _detect_expected_parallel_workers(self, pytest_output: str) -> int | None:
         """Extract expected xdist worker count from pytest output when available."""
         if not pytest_output:
             return None
@@ -713,9 +713,9 @@ class CoverageMetricsRegenerator:
 
     def _discover_parallel_coverage_artifacts(
         self, coverage_dir: Path
-    ) -> Dict[str, List[Path]]:
+    ) -> dict[str, list[Path]]:
         """Discover coverage files that should exist before combine."""
-        artifacts: Dict[str, List[Path]] = {
+        artifacts: dict[str, list[Path]] = {
             "parallel_shards": [],
             "project_root_shards": [],
         }
@@ -750,15 +750,15 @@ class CoverageMetricsRegenerator:
     def _wait_for_parallel_coverage_artifacts(
         self,
         coverage_dir: Path,
-        expected_workers: Optional[int],
+        expected_workers: int | None,
         timeout_seconds: float = 5.0,
         poll_seconds: float = 0.25,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Wait briefly for shard files to appear before combine on slower filesystems."""
         import time
 
         start = time.time()
-        discovered: Dict[str, List[Path]] = {
+        discovered: dict[str, list[Path]] = {
             "parallel_shards": [],
             "project_root_shards": [],
         }
@@ -798,7 +798,7 @@ class CoverageMetricsRegenerator:
             "project_root_shards": discovered["project_root_shards"],
         }
 
-    def run_coverage_analysis(self) -> Dict[str, Dict[str, Any]]:
+    def run_coverage_analysis(self) -> dict[str, dict[str, Any]]:
         """Run pytest coverage analysis and extract metrics."""
         if logger:
             logger.debug("Running pytest coverage analysis...")
@@ -898,7 +898,7 @@ class CoverageMetricsRegenerator:
             elif cached_test_file_coverage:
                 cached_files = {}
                 for (
-                    test_file_path,
+                    _test_file_path,
                     test_file_coverage,
                 ) in cached_test_file_coverage.items():
                     if isinstance(test_file_coverage, dict):
@@ -943,7 +943,7 @@ class CoverageMetricsRegenerator:
                     total_statements = 0
                     total_covered = 0
                     total_missing = 0
-                    for file_path, file_data in cached_files.items():
+                    for _file_path, file_data in cached_files.items():
                         if isinstance(file_data, dict):
                             summary = file_data.get("summary", {})
                             if isinstance(summary, dict):
@@ -1372,7 +1372,7 @@ class CoverageMetricsRegenerator:
                             "Consider running with --no-parallel to isolate the issue"
                         )
                     logger.info(
-                        f'Timeout is configurable via development_tools_config.json: {{"coverage": {{"pytest_timeout": <seconds>}}}}'
+                        'Timeout is configurable via development_tools_config.json: {"coverage": {"pytest_timeout": <seconds>}}'
                     )
                     if stdout_content:
                         logger.info(
@@ -1454,7 +1454,7 @@ class CoverageMetricsRegenerator:
             if result.returncode is not None and logger:
                 if not result.stdout or len(result.stdout) < 100:
                     logger.warning(
-                        f"Pytest completed very quickly with minimal output - may not have run tests properly"
+                        "Pytest completed very quickly with minimal output - may not have run tests properly"
                     )
                     if result.stderr:
                         logger.warning(f"Pytest stderr: {result.stderr[:500]}")
@@ -1546,7 +1546,7 @@ class CoverageMetricsRegenerator:
             if coverage_output.exists() and pytest_ran and not self.parallel:
                 # Load fresh coverage JSON
                 try:
-                    with open(coverage_output, "r", encoding="utf-8") as f:
+                    with open(coverage_output, encoding="utf-8") as f:
                         fresh_coverage_json = json.load(f)
 
                     # Validate structure - ensure it has 'files' key
@@ -1555,7 +1555,7 @@ class CoverageMetricsRegenerator:
                     ):
                         if logger:
                             logger.warning(
-                                f"Fresh coverage JSON has invalid structure - missing or invalid 'files' key"
+                                "Fresh coverage JSON has invalid structure - missing or invalid 'files' key"
                             )
                         fresh_coverage_json = None
                     elif fresh_coverage_json:
@@ -2159,7 +2159,7 @@ class CoverageMetricsRegenerator:
                                     )
                         elif no_parallel_result.returncode == 0:
                             logger.warning(
-                                f"Pytest exited with code 0 but no summary found - possible interruption, crash, or incomplete output"
+                                "Pytest exited with code 0 but no summary found - possible interruption, crash, or incomplete output"
                             )
                             logger.warning(
                                 f"Check log file for details: {no_parallel_stdout_log}"
@@ -2176,7 +2176,7 @@ class CoverageMetricsRegenerator:
                 ):
                     if logger:
                         logger.warning(
-                            f"No_parallel tests produced no output - subprocess may have failed silently"
+                            "No_parallel tests produced no output - subprocess may have failed silently"
                         )
                         logger.warning(
                             f"Return code: {no_parallel_result.returncode} ({self._format_return_code_hex(no_parallel_result.returncode) or 'n/a'}), Log file exists: {no_parallel_stdout_log.exists()}, Log size: {no_parallel_stdout_log.stat().st_size if no_parallel_stdout_log.exists() else 0} bytes"
@@ -2222,7 +2222,7 @@ class CoverageMetricsRegenerator:
                                             break
                             else:
                                 logger.warning(
-                                    f"Log file is empty - subprocess may not have started or output was not captured"
+                                    "Log file is empty - subprocess may not have started or output was not captured"
                                 )
 
                 # Combine test results
@@ -2252,7 +2252,7 @@ class CoverageMetricsRegenerator:
                         and no_parallel_test_results.get("total_tests", 0) == 0
                     ):
                         logger.warning(
-                            f"No_parallel tests exited with code 0 but no tests were found in output - possible issue with test collection or output capture"
+                            "No_parallel tests exited with code 0 but no tests were found in output - possible issue with test collection or output capture"
                         )
                     else:
                         logger.warning(
@@ -2435,9 +2435,9 @@ class CoverageMetricsRegenerator:
                     and logger
                 ):
                     logger.warning(
-                        f"No shard files found and .coverage_parallel doesn't exist, but .coverage exists. "
-                        f"This suggests pytest-cov may have auto-combined shard files into .coverage. "
-                        f"Will attempt to use .coverage as parallel coverage source."
+                        "No shard files found and .coverage_parallel doesn't exist, but .coverage exists. "
+                        "This suggests pytest-cov may have auto-combined shard files into .coverage. "
+                        "Will attempt to use .coverage as parallel coverage source."
                     )
 
                 # Check project root for shard files (shouldn't be there, but copy if found)
@@ -2821,7 +2821,7 @@ class CoverageMetricsRegenerator:
                                 if coverage_output.exists():
                                     try:
                                         with open(
-                                            coverage_output, "r", encoding="utf-8"
+                                            coverage_output, encoding="utf-8"
                                         ) as f:
                                             coverage_data_json = json.load(f)
                                         timestamp_str = datetime.now().strftime(
@@ -2850,7 +2850,7 @@ class CoverageMetricsRegenerator:
                                     fresh_coverage_json_parallel = None
                                     try:
                                         with open(
-                                            coverage_output, "r", encoding="utf-8"
+                                            coverage_output, encoding="utf-8"
                                         ) as f:
                                             fresh_coverage_json_parallel = json.load(f)
 
@@ -2866,7 +2866,7 @@ class CoverageMetricsRegenerator:
                                         ):
                                             if logger:
                                                 logger.warning(
-                                                    f"Fresh coverage JSON (parallel) has invalid structure - missing or invalid 'files' key"
+                                                    "Fresh coverage JSON (parallel) has invalid structure - missing or invalid 'files' key"
                                                 )
                                             fresh_coverage_json_parallel = None
                                         elif fresh_coverage_json_parallel and logger:
@@ -3449,7 +3449,7 @@ class CoverageMetricsRegenerator:
                 },
             }
 
-    def _get_dev_tools_source_mtimes(self) -> Dict[str, float]:
+    def _get_dev_tools_source_mtimes(self) -> dict[str, float]:
         """
         Get current modification times for all Python files in development_tools directory.
 
@@ -3482,7 +3482,7 @@ class CoverageMetricsRegenerator:
 
         return mtimes
 
-    def _get_dev_tools_test_mtimes(self) -> Dict[str, float]:
+    def _get_dev_tools_test_mtimes(self) -> dict[str, float]:
         """Get current mtimes for development_tools test files."""
         mtimes = {}
         tests_dir = self.project_root / "tests" / "development_tools"
@@ -3502,7 +3502,7 @@ class CoverageMetricsRegenerator:
                 continue
         return mtimes
 
-    def _get_config_mtime(self) -> Optional[float]:
+    def _get_config_mtime(self) -> float | None:
         """Get current development_tools_config.json mtime if available."""
         try:
             import development_tools.config.config as config_module
@@ -3601,7 +3601,7 @@ class CoverageMetricsRegenerator:
 
         return False
 
-    def run_dev_tools_coverage(self) -> Dict[str, Dict[str, Any]]:
+    def run_dev_tools_coverage(self) -> dict[str, dict[str, Any]]:
         """Run pytest coverage analysis specifically for development_tools directory."""
         if logger:
             logger.debug("Running pytest coverage analysis for development_tools...")
@@ -3826,7 +3826,7 @@ class CoverageMetricsRegenerator:
             except subprocess.TimeoutExpired:
                 if logger:
                     logger.error(
-                        f"Dev tools coverage pytest timed out after 12 minutes"
+                        "Dev tools coverage pytest timed out after 12 minutes"
                     )
                 with open(
                     dev_tools_stdout_log, "w", encoding="utf-8", errors="replace"
@@ -3897,7 +3897,7 @@ class CoverageMetricsRegenerator:
 
                     # Add timestamp metadata to coverage_dev_tools.json
                     try:
-                        with open(coverage_output, "r", encoding="utf-8") as f:
+                        with open(coverage_output, encoding="utf-8") as f:
                             dev_tools_coverage_json = json.load(f)
                         timestamp_str = now_timestamp_full()
                         timestamp_iso = datetime.now().isoformat()
@@ -3994,7 +3994,7 @@ class CoverageMetricsRegenerator:
             ):
                 # Load fresh coverage JSON
                 try:
-                    with open(coverage_output, "r", encoding="utf-8") as f:
+                    with open(coverage_output, encoding="utf-8") as f:
                         fresh_coverage_json = json.load(f)
                     source_mtimes = self._get_dev_tools_source_mtimes()
                     test_mtimes = self._get_dev_tools_test_mtimes()
@@ -4097,7 +4097,7 @@ class CoverageMetricsRegenerator:
             return {}
 
     def _cleanup_process_specific_coverage_files(
-        self, coverage_dir: Optional[Path] = None
+        self, coverage_dir: Path | None = None
     ) -> None:
         """Clean up process-specific coverage files (e.g., .coverage_parallel.DESKTOP-*.X.*).
 
@@ -4153,7 +4153,7 @@ class CoverageMetricsRegenerator:
     def _cleanup_coverage_data_files(self) -> None:
         """Clean up temporary .coverage_dev_tools.* files after coverage analysis."""
         tests_dir = self.project_root / "development_tools" / "tests"
-        root_dir = self.project_root / "development_tools"
+        self.project_root / "development_tools"
 
         cleanup_count = 0
 
@@ -4217,7 +4217,7 @@ class CoverageMetricsRegenerator:
                 f"{detail}. Remove these directories or fix permissions first."
             )
 
-    def _parse_pytest_test_results(self, stdout: str) -> Dict[str, Any]:
+    def _parse_pytest_test_results(self, stdout: str) -> dict[str, Any]:
         """Parse pytest output to extract test results, failures, and random seed."""
         results = {
             "random_seed": None,
@@ -4345,7 +4345,7 @@ class CoverageMetricsRegenerator:
 
         # Extract failed test names from "FAILED" section
         failed_section_pattern = r"FAILED\s+(.+?)(?=\n\n|\n===|$)"
-        failed_matches = re.findall(failed_section_pattern, stdout, re.DOTALL)
+        re.findall(failed_section_pattern, stdout, re.DOTALL)
 
         # Also look for "short test summary info" section
         short_summary_pattern = r"short test summary info[^\n]*\n(.*?)(?=\n===|$)"
@@ -4370,13 +4370,13 @@ class CoverageMetricsRegenerator:
 
         return results
 
-    def _is_windows_crash_return_code(self, return_code: Optional[int]) -> bool:
+    def _is_windows_crash_return_code(self, return_code: int | None) -> bool:
         """Check whether return code matches a known Windows crash code."""
         if return_code is None:
             return False
         return return_code in {3221226505, 3221225477}
 
-    def _is_interrupt_return_code(self, return_code: Optional[int]) -> bool:
+    def _is_interrupt_return_code(self, return_code: int | None) -> bool:
         """Check whether return code indicates interrupt/control-event termination."""
         if return_code is None:
             return False
@@ -4384,7 +4384,7 @@ class CoverageMetricsRegenerator:
         # 0xC000013A (3221225786) is Windows STATUS_CONTROL_C_EXIT.
         return return_code in {130, 3221225786}
 
-    def _format_return_code_hex(self, return_code: Optional[int]) -> Optional[str]:
+    def _format_return_code_hex(self, return_code: int | None) -> str | None:
         """Return normalized hex code string for process return codes."""
         if return_code is None:
             return None
@@ -4402,8 +4402,8 @@ class CoverageMetricsRegenerator:
             return None
 
     def _classify_windows_crash_return_code(
-        self, return_code: Optional[int]
-    ) -> Tuple[Optional[str], Optional[str]]:
+        self, return_code: int | None
+    ) -> tuple[str | None, str | None]:
         """Return crash reason and actionable context for known Windows return codes."""
         if return_code == 3221226505:
             return (
@@ -4439,7 +4439,7 @@ class CoverageMetricsRegenerator:
         return any(marker in lowered for marker in crash_markers)
 
     def _log_windows_crash_context(
-        self, return_code: Optional[int], log_file: Optional[Path]
+        self, return_code: int | None, log_file: Path | None
     ) -> None:
         """Emit consistent, non-duplicated crash diagnostics for known Windows crashes."""
         if not logger:
@@ -4462,12 +4462,12 @@ class CoverageMetricsRegenerator:
 
     def _build_track_outcome(
         self,
-        return_code: Optional[int],
-        parsed_results: Dict[str, Any],
+        return_code: int | None,
+        parsed_results: dict[str, Any],
         output: str,
         track_name: str = "track",
-        log_file: Optional[Path] = None,
-    ) -> Dict[str, Any]:
+        log_file: Path | None = None,
+    ) -> dict[str, Any]:
         """Build normalized per-track outcome details for report generation."""
         failed_tests = list(parsed_results.get("failed_tests", []))
         error_tests = list(parsed_results.get("error_tests", []))
@@ -4568,8 +4568,8 @@ class CoverageMetricsRegenerator:
 
     def _classify_coverage_outcome(
         self,
-        parallel: Dict[str, Any],
-        no_parallel: Dict[str, Any],
+        parallel: dict[str, Any],
+        no_parallel: dict[str, Any],
         coverage_collected: bool,
     ) -> str:
         """Compute aggregate coverage/test outcome state for Tier 3 reporting."""
@@ -4590,8 +4590,6 @@ class CoverageMetricsRegenerator:
     def _rotate_log_files(self, base_name: str, max_versions: int = 7) -> None:
         """Rotate log files, keeping only the last max_versions copies total (consolidated)."""
         try:
-            from development_tools.shared.file_rotation import FileRotator
-
             # Find all log files matching the base name pattern (both in main dir and archive)
             main_log_files = sorted(
                 self.coverage_logs_dir.glob(f"{base_name}_*.log"),
@@ -4740,7 +4738,7 @@ class CoverageMetricsRegenerator:
             )
 
     def _generate_coverage_summary_fallback(
-        self, coverage_data: Dict[str, Dict[str, Any]], overall_data: Dict[str, Any]
+        self, coverage_data: dict[str, dict[str, Any]], overall_data: dict[str, Any]
     ) -> str:
         """Fallback method for generating coverage summary if report generator is not available."""
         # This is a minimal fallback - ideally the report generator should always be available
@@ -4758,7 +4756,7 @@ class CoverageMetricsRegenerator:
 
     def run(
         self, update_plan: bool = False, dev_tools_only: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run the coverage metrics regeneration."""
         if dev_tools_only:
             # Run dev tools coverage analysis only

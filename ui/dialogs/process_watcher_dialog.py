@@ -478,7 +478,7 @@ class ProcessWatcherDialog(QDialog):
                 details += "-" * 35 + "\n"
                 try:
                     env = proc.environ()
-                    for i, (key, value) in enumerate(list(env.items())[:10]):
+                    for _i, (key, value) in enumerate(list(env.items())[:10]):
                         details += f"{key} = {value}\n"
                 except (psutil.AccessDenied, psutil.NoSuchProcess):
                     details += "Access denied\n"

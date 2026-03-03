@@ -10,18 +10,7 @@ including wellness scores, mood trends, habit analysis, and sleep patterns.
 
 from PySide6.QtWidgets import (
     QDialog,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QTextEdit,
-    QPushButton,
-    QComboBox,
-    QTabWidget,
-    QWidget,
-    QFrame,
 )
-from PySide6.QtCore import Qt, QThread, Signal
-from PySide6.QtGui import QFont, QColor, QPalette, QPainter, QPen, QBrush
 from ui.generated.user_analytics_dialog_pyqt import Ui_Dialog_user_analytics
 
 # Import core functionality

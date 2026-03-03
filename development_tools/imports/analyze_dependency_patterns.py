@@ -9,7 +9,7 @@ Analyzes dependency patterns, circular dependencies, and risk areas.
 
 import sys
 from pathlib import Path
-from typing import Dict, List, Any, Tuple
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -36,8 +36,8 @@ class DependencyPatternAnalyzer:
     """Analyzes dependency patterns, circular dependencies, and risk areas."""
 
     def analyze_dependency_patterns(
-        self, actual_imports: Dict[str, Dict]
-    ) -> Dict[str, Any]:
+        self, actual_imports: dict[str, dict]
+    ) -> dict[str, Any]:
         """Analyze dependency patterns for AI consumption."""
         patterns = {
             "core_dependencies": [],
@@ -113,8 +113,8 @@ class DependencyPatternAnalyzer:
         return patterns
 
     def detect_circular_dependencies(
-        self, actual_imports: Dict[str, Dict]
-    ) -> List[Tuple[str, str]]:
+        self, actual_imports: dict[str, dict]
+    ) -> list[tuple[str, str]]:
         """Detect potential circular dependencies."""
         circular = []
 
@@ -143,7 +143,7 @@ class DependencyPatternAnalyzer:
         return circular
 
     def detect_risk_areas(
-        self, actual_imports: Dict[str, Dict], patterns: Dict[str, Any]
+        self, actual_imports: dict[str, dict], patterns: dict[str, Any]
     ) -> str:
         """Detect dependency risk areas dynamically."""
         lines = []
@@ -187,13 +187,13 @@ class DependencyPatternAnalyzer:
 
         return "\n".join(lines) if lines else "*No significant risk areas detected*"
 
-    def find_critical_dependencies(self, actual_imports: Dict[str, Dict]) -> str:
+    def find_critical_dependencies(self, actual_imports: dict[str, dict]) -> str:
         """Find critical dependencies dynamically."""
         lines = []
 
         # Entry points
         entry_points = [
-            f for f in actual_imports.keys() if "run_" in f or f.endswith("main.py")
+            f for f in actual_imports if "run_" in f or f.endswith("main.py")
         ]
         if entry_points:
             lines.append("### Entry Points")
@@ -208,7 +208,7 @@ class DependencyPatternAnalyzer:
         # Data flow
         data_modules = [
             f
-            for f in actual_imports.keys()
+            for f in actual_imports
             if "user_data" in f or "file_operations" in f
         ]
         if data_modules:
@@ -220,7 +220,7 @@ class DependencyPatternAnalyzer:
 
         # Communication flow
         comm_modules = [
-            f for f in actual_imports.keys() if f.startswith("communication/")
+            f for f in actual_imports if f.startswith("communication/")
         ]
         if comm_modules:
             lines.append("### Communication Flow")
@@ -233,7 +233,7 @@ class DependencyPatternAnalyzer:
         return "\n".join(lines) if lines else "*No critical dependencies detected*"
 
     def _format_module_dependencies(
-        self, file_path: str, actual_imports: Dict[str, Dict], max_deps: int = 5
+        self, file_path: str, actual_imports: dict[str, dict], max_deps: int = 5
     ) -> str:
         """Format module dependencies concisely - deduplicated and clean."""
         if file_path not in actual_imports:
@@ -279,7 +279,7 @@ class DependencyPatternAnalyzer:
         return ", ".join(parts) if parts else "none"
 
     def generate_dependency_patterns_section(
-        self, patterns: Dict[str, Any], actual_imports: Dict[str, Dict]
+        self, patterns: dict[str, Any], actual_imports: dict[str, dict]
     ) -> str:
         """Generate dependency patterns section dynamically."""
         lines = []
@@ -335,7 +335,7 @@ class DependencyPatternAnalyzer:
         return "\n".join(lines) if lines else "*No patterns detected*"
 
     def generate_quick_reference(
-        self, actual_imports: Dict[str, Dict], patterns: Dict[str, Any]
+        self, actual_imports: dict[str, dict], patterns: dict[str, Any]
     ) -> str:
         """Generate quick reference section dynamically."""
         lines = []
@@ -367,7 +367,7 @@ class DependencyPatternAnalyzer:
         # Module organization
         lines.append("### Module Organisation")
         directories = {}
-        for file_path in actual_imports.keys():
+        for file_path in actual_imports:
             parts = file_path.split("/")
             if len(parts) > 1:
                 top_dir = parts[0]
@@ -390,12 +390,12 @@ class DependencyPatternAnalyzer:
 
         return "\n".join(lines)
 
-    def build_dynamic_decision_trees(self, actual_imports: Dict[str, Dict]) -> str:
+    def build_dynamic_decision_trees(self, actual_imports: dict[str, dict]) -> str:
         """Build dynamic decision trees based on actual imports."""
         lines = []
 
         # Core System Decision Tree
-        core_modules = [f for f in actual_imports.keys() if f.startswith("core/")]
+        core_modules = [f for f in actual_imports if f.startswith("core/")]
         if core_modules:
             lines.append("### Need Core System Access?")
             lines.append("Core System Dependencies:")
@@ -430,11 +430,11 @@ class DependencyPatternAnalyzer:
         # AI/Chatbot Decision Tree
         ai_modules = [
             f
-            for f in actual_imports.keys()
+            for f in actual_imports
             if f.startswith("ai/") or (f.startswith("user/") and "context" in f)
         ]
         comm_modules = [
-            f for f in actual_imports.keys() if f.startswith("communication/")
+            f for f in actual_imports if f.startswith("communication/")
         ]
         if ai_modules or comm_modules:
             lines.append("### Need AI or Chatbot Support?")
@@ -495,7 +495,7 @@ class DependencyPatternAnalyzer:
             lines.append("")
 
         # UI Decision Tree
-        ui_modules = [f for f in actual_imports.keys() if f.startswith("ui/")]
+        ui_modules = [f for f in actual_imports if f.startswith("ui/")]
         if ui_modules:
             lines.append("### Need UI Dependencies?")
             lines.append("UI Dependencies:")

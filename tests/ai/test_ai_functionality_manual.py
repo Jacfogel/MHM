@@ -16,14 +16,13 @@ project_root = os.path.dirname(
 sys.path.insert(0, project_root)
 
 # Import needed for mocking
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, MagicMock
 import requests
 
 from ai.chatbot import AIChatBotSingleton
 from ai.cache_manager import get_response_cache
 from tests.test_utilities import TestUserFactory
 from core.time_utilities import now_datetime_full, now_timestamp_filename
-from core.user_data_handlers import get_user_data
 from core.response_tracking import get_recent_chat_interactions
 from core.user_data_handlers import get_user_id_by_identifier
 from user.context_manager import user_context_manager

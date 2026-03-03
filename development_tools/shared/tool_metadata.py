@@ -11,7 +11,8 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Literal
+from typing import Literal
+from collections.abc import Iterable
 
 Tier = Literal["core", "supporting", "experimental"]
 TrustLevel = Literal["stable", "partial", "advisory", "experimental"]
@@ -26,7 +27,7 @@ class ToolInfo:
     description: str
 
 
-_TOOLS: Dict[str, ToolInfo] = {
+_TOOLS: dict[str, ToolInfo] = {
     "run_development_tools": ToolInfo(
         name="run_development_tools",
         path="development_tools/run_development_tools.py",
@@ -490,7 +491,7 @@ def iter_tools() -> Iterable[ToolInfo]:
     return _TOOLS.values()
 
 
-def get_tools_by_tier(tier: Tier) -> List[ToolInfo]:
+def get_tools_by_tier(tier: Tier) -> list[ToolInfo]:
     """Return tools that match the requested tier."""
 
     return [info for info in _TOOLS.values() if info.tier == tier]

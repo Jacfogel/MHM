@@ -16,7 +16,7 @@ Usage:
 
 import sys
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -44,14 +44,14 @@ logger = get_component_logger("development_tools")
 class DocumentationASCIIFixer:
     """Fixes non-ASCII characters in documentation files."""
 
-    def __init__(self, project_root: Optional[str] = None):
+    def __init__(self, project_root: str | None = None):
         """Initialize the documentation ASCII fixer."""
         if project_root:
             self.project_root = Path(project_root).resolve()
         else:
             self.project_root = Path(config.get_project_root()).resolve()
 
-    def fix_ascii(self, dry_run: bool = False) -> Dict[str, Any]:
+    def fix_ascii(self, dry_run: bool = False) -> dict[str, Any]:
         """Fix non-ASCII characters in documentation files.
 
         Handles common typographic characters that should be replaced with ASCII equivalents.
@@ -126,7 +126,7 @@ class DocumentationASCIIFixer:
                 continue
 
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = f.read()
 
                 original_content = content

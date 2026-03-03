@@ -9,7 +9,6 @@ import os
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Union
 
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_full
@@ -36,7 +35,7 @@ class FileRotator:
         self.rotation_suffix = "%Y-%m-%d_%H%M%S"  # Timestamp format
         self._rotation_counter = 0  # Counter to ensure unique filenames
 
-    def rotate_file(self, file_path: Union[str, Path], max_versions: Optional[int] = None) -> str:
+    def rotate_file(self, file_path: str | Path, max_versions: int | None = None) -> str:
         """
         Rotate a file by backing up existing versions and creating a new one.
 
@@ -108,7 +107,7 @@ class FileRotator:
                     # File may have been removed already, ignore
                     pass
 
-    def get_latest_archive(self, base_name: str) -> Optional[Path]:
+    def get_latest_archive(self, base_name: str) -> Path | None:
         """Get the most recent archived version of a file."""
         pattern = f"{base_name}_*"
         existing_files = list(self.archive_dir.glob(pattern))
@@ -139,11 +138,11 @@ class FileRotator:
 
 
 def create_output_file(
-    file_path: Union[str, Path],
+    file_path: str | Path,
     content: str,
     rotate: bool = True,
-    max_versions: Optional[int] = None,
-    project_root: Optional[Path] = None,
+    max_versions: int | None = None,
+    project_root: Path | None = None,
 ) -> Path:
     """
     Create an output file with optional rotation.
@@ -267,7 +266,7 @@ def create_output_file(
             or resolved_path_resolved.parent == real_project_root
             or str(resolved_path_resolved).startswith(str(real_project_root))
         ) and not _is_test_directory(resolved_path_resolved)
-    except (AttributeError, ImportError, Exception) as e:
+    except (AttributeError, ImportError, Exception):
         # If we can't determine real project root, check if it's a test directory
         # If not a test directory, assume we are writing to real project (safe default)
         try:

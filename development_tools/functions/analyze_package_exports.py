@@ -23,7 +23,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, TypedDict
+from typing import Any, TypedDict
 
 # Add project root to path
 # Script is at: development_tools/functions/analyze_package_exports.py
@@ -54,15 +54,15 @@ logger = get_component_logger("development_tools")
 
 class UsageStats(TypedDict):
     import_count: int
-    import_locations: List[str]
-    import_types: List[str]
-    module_path: Optional[str]
+    import_locations: list[str]
+    import_types: list[str]
+    module_path: str | None
 
 
-def extract_imports_from_file(file_path: str) -> Dict[str, Any]:
+def extract_imports_from_file(file_path: str) -> dict[str, Any]:
     """Extract all imports from a Python file."""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         tree = ast.parse(content, filename=file_path)
@@ -143,7 +143,7 @@ def extract_imports_from_file(file_path: str) -> Dict[str, Any]:
         return {"from_imports": [], "direct_imports": [], "module_items": []}
 
 
-def scan_package_modules(package_name: str) -> Dict[str, List[str]]:
+def scan_package_modules(package_name: str) -> dict[str, list[str]]:
     """Scan all modules in a package and extract public API items."""
     package_path = project_root / package_name
 
@@ -181,16 +181,16 @@ def scan_package_modules(package_name: str) -> Dict[str, List[str]]:
     return dict(package_api)
 
 
-def analyze_imports_for_package(package_name: str) -> Dict[str, UsageStats]:
+def analyze_imports_for_package(package_name: str) -> dict[str, UsageStats]:
     """Analyze what's actually imported from a package across the codebase."""
     return analyze_imports_for_packages([package_name]).get(package_name, {})
 
 
-def analyze_imports_for_packages(package_names: List[str]) -> Dict[str, Dict[str, UsageStats]]:
+def analyze_imports_for_packages(package_names: list[str]) -> dict[str, dict[str, UsageStats]]:
     """Analyze imports for multiple packages with one full-repo scan."""
     package_set = set(package_names)
     # Intermediate structure uses set() for import_types; result converts to List for UsageStats
-    usage_stats_by_package: Dict[str, Dict[str, Any]] = {
+    usage_stats_by_package: dict[str, dict[str, Any]] = {
         package: defaultdict(
             lambda: {
                 "import_count": 0,
@@ -251,7 +251,7 @@ def analyze_imports_for_packages(package_names: List[str]) -> Dict[str, Dict[str
             package_stats[item_name]["import_locations"].append(file_key)
             package_stats[item_name]["import_types"].add("direct_import")
 
-    result: Dict[str, Dict[str, UsageStats]] = {}
+    result: dict[str, dict[str, UsageStats]] = {}
     for package_name, stats_map in usage_stats_by_package.items():
         result[package_name] = {}
         for name, stats in stats_map.items():
@@ -264,20 +264,20 @@ def analyze_imports_for_packages(package_names: List[str]) -> Dict[str, Dict[str
     return result
 
 
-def scan_package_modules_for_packages(package_names: List[str]) -> Dict[str, Dict[str, List[str]]]:
+def scan_package_modules_for_packages(package_names: list[str]) -> dict[str, dict[str, list[str]]]:
     """Scan package modules for public API once per package and return an index."""
     return {package_name: scan_package_modules(package_name) for package_name in package_names}
 
 
-def parse_function_registry_for_packages(package_names: List[str]) -> Dict[str, Set[str]]:
+def parse_function_registry_for_packages(package_names: list[str]) -> dict[str, set[str]]:
     """Return function registry items for only the requested packages."""
     registry = parse_function_registry()
     return {package_name: registry.get(package_name, set()) for package_name in package_names}
 
 
-def _normalize_public_items(package_api: Dict[str, List[str]]) -> Set[str]:
+def _normalize_public_items(package_api: dict[str, list[str]]) -> set[str]:
     """Flatten per-module public API into one set."""
-    all_package_items: Set[str] = set()
+    all_package_items: set[str] = set()
     for module_items in package_api.values():
         all_package_items.update(module_items)
     return all_package_items
@@ -285,10 +285,10 @@ def _normalize_public_items(package_api: Dict[str, List[str]]) -> Set[str]:
 
 def _build_should_export(
     package_name: str,
-    import_usage: Dict[str, UsageStats],
-    all_package_items: Set[str],
-    registry_items: Set[str],
-) -> Set[str]:
+    import_usage: dict[str, UsageStats],
+    all_package_items: set[str],
+    registry_items: set[str],
+) -> set[str]:
     """Build should-export set using usage, registry, and public module API."""
     should_export = set()
 
@@ -322,7 +322,7 @@ def _build_should_export(
         should_export -= config_constants
 
     return should_export
-    usage_stats: Dict[str, Any] = defaultdict(
+    usage_stats: dict[str, Any] = defaultdict(
         lambda: {
             "import_count": 0,
             "import_locations": [],
@@ -389,7 +389,7 @@ def _build_should_export(
     return result
 
 
-def check_current_exports(package_name: str) -> Set[str]:
+def check_current_exports(package_name: str) -> set[str]:
     """Check what's currently exported in package __init__.py."""
     init_file = project_root / package_name / "__init__.py"
 
@@ -397,7 +397,7 @@ def check_current_exports(package_name: str) -> Set[str]:
         return set()
 
     try:
-        with open(init_file, "r", encoding="utf-8") as f:
+        with open(init_file, encoding="utf-8") as f:
             content = f.read()
 
         # Extract __all__ list
@@ -433,7 +433,7 @@ def check_current_exports(package_name: str) -> Set[str]:
         return set()
 
 
-def parse_function_registry() -> Dict[str, Set[str]]:
+def parse_function_registry() -> dict[str, set[str]]:
     """Parse FUNCTION_REGISTRY_DETAIL.md to find documented public functions."""
     registry_file = project_root / "development_docs" / "FUNCTION_REGISTRY_DETAIL.md"
 
@@ -443,7 +443,7 @@ def parse_function_registry() -> Dict[str, Set[str]]:
     package_functions = defaultdict(set)
 
     try:
-        with open(registry_file, "r", encoding="utf-8") as f:
+        with open(registry_file, encoding="utf-8") as f:
             content = f.read()
 
         # Look for function definitions in markdown
@@ -472,10 +472,10 @@ def parse_function_registry() -> Dict[str, Set[str]]:
 def generate_audit_report(
     package_name: str,
     emit_progress_logs: bool = True,
-    import_usage_index: Optional[Dict[str, Dict[str, UsageStats]]] = None,
-    package_api_index: Optional[Dict[str, Dict[str, List[str]]]] = None,
-    registry_index: Optional[Dict[str, Set[str]]] = None,
-) -> Dict:
+    import_usage_index: dict[str, dict[str, UsageStats]] | None = None,
+    package_api_index: dict[str, dict[str, list[str]]] | None = None,
+    registry_index: dict[str, set[str]] | None = None,
+) -> dict:
     """Generate comprehensive audit report for a package."""
     if emit_progress_logs:
         logger.debug(f"{'='*80}")
@@ -489,7 +489,7 @@ def generate_audit_report(
 
     # 2. Analyze actual imports
     if emit_progress_logs:
-        logger.debug(f"[2/5] Analyzing imports across codebase...")
+        logger.debug("[2/5] Analyzing imports across codebase...")
     if import_usage_index and package_name in import_usage_index:
         import_usage = import_usage_index.get(package_name, {})
     else:
@@ -499,7 +499,7 @@ def generate_audit_report(
 
     # 3. Scan package modules for public API
     if emit_progress_logs:
-        logger.debug(f"[3/5] Scanning package modules for public API...")
+        logger.debug("[3/5] Scanning package modules for public API...")
     if package_api_index and package_name in package_api_index:
         package_api = package_api_index.get(package_name, {})
     else:
@@ -510,7 +510,7 @@ def generate_audit_report(
 
     # 4. Check function registry
     if emit_progress_logs:
-        logger.debug(f"[4/5] Checking FUNCTION_REGISTRY_DETAIL.md...")
+        logger.debug("[4/5] Checking FUNCTION_REGISTRY_DETAIL.md...")
     if registry_index and package_name in registry_index:
         registry_items = registry_index.get(package_name, set())
     else:
@@ -521,7 +521,7 @@ def generate_audit_report(
 
     # 5. Identify what should be exported
     if emit_progress_logs:
-        logger.debug(f"[5/5] Identifying recommended exports...")
+        logger.debug("[5/5] Identifying recommended exports...")
 
     # Items imported from multiple modules (cross-module usage)
     cross_module_items = {
@@ -564,7 +564,7 @@ def generate_audit_report(
     return report
 
 
-def generate_recommended_exports(report: Dict) -> str:
+def generate_recommended_exports(report: dict) -> str:
     """Generate recommended export code snippet."""
     missing = sorted(report["missing_exports"])
 
@@ -606,13 +606,13 @@ def generate_recommended_exports(report: Dict) -> str:
             output.append(f"# from {module} import {item}  # used {count} times")
 
     if low_usage:
-        output.append(f"\n# Low usage (0-1 imports, but part of public API):")
+        output.append("\n# Low usage (0-1 imports, but part of public API):")
         output.append(f"# {len(low_usage)} items - see full report for details")
 
     return "\n".join(output)
 
 
-def print_report(report: Dict, show_recommendations: bool = False):
+def print_report(report: dict, show_recommendations: bool = False):
     """Print formatted audit report."""
     logger.debug(f"{'='*80}")
     logger.debug(f"AUDIT REPORT: {report['package']}")

@@ -6,7 +6,7 @@ helper methods that may not be fully covered by behavior tests.
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import re
 from communication.message_processing.command_parser import EnhancedCommandParser
 

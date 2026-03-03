@@ -8,11 +8,10 @@ coverage file cleanup, and test data cleanup.
 import shutil
 
 import pytest
-import tempfile
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
+from tests.development_tools.conftest import load_development_tools_module
 
 
 # Load the module

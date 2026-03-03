@@ -1,6 +1,6 @@
 # command_registry.py
 
-from typing import Callable
+from collections.abc import Callable
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
@@ -74,7 +74,7 @@ class CommandRegistry(ABC):
             if command_name not in self._commands:
                 return False
 
-            command_def = self._commands[command_name]
+            self._commands[command_name]
 
             # Remove aliases
             aliases_to_remove = [

@@ -45,7 +45,7 @@ class TestMHMManagerUIServiceManager:
         service_manager = ServiceManager()
         
         with patch('ui.ui_app_qt.validate_all_configuration') as mock_validate:
-            with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
+            with patch('ui.ui_app_qt.QMessageBox'):
                 mock_validate.return_value = {
                     'valid': True,
                     'errors': [],
@@ -111,7 +111,7 @@ class TestMHMManagerUIServiceManager:
         with patch.object(service_manager, 'validate_configuration_before_start') as mock_validate:
             with patch.object(service_manager, 'is_service_running') as mock_running:
                 with patch('ui.ui_app_qt.subprocess.Popen') as mock_popen:
-                    with patch('ui.ui_app_qt.time.sleep') as mock_sleep:
+                    with patch('ui.ui_app_qt.time.sleep'):
                         with patch('ui.ui_app_qt.os.path.exists') as mock_exists:
                             mock_validate.return_value = True
                             mock_running.return_value = (False, None)  # Not running initially
@@ -130,7 +130,7 @@ class TestMHMManagerUIServiceManager:
         with patch.object(service_manager, 'is_service_running') as mock_running:
             with patch('ui.ui_app_qt.psutil.process_iter') as mock_process_iter:
                 with patch('ui.ui_app_qt.open', mock_open()) as mock_file:
-                    with patch('ui.ui_app_qt.time.sleep') as mock_sleep:
+                    with patch('ui.ui_app_qt.time.sleep'):
                         with patch('ui.ui_app_qt.QMessageBox.information') as mock_info:
                             # Multiple calls to is_service_running in the stop_service method
                             # First call: service is running, subsequent calls: service is stopped
@@ -495,7 +495,7 @@ class TestMHMManagerUI:
             with patch('ui.ui_app_qt.QTimer') as mock_timer:
                 with patch('ui.ui_app_qt.Path') as mock_path:
                     with patch('core.scheduler.run_full_scheduler_standalone') as mock_scheduler:
-                        with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
+                        with patch('ui.ui_app_qt.QMessageBox'):
                             mock_ui_instance = Mock()
                             mock_ui.return_value = mock_ui_instance
                             mock_timer_instance = Mock()
@@ -682,7 +682,7 @@ class TestMHMManagerUI:
             with patch('ui.ui_app_qt.QTimer') as mock_timer:
                 with patch('ui.ui_app_qt.Path') as mock_path:
                     with patch('core.logger.toggle_verbose_logging') as mock_toggle:
-                        with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
+                        with patch('ui.ui_app_qt.QMessageBox'):
                             mock_ui_instance = Mock()
                             mock_ui.return_value = mock_ui_instance
                             mock_timer_instance = Mock()

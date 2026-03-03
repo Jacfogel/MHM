@@ -6,7 +6,7 @@ focusing on view creation and button handler behavior.
 """
 
 import pytest
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 from communication.communication_channels.discord.checkin_view import get_checkin_view
 
@@ -313,7 +313,7 @@ class TestCheckinView:
         # Discord callbacks only take interaction parameter
         try:
             await cancel_button.callback(mock_interaction)
-        except Exception as e:
+        except Exception:
             # Error handling decorator should catch and log, but may still raise
             # depending on error handling configuration
             pass

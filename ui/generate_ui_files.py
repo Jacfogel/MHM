@@ -29,7 +29,7 @@ def generate_ui_file(ui_file_path: str, output_path: str) -> bool:
     """
     try:
         # Run pyside6-uic
-        result = subprocess.run(
+        subprocess.run(
             ["pyside6-uic", ui_file_path, "-o", output_path],
             capture_output=True,
             text=True,
@@ -37,7 +37,7 @@ def generate_ui_file(ui_file_path: str, output_path: str) -> bool:
         )
 
         # Read the generated file
-        with open(output_path, "r", encoding="utf-8") as f:
+        with open(output_path, encoding="utf-8") as f:
             content = f.read()
 
         # Add our standard headers at the top
@@ -80,7 +80,7 @@ def generate_ui_file(ui_file_path: str, output_path: str) -> bool:
 @handle_errors("generating all UI files", default_return=False)
 def generate_all_ui_files():
     """Generate all UI files in the project."""
-    project_root = Path(__file__).parent.parent
+    Path(__file__).parent.parent
     ui_designs_dir = Path(__file__).parent / "designs"
     ui_generated_dir = Path(__file__).parent / "generated"
 

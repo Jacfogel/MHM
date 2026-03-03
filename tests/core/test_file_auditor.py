@@ -6,7 +6,7 @@ import pytest
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 from core.file_auditor import (
     FileAuditor, 
     _auditor, 

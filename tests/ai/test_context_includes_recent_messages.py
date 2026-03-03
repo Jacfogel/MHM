@@ -1,4 +1,3 @@
-import os
 
 from ai.chatbot import get_ai_chatbot
 from core.message_management import store_sent_message

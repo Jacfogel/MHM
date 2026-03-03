@@ -370,7 +370,7 @@ class PeriodModel(BaseModel):
                 f"Invalid days provided: {invalid_days} - filtered out. Valid days: {_VALID_DAYS}"
             )
         if not filtered:
-            logger.warning(f"No valid days provided, defaulting to ['ALL']")
+            logger.warning("No valid days provided, defaulting to ['ALL']")
             return ["ALL"]
         logger.debug(f"Days validation passed: {filtered}")
         return filtered

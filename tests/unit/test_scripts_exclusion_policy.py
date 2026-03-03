@@ -5,7 +5,6 @@ This test ensures the testing policy that scripts/ should never contain
 discoverable tests is enforced.
 """
 
-import os
 import subprocess
 import sys
 from pathlib import Path

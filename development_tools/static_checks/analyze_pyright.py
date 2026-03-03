@@ -10,7 +10,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 try:
     from .. import config
@@ -21,7 +21,7 @@ except ImportError:
     from development_tools import config
 
 
-def _build_unavailable_result(message: str) -> Dict[str, Any]:
+def _build_unavailable_result(message: str) -> dict[str, Any]:
     return {
         "summary": {"total_issues": 0, "files_affected": 0, "status": "WARN"},
         "details": {
@@ -39,7 +39,7 @@ def _build_unavailable_result(message: str) -> Dict[str, Any]:
     }
 
 
-def _resolve_python_command(command: List[str]) -> List[str]:
+def _resolve_python_command(command: list[str]) -> list[str]:
     """Normalize generic Python launcher commands to the current interpreter."""
     if not command:
         return command
@@ -49,7 +49,7 @@ def _resolve_python_command(command: List[str]) -> List[str]:
     return command
 
 
-def _build_result_from_payload(payload: Dict[str, Any], returncode: int) -> Dict[str, Any]:
+def _build_result_from_payload(payload: dict[str, Any], returncode: int) -> dict[str, Any]:
     summary = payload.get("summary", {}) if isinstance(payload, dict) else {}
     diagnostics = (
         payload.get("generalDiagnostics", []) if isinstance(payload, dict) else []
@@ -64,7 +64,7 @@ def _build_result_from_payload(payload: Dict[str, Any], returncode: int) -> Dict
     information = int(summary.get("informationCount", 0) or 0)
     files_analyzed = int(summary.get("filesAnalyzed", 0) or 0)
 
-    issue_diags: List[Dict[str, Any]] = []
+    issue_diags: list[dict[str, Any]] = []
     for diag in diagnostics:
         if not isinstance(diag, dict):
             continue
@@ -72,9 +72,9 @@ def _build_result_from_payload(payload: Dict[str, Any], returncode: int) -> Dict
         if severity in {"error", "warning"}:
             issue_diags.append(diag)
 
-    per_file: Dict[str, int] = {}
-    per_file_errors: Dict[str, int] = {}
-    per_file_warnings: Dict[str, int] = {}
+    per_file: dict[str, int] = {}
+    per_file_errors: dict[str, int] = {}
+    per_file_warnings: dict[str, int] = {}
     for diag in issue_diags:
         file_path = str(diag.get("file", "")).strip()
         if not file_path:
@@ -129,7 +129,7 @@ def _build_result_from_payload(payload: Dict[str, Any], returncode: int) -> Dict
     }
 
 
-def run_pyright(project_root: Path) -> Dict[str, Any]:
+def run_pyright(project_root: Path) -> dict[str, Any]:
     static_cfg = config.get_static_analysis_config()
     command = _resolve_python_command(
         list(static_cfg.get("pyright_command", [sys.executable, "-m", "pyright"]))
@@ -176,7 +176,7 @@ def run_pyright(project_root: Path) -> Dict[str, Any]:
     return _build_result_from_payload(payload, result.returncode)
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Analyze pyright diagnostics.")
     parser.add_argument("--json", action="store_true", help="Print JSON output.")
     parser.add_argument(

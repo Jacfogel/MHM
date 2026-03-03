@@ -7,15 +7,12 @@ Tests user data operations, user lookup, and user preferences.
 import pytest
 import os
 import json
-from unittest.mock import patch
 
 from core.user_data_handlers import (
     get_all_user_ids,
     get_user_data,
     update_user_preferences,
     save_user_data,
-    update_user_account,
-    update_user_context,
 )
 from tests.test_utilities import TestUserFactory
 
@@ -245,12 +242,6 @@ class TestUserManagement:
         import uuid
 
         user_id = f"test-create-user-{uuid.uuid4().hex[:8]}"
-        categories = ["motivational", "health"]
-        user_preferences = {
-            "checkin_settings": {"enabled": True},
-            "task_settings": {"enabled": True},
-            "categories": ["motivational", "health"],
-        }
 
         # Use factory helper that returns the UUID directly to avoid index lookup races in parallel runs.
         success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(
@@ -499,15 +490,10 @@ class TestUserManagementEdgeCases:
         ), f"Test path should be a directory: {test_data_dir}"
 
         # Step 1: Test user creation with file creation
-        categories = ["motivational"]
-        user_preferences = {
-            "checkin_settings": {"enabled": True},
-            "task_settings": {"enabled": True},
-        }
 
         # [OK] VERIFY INITIAL STATE: Check user directory doesn't exist
         user_dir = os.path.join(test_data_dir, "users", user_id)
-        initial_user_exists = os.path.exists(user_dir)
+        os.path.exists(user_dir)
 
         # Use TestUserFactory instead of create_user_files directly
         success = TestUserFactory.create_basic_user(
@@ -606,7 +592,7 @@ class TestUserManagementEdgeCases:
 
         # Step 3: Test data modification and persistence
         # [OK] VERIFY INITIAL STATE: Check current data state
-        initial_preferences = preferences_data.copy()
+        preferences_data.copy()
 
         # Modify preferences
         new_preferences = {
@@ -629,7 +615,7 @@ class TestUserManagementEdgeCases:
 
         # [OK] VERIFY REAL BEHAVIOR: Check file was actually modified
         preferences_file_path = os.path.join(actual_user_dir, "preferences.json")
-        with open(preferences_file_path, "r") as f:
+        with open(preferences_file_path) as f:
             file_preferences = json.load(f)
         # Check that categories are updated (might be different due to validation/merging)
         # Categories might be in the 'data' section of the file structure
@@ -700,7 +686,7 @@ class TestUserManagementEdgeCases:
         for file_name in expected_files:
             file_path = os.path.join(actual_user_dir, file_name)
             try:
-                with open(file_path, "r") as f:
+                with open(file_path) as f:
                     json.load(f)  # Should not raise exception
             except json.JSONDecodeError as e:
                 assert False, f"File should be valid JSON: {file_name} - {e}"
@@ -719,7 +705,7 @@ class TestUserManagementEdgeCases:
         # Step 8: Test concurrent access simulation
         # [OK] VERIFY REAL BEHAVIOR: Check concurrent-like operations
         concurrent_results = []
-        for i in range(10):
+        for _i in range(10):
             # Simulate concurrent reads
             concurrent_data = get_user_data(actual_user_id, "preferences")
             concurrent_results.append(concurrent_data["preferences"]["timezone"])
@@ -739,7 +725,7 @@ class TestUserManagementEdgeCases:
 
         # [OK] VERIFY REAL BEHAVIOR: Check corrupted file is detected
         try:
-            with open(preferences_file_path, "r") as f:
+            with open(preferences_file_path) as f:
                 json.load(f)
             assert False, "Corrupted file should not be valid JSON"
         except json.JSONDecodeError:

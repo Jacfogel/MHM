@@ -6,8 +6,7 @@ Tests coverage analysis, parsing, HTML generation, and artifact management.
 
 import pytest
 import json
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 # Import helper from conftest
 from tests.development_tools.conftest import load_development_tools_module
@@ -307,7 +306,7 @@ directory = htmlcov
     @pytest.mark.unit
     def test_cleanup_coverage_shards(self, demo_project_root, temp_coverage_dir):
         """Test that coverage shard files are cleaned up."""
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
         from subprocess import CompletedProcess
         
         regenerator = CoverageMetricsRegenerator(str(demo_project_root))

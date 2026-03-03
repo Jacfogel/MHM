@@ -5,7 +5,8 @@ Contains functions for UI-specific operations like widget management and layout 
 """
 
 import re
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
@@ -142,7 +143,6 @@ def load_period_widgets_for_category(
     """
     try:
         from core.schedule_management import get_schedule_time_periods
-        from ui.widgets.period_row_widget import PeriodRowWidget
 
         # Clear existing widgets
         clear_period_widgets_from_layout(layout, widget_list)

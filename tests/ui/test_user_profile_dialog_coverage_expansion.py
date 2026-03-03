@@ -8,17 +8,13 @@ from tests.conftest import ensure_qt_runtime
 ensure_qt_runtime()
 
 import pytest
-import os
-import tempfile
-from unittest.mock import patch, Mock, MagicMock
-from datetime import datetime
+from unittest.mock import patch, Mock
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
 
 from ui.dialogs.user_profile_dialog import UserProfileDialog
-from tests.test_utilities import TestUserFactory, TestDataFactory
+from tests.test_utilities import TestUserFactory
 
 # Create QApplication instance for testing
 @pytest.fixture(scope="session")

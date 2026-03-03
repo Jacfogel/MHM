@@ -9,7 +9,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch
 
-from tests.development_tools.conftest import load_development_tools_module, demo_project_root, test_config_path
+from tests.development_tools.conftest import load_development_tools_module
 
 # Load analyzer modules
 heading_numbering_module = load_development_tools_module("docs.analyze_heading_numbering")

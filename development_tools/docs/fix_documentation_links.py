@@ -17,7 +17,7 @@ Usage:
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -47,7 +47,7 @@ logger = get_component_logger("development_tools")
 class DocumentationLinkFixer:
     """Fixes unconverted file path references in documentation files."""
 
-    def __init__(self, project_root: Optional[str] = None):
+    def __init__(self, project_root: str | None = None):
         """Initialize the documentation link fixer."""
         if project_root:
             self.project_root = Path(project_root).resolve()
@@ -78,7 +78,7 @@ class DocumentationLinkFixer:
         # Heuristic detection (header markers, /generated/, suffix patterns, _pyqt.py)
         return is_generated_file(str(file_path))
 
-    def fix_convert_links(self, dry_run: bool = False) -> Dict[str, Any]:
+    def fix_convert_links(self, dry_run: bool = False) -> dict[str, Any]:
         """
         Convert file path references to markdown links in documentation.
 
@@ -122,7 +122,7 @@ class DocumentationLinkFixer:
             breakdown["files_processed"] += 1
 
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = f.read()
 
                 lines = content.split("\n")
@@ -241,7 +241,7 @@ class DocumentationLinkFixer:
 
         if dry_run:
             # Print detailed breakdown in dry-run mode
-            print(f"\nLink Conversion Breakdown:")
+            print("\nLink Conversion Breakdown:")
             print(f"  Files processed: {breakdown['files_processed']}")
             print(
                 f"  Files skipped (generated): {breakdown['files_skipped_generated']}"
@@ -259,7 +259,7 @@ class DocumentationLinkFixer:
             print(f"  Skipped (already link): {breakdown['skipped_already_link']}")
             print(f"  Skipped (self reference): {breakdown['skipped_self_reference']}")
             if breakdown["conversions_by_file"]:
-                print(f"\n  Conversions by file:")
+                print("\n  Conversions by file:")
                 for file_str, conversions in list(
                     breakdown["conversions_by_file"].items()
                 )[:10]:

@@ -6,8 +6,6 @@ because exceptions are caught.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
-from datetime import datetime
 import logging
 
 from tasks import cleanup_task_reminders, complete_task
@@ -42,7 +40,7 @@ class TestTaskCleanupSilentFailure:
         # Set up logging capture for all levels
         with caplog.at_level(logging.DEBUG):
             # Try to clean up - should work now that method exists
-            result = cleanup_task_reminders(user_id, task_id)
+            cleanup_task_reminders(user_id, task_id)
             
             # Check all logs
             all_logs = [record for record in caplog.records]

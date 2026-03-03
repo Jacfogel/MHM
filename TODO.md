@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-03-02 (session closeout follow-up updates)
+> **Last Updated**: 2026-03-03 (session closeout follow-up updates)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -104,15 +104,6 @@ When adding new tasks, follow this format:
   - [ ] Run `python development_tools/run_development_tools.py backup verify` after the next 01:00 scheduler cycle
   - [ ] Confirm `weekly_backup_present` and `weekly_backup_recent_enough` are both PASS
   - [ ] Review `logs/scheduler.log` for weekly backup decision logging and unexpected fallback behavior
-
-**Sweep test log fixtures for xdist-safe isolation**
-- *What it means*: Audit tests that write to shared log paths (for example under `tests/data/logs`) and migrate them to per-test isolated paths (`tmp_path`) where destructive teardown can race in parallel runs. xdist = pytest parallel workers; isolation = each test uses its own paths so parallel runs don't conflict.
-- *Why it helps*: Prevents intermittent `FileNotFoundError` and similar races during Tier 3 parallel coverage runs.
-- *Estimated effort*: Small/Medium
-- *User priority*: Test isolation is key.
-- *Updated*: 2026-03-02
-- *Subtasks*:
-  - [ ] Investigate intermittent `tmp_path` root-missing errors under `tests/data/tmp_pytest_runtime/pytest-of-*/pytest-*` seen in combined/local runs; stabilize test-runtime directory provisioning/cleanup ordering
 
 ### Documentation
 

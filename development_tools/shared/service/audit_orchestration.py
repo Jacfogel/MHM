@@ -11,7 +11,7 @@ import os
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.logger import get_component_logger
 
@@ -39,7 +39,7 @@ class ToolExecutionError(RuntimeError):
         self.original_exception = original_exception
 
 
-def _get_status_file_mtimes(project_root: Path) -> Dict[str, float]:
+def _get_status_file_mtimes(project_root: Path) -> dict[str, float]:
     """Get modification times for all status files."""
     # Get status file paths from config
     try:
@@ -135,7 +135,7 @@ class AuditOrchestrationMixin:
             else {}
         )
 
-        def _track_label(track: Dict[str, Any]) -> str:
+        def _track_label(track: dict[str, Any]) -> str:
             classification = track.get("classification")
             if isinstance(classification, str) and classification.strip():
                 return classification.strip()
@@ -325,7 +325,7 @@ class AuditOrchestrationMixin:
         try:
             self._reload_all_cache_data()
         except KeyboardInterrupt:
-            setattr(self, "_internal_interrupt_detected", True)
+            self._internal_interrupt_detected = True
             success = False
             logger.error(
                 "KeyboardInterrupt during audit finalization (_reload_all_cache_data); "
@@ -336,7 +336,7 @@ class AuditOrchestrationMixin:
         try:
             self._sync_todo_with_changelog()
         except KeyboardInterrupt:
-            setattr(self, "_internal_interrupt_detected", True)
+            self._internal_interrupt_detected = True
             success = False
             logger.error(
                 "KeyboardInterrupt during audit finalization (_sync_todo_with_changelog); "
@@ -498,7 +498,7 @@ class AuditOrchestrationMixin:
                     print(f"Completed {operation_name} with tool failures")
                     logger.warning(f"Completed {operation_name} with tool failures")
         except KeyboardInterrupt:
-            setattr(self, "_internal_interrupt_detected", True)
+            self._internal_interrupt_detected = True
             success = False
             print(
                 "WARNING: KeyboardInterrupt occurred during audit finalization/report generation. "
@@ -568,7 +568,6 @@ class AuditOrchestrationMixin:
             ],
         ]
         
-        tier1_tools = tier1_core_tools
         
         # Run core tools first (analyze_functions must run before dependent tools)
         for tool_name, tool_func in tier1_core_tools:
@@ -816,7 +815,7 @@ class AuditOrchestrationMixin:
             )
             raise ToolExecutionError(tool_name=tool_name, elapsed_time=elapsed_time, original_exception=exc) from exc
 
-    def _normalize_cache_state(self, raw_mode: Optional[str]) -> Optional[str]:
+    def _normalize_cache_state(self, raw_mode: str | None) -> str | None:
         """Normalize internal cache mode labels for operator-facing logs."""
         if not isinstance(raw_mode, str) or not raw_mode.strip():
             return None
@@ -831,7 +830,7 @@ class AuditOrchestrationMixin:
 
     def _tool_cache_state_for_log(
         self, tool_name: str, allow_default_none_found: bool
-    ) -> Optional[str]:
+    ) -> str | None:
         """Return normalized cache state for log lines."""
         if tool_name not in self._CACHE_AWARE_TOOLS:
             return None
@@ -856,7 +855,7 @@ class AuditOrchestrationMixin:
         else:
             logger.info(f"Starting {tool_name}")
 
-    def _extract_issue_count(self, tool_name: str, result: Any) -> Optional[int]:
+    def _extract_issue_count(self, tool_name: str, result: Any) -> int | None:
         """Extract normalized issue count from tool result payload when available."""
         if tool_name in {"run_test_coverage", "generate_dev_tools_coverage"}:
             return None
@@ -922,7 +921,7 @@ class AuditOrchestrationMixin:
             return 'partial_cache'
         return 'cold_scan'
 
-    def _extract_coverage_cache_metadata(self, tool_name: str) -> Dict[str, str]:
+    def _extract_coverage_cache_metadata(self, tool_name: str) -> dict[str, str]:
         """Extract cache mode metadata for coverage tools from coverage JSON metadata."""
         if tool_name == 'run_test_coverage':
             coverage_file = self.project_root / 'development_tools' / 'tests' / 'jsons' / 'coverage.json'
@@ -933,7 +932,7 @@ class AuditOrchestrationMixin:
         if not coverage_file.exists():
             return {}
         try:
-            with open(coverage_file, 'r', encoding='utf-8') as f:
+            with open(coverage_file, encoding='utf-8') as f:
                 coverage_data = json.load(f)
             metadata = coverage_data.get('_metadata', {}) if isinstance(coverage_data, dict) else {}
             generated_by = str(metadata.get('generated_by', ''))
@@ -1054,7 +1053,7 @@ class AuditOrchestrationMixin:
             entries.append(f"{tool_name}={cache_mode} ({reason})")
         return "; ".join(entries)
 
-    def _format_cache_mode_summary(self, tool_names: List[str]) -> str:
+    def _format_cache_mode_summary(self, tool_names: list[str]) -> str:
         """Build concise cache mode summary for selected tools."""
         metadata = getattr(self, '_tool_cache_metadata', {})
         if not isinstance(metadata, dict):
@@ -1158,10 +1157,10 @@ class AuditOrchestrationMixin:
                     try:
                         result, elapsed_time = self._run_tool_with_timing(tool_name, tool_func)
                         group_results[tool_name] = (result, elapsed_time)
-                    except KeyboardInterrupt as exc:
+                    except KeyboardInterrupt:
                         # Treat propagated control events from subprocess trees as internal failures,
                         # not direct user interrupts of the top-level audit command.
-                        setattr(self, "_internal_interrupt_detected", True)
+                        self._internal_interrupt_detected = True
                         logger.error(
                             f"  - {tool_name} raised KeyboardInterrupt during Tier 3 group execution; "
                             "recording tool failure and continuing audit finalization."
@@ -1185,11 +1184,11 @@ class AuditOrchestrationMixin:
                 return group_results
             
             def _apply_group_results(
-                group_results: Dict[str, Any],
+                group_results: dict[str, Any],
                 group_wall_clock: float,
-                successful_tools: List[str],
-                failed_tools: List[str],
-                parallel_times: Dict[str, float],
+                successful_tools: list[str],
+                failed_tools: list[str],
+                parallel_times: dict[str, float],
             ) -> None:
                 """Apply completed group results into orchestration state."""
                 for tool_name, (result, elapsed_time) in group_results.items():
@@ -1234,7 +1233,7 @@ class AuditOrchestrationMixin:
                             try:
                                 group_results = future.result()
                             except KeyboardInterrupt:
-                                setattr(self, "_internal_interrupt_detected", True)
+                                self._internal_interrupt_detected = True
                                 logger.error(
                                     "Tier 3 worker group future raised KeyboardInterrupt; "
                                     "continuing with failure state."
@@ -1280,7 +1279,7 @@ class AuditOrchestrationMixin:
                                 "after all futures completed; treated as non-blocking signal noise."
                             )
                         else:
-                            setattr(self, "_internal_interrupt_detected", True)
+                            self._internal_interrupt_detected = True
                             logger.error(
                                 "Tier 3 parallel completion loop interrupted by KeyboardInterrupt; "
                                 "marking Tier 3 as failed and continuing finalization."
@@ -1294,7 +1293,7 @@ class AuditOrchestrationMixin:
             # Log parallel execution summary
             if parallel_group_times:
                 max_parallel_time = max(parallel_group_times.values())
-                sum_individual_times = sum(self._tool_timings.get(name, 0) for name in parallel_group_times.keys())
+                sum_individual_times = sum(self._tool_timings.get(name, 0) for name in parallel_group_times)
                 time_saved = sum_individual_times - max_parallel_time
                 if time_saved > 1.0:  # Only log if significant time saved
                     logger.info(f"Parallel execution saved ~{time_saved:.1f}s (wall-clock: {max_parallel_time:.1f}s vs sequential: {sum_individual_times:.1f}s)")
@@ -1320,7 +1319,7 @@ class AuditOrchestrationMixin:
                     failed.append(tool_name)
                     logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
             except KeyboardInterrupt:
-                setattr(self, "_internal_interrupt_detected", True)
+                self._internal_interrupt_detected = True
                 elapsed_time = 0.0
                 self._tool_timings[tool_name] = elapsed_time
                 self._tool_execution_status[tool_name] = 'failed'
@@ -1362,7 +1361,7 @@ class AuditOrchestrationMixin:
         try:
             results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
             if results_file.exists():
-                with open(results_file, 'r', encoding='utf-8') as f:
+                with open(results_file, encoding='utf-8') as f:
                     cached_data = json.load(f)
             else:
                 cached_data = {'results': {}}
@@ -1468,7 +1467,7 @@ class AuditOrchestrationMixin:
                     f"  size: {file_size_mb:.2f} MB\n"
                     f"  project_root: {project_root_str}"
                 )
-                with open(results_file, 'r', encoding='utf-8') as f:
+                with open(results_file, encoding='utf-8') as f:
                     cached_data = json.load(f)
                 if 'results' in cached_data:
                     for tool_name, tool_data in cached_data['results'].items():
@@ -1847,7 +1846,7 @@ class AuditOrchestrationMixin:
         except Exception as exc:
             logger.warning(f"   ASCII compliance check failed: {exc}")
     
-    def _get_expected_tools_for_tier(self, tier: int) -> List[str]:
+    def _get_expected_tools_for_tier(self, tier: int) -> list[str]:
         """Return expected tool names for a given audit tier."""
         tier1_tools = [
             'analyze_system_signals',
@@ -1904,7 +1903,7 @@ class AuditOrchestrationMixin:
             existing_data = {}
             if timing_file.exists():
                 try:
-                    with open(timing_file, 'r', encoding='utf-8') as f:
+                    with open(timing_file, encoding='utf-8') as f:
                         existing_data = json.load(f)
                 except (json.JSONDecodeError, OSError):
                     existing_data = {}
@@ -2007,7 +2006,7 @@ class AuditOrchestrationMixin:
                     logger.warning(f"   TODO sync: {message}")
         except Exception as exc:
             logger.warning(f"   TODO sync failed: {exc}")
-    def _get_audit_related_lock_paths(self) -> List[Path]:
+    def _get_audit_related_lock_paths(self) -> list[Path]:
         """Return lock paths used by audit/coverage operations."""
         audit_lock = self._get_audit_lock_file_path()
         coverage_lock = self._get_coverage_lock_file_path()

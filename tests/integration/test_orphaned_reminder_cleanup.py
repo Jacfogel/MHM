@@ -6,7 +6,7 @@ Tests for the periodic cleanup job that removes reminders for non-existent or co
 
 import pytest
 from unittest.mock import patch, MagicMock
-from datetime import datetime, timedelta
+from datetime import timedelta
 import schedule
 
 from core.scheduler import SchedulerManager
@@ -86,7 +86,7 @@ class TestOrphanedReminderCleanup:
         scheduler.cleanup_orphaned_task_reminders()
 
         # Assert - Verify reminder job was removed
-        final_job_count = len(schedule.jobs)
+        len(schedule.jobs)
         # Job count should be reduced (at least by 1, possibly more if other jobs exist)
         # We check that the specific reminder job is gone by checking all jobs
         reminder_jobs = [
@@ -163,7 +163,7 @@ class TestOrphanedReminderCleanup:
         complete_task(user_id, task_id)
 
         # Verify task is completed
-        task = get_task_by_id(user_id, task_id)
+        get_task_by_id(user_id, task_id)
         # Note: completed tasks are moved to completed_tasks.json, so get_task_by_id might return None
         # We'll check that the task is no longer in active tasks
         from tasks import load_active_tasks
@@ -326,7 +326,7 @@ class TestOrphanedReminderCleanup:
         assert scheduler is not None, "Scheduler should be available"
 
         # Store initial job count for cleanup
-        initial_jobs = list(schedule.jobs)
+        list(schedule.jobs)
 
         schedule.every().day.at("09:00").do(
             scheduler.handle_task_reminder, user_id=user1_id, task_id=task1_id

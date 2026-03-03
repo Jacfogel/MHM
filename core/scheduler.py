@@ -9,7 +9,7 @@ import random
 import subprocess
 import os  # Needed for test mocking (os.path.exists)
 from datetime import datetime, timedelta
-from typing import List, Any
+from typing import Any
 
 from core.user_data_handlers import get_all_user_ids
 from core.schedule_management import get_schedule_time_periods
@@ -112,9 +112,7 @@ class SchedulerManager:
                             if not job_func:
                                 continue
                             if hasattr(job_func, "func"):
-                                if job_func.func == self.perform_daily_log_archival:
-                                    system_jobs += 1
-                                elif job_func.func == self.run_full_daily_scheduler:
+                                if job_func.func == self.perform_daily_log_archival or job_func.func == self.run_full_daily_scheduler:
                                     system_jobs += 1
                                 elif (
                                     job_func.func
@@ -896,11 +894,7 @@ class SchedulerManager:
         )
 
         # If the period has already ended today, schedule for tomorrow
-        if end_datetime <= now_datetime:
-            start_datetime += timedelta(days=1)
-            end_datetime += timedelta(days=1)
-        # If the period is currently active or about to start within the next 30 minutes, schedule for tomorrow
-        elif start_datetime <= now_datetime + timedelta(minutes=30):
+        if end_datetime <= now_datetime or start_datetime <= now_datetime + timedelta(minutes=30):
             start_datetime += timedelta(days=1)
             end_datetime += timedelta(days=1)
 
@@ -1277,7 +1271,6 @@ class SchedulerManager:
 
         # Cleanup system tasks for all users/categories
         logger.info("Starting system task cleanup for all users...")
-        system_tasks_cleaned = 0
 
         try:
             result = subprocess.run(
@@ -1336,7 +1329,7 @@ class SchedulerManager:
 
         except Exception as query_error:
             logger.debug(f"Error querying system tasks for cleanup: {query_error}")
-            logger.info(f"System task cleanup skipped (query failed).")
+            logger.info("System task cleanup skipped (query failed).")
 
     @handle_errors("scheduling all task reminders")
     def schedule_all_task_reminders(self, user_id):
@@ -1347,7 +1340,6 @@ class SchedulerManager:
         try:
             from tasks import load_active_tasks, are_tasks_enabled
             from core.schedule_management import get_schedule_time_periods
-            import random
 
             # Check if tasks are enabled for this user
             if not are_tasks_enabled(user_id):
@@ -1734,7 +1726,6 @@ class SchedulerManager:
         """
         try:
             from tasks import get_task_by_id
-            from datetime import datetime, timedelta
 
             # Get the task to verify it exists and is active
             task = get_task_by_id(user_id, task_id)
@@ -1901,7 +1892,7 @@ class SchedulerManager:
             # Get all active users (we'll need to scan their tasks)
             from core.user_data_handlers import get_all_user_ids
 
-            user_ids = get_all_user_ids()
+            get_all_user_ids()
 
             orphaned_count = 0
             total_checked = 0

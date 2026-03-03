@@ -243,9 +243,9 @@ class TestAIIntegration(AITestBase):
                 # Include all responses for multi-turn conversations (separated by |)
                 all_responses = f"{response1} | {response2}"
                 notes = (
-                    f"Subsequent response shows awareness of previous conversation"
+                    "Subsequent response shows awareness of previous conversation"
                     if mentions_blue
-                    else f"Subsequent response may not reference previous conversation"
+                    else "Subsequent response may not reference previous conversation"
                 )
                 self.log_test(
                     "T-7.1",
@@ -402,7 +402,7 @@ class TestAIIntegration(AITestBase):
                     for claim in inappropriate_claims:
                         if claim in combined_responses:
                             checkin_issues.append(
-                                f"AI references breakfast stats when no check-in data exists"
+                                "AI references breakfast stats when no check-in data exists"
                             )
                             break
 

@@ -306,7 +306,7 @@ class TestErrorHandlingIntegration:
         
         #[OK] VERIFY INITIAL STATE: Check file exists and is valid
         assert os.path.exists(test_file), f"Test file should exist: {test_file}"
-        with open(test_file, 'r') as f:
+        with open(test_file) as f:
             loaded_data = json.load(f)
             assert loaded_data == initial_data
             
@@ -322,7 +322,7 @@ class TestErrorHandlingIntegration:
             
             #[OK] VERIFY REAL BEHAVIOR: Check original file is unaffected
             assert os.path.exists(test_file), f"Original file should be unaffected: {test_file}"
-            with open(test_file, 'r') as f:
+            with open(test_file) as f:
                 current_data = json.load(f)
             assert current_data == initial_data
             
@@ -339,13 +339,13 @@ class TestErrorHandlingIntegration:
             assert result == "corrupted"
             
             #[OK] VERIFY REAL BEHAVIOR: Check file was actually corrupted
-            with open(test_file, 'r') as f:
+            with open(test_file) as f:
                 corrupted_content = f.read()
             assert corrupted_content == '{invalid json}'
             
             #[OK] VERIFY REAL BEHAVIOR: Check file is no longer valid JSON
             try:
-                with open(test_file, 'r') as f:
+                with open(test_file) as f:
                     json.load(f)
                 assert False, "File should be corrupted and not valid JSON"
             except json.JSONDecodeError:
@@ -366,13 +366,13 @@ class TestErrorHandlingIntegration:
             
             #[OK] VERIFY REAL BEHAVIOR: Check file was actually recovered
             assert os.path.exists(test_file), f"File should still exist after recovery: {test_file}"
-            with open(test_file, 'r') as f:
+            with open(test_file) as f:
                 recovered_data = json.load(f)
             assert recovered_data == {'status': 'recovered', 'data': [4, 5, 6]}
             
             #[OK] VERIFY REAL BEHAVIOR: Check file is valid JSON again
             try:
-                with open(test_file, 'r') as f:
+                with open(test_file) as f:
                     json.load(f)  # Should not raise exception
             except json.JSONDecodeError as e:
                 assert False, f"Recovered file should be valid JSON: {e}"
@@ -383,7 +383,7 @@ class TestErrorHandlingIntegration:
             @handle_errors("backup creation test", default_return="backup_created")
             def backup_function():
                 # Create backup before potential error
-                with open(test_file, 'r') as f:
+                with open(test_file) as f:
                     current_data = json.load(f)
                 with open(backup_file, 'w') as f:
                     json.dump(current_data, f)
@@ -397,12 +397,12 @@ class TestErrorHandlingIntegration:
             
             #[OK] VERIFY REAL BEHAVIOR: Check backup file was created
             assert os.path.exists(backup_file), f"Backup file should be created: {backup_file}"
-            with open(backup_file, 'r') as f:
+            with open(backup_file) as f:
                 backup_data = json.load(f)
             assert backup_data == {'status': 'recovered', 'data': [4, 5, 6]}
             
             #[OK] VERIFY REAL BEHAVIOR: Check original file is unchanged
-            with open(test_file, 'r') as f:
+            with open(test_file) as f:
                 original_data = json.load(f)
             assert original_data == {'status': 'recovered', 'data': [4, 5, 6]}
             
@@ -441,7 +441,7 @@ class TestErrorHandlingIntegration:
                 # Check that files are still valid JSON
                 for file_path in expected_files:
                     try:
-                        with open(file_path, 'r') as f:
+                        with open(file_path) as f:
                             json.load(f)
                     except json.JSONDecodeError as e:
                         raise ValueError(f"Invalid JSON in {file_path}: {e}")
@@ -462,7 +462,7 @@ class TestErrorHandlingIntegration:
                 
                 # Check JSON validity
                 try:
-                    with open(file_path, 'r') as f:
+                    with open(file_path) as f:
                         json.load(f)
                 except json.JSONDecodeError as e:
                     assert False, f"File should be valid JSON in final state: {file_path} - {e}"

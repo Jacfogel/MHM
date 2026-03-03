@@ -9,7 +9,8 @@ import os
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import ensure_user_directory, get_user_file_path
@@ -666,7 +667,7 @@ def migrate_legacy_schedules_structure(
                     legacy_periods = create_default_schedule_periods(category)
 
                 # Convert legacy periods to include days
-                for period_name, period_data in legacy_periods.items():
+                for _period_name, period_data in legacy_periods.items():
                     if "days" not in period_data:
                         period_data["days"] = ["ALL"]
 
@@ -1422,7 +1423,6 @@ def _save_user_data__validate_data(
                 # Check if errors are warnings (like invalid categories that get filtered)
                 # If the merged data will still be valid after normalization, allow it
                 try:
-                    from core.schemas import validate_preferences_dict
 
                     # Try validating the merged data (from Phase 1) to see if it's actually invalid
                     # This is a bit of a hack, but we need to check if the data will be valid after merge
@@ -1887,7 +1887,7 @@ def save_user_data(
     # For new users, check if account file exists (more reliable than directory check)
     from core.config import get_user_data_dir, get_user_file_path
 
-    user_dir = get_user_data_dir(user_id)
+    get_user_data_dir(user_id)
     account_file = get_user_file_path(user_id, "account")
     is_new_user = not os.path.exists(account_file)
     logger.debug(

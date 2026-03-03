@@ -6,11 +6,9 @@ circular dependency detection, and enhancement needs identification.
 """
 
 import pytest
-import tempfile
-from pathlib import Path
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch, MagicMock
 
-from tests.development_tools.conftest import load_development_tools_module, demo_project_root
+from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module
 deps_module = load_development_tools_module("imports.analyze_module_dependencies")
@@ -365,7 +363,7 @@ class TestDependencyReportGeneration:
     @pytest.mark.unit
     def test_generate_enhanced_dependency_report_prints_module_analysis(self):
         """Enhanced report should log module sections with analysis details."""
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
         mock_logger = MagicMock()
         with patch(
             "development_tools.imports.analyze_module_dependencies.logger",

@@ -16,7 +16,7 @@ def test_no_print_calls_in_tests():
                 continue
             path = os.path.join(dirpath, name)
             try:
-                with open(path, 'r', encoding='utf-8') as f:
+                with open(path, encoding='utf-8') as f:
                     text = f.read()
                 # Ignore root conftest and conftest_* plugins (may use print for optional verbose/diagnostic output)
                 if name == 'conftest.py' and os.path.basename(dirpath) == 'tests':

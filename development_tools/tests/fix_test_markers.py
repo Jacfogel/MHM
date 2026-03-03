@@ -10,7 +10,6 @@ This tool performs the fixing operation (add_markers) extracted from analyze_tes
 
 import sys
 from pathlib import Path
-from typing import Dict, Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -33,7 +32,7 @@ config.load_external_config()
 logger = get_component_logger("development_tools")
 
 
-def add_markers(dry_run: bool = False, project_root: Optional[Path] = None) -> Dict:
+def add_markers(dry_run: bool = False, project_root: Path | None = None) -> dict:
     """
     Add missing markers to test files based on directory structure.
 

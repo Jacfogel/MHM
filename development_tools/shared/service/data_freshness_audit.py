@@ -24,7 +24,7 @@ Usage:
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 # Known deleted files that should NOT appear in any reports
 KNOWN_DELETED_FILES = {
@@ -33,7 +33,7 @@ KNOWN_DELETED_FILES = {
 }
 
 
-def find_all_json_cache_files(project_root: Path) -> List[Path]:
+def find_all_json_cache_files(project_root: Path) -> list[Path]:
     """Find all JSON cache and results files."""
     cache_files = []
     
@@ -58,7 +58,7 @@ def find_all_json_cache_files(project_root: Path) -> List[Path]:
     return [f for f in cache_files if f.exists()]
 
 
-def check_cache_file_for_deleted_files(cache_file: Path, project_root: Path, deleted_files: Set[str]) -> List[Tuple[str, str]]:
+def check_cache_file_for_deleted_files(cache_file: Path, project_root: Path, deleted_files: set[str]) -> list[tuple[str, str]]:
     """
     Check a cache file for references to deleted files.
     
@@ -68,7 +68,7 @@ def check_cache_file_for_deleted_files(cache_file: Path, project_root: Path, del
     issues = []
     
     try:
-        with open(cache_file, 'r', encoding='utf-8') as f:
+        with open(cache_file, encoding='utf-8') as f:
             data = json.load(f)
         
         # Recursively search for file paths
@@ -101,7 +101,7 @@ def check_cache_file_for_deleted_files(cache_file: Path, project_root: Path, del
     return issues
 
 
-def check_tool_results_for_deleted_files(project_root: Path, deleted_files: Set[str]) -> List[Tuple[str, str]]:
+def check_tool_results_for_deleted_files(project_root: Path, deleted_files: set[str]) -> list[tuple[str, str]]:
     """Check all tool result JSON files for deleted file references."""
     issues = []
     
@@ -120,7 +120,7 @@ def check_tool_results_for_deleted_files(project_root: Path, deleted_files: Set[
     return issues
 
 
-def verify_file_existence_checks(project_root: Path) -> List[str]:
+def verify_file_existence_checks(project_root: Path) -> list[str]:
     """
     Verify that code paths that process file paths check for file existence.
     
@@ -158,7 +158,7 @@ def verify_file_existence_checks(project_root: Path) -> List[str]:
     return issues
 
 
-def check_generated_reports_for_deleted_files(project_root: Path, deleted_files: Set[str]) -> List[Tuple[str, str]]:
+def check_generated_reports_for_deleted_files(project_root: Path, deleted_files: set[str]) -> list[tuple[str, str]]:
     """Check generated reports for references to deleted files."""
     issues = []
     
@@ -198,8 +198,8 @@ def check_generated_reports_for_deleted_files(project_root: Path, deleted_files:
 
 
 def audit_data_freshness(
-    project_root: Path, deleted_files: Optional[Set[str]] = None
-) -> Dict[str, Any]:
+    project_root: Path, deleted_files: set[str] | None = None
+) -> dict[str, Any]:
     """
     Comprehensive audit of data freshness mechanisms.
     

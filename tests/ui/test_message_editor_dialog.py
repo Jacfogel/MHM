@@ -13,10 +13,8 @@ from tests.conftest import ensure_qt_runtime
 ensure_qt_runtime()
 
 import pytest
-from unittest.mock import patch, Mock, MagicMock
-from PySide6.QtWidgets import QApplication, QTableWidgetItem
-from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
+from unittest.mock import patch, MagicMock
+from PySide6.QtWidgets import QApplication
 import logging
 logger = logging.getLogger("mhm_tests")
 

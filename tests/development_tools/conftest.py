@@ -184,9 +184,9 @@ def load_development_tools_module(module_name: str):
                 config_spec.loader.exec_module(config_module)
                 # Make config available for "from development_tools.config import config" and "from development_tools import config"
                 if "development_tools.config" in sys.modules:
-                    setattr(sys.modules["development_tools.config"], "config", config_module)
+                    sys.modules["development_tools.config"].config = config_module
                 if "development_tools" in sys.modules:
-                    setattr(sys.modules["development_tools"], "config", config_module)
+                    sys.modules["development_tools"].config = config_module
     
     # Load shared package if needed (after config)
     shared_init = project_root / "development_tools" / "shared" / "__init__.py"
@@ -283,9 +283,9 @@ def load_development_tools_module(module_name: str):
             imports_spec.loader.exec_module(imports_module)
             # Make config available for "from . import config" imports
             if "development_tools.config" in sys.modules:
-                setattr(imports_module, "config", sys.modules["development_tools.config"])
+                imports_module.config = sys.modules["development_tools.config"]
             elif "development_tools.config.config" in sys.modules:
-                setattr(imports_module, "config", sys.modules["development_tools.config.config"])
+                imports_module.config = sys.modules["development_tools.config.config"]
 
     # Load reports package if needed (for system_signals and quick_status imports)
     reports_init = project_root / "development_tools" / "reports" / "__init__.py"
@@ -297,9 +297,9 @@ def load_development_tools_module(module_name: str):
             reports_spec.loader.exec_module(reports_module)
             # Make config available for "from . import config" imports
             if "development_tools.config" in sys.modules:
-                setattr(reports_module, "config", sys.modules["development_tools.config"])
+                reports_module.config = sys.modules["development_tools.config"]
             elif "development_tools.config.config" in sys.modules:
-                setattr(reports_module, "config", sys.modules["development_tools.config.config"])
+                reports_module.config = sys.modules["development_tools.config.config"]
 
     # Load functions package if needed (for generate_function_registry imports)
     functions_init = project_root / "development_tools" / "functions" / "__init__.py"
@@ -311,9 +311,9 @@ def load_development_tools_module(module_name: str):
             functions_spec.loader.exec_module(functions_module)
             # Make config available for "from . import config" imports
             if "development_tools.config" in sys.modules:
-                setattr(functions_module, "config", sys.modules["development_tools.config"])
+                functions_module.config = sys.modules["development_tools.config"]
             elif "development_tools.config.config" in sys.modules:
-                setattr(functions_module, "config", sys.modules["development_tools.config.config"])
+                functions_module.config = sys.modules["development_tools.config.config"]
 
     # Load docs package if needed (for analyze_path_drift and other docs tools)
     docs_init = project_root / "development_tools" / "docs" / "__init__.py"

@@ -13,11 +13,9 @@ from tests.conftest import ensure_qt_runtime
 ensure_qt_runtime()
 
 import pytest
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch
 import uuid
-from PySide6.QtWidgets import QApplication, QMessageBox
-from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QApplication
 import logging
 logger = logging.getLogger("mhm_tests")
 
@@ -300,7 +298,7 @@ class TestCategoryManagementDialogHelpers:
             with patch('ui.dialogs.category_management_dialog.update_user_preferences') as mock_update_prefs:
                 with patch('ui.dialogs.category_management_dialog.update_user_account') as mock_update_account:
                     with patch('ui.dialogs.category_management_dialog.clear_schedule_periods_cache') as mock_clear_cache:
-                        with patch('ui.dialogs.category_management_dialog.QMessageBox') as mock_msgbox:
+                        with patch('ui.dialogs.category_management_dialog.QMessageBox'):
                             with patch('ui.dialogs.category_management_dialog.get_user_data') as mock_get_data:
                                 mock_get_data.return_value = {
                                     'account': {
@@ -623,7 +621,7 @@ class TestCategoryManagementDialogRealBehavior:
             "Should load categories from disk"
         
         # Retry loading if checkbox state is incorrect (race condition fix)
-        for attempt in range(3):
+        for _attempt in range(3):
             if dialog.ui.groupBox_enable_automated_messages.isChecked():
                 break
             time.sleep(0.1)
@@ -675,7 +673,7 @@ class TestCategoryManagementDialogRealBehavior:
                     time.sleep(0.1)  # Brief delay before retry
 
             # Create new dialog instance to simulate reload
-            new_dialog = CategoryManagementDialog(parent=None, user_id=test_user)
+            CategoryManagementDialog(parent=None, user_id=test_user)
 
             # Assert - Verify data persists
             assert persisted_data and 'preferences' in persisted_data, f"Preferences data should be loaded. Got: {persisted_data}"

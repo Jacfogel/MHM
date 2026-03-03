@@ -11,7 +11,8 @@ import traceback
 import logging
 import threading
 import functools
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 from datetime import datetime
 
 
@@ -409,7 +410,6 @@ class NetworkRecovery(ErrorRecoveryStrategy):
             True if recovery was successful, False otherwise
         """
         try:
-            import time
             from core.service_utilities import wait_for_network
 
             # Wait for network to be available
@@ -646,7 +646,6 @@ class ErrorHandler:
 
             try:
                 from core.logger import get_component_logger
-                import os
 
                 logger = get_component_logger("main")
                 error_logger = get_component_logger("errors")
@@ -707,25 +706,25 @@ class ErrorHandler:
         operation = context.get("operation", "operation")
 
         if isinstance(error, FileNotFoundError):
-            return f"Could not find required file. The system will try to create it automatically."
+            return "Could not find required file. The system will try to create it automatically."
         elif isinstance(error, PermissionError):
-            return f"Permission denied. Please check file permissions and try again."
+            return "Permission denied. Please check file permissions and try again."
         elif isinstance(error, ConnectionError):
-            return f"Connection failed. Please check your internet connection and try again."
+            return "Connection failed. Please check your internet connection and try again."
         elif isinstance(error, TimeoutError):
-            return f"Operation timed out. Please try again."
+            return "Operation timed out. Please try again."
         elif isinstance(error, ValueError):
-            return f"Invalid data format. Please check your input and try again."
+            return "Invalid data format. Please check your input and try again."
         elif isinstance(error, KeyError):
             return (
-                f"Missing required information. Please check your input and try again."
+                "Missing required information. Please check your input and try again."
             )
         elif isinstance(error, TypeError):
-            return f"Data type error. Please check your input format and try again."
+            return "Data type error. Please check your input format and try again."
         elif isinstance(error, OSError):
-            return f"System error occurred. Please try again or contact support."
+            return "System error occurred. Please try again or contact support."
         elif isinstance(error, MemoryError):
-            return f"System is low on memory. Please try again later."
+            return "System is low on memory. Please try again later."
         else:
             return f"An unexpected error occurred during {operation}. Please try again or contact support."
 

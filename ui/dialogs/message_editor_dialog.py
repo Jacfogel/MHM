@@ -19,13 +19,9 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QGroupBox,
     QFormLayout,
-    QLineEdit,
     QDialogButtonBox,
     QWidget,
-    QScrollArea,
 )
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFont
 from ui.generated.message_editor_dialog_pyqt import Ui_Dialog_message_editor
 
 # Import core functionality

@@ -9,9 +9,8 @@ import pytest
 import os
 import logging
 import time
-import json
 import uuid
-from unittest.mock import patch, Mock, MagicMock, mock_open
+from unittest.mock import patch, MagicMock
 from pathlib import Path
 
 from core.logger import (
@@ -310,7 +309,7 @@ class TestComponentLogger:
             
             # Verify structured data is in log (may be in JSON format)
             if os.path.exists(log_file) and os.path.getsize(log_file) > 0:
-                with open(log_file, 'r', encoding='utf-8') as f:
+                with open(log_file, encoding='utf-8') as f:
                     content = f.read()
                     # Structured data should be in the message (as JSON)
                     assert "Test message" in content, "Should include message"

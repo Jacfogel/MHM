@@ -1,6 +1,5 @@
 """Tests for development_tools/shared/common.py helpers."""
 
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest

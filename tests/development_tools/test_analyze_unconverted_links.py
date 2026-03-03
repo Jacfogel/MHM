@@ -7,7 +7,7 @@ Tests unconverted link detection in documentation files.
 import pytest
 from pathlib import Path
 
-from tests.development_tools.conftest import load_development_tools_module, demo_project_root, test_config_path
+from tests.development_tools.conftest import load_development_tools_module
 
 
 # Load the module
@@ -44,7 +44,7 @@ This file has [proper links](path/to/file.md) and no unconverted paths.
         target_file = tmp_path / "target.md"
         target_file.write_text("# Target")
         
-        doc_file.write_text(f"""# Test Documentation
+        doc_file.write_text("""# Test Documentation
 
 See the file at tests/target.md for more information.
 """)
@@ -109,7 +109,7 @@ import sys
         target_file = tmp_path / "target.md"
         target_file.write_text("# Target")
         
-        doc_file.write_text(f"""# Test Documentation
+        doc_file.write_text("""# Test Documentation
 
 See [the target file](tests/target.md) for more information.
 """)
@@ -275,7 +275,7 @@ See tests/example.py for reference.
         target_file = tmp_path / "target.md"
         target_file.write_text("# Target")
         
-        doc_file.write_text(f"""# Title
+        doc_file.write_text("""# Title
 
 See tests/target.md for information.
 """)

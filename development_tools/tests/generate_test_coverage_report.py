@@ -18,7 +18,7 @@ import sys
 import configparser
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -49,8 +49,8 @@ class TestCoverageReportGenerator:
     def __init__(
         self,
         project_root: str = ".",
-        coverage_config: Optional[str] = None,
-        artifact_directories: Optional[Dict[str, str]] = None,
+        coverage_config: str | None = None,
+        artifact_directories: dict[str, str] | None = None,
     ):
         """
         Initialize coverage report generator.
@@ -129,7 +129,7 @@ class TestCoverageReportGenerator:
             self.coverage_html_dir = (self.project_root / html_directory).resolve()
 
     def generate_coverage_summary(
-        self, coverage_data: Dict[str, Dict[str, Any]], overall_data: Dict[str, Any]
+        self, coverage_data: dict[str, dict[str, Any]], overall_data: dict[str, Any]
     ) -> str:
         """Generate a coverage summary for the plan."""
         summary_lines = []
@@ -156,7 +156,7 @@ class TestCoverageReportGenerator:
             "- **Coverage Scope**: Main project domains only (`core`, `communication`, `ui`, `tasks`, `user`, `ai`); `development_tools/` coverage is tracked separately."
         )
         summary_lines.append(
-            f"- **Goal**: Expand to **80%+ coverage** for comprehensive reliability\n"
+            "- **Goal**: Expand to **80%+ coverage** for comprehensive reliability\n"
         )
 
         # Coverage by category
@@ -240,7 +240,7 @@ class TestCoverageReportGenerator:
                 return False
 
         try:
-            with open(self.coverage_plan_file, "r", encoding="utf-8") as f:
+            with open(self.coverage_plan_file, encoding="utf-8") as f:
                 content = f.read()
 
             # Check if file has standard generated header
@@ -547,8 +547,8 @@ def main():
 
     # Load coverage data
     try:
-        with open(coverage_json_path, "r", encoding="utf-8") as f:
-            coverage_data = json.load(f)
+        with open(coverage_json_path, encoding="utf-8") as f:
+            json.load(f)
     except Exception as e:
         logger.error(f"Failed to load coverage JSON: {e}")
         return 1

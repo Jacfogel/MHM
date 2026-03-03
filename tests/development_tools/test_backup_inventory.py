@@ -1,6 +1,5 @@
 """Tests for development_tools/shared/backup_inventory.py."""
 
-from pathlib import Path
 
 import pytest
 

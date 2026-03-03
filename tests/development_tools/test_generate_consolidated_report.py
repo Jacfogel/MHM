@@ -9,7 +9,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
+from tests.development_tools.conftest import load_development_tools_module
 
 
 # Load the module
@@ -227,7 +227,7 @@ class TestGenerateConsolidatedReport:
                 
                 mock_create.side_effect = track_create
                 
-                result = generate_consolidated_reports(
+                generate_consolidated_reports(
                     project_root=str(temp_project_copy)
                 )
                 

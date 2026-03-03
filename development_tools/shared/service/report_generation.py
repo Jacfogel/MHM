@@ -10,7 +10,7 @@ These methods are large (~4,300 lines total) and generate comprehensive status r
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.logger import get_component_logger
 
@@ -89,7 +89,7 @@ class ReportGenerationMixin:
             logger.debug(f"Error checking if path is test directory ({path}): {e}")
             return False
 
-    def _load_results_file_safe(self) -> Optional[Dict]:
+    def _load_results_file_safe(self) -> dict | None:
         """Load analysis_detailed_results.json if it exists and we're not in a test directory.
 
         Returns None if in test directory or file doesn't exist to prevent loading large files in tests.
@@ -102,12 +102,12 @@ class ReportGenerationMixin:
         try:
             import json
 
-            with open(results_file, "r", encoding="utf-8") as f:
+            with open(results_file, encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
             return None
 
-    def _get_decision_support_details(self, data: Any) -> Dict[str, Any]:
+    def _get_decision_support_details(self, data: Any) -> dict[str, Any]:
         """Return decision_support details only when data is standard format."""
         if not isinstance(data, dict):
             return {}
@@ -120,7 +120,7 @@ class ReportGenerationMixin:
         details = normalized.get("details", {})
         return details if isinstance(details, dict) else {}
 
-    def _get_system_signals_details(self, data: Any) -> Dict[str, Any]:
+    def _get_system_signals_details(self, data: Any) -> dict[str, Any]:
         """Return system_signals details only when data is standard format."""
         if not isinstance(data, dict):
             return {}
@@ -133,9 +133,9 @@ class ReportGenerationMixin:
         details = normalized.get("details", {})
         return details if isinstance(details, dict) else {}
 
-    def _get_static_analysis_snapshot(self) -> Dict[str, Dict[str, Any]]:
+    def _get_static_analysis_snapshot(self) -> dict[str, dict[str, Any]]:
         """Load normalized summary/details for ruff and pyright static analysis tools."""
-        result: Dict[str, Dict[str, Any]] = {}
+        result: dict[str, dict[str, Any]] = {}
         for tool_name in ("analyze_ruff", "analyze_pyright"):
             tool_data = self._load_tool_data(
                 tool_name, "static_checks", log_source=False
@@ -165,11 +165,11 @@ class ReportGenerationMixin:
             }
         return result
 
-    def _extract_file_issue_counts(self, tool_data: Any) -> Dict[str, int]:
+    def _extract_file_issue_counts(self, tool_data: Any) -> dict[str, int]:
         """Extract per-file issue counts from standardized tool payload."""
         if not isinstance(tool_data, dict):
             return {}
-        file_counts: Dict[str, int] = {}
+        file_counts: dict[str, int] = {}
         files_section = tool_data.get("files", {})
         if isinstance(files_section, dict):
             for file_path, value in files_section.items():
@@ -210,12 +210,12 @@ class ReportGenerationMixin:
             return f"{parts[0]}::{parts[-1]}"
         return text
 
-    def _get_track_failed_nodes(self, outcome: Dict[str, Any]) -> List[str]:
+    def _get_track_failed_nodes(self, outcome: dict[str, Any]) -> list[str]:
         """Return normalized, de-duplicated failed node IDs for a single track."""
         nodes = outcome.get("failed_node_ids", []) if isinstance(outcome, dict) else []
         if not isinstance(nodes, list):
             return []
-        normalized: List[str] = []
+        normalized: list[str] = []
         for node in nodes:
             normalized_node = self._normalize_test_node_id(str(node))
             if normalized_node and normalized_node not in normalized:
@@ -223,7 +223,7 @@ class ReportGenerationMixin:
         return normalized
 
     def _format_track_classification_summary(
-        self, label: str, outcome: Dict[str, Any]
+        self, label: str, outcome: dict[str, Any]
     ) -> str:
         """Build concise track classification summary for Tier 3 sections."""
         classification = self._track_classification_label(outcome)
@@ -243,7 +243,7 @@ class ReportGenerationMixin:
                 pieces.append(f"hint={context.strip()}")
         return " | ".join(pieces)
 
-    def _track_classification_label(self, outcome: Dict[str, Any]) -> str:
+    def _track_classification_label(self, outcome: dict[str, Any]) -> str:
         """Return the normalized track classification label."""
         if not isinstance(outcome, dict):
             return "unknown"
@@ -253,8 +253,8 @@ class ReportGenerationMixin:
         return "unknown"
 
     def _get_code_docstring_metrics(
-        self, function_data: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, function_data: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Return code-docstring metrics from analyze_functions (canonical source)."""
         data = function_data
         if not isinstance(data, dict):
@@ -287,7 +287,7 @@ class ReportGenerationMixin:
             "coverage": coverage,
         }
 
-    def _get_tier3_test_outcome(self) -> Dict[str, Any]:
+    def _get_tier3_test_outcome(self) -> dict[str, Any]:
         """Load Tier 3 test outcome state from in-memory or cached results."""
         in_memory = getattr(self, "tier3_test_outcome", None)
         if isinstance(in_memory, dict) and in_memory.get("state"):
@@ -314,7 +314,7 @@ class ReportGenerationMixin:
                 return outcome
         return {}
 
-    def _effective_tier3_state_from_outcome(self, outcome: Dict[str, Any]) -> str:
+    def _effective_tier3_state_from_outcome(self, outcome: dict[str, Any]) -> str:
         """Return effective Tier 3 state including development-tools test outcome."""
         state = outcome.get("state", "") if isinstance(outcome, dict) else ""
 
@@ -359,13 +359,13 @@ class ReportGenerationMixin:
         include_parallel: bool = False,
         include_no_parallel: bool = False,
         include_dev_tools: bool = False,
-    ) -> List[str]:
+    ) -> list[str]:
         """Return latest Tier 3 pytest stdout log files for applicable tracks."""
         logs_dir = self.project_root / "development_tools" / "tests" / "logs"
         if not logs_dir.exists():
             return []
 
-        selections: List[str] = []
+        selections: list[str] = []
         track_patterns = [
             (include_parallel, "pytest_parallel_stdout_*.log"),
             (include_no_parallel, "pytest_no_parallel_stdout_*.log"),
@@ -391,7 +391,7 @@ class ReportGenerationMixin:
         return selections
 
     def _append_tier3_test_outcome_lines(
-        self, lines: List[str], actionable_only: bool = False
+        self, lines: list[str], actionable_only: bool = False
     ) -> None:
         """Append a consistent Tier 3 test outcome summary to report lines."""
         outcome = self._get_tier3_test_outcome()
@@ -466,7 +466,7 @@ class ReportGenerationMixin:
             )
         else:
             logger.info(
-                f"[REPORT GENERATION] Generating AI_STATUS.md using cached data (no active audit)"
+                "[REPORT GENERATION] Generating AI_STATUS.md using cached data (no active audit)"
             )
 
         # Check if this is a mid-audit write
@@ -489,7 +489,7 @@ class ReportGenerationMixin:
 
             logger.debug(f"Call stack:\n{''.join(traceback.format_stack())}")
 
-        lines: List[str] = []
+        lines: list[str] = []
         lines.append("# AI Status - Current Codebase State")
         lines.append("")
         lines.append("> **File**: `development_tools/AI_STATUS.md`")
@@ -536,14 +536,14 @@ class ReportGenerationMixin:
         )
         lines.append("")
 
-        def strip_doc_header(doc: str, drop_section: Optional[str] = None) -> List[str]:
+        def strip_doc_header(doc: str, drop_section: str | None = None) -> list[str]:
             doc_lines = doc.splitlines()
             if doc_lines and doc_lines[0].startswith("# "):
                 doc_lines = doc_lines[1:]
             if not drop_section:
                 return doc_lines
 
-            filtered: List[str] = []
+            filtered: list[str] = []
             skip = False
             for line in doc_lines:
                 if line.startswith("## "):
@@ -563,7 +563,7 @@ class ReportGenerationMixin:
                 return value if value.strip().endswith("%") else f"{value}%"
             return self._format_percentage(value, decimals)
 
-        def to_int(value: Any) -> Optional[int]:
+        def to_int(value: Any) -> int | None:
             if isinstance(value, int):
                 return value
             if isinstance(value, float):
@@ -579,7 +579,7 @@ class ReportGenerationMixin:
                 return to_int(count)
             return None
 
-        def to_float(value: Any) -> Optional[float]:
+        def to_float(value: Any) -> float | None:
             if isinstance(value, (int, float)):
                 return float(value)
             if isinstance(value, str):
@@ -597,7 +597,7 @@ class ReportGenerationMixin:
         # Load all tool data using unified loader
         doc_metrics = self._load_tool_data("analyze_function_registry", "functions")
         error_metrics = self._load_tool_data("analyze_error_handling", "error_handling")
-        function_metrics = self._load_tool_data("analyze_functions", "functions")
+        self._load_tool_data("analyze_functions", "functions")
         analyze_docs_data = self._load_tool_data("analyze_documentation", "docs")
         ascii_data = self._load_tool_data("analyze_ascii_compliance", "docs")
         heading_data = self._load_tool_data("analyze_heading_numbering", "docs")
@@ -654,7 +654,7 @@ class ReportGenerationMixin:
         missing_docs = doc_metrics_details.get("missing", {})
         missing_files = self._get_missing_doc_files(limit=4)
 
-        _error_metrics: Dict[str, Any] = error_metrics or {}
+        _error_metrics: dict[str, Any] = error_metrics or {}
 
         def _error_field(field_name: str, default: Any = None) -> Any:
             error_details = _error_metrics.get("details", {})
@@ -944,7 +944,7 @@ class ReportGenerationMixin:
                 f"- **Registry Gaps**: {missing_count} items missing from registry"
             )
         else:
-            lines.append(f"- **Registry Gaps**: 0 items missing from registry")
+            lines.append("- **Registry Gaps**: 0 items missing from registry")
 
         if missing_files:
             lines.append(
@@ -1727,7 +1727,7 @@ class ReportGenerationMixin:
             )
             if coverage_report_path.exists():
                 lines.append(
-                    f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)"
+                    "    - **Detailed Report**: [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)"
                 )
 
             if dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
@@ -1840,7 +1840,7 @@ class ReportGenerationMixin:
             )
             if unused_imports_report_path.exists():
                 lines.append(
-                    f"- **Detailed Report**: [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)"
+                    "- **Detailed Report**: [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)"
                 )
         else:
             lines.append("## Unused Imports")
@@ -2333,7 +2333,7 @@ class ReportGenerationMixin:
             )
         else:
             logger.info(
-                f"[REPORT GENERATION] Generating AI_PRIORITIES.md using cached data (no active audit)"
+                "[REPORT GENERATION] Generating AI_PRIORITIES.md using cached data (no active audit)"
             )
 
         # Check if this is a mid-audit write
@@ -2356,7 +2356,7 @@ class ReportGenerationMixin:
 
             logger.debug(f"Call stack:\n{''.join(traceback.format_stack())}")
 
-        lines: List[str] = []
+        lines: list[str] = []
         lines.append("# AI Priorities - Immediate Next Steps")
         lines.append("")
         lines.append("> **File**: `development_tools/AI_PRIORITIES.md`")
@@ -2402,7 +2402,7 @@ class ReportGenerationMixin:
                 return trimmed if trimmed.endswith("%") else f"{trimmed}%"
             return self._format_percentage(value, decimals)
 
-        def to_int(value: Any) -> Optional[int]:
+        def to_int(value: Any) -> int | None:
             if isinstance(value, int):
                 return value
             if isinstance(value, float):
@@ -2418,7 +2418,7 @@ class ReportGenerationMixin:
                 return to_int(count)
             return None
 
-        def to_float(value: Any) -> Optional[float]:
+        def to_float(value: Any) -> float | None:
             if isinstance(value, (int, float)):
                 return float(value)
             if isinstance(value, str):
@@ -2599,7 +2599,7 @@ class ReportGenerationMixin:
         )
         error_total = get_error_field("total_functions")
         error_with_handling = get_error_field("functions_with_error_handling")
-        canonical_total = metrics.get("total_functions")
+        metrics.get("total_functions")
         missing_error_handlers = to_int(
             get_error_field("functions_missing_error_handling")
         )
@@ -2685,11 +2685,9 @@ class ReportGenerationMixin:
             legacy_markers = None
             legacy_report = None
 
-        low_coverage_modules: List[Dict[str, Any]] = []
-        coverage_overall = None
-        worst_coverage_files: List[Dict[str, Any]] = []
+        low_coverage_modules: list[dict[str, Any]] = []
         if coverage_summary:
-            coverage_overall = (coverage_summary or {}).get("overall")
+            (coverage_summary or {}).get("overall")
             module_entries = (coverage_summary or {}).get("modules") or []
             for module in module_entries:
                 coverage_value = to_float(module.get("coverage"))
@@ -2699,14 +2697,13 @@ class ReportGenerationMixin:
                 if coverage_float is not None and coverage_float < 80:
                     low_coverage_modules.append(module)
             low_coverage_modules = low_coverage_modules[:3]
-            worst_coverage_files = (coverage_summary or {}).get("worst_files") or []
+            (coverage_summary or {}).get("worst_files") or []
 
-        dev_tools_coverage_overall = None
         if (
             hasattr(self, "dev_tools_coverage_results")
             and self.dev_tools_coverage_results
         ):
-            dev_tools_coverage_overall = self.dev_tools_coverage_results.get(
+            self.dev_tools_coverage_results.get(
                 "overall", {}
             )
         dev_tools_insights = self._get_dev_tools_coverage_insights()
@@ -2828,7 +2825,7 @@ class ReportGenerationMixin:
                         decision_metrics.get("critical_complexity")
                     )
 
-        priority_items: List[Dict[str, Any]] = []
+        priority_items: list[dict[str, Any]] = []
 
         # Fixed tier ordering: tier number * 100 + insertion order within tier
         # This ensures predictable ordering: Tier 1 items (100-199), Tier 2 (200-299), etc.
@@ -2837,9 +2834,9 @@ class ReportGenerationMixin:
         def validate_recommendation(
             title: str,
             reason: str,
-            data_source: Optional[str] = None,
-            count: Optional[int] = None,
-            expected_min: Optional[int] = None,
+            data_source: str | None = None,
+            count: int | None = None,
+            expected_min: int | None = None,
         ) -> bool:
             """
             Validate a recommendation before adding it.
@@ -2888,11 +2885,11 @@ class ReportGenerationMixin:
             tier: int,
             title: str,
             reason: str,
-            bullets: List[str],
+            bullets: list[str],
             validate: bool = True,
-            data_source: Optional[str] = None,
-            count: Optional[int] = None,
-            expected_min: Optional[int] = None,
+            data_source: str | None = None,
+            count: int | None = None,
+            expected_min: int | None = None,
         ) -> None:
             nonlocal tier_insertion_counters
             if not reason:
@@ -2913,7 +2910,7 @@ class ReportGenerationMixin:
             # Normalize tier to valid range (1-4)
             normalized_tier = max(1, min(4, tier))
 
-            guidance_defaults: Dict[str, str] = {
+            guidance_defaults: dict[str, str] = {
                 "Stabilize documentation drift": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Add docstrings to missing functions": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Update function registry": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
@@ -2935,7 +2932,7 @@ class ReportGenerationMixin:
                 "Consolidate documentation files": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Review documentation overlaps": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
             }
-            details_defaults: Dict[str, str] = {
+            details_defaults: dict[str, str] = {
                 "Stabilize documentation drift": "development_tools/docs/jsons/analyze_documentation_sync_results.json",
                 "Add docstrings to missing functions": "development_tools/functions/jsons/analyze_functions_results.json",
                 "Update function registry": "development_docs/FUNCTION_REGISTRY_DETAIL.md",
@@ -2958,7 +2955,7 @@ class ReportGenerationMixin:
                 "Review documentation overlaps": "development_tools/docs/jsons/analyze_documentation_results.json",
             }
 
-            normalized_bullets: List[str] = []
+            normalized_bullets: list[str] = []
             for bullet in bullets:
                 if not bullet:
                     continue
@@ -3015,7 +3012,7 @@ class ReportGenerationMixin:
         # Add priorities based on issues found
         # Path drift priority
         if path_drift_count and path_drift_count > 0:
-            drift_details: List[str] = []
+            drift_details: list[str] = []
             if path_drift_files:
                 drift_details.append(
                     f"Top offenders: {self._format_list_for_display(path_drift_files, limit=3)}"
@@ -3039,7 +3036,7 @@ class ReportGenerationMixin:
 
         # Missing docstrings priority
         if missing_docs_count_for_priority and missing_docs_count_for_priority > 0:
-            doc_bullets: List[str] = []
+            doc_bullets: list[str] = []
             # Try to get examples of undocumented functions (prioritized list)
             function_metrics_details = function_metrics.get("details", {})
             undocumented_examples = (
@@ -3133,7 +3130,7 @@ class ReportGenerationMixin:
                 missing_docs_list = missing_docs_raw_for_list.get("files", {})
 
         if missing_docs_count and missing_docs_count > 0:
-            registry_bullets: List[str] = []
+            registry_bullets: list[str] = []
 
             # Show top missing items if available
             if missing_docs_list and isinstance(missing_docs_list, dict):
@@ -3177,7 +3174,7 @@ class ReportGenerationMixin:
 
         # Error handling to missing functions (before Phase 1/2, as it's more critical)
         if missing_error_handlers and missing_error_handlers > 0:
-            error_handling_bullets: List[str] = []
+            error_handling_bullets: list[str] = []
 
             # List modules with function counts
             if worst_error_modules:
@@ -3236,7 +3233,7 @@ class ReportGenerationMixin:
         phase2_by_type = get_error_field("phase2_by_type", {}) or {}
 
         if (phase1_total and phase1_total > 0) or (phase2_total and phase2_total > 0):
-            modernization_bullets: List[str] = []
+            modernization_bullets: list[str] = []
 
             if phase1_total and phase1_total > 0:
                 modernization_bullets.append(
@@ -3408,7 +3405,7 @@ class ReportGenerationMixin:
                 and float(item.get("coverage")) < 80
             ]
             if dev_pct < 60 or low_dev_modules_below_target:
-                dev_bullets: List[str] = []
+                dev_bullets: list[str] = []
                 dev_bullets.append(
                     "Review for Guidance: development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md and ai_development_docs/AI_TESTING_GUIDE.md"
                 )
@@ -3466,7 +3463,7 @@ class ReportGenerationMixin:
             pyright_errors = to_int(pyright_details.get("errors")) or 0
             pyright_warnings = to_int(pyright_details.get("warnings")) or 0
             if not (ruff_available and pyright_available):
-                unavailable_bullets: List[str] = []
+                unavailable_bullets: list[str] = []
                 ruff_msg = str(ruff_details.get("message", "")).strip()
                 pyright_msg = str(pyright_details.get("message", "")).strip()
                 if not ruff_available:
@@ -3490,7 +3487,7 @@ class ReportGenerationMixin:
                     bullets=unavailable_bullets,
                 )
             elif ruff_issues > 0 or pyright_issues > 0:
-                static_bullets: List[str] = [
+                static_bullets: list[str] = [
                     f"Ruff findings: {ruff_issues} issue(s) across {to_int(ruff_summary.get('files_affected')) or 0} file(s).",
                     f"Pyright findings: {pyright_errors} error(s), {pyright_warnings} warning(s).",
                     "Action: Run `python -m ruff check .` and `python -m pyright` to inspect full diagnostics before fixes.",
@@ -3519,13 +3516,13 @@ class ReportGenerationMixin:
                 len(high_coupling) if isinstance(high_coupling, list) else 0
             )
             if circular_count > 0 or high_coupling_count > 0:
-                dep_bullets: List[str] = []
+                dep_bullets: list[str] = []
                 dep_bullets.append(
                     "Review for Guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
                 )
 
                 if isinstance(circular_dependencies, list) and circular_dependencies:
-                    circular_examples: List[str] = []
+                    circular_examples: list[str] = []
                     for chain in circular_dependencies[:3]:
                         if (
                             isinstance(chain, list)
@@ -3574,7 +3571,7 @@ class ReportGenerationMixin:
 
         # Legacy references priority
         if legacy_files and legacy_files > 0:
-            legacy_bullets: List[str] = []
+            legacy_bullets: list[str] = []
             legacy_bullets.append(
                 "Review for Guidance: ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md"
             )
@@ -3604,7 +3601,7 @@ class ReportGenerationMixin:
             )
             recommendations = config_validation_summary.get("recommendations", [])
             if total_recommendations > 0 and recommendations:
-                config_bullets: List[str] = []
+                config_bullets: list[str] = []
                 # Deduplicate recommendations using a more robust approach
                 # Extract (tool_name, issue_type) tuples for deduplication
                 seen_tool_issues = set()
@@ -3712,7 +3709,7 @@ class ReportGenerationMixin:
                             }
                     else:
                         # Add as priority item
-                        handlers_bullets: List[str] = []
+                        handlers_bullets: list[str] = []
                         top_handlers = sorted(
                             handlers_no_doc,
                             key=lambda x: x.get("methods", 0),
@@ -3755,7 +3752,7 @@ class ReportGenerationMixin:
             )
 
             if actual_count > 0:
-                test_markers_bullets: List[str] = []
+                test_markers_bullets: list[str] = []
 
                 # Get top files with missing markers if available
                 if missing_list and isinstance(missing_list, list):
@@ -3819,15 +3816,14 @@ class ReportGenerationMixin:
 
             # Only create recommendation if there are obvious unused imports
             if obvious_unused and obvious_unused > 0:
-                unused_bullets: List[str] = []
+                unused_bullets: list[str] = []
 
                 # Get files with obvious unused imports
                 files_dict = unused_imports_data.get("files", {})
-                obvious_files = []
                 if files_dict and isinstance(files_dict, dict):
                     # Filter files to only those with obvious unused imports
                     # We need to check the category for each file's imports
-                    for file_path, imports in files_dict.items():
+                    for _file_path, imports in files_dict.items():
                         if isinstance(imports, list):
                             # Check if any import in this file is marked as obvious_unused
                             # The structure may vary, so we'll count files that have obvious unused
@@ -3884,7 +3880,7 @@ class ReportGenerationMixin:
                 )
                 if unused_imports_report_path.exists():
                     unused_bullets.append(
-                        f"Detailed Report: [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)"
+                        "Detailed Report: [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)"
                     )
 
                 # Determine tier based on obvious unused count (not total)
@@ -3926,7 +3922,7 @@ class ReportGenerationMixin:
                     return (func_count, max_score)
 
                 sorted_groups = sorted(groups, key=group_sort_key, reverse=True)[:3]
-                duplicate_bullets: List[str] = []
+                duplicate_bullets: list[str] = []
                 duplicate_bullets.append(
                     "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
                 )
@@ -4030,7 +4026,7 @@ class ReportGenerationMixin:
 
         # Complexity refactoring priority
         if critical_complex and critical_complex > 0:
-            complexity_bullets: List[str] = []
+            complexity_bullets: list[str] = []
             # Ensure we have examples - try loading if not available
             if not critical_examples:
                 # Try loading from decision_support (standard format)
@@ -4139,7 +4135,7 @@ class ReportGenerationMixin:
                 bullets=complexity_bullets,
             )
         elif high_complex and high_complex > 0:
-            high_complexity_bullets: List[str] = []
+            high_complexity_bullets: list[str] = []
             if high_examples:
                 sorted_examples = sorted(
                     high_examples[:10],
@@ -4190,7 +4186,7 @@ class ReportGenerationMixin:
             "infra_cleanup_error",
         }
         if tier3_state in actionable_tier3_states:
-            tier3_bullets: List[str] = []
+            tier3_bullets: list[str] = []
             parallel_outcome = (
                 tier3_outcome.get("parallel", {})
                 if isinstance(tier3_outcome.get("parallel"), dict)
@@ -4366,12 +4362,12 @@ class ReportGenerationMixin:
             bool(backup_summary.get("success")) if backup_summary else False
         )
         if backup_summary and not backup_success:
-            backup_bullets: List[str] = []
+            backup_bullets: list[str] = []
             backup_bullets.append(
                 "Review for guidance: ai_development_docs/AI_BACKUP_GUIDE.md"
             )
 
-            failed_checks: List[str] = []
+            failed_checks: list[str] = []
             if isinstance(backup_checks, list):
                 for check in backup_checks:
                     if not isinstance(check, dict):
@@ -4448,7 +4444,7 @@ class ReportGenerationMixin:
                         "line_numbers": line_numbers,
                     }
 
-        quick_wins: List[str] = []
+        quick_wins: list[str] = []
 
         # Add dependency documentation refresh to Quick Wins
         dependency_summary = getattr(self, "module_dependency_summary", None) or (
@@ -4550,7 +4546,7 @@ class ReportGenerationMixin:
             )
 
         def add_doc_quick_win(
-            label: str, tool_data: Dict[str, Any], fix_command: str
+            label: str, tool_data: dict[str, Any], fix_command: str
         ) -> None:
             if not isinstance(tool_data, dict):
                 return
@@ -4627,7 +4623,7 @@ class ReportGenerationMixin:
         # Add consolidation opportunities as priority items
         if consolidation_recs and consolidation_count > 0:
             # Use tier 4 for consolidation (low priority)
-            consolidation_bullets: List[str] = []
+            consolidation_bullets: list[str] = []
             for rec in consolidation_recs[:3]:  # Show top 3
                 category = rec.get("category", "Unknown")
                 files = rec.get("files", [])
@@ -4677,7 +4673,7 @@ class ReportGenerationMixin:
             )
         else:
             logger.info(
-                f"[REPORT GENERATION] Generating consolidated_report.md using cached data (no active audit)"
+                "[REPORT GENERATION] Generating consolidated_report.md using cached data (no active audit)"
             )
 
         # Check if this is a mid-audit write
@@ -4700,7 +4696,7 @@ class ReportGenerationMixin:
 
             logger.debug(f"Call stack:\n{''.join(traceback.format_stack())}")
 
-        lines: List[str] = []
+        lines: list[str] = []
         lines.append("# Comprehensive AI Development Tools Report")
         lines.append("")
         lines.append(
@@ -4744,7 +4740,7 @@ class ReportGenerationMixin:
                 return value if value.strip().endswith("%") else f"{value}%"
             return self._format_percentage(value, decimals)
 
-        def to_float(value: Any) -> Optional[float]:
+        def to_float(value: Any) -> float | None:
             if isinstance(value, (int, float)):
                 return float(value)
             if isinstance(value, str):
@@ -4755,7 +4751,7 @@ class ReportGenerationMixin:
                     return None
             return None
 
-        def to_int(value: Any) -> Optional[int]:
+        def to_int(value: Any) -> int | None:
             if isinstance(value, int):
                 return value
             if isinstance(value, float):
@@ -4791,7 +4787,7 @@ class ReportGenerationMixin:
             missing_docs_count = to_int(missing_docs_raw) or 0
             missing_docs_list = {}
         doc_totals = doc_metrics_details.get("totals") or {}
-        documented_functions = (
+        (
             doc_totals.get("functions_documented")
             if isinstance(doc_totals, dict)
             else None
@@ -4831,7 +4827,7 @@ class ReportGenerationMixin:
         if isinstance(code_doc_metrics.get("coverage"), (int, float)):
             doc_coverage = f"{code_doc_metrics['coverage']:.2f}%"
 
-        doc_artifacts = (
+        (
             analyze_docs_data.get("artifacts")
             if isinstance(analyze_docs_data, dict)
             else None
@@ -4863,7 +4859,7 @@ class ReportGenerationMixin:
             if overlap_analysis_ran
             else []
         )
-        file_purposes = analyze_docs_data.get("file_purposes") or details.get(
+        analyze_docs_data.get("file_purposes") or details.get(
             "file_purposes", {}
         )
 
@@ -4887,7 +4883,7 @@ class ReportGenerationMixin:
             and (missing_error_handlers is None or missing_error_handlers == 0)
         ):
             missing_error_handlers = details_missing
-        error_recommendations = error_details.get("recommendations") or []
+        error_details.get("recommendations") or []
         worst_error_modules = error_details.get("worst_modules") or []
         if worst_error_modules is None or not isinstance(
             worst_error_modules, (list, tuple)
@@ -5322,7 +5318,7 @@ class ReportGenerationMixin:
                     )
                     if isinstance(data_dict, dict):
                         total = 0
-                        for f, v in data_dict.items():
+                        for _f, v in data_dict.items():
                             if isinstance(v, dict):
                                 results = v.get("results", [])
                                 if isinstance(results, list) and len(results) > 0:
@@ -5535,7 +5531,7 @@ class ReportGenerationMixin:
                 )
                 if missing_files:
                     file_list = []
-                    for i, file_path in enumerate(missing_files[:5]):
+                    for _i, file_path in enumerate(missing_files[:5]):
                         file_list.append(f"{file_path} (1)")
                     if len(missing_files) > 5:
                         file_list.append(f"... +{len(missing_files) - 5}")
@@ -5851,7 +5847,7 @@ class ReportGenerationMixin:
                     f"    - **Modules with Lowest Coverage**: {', '.join(file_descriptions)}"
                 )
                 lines.append(
-                    f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)"
+                    "    - **Detailed Report**: [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)"
                 )
 
             # Development tools coverage
@@ -6215,7 +6211,7 @@ class ReportGenerationMixin:
                 from collections import defaultdict
 
                 file_counts = defaultdict(int)
-                for pattern_type, file_list in findings.items():
+                for _pattern_type, file_list in findings.items():
                     for file_entry in file_list:
                         if isinstance(file_entry, list) and len(file_entry) >= 3:
                             file_path = file_entry[0]
@@ -6575,7 +6571,7 @@ class ReportGenerationMixin:
                     if item_list:
                         lines.append(f"    - **Top items**: {', '.join(item_list)}")
         else:
-            lines.append(f"- **Registry Gaps**: 0 items missing from registry")
+            lines.append("- **Registry Gaps**: 0 items missing from registry")
 
         # Function Docstring Coverage
         if not func_undocumented and total_funcs and doc_coverage:
@@ -6642,7 +6638,7 @@ class ReportGenerationMixin:
                     lines.append(f"   - **Top functions**: {', '.join(func_list)}")
         else:
             lines.append(
-                f"   - **Functions Missing Docstrings**: 0 functions need docstrings"
+                "   - **Functions Missing Docstrings**: 0 functions need docstrings"
             )
 
         # Handler Classes Docstring Coverage
@@ -6722,8 +6718,8 @@ class ReportGenerationMixin:
             cache_stats = duplicate_details.get("cache", {})
             if isinstance(cache_stats, dict):
                 total_files = cache_stats.get("total_files", 0) or 0
-                cached_files = cache_stats.get("cached_files", 0) or 0
-                scanned_files = cache_stats.get("scanned_files", 0) or 0
+                cache_stats.get("cached_files", 0) or 0
+                cache_stats.get("scanned_files", 0) or 0
         if duplicate_groups > 0 and isinstance(duplicate_details, dict):
             groups = duplicate_details.get("duplicate_groups", [])
             if isinstance(groups, list) and groups:
@@ -6902,7 +6898,7 @@ class ReportGenerationMixin:
                         else []
                     )
                     if isinstance(circular_dependencies, list):
-                        top_circular_chains: List[str] = []
+                        top_circular_chains: list[str] = []
                         for chain in circular_dependencies[:3]:
                             if isinstance(chain, list) and chain:
                                 module_names = [
@@ -7036,7 +7032,7 @@ class ReportGenerationMixin:
         if config_validation_summary:
             config_valid = config_validation_summary.get("config_valid", False)
             config_complete = config_validation_summary.get("config_complete", False)
-            recommendations = config_validation_summary.get("recommendations", [])
+            config_validation_summary.get("recommendations", [])
             tools_using_config = config_validation_summary.get("tools_using_config", 0)
             total_tools = config_validation_summary.get("total_tools", 0)
             tools_analysis = config_validation_summary.get("tools_analysis", {})
@@ -7337,13 +7333,13 @@ class ReportGenerationMixin:
 
         archive_dir = self.project_root / "development_tools" / "reports" / "archive"
         if archive_dir.exists():
-            lines.append(f"- Historical audit data: development_tools/reports/archive")
+            lines.append("- Historical audit data: development_tools/reports/archive")
 
         lines.append("")
 
         return "\n".join(lines)
 
-    def _identify_critical_issues(self) -> List[str]:
+    def _identify_critical_issues(self) -> list[str]:
         """Identify critical issues from audit results"""
         issues = []
         if "analyze_functions" in self.results_cache:
@@ -7360,7 +7356,7 @@ class ReportGenerationMixin:
                 issues.append(f"Failed audit: {audit}")
         return issues
 
-    def _generate_action_items(self) -> List[str]:
+    def _generate_action_items(self) -> list[str]:
         """Generate actionable items from audit results"""
         actions = []
         if "analyze_functions" in self.results_cache:

@@ -21,7 +21,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -55,7 +55,7 @@ logger = get_component_logger("development_tools")
 class UnusedImportsReportGenerator:
     """Generates markdown reports from unused imports analysis results."""
 
-    def __init__(self, analysis_data: Dict[str, Any]):
+    def __init__(self, analysis_data: dict[str, Any]):
         """
         Initialize report generator with analysis data.
 
@@ -323,7 +323,7 @@ def main():
             logger.error(f"Input file not found: {input_path}")
             return 1
 
-        with open(input_path, "r", encoding="utf-8") as f:
+        with open(input_path, encoding="utf-8") as f:
             analysis_data = json.load(f)
     else:
         # Load from standardized storage

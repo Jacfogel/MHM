@@ -75,7 +75,7 @@ def test_run_analyze_module_refactor_candidates_includes_cli_flags(
 ):
     """Wrapper should pass include flags and store parsed JSON output."""
     service = AIToolsService(project_root=str(temp_project_copy))
-    captured = {"args": None}
+    captured: dict[str, tuple[object, ...] | None] = {"args": None}
 
     def _fake_run_script(_script_name, *args, **_kwargs):
         captured["args"] = args
@@ -95,8 +95,10 @@ def test_run_analyze_module_refactor_candidates_includes_cli_flags(
         include_tests=True, include_dev_tools=True
     )
 
-    assert "--include-tests" in captured["args"]
-    assert "--include-dev-tools" in captured["args"]
+    captured_args = captured["args"]
+    assert captured_args is not None
+    assert "--include-tests" in captured_args
+    assert "--include-dev-tools" in captured_args
     assert result["issues_found"] is True
     assert result["data"]["summary"]["total_issues"] == 3
 

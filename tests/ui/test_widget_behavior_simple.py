@@ -12,10 +12,7 @@ ensure_qt_runtime()
 import pytest
 import json
 from pathlib import Path
-from unittest.mock import patch, Mock
-from PySide6.QtWidgets import QApplication, QWidget
-from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QApplication
 
 # Do not modify sys.path; rely on package imports
 

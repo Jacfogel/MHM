@@ -9,7 +9,6 @@ Tests lazy imports, __getattr__ functionality, and package-level exports:
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
 import sys
 
 
@@ -65,7 +64,6 @@ class TestCommunicationCoreInitDirectImports:
         """Test that QueuedMessage can be instantiated and used."""
         # Arrange & Act
         from communication.core import QueuedMessage
-        from datetime import datetime
 
         message = QueuedMessage(
             user_id="test_user",
@@ -149,9 +147,10 @@ class TestCommunicationCoreInitLazyImports:
         if "communication.core" in sys.modules:
             del sys.modules["communication.core"]
 
-        # Act & Assert - Should raise ImportError for invalid attribute during import
+        # Act & Assert - Invalid lazy attribute should raise AttributeError
+        import communication.core as core_module
         with pytest.raises((ImportError, AttributeError)):
-            from communication.core import InvalidAttribute
+            _ = core_module.this_attribute_does_not_exist
 
     @pytest.mark.unit
     @pytest.mark.communication
@@ -289,7 +288,6 @@ class TestCommunicationCoreInitRealBehavior:
         """Test that QueuedMessage stores data correctly."""
         # Arrange & Act
         from communication.core import QueuedMessage
-        from datetime import datetime
 
         message = QueuedMessage(
             user_id="test_user_001",

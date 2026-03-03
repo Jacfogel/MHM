@@ -18,7 +18,6 @@ import argparse
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -45,7 +44,7 @@ except (AttributeError, ImportError):
 logger = get_component_logger("development_tools")
 
 
-def _get_line_indent(line: str) -> Optional[int]:
+def _get_line_indent(line: str) -> int | None:
     """
     Return the character index where the "+---" or "\\---" marker appears.
     """
@@ -56,7 +55,7 @@ def _get_line_indent(line: str) -> Optional[int]:
     return None
 
 
-def _build_dir_path(line: str, indent: int, stack: List[str]) -> Optional[str]:
+def _build_dir_path(line: str, indent: int, stack: list[str]) -> str | None:
     """
     Update the current path stack and return the joined path for the current directory.
     """
@@ -75,7 +74,7 @@ class DirectoryTreeGenerator:
     """Generates directory trees for documentation."""
 
     def __init__(
-        self, project_root: Optional[str] = None, config_path: Optional[str] = None
+        self, project_root: str | None = None, config_path: str | None = None
     ):
         """
         Initialize directory tree generator.
@@ -100,7 +99,7 @@ class DirectoryTreeGenerator:
         paths_config = config.get_paths_config()
         self.docs_dir = paths_config.get("development_docs_dir", "development_docs")
 
-    def generate_directory_tree(self, output_file: Optional[str] = None) -> str:
+    def generate_directory_tree(self, output_file: str | None = None) -> str:
         """
         Generate a directory tree for documentation with placeholders for certain directories.
 
@@ -137,9 +136,9 @@ class DirectoryTreeGenerator:
 
         # Process lines
         processed_lines = []
-        placeholder_skip_indent: Optional[int] = None
-        skip_exclusion_indent: Optional[int] = None
-        path_stack: List[str] = []
+        placeholder_skip_indent: int | None = None
+        skip_exclusion_indent: int | None = None
+        path_stack: list[str] = []
 
         for line in lines:
             indent = _get_line_indent(line)
@@ -161,7 +160,7 @@ class DirectoryTreeGenerator:
                 dir_path = _build_dir_path(line, indent, path_stack)
 
             if dir_path:
-                dir_name = dir_path.split("/")[-1]
+                dir_path.split("/")[-1]
                 candidate = self.project_root / dir_path
                 if should_exclude_file(candidate, context="development"):
                     skip_exclusion_indent = indent if indent is not None else 0
@@ -206,7 +205,7 @@ class DirectoryTreeGenerator:
             f"> **File**: `{output_file}`",
             "> **Generated**: This file is auto-generated. Do not edit manually.",
             f"> **Last Generated**: {timestamp}",
-            f"> **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator",
+            "> **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator",
             "> **Audience**: Human developer and AI collaborators",
             "> **Purpose**: Visual representation of project directory structure",
             "> **Status**: **ACTIVE** - Auto-generated from filesystem tree command",

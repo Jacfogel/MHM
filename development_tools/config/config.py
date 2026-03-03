@@ -13,14 +13,14 @@ Default config path: development_tools/config/development_tools_config.json
 from pathlib import Path
 import json
 import os
-from typing import Optional, Dict, Any
+from typing import Any
 
 # External config cache (loaded from file if provided)
-_external_config: Optional[Dict[str, Any]] = None
-_config_file_path: Optional[Path] = None
+_external_config: dict[str, Any] | None = None
+_config_file_path: Path | None = None
 
 
-def load_external_config(config_path: Optional[str] = None) -> bool:
+def load_external_config(config_path: str | None = None) -> bool:
     """
     Load configuration from an external JSON file.
 
@@ -51,11 +51,11 @@ def load_external_config(config_path: Optional[str] = None) -> bool:
         return False
 
     try:
-        with open(config_file, "r", encoding="utf-8") as f:
+        with open(config_file, encoding="utf-8") as f:
             _external_config = json.load(f)
         _config_file_path = config_file
         return True
-    except Exception as e:
+    except Exception:
         # Log error but don't fail - fall back to defaults
         _external_config = None
         _config_file_path = None
@@ -376,7 +376,7 @@ def get_project_name(default: str = "Project") -> str:
     return _get_external_value("project.name", default)
 
 
-def get_project_key_files(default: Optional[list] = None) -> list:
+def get_project_key_files(default: list | None = None) -> list:
     """Get project key files from config (from external config if available, otherwise default)."""
     if default is None:
         default = ["requirements.txt"]
@@ -384,7 +384,7 @@ def get_project_key_files(default: Optional[list] = None) -> list:
     return key_files if isinstance(key_files, list) else default
 
 
-def get_project_core_system_files(default: Optional[list] = None) -> list:
+def get_project_core_system_files(default: list | None = None) -> list:
     """Get project core system files from config (from external config if available, otherwise default).
 
     Checks project.core_system_files first, then falls back to project.key_files if not found.

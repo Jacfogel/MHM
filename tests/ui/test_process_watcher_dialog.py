@@ -14,13 +14,10 @@ from tests.conftest import ensure_qt_runtime
 ensure_qt_runtime()
 
 import pytest
-from unittest.mock import patch, Mock, MagicMock
-from datetime import datetime
+from unittest.mock import patch, MagicMock
 
 from core.time_utilities import now_datetime_full
 from PySide6.QtWidgets import QApplication, QTableWidgetItem
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtTest import QTest
 import logging
 
 logger = logging.getLogger("mhm_tests")
@@ -48,20 +45,19 @@ class TestProcessWatcherDialogInitialization:
         """Create process watcher dialog for testing."""
         with patch(
             "ui.dialogs.process_watcher_dialog.psutil.process_iter"
-        ) as mock_process_iter:
-            with patch(
-                "core.service_utilities.get_service_processes"
-            ) as mock_get_service:
-                mock_process_iter.return_value = []
-                mock_get_service.return_value = []
+        ) as mock_process_iter, patch(
+            "core.service_utilities.get_service_processes"
+        ) as mock_get_service:
+            mock_process_iter.return_value = []
+            mock_get_service.return_value = []
 
-                # Create dialog (DO NOT show() - this would display UI during testing)
-                dialog = ProcessWatcherDialog(parent=None)
+            # Create dialog (DO NOT show() - this would display UI during testing)
+            dialog = ProcessWatcherDialog(parent=None)
 
-                yield dialog
+            yield dialog
 
-                # Cleanup
-                dialog.deleteLater()
+            # Cleanup
+            dialog.deleteLater()
 
     @pytest.mark.ui
     @pytest.mark.ui
@@ -160,16 +156,15 @@ class TestProcessWatcherRefresh:
         """Create process watcher dialog for testing."""
         with patch(
             "ui.dialogs.process_watcher_dialog.psutil.process_iter"
-        ) as mock_process_iter:
-            with patch(
-                "core.service_utilities.get_service_processes"
-            ) as mock_get_service:
-                mock_process_iter.return_value = []
-                mock_get_service.return_value = []
+        ) as mock_process_iter, patch(
+            "core.service_utilities.get_service_processes"
+        ) as mock_get_service:
+            mock_process_iter.return_value = []
+            mock_get_service.return_value = []
 
-                dialog = ProcessWatcherDialog(parent=None)
-                yield dialog
-                dialog.deleteLater()
+            dialog = ProcessWatcherDialog(parent=None)
+            yield dialog
+            dialog.deleteLater()
 
     @pytest.mark.ui
     @pytest.mark.ui
@@ -287,30 +282,29 @@ class TestProcessWatcherRefresh:
         with patch(
             "core.service_utilities.get_service_processes",
             return_value=[mock_service_process],
-        ):
-            with patch(
-                "ui.dialogs.process_watcher_dialog.psutil.Process"
-            ) as mock_psutil_proc:
-                # Mock psutil.Process for getting additional info
-                mock_proc = MagicMock()
-                mock_proc.cpu_percent.return_value = 3.2
-                mock_proc.memory_percent.return_value = 1.5
-                mock_proc.status.return_value = "running"
-                mock_psutil_proc.return_value = mock_proc
+        ), patch(
+            "ui.dialogs.process_watcher_dialog.psutil.Process"
+        ) as mock_psutil_proc:
+            # Mock psutil.Process for getting additional info
+            mock_proc = MagicMock()
+            mock_proc.cpu_percent.return_value = 3.2
+            mock_proc.memory_percent.return_value = 1.5
+            mock_proc.status.return_value = "running"
+            mock_psutil_proc.return_value = mock_proc
 
-                dialog.update_mhm_processes()
+            dialog.update_mhm_processes()
 
-                # Verify table was updated
-                assert dialog.mhm_processes_table.rowCount() == 1, "Should have 1 row"
-                assert (
-                    dialog.mhm_processes_table.item(0, 0).text() == "54321"
-                ), "PID should be correct"
-                assert (
-                    dialog.mhm_processes_table.item(0, 1).text() == "headless"
-                ), "Type should be correct"
-                assert (
-                    dialog.mhm_processes_table.item(0, 6).text() == "running"
-                ), "Status should be correct"
+            # Verify table was updated
+            assert dialog.mhm_processes_table.rowCount() == 1, "Should have 1 row"
+            assert (
+                dialog.mhm_processes_table.item(0, 0).text() == "54321"
+            ), "PID should be correct"
+            assert (
+                dialog.mhm_processes_table.item(0, 1).text() == "headless"
+            ), "Type should be correct"
+            assert (
+                dialog.mhm_processes_table.item(0, 6).text() == "running"
+            ), "Status should be correct"
 
     @pytest.mark.ui
     @pytest.mark.ui
@@ -328,27 +322,26 @@ class TestProcessWatcherRefresh:
         with patch(
             "core.service_utilities.get_service_processes",
             return_value=[mock_service_process],
+        ), patch(
+            "ui.dialogs.process_watcher_dialog.psutil.Process",
+            side_effect=psutil.NoSuchProcess(54321),
         ):
-            with patch(
-                "ui.dialogs.process_watcher_dialog.psutil.Process",
-                side_effect=psutil.NoSuchProcess(54321),
-            ):
-                # Should not raise exception
-                dialog.update_mhm_processes()
+            # Should not raise exception
+            dialog.update_mhm_processes()
 
-                # Table should still be updated with default values
-                assert (
-                    dialog.mhm_processes_table.rowCount() == 1
-                ), "Should handle psutil errors gracefully"
-                assert (
-                    dialog.mhm_processes_table.item(0, 3).text() == "0.0%"
-                ), "CPU should default to 0.0%"
-                assert (
-                    dialog.mhm_processes_table.item(0, 4).text() == "0.0%"
-                ), "Memory should default to 0.0%"
-                assert (
-                    dialog.mhm_processes_table.item(0, 6).text() == "Unknown"
-                ), "Status should default to Unknown"
+            # Table should still be updated with default values
+            assert (
+                dialog.mhm_processes_table.rowCount() == 1
+            ), "Should handle psutil errors gracefully"
+            assert (
+                dialog.mhm_processes_table.item(0, 3).text() == "0.0%"
+            ), "CPU should default to 0.0%"
+            assert (
+                dialog.mhm_processes_table.item(0, 4).text() == "0.0%"
+            ), "Memory should default to 0.0%"
+            assert (
+                dialog.mhm_processes_table.item(0, 6).text() == "Unknown"
+            ), "Status should default to Unknown"
 
 
 class TestProcessWatcherAutoRefresh:
@@ -359,16 +352,15 @@ class TestProcessWatcherAutoRefresh:
         """Create process watcher dialog for testing."""
         with patch(
             "ui.dialogs.process_watcher_dialog.psutil.process_iter"
-        ) as mock_process_iter:
-            with patch(
-                "core.service_utilities.get_service_processes"
-            ) as mock_get_service:
-                mock_process_iter.return_value = []
-                mock_get_service.return_value = []
+        ) as mock_process_iter, patch(
+            "core.service_utilities.get_service_processes"
+        ) as mock_get_service:
+            mock_process_iter.return_value = []
+            mock_get_service.return_value = []
 
-                dialog = ProcessWatcherDialog(parent=None)
-                yield dialog
-                dialog.deleteLater()
+            dialog = ProcessWatcherDialog(parent=None)
+            yield dialog
+            dialog.deleteLater()
 
     @pytest.mark.ui
     @pytest.mark.ui
@@ -434,16 +426,15 @@ class TestProcessWatcherSelection:
         """Create process watcher dialog for testing."""
         with patch(
             "ui.dialogs.process_watcher_dialog.psutil.process_iter"
-        ) as mock_process_iter:
-            with patch(
-                "core.service_utilities.get_service_processes"
-            ) as mock_get_service:
-                mock_process_iter.return_value = []
-                mock_get_service.return_value = []
+        ) as mock_process_iter, patch(
+            "core.service_utilities.get_service_processes"
+        ) as mock_get_service:
+            mock_process_iter.return_value = []
+            mock_get_service.return_value = []
 
-                dialog = ProcessWatcherDialog(parent=None)
-                yield dialog
-                dialog.deleteLater()
+            dialog = ProcessWatcherDialog(parent=None)
+            yield dialog
+            dialog.deleteLater()
 
     @pytest.mark.ui
     @pytest.mark.ui
@@ -528,16 +519,15 @@ class TestProcessWatcherDetails:
         """Create process watcher dialog for testing."""
         with patch(
             "ui.dialogs.process_watcher_dialog.psutil.process_iter"
-        ) as mock_process_iter:
-            with patch(
-                "core.service_utilities.get_service_processes"
-            ) as mock_get_service:
-                mock_process_iter.return_value = []
-                mock_get_service.return_value = []
+        ) as mock_process_iter, patch(
+            "core.service_utilities.get_service_processes"
+        ) as mock_get_service:
+            mock_process_iter.return_value = []
+            mock_get_service.return_value = []
 
-                dialog = ProcessWatcherDialog(parent=None)
-                yield dialog
-                dialog.deleteLater()
+            dialog = ProcessWatcherDialog(parent=None)
+            yield dialog
+            dialog.deleteLater()
 
     @pytest.mark.ui
     @pytest.mark.ui
@@ -652,16 +642,15 @@ class TestProcessWatcherErrorHandling:
         """Create process watcher dialog for testing."""
         with patch(
             "ui.dialogs.process_watcher_dialog.psutil.process_iter"
-        ) as mock_process_iter:
-            with patch(
-                "core.service_utilities.get_service_processes"
-            ) as mock_get_service:
-                mock_process_iter.return_value = []
-                mock_get_service.return_value = []
+        ) as mock_process_iter, patch(
+            "core.service_utilities.get_service_processes"
+        ) as mock_get_service:
+            mock_process_iter.return_value = []
+            mock_get_service.return_value = []
 
-                dialog = ProcessWatcherDialog(parent=None)
-                yield dialog
-                dialog.deleteLater()
+            dialog = ProcessWatcherDialog(parent=None)
+            yield dialog
+            dialog.deleteLater()
 
     @pytest.mark.ui
     @pytest.mark.ui
@@ -732,16 +721,15 @@ class TestProcessWatcherClose:
         """Create process watcher dialog for testing."""
         with patch(
             "ui.dialogs.process_watcher_dialog.psutil.process_iter"
-        ) as mock_process_iter:
-            with patch(
-                "core.service_utilities.get_service_processes"
-            ) as mock_get_service:
-                mock_process_iter.return_value = []
-                mock_get_service.return_value = []
+        ) as mock_process_iter, patch(
+            "core.service_utilities.get_service_processes"
+        ) as mock_get_service:
+            mock_process_iter.return_value = []
+            mock_get_service.return_value = []
 
-                dialog = ProcessWatcherDialog(parent=None)
-                yield dialog
-                dialog.deleteLater()
+            dialog = ProcessWatcherDialog(parent=None)
+            yield dialog
+            dialog.deleteLater()
 
     @pytest.mark.ui
     @pytest.mark.ui
@@ -788,16 +776,15 @@ class TestProcessWatcherIntegration:
         """Create process watcher dialog for testing."""
         with patch(
             "ui.dialogs.process_watcher_dialog.psutil.process_iter"
-        ) as mock_process_iter:
-            with patch(
-                "core.service_utilities.get_service_processes"
-            ) as mock_get_service:
-                mock_process_iter.return_value = []
-                mock_get_service.return_value = []
+        ) as mock_process_iter, patch(
+            "core.service_utilities.get_service_processes"
+        ) as mock_get_service:
+            mock_process_iter.return_value = []
+            mock_get_service.return_value = []
 
-                dialog = ProcessWatcherDialog(parent=None)
-                yield dialog
-                dialog.deleteLater()
+            dialog = ProcessWatcherDialog(parent=None)
+            yield dialog
+            dialog.deleteLater()
 
     @pytest.mark.ui
     @pytest.mark.ui
@@ -826,21 +813,19 @@ class TestProcessWatcherIntegration:
         with patch(
             "ui.dialogs.process_watcher_dialog.psutil.process_iter",
             return_value=[mock_python_process],
-        ):
-            with patch(
-                "core.service_utilities.get_service_processes",
-                return_value=[mock_service_process],
-            ):
-                with patch(
-                    "ui.dialogs.process_watcher_dialog.psutil.Process"
-                ) as mock_psutil_proc:
-                    mock_proc = MagicMock()
-                    mock_proc.cpu_percent.return_value = 3.2
-                    mock_proc.memory_percent.return_value = 1.5
-                    mock_proc.status.return_value = "running"
-                    mock_psutil_proc.return_value = mock_proc
+        ), patch(
+            "core.service_utilities.get_service_processes",
+            return_value=[mock_service_process],
+        ), patch(
+            "ui.dialogs.process_watcher_dialog.psutil.Process"
+        ) as mock_psutil_proc:
+            mock_proc = MagicMock()
+            mock_proc.cpu_percent.return_value = 3.2
+            mock_proc.memory_percent.return_value = 1.5
+            mock_proc.status.return_value = "running"
+            mock_psutil_proc.return_value = mock_proc
 
-                    dialog.refresh_processes()
+            dialog.refresh_processes()
 
         # Assert: Verify both tables were updated (side effects)
         assert (
@@ -938,10 +923,9 @@ class TestProcessWatcherIntegration:
         with patch(
             "ui.dialogs.process_watcher_dialog.psutil.process_iter",
             return_value=[mock_proc],
-        ):
-            with patch("core.service_utilities.get_service_processes", return_value=[]):
-                dialog.refresh_timer.timeout.emit()
-                QApplication.processEvents()
+        ), patch("core.service_utilities.get_service_processes", return_value=[]):
+            dialog.refresh_timer.timeout.emit()
+            QApplication.processEvents()
 
         # Assert: Verify refresh occurred (side effect)
         assert (

@@ -285,7 +285,7 @@ class EmailBot(BaseChannel):
             logger.debug("Email processing completed successfully")
             mail.close()
             mail.logout()
-        except socket.timeout as e:
+        except TimeoutError as e:
             # Rate limit timeout logging to once per hour (expected behavior when no emails)
             current_time = time.time()
             time_since_last_log = current_time - EmailBot._last_timeout_log_time

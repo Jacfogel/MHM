@@ -241,7 +241,6 @@ class TestDiscordRichFormatter:
         """Test: create_embed sets timestamp on embed"""
         # Arrange
         message = "Test message"
-        from datetime import datetime
 
         timestamp = now_datetime_full()
         rich_data = {"timestamp": timestamp}

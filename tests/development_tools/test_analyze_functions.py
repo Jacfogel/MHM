@@ -6,7 +6,7 @@ Tests function discovery, categorization, and complexity analysis functionality.
 
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import shutil
 import uuid
 
@@ -692,14 +692,13 @@ class TestAnalyzeFunctionsMain:
         """Test main function with --json flag."""
         import sys
         from io import StringIO
-        from unittest.mock import patch
 
         # Mock all the functions that main() calls to prevent actual scanning
         with (
             patch.object(functions_module, "scan_all_functions") as mock_scan,
             patch.object(functions_module, "categorize_functions") as mock_categorize,
             patch.object(functions_module, "validate_results", return_value=True),
-            patch.object(functions_module, "logger") as mock_logger,
+            patch.object(functions_module, "logger"),
         ):
 
             # Set up return values
@@ -750,15 +749,14 @@ class TestAnalyzeFunctionsMain:
         """Test main function with --include-tests flag."""
         import sys
         from io import StringIO
-        from unittest.mock import patch
 
         # Mock all the functions that main() calls to prevent actual scanning
         with (
             patch.object(functions_module, "scan_all_functions") as mock_scan,
             patch.object(functions_module, "categorize_functions") as mock_categorize,
-            patch.object(functions_module, "print_summary") as mock_print,
+            patch.object(functions_module, "print_summary"),
             patch.object(functions_module, "validate_results", return_value=True),
-            patch.object(functions_module, "logger") as mock_logger,
+            patch.object(functions_module, "logger"),
         ):
 
             # Set up return values

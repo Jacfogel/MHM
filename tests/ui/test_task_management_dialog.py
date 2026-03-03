@@ -15,11 +15,9 @@ from tests.conftest import ensure_qt_runtime
 ensure_qt_runtime()
 
 import pytest
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, Mock
 import uuid
-from PySide6.QtWidgets import QApplication, QMessageBox
-from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QApplication
 import logging
 logger = logging.getLogger("mhm_tests")
 
@@ -392,7 +390,7 @@ class TestTaskManagementDialogHelpers:
         with patch.object(dialog.task_widget, 'get_statistics', side_effect=Exception("Test error")):
             # Act & Assert - Should handle error
             try:
-                stats = dialog.get_statistics()
+                dialog.get_statistics()
                 # May return None or empty dict depending on error handling
             except Exception:
                 # Error should be handled by @handle_errors decorator
@@ -626,7 +624,7 @@ class TestTaskManagementDialogRealBehavior:
                                 dialog.save_task_settings()
                             
                             # Create new dialog instance to simulate reload
-                            new_dialog = TaskManagementDialog(parent=None, user_id=test_user)
+                            TaskManagementDialog(parent=None, user_id=test_user)
                             
                             # Assert - Verify data persists (use real function)
                             persisted_data = {}

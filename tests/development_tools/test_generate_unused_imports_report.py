@@ -5,11 +5,8 @@ Tests report generation from analysis results, file creation, and rotation.
 """
 
 import pytest
-import json
-from pathlib import Path
-from unittest.mock import patch, MagicMock
 
-from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
+from tests.development_tools.conftest import load_development_tools_module
 
 # Load modules
 report_module = load_development_tools_module("imports.generate_unused_imports_report")
@@ -287,11 +284,9 @@ class TestReportFileCreation:
             archived_files = list(archive_dir.glob("UNUSED_IMPORTS_REPORT_*.md"))
             if archived_files:
                 # Verify at least one archived file contains original content
-                found_original = False
                 for archived_file in archived_files:
                     archived_content = archived_file.read_text(encoding='utf-8')
                     if 'Updated content' not in archived_content and '# Unused Imports Report' in archived_content:
-                        found_original = True
                         break
                 # If we found archived files, at least one should have original content
                 # (but don't fail if rotation didn't occur - that's tested elsewhere)

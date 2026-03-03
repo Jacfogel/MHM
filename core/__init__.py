@@ -364,6 +364,8 @@ __all__ = [
     "store_sent_message",
     "get_message_categories",
     "load_user_messages",
+    "add_message",
+    "archive_old_messages",
     # Response tracking
     "get_recent_responses",
     "store_chat_interaction",

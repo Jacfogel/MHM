@@ -10,8 +10,8 @@ ensure_qt_runtime()
 
 
 import pytest
-from unittest.mock import patch, Mock
-from PySide6.QtWidgets import QApplication, QTableWidgetItem
+from unittest.mock import patch
+from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Qt
 
 # Set headless mode for Qt - use monkeypatch in tests instead of direct assignment

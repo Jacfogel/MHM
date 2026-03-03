@@ -9,7 +9,8 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any
+from collections.abc import Sequence
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -99,15 +100,15 @@ PLACEHOLDER_PATTERNS = (
 
 
 def extract_sections(
-    content: str, heading_patterns: Optional[List[str]] = None
-) -> Dict[str, str]:
+    content: str, heading_patterns: list[str] | None = None
+) -> dict[str, str]:
     """Extract sections from content using configurable heading patterns."""
     if heading_patterns is None:
         heading_patterns = DOC_ANALYSIS_CONFIG.get("heading_patterns", ["## ", "### "])
 
-    sections: Dict[str, str] = {}
+    sections: dict[str, str] = {}
     current = "Introduction"
-    buffer: List[str] = []
+    buffer: list[str] = []
     # Ensure heading_patterns is not None (should be guaranteed by line 76, but type checker needs help)
     assert heading_patterns is not None, "heading_patterns should be set by default"
     for line in content.splitlines():
@@ -125,9 +126,9 @@ def extract_sections(
     return sections
 
 
-def load_documents(paths: Sequence[str]) -> Tuple[Dict[str, str], List[str]]:
-    docs: Dict[str, str] = {}
-    missing: List[str] = []
+def load_documents(paths: Sequence[str]) -> tuple[dict[str, str], list[str]]:
+    docs: dict[str, str] = {}
+    missing: list[str] = []
     for rel in paths:
         if should_exclude_file(rel, tool_type="documentation", context="development"):
             continue
@@ -140,8 +141,8 @@ def load_documents(paths: Sequence[str]) -> Tuple[Dict[str, str], List[str]]:
 
 
 def analyse_topics(
-    docs: Dict[str, str], keyword_map: Optional[Dict[str, List[str]]] = None
-) -> Dict[str, List[str]]:
+    docs: dict[str, str], keyword_map: dict[str, list[str]] | None = None
+) -> dict[str, list[str]]:
     """Analyze topics in documents using configurable keyword map."""
     if keyword_map is None:
         keyword_map = DOC_ANALYSIS_CONFIG.get(
@@ -173,8 +174,8 @@ def analyse_topics(
     return dict(topics)
 
 
-def detect_duplicates(docs: Dict[str, str]) -> List[Dict[str, object]]:
-    duplicates: List[Dict[str, object]] = []
+def detect_duplicates(docs: dict[str, str]) -> list[dict[str, object]]:
+    duplicates: list[dict[str, object]] = []
     for human_path, ai_path in PAIRED_DOCS.items():
         human_text = docs.get(human_path)
         ai_text = docs.get(ai_path)
@@ -200,8 +201,8 @@ def detect_duplicates(docs: Dict[str, str]) -> List[Dict[str, object]]:
     return duplicates
 
 
-def detect_placeholders(docs: Dict[str, str]) -> List[Dict[str, object]]:
-    matches: List[Dict[str, object]] = []
+def detect_placeholders(docs: dict[str, str]) -> list[dict[str, object]]:
+    matches: list[dict[str, object]] = []
     for name, content in docs.items():
         hits = []
         for pattern in PLACEHOLDER_PATTERNS:
@@ -213,8 +214,8 @@ def detect_placeholders(docs: Dict[str, str]) -> List[Dict[str, object]]:
     return matches
 
 
-def detect_corrupted_artifacts(docs: Dict[str, str]) -> List[Dict[str, object]]:
-    issues: List[Dict[str, object]] = []
+def detect_corrupted_artifacts(docs: dict[str, str]) -> list[dict[str, object]]:
+    issues: list[dict[str, object]] = []
     for name, content in docs.items():
         for idx, line in enumerate(content.splitlines(), 1):
             for label, pattern in CORRUPTED_ARTIFACT_PATTERNS:
@@ -231,8 +232,8 @@ def detect_corrupted_artifacts(docs: Dict[str, str]) -> List[Dict[str, object]]:
     return issues
 
 
-def document_profiles(docs: Dict[str, str]) -> List[str]:
-    lines: List[str] = []
+def document_profiles(docs: dict[str, str]) -> list[str]:
+    lines: list[str] = []
     for name, content in sorted(docs.items()):
         sections = extract_sections(content)
         preview = ", ".join(sections.keys())
@@ -242,7 +243,7 @@ def document_profiles(docs: Dict[str, str]) -> List[str]:
     return lines
 
 
-def detect_section_overlaps(docs: Dict[str, str]) -> Dict[str, List[str]]:
+def detect_section_overlaps(docs: dict[str, str]) -> dict[str, list[str]]:
     """Detect sections that appear in multiple files (overlap detection).
 
     Enhanced to provide more actionable insights:
@@ -263,8 +264,8 @@ def detect_section_overlaps(docs: Dict[str, str]) -> Dict[str, List[str]]:
         paired_doc_files.add(human_doc)
         paired_doc_files.add(ai_doc)
 
-    section_files: Dict[str, List[str]] = defaultdict(list)
-    section_content: Dict[str, Dict[str, str]] = defaultdict(
+    section_files: dict[str, list[str]] = defaultdict(list)
+    section_content: dict[str, dict[str, str]] = defaultdict(
         dict
     )  # section -> file -> content
 
@@ -312,7 +313,7 @@ def detect_section_overlaps(docs: Dict[str, str]) -> Dict[str, List[str]]:
     return overlaps
 
 
-def analyze_file_purposes(docs: Dict[str, str]) -> Dict[str, Dict[str, object]]:
+def analyze_file_purposes(docs: dict[str, str]) -> dict[str, dict[str, object]]:
     """Analyze the purpose and content of each documentation file."""
     purposes = {}
 
@@ -338,8 +339,8 @@ def analyze_file_purposes(docs: Dict[str, str]) -> Dict[str, Dict[str, object]]:
 
 
 def generate_consolidation_recommendations(
-    docs: Dict[str, str],
-) -> List[Dict[str, object]]:
+    docs: dict[str, str],
+) -> list[dict[str, object]]:
     """Generate recommendations for consolidating documentation files.
 
     Enhanced to provide more actionable insights:
@@ -351,12 +352,12 @@ def generate_consolidation_recommendations(
     recommendations = []
 
     # Analyze file purposes more deeply
-    file_purposes = analyze_file_purposes(docs)
+    analyze_file_purposes(docs)
 
     # Group files by purpose keywords (enhanced)
     setup_files = [
         f
-        for f in docs.keys()
+        for f in docs
         if any(
             kw in f.lower()
             for kw in ["setup", "run", "install", "how_to", "getting_started"]
@@ -377,7 +378,7 @@ def generate_consolidation_recommendations(
 
     workflow_files = [
         f
-        for f in docs.keys()
+        for f in docs
         if any(
             kw in f.lower() for kw in ["workflow", "development", "guideline", "guide"]
         )
@@ -395,7 +396,7 @@ def generate_consolidation_recommendations(
         )
 
     testing_files = [
-        f for f in docs.keys() if "test" in f.lower() and "test_" not in f.lower()
+        f for f in docs if "test" in f.lower() and "test_" not in f.lower()
     ]
     if len(testing_files) > 1:
         similar_content = _check_content_similarity(docs, testing_files)
@@ -427,7 +428,7 @@ def generate_consolidation_recommendations(
     return recommendations
 
 
-def _check_content_similarity(docs: Dict[str, str], file_list: List[str]) -> float:
+def _check_content_similarity(docs: dict[str, str], file_list: list[str]) -> float:
     """Check content similarity between files (simple word-based similarity)."""
     if len(file_list) < 2:
         return 0.0
@@ -458,12 +459,12 @@ def _check_content_similarity(docs: Dict[str, str], file_list: List[str]) -> flo
 
 
 def _identify_high_overlap_files(
-    docs: Dict[str, str], section_overlaps: Dict[str, List[str]]
-) -> List[Dict[str, Any]]:
+    docs: dict[str, str], section_overlaps: dict[str, list[str]]
+) -> list[dict[str, Any]]:
     """Identify groups of files with high section overlap."""
     # Count overlaps per file pair
     file_pair_overlaps = defaultdict(int)
-    for section, files in section_overlaps.items():
+    for _section, files in section_overlaps.items():
         # Count overlaps for each pair of files
         for i in range(len(files)):
             for j in range(i + 1, len(files)):
@@ -504,14 +505,14 @@ def _identify_high_overlap_files(
 
 
 def format_summary(
-    docs: Dict[str, str],
-    missing: List[str],
-    duplicates: List[Dict[str, Any]],
-    placeholders: List[Dict[str, Any]],
-    artifacts: List[Dict[str, Any]],
+    docs: dict[str, str],
+    missing: list[str],
+    duplicates: list[dict[str, Any]],
+    placeholders: list[dict[str, Any]],
+    artifacts: list[dict[str, Any]],
     include_overlap: bool = False,
 ) -> str:
-    blocks: List[str] = []
+    blocks: list[str] = []
     blocks.append(
         summary_block("Files Analysed", [f"{len(docs)} files", *sorted(docs.keys())])
     )
@@ -573,8 +574,8 @@ def format_summary(
 
 def execute(
     args: argparse.Namespace,
-    project_root: Optional[Path] = None,
-    config_path: Optional[str] = None,
+    project_root: Path | None = None,
+    config_path: str | None = None,
 ):
     """Execute documentation analysis with optional project_root and config_path."""
     # Load config if path provided

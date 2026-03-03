@@ -6,11 +6,10 @@ and placeholder content detection.
 """
 
 import pytest
-import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from tests.development_tools.conftest import load_development_tools_module, demo_project_root
+from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module
 docs_module = load_development_tools_module("docs.analyze_documentation")

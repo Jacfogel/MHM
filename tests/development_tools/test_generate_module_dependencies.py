@@ -5,7 +5,6 @@ Tests import extraction, dependency analysis, and manual enhancement preservatio
 """
 
 import pytest
-from pathlib import Path
 
 # Import helper from conftest
 from tests.development_tools.conftest import load_development_tools_module
@@ -106,7 +105,7 @@ class TestDependencyAnalysis:
         assert len(results) > 0, f"No files found. Results: {list(results.keys())}"
         
         # Should have imports data
-        for file_path, data in results.items():
+        for _file_path, data in results.items():
             assert 'imports' in data
             assert 'total_imports' in data
     
@@ -146,7 +145,7 @@ class TestDependencyAnalysis:
         
         # Verify demo_module2 imports from demo_module (may be in local or third_party)
         all_imports = imports.get('local', []) + imports.get('third_party', [])
-        demo_module_imports = [imp for imp in all_imports if imp['module'] == 'demo_module']
+        [imp for imp in all_imports if imp['module'] == 'demo_module']
         
         # The import might not be found if demo_module is classified differently
         # or if the scan didn't pick it up. This is acceptable - the test verifies

@@ -5,7 +5,6 @@ Centralized test helper functions to eliminate redundancy across test files
 """
 
 import os
-import tempfile
 import shutil
 import json
 import logging
@@ -17,8 +16,6 @@ from typing import Any
 
 # Do not modify sys.path; rely on package imports
 
-from core.user_data_handlers import create_new_user, save_user_data, get_user_data
-from core.file_operations import ensure_user_directory
 from core.time_utilities import (
     now_datetime_full,
     now_timestamp_full,
@@ -2751,7 +2748,7 @@ class TestUserFactory:
             # First try to find the user by internal username in the user index
             user_index_file = os.path.join(test_data_dir, "user_index.json")
             if os.path.exists(user_index_file):
-                with open(user_index_file, "r", encoding="utf-8") as f:
+                with open(user_index_file, encoding="utf-8") as f:
                     user_index = json.load(f)
 
                 if user_id in user_index:
@@ -2764,25 +2761,25 @@ class TestUserFactory:
                     # Load account data
                     account_file = os.path.join(user_dir, "account.json")
                     if os.path.exists(account_file):
-                        with open(account_file, "r", encoding="utf-8") as f:
+                        with open(account_file, encoding="utf-8") as f:
                             result["account"] = json.load(f)
 
                     # Load preferences data
                     preferences_file = os.path.join(user_dir, "preferences.json")
                     if os.path.exists(preferences_file):
-                        with open(preferences_file, "r", encoding="utf-8") as f:
+                        with open(preferences_file, encoding="utf-8") as f:
                             result["preferences"] = json.load(f)
 
                     # Load context data
                     context_file = os.path.join(user_dir, "user_context.json")
                     if os.path.exists(context_file):
-                        with open(context_file, "r", encoding="utf-8") as f:
+                        with open(context_file, encoding="utf-8") as f:
                             result["context"] = json.load(f)
 
                     # Load schedules data
                     schedules_file = os.path.join(user_dir, "schedules.json")
                     if os.path.exists(schedules_file):
-                        with open(schedules_file, "r", encoding="utf-8") as f:
+                        with open(schedules_file, encoding="utf-8") as f:
                             result["schedules"] = json.load(f)
 
                     return result
@@ -2883,7 +2880,7 @@ class TestUserFactory:
             account_file = os.path.join(user_dir, "account.json")
             if os.path.exists(account_file):
                 try:
-                    with open(account_file, "r", encoding="utf-8") as f:
+                    with open(account_file, encoding="utf-8") as f:
                         account_data = json.load(f)
                         email = account_data.get("email")
                 except Exception:
@@ -2935,7 +2932,8 @@ class TestDataManager:
         # Create temporary test directory
         # Use per-test path under tests/data instead of system temp
         from tests.conftest import tests_data_dir  # reuse base
-        import uuid, os
+        import uuid
+        import os
 
         base_tmp = os.path.join(tests_data_dir, "tmp")
         # Base tmp directory should already exist from session fixture, but ensure it exists
@@ -3377,7 +3375,6 @@ class TestLogPathMocks:
         Returns:
             Dict with all log path keys required by the logger system
         """
-        from pathlib import Path
 
         base_path = Path(base_dir)
 

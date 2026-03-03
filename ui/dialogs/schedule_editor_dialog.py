@@ -7,7 +7,8 @@ Schedule Editor Dialog
 Implementation using generated UI class (no QUiLoader).
 """
 
-from typing import Dict, Any, Optional, Callable
+from typing import Any
+from collections.abc import Callable
 from pathlib import Path
 
 # PySide6 imports
@@ -361,7 +362,6 @@ class ScheduleEditorDialog(QDialog):
         """Trigger rescheduling for this user and category when schedule changes."""
         try:
             import json
-            import os
 
             # Create a reschedule request file that the service will pick up
             request_data = {

@@ -5,8 +5,6 @@ Tests the documentation ASCII fixer that replaces non-ASCII characters.
 """
 
 import pytest
-import tempfile
-from pathlib import Path
 from unittest.mock import patch
 
 from tests.development_tools.conftest import load_development_tools_module
@@ -98,7 +96,7 @@ class TestFixDocumentationASCII:
             result = fixer.fix_ascii(dry_run=True)
         
         # In dry run, file should not be modified but should report what would change
-        content = doc_file.read_text(encoding='utf-8')
+        doc_file.read_text(encoding='utf-8')
         # File may or may not be modified depending on implementation
         assert isinstance(result, dict), "Should return result dict"
         assert result['files_updated'] >= 0, "Should report files that would be updated"

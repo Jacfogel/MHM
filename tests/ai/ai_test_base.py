@@ -5,7 +5,6 @@ Provides shared utilities for all AI test modules.
 """
 
 import os
-from datetime import datetime
 
 from unittest.mock import patch
 
@@ -252,7 +251,6 @@ class AITestBase:
                 is_user_checkins_enabled,
             )
             from core.user_data_handlers import get_user_data
-            from datetime import datetime
 
             # Check feature enablement
             account_result = get_user_data(user_id, "account")

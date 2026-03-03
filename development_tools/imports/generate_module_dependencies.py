@@ -8,7 +8,6 @@ Orchestrates import analysis, pattern analysis, and content generation.
 """
 
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
 import sys
 
 # Add project root to path for core module imports
@@ -58,10 +57,10 @@ logger = get_component_logger("development_tools")
 
 
 def generate_module_dependencies_content(
-    actual_imports: Dict[str, Dict], existing_content: str = ""
+    actual_imports: dict[str, dict], existing_content: str = ""
 ) -> str:
     """Generate comprehensive module dependencies content with hybrid format."""
-    content: List[str] = []
+    content: list[str] = []
 
     generated_at = now_timestamp_full()
     generated_date = now_timestamp_full().split(" ")[0]
@@ -169,7 +168,7 @@ def generate_module_dependencies_content(
     content.append("## Module Dependencies by Directory")
     content.append("")
 
-    dir_files: Dict[str, List[Tuple[str, Dict]]] = {}
+    dir_files: dict[str, list[tuple[str, dict]]] = {}
     for file_path, data in actual_imports.items():
         dir_name = file_path.split("/")[0] if "/" in file_path else "root"
         dir_files.setdefault(dir_name, []).append((file_path, data))
@@ -265,8 +264,8 @@ def get_module_purpose(file_path: str) -> str:
 
 
 def generate_module_section(
-    file_path: str, data: Dict, all_modules: Dict[str, Dict], existing_content: str = ""
-) -> List[str]:
+    file_path: str, data: dict, all_modules: dict[str, dict], existing_content: str = ""
+) -> list[str]:
     """Generate a module section with enhanced automated analysis."""
     content = []
 
@@ -381,7 +380,7 @@ def generate_module_section(
 
 def preserve_manual_enhancements(
     existing_content: str, new_content: str
-) -> Tuple[str, Dict[str, str]]:
+) -> tuple[str, dict[str, str]]:
     """
     Preserve manual enhancements from existing content when regenerating.
 
@@ -512,8 +511,8 @@ def preserve_manual_enhancements(
 
 
 def identify_modules_needing_enhancement(
-    existing_content: str, actual_imports: Dict[str, Dict]
-) -> Dict[str, str]:
+    existing_content: str, actual_imports: dict[str, dict]
+) -> dict[str, str]:
     """Identify modules that need manual enhancements or updates."""
     enhancement_status = {}
 
@@ -560,7 +559,7 @@ def identify_modules_needing_enhancement(
                 existing_enhancements[section_name] = "missing"
 
     # Analyze each module
-    for file_path, data in actual_imports.items():
+    for file_path, _data in actual_imports.items():
         section_name = file_path  # Use file_path directly as section name
 
         if section_name not in existing_enhancements:
@@ -578,7 +577,7 @@ def identify_modules_needing_enhancement(
     return enhancement_status
 
 
-def generate_ai_module_dependencies_content(actual_imports: Dict[str, Dict]) -> str:
+def generate_ai_module_dependencies_content(actual_imports: dict[str, dict]) -> str:
     """Generate the AI-facing dependency summary - dynamic and data-driven."""
     generated_at = now_timestamp_full()
 
@@ -608,7 +607,7 @@ def generate_ai_module_dependencies_content(actual_imports: Dict[str, Dict]) -> 
     # Detect risk areas dynamically
     risk_areas = pattern_analyzer.detect_risk_areas(actual_imports, patterns)
 
-    lines: List[str] = []
+    lines: list[str] = []
     lines.extend(
         [
             "# AI Module Dependencies - Key Relationships & Patterns",
@@ -667,7 +666,7 @@ def generate_ai_module_dependencies_content(actual_imports: Dict[str, Dict]) -> 
 # Pattern analysis functions are now in analyze_dependency_patterns.py
 
 
-def update_module_dependencies(local_prefixes: Optional[Tuple[str, ...]] = None):
+def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
     """
     Update MODULE_DEPENDENCIES_DETAIL.md and AI_MODULE_DEPENDENCIES.md with hybrid approach.
 
@@ -691,7 +690,7 @@ def update_module_dependencies(local_prefixes: Optional[Tuple[str, ...]] = None)
     existing_content = ""
     if detail_path.exists():
         try:
-            with open(detail_path, "r", encoding="utf-8") as f:
+            with open(detail_path, encoding="utf-8") as f:
                 existing_content = f.read()
         except Exception as e:
             logger.warning(ensure_ascii(f"Could not read existing file: {e}"))
@@ -741,21 +740,21 @@ def update_module_dependencies(local_prefixes: Optional[Tuple[str, ...]] = None)
 
         logger.info(
             ensure_ascii(
-                f"[SUCCESS] Both module dependency files updated successfully!"
+                "[SUCCESS] Both module dependency files updated successfully!"
             )
         )
-        logger.info(ensure_ascii(f"[FILES] Generated:"))
+        logger.info(ensure_ascii("[FILES] Generated:"))
         logger.info(
             ensure_ascii(
-                f"   development_docs/MODULE_DEPENDENCIES_DETAIL.md - Complete detailed dependencies"
+                "   development_docs/MODULE_DEPENDENCIES_DETAIL.md - Complete detailed dependencies"
             )
         )
         logger.info(
             ensure_ascii(
-                f"   ai_development_docs/AI_MODULE_DEPENDENCIES.md - Concise AI-focused dependencies"
+                "   ai_development_docs/AI_MODULE_DEPENDENCIES.md - Concise AI-focused dependencies"
             )
         )
-        logger.info(ensure_ascii(f"[STATS] Statistics:"))
+        logger.info(ensure_ascii("[STATS] Statistics:"))
         logger.info(ensure_ascii(f"   Files scanned: {len(actual_imports)}"))
         logger.info(
             ensure_ascii(
@@ -767,7 +766,7 @@ def update_module_dependencies(local_prefixes: Optional[Tuple[str, ...]] = None)
                 f"   Local dependencies: {sum(len(data['imports']['local']) for data in actual_imports.values())}"
             )
         )
-        logger.info(ensure_ascii(f"   Coverage: 100% (all files documented)"))
+        logger.info(ensure_ascii("   Coverage: 100% (all files documented)"))
         logger.info(ensure_ascii(f"   Detail file: {detail_path}"))
         logger.info(ensure_ascii(f"   AI file: {ai_path}"))
 
@@ -784,11 +783,11 @@ def update_module_dependencies(local_prefixes: Optional[Tuple[str, ...]] = None)
                 logger.info(ensure_ascii(f"   {module_name}: {enhancement_summary}"))
         else:
             logger.info(
-                ensure_ascii(f"[PRESERVED] No manual enhancements found to preserve")
+                ensure_ascii("[PRESERVED] No manual enhancements found to preserve")
             )
 
         # Report enhancement status
-        logger.info(ensure_ascii(f"[ENHANCEMENT] Manual Enhancement Status:"))
+        logger.info(ensure_ascii("[ENHANCEMENT] Manual Enhancement Status:"))
         status_counts = {}
         for status in enhancement_status.values():
             status_counts[status] = status_counts.get(status, 0) + 1
@@ -825,11 +824,11 @@ def update_module_dependencies(local_prefixes: Optional[Tuple[str, ...]] = None)
         # Validate that preserved enhancements are actually in the written file
         if preserved_enhancements:
             try:
-                with open(detail_path, "r", encoding="utf-8") as f:
+                with open(detail_path, encoding="utf-8") as f:
                     written_content = f.read()
 
                 preserved_count = 0
-                for module_name, enhancement_summary in preserved_enhancements.items():
+                for _module_name, enhancement_summary in preserved_enhancements.items():
                     # Check if the enhancement content appears in the written file
                     if enhancement_summary.split("\n")[0] in written_content:
                         preserved_count += 1

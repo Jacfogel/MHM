@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import socket
 from email.message import EmailMessage
 
 import pytest
@@ -173,7 +172,7 @@ class TestEmailBotGapCoverage:
         bot = EmailBot()
         bot._last_timeout_log_time = 0
 
-        mailbox = _FakeImapMailbox(search_error=socket.timeout("timed out"))
+        mailbox = _FakeImapMailbox(search_error=TimeoutError("timed out"))
         monkeypatch.setattr(bot, "_get_email_config", lambda: ("smtp", "imap", "user", "pass"))
         monkeypatch.setattr(
             "communication.communication_channels.email.bot.imaplib.IMAP4_SSL",

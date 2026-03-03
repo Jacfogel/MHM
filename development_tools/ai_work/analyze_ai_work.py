@@ -17,7 +17,6 @@ import ast
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
 
 # YAML support removed - not needed for lightweight structural validation
 
@@ -96,7 +95,7 @@ def _should_exclude_path(
     return should_exclude_file(path_value, tool_type=tool_type, context=context)
 
 
-def validate_documentation_completeness(doc_file: str, code_files: List[str]) -> Dict:
+def validate_documentation_completeness(doc_file: str, code_files: list[str]) -> dict:
     """Validate that documentation covers all relevant code."""
     results = {
         "file_exists": False,
@@ -125,7 +124,7 @@ def validate_documentation_completeness(doc_file: str, code_files: List[str]) ->
 
     # Read documentation content
     try:
-        with open(doc_path, "r", encoding="utf-8") as f:
+        with open(doc_path, encoding="utf-8") as f:
             doc_content = f.read()
     except Exception as e:
         results["warnings"].append(f"Error reading {doc_file}: {e}")
@@ -152,16 +151,14 @@ def validate_documentation_completeness(doc_file: str, code_files: List[str]) ->
         code_path = Path(code_file)
         if code_path.exists():
             try:
-                with open(code_path, "r", encoding="utf-8") as f:
+                with open(code_path, encoding="utf-8") as f:
                     content = f.read()
 
                 tree = ast.parse(content)
 
                 # Extract function names
                 for node in ast.walk(tree):
-                    if isinstance(node, ast.FunctionDef):
-                        actual_items.add(node.name)
-                    elif isinstance(node, ast.ClassDef):
+                    if isinstance(node, ast.FunctionDef) or isinstance(node, ast.ClassDef):
                         actual_items.add(node.name)
 
                 # Add file name
@@ -188,7 +185,7 @@ def validate_documentation_completeness(doc_file: str, code_files: List[str]) ->
     return results
 
 
-def validate_code_consistency(changed_files: List[str]) -> Dict:
+def validate_code_consistency(changed_files: list[str]) -> dict:
     """Validate that code changes are consistent across files."""
     results = {
         "import_consistency": True,
@@ -205,7 +202,7 @@ def validate_code_consistency(changed_files: List[str]) -> Dict:
         ):
             continue
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             tree = ast.parse(content)
@@ -254,8 +251,8 @@ def validate_code_consistency(changed_files: List[str]) -> Dict:
 
 
 def validate_file_structure(
-    created_files: List[str], modified_files: List[str]
-) -> Dict:
+    created_files: list[str], modified_files: list[str]
+) -> dict:
     """Validate that file structure changes are appropriate."""
     results = {
         "appropriate_locations": True,
@@ -330,7 +327,7 @@ def generate_validation_report(validation_type: str, **kwargs) -> str:
     elif validation_type == "code_consistency":
         results = validate_code_consistency(kwargs.get("changed_files", []))
 
-        report.append(f"Code Consistency Check")
+        report.append("Code Consistency Check")
         report.append(f"Import Consistency: {results['import_consistency']}")
         report.append(f"Naming Consistency: {results['naming_consistency']}")
         report.append(f"Functions Found: {len(results['function_signatures'])}")
@@ -345,7 +342,7 @@ def generate_validation_report(validation_type: str, **kwargs) -> str:
             kwargs.get("created_files", []), kwargs.get("modified_files", [])
         )
 
-        report.append(f"File Structure Validation")
+        report.append("File Structure Validation")
         report.append(f"Appropriate Locations: {results['appropriate_locations']}")
         report.append(f"Naming Conventions: {results['naming_conventions']}")
 
@@ -386,10 +383,10 @@ def generate_validation_report(validation_type: str, **kwargs) -> str:
 
 def analyze_ai_work(
     work_type: str,
-    project_root: Optional[str] = None,
-    config_path: Optional[str] = None,
+    project_root: str | None = None,
+    config_path: str | None = None,
     **kwargs,
-) -> Dict:
+) -> dict:
     """
     Main validation function for AI work.
 
@@ -421,7 +418,7 @@ def analyze_ai_work(
 
                 if rule_path_obj.exists():
                     try:
-                        with open(rule_path_obj, "r", encoding="utf-8") as f:
+                        with open(rule_path_obj, encoding="utf-8") as f:
                             if rule_path_obj.suffix in (".yaml", ".yml"):
                                 logger.warning(
                                     f"YAML rule files not supported, skipping {rule_path}"
@@ -468,8 +465,8 @@ def analyze_ai_work(
 
 
 def execute(
-    project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs
-) -> Dict:
+    project_root: str | None = None, config_path: str | None = None, **kwargs
+) -> dict:
     """Execute validation (for use by run_development_tools)."""
     work_type = kwargs.pop("work_type", "documentation")
     return analyze_ai_work(

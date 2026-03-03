@@ -9,7 +9,6 @@ Scans all .py files and extracts import information for comparison.
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 # Add project root to path for core module imports
 # Script is at: development_tools/imports/analyze_module_dependencies.py
@@ -43,7 +42,7 @@ DEPENDENCY_DOC_PATH = AUDIT_DEPS_CONFIG.get(
 logger = get_component_logger("development_tools")
 
 
-def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
+def extract_imports_from_file(file_path: str) -> dict[str, list[str]]:
     """Extract all imports from a Python file.
 
     Returns simplified format (Dict[str, List[str]]) for compatibility with audit tool.
@@ -67,7 +66,7 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
     return simple_imports
 
 
-def scan_all_python_files() -> Dict[str, Dict]:
+def scan_all_python_files() -> dict[str, dict]:
     """Scan all Python files in the project and extract import information.
 
     Uses ModuleImportAnalyzer from analyze_module_imports.py internally.
@@ -96,7 +95,7 @@ def scan_all_python_files() -> Dict[str, Dict]:
     return results
 
 
-def parse_module_dependencies() -> Dict[str, List[str]]:
+def parse_module_dependencies() -> dict[str, list[str]]:
     """Parse the existing dependency doc to extract documented dependencies."""
     # Script is at: development_tools/imports/analyze_module_dependencies.py
     # So we need to go up 2 levels to get to project root
@@ -105,7 +104,7 @@ def parse_module_dependencies() -> Dict[str, List[str]]:
     documented = {}
 
     try:
-        with open(deps_path, "r", encoding="utf-8") as f:
+        with open(deps_path, encoding="utf-8") as f:
             content = f.read()
 
         # Extract file sections and their dependencies (new format)
@@ -137,7 +136,7 @@ def parse_module_dependencies() -> Dict[str, List[str]]:
     return documented
 
 
-def generate_updated_dependency_sections(actual_imports: Dict[str, Dict]):
+def generate_updated_dependency_sections(actual_imports: dict[str, dict]):
     """Generate updated dependency sections for missing files."""
     logger.debug("=" * 80)
     logger.debug("UPDATED DEPENDENCY SECTIONS TO ADD:")
@@ -146,21 +145,21 @@ def generate_updated_dependency_sections(actual_imports: Dict[str, Dict]):
     for file_path, data in sorted(actual_imports.items()):
         if data["imports"]["local"]:  # Only show files with local dependencies
             logger.debug(f"#### `{file_path}`")
-            logger.debug(f"- **Purpose**: [Add purpose description]")
+            logger.debug("- **Purpose**: [Add purpose description]")
             logger.debug(
                 f"- **Dependencies**: {', '.join(sorted(data['imports']['local']))}"
             )
-            logger.debug(f"- **Used by**: [Add usage information]")
+            logger.debug("- **Used by**: [Add usage information]")
 
 
-def analyze_circular_dependencies(actual_imports: Dict[str, Dict]):
+def analyze_circular_dependencies(actual_imports: dict[str, dict]):
     """Analyze potential circular dependencies."""
     logger.debug("CIRCULAR DEPENDENCY ANALYSIS:")
 
     # Build dependency graph
     dependency_graph = {}
-    for file_path, data in actual_imports.items():
-        dependency_graph[file_path] = set(data["imports"]["local"])
+    for file_path, _data in actual_imports.items():
+        dependency_graph[file_path] = set(_data["imports"]["local"])
 
     # Check for circular dependencies
     circular_deps = []
@@ -180,19 +179,19 @@ def analyze_circular_dependencies(actual_imports: Dict[str, Dict]):
 
 
 def identify_enhancement_needs(
-    documented_deps: Dict[str, List[str]], actual_imports: Dict[str, Dict]
-) -> Dict[str, str]:
+    documented_deps: dict[str, list[str]], actual_imports: dict[str, dict]
+) -> dict[str, str]:
     """Identify modules that need manual enhancements or updates."""
     enhancement_status = {}
 
     # Check each documented module
-    for file_path in documented_deps.keys():
+    for file_path in documented_deps:
         if file_path in actual_imports:
             # Check if it has manual enhancement markers
             project_root = Path(__file__).parent.parent
             deps_path = project_root / DEPENDENCY_DOC_PATH
             try:
-                with open(deps_path, "r", encoding="utf-8") as f:
+                with open(deps_path, encoding="utf-8") as f:
                     content = f.read()
 
                 # Find the section for this module
@@ -226,7 +225,7 @@ def identify_enhancement_needs(
                         enhancement_status[file_path] = "missing_markers"
                 else:
                     enhancement_status[file_path] = "not_found"
-            except Exception as e:
+            except Exception:
                 enhancement_status[file_path] = "error"
         else:
             enhancement_status[file_path] = "not_in_codebase"
@@ -235,8 +234,8 @@ def identify_enhancement_needs(
 
 
 def find_usage_of_module(
-    module_name_or_path: str, all_modules: Dict[str, Dict]
-) -> List[str]:
+    module_name_or_path: str, all_modules: dict[str, dict]
+) -> list[str]:
     """Find all modules that import a given module or file.
 
     Args:
@@ -268,8 +267,8 @@ def find_usage_of_module(
 
 
 def analyze_module_complexity(
-    file_path: str, data: Dict, all_modules: Dict[str, Dict]
-) -> Dict:
+    file_path: str, data: dict, all_modules: dict[str, dict]
+) -> dict:
     """Analyze module complexity and provide insights."""
     local_deps = data["imports"]["local"]
     reverse_deps = find_usage_of_module(file_path, all_modules)
@@ -319,7 +318,7 @@ def analyze_module_complexity(
 
 
 def generate_enhanced_dependency_report(
-    actual_imports: Dict[str, Dict], documented_deps: Dict[str, List[str]]
+    actual_imports: dict[str, dict], documented_deps: dict[str, list[str]]
 ):
     """Generate an enhanced dependency report with automated insights."""
     logger.debug("\n" + "=" * 80)
@@ -383,7 +382,7 @@ def generate_dependency_report():
 
     # Find missing dependencies
     missing_deps = []
-    for file_path, data in actual_imports.items():
+    for file_path, _data in actual_imports.items():
         if file_path not in documented_deps:
             missing_deps.append(file_path)
 

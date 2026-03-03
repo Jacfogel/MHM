@@ -141,7 +141,7 @@ class TestDiscordEventHandler:
     def test_register_default_handlers_with_bot(self, mock_bot):
         """Test: _register_default_handlers registers handlers when bot available"""
         # Act
-        handler = DiscordEventHandler(mock_bot)
+        DiscordEventHandler(mock_bot)
         
         # Assert
         assert mock_bot.event.call_count == 4, "Should register 4 default handlers"

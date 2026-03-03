@@ -25,7 +25,6 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from typing import List, Tuple, Dict, Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -49,13 +48,13 @@ logger = get_component_logger("development_tools")
 class ProjectCleanup:
     """Clean up project cache files, temporary directories, and artifacts."""
 
-    def __init__(self, project_root: Optional[Path] = None):
+    def __init__(self, project_root: Path | None = None):
         self.project_root = project_root or Path(config.get_project_root())
 
-    def find_directories(self, pattern: str) -> List[Path]:
+    def find_directories(self, pattern: str) -> list[Path]:
         """Find all directories matching a pattern."""
         directories = []
-        for root, dirs, files in os.walk(self.project_root):
+        for root, dirs, _files in os.walk(self.project_root):
             # Skip certain directories from being searched
             dirs[:] = [
                 d for d in dirs if d not in [".git", "venv", ".venv", "node_modules"]
@@ -68,7 +67,7 @@ class ProjectCleanup:
 
         return directories
 
-    def find_files(self, pattern: str) -> List[Path]:
+    def find_files(self, pattern: str) -> list[Path]:
         """Find all files matching a pattern."""
         files = []
         for root, dirs, filenames in os.walk(self.project_root):
@@ -102,7 +101,7 @@ class ProjectCleanup:
         except Exception:
             return "unknown size"
 
-    def remove_path(self, path: Path, dry_run: bool = False) -> Tuple[bool, str]:
+    def remove_path(self, path: Path, dry_run: bool = False) -> tuple[bool, str]:
         """Remove a file or directory."""
         try:
             if not path.exists():
@@ -127,7 +126,7 @@ class ProjectCleanup:
 
     def cleanup_cache_directories(
         self, dry_run: bool = False, include_tool_caches: bool = False
-    ) -> Tuple[int, int]:
+    ) -> tuple[int, int]:
         """
         Remove __pycache__ directories.
 
@@ -158,7 +157,7 @@ class ProjectCleanup:
 
         return removed, failed
 
-    def cleanup_tool_cache_artifacts(self, dry_run: bool = False) -> Tuple[int, int]:
+    def cleanup_tool_cache_artifacts(self, dry_run: bool = False) -> tuple[int, int]:
         """Remove development-tools cache/result artifacts used for cache reuse."""
         removed = 0
         failed = 0
@@ -174,9 +173,9 @@ class ProjectCleanup:
                     logger.warning(f"  {message}")
         return removed, failed
 
-    def _iter_tool_cache_artifacts(self) -> List[Path]:
+    def _iter_tool_cache_artifacts(self) -> list[Path]:
         """Return cache/artifact files used for cache-style reuse."""
-        artifacts: List[Path] = []
+        artifacts: list[Path] = []
         dev_tools_dir = self.project_root / "development_tools"
         if not dev_tools_dir.exists():
             return artifacts
@@ -221,7 +220,7 @@ class ProjectCleanup:
                     artifacts.append(file_path)
 
         # Deduplicate while preserving order.
-        unique: List[Path] = []
+        unique: list[Path] = []
         seen = set()
         for artifact in artifacts:
             if not artifact.is_file():
@@ -233,7 +232,7 @@ class ProjectCleanup:
             unique.append(artifact)
         return unique
 
-    def cleanup_pytest_cache(self, dry_run: bool = False) -> Tuple[int, int]:
+    def cleanup_pytest_cache(self, dry_run: bool = False) -> tuple[int, int]:
         """Remove .pytest_cache directories."""
         directories = self.find_directories(".pytest_cache")
         removed = 0
@@ -252,7 +251,7 @@ class ProjectCleanup:
 
         return removed, failed
 
-    def cleanup_coverage_files(self, dry_run: bool = False) -> Tuple[int, int]:
+    def cleanup_coverage_files(self, dry_run: bool = False) -> tuple[int, int]:
         """Remove .coverage files and coverage cache files."""
         files = self.find_files(".coverage")
         removed = 0
@@ -300,7 +299,7 @@ class ProjectCleanup:
 
         return removed, failed
 
-    def cleanup_coverage_logs(self, dry_run: bool = False) -> Tuple[int, int]:
+    def cleanup_coverage_logs(self, dry_run: bool = False) -> tuple[int, int]:
         """Remove old coverage regeneration log files, keeping only the 2 most recent per type."""
         coverage_logs_dir = (
             self.project_root / "development_tools" / "logs" / "coverage_regeneration"
@@ -343,7 +342,7 @@ class ProjectCleanup:
                 log_groups[base_name] = []
             log_groups[base_name].append(log_file)
 
-        for base_name, files in log_groups.items():
+        for _base_name, files in log_groups.items():
             if len(files) <= 2:
                 continue  # Keep all if we have 2 or fewer
 
@@ -365,7 +364,7 @@ class ProjectCleanup:
 
         return removed, failed
 
-    def cleanup_test_temp_dirs(self, dry_run: bool = False) -> Tuple[int, int]:
+    def cleanup_test_temp_dirs(self, dry_run: bool = False) -> tuple[int, int]:
         """Remove temporary test directories."""
         test_data_dir = self.project_root / "tests" / "data"
         removed = 0
@@ -447,7 +446,7 @@ class ProjectCleanup:
 
     def _remove_test_temp_dir(
         self, path: Path, dry_run: bool = False
-    ) -> Tuple[Optional[bool], str]:
+    ) -> tuple[bool | None, str]:
         """Remove test temp directory with permission-safe handling.
 
         Returns:
@@ -470,7 +469,7 @@ class ProjectCleanup:
         except Exception as exc:
             return False, f"Error removing {path}: {exc}"
 
-    def cleanup_test_user_data(self, dry_run: bool = False) -> Tuple[int, int]:
+    def cleanup_test_user_data(self, dry_run: bool = False) -> tuple[int, int]:
         """Remove test user data directories."""
         users_dir = self.project_root / "data" / "users"
         removed = 0
@@ -506,7 +505,7 @@ class ProjectCleanup:
         keep_vscode: bool = False,
         keep_cursor: bool = False,
         include_tool_caches: bool = False,
-    ) -> Dict:
+    ) -> dict:
         """
         Run all cleanup operations.
 

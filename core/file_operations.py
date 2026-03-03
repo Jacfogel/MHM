@@ -89,7 +89,7 @@ def determine_file_path(file_type, identifier):
             category, user_id = identifier.split("/")
             user_dir = Path(get_user_data_dir(user_id))
             path = user_dir / "messages" / f"{category}.json"
-        except ValueError as e:
+        except ValueError:
             raise FileOperationError(
                 f"Invalid identifier format '{identifier}': expected 'category/user_id'"
             )
@@ -113,7 +113,7 @@ def determine_file_path(file_type, identifier):
             user_id, task_file = identifier.split("/")
             user_dir = Path(get_user_data_dir(user_id))
             path = user_dir / "tasks" / f"{task_file}.json"
-        except ValueError as e:
+        except ValueError:
             raise FileOperationError(
                 f"Invalid task identifier format '{identifier}': expected 'user_id/task_file'"
             )
@@ -146,7 +146,6 @@ def load_json_data(file_path):
         logger.error("Empty file_path provided")
         return {}
 
-    context = {"file_path": file_path}
 
     try:
         with open(file_path, encoding="utf-8") as file:
@@ -279,7 +278,7 @@ def save_json_data(data, file_path):
                 _t.sleep(0.05)
                 os.replace(tmp_path, file_path)
                 # On successful replace, tmp_path no longer exists
-            except Exception as e:
+            except Exception:
                 # As a last resort, attempt shutil.move
                 try:
                     import shutil as _sh
@@ -720,7 +719,7 @@ def _create_user_files__message_files(user_id, categories):
 def _create_user_files__update_user_references(user_id):
     """Auto-update message references and user index."""
     try:
-        from core.user_data_manager import update_message_references, update_user_index
+        from core.user_data_manager import update_message_references
 
         update_message_references(user_id)
         # Skip user index update during initial file creation to avoid circular dependency

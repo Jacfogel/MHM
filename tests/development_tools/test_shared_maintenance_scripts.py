@@ -1,7 +1,6 @@
 """Tests for shared maintenance scripts in development_tools/shared/."""
 
 import json
-from pathlib import Path
 
 import pytest
 

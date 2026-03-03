@@ -10,7 +10,7 @@ import ast
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Set, TypedDict
+from typing import Any, TypedDict
 
 # Add project root to path for core module imports
 # Script is at: development_tools/functions/analyze_function_registry.py
@@ -81,8 +81,8 @@ MAX_DUPLICATES_JSON = AUDIT_REGISTRY_CONFIG.get("max_duplicates_json", 200)
 class FunctionRecord:
     name: str
     line: int
-    args: Tuple[str, ...]
-    decorators: Tuple[str, ...]
+    args: tuple[str, ...]
+    decorators: tuple[str, ...]
     docstring: str
     is_test: bool
     is_main: bool
@@ -96,18 +96,18 @@ class ClassRecord:
     name: str
     line: int
     docstring: str
-    methods: Tuple[str, ...]
+    methods: tuple[str, ...]
 
 
 class InventoryEntry(TypedDict):
-    functions: List[FunctionRecord]
-    classes: List[ClassRecord]
+    functions: list[FunctionRecord]
+    classes: list[ClassRecord]
     total_functions: int
     total_classes: int
 
 
-def decorator_names(node: ast.AST) -> Tuple[str, ...]:
-    names: List[str] = []
+def decorator_names(node: ast.AST) -> tuple[str, ...]:
+    names: list[str] = []
     for decorator in getattr(node, "decorator_list", []):
         if isinstance(decorator, ast.Name):
             names.append(decorator.id)
@@ -122,8 +122,8 @@ def decorator_names(node: ast.AST) -> Tuple[str, ...]:
     return tuple(names)
 
 
-def function_arguments(node: ast.FunctionDef) -> Tuple[str, ...]:
-    parts: List[str] = []
+def function_arguments(node: ast.FunctionDef) -> tuple[str, ...]:
+    parts: list[str] = []
     for arg in getattr(node.args, "posonlyargs", []):
         parts.append(arg.arg)
     for arg in node.args.args:
@@ -142,8 +142,8 @@ def node_complexity(node: ast.AST) -> int:
 
 
 def extract_functions_and_classes(
-    path: Path, errors: List[str]
-) -> Tuple[List[FunctionRecord], List[ClassRecord]]:
+    path: Path, errors: list[str]
+) -> tuple[list[FunctionRecord], list[ClassRecord]]:
     try:
         source = path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError) as exc:
@@ -155,8 +155,8 @@ def extract_functions_and_classes(
         errors.append(f"Syntax error {path}: line {exc.lineno}: {exc.msg}")
         return [], []
 
-    functions: List[FunctionRecord] = []
-    classes: List[ClassRecord] = []
+    functions: list[FunctionRecord] = []
+    classes: list[ClassRecord] = []
 
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
@@ -194,9 +194,9 @@ def extract_functions_and_classes(
     return functions, classes
 
 
-def collect_project_inventory(errors: List[str]) -> Dict[str, InventoryEntry]:
-    inventory: Dict[str, InventoryEntry] = {}
-    seen: Set[Path] = set()
+def collect_project_inventory(errors: list[str]) -> dict[str, InventoryEntry]:
+    inventory: dict[str, InventoryEntry] = {}
+    seen: set[Path] = set()
 
     for source_path in iter_python_sources(
         config.get_scan_directories(), context="production"
@@ -252,10 +252,10 @@ def extract_documented_name(line: str) -> str | None:
     return signature.strip()
 
 
-def parse_registry_document(path: Path = REGISTRY_PATH) -> Dict[str, Set[str]]:
+def parse_registry_document(path: Path = REGISTRY_PATH) -> dict[str, set[str]]:
     if not path.exists():
         return {}
-    mapping: Dict[str, Set[str]] = {}
+    mapping: dict[str, set[str]] = {}
     current_file: str | None = None
     in_functions = False
 
@@ -280,10 +280,10 @@ def parse_registry_document(path: Path = REGISTRY_PATH) -> Dict[str, Set[str]]:
 
 
 def build_metrics(
-    inventory: Dict[str, InventoryEntry], registry: Dict[str, Set[str]]
-) -> Dict[str, Any]:
-    missing_by_file: Dict[str, List[str]] = {}
-    missing_files: List[str] = []
+    inventory: dict[str, InventoryEntry], registry: dict[str, set[str]]
+) -> dict[str, Any]:
+    missing_by_file: dict[str, list[str]] = {}
+    missing_files: list[str] = []
     missing_count = 0
 
     for file_path, data in inventory.items():
@@ -296,7 +296,7 @@ def build_metrics(
             missing_by_file[file_path] = missing
             missing_count += len(missing)
 
-    extra_by_file: Dict[str, List[str]] = {}
+    extra_by_file: dict[str, list[str]] = {}
     extra_count = 0
     for file_path, documented in registry.items():
         actual = {
@@ -329,11 +329,11 @@ def build_metrics(
     return result
 
 
-def build_analysis(inventory: Dict[str, InventoryEntry]) -> Dict[str, Any]:
-    high_complexity: List[Dict[str, Any]] = []
-    undocumented_handlers: List[Dict[str, str]] = []
-    undocumented_other: List[Dict[str, str]] = []
-    occurrences: Dict[str, Set[str]] = {}
+def build_analysis(inventory: dict[str, InventoryEntry]) -> dict[str, Any]:
+    high_complexity: list[dict[str, Any]] = []
+    undocumented_handlers: list[dict[str, str]] = []
+    undocumented_other: list[dict[str, str]] = []
+    occurrences: dict[str, set[str]] = {}
 
     for file_path, data in inventory.items():
         for record in data["functions"]:
@@ -401,9 +401,9 @@ def build_analysis(inventory: Dict[str, InventoryEntry]) -> Dict[str, Any]:
 
 
 def build_registry_sections(
-    inventory: Dict[str, InventoryEntry], metrics: Dict[str, Any]
-) -> Dict[str, Dict[str, Any]]:
-    sections: Dict[str, Dict[str, Any]] = {}
+    inventory: dict[str, InventoryEntry], metrics: dict[str, Any]
+) -> dict[str, dict[str, Any]]:
+    sections: dict[str, dict[str, Any]] = {}
 
     missing_by_file = metrics.get("missing_by_file", {})
     for file_path, missing_names in missing_by_file.items():
@@ -460,12 +460,12 @@ def build_registry_sections(
 
 
 def summarise_audit(
-    inventory: Dict[str, InventoryEntry],
-    metrics: Dict[str, Any],
-    analysis: Dict[str, Any],
-    errors: List[str],
+    inventory: dict[str, InventoryEntry],
+    metrics: dict[str, Any],
+    analysis: dict[str, Any],
+    errors: list[str],
 ) -> str:
-    lines: List[str] = []
+    lines: list[str] = []
     lines.append("[SCAN] Scanning all Python files...")
     lines.append("[DOC] Parsing FUNCTION_REGISTRY_DETAIL.md...")
     lines.append("")
@@ -582,7 +582,7 @@ def summarise_audit(
         if leftover > 0:
             lines.append(f"   ... +{leftover} more")
 
-    dir_stats: Dict[str, Dict[str, int]] = {}
+    dir_stats: dict[str, dict[str, int]] = {}
     for file_path, data in inventory.items():
         dir_name = file_path.rsplit("/", 1)[0] if "/" in file_path else "root"
         stats = dir_stats.setdefault(
@@ -618,8 +618,8 @@ def summarise_audit(
 
 def execute(
     args: argparse.Namespace,
-    project_root: Optional[Path] = None,
-    config_path: Optional[str] = None,
+    project_root: Path | None = None,
+    config_path: str | None = None,
 ):
     """Execute audit with optional project_root and config_path."""
     try:
@@ -649,21 +649,21 @@ def execute(
                 "max_undocumented_json", 200
             )
             MAX_DUPLICATES_JSON = AUDIT_REGISTRY_CONFIG.get("max_duplicates_json", 200)
-        errors: List[str] = []
+        errors: list[str] = []
         inventory = collect_project_inventory(errors)
         registry = parse_registry_document()
         try:
             metrics = build_metrics(inventory, registry)
-        except Exception as e:
+        except Exception:
             raise
         analysis = build_analysis(inventory)
         try:
             sections = build_registry_sections(inventory, metrics)
-        except Exception as e:
+        except Exception:
             raise
         try:
             summary = summarise_audit(inventory, metrics, analysis, errors)
-        except Exception as e:
+        except Exception:
             raise
         totals_for_payload = metrics.get("totals", {})
         missing_count = metrics.get("missing_count", 0)
@@ -710,10 +710,10 @@ def execute(
             exit_code = 1
         try:
             summary_ascii = ensure_ascii(summary)
-        except Exception as e:
+        except Exception:
             raise
         return exit_code, summary_ascii, payload
-    except Exception as e:
+    except Exception:
         raise
 
 

@@ -8,7 +8,8 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Callable, Iterable, Iterator, Sequence, Tuple, Dict, Any, Optional
+from typing import Any
+from collections.abc import Callable, Iterable, Iterator, Sequence
 
 from development_tools.shared.standard_exclusions import should_exclude_file
 from development_tools.shared.tool_metadata import COMMAND_GROUPS
@@ -58,7 +59,7 @@ class ProjectPaths:
     Paths are loaded from config for portability. Falls back to defaults if config not available.
     """
 
-    def __init__(self, root: Optional[Path] = None):
+    def __init__(self, root: Path | None = None):
         """Initialize ProjectPaths with config-driven paths.
 
         Args:
@@ -106,7 +107,7 @@ def ensure_ascii(text: str) -> str:
     return text.encode("ascii", "replace").decode("ascii")
 
 
-def write_json(path: Path, payload: Dict[str, Any]) -> None:
+def write_json(path: Path, payload: dict[str, Any]) -> None:
     """Write JSON with stable formatting."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as handle:
@@ -127,7 +128,7 @@ def iter_python_sources(
     *,
     tool_type: str = "analysis",
     context: str = "development",
-    project_root: Optional[Path] = None,
+    project_root: Path | None = None,
 ) -> Iterator[Path]:
     """Yield Python source files from the provided directories using standard exclusions.
 
@@ -154,10 +155,10 @@ def iter_python_sources(
 
 
 def run_cli(
-    execute: Callable[[argparse.Namespace], Tuple[int, str, Dict[str, Any]]],
+    execute: Callable[[argparse.Namespace], tuple[int, str, dict[str, Any]]],
     *,
     description: str,
-    arguments: Sequence[Tuple[Sequence[str], Dict[str, Any]]] | None = None,
+    arguments: Sequence[tuple[Sequence[str], dict[str, Any]]] | None = None,
 ) -> int:
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(

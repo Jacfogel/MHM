@@ -5,7 +5,6 @@ Tests for basic AI response generation, mode detection, and contextual responses
 """
 
 import os
-import time
 from unittest.mock import patch
 
 from tests.ai.ai_test_base import AITestBase
@@ -275,7 +274,7 @@ class TestAICore(AITestBase):
             ("I need to buy groceries", "T-5.5"),
         ]
         
-        for i, (command, test_id) in enumerate(command_phrasings, 1):
+        for _i, (command, test_id) in enumerate(command_phrasings, 1):
             try:
                 mode = self.chatbot._detect_mode(command)
                 is_command = mode in ["command", "command_with_clarification"]

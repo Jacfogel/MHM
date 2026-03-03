@@ -19,13 +19,11 @@ ensure_qt_runtime()
 
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime
+from unittest.mock import patch
 
 # PySide6 imports for testing
-from PySide6.QtWidgets import QApplication, QWidget, QListWidgetItem, QMessageBox, QInputDialog
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtCore import Qt
 
 # Import widget classes
 from ui.widgets.tag_widget import TagWidget
@@ -535,7 +533,7 @@ class TestUIWidgetsCoverageExpansion:
             container.set_values(["value1", "value1"])
             
             # Should detect duplicates
-            values = container.get_values()
+            container.get_values()
             # Implementation depends on how duplicates are handled
 
     def test_dynamic_list_container_signal_emission_real_behavior(self, app):

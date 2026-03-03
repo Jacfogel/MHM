@@ -19,16 +19,10 @@ os.environ["QT_QPA_PLATFORM"] = "offscreen"
 os.environ["TEST_CONSOLIDATED_LOGGING"] = os.environ.get(
     "TEST_CONSOLIDATED_LOGGING", "1"
 )
-import tempfile
-import shutil
-import json
 import logging
 import warnings
-import time
 import re
 from pathlib import Path
-from unittest.mock import Mock, patch
-from datetime import datetime
 
 # CRITICAL: Suppress __package__ != __spec__.parent warnings immediately after importing warnings
 # These warnings are emitted during module import, so they must be filtered before any other imports
@@ -118,8 +112,8 @@ def _patch_pytest_dead_symlink_cleanup() -> None:
             # Best-effort cleanup only: never fail an entire test session on this step.
             return None
 
-    setattr(pytest_pathlib, "cleanup_dead_symlinks", _mhm_safe_cleanup_dead_symlinks)
-    setattr(pytest_tmpdir, "cleanup_dead_symlinks", _mhm_safe_cleanup_dead_symlinks)
+    pytest_pathlib.cleanup_dead_symlinks = _mhm_safe_cleanup_dead_symlinks
+    pytest_tmpdir.cleanup_dead_symlinks = _mhm_safe_cleanup_dead_symlinks
 
 
 _patch_pytest_dead_symlink_cleanup()

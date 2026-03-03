@@ -7,8 +7,7 @@ JSON report saving, and main function execution.
 
 import pytest
 import json
-from pathlib import Path
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch, mock_open
 
 from tests.development_tools.conftest import load_development_tools_module
 
@@ -201,7 +200,7 @@ class TestErrorHandlingReportGenerator:
         assert output_path.exists()
         
         # Verify JSON content
-        with open(output_path, 'r', encoding='utf-8') as f:
+        with open(output_path, encoding='utf-8') as f:
             data = json.load(f)
         
         assert 'generated_by' in data

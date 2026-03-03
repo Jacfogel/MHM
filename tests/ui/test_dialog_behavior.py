@@ -19,27 +19,18 @@ ensure_qt_runtime()
 
 import pytest
 import json
-import shutil
-from unittest.mock import patch, Mock, MagicMock
-from datetime import datetime, time
 from pathlib import Path
-from PySide6.QtWidgets import QApplication, QWidget, QMessageBox, QDialog
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QApplication
 from PySide6.QtTest import QTest
 
 # Project imports rely on pytest and conftest path setup
 
-from core.user_data_handlers import save_user_data, get_user_data
-from core.file_operations import create_user_files, get_user_file_path
+from core.user_data_handlers import get_user_data
 from ui.dialogs.user_profile_dialog import UserProfileDialog
 from ui.dialogs.category_management_dialog import CategoryManagementDialog
 from ui.dialogs.channel_management_dialog import ChannelManagementDialog
 from ui.dialogs.checkin_management_dialog import CheckinManagementDialog
 from ui.dialogs.task_management_dialog import TaskManagementDialog
-from ui.dialogs.schedule_editor_dialog import open_schedule_editor
-from ui.dialogs.task_edit_dialog import TaskEditDialog
-from ui.dialogs.task_crud_dialog import TaskCrudDialog
-from ui.dialogs.task_completion_dialog import TaskCompletionDialog
 
 # Create QApplication instance for testing
 @pytest.fixture(scope="session")
@@ -227,7 +218,7 @@ class TestCategoryManagementDialogBehavior:
         """REAL BEHAVIOR TEST: Test category selection and saving works correctly."""
         #[OK] VERIFY REAL BEHAVIOR: Check initial categories are selected
         user_id = "test_user_categories"
-        user_data = get_user_data(user_id)
+        get_user_data(user_id)
         
         # Get the category widget
         category_widget = dialog.category_widget

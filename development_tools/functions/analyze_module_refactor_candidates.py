@@ -47,7 +47,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
@@ -67,7 +67,7 @@ config.load_external_config()
 logger = get_component_logger("development_tools")
 
 
-def _get_config() -> Dict[str, Any]:
+def _get_config() -> dict[str, Any]:
     """Load tool config (module refactor thresholds)."""
     return config.get_analyze_module_refactor_candidates_config()
 
@@ -90,7 +90,7 @@ def _count_lines(file_path: Path) -> int:
         return 0
 
 
-def _module_metrics(file_path: Path) -> Optional[Dict[str, Any]]:
+def _module_metrics(file_path: Path) -> dict[str, Any] | None:
     """
     Parse a Python file and return per-module metrics.
     Returns None if parse fails.
@@ -133,10 +133,10 @@ def _module_metrics(file_path: Path) -> Optional[Dict[str, Any]]:
 
 
 def _reasons(
-    cfg: Dict[str, Any],
-    metrics: Dict[str, Any],
+    cfg: dict[str, Any],
+    metrics: dict[str, Any],
     file_key: str,
-) -> List[str]:
+) -> list[str]:
     """Return a short reason this module is a refactor candidate (no per-threshold details)."""
     reasons = []
     max_lines = cfg.get("max_lines_per_module")
@@ -167,7 +167,7 @@ def _is_top_level_tests(file_key: str) -> bool:
     return file_key.count("/") == 1
 
 
-def _scan_and_evaluate(include_tests: bool = False, include_dev_tools: bool = False) -> Dict[str, Any]:
+def _scan_and_evaluate(include_tests: bool = False, include_dev_tools: bool = False) -> dict[str, Any]:
     """
     Scan all included Python modules, compute metrics, and return standard-format result.
     Uses same scan directories and exclusions as analyze_functions (production context).
@@ -185,7 +185,7 @@ def _scan_and_evaluate(include_tests: bool = False, include_dev_tools: bool = Fa
     else:
         context = "production"
 
-    candidates: List[Dict[str, Any]] = []
+    candidates: list[dict[str, Any]] = []
     seen: set[str] = set()
 
     for scan_dir in scan_dirs:

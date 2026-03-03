@@ -194,7 +194,7 @@ class DynamicCheckinManager:
     ) -> list[str]:
         """Return response list for nearest integer key when float answers are provided."""
         numeric_keys = []
-        for key in question_responses.keys():
+        for key in question_responses:
             try:
                 numeric_keys.append(int(key))
             except (ValueError, TypeError):

@@ -7,9 +7,8 @@ decorator detection, phase 1/2 candidate detection, and standard format output.
 
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
 
-from tests.development_tools.conftest import load_development_tools_module, demo_project_root, test_config_path
+from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module
 error_handling_module = load_development_tools_module("error_handling.analyze_error_handling")

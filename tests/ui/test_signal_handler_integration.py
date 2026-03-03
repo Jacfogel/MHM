@@ -37,10 +37,8 @@ except ImportError:
         except (ImportError, OSError):
             pytest.skip("Qt runtime not available", allow_module_level=True)
 
-from unittest.mock import patch, MagicMock
-from PySide6.QtWidgets import QApplication, QLineEdit
-from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
+from unittest.mock import patch
+from PySide6.QtWidgets import QApplication
 
 
 @pytest.fixture(scope="function")
@@ -66,7 +64,6 @@ class TestAccountCreatorDialogSignalHandlers:
     @pytest.fixture(autouse=True)
     def stop_channel_monitor_threads(self):
         """Stop any running channel monitor threads to prevent crashes during UI tests."""
-        from unittest.mock import patch
         
         # Stop any existing channel monitor threads before test
         try:
@@ -111,7 +108,7 @@ class TestAccountCreatorDialogSignalHandlers:
     def dialog(self, qapp, test_data_dir, mock_config):
         """Create account creation dialog for testing."""
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
-        from unittest.mock import Mock, patch
+        from unittest.mock import Mock
         
         # Patch channel monitor to prevent threads from starting
         with patch('communication.core.channel_monitor.ChannelMonitor.start_restart_monitor'):
@@ -159,7 +156,6 @@ class TestAccountCreatorDialogSignalHandlers:
             pytest.fail(f"Handler should also work with no parameter (default), but got TypeError: {e}")
         
         # Verify signal is actually connected and works
-        initial_username = dialog.username
         username_edit.setText("newusername")
         QApplication.processEvents()
         # The handler should have updated the username
@@ -307,7 +303,6 @@ class TestUISignalConnectionIntegrity:
     @pytest.fixture(autouse=True)
     def stop_channel_monitor_threads(self):
         """Stop any running channel monitor threads to prevent crashes during UI tests."""
-        from unittest.mock import patch
         
         # Stop any existing channel monitor threads before test
         try:
@@ -358,7 +353,6 @@ class TestUISignalConnectionIntegrity:
         connections work end-to-end without errors being swallowed.
         """
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
-        from unittest.mock import patch
         
         # Capture any exceptions that occur during signal handling
         exceptions_caught = []

@@ -12,7 +12,6 @@ ensure_qt_runtime()
 import os
 import logging
 import pytest
-from pathlib import Path
 
 # Do not modify sys.path; rely on package imports
 

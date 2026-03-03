@@ -253,7 +253,7 @@ class TaskSettingsWidget(QWidget):
                 "completed": stats.get("completed_count", 0),
                 "total": stats.get("total_count", 0),
             }
-        except Exception as e:
+        except Exception:
             # Fallback to placeholder if there's an error
             return {"active": 0, "completed": 0, "total": 0}
 

@@ -18,7 +18,7 @@ Usage:
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -51,8 +51,8 @@ class ASCIIComplianceAnalyzer:
 
     def __init__(
         self,
-        project_root: Optional[str] = None,
-        config_path: Optional[str] = None,
+        project_root: str | None = None,
+        config_path: str | None = None,
         use_cache: bool = True,
     ):
         """
@@ -86,7 +86,7 @@ class ASCIIComplianceAnalyzer:
             tool_paths=[Path(__file__)],
         )
 
-    def check_ascii_compliance(self) -> Dict[str, List[str]]:
+    def check_ascii_compliance(self) -> dict[str, list[str]]:
         """
         Check for non-ASCII characters in documentation files.
 
@@ -171,12 +171,12 @@ class ASCIIComplianceAnalyzer:
                 continue
 
             try:
-                with open(full_path, "r", encoding="utf-8") as f:
+                with open(full_path, encoding="utf-8") as f:
                     content = f.read()
 
                 # Find ALL non-ASCII characters
                 non_ascii_chars = {}
-                for i, char in enumerate(content):
+                for _i, char in enumerate(content):
                     if ord(char) > 127:  # Non-ASCII
                         if char not in non_ascii_chars:
                             non_ascii_chars[char] = 0
@@ -210,7 +210,7 @@ class ASCIIComplianceAnalyzer:
 
         return ascii_issues
 
-    def run_analysis(self) -> Dict[str, Any]:
+    def run_analysis(self) -> dict[str, Any]:
         """
         Run ASCII compliance analysis and return results in standard format.
 
@@ -290,12 +290,12 @@ def main():
 
     # Print results
     if results:
-        print(f"\nASCII Compliance Issues:")
+        print("\nASCII Compliance Issues:")
         print(f"   Total files with non-ASCII characters: {len(results)}")
         print(
             f"   Total issues found: {sum(len(issues) for issues in results.values())}"
         )
-        print(f"   Files with non-ASCII characters:")
+        print("   Files with non-ASCII characters:")
         for doc_file, issues in results.items():
             print(f"     {doc_file}: {len(issues)} issues")
             for issue in issues[:3]:  # Show first 3 issues per file
