@@ -1590,139 +1590,45 @@ class ConversationManager:
         Returns list of reminder period dicts with date, start_time, end_time.
         """
         import re
-        from tasks import get_task_by_id
 
-        text_lower = text.lower().strip()
-        reminder_periods = []
-
-        # Get task to find due date/time
-        task = get_task_by_id(user_id, task_id)
-        if not task or not task.get("due_date"):
-            logger.debug(
-                f"Task {task_id} has no due_date, cannot parse reminder periods"
-            )
+        due_datetime = self._get_task_due_datetime_for_reminders(user_id, task_id)
+        if due_datetime is None:
             return []
 
-        due_date_str = task.get("due_date")
-        due_time_str = task.get("due_time")
-        if not due_time_str or due_time_str.strip() == "":
-            due_time_str = "09:00"  # Default to 9 AM if no time specified
-
-        # Parse due datetime (canonical parsing helpers only; no inline strptime)
-        due_datetime: datetime | None = None
-
-        # If a time exists, prefer strict DATE_ONLY + TIME_ONLY_MINUTE combination.
-        due_datetime = parse_date_and_time_minute(due_date_str, due_time_str)
-        if due_datetime is not None:
-            logger.debug(f"Parsed due datetime for task {task_id}: {due_datetime}")
-        else:
-            # Fallback: date-only, default time to 09:00 (preserves existing behavior)
-            due_date_only_dt = parse_date_only(due_date_str)
-            if due_date_only_dt is None:
-                logger.warning(
-                    f"Could not parse due date/time for task {task_id}: {due_date_str} {due_time_str}"
-                )
-                return []
-
-            due_datetime = due_date_only_dt.replace(hour=9, minute=0)
-            logger.debug(f"Parsed due date only for task {task_id}: {due_datetime}")
-
-        # Pattern: "X to Y [unit] before" or "X [unit] to [an] Y [unit] before"
-        # Handle "an hour" = 60 minutes (do this before parsing)
-        text_lower = text_lower.replace("an hour", "60 minutes").replace(
-            "a hour", "60 minutes"
-        )
-
+        text_lower = self._normalize_reminder_text(text)
         logger.debug(
             f"Parsing reminder periods from text '{text}' (normalized: '{text_lower}') "
             f"for task {task_id} with due_datetime {due_datetime}"
         )
 
-        patterns = [
-            # Minutes
-            (r"(\d+)\s*minutes?\s*(?:to|-)\s*(\d+)\s*minutes?\s*before", "minutes"),
-            (r"(\d+)\s*(?:to|-)\s*(\d+)\s*minutes?\s*before", "minutes"),
-            (r"(\d+)\s*minutes?\s*before", "minutes"),  # Single value
-            (r"(\d+)\s*min\s*before", "minutes"),
-            # Hours
-            (r"(\d+)\s*hours?\s*(?:to|-)\s*(\d+)\s*hours?\s*before", "hours"),
-            (r"(\d+)\s*(?:to|-)\s*(\d+)\s*hours?\s*before", "hours"),
-            (r"(\d+)\s*hours?\s*before", "hours"),  # Single value
-            (r"(\d+)\s*hrs?\s*before", "hours"),
-            # Days
-            (r"(\d+)\s*days?\s*(?:to|-)\s*(\d+)\s*days?\s*before", "days"),
-            (r"(\d+)\s*(?:to|-)\s*(\d+)\s*days?\s*before", "days"),
-            (r"(\d+)\s*days?\s*before", "days"),  # Single value
-        ]
-
-        for pattern, unit in patterns:
+        reminder_periods = []
+        for pattern, unit in self._get_reminder_parse_patterns():
             match = re.search(pattern, text_lower)
             if not match:
                 continue
-
             logger.debug(
                 f"Pattern '{pattern}' matched text '{text_lower}' with groups: {match.groups()}"
             )
-
             try:
-                start_val = int(match.group(1))
-                end_val = (
-                    int(match.group(2))
-                    if len(match.groups()) >= 2 and match.group(2)
-                    else start_val
-                )
-
+                start_val, end_val = self._parse_reminder_range(match)
                 logger.debug(
                     f"Parsed values: start_val={start_val}, end_val={end_val}, unit={unit}"
                 )
-
-                # Calculate reminder times
-                if unit == "minutes":
-                    start_delta = timedelta(minutes=end_val)  # earlier
-                    end_delta = timedelta(minutes=start_val)  # later
-                elif unit == "hours":
-                    start_delta = timedelta(hours=end_val)
-                    end_delta = timedelta(hours=start_val)
-                elif unit == "days":
-                    start_delta = timedelta(days=end_val)
-                    end_delta = timedelta(days=start_val)
-                else:
+                deltas = self._build_reminder_deltas(unit, start_val, end_val)
+                if deltas is None:
                     logger.debug(f"Unknown unit '{unit}', skipping")
                     continue
-
-                reminder_start = due_datetime - start_delta
-                reminder_end = due_datetime - end_delta
-
-                logger.debug(
-                    f"Calculated reminder times: start={reminder_start}, end={reminder_end}"
+                reminder_period = self._build_future_reminder_period(
+                    due_datetime, deltas[0], deltas[1]
                 )
-
-                # Ensure reminder is in the future
-                now = now_datetime_full()
-                if reminder_end < now:
-                    logger.debug(
-                        f"Reminder time {reminder_end} is in the past (now={now_timestamp_full()}), skipping"
-                    )
+                if reminder_period is None:
                     continue
-
-                # Create reminder period (canonical formatting helper only; no inline strftime)
-                reminder_periods.append(
-                    {
-                        "date": format_timestamp(reminder_start, DATE_ONLY),
-                        "start_time": format_timestamp(
-                            reminder_start, TIME_ONLY_MINUTE
-                        ),
-                        "end_time": format_timestamp(reminder_end, TIME_ONLY_MINUTE),
-                    }
-                )
-
-                # This is probably debug-level unless you explicitly want auditing
+                reminder_periods.append(reminder_period)
                 logger.debug(
                     f"Parsed reminder period for task {task_id}: "
-                    f"{reminder_periods[-1]['date']} {reminder_periods[-1]['start_time']}-{reminder_periods[-1]['end_time']}"
+                    f"{reminder_period['date']} {reminder_period['start_time']}-{reminder_period['end_time']}"
                 )
                 break
-
             except (ValueError, IndexError, AttributeError, TypeError) as e:
                 logger.warning(
                     f"Error parsing reminder pattern '{pattern}' for text '{text_lower}': {e}",
@@ -1732,6 +1638,113 @@ class ConversationManager:
 
         logger.debug(f"Final reminder_periods for task {task_id}: {reminder_periods}")
         return reminder_periods
+
+    @handle_errors("loading task due datetime for reminder parsing", default_return=None)
+    def _get_task_due_datetime_for_reminders(
+        self, user_id: str, task_id: str
+    ) -> datetime | None:
+        """Resolve task due datetime for reminder calculations."""
+        from tasks import get_task_by_id
+
+        task = get_task_by_id(user_id, task_id)
+        if not task or not task.get("due_date"):
+            logger.debug(f"Task {task_id} has no due_date, cannot parse reminder periods")
+            return None
+
+        due_date_str = task.get("due_date")
+        due_time_str = task.get("due_time") or "09:00"
+        due_time_str = due_time_str.strip() or "09:00"
+
+        due_datetime = parse_date_and_time_minute(due_date_str, due_time_str)
+        if due_datetime is not None:
+            logger.debug(f"Parsed due datetime for task {task_id}: {due_datetime}")
+            return due_datetime
+
+        due_date_only_dt = parse_date_only(due_date_str)
+        if due_date_only_dt is None:
+            logger.warning(
+                f"Could not parse due date/time for task {task_id}: {due_date_str} {due_time_str}"
+            )
+            return None
+
+        due_datetime = due_date_only_dt.replace(hour=9, minute=0)
+        logger.debug(f"Parsed due date only for task {task_id}: {due_datetime}")
+        return due_datetime
+
+    @handle_errors("normalizing reminder text", default_return="")
+    def _normalize_reminder_text(self, text: str) -> str:
+        """Normalize reminder text variants before regex matching."""
+        return (
+            text.lower()
+            .strip()
+            .replace("an hour", "60 minutes")
+            .replace("a hour", "60 minutes")
+        )
+
+    @handle_errors("building reminder parse patterns", default_return=[])
+    def _get_reminder_parse_patterns(self) -> list[tuple[str, str]]:
+        """Return ordered regex patterns for reminder phrase parsing."""
+        return [
+            (r"(\d+)\s*minutes?\s*(?:to|-)\s*(\d+)\s*minutes?\s*before", "minutes"),
+            (r"(\d+)\s*(?:to|-)\s*(\d+)\s*minutes?\s*before", "minutes"),
+            (r"(\d+)\s*minutes?\s*before", "minutes"),
+            (r"(\d+)\s*min\s*before", "minutes"),
+            (r"(\d+)\s*hours?\s*(?:to|-)\s*(\d+)\s*hours?\s*before", "hours"),
+            (r"(\d+)\s*(?:to|-)\s*(\d+)\s*hours?\s*before", "hours"),
+            (r"(\d+)\s*hours?\s*before", "hours"),
+            (r"(\d+)\s*hrs?\s*before", "hours"),
+            (r"(\d+)\s*days?\s*(?:to|-)\s*(\d+)\s*days?\s*before", "days"),
+            (r"(\d+)\s*(?:to|-)\s*(\d+)\s*days?\s*before", "days"),
+            (r"(\d+)\s*days?\s*before", "days"),
+        ]
+
+    @handle_errors("parsing reminder range values", default_return=(0, 0))
+    def _parse_reminder_range(self, match) -> tuple[int, int]:
+        """Parse first and optional second numeric range from regex match."""
+        start_val = int(match.group(1))
+        end_val = (
+            int(match.group(2))
+            if len(match.groups()) >= 2 and match.group(2)
+            else start_val
+        )
+        return start_val, end_val
+
+    @handle_errors("building reminder deltas", default_return=None)
+    def _build_reminder_deltas(
+        self, unit: str, start_val: int, end_val: int
+    ) -> tuple[timedelta, timedelta] | None:
+        """Return start/end timedeltas for a parsed reminder range."""
+        if unit == "minutes":
+            return timedelta(minutes=end_val), timedelta(minutes=start_val)
+        if unit == "hours":
+            return timedelta(hours=end_val), timedelta(hours=start_val)
+        if unit == "days":
+            return timedelta(days=end_val), timedelta(days=start_val)
+        return None
+
+    @handle_errors("building future reminder period", default_return=None)
+    def _build_future_reminder_period(
+        self, due_datetime: datetime, start_delta: timedelta, end_delta: timedelta
+    ) -> dict | None:
+        """Create reminder period dict when reminder window is in the future."""
+        reminder_start = due_datetime - start_delta
+        reminder_end = due_datetime - end_delta
+        logger.debug(
+            f"Calculated reminder times: start={reminder_start}, end={reminder_end}"
+        )
+
+        now = now_datetime_full()
+        if reminder_end < now:
+            logger.debug(
+                f"Reminder time {reminder_end} is in the past (now={now_timestamp_full()}), skipping"
+            )
+            return None
+
+        return {
+            "date": format_timestamp(reminder_start, DATE_ONLY),
+            "start_time": format_timestamp(reminder_start, TIME_ONLY_MINUTE),
+            "end_time": format_timestamp(reminder_end, TIME_ONLY_MINUTE),
+        }
 
     @handle_errors("starting task due date flow", default_return=None)
     def start_task_due_date_flow(self, user_id: str, task_id: str) -> None:

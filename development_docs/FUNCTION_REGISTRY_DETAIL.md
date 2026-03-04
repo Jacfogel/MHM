@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-03 15:52:57
+> **Last Generated**: 2026-03-04 00:28:19
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 95.9% [OK] COMPLETED**
+### **Function Documentation Coverage: 96.1% [OK] COMPLETED**
 - **Files Scanned**: 114
-- **Functions Found**: 1641
-- **Methods Found**: 1182
+- **Functions Found**: 1701
+- **Methods Found**: 1242
 - **Classes Found**: 154
-- **Total Items**: 2823
-- **Functions Documented**: 1566
-- **Methods Documented**: 1142
+- **Total Items**: 2943
+- **Functions Documented**: 1626
+- **Methods Documented**: 1202
 - **Classes Documented**: 120
-- **Total Documented**: 2708
+- **Total Documented**: 2828
 - **Template-Generated**: 5
-- **Last Updated**: 2026-03-03
+- **Last Updated**: 2026-03-04
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,13 +39,13 @@
 
 ## Function Categories
 
-### **Core System Functions** (599)
+### **Core System Functions** (609)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (426)
+### **Communication Functions** (448)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (411)
+### **User Interface Functions** (423)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (33)
@@ -110,6 +110,9 @@ Test functions and testing utilities.
 **Functions:**
 - [OK] `__init__(self)` - Initialize the object.
 - [OK] `__new__(cls)` - Create a new instance.
+- [OK] `_build_contextual_summary(self, context)` - Build a concise context summary used for logging and fallback personalization.
+- [OK] `_build_response_generation_request(self, mode, user_prompt, user_id)` - Build messages and generation parameters based on response mode.
+- [OK] `_cache_response_if_needed(self, mode, prompt_for_key, uid_for_key, ptype, response)` - Cache successful non-chat responses.
 - [OK] `_call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio using OpenAI-compatible format.
 - [OK] `_clean_system_prompt_leaks(self, response)` - Remove any leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:", "IMPORTANT - Feature availability:" from appearing in user-facing responses.
@@ -122,21 +125,34 @@ clarification when the user's request is ambiguous or incomplete.
 - [OK] `_detect_resource_constraints(self)` - Detect if system is resource-constrained.
 - [OK] `_enhance_conversational_engagement(self, response)` - Enhance response to ensure good conversational engagement.
 Adds engagement prompts if the response doesn't already have them.
+- [OK] `_ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
 - [OK] `_extract_command_from_response(self, response)` - Extract command structure from command mode responses.
 Handles multiple formats: JSON, key-value pairs (ACTION: ...), or natural language.
 Returns clean structured format for parser.
+- [OK] `_fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
 - [OK] `_get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
+- [OK] `_get_cached_non_chat_response(self, mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id)` - Return cached response for non-chat modes when eligible.
 - [OK] `_get_contextual_fallback(self, user_prompt, user_id)` - Provide contextually aware fallback responses based on user data and prompt analysis.
 Now actually analyzes user's check-in data for meaningful responses.
 - [OK] `_get_fallback_personalized_message(self, user_id)` - Provide fallback personalized messages when AI model is not available.
 - [OK] `_get_fallback_response(self, user_prompt)` - Legacy fallback method for backwards compatibility.
+- [OK] `_has_command_keyword(self, prompt_lower)` - Return True when prompt appears command-oriented.
+- [OK] `_is_data_analysis_question(self, user_prompt)` - Detect prompts that should bypass contextual cache for fresh data.
+- [OK] `_is_natural_language_task_request(self, prompt_lower)` - Detect natural-language task intents that likely need clarification.
+- [OK] `_is_valid_timeout(self, timeout)` - Validate timeout input type for response generation.
 - [OK] `_make_cache_key_inputs(self, mode, user_prompt, user_id)` - Create consistent cache key inputs with validation.
 
 Returns:
     tuple: (user_prompt, user_id, mode)
+- [OK] `_needs_command_clarification(self, prompt_lower, words, stripped_prompt)` - Determine whether a command-like prompt is too ambiguous.
+- [OK] `_normalize_response_mode(self, mode, user_prompt)` - Normalize generation mode to supported values.
 - [OK] `_optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
+- [OK] `_personalize_fallback_with_profile_name(self, fallback_response, context_summary, profile)` - Inject preferred name into greeting-based fallback responses when available.
+- [OK] `_post_process_generated_response(self, mode, result)` - Post-process model output into final user-visible response.
+- [OK] `_record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
 - [OK] `_smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response to avoid mid-sentence cuts.
 Supports both character and word limits.
+- [OK] `_store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
 - [OK] `_test_lm_studio_connection(self)` - Test connection to LM Studio server with validation.
 
 Returns:
@@ -158,6 +174,9 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
 - [OK] `AIChatBotSingleton` - A Singleton container for LM Studio API client.
   - [OK] `AIChatBotSingleton.__init__(self)` - Initialize the object.
   - [OK] `AIChatBotSingleton.__new__(cls)` - Create a new instance.
+  - [OK] `AIChatBotSingleton._build_contextual_summary(self, context)` - Build a concise context summary used for logging and fallback personalization.
+  - [OK] `AIChatBotSingleton._build_response_generation_request(self, mode, user_prompt, user_id)` - Build messages and generation parameters based on response mode.
+  - [OK] `AIChatBotSingleton._cache_response_if_needed(self, mode, prompt_for_key, uid_for_key, ptype, response)` - Cache successful non-chat responses.
   - [OK] `AIChatBotSingleton._call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio using OpenAI-compatible format.
   - [OK] `AIChatBotSingleton._clean_system_prompt_leaks(self, response)` - Remove any leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:", "IMPORTANT - Feature availability:" from appearing in user-facing responses.
@@ -170,21 +189,34 @@ clarification when the user's request is ambiguous or incomplete.
   - [OK] `AIChatBotSingleton._detect_resource_constraints(self)` - Detect if system is resource-constrained.
   - [OK] `AIChatBotSingleton._enhance_conversational_engagement(self, response)` - Enhance response to ensure good conversational engagement.
 Adds engagement prompts if the response doesn't already have them.
+  - [OK] `AIChatBotSingleton._ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
   - [OK] `AIChatBotSingleton._extract_command_from_response(self, response)` - Extract command structure from command mode responses.
 Handles multiple formats: JSON, key-value pairs (ACTION: ...), or natural language.
 Returns clean structured format for parser.
+  - [OK] `AIChatBotSingleton._fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
   - [OK] `AIChatBotSingleton._get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
+  - [OK] `AIChatBotSingleton._get_cached_non_chat_response(self, mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id)` - Return cached response for non-chat modes when eligible.
   - [OK] `AIChatBotSingleton._get_contextual_fallback(self, user_prompt, user_id)` - Provide contextually aware fallback responses based on user data and prompt analysis.
 Now actually analyzes user's check-in data for meaningful responses.
   - [OK] `AIChatBotSingleton._get_fallback_personalized_message(self, user_id)` - Provide fallback personalized messages when AI model is not available.
   - [OK] `AIChatBotSingleton._get_fallback_response(self, user_prompt)` - Legacy fallback method for backwards compatibility.
+  - [OK] `AIChatBotSingleton._has_command_keyword(self, prompt_lower)` - Return True when prompt appears command-oriented.
+  - [OK] `AIChatBotSingleton._is_data_analysis_question(self, user_prompt)` - Detect prompts that should bypass contextual cache for fresh data.
+  - [OK] `AIChatBotSingleton._is_natural_language_task_request(self, prompt_lower)` - Detect natural-language task intents that likely need clarification.
+  - [OK] `AIChatBotSingleton._is_valid_timeout(self, timeout)` - Validate timeout input type for response generation.
   - [OK] `AIChatBotSingleton._make_cache_key_inputs(self, mode, user_prompt, user_id)` - Create consistent cache key inputs with validation.
 
 Returns:
     tuple: (user_prompt, user_id, mode)
+  - [OK] `AIChatBotSingleton._needs_command_clarification(self, prompt_lower, words, stripped_prompt)` - Determine whether a command-like prompt is too ambiguous.
+  - [OK] `AIChatBotSingleton._normalize_response_mode(self, mode, user_prompt)` - Normalize generation mode to supported values.
   - [OK] `AIChatBotSingleton._optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
+  - [OK] `AIChatBotSingleton._personalize_fallback_with_profile_name(self, fallback_response, context_summary, profile)` - Inject preferred name into greeting-based fallback responses when available.
+  - [OK] `AIChatBotSingleton._post_process_generated_response(self, mode, result)` - Post-process model output into final user-visible response.
+  - [OK] `AIChatBotSingleton._record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
   - [OK] `AIChatBotSingleton._smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response to avoid mid-sentence cuts.
 Supports both character and word limits.
+  - [OK] `AIChatBotSingleton._store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
   - [OK] `AIChatBotSingleton._test_lm_studio_connection(self)` - Test connection to LM Studio server with validation.
 
 Returns:
@@ -1374,8 +1406,11 @@ Returns:
 Returns:
     discord.Embed: Created embed, None if failed
 - [OK] `_get_detailed_connection_status(self)` - Get detailed connection status information
+- [OK] `_has_external_ngrok_tunnel(self)` - Detect an externally running ngrok HTTP tunnel.
+- [OK] `_schedule_ready_tasks(self, bot)` - Schedule non-blocking tasks after Discord ready event.
 - [OK] `_shared__update_connection_status(self, status, error_info)` - Update connection status with detailed error information
 - [OK] `_should_attempt_reconnection(self)` - Determine if reconnection should be attempted based on various factors
+- [OK] `_start_discord_webhook_server_for_ready(self)` - Start webhook server and log ngrok/webhook status.
 - [OK] `_start_ngrok_tunnel(self, port)` - Start ngrok tunnel for webhook server (development only).
 
 Args:
@@ -1417,8 +1452,11 @@ Returns:
 Returns:
     discord.Embed: Created embed, None if failed
   - [OK] `DiscordBot._get_detailed_connection_status(self)` - Get detailed connection status information
+  - [OK] `DiscordBot._has_external_ngrok_tunnel(self)` - Detect an externally running ngrok HTTP tunnel.
+  - [OK] `DiscordBot._schedule_ready_tasks(self, bot)` - Schedule non-blocking tasks after Discord ready event.
   - [OK] `DiscordBot._shared__update_connection_status(self, status, error_info)` - Update connection status with detailed error information
   - [OK] `DiscordBot._should_attempt_reconnection(self)` - Determine if reconnection should be attempted based on various factors
+  - [OK] `DiscordBot._start_discord_webhook_server_for_ready(self)` - Start webhook server and log ngrok/webhook status.
   - [OK] `DiscordBot._start_ngrok_tunnel(self, port)` - Start ngrok tunnel for webhook server (development only).
 
 Args:
@@ -1710,8 +1748,10 @@ Verifies that the logging system is functional and attempts to restart it if iss
 
 Returns:
     str: Task reminder message, default if failed
+- [OK] `_deduplicate_candidate_messages(self, user_id, category, all_messages)` - Filter recent duplicates; fallback to all candidates if needed.
 - [OK] `_email_polling_loop(self)` - Background thread that periodically polls for incoming emails and processes them
 - [OK] `_expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
+- [OK] `_filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - Filter messages by active day and matching period.
 - [OK] `_get_default_channel_configs(self)` - Get default channel configurations
 - [OK] `_get_recipient_for_service(self, user_id, messaging_service, preferences)` - Get recipient for service with validation.
 
@@ -1719,6 +1759,8 @@ Returns:
     Optional[str]: Recipient ID, None if failed
 - [OK] `_handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Handle scheduled check-in messages based on user preferences and frequency.
 - [OK] `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
+- [OK] `_load_predefined_messages_library(self, user_id, category)` - Load and normalize the messages library for a user/category.
+- [OK] `_normalize_message_selection_periods(self, matching_periods, valid_periods)` - Normalize matching periods for message selection.
 - [OK] `_process_incoming_email(self, email_msg)` - Process an incoming email message and send response
 - [OK] `_select_weighted_message(self, available_messages, matching_periods)` - Select weighted message with validation.
 
@@ -1728,6 +1770,7 @@ Returns:
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
+- [OK] `_send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - Send selected message and store tracking information.
 - [OK] `_send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt message to start the check-in flow.
 - [OK] `_send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user
 - [OK] `_send_predefined_message(self, user_id, category, messaging_service, recipient)` - Send a pre-defined message from the user's message library with deduplication.
@@ -1805,8 +1848,10 @@ Verifies that the logging system is functional and attempts to restart it if iss
 
 Returns:
     str: Task reminder message, default if failed
+  - [OK] `CommunicationManager._deduplicate_candidate_messages(self, user_id, category, all_messages)` - Filter recent duplicates; fallback to all candidates if needed.
   - [OK] `CommunicationManager._email_polling_loop(self)` - Background thread that periodically polls for incoming emails and processes them
   - [OK] `CommunicationManager._expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
+  - [OK] `CommunicationManager._filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - Filter messages by active day and matching period.
   - [OK] `CommunicationManager._get_default_channel_configs(self)` - Get default channel configurations
   - [OK] `CommunicationManager._get_recipient_for_service(self, user_id, messaging_service, preferences)` - Get recipient for service with validation.
 
@@ -1814,6 +1859,8 @@ Returns:
     Optional[str]: Recipient ID, None if failed
   - [OK] `CommunicationManager._handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Handle scheduled check-in messages based on user preferences and frequency.
   - [OK] `CommunicationManager._initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
+  - [OK] `CommunicationManager._load_predefined_messages_library(self, user_id, category)` - Load and normalize the messages library for a user/category.
+  - [OK] `CommunicationManager._normalize_message_selection_periods(self, matching_periods, valid_periods)` - Normalize matching periods for message selection.
   - [OK] `CommunicationManager._process_incoming_email(self, email_msg)` - Process an incoming email message and send response
   - [OK] `CommunicationManager._select_weighted_message(self, available_messages, matching_periods)` - Select weighted message with validation.
 
@@ -1823,6 +1870,7 @@ Returns:
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
+  - [OK] `CommunicationManager._send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - Send selected message and store tracking information.
   - [OK] `CommunicationManager._send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt message to start the check-in flow.
   - [OK] `CommunicationManager._send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user
   - [OK] `CommunicationManager._send_predefined_message(self, user_id, category, messaging_service, recipient)` - Send a pre-defined message from the user's message library with deduplication.
@@ -1975,15 +2023,20 @@ Returns:
 Sets up the parser with AI chatbot integration and interaction handlers,
 and initializes rule-based intent patterns for common commands.
 - [OK] `_ai_enhanced_parse(self, message, user_id)` - Parse using AI chatbot capabilities
+- [OK] `_build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
 - [OK] `_calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
 - [OK] `_extract_entities_from_ai_response(self, ai_response)` - Extract entities from AI response text
 - [OK] `_extract_entities_rule_based(self, intent, match, message)` - Extract entities using rule-based patterns
+- [OK] `_extract_history_analytics_entities_rule_based(self, intent, message, entities)` - Extract check-in history and analytics entities.
 - [OK] `_extract_intent_from_ai_response(self, ai_response)` - Extract intent from AI response text
+- [OK] `_extract_schedule_entities_rule_based(self, intent, match, message, entities)` - Extract schedule-related entities and return whether intent was handled.
 - [OK] `_extract_task_entities(self, title)` - Extract task-related entities from title
+- [OK] `_extract_task_entities_rule_based(self, intent, match, message, entities)` - Extract task-related entities and return whether intent was handled.
 - [OK] `_extract_task_name_from_context(self, message)` - Extract task name from natural language context
 - [OK] `_extract_update_entities(self, update_text)` - Extract update entities from update text
 - [OK] `_is_valid_intent(self, intent)` - Check if intent is supported by any handler
 - [OK] `_match_message(message_for_match)` - Attempt to match intents against the provided message.
+- [OK] `_match_rule_based_intent(self, intent, message_for_match, original_message)` - Attempt matching all patterns for a specific intent.
 - [OK] `_parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
 - [OK] `_parse_time_period(self, time_period)` - Parse a time period string (e.g. 'this week', 'last week', '3 days') into days and period_name.
@@ -2002,14 +2055,19 @@ Returns:
 Sets up the parser with AI chatbot integration and interaction handlers,
 and initializes rule-based intent patterns for common commands.
   - [OK] `EnhancedCommandParser._ai_enhanced_parse(self, message, user_id)` - Parse using AI chatbot capabilities
+  - [OK] `EnhancedCommandParser._build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
   - [OK] `EnhancedCommandParser._calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
   - [OK] `EnhancedCommandParser._extract_entities_from_ai_response(self, ai_response)` - Extract entities from AI response text
   - [OK] `EnhancedCommandParser._extract_entities_rule_based(self, intent, match, message)` - Extract entities using rule-based patterns
+  - [OK] `EnhancedCommandParser._extract_history_analytics_entities_rule_based(self, intent, message, entities)` - Extract check-in history and analytics entities.
   - [OK] `EnhancedCommandParser._extract_intent_from_ai_response(self, ai_response)` - Extract intent from AI response text
+  - [OK] `EnhancedCommandParser._extract_schedule_entities_rule_based(self, intent, match, message, entities)` - Extract schedule-related entities and return whether intent was handled.
   - [OK] `EnhancedCommandParser._extract_task_entities(self, title)` - Extract task-related entities from title
+  - [OK] `EnhancedCommandParser._extract_task_entities_rule_based(self, intent, match, message, entities)` - Extract task-related entities and return whether intent was handled.
   - [OK] `EnhancedCommandParser._extract_task_name_from_context(self, message)` - Extract task name from natural language context
   - [OK] `EnhancedCommandParser._extract_update_entities(self, update_text)` - Extract update entities from update text
   - [OK] `EnhancedCommandParser._is_valid_intent(self, intent)` - Check if intent is supported by any handler
+  - [OK] `EnhancedCommandParser._match_rule_based_intent(self, intent, message_for_match, original_message)` - Attempt matching all patterns for a specific intent.
   - [OK] `EnhancedCommandParser._parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
   - [OK] `EnhancedCommandParser._parse_time_period(self, time_period)` - Parse a time period string (e.g. 'this week', 'last week', '3 days') into days and period_name.
@@ -2024,6 +2082,8 @@ Returns:
 #### `communication/message_processing/conversation_flow_manager.py`
 **Functions:**
 - [OK] `__init__(self)` - Initialize the object.
+- [OK] `_build_future_reminder_period(self, due_datetime, start_delta, end_delta)` - Create reminder period dict when reminder window is in the future.
+- [OK] `_build_reminder_deltas(self, unit, start_val, end_val)` - Return start/end timedeltas for a parsed reminder range.
 - [OK] `_cache_expired_checkin_order(self, user_id, user_state)` - Cache the question order for a same-day restart after expiration.
 - [OK] `_clear_flow_state(self, user_id, mark_completion)` - Clear user flow state and optionally mark completion timestamp.
 - [OK] `_complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
@@ -2039,6 +2099,8 @@ Examples:
 - [OK] `_get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
 - [OK] `_get_personalized_welcome(self, user_id, question_count)` - Generate a personalized welcome message based on user history
 - [OK] `_get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
+- [OK] `_get_reminder_parse_patterns(self)` - Return ordered regex patterns for reminder phrase parsing.
+- [OK] `_get_task_due_datetime_for_reminders(self, user_id, task_id)` - Resolve task due datetime for reminder calculations.
 - [OK] `_handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
 - [OK] `_handle_command_during_checkin(self, user_id, message_text)` - Handle common commands while user is in a checkin flow
 - [OK] `_handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
@@ -2053,6 +2115,7 @@ Parses natural language responses like:
 - "No reminders needed" / "No" / "Skip"
 - [OK] `_load_user_states(self)` - Load user states from disk with comprehensive logging
 - [OK] `_mark_flow_completion(self, user_id)` - Record when a user flow completed to enforce post-flow cooldown.
+- [OK] `_normalize_reminder_text(self, text)` - Normalize reminder text variants before regex matching.
 - [OK] `_parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
 
 Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
@@ -2064,6 +2127,7 @@ Examples:
 - "1 to 2 days before" -> reminder 1-2 days before due date
 
 Returns list of reminder period dicts with date, start_time, end_time.
+- [OK] `_parse_reminder_range(self, match)` - Parse first and optional second numeric range from regex match.
 - [OK] `_parse_time_from_text(self, text)` - Parse time from natural language text.
 
 Examples:
@@ -2133,6 +2197,8 @@ Called by task handler after creating a task with a due date.
 **Classes:**
 - [MISSING] `ConversationManager` - No description
   - [OK] `ConversationManager.__init__(self)` - Initialize the object.
+  - [OK] `ConversationManager._build_future_reminder_period(self, due_datetime, start_delta, end_delta)` - Create reminder period dict when reminder window is in the future.
+  - [OK] `ConversationManager._build_reminder_deltas(self, unit, start_val, end_val)` - Return start/end timedeltas for a parsed reminder range.
   - [OK] `ConversationManager._cache_expired_checkin_order(self, user_id, user_state)` - Cache the question order for a same-day restart after expiration.
   - [OK] `ConversationManager._clear_flow_state(self, user_id, mark_completion)` - Clear user flow state and optionally mark completion timestamp.
   - [OK] `ConversationManager._complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
@@ -2147,6 +2213,8 @@ Examples:
   - [OK] `ConversationManager._get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
   - [OK] `ConversationManager._get_personalized_welcome(self, user_id, question_count)` - Generate a personalized welcome message based on user history
   - [OK] `ConversationManager._get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
+  - [OK] `ConversationManager._get_reminder_parse_patterns(self)` - Return ordered regex patterns for reminder phrase parsing.
+  - [OK] `ConversationManager._get_task_due_datetime_for_reminders(self, user_id, task_id)` - Resolve task due datetime for reminder calculations.
   - [OK] `ConversationManager._handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
   - [OK] `ConversationManager._handle_command_during_checkin(self, user_id, message_text)` - Handle common commands while user is in a checkin flow
   - [OK] `ConversationManager._handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
@@ -2161,6 +2229,7 @@ Parses natural language responses like:
 - "No reminders needed" / "No" / "Skip"
   - [OK] `ConversationManager._load_user_states(self)` - Load user states from disk with comprehensive logging
   - [OK] `ConversationManager._mark_flow_completion(self, user_id)` - Record when a user flow completed to enforce post-flow cooldown.
+  - [OK] `ConversationManager._normalize_reminder_text(self, text)` - Normalize reminder text variants before regex matching.
   - [OK] `ConversationManager._parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
 
 Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
@@ -2172,6 +2241,7 @@ Examples:
 - "1 to 2 days before" -> reminder 1-2 days before due date
 
 Returns list of reminder period dicts with date, start_time, end_time.
+  - [OK] `ConversationManager._parse_reminder_range(self, match)` - Parse first and optional second numeric range from regex match.
   - [OK] `ConversationManager._parse_time_from_text(self, text)` - Parse time from natural language text.
 
 Examples:
@@ -2255,6 +2325,9 @@ Returns:
 **Functions:**
 - [OK] `__init__(self)` - Special Python method
 - [MISSING] `_augment_suggestions(self, parsed_command, response)` - No description
+- [OK] `_build_analytics_alias_commands(self)` - Return analytics command aliases mapped to canonical prompts.
+- [OK] `_build_base_command_definitions(self)` - Return channel-agnostic base commands.
+- [OK] `_build_command_definitions(self)` - Build complete command definitions with base commands and analytics aliases.
 - [OK] `_enhance_response_with_ai(self, user_id, response, parsed_command)` - Enhance a structured response with AI contextual information
 - [OK] `_extract_intent_from_text(self, text)` - Extract intent from AI text response
 - [OK] `_get_commands_response(self)` - Return a concise, channel-agnostic commands list for quick discovery.
@@ -2299,6 +2372,9 @@ Uses canonical parsers from time_utilities (no inline parsing).
 - [OK] `InteractionManager` - Main manager for handling user interactions across all channels
   - [OK] `InteractionManager.__init__(self)` - Special Python method
   - [MISSING] `InteractionManager._augment_suggestions(self, parsed_command, response)` - No description
+  - [OK] `InteractionManager._build_analytics_alias_commands(self)` - Return analytics command aliases mapped to canonical prompts.
+  - [OK] `InteractionManager._build_base_command_definitions(self)` - Return channel-agnostic base commands.
+  - [OK] `InteractionManager._build_command_definitions(self)` - Build complete command definitions with base commands and analytics aliases.
   - [OK] `InteractionManager._enhance_response_with_ai(self, user_id, response, parsed_command)` - Enhance a structured response with AI contextual information
   - [OK] `InteractionManager._extract_intent_from_text(self, text)` - Extract intent from AI text response
   - [OK] `InteractionManager._get_commands_response(self)` - Return a concise, channel-agnostic commands list for quick discovery.
@@ -3360,10 +3436,15 @@ to keep test output clean when verbose logging is disabled.
 
 Args:
     name: Component name (e.g., 'discord', 'ai')
+- [OK] `_copy_locked_log_to_backup(self, backup_path, min_file_size)` - Fallback path for locked files: copy to backup and truncate original if safe.
+- [OK] `_finalize_rollover_stream(self, current_time, backup_path, dfn)` - Reopen the active stream and restore files when post-rotation verification fails.
 - [OK] `_get_log_paths_for_environment()` - Get appropriate log paths based on the current environment.
 - [OK] `_is_dev_tools_run()` - True when entry point or env indicates development tools (audit, scripts, etc.).
 - [OK] `_is_testing_environment()` - Check if we're running in a testing environment.
 - [OK] `_log(self, level, message)` - Internal logging method with structured data support.
+- [OK] `_restore_rotated_file_if_needed(self, dfn)` - Restore rotated temp file back to the active log path when backup move fails.
+- [OK] `_rotate_base_file_to_backup(self, dfn, backup_path, min_file_size)` - Move or copy current log file into backup storage.
+- [OK] `_skip_rollover_for_small_or_recent_file(self, current_time, min_file_size, min_file_age_seconds)` - Return True when rollover should be skipped due to size/age checks.
 - [OK] `apply_test_context_formatter_to_all_loggers()` - Apply PytestContextLogFormatter to all existing loggers when in test mode.
 - [OK] `cleanup_old_archives(max_days)` - Remove archived log files older than specified days.
 
@@ -3509,6 +3590,11 @@ Args:
     delay: If True, delay file opening until first write
     when: Time-based rotation interval ('midnight', 'H', 'D', etc.)
     interval: Number of intervals between rotations
+  - [OK] `BackupDirectoryRotatingFileHandler._copy_locked_log_to_backup(self, backup_path, min_file_size)` - Fallback path for locked files: copy to backup and truncate original if safe.
+  - [OK] `BackupDirectoryRotatingFileHandler._finalize_rollover_stream(self, current_time, backup_path, dfn)` - Reopen the active stream and restore files when post-rotation verification fails.
+  - [OK] `BackupDirectoryRotatingFileHandler._restore_rotated_file_if_needed(self, dfn)` - Restore rotated temp file back to the active log path when backup move fails.
+  - [OK] `BackupDirectoryRotatingFileHandler._rotate_base_file_to_backup(self, dfn, backup_path, min_file_size)` - Move or copy current log file into backup storage.
+  - [OK] `BackupDirectoryRotatingFileHandler._skip_rollover_for_small_or_recent_file(self, current_time, min_file_size, min_file_age_seconds)` - Return True when rollover should be skipped due to size/age checks.
   - [OK] `BackupDirectoryRotatingFileHandler.doRollover(self)` - Do a rollover, as described in __init__().
   - [OK] `BackupDirectoryRotatingFileHandler.shouldRollover(self, record)` - Determine if rollover should occur based on both time and size.
 Prevents rollover for files that are too small or too recently created.
@@ -4264,8 +4350,13 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `_cleanup_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
 - [OK] `_cleanup_test_message_requests__is_test_message_request_file(self, filename)` - Check if a filename matches the test message request file pattern.
 - [OK] `_cleanup_test_message_requests__remove_request_file(self, request_file, filename)` - Remove a single test message request file with proper error handling.
+- [OK] `_collect_service_status_metrics(self, loop_minutes)` - Collect coarse health metrics for periodic service logs.
 - [OK] `_get_checkin_first_question(self, user_id)` - Get the first question that will be asked in the check-in.
 - [OK] `_has_any_request_files(self, base_dir)` - Quick check if any request files exist (optimization to avoid full scan when not needed).
+- [OK] `_log_discord_connectivity_health(self)` - Log connectivity diagnostics for Discord channel health.
+- [OK] `_log_hourly_service_status(self, loop_minutes)` - Log periodic service metrics and channel-health diagnostics.
+- [OK] `_poll_request_files_if_needed(self)` - Process request-flag files only when present to keep loop overhead low.
+- [OK] `_process_shutdown_request(self, shutdown_file)` - Return True when a shutdown request was detected and loop should stop.
 - [OK] `_write_checkin_response(self, user_id, first_question)` - Write the first check-in question to a response file for the UI to read.
 - [OK] `check_and_fix_logging(self)` - Check if logging is working and restart if needed
 - [OK] `check_checkin_prompt_requests(self)` - Check for and process check-in prompt request files from admin panel
@@ -4329,8 +4420,13 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService._cleanup_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
   - [OK] `MHMService._cleanup_test_message_requests__is_test_message_request_file(self, filename)` - Check if a filename matches the test message request file pattern.
   - [OK] `MHMService._cleanup_test_message_requests__remove_request_file(self, request_file, filename)` - Remove a single test message request file with proper error handling.
+  - [OK] `MHMService._collect_service_status_metrics(self, loop_minutes)` - Collect coarse health metrics for periodic service logs.
   - [OK] `MHMService._get_checkin_first_question(self, user_id)` - Get the first question that will be asked in the check-in.
   - [OK] `MHMService._has_any_request_files(self, base_dir)` - Quick check if any request files exist (optimization to avoid full scan when not needed).
+  - [OK] `MHMService._log_discord_connectivity_health(self)` - Log connectivity diagnostics for Discord channel health.
+  - [OK] `MHMService._log_hourly_service_status(self, loop_minutes)` - Log periodic service metrics and channel-health diagnostics.
+  - [OK] `MHMService._poll_request_files_if_needed(self)` - Process request-flag files only when present to keep loop overhead low.
+  - [OK] `MHMService._process_shutdown_request(self, shutdown_file)` - Return True when a shutdown request was detected and loop should stop.
   - [OK] `MHMService._write_checkin_response(self, user_id, first_question)` - Write the first check-in question to a response file for the UI to read.
   - [OK] `MHMService.check_and_fix_logging(self)` - Check if logging is working and restart if needed
   - [OK] `MHMService.check_checkin_prompt_requests(self)` - Check for and process check-in prompt request files from admin panel
@@ -5812,6 +5908,8 @@ Returns:
 **Functions:**
 - [OK] `__init__(self)` - Initialize the object.
 - [OK] `__init__(self)` - Initialize the object.
+- [OK] `_build_enabled_features(self, user_account, user_preferences)` - Return enabled feature markers for a user.
+- [OK] `_build_user_combo_display_name(self, user_data)` - Create user dropdown display text including channel/features.
 - [OK] `_check_discord_status(self)` - Check if Discord channel is actually running and connected
 
 IMPORTANT: This will NEVER return True if the service is stopped.
@@ -5826,6 +5924,11 @@ Checks for:
 IMPORTANT: This will NEVER return True if the service is stopped.
 Channels cannot run without the service, so we check service status first.
 - [OK] `_check_ngrok_status(self)` - Check if ngrok tunnel is running and return PID
+- [OK] `_collect_active_users_for_combo(self)` - Load active users and normalized display metadata.
+- [OK] `_populate_active_users_in_combo_box(self)` - Populate user combo box from active user metadata.
+- [OK] `_refresh_user_list_fallback(self, original_error)` - Fallback user list refresh using minimal account/context reads.
+- [OK] `_reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
+- [OK] `_reset_user_combo_box(self)` - Clear user combo and add placeholder entry.
 - [OK] `_send_test_message__get_selected_category(self)` - Get and validate the selected category from the dropdown.
 - [OK] `_send_test_message__validate_service_running(self)` - Validate that the service is running.
 - [OK] `_send_test_message__validate_user_selection(self)` - Validate that a user is selected.
@@ -5970,6 +6073,8 @@ Returns:
 **Classes:**
 - [OK] `MHMManagerUI` - Main MHM Management UI using PySide6
   - [OK] `MHMManagerUI.__init__(self)` - Initialize the object.
+  - [OK] `MHMManagerUI._build_enabled_features(self, user_account, user_preferences)` - Return enabled feature markers for a user.
+  - [OK] `MHMManagerUI._build_user_combo_display_name(self, user_data)` - Create user dropdown display text including channel/features.
   - [OK] `MHMManagerUI._check_discord_status(self)` - Check if Discord channel is actually running and connected
 
 IMPORTANT: This will NEVER return True if the service is stopped.
@@ -5984,6 +6089,11 @@ Checks for:
 IMPORTANT: This will NEVER return True if the service is stopped.
 Channels cannot run without the service, so we check service status first.
   - [OK] `MHMManagerUI._check_ngrok_status(self)` - Check if ngrok tunnel is running and return PID
+  - [OK] `MHMManagerUI._collect_active_users_for_combo(self)` - Load active users and normalized display metadata.
+  - [OK] `MHMManagerUI._populate_active_users_in_combo_box(self)` - Populate user combo box from active user metadata.
+  - [OK] `MHMManagerUI._refresh_user_list_fallback(self, original_error)` - Fallback user list refresh using minimal account/context reads.
+  - [OK] `MHMManagerUI._reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
+  - [OK] `MHMManagerUI._reset_user_combo_box(self)` - Clear user combo and add placeholder entry.
   - [OK] `MHMManagerUI._send_test_message__get_selected_category(self)` - Get and validate the selected category from the dropdown.
   - [OK] `MHMManagerUI._send_test_message__validate_service_running(self)` - Validate that the service is running.
   - [OK] `MHMManagerUI._send_test_message__validate_user_selection(self)` - Validate that a user is selected.
@@ -6175,10 +6285,15 @@ Args:
 #### `ui/widgets/checkin_settings_widget.py`
 **Functions:**
 - [OK] `__init__(self, parent, user_id)` - Initialize the object.
+- [OK] `_build_custom_question_key(self, question_key, question_text, dynamic_checkin_manager)` - Build a stable custom question key for create/edit flows.
+- [OK] `_build_custom_question_validation(self, question_type, display_name)` - Build validation structure for a custom question type.
+- [OK] `_build_display_name_with_type_hint(self, display_name, question_type)` - Add a type hint suffix to display names when missing.
 - [OK] `_clear_category_groups(self)` - Remove all category group boxes.
 - [OK] `_clear_dynamic_question_checkboxes(self)` - Remove all dynamically created question checkboxes.
+- [OK] `_collect_current_question_states(self)` - Collect include/enable state from current checkbox widgets.
 - [OK] `_delete_custom_question(self, question_key)` - Delete a custom question.
 - [OK] `_edit_custom_question(self, question_key)` - Edit an existing custom question.
+- [OK] `_handle_custom_question_save_success(self, question_key, display_name, final_key, new_question_def)` - Apply UI updates and feedback after successfully saving a custom question.
 - [OK] `_on_always_toggled(self, question_key, checked)` - Handle always checkbox toggle - ensure sometimes is unchecked if always is checked.
 - [OK] `_on_max_changed(self, value)` - Handle maximum questions value change - adjust min if needed.
 - [OK] `_on_min_changed(self, value)` - Handle minimum questions value change - adjust max if needed.
@@ -6226,10 +6341,15 @@ Args:
 **Classes:**
 - [OK] `CheckinSettingsWidget` - Widget for check-in settings configuration.
   - [OK] `CheckinSettingsWidget.__init__(self, parent, user_id)` - Initialize the object.
+  - [OK] `CheckinSettingsWidget._build_custom_question_key(self, question_key, question_text, dynamic_checkin_manager)` - Build a stable custom question key for create/edit flows.
+  - [OK] `CheckinSettingsWidget._build_custom_question_validation(self, question_type, display_name)` - Build validation structure for a custom question type.
+  - [OK] `CheckinSettingsWidget._build_display_name_with_type_hint(self, display_name, question_type)` - Add a type hint suffix to display names when missing.
   - [OK] `CheckinSettingsWidget._clear_category_groups(self)` - Remove all category group boxes.
   - [OK] `CheckinSettingsWidget._clear_dynamic_question_checkboxes(self)` - Remove all dynamically created question checkboxes.
+  - [OK] `CheckinSettingsWidget._collect_current_question_states(self)` - Collect include/enable state from current checkbox widgets.
   - [OK] `CheckinSettingsWidget._delete_custom_question(self, question_key)` - Delete a custom question.
   - [OK] `CheckinSettingsWidget._edit_custom_question(self, question_key)` - Edit an existing custom question.
+  - [OK] `CheckinSettingsWidget._handle_custom_question_save_success(self, question_key, display_name, final_key, new_question_def)` - Apply UI updates and feedback after successfully saving a custom question.
   - [OK] `CheckinSettingsWidget._on_always_toggled(self, question_key, checked)` - Handle always checkbox toggle - ensure sometimes is unchecked if always is checked.
   - [OK] `CheckinSettingsWidget._on_max_changed(self, value)` - Handle maximum questions value change - adjust min if needed.
   - [OK] `CheckinSettingsWidget._on_min_changed(self, value)` - Handle minimum questions value change - adjust max if needed.

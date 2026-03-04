@@ -981,65 +981,15 @@ class CheckinSettingsWidget(QWidget):
             category = category_combo.currentData()  # Get the actual category key
             display_name = display_name_edit.text().strip() or question_text
 
-            # Use existing key if editing, otherwise generate new one
-            if question_key:
-                final_key = question_key
-            else:
-                import re
-
-                final_key = re.sub(r"[^a-z0-9_]", "_", question_text.lower()[:50])
-                final_key = f"custom_{final_key}"
-
-                # Check if key already exists
-                existing_custom = dynamic_checkin_manager.get_custom_questions(
-                    self.user_id
-                )
-                counter = 1
-                original_key = final_key
-                while final_key in existing_custom:
-                    final_key = f"{original_key}_{counter}"
-                    counter += 1
-
-            # Build validation rules based on type
-            validation = {}
-            if question_type == "scale_1_5":
-                validation = {
-                    "min": 1,
-                    "max": 5,
-                    "error_message": f"Please enter a number between 1 and 5 for {display_name}.",
-                }
-            elif question_type == "number":
-                validation = {
-                    "min": 0,
-                    "max": 100,
-                    "error_message": f"Please enter a number for {display_name}.",
-                }
-            elif question_type == "yes_no":
-                validation = {
-                    "error_message": f"Please answer with yes/no, y/n, or similar for {display_name}."
-                }
-            elif question_type == "optional_text":
-                validation = {
-                    "error_message": f"This is optional - you can just press enter to skip {display_name}."
-                }
-            elif question_type == "time_pair":
-                validation = {
-                    "error_message": f"Please provide both times in HH:MM format (e.g., '23:30' and '07:00') for {display_name}."
-                }
-
-            # Add type hint to display name (matching format of included questions)
-            type_hints = {
-                "scale_1_5": " (1-5 scale)",
-                "yes_no": " (yes/no)",
-                "number": " (number)",
-                "optional_text": " (text)",
-                "time_pair": " (time pair)",
-            }
-            type_hint = type_hints.get(question_type, "")
-            if display_name and not display_name.endswith(type_hint):
-                display_name_with_hint = display_name + type_hint
-            else:
-                display_name_with_hint = display_name
+            final_key = self._build_custom_question_key(
+                question_key, question_text, dynamic_checkin_manager
+            )
+            validation = self._build_custom_question_validation(
+                question_type, display_name
+            )
+            display_name_with_hint = self._build_display_name_with_type_hint(
+                display_name, question_type
+            )
 
             # Create question definition
             # New questions default to always_include=True
@@ -1063,79 +1013,142 @@ class CheckinSettingsWidget(QWidget):
             if dynamic_checkin_manager.save_custom_question(
                 self.user_id, final_key, new_question_def
             ):
-                action = "updated" if question_key else "added"
-                QMessageBox.information(
-                    self,
-                    f"Question {action.title()}",
-                    f"Custom question '{display_name}' has been {action} successfully.\n\n"
-                    "You can enable/disable it in the check-in questions list.",
+                self._handle_custom_question_save_success(
+                    question_key, display_name, final_key, new_question_def
                 )
-                # Preserve current min/max values
-                current_min = (
-                    self.min_questions_spinbox.value()
-                    if self.min_questions_spinbox
-                    else 1
-                )
-                current_max = (
-                    self.max_questions_spinbox.value()
-                    if self.max_questions_spinbox
-                    else 8
-                )
-
-                # Get current state from UI and add the new question
-                current_questions = {}
-                for q_key, widgets in self.dynamic_question_checkboxes.items():
-                    always_cb = widgets.get("always_checkbox")
-                    sometimes_cb = widgets.get("sometimes_checkbox")
-                    if always_cb or sometimes_cb:
-                        current_questions[q_key] = {
-                            "always_include": (
-                                always_cb.isChecked() if always_cb else False
-                            ),
-                            "sometimes_include": (
-                                sometimes_cb.isChecked() if sometimes_cb else False
-                            ),
-                            "enabled": (always_cb.isChecked() if always_cb else False)
-                            or (sometimes_cb.isChecked() if sometimes_cb else False),
-                        }
-
-                # Add the new question with its saved state
-                current_questions[final_key] = {
-                    "enabled": new_question_def.get("enabled", True),
-                    "always_include": new_question_def.get("always_include", True),
-                    "sometimes_include": new_question_def.get(
-                        "sometimes_include", False
-                    ),
-                }
-
-                # Rebuild display with updated state (like tag_widget.refresh_tag_list())
-                self.set_question_checkboxes(current_questions)
-
-                # Validate to set proper ranges
-                self._validate_question_counts()
-
-                # Restore min/max values only if they're still within valid ranges
-                if self.min_questions_spinbox:
-                    min_valid = max(
-                        self.min_questions_spinbox.minimum(),
-                        min(current_min, self.min_questions_spinbox.maximum()),
-                    )
-                    self.min_questions_spinbox.setValue(min_valid)
-                if self.max_questions_spinbox:
-                    max_valid = max(
-                        self.max_questions_spinbox.minimum(),
-                        min(current_max, self.max_questions_spinbox.maximum()),
-                    )
-                    self.max_questions_spinbox.setValue(max_valid)
-
-                # Final validation
-                self._validate_question_counts()
             else:
                 QMessageBox.critical(
                     self,
                     "Error",
                     "Failed to save the custom question. Please try again.",
                 )
+
+    @handle_errors("building custom question key", default_return="")
+    def _build_custom_question_key(
+        self, question_key, question_text: str, dynamic_checkin_manager
+    ) -> str:
+        """Build a stable custom question key for create/edit flows."""
+        if question_key:
+            return question_key
+
+        import re
+
+        final_key = re.sub(r"[^a-z0-9_]", "_", question_text.lower()[:50])
+        final_key = f"custom_{final_key}"
+        existing_custom = dynamic_checkin_manager.get_custom_questions(self.user_id)
+        counter = 1
+        original_key = final_key
+        while final_key in existing_custom:
+            final_key = f"{original_key}_{counter}"
+            counter += 1
+        return final_key
+
+    @handle_errors("building custom question validation", default_return={})
+    def _build_custom_question_validation(
+        self, question_type: str, display_name: str
+    ) -> dict:
+        """Build validation structure for a custom question type."""
+        if question_type == "scale_1_5":
+            return {
+                "min": 1,
+                "max": 5,
+                "error_message": f"Please enter a number between 1 and 5 for {display_name}.",
+            }
+        if question_type == "number":
+            return {
+                "min": 0,
+                "max": 100,
+                "error_message": f"Please enter a number for {display_name}.",
+            }
+        if question_type == "yes_no":
+            return {
+                "error_message": f"Please answer with yes/no, y/n, or similar for {display_name}."
+            }
+        if question_type == "optional_text":
+            return {
+                "error_message": f"This is optional - you can just press enter to skip {display_name}."
+            }
+        if question_type == "time_pair":
+            return {
+                "error_message": f"Please provide both times in HH:MM format (e.g., '23:30' and '07:00') for {display_name}."
+            }
+        return {}
+
+    @handle_errors("building display name with type hint", default_return="")
+    def _build_display_name_with_type_hint(
+        self, display_name: str, question_type: str
+    ) -> str:
+        """Add a type hint suffix to display names when missing."""
+        type_hints = {
+            "scale_1_5": " (1-5 scale)",
+            "yes_no": " (yes/no)",
+            "number": " (number)",
+            "optional_text": " (text)",
+            "time_pair": " (time pair)",
+        }
+        type_hint = type_hints.get(question_type, "")
+        if display_name and type_hint and not display_name.endswith(type_hint):
+            return display_name + type_hint
+        return display_name
+
+    @handle_errors("collecting current question checkbox state", default_return={})
+    def _collect_current_question_states(self) -> dict:
+        """Collect include/enable state from current checkbox widgets."""
+        current_questions = {}
+        for q_key, widgets in self.dynamic_question_checkboxes.items():
+            always_cb = widgets.get("always_checkbox")
+            sometimes_cb = widgets.get("sometimes_checkbox")
+            if always_cb or sometimes_cb:
+                current_questions[q_key] = {
+                    "always_include": always_cb.isChecked() if always_cb else False,
+                    "sometimes_include": (
+                        sometimes_cb.isChecked() if sometimes_cb else False
+                    ),
+                    "enabled": (always_cb.isChecked() if always_cb else False)
+                    or (sometimes_cb.isChecked() if sometimes_cb else False),
+                }
+        return current_questions
+
+    @handle_errors("handling custom question save success", default_return=None)
+    def _handle_custom_question_save_success(
+        self, question_key, display_name: str, final_key: str, new_question_def: dict
+    ) -> None:
+        """Apply UI updates and feedback after successfully saving a custom question."""
+        action = "updated" if question_key else "added"
+        QMessageBox.information(
+            self,
+            f"Question {action.title()}",
+            f"Custom question '{display_name}' has been {action} successfully.\n\n"
+            "You can enable/disable it in the check-in questions list.",
+        )
+
+        current_min = self.min_questions_spinbox.value() if self.min_questions_spinbox else 1
+        current_max = self.max_questions_spinbox.value() if self.max_questions_spinbox else 8
+
+        current_questions = self._collect_current_question_states()
+        current_questions[final_key] = {
+            "enabled": new_question_def.get("enabled", True),
+            "always_include": new_question_def.get("always_include", True),
+            "sometimes_include": new_question_def.get("sometimes_include", False),
+        }
+
+        self.set_question_checkboxes(current_questions)
+        self._validate_question_counts()
+
+        if self.min_questions_spinbox:
+            min_valid = max(
+                self.min_questions_spinbox.minimum(),
+                min(current_min, self.min_questions_spinbox.maximum()),
+            )
+            self.min_questions_spinbox.setValue(min_valid)
+        if self.max_questions_spinbox:
+            max_valid = max(
+                self.max_questions_spinbox.minimum(),
+                min(current_max, self.max_questions_spinbox.maximum()),
+            )
+            self.max_questions_spinbox.setValue(max_valid)
+
+        self._validate_question_counts()
 
     @handle_errors("editing custom question")
     def _edit_custom_question(self, question_key):

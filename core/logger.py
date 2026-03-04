@@ -609,6 +609,8 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
         time_tuple = time.localtime(period_end_time)
         date_suffix = time.strftime(self.suffix, time_tuple)
         dfn = self.rotation_filename(self.baseFilename + "." + date_suffix)
+        backup_name = f"{Path(self.baseFilename).name}.{date_suffix}"
+        backup_path = str(Path(self.backup_dir) / backup_name)
 
         # Minimum file size threshold (5KB) - prevents rollover of files with minimal content
         # A single log line can be 200-300 bytes, so we need a reasonable threshold
@@ -618,175 +620,148 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
 
         # Try to handle the rollover with Windows-safe logic
         if os.path.exists(self.baseFilename):
-            # Check if file has meaningful content before rollover
-            # Prevent rollover for files that are too small or too recently created
-            try:
-                file_size = os.path.getsize(self.baseFilename)
-                file_mtime = os.path.getmtime(self.baseFilename)
-                file_age_seconds = current_time - file_mtime
-
-                # Skip rollover if file is too small or too recently created
-                if file_size < MIN_FILE_SIZE:
-                    # File is too small, don't rollover - just reopen and continue
-                    with contextlib.suppress(Exception):
-                        self.stream = self._open()
-                    self.rolloverAt = self.computeRollover(current_time)
-                    return
-
-                if file_age_seconds < MIN_FILE_AGE_SECONDS:
-                    # File was recently created, don't rollover - just reopen and continue
-                    with contextlib.suppress(Exception):
-                        self.stream = self._open()
-                    self.rolloverAt = self.computeRollover(current_time)
-                    return
-
-            except OSError:
-                # If we can't check file stats, proceed with rollover anyway
-                # This is safer than blocking rollover on stat errors
-                pass
-
-            backup_name = f"{Path(self.baseFilename).name}.{date_suffix}"
-            backup_path = str(Path(self.backup_dir) / backup_name)
-
-            # Windows-safe file move with retry logic
-            try:
-                # Try to rename the file (this is what the parent class would do)
-                if os.path.exists(dfn):
-                    os.unlink(dfn)  # Remove existing rollover file if it exists
-                os.rename(self.baseFilename, dfn)
-
-                # Now move to backup directory
-                try:
-                    shutil.move(dfn, backup_path)
-                    # After successful move, the original file location should be empty
-                    # Reopening the stream will create a new empty file, which is correct
-                except (PermissionError, OSError) as move_error:
-                    # If move to backup fails, we still have the rotated file at dfn
-                    # Don't truncate the original - we need to restore the file
-                    print(
-                        f"Warning: Could not move rotated log to backup directory: {move_error}"
-                    )
-                    # Try to restore the file by renaming it back
-                    try:
-                        if os.path.exists(dfn) and not os.path.exists(
-                            self.baseFilename
-                        ):
-                            os.rename(dfn, self.baseFilename)
-                            print("Info: Restored log file after failed backup move")
-                            # Reopen the stream to continue logging to the restored file
-                            self.stream = self._open()
-                            return
-                    except Exception as restore_error:
-                        print(
-                            f"Warning: Could not restore log file after failed backup: {restore_error}"
-                        )
-                        # If restore failed, try to reopen anyway
-                        with contextlib.suppress(Exception):
-                            self.stream = self._open()
-                        return
-
-            except PermissionError:
-                # File is locked, try alternative approach
-                try:
-                    # Check file size again before copying (in case it changed)
-                    file_size = 0
-                    with contextlib.suppress(OSError):
-                        file_size = os.path.getsize(self.baseFilename)
-
-                    # Only copy if file has meaningful content
-                    if file_size >= MIN_FILE_SIZE:
-                        # Try to copy the file instead of moving it
-                        try:
-                            shutil.copy2(self.baseFilename, backup_path)
-                            # Verify backup was created successfully before truncating
-                            if (
-                                os.path.exists(backup_path)
-                                and os.path.getsize(backup_path) > 0
-                            ):
-                                print(
-                                    f"Info: Copied log file to backup (original file is locked): {backup_path}"
-                                )
-
-                                # CRITICAL: Truncate the original file only after successful backup verification
-                                # This ensures the log file is properly reset for the new day
-                                try:
-                                    with open(
-                                        self.baseFilename, "w", encoding="utf-8"
-                                    ) as f:
-                                        f.truncate(0)  # Truncate to 0 bytes
-                                    print(
-                                        f"Info: Successfully truncated original log file: {self.baseFilename}"
-                                    )
-                                except Exception as truncate_error:
-                                    print(
-                                        f"Warning: Could not truncate original log file: {truncate_error}"
-                                    )
-                                    # Continue anyway - the backup was successful
-                            else:
-                                # Backup was not created successfully, don't truncate
-                                print(
-                                    "Warning: Backup file was not created successfully, skipping truncation"
-                                )
-                                raise OSError("Backup verification failed")
-                        except (PermissionError, OSError):
-                            # Copy failed, raise to be caught by outer exception handler
-                            raise
-                    else:
-                        # File is too small, skip rollover - just reopen and continue
-                        print(
-                            f"Info: Skipping rollover for small file ({file_size} bytes): {self.baseFilename}"
-                        )
-                        with contextlib.suppress(Exception):
-                            self.stream = self._open()
-                        return
-
-                except (PermissionError, OSError) as copy_error:
-                    # Even copy failed, skip rollover for this time
-                    print(
-                        f"Warning: Could not backup log file {self.baseFilename}: {copy_error}"
-                    )
-                    # Reopen the current file and continue
-                    self.stream = self._open()
-                    return
-            except Exception as e:
-                # Any other error, log it but continue
-                print(f"Warning: Error during log rollover: {e}")
-                # Reopen the current file and continue
-                self.stream = self._open()
+            should_skip = self._skip_rollover_for_small_or_recent_file(
+                current_time=current_time,
+                min_file_size=MIN_FILE_SIZE,
+                min_file_age_seconds=MIN_FILE_AGE_SECONDS,
+            )
+            if should_skip:
+                return
+            if not self._rotate_base_file_to_backup(
+                dfn=dfn,
+                backup_path=backup_path,
+                min_file_size=MIN_FILE_SIZE,
+            ):
                 return
 
         # After successful file movement, verify backup exists and reopen the original file
         # This ensures the log file is properly reset/truncated
+        self._finalize_rollover_stream(
+            current_time=current_time,
+            backup_path=backup_path,
+            dfn=dfn,
+        )
+
+    @handle_errors("checking rollover file thresholds", default_return=False)
+    def _skip_rollover_for_small_or_recent_file(
+        self, current_time: int, min_file_size: int, min_file_age_seconds: int
+    ) -> bool:
+        """Return True when rollover should be skipped due to size/age checks."""
         try:
-            # Verify backup was created successfully before reopening
-            if os.path.exists(backup_path) and os.path.getsize(backup_path) > 0:
-                # Backup exists, safe to reopen (will create new empty file)
-                self.stream = self._open()
-                # Schedule next rotation (parent would do this; we must do it since we override doRollover)
-                self.rolloverAt = self.computeRollover(current_time)
-            else:
-                # Backup doesn't exist, something went wrong - try to restore
-                print(
-                    "Warning: Backup file not found after rotation, attempting to restore"
-                )
-                # If dfn still exists, restore it
-                if os.path.exists(dfn):
-                    try:
-                        os.rename(dfn, self.baseFilename)
-                        self.stream = self._open()
-                        print(
-                            "Info: Restored log file after backup verification failed"
-                        )
-                    except Exception as restore_error:
-                        print(f"Warning: Could not restore log file: {restore_error}")
-                        # Try to reopen anyway
-                        self.stream = self._open()
-                else:
-                    # No backup and no dfn, just reopen (will create new file)
+            file_size = os.path.getsize(self.baseFilename)
+            file_mtime = os.path.getmtime(self.baseFilename)
+            file_age_seconds = current_time - file_mtime
+
+            if file_size < min_file_size or file_age_seconds < min_file_age_seconds:
+                with contextlib.suppress(Exception):
                     self.stream = self._open()
+                self.rolloverAt = self.computeRollover(current_time)
+                return True
+        except OSError:
+            pass
+        return False
+
+    @handle_errors("rotating base log file to backup", default_return=False)
+    def _rotate_base_file_to_backup(
+        self, dfn: str, backup_path: str, min_file_size: int
+    ) -> bool:
+        """Move or copy current log file into backup storage."""
+        try:
+            if os.path.exists(dfn):
+                os.unlink(dfn)
+            os.rename(self.baseFilename, dfn)
+            try:
+                shutil.move(dfn, backup_path)
+                return True
+            except (PermissionError, OSError) as move_error:
+                print(
+                    f"Warning: Could not move rotated log to backup directory: {move_error}"
+                )
+                self._restore_rotated_file_if_needed(dfn)
+                return False
+        except PermissionError:
+            return self._copy_locked_log_to_backup(
+                backup_path=backup_path,
+                min_file_size=min_file_size,
+            )
+        except Exception as e:
+            print(f"Warning: Error during log rollover: {e}")
+            self.stream = self._open()
+            return False
+
+    @handle_errors("restoring rotated file after backup failure", default_return=None)
+    def _restore_rotated_file_if_needed(self, dfn: str) -> None:
+        """Restore rotated temp file back to the active log path when backup move fails."""
+        try:
+            if os.path.exists(dfn) and not os.path.exists(self.baseFilename):
+                os.rename(dfn, self.baseFilename)
+                print("Info: Restored log file after failed backup move")
+                self.stream = self._open()
+        except Exception as restore_error:
+            print(
+                f"Warning: Could not restore log file after failed backup: {restore_error}"
+            )
+            with contextlib.suppress(Exception):
+                self.stream = self._open()
+
+    @handle_errors("copying locked log file to backup", default_return=False)
+    def _copy_locked_log_to_backup(self, backup_path: str, min_file_size: int) -> bool:
+        """Fallback path for locked files: copy to backup and truncate original if safe."""
+        try:
+            file_size = 0
+            with contextlib.suppress(OSError):
+                file_size = os.path.getsize(self.baseFilename)
+
+            if file_size < min_file_size:
+                print(
+                    f"Info: Skipping rollover for small file ({file_size} bytes): {self.baseFilename}"
+                )
+                with contextlib.suppress(Exception):
+                    self.stream = self._open()
+                return False
+
+            shutil.copy2(self.baseFilename, backup_path)
+            if not (os.path.exists(backup_path) and os.path.getsize(backup_path) > 0):
+                print("Warning: Backup file was not created successfully, skipping truncation")
+                raise OSError("Backup verification failed")
+
+            print(
+                f"Info: Copied log file to backup (original file is locked): {backup_path}"
+            )
+            try:
+                with open(self.baseFilename, "w", encoding="utf-8") as f:
+                    f.truncate(0)
+                print(f"Info: Successfully truncated original log file: {self.baseFilename}")
+            except Exception as truncate_error:
+                print(f"Warning: Could not truncate original log file: {truncate_error}")
+            return True
+        except (PermissionError, OSError) as copy_error:
+            print(f"Warning: Could not backup log file {self.baseFilename}: {copy_error}")
+            self.stream = self._open()
+            return False
+
+    @handle_errors("finalizing rollover stream state", default_return=None)
+    def _finalize_rollover_stream(self, current_time: int, backup_path: str, dfn: str):
+        """Reopen the active stream and restore files when post-rotation verification fails."""
+        try:
+            if os.path.exists(backup_path) and os.path.getsize(backup_path) > 0:
+                self.stream = self._open()
+                self.rolloverAt = self.computeRollover(current_time)
+                return
+
+            print("Warning: Backup file not found after rotation, attempting to restore")
+            if os.path.exists(dfn):
+                try:
+                    os.rename(dfn, self.baseFilename)
+                    self.stream = self._open()
+                    print("Info: Restored log file after backup verification failed")
+                except Exception as restore_error:
+                    print(f"Warning: Could not restore log file: {restore_error}")
+                    self.stream = self._open()
+            else:
+                self.stream = self._open()
         except Exception as e:
             print(f"Warning: Could not reopen log file after rotation: {e}")
-            # Try to create a new file if reopening fails
             try:
                 self.stream = self._open()
             except Exception as e2:

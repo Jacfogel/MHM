@@ -943,221 +943,41 @@ class EnhancedCommandParser:
         @handle_errors("matching command message", default_return=None)
         def _match_message(message_for_match: str) -> ParsingResult | None:
             """Attempt to match intents against the provided message."""
-            # Special handling: Check high-priority patterns first to ensure they take precedence
-            # Check help patterns first (simple, common command) - use exact match check
             if message_for_match == "help":
-                # Direct match for simple "help" command to avoid any pattern issues
                 return ParsingResult(
                     ParsedCommand("help", {}, 1.0, message), 1.0, "rule_based"
                 )
 
-            # Check other help patterns
-            if "help" in self.compiled_patterns:
-                for pattern in self.compiled_patterns["help"]:
-                    match = pattern.match(message_for_match)
-                    if match:
-                        entities = self._extract_entities_rule_based(
-                            "help", match, message_for_match
-                        )
-                        confidence = self._calculate_confidence(
-                            "help", match, message_for_match
-                        )
+            priority_intents = [
+                ("help", True),
+                ("list_tasks", True),
+                ("task_stats", False),
+                ("task_analytics", False),
+                ("edit_schedule_period", False),
+                ("create_quick_note", False),
+                ("list_recent_entries", False),
+                ("list_recent_notes", False),
+            ]
+            for intent, force_match in priority_intents:
+                parsed = self._match_rule_based_intent(
+                    intent,
+                    message_for_match,
+                    message,
+                    force_match=force_match,
+                )
+                if parsed:
+                    return parsed
 
-                        return ParsingResult(
-                            ParsedCommand("help", entities, confidence, message),
-                            confidence,
-                            "rule_based",
-                        )
-
-            # Check list_tasks patterns second to ensure they take precedence over show_entry patterns
-            if "list_tasks" in self.compiled_patterns:
-                for pattern in self.compiled_patterns["list_tasks"]:
-                    match = pattern.match(message_for_match)
-                    if match:
-                        entities = self._extract_entities_rule_based(
-                            "list_tasks", match, message_for_match
-                        )
-                        confidence = self._calculate_confidence(
-                            "list_tasks", match, message_for_match
-                        )
-
-                        return ParsingResult(
-                            ParsedCommand("list_tasks", entities, confidence, message),
-                            confidence,
-                            "rule_based",
-                        )
-
-            # Check task stats/analytics before create_task patterns
-            if "task_stats" in self.compiled_patterns:
-                for pattern in self.compiled_patterns["task_stats"]:
-                    match = (
-                        pattern.match(message_for_match)
-                        if pattern.pattern.startswith("^")
-                        else pattern.search(message_for_match)
-                    )
-                    if match:
-                        entities = self._extract_entities_rule_based(
-                            "task_stats", match, message_for_match
-                        )
-                        confidence = self._calculate_confidence(
-                            "task_stats", match, message_for_match
-                        )
-
-                        return ParsingResult(
-                            ParsedCommand("task_stats", entities, confidence, message),
-                            confidence,
-                            "rule_based",
-                        )
-
-            if "task_analytics" in self.compiled_patterns:
-                for pattern in self.compiled_patterns["task_analytics"]:
-                    match = (
-                        pattern.match(message_for_match)
-                        if pattern.pattern.startswith("^")
-                        else pattern.search(message_for_match)
-                    )
-                    if match:
-                        entities = self._extract_entities_rule_based(
-                            "task_analytics", match, message_for_match
-                        )
-                        confidence = self._calculate_confidence(
-                            "task_analytics", match, message_for_match
-                        )
-
-                        return ParsingResult(
-                            ParsedCommand(
-                                "task_analytics", entities, confidence, message
-                            ),
-                            confidence,
-                            "rule_based",
-                        )
-
-            # Check schedule edits before generic task update patterns
-            if "edit_schedule_period" in self.compiled_patterns:
-                for pattern in self.compiled_patterns["edit_schedule_period"]:
-                    match = (
-                        pattern.match(message_for_match)
-                        if pattern.pattern.startswith("^")
-                        else pattern.search(message_for_match)
-                    )
-                    if match:
-                        entities = self._extract_entities_rule_based(
-                            "edit_schedule_period", match, message_for_match
-                        )
-                        confidence = self._calculate_confidence(
-                            "edit_schedule_period", match, message_for_match
-                        )
-
-                        return ParsingResult(
-                            ParsedCommand(
-                                "edit_schedule_period", entities, confidence, message
-                            ),
-                            confidence,
-                            "rule_based",
-                        )
-
-            # Check quick note patterns early to ensure they take precedence over task patterns
-            if "create_quick_note" in self.compiled_patterns:
-                for pattern in self.compiled_patterns["create_quick_note"]:
-                    match = (
-                        pattern.match(message_for_match)
-                        if pattern.pattern.startswith("^")
-                        else pattern.search(message_for_match)
-                    )
-                    if match:
-                        entities = self._extract_entities_rule_based(
-                            "create_quick_note", match, message_for_match
-                        )
-                        confidence = self._calculate_confidence(
-                            "create_quick_note", match, message_for_match
-                        )
-
-                        return ParsingResult(
-                            ParsedCommand(
-                                "create_quick_note", entities, confidence, message
-                            ),
-                            confidence,
-                            "rule_based",
-                        )
-
-            # Check list_recent_entries patterns early to ensure short patterns like 'r' match before AI parsing
-            if "list_recent_entries" in self.compiled_patterns:
-                for pattern in self.compiled_patterns["list_recent_entries"]:
-                    match = (
-                        pattern.match(message_for_match)
-                        if pattern.pattern.startswith("^")
-                        else pattern.search(message_for_match)
-                    )
-                    if match:
-                        entities = self._extract_entities_rule_based(
-                            "list_recent_entries", match, message_for_match
-                        )
-                        confidence = self._calculate_confidence(
-                            "list_recent_entries", match, message_for_match
-                        )
-
-                        return ParsingResult(
-                            ParsedCommand(
-                                "list_recent_entries", entities, confidence, message
-                            ),
-                            confidence,
-                            "rule_based",
-                        )
-
-            # Check list_recent_notes patterns early as well
-            if "list_recent_notes" in self.compiled_patterns:
-                for pattern in self.compiled_patterns["list_recent_notes"]:
-                    match = (
-                        pattern.match(message_for_match)
-                        if pattern.pattern.startswith("^")
-                        else pattern.search(message_for_match)
-                    )
-                    if match:
-                        entities = self._extract_entities_rule_based(
-                            "list_recent_notes", match, message_for_match
-                        )
-                        confidence = self._calculate_confidence(
-                            "list_recent_notes", match, message_for_match
-                        )
-
-                        return ParsingResult(
-                            ParsedCommand(
-                                "list_recent_notes", entities, confidence, message
-                            ),
-                            confidence,
-                            "rule_based",
-                        )
-
-            # Check each intent pattern (excluding help, list_tasks, create_quick_note, list_recent_entries, list_recent_notes which were already checked)
+            skip_intents = {intent for intent, _ in priority_intents}
             for intent, patterns in self.compiled_patterns.items():
-                if intent in [
-                    "help",
-                    "list_tasks",
-                    "create_quick_note",
-                    "list_recent_entries",
-                    "list_recent_notes",
-                ]:  # Skip, already checked above
+                if intent in skip_intents:
                     continue
                 for pattern in patterns:
-                    # Use match() for patterns that start with ^, search() for others
-                    match = (
-                        pattern.match(message_for_match)
-                        if pattern.pattern.startswith("^")
-                        else pattern.search(message_for_match)
+                    parsed = self._build_rule_based_result_from_pattern(
+                        intent, pattern, message_for_match, message
                     )
-                    if match:
-                        entities = self._extract_entities_rule_based(
-                            intent, match, message_for_match
-                        )
-                        confidence = self._calculate_confidence(
-                            intent, match, message_for_match
-                        )
-
-                        return ParsingResult(
-                            ParsedCommand(intent, entities, confidence, message),
-                            confidence,
-                            "rule_based",
-                        )
+                    if parsed:
+                        return parsed
 
             return None
 
@@ -1173,6 +993,68 @@ class EnhancedCommandParser:
         return ParsingResult(
             ParsedCommand("unknown", {}, 0.0, message), 0.0, "rule_based"
         )
+
+    @handle_errors("building rule-based result from pattern", default_return=None)
+    def _build_rule_based_result_from_pattern(
+        self,
+        intent: str,
+        pattern: re.Pattern,
+        message_for_match: str,
+        original_message: str,
+    ) -> ParsingResult | None:
+        """Build rule-based parsing result for one pattern match attempt."""
+        match = (
+            pattern.match(message_for_match)
+            if pattern.pattern.startswith("^")
+            else pattern.search(message_for_match)
+        )
+        if not match:
+            return None
+
+        entities = self._extract_entities_rule_based(intent, match, message_for_match)
+        confidence = self._calculate_confidence(intent, match, message_for_match)
+        return ParsingResult(
+            ParsedCommand(intent, entities, confidence, original_message),
+            confidence,
+            "rule_based",
+        )
+
+    @handle_errors("matching rule-based intent", default_return=None)
+    def _match_rule_based_intent(
+        self,
+        intent: str,
+        message_for_match: str,
+        original_message: str,
+        *,
+        force_match: bool = False,
+    ) -> ParsingResult | None:
+        """Attempt matching all patterns for a specific intent."""
+        if intent not in self.compiled_patterns:
+            return None
+
+        for pattern in self.compiled_patterns[intent]:
+            if force_match:
+                match = pattern.match(message_for_match)
+                if not match:
+                    continue
+                entities = self._extract_entities_rule_based(
+                    intent, match, message_for_match
+                )
+                confidence = self._calculate_confidence(
+                    intent, match, message_for_match
+                )
+                return ParsingResult(
+                    ParsedCommand(intent, entities, confidence, original_message),
+                    confidence,
+                    "rule_based",
+                )
+
+            parsed = self._build_rule_based_result_from_pattern(
+                intent, pattern, message_for_match, original_message
+            )
+            if parsed:
+                return parsed
+        return None
 
     @handle_errors("parsing with AI enhancement")
     def _ai_enhanced_parse(
@@ -1318,88 +1200,80 @@ class EnhancedCommandParser:
 
         return (intent, entities)
 
-    @handle_errors("extracting entities from rule-based patterns")
-    def _extract_entities_rule_based(
-        self, intent: str, match: re.Match, message: str
-    ) -> dict[str, Any]:
-        """Extract entities using rule-based patterns"""
-        entities = {}
-
+    @handle_errors("extracting task entities from rule-based patterns", default_return=False)
+    def _extract_task_entities_rule_based(
+        self,
+        intent: str,
+        match: re.Match,
+        message: str,
+        entities: dict[str, Any],
+    ) -> bool:
+        """Extract task-related entities and return whether intent was handled."""
         if intent == "create_task":
-            # Extract task title from capture group
             if match.groups():
                 title = match.group(1).strip()
                 entities["title"] = title
-
-                # Extract additional entities
                 entities.update(self._extract_task_entities(title))
+            return True
 
-        elif intent in ["complete_task", "delete_task", "update_task"]:
-            # Extract task identifier
+        if intent in ["complete_task", "delete_task", "update_task"]:
             if match.groups():
                 identifier = match.group(1).strip()
-
-                # Strip "task " prefix if present (e.g., "task 1" -> "1")
                 if identifier.lower().startswith("task "):
-                    identifier = identifier[5:].strip()  # Remove "task " prefix
+                    identifier = identifier[5:].strip()
 
-                # Handle natural language patterns for task completion
                 if intent == "complete_task" and identifier.lower() in [
                     "that task",
                     "the task",
                     "this task",
                 ]:
-                    # Extract the actual task name from the message context
                     task_name = self._extract_task_name_from_context(message)
-                    if task_name:
-                        entities["task_identifier"] = task_name
-                    else:
-                        entities["task_identifier"] = identifier
+                    entities["task_identifier"] = task_name or identifier
                 else:
                     entities["task_identifier"] = identifier
 
-                # For update_task, extract update details
                 if intent == "update_task" and len(match.groups()) > 1:
                     update_text = match.group(2).strip()
                     entities.update(self._extract_update_entities(update_text))
+            return True
 
-        elif intent == "update_profile":
-            # Extract profile field and value
+        if intent == "update_profile":
             if len(match.groups()) >= 2:
                 field = match.group(1).strip()
                 value = match.group(2).strip()
                 entities[field] = value
+            return True
 
-        elif intent == "task_stats":
-            # Extract time period if specified
+        if intent == "task_stats":
             if match.groups():
                 time_period = match.group(1).strip()
-                parsed_period = self._parse_time_period(time_period)
-                entities.update(parsed_period)
+                entities.update(self._parse_time_period(time_period))
             else:
-                # Default to current week if no time period specified
                 entities["days"] = 7
                 entities["period_name"] = "this week"
+            return True
 
-        # Schedule Management Entity Extraction
-        elif intent == "show_schedule":
-            # Extract category if specified
-            if match.groups():
-                category = match.group(1).strip()
-                entities["category"] = category
-            else:
-                entities["category"] = "all"
+        return False
 
-        elif intent == "update_schedule":
-            # Extract action and category
+    @handle_errors("extracting schedule entities from rule-based patterns", default_return=False)
+    def _extract_schedule_entities_rule_based(
+        self,
+        intent: str,
+        match: re.Match,
+        message: str,
+        entities: dict[str, Any],
+    ) -> bool:
+        """Extract schedule-related entities and return whether intent was handled."""
+        if intent == "show_schedule":
+            entities["category"] = match.group(1).strip() if match.groups() else "all"
+            return True
+
+        if intent == "update_schedule":
             if match.groups():
                 if len(match.groups()) >= 2:
-                    action = match.group(1).strip()
-                    category = match.group(2).strip()
-                    entities["action"] = action
-                    entities["category"] = category
+                    entities["action"] = match.group(1).strip()
+                    entities["category"] = match.group(2).strip()
                 else:
-                    # Handle enable/disable patterns
                     action_match = re.search(
                         r"(enable|disable|turn\s+(on|off))", message.lower()
                     )
@@ -1409,22 +1283,17 @@ class EnhancedCommandParser:
                             action = "enable" if "on" in action else "disable"
                         entities["action"] = action
 
-                    # Extract category
                     category_match = re.search(
                         r"(tasks?|check.?ins?|messages?)", message.lower()
                     )
                     if category_match:
                         entities["category"] = category_match.group(1)
+            return True
 
-        elif intent == "add_schedule_period":
-            # Extract period name and category
+        if intent == "add_schedule_period":
             if len(match.groups()) >= 2:
-                period_name = match.group(1).strip()
-                category = match.group(2).strip()
-                entities["period_name"] = period_name
-                entities["category"] = category
-
-                # Extract time information
+                entities["period_name"] = match.group(1).strip()
+                entities["category"] = match.group(2).strip()
                 time_match = re.search(
                     r"from\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s+to\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)",
                     message.lower(),
@@ -1432,16 +1301,12 @@ class EnhancedCommandParser:
                 if time_match:
                     entities["start_time"] = time_match.group(1)
                     entities["end_time"] = time_match.group(2)
+            return True
 
-        elif intent == "edit_schedule_period":
-            # Extract period name and category
+        if intent == "edit_schedule_period":
             if len(match.groups()) >= 2:
-                period_name = match.group(1).strip()
-                category = match.group(2).strip()
-                entities["period_name"] = period_name
-                entities["category"] = category
-
-                # Extract new time information
+                entities["period_name"] = match.group(1).strip()
+                entities["category"] = match.group(2).strip()
                 time_match = re.search(
                     r"to\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s+to\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)",
                     message.lower(),
@@ -1449,8 +1314,16 @@ class EnhancedCommandParser:
                 if time_match:
                     entities["new_start_time"] = time_match.group(1)
                     entities["new_end_time"] = time_match.group(2)
+            return True
 
-        elif intent == "checkin_history":
+        return False
+
+    @handle_errors("extracting history and analytics entities", default_return=False)
+    def _extract_history_analytics_entities_rule_based(
+        self, intent: str, message: str, entities: dict[str, Any]
+    ) -> bool:
+        """Extract check-in history and analytics entities."""
+        if intent == "checkin_history":
             message_lower = message.lower()
             limit_match = re.search(
                 r"(?:last|past)\s+(\d+)\s+check.?ins?", message_lower
@@ -1473,10 +1346,10 @@ class EnhancedCommandParser:
                 elif days_match:
                     entities["days"] = int(days_match.group(1))
                 else:
-                    entities["days"] = 30  # Default to 30 days
+                    entities["days"] = 30
+            return True
 
-        # Analytics Entity Extraction
-        elif intent in [
+        if intent in [
             "show_analytics",
             "mood_trends",
             "energy_trends",
@@ -1485,7 +1358,6 @@ class EnhancedCommandParser:
             "wellness_score",
             "quant_summary",
         ]:
-            # Extract number of days if specified
             message_lower = message.lower()
             days_match = re.search(r"(\d+)\s+days?", message_lower)
             weeks_match = re.search(r"(\d+)\s+weeks?", message_lower)
@@ -1502,7 +1374,24 @@ class EnhancedCommandParser:
             elif re.search(r"(last|past)\s+month", message_lower):
                 entities["days"] = 30
             else:
-                entities["days"] = 30  # Default to 30 days
+                entities["days"] = 30
+            return True
+
+        return False
+
+    @handle_errors("extracting entities from rule-based patterns")
+    def _extract_entities_rule_based(
+        self, intent: str, match: re.Match, message: str
+    ) -> dict[str, Any]:
+        """Extract entities using rule-based patterns"""
+        entities = {}
+
+        if self._extract_task_entities_rule_based(intent, match, message, entities):
+            return entities
+        if self._extract_schedule_entities_rule_based(intent, match, message, entities):
+            return entities
+        if self._extract_history_analytics_entities_rule_based(intent, message, entities):
+            return entities
 
         elif intent == "help":
             # Extract help topic

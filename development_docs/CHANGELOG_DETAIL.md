@@ -33,6 +33,35 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-04 - Complexity refactor batch + global-top priority source fix + session closeout
+- **Feature/Fix**: Completed a focused complexity-reduction pass on the next highest-ranked functions, fixed AI priority example sourcing to use true global analyzer output, and refreshed audit/report artifacts for closeout.
+- **Technical Changes**:
+  - **Targeted complexity refactor batch (5 functions)** with helper extraction and behavior-preserving flow:
+    - `core/service.py::run_service_loop`: extracted shutdown-file handling, request-file polling, hourly status metric collection, and Discord connectivity health logging into dedicated helpers.
+    - `core/logger.py::doRollover`: split threshold checks, rotate/copy/restore fallback paths, and stream finalization into focused helper methods.
+    - `communication/message_processing/interaction_manager.py::__init__`: moved large command-definition construction into `_build_command_definitions`, `_build_base_command_definitions`, and `_build_analytics_alias_commands`.
+    - `ui/ui_app_qt.py::refresh_user_list`: extracted combo-reset, active-user collection, display formatting, fallback refresh, and reselection logic into separate methods.
+    - `communication/message_processing/conversation_flow_manager.py::_parse_reminder_periods_from_text`: extracted due-datetime resolution, text normalization, pattern/range parsing, delta calculation, and future-window formatting helpers.
+  - **Priority source correctness fix**:
+    - `development_tools/shared/service/report_generation.py` now prefers `analyze_functions` examples (from `development_tools/functions/jsons/analyze_functions_results.json`) for "Highest complexity" bullets and uses `decision_support` examples only as fallback.
+  - **Audit/report refresh**:
+    - Regenerated Tier 2/Tier 3 audit outputs and confirmed `AI_PRIORITIES` now reports global top complexity examples (`initialize__register_events`, `_extract_entities_rule_based`, `_show_question_dialog`).
+  - **Planning closeout updates**:
+    - Updated [TODO.md](TODO.md) and [PLANS.md](development_docs/PLANS.md) to track only remaining follow-ups (next complexity batches, docs regeneration cadence, registry-gap revalidation).
+- **Validation**:
+  - Syntax: `python -m py_compile core/service.py core/logger.py communication/message_processing/interaction_manager.py ui/ui_app_qt.py communication/message_processing/conversation_flow_manager.py development_tools/shared/service/report_generation.py` -> pass.
+  - Targeted regression tests:
+    - `tests/behavior/test_service_behavior.py::TestMHMService::test_run_service_loop_shutdown_file_detection_real_behavior`
+    - `tests/behavior/test_logger_coverage_expansion.py::TestLoggerCoverageExpansion::test_backup_directory_rotating_file_handler_rollover_real_behavior`
+    - `tests/behavior/test_communication_interaction_manager_behavior.py::TestInteractionManagerBehavior::test_get_command_definitions_returns_valid_definitions`
+    - `tests/ui/test_ui_app_qt_main.py::TestMHMManagerUI::test_refresh_user_list_loads_users`
+    - `tests/behavior/test_task_reminder_followup_behavior.py::TestTaskReminderFollowupBehavior::test_reminder_followup_parses_minutes_before`
+    - Result: `5 passed`.
+  - Audit refresh:
+    - `python development_tools/run_development_tools.py audit`
+    - `python development_tools/run_development_tools.py audit --full`
+- **Impact**: Complexity-reduction work is now progressing in global-top order with improved maintainability in key runtime paths, and `AI_PRIORITIES` complexity examples are aligned with the true analyzer source used for refactor targeting.
+
 ### 2026-03-03 - Full-suite test runner interrupt hardening + summary integrity closeout
 - **Feature/Fix**: Stabilized `run_tests.py --full` behavior under recurring SIGINT noise during the Development Tools parallel phase so single interrupts no longer derail run flow, and aligned combined-result reporting to accurately reflect interrupted/incomplete outcomes.
 - **Technical Changes**:

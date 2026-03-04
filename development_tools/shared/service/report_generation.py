@@ -2699,10 +2699,67 @@ class ReportGenerationMixin:
         analyze_duplicates = analyze_data.get("duplicates") or []
         analyze_placeholders = analyze_data.get("placeholders") or []
 
-        critical_examples = function_metrics.get("critical_complexity_examples") or []
-        high_examples = function_metrics.get("high_complexity_examples") or []
+        function_metrics_details = (
+            function_metrics.get("details", {})
+            if isinstance(function_metrics, dict)
+            else {}
+        )
+        critical_examples = (
+            function_metrics_details.get("critical_complexity_examples")
+            or (
+                function_metrics.get("critical_complexity_examples")
+                if isinstance(function_metrics, dict)
+                else []
+            )
+            or []
+        )
+        high_examples = (
+            function_metrics_details.get("high_complexity_examples")
+            or (
+                function_metrics.get("high_complexity_examples")
+                if isinstance(function_metrics, dict)
+                else []
+            )
+            or []
+        )
 
-        # Try loading from multiple sources, prioritizing in-memory cache, then tool data (may be cached)
+        # Try loading from multiple sources, prioritizing analyze_functions (global source),
+        # then decision_support as fallback.
+        if (not critical_examples or len(critical_examples) == 0) or (
+            not high_examples or len(high_examples) == 0
+        ):
+            func_result = self._load_tool_data(
+                "analyze_functions", "functions", log_source=False
+            )
+            if func_result and isinstance(func_result, dict):
+                func_details = func_result.get("details", {})
+                if not critical_examples or len(critical_examples) == 0:
+                    if "critical_complexity_examples" in func_details:
+                        critical_examples = func_details.get(
+                            "critical_complexity_examples", []
+                        )
+                        if critical_examples:
+                            function_metrics["critical_complexity_examples"] = (
+                                critical_examples
+                            )
+                    elif "critical_complexity_examples" in func_result:
+                        critical_examples = func_result.get(
+                            "critical_complexity_examples", []
+                        )
+                        if critical_examples:
+                            function_metrics["critical_complexity_examples"] = (
+                                critical_examples
+                            )
+                if not high_examples or len(high_examples) == 0:
+                    if "high_complexity_examples" in func_details:
+                        high_examples = func_details.get("high_complexity_examples", [])
+                        if high_examples:
+                            function_metrics["high_complexity_examples"] = high_examples
+                    elif "high_complexity_examples" in func_result:
+                        high_examples = func_result.get("high_complexity_examples", [])
+                        if high_examples:
+                            function_metrics["high_complexity_examples"] = high_examples
+
         decision_metrics = self._get_decision_support_details(
             self.results_cache.get("decision_support")
         )
@@ -2753,42 +2810,6 @@ class ReportGenerationMixin:
                         high_examples = decision_metrics_from_tool.get(
                             "high_complexity_examples", []
                         )
-                        if high_examples:
-                            function_metrics["high_complexity_examples"] = high_examples
-
-        # If still not available, try loading from analyze_functions tool data (may be cached)
-        if (not critical_examples or len(critical_examples) == 0) or (
-            not high_examples or len(high_examples) == 0
-        ):
-            func_result = self._load_tool_data(
-                "analyze_functions", "functions", log_source=False
-            )
-            if func_result and isinstance(func_result, dict):
-                func_details = func_result.get("details", {})
-                if not critical_examples or len(critical_examples) == 0:
-                    if "critical_complexity_examples" in func_details:
-                        critical_examples = func_details.get(
-                            "critical_complexity_examples", []
-                        )
-                        if critical_examples:
-                            function_metrics["critical_complexity_examples"] = (
-                                critical_examples
-                            )
-                    elif "critical_complexity_examples" in func_result:
-                        critical_examples = func_result.get(
-                            "critical_complexity_examples", []
-                        )
-                        if critical_examples:
-                            function_metrics["critical_complexity_examples"] = (
-                                critical_examples
-                            )
-                if not high_examples or len(high_examples) == 0:
-                    if "high_complexity_examples" in func_details:
-                        high_examples = func_details.get("high_complexity_examples", [])
-                        if high_examples:
-                            function_metrics["high_complexity_examples"] = high_examples
-                    elif "high_complexity_examples" in func_result:
-                        high_examples = func_result.get("high_complexity_examples", [])
                         if high_examples:
                             function_metrics["high_complexity_examples"] = high_examples
 
@@ -4093,58 +4114,67 @@ class ReportGenerationMixin:
             complexity_bullets: list[str] = []
             # Ensure we have examples - try loading if not available
             if not critical_examples:
-                # Try loading from decision_support (standard format)
-                decision_metrics = self._get_decision_support_details(
-                    self.results_cache.get("decision_support")
+                # Try loading from analyze_functions first (global top complexity source).
+                func_result = self._load_tool_data(
+                    "analyze_functions", "functions", log_source=False
                 )
-                if (
-                    decision_metrics
-                    and "critical_complexity_examples" in decision_metrics
-                ):
-                    critical_examples = decision_metrics.get(
-                        "critical_complexity_examples", []
-                    )
-                # If still not available, try loading from analyze_functions (may be cached)
+                if func_result and isinstance(func_result, dict):
+                    func_details = func_result.get("details", {})
+                    if "critical_complexity_examples" in func_details:
+                        critical_examples = func_details.get(
+                            "critical_complexity_examples", []
+                        )
+                    elif "critical_complexity_examples" in func_result:
+                        critical_examples = func_result.get(
+                            "critical_complexity_examples", []
+                        )
+                    if (
+                        (not high_examples or len(high_examples) == 0)
+                        and "high_complexity_examples" in func_details
+                    ):
+                        high_examples = func_details.get("high_complexity_examples", [])
+                    elif (
+                        (not high_examples or len(high_examples) == 0)
+                        and "high_complexity_examples" in func_result
+                    ):
+                        high_examples = func_result.get("high_complexity_examples", [])
+
+                # If still not available, fall back to decision_support.
                 if not critical_examples:
-                    func_result = self._load_tool_data(
-                        "analyze_functions", "functions", log_source=False
+                    decision_metrics = self._get_decision_support_details(
+                        self.results_cache.get("decision_support")
                     )
-                    if func_result and isinstance(func_result, dict):
-                        func_details = func_result.get("details", {})
-                        if "critical_complexity_examples" in func_details:
-                            critical_examples = func_details.get(
-                                "critical_complexity_examples", []
+                    if (
+                        decision_metrics
+                        and "critical_complexity_examples" in decision_metrics
+                    ):
+                        critical_examples = decision_metrics.get(
+                            "critical_complexity_examples", []
+                        )
+                    if not critical_examples or len(critical_examples) == 0:
+                        decision_data = self._load_tool_data(
+                            "decision_support", "functions", log_source=False
+                        )
+                        if decision_data and isinstance(decision_data, dict):
+                            decision_metrics_from_tool = (
+                                self._get_decision_support_details(decision_data)
                             )
-                        elif "critical_complexity_examples" in func_result:
-                            critical_examples = func_result.get(
-                                "critical_complexity_examples", []
-                            )
-                        # Also check decision_support tool data if available
-                        if not critical_examples or len(critical_examples) == 0:
-                            decision_data = self._load_tool_data(
-                                "decision_support", "functions", log_source=False
-                            )
-                            if decision_data and isinstance(decision_data, dict):
-                                decision_metrics_from_tool = (
-                                    self._get_decision_support_details(decision_data)
+                            if (
+                                decision_metrics_from_tool
+                                and "critical_complexity_examples"
+                                in decision_metrics_from_tool
+                            ):
+                                critical_examples = decision_metrics_from_tool.get(
+                                    "critical_complexity_examples", []
                                 )
-                                if (
-                                    decision_metrics_from_tool
-                                    and "critical_complexity_examples"
-                                    in decision_metrics_from_tool
-                                ):
-                                    critical_examples = decision_metrics_from_tool.get(
-                                        "critical_complexity_examples", []
-                                    )
-                                # Also try loading high_examples if not already loaded
-                                if (
-                                    (not high_examples or len(high_examples) == 0)
-                                    and "high_complexity_examples"
-                                    in decision_metrics_from_tool
-                                ):
-                                    high_examples = decision_metrics_from_tool.get(
-                                        "high_complexity_examples", []
-                                    )
+                            if (
+                                (not high_examples or len(high_examples) == 0)
+                                and "high_complexity_examples"
+                                in decision_metrics_from_tool
+                            ):
+                                high_examples = decision_metrics_from_tool.get(
+                                    "high_complexity_examples", []
+                                )
 
             if critical_examples:
                 sorted_examples = sorted(

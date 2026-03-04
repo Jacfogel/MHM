@@ -763,6 +763,92 @@ class DiscordBot(BaseChannel):
                 # Continue processing even if one command fails
                 await asyncio.sleep(0.1)
 
+    @handle_errors("scheduling Discord ready tasks", default_return=None)
+    def _schedule_ready_tasks(self, bot) -> None:
+        """Schedule non-blocking tasks after Discord ready event."""
+
+        @handle_errors(
+            "syncing Discord application commands",
+            user_friendly=False,
+            default_return=None,
+        )
+        async def _sync_app_cmds():
+            await bot.tree.sync()
+            logger.info("Discord application commands synced")
+
+        @handle_errors(
+            "checking for new authorized Discord users",
+            user_friendly=False,
+            default_return=None,
+        )
+        async def _check_new_authorized_users():
+            discord_logger.debug(
+                "Bot ready - will welcome users on Discord app authorization (via webhook) or first interaction"
+            )
+
+        self._sync_task = bot.loop.create_task(_sync_app_cmds())
+        bot.loop.create_task(_check_new_authorized_users())
+
+    @handle_errors("detecting external ngrok tunnel", default_return=False)
+    def _has_external_ngrok_tunnel(self) -> bool:
+        """Detect an externally running ngrok HTTP tunnel."""
+        try:
+            for proc in psutil.process_iter(["pid", "name", "cmdline"]):
+                try:
+                    if not proc.info["name"]:
+                        continue
+                    proc_name = proc.info["name"].lower()
+                    if "ngrok" not in proc_name:
+                        continue
+                    cmdline = proc.info.get("cmdline", [])
+                    if (
+                        cmdline
+                        and "http" in " ".join(cmdline).lower()
+                        and proc.is_running()
+                    ):
+                        discord_logger.info(
+                            "ngrok tunnel detected (external) - check http://127.0.0.1:4040 for public URL"
+                        )
+                        return True
+                except (
+                    psutil.NoSuchProcess,
+                    psutil.AccessDenied,
+                    psutil.ZombieProcess,
+                ):
+                    continue
+        except Exception:
+            return False
+        return False
+
+    @handle_errors("starting Discord webhook server", default_return=None)
+    def _start_discord_webhook_server_for_ready(self) -> None:
+        """Start webhook server and log ngrok/webhook status."""
+        try:
+            from communication.communication_channels.discord.webhook_server import (
+                WebhookServer,
+            )
+            from core.config import DISCORD_WEBHOOK_PORT, DISCORD_AUTO_NGROK
+
+            if DISCORD_AUTO_NGROK:
+                self._start_ngrok_tunnel(DISCORD_WEBHOOK_PORT)
+
+            self._webhook_server = WebhookServer(
+                port=DISCORD_WEBHOOK_PORT, bot_instance=self
+            )
+            if self._webhook_server.start():
+                if self._ngrok_process:
+                    discord_logger.info(
+                        "ngrok tunnel active - check ngrok web interface at http://127.0.0.1:4040 for public URL"
+                    )
+                elif not self._has_external_ngrok_tunnel():
+                    discord_logger.info(
+                        f"Webhook server ready on port {DISCORD_WEBHOOK_PORT} - configure webhook URL in Discord Developer Portal"
+                    )
+            else:
+                discord_logger.warning("Failed to start Discord webhook server")
+        except Exception as e:
+            discord_logger.warning(f"Could not start webhook server: {e}")
+
     @handle_errors("registering Discord events")
     def initialize__register_events(self):
         """Register Discord event handlers"""
@@ -793,97 +879,8 @@ class DiscordBot(BaseChannel):
             self._set_status(ChannelStatus.READY)
             self._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
 
-            # Sync application (slash) commands
-            @handle_errors(
-                "syncing Discord application commands",
-                user_friendly=False,
-                default_return=None,
-            )
-            async def _sync_app_cmds():
-                await bot.tree.sync()
-                logger.info("Discord application commands synced")
-
-            # Schedule on the bot's loop to ensure proper task context
-            # Store task reference for proper cleanup during shutdown
-            self._sync_task = bot.loop.create_task(_sync_app_cmds())
-
-            # Check for new users who have authorized the app (can now DM us)
-            # This runs periodically to catch users who authorized while bot was offline
-            @handle_errors(
-                "checking for new authorized Discord users",
-                user_friendly=False,
-                default_return=None,
-            )
-            async def _check_new_authorized_users():
-                # Get all users who can DM us (have authorized the app)
-                # Note: We can't directly query this, but we can check when they first DM us
-                # This is handled in on_message for DMs
-                discord_logger.debug(
-                    "Bot ready - will welcome users on Discord app authorization (via webhook) or first interaction"
-                )
-
-            # Schedule the check (non-blocking)
-            bot.loop.create_task(_check_new_authorized_users())
-
-            # Start webhook server for receiving installation events
-            try:
-                from communication.communication_channels.discord.webhook_server import (
-                    WebhookServer,
-                )
-                from core.config import DISCORD_WEBHOOK_PORT, DISCORD_AUTO_NGROK
-
-                # Auto-launch ngrok if enabled
-                if DISCORD_AUTO_NGROK:
-                    self._start_ngrok_tunnel(DISCORD_WEBHOOK_PORT)
-
-                self._webhook_server = WebhookServer(
-                    port=DISCORD_WEBHOOK_PORT, bot_instance=self
-                )
-                if self._webhook_server.start():
-                    # Log message is handled by WebhookServer.start() - don't duplicate
-                    if self._ngrok_process:
-                        discord_logger.info(
-                            "ngrok tunnel active - check ngrok web interface at http://127.0.0.1:4040 for public URL"
-                        )
-                    else:
-                        # Check if ngrok is running externally
-                        ngrok_running = False
-                        try:
-                            for proc in psutil.process_iter(["pid", "name", "cmdline"]):
-                                try:
-                                    if not proc.info["name"]:
-                                        continue
-                                    proc_name = proc.info["name"].lower()
-                                    if "ngrok" in proc_name:
-                                        cmdline = proc.info.get("cmdline", [])
-                                        if (
-                                            cmdline
-                                            and "http" in " ".join(cmdline).lower()
-                                        ):
-                                            if proc.is_running():
-                                                ngrok_running = True
-                                                discord_logger.info(
-                                                    "ngrok tunnel detected (external) - check http://127.0.0.1:4040 for public URL"
-                                                )
-                                                break
-                                except (
-                                    psutil.NoSuchProcess,
-                                    psutil.AccessDenied,
-                                    psutil.ZombieProcess,
-                                ):
-                                    continue
-                        except Exception:
-                            pass
-
-                        if not ngrok_running:
-                            discord_logger.info(
-                                f"Webhook server ready on port {DISCORD_WEBHOOK_PORT} - configure webhook URL in Discord Developer Portal"
-                            )
-                else:
-                    discord_logger.warning("Failed to start Discord webhook server")
-            except Exception as e:
-                discord_logger.warning(f"Could not start webhook server: {e}")
-                # Non-critical - bot will still work, just won't receive installation events
+            self._schedule_ready_tasks(bot)
+            self._start_discord_webhook_server_for_ready()
 
         # Wrap with error handling decorator
         @self.bot.event

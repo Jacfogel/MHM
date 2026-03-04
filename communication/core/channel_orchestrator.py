@@ -1673,6 +1673,136 @@ class CommunicationManager:
             logger.error(f"Error sending AI-generated message for user {user_id}: {e}")
             return False, None
 
+    @handle_errors("normalizing message-selection time periods", default_return=[])
+    def _normalize_message_selection_periods(
+        self, matching_periods: list[str], valid_periods: list[str]
+    ) -> list[str]:
+        """Normalize matching periods for message selection."""
+        normalized_periods = matching_periods[:]
+        if "ALL" in normalized_periods and len(normalized_periods) > 1:
+            normalized_periods = [p for p in normalized_periods if p != "ALL"]
+            logger.debug(
+                f"MESSAGE_SELECTION: Removed 'ALL' from matching_periods, now: {normalized_periods}"
+            )
+        if not normalized_periods and "ALL" in valid_periods:
+            normalized_periods = ["ALL"]
+            logger.debug("MESSAGE_SELECTION: Using 'ALL' as fallback period")
+        return normalized_periods
+
+    @handle_errors("loading predefined messages library", default_return=None)
+    def _load_predefined_messages_library(
+        self, user_id: str, category: str
+    ) -> dict | None:
+        """Load and normalize the messages library for a user/category."""
+        file_path = determine_file_path("messages", f"{category}/{user_id}")
+        data = load_json_data(file_path)
+        try:
+            from core.schemas import validate_messages_file_dict
+
+            if isinstance(data, dict):
+                data, _ = validate_messages_file_dict(data)
+        except Exception:
+            pass
+
+        if not data or "messages" not in data:
+            logger.error(
+                f"MESSAGE_SELECTION_ERROR: No messages found for category {category} and user {user_id}."
+            )
+            return None
+        return data
+
+    @handle_errors("filtering messages by day and period", default_return=[])
+    def _filter_messages_by_day_and_period(
+        self,
+        messages: list[dict],
+        current_days: list[str],
+        matching_periods: list[str],
+    ) -> list[dict]:
+        """Filter messages by active day and matching period."""
+        return [
+            msg
+            for msg in messages
+            if any(day in msg["days"] for day in current_days)
+            and any(period in msg["time_periods"] for period in matching_periods)
+        ]
+
+    @handle_errors("deduplicating candidate messages", default_return=[])
+    def _deduplicate_candidate_messages(
+        self, user_id: str, category: str, all_messages: list[dict]
+    ) -> list[dict]:
+        """Filter recent duplicates; fallback to all candidates if needed."""
+        from core.message_management import get_recent_messages
+
+        recent_messages = get_recent_messages(
+            user_id, category=category, limit=50, days_back=60
+        )
+        recent_content = {
+            msg.get("message", "").strip().lower()
+            for msg in recent_messages
+            if msg.get("message")
+        }
+
+        available_messages = []
+        for msg in all_messages:
+            message_content = msg.get("message", "").strip()
+            if message_content and message_content.lower() not in recent_content:
+                available_messages.append(msg)
+
+        if not available_messages:
+            logger.info(
+                f"No messages available after deduplication for user {user_id}, category {category}. All time-period messages were sent recently."
+            )
+            return all_messages
+
+        return available_messages
+
+    @handle_errors("sending and storing predefined message", default_return=(False, None))
+    def _send_and_store_predefined_message(
+        self,
+        user_id: str,
+        category: str,
+        messaging_service: str,
+        recipient: str,
+        message_to_send: dict,
+        matching_periods: list[str],
+    ) -> tuple[bool, str | None]:
+        """Send selected message and store tracking information."""
+        from core.message_management import store_sent_message
+
+        success = self.send_message_sync(
+            messaging_service,
+            recipient,
+            message_to_send["message"],
+            user_id=user_id,
+            category=category,
+        )
+
+        current_time_period = matching_periods[0] if matching_periods else None
+        message_preview = (
+            message_to_send["message"][:50] + "..."
+            if len(message_to_send["message"]) > 50
+            else message_to_send["message"]
+        )
+
+        store_sent_message(
+            user_id,
+            category,
+            message_to_send["message_id"],
+            message_to_send["message"],
+            time_period=current_time_period,
+        )
+
+        if success:
+            logger.info(
+                f"Message sent successfully via {messaging_service} to {recipient} | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"
+            )
+            return True, message_to_send["message"]
+
+        logger.warning(
+            f"Message send returned False but may have still been delivered for user {user_id}, category {category} | Period: {current_time_period} | Content: '{message_preview}'"
+        )
+        return True, message_to_send["message"]
+
     @handle_errors("sending predefined message", default_return=(False, None))
     def _send_predefined_message(
         self, user_id: str, category: str, messaging_service: str, recipient: str
@@ -1690,34 +1820,12 @@ class CommunicationManager:
             logger.debug(
                 f"MESSAGE_SELECTION: User {user_id}, category {category} | Matching periods: {matching_periods}, Valid periods: {valid_periods}"
             )
+            matching_periods = self._normalize_message_selection_periods(
+                matching_periods, valid_periods
+            )
 
-            # Remove 'ALL' from matching_periods if there are other periods
-            if "ALL" in matching_periods and len(matching_periods) > 1:
-                matching_periods = [p for p in matching_periods if p != "ALL"]
-                logger.debug(
-                    f"MESSAGE_SELECTION: Removed 'ALL' from matching_periods, now: {matching_periods}"
-                )
-            # If no periods match (other than ALL), use ALL as fallback
-            if not matching_periods and "ALL" in valid_periods:
-                matching_periods = ["ALL"]
-                logger.debug("MESSAGE_SELECTION: Using 'ALL' as fallback period")
-
-            # Use centralized path resolution helper for message files.
-            file_path = determine_file_path("messages", f"{category}/{user_id}")
-            data = load_json_data(file_path)
-            # Normalize messages file shape for robust selection
-            try:
-                from core.schemas import validate_messages_file_dict
-
-                if isinstance(data, dict):
-                    data, _ = validate_messages_file_dict(data)
-            except Exception:
-                pass
-
-            if not data or "messages" not in data:
-                logger.error(
-                    f"MESSAGE_SELECTION_ERROR: No messages found for category {category} and user {user_id}."
-                )
+            data = self._load_predefined_messages_library(user_id, category)
+            if not data:
                 return False, None
 
             # Get current day for filtering
@@ -1727,13 +1835,9 @@ class CommunicationManager:
                 f"MESSAGE_SELECTION: Total messages in library: {len(data['messages'])}"
             )
 
-            # Get all available messages for the current time period
-            all_messages = [
-                msg
-                for msg in data["messages"]
-                if any(day in msg["days"] for day in current_days)
-                and any(period in msg["time_periods"] for period in matching_periods)
-            ]
+            all_messages = self._filter_messages_by_day_and_period(
+                data["messages"], current_days, matching_periods
+            )
 
             if not all_messages:
                 logger.warning(
@@ -1747,31 +1851,10 @@ class CommunicationManager:
                     )
                 return False, None
 
-            # ENHANCED: Apply deduplication logic to time-period-filtered messages
-            from core.message_management import get_recent_messages
-
-            # Get recent messages to check for duplicates
-            recent_messages = get_recent_messages(
-                user_id, category=category, limit=50, days_back=60
+            available_messages = self._deduplicate_candidate_messages(
+                user_id, category, all_messages
             )
-            recent_content = {
-                msg.get("message", "").strip().lower()
-                for msg in recent_messages
-                if msg.get("message")
-            }
-
-            # Filter out recent duplicates from time-period-filtered messages
-            available_messages = []
-            for msg in all_messages:
-                message_content = msg.get("message", "").strip()
-                if message_content and message_content.lower() not in recent_content:
-                    available_messages.append(msg)
-
             if not available_messages:
-                logger.info(
-                    f"No messages available after deduplication for user {user_id}, category {category}. All time-period messages were sent recently."
-                )
-                # Fallback: if all time-period messages are recent, select from all time-period messages
                 available_messages = all_messages
                 logger.info(
                     f"Using fallback: selecting from all {len(available_messages)} time-period messages"
@@ -1785,67 +1868,15 @@ class CommunicationManager:
                 f"Selected message for user {user_id}, category {category} from {len(available_messages)} available messages"
             )
 
-            # IMPROVED: Better success/failure tracking
             try:
-                success = self.send_message_sync(
+                return self._send_and_store_predefined_message(
+                    user_id,
+                    category,
                     messaging_service,
                     recipient,
-                    message_to_send["message"],
-                    user_id=user_id,
-                    category=category,
+                    message_to_send,
+                    matching_periods,
                 )
-
-                if success:
-                    from core.message_management import store_sent_message
-
-                    # Get the current time period for storage
-                    current_time_period = (
-                        matching_periods[0] if matching_periods else None
-                    )
-                    store_sent_message(
-                        user_id,
-                        category,
-                        message_to_send["message_id"],
-                        message_to_send["message"],
-                        time_period=current_time_period,
-                    )
-                    # Enhanced logging with message content and time period
-                    message_preview = (
-                        message_to_send["message"][:50] + "..."
-                        if len(message_to_send["message"]) > 50
-                        else message_to_send["message"]
-                    )
-                    logger.info(
-                        f"Message sent successfully via {messaging_service} to {recipient} | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"
-                    )
-                    return True, message_to_send["message"]
-                else:
-                    # Enhanced logging with message content and time period
-                    current_time_period = (
-                        matching_periods[0] if matching_periods else None
-                    )
-                    message_preview = (
-                        message_to_send["message"][:50] + "..."
-                        if len(message_to_send["message"]) > 50
-                        else message_to_send["message"]
-                    )
-                    logger.warning(
-                        f"Message send returned False but may have still been delivered for user {user_id}, category {category} | Period: {current_time_period} | Content: '{message_preview}'"
-                    )
-                    # Still store it since the message might have gone through
-                    from core.message_management import store_sent_message
-
-                    store_sent_message(
-                        user_id,
-                        category,
-                        message_to_send["message_id"],
-                        message_to_send["message"],
-                        time_period=current_time_period,
-                    )
-                    return (
-                        True,
-                        message_to_send["message"],
-                    )  # Message was attempted and likely delivered
 
             except Exception as send_error:
                 logger.error(

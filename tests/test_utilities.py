@@ -2772,20 +2772,27 @@ class TestUserFactory:
     ) -> str | None:
         """Get user ID by internal username from test directory"""
         try:
+            from core.file_locking import safe_json_read
+
             user_index_file = os.path.join(test_data_dir, "user_index.json")
             if os.path.exists(user_index_file):
-                # Use safe_json_read to prevent race conditions in parallel execution
-                from core.file_locking import safe_json_read
-
                 user_index = safe_json_read(user_index_file, default={})
-
-                return user_index.get(internal_username)
+                mapped_user_id = user_index.get(internal_username)
+                if mapped_user_id:
+                    mapped_account_file = os.path.join(
+                        test_data_dir, "users", mapped_user_id, "account.json"
+                    )
+                    if os.path.exists(mapped_account_file):
+                        mapped_account = safe_json_read(mapped_account_file, default={})
+                        if (
+                            mapped_account.get("internal_username")
+                            == internal_username
+                        ):
+                            return mapped_user_id
 
             # Fallback: scan user directories when index is missing or out-of-date
             users_dir = os.path.join(test_data_dir, "users")
             if os.path.exists(users_dir):
-                from core.file_locking import safe_json_read  # reuse helper
-
                 for entry in os.listdir(users_dir):
                     user_dir = os.path.join(users_dir, entry)
                     account_file = os.path.join(user_dir, "account.json")

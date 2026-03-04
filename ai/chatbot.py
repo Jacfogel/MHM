@@ -1204,29 +1204,25 @@ class AIChatBotSingleton:
     @handle_errors("detecting prompt mode", default_return="chat")
     def _detect_mode(self, user_prompt: str) -> str:
         """Detect whether the prompt is a command or a chat query."""
-        command_keywords = [
-            "remind",
-            "todo",
-            "schedule",
-            "add",
-            "remove",
-            "delete",
-            "call",
-            "message",
-            "cancel",
-            "stop",
-            "task",
-            "tasks",
-        ]
         prompt_lower = user_prompt.lower().strip()
         if not prompt_lower:
             return "chat"
 
+        if self._is_natural_language_task_request(prompt_lower):
+            return "command_with_clarification"
+
+        if not self._has_command_keyword(prompt_lower):
+            return "chat"
+
         words = prompt_lower.split()
         stripped_prompt = prompt_lower.strip("?.! ")
+        if self._needs_command_clarification(prompt_lower, words, stripped_prompt):
+            return "command_with_clarification"
+        return "command"
 
-        # Check for task intent phrases FIRST (before command keywords)
-        # This handles natural language like "I need to buy groceries"
+    @handle_errors("detecting natural language task request", default_return=False)
+    def _is_natural_language_task_request(self, prompt_lower: str) -> bool:
+        """Detect natural-language task intents that likely need clarification."""
         task_intent_phrases = [
             "i need to",
             "i should",
@@ -1251,23 +1247,35 @@ class AIChatBotSingleton:
 
         has_task_intent = any(phrase in prompt_lower for phrase in task_intent_phrases)
         has_task_verb = any(verb in prompt_lower for verb in task_verbs)
-
-        # If prompt has task intent phrase + task verb, it's likely a task request
-        if (
-            has_task_intent
-            and has_task_verb
-            and not any(word in prompt_lower for word in ["add", "create", "new"])
-        ):
-            # This is likely a natural language task request that needs clarification
-            return "command_with_clarification"
-
-        # Now check for explicit command keywords
-        has_command_keyword = any(
-            keyword in prompt_lower for keyword in command_keywords
+        has_explicit_command_word = any(
+            word in prompt_lower for word in ["add", "create", "new"]
         )
-        if not has_command_keyword:
-            return "chat"
+        return has_task_intent and has_task_verb and not has_explicit_command_word
 
+    @handle_errors("detecting command keyword", default_return=False)
+    def _has_command_keyword(self, prompt_lower: str) -> bool:
+        """Return True when prompt appears command-oriented."""
+        command_keywords = [
+            "remind",
+            "todo",
+            "schedule",
+            "add",
+            "remove",
+            "delete",
+            "call",
+            "message",
+            "cancel",
+            "stop",
+            "task",
+            "tasks",
+        ]
+        return any(keyword in prompt_lower for keyword in command_keywords)
+
+    @handle_errors("detecting clarification need for command", default_return=True)
+    def _needs_command_clarification(
+        self, prompt_lower: str, words: list[str], stripped_prompt: str
+    ) -> bool:
+        """Determine whether a command-like prompt is too ambiguous."""
         clarification_phrases = [
             "not sure",
             "don't know",
@@ -1325,22 +1333,22 @@ class AIChatBotSingleton:
             " after ",
         ]
 
-        needs_clarification = False
+        if (
+            len(words) <= 3
+            or stripped_prompt in minimal_command_prompts
+            or any(phrase in prompt_lower for phrase in clarification_phrases)
+        ):
+            return True
 
-        if len(words) <= 3 or stripped_prompt in minimal_command_prompts or any(phrase in prompt_lower for phrase in clarification_phrases):
-            needs_clarification = True
-        else:
-            has_question_request = "?" in prompt_lower and any(
-                pattern in prompt_lower for pattern in request_question_patterns
-            )
-            if has_question_request and not any(
-                marker in prompt_lower for marker in detail_markers
-            ):
-                needs_clarification = True
+        has_question_request = "?" in prompt_lower and any(
+            pattern in prompt_lower for pattern in request_question_patterns
+        )
+        if has_question_request and not any(
+            marker in prompt_lower for marker in detail_markers
+        ):
+            return True
 
-        if needs_clarification:
-            return "command_with_clarification"
-        return "command"
+        return False
 
     @handle_errors(
         "creating command parsing prompt",
@@ -1380,21 +1388,16 @@ class AIChatBotSingleton:
         Generate a basic AI response from user_prompt, using LM Studio API.
         Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
         """
-        # Validate timeout parameter
-        if timeout is not None and not isinstance(timeout, int):
+        if not self._is_valid_timeout(timeout):
             logger.error(f"Invalid timeout parameter: {timeout} (expected int)")
             return "I'm having trouble generating a response. Please check your input and try again."
 
-        if timeout is None:
-            timeout = self._get_adaptive_timeout(AI_TIMEOUT_SECONDS)
-
-        if mode is None:
-            mode = self._detect_mode(user_prompt)
-        if mode is None:
-            mode = "chat"
-        mode = mode.lower()
-        if mode != "chat" and not mode.startswith("command"):
-            mode = "chat"
+        timeout = (
+            timeout
+            if timeout is not None
+            else self._get_adaptive_timeout(AI_TIMEOUT_SECONDS)
+        )
+        mode = self._normalize_response_mode(mode, user_prompt)
 
         prompt_for_key, uid_for_key, ptype = self._make_cache_key_inputs(
             mode, user_prompt, user_id
@@ -1407,49 +1410,16 @@ class AIChatBotSingleton:
             )
             return "I'm having trouble generating a response. Please check your input and try again."
 
-        # Check cache first, but skip cache for chat mode and fallback responses to allow variation
-        if mode != "chat":
-            cached_response = self.response_cache.get(
-                prompt_for_key, uid_for_key, prompt_type=ptype
-            )
-            if cached_response and not cached_response.startswith(
-                "I'm here to listen and support you"
-            ):
-                # Clean cached command responses to remove any code fragments that may have been cached
-                if mode == "command":
-                    cleaned_response = self._extract_command_from_response(
-                        cached_response
-                    )
-                    ai_logger.debug(
-                        "AI response served from cache (cleaned)",
-                        user_id=user_id,
-                        mode=mode,
-                        prompt_length=len(user_prompt),
-                    )
-                    return cleaned_response
-                ai_logger.debug(
-                    "AI response served from cache",
-                    user_id=user_id,
-                    mode=mode,
-                    prompt_length=len(user_prompt),
-                )
-                return cached_response
+        cached_response = self._get_cached_non_chat_response(
+            mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id
+        )
+        if cached_response:
+            return cached_response
 
-        # Test connection if not available
-        if not self.lm_studio_available:
-            self._test_lm_studio_connection()
-
-        # Use fallback if LM Studio is not available
-        if not self.lm_studio_available:
-            response = self._get_contextual_fallback(user_prompt, user_id)
-            # Don't cache fallback responses to allow variation
-            ai_logger.warning(
-                "AI response using fallback - LM Studio unavailable",
-                user_id=user_id,
-                mode=mode,
-                prompt_length=len(user_prompt),
+        if not self._ensure_lm_studio_available():
+            return self._fallback_response_for_unavailable_lm(
+                user_prompt, user_id, mode
             )
-            return response
 
         # Use per-user locks for better concurrency
         lock = self._locks_by_user[user_id or "__anon__"]
@@ -1466,34 +1436,13 @@ class AIChatBotSingleton:
             # Don't cache fallback responses to allow variation
             return response
 
+        messages, max_tokens, temperature = self._build_response_generation_request(
+            mode, user_prompt, user_id
+        )
+
         logger.debug(
             f"AIChatBot generating response via LM Studio for prompt: {user_prompt[:60]} in mode {mode}..."
         )
-
-        if mode == "command":
-            messages = self._create_command_parsing_prompt(user_prompt)
-            max_tokens = 60
-            temperature = AI_COMMAND_TEMPERATURE
-        elif mode == "command_with_clarification":
-            messages = self._create_command_parsing_prompt(
-                user_prompt, clarification=True
-            )
-            max_tokens = 120
-            temperature = AI_CLARIFICATION_TEMPERATURE
-        else:
-            messages = self._create_comprehensive_context_prompt(user_id, user_prompt)
-            # Use prompt template's max_tokens if available, otherwise use config default
-            template = prompt_manager.get_prompt_template("wellness")
-            max_tokens = (
-                template.max_tokens
-                if template and template.max_tokens
-                else AI_MAX_RESPONSE_TOKENS
-            )
-            temperature = (
-                template.temperature
-                if template and template.temperature is not None
-                else AI_CHAT_TEMPERATURE
-            )
 
         try:
             # Call LM Studio API with adaptive timeout
@@ -1505,38 +1454,13 @@ class AIChatBotSingleton:
             )
 
             if result:
-                response = result.strip()
-
-                # Clean any leaked system prompt metadata (do this before other processing)
-                response = self._clean_system_prompt_leaks(response)
-
-                # For command mode, extract structured command from response
-                # Can be JSON, key-value pairs, or natural language - parser handles all formats
-                if mode == "command":
-                    response = self._extract_command_from_response(response)
-
-                # Enforce response length limit with smart truncation using centralized config
-                response = self._smart_truncate_response(
-                    response, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS
+                response = self._post_process_generated_response(mode, result)
+                self._cache_response_if_needed(
+                    mode, prompt_for_key, uid_for_key, ptype, response
                 )
-
-                # Enhance response for better conversational engagement (skip for command mode)
-                if mode != "command":
-                    response = self._enhance_conversational_engagement(response)
-
-                # Cache successful responses (skip cache for chat mode to allow variation)
-                if mode != "chat":
-                    self.response_cache.set(
-                        prompt_for_key, response, uid_for_key, prompt_type=ptype
-                    )
-
-                # Store chat interaction for context and reference
-                if mode == "chat" and user_id:
-                    from core.response_tracking import store_chat_interaction
-
-                    store_chat_interaction(
-                        user_id, user_prompt, response, context_used=True
-                    )
+                self._store_chat_mode_interaction(
+                    mode, user_id, user_prompt, response, context_used=True
+                )
 
                 ai_logger.info(
                     "AI response generated successfully",
@@ -1553,13 +1477,9 @@ class AIChatBotSingleton:
                 response = self._get_contextual_fallback(user_prompt, user_id)
                 # Don't cache fallback responses to allow variation
 
-                # Store fallback chat interaction for context and reference
-                if mode == "chat" and user_id:
-                    from core.response_tracking import store_chat_interaction
-
-                    store_chat_interaction(
-                        user_id, user_prompt, response, context_used=False
-                    )
+                self._store_chat_mode_interaction(
+                    mode, user_id, user_prompt, response, context_used=False
+                )
 
                 ai_logger.error(
                     "AI response generation failed - using fallback",
@@ -1572,6 +1492,164 @@ class AIChatBotSingleton:
             # Always release the lock
             if lock_acquired:
                 lock.release()
+
+    @handle_errors("validating response timeout", default_return=False)
+    def _is_valid_timeout(self, timeout: int | None) -> bool:
+        """Validate timeout input type for response generation."""
+        return timeout is None or isinstance(timeout, int)
+
+    @handle_errors("normalizing response mode", default_return="chat")
+    def _normalize_response_mode(self, mode: str | None, user_prompt: str) -> str:
+        """Normalize generation mode to supported values."""
+        resolved_mode = mode if mode is not None else self._detect_mode(user_prompt)
+        if resolved_mode is None:
+            return "chat"
+        resolved_mode = resolved_mode.lower()
+        if resolved_mode != "chat" and not resolved_mode.startswith("command"):
+            return "chat"
+        return resolved_mode
+
+    @handle_errors("getting cached non-chat response", default_return=None)
+    def _get_cached_non_chat_response(
+        self,
+        mode: str,
+        prompt_for_key: str,
+        uid_for_key: str | None,
+        ptype: str,
+        user_prompt: str,
+        user_id: str | None,
+    ) -> str | None:
+        """Return cached response for non-chat modes when eligible."""
+        if mode == "chat":
+            return None
+
+        cached_response = self.response_cache.get(
+            prompt_for_key, uid_for_key, prompt_type=ptype
+        )
+        if not cached_response or cached_response.startswith(
+            "I'm here to listen and support you"
+        ):
+            return None
+
+        if mode == "command":
+            cleaned_response = self._extract_command_from_response(cached_response)
+            ai_logger.debug(
+                "AI response served from cache (cleaned)",
+                user_id=user_id,
+                mode=mode,
+                prompt_length=len(user_prompt),
+            )
+            return cleaned_response
+
+        ai_logger.debug(
+            "AI response served from cache",
+            user_id=user_id,
+            mode=mode,
+            prompt_length=len(user_prompt),
+        )
+        return cached_response
+
+    @handle_errors("ensuring LM Studio availability", default_return=False)
+    def _ensure_lm_studio_available(self) -> bool:
+        """Ensure LM Studio availability by retrying connection if needed."""
+        if not self.lm_studio_available:
+            self._test_lm_studio_connection()
+        return self.lm_studio_available
+
+    @handle_errors(
+        "getting fallback response for unavailable LM Studio",
+        default_return="I'm having trouble generating a response right now. Please try again in a moment.",
+    )
+    def _fallback_response_for_unavailable_lm(
+        self, user_prompt: str, user_id: str | None, mode: str
+    ) -> str:
+        """Return contextual fallback when LM Studio is unavailable."""
+        response = self._get_contextual_fallback(user_prompt, user_id)
+        ai_logger.warning(
+            "AI response using fallback - LM Studio unavailable",
+            user_id=user_id,
+            mode=mode,
+            prompt_length=len(user_prompt),
+        )
+        return response
+
+    @handle_errors(
+        "building response generation request",
+        default_return=([], AI_MAX_RESPONSE_TOKENS, AI_CHAT_TEMPERATURE),
+    )
+    def _build_response_generation_request(
+        self, mode: str, user_prompt: str, user_id: str | None
+    ) -> tuple[list, int, float]:
+        """Build messages and generation parameters based on response mode."""
+        if mode == "command":
+            return (
+                self._create_command_parsing_prompt(user_prompt),
+                60,
+                AI_COMMAND_TEMPERATURE,
+            )
+        if mode == "command_with_clarification":
+            return (
+                self._create_command_parsing_prompt(user_prompt, clarification=True),
+                120,
+                AI_CLARIFICATION_TEMPERATURE,
+            )
+
+        template = prompt_manager.get_prompt_template("wellness")
+        max_tokens = (
+            template.max_tokens
+            if template and template.max_tokens
+            else AI_MAX_RESPONSE_TOKENS
+        )
+        temperature = (
+            template.temperature
+            if template and template.temperature is not None
+            else AI_CHAT_TEMPERATURE
+        )
+        messages = self._create_comprehensive_context_prompt(user_id, user_prompt)
+        return messages, max_tokens, temperature
+
+    @handle_errors("post-processing generated response", default_return="")
+    def _post_process_generated_response(self, mode: str, result: str) -> str:
+        """Post-process model output into final user-visible response."""
+        response = result.strip()
+        response = self._clean_system_prompt_leaks(response)
+        if mode == "command":
+            response = self._extract_command_from_response(response)
+        response = self._smart_truncate_response(
+            response, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS
+        )
+        if mode != "command":
+            response = self._enhance_conversational_engagement(response)
+        return response
+
+    @handle_errors("caching response when needed", default_return=None)
+    def _cache_response_if_needed(
+        self,
+        mode: str,
+        prompt_for_key: str,
+        uid_for_key: str | None,
+        ptype: str,
+        response: str,
+    ) -> None:
+        """Cache successful non-chat responses."""
+        if mode != "chat":
+            self.response_cache.set(
+                prompt_for_key, response, uid_for_key, prompt_type=ptype
+            )
+
+    @handle_errors("storing chat mode interaction", default_return=None)
+    def _store_chat_mode_interaction(
+        self,
+        mode: str,
+        user_id: str | None,
+        user_prompt: str,
+        response: str,
+        *,
+        context_used: bool,
+    ) -> None:
+        """Persist chat interactions for conversation context."""
+        if mode == "chat" and user_id:
+            store_chat_interaction(user_id, user_prompt, response, context_used=context_used)
 
     @handle_errors("generating async AI response")
     async def async_generate_response(
@@ -1746,89 +1824,31 @@ class AIChatBotSingleton:
         context = user_context_manager.get_ai_context(
             user_id, include_conversation_history=True
         )
-
-        # Create a meaningful but concise context summary for better AI performance
-        context_summary = []
-
-        # User profile information
-        profile = context.get("user_profile", {})
-        if profile.get("preferred_name"):
-            context_summary.append(f"User's name is {profile['preferred_name']}")
-        if profile.get("active_categories"):
-            # Limit to top 2 categories for brevity
-            categories = profile["active_categories"][:2]
-            context_summary.append(f"Interested in: {', '.join(categories)}")
-
-        # Recent activity (only if significant)
-        recent_activity = context.get("recent_activity", {})
-        if recent_activity.get("recent_responses_count", 0) > 2:
-            context_summary.append(
-                f"Active user with {recent_activity['recent_responses_count']} recent check-ins"
-            )
-
-        # Mood trends (only if data available)
-        mood_trends = context.get("mood_trends", {})
-        if mood_trends.get("average_mood") is not None:
-            avg_mood = mood_trends["average_mood"]
-            context_summary.append(f"Recent mood: {avg_mood:.1f}/5")
-
-        # Create context string (keep it concise for performance)
-        context_str = ". ".join(context_summary) if context_summary else "New user"
+        profile, context_summary, context_str = self._build_contextual_summary(context)
 
         if not self.lm_studio_available:
             # Use enhanced contextual fallback with user information and data analysis
             fallback_response = self._get_contextual_fallback(user_prompt, user_id)
 
             # Enhance fallback with context if available
-            if context_summary:
-                user_name = profile.get("preferred_name", "")
-                if user_name and user_name not in fallback_response:
-                    fallback_response = fallback_response.replace(
-                        "Hello!", f"Hello {user_name}!"
-                    )
-                    fallback_response = fallback_response.replace(
-                        "Hi!", f"Hi {user_name}!"
-                    )
-
-            # Store the chat interaction
-            store_chat_interaction(
-                user_id, user_prompt, fallback_response, context_used=True
+            fallback_response = self._personalize_fallback_with_profile_name(
+                fallback_response, context_summary, profile
             )
-            user_context_manager.add_conversation_exchange(
-                user_id, user_prompt, fallback_response
+            self._record_contextual_interaction(
+                user_id, user_prompt, fallback_response, context_used=True
             )
             return fallback_response
 
         # Create comprehensive context-aware messages for LM Studio with all user data
         messages = self._create_comprehensive_context_prompt(user_id, user_prompt)
 
-        # For data analysis questions, skip cache to ensure fresh responses
-        data_analysis_keywords = [
-            "how often",
-            "how many",
-            "check",
-            "frequency",
-            "times",
-            "average",
-            "lately",
-            "recent",
-        ]
-        is_data_question = any(
-            keyword in user_prompt.lower() for keyword in data_analysis_keywords
-        )
-
-        if not is_data_question:
-            # Check cache using the cache's own key generation method
+        if not self._is_data_analysis_question(user_prompt):
             cached_response = self.response_cache.get(
                 user_prompt, user_id, prompt_type="contextual"
             )
             if cached_response:
-                # Still store and add to conversation for tracking
-                store_chat_interaction(
+                self._record_contextual_interaction(
                     user_id, user_prompt, cached_response, context_used=True
-                )
-                user_context_manager.add_conversation_exchange(
-                    user_id, user_prompt, cached_response
                 )
                 return cached_response
 
@@ -1839,11 +1859,8 @@ class AIChatBotSingleton:
         if not lock_acquired:
             logger.warning("API is busy, using enhanced contextual fallback")
             fallback_response = self._get_contextual_fallback(user_prompt, user_id)
-            store_chat_interaction(
+            self._record_contextual_interaction(
                 user_id, user_prompt, fallback_response, context_used=False
-            )
-            user_context_manager.add_conversation_exchange(
-                user_id, user_prompt, fallback_response
             )
             return fallback_response
 
@@ -1883,9 +1900,8 @@ class AIChatBotSingleton:
             )
 
             # Single call to record the interaction
-            store_chat_interaction(user_id, user_prompt, response, context_used=True)
-            user_context_manager.add_conversation_exchange(
-                user_id, user_prompt, response
+            self._record_contextual_interaction(
+                user_id, user_prompt, response, context_used=True
             )
 
             return response
@@ -1893,6 +1909,73 @@ class AIChatBotSingleton:
             # Always release the lock
             if lock_acquired:
                 lock.release()
+
+    @handle_errors(
+        "building contextual summary",
+        default_return=({}, [], "New user"),
+    )
+    def _build_contextual_summary(self, context: dict) -> tuple[dict, list[str], str]:
+        """Build a concise context summary used for logging and fallback personalization."""
+        context_summary = []
+        profile = context.get("user_profile", {})
+
+        if profile.get("preferred_name"):
+            context_summary.append(f"User's name is {profile['preferred_name']}")
+        if profile.get("active_categories"):
+            categories = profile["active_categories"][:2]
+            context_summary.append(f"Interested in: {', '.join(categories)}")
+
+        recent_activity = context.get("recent_activity", {})
+        if recent_activity.get("recent_responses_count", 0) > 2:
+            context_summary.append(
+                f"Active user with {recent_activity['recent_responses_count']} recent check-ins"
+            )
+
+        mood_trends = context.get("mood_trends", {})
+        if mood_trends.get("average_mood") is not None:
+            avg_mood = mood_trends["average_mood"]
+            context_summary.append(f"Recent mood: {avg_mood:.1f}/5")
+
+        context_str = ". ".join(context_summary) if context_summary else "New user"
+        return profile, context_summary, context_str
+
+    @handle_errors("personalizing fallback with profile name", default_return="")
+    def _personalize_fallback_with_profile_name(
+        self, fallback_response: str, context_summary: list[str], profile: dict
+    ) -> str:
+        """Inject preferred name into greeting-based fallback responses when available."""
+        if not context_summary:
+            return fallback_response
+
+        user_name = profile.get("preferred_name", "")
+        if user_name and user_name not in fallback_response:
+            fallback_response = fallback_response.replace("Hello!", f"Hello {user_name}!")
+            fallback_response = fallback_response.replace("Hi!", f"Hi {user_name}!")
+        return fallback_response
+
+    @handle_errors("detecting contextual data analysis question", default_return=False)
+    def _is_data_analysis_question(self, user_prompt: str) -> bool:
+        """Detect prompts that should bypass contextual cache for fresh data."""
+        data_analysis_keywords = [
+            "how often",
+            "how many",
+            "check",
+            "frequency",
+            "times",
+            "average",
+            "lately",
+            "recent",
+        ]
+        prompt_lower = user_prompt.lower()
+        return any(keyword in prompt_lower for keyword in data_analysis_keywords)
+
+    @handle_errors("recording contextual interaction", default_return=None)
+    def _record_contextual_interaction(
+        self, user_id: str, user_prompt: str, response: str, *, context_used: bool
+    ) -> None:
+        """Persist contextual response and conversation history."""
+        store_chat_interaction(user_id, user_prompt, response, context_used=context_used)
+        user_context_manager.add_conversation_exchange(user_id, user_prompt, response)
 
     @handle_errors("detecting resource constraints", default_return=False)
     def _detect_resource_constraints(self) -> bool:

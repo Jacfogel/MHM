@@ -89,197 +89,170 @@ class InteractionManager:
             )
             self.fallback_to_chat = True  # Whether to fall back to contextual chat
 
-            # Channel-agnostic command definitions for discoverability across channels
-            # All commands work with both /command and !command prefixes
-            self._command_definitions: list[CommandDefinition] = [
-                # Core system commands
-                CommandDefinition(
-                    "start", "Get started with MHM", mapped_message="start"
-                ),
-                CommandDefinition(
-                    "help", "Show help and examples", mapped_message="help"
-                ),
-                CommandDefinition(
-                    "status", "Show system/user status", mapped_message="status"
-                ),
-                # Core data views
-                CommandDefinition(
-                    "tasks", "Show your tasks", mapped_message="show my tasks"
-                ),
-                CommandDefinition(
-                    "profile", "Show your profile", mapped_message="show profile"
-                ),
-                CommandDefinition(
-                    "schedule", "Show your schedules", mapped_message="show schedule"
-                ),
-                CommandDefinition(
-                    "messages", "Show your messages", mapped_message="show messages"
-                ),
-                CommandDefinition(
-                    "analytics",
-                    "Show wellness analytics",
-                    mapped_message="show analytics",
-                ),
-                # Flow commands (these are handled directly, mapping here is optional)
-                CommandDefinition(
-                    "checkin",
-                    "Start a check-in",
-                    mapped_message="start checkin",
-                    is_flow=True,
-                ),
-                CommandDefinition(
-                    "restart",
-                    "Restart check-in",
-                    mapped_message="restart checkin",
-                    is_flow=True,
-                ),
-                CommandDefinition(
-                    "clear",
-                    "Clear stuck conversation flows",
-                    mapped_message="clear flows",
-                    is_flow=True,
-                ),
-                # Flow keyword / cancel (discoverability-only OR map to "cancel")
-                CommandDefinition(
-                    "cancel", "Cancel current flow", mapped_message="cancel"
-                ),
-                # These are discoverability-only (you said “handled by regex patterns”)
-                CommandDefinition("n", "Create a note", mapped_message=None),
-                CommandDefinition("note", "Create a note", mapped_message=None),
-                CommandDefinition("task", "Create a task", mapped_message=None),
-                CommandDefinition("l", "Create or manage a list", mapped_message=None),
-                CommandDefinition("list", "Create a list", mapped_message=None),
-                # Entry viewing
-                CommandDefinition(
-                    "show", "Show an entry by ID or title", mapped_message=None
-                ),
-                CommandDefinition("recent", "Show recent entries", mapped_message=None),
-                CommandDefinition("r", "Show recent entries", mapped_message=None),
-                CommandDefinition("pinned", "Show pinned entries", mapped_message=None),
-                CommandDefinition("inbox", "Show inbox entries", mapped_message=None),
-                # Note-specific views
-                CommandDefinition("recentn", "Show recent notes", mapped_message=None),
-                CommandDefinition("rnote", "Show recent notes", mapped_message=None),
-                # Entry modification
-                CommandDefinition(
-                    "append", "Append text to an entry", mapped_message=None
-                ),
-                CommandDefinition("add", "Add text to an entry", mapped_message=None),
-                CommandDefinition("addto", "Add text to an entry", mapped_message=None),
-                # Tags and groups
-                CommandDefinition(
-                    "tag", "Add tags or view entries by tag", mapped_message=None
-                ),
-                CommandDefinition(
-                    "untag", "Remove tags from an entry", mapped_message=None
-                ),
-                CommandDefinition("t", "Show entries by tag", mapped_message=None),
-                CommandDefinition(
-                    "group", "Set or view entries by group", mapped_message=None
-                ),
-                # Search
-                CommandDefinition("search", "Search entries", mapped_message=None),
-                CommandDefinition("s", "Search entries", mapped_message=None),
-                # Note-specific actions
-                CommandDefinition("pin", "Pin an entry", mapped_message=None),
-                CommandDefinition("unpin", "Unpin an entry", mapped_message=None),
-                CommandDefinition("archive", "Archive an entry", mapped_message=None),
-                CommandDefinition(
-                    "unarchive", "Unarchive an entry", mapped_message=None
-                ),
-                # Task-specific actions
-                CommandDefinition("complete", "Complete a task", mapped_message=None),
-                CommandDefinition(
-                    "uncomplete", "Uncomplete a task", mapped_message=None
-                ),
-            ]
-
-            analytics_aliases = [
-                ("show-analytics", "Show check-in analytics", "show analytics"),
-                ("showanalytics", "Show check-in analytics", "show analytics"),
-                ("show-trends", "Show check-in analytics", "show analytics"),
-                ("showtrends", "Show check-in analytics", "show analytics"),
-                ("checkin-trends", "Show check-in trends", "checkin trends"),
-                ("checkintrends", "Show check-in trends", "checkin trends"),
-                ("checkin-analysis", "Show check-in analysis", "checkin analysis"),
-                ("checkinanalysis", "Show check-in analysis", "checkin analysis"),
-                ("checkin-history", "Show check-in history", "checkin history"),
-                ("checkinhistory", "Show check-in history", "checkin history"),
-                ("show-checkin-trends", "Show check-in trends", "checkin trends"),
-                ("showcheckintrends", "Show check-in trends", "checkin trends"),
-                ("show-checkin-analysis", "Show check-in analysis", "checkin analysis"),
-                ("showcheckinanalysis", "Show check-in analysis", "checkin analysis"),
-                ("show-checkin-history", "Show check-in history", "checkin history"),
-                ("showcheckinhistory", "Show check-in history", "checkin history"),
-                ("habit-analysis", "Show habit analysis", "habit analysis"),
-                ("habitanalysis", "Show habit analysis", "habit analysis"),
-                ("habit-trends", "Show habit trends", "habit trends"),
-                ("habittrends", "Show habit trends", "habit trends"),
-                ("habit-history", "Show habit history", "habit history"),
-                ("habithistory", "Show habit history", "habit history"),
-                ("show-habit-analysis", "Show habit analysis", "habit analysis"),
-                ("showhabitanalysis", "Show habit analysis", "habit analysis"),
-                ("show-habit-trends", "Show habit trends", "habit trends"),
-                ("showhabittrends", "Show habit trends", "habit trends"),
-                ("show-habit-history", "Show habit history", "habit history"),
-                ("showhabithistory", "Show habit history", "habit history"),
-                ("sleep-analysis", "Show sleep analysis", "sleep analysis"),
-                ("sleepanalysis", "Show sleep analysis", "sleep analysis"),
-                ("sleep-trends", "Show sleep trends", "sleep trends"),
-                ("sleeptrends", "Show sleep trends", "sleep trends"),
-                ("sleep-history", "Show sleep history", "sleep history"),
-                ("sleephistory", "Show sleep history", "sleep history"),
-                ("show-sleep-analysis", "Show sleep analysis", "sleep analysis"),
-                ("showsleepanalysis", "Show sleep analysis", "sleep analysis"),
-                ("show-sleep-trends", "Show sleep trends", "sleep trends"),
-                ("showsleeptrends", "Show sleep trends", "sleep trends"),
-                ("show-sleep-history", "Show sleep history", "sleep history"),
-                ("showsleephistory", "Show sleep history", "sleep history"),
-                ("energy-trends", "Show energy trends", "energy trends"),
-                ("energytrends", "Show energy trends", "energy trends"),
-                ("energy-analysis", "Show energy analysis", "energy analysis"),
-                ("energyanalysis", "Show energy analysis", "energy analysis"),
-                ("energy-history", "Show energy history", "energy history"),
-                ("energyhistory", "Show energy history", "energy history"),
-                ("energy-graphs", "Show energy graphs", "energy graphs"),
-                ("energygraphs", "Show energy graphs", "energy graphs"),
-                ("show-energy-trends", "Show energy trends", "energy trends"),
-                ("showenergytrends", "Show energy trends", "energy trends"),
-                ("show-energy-analysis", "Show energy analysis", "energy analysis"),
-                ("showenergyanalysis", "Show energy analysis", "energy analysis"),
-                ("show-energy-history", "Show energy history", "energy history"),
-                ("showenergyhistory", "Show energy history", "energy history"),
-                ("show-energy-graphs", "Show energy graphs", "energy graphs"),
-                ("showenergygraphs", "Show energy graphs", "energy graphs"),
-                ("mood-trends", "Show mood trends", "mood trends"),
-                ("moodtrends", "Show mood trends", "mood trends"),
-                ("mood-analysis", "Show mood analysis", "mood analysis"),
-                ("moodanalysis", "Show mood analysis", "mood analysis"),
-                ("mood-history", "Show mood history", "mood history"),
-                ("moodhistory", "Show mood history", "mood history"),
-                ("mood-graphs", "Show mood graphs", "mood graphs"),
-                ("moodgraphs", "Show mood graphs", "mood graphs"),
-                ("show-mood-trends", "Show mood trends", "mood trends"),
-                ("showmoodtrends", "Show mood trends", "mood trends"),
-                ("show-mood-analysis", "Show mood analysis", "mood analysis"),
-                ("showmoodanalysis", "Show mood analysis", "mood analysis"),
-                ("show-mood-history", "Show mood history", "mood history"),
-                ("showmoodhistory", "Show mood history", "mood history"),
-                ("show-mood-graphs", "Show mood graphs", "mood graphs"),
-                ("showmoodgraphs", "Show mood graphs", "mood graphs"),
-            ]
-            for name, description, mapped_message in analytics_aliases:
-                self._command_definitions.append(
-                    CommandDefinition(
-                        name,
-                        description,
-                        mapped_message=mapped_message,
-                    )
-                )
+            self._command_definitions = self._build_command_definitions()
 
         except Exception as e:
             logger.error(f"Error initializing interaction manager: {e}")
             raise
+
+    @handle_errors("building command definitions", default_return=[])
+    def _build_command_definitions(self) -> list[CommandDefinition]:
+        """Build complete command definitions with base commands and analytics aliases."""
+        command_definitions = self._build_base_command_definitions()
+        command_definitions.extend(self._build_analytics_alias_commands())
+        return command_definitions
+
+    @handle_errors("building base command definitions", default_return=[])
+    def _build_base_command_definitions(self) -> list[CommandDefinition]:
+        """Return channel-agnostic base commands."""
+        return [
+            CommandDefinition("start", "Get started with MHM", mapped_message="start"),
+            CommandDefinition("help", "Show help and examples", mapped_message="help"),
+            CommandDefinition(
+                "status", "Show system/user status", mapped_message="status"
+            ),
+            CommandDefinition("tasks", "Show your tasks", mapped_message="show my tasks"),
+            CommandDefinition(
+                "profile", "Show your profile", mapped_message="show profile"
+            ),
+            CommandDefinition(
+                "schedule", "Show your schedules", mapped_message="show schedule"
+            ),
+            CommandDefinition(
+                "messages", "Show your messages", mapped_message="show messages"
+            ),
+            CommandDefinition(
+                "analytics", "Show wellness analytics", mapped_message="show analytics"
+            ),
+            CommandDefinition(
+                "checkin",
+                "Start a check-in",
+                mapped_message="start checkin",
+                is_flow=True,
+            ),
+            CommandDefinition(
+                "restart",
+                "Restart check-in",
+                mapped_message="restart checkin",
+                is_flow=True,
+            ),
+            CommandDefinition(
+                "clear",
+                "Clear stuck conversation flows",
+                mapped_message="clear flows",
+                is_flow=True,
+            ),
+            CommandDefinition("cancel", "Cancel current flow", mapped_message="cancel"),
+            CommandDefinition("n", "Create a note", mapped_message=None),
+            CommandDefinition("note", "Create a note", mapped_message=None),
+            CommandDefinition("task", "Create a task", mapped_message=None),
+            CommandDefinition("l", "Create or manage a list", mapped_message=None),
+            CommandDefinition("list", "Create a list", mapped_message=None),
+            CommandDefinition("show", "Show an entry by ID or title", mapped_message=None),
+            CommandDefinition("recent", "Show recent entries", mapped_message=None),
+            CommandDefinition("r", "Show recent entries", mapped_message=None),
+            CommandDefinition("pinned", "Show pinned entries", mapped_message=None),
+            CommandDefinition("inbox", "Show inbox entries", mapped_message=None),
+            CommandDefinition("recentn", "Show recent notes", mapped_message=None),
+            CommandDefinition("rnote", "Show recent notes", mapped_message=None),
+            CommandDefinition("append", "Append text to an entry", mapped_message=None),
+            CommandDefinition("add", "Add text to an entry", mapped_message=None),
+            CommandDefinition("addto", "Add text to an entry", mapped_message=None),
+            CommandDefinition("tag", "Add tags or view entries by tag", mapped_message=None),
+            CommandDefinition("untag", "Remove tags from an entry", mapped_message=None),
+            CommandDefinition("t", "Show entries by tag", mapped_message=None),
+            CommandDefinition("group", "Set or view entries by group", mapped_message=None),
+            CommandDefinition("search", "Search entries", mapped_message=None),
+            CommandDefinition("s", "Search entries", mapped_message=None),
+            CommandDefinition("pin", "Pin an entry", mapped_message=None),
+            CommandDefinition("unpin", "Unpin an entry", mapped_message=None),
+            CommandDefinition("archive", "Archive an entry", mapped_message=None),
+            CommandDefinition("unarchive", "Unarchive an entry", mapped_message=None),
+            CommandDefinition("complete", "Complete a task", mapped_message=None),
+            CommandDefinition("uncomplete", "Uncomplete a task", mapped_message=None),
+        ]
+
+    @handle_errors("building analytics alias command definitions", default_return=[])
+    def _build_analytics_alias_commands(self) -> list[CommandDefinition]:
+        """Return analytics command aliases mapped to canonical prompts."""
+        analytics_aliases = [
+            ("show-analytics", "Show check-in analytics", "show analytics"),
+            ("showanalytics", "Show check-in analytics", "show analytics"),
+            ("show-trends", "Show check-in analytics", "show analytics"),
+            ("showtrends", "Show check-in analytics", "show analytics"),
+            ("checkin-trends", "Show check-in trends", "checkin trends"),
+            ("checkintrends", "Show check-in trends", "checkin trends"),
+            ("checkin-analysis", "Show check-in analysis", "checkin analysis"),
+            ("checkinanalysis", "Show check-in analysis", "checkin analysis"),
+            ("checkin-history", "Show check-in history", "checkin history"),
+            ("checkinhistory", "Show check-in history", "checkin history"),
+            ("show-checkin-trends", "Show check-in trends", "checkin trends"),
+            ("showcheckintrends", "Show check-in trends", "checkin trends"),
+            ("show-checkin-analysis", "Show check-in analysis", "checkin analysis"),
+            ("showcheckinanalysis", "Show check-in analysis", "checkin analysis"),
+            ("show-checkin-history", "Show check-in history", "checkin history"),
+            ("showcheckinhistory", "Show check-in history", "checkin history"),
+            ("habit-analysis", "Show habit analysis", "habit analysis"),
+            ("habitanalysis", "Show habit analysis", "habit analysis"),
+            ("habit-trends", "Show habit trends", "habit trends"),
+            ("habittrends", "Show habit trends", "habit trends"),
+            ("habit-history", "Show habit history", "habit history"),
+            ("habithistory", "Show habit history", "habit history"),
+            ("show-habit-analysis", "Show habit analysis", "habit analysis"),
+            ("showhabitanalysis", "Show habit analysis", "habit analysis"),
+            ("show-habit-trends", "Show habit trends", "habit trends"),
+            ("showhabittrends", "Show habit trends", "habit trends"),
+            ("show-habit-history", "Show habit history", "habit history"),
+            ("showhabithistory", "Show habit history", "habit history"),
+            ("sleep-analysis", "Show sleep analysis", "sleep analysis"),
+            ("sleepanalysis", "Show sleep analysis", "sleep analysis"),
+            ("sleep-trends", "Show sleep trends", "sleep trends"),
+            ("sleeptrends", "Show sleep trends", "sleep trends"),
+            ("sleep-history", "Show sleep history", "sleep history"),
+            ("sleephistory", "Show sleep history", "sleep history"),
+            ("show-sleep-analysis", "Show sleep analysis", "sleep analysis"),
+            ("showsleepanalysis", "Show sleep analysis", "sleep analysis"),
+            ("show-sleep-trends", "Show sleep trends", "sleep trends"),
+            ("showsleeptrends", "Show sleep trends", "sleep trends"),
+            ("show-sleep-history", "Show sleep history", "sleep history"),
+            ("showsleephistory", "Show sleep history", "sleep history"),
+            ("energy-trends", "Show energy trends", "energy trends"),
+            ("energytrends", "Show energy trends", "energy trends"),
+            ("energy-analysis", "Show energy analysis", "energy analysis"),
+            ("energyanalysis", "Show energy analysis", "energy analysis"),
+            ("energy-history", "Show energy history", "energy history"),
+            ("energyhistory", "Show energy history", "energy history"),
+            ("energy-graphs", "Show energy graphs", "energy graphs"),
+            ("energygraphs", "Show energy graphs", "energy graphs"),
+            ("show-energy-trends", "Show energy trends", "energy trends"),
+            ("showenergytrends", "Show energy trends", "energy trends"),
+            ("show-energy-analysis", "Show energy analysis", "energy analysis"),
+            ("showenergyanalysis", "Show energy analysis", "energy analysis"),
+            ("show-energy-history", "Show energy history", "energy history"),
+            ("showenergyhistory", "Show energy history", "energy history"),
+            ("show-energy-graphs", "Show energy graphs", "energy graphs"),
+            ("showenergygraphs", "Show energy graphs", "energy graphs"),
+            ("mood-trends", "Show mood trends", "mood trends"),
+            ("moodtrends", "Show mood trends", "mood trends"),
+            ("mood-analysis", "Show mood analysis", "mood analysis"),
+            ("moodanalysis", "Show mood analysis", "mood analysis"),
+            ("mood-history", "Show mood history", "mood history"),
+            ("moodhistory", "Show mood history", "mood history"),
+            ("mood-graphs", "Show mood graphs", "mood graphs"),
+            ("moodgraphs", "Show mood graphs", "mood graphs"),
+            ("show-mood-trends", "Show mood trends", "mood trends"),
+            ("showmoodtrends", "Show mood trends", "mood trends"),
+            ("show-mood-analysis", "Show mood analysis", "mood analysis"),
+            ("showmoodanalysis", "Show mood analysis", "mood analysis"),
+            ("show-mood-history", "Show mood history", "mood history"),
+            ("showmoodhistory", "Show mood history", "mood history"),
+            ("show-mood-graphs", "Show mood graphs", "mood graphs"),
+            ("showmoodgraphs", "Show mood graphs", "mood graphs"),
+        ]
+        return [
+            CommandDefinition(name, description, mapped_message=mapped_message)
+            for name, description, mapped_message in analytics_aliases
+        ]
 
     @handle_errors(
         "handling user interaction",

@@ -1035,161 +1035,151 @@ class MHMManagerUI(QMainWindow):
         Returns:
             None: Always returns None
         """
-        """Refresh the user list in the combo box by reading user account files"""
         # Remember the currently selected user before any operations
         current_user_id = self.current_user
 
         # Block signals during refresh to prevent empty string errors
         self.ui.comboBox_users.blockSignals(True)
         try:
-            # Get all user IDs from directories
-            user_ids = get_all_user_ids()
-
-            self.ui.comboBox_users.clear()
-            self.ui.comboBox_users.addItem("Select a user...")
-
-            # Collect user data for sorting
-            users_data = []
-            for user_id in user_ids:
-                # Get user account, preferences, and context
-                user_data_result = get_user_data(
-                    user_id, ["account", "preferences", "context"]
-                )
-                user_account = user_data_result.get("account", {})
-                user_preferences = user_data_result.get("preferences", {})
-                user_context = user_data_result.get("context", {})
-
-                if not user_account:
-                    continue
-
-                # Skip inactive users
-                if user_account.get("account_status") != "active":
-                    continue
-
-                internal_username = user_account.get("internal_username", "Unknown")
-                channel_type = user_preferences.get("channel", {}).get(
-                    "type", "unknown"
-                )
-                preferred_name = user_context.get("preferred_name", "")
-
-                # Determine enabled features
-                features = user_account.get("features", {})
-                enabled_features = []
-                if features.get("automated_messages") == "enabled":
-                    enabled_features.append("automated_messages")
-                    categories = user_preferences.get("categories", [])
-                    enabled_features.extend(categories)
-                if features.get("checkins") == "enabled":
-                    enabled_features.append("checkins")
-                if features.get("task_management") == "enabled":
-                    enabled_features.append("task_management")
-
-                users_data.append(
-                    {
-                        "user_id": user_id,
-                        "internal_username": internal_username,
-                        "preferred_name": preferred_name,
-                        "channel_type": channel_type,
-                        "enabled_features": enabled_features,
-                    }
-                )
-
-            # Sort users by preferred name, then internal username
-            sorted_users = sorted(
-                users_data,
-                key=lambda x: (
-                    x["preferred_name"] or x["internal_username"],
-                    x["internal_username"],
-                ),
-            )
-
-            # Build display names and add to combo box
-            for user_data in sorted_users:
-                user_id = user_data["user_id"]
-                internal_username = user_data["internal_username"]
-                channel_type = user_data["channel_type"]
-                enabled_features = user_data["enabled_features"]
-
-                # Build display name with channel type and features
-                feature_summary = []
-                if "automated_messages" in enabled_features:
-                    categories = [
-                        f
-                        for f in enabled_features
-                        if f
-                        not in ["automated_messages", "checkins", "task_management"]
-                    ]
-                    if categories:
-                        # Apply title_case to category names for display
-                        # Replace underscores with spaces before applying title_case
-                        formatted_categories = [
-                            _shared__title_case(cat.replace("_", " "))
-                            for cat in categories
-                        ]
-                        feature_summary.append(
-                            f"Messages: {', '.join(formatted_categories)}"
-                        )
-                if "checkins" in enabled_features:
-                    feature_summary.append("Check-ins")
-                if "task_management" in enabled_features:
-                    feature_summary.append("Tasks")
-
-                feature_text = (
-                    f" [{', '.join(feature_summary)}]" if feature_summary else ""
-                )
-                display_name = (
-                    f"{internal_username} ({channel_type}){feature_text} - {user_id}"
-                )
-                self.ui.comboBox_users.addItem(display_name)
+            self._populate_active_users_in_combo_box()
 
         except Exception as e:
             logger.error(f"Error refreshing user list: {e}")
-            # Minimal fallback to directory scanning
-            try:
-                user_ids = get_all_user_ids()
-                self.ui.comboBox_users.clear()
-                self.ui.comboBox_users.addItem("Select a user...")
-
-                for user_id in user_ids:
-                    # Get user account
-                    user_data_result = get_user_data(user_id, "account")
-                    user_account = user_data_result.get("account")
-                    internal_username = (
-                        user_account.get("internal_username", "Unknown")
-                        if user_account
-                        else "Unknown"
-                    )
-                    # Get user context
-                    context_result = get_user_data(user_id, "context")
-                    user_context = context_result.get("context")
-                    preferred_name = (
-                        user_context.get("preferred_name", "") if user_context else ""
-                    )
-                    if preferred_name:
-                        display_name = (
-                            f"{preferred_name} ({internal_username}) - {user_id}"
-                        )
-                    else:
-                        display_name = f"{internal_username} - {user_id}"
-                    self.ui.comboBox_users.addItem(display_name)
-            except Exception as fallback_error:
-                logger.error(
-                    f"Fallback user list refresh also failed: {fallback_error}"
-                )
-                QMessageBox.warning(self, "Error", f"Failed to refresh user list: {e}")
+            self._refresh_user_list_fallback(e)
         finally:
             # Always re-enable signals, even if an error occurred
             self.ui.comboBox_users.blockSignals(False)
 
         # Reselect the previously selected user if it still exists
-        if current_user_id:
-            for i in range(self.ui.comboBox_users.count()):
-                item_text = self.ui.comboBox_users.itemText(i)
-                if f" - {current_user_id}" in item_text:
-                    self.ui.comboBox_users.setCurrentIndex(i)
-                    # Trigger the selection handler to reload user data
-                    self.on_user_selected(item_text)
-                    break
+        self._reselect_user_if_present(current_user_id)
+
+    @handle_errors("resetting user combo box", default_return=None)
+    def _reset_user_combo_box(self):
+        """Clear user combo and add placeholder entry."""
+        self.ui.comboBox_users.clear()
+        self.ui.comboBox_users.addItem("Select a user...")
+
+    @handle_errors("building enabled user features", default_return=[])
+    def _build_enabled_features(self, user_account: dict, user_preferences: dict) -> list:
+        """Return enabled feature markers for a user."""
+        features = user_account.get("features", {})
+        enabled_features = []
+        if features.get("automated_messages") == "enabled":
+            enabled_features.append("automated_messages")
+            enabled_features.extend(user_preferences.get("categories", []))
+        if features.get("checkins") == "enabled":
+            enabled_features.append("checkins")
+        if features.get("task_management") == "enabled":
+            enabled_features.append("task_management")
+        return enabled_features
+
+    @handle_errors("collecting active users for combo", default_return=[])
+    def _collect_active_users_for_combo(self) -> list[dict]:
+        """Load active users and normalized display metadata."""
+        users_data = []
+        for user_id in get_all_user_ids():
+            user_data_result = get_user_data(user_id, ["account", "preferences", "context"])
+            user_account = user_data_result.get("account", {})
+            user_preferences = user_data_result.get("preferences", {})
+            user_context = user_data_result.get("context", {})
+
+            if not user_account or user_account.get("account_status") != "active":
+                continue
+
+            users_data.append(
+                {
+                    "user_id": user_id,
+                    "internal_username": user_account.get("internal_username", "Unknown"),
+                    "preferred_name": user_context.get("preferred_name", ""),
+                    "channel_type": user_preferences.get("channel", {}).get("type", "unknown"),
+                    "enabled_features": self._build_enabled_features(
+                        user_account, user_preferences
+                    ),
+                }
+            )
+        return sorted(
+            users_data,
+            key=lambda item: (
+                item["preferred_name"] or item["internal_username"],
+                item["internal_username"],
+            ),
+        )
+
+    @handle_errors("building user display name", default_return="Unknown")
+    def _build_user_combo_display_name(self, user_data: dict) -> str:
+        """Create user dropdown display text including channel/features."""
+        user_id = user_data["user_id"]
+        internal_username = user_data["internal_username"]
+        channel_type = user_data["channel_type"]
+        enabled_features = user_data["enabled_features"]
+
+        feature_summary = []
+        if "automated_messages" in enabled_features:
+            categories = [
+                feature
+                for feature in enabled_features
+                if feature not in ["automated_messages", "checkins", "task_management"]
+            ]
+            if categories:
+                formatted_categories = [
+                    _shared__title_case(cat.replace("_", " ")) for cat in categories
+                ]
+                feature_summary.append(f"Messages: {', '.join(formatted_categories)}")
+        if "checkins" in enabled_features:
+            feature_summary.append("Check-ins")
+        if "task_management" in enabled_features:
+            feature_summary.append("Tasks")
+
+        feature_text = f" [{', '.join(feature_summary)}]" if feature_summary else ""
+        return f"{internal_username} ({channel_type}){feature_text} - {user_id}"
+
+    @handle_errors("populating active users in combo box", default_return=None)
+    def _populate_active_users_in_combo_box(self):
+        """Populate user combo box from active user metadata."""
+        self._reset_user_combo_box()
+        for user_data in self._collect_active_users_for_combo():
+            self.ui.comboBox_users.addItem(self._build_user_combo_display_name(user_data))
+
+    @handle_errors("refreshing user list fallback", default_return=None)
+    def _refresh_user_list_fallback(self, original_error: Exception):
+        """Fallback user list refresh using minimal account/context reads."""
+        try:
+            self._reset_user_combo_box()
+            for user_id in get_all_user_ids():
+                user_data_result = get_user_data(user_id, "account")
+                user_account = user_data_result.get("account")
+                internal_username = (
+                    user_account.get("internal_username", "Unknown")
+                    if user_account
+                    else "Unknown"
+                )
+                context_result = get_user_data(user_id, "context")
+                user_context = context_result.get("context")
+                preferred_name = user_context.get("preferred_name", "") if user_context else ""
+                display_name = (
+                    f"{preferred_name} ({internal_username}) - {user_id}"
+                    if preferred_name
+                    else f"{internal_username} - {user_id}"
+                )
+                self.ui.comboBox_users.addItem(display_name)
+        except Exception as fallback_error:
+            logger.error(f"Fallback user list refresh also failed: {fallback_error}")
+            QMessageBox.warning(
+                self, "Error", f"Failed to refresh user list: {original_error}"
+            )
+
+    @handle_errors("reselecting previously active user", default_return=None)
+    def _reselect_user_if_present(self, current_user_id: str | None):
+        """Reselect prior active user if still present in combo list."""
+        if not current_user_id:
+            return
+        for index in range(self.ui.comboBox_users.count()):
+            item_text = self.ui.comboBox_users.itemText(index)
+            if f" - {current_user_id}" not in item_text:
+                continue
+            self.ui.comboBox_users.setCurrentIndex(index)
+            self.on_user_selected(item_text)
+            break
 
     @handle_errors("handling user selection", default_return=None)
     def on_user_selected(self, user_display):

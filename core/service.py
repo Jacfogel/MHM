@@ -434,177 +434,18 @@ class MHMService:
                     break
 
                 # Check for shutdown request file every iteration
-                if os.path.exists(shutdown_file):
-                    # Check if this is a new shutdown request (created after service started)
-                    try:
-                        file_mtime = os.path.getmtime(shutdown_file)
-                        if self.startup_time and file_mtime < self.startup_time:
-                            # This is an old shutdown request from before service started
-                            logger.debug(
-                                "Ignoring old shutdown request file (created before service startup)"
-                            )
-                            try:
-                                os.remove(shutdown_file)
-                                logger.debug("Removed old shutdown request file")
-                            except Exception as e:
-                                logger.warning(
-                                    f"Could not remove old shutdown file: {e}"
-                                )
-                        else:
-                            # This is a new shutdown request
-                            logger.info(
-                                "Shutdown request file detected - initiating graceful shutdown"
-                            )
-                            try:
-                                with open(shutdown_file) as f:
-                                    content = f.read().strip()
-
-                                # Parse shutdown request type for better logging
-                                if content.startswith("SHUTDOWN_REQUESTED_BY_UI_"):
-                                    logger.info("Shutdown requested by UI")
-                                elif content.startswith("HEADLESS_SHUTDOWN_REQUESTED_"):
-                                    logger.info(
-                                        "Shutdown requested by headless service manager"
-                                    )
-                                else:
-                                    logger.info(f"Shutdown request details: {content}")
-                            except Exception as e:
-                                logger.warning(f"Could not read shutdown file: {e}")
-                            self.running = False
-                            break
-                    except Exception as e:
-                        logger.warning(f"Error checking shutdown file timestamp: {e}")
-                        # If we can't check the timestamp, assume it's new and shut down
-                        logger.info(
-                            "Shutdown request file detected - initiating graceful shutdown"
-                        )
-                        self.running = False
-                        break
+                if self._process_shutdown_request(shutdown_file):
+                    break
 
                 # Check for request files (optimized: only scan if .flag files exist)
-                base_dir = self._check_test_message_requests__get_base_directory()
-                if self._has_any_request_files(base_dir):
-                    # Only do full scan if request files might exist
-                    self.check_test_message_requests()
-                    self.check_checkin_prompt_requests()
-                    self.check_task_reminder_requests()
-                    self.check_reschedule_requests()
+                self._poll_request_files_if_needed()
 
                 time.sleep(2)  # Sleep for 2 seconds
 
             # Enhanced service status logging with useful metrics
             loop_minutes += 1
             if loop_minutes % 60 == 0:  # Changed from 10 to 60 minutes
-                # Collect system metrics for enhanced status reporting
-                status_metrics = []
-
-                # Basic uptime
-                status_metrics.append(f"{loop_minutes}m uptime")
-
-                # Active scheduler jobs (scheduled tasks, not schedule.jobs)
-                scheduler_mgr = getattr(self, "scheduler_manager", None)
-                if scheduler_mgr:
-                    try:
-                        get_active_jobs_fn = getattr(
-                            scheduler_mgr, "get_active_jobs", None
-                        )
-                        if callable(get_active_jobs_fn):
-                            jobs_result = get_active_jobs_fn()
-                            active_jobs = (
-                                len(jobs_result)
-                                if isinstance(jobs_result, (list, tuple))
-                                else 0
-                            )
-                        else:
-                            active_jobs = 0
-                        status_metrics.append(f"{active_jobs} active jobs")
-                    except Exception:
-                        status_metrics.append("jobs: unknown")
-
-                # User count (total registered users in the system)
-                try:
-                    user_mgr = getattr(self, "user_manager", None)
-                    if user_mgr is not None:
-                        user_count = len(user_mgr.get_all_user_ids())
-                    else:
-                        user_count = 0
-                    status_metrics.append(f"{user_count} users")
-                except Exception:
-                    status_metrics.append("users: unknown")
-
-                # Memory usage (current process memory consumption in MB)
-                try:
-                    import psutil
-
-                    process = psutil.Process()
-                    memory_mb = process.memory_info().rss / 1024 / 1024
-                    status_metrics.append(f"{memory_mb:.1f}MB memory")
-                except:
-                    pass  # psutil not available, skip memory metric
-
-                # Communication channel status
-                if self.communication_manager:
-                    try:
-                        get_channels = getattr(
-                            self.communication_manager, "get_available_channels", None
-                        )
-                        raw = get_channels() if callable(get_channels) else []
-                        channels = list(raw) if isinstance(raw, (list, tuple)) else []
-                        status_metrics.append(f"{len(channels)} channels")
-                    except Exception:
-                        pass
-
-                # Log enhanced status
-                metrics_str = ", ".join(status_metrics)
-                logger.info(f"Service status: {metrics_str}")
-
-                # Enhanced health monitoring - check Discord connectivity status
-                if self.communication_manager:
-                    try:
-                        discord_status = (
-                            self.communication_manager.get_discord_connectivity_status()
-                        )
-                        if discord_status:
-                            connection_status = discord_status.get(
-                                "connection_status", "unknown"
-                            )
-                            if connection_status != "connected":
-                                discord_logger.warning(
-                                    f"Discord connectivity issue detected: {connection_status}"
-                                )
-                                # Log detailed error information if available
-                                detailed_errors = discord_status.get(
-                                    "detailed_errors", {}
-                                )
-                                if detailed_errors:
-                                    for (
-                                        error_type,
-                                        error_info,
-                                    ) in detailed_errors.items():
-                                        discord_logger.warning(
-                                            f"Discord {error_type}: {error_info.get('error_message', 'Unknown error')}"
-                                        )
-                            else:
-                                # Log successful connection with metrics
-                                latency = discord_status.get("latency", "unknown")
-                                guild_count = discord_status.get(
-                                    "guild_count", "unknown"
-                                )
-                                # Format latency to 4 significant figures
-                                if (
-                                    isinstance(latency, (int, float))
-                                    and latency != "unknown"
-                                ):
-                                    latency_formatted = f"{latency:.4f}"
-                                else:
-                                    latency_formatted = str(latency)
-                                discord_logger.debug(
-                                    f"Discord healthy - Latency: {latency_formatted}s, Guilds: {guild_count}"
-                                )
-                    except Exception as e:
-                        discord_logger.warning(
-                            f"Could not check Discord connectivity status: {e}"
-                        )
+                self._log_hourly_service_status(loop_minutes)
 
         logger.info("Service loop ended.")
         # Clean up shutdown file if it exists
@@ -620,6 +461,144 @@ class MHMService:
 
         # Clean up any remaining reschedule request files
         self.cleanup_reschedule_requests()
+
+    @handle_errors("processing shutdown request", default_return=False)
+    def _process_shutdown_request(self, shutdown_file: Path) -> bool:
+        """Return True when a shutdown request was detected and loop should stop."""
+        if not os.path.exists(shutdown_file):
+            return False
+
+        try:
+            file_mtime = os.path.getmtime(shutdown_file)
+            if self.startup_time and file_mtime < self.startup_time:
+                logger.debug(
+                    "Ignoring old shutdown request file (created before service startup)"
+                )
+                try:
+                    os.remove(shutdown_file)
+                    logger.debug("Removed old shutdown request file")
+                except Exception as e:
+                    logger.warning(f"Could not remove old shutdown file: {e}")
+                return False
+        except Exception as e:
+            logger.warning(f"Error checking shutdown file timestamp: {e}")
+            logger.info("Shutdown request file detected - initiating graceful shutdown")
+            self.running = False
+            return True
+
+        logger.info("Shutdown request file detected - initiating graceful shutdown")
+        try:
+            with open(shutdown_file, encoding="utf-8") as f:
+                content = f.read().strip()
+            if content.startswith("SHUTDOWN_REQUESTED_BY_UI_"):
+                logger.info("Shutdown requested by UI")
+            elif content.startswith("HEADLESS_SHUTDOWN_REQUESTED_"):
+                logger.info("Shutdown requested by headless service manager")
+            else:
+                logger.info(f"Shutdown request details: {content}")
+        except Exception as e:
+            logger.warning(f"Could not read shutdown file: {e}")
+        self.running = False
+        return True
+
+    @handle_errors("polling service request files", default_return=None)
+    def _poll_request_files_if_needed(self) -> None:
+        """Process request-flag files only when present to keep loop overhead low."""
+        base_dir = self._check_test_message_requests__get_base_directory()
+        if not self._has_any_request_files(base_dir):
+            return
+        self.check_test_message_requests()
+        self.check_checkin_prompt_requests()
+        self.check_task_reminder_requests()
+        self.check_reschedule_requests()
+
+    @handle_errors("collecting service status metrics", default_return=[])
+    def _collect_service_status_metrics(self, loop_minutes: int) -> list[str]:
+        """Collect coarse health metrics for periodic service logs."""
+        status_metrics = [f"{loop_minutes}m uptime"]
+
+        scheduler_mgr = getattr(self, "scheduler_manager", None)
+        if scheduler_mgr:
+            try:
+                get_active_jobs_fn = getattr(scheduler_mgr, "get_active_jobs", None)
+                if callable(get_active_jobs_fn):
+                    jobs_result = get_active_jobs_fn()
+                    active_jobs = (
+                        len(jobs_result) if isinstance(jobs_result, (list, tuple)) else 0
+                    )
+                else:
+                    active_jobs = 0
+                status_metrics.append(f"{active_jobs} active jobs")
+            except Exception:
+                status_metrics.append("jobs: unknown")
+
+        try:
+            user_mgr = getattr(self, "user_manager", None)
+            user_count = len(user_mgr.get_all_user_ids()) if user_mgr is not None else 0
+            status_metrics.append(f"{user_count} users")
+        except Exception:
+            status_metrics.append("users: unknown")
+
+        try:
+            import psutil
+
+            process = psutil.Process()
+            memory_mb = process.memory_info().rss / 1024 / 1024
+            status_metrics.append(f"{memory_mb:.1f}MB memory")
+        except Exception:
+            pass
+
+        if self.communication_manager:
+            with contextlib.suppress(Exception):
+                get_channels = getattr(
+                    self.communication_manager, "get_available_channels", None
+                )
+                raw = get_channels() if callable(get_channels) else []
+                channels = list(raw) if isinstance(raw, (list, tuple)) else []
+                status_metrics.append(f"{len(channels)} channels")
+
+        return status_metrics
+
+    @handle_errors("logging discord connectivity health", default_return=None)
+    def _log_discord_connectivity_health(self) -> None:
+        """Log connectivity diagnostics for Discord channel health."""
+        if not self.communication_manager:
+            return
+        try:
+            discord_status = self.communication_manager.get_discord_connectivity_status()
+            if not discord_status:
+                return
+            connection_status = discord_status.get("connection_status", "unknown")
+            if connection_status != "connected":
+                discord_logger.warning(
+                    f"Discord connectivity issue detected: {connection_status}"
+                )
+                detailed_errors = discord_status.get("detailed_errors", {})
+                if detailed_errors:
+                    for error_type, error_info in detailed_errors.items():
+                        discord_logger.warning(
+                            f"Discord {error_type}: {error_info.get('error_message', 'Unknown error')}"
+                        )
+                return
+            latency = discord_status.get("latency", "unknown")
+            guild_count = discord_status.get("guild_count", "unknown")
+            latency_formatted = (
+                f"{latency:.4f}"
+                if isinstance(latency, (int, float)) and latency != "unknown"
+                else str(latency)
+            )
+            discord_logger.debug(
+                f"Discord healthy - Latency: {latency_formatted}s, Guilds: {guild_count}"
+            )
+        except Exception as e:
+            discord_logger.warning(f"Could not check Discord connectivity status: {e}")
+
+    @handle_errors("logging hourly service status", default_return=None)
+    def _log_hourly_service_status(self, loop_minutes: int) -> None:
+        """Log periodic service metrics and channel-health diagnostics."""
+        status_metrics = self._collect_service_status_metrics(loop_minutes)
+        logger.info(f"Service status: {', '.join(status_metrics)}")
+        self._log_discord_connectivity_health()
 
     @handle_errors("checking test message requests")
     @handle_errors(

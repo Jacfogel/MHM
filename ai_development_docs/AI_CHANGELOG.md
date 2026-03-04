@@ -30,16 +30,20 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-04 - Complexity batch + priority-source correction **Progressed**
+- Refactored a focused 5-function high-complexity batch with behavior-preserving helper extraction across service loop, logger rollover, interaction manager init, UI user-list refresh, and reminder parsing flows.
+- Fixed `development_tools/shared/service/report_generation.py` so `AI_PRIORITIES` "Highest complexity" examples come from `analyze_functions_results.json` (global top) and only use decision-support examples as fallback.
+- Re-ran audit outputs and confirmed `AI_PRIORITIES` now shows global-top examples (`initialize__register_events`, `_extract_entities_rule_based`, `_show_question_dialog`) instead of stale chatbot-only examples.
+
 ### 2026-03-03 - Full-suite interrupt hardening + reporting integrity **Progressed**
 - Hardened `run_tests.py` against noisy SIGINT during active test subprocesses: first interrupt is now soft/non-blocking, while a rapid second interrupt still force-stops.
 - Improved combined summary accounting for interrupted runs with explicit incomplete-test reporting, and preserved phase-specific failure source labels in combined failure output.
 - Fixed behavior/dev-tools regressions uncovered in failing runs: restored `_get_user_profile` account fetch expectations (`user/context_manager.py`) and added xdist-worker-specific legacy report output naming to remove cross-worker file contention (`development_tools/legacy/generate_legacy_reference_report.py`).
-- Reintroduced a low-priority `Watch List` section in generated `development_tools/AI_PRIORITIES.md` (via report generation) and updated wrap-up planning docs ([TODO.md](TODO.md), `PLANS.md`) with explicit SIGINT root-cause follow-up tracking.
+- Reintroduced a low-priority `Watch List` section in generated `development_tools/AI_PRIORITIES.md` (via report generation)
 
 ### 2026-03-03 - Tier 3 remediation continuation + closeout tracking **Progressed**
 - Fixed the previously remaining behavior failure `test_send_predefined_message_real_behavior` by restoring `channel_orchestrator` message path resolution through `determine_file_path`, matching real behavior and patch targets.
 - Removed one safe unused import in `communication/core/channel_orchestrator.py` (`get_user_data_dir`) after the path-resolution fix; targeted Ruff check for F401 passed.
-- Synced closeout planning docs ([TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md)) to keep the remaining Tier 3 `xdist_worker_crash_output` (`test_conversation_manager_expire_checkin_flow`) explicitly tracked as outstanding follow-up work.
 - Completed session wrap-up inventory with full working-tree diff review (`git diff --stat`, `git diff --name-only`) and created paired changelog entries for this session.
 
 ### 2026-03-02 - Task split, notebook rename, error handling Phase 1, follow-ups **COMPLETED**
