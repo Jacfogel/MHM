@@ -22,6 +22,7 @@ from core.user_data_handlers import (
 from tests.test_utilities import TestUserFactory
 from core.user_data_validation import is_valid_email
 
+
 class TestUserCreationScenarios:
     """Test comprehensive user creation scenarios."""
     
@@ -191,6 +192,7 @@ class TestUserCreationScenarios:
         assert 'Default' in loaded_data['schedules']['motivational']['periods']
         assert loaded_data['schedules']['motivational']['periods']['Default']['start_time'] == '18:00'
 
+
 class TestUserCreationValidation:
     """Test validation scenarios during user creation."""
     
@@ -263,6 +265,7 @@ class TestUserCreationValidation:
         # Since the user already exists with a complete structure, 
         # save_user_data should handle the update properly
         assert isinstance(result, dict), "Should return a result dictionary"
+
 
 class TestUserCreationErrorHandling:
     """Test error handling during user creation."""
@@ -339,6 +342,7 @@ class TestUserCreationErrorHandling:
         loaded_data = get_user_data(user_id, 'account', auto_create=False)
         # Should handle corruption gracefully
         assert isinstance(loaded_data, dict)
+
 
 class TestUserCreationIntegration:
     """Test integration scenarios for user creation."""
@@ -596,7 +600,7 @@ class TestUserCreationIntegration:
             if not file_exists or not dir_exists:
                 error_msg = f"save_user_data reported success but file/directory doesn't exist. {diagnostic_msg}"
                 test_logger.error(error_msg)
-                assert False, error_msg
+                raise AssertionError(error_msg)
             
             created_users.append(actual_user_id)  # Store actual UUID, not internal username
         
@@ -615,7 +619,7 @@ class TestUserCreationIntegration:
             if not file_exists:
                 # File doesn't exist - check if user directory exists
                 user_dir = get_user_data_dir(actual_user_id)
-                assert False, f"Account file should exist for user {actual_user_id}. File: {account_file}, User dir exists: {os.path.exists(user_dir)}, User dir: {user_dir}"
+                raise AssertionError(f"Account file should exist for user {actual_user_id}. File: {account_file}, User dir exists: {os.path.exists(user_dir)}, User dir: {user_dir}")
             
             # Load data with reduced retries (optimized: 3 attempts instead of 5, shorter sleep)
             loaded_data = {}

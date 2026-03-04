@@ -775,10 +775,7 @@ class TestUserFactory:
             # Create the user using the proper function
             actual_user_id = create_new_user(user_data)
 
-            if actual_user_id:
-                return True
-            else:
-                return False
+            return bool(actual_user_id)
 
         except Exception as e:
             logger.error(f"Error creating full featured user {user_id}: {e}")
@@ -1636,10 +1633,7 @@ class TestUserFactory:
             # Create the user using the proper function
             actual_user_id = create_new_user(user_data)
 
-            if actual_user_id:
-                return True
-            else:
-                return False
+            return bool(actual_user_id)
 
         except Exception as e:
             logger.error(f"Error creating minimal user {user_id}: {e}")
@@ -1874,10 +1868,7 @@ class TestUserFactory:
             # Create the user using the proper function
             actual_user_id = create_new_user(user_data)
 
-            if actual_user_id:
-                return True
-            else:
-                return False
+            return bool(actual_user_id)
 
         except Exception as e:
             logger.error(f"Error creating complex checkins user {user_id}: {e}")
@@ -2068,10 +2059,7 @@ class TestUserFactory:
             # Create the user using the proper function
             actual_user_id = create_new_user(user_data)
 
-            if actual_user_id:
-                return True
-            else:
-                return False
+            return bool(actual_user_id)
 
         except Exception as e:
             logger.error(f"Error creating health focus user {user_id}: {e}")
@@ -2240,10 +2228,7 @@ class TestUserFactory:
             # Create the user using the proper function
             actual_user_id = create_new_user(user_data)
 
-            if actual_user_id:
-                return True
-            else:
-                return False
+            return bool(actual_user_id)
 
         except Exception as e:
             logger.error(f"Error creating task focus user {user_id}: {e}")
@@ -2417,10 +2402,7 @@ class TestUserFactory:
             # Create the user using the proper function
             actual_user_id = create_new_user(user_data)
 
-            if actual_user_id:
-                return True
-            else:
-                return False
+            return bool(actual_user_id)
 
         except Exception as e:
             logger.error(f"Error creating disability user {user_id}: {e}")
@@ -2574,10 +2556,7 @@ class TestUserFactory:
             # Create the user using the proper function
             actual_user_id = create_new_user(user_data)
 
-            if actual_user_id:
-                return True
-            else:
-                return False
+            return bool(actual_user_id)
 
         except Exception as e:
             logger.error(f"Error creating limited data user {user_id}: {e}")
@@ -2732,10 +2711,7 @@ class TestUserFactory:
             # Create the user using the proper function
             actual_user_id = create_new_user(user_data)
 
-            if actual_user_id:
-                return True
-            else:
-                return False
+            return bool(actual_user_id)
 
         except Exception as e:
             logger.error(f"Error creating inconsistent data user {user_id}: {e}")
@@ -3316,8 +3292,8 @@ class TestDataFactory:
         for i in range(task_count):
             task = {
                 "task_id": str(uuid.uuid4()),
-                "title": f"Test Task {i+1}",
-                "description": f"Description for test task {i+1}",
+                "title": f"Test Task {i + 1}",
+                "description": f"Description for test task {i + 1}",
                 "priority": "medium",
                 "status": "active",
                 "due_date": format_timestamp(
@@ -3349,7 +3325,7 @@ class TestDataFactory:
         for i in range(message_count):
             message = {
                 "message_id": str(uuid.uuid4()),
-                "content": f"Test message {i+1} for {category}",
+                "content": f"Test message {i + 1} for {category}",
                 "category": category,
                 "created_at": now_timestamp_full(),
                 "sent": False,

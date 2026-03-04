@@ -402,11 +402,7 @@ class SystemSignalsAnalyzer:
             return True
 
         # Exclude test artifacts and temporary files
-        if path_obj.name.startswith(".") and path_obj.name != ".gitignore":
-            return False
-
-        # Default: include other files (but they'll be lower priority)
-        return True
+        return not (path_obj.name.startswith(".") and path_obj.name != ".gitignore")
 
     def _get_change_significance_score(self, file_path: str) -> int:
         """

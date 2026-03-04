@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from core.error_handling import handle_errors
+import contextlib
 
 
 @handle_errors("checking testing environment")
@@ -323,10 +324,8 @@ class ComponentLogger:
 
                 # Clear any existing handlers first
                 for h in self.logger.handlers[:]:
-                    try:
+                    with contextlib.suppress(Exception):
                         h.close()
-                    except Exception:
-                        pass
                     self.logger.removeHandler(h)
 
                 # Add the consolidated handler
@@ -336,12 +335,9 @@ class ComponentLogger:
                 # TEST_VERBOSE_LOGS: 0=WARNING, 1=WARNING (quiet - focus on test execution), 2=DEBUG
                 # Level 1 keeps component loggers quiet to avoid excessive logging during tests
                 verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
-                if verbose_logs == "2":
-                    level = logging.DEBUG
-                else:
-                    level = (
-                        logging.WARNING
-                    )  # Levels 0 and 1: Only warnings and errors from components
+                level = (
+                    logging.DEBUG if verbose_logs == "2" else logging.WARNING
+                )  # Levels 0 and 1: Only warnings and errors from components
                 self.logger.setLevel(level)
                 self.logger.propagate = False
 
@@ -424,10 +420,8 @@ class ComponentLogger:
                     "TEST_LOGS_DIR", str(Path("tests") / "logs")
                 )
                 errors_backup_dir = str(Path(tests_logs_dir) / "backups")
-                try:
+                with contextlib.suppress(Exception):
                     os.makedirs(errors_backup_dir, exist_ok=True)
-                except Exception:
-                    pass
 
             # Use consistent backupCount from config
             import core.config as config
@@ -584,13 +578,12 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
             return True
 
         # Check size-based rollover if maxBytes is set
-        if self.maxBytes > 0 and self.stream:
-            if hasattr(self.stream, "tell"):
-                try:
-                    if self.stream.tell() >= self.maxBytes:
-                        return True
-                except OSError:
-                    pass
+        if self.maxBytes > 0 and self.stream and hasattr(self.stream, "tell"):
+            try:
+                if self.stream.tell() >= self.maxBytes:
+                    return True
+            except OSError:
+                pass
         return False
 
     @handle_errors("performing log rollover")
@@ -635,19 +628,15 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 # Skip rollover if file is too small or too recently created
                 if file_size < MIN_FILE_SIZE:
                     # File is too small, don't rollover - just reopen and continue
-                    try:
+                    with contextlib.suppress(Exception):
                         self.stream = self._open()
-                    except Exception:
-                        pass
                     self.rolloverAt = self.computeRollover(current_time)
                     return
 
                 if file_age_seconds < MIN_FILE_AGE_SECONDS:
                     # File was recently created, don't rollover - just reopen and continue
-                    try:
+                    with contextlib.suppress(Exception):
                         self.stream = self._open()
-                    except Exception:
-                        pass
                     self.rolloverAt = self.computeRollover(current_time)
                     return
 
@@ -692,10 +681,8 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                             f"Warning: Could not restore log file after failed backup: {restore_error}"
                         )
                         # If restore failed, try to reopen anyway
-                        try:
+                        with contextlib.suppress(Exception):
                             self.stream = self._open()
-                        except Exception:
-                            pass
                         return
 
             except PermissionError:
@@ -703,10 +690,8 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 try:
                     # Check file size again before copying (in case it changed)
                     file_size = 0
-                    try:
+                    with contextlib.suppress(OSError):
                         file_size = os.path.getsize(self.baseFilename)
-                    except OSError:
-                        pass
 
                     # Only copy if file has meaningful content
                     if file_size >= MIN_FILE_SIZE:
@@ -751,10 +736,8 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                         print(
                             f"Info: Skipping rollover for small file ({file_size} bytes): {self.baseFilename}"
                         )
-                        try:
+                        with contextlib.suppress(Exception):
                             self.stream = self._open()
-                        except Exception:
-                            pass
                         return
 
                 except (PermissionError, OSError) as copy_error:
@@ -918,10 +901,7 @@ class ExcludeLoggerNamesFilter(logging.Filter):
             bool: True if record should be logged, False if it matches excluded prefixes
         """
         name = record.name or ""
-        for prefix in self.excluded_prefixes:
-            if name.startswith(prefix):
-                return False
-        return True
+        return all(not name.startswith(prefix) for prefix in self.excluded_prefixes)
 
 
 # Global variable to track current verbosity mode
@@ -975,11 +955,8 @@ def get_component_logger(component_name: str) -> ComponentLogger:
             component_name = "main"
 
     # Normalize component_name (strip whitespace, lowercase)
-    if component_name:
-        component_name = component_name.strip().lower()
-    else:
-        # Empty string or None -> use 'main' as safe default
-        component_name = "main"
+    # Empty string or None -> use 'main' as safe default
+    component_name = component_name.strip().lower() if component_name else "main"
 
     # Testing mode: optionally enable verbose per-component logs under tests/logs
     # TEST_VERBOSE_LOGS: 0=disabled, 1=INFO level, 2=DEBUG level
@@ -1762,10 +1739,8 @@ def clear_log_file_locks():
                 continue
             stream = getattr(handler, "stream", None)
             if stream:
-                try:
+                with contextlib.suppress(Exception):
                     stream.close()
-                except Exception:
-                    pass
             handler.close()
 
         # Clear component loggers too
@@ -1775,10 +1750,8 @@ def clear_log_file_locks():
                     continue
                 stream = getattr(handler, "stream", None)
                 if stream:
-                    try:
+                    with contextlib.suppress(Exception):
                         stream.close()
-                    except Exception:
-                        pass
                 handler.close()
 
         # Remove the temporary environment variable

@@ -10,6 +10,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from communication.command_handlers.shared_types import ParsedCommand
 from communication.command_handlers.account_handler import AccountManagementHandler
+import contextlib
 
 logger = get_component_logger("discord")
 
@@ -57,10 +58,8 @@ class FeatureSelectionView(discord.ui.View):
             item.disabled = True
         message = getattr(self, "message", None)
         if message is not None:
-            try:
+            with contextlib.suppress(Exception):
                 await message.edit(view=self)
-            except Exception:
-                pass
 
 
 class TaskFeatureSelect(discord.ui.Select):

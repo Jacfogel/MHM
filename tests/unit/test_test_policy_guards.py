@@ -99,9 +99,8 @@ def _is_pytest_fixture(decorators: list[ast.expr]) -> bool:
         if isinstance(target, ast.Attribute):
             if target.attr == "fixture":
                 return True
-        elif isinstance(target, ast.Name):
-            if target.id == "fixture":
-                return True
+        elif isinstance(target, ast.Name) and target.id == "fixture":
+            return True
     return False
 
 
@@ -295,9 +294,7 @@ def _collect_no_parallel_missing_reason_lines(path: Path, text: str, tree: ast.A
         if "#" in same:
             return True
         prev = line_map.get(line_no - 1, "").strip().lower()
-        if prev.startswith("#") and ("parallel" in prev or "shared" in prev or "resource" in prev):
-            return True
-        return False
+        return bool(prev.startswith("#") and ("parallel" in prev or "shared" in prev or "resource" in prev))
 
     for node in ast.walk(tree):
         if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):

@@ -90,6 +90,7 @@ class TestDependencyAnalysis:
         
         # Mock should_exclude_file to not exclude demo project files
         original_should_exclude = standard_exclusions.should_exclude_file
+
         def mock_should_exclude_file(file_path, tool_type, context='production'):
             if 'development_tools_demo' in file_path:
                 return False
@@ -123,6 +124,7 @@ class TestDependencyAnalysis:
         
         # Mock should_exclude_file to not exclude demo project files
         original_should_exclude = standard_exclusions.should_exclude_file
+
         def mock_should_exclude_file(file_path, tool_type, context='production'):
             if 'development_tools_demo' in file_path:
                 return False
@@ -186,6 +188,7 @@ class TestContentGeneration:
         
         # Mock should_exclude_file to not exclude demo project files
         original_should_exclude = standard_exclusions.should_exclude_file
+
         def mock_should_exclude_file(file_path, tool_type, context='production'):
             if 'development_tools_demo' in file_path:
                 return False
@@ -216,6 +219,7 @@ class TestContentGeneration:
         
         # Mock should_exclude_file to not exclude demo project files
         original_should_exclude = standard_exclusions.should_exclude_file
+
         def mock_should_exclude_file(file_path, tool_type, context='production'):
             if 'development_tools_demo' in file_path:
                 return False
@@ -336,6 +340,7 @@ class TestModulePurposeInference:
         
         # Mock should_exclude_file to not exclude demo project files
         original_should_exclude = standard_exclusions.should_exclude_file
+
         def mock_should_exclude_file(file_path, tool_type, context='production'):
             if 'development_tools_demo' in file_path:
                 return False

@@ -102,7 +102,7 @@ class DomainMapper:
                 return domain
 
         # Check if it's in a known source directory
-        for domain in self.SOURCE_TO_TEST_MAPPING.keys():
+        for domain in self.SOURCE_TO_TEST_MAPPING:
             if source_file.startswith(f"{domain}/"):
                 self._source_domain_cache[source_file] = domain
                 return domain
@@ -180,9 +180,7 @@ class DomainMapper:
 
                 # Find all decorators with @pytest.mark.*
                 for node in ast.walk(tree):
-                    if isinstance(node, ast.FunctionDef) or isinstance(
-                        node, ast.ClassDef
-                    ):
+                    if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
                         for decorator in node.decorator_list:
                             if isinstance(decorator, ast.Attribute):
                                 if (

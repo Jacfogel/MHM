@@ -25,6 +25,7 @@ logger = logging.getLogger("mhm_tests")
 from ui.dialogs.checkin_management_dialog import CheckinManagementDialog
 from tests.test_utilities import TestUserFactory
 
+
 # Create QApplication instance for testing
 @pytest.fixture(scope="session")
 def qapp():
@@ -150,7 +151,7 @@ class TestCheckinManagementDialogInitialization:
         try:
             # Assert
             # Should load user data and set groupbox checked state
-            assert dialog.ui.groupBox_checkBox_enable_checkins.isChecked() == True, "Should enable checkins if user has them enabled"
+            assert dialog.ui.groupBox_checkBox_enable_checkins.isChecked(), "Should enable checkins if user has them enabled"
         finally:
             dialog.deleteLater()
     

@@ -568,7 +568,6 @@ class AuditOrchestrationMixin:
             ],
         ]
         
-        
         # Run core tools first (analyze_functions must run before dependent tools)
         for tool_name, tool_func in tier1_core_tools:
             try:
@@ -866,10 +865,17 @@ class AuditOrchestrationMixin:
             summary = data.get("summary", {})
             if isinstance(summary, dict):
                 value = summary.get("total_issues")
-                try:
+                if isinstance(value, bool):
                     return int(value)
-                except (TypeError, ValueError):
-                    pass
+                if isinstance(value, int):
+                    return value
+                if isinstance(value, float):
+                    return int(value)
+                if isinstance(value, str):
+                    try:
+                        return int(value)
+                    except ValueError:
+                        pass
         issues_found = result.get("issues_found")
         if isinstance(issues_found, bool):
             return 1 if issues_found else 0
@@ -1521,10 +1527,7 @@ class AuditOrchestrationMixin:
             
             # Additional check: if path contains a tempfile pattern (tmpXXXXXX)
             import re
-            if re.search(r'[\\/]tmp[a-z0-9]{6,}[\\/]', path_str):
-                return True
-            
-            return False
+            return bool(re.search(r'[\\/]tmp[a-z0-9]{6,}[\\/]', path_str))
         except Exception as e:
             # If we can't determine, be conservative and assume it's not a test directory
             # But log it so we can debug
@@ -2006,6 +2009,7 @@ class AuditOrchestrationMixin:
                     logger.warning(f"   TODO sync: {message}")
         except Exception as exc:
             logger.warning(f"   TODO sync failed: {exc}")
+
     def _get_audit_related_lock_paths(self) -> list[Path]:
         """Return lock paths used by audit/coverage operations."""
         audit_lock = self._get_audit_lock_file_path()

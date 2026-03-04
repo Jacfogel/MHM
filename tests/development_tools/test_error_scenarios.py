@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from tests.development_tools.conftest import load_development_tools_module
+import contextlib
 
 
 class TestFileCorruptionHandling:
@@ -205,10 +206,8 @@ class TestConcurrentAccessHandling:
 
         if os.name == "nt":
             with open(locked_file):
-                try:
+                with contextlib.suppress(PermissionError, OSError):
                     locked_file.write_text("new")
-                except (PermissionError, OSError):
-                    pass
 
     @pytest.mark.unit
     def test_coverage_handles_concurrent_writes(self, temp_coverage_dir):

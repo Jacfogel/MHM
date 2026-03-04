@@ -79,10 +79,7 @@ class ReportGenerationMixin:
             # Additional check: if path contains a tempfile pattern (tmpXXXXXX)
             import re
 
-            if re.search(r"[\\/]tmp[a-z0-9]{6,}[\\/]", path_str):
-                return True
-
-            return False
+            return bool(re.search(r"[\\/]tmp[a-z0-9]{6,}[\\/]", path_str))
         except Exception as e:
             # If we can't determine, be conservative and assume it's not a test directory
             # But log it so we can debug
@@ -817,29 +814,28 @@ class ReportGenerationMixin:
         ) and functions_without_docstrings is None:
             try:
                 cached_data = self._load_results_file_safe()
-                if cached_data:
-                    if (
-                        "results" in cached_data
-                        and "analyze_functions" in cached_data["results"]
-                    ):
-                        func_data = cached_data["results"]["analyze_functions"]
-                        if "data" in func_data:
-                            func_metrics_raw = func_data["data"]
-                            if "details" in func_metrics_raw and isinstance(
-                                func_metrics_raw.get("details"), dict
-                            ):
-                                func_metrics = func_metrics_raw["details"]
-                            else:
-                                func_metrics = func_metrics_raw
-                            func_total = func_metrics.get("total_functions")
-                            func_undocumented = func_metrics.get("undocumented", 0)
-                            if func_total is not None and func_total > 0:
-                                func_documented = func_total - func_undocumented
-                                coverage_pct = (func_documented / func_total) * 100
-                                doc_coverage = f"{coverage_pct:.2f}%"
-                                functions_without_docstrings = self._coerce_int(
-                                    func_undocumented, 0
-                                )
+                if cached_data and (
+                    "results" in cached_data
+                    and "analyze_functions" in cached_data["results"]
+                ):
+                    func_data = cached_data["results"]["analyze_functions"]
+                    if "data" in func_data:
+                        func_metrics_raw = func_data["data"]
+                        if "details" in func_metrics_raw and isinstance(
+                            func_metrics_raw.get("details"), dict
+                        ):
+                            func_metrics = func_metrics_raw["details"]
+                        else:
+                            func_metrics = func_metrics_raw
+                        func_total = func_metrics.get("total_functions")
+                        func_undocumented = func_metrics.get("undocumented", 0)
+                        if func_total is not None and func_total > 0:
+                            func_documented = func_total - func_undocumented
+                            coverage_pct = (func_documented / func_total) * 100
+                            doc_coverage = f"{coverage_pct:.2f}%"
+                            functions_without_docstrings = self._coerce_int(
+                                func_undocumented, 0
+                            )
             except Exception as e:
                 logger.debug(f"Failed to load doc_coverage from cache in status: {e}")
                 pass
@@ -893,31 +889,30 @@ class ReportGenerationMixin:
         if not missing_docs:
             try:
                 cached_data = self._load_results_file_safe()
-                if cached_data:
-                    if (
-                        "results" in cached_data
-                        and "analyze_function_registry" in cached_data["results"]
-                    ):
-                        func_reg_data = cached_data["results"][
-                            "analyze_function_registry"
-                        ]
-                        if "data" in func_reg_data:
-                            cached_metrics = func_reg_data["data"]
-                            cached_details = (
-                                cached_metrics.get("details", {})
-                                if isinstance(cached_metrics, dict)
-                                else {}
-                            )
-                            missing_docs_raw = cached_details.get("missing", {})
-                            if missing_docs_raw:
-                                if isinstance(missing_docs_raw, dict):
-                                    missing_docs = missing_docs_raw
-                                else:
-                                    missing_docs = {
-                                        "count": to_int(missing_docs_raw) or 0
-                                    }
-                            if isinstance(missing_docs, dict):
-                                missing_files = missing_docs.get("missing_files", [])
+                if cached_data and (
+                    "results" in cached_data
+                    and "analyze_function_registry" in cached_data["results"]
+                ):
+                    func_reg_data = cached_data["results"][
+                        "analyze_function_registry"
+                    ]
+                    if "data" in func_reg_data:
+                        cached_metrics = func_reg_data["data"]
+                        cached_details = (
+                            cached_metrics.get("details", {})
+                            if isinstance(cached_metrics, dict)
+                            else {}
+                        )
+                        missing_docs_raw = cached_details.get("missing", {})
+                        if missing_docs_raw:
+                            if isinstance(missing_docs_raw, dict):
+                                missing_docs = missing_docs_raw
+                            else:
+                                missing_docs = {
+                                    "count": to_int(missing_docs_raw) or 0
+                                }
+                        if isinstance(missing_docs, dict):
+                            missing_files = missing_docs.get("missing_files", [])
             except Exception as e:
                 logger.debug(f"Failed to load registry missing data: {e}")
                 pass
@@ -1000,11 +995,10 @@ class ReportGenerationMixin:
             and canonical_total
             and error_total
             and error_with_handling
-        ):
-            if error_total != canonical_total:
-                recalc_coverage = (error_with_handling / canonical_total) * 100
-                if 0 <= recalc_coverage <= 100:
-                    error_coverage = recalc_coverage
+        ) and error_total != canonical_total:
+            recalc_coverage = (error_with_handling / canonical_total) * 100
+            if 0 <= recalc_coverage <= 100:
+                error_coverage = recalc_coverage
 
         lines.append(
             f"- **Error Handling Coverage**: {percent_text(error_coverage, 1)}"
@@ -1621,10 +1615,7 @@ class ReportGenerationMixin:
                             "error_handling",
                             project_root=self.project_root,
                         )
-                        if loaded_data:
-                            error_metrics = loaded_data
-                        else:
-                            error_metrics = None
+                        error_metrics = loaded_data or None
 
                     if error_metrics:
                         error_details = error_metrics.get("details", {})
@@ -2687,7 +2678,6 @@ class ReportGenerationMixin:
 
         low_coverage_modules: list[dict[str, Any]] = []
         if coverage_summary:
-            (coverage_summary or {}).get("overall")
             module_entries = (coverage_summary or {}).get("modules") or []
             for module in module_entries:
                 coverage_value = to_float(module.get("coverage"))
@@ -2697,15 +2687,12 @@ class ReportGenerationMixin:
                 if coverage_float is not None and coverage_float < 80:
                     low_coverage_modules.append(module)
             low_coverage_modules = low_coverage_modules[:3]
-            (coverage_summary or {}).get("worst_files") or []
 
         if (
             hasattr(self, "dev_tools_coverage_results")
             and self.dev_tools_coverage_results
         ):
-            self.dev_tools_coverage_results.get(
-                "overall", {}
-            )
+            _ = self.dev_tools_coverage_results.get("overall", {})
         dev_tools_insights = self._get_dev_tools_coverage_insights()
 
         analyze_artifacts = analyze_data.get("artifacts") or []
@@ -2826,6 +2813,7 @@ class ReportGenerationMixin:
                     )
 
         priority_items: list[dict[str, Any]] = []
+        watch_items: list[dict[str, Any]] = []
 
         # Fixed tier ordering: tier number * 100 + insertion order within tier
         # This ensures predictable ordering: Tier 1 items (100-199), Tier 2 (200-299), etc.
@@ -2901,11 +2889,10 @@ class ReportGenerationMixin:
                 bullets = [] if bullets is None else [str(bullets)]
 
             # Validate recommendation if requested
-            if validate:
-                if not validate_recommendation(
-                    title, reason, data_source, count, expected_min
-                ):
-                    return
+            if validate and not validate_recommendation(
+                title, reason, data_source, count, expected_min
+            ):
+                return
 
             # Normalize tier to valid range (1-4)
             normalized_tier = max(1, min(4, tier))
@@ -3501,6 +3488,83 @@ class ReportGenerationMixin:
                         f"(ruff={ruff_issues}, pyright={pyright_issues})."
                     ),
                     bullets=static_bullets,
+                )
+
+        # Deferred Ruff rules are intentionally tracked as informational (non-blocking)
+        # in Watch List (monitoring, not immediate action).
+        deferred_rule_descriptions = {
+            "E501": "line-too-long",
+            "E402": "module-import-not-at-top-of-file",
+            "SIM117": "multiple-with-statements",
+            "SIM102": "collapsible-if",
+        }
+        configured_ruff_ignores: list[str] = []
+        try:
+            ruff_cfg_text = (self.project_root / ".ruff.toml").read_text(
+                encoding="utf-8"
+            )
+            ignore_match = re.search(
+                r"(?ms)^\s*ignore\s*=\s*\[(.*?)\]", ruff_cfg_text
+            )
+            if ignore_match:
+                configured_ruff_ignores = re.findall(r'"([^"]+)"', ignore_match.group(1))
+        except Exception:
+            configured_ruff_ignores = []
+
+        deferred_codes = [
+            code
+            for code in deferred_rule_descriptions
+            if code in configured_ruff_ignores
+        ]
+        if deferred_codes:
+            deferred_labels = [
+                f"{code} ({deferred_rule_descriptions[code]})"
+                for code in deferred_codes
+            ]
+            watch_items.append(
+                {
+                    "title": "Deferred Ruff style rules",
+                    "reason": (
+                        f"{len(deferred_codes)} rule(s) are intentionally non-blocking for now."
+                    ),
+                    "bullets": [
+                        f"Deferred rules: {self._format_list_for_display(deferred_labels, limit=6)}",
+                        "Current config: `.ruff.toml` `ignore = [...]`",
+                        "Monitor trend and re-enable gradually as codebase stabilizes.",
+                    ],
+                }
+            )
+
+        # Watch coverage when thresholds are currently met (monitor for regressions).
+        if isinstance(coverage_summary, dict):
+            overall = coverage_summary.get("overall", {})
+            overall_pct = None
+            if isinstance(overall, dict):
+                overall_pct = to_float(overall.get("coverage"))
+            if overall_pct is not None and overall_pct >= 80 and not low_coverage_modules:
+                watch_items.append(
+                    {
+                        "title": "Domain coverage stability",
+                        "reason": f"Coverage is currently above target ({percent_text(overall_pct, 1)} >= 80%).",
+                        "bullets": [
+                            "Monitor for downward drift after refactors and feature work.",
+                            "Re-run full coverage audits to track trend changes.",
+                        ],
+                    }
+                )
+
+        if dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
+            dev_pct_watch = float(dev_tools_insights["overall_pct"])
+            if dev_pct_watch >= 60:
+                watch_items.append(
+                    {
+                        "title": "Development tools coverage stability",
+                        "reason": f"Coverage is currently at/above target ({percent_text(dev_pct_watch, 1)} >= 60%).",
+                        "bullets": [
+                            "Monitor low modules for regression risk even while overall target is met.",
+                            "Use `generate_dev_tools_coverage_results.json` trend checks after major tool edits.",
+                        ],
+                    }
                 )
 
         # Dependency patterns priority
@@ -4614,6 +4678,16 @@ class ReportGenerationMixin:
             lines.append(
                 "- No immediate quick wins identified. Re-run doc-sync after tackling focus items."
             )
+        lines.append("")
+
+        lines.append("## Watch List")
+        if watch_items:
+            for item in watch_items:
+                lines.append(f"- **{item['title']}**  -  {item['reason']}")
+                for bullet in item.get("bullets", []):
+                    lines.append(f"  - {bullet}")
+        else:
+            lines.append("- No active watch-list items. Add threshold-monitor items as key metrics stabilize.")
         lines.append("")
 
         # Add overlap analysis information only if there are issues to prioritize
@@ -7204,11 +7278,10 @@ class ReportGenerationMixin:
                                 "analyze_system_signals"
                             ]
 
-                    if signals_result:
-                        if "data" in signals_result:
-                            system_signals_data = self._get_system_signals_details(
-                                signals_result["data"]
-                            )
+                    if signals_result and "data" in signals_result:
+                        system_signals_data = self._get_system_signals_details(
+                            signals_result["data"]
+                        )
             except Exception as e:
                 logger.debug(f"Failed to load system signals from cache: {e}")
 

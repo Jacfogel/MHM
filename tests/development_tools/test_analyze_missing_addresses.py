@@ -116,7 +116,7 @@ This file should be excluded from missing address checks.
 
         assert isinstance(results, dict), "Result should be a dictionary"
         assert not any(
-            ".cursor" in k for k in results.keys()
+            ".cursor" in k for k in results
         ), ".cursor/ files should be excluded"
         # .cursor/ files should be excluded
 

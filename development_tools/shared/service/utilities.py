@@ -11,6 +11,7 @@ from typing import Any
 from collections.abc import Sequence
 
 from core.logger import get_component_logger
+import contextlib
 
 logger = get_component_logger("development_tools")
 
@@ -352,7 +353,7 @@ class UtilitiesMixin:
                     func_line = line[2:].strip()
                     if '(' in func_line:
                         func_name = func_line.split('(')[0].strip()
-                        paren_content = func_line[func_line.find('(')+1:func_line.rfind(')')]
+                        paren_content = func_line[func_line.find('(') + 1:func_line.rfind(')')]
                         file_match = None
                         complexity_match = None
                         if 'file:' in paren_content:
@@ -360,10 +361,8 @@ class UtilitiesMixin:
                             file_match = file_part
                         if 'complexity:' in paren_content:
                             complexity_part = paren_content.split('complexity:')[1].strip()
-                            try:
+                            with contextlib.suppress(ValueError):
                                 complexity_match = int(complexity_part)
-                            except ValueError:
-                                pass
                         example = {
                             'name': func_name,
                             'function': func_name,

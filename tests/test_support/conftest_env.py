@@ -9,6 +9,7 @@ import pytest
 from pathlib import Path
 
 from tests.conftest import project_root
+import contextlib
 
 
 def ensure_qt_runtime():
@@ -205,10 +206,8 @@ def _apply_get_user_data_shim_early():
             return result
         return result
 
-    try:
+    with contextlib.suppress(Exception):
         um.get_user_data = wrapped_get_user_data
-    except Exception:
-        pass
     try:
         if udh is not None and hasattr(udh, "get_user_data"):
             udh.get_user_data = wrapped_get_user_data

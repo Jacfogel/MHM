@@ -80,7 +80,6 @@ def generate_ui_file(ui_file_path: str, output_path: str) -> bool:
 @handle_errors("generating all UI files", default_return=False)
 def generate_all_ui_files():
     """Generate all UI files in the project."""
-    Path(__file__).parent.parent
     ui_designs_dir = Path(__file__).parent / "designs"
     ui_generated_dir = Path(__file__).parent / "generated"
 

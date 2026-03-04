@@ -17,6 +17,7 @@ Usage:
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -98,10 +99,7 @@ class LegacyReferenceReportGenerator:
         if base_name in planning_files:
             return True
 
-        if base_name.endswith("_plan.md") or base_name.startswith("plan_"):
-            return True
-
-        return False
+        return bool(base_name.endswith("_plan.md") or base_name.startswith("plan_"))
 
     def generate_cleanup_report(
         self, findings: dict[str, list[tuple[str, str, list[dict[str, Any]]]]]
@@ -263,6 +261,13 @@ class LegacyReferenceReportGenerator:
         else:
             output_file = Path(output_file)
 
+        # Avoid cross-worker file contention in xdist tests by isolating report filenames.
+        xdist_worker = os.getenv("PYTEST_XDIST_WORKER")
+        if xdist_worker:
+            output_file = output_file.with_name(
+                f"{output_file.stem}_{xdist_worker}{output_file.suffix}"
+            )
+
         # Ensure parent directory exists
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -329,7 +334,7 @@ def main():
     saved_path = generator.save_report(report, output_file)
 
     logger.info("Legacy Reference Report Generated")
-    logger.info("Report saved to: %s" % saved_path)
+    logger.info(f"Report saved to: {saved_path}")
 
     return 0
 

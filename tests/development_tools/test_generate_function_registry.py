@@ -215,6 +215,7 @@ class TestScanning:
         
         # Mock should_exclude_file to not exclude demo project files
         original_should_exclude = standard_exclusions.should_exclude_file
+
         def mock_should_exclude_file(file_path, tool_type, context='production'):
             # Don't exclude files in the demo project
             if 'development_tools_demo' in file_path:
@@ -251,6 +252,7 @@ class TestScanning:
         
         # Mock should_exclude_file to not exclude demo project files but still exclude __pycache__
         original_should_exclude = standard_exclusions.should_exclude_file
+
         def mock_should_exclude_file(file_path, tool_type, context='production'):
             # Always exclude __pycache__
             if '__pycache__' in file_path:
@@ -295,6 +297,7 @@ class TestContentGeneration:
         
         # Mock should_exclude_file to not exclude demo project files
         original_should_exclude = standard_exclusions.should_exclude_file
+
         def mock_should_exclude_file(file_path, tool_type, context='production'):
             if 'development_tools_demo' in file_path:
                 return False
@@ -330,6 +333,7 @@ class TestContentGeneration:
         
         # Mock should_exclude_file to not exclude demo project files
         original_should_exclude = standard_exclusions.should_exclude_file
+
         def mock_should_exclude_file(file_path, tool_type, context='production'):
             if 'development_tools_demo' in file_path:
                 return False
@@ -370,6 +374,7 @@ class TestContentGeneration:
         
         # Mock should_exclude_file to not exclude demo project files
         original_should_exclude = standard_exclusions.should_exclude_file
+
         def mock_should_exclude_file(file_path, tool_type, context='production'):
             if 'development_tools_demo' in file_path:
                 return False
@@ -683,6 +688,7 @@ class TestFileGeneration:
         
         # Mock should_exclude_file to not exclude demo project files
         original_should_exclude = standard_exclusions.should_exclude_file
+
         def mock_should_exclude_file(file_path, tool_type, context='production'):
             if 'development_tools_demo' in file_path:
                 return False

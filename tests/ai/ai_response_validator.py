@@ -185,10 +185,7 @@ class AIResponseValidator:
                     ]
                 )
             ]
-            if critical_issues:
-                status = "FAIL"
-            else:
-                status = "PARTIAL"
+            status = "FAIL" if critical_issues else "PARTIAL"
         else:
             status = "PASS"
 
@@ -264,9 +261,7 @@ class AIResponseValidator:
     def _has_username_prefix(cls, response: str) -> bool:
         """Check if response starts with a username/test identifier"""
         # Check if response starts with common test username patterns
-        if re.match(r"^(TestUser|testuser|User\d+)\s*[,:]", response, re.IGNORECASE):
-            return True
-        return False
+        return bool(re.match(r"^(TestUser|testuser|User\d+)\s*[,:]", response, re.IGNORECASE))
 
     @classmethod
     def _check_truncation(cls, response: str, prompt: str) -> list[str]:

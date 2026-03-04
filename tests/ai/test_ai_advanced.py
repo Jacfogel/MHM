@@ -265,7 +265,7 @@ class TestAIAdvanced(AITestBase):
                         pass  # Count as failed recovery
                 
                 status = "PASS" if recovery_success >= 1 else "PARTIAL"
-                notes = f"Error recovery: {recovery_success}/{len(malformed_prompts)-1} malformed prompts handled"
+                notes = f"Error recovery: {recovery_success}/{len(malformed_prompts) - 1} malformed prompts handled"
                 self.log_test("T-16.1", "Recovery after malformed input", status, notes,
                             prompt=" | ".join([p[:50] + "..." if len(p) > 50 else p for p in malformed_prompts[:2]]))
             except Exception as e:

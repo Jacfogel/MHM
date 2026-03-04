@@ -174,14 +174,11 @@ class UnusedImportsChecker:
             return False
 
         # Must be Python file
-        if not file_path.suffix == ".py":
+        if file_path.suffix != ".py":
             return False
 
         # Must exist and be readable
-        if not file_path.exists() or not file_path.is_file():
-            return False
-
-        return True
+        return not (not file_path.exists() or not file_path.is_file())
 
     def find_python_files(self) -> list[Path]:
         """Find all Python files to scan."""

@@ -9,6 +9,7 @@ from core.response_tracking import get_recent_checkins
 
 from communication.command_handlers.base_handler import InteractionHandler
 
+
 # Lazy import to avoid circular dependency: tasks -> core -> service -> communication -> profile_handler -> tasks
 @handle_errors("loading tasks module", default_return=None, re_raise=True)
 def _get_tasks():

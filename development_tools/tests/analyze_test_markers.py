@@ -164,12 +164,11 @@ class TestMarkerAnalyzer:
                     continue
 
                 # Skip temporary test files in tests/data/ (pytest temporary directories)
-                if self._is_under_tests_data_dir(file_str):
-                    if any(
-                        marker in file_str
-                        for marker in self.transient_data_path_markers
-                    ):
-                        continue
+                if self._is_under_tests_data_dir(file_str) and any(
+                    marker in file_str
+                    for marker in self.transient_data_path_markers
+                ):
+                    continue
 
                 test_files.append(test_file)
 
@@ -394,9 +393,8 @@ class MissingMarkerFinder:
                         return True
                     if isinstance(value, ast.Attribute) and value.attr == "fixture":
                         return True
-            elif isinstance(target, ast.Name):
-                if target.id == "fixture":
-                    return True
+            elif isinstance(target, ast.Name) and target.id == "fixture":
+                return True
         return False
 
     def has_category_marker(self, decorators):
@@ -445,7 +443,7 @@ class MissingMarkerFinder:
             return
         class_has = inherited_category or self.has_category_marker(node.decorator_list)
         for stmt in node.body:
-            if isinstance(stmt, ast.FunctionDef) or isinstance(stmt, ast.AsyncFunctionDef):
+            if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 self.process_function(stmt, file_path, inherited_category=class_has)
             elif isinstance(stmt, ast.ClassDef):
                 self.process_class(stmt, file_path, inherited_category=class_has)
@@ -458,7 +456,7 @@ class MissingMarkerFinder:
             logger.warning(f"Skipping {file_path} due to syntax error: {exc}")
             return
         for node in tree.body:
-            if isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 self.process_function(node, file_path)
             elif isinstance(node, ast.ClassDef):
                 self.process_class(node, file_path)
@@ -519,8 +517,8 @@ def main():
         if args.json:
             import json
             missing_list = [
-                {"file": f, "line": l, "name": n, "type": t}
-                for f, l, n, t in missing
+                {"file": f, "line": line_number, "name": n, "type": t}
+                for f, line_number, n, t in missing
             ]
             files_affected = len({item["file"] for item in missing_list if item.get("file")})
             standard_result = {

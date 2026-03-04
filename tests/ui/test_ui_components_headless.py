@@ -12,7 +12,6 @@ ensure_qt_runtime()
 import pytest
 
 
-
 @pytest.mark.ui
 class TestUIComponentsHeadless:
     """Test UI components using headless approach."""

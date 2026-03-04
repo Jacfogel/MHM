@@ -15,6 +15,7 @@ from typing import Any
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_full, now_timestamp_filename
 from .file_rotation import FileRotator
+import contextlib
 
 logger = get_component_logger("development_tools")
 
@@ -405,10 +406,8 @@ def load_tool_cache(
     except (OSError, json.JSONDecodeError) as e:
         logger.warning(f"Failed to load tool cache from {cache_file}: {e}")
         # Remove corrupted cache file to allow regeneration on next run.
-        try:
+        with contextlib.suppress(Exception):
             cache_file.unlink(missing_ok=True)
-        except Exception:
-            pass
         return None
 
 

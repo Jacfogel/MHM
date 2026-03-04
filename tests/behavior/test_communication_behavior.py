@@ -18,6 +18,7 @@ from unittest.mock import Mock, patch, AsyncMock
 from communication.core.channel_orchestrator import CommunicationManager
 from communication.communication_channels.base.base_channel import ChannelConfig, ChannelStatus
 
+
 class TestCommunicationManager:
     """Test cases for the CommunicationManager class."""
     

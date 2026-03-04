@@ -37,7 +37,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, TypedDict, Union
+from typing import Any, TypedDict
 from collections.abc import Iterable
 
 # Add project root to path for core module imports
@@ -71,6 +71,7 @@ FunctionSummary = TypedDict(
     },
 )
 
+
 class PairResult(TypedDict):
     overall_similarity: float
     name_similarity: float
@@ -80,17 +81,20 @@ class PairResult(TypedDict):
     a: FunctionSummary
     b: FunctionSummary
 
+
 class GroupSummary(TypedDict):
     similarity_range: dict[str, float]
     functions: list[FunctionSummary]
     pair_examples: list[PairResult]
+
 
 class ClusterData(TypedDict):
     functions: dict[str, FunctionSummary]
     similarities: list[float]
     pair_examples: list[PairResult]
 
-FunctionNode = Union[ast.FunctionDef, ast.AsyncFunctionDef]
+
+FunctionNode = ast.FunctionDef | ast.AsyncFunctionDef
 
 
 @dataclass(frozen=True)
@@ -339,10 +343,7 @@ def _gather_function_records(
     if include_dev_tools and "development_tools" not in scan_dirs:
         scan_dirs.append("development_tools")
 
-    if include_tests or include_dev_tools:
-        context = "development"
-    else:
-        context = "production"
+    context = "development" if include_tests or include_dev_tools else "production"
 
     records: list[FunctionRecord] = []
     total_files = 0

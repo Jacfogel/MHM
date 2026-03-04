@@ -14,6 +14,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 from core.time_utilities import now_timestamp_full, now_timestamp_filename
+import contextlib
 
 # Try to import file locking (Unix/Linux); use getattr so Pyright is happy on Windows stubs
 try:
@@ -223,28 +224,20 @@ class DevToolsCoverageCache:
                     try:
                         with open(self.cache_file, encoding="utf-8") as f:
                             if HAS_FCNTL and FCNTL_FLOCK is not None:
-                                try:
+                                with contextlib.suppress(OSError, AttributeError):
                                     FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_SH)
-                                except (OSError, AttributeError):
-                                    pass
                             elif HAS_MSVCRT:
-                                try:
+                                with contextlib.suppress(OSError, AttributeError):
                                     msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
-                                except (OSError, AttributeError):
-                                    pass
 
                             self.cache_data = json.load(f)
 
                             if HAS_FCNTL and FCNTL_FLOCK is not None:
-                                try:
+                                with contextlib.suppress(OSError, AttributeError):
                                     FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_UN)
-                                except (OSError, AttributeError):
-                                    pass
                             elif HAS_MSVCRT:
-                                try:
+                                with contextlib.suppress(OSError, AttributeError):
                                     msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
-                                except (OSError, AttributeError):
-                                    pass
                             break
                     except OSError:
                         if attempt < max_retries - 1:
@@ -311,30 +304,22 @@ class DevToolsCoverageCache:
                 try:
                     with open(temp_file, "w", encoding="utf-8") as f:
                         if HAS_FCNTL and FCNTL_FLOCK is not None:
-                            try:
+                            with contextlib.suppress(OSError, AttributeError):
                                 FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_EX)
-                            except (OSError, AttributeError):
-                                pass
                         elif HAS_MSVCRT:
-                            try:
+                            with contextlib.suppress(OSError, AttributeError):
                                 msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
-                            except (OSError, AttributeError):
-                                pass
 
                         json.dump(self.cache_data, f, indent=2)
                         f.flush()
                         os.fsync(f.fileno())
 
                         if HAS_FCNTL and FCNTL_FLOCK is not None:
-                            try:
+                            with contextlib.suppress(OSError, AttributeError):
                                 FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_UN)
-                            except (OSError, AttributeError):
-                                pass
                         elif HAS_MSVCRT:
-                            try:
+                            with contextlib.suppress(OSError, AttributeError):
                                 msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
-                            except (OSError, AttributeError):
-                                pass
 
                     temp_file.replace(self.cache_file)
                     break

@@ -18,6 +18,7 @@ from communication.core.welcome_manager import (
     get_welcome_message
 )
 
+
 class TestWelcomeManagerBehavior:
     """Test welcome manager real behavior and side effects."""
     

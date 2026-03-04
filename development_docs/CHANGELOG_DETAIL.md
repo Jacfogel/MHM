@@ -33,6 +33,25 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-03 - Full-suite test runner interrupt hardening + summary integrity closeout
+- **Feature/Fix**: Stabilized `run_tests.py --full` behavior under recurring SIGINT noise during the Development Tools parallel phase so single interrupts no longer derail run flow, and aligned combined-result reporting to accurately reflect interrupted/incomplete outcomes.
+- **Technical Changes**:
+  - **Soft interrupt handling** (`run_tests.py`): added a non-blocking interrupt path while pytest subprocesses are active. First SIGINT is treated as soft and logged with explicit guidance; a second SIGINT within a short window still performs a forced stop.
+  - **Combined summary accounting** (`run_tests.py`): added interrupted run accounting (`expected_tests`, `completed_tests`, `incomplete_tests`) and surfaced incomplete counts in final summary output when interruption occurs.
+  - **Failure source fidelity** (`run_tests.py`): preserved phase-specific labeling in combined failure output so failures from Development Tools parallel execution are attributed to the correct phase instead of being collapsed to generic parallel source labels.
+  - **Regression fixes from failing run context**:
+    - Restored account data retrieval in `user/context_manager.py` so `_get_user_profile` again calls `get_user_data` for all expected data types (preferences/account/context/schedules), fixing behavior-test expectation drift.
+    - Updated `development_tools/legacy/generate_legacy_reference_report.py` to use xdist-worker-specific legacy report artifact names to avoid cross-worker file contention in parallel dev-tools test runs.
+  - **Priorities/reporting**: reintroduced a low-priority `Watch List` section in generated [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md) via `development_tools/shared/service/report_generation.py` so informational items can be tracked without competing with immediate-action priorities.
+  - **Planning closeout**: session wrap-up included full working-tree inventory (`git diff --stat` and `git diff --name-only`) and follow-up tracking updates in [TODO.md](TODO.md) and [PLANS.md](development_docs/PLANS.md) for SIGINT provenance investigation.
+- **Validation**:
+  - `python -m py_compile run_tests.py` -> pass.
+  - `pytest tests/behavior/test_user_context_behavior.py::TestUserContextManagerBehavior::test_get_user_profile_uses_existing_infrastructure -q` -> pass.
+  - `pytest tests/development_tools/test_legacy_reference_cleanup.py::TestLegacyFixerRun::test_run_scan_and_clean_dry_run -q` -> pass.
+  - `pytest tests/development_tools/test_legacy_reference_cleanup.py::TestLegacyFixerRun::test_run_scan_and_clean_dry_run -n 4 -q` -> pass.
+  - User full-suite validation: `python run_tests.py --full` completed with `0 failed, 5074 passed, 1 skipped`; repeated SIGINT notices were soft-handled and run completion/final summary remained intact.
+- **Impact**: Full-suite runs are materially more resilient to transient SIGINT noise, summary math is safer under interruption scenarios, and test-failure attribution is clearer for triage. Remaining work is root-cause identification of signal source rather than flow-stopping behavior.
+
 ### 2026-03-03 - Tier 3 failure remediation continuation and closeout tracking
 - **Feature/Fix**: Continued remediation for active Tier 3 and lint cleanup priorities, resolved the remaining behavior-test regression from the previous failing set, and updated planning docs with the current parallel-crash follow-up from the latest full-audit output.
 - **Technical Changes**:

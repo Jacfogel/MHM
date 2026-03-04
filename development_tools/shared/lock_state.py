@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import socket
+import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -27,7 +28,7 @@ def write_lock_metadata(
             "created_at": time.time(),
             "stale_after_seconds": int(stale_after_seconds),
             "host": socket.gethostname(),
-            "command": " ".join(os.sys.argv),
+            "command": " ".join(sys.argv),
         }
         path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         return True

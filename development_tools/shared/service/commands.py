@@ -10,6 +10,7 @@ import os
 import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import cast
 
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_filename
@@ -25,6 +26,7 @@ from ..backup_reports import (
 )
 from ..lock_state import cleanup_lock_paths, evaluate_lock_set, write_lock_metadata
 from ..retention_engine import apply_retention_plan, build_retention_plan
+import contextlib
 
 
 class CommandsMixin:
@@ -186,9 +188,7 @@ class CommandsMixin:
         if "keyboardinterrupt" in text:
             return True
         # 130 is common for SIGINT-style exits.
-        if returncode == 130:
-            return True
-        return False
+        return returncode == 130
 
     def _build_coverage_metadata(self, output: str, source: str) -> dict[str, object]:
         """Build normalized coverage cache metadata payload."""
@@ -857,10 +857,8 @@ class CommandsMixin:
                 except Exception as e:
                     logger.warning(f"Failed to remove coverage lock file: {e}")
             if 'dev_tools_output_file' in locals() and dev_tools_output_file.exists():
-                try:
+                with contextlib.suppress(OSError):
                     dev_tools_output_file.unlink()
-                except OSError:
-                    pass
     
     def run_status(self, skip_status_files: bool = False):
         """Generate status snapshot (cached data, no audit)"""
@@ -1152,8 +1150,18 @@ class CommandsMixin:
                                         "Legacy coverage outcome payload without explicit classification fields; "
                                         "state-only compatibility bridge applied."
                                     )
-                                    track["log_file"] = track.get("log_file")
-                                    track["return_code_hex"] = track.get("return_code_hex")
+                                    existing_log_file = track.get("log_file")
+                                    track["log_file"] = (
+                                        str(existing_log_file)
+                                        if existing_log_file is not None
+                                        else ""
+                                    )
+                                    existing_return_code_hex = track.get("return_code_hex")
+                                    track["return_code_hex"] = (
+                                        str(existing_return_code_hex)
+                                        if existing_return_code_hex is not None
+                                        else ""
+                                    )
                         elif payload_coverage_collected:
                             synthesized_classification = (
                                 "skipped" if payload_from_cache else "unknown"
@@ -1270,7 +1278,6 @@ class CommandsMixin:
                     import traceback
                     logger.debug(f"Traceback: {traceback.format_exc()}")
                 
-                
                 return True
             else:
                 logger.warning(
@@ -1285,10 +1292,8 @@ class CommandsMixin:
                 except Exception as e:
                     logger.warning(f"Failed to remove coverage lock file: {e}")
             if 'coverage_output_file' in locals() and coverage_output_file.exists():
-                try:
+                with contextlib.suppress(OSError):
                     coverage_output_file.unlink()
-                except OSError:
-                    pass
     
     def run_legacy_cleanup(self):
         """Run legacy reference cleanup"""
@@ -1493,7 +1498,7 @@ class CommandsMixin:
             json_path = write_json_report(
                 self.project_root,
                 drill_cfg.report_json_path,
-                report,
+                cast(dict[str, object], report),
                 rotate=False,
             )
             return {
@@ -1760,7 +1765,6 @@ class CommandsMixin:
         else:
             logger.error(f"System signals analysis failed: {result.get('error', 'Unknown error')}")
             return False
-    
     
     def run_test_markers(self, action: str = 'check', dry_run: bool = False) -> dict:
         """Run test markers analysis or fix"""
@@ -2097,12 +2101,10 @@ class CommandsMixin:
                 and isinstance(parsed.get("summary"), dict)
                 and isinstance(parsed.get("details"), dict)
             ):
-                try:
+                with contextlib.suppress(Exception):
                     save_tool_result(
                         tool_name, "docs", parsed, project_root=self.project_root
                     )
-                except Exception:
-                    pass
                 if hasattr(self, "results_cache") and isinstance(self.results_cache, dict):
                     self.results_cache[tool_name] = parsed
                 if hasattr(self, "_tool_cache_metadata"):
@@ -2129,10 +2131,8 @@ class CommandsMixin:
         except Exception:
             if result.get("output") or result.get("success"):
                 parsed = parser_func(result.get("output", ""))
-                try:
+                with contextlib.suppress(Exception):
                     save_tool_result(tool_name, "docs", parsed, project_root=self.project_root)
-                except Exception:
-                    pass
                 if hasattr(self, "_tool_cache_metadata"):
                     self._tool_cache_metadata[tool_name] = {
                         "cache_mode": "cold_scan",

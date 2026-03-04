@@ -16,7 +16,7 @@ def main():
     """Main entry point for headless service launcher."""
     # Set up logging
     setup_logging()
-    logger = get_component_logger("headless_launcher")
+    get_component_logger("headless_launcher")
 
     if len(sys.argv) < 2:
         print(

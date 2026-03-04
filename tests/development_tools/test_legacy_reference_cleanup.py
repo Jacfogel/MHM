@@ -105,7 +105,7 @@ class TestReferenceFinding:
         # The function should find the class definition
         # It searches for patterns like 'class LegacyChannelWrapper', 'LegacyChannelWrapper(', etc.
         assert len(references) > 0, f"find_all_references should find LegacyChannelWrapper. Found: {references}"
-        assert any('legacy_code.py' in file_path for file_path in references.keys()), \
+        assert any('legacy_code.py' in file_path for file_path in references), \
             f"legacy_code.py should be in references. Found: {list(references.keys())}"
 
 

@@ -246,10 +246,7 @@ def generate_timing_report(results: dict, output_file: Path) -> None:
     for tool_name, data in tier3_sorted:
         time_val = data["time"]
         status = "✓" if data["success"] else "✗"
-        if time_val < 120:
-            rec = "Consider Tier 2"
-        else:
-            rec = "Keep in Tier 3"
+        rec = "Consider Tier 2" if time_val < 120 else "Keep in Tier 3"
         lines.append(f"| {tool_name} | {time_val:.2f} | {status} | {rec} |")
 
     lines.extend(

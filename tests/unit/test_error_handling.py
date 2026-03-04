@@ -19,6 +19,7 @@ from core.error_handling import (
     handle_configuration_error
 )
 
+
 class TestCustomExceptions:
     """Test custom exception classes."""
     
@@ -85,6 +86,7 @@ class TestCustomExceptions:
         assert error.message == "Validation failed"
         assert error.details['field'] == 'email'
 
+
 class TestErrorHandlerDecorator:
     """Test the handle_errors decorator."""
     
@@ -129,6 +131,7 @@ class TestErrorHandlerDecorator:
         with patch('core.logger.get_component_logger') as mock_get_logger:
             mock_logger = Mock()
             mock_get_logger.return_value = mock_logger
+
             @handle_errors("test operation")
             def test_function():
                 raise ValueError("Test error")
@@ -145,6 +148,7 @@ class TestErrorHandlerDecorator:
             # Check that we have the user-friendly message
             user_calls = [call for call in mock_logger.error.call_args_list if "User Error:" in call[0][0]]
             assert len(user_calls) >= 1
+
 
 class TestHandleErrorsDecorator:
     """Test the handle_errors decorator."""
@@ -200,6 +204,7 @@ class TestHandleErrorsDecorator:
         with patch('core.logger.get_component_logger') as mock_get_logger:
             mock_logger = Mock()
             mock_get_logger.return_value = mock_logger
+
             @handle_errors("test operation")
             def test_function():
                 raise ValueError("Test error")
@@ -216,6 +221,7 @@ class TestHandleErrorsDecorator:
             # Check that we have the user-friendly message
             user_calls = [call for call in mock_logger.error.call_args_list if "User Error:" in call[0][0]]
             assert len(user_calls) >= 1
+
 
 class TestErrorHandlingFunctions:
     """Test specific error handling functions."""
@@ -267,6 +273,7 @@ class TestErrorHandlingFunctions:
             user_calls = [call for call in mock_logger.error.call_args_list if "User Error:" in call[0][0]]
             assert len(user_calls) >= 1
 
+
 class TestErrorHandlingIntegration:
     """Test error handling integration scenarios."""
     
@@ -276,6 +283,7 @@ class TestErrorHandlingIntegration:
         with patch('core.logger.get_component_logger') as mock_get_logger:
             mock_logger = Mock()
             mock_get_logger.return_value = mock_logger
+
             @handle_errors("outer operation")
             def outer_function():
                 return inner_function()
@@ -296,7 +304,7 @@ class TestErrorHandlingIntegration:
         import os
         import json
         
-        #[OK] VERIFY INITIAL STATE: Create a test environment under tests/data
+        # [OK] VERIFY INITIAL STATE: Create a test environment under tests/data
         temp_dir = test_path_factory
         test_file = os.path.join(temp_dir, 'test_data.json')
         # Create initial valid data
@@ -304,7 +312,7 @@ class TestErrorHandlingIntegration:
         with open(test_file, 'w') as f:
             json.dump(initial_data, f)
         
-        #[OK] VERIFY INITIAL STATE: Check file exists and is valid
+        # [OK] VERIFY INITIAL STATE: Check file exists and is valid
         assert os.path.exists(test_file), f"Test file should exist: {test_file}"
         with open(test_file) as f:
             loaded_data = json.load(f)
@@ -316,11 +324,11 @@ class TestErrorHandlingIntegration:
                 # Simulate a file operation that fails
                 raise FileNotFoundError("File not found")
             
-            #[OK] VERIFY REAL BEHAVIOR: Check error handling works
+            # [OK] VERIFY REAL BEHAVIOR: Check error handling works
             result = test_function()
             assert result == "recovered"
             
-            #[OK] VERIFY REAL BEHAVIOR: Check original file is unaffected
+            # [OK] VERIFY REAL BEHAVIOR: Check original file is unaffected
             assert os.path.exists(test_file), f"Original file should be unaffected: {test_file}"
             with open(test_file) as f:
                 current_data = json.load(f)
@@ -334,20 +342,20 @@ class TestErrorHandlingIntegration:
                     f.write('{invalid json}')
                 raise ValueError("Data corruption occurred")
             
-            #[OK] VERIFY REAL BEHAVIOR: Check corruption and recovery
+            # [OK] VERIFY REAL BEHAVIOR: Check corruption and recovery
             result = corrupt_data_function()
             assert result == "corrupted"
             
-            #[OK] VERIFY REAL BEHAVIOR: Check file was actually corrupted
+            # [OK] VERIFY REAL BEHAVIOR: Check file was actually corrupted
             with open(test_file) as f:
                 corrupted_content = f.read()
             assert corrupted_content == '{invalid json}'
             
-            #[OK] VERIFY REAL BEHAVIOR: Check file is no longer valid JSON
+            # [OK] VERIFY REAL BEHAVIOR: Check file is no longer valid JSON
             try:
                 with open(test_file) as f:
                     json.load(f)
-                assert False, "File should be corrupted and not valid JSON"
+                raise AssertionError("File should be corrupted and not valid JSON")
             except json.JSONDecodeError:
                 pass  # Expected behavior
             
@@ -360,22 +368,22 @@ class TestErrorHandlingIntegration:
                     json.dump(recovered_data, f)
                 return "recovery_successful"
             
-            #[OK] VERIFY REAL BEHAVIOR: Check recovery mechanism
+            # [OK] VERIFY REAL BEHAVIOR: Check recovery mechanism
             result = recover_data_function()
             assert result == "recovery_successful"
             
-            #[OK] VERIFY REAL BEHAVIOR: Check file was actually recovered
+            # [OK] VERIFY REAL BEHAVIOR: Check file was actually recovered
             assert os.path.exists(test_file), f"File should still exist after recovery: {test_file}"
             with open(test_file) as f:
                 recovered_data = json.load(f)
             assert recovered_data == {'status': 'recovered', 'data': [4, 5, 6]}
             
-            #[OK] VERIFY REAL BEHAVIOR: Check file is valid JSON again
+            # [OK] VERIFY REAL BEHAVIOR: Check file is valid JSON again
             try:
                 with open(test_file) as f:
                     json.load(f)  # Should not raise exception
             except json.JSONDecodeError as e:
-                assert False, f"Recovered file should be valid JSON: {e}"
+                raise AssertionError(f"Recovered file should be valid JSON: {e}")
             
             # Test 4: Function that creates backup during error
             backup_file = os.path.join(temp_dir, 'backup_data.json')
@@ -391,17 +399,17 @@ class TestErrorHandlingIntegration:
                 # Simulate an error after backup
                 raise RuntimeError("Operation failed after backup")
             
-            #[OK] VERIFY REAL BEHAVIOR: Check backup creation
+            # [OK] VERIFY REAL BEHAVIOR: Check backup creation
             result = backup_function()
             assert result == "backup_created"
             
-            #[OK] VERIFY REAL BEHAVIOR: Check backup file was created
+            # [OK] VERIFY REAL BEHAVIOR: Check backup file was created
             assert os.path.exists(backup_file), f"Backup file should be created: {backup_file}"
             with open(backup_file) as f:
                 backup_data = json.load(f)
             assert backup_data == {'status': 'recovered', 'data': [4, 5, 6]}
             
-            #[OK] VERIFY REAL BEHAVIOR: Check original file is unchanged
+            # [OK] VERIFY REAL BEHAVIOR: Check original file is unchanged
             with open(test_file) as f:
                 original_data = json.load(f)
             assert original_data == {'status': 'recovered', 'data': [4, 5, 6]}
@@ -421,11 +429,11 @@ class TestErrorHandlingIntegration:
                 # Simulate an error
                 raise Exception("Cleanup needed")
             
-            #[OK] VERIFY REAL BEHAVIOR: Check cleanup mechanism
+            # [OK] VERIFY REAL BEHAVIOR: Check cleanup mechanism
             result = cleanup_function()
             assert result == "cleanup_completed"
             
-            #[OK] VERIFY REAL BEHAVIOR: Check temporary files were created
+            # [OK] VERIFY REAL BEHAVIOR: Check temporary files were created
             for temp_file in temp_files:
                 assert os.path.exists(temp_file), f"Temp file should exist: {temp_file}"
             
@@ -448,11 +456,11 @@ class TestErrorHandlingIntegration:
                 
                 return "all_files_valid"
             
-            #[OK] VERIFY REAL BEHAVIOR: Check state validation
+            # [OK] VERIFY REAL BEHAVIOR: Check state validation
             result = state_validation_function()
             assert result == "all_files_valid"
             
-            #[OK] VERIFY REAL BEHAVIOR: Check final system state
+            # [OK] VERIFY REAL BEHAVIOR: Check final system state
             # All files should exist and be valid
             all_files = [test_file, backup_file] + temp_files
             for file_path in all_files:
@@ -465,9 +473,9 @@ class TestErrorHandlingIntegration:
                     with open(file_path) as f:
                         json.load(f)
                 except json.JSONDecodeError as e:
-                    assert False, f"File should be valid JSON in final state: {file_path} - {e}"
+                    raise AssertionError(f"File should be valid JSON in final state: {file_path} - {e}")
             
-            #[OK] VERIFY REAL BEHAVIOR: Check no unexpected files were created
+            # [OK] VERIFY REAL BEHAVIOR: Check no unexpected files were created
             all_files_in_dir = os.listdir(temp_dir)
             expected_file_names = [os.path.basename(f) for f in all_files]
             unexpected_files = [f for f in all_files_in_dir if f not in expected_file_names and not f.startswith('.')]
@@ -492,7 +500,7 @@ class TestErrorHandlingIntegration:
             else:
                 return "success"
         
-        #[OK] VERIFY INITIAL STATE: Check call log is empty
+        # [OK] VERIFY INITIAL STATE: Check call log is empty
         assert len(call_log) == 0, "Call log should be empty initially"
         
         # Test different exception types
@@ -501,24 +509,25 @@ class TestErrorHandlingIntegration:
         result3 = test_function("key")
         result4 = test_function("success")
         
-        #[OK] VERIFY REAL BEHAVIOR: Check return values
+        # [OK] VERIFY REAL BEHAVIOR: Check return values
         assert result1 is None, "ValueError should return None"
         assert result2 is None, "FileNotFoundError should return None"
         assert result3 is None, "KeyError should return None"
         assert result4 == "success", "Success case should return 'success'"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check side effects (function calls were made)
+        # [OK] VERIFY REAL BEHAVIOR: Check side effects (function calls were made)
         assert len(call_log) == 4, f"Function should have been called 4 times: {call_log}"
         assert "function_called_with_value" in call_log
         assert "function_called_with_file" in call_log
         assert "function_called_with_key" in call_log
         assert "function_called_with_success" in call_log
         
-        #[OK] VERIFY REAL BEHAVIOR: Check call order
+        # [OK] VERIFY REAL BEHAVIOR: Check call order
         assert call_log[0] == "function_called_with_value"
         assert call_log[1] == "function_called_with_file"
         assert call_log[2] == "function_called_with_key"
         assert call_log[3] == "function_called_with_success"
+
 
 class TestErrorHandlingEdgeCases:
     """Test error handling edge cases."""
@@ -593,6 +602,7 @@ class TestErrorHandlingEdgeCases:
             # Should not raise exception even if logger fails
             result = test_function()
             assert result is None
+
 
 class TestAsyncErrorHandling:
     """Test async function error handling."""

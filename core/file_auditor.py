@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import os
 import traceback
+import contextlib
 
 try:
     # Avoid heavy imports during tests; logger provides component loggers
@@ -168,8 +169,6 @@ def record_created(path: str, reason: str = "api", extra: dict | None = None):
     if extra:
         payload.update(extra)
     if os.getenv("FILE_AUDIT_STACK") == "1":
-        try:
+        with contextlib.suppress(Exception):
             payload["stack"] = "".join(traceback.format_stack(limit=10))
-        except Exception:
-            pass
     _logger.info("File created (programmatic)", **payload)

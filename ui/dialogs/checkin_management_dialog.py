@@ -184,10 +184,7 @@ class CheckinManagementDialog(QDialog):
 
                 # Minimum maximum: if sometimes questions > 0, minimum max is always_count + 1
                 # Otherwise, minimum max is just always_count
-                if sometimes_count > 0:
-                    min_maximum = always_count + 1
-                else:
-                    min_maximum = always_count
+                min_maximum = always_count + 1 if sometimes_count > 0 else always_count
                 min_maximum = max(
                     min_maximum, min_required
                 )  # Must be at least min_required

@@ -873,7 +873,7 @@ class AIChatBotSingleton:
 
                             if entry_desc:
                                 summary_lines.append(
-                                    f"  - Check-in {i+1}: {', '.join(entry_desc)}"
+                                    f"  - Check-in {i + 1}: {', '.join(entry_desc)}"
                                 )
 
                     context_parts.append("\n".join(summary_lines))

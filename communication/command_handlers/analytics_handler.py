@@ -818,7 +818,7 @@ class AnalyticsHandler(InteractionHandler):
             # Check-in Patterns
             response += "**📅 Check-in Patterns:**\n"
             response += f"• Total check-ins: {len(checkins)}\n"
-            response += f"• Average per day: {len(checkins)/days:.1f}\n"
+            response += f"• Average per day: {len(checkins) / days:.1f}\n"
 
             # Response Analysis
             response += "\n**💬 Response Analysis:**\n"

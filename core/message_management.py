@@ -22,6 +22,7 @@ from core.time_utilities import (
     parse_timestamp_full,
     parse_timestamp,
 )
+import contextlib
 
 logger = get_component_logger("message")
 
@@ -196,10 +197,8 @@ def add_message(user_id, category, message_data, index=None):
         data["messages"].append(message_data)
 
     # Validate/normalize via Pydantic schema (non-blocking)
-    try:
+    with contextlib.suppress(Exception):
         data, _errs = validate_messages_file_dict(data)
-    except Exception:
-        pass
     save_json_data(data, str(file_path))
 
     try:
@@ -258,10 +257,8 @@ def edit_message(user_id, category, message_id, updated_data):
 
     # Update the message
     data["messages"][message_index].update(updated_data)
-    try:
+    with contextlib.suppress(Exception):
         data, _errs = validate_messages_file_dict(data)
-    except Exception:
-        pass
     save_json_data(data, str(file_path))
 
     try:
@@ -816,10 +813,8 @@ def create_message_file_from_defaults(user_id: str, category: str) -> bool:
         user_messages_dir.mkdir(parents=True, exist_ok=True)
         category_message_file = user_messages_dir / f"{category}.json"
         message_data = {"messages": formatted_messages}
-        try:
+        with contextlib.suppress(Exception):
             message_data, _errs = validate_messages_file_dict(message_data)
-        except Exception:
-            pass
         # Convert Path to string for save_json_data
         success = save_json_data(message_data, str(category_message_file))
         if not success:

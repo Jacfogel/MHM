@@ -14,6 +14,7 @@ import threading
 from unittest.mock import patch, mock_open, MagicMock
 
 from core.file_locking import file_lock, safe_json_read, safe_json_write
+import contextlib
 
 
 @pytest.mark.unit
@@ -84,10 +85,8 @@ class TestFileLocking:
         
         # Ensure lock file doesn't exist initially
         if os.path.exists(lock_file):
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(lock_file)
-            except OSError:
-                pass
         
         # Create lock file to simulate locked state (using 'x' mode to create exclusively)
         try:
@@ -104,10 +103,8 @@ class TestFileLocking:
         finally:
             # Clean up lock file
             if os.path.exists(lock_file):
-                try:
+                with contextlib.suppress(OSError):
                     os.remove(lock_file)
-                except OSError:
-                    pass
 
     def test_file_lock_retries_until_available(self, test_data_dir):
         """Test that file_lock retries until lock becomes available."""
@@ -319,10 +316,8 @@ class TestSafeJsonWrite:
         # Note: Cleanup happens in finally block, so temp file may or may not exist
         # depending on when the error occurred
         if os.path.exists(temp_file):
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(temp_file)
-            except OSError:
-                pass
 
     def test_safe_json_write_creates_directory(self, test_data_dir):
         """Test safe_json_write creates directory if it doesn't exist."""

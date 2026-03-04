@@ -139,11 +139,7 @@ def is_generated_function(func_name: str) -> bool:
         "_auto_",  # Auto-generated helpers
     ]
 
-    for pattern in generated_name_patterns:
-        if pattern in func_name:
-            return True
-
-    return False
+    return any(pattern in func_name for pattern in generated_name_patterns)
 
 
 @handle_errors("checking if method is special Python method", default_return=False)
@@ -208,10 +204,7 @@ def is_special_python_method(func_name: str, complexity: int | None = None) -> b
         return True
 
     # Exclude special methods but not context managers
-    if func_name in special_methods and func_name not in context_methods:
-        return True
-
-    return False
+    return bool(func_name in special_methods and func_name not in context_methods)
 
 
 @handle_errors("checking if function is a test function", default_return=False)

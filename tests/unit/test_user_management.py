@@ -689,7 +689,7 @@ class TestUserManagementEdgeCases:
                 with open(file_path) as f:
                     json.load(f)  # Should not raise exception
             except json.JSONDecodeError as e:
-                assert False, f"File should be valid JSON: {file_name} - {e}"
+                raise AssertionError(f"File should be valid JSON: {file_name} - {e}")
 
         # [OK] VERIFY REAL BEHAVIOR: Check file sizes are reasonable
         for file_name in expected_files:
@@ -727,7 +727,7 @@ class TestUserManagementEdgeCases:
         try:
             with open(preferences_file_path) as f:
                 json.load(f)
-            assert False, "Corrupted file should not be valid JSON"
+            raise AssertionError("Corrupted file should not be valid JSON")
         except json.JSONDecodeError:
             pass  # Expected behavior
 

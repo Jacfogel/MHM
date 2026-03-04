@@ -9,6 +9,7 @@ and retry management for communication infrastructure.
 # Note: ChannelFactory and ChannelMonitor have circular dependencies, using lazy import
 from .retry_manager import RetryManager, QueuedMessage
 
+
 # Core orchestration - lazy import to avoid circular dependencies
 # Use: from communication.core import CommunicationManager (imported on-demand)
 # Note: CommunicationManager has circular dependencies, so it's imported lazily
@@ -28,6 +29,7 @@ def __getattr__(name: str):
         from .channel_monitor import ChannelMonitor
         return ChannelMonitor
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     # Factory (lazy import)

@@ -4,6 +4,7 @@ Task domain types, constants, and exception.
 Used by task_validation and task_data_manager. No business logic.
 """
 
+
 # Domain exception for task operations
 class TaskManagementError(Exception):
     """Custom exception for task management errors."""

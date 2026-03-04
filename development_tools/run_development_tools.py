@@ -38,6 +38,7 @@ except ImportError as e:
 
 from core.logger import get_component_logger
 from development_tools.shared.lock_state import cleanup_lock_paths, evaluate_lock_set
+import contextlib
 
 logger = get_component_logger("development_tools")
 
@@ -57,10 +58,8 @@ def _remove_path_with_retries(path: Path, retries: int = 10, delay_seconds: floa
         except Exception:
             try:
                 for child in path.rglob("*"):
-                    try:
+                    with contextlib.suppress(Exception):
                         child.chmod(0o700)
-                    except Exception:
-                        pass
                 path.chmod(0o700)
             except Exception:
                 pass

@@ -46,7 +46,7 @@ class TestDefaultDocsPaths:
             if len(missing_paths) <= 2:
                 pytest.skip(f"Some DEFAULT_DOCS paths are missing (may be optional): {missing_paths}")
             else:
-                assert False, f"Multiple DEFAULT_DOCS paths do not exist: {missing_paths}"
+                raise AssertionError(f"Multiple DEFAULT_DOCS paths do not exist: {missing_paths}")
 
     @pytest.mark.unit
     def test_default_docs_are_strings(self):

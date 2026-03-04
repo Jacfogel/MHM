@@ -19,6 +19,7 @@ def test_audit_full_non_strict_allows_tier3_test_failures(temp_project_copy):
     service = AIToolsService(project_root=str(temp_project_copy))
     service._run_quick_audit_tools = MagicMock(return_value=True)
     service._run_standard_audit_tools = MagicMock(return_value=True)
+
     def _full_non_strict():
         service.tier3_test_outcome = {
             "parallel": {"classification": "failed"},
@@ -46,6 +47,7 @@ def test_audit_full_strict_fails_on_tier3_test_failures(temp_project_copy):
     service = AIToolsService(project_root=str(temp_project_copy))
     service._run_quick_audit_tools = MagicMock(return_value=True)
     service._run_standard_audit_tools = MagicMock(return_value=True)
+
     def _full_strict():
         service.tier3_test_outcome = {
             "parallel": {"classification": "failed"},

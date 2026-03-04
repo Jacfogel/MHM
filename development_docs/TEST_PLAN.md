@@ -357,6 +357,17 @@ Acceptance:
 - [ ] Active queue contains only reproducible/high-confidence suspects.
 - [ ] Each open suspect has explicit repro metadata.
 
+**Investigate recurring SIGINT events during `run_tests.py --full` (Development Tools parallel phase)**
+- *What it means*: Identify the true signal source for repeated SIGINT events that appear during dev-tools parallel execution and verify whether they originate from keyboard input, parent-process forwarding, subprocess lifecycle handling, or external environment/process hooks.
+- *Why it helps*: Prevents false interruption behavior, reduces test-run noise, and increases trust in full-suite outcomes.
+- *Estimated effort*: Medium
+- *User priority*: High/medium. *Created*: 2026-03-03
+- *Subtasks*:
+  - [ ] Instrument signal origin breadcrumbs in `run_tests.py` (phase, active subprocess PID, elapsed time, first/second-interrupt window state)
+  - [ ] Correlate runner logs with Windows event/process context for the first observed SIGINT
+  - [ ] Confirm whether repeated SIGINTs are environmental noise or runner-generated propagation
+  - [ ] If non-user-generated, add guardrails so single noisy SIGINT remains non-blocking and does not degrade summary accuracy
+
 **Stabilize intermittent `test_tool_wrappers_cache_helpers` failure**
 - *What it means*: Investigate and fix the intermittent failure in `tests/development_tools/test_tool_wrappers_cache_helpers.py` observed during full Tier 3/dev-tools coverage runs.
 - *Why it helps*: Keeps development-tools coverage runs reliable and prevents false audit failures from test flakiness.

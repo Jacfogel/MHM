@@ -1272,11 +1272,7 @@ class AccountCreatorDialog(QDialog):
             "?",
             "*",
         ]
-        for char in invalid_chars:
-            if char in username:
-                return False
-
-        return True
+        return all(char not in username for char in invalid_chars)
 
     @staticmethod
     @handle_errors("validating preferred name")
@@ -1290,11 +1286,7 @@ class AccountCreatorDialog(QDialog):
 
         # Check for invalid characters
         invalid_chars = ["@", "/", "\\", ":", ";", "<", ">", "|", "?", "*"]
-        for char in invalid_chars:
-            if char in name:
-                return False
-
-        return True
+        return all(char not in name for char in invalid_chars)
 
     @staticmethod
     @handle_errors("validating all fields")

@@ -25,6 +25,7 @@ except Exception:
     _record_created = None
 from core.config import SCHEDULER_INTERVAL
 from core.error_handling import handle_errors
+import contextlib
 
 logger = get_component_logger("main")
 service_logger = get_component_logger("main")
@@ -115,10 +116,8 @@ def get_flags_dir() -> Path:
     else:
         flags_dir = Path(os.getenv("MHM_FLAGS_DIR", str(Path(__file__).parent.parent)))
 
-    try:
+    with contextlib.suppress(Exception):
         flags_dir.mkdir(parents=True, exist_ok=True)
-    except Exception:
-        pass
 
     return flags_dir
 
@@ -176,7 +175,7 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
     try:
         if _record_created:
             _record_created(
-                request_file,
+                str(request_file),
                 reason="create_reschedule_request",
                 extra={
                     "user_id": user_id,
@@ -227,51 +226,50 @@ def get_service_processes():
                 cmdline
                 and any("service.py" in arg for arg in cmdline)
                 and not any("run_headless_service.py" in arg for arg in cmdline)
-            ):
-                if proc.is_running():
-                    # Create a unique identifier for this process to avoid duplicates
-                    process_key = f"{proc.info['pid']}_{proc.info['create_time']}"
-                    if process_key in seen_processes:
-                        continue
-                    seen_processes.add(process_key)
+            ) and proc.is_running():
+                # Create a unique identifier for this process to avoid duplicates
+                process_key = f"{proc.info['pid']}_{proc.info['create_time']}"
+                if process_key in seen_processes:
+                    continue
+                seen_processes.add(process_key)
 
-                    # Determine if this is a UI-managed or headless service
-                    # UI-managed: has 'ui' in the path (launched by UI)
-                    # Headless: runs core/service.py directly without 'ui' in path
-                    full_cmdline = " ".join(cmdline)
-                    is_ui_managed = (
-                        "ui" in full_cmdline and "service.py" in full_cmdline
-                    )
-                    is_headless = (
-                        "core/service.py" in full_cmdline
-                        or "core\\service.py" in full_cmdline
-                        or full_cmdline.endswith("core/service.py")
-                        or full_cmdline.endswith("core\\service.py")
-                    ) and not is_ui_managed
+                # Determine if this is a UI-managed or headless service
+                # UI-managed: has 'ui' in the path (launched by UI)
+                # Headless: runs core/service.py directly without 'ui' in path
+                full_cmdline = " ".join(cmdline)
+                is_ui_managed = (
+                    "ui" in full_cmdline and "service.py" in full_cmdline
+                )
+                is_headless = (
+                    "core/service.py" in full_cmdline
+                    or "core\\service.py" in full_cmdline
+                    or full_cmdline.endswith("core/service.py")
+                    or full_cmdline.endswith("core\\service.py")
+                ) and not is_ui_managed
 
-                    # Check for environment markers to better identify service type
-                    try:
-                        environ = proc.info.get("environ", {})
-                        if environ and "MHM_HEADLESS_SERVICE" in environ:
-                            is_headless = True
-                            is_ui_managed = False
-                    except (psutil.AccessDenied, KeyError):
-                        pass  # Can't access environment, use cmdline detection
+                # Check for environment markers to better identify service type
+                try:
+                    environ = proc.info.get("environ", {})
+                    if environ and "MHM_HEADLESS_SERVICE" in environ:
+                        is_headless = True
+                        is_ui_managed = False
+                except (psutil.AccessDenied, KeyError):
+                    pass  # Can't access environment, use cmdline detection
 
-                    service_processes.append(
-                        {
-                            "pid": proc.info["pid"],
-                            "cmdline": cmdline,
-                            "create_time": proc.info["create_time"],
-                            "is_ui_managed": is_ui_managed,
-                            "is_headless": is_headless,
-                            "process_type": (
-                                "ui_managed"
-                                if is_ui_managed
-                                else "headless" if is_headless else "unknown"
-                            ),
-                        }
-                    )
+                service_processes.append(
+                    {
+                        "pid": proc.info["pid"],
+                        "cmdline": cmdline,
+                        "create_time": proc.info["create_time"],
+                        "is_ui_managed": is_ui_managed,
+                        "is_headless": is_headless,
+                        "process_type": (
+                            "ui_managed"
+                            if is_ui_managed
+                            else "headless" if is_headless else "unknown"
+                        ),
+                    }
+                )
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             continue
 

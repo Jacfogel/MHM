@@ -28,6 +28,7 @@ from core.file_operations import (
 )  # determine_file_path needed for test mocking
 from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN
 from core.service_utilities import wait_for_network
+import contextlib
 
 # Route orchestration logs to channels component; keep module logger for local debug if needed
 comm_logger = get_component_logger("channel_orchestrator")
@@ -57,7 +58,7 @@ class CommunicationManager:
         """Ensure that only one instance of the CommunicationManager exists (Singleton pattern)."""
         with cls._lock:
             if cls._instance is None:
-                cls._instance = super(CommunicationManager, cls).__new__(cls)
+                cls._instance = super().__new__(cls)
                 cls._instance._initialized = False
             return cls._instance
 
@@ -836,7 +837,7 @@ class CommunicationManager:
             if not channel.can_send_messages():
                 logger.error(f"Channel {channel_name} not ready - cannot send messages")
                 # Queue for retry after reconnection
-                try:
+                with contextlib.suppress(Exception):
                     self.send_message_sync__queue_failed_message(
                         kwargs.get("user_id", ""),
                         kwargs.get("category", "unknown"),
@@ -844,14 +845,12 @@ class CommunicationManager:
                         recipient,
                         channel_name,
                     )
-                except Exception:
-                    pass
                 return False
         elif not channel.is_ready():
             # Don't call async get_status() in sync context - just log the issue
             logger.error(f"Channel {channel_name} not ready")
             # Queue for retry after reconnection
-            try:
+            with contextlib.suppress(Exception):
                 self.send_message_sync__queue_failed_message(
                     kwargs.get("user_id", ""),
                     kwargs.get("category", "unknown"),
@@ -859,8 +858,6 @@ class CommunicationManager:
                     recipient,
                     channel_name,
                 )
-            except Exception:
-                pass
             return False
 
         # Check network connectivity with proper error handling
@@ -886,7 +883,7 @@ class CommunicationManager:
 
             # FIXED: Better return value validation
             # Use == instead of is to handle mock return values correctly
-            if success is True or success == True:
+            if success is True or success:
                 # Enhanced logging with message content and time period
                 message[:50] + "..." if len(message) > 50 else message
                 kwargs.get("time_period", "unknown")
@@ -894,7 +891,7 @@ class CommunicationManager:
                 kwargs.get("category", "unknown")
                 # Log will be handled by the deduplication logic below
                 return True
-            elif success is False or success == False:
+            elif success is False or not success:
                 logger.warning(
                     f"Channel {channel_name} returned False for message send to {recipient}"
                 )

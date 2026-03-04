@@ -22,6 +22,7 @@ from core.time_utilities import (
 
 from .base_handler import InteractionHandler, InteractionResponse, ParsedCommand
 
+
 # Lazy import to avoid circular dependency: core -> service -> channel_orchestrator -> task_handler -> tasks -> core
 @handle_errors("loading tasks module", default_return=None, re_raise=True)
 def _get_tasks():
@@ -811,7 +812,7 @@ class TaskManagementHandler(InteractionHandler):
         candidates = self._get_task_candidates(tasks, task_identifier)
         if len(candidates) > 1:
             preview = "\n".join(
-                [f"{i+1}. {t['title']}" for i, t in enumerate(candidates[:5])]
+                [f"{i + 1}. {t['title']}" for i, t in enumerate(candidates[:5])]
             )
             suffix = "\nIf you meant one of these, reply with 'complete task <number>'."
             return InteractionResponse(
@@ -914,7 +915,7 @@ class TaskManagementHandler(InteractionHandler):
         candidates = self._get_task_candidates(tasks, task_identifier)
         if len(candidates) > 1:
             preview = "\n".join(
-                [f"{i+1}. {t['title']}" for i, t in enumerate(candidates[:5])]
+                [f"{i + 1}. {t['title']}" for i, t in enumerate(candidates[:5])]
             )
             suffix = "\nIf you meant one of these, reply with 'delete task <number>'."
             return InteractionResponse(
@@ -969,7 +970,7 @@ class TaskManagementHandler(InteractionHandler):
         candidates = self._get_task_candidates(tasks, task_identifier)
         if len(candidates) > 1:
             preview = "\n".join(
-                [f"{i+1}. {t['title']}" for i, t in enumerate(candidates[:5])]
+                [f"{i + 1}. {t['title']}" for i, t in enumerate(candidates[:5])]
             )
             suffix = "\nIf you meant one of these, reply with 'update task <number> due date <date>' (or other field)."
             return InteractionResponse(

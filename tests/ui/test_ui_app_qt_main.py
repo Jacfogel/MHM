@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QApplication
 # Import the main UI application
 from ui.ui_app_qt import ServiceManager
 
+
 # Create QApplication instance for testing
 @pytest.fixture(scope="function")
 def qapp():

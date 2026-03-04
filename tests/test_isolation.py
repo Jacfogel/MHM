@@ -7,6 +7,7 @@ file system changes, or other system resources that could affect the host system
 
 from unittest.mock import MagicMock, patch
 
+
 def mock_system_calls():
     """
     Mock all system calls that could create real resources.
@@ -30,6 +31,7 @@ def mock_system_calls():
     
     return patches
 
+
 def mock_schtasks_call(*args, **kwargs):
     """Mock schtasks calls to prevent real task creation."""
     if args and len(args) > 0 and 'schtasks' in str(args[0]):
@@ -44,6 +46,7 @@ def mock_schtasks_call(*args, **kwargs):
     import subprocess
     return subprocess.run(*args, **kwargs)
 
+
 def ensure_test_isolation():
     """
     Ensure that tests are properly isolated from system resources.
@@ -55,6 +58,7 @@ def ensure_test_isolation():
     with patch('core.scheduler.SchedulerManager.set_wake_timer') as mock_wake_timer:
         mock_wake_timer.return_value = None
         return mock_wake_timer
+
 
 def create_safe_scheduler_manager():
     """
@@ -82,6 +86,7 @@ def create_safe_scheduler_manager():
             mock_subprocess.return_value.stderr = ""
             
             return scheduler
+
 
 def verify_no_real_tasks_created():
     """
@@ -124,6 +129,7 @@ def verify_no_real_tasks_created():
         logger = logging.getLogger('mhm_tests')
         logger.error(f"Could not verify task creation: {e}")
         return True  # Assume OK if we can't check
+
 
 # Context manager for test isolation
 class IsolationManager:

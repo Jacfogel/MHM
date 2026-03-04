@@ -300,9 +300,8 @@ class UnconvertedLinkAnalyzer:
                         stripped
                         and not stripped.startswith("#")
                         and not stripped.startswith(">")
-                    ):
-                        if i < line_num:
-                            return False
+                    ) and i < line_num:
+                        return False
         if metadata_block_start is not None:
             for i in range(metadata_block_start, line_num + 1):
                 if i < len(lines):
@@ -311,9 +310,8 @@ class UnconvertedLinkAnalyzer:
                         stripped
                         and not stripped.startswith(">")
                         and not stripped.startswith("#")
-                    ):
-                        if i < line_num:
-                            return False
+                    ) and i < line_num:
+                        return False
                     if i == line_num and (stripped.startswith(">") or not stripped):
                         return True
         return False

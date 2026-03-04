@@ -319,6 +319,7 @@ class TestTaskManagementDialogSaving:
                                             
                                             # Act - Connect to signal
                                             signal_emitted = False
+
                                             def on_signal():
                                                 nonlocal signal_emitted
                                                 signal_emitted = True

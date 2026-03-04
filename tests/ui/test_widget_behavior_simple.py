@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 from PySide6.QtWidgets import QApplication
 
+
 # Do not modify sys.path; rely on package imports
 
 # Create QApplication instance for testing
@@ -25,6 +26,7 @@ def qapp():
         app = QApplication([])
     yield app
 
+
 class TestTagWidgetBasicBehavior:
     """Test TagWidget basic functionality without complex UI setup."""
     
@@ -33,14 +35,14 @@ class TestTagWidgetBasicBehavior:
     @pytest.mark.critical
     def test_tag_widget_import_and_creation(self, qapp):
         """REAL BEHAVIOR TEST: Test TagWidget can be imported and created."""
-        #[OK] VERIFY REAL BEHAVIOR: Import works
+        # [OK] VERIFY REAL BEHAVIOR: Import works
         from ui.widgets.tag_widget import TagWidget
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget can be created
+        # [OK] VERIFY REAL BEHAVIOR: Widget can be created
         widget = TagWidget(mode="management", parent=None)
         assert widget is not None, "TagWidget should be created successfully"
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
+        # [OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
         assert hasattr(widget, 'ui'), "TagWidget should have UI loaded"
         
         # Cleanup
@@ -51,18 +53,19 @@ class TestTagWidgetBasicBehavior:
     @pytest.mark.critical
     def test_tag_widget_selection_mode(self, qapp):
         """REAL BEHAVIOR TEST: Test TagWidget works in selection mode."""
-        #[OK] VERIFY REAL BEHAVIOR: Import works
+        # [OK] VERIFY REAL BEHAVIOR: Import works
         from ui.widgets.tag_widget import TagWidget
         
-        #[OK] VERIFY REAL BEHAVIOR: Selection mode widget can be created
+        # [OK] VERIFY REAL BEHAVIOR: Selection mode widget can be created
         widget = TagWidget(mode="selection", parent=None)
         assert widget is not None, "TagWidget in selection mode should be created successfully"
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
+        # [OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
         assert hasattr(widget, 'ui'), "TagWidget should have UI loaded"
         
         # Cleanup
         widget.deleteLater()
+
 
 class TestTaskSettingsWidgetBasicBehavior:
     """Test TaskSettingsWidget basic functionality."""
@@ -72,7 +75,7 @@ class TestTaskSettingsWidgetBasicBehavior:
     @pytest.mark.critical
     def test_task_settings_widget_import_and_creation(self, qapp, test_data_dir):
         """REAL BEHAVIOR TEST: Test TaskSettingsWidget can be imported and created."""
-        #[OK] VERIFY REAL BEHAVIOR: Import works
+        # [OK] VERIFY REAL BEHAVIOR: Import works
         from ui.widgets.task_settings_widget import TaskSettingsWidget
         
         # Create minimal test user data
@@ -85,15 +88,16 @@ class TestTaskSettingsWidgetBasicBehavior:
         with open(user_dir / "preferences.json", "w") as f:
             json.dump({"tasks_enabled": True}, f)
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget can be created
+        # [OK] VERIFY REAL BEHAVIOR: Widget can be created
         widget = TaskSettingsWidget(user_id=user_id, parent=None)
         assert widget is not None, "TaskSettingsWidget should be created successfully"
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
+        # [OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
         assert hasattr(widget, 'ui'), "TaskSettingsWidget should have UI loaded"
         
         # Cleanup
         widget.deleteLater()
+
 
 class TestCategorySelectionWidgetBasicBehavior:
     """Test CategorySelectionWidget basic functionality."""
@@ -101,7 +105,7 @@ class TestCategorySelectionWidgetBasicBehavior:
     @pytest.mark.ui
     def test_category_selection_widget_import_and_creation(self, qapp, test_data_dir):
         """REAL BEHAVIOR TEST: Test CategorySelectionWidget can be imported and created."""
-        #[OK] VERIFY REAL BEHAVIOR: Import works
+        # [OK] VERIFY REAL BEHAVIOR: Import works
         from ui.widgets.category_selection_widget import CategorySelectionWidget
         
         # Create minimal test user data
@@ -114,15 +118,16 @@ class TestCategorySelectionWidgetBasicBehavior:
         with open(user_dir / "preferences.json", "w") as f:
             json.dump({"categories": ["general", "health"]}, f)
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget can be created
+        # [OK] VERIFY REAL BEHAVIOR: Widget can be created
         widget = CategorySelectionWidget(parent=None)
         assert widget is not None, "CategorySelectionWidget should be created successfully"
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
+        # [OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
         assert hasattr(widget, 'ui'), "CategorySelectionWidget should have UI loaded"
         
         # Cleanup
         widget.deleteLater()
+
 
 class TestChannelSelectionWidgetBasicBehavior:
     """Test ChannelSelectionWidget basic functionality."""
@@ -130,7 +135,7 @@ class TestChannelSelectionWidgetBasicBehavior:
     @pytest.mark.ui
     def test_channel_selection_widget_import_and_creation(self, qapp, test_data_dir):
         """REAL BEHAVIOR TEST: Test ChannelSelectionWidget can be imported and created."""
-        #[OK] VERIFY REAL BEHAVIOR: Import works
+        # [OK] VERIFY REAL BEHAVIOR: Import works
         from ui.widgets.channel_selection_widget import ChannelSelectionWidget
         
         # Create minimal test user data
@@ -143,15 +148,16 @@ class TestChannelSelectionWidgetBasicBehavior:
         with open(user_dir / "preferences.json", "w") as f:
             json.dump({"channels": {"email": {"enabled": True, "contact": "test@example.com"}}}, f)
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget can be created
+        # [OK] VERIFY REAL BEHAVIOR: Widget can be created
         widget = ChannelSelectionWidget(parent=None)
         assert widget is not None, "ChannelSelectionWidget should be created successfully"
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
+        # [OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
         assert hasattr(widget, 'ui'), "ChannelSelectionWidget should have UI loaded"
         
         # Cleanup
         widget.deleteLater()
+
 
 class TestCheckinSettingsWidgetBasicBehavior:
     """Test CheckinSettingsWidget basic functionality."""
@@ -159,7 +165,7 @@ class TestCheckinSettingsWidgetBasicBehavior:
     @pytest.mark.ui
     def test_checkin_settings_widget_import_and_creation(self, qapp, test_data_dir):
         """REAL BEHAVIOR TEST: Test CheckinSettingsWidget can be imported and created."""
-        #[OK] VERIFY REAL BEHAVIOR: Import works
+        # [OK] VERIFY REAL BEHAVIOR: Import works
         from ui.widgets.checkin_settings_widget import CheckinSettingsWidget
         
         # Create minimal test user data
@@ -172,15 +178,16 @@ class TestCheckinSettingsWidgetBasicBehavior:
         with open(user_dir / "preferences.json", "w") as f:
             json.dump({"checkins_enabled": True, "checkin_periods": []}, f)
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget can be created
+        # [OK] VERIFY REAL BEHAVIOR: Widget can be created
         widget = CheckinSettingsWidget(user_id=user_id, parent=None)
         assert widget is not None, "CheckinSettingsWidget should be created successfully"
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
+        # [OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
         assert hasattr(widget, 'ui'), "CheckinSettingsWidget should have UI loaded"
         
         # Cleanup
         widget.deleteLater()
+
 
 class TestUserProfileSettingsWidgetBasicBehavior:
     """Test UserProfileSettingsWidget basic functionality."""
@@ -188,7 +195,7 @@ class TestUserProfileSettingsWidgetBasicBehavior:
     @pytest.mark.ui
     def test_user_profile_settings_widget_import_and_creation(self, qapp, test_data_dir):
         """REAL BEHAVIOR TEST: Test UserProfileSettingsWidget can be imported and created."""
-        #[OK] VERIFY REAL BEHAVIOR: Import works
+        # [OK] VERIFY REAL BEHAVIOR: Import works
         from ui.widgets.user_profile_settings_widget import UserProfileSettingsWidget
         
         # Create minimal test user data
@@ -201,15 +208,16 @@ class TestUserProfileSettingsWidgetBasicBehavior:
         with open(user_dir / "preferences.json", "w") as f:
             json.dump({"preferred_name": "Test User"}, f)
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget can be created
+        # [OK] VERIFY REAL BEHAVIOR: Widget can be created
         widget = UserProfileSettingsWidget(user_id=user_id, parent=None)
         assert widget is not None, "UserProfileSettingsWidget should be created successfully"
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
+        # [OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
         assert hasattr(widget, 'ui'), "UserProfileSettingsWidget should have UI loaded"
         
         # Cleanup
         widget.deleteLater()
+
 
 class TestDynamicListFieldBasicBehavior:
     """Test DynamicListField basic functionality."""
@@ -217,18 +225,19 @@ class TestDynamicListFieldBasicBehavior:
     @pytest.mark.ui
     def test_dynamic_list_field_import_and_creation(self, qapp):
         """REAL BEHAVIOR TEST: Test DynamicListField can be imported and created."""
-        #[OK] VERIFY REAL BEHAVIOR: Import works
+        # [OK] VERIFY REAL BEHAVIOR: Import works
         from ui.widgets.dynamic_list_field import DynamicListField
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget can be created
+        # [OK] VERIFY REAL BEHAVIOR: Widget can be created
         widget = DynamicListField(parent=None, preset_label="Test Items", editable=True, checked=False)
         assert widget is not None, "DynamicListField should be created successfully"
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
+        # [OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
         assert hasattr(widget, 'ui'), "DynamicListField should have UI loaded"
         
         # Cleanup
         widget.deleteLater()
+
 
 class TestDynamicListContainerBasicBehavior:
     """Test DynamicListContainer basic functionality."""
@@ -236,14 +245,14 @@ class TestDynamicListContainerBasicBehavior:
     @pytest.mark.ui
     def test_dynamic_list_container_import_and_creation(self, qapp):
         """REAL BEHAVIOR TEST: Test DynamicListContainer can be imported and created."""
-        #[OK] VERIFY REAL BEHAVIOR: Import works
+        # [OK] VERIFY REAL BEHAVIOR: Import works
         from ui.widgets.dynamic_list_container import DynamicListContainer
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget can be created
+        # [OK] VERIFY REAL BEHAVIOR: Widget can be created
         widget = DynamicListContainer(parent=None, field_key="test_field")
         assert widget is not None, "DynamicListContainer should be created successfully"
         
-        #[OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
+        # [OK] VERIFY REAL BEHAVIOR: Widget has expected attributes
         assert hasattr(widget, 'layout'), "DynamicListContainer should have layout"
         
         # Cleanup

@@ -25,6 +25,7 @@ from core.schemas import (
     validate_preferences_dict,
     validate_schedules_dict,
 )
+import contextlib
 
 logger = get_component_logger("main")
 handlers_logger = get_component_logger("user_activity")
@@ -337,10 +338,8 @@ def _save_user_data__save_account(user_id: str, account_data: dict[str, Any]) ->
     account_data["updated_at"] = now_timestamp_full()
 
     # Validate/normalize via Pydantic schema (non-blocking)
-    try:
+    with contextlib.suppress(Exception):
         account_data, _errs = validate_account_dict(account_data)
-    except Exception:
-        pass
     save_json_data(account_data, account_file)
 
     # Update cache
@@ -405,10 +404,8 @@ def _save_user_data__save_preferences(
     preferences_file = get_user_file_path(user_id, "preferences")
 
     # Validate/normalize via Pydantic schema (non-blocking)
-    try:
+    with contextlib.suppress(Exception):
         preferences_data, _perrs = validate_preferences_dict(preferences_data)
-    except Exception:
-        pass
     save_json_data(preferences_data, preferences_file)
 
     # Update cache
@@ -1767,10 +1764,8 @@ def _save_user_data__check_cross_file_invariants(
                             merged_data["account"]["features"].update(feats)
 
                 # Ensure schedules exist for all categories
-                try:
+                with contextlib.suppress(Exception):
                     ensure_all_categories_have_schedules(user_id, suppress_logging=True)
-                except Exception:
-                    pass
 
         # Invariant 2: If account.features.automated_messages is disabled but preferences has categories, enable it
         # (This is essentially the same as Invariant 1, but checking from account side)

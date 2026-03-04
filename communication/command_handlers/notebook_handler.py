@@ -979,7 +979,7 @@ class NotebookHandler(InteractionHandler):
             response_parts.append("\n**Items:**")
             for i, item in enumerate(entry.items):
                 status = "✅" if item.done else "⬜"
-                response_parts.append(f"{status} {i+1}. {item.text}")
+                response_parts.append(f"{status} {i + 1}. {item.text}")
 
         return "\n".join(response_parts)
 

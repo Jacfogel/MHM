@@ -383,7 +383,7 @@ class TestUISignalConnectionIntegrity:
             # Check for TypeErrors which indicate signature mismatches
             type_errors = []
             for err in exceptions_caught:
-                if err[0] != TypeError:
+                if err[0] is not TypeError:
                     continue
                 frames = err[2] if len(err) > 2 else []
                 frame_paths = [str(f.filename).replace("\\", "/").lower() for f in frames]
@@ -440,7 +440,7 @@ class TestUISignalConnectionIntegrity:
             # Check for TypeErrors
             type_errors = []
             for err in exceptions_caught:
-                if err[0] != TypeError:
+                if err[0] is not TypeError:
                     continue
                 frames = err[2] if len(err) > 2 else []
                 frame_paths = [str(f.filename).replace("\\", "/").lower() for f in frames]

@@ -44,6 +44,7 @@ from core.user_data_handlers import get_user_data
 # that patch core.service.get_user_data continue to work.
 
 from core.error_handling import handle_errors, FileOperationError
+import contextlib
 
 
 class InitializationError(Exception):
@@ -964,10 +965,8 @@ class MHMService:
                     logger.error(
                         f"Error processing check-in prompt request {filename}: {e}"
                     )
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(file_path)
-                    except Exception:
-                        pass
 
     @handle_errors("getting check-in first question", default_return=None)
     def _get_checkin_first_question(self, user_id: str) -> str:
@@ -1059,10 +1058,8 @@ class MHMService:
                     logger.error(
                         f"Error processing task reminder request {filename}: {e}"
                     )
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(file_path)
-                    except Exception:
-                        pass
 
     @handle_errors("getting base directory for cleanup", default_return="")
     def _cleanup_test_message_requests__get_base_directory(self):

@@ -1175,11 +1175,10 @@ class CheckinAnalytics:
             elif avg_hours > 9:
                 recommendations.append("Consider if you're getting too much sleep")
 
-        if avg_quality is not None:
-            if avg_quality < 3:
-                recommendations.append(
-                    "Work on improving sleep quality with a bedtime routine"
-                )
+        if avg_quality is not None and avg_quality < 3:
+            recommendations.append(
+                "Work on improving sleep quality with a bedtime routine"
+            )
 
         if poor_days > 3:
             recommendations.append(

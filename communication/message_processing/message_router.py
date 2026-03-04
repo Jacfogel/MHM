@@ -10,6 +10,7 @@ from core.error_handling import handle_errors
 router_logger = get_component_logger('message_router')
 logger = router_logger
 
+
 class MessageType(Enum):
     """Types of messages that can be routed"""
     SLASH_COMMAND = "slash_command"
@@ -19,6 +20,7 @@ class MessageType(Enum):
     FLOW_COMMAND = "flow_command"
     UNKNOWN = "unknown"
 
+
 @dataclass
 class RoutingResult:
     """Result of message routing"""
@@ -27,6 +29,7 @@ class RoutingResult:
     mapped_message: str | None = None
     should_continue_parsing: bool = True
     flow_command: bool = False
+
 
 class MessageRouter:
     """Routes messages to appropriate handlers based on message type and content"""
@@ -268,8 +271,10 @@ class MessageRouter:
         cmd_def = next((c for c in self._command_definitions if c['name'] == command_name), None)
         return cmd_def['mapped_message'] if cmd_def else None
 
+
 # Global router instance
 _message_router = None
+
 
 @handle_errors("getting message router", default_return=None)
 def get_message_router() -> MessageRouter:

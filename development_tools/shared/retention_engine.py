@@ -210,7 +210,12 @@ def apply_retention_plan(plan: dict[str, object], dry_run: bool = True) -> dict[
         },
         "actions": [],
     }
-    for action in plan.get("actions", []):
+    actions = plan.get("actions", [])
+    if not isinstance(actions, list):
+        actions = []
+    for action in actions:
+        if not isinstance(action, dict):
+            continue
         file_path = str(action.get("file_path", ""))
         if not file_path:
             continue

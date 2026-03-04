@@ -440,7 +440,7 @@ class TestDiscordBotBehavior:
         for i in range(max_responses):
             # Try "4" first (works for scale_1_5 questions)
             resp = handle_user_message(internal_uid, "4", "discord")
-            assert resp and resp.message, f"Response {i+1} should have a message"
+            assert resp and resp.message, f"Response {i + 1} should have a message"
             responses.append(resp)
             
             if resp.completed:
@@ -450,7 +450,7 @@ class TestDiscordBotBehavior:
             # If validation failed, try "yes" for yes/no questions
             if not resp.completed and ("please enter" in resp.message.lower() or "invalid" in resp.message.lower() or "yes/no" in resp.message.lower()):
                 resp = handle_user_message(internal_uid, "yes", "discord")
-                assert resp and resp.message, f"Response {i+1} (retry) should have a message"
+                assert resp and resp.message, f"Response {i + 1} (retry) should have a message"
                 responses.append(resp)
                 if resp.completed:
                     break

@@ -33,6 +33,7 @@ from core.service import (
 )
 from core.user_data_handlers import get_user_categories
 
+
 @pytest.mark.behavior
 class TestMHMService:
     """Test cases for the MHMService class."""

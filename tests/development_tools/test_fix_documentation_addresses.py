@@ -96,7 +96,7 @@ This document already has a file address.
         # Address should be added after title
         assert '**File**' in content or 'File:' in content, \
             "File address should be added"
-        assert content.find('# Title') < content.find('**File**' or 'File:'), \
+        assert content.find('# Title') < content.find('**File**'), \
             "Address should come after title"
     
     @pytest.mark.unit

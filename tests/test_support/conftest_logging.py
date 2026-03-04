@@ -322,10 +322,7 @@ def setup_consolidated_test_logging():
 
             if logger_name.startswith("mhm."):
                 verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
-                if verbose_logs == "2":
-                    level = logging.DEBUG
-                else:
-                    level = logging.WARNING
+                level = logging.DEBUG if verbose_logs == "2" else logging.WARNING
             else:
                 verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
                 if verbose_logs == "2":

@@ -229,7 +229,7 @@ class TestLoggerCoverageExpansion:
         for i in range(3):
             record = create_record(logging.WARNING, f"heartbeat blocked for {i} seconds")
             result = filter_obj.filter(record)
-            assert result is True, f"Warning {i+1} should pass through"
+            assert result is True, f"Warning {i + 1} should pass through"
         
         # Test 4th warning (should start suppression and log message)
         record = create_record(logging.WARNING, "heartbeat blocked for 5 seconds")

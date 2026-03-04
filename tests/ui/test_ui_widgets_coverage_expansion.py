@@ -302,6 +302,7 @@ class TestUIWidgetsCoverageExpansion:
             
             # Connect to signal
             signal_emitted = False
+
             def on_tags_changed():
                 nonlocal signal_emitted
                 signal_emitted = True
@@ -420,6 +421,7 @@ class TestUIWidgetsCoverageExpansion:
         
         # Connect to signal
         signal_emitted = False
+
         def on_delete_requested(widget_instance):
             nonlocal signal_emitted
             signal_emitted = True
@@ -543,6 +545,7 @@ class TestUIWidgetsCoverageExpansion:
             
             # Connect to signal
             signal_emitted = False
+
             def on_values_changed():
                 nonlocal signal_emitted
                 signal_emitted = True

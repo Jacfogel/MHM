@@ -1,6 +1,6 @@
 # TOOL_TIER: supporting
 
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 """Audit script to verify FUNCTION_REGISTRY_DETAIL.md coverage."""
 
 from __future__ import annotations

@@ -157,11 +157,8 @@ class PeriodRowWidget(QWidget):
             # If no name provided, use a default name
             name = "Task Reminder"
 
-        if name.upper() == "ALL":
-            display_name = "ALL"
-        else:
-            # Preserve user's original case - don't convert to title case
-            display_name = name
+        # Preserve user's original case - don't convert to title case
+        display_name = "ALL" if name.upper() == "ALL" else name
         self.ui.lineEdit_time_period_name.setText(display_name)
 
         # Set start time
@@ -356,10 +353,7 @@ class PeriodRowWidget(QWidget):
                 return False
 
             # Day validation - active periods must have at least one day selected
-            if data["active"] and not data["days"]:
-                return False
-
-            return True
+            return not (data["active"] and not data["days"])
         except Exception as e:
             logger.error(f"Error validating period data: {e}")
             return False

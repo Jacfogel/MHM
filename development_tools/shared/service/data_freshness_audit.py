@@ -149,11 +149,11 @@ def verify_file_existence_checks(project_root: Path) -> list[str]:
             for i, line in enumerate(lines):
                 if ('for file_path' in line or 'for file_path_str' in line) and 'in' in line:
                     # Check if next few lines have file existence check
-                    next_lines = '\n'.join(lines[i:i+10])
+                    next_lines = '\n'.join(lines[i:i + 10])
                     if 'file_path.exists()' not in next_lines and 'file_path_obj.exists()' not in next_lines:
                         # Check if it's in extract_files_with_issue_counts (which we fixed)
-                        if 'extract_files_with_issue_counts' not in '\n'.join(lines[max(0, i-5):i]):
-                            issues.append(f"{service_file.name}:{i+1} - File path iteration without existence check")
+                        if 'extract_files_with_issue_counts' not in '\n'.join(lines[max(0, i - 5):i]):
+                            issues.append(f"{service_file.name}:{i + 1} - File path iteration without existence check")
     
     return issues
 

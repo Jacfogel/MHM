@@ -18,6 +18,7 @@ logger = get_component_logger("development_tools")
 
 # Import output storage
 from ..output_storage import load_tool_result, save_tool_result
+import contextlib
 
 # Script registry - maps tool names to their file paths
 SCRIPT_REGISTRY = {
@@ -1104,10 +1105,8 @@ class ToolWrappersMixin:
                 env=env,
             )
             # Clean up temp file
-            try:
+            with contextlib.suppress(Exception):
                 Path(findings_file).unlink()
-            except Exception:
-                pass
 
             return {
                 "success": result_proc.returncode == 0,
@@ -1116,10 +1115,8 @@ class ToolWrappersMixin:
                 "returncode": result_proc.returncode,
             }
         except subprocess.TimeoutExpired:
-            try:
+            with contextlib.suppress(Exception):
                 Path(findings_file).unlink()
-            except Exception:
-                pass
             return {
                 "success": False,
                 "output": "",
@@ -1127,10 +1124,8 @@ class ToolWrappersMixin:
                 "returncode": None,
             }
         except Exception as e:
-            try:
+            with contextlib.suppress(Exception):
                 Path(findings_file).unlink()
-            except Exception:
-                pass
             return {
                 "success": False,
                 "output": "",
@@ -1347,7 +1342,7 @@ class ToolWrappersMixin:
                     if brace_count == 0:
                         json_end = i + 1
                         logger.debug(
-                            f"Found JSON end at line {i+1}, total lines: {json_end - json_start}"
+                            f"Found JSON end at line {i + 1}, total lines: {json_end - json_start}"
                         )
                         break
 

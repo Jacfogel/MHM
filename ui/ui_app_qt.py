@@ -56,6 +56,7 @@ import core.config
 
 # Import generated UI for main window
 from ui.generated.admin_panel_pyqt import Ui_ui_app_mainwindow
+import contextlib
 
 
 class ServiceManager:
@@ -294,9 +295,8 @@ class ServiceManager:
                     and len(cmdline) >= 2
                     and cmdline[-1].endswith("service.py")
                     and "service.py" in cmdline[-1]
-                ):
-                    if proc.is_running():
-                        found_processes.append(proc)
+                ) and proc.is_running():
+                    found_processes.append(proc)
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 continue
 
@@ -1952,10 +1952,8 @@ class MHMManagerUI(QMainWindow):
                         response_data = json.load(f)
                     actual_message = response_data.get("message", actual_message)
                     # Clean up response file
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(response_file)
-                    except Exception:
-                        pass
                     break
                 except Exception as e:
                     logger.debug(f"Could not read response file: {e}")
@@ -2096,10 +2094,8 @@ class MHMManagerUI(QMainWindow):
                         response_data = json.load(f)
                     first_question = response_data.get("first_question", first_question)
                     # Clean up response file
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(response_file)
-                    except Exception:
-                        pass
                     break
                 except Exception as e:
                     logger.debug(f"Could not read check-in response file: {e}")
@@ -2363,7 +2359,7 @@ Next cleanup: {status['next_cleanup']}
 Current cache files found:
 • {len(pycache_dirs)} __pycache__ directories
 • {len(pyc_files)} standalone .pyc files
-• Total size: {current_size / 1024:.1f} KB ({current_size / (1024*1024):.2f} MB)"""
+• Total size: {current_size / 1024:.1f} KB ({current_size / (1024 * 1024):.2f} MB)"""
 
         status_text.setPlainText(status_content)
         layout.addWidget(status_text)

@@ -16,6 +16,7 @@ from tests.test_utilities import (
 
 pytestmark = [pytest.mark.behavior]
 
+
 @pytest.mark.behavior
 class TestUtilitiesDemo:
     """Demonstration of centralized test utilities usage"""
@@ -202,8 +203,6 @@ class TestUtilitiesDemo:
                 assert account_data is not None, "Account data should be loadable"
                 assert account_data.get("email") == email, "Email should be saved correctly"
                 assert account_data.get("features", {}).get("automated_messages") == "enabled", "Messages should be enabled"
-    
-
     
     def test_custom_fields_user_creation(self, test_data_dir):
         """Test creating a user with custom fields."""

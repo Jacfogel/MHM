@@ -698,10 +698,8 @@ class DiscordBot(BaseChannel):
             # Cancel any remaining tasks
             for task in pending:
                 task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await task
-                except asyncio.CancelledError:
-                    pass
         finally:
             # Ensure bot is properly closed
             if not bot.is_closed():
@@ -2093,10 +2091,7 @@ class DiscordBot(BaseChannel):
                 message = message[title_end + 2 :].strip()
 
         # Set description
-        if "description" in rich_data:
-            embed.description = rich_data["description"]
-        else:
-            embed.description = message
+        embed.description = rich_data.get("description", message)
 
         # Set color based on type or use default
         color_map = {
@@ -2298,10 +2293,7 @@ class DiscordBot(BaseChannel):
                 return False
 
             # Check if we have any guilds (servers) we're connected to
-            if not bot.guilds:
-                return False
-
-            return True
+            return bot.guilds
         except Exception as e:
             logger.warning(f"Error checking message sending capability: {e}")
             return False

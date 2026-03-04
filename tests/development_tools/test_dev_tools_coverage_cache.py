@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from development_tools.tests.dev_tools_coverage_cache import DevToolsCoverageCache
+import contextlib
 
 
 def _make_local_scratch_dir() -> Path:
@@ -31,10 +32,8 @@ def _cleanup_local_scratch_dir(path: Path) -> None:
     for _ in range(3):
         try:
             for item in path.rglob("*"):
-                try:
+                with contextlib.suppress(OSError):
                     os.chmod(item, stat.S_IWRITE | stat.S_IREAD)
-                except OSError:
-                    pass
             shutil.rmtree(path, ignore_errors=False)
             return
         except OSError:
@@ -58,7 +57,7 @@ def test_dev_tools_cache_persists_tool_hash_and_mtimes() -> None:
         assert cache_json.get("tool_hash")
         tool_mtimes = cache_json.get("tool_mtimes")
         assert isinstance(tool_mtimes, dict)
-        normalized_keys = {k.replace("\\", "/") for k in tool_mtimes.keys()}
+        normalized_keys = {k.replace("\\", "/") for k in tool_mtimes}
         assert "development_tools/tests/run_test_coverage.py" in normalized_keys
         assert "development_tools/tests/dev_tools_coverage_cache.py" in normalized_keys
     finally:

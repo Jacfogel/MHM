@@ -11,7 +11,6 @@ ensure_qt_runtime()
 import pytest
 
 
-
 @pytest.mark.ui
 class TestAccountCreatorDialogValidation:
     """Test AccountCreatorDialog validation methods directly."""

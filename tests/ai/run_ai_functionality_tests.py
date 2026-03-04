@@ -29,6 +29,7 @@ from core.time_utilities import (
     now_timestamp_filename,
     now_timestamp_full,
 )
+import contextlib
 
 # Add project root to path (already set above)
 sys.path.insert(0, project_root)
@@ -57,10 +58,10 @@ def setup_consolidated_ai_test_logging():
     # Write headers to both log files
     def write_log_header(log_file, log_name, description):
         header_text = (
-            f"{'='*80}\n"
+            f"{'=' * 80}\n"
             f"# {log_name} STARTED: {timestamp}\n"
             f"# {description}\n"
-            f"{'='*80}\n\n"
+            f"{'=' * 80}\n\n"
         )
         with open(log_file, "w", encoding="utf-8") as f:
             f.write(header_text)
@@ -109,10 +110,8 @@ def setup_consolidated_ai_test_logging():
     root_logger = logging.getLogger()
     # Clear any existing handlers
     for h in root_logger.handlers[:]:
-        try:
+        with contextlib.suppress(Exception):
             h.close()
-        except Exception:
-            pass
         root_logger.removeHandler(h)
 
     # Configure all loggers in the logger dict
@@ -122,10 +121,8 @@ def setup_consolidated_ai_test_logging():
 
             # Clear existing handlers
             for h in logger_obj.handlers[:]:
-                try:
+                with contextlib.suppress(Exception):
                     h.close()
-                except Exception:
-                    pass
                 logger_obj.removeHandler(h)
 
             # Set appropriate log level
@@ -637,10 +634,8 @@ def main():
                     project_root, "tests", "data", "user_index.json"
                 )
                 if os.path.exists(user_index_file):
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(user_index_file)
-                    except Exception:
-                        pass
 
                 cleanup_msg = "Cleaned up test users from tests/data/users/"
                 test_logger.info(cleanup_msg)

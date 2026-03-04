@@ -75,7 +75,6 @@ class DataLoadingMixin:
                 return None
 
         # Determine if we're in an active audit (should have current data)
-        hasattr(self, 'current_audit_tier') and self.current_audit_tier is not None
         audit_tier = getattr(self, 'current_audit_tier', None)
         
         # Check if this tool was actually run in the current audit tier

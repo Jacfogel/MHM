@@ -10,7 +10,6 @@ from unittest.mock import patch
 from tests.development_tools.conftest import load_development_tools_module
 
 
-
 class TestFixDocumentationASCII:
     """Test documentation ASCII fixer functionality."""
     

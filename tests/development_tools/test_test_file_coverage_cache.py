@@ -14,6 +14,7 @@ import pytest
 
 from development_tools.tests.domain_mapper import DomainMapper
 from development_tools.tests.test_file_coverage_cache import TestFileCoverageCache
+import contextlib
 
 
 def _make_local_scratch_dir() -> Path:
@@ -34,10 +35,8 @@ def _cleanup_local_scratch_dir(path: Path) -> None:
     for _ in range(3):
         try:
             for item in path.rglob("*"):
-                try:
+                with contextlib.suppress(OSError):
                     os.chmod(item, stat.S_IWRITE | stat.S_IREAD)
-                except OSError:
-                    pass
             shutil.rmtree(path, ignore_errors=False)
             return
         except OSError:
@@ -143,7 +142,7 @@ def test_cache_invalidates_domains_when_test_file_changes() -> None:
 
         # Build initial mapping and a stable baseline cache snapshot.
         cache.update_test_file_mapping(test_file)
-        for domain in cache.domain_mapper.SOURCE_TO_TEST_MAPPING.keys():
+        for domain in cache.domain_mapper.SOURCE_TO_TEST_MAPPING:
             cache.cache_data.setdefault("source_files_mtime", {})[
                 domain
             ] = cache.get_source_file_mtimes(domain)
@@ -189,7 +188,7 @@ def test_cache_persists_tool_hash_and_mtimes() -> None:
         assert cache_json.get("tool_hash")
         tool_mtimes = cache_json.get("tool_mtimes")
         assert isinstance(tool_mtimes, dict)
-        normalized_keys = {k.replace("\\", "/") for k in tool_mtimes.keys()}
+        normalized_keys = {k.replace("\\", "/") for k in tool_mtimes}
         assert "development_tools/tests/run_test_coverage.py" in normalized_keys
         assert "development_tools/tests/test_file_coverage_cache.py" in normalized_keys
     finally:
@@ -332,7 +331,7 @@ def test_get_source_file_mtimes_respects_shared_exclusions() -> None:
 
         cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
         mtimes = cache.get_source_file_mtimes("core")
-        normalized_keys = {k.replace("\\", "/") for k in mtimes.keys()}
+        normalized_keys = {k.replace("\\", "/") for k in mtimes}
 
         assert "core/module.py" in normalized_keys
         assert "core/scripts/helper.py" not in normalized_keys

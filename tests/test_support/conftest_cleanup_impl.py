@@ -16,6 +16,7 @@ import shutil
 from pathlib import Path
 
 from core.time_utilities import now_datetime_full
+import contextlib
 
 
 def _get_test_logger():
@@ -338,10 +339,8 @@ def _cleanup_pytest_cache_temp_dirs(
                 return True
             except Exception:
                 time.sleep(min(0.5, 0.05 * (attempt + 1)))
-        try:
+        with contextlib.suppress(Exception):
             shutil.rmtree(path, ignore_errors=True, onerror=_on_rm_error)
-        except Exception:
-            pass
         return not path.exists()
 
     try:

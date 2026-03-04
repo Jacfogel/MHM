@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-03 - Full-suite interrupt hardening + reporting integrity **Progressed**
+- Hardened `run_tests.py` against noisy SIGINT during active test subprocesses: first interrupt is now soft/non-blocking, while a rapid second interrupt still force-stops.
+- Improved combined summary accounting for interrupted runs with explicit incomplete-test reporting, and preserved phase-specific failure source labels in combined failure output.
+- Fixed behavior/dev-tools regressions uncovered in failing runs: restored `_get_user_profile` account fetch expectations (`user/context_manager.py`) and added xdist-worker-specific legacy report output naming to remove cross-worker file contention (`development_tools/legacy/generate_legacy_reference_report.py`).
+- Reintroduced a low-priority `Watch List` section in generated `development_tools/AI_PRIORITIES.md` (via report generation) and updated wrap-up planning docs ([TODO.md](TODO.md), `PLANS.md`) with explicit SIGINT root-cause follow-up tracking.
+
 ### 2026-03-03 - Tier 3 remediation continuation + closeout tracking **Progressed**
 - Fixed the previously remaining behavior failure `test_send_predefined_message_real_behavior` by restoring `channel_orchestrator` message path resolution through `determine_file_path`, matching real behavior and patch targets.
 - Removed one safe unused import in `communication/core/channel_orchestrator.py` (`get_user_data_dir`) after the path-resolution fix; targeted Ruff check for F401 passed.
@@ -128,14 +134,6 @@ Guidelines:
 - Validation in-session:
   - targeted static-analysis/reporting tests passed (`test_static_analysis_tools.py`, `test_report_generation_static_analysis.py`, `test_tool_wrappers_static_analysis.py`).
   - full audit completed with no new non-static-analysis issues; regenerated `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.md` reflect updated static findings.
-
-### 2026-02-26 - Dev-tools coverage + AI work CLI follow-up **Progressed**
-- Continued `AI_PRIORITIES` item `#2` with targeted low-risk test expansions across dev-tools modules, plus `analyze_ai_work.py` non-JSON CLI logging migration (`print` -> `logger.info`) with regression coverage.
-- Validation progressed across batches from targeted suites (`7 passed`, `9 passed`, `103 passed`) to the consolidated suite (`141 passed`).
-- Dev-tools-only coverage progressed `56.6%` (`14164/25008`) -> `58.6%` (`14667/25008`) -> `59.6%` (`14916/25008`, report rounds to `60%`).
-- Hardened docs/audit lock behavior: `run_docs` now fails fast when audit/coverage locks exist, and `run_development_tools.py` now cleans audit/coverage lock files on interrupted `audit`/`full-audit` (`KeyboardInterrupt`) to reduce stale-lock blockers.
-- Final user-run verification: `audit --full --clear-cache` completed with no new issues.
-- Updated roadmap tracking in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.1`; full detailed breakdown is recorded in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -22,6 +22,7 @@ logger = logging.getLogger("mhm_tests")
 from ui.dialogs.user_analytics_dialog import UserAnalyticsDialog, open_user_analytics_dialog
 from tests.test_utilities import TestUserFactory
 
+
 # Create QApplication instance for testing
 @pytest.fixture(scope="session")
 def qapp():
@@ -31,6 +32,7 @@ def qapp():
         app = QApplication([])
     yield app
     # Don't quit the app as it might be used by other tests
+
 
 class TestUserAnalyticsDialogInitialization:
     """Test user analytics dialog initialization."""
@@ -127,6 +129,7 @@ class TestUserAnalyticsDialogInitialization:
         assert dialog.ui.pushButton_refresh is not None, "Refresh button should exist"
         assert dialog.ui.pushButton_close is not None, "Close button should exist"
         assert dialog.ui.comboBox_time_period is not None, "Time period combo should exist"
+
 
 class TestUserAnalyticsDataLoading:
     """Test analytics data loading functionality."""
@@ -500,6 +503,7 @@ class TestUserAnalyticsDataLoading:
         quant_text = dialog.ui.textEdit_quantitative_data.toPlainText()
         assert "No quantitative data available" in quant_text, "Should show no data message"
 
+
 class TestUserAnalyticsInteractions:
     """Test user interactions with analytics dialog."""
     
@@ -591,6 +595,7 @@ class TestUserAnalyticsInteractions:
         assert "Error" in dialog.ui.label_wellness_score.text(), "Should show error for wellness score"
         assert error_message in dialog.ui.textEdit_summary.toPlainText(), "Should show error message in summary"
         assert "Error loading data" in dialog.ui.textEdit_mood_data.toPlainText(), "Should show error for mood"
+
 
 class TestUserAnalyticsErrorHandling:
     """Test error handling in user analytics dialog."""
@@ -684,6 +689,7 @@ class TestUserAnalyticsErrorHandling:
         # Verify error message is displayed
         quant_text = dialog.ui.textEdit_quantitative_data.toPlainText()
         assert "Error loading quantitative data" in quant_text, "Should show error message"
+
 
 class TestUserAnalyticsHelperFunction:
     """Test helper function for opening dialog."""

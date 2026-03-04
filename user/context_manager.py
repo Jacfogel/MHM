@@ -99,9 +99,8 @@ class UserContextManager:
         # Get user preferences
         prefs_result = get_user_data(user_id, "preferences")
         user_preferences = prefs_result.get("preferences") or {}
-        # Get user account
-        user_data_result = get_user_data(user_id, "account")
-        user_account = user_data_result.get("account") or {}
+        # Keep account fetch for infrastructure parity and future profile enrichment paths.
+        _user_account = (get_user_data(user_id, "account").get("account") or {})
         # Get user context
         context_result = get_user_data(user_id, "context")
         user_context_data = context_result.get("context") or {}

@@ -115,9 +115,7 @@ def test_update_profile_date_of_birth_loved_ones_and_email_failure(monkeypatch):
 
     def fake_save_user_data(user_id, key, data):
         saved_calls.append((key, data))
-        if key == "account":
-            return False
-        return True
+        return key != "account"
 
     monkeypatch.setattr(
         "communication.command_handlers.profile_handler.get_user_data", fake_get_user_data

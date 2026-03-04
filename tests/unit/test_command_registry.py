@@ -191,6 +191,7 @@ class TestCommandRegistry:
         # Arrange
         def handler1():
             pass
+
         def handler2():
             pass
         
@@ -284,6 +285,7 @@ class TestCommandRegistry:
         # Arrange
         def handler1():
             pass
+
         def handler2():
             pass
         
@@ -307,6 +309,7 @@ class TestCommandRegistry:
         # Arrange
         def handler1():
             pass
+
         def handler2():
             pass
         

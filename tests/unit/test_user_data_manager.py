@@ -136,7 +136,7 @@ class TestUserDataManagerMessageReferences:
         result = manager.update_message_references(invalid_user_id)
         
         # Assert: Should return False
-        assert result == False, "Should return False for invalid user_id"
+        assert not result, "Should return False for invalid user_id"
     
     @pytest.mark.unit
     def test_update_message_references_empty_user_id(self, manager):
@@ -148,7 +148,7 @@ class TestUserDataManagerMessageReferences:
         result = manager.update_message_references(empty_user_id)
         
         # Assert: Should return False
-        assert result == False, "Should return False for empty user_id"
+        assert not result, "Should return False for empty user_id"
     
     @pytest.mark.unit
     def test_update_message_references_user_not_found(self, manager):
@@ -160,7 +160,7 @@ class TestUserDataManagerMessageReferences:
         result = manager.update_message_references(non_existent_user)
         
         # Assert: Should return False
-        assert result == False, "Should return False for non-existent user"
+        assert not result, "Should return False for non-existent user"
     
     @pytest.mark.unit
     def test_get_user_message_files_success(self, manager, test_user, test_data_dir):
@@ -413,11 +413,12 @@ class TestUserDataManagerIndex:
                 user_account = user_data.get('account') or {}
         
         # Assert: Should return True
-        assert result == True, f"Should return True on success. Got: {result} (user_id={test_user}, internal_username={user_account.get('internal_username')})"
+        assert result, f"Should return True on success. Got: {result} (user_id={test_user}, internal_username={user_account.get('internal_username')})"
         
         # Assert: Index file should exist and contain user
         if os.path.exists(manager.index_file):
-            index_data = json.load(open(manager.index_file, encoding='utf-8'))
+            with open(manager.index_file, encoding='utf-8') as file_obj:
+                index_data = json.load(file_obj)
             # Should have last_updated
             assert 'last_updated' in index_data, "Index should have last_updated"
     
@@ -431,7 +432,7 @@ class TestUserDataManagerIndex:
         result = manager.update_user_index(invalid_user_id)
         
         # Assert: Should return False
-        assert result == False, "Should return False for invalid user_id"
+        assert not result, "Should return False for invalid user_id"
     
     @pytest.mark.unit
     @pytest.mark.no_parallel
@@ -444,7 +445,7 @@ class TestUserDataManagerIndex:
         result = manager.remove_from_index(test_user)
         
         # Assert: Should return True
-        assert result == True, "Should return True on success"
+        assert result, "Should return True on success"
     
     @pytest.mark.unit
     def test_remove_from_index_invalid_user_id(self, manager):
@@ -456,7 +457,7 @@ class TestUserDataManagerIndex:
         result = manager.remove_from_index(invalid_user_id)
         
         # Assert: Should return False
-        assert result == False, "Should return False for invalid user_id"
+        assert not result, "Should return False for invalid user_id"
     
     @pytest.mark.unit
     @pytest.mark.no_parallel
@@ -472,11 +473,12 @@ class TestUserDataManagerIndex:
         result = manager.rebuild_full_index()
         
         # Assert: Should return True
-        assert result == True, "Should return True on success"
+        assert result, "Should return True on success"
         
         # Assert: Index file should exist
         if os.path.exists(manager.index_file):
-            index_data = json.load(open(manager.index_file, encoding='utf-8'))
+            with open(manager.index_file, encoding='utf-8') as file_obj:
+                index_data = json.load(file_obj)
             assert 'last_updated' in index_data, "Index should have last_updated"
 
 
@@ -640,7 +642,7 @@ class TestUserDataManagerConvenienceFunctions:
         result = update_message_references(test_user)
         
         # Assert: Should return True
-        assert result == True, f"Should return True on success. Got: {result}"
+        assert result, f"Should return True on success. Got: {result}"
     
     @pytest.mark.unit
     def test_backup_user_data_function(self, test_user, test_data_dir):
@@ -685,7 +687,7 @@ class TestUserDataManagerConvenienceFunctions:
         result = update_user_index(test_user)
         
         # Assert: Should return True
-        assert result == True, "Should return True on success"
+        assert result, "Should return True on success"
     
     @pytest.mark.unit
     @pytest.mark.no_parallel
@@ -699,7 +701,7 @@ class TestUserDataManagerConvenienceFunctions:
         result = rebuild_user_index()
         
         # Assert: Should return True
-        assert result == True, "Should return True on success"
+        assert result, "Should return True on success"
     
     @pytest.mark.unit
     @pytest.mark.no_parallel
@@ -819,7 +821,7 @@ class TestUserDataManagerDeleteUser:
         result = manager.delete_user_completely(test_user, create_backup=True)
         
         # Assert: Should return True
-        assert result == True, "Should return True on success"
+        assert result, "Should return True on success"
     
     @pytest.mark.unit
     @pytest.mark.no_parallel
@@ -846,7 +848,7 @@ class TestUserDataManagerDeleteUser:
         result = manager.delete_user_completely(test_user, create_backup=False)
         
         # Assert: Should return True
-        assert result == True, f"Should return True on success. Got: {result}"
+        assert result, f"Should return True on success. Got: {result}"
     
     @pytest.mark.unit
     def test_delete_user_completely_invalid_user_id(self, manager):
@@ -858,7 +860,7 @@ class TestUserDataManagerDeleteUser:
         result = manager.delete_user_completely(invalid_user_id)
         
         # Assert: Should return False
-        assert result == False, "Should return False for invalid user_id"
+        assert not result, "Should return False for invalid user_id"
     
     @pytest.mark.unit
     def test_delete_user_completely_invalid_create_backup(self, manager, test_user):
@@ -870,5 +872,4 @@ class TestUserDataManagerDeleteUser:
         result = manager.delete_user_completely(test_user, create_backup=invalid_backup)
         
         # Assert: Should return False
-        assert result == False, "Should return False for invalid create_backup"
-
+        assert not result, "Should return False for invalid create_backup"

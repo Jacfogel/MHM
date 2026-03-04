@@ -71,10 +71,7 @@ class DiscordRichFormatter(RichFormatter):
                 message = message[title_end + 2 :].strip()
 
         # Set description
-        if "description" in rich_data:
-            embed.description = rich_data["description"]
-        else:
-            embed.description = message
+        embed.description = rich_data.get("description", message)
 
         # Set color based on type or use default
         embed_type = rich_data.get("type", "info")

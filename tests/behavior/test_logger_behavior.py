@@ -43,7 +43,7 @@ class TestLoggerInitializationBehavior:
     @pytest.mark.behavior
     def test_get_logger_creation_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test logger can be created successfully."""
-        #[OK] VERIFY REAL BEHAVIOR: Logger can be created
+        # [OK] VERIFY REAL BEHAVIOR: Logger can be created
         with patch.dict(os.environ, {'LOG_MAIN_FILE': str(temp_log_dir / "test.log")}):
             logger = get_logger("test_module")
         
@@ -54,7 +54,7 @@ class TestLoggerInitializationBehavior:
     @pytest.mark.behavior
     def test_get_logger_same_name_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test getting same logger returns same instance."""
-        #[OK] VERIFY REAL BEHAVIOR: Same name returns same logger instance
+        # [OK] VERIFY REAL BEHAVIOR: Same name returns same logger instance
         with patch.dict(os.environ, {'LOG_MAIN_FILE': str(temp_log_dir / "test.log")}):
             logger1 = get_logger("test_module")
             logger2 = get_logger("test_module")
@@ -64,20 +64,21 @@ class TestLoggerInitializationBehavior:
     @pytest.mark.behavior
     def test_get_log_level_from_env_real_behavior(self):
         """REAL BEHAVIOR TEST: Test getting log level from environment."""
-        #[OK] VERIFY REAL BEHAVIOR: Default level is WARNING
+        # [OK] VERIFY REAL BEHAVIOR: Default level is WARNING
         with patch.dict(os.environ, {}, clear=True):
             level = get_log_level_from_env()
             assert level == logging.WARNING, "Default level should be WARNING"
         
-        #[OK] VERIFY REAL BEHAVIOR: Custom level from environment
+        # [OK] VERIFY REAL BEHAVIOR: Custom level from environment
         with patch.dict(os.environ, {'LOG_LEVEL': 'DEBUG'}, clear=True):
             level = get_log_level_from_env()
             assert level == logging.DEBUG, "Should get DEBUG level from environment"
         
-        #[OK] VERIFY REAL BEHAVIOR: Invalid level defaults to WARNING
+        # [OK] VERIFY REAL BEHAVIOR: Invalid level defaults to WARNING
         with patch.dict(os.environ, {'LOG_LEVEL': 'INVALID'}, clear=True):
             level = get_log_level_from_env()
             assert level == logging.WARNING, "Invalid level should default to WARNING"
+
 
 class TestLoggerVerbosityBehavior:
     """Test logger verbosity control with real behavior verification."""
@@ -85,7 +86,7 @@ class TestLoggerVerbosityBehavior:
     @pytest.mark.behavior
     def test_verbose_mode_toggle_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test verbose mode toggle functionality."""
-        #[OK] VERIFY REAL BEHAVIOR: Initial state is quiet
+        # [OK] VERIFY REAL BEHAVIOR: Initial state is quiet
         # Reset verbose mode state before test to ensure clean state
         # Import directly to access the module-level variable
         import core.logger as logger_module
@@ -103,12 +104,12 @@ class TestLoggerVerbosityBehavior:
             initial_mode = get_verbose_mode()
             assert initial_mode in (False, 0), f"Initial verbose mode should be False, but got {initial_mode}"
             
-            #[OK] VERIFY REAL BEHAVIOR: Toggle to verbose
+            # [OK] VERIFY REAL BEHAVIOR: Toggle to verbose
             verbose_enabled = toggle_verbose_logging()
             assert verbose_enabled is True, "Toggle should enable verbose mode"
             assert get_verbose_mode() is True, "Verbose mode should be enabled"
             
-            #[OK] VERIFY REAL BEHAVIOR: Toggle back to quiet
+            # [OK] VERIFY REAL BEHAVIOR: Toggle back to quiet
             verbose_enabled = toggle_verbose_logging()
             assert verbose_enabled is False, "Toggle should disable verbose mode"
             assert get_verbose_mode() is False, "Verbose mode should be disabled"
@@ -116,19 +117,19 @@ class TestLoggerVerbosityBehavior:
     @pytest.mark.behavior
     def test_set_verbose_mode_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test setting verbose mode explicitly."""
-        #[OK] VERIFY REAL BEHAVIOR: Set verbose mode to True
+        # [OK] VERIFY REAL BEHAVIOR: Set verbose mode to True
         with patch.dict(os.environ, {'LOG_MAIN_FILE': str(temp_log_dir / "test.log")}):
             set_verbose_mode(True)
             assert get_verbose_mode() is True, "Verbose mode should be set to True"
             
-            #[OK] VERIFY REAL BEHAVIOR: Set verbose mode to False
+            # [OK] VERIFY REAL BEHAVIOR: Set verbose mode to False
             set_verbose_mode(False)
             assert get_verbose_mode() is False, "Verbose mode should be set to False"
     
     @pytest.mark.behavior
     def test_set_console_log_level_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test setting console log level."""
-        #[OK] VERIFY REAL BEHAVIOR: Can set console log level
+        # [OK] VERIFY REAL BEHAVIOR: Can set console log level
         with patch.dict(os.environ, {'LOG_MAIN_FILE': str(temp_log_dir / "test.log")}):
             # Setup logging first
             setup_logging()
@@ -140,16 +141,17 @@ class TestLoggerVerbosityBehavior:
             # without more complex mocking, but we can verify the function doesn't crash)
             assert True, "Setting console log level should not crash"
 
+
 class TestLoggerNoiseSuppressionBehavior:
     """Test noise suppression functionality with real behavior verification."""
     
     @pytest.mark.behavior
     def test_suppress_noisy_logging_real_behavior(self):
         """REAL BEHAVIOR TEST: Test suppression of noisy third-party logging."""
-        #[OK] VERIFY REAL BEHAVIOR: Suppress noisy logging
+        # [OK] VERIFY REAL BEHAVIOR: Suppress noisy logging
         suppress_noisy_logging()
         
-        #[OK] VERIFY REAL BEHAVIOR: Noisy loggers are set to WARNING
+        # [OK] VERIFY REAL BEHAVIOR: Noisy loggers are set to WARNING
         noisy_loggers = [
             "httpx", "asyncio",
             "urllib3", "httpcore", "discord", "discord.client",
@@ -163,15 +165,16 @@ class TestLoggerNoiseSuppressionBehavior:
     @pytest.mark.behavior
     def test_disable_module_logging_real_behavior(self):
         """REAL BEHAVIOR TEST: Test disabling specific module logging."""
-        #[OK] VERIFY REAL BEHAVIOR: Disable specific module logging
+        # [OK] VERIFY REAL BEHAVIOR: Disable specific module logging
         test_module = "test_noisy_module"
         disable_module_logging(test_module)
         
-        #[OK] VERIFY REAL BEHAVIOR: Module logger exists and can be retrieved
+        # [OK] VERIFY REAL BEHAVIOR: Module logger exists and can be retrieved
         logger = logging.getLogger(test_module)
         assert logger is not None, "Module logger should exist"
         # Note: The actual disabled state may not be immediately visible
         # but the function should complete without error
+
 
 class TestLoggerFileOperationsBehavior:
     """Test logger file operations with real behavior verification."""
@@ -179,7 +182,7 @@ class TestLoggerFileOperationsBehavior:
     @pytest.mark.behavior
     def test_backup_directory_rotating_handler_creation_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test BackupDirectoryRotatingFileHandler creation."""
-        #[OK] VERIFY REAL BEHAVIOR: Handler can be created
+        # [OK] VERIFY REAL BEHAVIOR: Handler can be created
         log_file = temp_log_dir / "test.log"
         backup_dir = temp_log_dir / "backups"
         
@@ -198,17 +201,17 @@ class TestLoggerFileOperationsBehavior:
     @pytest.mark.behavior
     def test_get_log_file_info_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test getting log file information."""
-        #[OK] VERIFY REAL BEHAVIOR: Get log file info when file doesn't exist
+        # [OK] VERIFY REAL BEHAVIOR: Get log file info when file doesn't exist
         with patch.dict(os.environ, {'LOG_MAIN_FILE': str(temp_log_dir / "nonexistent.log")}):
             info = get_log_file_info()
         
-        #[OK] VERIFY REAL BEHAVIOR: Result has expected structure
+        # [OK] VERIFY REAL BEHAVIOR: Result has expected structure
         assert 'backup_directory' in info, "Should have backup_directory field"
         assert 'backup_files' in info, "Should have backup_files field"
         assert 'current_log' in info, "Should have current_log field"
         assert 'total_files' in info, "Should have total_files field"
         
-        #[OK] VERIFY REAL BEHAVIOR: Get log file info when file exists
+        # [OK] VERIFY REAL BEHAVIOR: Get log file info when file exists
         log_file = temp_log_dir / "test.log"
         log_file.write_text("Test log content")
         
@@ -221,21 +224,22 @@ class TestLoggerFileOperationsBehavior:
     @pytest.mark.behavior
     def test_cleanup_old_logs_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test cleanup of old log files."""
-        #[OK] VERIFY REAL BEHAVIOR: Create some test log files
+        # [OK] VERIFY REAL BEHAVIOR: Create some test log files
         backup_dir = temp_log_dir / "backups"
         backup_dir.mkdir(exist_ok=True)
         
         # Create some test backup files
         for i in range(5):
-            backup_file = backup_dir / f"app.log.{i+1}"
+            backup_file = backup_dir / f"app.log.{i + 1}"
             backup_file.write_text("Test log content " * 100)  # Make file larger
         
-        #[OK] VERIFY REAL BEHAVIOR: Cleanup old logs
+        # [OK] VERIFY REAL BEHAVIOR: Cleanup old logs
         with patch.dict(os.environ, {'LOG_BACKUP_DIR': str(backup_dir)}):
             result = cleanup_old_logs(max_total_size_mb=0.001)  # Very small limit
         
-        #[OK] VERIFY REAL BEHAVIOR: Function completes successfully (may be False if no cleanup needed)
+        # [OK] VERIFY REAL BEHAVIOR: Function completes successfully (may be False if no cleanup needed)
         assert result is not None, "Cleanup function should return a boolean result"
+
 
 class TestLoggerRestartBehavior:
     """Test logger restart functionality with real behavior verification."""
@@ -243,7 +247,7 @@ class TestLoggerRestartBehavior:
     @pytest.mark.behavior
     def test_force_restart_logging_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test forcing logging restart."""
-        #[OK] VERIFY REAL BEHAVIOR: Force restart logging
+        # [OK] VERIFY REAL BEHAVIOR: Force restart logging
         with patch.dict(os.environ, {'LOG_MAIN_FILE': str(temp_log_dir / "test.log")}):
             # Setup logging first
             setup_logging()
@@ -258,7 +262,7 @@ class TestLoggerRestartBehavior:
     @pytest.mark.behavior
     def test_setup_logging_idempotent_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test setup_logging is idempotent."""
-        #[OK] VERIFY REAL BEHAVIOR: Setup logging multiple times
+        # [OK] VERIFY REAL BEHAVIOR: Setup logging multiple times
         with patch.dict(os.environ, {'LOG_MAIN_FILE': str(temp_log_dir / "test.log")}):
             # First setup
             setup_logging()
@@ -270,13 +274,14 @@ class TestLoggerRestartBehavior:
             logger = get_logger("test_module")
             assert logger is not None, "Logger should work after multiple setups"
 
+
 class TestLoggerIntegrationBehavior:
     """Test logger integration with real behavior verification."""
 
     @pytest.mark.behavior
     def test_logger_full_workflow_real_behavior(self, temp_log_dir, monkeypatch):
         """REAL BEHAVIOR TEST: Test complete logger workflow."""
-        #[OK] VERIFY REAL BEHAVIOR: Complete logging workflow
+        # [OK] VERIFY REAL BEHAVIOR: Complete logging workflow
         monkeypatch.setenv('TEST_VERBOSE_LOGS', '1')
         with patch.dict(os.environ, {'LOG_MAIN_FILE': str(temp_log_dir / "test.log")}):
             # Setup logging
@@ -303,7 +308,7 @@ class TestLoggerIntegrationBehavior:
     @pytest.mark.behavior
     def test_logger_environment_integration_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test logger integration with environment variables."""
-        #[OK] VERIFY REAL BEHAVIOR: Logger works with different environment settings
+        # [OK] VERIFY REAL BEHAVIOR: Logger works with different environment settings
         with patch.dict(os.environ, {'LOG_MAIN_FILE': str(temp_log_dir / "test.log")}):
             # Test with different LOG_LEVEL values
             test_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR']

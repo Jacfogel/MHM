@@ -68,6 +68,10 @@ _current_console_output_file: Optional[Path] = None
 
 # Global variable to store current test context
 _current_test_context = None
+_interrupt_grace_window_seconds = 3.0
+_last_interrupt_time = 0.0
+_interrupt_count = 0
+_soft_interrupt_events: list[str] = []
 
 # Console output retention policy (AI_BACKUP_GUIDE.md / BACKUP_GUIDE.md)
 CONSOLE_OUTPUT_KEEP_LAST = 7
@@ -257,9 +261,31 @@ def cleanup_orphaned_pytest_processes():
 def interrupt_handler(signum, frame):
     """Handle interrupt signals (Ctrl+C) gracefully."""
     global _interrupt_requested, _captured_output_lines, _current_test_context
+    global _last_interrupt_time, _interrupt_count, _soft_interrupt_events
+    try:
+        signal_name = signal.Signals(signum).name
+    except Exception:
+        signal_name = f"UNKNOWN({signum})"
+    now_ts = time.time()
+    process_running = _current_process is not None and _current_process.poll() is None
+    if process_running:
+        if now_ts - _last_interrupt_time <= _interrupt_grace_window_seconds:
+            _interrupt_count += 1
+        else:
+            _interrupt_count = 1
+        _last_interrupt_time = now_ts
+        if _interrupt_count == 1:
+            notice = (
+                f"Received interrupt signal ({signal_name}) while tests are running; "
+                "treating as soft interrupt and continuing. "
+                "Send another interrupt within 3s to force stop."
+            )
+            _soft_interrupt_events.append(notice)
+            print(f"\n\n{YELLOW}[INTERRUPT]{RESET} {notice}")
+            return
     _interrupt_requested = True
     print(
-        f"\n\n{YELLOW}[INTERRUPT]{RESET} Received interrupt signal (Ctrl+C) - saving partial results..."
+        f"\n\n{YELLOW}[INTERRUPT]{RESET} Received interrupt signal ({signal_name}) - saving partial results..."
     )
 
     # Collect any available output before saving
@@ -1121,6 +1147,28 @@ def extract_results_from_output(output_text: str) -> dict[str, int]:
         return results
 
     # Pattern 3: Count dots in progress output (rough estimate)
+    # Prefer explicit progress chunks first (captures failures in interrupted runs
+    # where final pytest summary may be absent).
+    progress_chunks = re.findall(
+        r"^\s*([.FsExX]{5,})\s*(?:\[\s*\d+%\])?\s*$",
+        output_plain,
+        re.MULTILINE,
+    )
+    if progress_chunks:
+        progress_text = "".join(progress_chunks)
+        results["passed"] = progress_text.count(".")
+        results["failed"] = progress_text.count("F")
+        results["errors"] = progress_text.count("E")
+        results["skipped"] = progress_text.count("s")
+        results["total"] = (
+            results["passed"]
+            + results["failed"]
+            + results["errors"]
+            + results["skipped"]
+        )
+        if results["total"] > 0:
+            return results
+
     # Count dots (.) which represent passed tests
     dot_count = output_plain.count(".")
     if dot_count > 0:
@@ -1518,12 +1566,16 @@ def run_command(
         dict with 'success', 'output', 'results', 'duration', 'warnings', 'failures' keys
     """
     global _interrupt_requested, _current_process, _current_junit_xml, _last_output_time, _captured_output_lines, _current_test_context, _current_console_output_file
+    global _last_interrupt_time, _interrupt_count, _soft_interrupt_events
 
     # Store test context globally for interrupt handler
     _current_test_context = test_context
 
     # Reset interrupt flag and captured output
     _interrupt_requested = False
+    _last_interrupt_time = 0.0
+    _interrupt_count = 0
+    _soft_interrupt_events = []
     _last_output_time = None
     _captured_output_lines = []
     _current_console_output_file = (
@@ -1917,6 +1969,7 @@ def run_command(
 
         output = "".join(output_lines)
         output_plain = ANSI_ESCAPE_RE.sub("", output)
+        session_info = extract_pytest_session_info(output_plain)
 
         summary_counts = {}
         summary_line_matches = re.findall(
@@ -1959,6 +2012,15 @@ def run_command(
         # Update results with parsed summary counts
         for key, value in summary_counts.items():
             results[key] = value
+
+        # In interrupted runs, pytest often doesn't emit the final summary block.
+        # Use progress-output heuristics to preserve at least failed/error counts.
+        if _interrupt_requested:
+            output_estimates = extract_results_from_output(output_plain)
+            for key in ("failed", "errors", "skipped", "passed", "total"):
+                est_val = output_estimates.get(key, 0)
+                if est_val > results.get(key, 0):
+                    results[key] = est_val
 
         # Parse warnings/failures details from pytest output
         warnings_text = ""
@@ -2006,7 +2068,38 @@ def run_command(
             except Exception:
                 pass  # Ignore errors extracting failures
 
+        # If we know there were failures but couldn't parse node IDs/details,
+        # provide an explicit placeholder so combined reports don't silently omit them.
+        if not failure_details and results.get("failed", 0) > 0:
+            placeholder_message = (
+                "Failure count inferred from progress/output; detailed node IDs unavailable."
+            )
+            if _interrupt_requested:
+                placeholder_message += " Run this phase again without interruption to capture full failure details."
+            failure_details.append(
+                {
+                    "test": "unknown::interrupted_or_unparsed_failure",
+                    "type": "failure",
+                    "message": placeholder_message,
+                    "details": "",
+                }
+            )
+            if not failures_text:
+                failures_text = f"{results.get('failed', 0)} failure(s) detected ({placeholder_message})"
+
         duration = time.time() - start_time
+        completed_tests = (
+            results.get("passed", 0)
+            + results.get("failed", 0)
+            + results.get("skipped", 0)
+            + results.get("errors", 0)
+        )
+        expected_tests = int(session_info.get("test_items", 0)) if session_info else 0
+        incomplete_tests = (
+            max(0, expected_tests - completed_tests)
+            if _interrupt_requested and expected_tests > 0
+            else 0
+        )
 
         # Detect known pytest teardown false-negative on Windows where all tests pass,
         # but pytest exits non-zero due cleanup_dead_symlinks PermissionError.
@@ -2104,11 +2197,18 @@ def run_command(
                 junit_xml_path, interrupted=False, test_context=_current_test_context
             )
 
+        if _soft_interrupt_events:
+            critical_events.extend(_soft_interrupt_events)
+
         # Return dict with all information
         return {
             "success": effective_returncode == 0 and not _interrupt_requested,
+            "description": description,
             "output": output,
             "results": results,
+            "expected_tests": expected_tests,
+            "completed_tests": completed_tests,
+            "incomplete_tests": incomplete_tests,
             "duration": duration,
             "warnings": warnings_text,
             "failures": failures_text,
@@ -2222,16 +2322,40 @@ def _merge_run_results(agg: dict, run_result: dict) -> None:
     if not run_result or not isinstance(run_result, dict):
         return
     agg["success"] = agg.get("success", True) and run_result.get("success", False)
+    agg["interrupted"] = agg.get("interrupted", False) or bool(
+        run_result.get("interrupted", False)
+    )
+    agg["expected_tests"] = agg.get("expected_tests", 0) + int(
+        run_result.get("expected_tests", 0) or 0
+    )
+    agg["completed_tests"] = agg.get("completed_tests", 0) + int(
+        run_result.get("completed_tests", 0) or 0
+    )
+    agg["incomplete_tests"] = agg.get("incomplete_tests", 0) + int(
+        run_result.get("incomplete_tests", 0) or 0
+    )
     agg["duration"] = agg.get("duration", 0.0) + float(run_result.get("duration", 0))
     res = agg.setdefault("results", {})
     run_res = run_result.get("results") or {}
     for key in ("passed", "failed", "skipped", "errors", "warnings", "deselected"):
         res[key] = res.get(key, 0) + run_res.get(key, 0)
-    agg.setdefault("failure_details", []).extend(run_result.get("failure_details") or [])
+    source_label = str(run_result.get("description") or "phase")
+    merged_failure_details = agg.setdefault("failure_details", [])
+    for failure_detail in run_result.get("failure_details") or []:
+        if not isinstance(failure_detail, dict):
+            continue
+        item = dict(failure_detail)
+        item.setdefault("source", source_label)
+        merged_failure_details.append(item)
     if run_result.get("failures"):
-        agg["failures"] = (agg.get("failures") or "") + (run_result.get("failures") or "")
+        agg["failures"] = (
+            (agg.get("failures") or "")
+            + f"\n[{source_label}]\n"
+            + (run_result.get("failures") or "")
+        )
     if run_result.get("output"):
         agg["output"] = (agg.get("output") or "") + (run_result.get("output") or "")
+    agg.setdefault("critical_events", []).extend(run_result.get("critical_events") or [])
 
 
 @handle_errors("printing combined test summary", default_return=None)
@@ -2282,6 +2406,17 @@ def print_combined_summary(
         + combined["skipped"]
         + combined["errors"]
     )
+    parallel_incomplete = (
+        int(parallel_results.get("incomplete_tests", 0))
+        if parallel_results and isinstance(parallel_results, dict)
+        else 0
+    )
+    serial_incomplete = (
+        int(no_parallel_results.get("incomplete_tests", 0))
+        if no_parallel_results and isinstance(no_parallel_results, dict)
+        else 0
+    )
+    combined_incomplete = parallel_incomplete + serial_incomplete
 
     # Calculate total duration (ensure floats for decimal precision)
     parallel_duration = (
@@ -2346,6 +2481,7 @@ def print_combined_summary(
         if parallel_failure_details:
             for failure_detail in parallel_failure_details:
                 test_name = failure_detail.get("test", "Unknown test")
+                source = failure_detail.get("source", "Parallel Tests")
                 normalized_name = normalize_test_id(test_name)
                 if normalized_name not in seen_tests:
                     seen_tests.add(normalized_name)
@@ -2356,13 +2492,14 @@ def print_combined_summary(
                         failure_info += f"\n  Message: {message}"
                     if details:
                         failure_info += f"\n  Details:\n{details}"
-                    failure_details_to_print.append(("Parallel Tests", failure_info))
+                    failure_details_to_print.append((source, failure_info))
 
     if no_parallel_results and isinstance(no_parallel_results, dict):
         serial_failure_details = no_parallel_results.get("failure_details", [])
         if serial_failure_details:
             for failure_detail in serial_failure_details:
                 test_name = failure_detail.get("test", "Unknown test")
+                source = failure_detail.get("source", "Serial Tests")
                 normalized_name = normalize_test_id(test_name)
                 if normalized_name not in seen_tests:
                     seen_tests.add(normalized_name)
@@ -2373,7 +2510,7 @@ def print_combined_summary(
                         failure_info += f"\n  Message: {message}"
                     if details:
                         failure_info += f"\n  Details:\n{details}"
-                    failure_details_to_print.append(("Serial Tests", failure_info))
+                    failure_details_to_print.append((source, failure_info))
 
     if all_failures:
         for source, failure_text in all_failures:
@@ -2410,6 +2547,8 @@ def print_combined_summary(
     print(f"Mode: {description}")
     print(f"\nTest Statistics:")
     print(f"  Total Tests:  {combined['total']}")
+    if combined_incomplete > 0:
+        print(f"  Incomplete:   {combined_incomplete} (interrupted/unknown outcome)")
     print(f"  Passed:       {combined['passed']}")
     print(f"  Failed:       {combined['failed']}")
     print(f"  Skipped:      {combined['skipped']}")
@@ -2432,6 +2571,11 @@ def print_combined_summary(
             if parallel_results and isinstance(parallel_results, dict)
             else False
         )
+        p_incomplete = (
+            int(parallel_results.get("incomplete_tests", 0))
+            if parallel_results and isinstance(parallel_results, dict)
+            else 0
+        )
         s_passed = no_parallel_res.get("passed", 0)
         s_failed = no_parallel_res.get("failed", 0)
         s_skipped = no_parallel_res.get("skipped", 0)
@@ -2443,6 +2587,8 @@ def print_combined_summary(
         if p_interrupted:
             parallel_status = f" {YELLOW}[INTERRUPTED]{RESET}"
         parallel_line = f"  Parallel Tests:    {p_passed} passed, {p_failed} failed, {p_skipped} skipped, {p_deselected} deselected, {p_warnings} warnings ({parallel_duration:.2f}s){parallel_status}"
+        if p_incomplete > 0:
+            parallel_line += f", {p_incomplete} incomplete"
         print(parallel_line)
         print(
             f"  Serial Tests:      {s_passed} passed, {s_failed} failed, {s_skipped} skipped, {s_deselected} deselected, {s_warnings} warnings ({no_parallel_duration:.2f}s)"
@@ -2525,6 +2671,10 @@ def print_combined_summary(
         f"{RED}{combined['failed']} failed{RESET}",
         f"{GREEN}{combined['passed']} passed{RESET}",
     ]
+    if combined_incomplete > 0:
+        summary_parts.append(
+            f"{YELLOW}{combined_incomplete} incomplete{RESET}"
+        )
     if include_deselected_in_summary:
         summary_parts.append(f"{YELLOW}{combined['deselected']} deselected{RESET}")
     if combined["skipped"] > 0:

@@ -215,7 +215,7 @@ def _perform_cleanup__log_discovery_results(pycache_dirs, pyc_files):
         f"Found {len(pycache_dirs)} __pycache__ directories and {len(pyc_files)} .pyc files"
     )
     logger.info(
-        f"Total cache size: {total_size / 1024:.1f} KB ({total_size / (1024*1024):.2f} MB)"
+        f"Total cache size: {total_size / 1024:.1f} KB ({total_size / (1024 * 1024):.2f} MB)"
     )
 
     return total_size
@@ -270,7 +270,7 @@ def _perform_cleanup__log_completion_results(removed_dirs, removed_files, total_
         f"Cleanup complete: Removed {removed_dirs} directories and {removed_files} files"
     )
     logger.info(
-        f"Freed up {total_size / 1024:.1f} KB ({total_size / (1024*1024):.2f} MB)"
+        f"Freed up {total_size / 1024:.1f} KB ({total_size / (1024 * 1024):.2f} MB)"
     )
 
 

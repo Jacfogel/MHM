@@ -166,10 +166,7 @@ class SchedulerManager:
         Resets scheduled tasks for a specific category and reschedules daily messages for that category.
         """
         # Get the active user ID - either from parameter or UserContext
-        if user_id is None:
-            active_user_id = UserContext().get_user_id()
-        else:
-            active_user_id = user_id
+        active_user_id = UserContext().get_user_id() if user_id is None else user_id
 
         if not active_user_id:
             logger.error("No active user found during reset and reschedule.")
@@ -245,15 +242,7 @@ class SchedulerManager:
             job_func = job.job_func
             if not job_func:
                 return False
-            if (
-                hasattr(job_func, "func")
-                and job_func.func == self.schedule_daily_message_job
-                and hasattr(job_func, "keywords")
-                and job_func.keywords.get("user_id") == user_id
-                and job_func.keywords.get("category") == category
-            ):
-                return True
-            return False
+            return bool(hasattr(job_func, "func") and job_func.func == self.schedule_daily_message_job and hasattr(job_func, "keywords") and job_func.keywords.get("user_id") == user_id and job_func.keywords.get("category") == category)
 
     @handle_errors("scheduling all users immediately", default_return=None)
     def schedule_all_users_immediately(self):
@@ -1275,8 +1264,7 @@ class SchedulerManager:
         try:
             result = subprocess.run(
                 ["schtasks", "/query", "/fo", "LIST", "/v"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
             )
             if result.returncode != 0:
@@ -1303,8 +1291,7 @@ class SchedulerManager:
                             # Use check=False to prevent exceptions on missing tasks
                             del_result = subprocess.run(
                                 ["schtasks", "/delete", "/tn", task_name, "/f"],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
+                                capture_output=True,
                                 text=True,
                                 check=False,
                             )
@@ -1908,14 +1895,13 @@ class SchedulerManager:
                     if (
                         hasattr(job_func, "func")
                         and job_func.func == self.handle_task_reminder
-                    ):
-                        if hasattr(job_func, "keywords"):
-                            kwargs = job_func.keywords
-                            user_id = kwargs.get("user_id")
-                            task_id = kwargs.get("task_id")
-                            if user_id and task_id:
-                                jobs_to_check.append((job, user_id, task_id))
-                                total_checked += 1
+                    ) and hasattr(job_func, "keywords"):
+                        kwargs = job_func.keywords
+                        user_id = kwargs.get("user_id")
+                        task_id = kwargs.get("task_id")
+                        if user_id and task_id:
+                            jobs_to_check.append((job, user_id, task_id))
+                            total_checked += 1
                 except Exception as e:
                     logger.debug(f"Could not inspect job for orphaned cleanup: {e}")
                     continue

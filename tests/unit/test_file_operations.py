@@ -17,6 +17,7 @@ from core.file_operations import (
     ensure_user_directory
 )
 
+
 class TestFileOperations:
     """Test file operations functions."""
     
@@ -82,7 +83,7 @@ class TestFileOperations:
         """Test saving JSON data successfully."""
         test_data = {'test': 'data', 'number': 42, 'nested': {'key': 'value'}}
         
-        #[OK] VERIFY INITIAL STATE: Check file doesn't exist or is empty
+        # [OK] VERIFY INITIAL STATE: Check file doesn't exist or is empty
         if os.path.exists(temp_file):
             with open(temp_file) as f:
                 initial_content = f.read()
@@ -94,32 +95,32 @@ class TestFileOperations:
         # Function returns True on success
         assert result is True
         
-        #[OK] VERIFY REAL BEHAVIOR: Check that file was actually created
+        # [OK] VERIFY REAL BEHAVIOR: Check that file was actually created
         assert os.path.exists(temp_file), f"File should be created at {temp_file}"
         assert os.path.isfile(temp_file), f"Path should be a file, not directory: {temp_file}"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file permissions
+        # [OK] VERIFY REAL BEHAVIOR: Check file permissions
         assert os.access(temp_file, os.R_OK), f"File should be readable: {temp_file}"
         assert os.access(temp_file, os.W_OK), f"File should be writable: {temp_file}"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check data was saved correctly
+        # [OK] VERIFY REAL BEHAVIOR: Check data was saved correctly
         with open(temp_file) as f:
             saved_data = json.load(f)
         assert saved_data == test_data
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file size is reasonable
+        # [OK] VERIFY REAL BEHAVIOR: Check file size is reasonable
         file_size = os.path.getsize(temp_file)
         assert file_size > 0, f"File should not be empty: {file_size} bytes"
         assert file_size < 10000, f"File should not be unreasonably large: {file_size} bytes"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file is valid JSON
+        # [OK] VERIFY REAL BEHAVIOR: Check file is valid JSON
         try:
             with open(temp_file) as f:
                 json.load(f)  # Should not raise exception
         except json.JSONDecodeError as e:
-            assert False, f"Saved file should be valid JSON: {e}"
+            raise AssertionError(f"Saved file should be valid JSON: {e}")
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file can be read multiple times
+        # [OK] VERIFY REAL BEHAVIOR: Check file can be read multiple times
         for _ in range(3):
             with open(temp_file) as f:
                 reloaded_data = json.load(f)
@@ -221,7 +222,7 @@ class TestFileOperations:
                 # FileOperationError or other exception is acceptable for permission errors
                 result = False
             
-            #[OK] VERIFY REAL BEHAVIOR: On permission error, either:
+            # [OK] VERIFY REAL BEHAVIOR: On permission error, either:
             # 1. save_json_data returns False (handled by @handle_errors)
             # 2. save_json_data raises an exception (caught above)
             # 3. If it returns True, the file should NOT actually exist
@@ -239,7 +240,7 @@ class TestFileOperations:
                             pass
                         else:
                             # File was written despite permission error - this is the bug we're checking for
-                            assert False, f"File was created/overwritten at protected path despite permission error: {protected_path}"
+                            raise AssertionError(f"File was created/overwritten at protected path despite permission error: {protected_path}")
                     except Exception:
                         # Can't read file - that's fine, just verify it wasn't our test data
                         pass
@@ -248,7 +249,7 @@ class TestFileOperations:
                 # save_json_data returned False - that's the expected behavior for permission errors
                 assert result is False, "save_json_data should return False on permission error"
             
-            #[OK] VERIFY REAL BEHAVIOR: Check that no partial temp files were created
+            # [OK] VERIFY REAL BEHAVIOR: Check that no partial temp files were created
             # Only check for .tmp files - the original test.json file should remain (it's read-only)
             if os.path.exists(protected_dir) and not protected_dir.startswith('C:\\Windows'):
                 temp_files = [f for f in os.listdir(protected_dir) if f.endswith('.tmp') and 'test' in f]
@@ -314,12 +315,12 @@ class TestFileOperations:
     @pytest.mark.critical
     def test_verify_file_access_success(self, temp_file):
         """Test file access verification for accessible file."""
-        #[OK] VERIFY INITIAL STATE: Create a file we can access
+        # [OK] VERIFY INITIAL STATE: Create a file we can access
         test_content = 'test content for access verification'
         with open(temp_file, 'w') as f:
             f.write(test_content)
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file exists and is readable before test
+        # [OK] VERIFY REAL BEHAVIOR: Check file exists and is readable before test
         assert os.path.exists(temp_file), f"Test file should exist before verification: {temp_file}"
         with open(temp_file) as f:
             assert f.read() == test_content, "File content should be correct before test"
@@ -327,12 +328,12 @@ class TestFileOperations:
         result = verify_file_access([temp_file])
         assert result is True
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file still exists and is unchanged after test
+        # [OK] VERIFY REAL BEHAVIOR: Check file still exists and is unchanged after test
         assert os.path.exists(temp_file), f"File should still exist after verification: {temp_file}"
         with open(temp_file) as f:
             assert f.read() == test_content, "File content should be unchanged after verification"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file is still readable and writable
+        # [OK] VERIFY REAL BEHAVIOR: Check file is still readable and writable
         try:
             with open(temp_file) as f:
                 content = f.read()
@@ -349,7 +350,7 @@ class TestFileOperations:
             with open(temp_file, 'w') as f:
                 f.write(test_content)
         except Exception as e:
-            assert False, f"File should remain accessible after verification: {e}"
+            raise AssertionError(f"File should remain accessible after verification: {e}")
     
     @pytest.mark.unit
     @pytest.mark.file_io
@@ -362,18 +363,18 @@ class TestFileOperations:
         missing_file = os.path.join(temp_dir, 'mhm_test_nonexistent_file_12345.txt')
         missing_dir = os.path.join(temp_dir, 'mhm_test_nonexistent_dir_12345')
         
-        #[OK] VERIFY INITIAL STATE: Check that the file and directory don't exist
+        # [OK] VERIFY INITIAL STATE: Check that the file and directory don't exist
         assert not os.path.exists(missing_file), f"Missing file should not exist: {missing_file}"
         assert not os.path.exists(missing_dir), f"Missing directory should not exist: {missing_dir}"
         
         result = verify_file_access([missing_file])
         assert result is False
         
-        #[OK] VERIFY REAL BEHAVIOR: Check that no files were created during verification
+        # [OK] VERIFY REAL BEHAVIOR: Check that no files were created during verification
         assert not os.path.exists(missing_file), f"Missing file should still not exist after verification: {missing_file}"
         assert not os.path.exists(missing_dir), f"Missing directory should still not exist after verification: {missing_dir}"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check that the function didn't create any files in the current directory
+        # [OK] VERIFY REAL BEHAVIOR: Check that the function didn't create any files in the current directory
         # This ensures the function doesn't have side effects
         current_dir_files_before = set(os.listdir('.'))
         verify_file_access([missing_file])
@@ -400,7 +401,7 @@ class TestFileOperations:
         # Create the test directory
         os.makedirs(protected_dir, exist_ok=True)
         
-        #[OK] VERIFY INITIAL STATE: Check current state of protected location
+        # [OK] VERIFY INITIAL STATE: Check current state of protected location
         try:
             root_contents_before = os.listdir(protected_dir)
         except (PermissionError, OSError):
@@ -410,7 +411,7 @@ class TestFileOperations:
         result = verify_file_access([protected_file])
         assert result is False
         
-        #[OK] VERIFY REAL BEHAVIOR: Check that no files were created during verification
+        # [OK] VERIFY REAL BEHAVIOR: Check that no files were created during verification
         try:
             root_contents_after = os.listdir(protected_dir)
             # The contents should be the same (no new files created)
@@ -428,7 +429,7 @@ class TestFileOperations:
         except:
             pass
         
-        #[OK] VERIFY REAL BEHAVIOR: Check that the protected file still doesn't exist (or is inaccessible)
+        # [OK] VERIFY REAL BEHAVIOR: Check that the protected file still doesn't exist (or is inaccessible)
         if os.path.exists(protected_file):
             # If the file exists, it should be inaccessible
             try:
@@ -444,7 +445,7 @@ class TestFileOperations:
             # File doesn't exist, which is also expected
             pass
         
-        #[OK] VERIFY REAL BEHAVIOR: Check that the function didn't create any files in the current directory
+        # [OK] VERIFY REAL BEHAVIOR: Check that the function didn't create any files in the current directory
         # This ensures the function doesn't have side effects
         current_dir_files_before = set(os.listdir('.'))
         verify_file_access([protected_file])
@@ -506,6 +507,7 @@ class TestFileOperations:
         # Verify directory still exists
         assert os.path.exists(user_dir)
         assert os.path.isdir(user_dir)
+
 
 class TestFileOperationsEdgeCases:
     """Test edge cases and error conditions."""
@@ -584,20 +586,20 @@ class TestFileOperationsEdgeCases:
         user_id = f"test-file-ops-user-{uuid.uuid4().hex[:8]}"
         user_dir = os.path.join(test_data_dir, 'users', user_id)
         
-        #[OK] VERIFY INITIAL STATE: Check directory doesn't exist initially
+        # [OK] VERIFY INITIAL STATE: Check directory doesn't exist initially
         os.path.exists(user_dir)
         
         # Create user directory
         ensure_user_directory(user_id)
         
-        #[OK] VERIFY REAL BEHAVIOR: Check directory was created
+        # [OK] VERIFY REAL BEHAVIOR: Check directory was created
         assert os.path.exists(user_dir), f"User directory should be created: {user_dir}"
         assert os.path.isdir(user_dir), f"User path should be a directory: {user_dir}"
         
         # Step 2: Test file path determination
         account_file_path = get_user_file_path(user_id, 'account')
         
-        #[OK] VERIFY REAL BEHAVIOR: Check path structure
+        # [OK] VERIFY REAL BEHAVIOR: Check path structure
         assert account_file_path.endswith('account.json'), f"Path should end with account.json: {account_file_path}"
         
         # Step 3: Test saving user data using centralized utilities
@@ -606,17 +608,17 @@ class TestFileOperationsEdgeCases:
             email='test@example.com'
         )
         
-        #[OK] VERIFY INITIAL STATE: Check file doesn't exist initially
+        # [OK] VERIFY INITIAL STATE: Check file doesn't exist initially
         os.path.exists(account_file_path)
         
         result = save_json_data(test_account_data, account_file_path)
         assert result is True
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file was created
+        # [OK] VERIFY REAL BEHAVIOR: Check file was created
         assert os.path.exists(account_file_path), f"Account file should be created: {account_file_path}"
         assert os.path.isfile(account_file_path), f"Account path should be a file: {account_file_path}"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file content
+        # [OK] VERIFY REAL BEHAVIOR: Check file content
         with open(account_file_path) as f:
             saved_data = json.load(f)
         assert saved_data == test_account_data
@@ -624,7 +626,7 @@ class TestFileOperationsEdgeCases:
         # Step 4: Test loading user data
         loaded_data = load_json_data(account_file_path)
         
-        #[OK] VERIFY REAL BEHAVIOR: Check data integrity
+        # [OK] VERIFY REAL BEHAVIOR: Check data integrity
         assert loaded_data == test_account_data
         assert loaded_data['user_id'] == user_id
         assert loaded_data['email'] == 'test@example.com'
@@ -633,7 +635,7 @@ class TestFileOperationsEdgeCases:
         result = verify_file_access([account_file_path])
         assert result is True
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file still exists and is accessible
+        # [OK] VERIFY REAL BEHAVIOR: Check file still exists and is accessible
         assert os.path.exists(account_file_path), f"File should still exist after verification: {account_file_path}"
         assert os.access(account_file_path, os.R_OK), f"File should still be readable: {account_file_path}"
         
@@ -647,7 +649,7 @@ class TestFileOperationsEdgeCases:
         result = save_json_data(updated_account_data, account_file_path)
         assert result is True
         
-        #[OK] VERIFY REAL BEHAVIOR: Check data was updated
+        # [OK] VERIFY REAL BEHAVIOR: Check data was updated
         with open(account_file_path) as f:
             modified_data = json.load(f)
         assert modified_data == updated_account_data
@@ -665,11 +667,11 @@ class TestFileOperationsEdgeCases:
         result = save_json_data(test_preferences_data, preferences_file_path)
         assert result is True
         
-        #[OK] VERIFY REAL BEHAVIOR: Check multiple files can coexist
+        # [OK] VERIFY REAL BEHAVIOR: Check multiple files can coexist
         assert os.path.exists(account_file_path), f"Account file should still exist: {account_file_path}"
         assert os.path.exists(preferences_file_path), f"Preferences file should be created: {preferences_file_path}"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check both files have correct content
+        # [OK] VERIFY REAL BEHAVIOR: Check both files have correct content
         with open(account_file_path) as f:
             account_data = json.load(f)
         with open(preferences_file_path) as f:
@@ -681,7 +683,7 @@ class TestFileOperationsEdgeCases:
         # Step 8: Test error handling with invalid operations
         invalid_path = os.path.join(user_dir, 'nonexistent', 'file.json')
         
-        #[OK] VERIFY REAL BEHAVIOR: Check error handling doesn't break existing files
+        # [OK] VERIFY REAL BEHAVIOR: Check error handling doesn't break existing files
         result = load_json_data(invalid_path)
         # Error recovery may return {} or None depending on concurrent fs state.
         assert result is None or isinstance(result, dict), (
@@ -692,7 +694,7 @@ class TestFileOperationsEdgeCases:
             # If error recovery created the file, it should have metadata structure
             assert 'created' in result or result == {}, "Should have metadata or be empty dict"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check existing files are unaffected
+        # [OK] VERIFY REAL BEHAVIOR: Check existing files are unaffected
         assert os.path.exists(account_file_path), f"Account file should be unaffected: {account_file_path}"
         assert os.path.exists(preferences_file_path), f"Preferences file should be unaffected: {preferences_file_path}"
         
@@ -700,6 +702,7 @@ class TestFileOperationsEdgeCases:
         # Step 10: Verify no leakage into real data directory during tests
         real_user_dir = os.path.join('data', 'users', user_id)
         assert not os.path.exists(real_user_dir), f"Test should not write to real data dir: {real_user_dir}"
+
 
 @pytest.mark.unit
 @pytest.mark.file_io
@@ -751,7 +754,7 @@ class TestFileOperationsPerformance:
                 'scheduled_for': '2025-01-02T09:00:00Z'
             })
         
-        #[OK] VERIFY INITIAL STATE: Check memory usage before operation
+        # [OK] VERIFY INITIAL STATE: Check memory usage before operation
         process = psutil.Process()
         initial_memory = process.memory_info().rss
         initial_time = time.time()
@@ -760,32 +763,32 @@ class TestFileOperationsPerformance:
         result = save_json_data(large_data, temp_file)
         assert result is True
         
-        #[OK] VERIFY REAL BEHAVIOR: Check operation completed successfully
+        # [OK] VERIFY REAL BEHAVIOR: Check operation completed successfully
         assert os.path.exists(temp_file), f"Large file should be created: {temp_file}"
         assert os.path.isfile(temp_file), f"Large file should be a file: {temp_file}"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file size is reasonable for data size
+        # [OK] VERIFY REAL BEHAVIOR: Check file size is reasonable for data size
         file_size = os.path.getsize(temp_file)
         assert file_size > 100000, f"Large file should be substantial: {file_size} bytes"
         assert file_size < 10000000, f"Large file should not be unreasonably large: {file_size} bytes"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check data integrity
+        # [OK] VERIFY REAL BEHAVIOR: Check data integrity
         with open(temp_file) as f:
             loaded_data = json.load(f)
         assert loaded_data == large_data
         
-        #[OK] VERIFY REAL BEHAVIOR: Check performance metrics
+        # [OK] VERIFY REAL BEHAVIOR: Check performance metrics
         operation_time = time.time() - initial_time
         assert operation_time < 10.0, f"Operation should complete within 10 seconds: {operation_time:.2f}s"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check memory usage after operation
+        # [OK] VERIFY REAL BEHAVIOR: Check memory usage after operation
         final_memory = process.memory_info().rss
         memory_increase = final_memory - initial_memory
         
         # Memory increase should be reasonable (less than 100MB for this operation)
         assert memory_increase < 100 * 1024 * 1024, f"Memory increase should be reasonable: {memory_increase / 1024 / 1024:.2f}MB"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check for memory leaks
+        # [OK] VERIFY REAL BEHAVIOR: Check for memory leaks
         gc.collect()  # Force garbage collection
         post_gc_memory = process.memory_info().rss
         memory_after_gc = post_gc_memory - initial_memory
@@ -793,7 +796,7 @@ class TestFileOperationsPerformance:
         # Memory should be reclaimed after garbage collection
         assert memory_after_gc < 50 * 1024 * 1024, f"Memory should be reclaimed after GC: {memory_after_gc / 1024 / 1024:.2f}MB"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file can be read multiple times efficiently
+        # [OK] VERIFY REAL BEHAVIOR: Check file can be read multiple times efficiently
         read_times = []
         for _ in range(5):
             start_time = time.time()
@@ -805,22 +808,22 @@ class TestFileOperationsPerformance:
             # Verify data integrity on each read
             assert reloaded_data == large_data
         
-        #[OK] VERIFY REAL BEHAVIOR: Check read performance is consistent
+        # [OK] VERIFY REAL BEHAVIOR: Check read performance is consistent
         avg_read_time = sum(read_times) / len(read_times)
         max_read_time = max(read_times)
         assert avg_read_time < 2.0, f"Average read time should be reasonable: {avg_read_time:.2f}s"
         assert max_read_time < 5.0, f"Maximum read time should be reasonable: {max_read_time:.2f}s"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file permissions are correct
+        # [OK] VERIFY REAL BEHAVIOR: Check file permissions are correct
         assert os.access(temp_file, os.R_OK), f"Large file should be readable: {temp_file}"
         assert os.access(temp_file, os.W_OK), f"Large file should be writable: {temp_file}"
         
-        #[OK] VERIFY REAL BEHAVIOR: Check file is valid JSON
+        # [OK] VERIFY REAL BEHAVIOR: Check file is valid JSON
         try:
             with open(temp_file) as f:
                 json.load(f)  # Should not raise exception
         except json.JSONDecodeError as e:
-            assert False, f"Large file should be valid JSON: {e}"
+            raise AssertionError(f"Large file should be valid JSON: {e}")
     
     @pytest.mark.slow
     @pytest.mark.file_io

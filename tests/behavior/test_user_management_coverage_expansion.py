@@ -72,6 +72,7 @@ class TestUserManagementCoverageExpansion:
         # Arrange - use unique name to avoid conflicts with other tests in parallel execution
         import uuid
         unique_type = f"test_type_{uuid.uuid4().hex[:8]}"
+
         def test_loader(user_id, auto_create=True):
             return {"test": "data"}
 

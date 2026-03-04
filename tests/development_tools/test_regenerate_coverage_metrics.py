@@ -387,7 +387,7 @@ directory = development_tools/tests/coverage_html
 
         regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
         mtimes = regenerator._get_dev_tools_source_mtimes()
-        normalized_keys = {k.replace("\\", "/") for k in mtimes.keys()}
+        normalized_keys = {k.replace("\\", "/") for k in mtimes}
 
         assert "development_tools/shared/keep.py" in normalized_keys
         assert "development_tools/scripts/skip.py" not in normalized_keys
@@ -410,7 +410,7 @@ directory = development_tools/tests/coverage_html
 
         regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
         mtimes = regenerator._get_dev_tools_test_mtimes()
-        normalized_keys = {k.replace("\\", "/") for k in mtimes.keys()}
+        normalized_keys = {k.replace("\\", "/") for k in mtimes}
 
         assert "tests/development_tools/test_keep.py" in normalized_keys
         assert "tests/development_tools/.ruff_cache/test_skip.py" not in normalized_keys

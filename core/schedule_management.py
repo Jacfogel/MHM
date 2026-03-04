@@ -20,6 +20,7 @@ from core.time_utilities import (
 )
 from user.user_context import UserContext
 from core.error_handling import handle_errors, ValidationError
+import contextlib
 
 logger = get_component_logger("scheduler")
 schedule_logger = get_component_logger("main")
@@ -167,10 +168,8 @@ def set_schedule_period_active(user_id, category, period_name, active=True):
         bool: True if the period was found and updated, False otherwise
     """
     # Clear cache to avoid stale reads in randomized/parallel test order
-    try:
+    with contextlib.suppress(Exception):
         clear_schedule_periods_cache(user_id, category)
-    except Exception:
-        pass
     # Get current periods for this category
     current_periods = get_schedule_time_periods(user_id, category)
 
@@ -207,10 +206,8 @@ def is_schedule_period_active(user_id, category, period_name):
         bool: True if the period is active, False otherwise (defaults to True if field is missing)
     """
     # Clear cache to ensure we read latest state
-    try:
+    with contextlib.suppress(Exception):
         clear_schedule_periods_cache(user_id, category)
-    except Exception:
-        pass
     # Get user schedules
     schedules_result = get_user_data(user_id, "schedules", normalize_on_read=True)
     schedules_data = (
@@ -285,10 +282,8 @@ def add_schedule_period(
     category, period_name, start_time, end_time, scheduler_manager=None
 ):
     # Clear cache to avoid stale reads under randomized/parallel tests
-    try:
+    with contextlib.suppress(Exception):
         clear_schedule_periods_cache(UserContext().get_user_id(), category)
-    except Exception:
-        pass
     user_id = UserContext().get_user_id()
     internal_username = UserContext().get_internal_username()
     logger.debug(
@@ -348,10 +343,8 @@ def edit_schedule_period(
     category, period_name, new_start_time, new_end_time, scheduler_manager=None
 ):
     # Clear cache to avoid stale reads under randomized/parallel tests
-    try:
+    with contextlib.suppress(Exception):
         clear_schedule_periods_cache(UserContext().get_user_id(), category)
-    except Exception:
-        pass
     user_id = UserContext().get_user_id()
     if not user_id:
         logger.error("User ID is not set in UserContext (edit_schedule_period).")

@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from development_tools.shared.mtime_cache import MtimeFileCache
+import contextlib
 
 
 def _make_local_scratch_dir() -> Path:
@@ -31,10 +32,8 @@ def _cleanup_local_scratch_dir(path: Path) -> None:
     for _ in range(3):
         try:
             for item in path.rglob("*"):
-                try:
+                with contextlib.suppress(OSError):
                     os.chmod(item, stat.S_IWRITE | stat.S_IREAD)
-                except OSError:
-                    pass
             shutil.rmtree(path, ignore_errors=False)
             return
         except OSError:

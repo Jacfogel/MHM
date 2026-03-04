@@ -175,10 +175,7 @@ class PathDriftAnalyzer:
 
         # Skip test fixture files (intentional test data, not real documentation issues)
         # These are in tests/fixtures/ or tests/fixtures/development_tools_demo/
-        if "tests" in doc_file_path.parts and "fixtures" in doc_file_path.parts:
-            return True
-
-        return False
+        return bool("tests" in doc_file_path.parts and "fixtures" in doc_file_path.parts)
 
     def _should_skip_path(self, path: str, doc_file: str) -> bool:
         """Enhanced path filtering to reduce false positives."""
@@ -361,30 +358,7 @@ class PathDriftAnalyzer:
             return True
 
         # Skip paths that contain Python operators
-        if any(
-            op in path
-            for op in [
-                "==",
-                "!=",
-                "<=",
-                ">=",
-                "+=",
-                "-=",
-                "*=",
-                "/=",
-                "%=",
-                "//=",
-                "**=",
-                "&=",
-                "|=",
-                "^=",
-                "<<=",
-                ">>=",
-            ]
-        ):
-            return True
-
-        return False
+        return bool(any(op in path for op in ["==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%=", "//=", "**=", "&=", "|=", "^=", "<<=", ">>="]))
 
     def _is_likely_code_snippet(self, path: str, line: str) -> bool:
         """Check if a path looks like it's part of a code snippet rather than a file reference."""
@@ -445,10 +419,7 @@ class PathDriftAnalyzer:
             return True
 
         # Skip if it contains newlines (definitely a code snippet)
-        if "\n" in path:
-            return True
-
-        return False
+        return "\n" in path
 
     def _is_section_header_or_link_text(self, path: str, line: str) -> bool:
         """Check if a path is actually a markdown section header or link text that shouldn't be treated as a file path."""
@@ -505,10 +476,7 @@ class PathDriftAnalyzer:
             return True
 
         # Skip if it's in a markdown link that points to an anchor (not a file)
-        if re.search(rf"\[{re.escape(path)}\]\(#[^)]+\)", line):
-            return True
-
-        return False
+        return bool(re.search(rf"\[{re.escape(path)}\]\(#[^)]+\)", line))
 
     def _is_in_example_context(
         self, line: str, lines: list[str], line_num: int
@@ -849,20 +817,18 @@ class PathDriftAnalyzer:
                                             link_text.endswith((".py", ".md"))
                                             or "/" in link_text
                                             or "\\" in link_text
+                                        ) and not self._is_likely_code_snippet(
+                                            link_text, line
+                                        ) and not self._is_section_header_or_link_text(
+                                            link_text, line
                                         ):
-                                            if not self._is_likely_code_snippet(
-                                                link_text, line
-                                            ):
-                                                if not self._is_section_header_or_link_text(
-                                                    link_text, line
-                                                ):
-                                                    doc_paths[
-                                                        str(
-                                                            md_file.relative_to(
-                                                                self.project_root
-                                                            )
-                                                        )
-                                                    ].append(link_text)
+                                            doc_paths[
+                                                str(
+                                                    md_file.relative_to(
+                                                        self.project_root
+                                                    )
+                                                )
+                                            ].append(link_text)
                                 else:
                                     # Single group match, process normally
                                     for _idx, group in enumerate(match):

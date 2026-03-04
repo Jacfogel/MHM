@@ -876,10 +876,8 @@ class ConversationManager:
                         )
 
             # Expire current check-in and delegate to interaction manager
-            try:
+            with suppress(Exception):
                 self._clear_flow_state(user_id, mark_completion=True)
-            except Exception:
-                pass
 
             try:
                 from communication.message_processing.interaction_manager import (

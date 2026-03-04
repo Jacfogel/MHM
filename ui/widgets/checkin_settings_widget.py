@@ -194,10 +194,7 @@ class CheckinSettingsWidget(QWidget):
 
         # Minimum maximum: if sometimes questions > 0, minimum max is always_count + 1
         # Otherwise, minimum max is just always_count (or current min, whichever is higher)
-        if sometimes_count > 0:
-            min_maximum = always_count + 1
-        else:
-            min_maximum = always_count
+        min_maximum = always_count + 1 if sometimes_count > 0 else always_count
         min_maximum = max(min_maximum, min_required)  # Must be at least min_required
 
         # Ensure max_allowed is at least min_maximum
@@ -622,17 +619,15 @@ class CheckinSettingsWidget(QWidget):
     def _on_always_toggled(self, question_key: str, checked: bool):
         """Handle always checkbox toggle - ensure sometimes is unchecked if always is checked."""
         widgets = self.dynamic_question_checkboxes.get(question_key)
-        if widgets and widgets.get("sometimes_checkbox"):
-            if checked:
-                widgets["sometimes_checkbox"].setChecked(False)
+        if widgets and widgets.get("sometimes_checkbox") and checked:
+            widgets["sometimes_checkbox"].setChecked(False)
 
     @handle_errors("handling sometimes checkbox toggle")
     def _on_sometimes_toggled(self, question_key: str, checked: bool):
         """Handle sometimes checkbox toggle - ensure always is unchecked if sometimes is checked."""
         widgets = self.dynamic_question_checkboxes.get(question_key)
-        if widgets and widgets.get("always_checkbox"):
-            if checked:
-                widgets["always_checkbox"].setChecked(False)
+        if widgets and widgets.get("always_checkbox") and checked:
+            widgets["always_checkbox"].setChecked(False)
 
     @handle_errors("clearing category groups")
     def _clear_category_groups(self):

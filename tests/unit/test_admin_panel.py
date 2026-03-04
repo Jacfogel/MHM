@@ -22,6 +22,7 @@ logger = logging.getLogger("mhm_tests")
 from ui.dialogs.admin_panel import AdminPanelDialog
 from core.error_handling import DataError
 
+
 # Create QApplication instance for testing
 @pytest.fixture(scope="session")
 def qapp():

@@ -148,6 +148,7 @@ class TestCommandParserTaskPatterns:
         if expected_due is not None:
             assert entities.get("due_date") == expected_due
 
+
 @pytest.mark.unit
 @pytest.mark.communication
 @pytest.mark.checkins
@@ -401,6 +402,7 @@ class TestCommandParserSchedulePatterns:
         entities = result.parsed_command.entities
         assert entities.get("period_name") == expected_period
         assert entities.get("category") == expected_category
+
 
 @pytest.mark.unit
 @pytest.mark.communication

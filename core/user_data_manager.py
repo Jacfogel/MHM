@@ -14,8 +14,6 @@ from pathlib import Path
 
 from core.logger import get_component_logger
 from core.config import (
-    get_user_file_path,
-    get_user_data_dir,
     BASE_DATA_DIR,
     get_backups_dir,
 )

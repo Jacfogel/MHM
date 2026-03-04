@@ -8,72 +8,87 @@ from datetime import datetime
 import uuid
 import pytest
 import logging
+import contextlib
 
 # Override core-dependent fixtures from parent conftest.py with no-op versions
 # These fixtures are not needed for development tools tests which don't use core modules
+
 
 @pytest.fixture(scope="session", autouse=True)
 def initialize_loader_import_order():
     """No-op override: development tools tests don't need core user data loader initialization."""
     yield
 
+
 @pytest.fixture(scope="session", autouse=True)
 def register_user_data_loaders_session():
     """No-op override: development tools tests don't need core user data loader registration."""
     yield
+
 
 @pytest.fixture(scope="session", autouse=True)
 def verify_user_data_loader_registry():
     """No-op override: development tools tests don't need core user data loader verification."""
     yield
 
+
 @pytest.fixture(scope="session", autouse=True)
 def shim_get_user_data_to_invoke_loaders():
     """No-op override: development tools tests don't need core user data shim."""
     yield
+
 
 @pytest.fixture(scope="session", autouse=True)
 def verify_required_loaders_present():
     """No-op override: development tools tests don't need core user data loader verification."""
     yield
 
+
 @pytest.fixture(scope="function", autouse=True)
 def mock_config():
     """No-op override: development tools tests don't need core.config mocking."""
     yield
+
 
 @pytest.fixture(scope="function", autouse=True)
 def ensure_mock_config_applied():
     """No-op override: development tools tests don't need core.config verification."""
     yield
 
+
 @pytest.fixture(scope="function", autouse=True)
 def fix_user_data_loaders():
     """No-op override: development tools tests don't need core user data loader fixes."""
     yield
+
 
 @pytest.fixture(scope="function", autouse=True)
 def clear_user_caches_between_tests():
     """No-op override: development tools tests don't need core user cache clearing."""
     yield
 
+
 @pytest.fixture(scope="function", autouse=True)
 def cleanup_conversation_manager():
     """No-op override: development tools tests don't need conversation manager cleanup."""
     yield
+
 
 @pytest.fixture(scope="function", autouse=True)
 def cleanup_communication_threads():
     """No-op override: development tools tests don't need communication thread cleanup."""
     yield
 
+
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_communication_manager():
     """No-op override: development tools tests don't need CommunicationManager cleanup."""
     yield
 
+
 # Track test start times for duration calculation (for debugging)
 _dev_tools_test_start_times = {}
+
 
 def pytest_runtest_setup(item):
     """Log when a development_tools test starts with timestamp (DEBUG level only)."""
@@ -89,6 +104,7 @@ def pytest_runtest_setup(item):
         # Fallback if parent conftest logger not available
         logger = logging.getLogger("mhm_tests")
         logger.debug(f"[DEV-TOOLS-TEST-START] {timestamp} - {test_id}")
+
 
 def pytest_runtest_teardown(item, nextitem):
     """Log when a development_tools test ends with timestamp and duration (DEBUG level only)."""
@@ -118,6 +134,7 @@ def pytest_runtest_teardown(item, nextitem):
             logger.debug(f"[DEV-TOOLS-TEST-END] {timestamp} - {test_id} (duration: {duration})")
         else:
             logger.debug(f"[DEV-TOOLS-TEST-END] {timestamp} - {test_id}")
+
 
 def pytest_sessionfinish(session, exitstatus):
     """Print verification summary after development tools audit tier tests complete."""
@@ -477,10 +494,8 @@ def temp_project_copy(demo_project_root):
                 time.sleep(0.1 * (attempt + 1))
                 # Remove partial copy if it exists
                 if copy_path.exists():
-                    try:
+                    with contextlib.suppress(Exception):
                         shutil.rmtree(copy_path, ignore_errors=True)
-                    except Exception:
-                        pass
         # Guard against intermittent partial-copy behavior under parallel load.
         source_legacy_file = demo_project_root / "legacy_code.py"
         copied_legacy_file = copy_path / "legacy_code.py"

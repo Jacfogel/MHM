@@ -37,6 +37,8 @@ from .message_processing.conversation_flow_manager import conversation_manager, 
 from .core.retry_manager import RetryManager, QueuedMessage
 # Core exceptions (low usage)
 from .core.channel_orchestrator import BotInitializationError, MessageSendError
+
+
 # Core channel monitor (low usage, lazy import due to circular dependencies)
 # ERROR_HANDLING_EXCLUDE: Special Python method for dynamic attribute access
 def __getattr__(name: str):
@@ -139,6 +141,7 @@ def __getattr__(name: str):
         from .communication_channels.discord.api_client import SendMessageOptions
         return SendMessageOptions
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 # Command handlers - base handler (medium usage)
 from .command_handlers.base_handler import InteractionHandler

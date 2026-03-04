@@ -299,9 +299,7 @@ def are_tasks_enabled(user_id: str) -> bool:
         return False
     user_data_result = get_user_data(user_id, "account")
     user_account = user_data_result.get("account")
-    if not user_account or user_account.get("features", {}).get("task_management") != "enabled":
-        return False
-    return True
+    return not (not user_account or user_account.get("features", {}).get("task_management") != "enabled")
 
 
 @handle_errors("scheduling task-specific reminders", default_return=False)

@@ -34,6 +34,7 @@ from ui.dialogs.task_completion_dialog import TaskCompletionDialog
 from ui.dialogs.user_profile_dialog import UserProfileDialog
 from tests.test_utilities import TestUserFactory
 
+
 # Create QApplication instance for testing
 @pytest.fixture(scope="session")
 def qapp():
@@ -365,15 +366,15 @@ class TestTaskEditDialogBehavior:
         # Test valid form
         dialog.ui.lineEdit_task_title.setText("Valid Task")
         dialog.ui.textEdit_task_description.setPlainText("Valid description")
-        assert dialog.validate_form() == True
+        assert dialog.validate_form()
         
         # Test invalid form - empty title
         dialog.ui.lineEdit_task_title.clear()
-        assert dialog.validate_form() == False
+        assert not dialog.validate_form()
         
         # Test invalid form - whitespace only title
         dialog.ui.lineEdit_task_title.setText("   ")
-        assert dialog.validate_form() == False
+        assert not dialog.validate_form()
 
     @pytest.mark.ui
     @pytest.mark.behavior
@@ -409,17 +410,17 @@ class TestTaskEditDialogBehavior:
     def test_no_due_date_toggle_real_behavior(self, dialog, test_user_data, test_data_dir):
         """Test No Due Date checkbox functionality."""
         # Initially enabled
-        assert dialog.ui.dateEdit_task_due_date.isEnabled() == True
+        assert dialog.ui.dateEdit_task_due_date.isEnabled()
         
         # Toggle to disabled
         dialog.ui.checkBox_no_due_date.setChecked(True)
         dialog.on_no_due_date_toggled(True)
-        assert dialog.ui.dateEdit_task_due_date.isEnabled() == False
+        assert not dialog.ui.dateEdit_task_due_date.isEnabled()
         
         # Toggle back to enabled
         dialog.ui.checkBox_no_due_date.setChecked(False)
         dialog.on_no_due_date_toggled(False)
-        assert dialog.ui.dateEdit_task_due_date.isEnabled() == True
+        assert dialog.ui.dateEdit_task_due_date.isEnabled()
 
     @pytest.mark.ui
     @pytest.mark.behavior
@@ -537,7 +538,7 @@ class TestTaskEditDialogBehavior:
         recurring_data = dialog.collect_recurring_task_data()
         assert recurring_data['recurrence_pattern'] == 'daily'  # lowercase as per implementation
         assert recurring_data['recurrence_interval'] == 3
-        assert recurring_data['repeat_after_completion'] == True
+        assert recurring_data['repeat_after_completion']
 
     @pytest.mark.ui
     @pytest.mark.behavior

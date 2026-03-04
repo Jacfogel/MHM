@@ -94,9 +94,8 @@ def detect_function_type(
     special_method = function_type_detection.get("special_method", {})
     if special_method:
         name_pattern = special_method.get("name_pattern", "")
-        if name_pattern:
-            if re.match(name_pattern, func_name):
-                return "special_method"
+        if name_pattern and re.match(name_pattern, func_name):
+            return "special_method"
 
     # Constructor
     constructor = function_type_detection.get("constructor", {})
@@ -164,18 +163,16 @@ def generate_function_template(
             return f'"""Test {test_name.title()}."""'
 
     elif func_type == "special_method":
-        if func_name == "__init__":
-            return '"""Initialize the object."""'
-        elif func_name == "__new__":
-            return '"""Create a new instance."""'
-        elif func_name == "__post_init__":
-            return '"""Post-initialization setup."""'
-        elif func_name == "__enter__":
-            return '"""Context manager entry."""'
-        elif func_name == "__exit__":
-            return '"""Context manager exit."""'
-        else:
-            return f'"""Special Python method: {func_name}."""'
+        special_method_docs = {
+            "__init__": '"""Initialize the object."""',
+            "__new__": '"""Create a new instance."""',
+            "__post_init__": '"""Post-initialization setup."""',
+            "__enter__": '"""Context manager entry."""',
+            "__exit__": '"""Context manager exit."""',
+        }
+        return special_method_docs.get(
+            func_name, f'"""Special Python method: {func_name}."""'
+        )
 
     elif func_type == "constructor":
         return '"""Initialize the object."""'
@@ -288,10 +285,7 @@ def scan_and_document_functions(project_root_path: Path | None = None):
     """Scan all Python files and add docstrings where missing."""
     global AUTO_DOC_CONFIG
 
-    if project_root_path:
-        project_root = project_root_path
-    else:
-        project_root = config.get_project_root()
+    project_root = project_root_path or config.get_project_root()
 
     results = {
         "files_processed": 0,

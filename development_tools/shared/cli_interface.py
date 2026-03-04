@@ -628,7 +628,7 @@ def _backup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
 
     if ns.backup_subcommand == "retention":
         apply_flag = bool(getattr(ns, "apply", False))
-        dry_run_flag = True if not apply_flag else False
+        dry_run_flag = bool(not apply_flag)
         # If both are specified, --apply takes precedence.
         result = service.run_backup_retention(dry_run=dry_run_flag, apply=apply_flag)
         return 0 if result.get("success") else 1

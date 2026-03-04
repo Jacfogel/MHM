@@ -18,6 +18,8 @@ from tests.conftest import (
 )
 from core.time_utilities import now_timestamp_full
 from tests.test_support.conftest_cleanup_impl import _is_transient_test_data_dir_name
+import contextlib
+
 
 @pytest.fixture(scope="session")
 def test_data_dir():
@@ -297,15 +299,11 @@ def shim_get_user_data_to_invoke_loaders():
         yield
     finally:
         # Restore originals at end of session
-        try:
+        with contextlib.suppress(Exception):
             um.get_user_data = original_get_user_data
-        except Exception:
-            pass
         if udh is not None and original_handlers_get is not None:
-            try:
+            with contextlib.suppress(Exception):
                 udh.get_user_data = original_handlers_get
-            except Exception:
-                pass
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -422,36 +420,39 @@ def ensure_user_materialized(test_data_dir):
         prefs_path = user_dir / "preferences.json"
         ctx_path = user_dir / "user_context.json"
         if not acct_path.exists():
-            _json.dump(
-                {
-                    "user_id": user_id,
-                    "internal_username": user_id,
-                    "account_status": "active",
-                    "features": {
-                        "automated_messages": "disabled",
-                        "task_management": "disabled",
-                        "checkins": "disabled",
+            with open(acct_path, "w", encoding="utf-8") as file_obj:
+                _json.dump(
+                    {
+                        "user_id": user_id,
+                        "internal_username": user_id,
+                        "account_status": "active",
+                        "features": {
+                            "automated_messages": "disabled",
+                            "task_management": "disabled",
+                            "checkins": "disabled",
+                        },
                     },
-                },
-                open(acct_path, "w", encoding="utf-8"),
-                indent=2,
-            )
+                    file_obj,
+                    indent=2,
+                )
         if not prefs_path.exists():
-            _json.dump(
-                {
-                    "channel": {"type": "email"},
-                    "checkin_settings": {"enabled": False},
-                    "task_settings": {"enabled": False},
-                },
-                open(prefs_path, "w", encoding="utf-8"),
-                indent=2,
-            )
+            with open(prefs_path, "w", encoding="utf-8") as file_obj:
+                _json.dump(
+                    {
+                        "channel": {"type": "email"},
+                        "checkin_settings": {"enabled": False},
+                        "task_settings": {"enabled": False},
+                    },
+                    file_obj,
+                    indent=2,
+                )
         if not ctx_path.exists():
-            _json.dump(
-                {"preferred_name": user_id, "pronouns": [], "custom_fields": {}},
-                open(ctx_path, "w", encoding="utf-8"),
-                indent=2,
-            )
+            with open(ctx_path, "w", encoding="utf-8") as file_obj:
+                _json.dump(
+                    {"preferred_name": user_id, "pronouns": [], "custom_fields": {}},
+                    file_obj,
+                    indent=2,
+                )
         return str(user_dir)
 
     return _helper
@@ -521,6 +522,7 @@ def enforce_user_dir_locations():
         # Do not mask test results if scan fails
         pass
 
+
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_tmp_at_session_end():
     """Clear tests/data/tmp contents at session end to keep the workspace tidy."""
@@ -537,10 +539,8 @@ def cleanup_tmp_at_session_end():
                 if child.is_dir():
                     shutil.rmtree(child, ignore_errors=True)
                 else:
-                    try:
+                    with contextlib.suppress(Exception):
                         child.unlink(missing_ok=True)
-                    except Exception:
-                        pass
     except Exception:
         pass
 
@@ -928,10 +928,8 @@ def _cleanup_test_user_artifacts() -> None:
     test_data_dir = os.path.abspath("tests/data")
     user_index_file = os.path.join(test_data_dir, "user_index.json")
     if os.path.exists(user_index_file):
-        try:
+        with contextlib.suppress(Exception):
             os.remove(user_index_file)
-        except Exception:
-            pass
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -953,10 +951,8 @@ def cleanup_test_users_after_session():
                 # Clean up test request files (reschedule_test_*)
                 if item.startswith("reschedule_test_"):
                     item_path = os.path.join(requests_dir, item)
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(item_path)
-                    except Exception:
-                        pass
         except Exception:
             pass
 
@@ -1153,10 +1149,8 @@ def cleanup_test_users_after_session():
             base_test_data_dir, "conversation_states.json"
         )
         if os.path.exists(conversation_states_file):
-            try:
+            with contextlib.suppress(Exception):
                 os.remove(conversation_states_file)
-            except Exception:
-                pass
 
         # Clear logs directory
         logs_dir = os.path.join(base_test_data_dir, "logs")
@@ -1186,10 +1180,8 @@ def cleanup_test_users_after_session():
                 for file in files:
                     if file == "test.log":
                         file_path = os.path.join(root, file)
-                        try:
+                        with contextlib.suppress(Exception):
                             os.remove(file_path)
-                        except Exception:
-                            pass
         except Exception:
             pass
 

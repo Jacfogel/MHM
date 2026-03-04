@@ -71,6 +71,7 @@ class TestScanAllPythonFiles:
         
         # Mock should_exclude_file to not exclude demo project files
         original_should_exclude = standard_exclusions.should_exclude_file
+
         def mock_should_exclude_file(file_path, tool_type, context='production'):
             if 'development_tools_demo' in file_path:
                 return False
@@ -90,7 +91,7 @@ class TestScanAllPythonFiles:
         # Should find at least demo_module.py
         # Keys might be full paths, so check both the key and convert to string
         found_demo = False
-        for key in results.keys():
+        for key in results:
             key_str = str(key)
             if 'demo_module' in key_str:
                 found_demo = True

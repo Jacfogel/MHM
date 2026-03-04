@@ -146,7 +146,6 @@ def load_json_data(file_path):
         logger.error("Empty file_path provided")
         return {}
 
-
     try:
         with open(file_path, encoding="utf-8") as file:
             return json.load(file)

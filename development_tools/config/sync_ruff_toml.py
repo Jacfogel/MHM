@@ -66,7 +66,7 @@ def render_ruff_toml(exclusions: list[str]) -> str:
         "]\n\n"
         "[lint]\n"
         'select = ["E", "F", "B", "UP", "SIM"]\n'
-        'ignore = ["E501"]\n'
+        'ignore = ["E501", "E402", "SIM117", "SIM102"]\n'
     )
 
 

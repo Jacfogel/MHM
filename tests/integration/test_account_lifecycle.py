@@ -12,6 +12,7 @@ import shutil
 
 # Removed path hacks; rely on proper package imports
 
+
 class TestAccountLifecycle:
     """Test complete account lifecycle workflows with real behavior verification."""
     
@@ -58,7 +59,7 @@ class TestAccountLifecycle:
         sched_updates = current_sched if isinstance(current_sched, dict) else {}
         sched_updates.setdefault('motivational', {}).setdefault('periods', {}).setdefault('morning', {
             'active': True,
-            'days': ['monday','tuesday','wednesday','thursday','friday'],
+            'days': ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
             'start_time': '09:00',
             'end_time': '12:00',
         })
@@ -305,8 +306,6 @@ class TestAccountLifecycle:
         
         # Arrange - Create basic user
         user_id = f"test-enable-checkins-{uuid.uuid4().hex[:8]}"
-        
-        
         
         # Create test user using centralized utilities for consistent setup
         from tests.test_utilities import TestUserFactory
@@ -862,7 +861,7 @@ class TestAccountLifecycle:
         self._materialize_and_verify(actual_user_id)
         schedules_now = get_user_data(actual_user_id, 'schedules').get('schedules', {})
         morning_period = schedules_now.setdefault("motivational", {}).setdefault("periods", {}).setdefault("morning", {})
-        morning_period.update({"start_time": "08:00", "end_time": "11:00", "days": ["monday","tuesday","wednesday","thursday","friday","saturday"]})
+        morning_period.update({"start_time": "08:00", "end_time": "11:00", "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]})
         from core.user_data_handlers import update_user_schedules
         update_user_schedules(actual_user_id, schedules_now)
         
@@ -1065,6 +1064,6 @@ class TestAccountLifecycle:
         # Verify data loading fails
         try:
             get_user_data(actual_user_id)
-            assert False, "Should not be able to load deleted user data"
+            raise AssertionError("Should not be able to load deleted user data")
         except:
             pass  # Expected behavior 

@@ -112,10 +112,7 @@ def _is_changelog_file(file_path: Path) -> bool:
     """Determine if a file is a changelog, plan, or TODO file."""
     filename = file_path.name
     skip_patterns = [r"CHANGELOG", r"PLANS", r"^TODO\.md$"]
-    for pattern in skip_patterns:
-        if re.search(pattern, filename, re.IGNORECASE):
-            return True
-    return False
+    return any(re.search(pattern, filename, re.IGNORECASE) for pattern in skip_patterns)
 
 
 def _remove_emojis_from_text(text: str) -> str:
@@ -145,9 +142,7 @@ def _should_convert_to_bold(heading_text: str) -> bool:
     clean_text = re.sub(r"\*\*", "", clean_text).strip()
     if re.match(r"^Q:\s*", clean_text, re.IGNORECASE):
         return True
-    if re.match(r"^Step\s+\d+:", clean_text, re.IGNORECASE):
-        return True
-    return False
+    return bool(re.match(r"^Step\s+\d+:", clean_text, re.IGNORECASE))
 
 
 def _has_standard_numbering_format(heading_text: str) -> bool:
@@ -156,9 +151,7 @@ def _has_standard_numbering_format(heading_text: str) -> bool:
         return True
     if re.match(r"^\d+(?:\.\d+)+\s+", heading_text):
         return False
-    if re.match(r"^\d+\s+", heading_text):
-        return False
-    return True
+    return not re.match(r"^\d+\s+", heading_text)
 
 
 def _strip_content_number(text: str) -> str:

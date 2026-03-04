@@ -32,7 +32,6 @@ if not _safe_logger.handlers:
 _logging_lock = threading.local()
 
 
-
 # ============================================================================
 # CUSTOM EXCEPTIONS
 # ============================================================================
@@ -393,10 +392,7 @@ class NetworkRecovery(ErrorRecoveryStrategy):
         # Be very specific - only handle actual network errors
         if isinstance(error, (ConnectionError, TimeoutError)):
             return True
-        if isinstance(error, CommunicationError) and "network" in str(error).lower():
-            return True
-        # Don't handle file system errors, permission errors, etc.
-        return False
+        return isinstance(error, CommunicationError) and "network" in str(error).lower()
 
     def recover(self, error: Exception, context: dict[str, Any]) -> bool:
         """
@@ -682,10 +678,7 @@ class ErrorHandler:
         """Show user-friendly error message."""
         # This will be implemented to show UI messages when appropriate
         # For now, just log the user-friendly message
-        if custom_message:
-            user_msg = custom_message
-        else:
-            user_msg = self._get_user_friendly_message(error, context)
+        user_msg = custom_message or self._get_user_friendly_message(error, context)
 
         try:
             from core.logger import get_component_logger

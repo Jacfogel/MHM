@@ -224,15 +224,14 @@ def analyze_function_patterns(actual_functions: dict[str, dict]) -> dict[str, An
             # Schedulers
             elif "schedule" in func_lower and (
                 "add" in func_lower or "create" in func_lower or "run" in func_lower
-            ):
-                if "test" not in file_lower:
-                    patterns["schedulers"].append(
-                        {
-                            "file": file_path,
-                            "function": func_name,
-                            "has_doc": func.get("has_docstring", False),
-                        }
-                    )
+            ) and "test" not in file_lower:
+                patterns["schedulers"].append(
+                    {
+                        "file": file_path,
+                        "function": func_name,
+                        "has_doc": func.get("has_docstring", False),
+                    }
+                )
 
             # Decorators - check if function is used as a decorator
             # Look for functions that are commonly used as decorators

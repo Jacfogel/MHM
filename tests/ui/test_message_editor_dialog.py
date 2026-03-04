@@ -26,6 +26,7 @@ from ui.dialogs.message_editor_dialog import (
 )
 from tests.test_utilities import TestUserFactory
 
+
 # Create QApplication instance for testing
 @pytest.fixture(scope="session")
 def qapp():
@@ -101,7 +102,7 @@ class TestMessageEditDialogInitialization:
         assert dialog_add is not None, "Dialog should be created"
         assert not dialog_add.isVisible(), "Dialog should not be visible during testing"
         assert "Add Message" in dialog_add.windowTitle(), "Dialog should have correct title for add mode"
-        assert dialog_add.is_edit == False, "Dialog should be in add mode"
+        assert not dialog_add.is_edit, "Dialog should be in add mode"
         assert dialog_add.user_id is not None, "User ID should be set"
         assert dialog_add.category == "motivation", "Category should be set"
         
@@ -121,7 +122,7 @@ class TestMessageEditDialogInitialization:
         # Assert: Verify initial state
         assert dialog_edit is not None, "Dialog should be created"
         assert "Edit Message" in dialog_edit.windowTitle(), "Dialog should have correct title for edit mode"
-        assert dialog_edit.is_edit == True, "Dialog should be in edit mode"
+        assert dialog_edit.is_edit, "Dialog should be in edit mode"
         assert dialog_edit.message_data is not None, "Message data should be set"
         
         # Assert: Verify message data is loaded
@@ -226,7 +227,7 @@ class TestMessageEditDialogValidation:
         dialog.period_checkboxes['morning'].setChecked(True)
         
         # Verify dialog is in add mode
-        assert dialog.is_edit == False, "Dialog should be in add mode"
+        assert not dialog.is_edit, "Dialog should be in add mode"
         
         # Act: Try to save (should succeed)
         with patch('ui.dialogs.message_editor_dialog.add_message') as mock_add, \

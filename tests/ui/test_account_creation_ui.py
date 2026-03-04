@@ -167,9 +167,8 @@ class TestAccountCreationDialogRealBehavior:
                 if (
                     hasattr(instance, "_email_polling_thread")
                     and instance._email_polling_thread
-                ):
-                    if hasattr(instance, "stop_all__stop_email_polling"):
-                        instance.stop_all__stop_email_polling()
+                ) and hasattr(instance, "stop_all__stop_email_polling"):
+                    instance.stop_all__stop_email_polling()
                 # Stop retry manager if it exists
                 if hasattr(instance, "retry_manager") and hasattr(
                     instance.retry_manager, "stop_retry_thread"
@@ -200,9 +199,8 @@ class TestAccountCreationDialogRealBehavior:
                 if (
                     hasattr(instance, "_email_polling_thread")
                     and instance._email_polling_thread
-                ):
-                    if hasattr(instance, "stop_all__stop_email_polling"):
-                        instance.stop_all__stop_email_polling()
+                ) and hasattr(instance, "stop_all__stop_email_polling"):
+                    instance.stop_all__stop_email_polling()
                 if hasattr(instance, "retry_manager") and hasattr(
                     instance.retry_manager, "stop_retry_thread"
                 ):
@@ -409,7 +407,7 @@ class TestAccountCreationDialogRealBehavior:
         # The timezone combo should have a default value that prevents empty selection
         if current_timezone == "":
             # If somehow empty, this should be invalid
-            assert False, "Timezone should not be empty - combo box should have default"
+            raise AssertionError("Timezone should not be empty - combo box should have default")
         else:
             # If it has a value, that's expected behavior
             assert current_timezone != "", "Timezone should have a value"

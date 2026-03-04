@@ -478,9 +478,9 @@ def generate_audit_report(
 ) -> dict:
     """Generate comprehensive audit report for a package."""
     if emit_progress_logs:
-        logger.debug(f"{'='*80}")
+        logger.debug(f"{'=' * 80}")
         logger.debug(f"AUDITING PACKAGE: {package_name}")
-        logger.debug(f"{'='*80}")
+        logger.debug(f"{'=' * 80}")
 
     # 1. Check current exports
     current_exports = check_current_exports(package_name)
@@ -614,9 +614,9 @@ def generate_recommended_exports(report: dict) -> str:
 
 def print_report(report: dict, show_recommendations: bool = False):
     """Print formatted audit report."""
-    logger.debug(f"{'='*80}")
+    logger.debug(f"{'=' * 80}")
     logger.debug(f"AUDIT REPORT: {report['package']}")
-    logger.debug(f"{'='*80}")
+    logger.debug(f"{'=' * 80}")
 
     logger.debug(f"Current exports: {report['current_exports_count']}")
     logger.debug(f"Should export: {report['should_export_count']}")
@@ -665,9 +665,9 @@ def print_report(report: dict, show_recommendations: bool = False):
             )
 
     if show_recommendations:
-        logger.debug(f"{'='*80}")
+        logger.debug(f"{'=' * 80}")
         logger.debug("RECOMMENDED EXPORTS")
-        logger.debug(f"{'='*80}")
+        logger.debug(f"{'=' * 80}")
         recommendations = generate_recommended_exports(report)
         # User-facing recommendations stay as print() for immediate visibility
         print(recommendations)
@@ -724,9 +724,9 @@ def main():
 
     # Summary
     if len(reports) > 1:
-        logger.debug(f"{'='*80}")
+        logger.debug(f"{'=' * 80}")
         logger.debug("SUMMARY")
-        logger.debug(f"{'='*80}")
+        logger.debug(f"{'=' * 80}")
 
         total_missing = sum(len(r["missing_exports"]) for r in reports)
         total_unnecessary = sum(len(r["potentially_unnecessary"]) for r in reports)

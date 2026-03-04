@@ -48,8 +48,6 @@ class ChannelManagementDialog(QDialog):
                 def load_user_channel_data():
                     user_data_result = get_user_data(self.user_id, "account")
                     account = user_data_result.get("account") or {}
-                    features = account.get("features", {})
-                    features.get("automated_messages") == "enabled"
                     prefs_result = get_user_data(self.user_id, "preferences")
                     prefs = prefs_result.get("preferences") or {}
                     channel = prefs.get("channel", {}).get("type", "email")

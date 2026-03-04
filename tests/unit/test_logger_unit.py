@@ -39,28 +39,28 @@ class TestTestingEnvironmentDetection:
         """Test: _is_testing_environment detects MHM_TESTING env var"""
         with patch.dict(os.environ, {'MHM_TESTING': '1'}):
             result = _is_testing_environment()
-            assert result == True, "Should detect MHM_TESTING=1"
+            assert result, "Should detect MHM_TESTING=1"
     
     @pytest.mark.unit
     def test_is_testing_environment_with_pytest_current_test(self):
         """Test: _is_testing_environment detects PYTEST_CURRENT_TEST"""
         with patch.dict(os.environ, {'PYTEST_CURRENT_TEST': 'test_name'}):
             result = _is_testing_environment()
-            assert result == True, "Should detect PYTEST_CURRENT_TEST"
+            assert result, "Should detect PYTEST_CURRENT_TEST"
     
     @pytest.mark.unit
     def test_is_testing_environment_with_pytest_in_pythonpath(self):
         """Test: _is_testing_environment detects pytest in PYTHONPATH"""
         with patch.dict(os.environ, {'PYTHONPATH': '/path/to/pytest'}):
             result = _is_testing_environment()
-            assert result == True, "Should detect pytest in PYTHONPATH"
+            assert result, "Should detect pytest in PYTHONPATH"
     
     @pytest.mark.unit
     def test_is_testing_environment_with_test_in_argv(self):
         """Test: _is_testing_environment detects test in sys.argv"""
         with patch('sys.argv', ['-m', 'pytest', 'test_file.py']):
             result = _is_testing_environment()
-            assert result == True, "Should detect test in sys.argv"
+            assert result, "Should detect test in sys.argv"
     
     @pytest.mark.unit
     def test_is_testing_environment_not_testing(self):
@@ -68,7 +68,7 @@ class TestTestingEnvironmentDetection:
         with patch.dict(os.environ, {}, clear=True), \
              patch('sys.argv', ['python', 'script.py']):
             result = _is_testing_environment()
-            assert result == False, "Should return False when not testing"
+            assert not result, "Should return False when not testing"
 
     @pytest.mark.unit
     def test_dev_tools_log_paths_are_isolated_from_production(self):
@@ -379,7 +379,7 @@ class TestBackupDirectoryRotatingFileHandler:
         )
         
         result = handler.shouldRollover(record)
-        assert result == False, "Should not rollover small files"
+        assert not result, "Should not rollover small files"
     
     @pytest.mark.unit
     def test_backup_handler_should_rollover_recent_file(self, temp_log_dir):
@@ -411,7 +411,7 @@ class TestBackupDirectoryRotatingFileHandler:
         
         result = handler.shouldRollover(record)
         # Should not rollover because file is too recent
-        assert result == False, "Should not rollover recent files"
+        assert not result, "Should not rollover recent files"
 
 
 class TestHeartbeatWarningFilter:
@@ -433,9 +433,9 @@ class TestHeartbeatWarningFilter:
         )
         
         # First 3 should pass
-        assert filter_obj.filter(record) == True, "Should allow first warning"
-        assert filter_obj.filter(record) == True, "Should allow second warning"
-        assert filter_obj.filter(record) == True, "Should allow third warning"
+        assert filter_obj.filter(record), "Should allow first warning"
+        assert filter_obj.filter(record), "Should allow second warning"
+        assert filter_obj.filter(record), "Should allow third warning"
     
     @pytest.mark.unit
     def test_heartbeat_filter_suppresses_after_three(self):
@@ -458,7 +458,7 @@ class TestHeartbeatWarningFilter:
         
         # 4th should log suppression message (returns True)
         result = filter_obj.filter(record)
-        assert result == True, "Should log suppression message on 4th warning"
+        assert result, "Should log suppression message on 4th warning"
         
         # 5th should be suppressed (but may return True if suppression period ended or summary is due)
         result = filter_obj.filter(record)
@@ -482,7 +482,7 @@ class TestHeartbeatWarningFilter:
         )
         
         result = filter_obj.filter(record)
-        assert result == True, "Should allow non-heartbeat messages"
+        assert result, "Should allow non-heartbeat messages"
 
 
 class TestExcludeLoggerNamesFilter:
@@ -504,7 +504,7 @@ class TestExcludeLoggerNamesFilter:
         )
         
         result = filter_obj.filter(record)
-        assert result == False, "Should exclude logger with prefix"
+        assert not result, "Should exclude logger with prefix"
     
     @pytest.mark.unit
     def test_exclude_filter_allows_other_loggers(self):
@@ -522,7 +522,7 @@ class TestExcludeLoggerNamesFilter:
         )
         
         result = filter_obj.filter(record)
-        assert result == True, "Should allow other loggers"
+        assert result, "Should allow other loggers"
 
 
 class TestEnsureLogsDirectory:

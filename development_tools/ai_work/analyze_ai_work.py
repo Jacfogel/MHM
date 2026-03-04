@@ -158,7 +158,7 @@ def validate_documentation_completeness(doc_file: str, code_files: list[str]) ->
 
                 # Extract function names
                 for node in ast.walk(tree):
-                    if isinstance(node, ast.FunctionDef) or isinstance(node, ast.ClassDef):
+                    if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
                         actual_items.add(node.name)
 
                 # Add file name

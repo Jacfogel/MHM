@@ -533,6 +533,7 @@ class TestWebhookServerBehavior:
         class MockVerifyKey:
             def __init__(self, *args, **kwargs):
                 pass
+
             def verify(self, *args, **kwargs):
                 raise MockBadSignatureError("Invalid signature")
         
@@ -632,6 +633,7 @@ class TestWebhookServerBehavior:
         class MockVerifyKey:
             def __init__(self, *args, **kwargs):
                 pass
+
             def verify(self, *args, **kwargs):
                 raise Exception("Verification error")
         

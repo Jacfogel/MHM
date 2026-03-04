@@ -233,10 +233,7 @@ class LegacyReferenceAnalyzer:
                 return True
 
         # Skip certain file extensions
-        if file_path.suffix.lower() in self.skip_extensions:
-            return True
-
-        return False
+        return file_path.suffix.lower() in self.skip_extensions
 
     def analyze_file_content(
         self, file_path: Path, content: str

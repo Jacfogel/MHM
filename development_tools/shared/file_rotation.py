@@ -237,9 +237,7 @@ def create_output_file(
             if "appdata" in path_str and ("temp" in path_str or "tmp" in path_str):
                 return True
             # Check if path contains pytest temp directory patterns
-            if "pytest" in path_str and ("temp" in path_str or "tmp" in path_str):
-                return True
-            return False
+            return bool("pytest" in path_str and ("temp" in path_str or "tmp" in path_str))
         except Exception:
             # If we can't determine, be conservative and assume it's not a test directory
             return False
@@ -682,10 +680,7 @@ def create_output_file(
     # Status files are logged at DEBUG level when actually written (see operations.py for audit context)
 
     # Ensure file_path is a Path object
-    if isinstance(file_path, str):
-        file_path = Path(file_path)
-    else:
-        file_path = Path(file_path)
+    file_path = Path(file_path) if isinstance(file_path, str) else Path(file_path)
 
     # Resolve relative paths against project_root if provided
     if project_root is not None:

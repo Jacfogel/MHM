@@ -180,7 +180,7 @@ def run_ruff(project_root: Path) -> dict[str, Any]:
     if isinstance(details, dict):
         top_rule_counts = details.get("violations_by_rule", {})
         if isinstance(top_rule_counts, dict) and top_rule_counts:
-            ordered_codes = [str(code) for code in top_rule_counts.keys()]
+            ordered_codes = [str(code) for code in top_rule_counts]
             names = _resolve_top_rule_names(
                 command=command,
                 rule_codes=ordered_codes,

@@ -65,6 +65,7 @@ except ImportError:
 from .domain_mapper import DomainMapper
 from core.time_utilities import now_timestamp_full, now_timestamp_filename
 from development_tools.shared.standard_exclusions import should_exclude_file
+import contextlib
 
 
 class TestFileCoverageCache:
@@ -316,10 +317,8 @@ class TestFileCoverageCache:
                                 except (OSError, AttributeError):
                                     pass
                             elif HAS_MSVCRT:
-                                try:
+                                with contextlib.suppress(OSError, AttributeError):
                                     msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
-                                except (OSError, AttributeError):
-                                    pass
 
                             self.cache_data = json.load(f)
 
@@ -330,10 +329,8 @@ class TestFileCoverageCache:
                                 except (OSError, AttributeError):
                                     pass
                             elif HAS_MSVCRT:
-                                try:
+                                with contextlib.suppress(OSError, AttributeError):
                                     msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
-                                except (OSError, AttributeError):
-                                    pass
 
                             if logger:
                                 test_files_count = len(
@@ -414,10 +411,8 @@ class TestFileCoverageCache:
                             except (OSError, AttributeError):
                                 pass
                         elif HAS_MSVCRT:
-                            try:
+                            with contextlib.suppress(OSError, AttributeError):
                                 msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
-                            except (OSError, AttributeError):
-                                pass
 
                         json.dump(self.cache_data, f, indent=2)
                         f.flush()
@@ -430,10 +425,8 @@ class TestFileCoverageCache:
                             except (OSError, AttributeError):
                                 pass
                         elif HAS_MSVCRT:
-                            try:
+                            with contextlib.suppress(OSError, AttributeError):
                                 msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
-                            except (OSError, AttributeError):
-                                pass
 
                     temp_file.replace(self.cache_file)
 
@@ -481,10 +474,8 @@ class TestFileCoverageCache:
         config_path = self._get_config_file_path()
         if not config_path or not config_path.exists():
             return
-        try:
+        with contextlib.suppress(Exception):
             self.cache_data["config_mtime"] = config_path.stat().st_mtime
-        except Exception:
-            pass
 
     def _config_changed(self) -> bool:
         """Return True if config file mtime differs from cached value."""
@@ -558,12 +549,10 @@ class TestFileCoverageCache:
 
             # Current domains from current file content/location (when file exists).
             if test_file_path.exists():
-                try:
+                with contextlib.suppress(Exception):
                     affected_domains.update(
                         self.get_test_files_domains(test_file_path, force_refresh=True)
                     )
-                except Exception:
-                    pass
 
             # Also include cached domains (for deleted files or mapping drift).
             cached_entry = cached_test_entries.get(test_file_rel, {})

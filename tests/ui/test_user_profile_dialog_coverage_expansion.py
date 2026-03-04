@@ -16,6 +16,7 @@ from PySide6.QtCore import Qt
 from ui.dialogs.user_profile_dialog import UserProfileDialog
 from tests.test_utilities import TestUserFactory
 
+
 # Create QApplication instance for testing
 @pytest.fixture(scope="session")
 def qapp():
@@ -24,6 +25,7 @@ def qapp():
     if app is None:
         app = QApplication([])
     yield app
+
 
 class TestUserProfileDialogCoverageExpansion:
     """Comprehensive test suite for UserProfileDialog coverage expansion."""

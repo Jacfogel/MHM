@@ -229,7 +229,6 @@ def get_module_purpose(file_path: str) -> str:
         "core/user_data_handlers.py": "User data handlers - provides centralized access to user accounts, preferences, context, and schedules",
         "core/message_management.py": "Message management system - handles message categories, content, and delivery",
         "core/schedule_management.py": "Schedule management system - handles user schedules, periods, and timing",
-        "core/user_data_handlers.py": "User data handlers - provides centralized access to user data with caching and validation",
         "core/user_data_manager.py": "User data manager - manages user data storage, retrieval, and caching",
         "core/user_data_validation.py": "User data validation - validates user input and data integrity",
         "core/validation.py": "Validation system - provides validation utilities and error handling",

@@ -58,23 +58,23 @@ class TestErrorHandlingImprovements:
         
         # Test save_json_data with invalid inputs
         result = save_json_data({"test": "data"}, None)
-        assert result == False
+        assert not result
         
         result = save_json_data({"test": "data"}, "")
-        assert result == False
+        assert not result
         
         result = save_json_data(None, "test.json")
-        assert result == False
+        assert not result
         
         # Test verify_file_access with invalid inputs
         result = verify_file_access(None)
-        assert result == False
+        assert not result
         
         result = verify_file_access([])
-        assert result == False
+        assert not result
         
         result = verify_file_access([None])
-        assert result == False
+        assert not result
         
     def test_user_data_handlers_validation(self):
         """Test user data handlers with improved validation."""
@@ -104,13 +104,13 @@ class TestErrorHandlingImprovements:
         
         # Test update_message_references with invalid inputs
         result = manager.update_message_references(None)
-        assert result == False
+        assert not result
         
         result = manager.update_message_references("")
-        assert result == False
+        assert not result
         
         result = manager.update_message_references(123)
-        assert result == False
+        assert not result
         
         # Test get_user_message_files with invalid inputs
         result = manager.get_user_message_files(None)
@@ -144,16 +144,16 @@ class TestErrorHandlingImprovements:
         
         # Test restore_backup with invalid inputs
         result = manager.restore_backup(None)
-        assert result == False
+        assert not result
         
         result = manager.restore_backup("")
-        assert result == False
+        assert not result
         
         result = manager.restore_backup(123)
-        assert result == False
+        assert not result
         
         result = manager.restore_backup("test.zip", restore_users="invalid")
-        assert result == False
+        assert not result
         
     def test_discord_bot_validation(self):
         """Test Discord bot with improved validation."""
@@ -161,26 +161,26 @@ class TestErrorHandlingImprovements:
         
         # Test _check_dns_resolution with invalid inputs
         result = bot._check_dns_resolution(None)
-        assert result == False
+        assert not result
         
         result = bot._check_dns_resolution("")
-        assert result == False
+        assert not result
         
         result = bot._check_dns_resolution(123)
-        assert result == False
+        assert not result
         
         # Test _check_network_connectivity with invalid inputs
         result = bot._check_network_connectivity(None)
-        assert result == False
+        assert not result
         
         result = bot._check_network_connectivity("")
-        assert result == False
+        assert not result
         
         result = bot._check_network_connectivity("discord.com", "invalid")
-        assert result == False
+        assert not result
         
         result = bot._check_network_connectivity("discord.com", -1)
-        assert result == False
+        assert not result
         
     def test_message_router_validation(self):
         """Test message router with improved validation."""
@@ -212,10 +212,10 @@ class TestErrorHandlingImprovements:
         
         # Test initialize_channels_from_config with invalid inputs
         result = manager.initialize_channels_from_config("invalid")
-        assert result == False
+        assert not result
         
         result = manager.initialize_channels_from_config(123)
-        assert result == False
+        assert not result
         
         # Test _get_recipient_for_service with invalid inputs
         result = manager._get_recipient_for_service(None, "discord", {})
@@ -299,9 +299,7 @@ class TestErrorHandlingImprovements:
                     return False
                 if not isinstance(parsed_command, (str, object)):
                     return False
-                if isinstance(parsed_command, str) and not parsed_command.strip():
-                    return False
-                return True
+                return not (isinstance(parsed_command, str) and not parsed_command.strip())
                 
             def handle(self, user_id: str, parsed_command) -> object:
                 return object()
@@ -316,29 +314,29 @@ class TestErrorHandlingImprovements:
         
         # Test can_handle with invalid inputs - validation should reject them
         result = handler.can_handle(None)
-        assert result == False, "Should reject None"
+        assert not result, "Should reject None"
         
         result = handler.can_handle("")
-        assert result == False, "Should reject empty string"
+        assert not result, "Should reject empty string"
         
         result = handler.can_handle(123)
-        assert result == True, "Numeric types are accepted as objects"  # Changed expectation
+        assert result, "Numeric types are accepted as objects"  # Changed expectation
         
         # Test _validate_user_id with invalid inputs
         result = handler._validate_user_id(None)
-        assert result == False
+        assert not result
         
         result = handler._validate_user_id("")
-        assert result == False
+        assert not result
         
         result = handler._validate_user_id(123)
-        assert result == False
+        assert not result
         
         result = handler._validate_user_id("a" * 101)  # Too long
-        assert result == False
+        assert not result
         
         result = handler._validate_user_id("user@123")  # Invalid characters
-        assert result == False
+        assert not result
         
     def test_ai_chatbot_validation(self):
         """Test AI chatbot with improved validation."""
@@ -380,13 +378,13 @@ class TestErrorHandlingImprovements:
         """Test task management with improved validation."""
         # Test ensure_task_directory with invalid inputs
         result = ensure_task_directory(None)
-        assert result == False
+        assert not result
         
         result = ensure_task_directory("")
-        assert result == False
+        assert not result
         
         result = ensure_task_directory(123)
-        assert result == False
+        assert not result
         
         # Test load_active_tasks with invalid inputs
         result = load_active_tasks(None)

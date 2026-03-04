@@ -199,10 +199,7 @@ def identify_enhancement_needs(
                 if section_start != -1:
                     # Find the end of this section (next module or end of file)
                     next_section = content.find("#### `", section_start + 1)
-                    if next_section == -1:
-                        section_end = len(content)
-                    else:
-                        section_end = next_section
+                    section_end = len(content) if next_section == -1 else next_section
 
                     section_content = content[section_start:section_end]
 

@@ -77,11 +77,17 @@ def build_backup_inventory(project_root: Path, policy: BackupPolicy) -> Dict[str
             }
         )
 
+    rules_with_files = 0
+    for entry in entries:
+        file_count = entry.get("file_count")
+        if isinstance(file_count, int) and file_count > 0:
+            rules_with_files += 1
+
     inventory = {
         "summary": {
             "total_rules": len(policy.artifact_rules),
             "enabled_rules": sum(1 for r in policy.artifact_rules if r.enabled),
-            "rules_with_files": sum(1 for entry in entries if int(entry["file_count"]) > 0),
+            "rules_with_files": rules_with_files,
         },
         "categories": {
             key: {

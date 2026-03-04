@@ -461,11 +461,10 @@ class UserProfileDialog(QDialog):
                 isinstance(widget, QFrame)
                 and hasattr(widget, "checkbox")
                 and hasattr(widget, "entry")
-            ):
-                if widget.checkbox.isChecked():
-                    custom_value = widget.entry.text().strip()
-                    if custom_value:
-                        selected_values.append(custom_value)
+            ) and widget.checkbox.isChecked():
+                custom_value = widget.entry.text().strip()
+                if custom_value:
+                    selected_values.append(custom_value)
 
         return selected_values
 

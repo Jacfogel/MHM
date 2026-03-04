@@ -99,13 +99,12 @@ class TestOrphanedReminderCleanup:
         found_deleted_task_job = False
         for job in reminder_jobs:
             kwargs = getattr(job.job_func, "keywords", None)
-            if kwargs is not None:
-                if (
-                    kwargs.get("user_id") == user_id
-                    and kwargs.get("task_id") == task_id
-                ):
-                    found_deleted_task_job = True
-                    break
+            if kwargs is not None and (
+                kwargs.get("user_id") == user_id
+                and kwargs.get("task_id") == task_id
+            ):
+                found_deleted_task_job = True
+                break
 
         assert (
             not found_deleted_task_job
@@ -186,13 +185,12 @@ class TestOrphanedReminderCleanup:
         found_completed_task_job = False
         for job in reminder_jobs:
             kwargs = getattr(job.job_func, "keywords", None)
-            if kwargs is not None:
-                if (
-                    kwargs.get("user_id") == user_id
-                    and kwargs.get("task_id") == task_id
-                ):
-                    found_completed_task_job = True
-                    break
+            if kwargs is not None and (
+                kwargs.get("user_id") == user_id
+                and kwargs.get("task_id") == task_id
+            ):
+                found_completed_task_job = True
+                break
 
         assert (
             not found_completed_task_job
@@ -247,7 +245,8 @@ class TestOrphanedReminderCleanup:
         assert not task.get("completed", False), "Task should not be completed"
 
         # Count reminder jobs before cleanup
-        _kw = lambda j: getattr(j.job_func, "keywords", None)
+        def _kw(j):
+            return getattr(j.job_func, "keywords", None)
         reminder_jobs_before = [
             job
             for job in schedule.jobs
@@ -350,7 +349,9 @@ class TestOrphanedReminderCleanup:
             for job in schedule.jobs
             if getattr(job.job_func, "func", None) == scheduler.handle_task_reminder
         ]
-        _kw = lambda j: getattr(j.job_func, "keywords", None) or {}
+
+        def _kw(j):
+            return getattr(j.job_func, "keywords", None) or {}
 
         found_task1_job = any(
             _kw(job).get("user_id") == user1_id and _kw(job).get("task_id") == task1_id

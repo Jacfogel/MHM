@@ -15,6 +15,7 @@ import pytest
 
 # Do not modify sys.path; rely on package imports
 
+
 @pytest.mark.ui
 @pytest.mark.critical
 @pytest.mark.regression
@@ -42,13 +43,14 @@ def test_dialog_imports():
             assert callable(dialog_class), f"{dialog_name}: Class is not callable"
         except ImportError as e:
             # logging via mhm_tests logger preferred over print
-            assert False, f"{dialog_name}: Import failed - {e}"
+            raise AssertionError(f"{dialog_name}: Import failed - {e}")
         except AttributeError as e:
             # logging via mhm_tests logger preferred over print
-            assert False, f"{dialog_name}: Class not found - {e}"
+            raise AssertionError(f"{dialog_name}: Class not found - {e}")
         except Exception as e:
             # logging via mhm_tests logger preferred over print
-            assert False, f"{dialog_name}: Unexpected error - {e}"
+            raise AssertionError(f"{dialog_name}: Unexpected error - {e}")
+
 
 @pytest.mark.ui
 @pytest.mark.critical
@@ -75,13 +77,14 @@ def test_widget_imports():
             assert callable(widget_class), f"{widget_name}: Class is not callable"
         except ImportError as e:
             # logging via mhm_tests logger preferred over print
-            assert False, f"{widget_name}: Import failed - {e}"
+            raise AssertionError(f"{widget_name}: Import failed - {e}")
         except AttributeError as e:
             # logging via mhm_tests logger preferred over print
-            assert False, f"{widget_name}: Class not found - {e}"
+            raise AssertionError(f"{widget_name}: Class not found - {e}")
         except Exception as e:
             # logging via mhm_tests logger preferred over print
-            assert False, f"{widget_name}: Unexpected error - {e}"
+            raise AssertionError(f"{widget_name}: Unexpected error - {e}")
+
 
 @pytest.mark.ui
 @pytest.mark.critical
@@ -108,7 +111,8 @@ def test_ui_files_exist():
             assert True, f"{ui_name}: UI file should exist"
         else:
             # logging via mhm_tests logger preferred over print
-            assert False, f"{ui_name}: UI file missing - {file_path}"
+            raise AssertionError(f"{ui_name}: UI file missing - {file_path}")
+
 
 @pytest.mark.ui
 @pytest.mark.critical
@@ -135,7 +139,8 @@ def test_generated_files_exist():
             assert True, f"{file_name}: Generated file should exist"
         else:
             # logging via mhm_tests logger preferred over print
-            assert False, f"{file_name}: Generated file missing - {file_path}"
+            raise AssertionError(f"{file_name}: Generated file missing - {file_path}")
+
 
 @pytest.mark.ui
 @pytest.mark.critical
@@ -211,7 +216,7 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
             assert 'account' in account_data, f"Account data should contain 'account' key for {actual_user_id}. Got: {account_data}"
         except Exception as e:
             logger.error(f"Account data failed for {actual_user_id}: {e}")
-            assert False, f"Account data failed for {actual_user_id}: {e}"
+            raise AssertionError(f"Account data failed for {actual_user_id}: {e}")
         
         # Test preferences data (read-only)
         try:
@@ -231,7 +236,7 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
             assert 'preferences' in prefs_data, f"Preferences data should contain 'preferences' key for {actual_user_id}. Got: {prefs_data}"
         except Exception as e:
             logger.error(f"Preferences data failed for {actual_user_id}: {e}")
-            assert False, f"Preferences data failed for {actual_user_id}: {e}"
+            raise AssertionError(f"Preferences data failed for {actual_user_id}: {e}")
         
         # Test context data (read-only)
         try:
@@ -251,11 +256,12 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
             assert 'context' in context_data, f"Context data should contain 'context' key for {actual_user_id}. Got: {context_data}"
         except Exception as e:
             logger.error(f"Context data failed for {actual_user_id}: {e}")
-            assert False, f"Context data failed for {actual_user_id}: {e}"
+            raise AssertionError(f"Context data failed for {actual_user_id}: {e}")
         
     except Exception as e:
         logger.error(f"User data access failed: {e}")
-        assert False, f"User data access failed: {e}"
+        raise AssertionError(f"User data access failed: {e}")
+
 
 @pytest.mark.ui
 @pytest.mark.critical
@@ -297,7 +303,7 @@ def test_dialog_instantiation(monkeypatch):
             comm_manager.stop_all()
         except Exception as e:
             logger.error(f"Account Creator instantiation failed: {e}")
-            assert False, f"Account Creator instantiation failed: {e}"
+            raise AssertionError(f"Account Creator instantiation failed: {e}")
         
         # Test User Profile Dialog
         try:
@@ -312,7 +318,7 @@ def test_dialog_instantiation(monkeypatch):
             dialog.close()
         except Exception as e:
             logger.error(f"User Profile instantiation failed: {e}")
-            assert False, f"User Profile instantiation failed: {e}"
+            raise AssertionError(f"User Profile instantiation failed: {e}")
         
         # Test other dialogs that don't require complex setup
         simple_dialogs = [
@@ -332,10 +338,10 @@ def test_dialog_instantiation(monkeypatch):
                 dialog.close()
             except Exception as e:
                 # logging via mhm_tests logger preferred over print
-                assert False, f"{dialog_name} instantiation failed: {e}"
+                raise AssertionError(f"{dialog_name} instantiation failed: {e}")
         
     except Exception as e:
         # logging via mhm_tests logger preferred over print
-        assert False, f"Dialog instantiation testing failed: {e}"
+        raise AssertionError(f"Dialog instantiation testing failed: {e}")
     finally:
         pass

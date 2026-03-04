@@ -27,6 +27,7 @@ def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
+
 @contextmanager
 def _workspace_temp_project():
     temp_dir = TMP_ROOT / f"project_{uuid4().hex}"

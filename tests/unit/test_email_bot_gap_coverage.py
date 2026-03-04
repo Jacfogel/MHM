@@ -17,7 +17,9 @@ class _ExecutorLoop:
 
 
 class _FakeImapMailbox:
-    def __init__(self, search_result=("OK", [b""]), fetch_map=None, search_error=None):
+    def __init__(self, search_result=None, fetch_map=None, search_error=None):
+        if search_result is None:
+            search_result = ("OK", [b""])
         self.search_result = search_result
         self.fetch_map = fetch_map or {}
         self.search_error = search_error

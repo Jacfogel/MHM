@@ -99,27 +99,24 @@ def extract_decorator_documentation(decorator_list: list[ast.expr]) -> str:
     for decorator in decorator_list:
         # Handle @handle_errors("description")
         if isinstance(decorator, ast.Call):
-            if (
+            if ((
                 isinstance(decorator.func, ast.Name)
                 and decorator.func.id == "handle_errors"
             ) or (
                 isinstance(decorator.func, ast.Attribute)
                 and decorator.func.attr == "handle_errors"
-            ):
-                if decorator.args and isinstance(decorator.args[0], ast.Constant):
-                    documentation.append(f"@handle_errors: {decorator.args[0].value}")
+            )) and decorator.args and isinstance(decorator.args[0], ast.Constant):
+                documentation.append(f"@handle_errors: {decorator.args[0].value}")
 
         # Handle @error_handler("description")
-        elif isinstance(decorator, ast.Call):
-            if (
-                isinstance(decorator.func, ast.Name)
-                and decorator.func.id == "error_handler"
-            ) or (
-                isinstance(decorator.func, ast.Attribute)
-                and decorator.func.attr == "error_handler"
-            ):
-                if decorator.args and isinstance(decorator.args[0], ast.Constant):
-                    documentation.append(f"@error_handler: {decorator.args[0].value}")
+        elif isinstance(decorator, ast.Call) and ((
+            isinstance(decorator.func, ast.Name)
+            and decorator.func.id == "error_handler"
+        ) or (
+            isinstance(decorator.func, ast.Attribute)
+            and decorator.func.attr == "error_handler"
+        )) and decorator.args and isinstance(decorator.args[0], ast.Constant):
+            documentation.append(f"@error_handler: {decorator.args[0].value}")
 
     return "; ".join(documentation)
 
@@ -712,9 +709,9 @@ def print_summary(categories: dict[str, list[dict]]):
 
     # Print complexity categories with clear descriptions
     complexity_categories = {
-        "critical_complex": f"CRITICAL COMPLEXITY (>{CRITICAL_COMPLEXITY-1} nodes)",
-        "high_complex": f"HIGH COMPLEXITY ({HIGH_COMPLEXITY}-{CRITICAL_COMPLEXITY-1} nodes)",
-        "moderate_complex": f"MODERATE COMPLEXITY ({MODERATE_COMPLEXITY}-{HIGH_COMPLEXITY-1} nodes)",
+        "critical_complex": f"CRITICAL COMPLEXITY (>{CRITICAL_COMPLEXITY - 1} nodes)",
+        "high_complex": f"HIGH COMPLEXITY ({HIGH_COMPLEXITY}-{CRITICAL_COMPLEXITY - 1} nodes)",
+        "moderate_complex": f"MODERATE COMPLEXITY ({MODERATE_COMPLEXITY}-{HIGH_COMPLEXITY - 1} nodes)",
         "handlers": "HANDLERS/UTILITIES",
         "tests": "TESTS",
         "undocumented": "UNDOCUMENTED",
@@ -733,7 +730,7 @@ def print_summary(categories: dict[str, list[dict]]):
                 f"  - {func['name']} (file: {Path(func['file']).name}, complexity: {func['complexity']})"
             )
         if len(funcs) > 10:
-            logger.info(f"  ...and {len(funcs)-10} more.")
+            logger.info(f"  ...and {len(funcs) - 10} more.")
 
     # Add summary of special methods excluded from undocumented count
     special_count = len(categories.get("special_methods", []))

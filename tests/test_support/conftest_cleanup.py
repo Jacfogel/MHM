@@ -22,6 +22,7 @@ from tests.test_support.conftest_cleanup_impl import (
     _apply_flaky_run_group_retention,
     _snapshot_worker_logs_with_retention,
 )
+import contextlib
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -137,10 +138,8 @@ def prune_test_artifacts_before_and_after_session():
     try:
         conversation_states_file = data_dir / "conversation_states.json"
         if conversation_states_file.exists():
-            try:
+            with contextlib.suppress(Exception):
                 conversation_states_file.unlink(missing_ok=True)
-            except Exception:
-                pass
 
         pytest_pattern = str(data_dir / "pytest-of-*")
         pytest_dirs = glob.glob(pytest_pattern)
@@ -167,11 +166,10 @@ def prune_test_artifacts_before_and_after_session():
         ]
         for item in data_dir.iterdir():
             try:
-                if item.is_file() and item.suffix == ".json":
-                    if any(
-                        item.name.startswith(pattern) for pattern in test_json_patterns
-                    ):
-                        item.unlink(missing_ok=True)
+                if item.is_file() and item.suffix == ".json" and any(
+                    item.name.startswith(pattern) for pattern in test_json_patterns
+                ):
+                    item.unlink(missing_ok=True)
             except Exception:
                 pass
 
@@ -331,9 +329,7 @@ def prune_test_artifacts_before_and_after_session():
 
         conversation_states_file = data_dir / "conversation_states.json"
         if conversation_states_file.exists():
-            try:
+            with contextlib.suppress(Exception):
                 conversation_states_file.unlink(missing_ok=True)
-            except Exception:
-                pass
     except Exception:
         pass

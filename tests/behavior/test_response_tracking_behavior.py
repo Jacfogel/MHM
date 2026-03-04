@@ -453,7 +453,7 @@ class TestResponseTrackingBehavior:
             large_dataset.append({
                 "mood": i % 10,
                 "energy": i % 10,
-                "timestamp": f"2025-01-{i+1:02d} 10:00:00"
+                "timestamp": f"2025-01-{i + 1:02d} 10:00:00"
             })
         
         checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")

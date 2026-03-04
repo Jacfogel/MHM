@@ -12,7 +12,6 @@ ensure_qt_runtime()
 import pytest
 
 
-
 @pytest.mark.ui
 class TestUIComponentStructure:
     """Test that UI components have the expected structure and methods."""
@@ -36,10 +35,10 @@ class TestUIComponentStructure:
         assert hasattr(AccountCreatorDialog, 'validate_all_fields_static')
         
         # Test that static methods work
-        assert AccountCreatorDialog.validate_username_static("testuser") == True
-        assert AccountCreatorDialog.validate_username_static("") == False
-        assert AccountCreatorDialog.validate_preferred_name_static("Test User") == True
-        assert AccountCreatorDialog.validate_preferred_name_static("") == False
+        assert AccountCreatorDialog.validate_username_static("testuser")
+        assert not AccountCreatorDialog.validate_username_static("")
+        assert AccountCreatorDialog.validate_preferred_name_static("Test User")
+        assert not AccountCreatorDialog.validate_preferred_name_static("")
     
     def test_checkin_management_dialog_structure(self):
         """Test that CheckinManagementDialog has the expected structure."""
@@ -109,55 +108,55 @@ class TestUIDataHandling:
         
         # Test static validation methods
         # Valid usernames
-        assert AccountCreatorDialog.validate_username_static("testuser") == True
-        assert AccountCreatorDialog.validate_username_static("user123") == True
-        assert AccountCreatorDialog.validate_username_static("test_user") == True
-        assert AccountCreatorDialog.validate_username_static("user-name") == True
-        assert AccountCreatorDialog.validate_username_static("a") == True
-        assert AccountCreatorDialog.validate_username_static("a" * 50) == True
+        assert AccountCreatorDialog.validate_username_static("testuser")
+        assert AccountCreatorDialog.validate_username_static("user123")
+        assert AccountCreatorDialog.validate_username_static("test_user")
+        assert AccountCreatorDialog.validate_username_static("user-name")
+        assert AccountCreatorDialog.validate_username_static("a")
+        assert AccountCreatorDialog.validate_username_static("a" * 50)
         
         # Invalid usernames
-        assert AccountCreatorDialog.validate_username_static("") == False
-        assert AccountCreatorDialog.validate_username_static("us er") == False
-        assert AccountCreatorDialog.validate_username_static("user@name") == False
-        assert AccountCreatorDialog.validate_username_static("user.name") == False
-        assert AccountCreatorDialog.validate_username_static("a" * 51) == False
-        assert AccountCreatorDialog.validate_username_static("user/name") == False
-        assert AccountCreatorDialog.validate_username_static("user\\name") == False
-        assert AccountCreatorDialog.validate_username_static("user:name") == False
-        assert AccountCreatorDialog.validate_username_static("user;name") == False
-        assert AccountCreatorDialog.validate_username_static("user,name") == False
-        assert AccountCreatorDialog.validate_username_static("user<name") == False
-        assert AccountCreatorDialog.validate_username_static("user>name") == False
-        assert AccountCreatorDialog.validate_username_static("user|name") == False
-        assert AccountCreatorDialog.validate_username_static("user*name") == False
+        assert not AccountCreatorDialog.validate_username_static("")
+        assert not AccountCreatorDialog.validate_username_static("us er")
+        assert not AccountCreatorDialog.validate_username_static("user@name")
+        assert not AccountCreatorDialog.validate_username_static("user.name")
+        assert not AccountCreatorDialog.validate_username_static("a" * 51)
+        assert not AccountCreatorDialog.validate_username_static("user/name")
+        assert not AccountCreatorDialog.validate_username_static("user\\name")
+        assert not AccountCreatorDialog.validate_username_static("user:name")
+        assert not AccountCreatorDialog.validate_username_static("user;name")
+        assert not AccountCreatorDialog.validate_username_static("user,name")
+        assert not AccountCreatorDialog.validate_username_static("user<name")
+        assert not AccountCreatorDialog.validate_username_static("user>name")
+        assert not AccountCreatorDialog.validate_username_static("user|name")
+        assert not AccountCreatorDialog.validate_username_static("user*name")
         
         # Valid preferred names
-        assert AccountCreatorDialog.validate_preferred_name_static("Valid Name") == True
-        assert AccountCreatorDialog.validate_preferred_name_static("Name-With-Hyphens") == True
-        assert AccountCreatorDialog.validate_preferred_name_static("Name With Spaces") == True
-        assert AccountCreatorDialog.validate_preferred_name_static("O'Malley") == True
-        assert AccountCreatorDialog.validate_preferred_name_static("a") == True
-        assert AccountCreatorDialog.validate_preferred_name_static("a" * 100) == True
+        assert AccountCreatorDialog.validate_preferred_name_static("Valid Name")
+        assert AccountCreatorDialog.validate_preferred_name_static("Name-With-Hyphens")
+        assert AccountCreatorDialog.validate_preferred_name_static("Name With Spaces")
+        assert AccountCreatorDialog.validate_preferred_name_static("O'Malley")
+        assert AccountCreatorDialog.validate_preferred_name_static("a")
+        assert AccountCreatorDialog.validate_preferred_name_static("a" * 100)
         
         # Invalid preferred names
-        assert AccountCreatorDialog.validate_preferred_name_static("") == False
-        assert AccountCreatorDialog.validate_preferred_name_static("Name@Invalid") == False
-        assert AccountCreatorDialog.validate_preferred_name_static("Name/Invalid") == False
-        assert AccountCreatorDialog.validate_preferred_name_static("Name\\Invalid") == False
-        assert AccountCreatorDialog.validate_preferred_name_static("Name:Invalid") == False
-        assert AccountCreatorDialog.validate_preferred_name_static("Name;Invalid") == False
-        assert AccountCreatorDialog.validate_preferred_name_static("Name<Invalid") == False
-        assert AccountCreatorDialog.validate_preferred_name_static("Name>Invalid") == False
-        assert AccountCreatorDialog.validate_preferred_name_static("Name|Invalid") == False
-        assert AccountCreatorDialog.validate_preferred_name_static("Name*Invalid") == False
-        assert AccountCreatorDialog.validate_preferred_name_static("a" * 101) == False
+        assert not AccountCreatorDialog.validate_preferred_name_static("")
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name@Invalid")
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name/Invalid")
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name\\Invalid")
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name:Invalid")
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name;Invalid")
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name<Invalid")
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name>Invalid")
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name|Invalid")
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name*Invalid")
+        assert not AccountCreatorDialog.validate_preferred_name_static("a" * 101)
         
         # Test combined validation
-        assert AccountCreatorDialog.validate_all_fields_static("validuser", "Valid Name") == True
-        assert AccountCreatorDialog.validate_all_fields_static("invalid user", "Valid Name") == False
-        assert AccountCreatorDialog.validate_all_fields_static("validuser", "Invalid@Name") == False
-        assert AccountCreatorDialog.validate_all_fields_static("invalid user", "Invalid@Name") == False
+        assert AccountCreatorDialog.validate_all_fields_static("validuser", "Valid Name")
+        assert not AccountCreatorDialog.validate_all_fields_static("invalid user", "Valid Name")
+        assert not AccountCreatorDialog.validate_all_fields_static("validuser", "Invalid@Name")
+        assert not AccountCreatorDialog.validate_all_fields_static("invalid user", "Invalid@Name")
     
     def test_checkin_management_data_handling(self):
         """Test that CheckinManagementDialog data handling works correctly."""
@@ -257,49 +256,49 @@ class TestUIValidationLogic:
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
         
         # Edge cases
-        assert AccountCreatorDialog.validate_username_static("a") == True  # Minimum length
-        assert AccountCreatorDialog.validate_username_static("a" * 50) == True  # Maximum length
-        assert AccountCreatorDialog.validate_username_static("a" * 51) == False  # Too long
-        assert AccountCreatorDialog.validate_username_static("") == False  # Empty
-        assert AccountCreatorDialog.validate_username_static(None) == False  # None
+        assert AccountCreatorDialog.validate_username_static("a")  # Minimum length
+        assert AccountCreatorDialog.validate_username_static("a" * 50)  # Maximum length
+        assert not AccountCreatorDialog.validate_username_static("a" * 51)  # Too long
+        assert not AccountCreatorDialog.validate_username_static("")  # Empty
+        assert not AccountCreatorDialog.validate_username_static(None)  # None
         
         # Special characters
-        assert AccountCreatorDialog.validate_username_static("user_name") == True  # Underscore
-        assert AccountCreatorDialog.validate_username_static("user-name") == True  # Hyphen
-        assert AccountCreatorDialog.validate_username_static("user@name") == False  # @ symbol
-        assert AccountCreatorDialog.validate_username_static("user.name") == False  # Dot
-        assert AccountCreatorDialog.validate_username_static("user/name") == False  # Forward slash
-        assert AccountCreatorDialog.validate_username_static("user\\name") == False  # Backslash
-        assert AccountCreatorDialog.validate_username_static("user:name") == False  # Colon
-        assert AccountCreatorDialog.validate_username_static("user;name") == False  # Semicolon
-        assert AccountCreatorDialog.validate_username_static("user,name") == False  # Comma
-        assert AccountCreatorDialog.validate_username_static("user<name") == False  # Less than
-        assert AccountCreatorDialog.validate_username_static("user>name") == False  # Greater than
-        assert AccountCreatorDialog.validate_username_static("user|name") == False  # Pipe
-        assert AccountCreatorDialog.validate_username_static("user*name") == False  # Asterisk
-        assert AccountCreatorDialog.validate_username_static("user name") == False  # Space
+        assert AccountCreatorDialog.validate_username_static("user_name")  # Underscore
+        assert AccountCreatorDialog.validate_username_static("user-name")  # Hyphen
+        assert not AccountCreatorDialog.validate_username_static("user@name")  # @ symbol
+        assert not AccountCreatorDialog.validate_username_static("user.name")  # Dot
+        assert not AccountCreatorDialog.validate_username_static("user/name")  # Forward slash
+        assert not AccountCreatorDialog.validate_username_static("user\\name")  # Backslash
+        assert not AccountCreatorDialog.validate_username_static("user:name")  # Colon
+        assert not AccountCreatorDialog.validate_username_static("user;name")  # Semicolon
+        assert not AccountCreatorDialog.validate_username_static("user,name")  # Comma
+        assert not AccountCreatorDialog.validate_username_static("user<name")  # Less than
+        assert not AccountCreatorDialog.validate_username_static("user>name")  # Greater than
+        assert not AccountCreatorDialog.validate_username_static("user|name")  # Pipe
+        assert not AccountCreatorDialog.validate_username_static("user*name")  # Asterisk
+        assert not AccountCreatorDialog.validate_username_static("user name")  # Space
     
     def test_preferred_name_validation_edge_cases(self):
         """Test preferred name validation edge cases."""
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
         
         # Edge cases
-        assert AccountCreatorDialog.validate_preferred_name_static("a") == True  # Minimum length
-        assert AccountCreatorDialog.validate_preferred_name_static("a" * 100) == True  # Maximum length
-        assert AccountCreatorDialog.validate_preferred_name_static("a" * 101) == False  # Too long
-        assert AccountCreatorDialog.validate_preferred_name_static("") == False  # Empty
-        assert AccountCreatorDialog.validate_preferred_name_static(None) == False  # None
+        assert AccountCreatorDialog.validate_preferred_name_static("a")  # Minimum length
+        assert AccountCreatorDialog.validate_preferred_name_static("a" * 100)  # Maximum length
+        assert not AccountCreatorDialog.validate_preferred_name_static("a" * 101)  # Too long
+        assert not AccountCreatorDialog.validate_preferred_name_static("")  # Empty
+        assert not AccountCreatorDialog.validate_preferred_name_static(None)  # None
         
         # Special characters
-        assert AccountCreatorDialog.validate_preferred_name_static("Name With Spaces") == True  # Spaces
-        assert AccountCreatorDialog.validate_preferred_name_static("Name-With-Hyphens") == True  # Hyphens
-        assert AccountCreatorDialog.validate_preferred_name_static("O'Malley") == True  # Apostrophe
-        assert AccountCreatorDialog.validate_preferred_name_static("Name@Invalid") == False  # @ symbol
-        assert AccountCreatorDialog.validate_preferred_name_static("Name/Invalid") == False  # Forward slash
-        assert AccountCreatorDialog.validate_preferred_name_static("Name\\Invalid") == False  # Backslash
-        assert AccountCreatorDialog.validate_preferred_name_static("Name:Invalid") == False  # Colon
-        assert AccountCreatorDialog.validate_preferred_name_static("Name;Invalid") == False  # Semicolon
-        assert AccountCreatorDialog.validate_preferred_name_static("Name<Invalid") == False  # Less than
-        assert AccountCreatorDialog.validate_preferred_name_static("Name>Invalid") == False  # Greater than
-        assert AccountCreatorDialog.validate_preferred_name_static("Name|Invalid") == False  # Pipe
-        assert AccountCreatorDialog.validate_preferred_name_static("Name*Invalid") == False  # Asterisk
+        assert AccountCreatorDialog.validate_preferred_name_static("Name With Spaces")  # Spaces
+        assert AccountCreatorDialog.validate_preferred_name_static("Name-With-Hyphens")  # Hyphens
+        assert AccountCreatorDialog.validate_preferred_name_static("O'Malley")  # Apostrophe
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name@Invalid")  # @ symbol
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name/Invalid")  # Forward slash
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name\\Invalid")  # Backslash
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name:Invalid")  # Colon
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name;Invalid")  # Semicolon
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name<Invalid")  # Less than
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name>Invalid")  # Greater than
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name|Invalid")  # Pipe
+        assert not AccountCreatorDialog.validate_preferred_name_static("Name*Invalid")  # Asterisk

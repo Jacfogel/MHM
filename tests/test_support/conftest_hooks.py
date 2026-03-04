@@ -18,12 +18,14 @@ from core.time_utilities import (
     now_timestamp_full,
     format_timestamp_milliseconds,
 )
+import contextlib
 
 # Strip ANSI escape sequences from pytest longrepr before writing to log files.
 ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 # Counter for periodic_memory_cleanup (avoids attaching to fixture function object)
 _periodic_cleanup_test_count = 0
+
 
 # Import from root conftest (loaded first); _cleanup_test_user_artifacts from user_data plugin
 def _get_conftest_attrs():
@@ -225,10 +227,8 @@ def pytest_sessionstart(session):
                     test_logger.warning(
                         "Crash recovery: Cleaning up CommunicationManager on unexpected exit"
                     )
-                    try:
+                    with contextlib.suppress(Exception):
                         CommunicationManager._instance.stop_all()
-                    except Exception:
-                        pass
                     CommunicationManager._instance = None
             except (ImportError, ModuleNotFoundError):
                 pass
@@ -294,9 +294,9 @@ def _consolidate_worker_logs():
         if worker_test_run_logs:
             try:
                 with open(main_test_run_log, "a", encoding="utf-8") as main_file:
-                    main_file.write(f"\n{'='*80}\n")
+                    main_file.write(f"\n{'=' * 80}\n")
                     main_file.write("# CONSOLIDATED FROM PARALLEL WORKERS\n")
-                    main_file.write(f"{'='*80}\n\n")
+                    main_file.write(f"{'=' * 80}\n\n")
 
                     for worker_log in worker_test_run_logs:
                         worker_id = worker_log.stem.replace("test_run_", "")
@@ -312,7 +312,7 @@ def _consolidate_worker_logs():
                                     file_size = worker_log.stat().st_size
                                     if file_size > max_size:
                                         test_logger.warning(
-                                            f"Worker log {worker_log.name} is {file_size / (1024*1024):.1f}MB, truncating to last 50MB"
+                                            f"Worker log {worker_log.name} is {file_size / (1024 * 1024):.1f}MB, truncating to last 50MB"
                                         )
                                         with open(worker_log, "rb") as f:
                                             f.seek(-max_size, 2)
@@ -365,9 +365,9 @@ def _consolidate_worker_logs():
         if worker_consolidated_logs:
             try:
                 with open(main_consolidated_log, "a", encoding="utf-8") as main_file:
-                    main_file.write(f"\n{'='*80}\n")
+                    main_file.write(f"\n{'=' * 80}\n")
                     main_file.write("# CONSOLIDATED FROM PARALLEL WORKERS\n")
-                    main_file.write(f"{'='*80}\n\n")
+                    main_file.write(f"{'=' * 80}\n\n")
 
                     for worker_log in worker_consolidated_logs:
                         worker_id = worker_log.stem.replace("test_consolidated_", "")
@@ -383,7 +383,7 @@ def _consolidate_worker_logs():
                                     file_size = worker_log.stat().st_size
                                     if file_size > max_size:
                                         test_logger.warning(
-                                            f"Worker log {worker_log.name} is {file_size / (1024*1024):.1f}MB, truncating to last 10MB"
+                                            f"Worker log {worker_log.name} is {file_size / (1024 * 1024):.1f}MB, truncating to last 10MB"
                                         )
                                         with open(worker_log, "rb") as f:
                                             f.seek(-max_size, 2)
@@ -497,13 +497,13 @@ def pytest_sessionfinish(session, exitstatus):
         try:
             crash_log_file.parent.mkdir(parents=True, exist_ok=True)
             with open(crash_log_file, "a", encoding="utf-8") as f:
-                f.write(f"\n{'='*80}\n")
+                f.write(f"\n{'=' * 80}\n")
                 f.write(f"CRASH DETECTED: {now_timestamp_full()}\n")
                 f.write(f"Exit Status: {exitstatus}\n")
                 f.write(
                     f"Tests Run: {getattr(session, 'testsfailed', 0)} failed, {getattr(session, 'testscollected', 0)} collected\n"
                 )
-                f.write(f"{'='*80}\n")
+                f.write(f"{'=' * 80}\n")
         except Exception as e:
             test_logger.warning(f"Could not save crash diagnostics: {e}")
 
@@ -512,10 +512,8 @@ def pytest_sessionfinish(session, exitstatus):
 
         if CommunicationManager._instance is not None:
             test_logger.debug("Session finish: Ensuring CommunicationManager cleanup")
-            try:
+            with contextlib.suppress(Exception):
                 CommunicationManager._instance.stop_all()
-            except Exception:
-                pass
             CommunicationManager._instance = None
     except (ImportError, ModuleNotFoundError):
         pass
@@ -861,15 +859,13 @@ def periodic_memory_cleanup(request):
             if (
                 hasattr(cache_module, "_response_cache")
                 and cache_module._response_cache is not None
-            ):
-                if hasattr(cache_module._response_cache, "clear"):
-                    cache_module._response_cache.clear()
+            ) and hasattr(cache_module._response_cache, "clear"):
+                cache_module._response_cache.clear()
             if (
                 hasattr(cache_module, "_context_cache")
                 and cache_module._context_cache is not None
-            ):
-                if hasattr(cache_module._context_cache, "clear"):
-                    cache_module._context_cache.clear()
+            ) and hasattr(cache_module._context_cache, "clear"):
+                cache_module._context_cache.clear()
         except (ImportError, AttributeError):
             pass
 

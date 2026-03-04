@@ -5,12 +5,13 @@ This module provides a summary of what is verified by the audit tier test suites
 Run this after tests to see a clear summary of what was verified.
 """
 
+
 def print_verification_summary():
     """Print a clear summary of what the audit tier tests verify."""
     
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("AUDIT TIER TEST VERIFICATION SUMMARY")
-    print("="*80)
+    print("=" * 80)
     
     print("\nCOMPREHENSIVE TESTS (test_audit_tier_comprehensive.py)")
     print("-" * 80)
@@ -66,11 +67,12 @@ def print_verification_summary():
     for item, status in checklist_items:
         print(f"  {item:30} {status}")
     
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("NOTE: E2E tests run on demo project, so tools may fail fast.")
     print("For full timing and correctness verification, run on real project:")
     print("  python development_tools/run_development_tools.py audit --full")
-    print("="*80 + "\n")
+    print("=" * 80 + "\n")
+
 
 if __name__ == "__main__":
     print_verification_summary()

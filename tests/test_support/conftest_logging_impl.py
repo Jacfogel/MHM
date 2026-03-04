@@ -44,19 +44,19 @@ def _write_test_log_header(log_file: str, timestamp: str):
 
     if "test_run" in log_filename:
         header_text = (
-            f"\n{'='*80}\n"
+            f"\n{'=' * 80}\n"
             f"# TEST RUN STARTED: {timestamp}\n"
             f"# Test Execution Logging Active\n"
             f"# Test execution and framework logs are captured here\n"
-            f"{'='*80}\n\n"
+            f"{'=' * 80}\n\n"
         )
     elif "consolidated" in log_filename:
         header_text = (
-            f"\n{'='*80}\n"
+            f"\n{'=' * 80}\n"
             f"# TEST RUN STARTED: {timestamp}\n"
             f"# Component Logging Active\n"
             f"# Real component logs from application components are captured here\n"
-            f"{'='*80}\n\n"
+            f"{'=' * 80}\n\n"
         )
     else:
         # Default header for other log files
@@ -234,19 +234,19 @@ class SessionLogRotationManager:
 
         if "test_run" in log_filename:
             header_text = (
-                f"{'='*80}\n"
+                f"{'=' * 80}\n"
                 f"# TEST RUN STARTED: {timestamp}\n"
                 f"# Test Execution Logging Active\n"
                 f"# Test execution and framework logs are captured here\n"
-                f"{'='*80}\n\n"
+                f"{'=' * 80}\n\n"
             )
         elif "consolidated" in log_filename:
             header_text = (
-                f"{'='*80}\n"
+                f"{'=' * 80}\n"
                 f"# TEST RUN STARTED: {timestamp}\n"
                 f"# Component Logging Active\n"
                 f"# Real component logs from application components are captured here\n"
-                f"{'='*80}\n\n"
+                f"{'=' * 80}\n\n"
             )
         else:
             # Default header for other log files

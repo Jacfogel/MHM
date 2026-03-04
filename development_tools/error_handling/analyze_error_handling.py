@@ -48,6 +48,7 @@ class ModuleStats(TypedDict):
     analyze_error_handling: float
     files: set[str]
 
+
 class ErrorHandlingAnalyzer:
     """Analyzes error handling patterns in Python code."""
     
@@ -673,7 +674,7 @@ class ErrorHandlingAnalyzer:
         
         # Extract class content
         lines = content.split('\n')
-        class_content = '\n'.join(lines[class_start-1:class_end])
+        class_content = '\n'.join(lines[class_start - 1:class_end])
         
         analysis = {
             'name': class_name,
@@ -721,10 +722,7 @@ class ErrorHandlingAnalyzer:
             return True
         
         # Check for data operations
-        if any(op in content_lower for op in ['parse(', 'serialize(', 'deserialize(', 'validate(']):
-            return True
-        
-        return False
+        return bool(any(op in content_lower for op in ['parse(', 'serialize(', 'deserialize(', 'validate(']))
     
     def _is_nested_function(self, func_node: ast.FunctionDef | ast.AsyncFunctionDef, content: str, func_start_line: int) -> bool:
         """
@@ -1143,6 +1141,7 @@ class ErrorHandlingAnalyzer:
         
         self.results['recommendations'] = recommendations
 
+
 def main():
     """Main function for error handling coverage analysis."""
     import argparse
@@ -1194,6 +1193,7 @@ def main():
         return 1
     
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())

@@ -113,18 +113,16 @@ def generate_function_template(
             return f"Test {test_name.title()}"
 
     elif func_type == "special_method":
-        if func_name == "__init__":
-            return "Initialize the object"
-        elif func_name == "__new__":
-            return "Create a new instance"
-        elif func_name == "__post_init__":
-            return "Post-initialization setup"
-        elif func_name == "__enter__":
-            return "Context manager entry"
-        elif func_name == "__exit__":
-            return "Context manager exit"
-        else:
-            return f"Special Python method: {func_name}"
+        special_method_descriptions = {
+            "__init__": "Initialize the object",
+            "__new__": "Create a new instance",
+            "__post_init__": "Post-initialization setup",
+            "__enter__": "Context manager entry",
+            "__exit__": "Context manager exit",
+        }
+        return special_method_descriptions.get(
+            func_name, f"Special Python method: {func_name}"
+        )
 
     elif func_type == "constructor":
         return "Initialize the object"
@@ -470,14 +468,14 @@ def generate_ai_function_registry_content(actual_functions: dict[str, dict]) -> 
     if high_priority:
         high_priority_section = "### **High Priority** (Missing Documentation)\n"
         for item in high_priority[:10]:  # Top 10
-            high_priority_section += f"- `{item['file']}` - {item['missing']}/{item['total']} functions undocumented ({item['coverage']*100:.0f}% coverage)\n"
+            high_priority_section += f"- `{item['file']}` - {item['missing']}/{item['total']} functions undocumented ({item['coverage'] * 100:.0f}% coverage)\n"
         high_priority_section += "\n"
 
     medium_priority_section = ""
     if medium_priority:
         medium_priority_section = "### **Medium Priority** (Partial Coverage)\n"
         for item in medium_priority[:10]:  # Top 10
-            medium_priority_section += f"- `{item['file']}` - {item['missing']}/{item['total']} functions undocumented ({item['coverage']*100:.0f}% coverage)\n"
+            medium_priority_section += f"- `{item['file']}` - {item['missing']}/{item['total']} functions undocumented ({item['coverage'] * 100:.0f}% coverage)\n"
         medium_priority_section += "\n"
 
     attention_section = "## [!] **Areas Needing Attention**\n\n"
@@ -798,7 +796,7 @@ def generate_pattern_section(
 
             locations = ", ".join([f"`{f}`" for f in unique_files[:3]])
             if len(seen_files) > 3:
-                locations += f" (+{len(seen_files)-3} more)"
+                locations += f" (+{len(seen_files) - 3} more)"
 
             # Get class/function names (top examples)
             if "class" in pattern_list[0]:
@@ -948,9 +946,8 @@ def generate_common_operations_section(
             "load" in func_name
             and "user" in da["file"]
             and not func_name.startswith("_")
-        ):
-            if "User Data Load" not in found_ops:
-                found_ops["User Data Load"] = f"`{da['file']}::{func_name}()`"
+        ) and "User Data Load" not in found_ops:
+            found_ops["User Data Load"] = f"`{da['file']}::{func_name}()`"
 
     # Priority 3: Communication operations
     for comm in patterns.get("communication", [])[:5]:
@@ -989,9 +986,8 @@ def generate_common_operations_section(
             if (
                 ("parse" in func_lower and "command" in func_lower)
                 or func_name == "parse_command"
-            ) and not func_name.startswith("_"):
-                if "Command Parsing" not in found_ops:
-                    found_ops["Command Parsing"] = f"`{file_path}::{func_name}()`"
+            ) and not func_name.startswith("_") and "Command Parsing" not in found_ops:
+                found_ops["Command Parsing"] = f"`{file_path}::{func_name}()`"
 
             # Validation (skip internal helper functions)
             if (
@@ -1102,10 +1098,7 @@ def generate_file_organization_section(actual_functions: dict[str, dict]) -> str
     # Organize files by directory
     for file_path in actual_functions:
         parts = file_path.split("/")
-        if len(parts) > 1:
-            top_dir = parts[0]
-        else:
-            top_dir = "root"
+        top_dir = parts[0] if len(parts) > 1 else "root"
 
         if top_dir not in directories:
             directories[top_dir] = {"files": 0, "functions": 0}

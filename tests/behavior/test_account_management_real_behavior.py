@@ -21,12 +21,14 @@ TEST_LOGGER = logging.getLogger("mhm_tests")
 
 pytestmark = [pytest.mark.behavior, pytest.mark.user_management]
 
+
 def setup_test_environment():
     """Create isolated test environment with temporary directories"""
     from tests.test_utilities import TestDataManager
     
     TEST_LOGGER.debug("Setting up test environment...")
     return TestDataManager.setup_test_environment()
+
 
 def create_test_user_data(user_id, test_data_dir, base_state="basic"):
     """Create test user data with specific base state using centralized utilities"""
@@ -92,6 +94,7 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
         assert result.get('schedules', False), "Schedule data should save successfully"
     
     return True
+
 
 @pytest.mark.behavior
 @pytest.mark.user_management
@@ -222,6 +225,7 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         logging.getLogger("mhm_tests").error(f"User data loading: Error - {e}")
         raise
 
+
 @pytest.mark.behavior
 @pytest.mark.user_management
 @pytest.mark.critical
@@ -323,6 +327,7 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
     except Exception as e:
         logging.getLogger("mhm_tests").error(f"Feature enablement: Error - {e}")
         raise
+
 
 @pytest.mark.behavior
 @pytest.mark.user_management
@@ -431,6 +436,7 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
     except Exception as e:
         logging.getLogger("mhm_tests").error(f"Error in category management test: {e}")
         raise
+
 
 @pytest.mark.behavior
 @pytest.mark.scheduler
@@ -556,6 +562,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
     except Exception as e:
         logging.getLogger("mhm_tests").error(f"Schedule period management: Error - {e}")
         raise
+
 
 @pytest.mark.no_parallel
 @pytest.mark.behavior
@@ -766,6 +773,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
         logging.getLogger("mhm_tests").error(f"Integration scenarios: Error - {e}")
         raise
 
+
 @pytest.mark.behavior
 @pytest.mark.user_management
 @pytest.mark.file_io
@@ -855,12 +863,14 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
         TEST_LOGGER.error("Data consistency: Error - %s", e)
         raise
 
+
 def cleanup_test_environment(test_dir):
     """Clean up test environment"""
     from tests.test_utilities import TestDataManager
     TEST_LOGGER.info("Cleaning up test environment...")
     TestDataManager.cleanup_test_environment(test_dir)
     TEST_LOGGER.info("Test environment cleaned up")
+
 
 def main():
     """Run all real behavior tests"""
@@ -933,6 +943,7 @@ def main():
         TEST_LOGGER.warning("Some tests failed - review results above")
     
     return success_count == total_count
+
 
 if __name__ == "__main__":
     success = main()

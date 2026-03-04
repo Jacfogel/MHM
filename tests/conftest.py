@@ -362,6 +362,7 @@ _test_logging_setup_done = False
 _test_logger_global: logging.Logger | None = None
 _test_log_file_global: Path | None = None
 
+
 # Set up dedicated testing logging
 def setup_test_logging() -> tuple[logging.Logger, Path]:
     """Set up dedicated logging for tests with complete isolation from main app logging."""

@@ -50,6 +50,7 @@ os.environ.setdefault(
 )
 
 from core.logger import get_component_logger
+import contextlib
 
 # Import config module (absolute import for portability)
 try:
@@ -460,10 +461,8 @@ class CoverageMetricsRegenerator:
                 import time
 
                 time.sleep(min(0.5, 0.05 * (attempt + 1)))
-        try:
+        with contextlib.suppress(Exception):
             shutil.rmtree(path, ignore_errors=True, onerror=_on_rm_error)
-        except Exception:
-            pass
         return not path.exists()
 
     def _configure_coverage_paths(self) -> None:
@@ -1760,7 +1759,7 @@ class CoverageMetricsRegenerator:
                         for (
                             domain
                         ) in (
-                            self.test_file_cache.domain_mapper.SOURCE_TO_TEST_MAPPING.keys()
+                            self.test_file_cache.domain_mapper.SOURCE_TO_TEST_MAPPING
                         ):
                             current_mtimes = (
                                 self.test_file_cache.get_source_file_mtimes(domain)
@@ -2926,7 +2925,7 @@ class CoverageMetricsRegenerator:
                                             fresh_domains = set()
                                             for file_path in cached_coverage_json.get(
                                                 "files", {}
-                                            ).keys():
+                                            ):
                                                 domain = self.domain_mapper.get_source_domain(
                                                     file_path.replace("\\", "/")
                                                 )
@@ -2936,7 +2935,7 @@ class CoverageMetricsRegenerator:
                                                 file_path
                                             ) in fresh_coverage_json_parallel.get(
                                                 "files", {}
-                                            ).keys():
+                                            ):
                                                 domain = self.domain_mapper.get_source_domain(
                                                     file_path.replace("\\", "/")
                                                 )
@@ -2984,7 +2983,7 @@ class CoverageMetricsRegenerator:
                                             merged_domains = set()
                                             for file_path in merged_coverage_json.get(
                                                 "files", {}
-                                            ).keys():
+                                            ):
                                                 domain = self.domain_mapper.get_source_domain(
                                                     file_path.replace("\\", "/")
                                                 )
@@ -3202,7 +3201,7 @@ class CoverageMetricsRegenerator:
                                                 for (
                                                     domain
                                                 ) in (
-                                                    self.test_file_cache.domain_mapper.SOURCE_TO_TEST_MAPPING.keys()
+                                                    self.test_file_cache.domain_mapper.SOURCE_TO_TEST_MAPPING
                                                 ):
                                                     current_mtimes = self.test_file_cache.get_source_file_mtimes(
                                                         domain
@@ -3582,7 +3581,7 @@ class CoverageMetricsRegenerator:
                 return True
 
         # Check if any files were removed
-        for file_path in cached_mtimes.keys():
+        for file_path in cached_mtimes:
             if file_path not in current_mtimes:
                 return True
 
@@ -3595,7 +3594,7 @@ class CoverageMetricsRegenerator:
             cached_mtime = cached_test_mtimes.get(file_path)
             if cached_mtime is None or current_mtime != cached_mtime:
                 return True
-        for file_path in cached_test_mtimes.keys():
+        for file_path in cached_test_mtimes:
             if file_path not in current_test_mtimes:
                 return True
 
@@ -3929,11 +3928,10 @@ class CoverageMetricsRegenerator:
             if (
                 not overall_coverage.get("overall_coverage")
                 and coverage_output.exists()
-            ):
-                if self.analyzer:
-                    overall_coverage = self.analyzer.extract_overall_from_json(
-                        coverage_output
-                    )
+            ) and self.analyzer:
+                overall_coverage = self.analyzer.extract_overall_from_json(
+                    coverage_output
+                )
 
             # Log status after attempting to extract coverage
             if result.returncode != 0:
@@ -3959,29 +3957,28 @@ class CoverageMetricsRegenerator:
             if (
                 not overall_coverage.get("overall_coverage")
                 and not coverage_output.exists()
-            ):
-                if logger:
-                    logger.warning(
-                        f"Coverage JSON file not created at {coverage_output}"
-                    )
-                    logger.info(f"Pytest return code: {result.returncode}")
-                    if result.stdout:
-                        # Look for coverage summary in stdout
-                        if "TOTAL" in result.stdout:
-                            logger.info(
-                                "Coverage data found in stdout but JSON not created"
-                            )
-                        # Log more of stdout to diagnose the issue
-                        logger.warning(
-                            f"Pytest stdout (last 1000 chars): {result.stdout[-1000:]}"
+            ) and logger:
+                logger.warning(
+                    f"Coverage JSON file not created at {coverage_output}"
+                )
+                logger.info(f"Pytest return code: {result.returncode}")
+                if result.stdout:
+                    # Look for coverage summary in stdout
+                    if "TOTAL" in result.stdout:
+                        logger.info(
+                            "Coverage data found in stdout but JSON not created"
                         )
-                        # Also log first part to see if there are early errors
-                        if len(result.stdout) > 1000:
-                            logger.warning(
-                                f"Pytest stdout (first 500 chars): {result.stdout[:500]}"
-                            )
-                    if result.stderr:
-                        logger.warning(f"Pytest stderr: {result.stderr[:500]}")
+                    # Log more of stdout to diagnose the issue
+                    logger.warning(
+                        f"Pytest stdout (last 1000 chars): {result.stdout[-1000:]}"
+                    )
+                    # Also log first part to see if there are early errors
+                    if len(result.stdout) > 1000:
+                        logger.warning(
+                            f"Pytest stdout (first 500 chars): {result.stdout[:500]}"
+                        )
+                if result.stderr:
+                    logger.warning(f"Pytest stderr: {result.stderr[:500]}")
 
             # Cache dev tools coverage if we ran tests
             if (
@@ -4153,7 +4150,6 @@ class CoverageMetricsRegenerator:
     def _cleanup_coverage_data_files(self) -> None:
         """Clean up temporary .coverage_dev_tools.* files after coverage analysis."""
         tests_dir = self.project_root / "development_tools" / "tests"
-        self.project_root / "development_tools"
 
         cleanup_count = 0
 
@@ -4626,7 +4622,7 @@ class CoverageMetricsRegenerator:
 
             if logger:
                 logger.debug(
-                    f"Rotating {base_name} logs: {len(main_files)} in main, {len(archive_files)} in archive (target: 1 main + {max_versions-1} archive)"
+                    f"Rotating {base_name} logs: {len(main_files)} in main, {len(archive_files)} in archive (target: 1 main + {max_versions - 1} archive)"
                 )
 
             # Step 1: Move ALL files from main to archive (new file will be created after rotation)

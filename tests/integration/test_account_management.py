@@ -11,6 +11,7 @@ import logging
 
 # Do not modify sys.path; rely on package imports
 
+
 @pytest.mark.integration
 @pytest.mark.user_management
 @pytest.mark.critical
@@ -37,13 +38,14 @@ def test_account_management_imports():
             assert callable(function), f"{module_name}: Function is not callable"
         except ImportError as e:
             logging.getLogger("mhm_tests").error(f"Import failed: {module_name} - {e}")
-            assert False, f"{module_name}: Import failed - {e}"
+            raise AssertionError(f"{module_name}: Import failed - {e}")
         except AttributeError as e:
             logging.getLogger("mhm_tests").error(f"Function not found: {module_name} - {e}")
-            assert False, f"{module_name}: Function not found - {e}"
+            raise AssertionError(f"{module_name}: Function not found - {e}")
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"Unexpected error importing {module_name}: {e}")
-            assert False, f"{module_name}: Unexpected error - {e}"
+            raise AssertionError(f"{module_name}: Unexpected error - {e}")
+
 
 @pytest.mark.integration
 @pytest.mark.user_management
@@ -72,7 +74,7 @@ def test_account_management_functions():
             assert account_data is not None, "get_user_data should return data"
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"get_user_data (account) failed: {e}")
-            assert False, f"get_user_data (account) failed: {e}"
+            raise AssertionError(f"get_user_data (account) failed: {e}")
         
         # Test get_user_data for preferences
         try:
@@ -81,7 +83,7 @@ def test_account_management_functions():
             assert prefs_data is not None, "get_user_data should return data"
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"get_user_data (preferences) failed: {e}")
-            assert False, f"get_user_data (preferences) failed: {e}"
+            raise AssertionError(f"get_user_data (preferences) failed: {e}")
         
         # Test get_user_data for context
         try:
@@ -90,7 +92,7 @@ def test_account_management_functions():
             assert context_data is not None, "get_user_data should return data"
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"get_user_data (context) failed: {e}")
-            assert False, f"get_user_data (context) failed: {e}"
+            raise AssertionError(f"get_user_data (context) failed: {e}")
         
         # Test UserDataManager instantiation
         try:
@@ -99,7 +101,7 @@ def test_account_management_functions():
             assert data_manager is not None, "UserDataManager should be instantiated"
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"UserDataManager instantiation failed: {e}")
-            assert False, f"UserDataManager instantiation failed: {e}"
+            raise AssertionError(f"UserDataManager instantiation failed: {e}")
         
         # Test UserContext instantiation
         try:
@@ -108,11 +110,12 @@ def test_account_management_functions():
             assert user_context is not None, "UserContext should be instantiated"
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"UserContext instantiation failed: {e}")
-            assert False, f"UserContext instantiation failed: {e}"
+            raise AssertionError(f"UserContext instantiation failed: {e}")
         
     except Exception as e:
         logging.getLogger("mhm_tests").error(f"Account management function testing failed: {e}")
-        assert False, f"Account management function testing failed: {e}"
+        raise AssertionError(f"Account management function testing failed: {e}")
+
 
 @pytest.mark.integration
 @pytest.mark.user_management
@@ -142,7 +145,6 @@ def test_account_management_data_structures(test_data_dir, mock_config):
         if test_user is None:
             test_user = get_user_id_by_identifier(test_user_id)
         assert test_user is not None, "Should be able to get UUID for test user"
-        
         
         # Test account data structure
         try:
@@ -192,13 +194,13 @@ def test_account_management_data_structures(test_data_dir, mock_config):
                     assert True, "Account structure is valid"
                 else:
                     logging.getLogger("mhm_tests").warning(f"Account data structure: missing fields - {missing_fields}")
-                    assert False, f"Account structure missing fields: {missing_fields}"
+                    raise AssertionError(f"Account structure missing fields: {missing_fields}")
             else:
                 logging.getLogger("mhm_tests").error("Account data structure: no account data found")
-                assert False, "No account data found"
+                raise AssertionError("No account data found")
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"Account data structure: error - {e}")
-            assert False, f"Account data structure error: {e}"
+            raise AssertionError(f"Account data structure error: {e}")
         
         # Test preferences data structure
         try:
@@ -213,13 +215,13 @@ def test_account_management_data_structures(test_data_dir, mock_config):
                     assert True, "Preferences structure is valid"
                 else:
                     logging.getLogger("mhm_tests").warning(f"Preferences data structure: missing fields - {missing_fields}")
-                    assert False, f"Preferences structure missing fields: {missing_fields}"
+                    raise AssertionError(f"Preferences structure missing fields: {missing_fields}")
             else:
                 logging.getLogger("mhm_tests").error("Preferences data structure: no preferences data found")
-                assert False, "No preferences data found"
+                raise AssertionError("No preferences data found")
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"Preferences data structure: error - {e}")
-            assert False, f"Preferences data structure error: {e}"
+            raise AssertionError(f"Preferences data structure error: {e}")
         
         # Test context data structure
         try:
@@ -234,11 +236,12 @@ def test_account_management_data_structures(test_data_dir, mock_config):
                 assert True, "Context data is optional"
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"Context data structure: error - {e}")
-            assert False, f"Context data structure error: {e}"
+            raise AssertionError(f"Context data structure error: {e}")
         
     except Exception as e:
         logging.getLogger("mhm_tests").error(f"Data structure testing failed: {e}")
-        assert False, f"Data structure testing failed: {e}"
+        raise AssertionError(f"Data structure testing failed: {e}")
+
 
 @pytest.mark.integration
 @pytest.mark.user_management
@@ -266,10 +269,10 @@ def test_account_management_validation():
                 assert True, "Valid account updates should be accepted"
             else:
                 logging.getLogger("mhm_tests").warning(f"Account validation: Valid updates rejected - {errors}")
-                assert False, f"Valid account updates were rejected: {errors}"
+                raise AssertionError(f"Valid account updates were rejected: {errors}")
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"Account validation: Error - {e}")
-            assert False, f"Account validation error: {e}"
+            raise AssertionError(f"Account validation error: {e}")
         
         # Test invalid account updates
         try:
@@ -284,10 +287,10 @@ def test_account_management_validation():
                 assert True, "Invalid account updates should be rejected"
             else:
                 logging.getLogger("mhm_tests").warning("Account validation: Invalid updates incorrectly accepted")
-                assert False, "Invalid account updates were incorrectly accepted"
+                raise AssertionError("Invalid account updates were incorrectly accepted")
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"Account validation: Error - {e}")
-            assert False, f"Account validation error: {e}"
+            raise AssertionError(f"Account validation error: {e}")
         
         # Test preferences validation
         try:
@@ -302,14 +305,15 @@ def test_account_management_validation():
                 assert True, "Valid preferences updates should be accepted"
             else:
                 logging.getLogger("mhm_tests").warning(f"Preferences validation: Valid updates rejected - {errors}")
-                assert False, f"Valid preferences updates were rejected: {errors}"
+                raise AssertionError(f"Valid preferences updates were rejected: {errors}")
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"Preferences validation: Error - {e}")
-            assert False, f"Preferences validation error: {e}"
+            raise AssertionError(f"Preferences validation error: {e}")
         
     except Exception as e:
         logging.getLogger("mhm_tests").error(f"Validation testing failed: {e}")
-        assert False, f"Validation testing failed: {e}"
+        raise AssertionError(f"Validation testing failed: {e}")
+
 
 @pytest.mark.integration
 @pytest.mark.user_management
@@ -326,7 +330,6 @@ def test_account_management_safe_operations():
         
         # Create a temporary test user for safe operations
         temp_user_id = f"temp-test-{int(time.time())}"
-        
         
         # Test creating temporary user data
         try:
@@ -358,10 +361,10 @@ def test_account_management_safe_operations():
                 assert True, "Temporary user creation should succeed"
             else:
                 logging.getLogger("mhm_tests").warning(f"Temporary user creation: Failed - {save_result}")
-                assert False, f"Temporary user creation failed: {save_result}"
+                raise AssertionError(f"Temporary user creation failed: {save_result}")
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"Temporary user creation: Error - {e}")
-            assert False, f"Temporary user creation error: {e}"
+            raise AssertionError(f"Temporary user creation error: {e}")
         
         # Test reading temporary user data
         try:
@@ -384,10 +387,10 @@ def test_account_management_safe_operations():
                 assert True, "Temporary user data access should succeed"
             else:
                 logging.getLogger("mhm_tests").warning(f"Temporary user data access: Failed - account_data: {bool(account_data)}, prefs_data: {bool(prefs_data)}")
-                assert False, f"Temporary user data access failed - account_data: {bool(account_data)}, prefs_data: {bool(prefs_data)}"
+                raise AssertionError(f"Temporary user data access failed - account_data: {bool(account_data)}, prefs_data: {bool(prefs_data)}")
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"Temporary user data access: Error - {e}")
-            assert False, f"Temporary user data access error: {e}"
+            raise AssertionError(f"Temporary user data access error: {e}")
         
         # Test updating temporary user data
         try:
@@ -400,10 +403,10 @@ def test_account_management_safe_operations():
                 assert True, "Temporary user update should succeed"
             else:
                 logging.getLogger("mhm_tests").warning(f"Temporary user update: Failed - {update_result}")
-                assert False, f"Temporary user update failed: {update_result}"
+                raise AssertionError(f"Temporary user update failed: {update_result}")
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"Temporary user update: Error - {e}")
-            assert False, f"Temporary user update error: {e}"
+            raise AssertionError(f"Temporary user update error: {e}")
         
         # Clean up temporary user (optional - let it be cleaned up automatically)
         try:
@@ -413,11 +416,12 @@ def test_account_management_safe_operations():
             assert True, "Temporary user cleanup should succeed"
         except Exception as e:
             logging.getLogger("mhm_tests").warning(f"Temporary user cleanup: Error - {e}")
-            assert False, f"Temporary user cleanup error: {e}"
+            raise AssertionError(f"Temporary user cleanup error: {e}")
         
     except Exception as e:
         logging.getLogger("mhm_tests").error(f"Safe operations testing failed: {e}")
-        assert False, f"Safe operations testing failed: {e}"
+        raise AssertionError(f"Safe operations testing failed: {e}")
+
 
 @pytest.mark.integration
 @pytest.mark.user_management
@@ -461,7 +465,7 @@ def test_account_management_integration():
             assert True, "User index integration should succeed"
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"User index integration: Error - {e}")
-            assert False, f"User index integration error: {e}"
+            raise AssertionError(f"User index integration error: {e}")
         
         # Test data consistency
         try:
@@ -474,11 +478,11 @@ def test_account_management_integration():
                 assert True, "Data consistency should be maintained"
             else:
                 logging.getLogger("mhm_tests").warning("Data consistency: Inconsistent data")
-                assert False, "Data consistency failed"
+                raise AssertionError("Data consistency failed")
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"Data consistency: Error - {e}")
-            assert False, f"Data consistency error: {e}"
+            raise AssertionError(f"Data consistency error: {e}")
         
     except Exception as e:
         logging.getLogger("mhm_tests").error(f"Integration testing failed: {e}")
-        assert False, f"Integration testing failed: {e}"
+        raise AssertionError(f"Integration testing failed: {e}")

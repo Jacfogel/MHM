@@ -24,6 +24,7 @@ from core.config import (
     DEFAULT_MESSAGES_DIR_PATH
 )
 
+
 class TestConfigValidation:
     """Test configuration validation functions."""
     
@@ -43,18 +44,18 @@ class TestConfigValidation:
                     
                     is_valid, errors, warnings = validate_core_paths()
                     
-                    #[OK] VERIFY FUNCTION RETURN: Check the function worked
+                    # [OK] VERIFY FUNCTION RETURN: Check the function worked
                     assert is_valid is True
                     assert len(errors) == 0
                     
-                    #[OK] VERIFY REAL BEHAVIOR: Check that directories were actually created
+                    # [OK] VERIFY REAL BEHAVIOR: Check that directories were actually created
                     assert os.path.exists(users_dir), f"Users directory should be created at {users_dir}"
                     assert os.path.isdir(users_dir), f"Users directory should be a directory: {users_dir}"
                     
                     assert os.path.exists(messages_dir), f"Messages directory should be created at {messages_dir}"
                     assert os.path.isdir(messages_dir), f"Messages directory should be a directory: {messages_dir}"
                     
-                    #[OK] VERIFY REAL BEHAVIOR: Check that directories are writable
+                    # [OK] VERIFY REAL BEHAVIOR: Check that directories are writable
                     test_file = os.path.join(users_dir, 'test_write.json')
                     try:
                         with open(test_file, 'w') as f:
@@ -62,7 +63,7 @@ class TestConfigValidation:
                         assert os.path.exists(test_file), "Should be able to write to users directory"
                         os.remove(test_file)  # Clean up
                     except Exception as e:
-                        assert False, f"Users directory should be writable: {e}"
+                        raise AssertionError(f"Users directory should be writable: {e}")
                     
                     # Should have warnings about creating directories if they didn't exist
                     assert len(warnings) >= 0
@@ -277,6 +278,7 @@ class TestConfigValidation:
                                     else:
                                         # If we get a different exception, that's also a failure
                                         pytest.fail(f"Expected ConfigValidationError, but got {type(e).__name__}: {e}")
+
 
 class TestConfigConstants:
     """Test configuration constants."""

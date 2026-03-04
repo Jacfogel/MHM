@@ -114,50 +114,50 @@ def print_dashboard(functions):
         print(f"[COMPLEXITY] Functions needing attention: {total_complex}")
         if critical_complex:
             print(
-                f"  [CRITICAL] Critical Complexity (>{CRITICAL_COMPLEXITY-1} nodes): {len(critical_complex)}"
+                f"  [CRITICAL] Critical Complexity (>{CRITICAL_COMPLEXITY - 1} nodes): {len(critical_complex)}"
             )
             for f in critical_complex[:5]:
                 print(
                     f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})"
                 )
             if len(critical_complex) > 5:
-                print(f"    ...and {len(critical_complex)-5} more.")
+                print(f"    ...and {len(critical_complex) - 5} more.")
 
         if high_complex:
             print(
-                f"  [HIGH] High Complexity ({HIGH_COMPLEXITY}-{CRITICAL_COMPLEXITY-1} nodes): {len(high_complex)}"
+                f"  [HIGH] High Complexity ({HIGH_COMPLEXITY}-{CRITICAL_COMPLEXITY - 1} nodes): {len(high_complex)}"
             )
             for f in high_complex[:5]:
                 print(
                     f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})"
                 )
             if len(high_complex) > 5:
-                print(f"    ...and {len(high_complex)-5} more.")
+                print(f"    ...and {len(high_complex) - 5} more.")
 
         if moderate_complex:
             print(
-                f"  [MODERATE] Moderate Complexity ({MODERATE_COMPLEXITY}-{HIGH_COMPLEXITY-1} nodes): {len(moderate_complex)}"
+                f"  [MODERATE] Moderate Complexity ({MODERATE_COMPLEXITY}-{HIGH_COMPLEXITY - 1} nodes): {len(moderate_complex)}"
             )
             for f in moderate_complex[:3]:
                 print(
                     f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})"
                 )
             if len(moderate_complex) > 3:
-                print(f"    ...and {len(moderate_complex)-3} more.")
+                print(f"    ...and {len(moderate_complex) - 3} more.")
 
     if undocumented_handlers:
         print(f"[DOC] Undocumented Handlers: {len(undocumented_handlers)}")
         for f in undocumented_handlers[:10]:
             print(f"  - {f['name']} (file: {Path(f['file']).name})")
         if len(undocumented_handlers) > 10:
-            print(f"  ...and {len(undocumented_handlers)-10} more.")
+            print(f"  ...and {len(undocumented_handlers) - 10} more.")
 
     if duplicates:
         print(f"[DUPE] Duplicate Function Names: {len(duplicates)}")
         for name, files in list(duplicates.items())[:5]:
             print(f"  - {name}: {', '.join(Path(f).name for f in files)}")
         if len(duplicates) > 5:
-            print(f"  ...and {len(duplicates)-5} more.")
+            print(f"  ...and {len(duplicates) - 5} more.")
 
     print("=== SUGGESTED NEXT STEPS ===")
     if critical_complex:
