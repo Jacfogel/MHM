@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-04 - Coverage push + report generation cleanup **Progressed**
+- Added targeted coverage tests across core, communication, and UI helper/branch paths (`config`, `file_operations`, `user_item_storage`, `backup_manager`, `channel_orchestrator`, reminder parsing, UI user combo helpers).
+- Updated `development_tools/tests/generate_test_coverage_report.py` so `TEST_COVERAGE_REPORT.md` now includes complete domain scope text (including `notebook`), a generated domain-coverage section, and generated marker counts under `## Test Markers`.
+- Removed stale E2E marker narrative from coverage report output and regenerated coverage/audit artifacts (`AI_STATUS`, `AI_PRIORITIES`, consolidated report, analysis JSONs, and coverage report).
+- Validation highlights: targeted run `50 passed`; latest generated coverage snapshot is `76.4%` overall with highest remaining misses in `ui`, `communication`, and `core`.
+
 ### 2026-03-04 - Complexity batch + priority-source correction **Progressed**
 - Refactored a focused 5-function high-complexity batch with behavior-preserving helper extraction across service loop, logger rollover, interaction manager init, UI user-list refresh, and reminder parsing flows.
 - Fixed `development_tools/shared/service/report_generation.py` so `AI_PRIORITIES` "Highest complexity" examples come from `analyze_functions_results.json` (global top) and only use decision-support examples as fallback.
@@ -126,18 +132,6 @@ Guidelines:
 - Retired EXCLUSION_RULES, OUTPUT_STORAGE_STANDARDS, RESULT_FORMAT_STANDARD into DEVELOPMENT_TOOLS_GUIDE.
 - Renamed `generate_function_docstrings` -> `fix_function_docstrings`; removed 2 obvious unused imports; fixed `test_email_user_creation` parallel failure.
 - Added `test_commands_coverage_helpers.py`; print-to-logger migration for legacy reference and module-dependencies analyzers.
-
-### 2026-02-27 - Static-analysis pipeline hardening + report clarity improvements **COMPLETED**
-- Fixed Ruff/Pyright audit-runtime drift by normalizing configured `python -m ...` launchers to the active interpreter, eliminating false "tool unavailable" states in static-check wrappers.
-- Added portable Ruff config sync scaffolding via `development_tools/config/sync_ruff_toml.py`; generated root `.ruff.toml` from shared exclusions; removed Ruff settings from `pyproject.toml` to avoid split ownership.
-- Improved static-analysis reporting:
-  - Ruff top rules now include readable rule names (code + name + count).
-  - Pyright now reports separate top files for errors vs warnings, with conditional lines so zero-count severities are omitted.
-  - Static-analysis unavailable messaging in AI reports was tightened to show explicit reasons when tools are missing.
-- Updated dev-tools roadmap planning with portability and structure follow-ups in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` (`7.6` static tooling/packaging portability, `7.7` directory taxonomy + config boundary cleanup) and synced `PLANS.md` pointer.
-- Validation in-session:
-  - targeted static-analysis/reporting tests passed (`test_static_analysis_tools.py`, `test_report_generation_static_analysis.py`, `test_tool_wrappers_static_analysis.py`).
-  - full audit completed with no new non-static-analysis issues; regenerated `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.md` reflect updated static findings.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

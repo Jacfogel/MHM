@@ -2,59 +2,66 @@
 
 > **File**: `development_docs/TEST_COVERAGE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-04 00:42:59
+> **Last Generated**: 2026-03-04 11:50:34
 > **Source**: `python development_tools/tests/generate_test_coverage.py --update-plan` - Coverage Metrics Regenerator
 
 ## Current Status
 
-### **Overall Coverage: 75.5%**
+### **Overall Coverage: 76.4%**
 - **Total Statements**: 30,165
-- **Covered Statements**: 22,779
-- **Uncovered Statements**: 7,386
-- **Coverage Scope**: Main project domains only (`core`, `communication`, `ui`, `tasks`, `user`, `ai`); `development_tools/` coverage is tracked separately.
+- **Covered Statements**: 23,047
+- **Uncovered Statements**: 7,118
+- **Coverage Scope**: Main project domains only (`ai`, `communication`, `core`, `notebook`, `tasks`, `ui`, `user`); `development_tools/` coverage is tracked separately.
 - **Goal**: Expand to **80%+ coverage** for comprehensive reliability
 
+### **Coverage by Domain**
+- **ai**: 78.6% (1384/1760 lines, 376 missing)
+- **communication**: 76.3% (7230/9479 lines, 2249 missing)
+- **core**: 76.7% (8365/10902 lines, 2537 missing)
+- **notebook**: 95.6% (580/607 lines, 27 missing)
+- **tasks**: 89.0% (403/453 lines, 50 missing)
+- **ui**: 72.0% (4801/6668 lines, 1867 missing)
+- **user**: 95.9% (284/296 lines, 12 missing)
+
 ### **Coverage Summary by Category**
-- **Excellent (93% avg)**: 83 modules
-- **Good (71% avg)**: 27 modules
-- **Moderate (52% avg)**: 4 modules
+- **Excellent (93% avg)**: 86 modules
+- **Good (70% avg)**: 25 modules
+- **Moderate (53% avg)**: 3 modules
 
 ### **Detailed Module Coverage**
 - **X communication\communication_channels\discord\bot.py**: 51% (650/1276 lines)
-- **X ui\ui_app_qt.py**: 51% (724/1408 lines)
-- **X core\backup_manager.py**: 54% (409/760 lines)
+- **X ui\ui_app_qt.py**: 54% (755/1408 lines)
 - **X ui\widgets\checkin_settings_widget.py**: 54% (354/653 lines)
 - **! core\checkin_analytics.py**: 62% (443/718 lines)
-- **! communication\message_processing\conversation_flow_manager.py**: 63% (649/1027 lines)
-- **! communication\core\channel_orchestrator.py**: 64% (676/1054 lines)
-- **! core\scheduler.py**: 64% (662/1028 lines)
+- **! communication\message_processing\conversation_flow_manager.py**: 64% (662/1027 lines)
+- **! core\scheduler.py**: 65% (664/1028 lines)
 - **! ui\dialogs\schedule_editor_dialog.py**: 65% (142/217 lines)
-- **! ai\chatbot.py**: 66% (575/867 lines)
+- **! ai\chatbot.py**: 66% (570/867 lines)
 - **! ui\widgets\dynamic_list_container.py**: 66% (134/203 lines)
-- **! core\logger.py**: 67% (495/743 lines)
+- **! core\backup_manager.py**: 67% (510/760 lines)
 - **! ui\widgets\channel_selection_widget.py**: 67% (55/82 lines)
 - **! communication\command_handlers\notebook_handler.py**: 68% (354/519 lines)
 - **! communication\message_processing\interaction_manager.py**: 68% (406/600 lines)
+- **! core\logger.py**: 68% (503/743 lines)
 - **! ui\dialogs\account_creator_dialog.py**: 68% (437/642 lines)
+- **! communication\core\channel_orchestrator.py**: 69% (722/1054 lines)
 - **! ui\widgets\user_profile_settings_widget.py**: 70% (201/286 lines)
 - **! core\user_data_manager.py**: 71% (617/867 lines)
+- **! ui\dialogs\task_completion_dialog.py**: 72% (83/115 lines)
 - **! ui\dialogs\task_crud_dialog.py**: 72% (154/215 lines)
-- **! core\user_data_handlers.py**: 74% (986/1339 lines)
-- **! ui\dialogs\task_completion_dialog.py**: 74% (85/115 lines)
+- **! core\user_data_handlers.py**: 74% (996/1339 lines)
 - **! core\message_management.py**: 75% (308/413 lines)
 - **! ui\widgets\dynamic_list_field.py**: 75% (90/120 lines)
-- **! core\config.py**: 76% (310/406 lines)
 - **! core\service.py**: 76% (548/719 lines)
-- **! core\user_item_storage.py**: 76% (42/55 lines)
 - **! ui\dialogs\task_edit_dialog.py**: 76% (300/394 lines)
-- **! core\error_handling.py**: 77% (300/389 lines)
-- **! core\file_operations.py**: 77% (306/395 lines)
+- **! core\error_handling.py**: 77% (301/389 lines)
 - **! ai\conversation_history.py**: 79% (168/213 lines)
 - **! communication\command_handlers\task_handler.py**: 79% (495/625 lines)
 - *** communication\core\channel_monitor.py**: 80% (112/140 lines)
 - *** ui\dialogs\checkin_management_dialog.py**: 80% (126/157 lines)
 - *** ui\dialogs\user_profile_dialog.py**: 80% (208/261 lines)
 - *** core\checkin_dynamic_manager.py**: 81% (323/400 lines)
+- *** core\file_operations.py**: 81% (320/395 lines)
 - *** communication\communication_channels\base\message_formatter.py**: 82% (95/116 lines)
 - *** communication\communication_channels\discord\welcome_handler.py**: 82% (32/39 lines)
 - *** core\time_utilities.py**: 82% (88/107 lines)
@@ -64,6 +71,7 @@
 - *** core\headless_service.py**: 83% (176/211 lines)
 - *** core\schedule_management.py**: 83% (246/297 lines)
 - *** communication\command_handlers\schedule_handler.py**: 84% (212/253 lines)
+- *** core\config.py**: 86% (348/406 lines)
 - *** core\schemas.py**: 86% (265/308 lines)
 - *** notebook\notebook_data_handlers.py**: 86% (50/58 lines)
 - *** ui\widgets\tag_widget.py**: 86% (184/213 lines)
@@ -91,6 +99,7 @@
 - *** core\user_data_validation.py**: 93% (287/310 lines)
 - *** ui\dialogs\channel_management_dialog.py**: 93% (103/111 lines)
 - *** communication\communication_channels\discord\webhook_server.py**: 94% (118/126 lines)
+- *** core\file_locking.py**: 94% (99/105 lines)
 - *** ui\generate_ui_files.py**: 94% (58/62 lines)
 - *** ui\widgets\task_settings_widget.py**: 94% (150/160 lines)
 - *** communication\command_handlers\base_handler.py**: 95% (53/56 lines)
@@ -101,7 +110,6 @@
 - *** ui\dialogs\user_analytics_dialog.py**: 95% (271/286 lines)
 - *** ai\lm_studio_manager.py**: 96% (109/114 lines)
 - *** core\auto_cleanup.py**: 96% (425/441 lines)
-- *** core\file_locking.py**: 96% (101/105 lines)
 - *** communication\command_handlers\profile_handler.py**: 97% (287/295 lines)
 - *** communication\communication_channels\email\bot.py**: 97% (235/242 lines)
 - *** notebook\notebook_data_manager.py**: 97% (336/346 lines)
@@ -123,6 +131,7 @@
 - *** core\file_auditor.py**: 100% (93/93 lines)
 - *** core\schedule_utilities.py**: 100% (63/63 lines)
 - *** core\tags.py**: 100% (214/214 lines)
+- *** core\user_item_storage.py**: 100% (55/55 lines)
 - *** notebook\__init__.py**: 100% (0/0 lines)
 - *** notebook\notebook_validation.py**: 100% (123/123 lines)
 - *** tasks\__init__.py**: 100% (4/4 lines)
@@ -137,23 +146,30 @@
 
 ## Test Markers
 
-**Note**: This section documents test execution markers. For detailed testing guidance, see [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).
+**Note**: Marker counts are generated from test decorators in `tests/test_*.py` files.
 
-### E2E Marker
+- **Total discovered test nodes**: 4781
+- **Marker usage counts**:
+  - `unit`: 2401
+  - `behavior`: 1805
+  - `communication`: 1044
+  - `ui`: 579
+  - `file_io`: 437
+  - `critical`: 406
+  - `regression`: 327
+  - `user_management`: 246
+  - `ai`: 198
+  - `scheduler`: 159
+  - `integration`: 138
+  - `analytics`: 130
+  - `notebook`: 122
+  - `tasks`: 108
+  - `no_parallel`: 100
+  - `slow`: 85
+  - `checkins`: 63
+  - `parametrize`: 55
+  - `messages`: 47
+  - `smoke`: 47
+  - `skipif`: 2
+  - `filterwarnings`: 1
 
-Tests marked with `@pytest.mark.e2e` are end-to-end verification tests that run real audits with actual tool execution (no mocks). These tests are:
-
-- **Excluded by default**: The `e2e` marker is excluded from regular test runs via `pytest.ini` configuration (`-m "not e2e"`).
-- **Slow**: Tier 3 E2E tests can take ~9-10 minutes due to coverage generation.
-- **For verification**: Use these tests to verify actual audit tier execution before releases.
-
-**Running E2E tests**:
-```bash
-# Run all E2E tests
-pytest -m e2e tests/development_tools/test_audit_tier_e2e_verification.py
-
-# Run specific E2E test
-pytest -m e2e tests/development_tools/test_audit_tier_e2e_verification.py::TestAuditTierE2E::test_tier1_e2e
-```
-
-**Note**: This section may be overwritten when the coverage report is regenerated. See [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md) section 6.5 for authoritative documentation.

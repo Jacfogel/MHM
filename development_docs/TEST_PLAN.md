@@ -5,7 +5,7 @@
 > **Status**: **IN PROGRESS**  
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
-> **Last Updated**: 2026-02-28 (User-priority Q&A: stability > speed, coverage growth, policy expand/tighten)
+> **Last Updated**: 2026-03-04 (coverage expansion follow-up + refreshed domain baselines)
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -55,7 +55,8 @@ Signals currently present in logs and/or recent outputs:
 ### 2.4 Coverage baseline
 
 - See `development_docs/TEST_COVERAGE_REPORT.md` (auto-generated) for current coverage.
-- As of 2026-02-28: **72.5% overall** (21,872 of 30,149 statements).
+- As of 2026-03-04: **76.4% overall** (23,047 of 30,165 statements).
+- Current below-target priority domains: **ui 72.0%**, **communication 76.3%**, **core 76.7%**.
 - Coverage variability remains unresolved across unchanged code runs (historical spread includes low-40s to low-70s percentages).
 
 ---
@@ -410,6 +411,8 @@ Status: **IN PROGRESS** (since 2026-02-22)
   - communication, check-in flow, backup, ui, core
 - [ ] **Exclude AI/context** from coverage push until AI overhaul.
 - [ ] Prioritize high-miss modules from latest coverage report.
+- [ ] Continue next coverage slice from latest high-miss modules:
+  - `ui/ui_app_qt.py`, `communication/message_processing/conversation_flow_manager.py`, `core/backup_manager.py`, `communication/core/channel_orchestrator.py`
 
 Acceptance:
 - [ ] Coverage variance stable within agreed envelope on unchanged code.

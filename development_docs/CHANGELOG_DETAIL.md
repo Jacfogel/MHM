@@ -33,6 +33,38 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-04 - Coverage expansion + coverage-report generation improvements + session wrap-up
+- **Feature/Fix**: Expanded targeted coverage in priority domains (UI, communication, core), improved coverage-report generation to include complete domain scope and marker statistics, and completed session closeout updates.
+- **Technical Changes**:
+  - **New targeted tests** added for uncovered helper/branch paths:
+    - `tests/unit/test_config_branch_coverage.py`
+    - `tests/unit/test_file_operations_branch_coverage.py`
+    - `tests/unit/test_user_item_storage.py`
+    - `tests/unit/test_backup_manager_helpers.py`
+    - `tests/unit/test_channel_orchestrator_message_selection.py`
+    - `tests/unit/test_conversation_flow_reminder_helpers.py`
+    - `tests/ui/test_ui_user_combo_helpers.py`
+  - **Coverage report generator updates** in `development_tools/tests/generate_test_coverage_report.py`:
+    - Domain scope text now explicitly includes `notebook`.
+    - Added generated `Coverage by Domain` section in `development_docs/TEST_COVERAGE_REPORT.md`.
+    - Removed stale static E2E marker narrative from report output.
+    - Added generated marker summary counts under `## Test Markers`.
+  - **Generated artifacts refreshed**:
+    - `development_docs/TEST_COVERAGE_REPORT.md`
+    - `development_tools/AI_STATUS.md`
+    - `development_tools/AI_PRIORITIES.md`
+    - `development_tools/consolidated_report.md`
+    - `development_docs/UNUSED_IMPORTS_REPORT.md`
+    - `development_docs/LEGACY_REFERENCE_REPORT.md`
+    - `development_tools/reports/analysis_detailed_results.json`
+- **Validation**:
+  - Targeted suite: `pytest tests/unit/test_backup_manager_helpers.py tests/unit/test_channel_orchestrator_message_selection.py tests/unit/test_conversation_flow_reminder_helpers.py tests/ui/test_ui_user_combo_helpers.py` -> `50 passed`.
+  - Coverage/data refresh:
+    - `python development_tools/tests/run_test_coverage.py`
+    - `python development_tools/tests/generate_test_coverage_report.py --update-plan`
+  - Latest generated coverage snapshot: **76.4%** overall (`23,047/30,165`) with top below-target domains still `ui` (72.0%), `communication` (76.3%), `core` (76.7%).
+- **Impact**: Coverage increased in several previously weak helper paths, report content now reflects the full intended domain scope and current marker stats, and the next session can continue directly from an updated coverage baseline with explicit domain targets.
+
 ### 2026-03-04 - Complexity refactor batch + global-top priority source fix + session closeout
 - **Feature/Fix**: Completed a focused complexity-reduction pass on the next highest-ranked functions, fixed AI priority example sourcing to use true global analyzer output, and refreshed audit/report artifacts for closeout.
 - **Technical Changes**:

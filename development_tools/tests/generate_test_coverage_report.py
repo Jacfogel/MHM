@@ -16,6 +16,8 @@ import shutil
 import subprocess
 import sys
 import configparser
+import ast
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -133,6 +135,23 @@ class TestCoverageReportGenerator:
     ) -> str:
         """Generate a coverage summary for the plan."""
         summary_lines = []
+        # Build domain list from configured core modules when available.
+        try:
+            from development_tools.shared.constants import CORE_MODULES
+
+            configured_domains = [d for d in CORE_MODULES if d != "development_tools"]
+        except Exception:
+            configured_domains = []
+        if not configured_domains:
+            configured_domains = [
+                "core",
+                "communication",
+                "ui",
+                "tasks",
+                "user",
+                "ai",
+                "notebook",
+            ]
 
         # Overall coverage (format with 1 decimal place for accuracy)
         coverage_value = overall_data["overall_coverage"]
@@ -153,11 +172,35 @@ class TestCoverageReportGenerator:
             f"- **Uncovered Statements**: {overall_data['total_missed']:,}"
         )
         summary_lines.append(
-            "- **Coverage Scope**: Main project domains only (`core`, `communication`, `ui`, `tasks`, `user`, `ai`); `development_tools/` coverage is tracked separately."
+            f"- **Coverage Scope**: Main project domains only ({', '.join(f'`{d}`' for d in configured_domains)}); `development_tools/` coverage is tracked separately."
         )
         summary_lines.append(
             "- **Goal**: Expand to **80%+ coverage** for comprehensive reliability\n"
         )
+
+        # Domain-level summary (based on module path prefixes).
+        domain_bucket: dict[str, dict[str, int]] = {
+            d: {"statements": 0, "covered": 0} for d in configured_domains
+        }
+        for module_name, module_data in coverage_data.items():
+            normalized = str(module_name).replace("\\", "/")
+            domain = normalized.split("/", 1)[0]
+            if domain in domain_bucket:
+                statements = int(module_data.get("statements", 0))
+                covered = int(module_data.get("covered", 0))
+                domain_bucket[domain]["statements"] += statements
+                domain_bucket[domain]["covered"] += covered
+
+        summary_lines.append("### **Coverage by Domain**")
+        for domain in configured_domains:
+            statements = domain_bucket[domain]["statements"]
+            covered = domain_bucket[domain]["covered"]
+            coverage_pct = (covered / statements * 100.0) if statements else 0.0
+            missing = max(0, statements - covered)
+            summary_lines.append(
+                f"- **{domain}**: {coverage_pct:.1f}% ({covered}/{statements} lines, {missing} missing)"
+            )
+        summary_lines.append("")
 
         # Coverage by category
         try:
@@ -200,9 +243,100 @@ class TestCoverageReportGenerator:
 
         return "\n".join(summary_lines)
 
+    def _extract_marker_name(self, decorator: ast.AST) -> str | None:
+        """Extract pytest marker name from decorator node when possible."""
+        target = decorator
+        if isinstance(target, ast.Call):
+            target = target.func
+
+        if not isinstance(target, ast.Attribute):
+            return None
+
+        # Match patterns like:
+        # - pytest.mark.unit
+        # - mark.unit
+        # - pytest.mark.parametrize
+        marker_name = target.attr
+        value = target.value
+        if isinstance(value, ast.Attribute) and value.attr == "mark":
+            return marker_name
+        if isinstance(value, ast.Name) and value.id == "mark":
+            return marker_name
+        return None
+
+    def _collect_test_marker_counts(self) -> tuple[Counter, int]:
+        """Count marker usage across discovered test functions/methods."""
+        marker_counter: Counter = Counter()
+        total_test_nodes = 0
+        tests_root = self.project_root / "tests"
+        if not tests_root.exists():
+            return marker_counter, total_test_nodes
+
+        for test_file in tests_root.rglob("test_*.py"):
+            try:
+                source = test_file.read_text(encoding="utf-8")
+                tree = ast.parse(source)
+            except Exception:
+                continue
+
+            for node in tree.body:
+                if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
+                    total_test_nodes += 1
+                    markers = {
+                        self._extract_marker_name(dec)
+                        for dec in node.decorator_list
+                    }
+                    for marker in markers:
+                        if marker:
+                            marker_counter[marker] += 1
+                elif isinstance(node, ast.ClassDef):
+                    class_markers = {
+                        self._extract_marker_name(dec)
+                        for dec in node.decorator_list
+                    }
+                    class_markers = {m for m in class_markers if m}
+                    for member in node.body:
+                        if isinstance(member, ast.FunctionDef) and member.name.startswith(
+                            "test_"
+                        ):
+                            total_test_nodes += 1
+                            member_markers = {
+                                self._extract_marker_name(dec)
+                                for dec in member.decorator_list
+                            }
+                            combined = {m for m in member_markers if m} | class_markers
+                            for marker in combined:
+                                marker_counter[marker] += 1
+
+        return marker_counter, total_test_nodes
+
+    def generate_test_markers_section(self) -> str:
+        """Generate the Test Markers section with current marker usage counts."""
+        marker_counts, total_tests = self._collect_test_marker_counts()
+        lines = [
+            "## Test Markers",
+            "",
+            "**Note**: Marker counts are generated from test decorators in `tests/test_*.py` files.",
+            "",
+            f"- **Total discovered test nodes**: {total_tests}",
+        ]
+
+        if not marker_counts:
+            lines.append("- **Marker usage**: No markers detected.")
+            return "\n".join(lines) + "\n"
+
+        lines.append("- **Marker usage counts**:")
+        for marker, count in sorted(
+            marker_counts.items(), key=lambda item: (-item[1], item[0])
+        ):
+            lines.append(f"  - `{marker}`: {count}")
+        lines.append("")
+        return "\n".join(lines)
+
     def update_coverage_plan(self, coverage_summary: str) -> bool:
         """Update the TEST_COVERAGE_REPORT.md with new metrics."""
         generated_timestamp = now_timestamp_full()
+        test_markers_section = self.generate_test_markers_section()
 
         # Standard generated header
         standard_header = f"""# Test Coverage Report
@@ -253,6 +387,7 @@ class TestCoverageReportGenerator:
             # Find and replace the current status section
             section_header = "## Current Status"
             current_status_pattern = r"(## Current Status.*?)(?=\n## |\Z)"
+            test_markers_pattern = r"(## Test Markers.*?)(?=\n## |\Z)"
 
             new_status_section = f"{section_header}\n\n{coverage_summary}\n"
 
@@ -276,6 +411,17 @@ class TestCoverageReportGenerator:
                         + new_status_section
                         + content[header_end:]
                     )
+
+                # Replace or append Test Markers section with generated content.
+                if re.search(test_markers_pattern, updated_content, re.DOTALL):
+                    updated_content = re.sub(
+                        test_markers_pattern,
+                        lambda _: test_markers_section + "\n",
+                        updated_content,
+                        flags=re.DOTALL,
+                    )
+                else:
+                    updated_content = updated_content.rstrip() + "\n\n" + test_markers_section + "\n"
 
                 # Update the last generated timestamp
                 timestamp_pattern = r"(> \*\*Last Generated\*\*: ).*"
@@ -355,6 +501,17 @@ class TestCoverageReportGenerator:
                         updated_content,
                         flags=re.DOTALL,
                     )
+
+                # Ensure Test Markers section exists and is refreshed.
+                if re.search(test_markers_pattern, updated_content, re.DOTALL):
+                    updated_content = re.sub(
+                        test_markers_pattern,
+                        lambda _: test_markers_section + "\n",
+                        updated_content,
+                        flags=re.DOTALL,
+                    )
+                else:
+                    updated_content = updated_content.rstrip() + "\n\n" + test_markers_section + "\n"
 
             # Write updated content
             # Use rotation system for archiving
