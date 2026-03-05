@@ -2,7 +2,7 @@
 
 These functions are used by tests and optionally by fixtures. They live here to keep
 tests/conftest.py focused on configuration and fixtures. Import from this module or
-from tests.conftest (re-exported for backward compatibility).
+from tests.conftest (re-exported for convenience).
 """
 
 

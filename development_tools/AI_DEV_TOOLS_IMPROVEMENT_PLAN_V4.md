@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-03-01 (Tier 3 outcome and coverage-runtime follow-ups)
+> **Last Updated**: 2026-03-05 (legacy/deprecation inventory integration + cleanup follow-ups)
 
 This is an updated, condensed roadmap based on V3 and prior audits. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -516,7 +516,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 **User priority**: High.  
 **Tasks**:
 - [x] Inventory CLI flags in `shared/cli_interface.py` and `run_development_tools.py` (audit: `--full/--quick/--include-tests/--include-dev-tools/--include-all/--overlap`, doc-fix: `--all/--dry-run/--add-addresses/--fix-ascii/--number-headings/--convert-links`, cleanup: `--full/--cache/--test-data/--coverage/--dry-run`, duplicate-functions: `--include-tests/--include-dev-tools/--include-all/--min-overall/--min-name`, version-sync: `scope`, workflow: `task_type`, global: `--project-root/--config-path/--clear-cache`)
-- [x] Inventory standalone script flags (analyze_package_exports: `--package/--all/--recommendations`, run_test_coverage: `--update-plan/--output-file/--no-parallel/--workers/--dev-tools-only/--no-domain-cache`, analyze_test_coverage: `--input/--json/--output`)
+- [x] Inventory standalone script flags (analyze_package_exports: `--package/--all/--recommendations`, run_test_coverage: `--output-file/--no-parallel/--workers/--dev-tools-only/--no-domain-cache`, analyze_test_coverage: `--input/--json/--output`)
 - [x] Inventory CLI flags across tools (e.g., `audit --full`, `cleanup --full`, `doc-fix --all`)
 - [x] Added automated CLI/alias inventory + validation command: `tooling-consistency` (`development_tools/config/analyze_tooling_consistency.py`) with advisory default and `--strict` enforcement mode
 - [x] Standardize "full/all" semantics in CLI handlers: add `--all` alias for `cleanup --full`, `--full` alias for `doc-fix --all`, and `full-audit` alias for `audit --full`
@@ -756,7 +756,13 @@ These are surfaced by the tools and remain outstanding but are not tool-suite ch
 - **Raise domain coverage** (communication, ui, core): (d) When nothing better to do, or while user is away.
 - **Refactor critical-complexity functions**: (a) Actively work down, but not high priority.
 
-- [ ] Retire legacy reference markers (38 files, 71 markers); update references and rerun `legacy`
+- [ ] Retire remaining legacy reference markers (currently 7 files, 12 markers); update references and rerun `legacy`
+- [ ] Work down active/candidate deprecation inventory items in `development_tools/config/DEPRECATION_INVENTORY.json`:
+  - `legacy_timestamp_parsing`
+  - `backup_zip_compat_bridge`
+  - `tier3_coverage_outcome_compat_bridge`
+  - `root_ruff_compat_mirror`
+- [ ] Validate and document exit criteria for each remaining inventory item before removal (migration complete, tests updated, docs synced), then update inventory status in same change
 - [ ] Reduce unused imports (358 in 124 files) and verify via `unused-imports-report`
 - [ ] Raise domain coverage for communication, ui, and core (below 80% target)
 - [ ] Refactor critical-complexity functions (145 critical, 147 high)

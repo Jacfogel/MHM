@@ -555,7 +555,7 @@ class TestCoverageCliOutput:
             def __init__(self, *args, **kwargs):
                 pass
 
-            def run(self, update_plan: bool = False, dev_tools_only: bool = False):
+            def run(self, dev_tools_only: bool = False):
                 return {"coverage_collected": True, "overall": {"overall_coverage": 80.0}}
 
         monkeypatch.setattr(
@@ -586,7 +586,7 @@ class TestCoverageCliOutput:
             def __init__(self, *args, **kwargs):
                 pass
 
-            def run(self, update_plan: bool = False, dev_tools_only: bool = False):
+            def run(self, dev_tools_only: bool = False):
                 return {}
 
         monkeypatch.setattr(

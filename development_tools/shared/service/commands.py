@@ -727,10 +727,6 @@ class CommandsMixin:
                         parsed_outcome = {}
                         if isinstance(details, dict):
                             parsed_outcome = details.get("dev_tools_test_outcome", {})
-                        if not isinstance(parsed_outcome, dict) or not parsed_outcome:
-                            parsed_outcome = dev_tools_payload.get(
-                                "dev_tools_test_outcome", {}
-                            )
                         if isinstance(parsed_outcome, dict):
                             dev_tools_outcome = {
                                 "state": parsed_outcome.get("state", "unknown"),
@@ -1140,15 +1136,15 @@ class CommandsMixin:
                                     structured_outcome[track_name] = track
                                 if "classification" not in track:
                                     logger.info(
-                                        "LEGACY COMPATIBILITY: tier3_coverage_outcome_v1 bridge exercised; "
-                                        f"adding missing classification fields for {track_name} track."
+                                        "Tier 3 coverage payload missing per-track classification fields; "
+                                        f"normalizing track metadata for {track_name}."
                                     )
                                     track_state = str(track.get("state", "unknown") or "unknown")
                                     track["classification"] = track_state
-                                    track["classification_reason"] = "legacy_state_only_payload"
+                                    track["classification_reason"] = "state_only_payload_missing_classification"
                                     track["actionable_context"] = (
-                                        "Legacy coverage outcome payload without explicit classification fields; "
-                                        "state-only compatibility bridge applied."
+                                        "Coverage outcome payload omitted explicit classification fields; "
+                                        "state-derived classification applied."
                                     )
                                     existing_log_file = track.get("log_file")
                                     track["log_file"] = (
@@ -1169,11 +1165,11 @@ class CommandsMixin:
                             synthesized_reason = (
                                 "cache_only_payload_without_coverage_outcome"
                                 if payload_from_cache
-                                else "legacy_payload_without_coverage_outcome"
+                                else "unstructured_payload_without_coverage_outcome"
                             )
                             logger.info(
-                                "LEGACY COMPATIBILITY: coverage_outcome missing; "
-                                "synthesizing Tier 3 outcome from coverage_collected payload."
+                                "Tier 3 coverage payload missing coverage_outcome; "
+                                "synthesizing outcome from coverage_collected signal."
                             )
                             structured_outcome = {
                                 "state": "clean",

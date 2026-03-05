@@ -9,8 +9,7 @@ for functions that lack documentation. It uses the same template generation logi
 the function registry generator to ensure consistency.
 
 Configuration is loaded from external config file (development_tools_config.json)
-under key "fix_function_docstrings" (or "generate_function_docstrings" for backward
-compatibility), making this tool portable across different projects.
+under key "fix_function_docstrings", making this tool portable across different projects.
 """
 
 import ast

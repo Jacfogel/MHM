@@ -381,8 +381,8 @@ class MtimeFileCache(Generic[T]):
             except Exception as e:
                 if logger:
                     logger.warning(f"Failed to save cache to standardized storage: {e}")
-                # If standardized storage fails, log warning but don't fall back to legacy
-                # This ensures we fix standardized storage issues rather than silently using legacy paths
+                # If standardized storage fails, log warning but do not silently use alternate paths.
+                # This keeps storage issues visible and forces explicit remediation.
 
     def _get_file_cache_key(self, file_path: Path) -> str:
         """Generate cache key for a file (relative path from project root)."""

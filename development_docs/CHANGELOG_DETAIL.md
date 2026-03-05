@@ -33,6 +33,55 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-05 - Legacy inventory governance + compatibility cleanup sweep
+- **Feature/Fix**: Consolidated the session into one legacy/deprecation cleanup pass: established canonical inventory governance, integrated inventory-aware legacy scanning/reporting, removed deprecated compatibility shims, and synchronized planning/docs for follow-up.
+- **Technical Changes**:
+  - Canonical deprecation inventory and config wiring:
+    - Added canonical inventory file `development_tools/config/DEPRECATION_INVENTORY.json`.
+    - Added `legacy_cleanup.deprecation_inventory_file` and `legacy_cleanup.deprecation_inventory_sync_guard` in both config files (`development_tools/config/development_tools_config.json` and `.example`).
+    - Updated legacy-workflow guidance/docs to require inventory updates (`ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md`, `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`).
+  - Inventory-aware legacy tooling:
+    - `development_tools/legacy/analyze_legacy_references.py` now loads active/candidate inventory entries and injects their search terms into scan patterns (`deprecation_inventory_terms` category).
+    - `development_tools/legacy/generate_legacy_reference_report.py` now includes a dedicated `## Deprecation Inventory` section with entry/term counts and scan-hit summary.
+    - `development_tools/shared/service/tool_wrappers.py` now runs an inventory sync guard that fails legacy analysis when deprecation-like changes are present without inventory updates.
+    - Added/updated regression coverage:
+      - `tests/development_tools/test_legacy_reference_cleanup.py` (inventory integration/report coverage)
+      - `tests/development_tools/test_deprecation_inventory_guard.py` (guard pass/fail paths)
+  - Deprecated compatibility removals and cleanup:
+    - Removed deprecated `--update-plan` compatibility path from:
+      - `development_tools/tests/run_test_coverage.py`
+      - `development_tools/tests/generate_test_coverage_report.py`
+      - `development_tools/shared/service/tool_wrappers.py`
+    - Removed deprecated no-op `_consolidate_and_cleanup_main_logs` placeholder from `tests/conftest.py`.
+    - Updated inventory status transitions:
+      - `run_test_coverage_update_plan_flag` -> `removed` (`2026-03-05`)
+      - `deprecated_conftest_log_consolidation_placeholder` -> `removed` (`2026-03-05`)
+    - Removed stale backward-compat alias path for function-docstring config (`generate_function_docstrings`) in:
+      - `development_tools/config/config.py`
+      - `development_tools/functions/fix_function_docstrings.py`
+      - `development_tools/config/development_tools_config.json` (+ `.example`)
+  - Generated artifacts and planning sync:
+    - Refreshed generated outputs: `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/TEST_COVERAGE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`, `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`, `development_tools/reports/analysis_detailed_results.json`.
+    - Updated planning metadata/follow-ups:
+      - `TODO.md`
+      - `development_docs/PLANS.md`
+      - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` (legacy-marker backlog counts and remaining inventory-item follow-up tasks).
+- **Validation**:
+  - Full working tree review for wrap-up/changelog accuracy:
+    - `git diff --stat`
+    - `git diff --name-only`
+  - Legacy discovery/readiness checks:
+    - `python development_tools/legacy/fix_legacy_references.py --find=--update-plan` -> 3 active references before cleanup.
+    - `python development_tools/legacy/fix_legacy_references.py --find "_consolidate_and_cleanup_main_logs"` -> 1 active reference before cleanup.
+    - `python development_tools/legacy/fix_legacy_references.py --verify=--update-plan` -> READY after cleanup.
+    - `python development_tools/legacy/fix_legacy_references.py --verify "_consolidate_and_cleanup_main_logs"` -> READY after cleanup.
+  - Targeted regression suite:
+    - `pytest tests/development_tools/test_regenerate_coverage_metrics.py tests/development_tools/test_deprecation_inventory_guard.py tests/development_tools/test_tool_wrappers_branch_paths.py -q` -> `30 passed`.
+  - Regeneration checks:
+    - `python development_tools/tests/generate_test_coverage_report.py` -> coverage report update successful.
+    - `python development_tools/run_development_tools.py legacy` -> legacy report regenerated successfully.
+- **Impact**: Legacy/deprecation tracking now has an enforceable single source of truth, legacy reporting is inventory-driven and less noisy, deprecated compatibility call paths were removed safely, and remaining work is narrowed to the true active bridges (`legacy_timestamp_parsing`, `backup_zip_compat_bridge`, `tier3_coverage_outcome_compat_bridge`, `root_ruff_compat_mirror`).
+
 ### 2026-03-04 - Coverage expansion + coverage-report generation improvements + session wrap-up
 - **Feature/Fix**: Expanded targeted coverage in priority domains (UI, communication, core), improved coverage-report generation to include complete domain scope and marker statistics, and completed session closeout updates.
 - **Technical Changes**:

@@ -58,6 +58,58 @@ class LegacyReferenceReportGenerator:
         """
         self.project_root = Path(project_root).resolve()
 
+    def _load_deprecation_inventory_summary(self) -> dict[str, Any]:
+        """Load basic metadata from the canonical deprecation inventory JSON."""
+        inventory_rel_path = "development_tools/config/DEPRECATION_INVENTORY.json"
+        inventory_path = self.project_root / inventory_rel_path
+        summary: dict[str, Any] = {
+            "path": inventory_rel_path,
+            "exists": inventory_path.exists(),
+            "loaded": False,
+            "error": None,
+            "active_or_candidate_entries": 0,
+            "removed_entries": 0,
+            "active_search_terms": 0,
+        }
+        if not inventory_path.exists():
+            summary["error"] = "inventory_file_missing"
+            return summary
+
+        try:
+            with open(inventory_path, encoding="utf-8") as f:
+                inventory_data = json.load(f)
+        except (OSError, json.JSONDecodeError) as exc:
+            summary["error"] = f"inventory_load_failed: {exc}"
+            return summary
+
+        if not isinstance(inventory_data, dict):
+            summary["error"] = "inventory_invalid_shape"
+            return summary
+
+        active_entries = inventory_data.get("active_or_candidate_inventory", [])
+        removed_entries = inventory_data.get("removed_inventory", [])
+        if not isinstance(active_entries, list):
+            active_entries = []
+        if not isinstance(removed_entries, list):
+            removed_entries = []
+
+        active_terms = 0
+        for entry in active_entries:
+            if isinstance(entry, dict):
+                terms = entry.get("search_terms", [])
+                if isinstance(terms, list):
+                    active_terms += len([term for term in terms if isinstance(term, str)])
+
+        summary.update(
+            {
+                "loaded": True,
+                "active_or_candidate_entries": len(active_entries),
+                "removed_entries": len(removed_entries),
+                "active_search_terms": active_terms,
+            }
+        )
+        return summary
+
     def _should_exclude_report_path(self, file_path: str) -> bool:
         """Apply shared exclusion rules before rendering file-level findings."""
         from development_tools.shared.standard_exclusions import should_exclude_file
@@ -215,6 +267,38 @@ class LegacyReferenceReportGenerator:
         report_lines.append(
             "3. Only after migration is verified, remove legacy markers/comments/docs evidence and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues."
         )
+        report_lines.append("")
+
+        inventory_summary = self._load_deprecation_inventory_summary()
+        report_lines.append("## Deprecation Inventory")
+        if inventory_summary.get("loaded"):
+            report_lines.append(
+                f"- Inventory file: `{inventory_summary.get('path', 'development_tools/config/DEPRECATION_INVENTORY.json')}`"
+            )
+            report_lines.append(
+                f"- Active/candidate entries: {inventory_summary.get('active_or_candidate_entries', 0)}"
+            )
+            report_lines.append(
+                f"- Removed entries: {inventory_summary.get('removed_entries', 0)}"
+            )
+            report_lines.append(
+                f"- Active search terms: {inventory_summary.get('active_search_terms', 0)}"
+            )
+            inventory_findings = filtered_findings.get("deprecation_inventory_terms", [])
+            inventory_file_hits = len(inventory_findings)
+            inventory_marker_hits = sum(
+                len(matches) for _, _, matches in inventory_findings
+            )
+            report_lines.append(
+                f"- Current inventory-term hits in scan: {inventory_file_hits} file(s), {inventory_marker_hits} marker(s)"
+            )
+        else:
+            report_lines.append(
+                f"- Inventory file missing or unreadable: `{inventory_summary.get('path', 'development_tools/config/DEPRECATION_INVENTORY.json')}`"
+            )
+            report_lines.append(
+                "- Action: create/fix `development_tools/config/DEPRECATION_INVENTORY.json` so legacy scans and retirement tracking stay aligned."
+            )
         report_lines.append("")
 
         for pattern_type in sorted(filtered_findings.keys()):

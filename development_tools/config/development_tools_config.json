@@ -342,6 +342,27 @@
     }
   },
   "legacy_cleanup": {
+    "deprecation_inventory_file": "development_tools/config/DEPRECATION_INVENTORY.json",
+    "deprecation_inventory_sync_guard": {
+      "enabled": true,
+      "trigger_keywords": [
+        "deprecated",
+        "deprecation",
+        "legacy compatibility",
+        "legacy",
+        "retire",
+        "retired",
+        "removed",
+        "to be removed",
+        "obsolete",
+        "sunset",
+        "shim",
+        "fallback",
+        "alias",
+        "compatibility bridge",
+        "migration"
+      ]
+    },
     "legacy_patterns": {
       "old_bot_directory": [
         "bot/",
@@ -1029,7 +1050,7 @@
     "core_files": [],
     "data_source_plugins": {}
   },
-  "generate_function_docstrings": {
+  "fix_function_docstrings": {
     "template_paths": {},
     "doc_targets": {},
     "formatting_rules": {},

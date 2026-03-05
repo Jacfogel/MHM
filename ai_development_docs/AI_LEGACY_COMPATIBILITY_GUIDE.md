@@ -26,6 +26,8 @@ python development_tools/legacy/fix_legacy_references.py --verify "LegacyItemNam
 python development_tools/run_development_tools.py legacy
 ```
 
+**Canonical inventory:** `development_tools/config/DEPRECATION_INVENTORY.json` is the required source of truth for deprecated/removed/to-retire terms and sweep patterns.
+
 For the full audit workflow that also produces [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md), use [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), especially section 2 "Fast Mode vs Full Mode" and section 3 "Generated Outputs".
 
 ## 1. Standards
@@ -43,6 +45,7 @@ Use this guide only after you understand the general documentation and developme
 - Add, or update, a removal plan in the relevant docs or changelog.
 - Register all legacy compatibility patterns/paths/functions/parameters in `development_tools/config/development_tools_config.json` under `legacy_cleanup.legacy_patterns`.
 - Add specific detection patterns to `development_tools/legacy/fix_legacy_references.py` (no broad patterns like `"legacy"`).
+- Add or update an entry in `development_tools/config/DEPRECATION_INVENTORY.json` with status `active_bridge` or `deprecated_in_use`.
 
 **When preparing to remove legacy code:**
 
@@ -90,6 +93,7 @@ Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
    - Run the standard test suite (see section 4 "Test Layout and Discovery" in [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)).
    - Start the service and confirm normal behavior.
    - Update changelogs or relevant docs to record the removal.
+   - Update `development_tools/config/DEPRECATION_INVENTORY.json` (change status to `removed` or `retire_candidate`, and keep search terms current).
 
 ## 3. Checklist
 
@@ -103,6 +107,7 @@ Before you delete a legacy item:
 - [ ] The standard test suite passes after your changes.
 - [ ] The service starts and runs without errors.
 - [ ] Relevant documentation and changelogs mention the removal where appropriate.
+- [ ] `development_tools/config/DEPRECATION_INVENTORY.json` is updated for this item.
 
 ## 4. Tools
 
@@ -125,6 +130,7 @@ These tools underlie this guide. For detailed behavior and additional commands, 
 - Prefer using the provided tools instead of manual search; they are tuned to MHM's legacy patterns.
 - When in doubt, keep archive references and historical docs; prioritize removing active code and config paths.
 - Document removals in the changelog or relevant docs so future audits know what changed.
+- Keep deprecation inventory terms specific and searchable (symbol names, file paths, flags, marker strings).
 
 ## 6. Success Criteria
 
@@ -135,4 +141,5 @@ A legacy item is considered fully removed when:
 - Tests and config no longer mention the legacy path (except where deliberately archived).
 - The service starts and passes the agreed test suite.
 - Documentation reflects the current behavior.
+- The deprecation inventory reflects the final status and searchable terms.
 - Changelog entries are historical and should remain unchanged

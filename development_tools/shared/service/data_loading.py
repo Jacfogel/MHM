@@ -57,14 +57,10 @@ class DataLoadingMixin:
             if _is_standard_payload(payload):
                 return payload
 
-            # LEGACY COMPATIBILITY:
-            # Accept and normalize legacy/raw tool payloads while producers are migrated.
-            # Logging: warning emitted below on every fallback usage.
-            # Removal plan:
-            # 1) Once all tool producers emit summary/details natively for 3 consecutive full audits,
-            # 2) remove this fallback path and fail fast on non-standard payloads.
+            # Normalize non-standard payloads so callers always receive summary/details.
+            # Keep this warning path to surface producer shape drift in logs.
             logger.warning(
-                f"[DATA SOURCE] {tool_name}: using legacy/raw payload from {source_label}; normalizing to standard summary/details format."
+                f"[DATA SOURCE] {tool_name}: using non-standard payload from {source_label}; normalizing to summary/details format."
             )
             try:
                 return normalize_to_standard_format(tool_name, payload)
@@ -648,12 +644,9 @@ class DataLoadingMixin:
             overall = {}
 
         if used_raw_shape:
-            # LEGACY COMPATIBILITY:
-            # This warning indicates dev-tools coverage was loaded from deprecated raw keys.
-            # Removal plan: remove raw-shape handling in _get_dev_tools_coverage_insights()
-            # after producers and caches no longer emit top-level overall/modules/output_file keys.
+            # Keep visibility when coverage data arrives in non-standard raw keys.
             logger.warning(
-                "[DATA SOURCE] dev_tools_coverage_insights: using legacy raw dev-tools coverage shape; producer should emit standard summary/details format."
+                "[DATA SOURCE] dev_tools_coverage_insights: using non-standard raw dev-tools coverage shape; producer should emit summary/details format."
             )
 
         overall_pct = overall.get('overall_coverage') or overall.get('coverage')

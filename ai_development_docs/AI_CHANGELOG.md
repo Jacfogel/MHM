@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-05 - Legacy inventory governance + compatibility cleanup **Progressed**
+- Established canonical deprecation inventory governance via `development_tools/config/DEPRECATION_INVENTORY.json`, wired config/docs to it, and added legacy-analysis sync-guard enforcement for deprecation-like changes without inventory updates.
+- Integrated inventory-aware legacy tooling: analyzer now injects active/candidate inventory terms into scans, and `LEGACY_REFERENCE_REPORT.md` now includes a dedicated inventory summary block with counts/hits.
+- Removed deprecated compatibility paths (`--update-plan` coverage flag plumbing and `_consolidate_and_cleanup_main_logs` no-op placeholder), updated related tests, and moved both corresponding inventory items to `removed` (`2026-03-05`).
+- Session wrap-up included full diff review + planning/doc sync and regenerated outputs (legacy report, coverage report, AI status/priorities, consolidated report); legacy backlog reduced to active bridge/retire-candidate items only.
+
 ### 2026-03-04 - Coverage push + report generation cleanup **Progressed**
 - Added targeted coverage tests across core, communication, and UI helper/branch paths (`config`, `file_operations`, `user_item_storage`, `backup_manager`, `channel_orchestrator`, reminder parsing, UI user combo helpers).
 - Updated `development_tools/tests/generate_test_coverage_report.py` so `TEST_COVERAGE_REPORT.md` now includes complete domain scope text (including `notebook`), a generated domain-coverage section, and generated marker counts under `## Test Markers`.
@@ -114,24 +120,6 @@ Guidelines:
 - **TASKS_PLAN.md**: User-priority Q&A applied. Discord primary; recurring-task discoverability gap; prioritize templates, natural language, interactive follow-up (skip + flow timeout), notes & attachments; defer Smart Suggestions; Phase 3: priority escalation, sync, calendar view.
 - **TODO.md**: Added task "Continue planning-doc user-priority Q&A" for NOTES_PLAN and AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.
 - **Dating standard**: New items and progressed items in plans/TODO must be dated (YYYY-MM-DD); documented in AI_DOCUMENTATION_GUIDE 3.9 and PLANS "How to Update".
-
-### 2026-02-28 - Dev-tools slow-test optimization + maintenance-script coverage uplift **COMPLETED**
-- Added focused tests for `development_tools/shared/measure_tool_timings.py` and `development_tools/shared/verify_tool_storage.py` in `tests/development_tools/test_shared_maintenance_scripts.py`, lifting those modules from prior 0% coverage states.
-- Executed iterative slow-test optimization driven by `--durations=20`, replacing unnecessary heavy subprocess/full-scan paths with focused mocks in top offenders (`test_legacy_reference_cleanup`, `test_regenerate_coverage_metrics`, `test_path_drift_integration`, `test_status_file_timing`, `test_generate_directory_tree`, `test_run_development_tools`, `test_changelog_trim_tooling`, and related false-negative path-drift coverage test).
-- Kept/expanded `@pytest.mark.slow` tagging for highest-duration dev-tools cases to improve filtering/profiling workflows.
-- Re-ran dev-tools-only coverage with forced cache bypass (`--no-domain-cache`): overall dev-tools coverage reached **60.5%** (`15528/25653`), above the 60% target.
-- Re-profiled full dev-tools suite after optimizations: `pytest tests/development_tools/ -q --durations=20` finished at `914 passed in 314.59s` (recent baseline improvement from `328.23s` to `314.59s`); updated roadmap/planning follow-ups in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`, `PLANS.md`, and [TODO.md](TODO.md).
-
-### 2026-02-27 - Pyright/Ruff mtime caching + AI_PRIORITIES simplification + dev-tools consolidation **COMPLETED**
-- Added mtime caching for Pyright and Ruff: skip runs when source unchanged; cache in `static_checks/jsons/`.
-- Moved module dependencies report (MODULE DEPENDENCIES AUDIT REPORT, ENHANCED MODULE ANALYSIS) to DEBUG level.
-- Removed Watch List from AI_PRIORITIES; removed unused imports from Quick Wins (already in Immediate Focus).
-- Added task 1.8 in AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md for improving slow dev tools tests.
-- Moved `measure_tool_timings.py` and `verify_tool_storage.py` to `development_tools/shared/`; removed `scripts/` dir.
-- Consolidated to `run_analyze_unused_imports`; removed `run_unused_imports` alias; removed dead `generate_dependency_report_extended`.
-- Retired EXCLUSION_RULES, OUTPUT_STORAGE_STANDARDS, RESULT_FORMAT_STANDARD into DEVELOPMENT_TOOLS_GUIDE.
-- Renamed `generate_function_docstrings` -> `fix_function_docstrings`; removed 2 obvious unused imports; fixed `test_email_user_creation` parallel failure.
-- Added `test_commands_coverage_helpers.py`; print-to-logger migration for legacy reference and module-dependencies analyzers.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

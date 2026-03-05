@@ -1958,7 +1958,7 @@ class AuditOrchestrationMixin:
                 'tier_number': tier,
                 'audit_success': audit_success,
                 'tool_timings': tool_timings,
-                # Backward compatibility: retained as sum of per-tool durations
+                # Keep aggregate duration for quick dashboard/trend views.
                 'total_time': sum_tool_times,
                 'sum_tool_durations_seconds': sum_tool_times,
                 'wall_clock_total_seconds': wall_clock_total,

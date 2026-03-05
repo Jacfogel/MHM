@@ -17,6 +17,7 @@ Usage:
 import re
 import argparse
 import sys
+import json
 from pathlib import Path
 from typing import Any
 from collections import defaultdict
@@ -90,6 +91,28 @@ class LegacyReferenceAnalyzer:
                     ],
                 }
 
+        # Load deprecation inventory (single canonical source) and inject
+        # active/candidate search terms into the scan patterns.
+        self.deprecation_inventory_path = self._resolve_deprecation_inventory_path(
+            legacy_config
+        )
+        (
+            self.deprecation_inventory_data,
+            self.deprecation_inventory_summary,
+        ) = self._load_deprecation_inventory(self.deprecation_inventory_path)
+        inventory_patterns = self._build_inventory_search_patterns(
+            self.deprecation_inventory_data
+        )
+        if inventory_patterns:
+            existing = self.legacy_patterns.get("deprecation_inventory_terms", [])
+            merged_patterns = list(dict.fromkeys([*existing, *inventory_patterns]))
+            self.legacy_patterns["deprecation_inventory_terms"] = merged_patterns
+            self.deprecation_inventory_summary["injected_pattern_count"] = len(
+                merged_patterns
+            )
+        else:
+            self.deprecation_inventory_summary["injected_pattern_count"] = 0
+
         # Files that should be preserved (historical context)
         from development_tools.shared.standard_exclusions import (
             HISTORICAL_PRESERVE_FILES,
@@ -124,6 +147,111 @@ class LegacyReferenceAnalyzer:
         else:
             self.cache = None
         self.cache_stats: dict[str, int] = {"hits": 0, "misses": 0}
+
+    def _resolve_deprecation_inventory_path(
+        self, legacy_config: dict[str, Any]
+    ) -> Path:
+        """Resolve deprecation inventory path from config or default."""
+        configured = legacy_config.get(
+            "deprecation_inventory_file",
+            "development_tools/config/DEPRECATION_INVENTORY.json",
+        )
+        inventory_path = Path(configured)
+        if not inventory_path.is_absolute():
+            inventory_path = self.project_root / inventory_path
+        return inventory_path
+
+    def _load_deprecation_inventory(
+        self, inventory_path: Path
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """Load deprecation inventory JSON and return data + summary metadata."""
+        summary: dict[str, Any] = {
+            "inventory_path": str(
+                inventory_path.relative_to(self.project_root)
+                if inventory_path.is_absolute()
+                and str(inventory_path).startswith(str(self.project_root))
+                else inventory_path
+            ).replace("\\", "/"),
+            "exists": inventory_path.exists(),
+            "loaded": False,
+            "error": None,
+            "active_or_candidate_entries": 0,
+            "removed_entries": 0,
+            "active_search_terms": 0,
+        }
+        if not inventory_path.exists():
+            summary["error"] = "inventory_file_missing"
+            return {}, summary
+
+        try:
+            with open(inventory_path, encoding="utf-8") as f:
+                data = json.load(f)
+        except (OSError, json.JSONDecodeError) as exc:
+            summary["error"] = f"inventory_load_failed: {exc}"
+            return {}, summary
+
+        if not isinstance(data, dict):
+            summary["error"] = "inventory_invalid_shape"
+            return {}, summary
+
+        active_entries = data.get("active_or_candidate_inventory", [])
+        removed_entries = data.get("removed_inventory", [])
+        if not isinstance(active_entries, list):
+            active_entries = []
+        if not isinstance(removed_entries, list):
+            removed_entries = []
+
+        active_terms = 0
+        for entry in active_entries:
+            if isinstance(entry, dict):
+                terms = entry.get("search_terms", [])
+                if isinstance(terms, list):
+                    active_terms += len([term for term in terms if isinstance(term, str)])
+
+        summary.update(
+            {
+                "loaded": True,
+                "active_or_candidate_entries": len(active_entries),
+                "removed_entries": len(removed_entries),
+                "active_search_terms": active_terms,
+            }
+        )
+        return data, summary
+
+    def _build_inventory_search_patterns(self, inventory_data: dict[str, Any]) -> list[str]:
+        """Build regex-safe scan patterns from active/candidate inventory terms."""
+        if not isinstance(inventory_data, dict):
+            return []
+
+        active_entries = inventory_data.get("active_or_candidate_inventory", [])
+        if not isinstance(active_entries, list):
+            return []
+
+        allowed_statuses = {"active_bridge", "deprecated_in_use", "retire_candidate"}
+        patterns: list[str] = []
+        for entry in active_entries:
+            if not isinstance(entry, dict):
+                continue
+            status = str(entry.get("status", "")).strip().lower()
+            if status and status not in allowed_statuses:
+                continue
+            terms = entry.get("search_terms", [])
+            if not isinstance(terms, list):
+                continue
+            for term in terms:
+                if not isinstance(term, str):
+                    continue
+                cleaned = term.strip()
+                if len(cleaned) < 3:
+                    continue
+                patterns.append(re.escape(cleaned))
+
+        # Deduplicate while preserving insertion order.
+        return list(dict.fromkeys(patterns))
+
+    def get_deprecation_inventory_summary(self) -> dict[str, Any]:
+        """Expose inventory metadata for wrappers/reporting."""
+        return dict(self.deprecation_inventory_summary)
 
     def should_skip_file(self, file_path: Path) -> bool:
         """Check if a file should be skipped from scanning."""

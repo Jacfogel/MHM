@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from core.logger import get_component_logger
+from development_tools import config as dev_config
 
 logger = get_component_logger("development_tools")
 
@@ -1154,11 +1155,8 @@ class ToolWrappersMixin:
             logger.warning(f"Test coverage data not found: {error_msg}")
             return {"success": False, "output": "", "error": error_msg, "returncode": 1}
 
-        # Run the report generator with --update-plan to generate TEST_COVERAGE_REPORT.md
         try:
-            result = self.run_script(
-                "generate_test_coverage_report", "--update-plan", timeout=300
-            )
+            result = self.run_script("generate_test_coverage_report", timeout=300)
             if result.get("success"):
                 test_coverage_report = (
                     self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
@@ -1195,6 +1193,197 @@ class ToolWrappersMixin:
                 "returncode": None,
             }
 
+    def _is_historical_inventory_guard_path(self, normalized_path: str) -> bool:
+        """Exclude historical/planning docs from inventory-sync guard checks."""
+        lowered = normalized_path.lower().strip("/")
+        base_name = Path(lowered).name
+
+        if "/archive/" in f"/{lowered}/" or "/archived/" in f"/{lowered}/":
+            return True
+        if lowered.startswith("archive/") or lowered.startswith("archived/"):
+            return True
+        if "changelog_history/" in lowered:
+            return True
+
+        if base_name in {"ai_changelog.md", "changelog_detail.md", "ai_changelog_archive.md"}:
+            return True
+        if base_name in {"todo.md", "plans.md"}:
+            return True
+
+        return bool(base_name.endswith("_plan.md") or base_name.startswith("plan_"))
+
+    def _check_deprecation_inventory_sync(self, inventory_rel_path: str) -> dict[str, Any]:
+        """
+        Check whether deprecation-like changes were made without inventory updates.
+
+        Returns a structured guard result. When `check_passed` is False, callers can
+        fail audit execution.
+        """
+        legacy_cfg = dev_config.get_external_value("legacy_cleanup", {}) or {}
+        guard_cfg = legacy_cfg.get("deprecation_inventory_sync_guard", {}) or {}
+        enabled = bool(guard_cfg.get("enabled", True))
+        default_keywords = [
+            "deprecated",
+            "deprecation",
+            "legacy compatibility",
+            "legacy",
+            "retire",
+            "retired",
+            "removed",
+            "to be removed",
+            "obsolete",
+            "sunset",
+            "shim",
+            "fallback",
+            "alias",
+            "compatibility bridge",
+            "migration",
+        ]
+        configured_keywords = guard_cfg.get("trigger_keywords", default_keywords)
+        trigger_keywords = [
+            str(keyword).strip().lower()
+            for keyword in configured_keywords
+            if isinstance(keyword, str) and str(keyword).strip()
+        ] or default_keywords
+
+        guard_result: dict[str, Any] = {
+            "enabled": enabled,
+            "inventory_path": inventory_rel_path.replace("\\", "/"),
+            "inventory_updated": False,
+            "git_available": False,
+            "check_passed": True,
+            "status": "skipped" if not enabled else "passed",
+            "reason": "guard_disabled" if not enabled else None,
+            "trigger_files": [],
+        }
+        if not enabled:
+            return guard_result
+
+        inventory_path = self.project_root / inventory_rel_path
+        if not inventory_path.exists():
+            guard_result.update(
+                {
+                    "check_passed": False,
+                    "status": "failed",
+                    "reason": "inventory_file_missing",
+                }
+            )
+            return guard_result
+
+        try:
+            status_proc = subprocess.run(
+                ["git", "status", "--porcelain"],
+                capture_output=True,
+                text=True,
+                cwd=str(self.project_root),
+            )
+        except OSError:
+            guard_result.update(
+                {
+                    "status": "skipped",
+                    "reason": "git_binary_unavailable",
+                    "git_available": False,
+                }
+            )
+            return guard_result
+        if status_proc.returncode != 0:
+            guard_result.update(
+                {
+                    "status": "skipped",
+                    "reason": "git_status_unavailable",
+                    "git_available": False,
+                }
+            )
+            return guard_result
+
+        guard_result["git_available"] = True
+        changed_paths: list[str] = []
+        for raw_line in status_proc.stdout.splitlines():
+            line = raw_line.rstrip()
+            if len(line) < 4:
+                continue
+            path_fragment = line[3:].strip()
+            if " -> " in path_fragment:
+                path_fragment = path_fragment.split(" -> ", 1)[1].strip()
+            normalized = path_fragment.replace("\\", "/")
+            if normalized:
+                changed_paths.append(normalized)
+
+        if not changed_paths:
+            guard_result["reason"] = "no_worktree_changes"
+            return guard_result
+
+        inventory_normalized = inventory_rel_path.replace("\\", "/")
+        inventory_updated = inventory_normalized in changed_paths
+        guard_result["inventory_updated"] = inventory_updated
+        if inventory_updated:
+            guard_result["reason"] = "inventory_updated_in_change_set"
+            return guard_result
+
+        from development_tools.shared.standard_exclusions import should_exclude_file
+
+        trigger_files: list[str] = []
+        scan_extensions = {".py", ".md", ".json", ".mdc", ".toml", ".yaml", ".yml"}
+
+        for rel_path in changed_paths:
+            normalized = rel_path.replace("\\", "/")
+            if normalized == inventory_normalized:
+                continue
+            if self._is_historical_inventory_guard_path(normalized):
+                continue
+            if should_exclude_file(normalized, tool_type="analysis", context="development"):
+                continue
+
+            suffix = Path(normalized).suffix.lower()
+            if suffix and suffix not in scan_extensions:
+                continue
+
+            lower_path = normalized.lower()
+            path_triggered = any(keyword in lower_path for keyword in trigger_keywords)
+            content_triggered = False
+
+            # Untracked files are not present in `git diff`; inspect file content directly.
+            abs_path = self.project_root / normalized
+            if abs_path.exists() and abs_path.is_file():
+                try:
+                    content = abs_path.read_text(encoding="utf-8", errors="ignore").lower()
+                    content_triggered = any(keyword in content for keyword in trigger_keywords)
+                except OSError:
+                    content_triggered = False
+
+            if not content_triggered:
+                try:
+                    diff_proc = subprocess.run(
+                        ["git", "diff", "--", normalized],
+                        capture_output=True,
+                        text=True,
+                        cwd=str(self.project_root),
+                    )
+                except OSError:
+                    diff_proc = None
+                if diff_proc and diff_proc.returncode == 0:
+                    diff_text = diff_proc.stdout.lower()
+                    content_triggered = any(
+                        keyword in diff_text for keyword in trigger_keywords
+                    )
+
+            if path_triggered or content_triggered:
+                trigger_files.append(normalized)
+
+        guard_result["trigger_files"] = sorted(set(trigger_files))
+        if trigger_files:
+            guard_result.update(
+                {
+                    "check_passed": False,
+                    "status": "failed",
+                    "reason": "inventory_not_updated_for_deprecation_like_changes",
+                }
+            )
+        else:
+            guard_result["reason"] = "no_deprecation_like_changes_detected"
+
+        return guard_result
+
     def run_analyze_legacy_references(self) -> dict:
         """Run analyze_legacy_references with structured data handling."""
         try:
@@ -1226,6 +1415,10 @@ class ToolWrappersMixin:
                     [file_path, content, matches]
                     for file_path, content, matches in file_list
                 ]
+            inventory_summary = analyzer.get_deprecation_inventory_summary()
+            inventory_guard = self._check_deprecation_inventory_sync(
+                str(inventory_summary.get("inventory_path", "development_tools/config/DEPRECATION_INVENTORY.json"))
+            )
             standard_format = {
                 "summary": {
                     "total_issues": total_markers,
@@ -1236,6 +1429,8 @@ class ToolWrappersMixin:
                     "files_with_issues": total_files,
                     "legacy_markers": total_markers,
                     "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
+                    "deprecation_inventory": inventory_summary,
+                    "deprecation_inventory_sync": inventory_guard,
                     "cache": {
                         "cache_mode": cache_mode,
                         "hits": cache_hits,
@@ -1267,6 +1462,30 @@ class ToolWrappersMixin:
             self._tool_cache_metadata["analyze_legacy_references"] = (
                 standard_format.get("details", {}).get("cache", {})
             )
+
+            guard_failed = not bool(inventory_guard.get("check_passed", True))
+            if guard_failed:
+                trigger_files = inventory_guard.get("trigger_files", [])
+                trigger_summary = ", ".join(trigger_files[:5])
+                if len(trigger_files) > 5:
+                    trigger_summary += ", ..."
+                error_message = (
+                    "Deprecation inventory sync check failed: "
+                    "deprecation-like changes detected but "
+                    "development_tools/config/DEPRECATION_INVENTORY.json was not updated."
+                )
+                output_message = (
+                    f"Found {total_markers} legacy markers in {total_files} files "
+                    f"(inventory sync guard failed; triggers: {trigger_summary or 'unknown'})"
+                )
+                logger.warning(error_message)
+                return {
+                    "success": False,
+                    "output": output_message,
+                    "error": error_message,
+                    "returncode": 1,
+                    "data": standard_format,
+                }
 
             return {
                 "success": True,

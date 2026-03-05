@@ -3740,7 +3740,7 @@ def main():
                     success = False
 
         # Print combined summary (always show, even if tests failed)
-        # Handle case where parallel_results might be a bool (backward compatibility)
+        # Defensive normalization in case a runner returns a non-dict result.
         if not isinstance(parallel_results, dict):
             # Convert bool to dict format for summary
             parallel_results = {

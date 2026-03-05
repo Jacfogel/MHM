@@ -50,6 +50,26 @@ class TestConversationFlowManagerBehavior:
         assert hasattr(manager, 'user_states'), "Should have user_states"
         assert isinstance(manager.user_states, dict), "user_states should be a dict"
         assert hasattr(manager, '_state_file'), "Should have state file path"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    def test_generate_completion_message_uses_sleep_schedule_total_hours(self, test_data_dir):
+        """Completion insights should use sleep_schedule total_sleep_hours when available."""
+        manager = ConversationManager()
+
+        message = manager._generate_completion_message(
+            "test_user_sleep_schedule_completion",
+            {
+                "sleep_schedule": {
+                    "sleep_time": "23:30",
+                    "wake_time": "05:00",
+                    "total_sleep_hours": 5.5,
+                },
+                "sleep_quality": 4,
+            },
+        )
+
+        assert "more sleep tonight" in message
     
     @pytest.mark.behavior
     @pytest.mark.communication

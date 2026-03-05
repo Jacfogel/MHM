@@ -462,15 +462,6 @@ def setup_test_logging() -> tuple[logging.Logger, Path]:
 test_logger, test_log_file = setup_test_logging()
 
 
-def _consolidate_and_cleanup_main_logs():
-    """DEPRECATED: No longer consolidates from app.log/errors.log.
-
-    Component loggers now write directly to test_consolidated.log via environment variables.
-    This function is a deprecated no-op placeholder.
-    """
-    pass
-
-
 def _add_test_run_start_markers():
     """Add clear test run start markers to both consolidated and test_run log files."""
     pass

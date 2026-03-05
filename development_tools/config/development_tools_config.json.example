@@ -395,6 +395,28 @@
   },
   "legacy_cleanup": {
     "_comment": "Legacy reference cleanup patterns and settings. Customize for your project's legacy code patterns.",
+    "deprecation_inventory_file": "development_tools/config/DEPRECATION_INVENTORY.json",
+    "deprecation_inventory_sync_guard": {
+      "_comment": "Optional guard: fail legacy analysis/audit when deprecation-like changes are made without updating the inventory file.",
+      "enabled": true,
+      "trigger_keywords": [
+        "deprecated",
+        "deprecation",
+        "legacy compatibility",
+        "legacy",
+        "retire",
+        "retired",
+        "removed",
+        "to be removed",
+        "obsolete",
+        "sunset",
+        "shim",
+        "fallback",
+        "alias",
+        "compatibility bridge",
+        "migration"
+      ]
+    },
     "legacy_patterns": {
       "_comment": "Regex patterns to identify legacy code. Categories are arbitrary - use what makes sense for your project.",
       "legacy_compatibility_markers": [
@@ -756,7 +778,7 @@
     "core_files": [],
     "data_source_plugins": {}
   },
-  "generate_function_docstrings": {
+  "fix_function_docstrings": {
     "_comment": "Auto document functions settings",
     "template_paths": {},
     "doc_targets": {},

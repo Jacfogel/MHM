@@ -42,7 +42,7 @@ class UserContext:
         context_result = get_user_data(user_id, "context")
         context_data = context_result.get("context") or {}
 
-        # Store data in the new format directly - no legacy conversion needed
+        # Store data directly in the current canonical structure.
         self.user_data = {
             "user_id": account_data.get("user_id", user_id),
             "internal_username": account_data.get("internal_username", ""),
@@ -72,7 +72,7 @@ class UserContext:
             logger.error("Attempted to save user data with None user_id")
             return
 
-        # Extract data and update using new functions directly - no legacy extraction needed
+        # Extract data and update using current helper functions.
         account_updates = {
             "user_id": self.user_data.get("user_id", user_id),
             "internal_username": self.user_data.get("internal_username", ""),

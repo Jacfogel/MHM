@@ -238,6 +238,60 @@ class TestReportGeneration:
         # Should have expected sections
         assert '# Legacy Reference Cleanup Report' in report
         assert '## Summary' in report or 'Summary' in report
+        assert '## Deprecation Inventory' in report
+
+
+class TestDeprecationInventoryIntegration:
+    """Test DEPRECATION_INVENTORY.json integration with legacy tooling."""
+
+    @pytest.mark.unit
+    def test_analyzer_uses_inventory_terms(self, temp_project_copy):
+        """Analyzer should inject active/candidate inventory search terms."""
+        inventory_path = (
+            temp_project_copy / "development_tools" / "config" / "DEPRECATION_INVENTORY.json"
+        )
+        inventory_path.parent.mkdir(parents=True, exist_ok=True)
+        inventory_path.write_text(
+            """
+{
+  "active_or_candidate_inventory": [
+    {
+      "id": "custom_inventory_term",
+      "status": "active_bridge",
+      "search_terms": ["CUSTOM_DEPRECATION_TOKEN_ABC123"]
+    }
+  ],
+  "removed_inventory": []
+}
+            """.strip(),
+            encoding="utf-8",
+        )
+
+        token_file = temp_project_copy / "core" / "inventory_token.py"
+        token_file.parent.mkdir(parents=True, exist_ok=True)
+        token_file.write_text(
+            "TOKEN = 'CUSTOM_DEPRECATION_TOKEN_ABC123'\n",
+            encoding="utf-8",
+        )
+
+        analyzer = LegacyReferenceAnalyzer(str(temp_project_copy), use_cache=False)
+        findings = analyzer.scan_for_legacy_references()
+
+        assert "deprecation_inventory_terms" in findings
+        files = [file_path for file_path, _, _ in findings["deprecation_inventory_terms"]]
+        assert any("inventory_token.py" in file_path for file_path in files)
+
+    @pytest.mark.unit
+    def test_report_mentions_missing_inventory(self, demo_project_root):
+        """Report should include deprecation inventory status block."""
+        analyzer = LegacyReferenceAnalyzer(str(demo_project_root), use_cache=False)
+        report_gen = LegacyReferenceReportGenerator(str(demo_project_root))
+
+        findings = analyzer.scan_for_legacy_references()
+        report = report_gen.generate_cleanup_report(findings)
+
+        assert "## Deprecation Inventory" in report
+        assert ("Inventory file:" in report) or ("missing or unreadable" in report)
 
 
 class TestReplacementMappings:

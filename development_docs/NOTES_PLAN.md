@@ -570,7 +570,7 @@ Note-specific: `!pin`, `!unpin`, `!archive`, `!unarchive` (notes only)
 - **Tasks are NOT included** in notebook queries (`!recent`, `!search`, `!inbox`, `!pinned`, `!group`, `!tag`, `!archived`)
 - **Why**: Tasks are stored separately (`tasks/active_tasks.json`) from notebook entries (`notebook/entries.json`)
   - `load_entries()` only loads from `notebook/entries.json`
-  - Tasks are managed by `tasks/task_management.py` and stored in `tasks/active_tasks.json`
+  - Tasks are managed by `tasks/task_data_manager.py` and stored in `tasks/active_tasks.json`
 - **Commands that work for both**: Some commands like `!show`, `!append`, `!tag` work for both tasks and notebook entries, but the queries themselves are separate
 - **Future consideration**: 
   - **Long-term plan**: Move to SQLite or unified database system that contains tasks, notebook entries, events (future feature), etc.

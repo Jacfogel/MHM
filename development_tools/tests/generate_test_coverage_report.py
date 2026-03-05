@@ -347,6 +347,10 @@ class TestCoverageReportGenerator:
 > **Source**: `python development_tools/tests/generate_test_coverage_report.py` - Test Coverage Report Generator
 
 """
+        source_line = (
+            "> **Source**: `python development_tools/tests/generate_test_coverage_report.py` "
+            "- Test Coverage Report Generator"
+        )
 
         if not self.coverage_plan_file.exists():
             # Create new file with standard header and rotation
@@ -439,6 +443,27 @@ class TestCoverageReportGenerator:
                             source_pattern,
                             lambda match: f"{match.group(1)}> **Last Generated**: {generated_timestamp}\n",
                             updated_content,
+                        )
+
+                # Normalize source command text in-place for older generated files.
+                source_line_pattern = r"^> \*\*Source\*\*:.*$"
+                if re.search(source_line_pattern, updated_content, re.MULTILINE):
+                    updated_content = re.sub(
+                        source_line_pattern,
+                        source_line,
+                        updated_content,
+                        count=1,
+                        flags=re.MULTILINE,
+                    )
+                else:
+                    last_generated_pattern = r"(> \*\*Last Generated\*\*:.*\n)"
+                    if re.search(last_generated_pattern, updated_content, re.MULTILINE):
+                        updated_content = re.sub(
+                            last_generated_pattern,
+                            lambda match: f"{match.group(1)}{source_line}\n",
+                            updated_content,
+                            count=1,
+                            flags=re.MULTILINE,
                         )
 
                 # Remove duplicate headers - if we have multiple header sections, keep only the first one
@@ -672,11 +697,6 @@ def main():
         help="Path to coverage.json file (default: development_tools/tests/jsons/coverage.json)",
     )
     parser.add_argument(
-        "--update-plan",
-        action="store_true",
-        help="Update TEST_COVERAGE_REPORT.md with current coverage metrics",
-    )
-    parser.add_argument(
         "--summary", action="store_true", help="Print coverage summary to stdout"
     )
 
@@ -728,14 +748,13 @@ def main():
         coverage_data_dict, overall_data
     )
 
-    # Update plan if requested
-    if args.update_plan:
-        success = generator.update_coverage_plan(coverage_summary)
-        if success:
-            print("\n* Coverage plan updated successfully!")
-        else:
-            print("\n* Failed to update coverage plan")
-            return 1
+    # Always refresh TEST_COVERAGE_REPORT.md from current coverage data.
+    success = generator.update_coverage_plan(coverage_summary)
+    if success:
+        print("\n* Coverage plan updated successfully!")
+    else:
+        print("\n* Failed to update coverage plan")
+        return 1
 
     if args.summary:
         print(coverage_summary)

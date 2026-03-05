@@ -1124,8 +1124,13 @@ class ConversationManager:
 
         # Sleep insights
         sleep_hours = data.get("sleep_hours")
+        sleep_schedule = data.get("sleep_schedule")
+        if isinstance(sleep_schedule, dict):
+            total_sleep_hours = sleep_schedule.get("total_sleep_hours")
+            if isinstance(total_sleep_hours, (int, float)):
+                sleep_hours = float(total_sleep_hours)
         sleep_quality = data.get("sleep_quality")
-        if sleep_hours is not None and sleep_hours < 6:
+        if isinstance(sleep_hours, (int, float)) and sleep_hours < 6:
             insights.append("😴 You might need more sleep tonight.")
         elif sleep_quality is not None and sleep_quality <= 2:
             insights.append(

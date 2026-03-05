@@ -34,6 +34,7 @@
     - [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) (routing for documentation categories and sync rules).
   - Legacy compatibility removal:
     - [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (required sequencing for migration-first legacy cleanup).
+    - `development_tools/config/DEPRECATION_INVENTORY.json` (required inventory for deprecated/removed/to-retire terms).
   - Architecture and responsibilities:
     - [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) (routing for key modules, responsibilities, and patterns).
 - Data and configuration rules:
@@ -148,9 +149,11 @@ Use these patterns for frequent change types. Keep responses concise and route t
   - legacy compatibility is not desirable and must always be temporary bridge code,
   - add `LEGACY COMPATIBILITY` headers and runtime logging,
   - register legacy patterns/paths/functions/parameters in `development_tools/config/development_tools_config.json` (`legacy_cleanup.legacy_patterns`),
+  - add or update `development_tools/config/DEPRECATION_INVENTORY.json` with status (`active_bridge` or `deprecated_in_use`),
   - document explicit removal criteria/next action,
   - add or update regression tests for both compatibility and modern paths,
   - migrate call sites/dependencies first, then remove markers/comments/docs evidence last.
+- If removing or retiring legacy/deprecated behavior, update the deprecation inventory status and search terms in `development_tools/config/DEPRECATION_INVENTORY.json` in the same change.
 
 When the user asks high-level questions like:
 

@@ -2,16 +2,14 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-04 11:44:02
+> **Last Generated**: 2026-03-04 19:25:00
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 9
-**Legacy Compatibility Markers Detected**: 14
+**Total Files with Issues**: 7
+**Legacy Compatibility Markers Detected**: 12
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
 - Changelogs, archive folders, and planning documents are intentionally historical and excluded from this report.
-- Legacy compatibility markers remain in 2 file(s) (4 total markers).
-- Remaining counts come from legacy inventory tracking categories (7 file(s), 10 marker(s)).
 
 ## Recommended Follow-Up
 - Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)
@@ -19,111 +17,93 @@
 2. Add or update regression tests that prove migrated flows work without legacy compatibility code paths. See [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) for additional guidance.
 3. Only after migration is verified, remove legacy markers/comments/docs evidence and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.
 
-## Legacy Compatibility Markers
-**Files Affected**: 2
+## Deprecation Inventory
+- Inventory file: `development_tools/config/DEPRECATION_INVENTORY.json`
+- Active/candidate entries: 4
+- Removed entries: 21
+- Active search terms: 14
+- Current inventory-term hits in scan: 7 file(s), 12 marker(s)
 
-### development_tools\shared\service\data_loading.py
-**Issues Found**: 2
+## Deprecation Inventory Terms
+**Files Affected**: 7
 
-- **Line 60**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY:
-  ```
+### core\message_management.py
+**Issues Found**: 4
 
-- **Line 651**: `# LEGACY COMPATIBILITY:`
+- **Line 697**: `parsing legacy timestamp for normalization`
   ```
-  # LEGACY COMPATIBILITY:
-  ```
-
-### development_tools\tests\run_test_coverage.py
-**Issues Found**: 2
-
-- **Line 4548**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)
+  "parsing legacy timestamp for normalization",
   ```
 
-- **Line 4909**: `# LEGACY COMPATIBILITY:`
+- **Line 701**: `_parse_legacy_timestamp_for_normalization(`
   ```
-  # LEGACY COMPATIBILITY:
+  def _parse_legacy_timestamp_for_normalization(timestamp_str: str) -> datetime | None:
   ```
 
-## Legacy Inventory Tracking
-**Files Affected**: 6
+- **Line 742**: `_parse_legacy_timestamp_for_normalization(`
+  ```
+  legacy_dt = _parse_legacy_timestamp_for_normalization(timestamp_value)
+  ```
+
+- **Line 755**: `legacy timestamps`
+  ```
+  f"Normalized {normalized_count} legacy timestamps in {file_path_obj}"
+  ```
 
 ### development_tools\config\config.py
 **Issues Found**: 1
 
-- **Line 1067**: `backward compatibility`
+- **Line 869**: `ruff_sync_root_compat`
   ```
-  Checks 'fix_function_docstrings' first, then 'generate_function_docstrings' for backward compatibility."""
+  "ruff_sync_root_compat": True,
   ```
 
-### development_tools\shared\mtime_cache.py
+### development_tools\config\sync_ruff_toml.py
 **Issues Found**: 1
 
-- **Line 385**: `legacy path`
+- **Line 118**: `--no-root-compat`
   ```
-  # This ensures we fix standardized storage issues rather than silently using legacy paths
+  "--no-root-compat",
   ```
 
-### development_tools\shared\service\audit_orchestration.py
+### development_tools\legacy\fix_legacy_references.py
 **Issues Found**: 1
 
-- **Line 1961**: `Backward compatibility`
+- **Line 65**: `backup_zip_compat_bridge`
   ```
-  # Backward compatibility: retained as sum of per-tool durations
+  "backup_zip_compat_bridge",
   ```
 
-### run_tests.py
+### development_tools\static_checks\analyze_ruff.py
 **Issues Found**: 1
 
-- **Line 3743**: `backward compatibility`
+- **Line 137**: `ruff_sync_root_compat`
   ```
-  # Handle case where parallel_results might be a bool (backward compatibility)
+  sync_root_compat = bool(static_cfg.get("ruff_sync_root_compat", True))
   ```
 
-### tests\test_support\test_helpers.py
+### tests\development_tools\test_config.py
+**Issues Found**: 3
+
+- **Line 250**: `ruff_sync_root_compat`
+  ```
+  assert "ruff_sync_root_compat" in result
+  ```
+
+- **Line 262**: `ruff_sync_root_compat`
+  ```
+  "ruff_sync_root_compat": False,
+  ```
+
+- **Line 270**: `ruff_sync_root_compat`
+  ```
+  assert result["ruff_sync_root_compat"] is False
+  ```
+
+### tests\development_tools\test_static_analysis_tools.py
 **Issues Found**: 1
 
-- **Line 5**: `backward compatibility`
+- **Line 82**: `ruff_sync_root_compat`
   ```
-  from tests.conftest (re-exported for backward compatibility).
-  ```
-
-### user\user_context.py
-**Issues Found**: 2
-
-- **Line 45**: `legacy conversion`
-  ```
-  # Store data in the new format directly - no legacy conversion needed
-  ```
-
-- **Line 75**: `legacy extraction`
-  ```
-  # Extract data and update using new functions directly - no legacy extraction needed
-  ```
-
-## Tier3 Coverage Outcome Compat Bridge
-**Files Affected**: 2
-
-### development_tools\shared\service\commands.py
-**Issues Found**: 2
-
-- **Line 1143**: `tier3_coverage_outcome_v1`
-  ```
-  "LEGACY COMPATIBILITY: tier3_coverage_outcome_v1 bridge exercised; "
-  ```
-
-- **Line 1148**: `legacy_state_only_payload`
-  ```
-  track["classification_reason"] = "legacy_state_only_payload"
-  ```
-
-### development_tools\tests\run_test_coverage.py
-**Issues Found**: 1
-
-- **Line 4548**: `LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)`
-  ```
-  # LEGACY COMPATIBILITY: Tier3 coverage_outcome_v1 fields retained (state/counts/return_code/failed_node_ids)
+  "ruff_sync_root_compat": False,
   ```

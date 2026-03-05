@@ -253,7 +253,10 @@ def get_module_purpose(file_path: str) -> str:
         "user/user_context.py": "User context management - manages user context and personal information",
         "user/user_preferences.py": "User preferences management - manages user preferences and settings",
         # Task modules
-        "tasks/task_management.py": "Task management system - manages user tasks and to-do items",
+        "tasks/task_data_manager.py": "Task management system - manages user tasks and to-do items",
+        "tasks/task_data_handlers.py": "Task data handlers - task CRUD persistence helpers",
+        "tasks/task_validation.py": "Task validation helpers for field rules and input checks",
+        "tasks/task_schemas.py": "Task schemas and normalization helpers",
         # Root files (entry point - customize for your project)
         # 'run_mhm.py': 'Main entry point for the application',  # Example - replace with your entry point
         "run_tests.py": "Test runner for the application",
