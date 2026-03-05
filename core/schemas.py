@@ -322,7 +322,7 @@ class PreferencesModel(BaseModel):
                         "invalid_categories": invalid_categories,
                         "allowed_categories": default_categories,
                     },
-                )
+                ) from e
 
             return v
 

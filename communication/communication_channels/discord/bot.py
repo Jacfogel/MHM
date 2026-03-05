@@ -1634,11 +1634,9 @@ class DiscordBot(BaseChannel):
                 await ctx.send(response.message)
 
             # Register as a classic command: users can type !tasks, !profile, etc.
-            try:
+            # Ignore duplicate command registration attempts.
+            with contextlib.suppress(Exception):
                 self.bot.command(name=name)(_dynamic)
-            except Exception:
-                # Ignore duplicates if any
-                pass
 
         self._commands_registered = True
 

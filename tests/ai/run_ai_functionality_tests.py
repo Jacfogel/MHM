@@ -297,7 +297,7 @@ class AITestResultsCollector:
                             .encode("ascii", errors="replace")
                             .decode("ascii")
                         )
-                    except:
+                    except Exception:
                         safe_name = r["test_name"]
                     print(f"  - {r['test_id']}: {safe_name}")
                     if r["issues"]:
@@ -308,7 +308,7 @@ class AITestResultsCollector:
                                 .encode("ascii", errors="replace")
                                 .decode("ascii")
                             )
-                        except:
+                        except Exception:
                             safe_issues = "[Issues contain non-displayable characters]"
                         print(f"    Issues: {safe_issues}")
             print()
@@ -324,7 +324,7 @@ class AITestResultsCollector:
                             .encode("ascii", errors="replace")
                             .decode("ascii")
                         )
-                    except:
+                    except Exception:
                         safe_name = r["test_name"]
                     print(f"  - {r['test_id']}: {safe_name}")
                     if r["notes"]:
@@ -335,7 +335,7 @@ class AITestResultsCollector:
                                 .encode("ascii", errors="replace")
                                 .decode("ascii")
                             )
-                        except:
+                        except Exception:
                             safe_notes = "[Notes contain non-displayable characters]"
                         print(f"    Notes: {safe_notes}")
             print()

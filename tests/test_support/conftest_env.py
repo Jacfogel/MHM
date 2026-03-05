@@ -74,7 +74,7 @@ def verify_user_data_loader_registry():
             elif hasattr(udh, "register_default_loaders"):
                 udh.register_default_loaders()
         except Exception as e:
-            raise AssertionError(f"Failed to register default loaders: {e}")
+            raise AssertionError(f"Failed to register default loaders: {e}") from e
 
         missing_after = _missing_keys()
         if missing_after:

@@ -5,6 +5,7 @@ Handles environment variables, validation, and system settings.
 """
 
 import os
+import contextlib
 from pathlib import Path
 from typing import Any
 
@@ -30,12 +31,9 @@ class ConfigValidationError(Exception):
 
 
 # Load environment variables (tolerant mode)
-try:
+with contextlib.suppress(Exception):
     # do not raise on parsing issues; warnings are logged by python-dotenv itself
     load_dotenv(override=False, verbose=False)
-except Exception as _e:
-    # keep startup resilient; config validation will report issues later
-    pass
 
 
 @handle_errors("normalizing path", default_return=None)
@@ -807,7 +805,7 @@ def validate_and_raise_if_invalid() -> list[str]:
             f"Configuration validation failed: {e}",
             missing_configs=[str(e)],
             warnings=[],
-        )
+        ) from e
 
 
 @handle_errors("printing configuration report", default_return=False)

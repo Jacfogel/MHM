@@ -1419,8 +1419,7 @@ def _save_user_data__validate_data(
             if not ok and dt == "preferences":
                 # Check if errors are warnings (like invalid categories that get filtered)
                 # If the merged data will still be valid after normalization, allow it
-                try:
-
+                with contextlib.suppress(Exception):
                     # Try validating the merged data (from Phase 1) to see if it's actually invalid
                     # This is a bit of a hack, but we need to check if the data will be valid after merge
                     logger.debug(
@@ -1428,8 +1427,6 @@ def _save_user_data__validate_data(
                     )
                     # Don't fail validation if Pydantic can still normalize it
                     # The merge function will handle normalization
-                except Exception:
-                    pass
             if not ok:
                 logger.error(f"Validation failed for {dt}: {errors}")
                 result[dt] = False

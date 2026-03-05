@@ -164,7 +164,16 @@ class DocumentationLinkFixer:
 
                     pattern = r"`([a-zA-Z_][a-zA-Z0-9_/\\]*\.md)`"
 
-                    def replace_path(match):
+                    def replace_path(
+                        match,
+                        line=line,
+                        line_num=line_num,
+                        lines=lines,
+                        file_path=file_path,
+                        is_metadata_section=is_metadata_section,
+                        metadata_linked_files=metadata_linked_files,
+                        file_conversions=file_conversions,
+                    ):
                         path = match.group(1).replace("\\", "/")
 
                         # Use link analyzer's methods for consistency

@@ -2,7 +2,14 @@
   "metadata": {
     "name": "Deprecation Inventory",
     "last_updated": "2026-03-05",
-    "required_update_rule": "Any removed, deprecated, retirement-candidate, or temporary compatibility item must be recorded in this file in the same change."
+    "required_update_rule": "Any removed, deprecated, retirement-candidate, or temporary compatibility item must be recorded in this file in the same change.",
+    "sync_log": [
+      {
+        "date": "2026-03-05",
+        "type": "inventory_sync_only",
+        "summary": "Static-analysis remediation changed files containing deprecation/legacy trigger terms; no inventory entry status changes were required."
+      }
+    ]
   },
   "sources": [
     "development_tools/config/development_tools_config.json",

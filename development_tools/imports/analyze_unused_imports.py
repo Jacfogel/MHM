@@ -398,11 +398,11 @@ class UnusedImportsChecker:
                     raise RuntimeError(
                         f"unused-import detection backend failed: {fallback_reason}; "
                         f"pylint failed: {pylint_exc}"
-                    )
+                    ) from pylint_exc
         try:
             return "pylint", self._run_batched_pylint(files), fallback_used, fallback_reason
         except Exception as exc:
-            raise RuntimeError(f"unused-import detection backend failed: pylint failed: {exc}")
+            raise RuntimeError(f"unused-import detection backend failed: pylint failed: {exc}") from exc
 
     def run_pylint_on_file(self, file_path: Path) -> list[dict] | None:
         """Run pylint on a single file to detect unused imports."""

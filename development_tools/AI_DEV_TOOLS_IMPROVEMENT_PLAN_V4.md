@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-03-05 (legacy/deprecation inventory integration + cleanup follow-ups)
+> **Last Updated**: 2026-03-05 (static-analysis cleanup + guard-scope tightening + CI policy fix follow-ups)
 
 This is an updated, condensed roadmap based on V3 and prior audits. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -779,6 +779,8 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 - [x] `generate_legacy_reference_report.py` now filters excluded paths before computing totals/rendering sections
 - [x] `development_tools_config.json` exclusions now explicitly include `tests/data/` in `base_exclusion_shortlist` and `tests/data/*` in development/testing context exclusions
 - [x] `EXCLUSION_RULES.md` updated to document `tests/data/` as excluded-by-default for analyzer-style tooling
+- [x] Tightened deprecation-inventory sync guard scope in `tool_wrappers.py`: ignore `tests/**` and configured generated artifacts when evaluating trigger files; narrowed trigger keyword list in config to deprecation-specific terms
+- [x] Added guard regression tests for excluded test paths and generated report paths in `tests/development_tools/test_deprecation_inventory_guard.py`
 
 ## 7.2 Integrate pyright and ruff into development tools, they can run in parallel as part of the full audit and contribute towards development_tools\AI_PRIORITIES.md, development_tools\AI_STATUS.md and development_tools\consolidated_report.md
 - [x] Added static analysis tools:
@@ -796,6 +798,7 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
   - `development_tools/config/config.py`
   - `development_tools/config/development_tools_config.json`
   - `development_tools/config/development_tools_config.json.example`
+- [x] Fixed CI policy-test workflow dependency gap in `.github/workflows/logging-enforcement.yml` by installing `python-dotenv` alongside `pytest` for the `Tooling Policy Consistency` job
 
 ## 7.3 Dev Tools coverage sometimes is missing from AI_PRIORITIES.md
 - [x] Investigated and fixed loading/reporting so dev-tools coverage appears consistently when available

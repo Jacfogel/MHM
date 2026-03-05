@@ -89,10 +89,10 @@ def determine_file_path(file_type, identifier):
             category, user_id = identifier.split("/")
             user_dir = Path(get_user_data_dir(user_id))
             path = user_dir / "messages" / f"{category}.json"
-        except ValueError:
+        except ValueError as err:
             raise FileOperationError(
                 f"Invalid identifier format '{identifier}': expected 'category/user_id'"
-            )
+            ) from err
     elif file_type == "schedules":
         # Optional: per-category schedules
         try:
@@ -113,10 +113,10 @@ def determine_file_path(file_type, identifier):
             user_id, task_file = identifier.split("/")
             user_dir = Path(get_user_data_dir(user_id))
             path = user_dir / "tasks" / f"{task_file}.json"
-        except ValueError:
+        except ValueError as err:
             raise FileOperationError(
                 f"Invalid task identifier format '{identifier}': expected 'user_id/task_file'"
-            )
+            ) from err
     else:
         raise FileOperationError(f"Unknown file type: {file_type}")
 
@@ -253,7 +253,7 @@ def save_json_data(data, file_path):
             directory.mkdir(parents=True, exist_ok=True)
             logger.debug(f"Created directory: {directory}")
         except Exception as e:
-            raise FileOperationError(f"Failed to create directory {directory}: {e}")
+            raise FileOperationError(f"Failed to create directory {directory}: {e}") from e
 
     # Save the data
     tmp_path = None
@@ -304,7 +304,7 @@ def save_json_data(data, file_path):
                 logger.debug(
                     f"Failed to clean up temp file {tmp_path}, but continuing with error handling"
                 )
-        raise FileOperationError(f"Failed to save data to {file_path}: {e}")
+        raise FileOperationError(f"Failed to save data to {file_path}: {e}") from e
 
 
 @handle_errors("creating user files", user_friendly=True, default_return=False)

@@ -4,6 +4,7 @@
 """Account Creator Dialog"""
 
 import uuid
+import contextlib
 from typing import Any
 
 # PySide6 imports
@@ -278,14 +279,10 @@ class AccountCreatorDialog(QDialog):
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", RuntimeWarning)
-                try:
+                with contextlib.suppress(RuntimeError, TypeError):
                     button_box.accepted.disconnect()
-                except (RuntimeError, TypeError):
-                    pass  # Signal wasn't connected or error disconnecting
-                try:
+                with contextlib.suppress(RuntimeError, TypeError):
                     button_box.rejected.disconnect()
-                except (RuntimeError, TypeError):
-                    pass  # Signal wasn't connected or error disconnecting
 
             # Connect buttons manually
             save_button = button_box.button(QDialogButtonBox.StandardButton.Save)

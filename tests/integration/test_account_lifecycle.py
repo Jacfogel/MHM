@@ -1065,5 +1065,5 @@ class TestAccountLifecycle:
         try:
             get_user_data(actual_user_id)
             raise AssertionError("Should not be able to load deleted user data")
-        except:
+        except Exception:
             pass  # Expected behavior 

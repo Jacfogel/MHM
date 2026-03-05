@@ -374,7 +374,7 @@ class DataLoadingMixin:
                     data = json.load(f)
                     timestamp = data.get('timestamp', 'Unknown')
                     status_lines.append(f"[AUDIT] Last audit: {timestamp}")
-            except:
+            except Exception:
                 status_lines.append("[AUDIT] Last audit: Unknown")
         else:
             status_lines.append("[AUDIT] No recent audit found")

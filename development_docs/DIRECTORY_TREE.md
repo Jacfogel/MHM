@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-04 00:28:30
+> **Last Generated**: 2026-03-05 00:17:59
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -216,6 +216,7 @@ C:.
 |   +---config
 |   |   |   analyze_config.py
 |   |   |   config.py
+|   |   |   DEPRECATION_INVENTORY.json
 |   |   |   development_tools_config.json
 |   |   |   development_tools_config.json.example
 |   |   |   pyrightconfig.json
@@ -565,6 +566,7 @@ C:.
 |   |   |   test_data_freshness_audit.py
 |   |   |   test_data_loading_helpers.py
 |   |   |   test_decision_support.py
+|   |   |   test_deprecation_inventory_guard.py
 |   |   |   test_dev_tools_coverage_cache.py
 |   |   |   test_documentation_sync_checker.py
 |   |   |   test_error_scenarios.py
@@ -669,6 +671,7 @@ C:.
 |   |   |   test_ui_button_verification.py
 |   |   |   test_ui_components_headless.py
 |   |   |   test_ui_generation.py
+|   |   |   test_ui_user_combo_helpers.py
 |   |   |   test_ui_widgets_coverage_expansion.py
 |   |   |   test_user_analytics_dialog.py
 |   |   |   test_user_profile_dialog_coverage_expansion.py
@@ -685,7 +688,9 @@ C:.
 |   |   |   test_auto_cleanup_gap_coverage.py
 |   |   |   test_auto_cleanup_logic.py
 |   |   |   test_auto_cleanup_paths.py
+|   |   |   test_backup_manager_helpers.py
 |   |   |   test_channel_orchestrator.py
+|   |   |   test_channel_orchestrator_message_selection.py
 |   |   |   test_checkin_analytics_conversion.py
 |   |   |   test_checkin_management_dialog.py
 |   |   |   test_checkin_view.py
@@ -698,6 +703,8 @@ C:.
 |   |   |   test_communication_core_init.py
 |   |   |   test_communication_init.py
 |   |   |   test_config.py
+|   |   |   test_config_branch_coverage.py
+|   |   |   test_conversation_flow_reminder_helpers.py
 |   |   |   test_discord_api_client.py
 |   |   |   test_discord_event_handler.py
 |   |   |   test_email_bot_body_extraction.py
@@ -708,6 +715,7 @@ C:.
 |   |   |   test_file_locking.py
 |   |   |   test_file_locking_platform_branches.py
 |   |   |   test_file_operations.py
+|   |   |   test_file_operations_branch_coverage.py
 |   |   |   test_generate_ui_files_script.py
 |   |   |   test_interaction_handlers_helpers.py
 |   |   |   test_interaction_handlers_help_and_registry.py
@@ -740,6 +748,7 @@ C:.
 |   |   |   test_user_data_loader_idempotency.py
 |   |   |   test_user_data_loader_order_insensitivity.py
 |   |   |   test_user_data_manager.py
+|   |   |   test_user_item_storage.py
 |   |   |   test_user_management.py
 |   |   |   test_user_package_exports.py
 |   |   |   test_user_preferences.py

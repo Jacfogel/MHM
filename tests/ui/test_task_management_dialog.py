@@ -14,6 +14,7 @@ from tests.conftest import ensure_qt_runtime
 
 ensure_qt_runtime()
 
+import contextlib
 import pytest
 from unittest.mock import patch, Mock
 import uuid
@@ -390,12 +391,9 @@ class TestTaskManagementDialogHelpers:
         # Arrange
         with patch.object(dialog.task_widget, 'get_statistics', side_effect=Exception("Test error")):
             # Act & Assert - Should handle error
-            try:
+            with contextlib.suppress(Exception):
                 dialog.get_statistics()
                 # May return None or empty dict depending on error handling
-            except Exception:
-                # Error should be handled by @handle_errors decorator
-                pass
 
 
 class TestTaskManagementDialogRealBehavior:

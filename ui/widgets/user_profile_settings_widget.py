@@ -253,7 +253,7 @@ class UserProfileSettingsWidget(QWidget):
                     try:
                         dob_date = QDate.fromString(dob_str, Qt.DateFormat.ISODate)
                         self.ui.calendarWidget_date_of_birth.setSelectedDate(dob_date)
-                    except:
+                    except Exception:
                         # If parsing fails, use current date
                         self.ui.calendarWidget_date_of_birth.setSelectedDate(
                             QDate.currentDate()

@@ -347,4 +347,4 @@ def load_and_localize_datetime(datetime_str, timezone_str="America/Regina"):
         return aware_datetime
 
     except pytz.exceptions.UnknownTimeZoneError as e:
-        raise InvalidTimeFormatError(f"Unknown timezone '{timezone_str}': {e}")
+        raise InvalidTimeFormatError(f"Unknown timezone '{timezone_str}': {e}") from e

@@ -118,7 +118,7 @@ class TestFileOperations:
             with open(temp_file) as f:
                 json.load(f)  # Should not raise exception
         except json.JSONDecodeError as e:
-            raise AssertionError(f"Saved file should be valid JSON: {e}")
+            raise AssertionError(f"Saved file should be valid JSON: {e}") from e
         
         # [OK] VERIFY REAL BEHAVIOR: Check file can be read multiple times
         for _ in range(3):
@@ -350,7 +350,7 @@ class TestFileOperations:
             with open(temp_file, 'w') as f:
                 f.write(test_content)
         except Exception as e:
-            raise AssertionError(f"File should remain accessible after verification: {e}")
+            raise AssertionError(f"File should remain accessible after verification: {e}") from e
     
     @pytest.mark.unit
     @pytest.mark.file_io
@@ -426,7 +426,7 @@ class TestFileOperations:
         try:
             import shutil
             shutil.rmtree(protected_dir, ignore_errors=True)
-        except:
+        except Exception:
             pass
         
         # [OK] VERIFY REAL BEHAVIOR: Check that the protected file still doesn't exist (or is inaccessible)
@@ -823,7 +823,7 @@ class TestFileOperationsPerformance:
             with open(temp_file) as f:
                 json.load(f)  # Should not raise exception
         except json.JSONDecodeError as e:
-            raise AssertionError(f"Large file should be valid JSON: {e}")
+            raise AssertionError(f"Large file should be valid JSON: {e}") from e
     
     @pytest.mark.slow
     @pytest.mark.file_io

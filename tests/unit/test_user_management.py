@@ -689,7 +689,7 @@ class TestUserManagementEdgeCases:
                 with open(file_path) as f:
                     json.load(f)  # Should not raise exception
             except json.JSONDecodeError as e:
-                raise AssertionError(f"File should be valid JSON: {file_name} - {e}")
+                raise AssertionError(f"File should be valid JSON: {file_name} - {e}") from e
 
         # [OK] VERIFY REAL BEHAVIOR: Check file sizes are reasonable
         for file_name in expected_files:

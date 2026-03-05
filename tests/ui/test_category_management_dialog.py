@@ -12,6 +12,7 @@ from tests.conftest import ensure_qt_runtime
 
 ensure_qt_runtime()
 
+import contextlib
 import pytest
 from unittest.mock import patch
 import uuid
@@ -136,11 +137,8 @@ class TestCategoryManagementDialogToggle:
         # Arrange - Break the widget
         with patch.object(dialog.ui.groupBox_select_categories, 'setEnabled', side_effect=Exception("Test error")):
             # Act & Assert - Should handle error
-            try:
+            with contextlib.suppress(Exception):
                 dialog.on_enable_messages_toggled(True)
-            except Exception:
-                # Error should be handled by @handle_errors decorator
-                pass
 
 
 class TestCategoryManagementDialogSaving:
@@ -280,11 +278,8 @@ class TestCategoryManagementDialogHelpers:
         # Arrange
         with patch.object(dialog.category_widget, 'set_selected_categories', side_effect=Exception("Test error")):
             # Act & Assert - Should raise exception (not caught by decorator)
-            try:
+            with contextlib.suppress(Exception):
                 dialog.set_selected_categories(['test'])
-            except Exception:
-                # Error should be raised
-                pass
     
     @pytest.mark.ui
     @pytest.mark.unit

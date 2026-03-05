@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-05 - Static-analysis cleanup + guard tightening + CI policy fix **Progressed**
+- Cleared Ruff backlog to zero (`128 -> 0`) across runtime/tooling/tests and revalidated static checks; Pyright baseline remains `0 errors / 54 warnings`.
+- Tightened deprecation-inventory sync guard behavior to reduce false positives: narrowed trigger keywords and excluded `tests/**` + generated artifacts from trigger-file detection.
+- Added guard regression tests (`test_deprecation_inventory_guard.py`) for ignored test/generated paths and verified guard pass behavior.
+- Fixed GitHub `Tooling Policy Consistency` workflow dependency setup by installing `python-dotenv` with `pytest` in `.github/workflows/logging-enforcement.yml`.
+
 ### 2026-03-05 - Legacy inventory governance + compatibility cleanup **Progressed**
 - Established canonical deprecation inventory governance via `development_tools/config/DEPRECATION_INVENTORY.json`, wired config/docs to it, and added legacy-analysis sync-guard enforcement for deprecation-like changes without inventory updates.
 - Integrated inventory-aware legacy tooling: analyzer now injects active/candidate inventory terms into scans, and `LEGACY_REFERENCE_REPORT.md` now includes a dedicated inventory summary block with counts/hits.
@@ -112,14 +118,6 @@ Guidelines:
 - Added targeted helper tests across `analyze_function_patterns`, `audit_orchestration`, `run_test_coverage`, `commands`, `data_loading`, `tool_wrappers`, and docs workflow paths; roadmap tracking updated in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` section `1.1`.
 - Validation highlights: Tier 3 targeted failures `3 passed` (including `-n 4`), continuation suites `28 passed` and `47 passed`, dev-tools suite `920 passed, 0 skipped`.
 - Dev-tools no-cache coverage progressed `58.1%` (`14906/25657`) -> `58.6%` (`15026/25657`) -> `59.3%` (`15224/25657`), with module gains including `audit_orchestration` `30%`, `run_test_coverage` `33%`, `data_loading` `56%`, `tool_wrappers` `49%`, and `commands` `39%`.
-
-### 2026-02-28 - Planning consolidation + dating standard **Progressed**
-- **Planning consolidation**: Reviewed and updated six planning documents (AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4, TEST_PLAN, NOTES_PLAN, TASKS_PLAN, PLANS, TODO) for currency, accuracy, and priority alignment; archived Account Management plan; moved headless/email service issues to Medium Priority.
-- **PLANS.md priorities**: Added "Use / fit" notes to each plan item; adjusted priorities (Discord/UI/Channel Sync low; Check-in Response Analysis first; Mood-Aware deferred; Backup user_data_cli decision documented).
-- **TEST_PLAN.md**: Added "Use / fit" and clarified priority-mode rationale. User-priority Q&A applied: stability > speed; higher coverage; production-log isolation; Phase 5 keep no-parallel if stable; Phase 7 exclude AI/context; Phase 8 expand+tighten policy; minimize manual testing.
-- **TASKS_PLAN.md**: User-priority Q&A applied. Discord primary; recurring-task discoverability gap; prioritize templates, natural language, interactive follow-up (skip + flow timeout), notes & attachments; defer Smart Suggestions; Phase 3: priority escalation, sync, calendar view.
-- **TODO.md**: Added task "Continue planning-doc user-priority Q&A" for NOTES_PLAN and AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.
-- **Dating standard**: New items and progressed items in plans/TODO must be dated (YYYY-MM-DD); documented in AI_DOCUMENTATION_GUIDE 3.9 and PLANS "How to Update".
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

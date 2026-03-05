@@ -10,6 +10,7 @@ Tests the actual behavior, user interactions, and side effects for:
 - User search functionality
 """
 
+import contextlib
 import pytest
 from unittest.mock import patch
 import os
@@ -75,11 +76,8 @@ class TestUserDataManagerInitialization:
                         import gc
                         gc.collect()
                         time.sleep(0.2)
-                        try:
+                        with contextlib.suppress(PermissionError):
                             shutil.rmtree(backup_dir)
-                        except PermissionError:
-                            # If still locked, skip cleanup (test will still work)
-                            pass
         
         with patch('core.user_data_manager.BASE_DATA_DIR', test_data_dir), \
              patch('core.user_data_manager.get_backups_dir', return_value=backup_dir):

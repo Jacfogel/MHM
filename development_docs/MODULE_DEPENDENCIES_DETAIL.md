@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-04 00:28:21
+> **Last Generated**: 2026-03-05 00:17:51
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 112
-- **Total Imports Found**: 1469
+- **Total Imports Found**: 1471
 - **Dependencies Documented**: 112 (100% coverage)
-- **Standard Library Imports**: 392 (26.7%)
+- **Standard Library Imports**: 394 (26.8%)
 - **Third-Party Imports**: 220 (15.0%)
 - **Local Imports**: 857 (58.3%)
-- **Last Updated**: 2026-03-04
+- **Last Updated**: 2026-03-05
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,7 +29,7 @@
 
 ## Import Statistics
 
-- **Standard Library**: 392 imports (26.7%)
+- **Standard Library**: 394 imports (26.8%)
 - **Third-Party**: 220 imports (15.0%)
 - **Local**: 857 imports (58.3%)
 
@@ -1371,6 +1371,7 @@
     - `core.error_handling (handle_configuration_error, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
+    - `contextlib`
     - `os`
     - `pathlib (Path)`
     - `typing (Any)`
@@ -2571,6 +2572,7 @@
     - `ui.widgets.checkin_settings_widget (CheckinSettingsWidget)` (NEW)
     - `ui.widgets.task_settings_widget (TaskSettingsWidget)` (NEW)
   - **Standard Library**:
+    - `contextlib`
     - `pathlib (Path)`
     - `time`
     - `typing (Any)`

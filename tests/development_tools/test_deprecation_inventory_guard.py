@@ -97,3 +97,65 @@ def test_inventory_guard_passes_when_inventory_file_is_updated(tmp_path, monkeyp
     assert result["check_passed"] is True
     assert result["status"] == "passed"
     assert result["reason"] == "inventory_updated_in_change_set"
+
+
+@pytest.mark.unit
+def test_inventory_guard_ignores_test_files(tmp_path, monkeypatch):
+    """Guard should ignore test-file changes even when trigger keywords are present."""
+    inventory_path = tmp_path / "development_tools" / "config" / "DEPRECATION_INVENTORY.json"
+    inventory_path.parent.mkdir(parents=True, exist_ok=True)
+    inventory_path.write_text('{"active_or_candidate_inventory": [], "removed_inventory": []}', encoding="utf-8")
+
+    test_file = tmp_path / "tests" / "unit" / "test_example.py"
+    test_file.parent.mkdir(parents=True, exist_ok=True)
+    test_file.write_text("value = 1\n", encoding="utf-8")
+
+    def fake_run(cmd, **kwargs):
+        if cmd[:3] == ["git", "status", "--porcelain"]:
+            return _completed(stdout=" M tests/unit/test_example.py\n")
+        if cmd[:2] == ["git", "diff"]:
+            return _completed(stdout=_legacy_marker_line())
+        raise AssertionError(f"Unexpected command: {cmd}")
+
+    monkeypatch.setattr(tool_wrappers_module.subprocess, "run", fake_run)
+
+    service = _DummyService(tmp_path)
+    result = service._check_deprecation_inventory_sync(
+        "development_tools/config/DEPRECATION_INVENTORY.json"
+    )
+
+    assert result["check_passed"] is True
+    assert result["status"] == "passed"
+    assert result["reason"] == "no_deprecation_like_changes_detected"
+    assert result["trigger_files"] == []
+
+
+@pytest.mark.unit
+def test_inventory_guard_ignores_generated_reports(tmp_path, monkeypatch):
+    """Guard should ignore configured generated report files."""
+    inventory_path = tmp_path / "development_tools" / "config" / "DEPRECATION_INVENTORY.json"
+    inventory_path.parent.mkdir(parents=True, exist_ok=True)
+    inventory_path.write_text('{"active_or_candidate_inventory": [], "removed_inventory": []}', encoding="utf-8")
+
+    report_file = tmp_path / "development_tools" / "AI_PRIORITIES.md"
+    report_file.parent.mkdir(parents=True, exist_ok=True)
+    report_file.write_text("placeholder\n", encoding="utf-8")
+
+    def fake_run(cmd, **kwargs):
+        if cmd[:3] == ["git", "status", "--porcelain"]:
+            return _completed(stdout=" M development_tools/AI_PRIORITIES.md\n")
+        if cmd[:2] == ["git", "diff"]:
+            return _completed(stdout=_legacy_marker_line())
+        raise AssertionError(f"Unexpected command: {cmd}")
+
+    monkeypatch.setattr(tool_wrappers_module.subprocess, "run", fake_run)
+
+    service = _DummyService(tmp_path)
+    result = service._check_deprecation_inventory_sync(
+        "development_tools/config/DEPRECATION_INVENTORY.json"
+    )
+
+    assert result["check_passed"] is True
+    assert result["status"] == "passed"
+    assert result["reason"] == "no_deprecation_like_changes_detected"
+    assert result["trigger_files"] == []

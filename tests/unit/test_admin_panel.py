@@ -13,6 +13,7 @@ from tests.conftest import ensure_qt_runtime
 
 ensure_qt_runtime()
 
+import contextlib
 import pytest
 from unittest.mock import patch
 from PySide6.QtWidgets import QApplication
@@ -152,10 +153,8 @@ class TestAdminPanelDialogData:
         # The @handle_errors decorator may catch the exception
         # but the method should log a warning
         with patch('ui.dialogs.admin_panel.logger') as mock_logger:
-            try:
+            with contextlib.suppress(ValueError, DataError):
                 dialog.set_admin_data(test_data)
-            except (ValueError, DataError):
-                pass  # Exception may or may not be raised depending on decorator
             
             # Assert
             # Should log warning about invalid type
@@ -170,10 +169,8 @@ class TestAdminPanelDialogData:
         
         # Act
         with patch('ui.dialogs.admin_panel.logger') as mock_logger:
-            try:
+            with contextlib.suppress(ValueError, DataError):
                 dialog.set_admin_data(test_data)
-            except (ValueError, DataError):
-                pass  # Exception may or may not be raised depending on decorator
             
             # Assert
             # Should log warning about invalid type
@@ -188,10 +185,8 @@ class TestAdminPanelDialogData:
         
         # Act
         with patch('ui.dialogs.admin_panel.logger') as mock_logger:
-            try:
+            with contextlib.suppress(ValueError, DataError):
                 dialog.set_admin_data(test_data)
-            except (ValueError, DataError):
-                pass  # Exception may or may not be raised depending on decorator
             
             # Assert
             # Should log warning about invalid type
@@ -303,4 +298,3 @@ class TestAdminPanelDialogUI:
         # Assert
         layout = dialog.layout()
         assert layout.count() > 0, "Should have widgets in layout"
-

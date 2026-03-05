@@ -278,7 +278,7 @@ class DynamicListContainer(QWidget):
         remaining = [t for t in selected if t.lower() not in predefined_options]
         for item in remaining:
             row = DynamicListField(self, preset_label=item, editable=True, checked=True)
-            row.value_changed.connect(lambda: self._on_row_edited(row))
+            row.value_changed.connect(lambda row=row: self._on_row_edited(row))
             row.delete_requested.connect(self._on_row_deleted)
             # Insert before current blank row (last widget)
             insert_pos = max(0, self.custom_layout.count() - 1)

@@ -4,6 +4,7 @@ Orphaned Reminder Cleanup Integration Tests
 Tests for the periodic cleanup job that removes reminders for non-existent or completed tasks.
 """
 
+import contextlib
 import pytest
 from unittest.mock import patch, MagicMock
 from datetime import timedelta
@@ -375,7 +376,5 @@ class TestOrphanedReminderCleanup:
                 ) in (task1_id, task2_id):
                     jobs_to_remove.append(job)
         for job in jobs_to_remove:
-            try:
+            with contextlib.suppress(ValueError):
                 schedule.jobs.remove(job)
-            except ValueError:
-                pass  # Already removed

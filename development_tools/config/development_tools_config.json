@@ -349,18 +349,12 @@
         "deprecated",
         "deprecation",
         "legacy compatibility",
-        "legacy",
-        "retire",
-        "retired",
-        "removed",
-        "to be removed",
-        "obsolete",
-        "sunset",
-        "shim",
-        "fallback",
-        "alias",
         "compatibility bridge",
-        "migration"
+        "to be removed",
+        "retire candidate",
+        "retire_candidate",
+        "obsolete",
+        "sunset"
       ]
     },
     "legacy_patterns": {

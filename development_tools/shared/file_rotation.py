@@ -7,6 +7,7 @@ Provides file rotation, backup, and archiving functionality.
 
 import os
 import shutil
+import contextlib
 from datetime import datetime
 from pathlib import Path
 
@@ -101,11 +102,8 @@ class FileRotator:
             # Remove oldest files beyond the limit
             files_to_remove = filtered_files[:-max_versions]
             for file_path in files_to_remove:
-                try:
+                with contextlib.suppress(OSError, FileNotFoundError):
                     file_path.unlink()
-                except (OSError, FileNotFoundError):
-                    # File may have been removed already, ignore
-                    pass
 
     def get_latest_archive(self, base_name: str) -> Path | None:
         """Get the most recent archived version of a file."""
@@ -537,10 +535,10 @@ def create_output_file(
                         if hasattr(resolved_path, "resolve")
                         else Path(resolved_path)
                     )
-                except:
+                except Exception:
                     try:
                         write_path = Path(file_path).resolve()
-                    except:
+                    except Exception:
                         write_path = Path(file_path)
 
             # Only block if we're writing to the actual project root (not just any non-test directory)

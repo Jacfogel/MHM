@@ -324,7 +324,7 @@ def verify_required_loaders_present():
                 f"Present keys: {list(um.USER_DATA_LOADERS.keys())}"
             )
     except Exception as e:
-        raise AssertionError(f"Loader self-check failed: {e}")
+        raise AssertionError(f"Loader self-check failed: {e}") from e
 
 
 @pytest.fixture(scope="function", autouse=True)

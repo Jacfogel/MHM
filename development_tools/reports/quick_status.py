@@ -139,7 +139,7 @@ class QuickStatus:
                                                 -1
                                             ].strip()
                                             break
-            except:
+            except Exception:
                 pass
 
         # Check key documentation files
@@ -177,7 +177,7 @@ class QuickStatus:
                 coverage = float(docs["coverage"].replace("%", ""))
                 if coverage < 90:
                     issues.append(f"Low documentation coverage: {coverage}%")
-            except:
+            except Exception:
                 pass
 
         # Check for missing documentation files
@@ -202,7 +202,7 @@ class QuickStatus:
                     actions.append(
                         f"Improve documentation coverage (currently {coverage}%)"
                     )
-            except:
+            except Exception:
                 pass
 
         # System improvements
@@ -246,7 +246,7 @@ class QuickStatus:
                 with open(audit_file) as f:
                     audit_data = json.load(f)
                     activity["last_audit"] = audit_data.get("timestamp")
-            except:
+            except Exception:
                 pass
 
         # Get git-based "recent" threshold (24 hours before last commit)
@@ -311,9 +311,9 @@ class QuickStatus:
                                 mtime_dt = datetime.fromtimestamp(mtime)
                                 if mtime_dt >= recent_threshold:
                                     activity["recent_changes"].add(rel_path_str)
-                            except:
+                            except Exception:
                                 pass
-                except:
+                except Exception:
                     pass
 
         # Convert set to sorted list and limit to reasonable number

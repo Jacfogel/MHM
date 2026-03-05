@@ -63,7 +63,7 @@ class TestConfigValidation:
                         assert os.path.exists(test_file), "Should be able to write to users directory"
                         os.remove(test_file)  # Clean up
                     except Exception as e:
-                        raise AssertionError(f"Users directory should be writable: {e}")
+                        raise AssertionError(f"Users directory should be writable: {e}") from e
                     
                     # Should have warnings about creating directories if they didn't exist
                     assert len(warnings) >= 0

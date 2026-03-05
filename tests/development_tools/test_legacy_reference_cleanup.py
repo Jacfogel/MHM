@@ -7,6 +7,7 @@ Tests for fix_legacy_references.py.
 Tests scanning, verification, and safe cleanup operations.
 """
 
+import contextlib
 import pytest
 from pathlib import Path
 from unittest.mock import patch
@@ -72,11 +73,8 @@ class TestLegacyScanning:
         
         # Clean up - remove file and directory if empty
         excluded_file.unlink()
-        try:
+        with contextlib.suppress(OSError):
             excluded_file.parent.rmdir()
-        except OSError:
-            # Directory not empty, that's okay - just remove our test file
-            pass
 
 
 class TestReferenceFinding:

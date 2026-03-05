@@ -96,7 +96,7 @@ class TestAIQuality(AITestBase):
             # Safely encode exception message for Windows console (avoid Unicode errors)
             try:
                 error_msg = str(e).encode('ascii', errors='replace').decode('ascii')
-            except:
+            except Exception:
                 error_msg = f"Exception occurred: {type(e).__name__}"
             self.log_test("T-12.2", "Response error message validation", "FAIL",
                         "", error_msg, prompt=prompt if 'prompt' in locals() else "")

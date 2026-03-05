@@ -1343,12 +1343,7 @@ class AIChatBotSingleton:
         has_question_request = "?" in prompt_lower and any(
             pattern in prompt_lower for pattern in request_question_patterns
         )
-        if has_question_request and not any(
-            marker in prompt_lower for marker in detail_markers
-        ):
-            return True
-
-        return False
+        return bool(has_question_request and not any(marker in prompt_lower for marker in detail_markers))
 
     @handle_errors(
         "creating command parsing prompt",

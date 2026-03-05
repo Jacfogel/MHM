@@ -161,10 +161,10 @@ class MHMService:
             try:
                 with open(LOG_MAIN_FILE, "a", encoding="utf-8") as _f:
                     _f.write("")
-            except Exception:
+            except Exception as err:
                 raise FileOperationError(
                     "Log file missing", details={"log_file": LOG_MAIN_FILE}
-                )
+                ) from err
 
     @handle_errors("reading recent log content", default_return="")
     def _check_and_fix_logging__read_recent_log_content(self):
@@ -370,7 +370,7 @@ class MHMService:
                 logger.error(f"Failed to initialize communication channels: {e}")
                 raise InitializationError(
                     f"Failed to initialize communication channels: {e}"
-                )
+                ) from e
 
             # Step 3: Start the SchedulerManager
             for attempt in range(max_retries):
@@ -1302,13 +1302,13 @@ class MHMService:
                 try:
                     if self.communication_manager:
                         self.communication_manager.stop_all()
-                except:
+                except Exception:
                     pass
                 # Force stop scheduler manager
                 try:
                     if self.scheduler_manager:
                         self.scheduler_manager.stop_scheduler()
-                except:
+                except Exception:
                     pass
 
 

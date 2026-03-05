@@ -1226,18 +1226,12 @@ class ToolWrappersMixin:
             "deprecated",
             "deprecation",
             "legacy compatibility",
-            "legacy",
-            "retire",
-            "retired",
-            "removed",
+            "compatibility bridge",
             "to be removed",
+            "retire candidate",
+            "retire_candidate",
             "obsolete",
             "sunset",
-            "shim",
-            "fallback",
-            "alias",
-            "compatibility bridge",
-            "migration",
         ]
         configured_keywords = guard_cfg.get("trigger_keywords", default_keywords)
         trigger_keywords = [
@@ -1320,14 +1314,34 @@ class ToolWrappersMixin:
             guard_result["reason"] = "inventory_updated_in_change_set"
             return guard_result
 
-        from development_tools.shared.standard_exclusions import should_exclude_file
+        import fnmatch
+        from development_tools.shared.standard_exclusions import (
+            ALL_GENERATED_FILES,
+            GENERATED_FILE_PATTERNS,
+            should_exclude_file,
+        )
 
         trigger_files: list[str] = []
         scan_extensions = {".py", ".md", ".json", ".mdc", ".toml", ".yaml", ".yml"}
+        generated_exact = {
+            str(path).replace("\\", "/") for path in ALL_GENERATED_FILES
+        }
 
         for rel_path in changed_paths:
             normalized = rel_path.replace("\\", "/")
             if normalized == inventory_normalized:
+                continue
+            # Guard targets production/runtime deprecation drift, not test scaffolding.
+            if normalized.startswith("tests/"):
+                continue
+            # Generated artifacts are derived outputs and should not force inventory sync.
+            if normalized in generated_exact:
+                continue
+            if any(
+                fnmatch.fnmatch(normalized, pattern)
+                or fnmatch.fnmatch(normalized, f"*/{pattern}")
+                for pattern in GENERATED_FILE_PATTERNS
+            ):
                 continue
             if self._is_historical_inventory_guard_path(normalized):
                 continue

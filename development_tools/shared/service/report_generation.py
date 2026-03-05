@@ -7452,7 +7452,7 @@ class ReportGenerationMixin:
                     coverage = float(metrics["coverage"].replace("%", ""))
                     if coverage < 90:
                         issues.append(f"Low documentation coverage: {coverage}%")
-                except:
+                except Exception:
                     pass
         if hasattr(self, "_last_failed_audits"):
             for audit in self._last_failed_audits:
@@ -7471,7 +7471,7 @@ class ReportGenerationMixin:
                         actions.append(
                             f"Improve documentation coverage (currently {coverage}%)"
                         )
-                except:
+                except Exception:
                     pass
         if "decision_support" in self.results_cache:
             insights = self.results_cache["decision_support"]

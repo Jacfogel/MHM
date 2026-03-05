@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-03-05 (legacy/deprecation cleanup session wrap-up + follow-up handoff)
+> **Last Updated**: 2026-03-05 (static-analysis/governance stabilization session wrap-up)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -81,16 +81,24 @@ When adding new tasks, follow this format:
 
 ### Quality & Operations
 
-**Continue Ruff Remediation Outside Tests**
-- *What it means*: Continue fixing Ruff issues in non-test modules (core runtime, communication handlers, AI modules, tooling) in small batches, prioritizing rule classes with low behavior risk first. Outside tests is higher priority than inside tests.
-- *Why it helps*: Reduces lint debt and keeps production code consistency high without destabilizing the test suite.
+**Reduce Pyright Warning Backlog (54 warnings)**
+- *What it means*: Address remaining Pyright warnings in small, low-risk batches, starting with the highest-volume test modules and straightforward typing issues.
+- *Why it helps*: Improves type-safety signal quality and reduces risk of hidden runtime defects.
 - *Estimated effort*: Medium
-- *User priority*: Medium; outside tests > inside tests.
+- *User priority*: Medium.
+- *Created*: 2026-03-05
 - *Subtasks*:
-  - [ ] Run Ruff on non-test paths and group findings by safe autofix vs manual refactor
-  - [ ] Apply fixes in small batches with focused behavior validation between batches
-  - [ ] Track any behavior-impacting lint fixes separately from style-only cleanups
-  - [ ] Re-baseline remaining Ruff counts after each batch
+  - [ ] Group current warnings by file/category from latest `python -m pyright` output
+  - [ ] Fix highest-volume warning clusters first (tests and dev-tools helpers)
+  - [ ] Re-run `python -m pyright` after each batch and track warning deltas
+  - [ ] Update docs/reports after warning-count reduction
+
+**Verify full Tier 3 audit after guard/workflow updates**
+- *What it means*: Re-run `python development_tools/run_development_tools.py audit --full` once current changes are merged to confirm legacy guard and CI-policy updates do not introduce new regressions.
+- *Why it helps*: Confirms end-to-end audit health with current governance and workflow adjustments.
+- *Estimated effort*: Small
+- *User priority*: Medium.
+- *Created*: 2026-03-05
 
 **Confirm wake timer fix in production**
 - [ ] After a 01:00 run, confirm errors.log no longer fills with wake timer (Register-ScheduledTask) errors.

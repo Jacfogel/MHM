@@ -522,7 +522,7 @@ def get_period_data__time_24h_to_12h_display(time_24h):
         logger.error(f"Error converting 24-hour time '{time_24h}' to 12-hour: {e}")
         raise ValidationError(
             f"Invalid 24-hour time format: {time_24h}", details={"time_24h": time_24h}
-        )
+        ) from e
 
 
 @handle_errors("converting 12-hour display format to 24-hour time")
@@ -553,7 +553,7 @@ def get_period_data__time_12h_display_to_24h(hour_12, minute, is_pm):
         raise ValidationError(
             f"Invalid 12-hour time parameters: hour={hour_12}, minute={minute}, is_pm={is_pm}",
             details={"hour_12": hour_12, "minute": minute, "is_pm": is_pm},
-        )
+        ) from e
 
 
 @handle_errors("getting current day names", default_return=[])

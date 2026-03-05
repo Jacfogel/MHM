@@ -33,13 +33,41 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-05 - Static-analysis remediation + deprecation-guard scope tightening + CI policy-job fix
+- **Feature/Fix**: Completed the static-analysis cleanup batch, tightened deprecation-inventory guard behavior to reduce false positives, and fixed GitHub `Tooling Policy Consistency` workflow dependency setup.
+- **Technical Changes**:
+  - Static-analysis remediation:
+    - Resolved Ruff backlog from `128` issues to `0` by applying targeted fixes across core, communication, UI, development-tools, and tests (exception chaining, bare-except cleanup, contextlib suppressions, loop-variable binding, and unused-import cleanup).
+    - Verified Pyright baseline remains `0 errors / 54 warnings`; no new pyright regressions introduced.
+  - Deprecation inventory and guard governance:
+    - Updated `development_tools/config/DEPRECATION_INVENTORY.json` metadata with session sync-log context for inventory-only governance synchronization.
+    - Tightened `development_tools/shared/service/tool_wrappers.py::_check_deprecation_inventory_sync` to ignore `tests/**` and configured generated artifacts when collecting trigger files.
+    - Narrowed `legacy_cleanup.deprecation_inventory_sync_guard.trigger_keywords` in `development_tools/config/development_tools_config.json` to deprecation-specific terms, reducing broad keyword noise.
+    - Added guard regression tests in `tests/development_tools/test_deprecation_inventory_guard.py` for ignored test paths and ignored generated-report paths.
+  - CI policy workflow fix:
+    - Updated `.github/workflows/logging-enforcement.yml` so `Tooling Policy Consistency` installs `python-dotenv` alongside `pytest`, matching test-plugin import requirements in clean CI environments.
+  - Planning/session wrap-up updates:
+    - Refreshed planning follow-ups in [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) for remaining Pyright and post-merge audit/workflow verification tasks.
+- **Validation**:
+  - Static analysis:
+    - `.venv\\Scripts\\python.exe -m ruff check .` -> `All checks passed`.
+    - `.venv\\Scripts\\python.exe -m pyright` -> `0 errors, 54 warnings`.
+  - Guard hardening:
+    - `.venv\\Scripts\\python.exe -m pytest tests/development_tools/test_deprecation_inventory_guard.py -q` -> `4 passed`.
+    - `.venv\\Scripts\\python.exe -m ruff check development_tools/shared/service/tool_wrappers.py tests/development_tools/test_deprecation_inventory_guard.py` -> pass.
+    - Direct wrapper run confirmed inventory guard status `passed` with `reason=inventory_updated_in_change_set`.
+  - CI-policy test verification:
+    - `.venv\\Scripts\\python.exe -m pytest tests/development_tools/test_tooling_policy_consistency.py -q` -> `5 passed`.
+    - Reproduced clean-env failure mode (`No module named 'dotenv'`) and validated workflow dependency fix path.
+- **Impact**: Static lint debt is now fully cleared, deprecation-inventory enforcement is more signal-focused and less noisy for tests/generated artifacts, and the GitHub policy-check workflow is aligned with actual test runtime dependencies.
+
 ### 2026-03-05 - Legacy inventory governance + compatibility cleanup sweep
 - **Feature/Fix**: Consolidated the session into one legacy/deprecation cleanup pass: established canonical inventory governance, integrated inventory-aware legacy scanning/reporting, removed deprecated compatibility shims, and synchronized planning/docs for follow-up.
 - **Technical Changes**:
   - Canonical deprecation inventory and config wiring:
     - Added canonical inventory file `development_tools/config/DEPRECATION_INVENTORY.json`.
     - Added `legacy_cleanup.deprecation_inventory_file` and `legacy_cleanup.deprecation_inventory_sync_guard` in both config files (`development_tools/config/development_tools_config.json` and `.example`).
-    - Updated legacy-workflow guidance/docs to require inventory updates (`ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md`, `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`).
+    - Updated legacy-workflow guidance/docs to require inventory updates (`ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md`, [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)).
   - Inventory-aware legacy tooling:
     - `development_tools/legacy/analyze_legacy_references.py` now loads active/candidate inventory entries and injects their search terms into scan patterns (`deprecation_inventory_terms` category).
     - `development_tools/legacy/generate_legacy_reference_report.py` now includes a dedicated `## Deprecation Inventory` section with entry/term counts and scan-hit summary.
@@ -63,9 +91,9 @@ When adding new changes, follow this format:
   - Generated artifacts and planning sync:
     - Refreshed generated outputs: `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/TEST_COVERAGE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`, `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`, `development_tools/reports/analysis_detailed_results.json`.
     - Updated planning metadata/follow-ups:
-      - `TODO.md`
-      - `development_docs/PLANS.md`
-      - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` (legacy-marker backlog counts and remaining inventory-item follow-up tasks).
+      - [TODO.md](TODO.md)
+      - [PLANS.md](development_docs/PLANS.md)
+      - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (legacy-marker backlog counts and remaining inventory-item follow-up tasks).
 - **Validation**:
   - Full working tree review for wrap-up/changelog accuracy:
     - `git diff --stat`

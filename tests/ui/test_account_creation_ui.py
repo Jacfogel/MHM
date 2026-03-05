@@ -1026,7 +1026,9 @@ class TestAccountManagementRealBehavior:
                 update_user_index(user_id)
 
             assert wait_until(
-                lambda: os.path.exists(user_account_file),
+                lambda user_account_file=user_account_file: os.path.exists(
+                    user_account_file
+                ),
                 timeout_seconds=3.0,
                 poll_seconds=0.02,
             ), f"Account file should exist for {user_id}"
@@ -1037,10 +1039,10 @@ class TestAccountManagementRealBehavior:
                 internal_username == expected_internal_username
             ), f"Account internal_username should stay isolated for {user_id}"
             assert wait_until(
-                lambda: (
+                lambda user_index_path=user_index_path, internal_username=internal_username, user_id=user_id: (
                     os.path.exists(user_index_path)
                     and (
-                        lambda idx: (
+                        lambda idx, internal_username=internal_username, user_id=user_id: (
                             internal_username in idx and idx[internal_username] == user_id
                         )
                     )(_load_index_data())

@@ -383,7 +383,7 @@ class TestErrorHandlingIntegration:
                 with open(test_file) as f:
                     json.load(f)  # Should not raise exception
             except json.JSONDecodeError as e:
-                raise AssertionError(f"Recovered file should be valid JSON: {e}")
+                raise AssertionError(f"Recovered file should be valid JSON: {e}") from e
             
             # Test 4: Function that creates backup during error
             backup_file = os.path.join(temp_dir, 'backup_data.json')
@@ -452,7 +452,7 @@ class TestErrorHandlingIntegration:
                         with open(file_path) as f:
                             json.load(f)
                     except json.JSONDecodeError as e:
-                        raise ValueError(f"Invalid JSON in {file_path}: {e}")
+                        raise ValueError(f"Invalid JSON in {file_path}: {e}") from e
                 
                 return "all_files_valid"
             
@@ -473,7 +473,7 @@ class TestErrorHandlingIntegration:
                     with open(file_path) as f:
                         json.load(f)
                 except json.JSONDecodeError as e:
-                    raise AssertionError(f"File should be valid JSON in final state: {file_path} - {e}")
+                    raise AssertionError(f"File should be valid JSON in final state: {file_path} - {e}") from e
             
             # [OK] VERIFY REAL BEHAVIOR: Check no unexpected files were created
             all_files_in_dir = os.listdir(temp_dir)
@@ -576,8 +576,8 @@ class TestErrorHandlingEdgeCases:
         def outer_function():
             try:
                 inner_function()
-            except ValueError:
-                raise RuntimeError("Wrapped error")
+            except ValueError as err:
+                raise RuntimeError("Wrapped error") from err
         
         @handle_errors("inner operation")
         def inner_function():

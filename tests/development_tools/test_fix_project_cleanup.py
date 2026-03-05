@@ -6,6 +6,7 @@ coverage file cleanup, and test data cleanup.
 """
 
 import shutil
+import contextlib
 
 import pytest
 from pathlib import Path
@@ -330,10 +331,8 @@ class TestProjectCleanup:
         # when the tree contains broken symlinks or already-removed targets e.g. .pytest_cache)
         test_data_dir = temp_project_copy / "tests" / "data"
         if test_data_dir.exists():
-            try:
+            with contextlib.suppress(FileNotFoundError):
                 shutil.rmtree(test_data_dir)
-            except FileNotFoundError:
-                pass  # already gone or broken symlink under the tree
 
         removed, failed = cleanup.cleanup_test_temp_dirs(dry_run=False)
 

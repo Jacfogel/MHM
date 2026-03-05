@@ -131,7 +131,7 @@ class AITestBase:
             try:
                 # Use ASCII encoding with replacement for console output to avoid Windows encoding errors
                 safe_prompt = prompt.encode("ascii", errors="replace").decode("ascii")
-            except:
+            except Exception:
                 # Fallback: truncate and show only safe characters
                 safe_prompt = (
                     str(prompt)[:50] + "..." if len(str(prompt)) > 50 else str(prompt)
@@ -140,21 +140,21 @@ class AITestBase:
                     safe_prompt = safe_prompt.encode("ascii", errors="replace").decode(
                         "ascii"
                     )
-                except:
+                except Exception:
                     safe_prompt = "[Prompt contains non-displayable characters]"
             print(f"   Prompt: {safe_prompt}")
         if issues:
             # Safely encode issues for Windows console
             try:
                 safe_issues = issues.encode("ascii", errors="replace").decode("ascii")
-            except:
+            except Exception:
                 safe_issues = "[Issues contain non-displayable characters]"
             print(f"   Issues: {safe_issues}")
         if notes:
             # Safely encode notes for Windows console
             try:
                 safe_notes = notes.encode("ascii", errors="replace").decode("ascii")
-            except:
+            except Exception:
                 safe_notes = "[Notes contain non-displayable characters]"
             print(f"   Notes: {safe_notes}")
 
@@ -287,7 +287,7 @@ class AITestBase:
                     context_info["active_tasks_count"] = (
                         len(tasks_data) if isinstance(tasks_data, list) else 0
                     )
-                except:
+                except Exception:
                     pass
 
             # Get context structure and extract relevant details
@@ -373,7 +373,7 @@ class AITestBase:
                             context_info["preference_categories"] = preferences.get(
                                 "categories"
                             )
-            except:
+            except Exception:
                 pass
 
         except Exception as e:

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-04 00:28:27
+> **Last Generated**: 2026-03-05 00:17:56
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,8 +13,8 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 112
-- **Total Imports**: 1469
-- **Standard Library**: 392 (26.7%)
+- **Total Imports**: 1471
+- **Standard Library**: 394 (26.8%)
 - **Third-Party**: 220 (15.0%)
 - **Local Imports**: 857 (58.3%)
 
@@ -23,7 +23,7 @@
 ### Need Core System Access?
 Core System Dependencies:
 - Configuration and Setup
-  - core/config.py <- standard library (os, pathlib, typing), third-party (dotenv), error_handling, logger
+  - core/config.py <- standard library (contextlib, os, pathlib, typing), third-party (dotenv), error_handling, logger
   - core/logger.py <- standard library (contextlib, glob, gzip, json), error_handling, config
 - Data Management
   - core/file_operations.py <- standard library (json, os, pathlib, re), logger, config, error_handling, time_utilities, file_auditor (+2 more)
@@ -63,7 +63,7 @@ UI Dependencies:
 - Main Application
   - ui/ui_app_qt.py <- standard library (contextlib, json, os, pathlib), third-party (PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets), time_utilities, logger, config, error_handling, service_utilities (+20 more)
 - Dialogs
-  - ui/dialogs/account_creator_dialog.py <- standard library (pathlib, time, typing, uuid), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, user_data_handlers, error_handling, category_selection_widget (+10 more)
+  - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, pathlib, time, typing), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, user_data_handlers, error_handling, category_selection_widget (+10 more)
   - ui/dialogs/admin_panel.py <- third-party (PySide6.QtCore, PySide6.QtWidgets), logger, error_handling
   - ui/dialogs/category_management_dialog.py <- third-party (PySide6.QtCore, PySide6.QtWidgets), category_management_dialog_pyqt, category_selection_widget, logger, user_data_handlers, error_handling (+1 more)
 - Widgets
