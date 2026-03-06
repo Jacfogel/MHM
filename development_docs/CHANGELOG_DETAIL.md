@@ -33,6 +33,15 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-05 - Test suite: notebook import fix, Qt UI Windows skip/isolate, debug script
+- **Feature/Fix**: Fixed persistent `ModuleNotFoundError` for `notebook` in pytest (parallel and serial), isolated two Qt UI test modules that crash with access violation on some Windows setups, and added a diagnostic script plus optional software OpenGL for debugging.
+- **Technical Changes**:
+  - **Notebook import root cause**: Pytest's default import mode prepends the test directory to `sys.path`, so the project root was present but not first; `import notebook` then failed when the test dir was searched first. In `tests/conftest.py`, project root is now forced to the front: remove from `sys.path` if present, then `sys.path.insert(0, _project_root)` so top-level packages (`notebook`, etc.) resolve from the project root.
+  - **Qt UI crashes on Windows**: On one Windows PC, `tests/ui/test_checkin_settings_widget_question_counts.py` (CheckinSettingsWidget) and `tests/ui/test_dialog_coverage_expansion.py` (ScheduleEditorDialog) trigger fatal access violations in the serial phase. Both modules remain marked `no_parallel`; on Windows they are skipped by default. Skip is overridable with `MHM_QT_UI_FORCE=1` to re-run when debugging or when using a different environment. In `tests/conftest.py`, on Windows we set `QT_OPENGL=software` when using the offscreen platform to reduce GPU/driver-related crashes.
+  - **Debug and policy**: Added `tests/debug_qt_ui_windows.py` to print Python/OS/Qt versions and env vars and to run minimal Qt widget and CheckinSettingsWidget-pattern checks for comparing environments across PCs. Excluded `debug_qt_ui_windows.py` from the no-prints policy in `tests/unit/test_no_prints_policy.py` so the standalone diagnostic can use `print()`.
+- **Files touched**: `tests/conftest.py`, `tests/ui/test_checkin_settings_widget_question_counts.py`, `tests/ui/test_dialog_coverage_expansion.py`, `tests/debug_qt_ui_windows.py`, `tests/unit/test_no_prints_policy.py`.
+- **Impact**: Full test suite (parallel + serial) completes successfully on the affected Windows PC with notebook imports working and the two crashing UI modules skipped; users can force-run those tests or run the debug script to compare Qt/Windows env when diagnosing access violations on other machines.
+
 ### 2026-03-05 - Static-analysis remediation + deprecation-guard scope tightening + CI policy-job fix
 - **Feature/Fix**: Completed the static-analysis cleanup batch, tightened deprecation-inventory guard behavior to reduce false positives, and fixed GitHub `Tooling Policy Consistency` workflow dependency setup.
 - **Technical Changes**:

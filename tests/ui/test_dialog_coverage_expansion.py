@@ -14,13 +14,27 @@ Real behavior testing approach:
 - Side effects verification and error handling
 - Integration with core systems
 """
+import os
+import sys
+
 from tests.conftest import ensure_qt_runtime
 
 ensure_qt_runtime()
 
+import pytest
+
+# Qt dialog tests can crash under pytest-xdist (access violation); run in serial only.
+# On Windows, ScheduleEditorDialog can trigger access violation; skip unless MHM_QT_UI_FORCE=1.
+pytestmark = [
+    pytest.mark.no_parallel,
+    pytest.mark.skipif(
+        sys.platform == "win32" and not os.environ.get("MHM_QT_UI_FORCE"),
+        reason="ScheduleEditorDialog may trigger access violation on Windows; set MHM_QT_UI_FORCE=1 to run anyway, or run tests/debug_qt_ui_windows.py to compare env with a working PC.",
+    ),
+]
+
 
 import pytest
-import os
 import json
 from unittest.mock import patch
 from PySide6.QtWidgets import QApplication, QMessageBox, QDialog

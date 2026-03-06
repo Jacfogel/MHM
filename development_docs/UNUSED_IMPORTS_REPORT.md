@@ -2,27 +2,43 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-05 00:22:31
+> **Last Generated**: 2026-03-05 23:54:13
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 519
-- **Files with Unused Imports**: 0
-- **Total Unused Imports**: 0
+- **Total Files Scanned**: 520
+- **Files with Unused Imports**: 2
+- **Total Unused Imports**: 2
 
 ## Breakdown by Category
 
 - **Obvious Unused**: 0 imports
 - **Type Hints Only**: 0 imports
 - **Re Exports**: 0 imports
-- **Conditional Imports**: 0 imports
+- **Conditional Imports**: 2 imports
 - **Star Imports**: 0 imports
 - **Test Mocking**: 0 imports
 - **Qt Testing**: 0 imports
 - **Test Infrastructure**: 0 imports
 - **Production Test Mocking**: 0 imports
 - **Ui Imports**: 0 imports
+
+## Conditional Imports
+
+**Recommendation**: Review carefully - these may be for optional dependencies.
+
+### `tests/test_support/conftest_logging.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 28**: Unused PytestContextLogFormatter imported from core.logger as PytestContextLogFormatter
+
+### `tests/ui/test_signal_handler_integration.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 35**: Unused QtWidgets imported from PySide6
 
 ## Overall Recommendations
 

@@ -12,8 +12,21 @@ This file provides:
 import pytest
 import os
 import sys  # noqa: F401 -- used in collection hooks (sys.modules) and debug logging (sys.executable, sys.version, sys.path)
+from pathlib import Path
+
+# Ensure project root is on sys.path and at the front (conftest is in tests/, so root is parent.parent).
+# Pytest's default import mode prepends the test dir to sys.path, so project root can end up after it
+# and "import notebook" (and other top-level packages) fails. Put project root first so imports resolve.
+_tests_dir = Path(__file__).resolve().parent
+_project_root = str(_tests_dir.parent)
+if _project_root in sys.path:
+    sys.path.remove(_project_root)
+sys.path.insert(0, _project_root)
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
+# On Windows, offscreen + default OpenGL can cause access violations on some GPU/driver combos; try software.
+if os.name == "nt":
+    os.environ.setdefault("QT_OPENGL", "software")
 # Set environment variable for consolidated logging very early, before any logging initialization
 # Allow override via environment variable for individual component logging
 os.environ["TEST_CONSOLIDATED_LOGGING"] = os.environ.get(
@@ -22,7 +35,6 @@ os.environ["TEST_CONSOLIDATED_LOGGING"] = os.environ.get(
 import logging
 import warnings
 import re
-from pathlib import Path
 
 # CRITICAL: Suppress __package__ != __spec__.parent warnings immediately after importing warnings
 # These warnings are emitted during module import, so they must be filtered before any other imports

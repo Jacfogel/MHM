@@ -4,6 +4,9 @@ Contains channel orchestration, factory patterns, monitoring,
 and retry management for communication infrastructure.
 """
 
+import importlib.util
+import sys
+
 # Main public API - package-level exports for easier refactoring
 # Note: CommunicationManager has circular dependencies, so it may need lazy import
 # Note: ChannelFactory and ChannelMonitor have circular dependencies, using lazy import
@@ -28,6 +31,18 @@ def __getattr__(name: str):
     elif name == 'ChannelMonitor':
         from .channel_monitor import ChannelMonitor
         return ChannelMonitor
+    elif name == 'welcome_manager':
+        # Register in module __dict__ before loading so re-entrant lookups don't recurse.
+        mod_dict = sys.modules[__name__].__dict__
+        if name not in mod_dict:
+            spec = importlib.util.find_spec("communication.core.welcome_manager")
+            if spec is None or spec.loader is None:
+                raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+            mod = importlib.util.module_from_spec(spec)
+            mod_dict[name] = mod
+            sys.modules["communication.core.welcome_manager"] = mod
+            spec.loader.exec_module(mod)
+        return mod_dict[name]
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -39,4 +54,6 @@ __all__ = [
     'QueuedMessage',
     # Channel monitoring (lazy import)
     'ChannelMonitor',
+    # Welcome state (lazy import)
+    'welcome_manager',
 ]

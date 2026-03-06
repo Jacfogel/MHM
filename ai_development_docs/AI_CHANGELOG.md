@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-05 - Test suite: notebook import fix + Qt UI Windows skip + debug script **Progressed**
+- Fixed notebook import in pytest: project root is now forced to the front of `sys.path` in `tests/conftest.py` (remove then insert) so pytest's prepend of the test dir no longer hides top-level packages.
+- Isolated two Qt UI test modules that crash with access violation on some Windows PCs: skipped on Windows by default, overridable with `MHM_QT_UI_FORCE=1`; set `QT_OPENGL=software` on Windows in conftest to reduce GPU-related crashes.
+- Added `tests/debug_qt_ui_windows.py` for env comparison (Python/OS/Qt versions, minimal widget test) and excluded it from the no-prints policy.
+
 ### 2026-03-05 - Static-analysis cleanup + guard tightening + CI policy fix **Progressed**
 - Cleared Ruff backlog to zero (`128 -> 0`) across runtime/tooling/tests and revalidated static checks; Pyright baseline remains `0 errors / 54 warnings`.
 - Tightened deprecation-inventory sync guard behavior to reduce false positives: narrowed trigger keywords and excluded `tests/**` + generated artifacts from trigger-file detection.

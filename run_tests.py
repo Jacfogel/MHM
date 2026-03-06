@@ -1507,6 +1507,11 @@ def build_windows_no_parallel_env() -> dict[str, str]:
         "QT_QPA_PLATFORM": "offscreen",
     }
 
+    # Ensure project root is importable (e.g. notebook package) when pytest subprocess runs.
+    project_root = str(Path(__file__).resolve().parent)
+    existing_pythonpath = os.environ.get("PYTHONPATH", "")
+    env_overrides["PYTHONPATH"] = project_root if not existing_pythonpath else f"{project_root}{os.pathsep}{existing_pythonpath}"
+
     # Ensure venv and Qt bins are present early in PATH for DLL resolution.
     path_parts: list[str] = []
     scripts_dir = Path(sys.executable).resolve().parent
@@ -1672,6 +1677,13 @@ def run_command(
         process_env = os.environ.copy()
         if env_overrides:
             process_env.update({k: str(v) for k, v in env_overrides.items()})
+        # Ensure project root is on PYTHONPATH and cwd for pytest (fixes notebook and other package imports).
+        pytest_cwd = None
+        if any("pytest" in str(c) for c in cmd_with_junit):
+            project_root = str(Path(__file__).resolve().parent)
+            existing = process_env.get("PYTHONPATH", "")
+            process_env["PYTHONPATH"] = project_root if not existing else f"{project_root}{os.pathsep}{existing}"
+            pytest_cwd = project_root
 
         process = subprocess.Popen(
             cmd_with_junit,
@@ -1681,6 +1693,7 @@ def run_command(
             bufsize=1,
             creationflags=creation_flags if sys.platform == "win32" else 0,
             env=process_env,
+            cwd=pytest_cwd,
         )
 
         if sys.platform == "win32":
@@ -2397,9 +2410,17 @@ def print_combined_summary(
         "skipped": parallel_res.get("skipped", 0) + no_parallel_res.get("skipped", 0),
         "warnings": parallel_res.get("warnings", 0)
         + no_parallel_res.get("warnings", 0),
-        "errors": parallel_res.get("errors", 0) + no_parallel_res.get("errors", 0),
         "deselected": combined_deselected,
     }
+    # Errors: use max of the two phases to avoid double-counting the same collection
+    # failures (e.g. same 7 modules failing in both parallel and serial).
+    p_errors = parallel_res.get("errors", 0)
+    s_errors = no_parallel_res.get("errors", 0)
+    combined["errors"] = (
+        max(p_errors, s_errors)
+        if (no_parallel_results and isinstance(no_parallel_results, dict))
+        else (p_errors + s_errors)
+    )
     combined["total"] = (
         combined["passed"]
         + combined["failed"]
@@ -2551,6 +2572,7 @@ def print_combined_summary(
         print(f"  Incomplete:   {combined_incomplete} (interrupted/unknown outcome)")
     print(f"  Passed:       {combined['passed']}")
     print(f"  Failed:       {combined['failed']}")
+    print(f"  Errors:       {combined['errors']}")
     print(f"  Skipped:      {combined['skipped']}")
     print(f"  Deselected:   {combined['deselected']}")
     print(f"  Warnings:     {combined['warnings']}")
@@ -2563,6 +2585,7 @@ def print_combined_summary(
         print(f"\nBreakdown:")
         p_passed = parallel_res.get("passed", 0)
         p_failed = parallel_res.get("failed", 0)
+        p_errors = parallel_res.get("errors", 0)
         p_skipped = parallel_res.get("skipped", 0)
         p_warnings = parallel_res.get("warnings", 0)
         p_deselected = parallel_res.get("deselected", 0)
@@ -2578,6 +2601,7 @@ def print_combined_summary(
         )
         s_passed = no_parallel_res.get("passed", 0)
         s_failed = no_parallel_res.get("failed", 0)
+        s_errors = no_parallel_res.get("errors", 0)
         s_skipped = no_parallel_res.get("skipped", 0)
         s_warnings = no_parallel_res.get("warnings", 0)
         s_deselected = no_parallel_res.get("deselected", 0)
@@ -2586,12 +2610,14 @@ def print_combined_summary(
         parallel_status = ""
         if p_interrupted:
             parallel_status = f" {YELLOW}[INTERRUPTED]{RESET}"
-        parallel_line = f"  Parallel Tests:    {p_passed} passed, {p_failed} failed, {p_skipped} skipped, {p_deselected} deselected, {p_warnings} warnings ({parallel_duration:.2f}s){parallel_status}"
+        p_errors_str = f", {p_errors} errors" if p_errors else ""
+        s_errors_str = f", {s_errors} errors" if s_errors else ""
+        parallel_line = f"  Parallel Tests:    {p_passed} passed, {p_failed} failed{p_errors_str}, {p_skipped} skipped, {p_deselected} deselected, {p_warnings} warnings ({parallel_duration:.2f}s){parallel_status}"
         if p_incomplete > 0:
             parallel_line += f", {p_incomplete} incomplete"
         print(parallel_line)
         print(
-            f"  Serial Tests:      {s_passed} passed, {s_failed} failed, {s_skipped} skipped, {s_deselected} deselected, {s_warnings} warnings ({no_parallel_duration:.2f}s)"
+            f"  Serial Tests:      {s_passed} passed, {s_failed} failed{s_errors_str}, {s_skipped} skipped, {s_deselected} deselected, {s_warnings} warnings ({no_parallel_duration:.2f}s)"
         )
 
         print(f"\nTotal Duration: {total_duration:.2f}s")
@@ -2671,6 +2697,8 @@ def print_combined_summary(
         f"{RED}{combined['failed']} failed{RESET}",
         f"{GREEN}{combined['passed']} passed{RESET}",
     ]
+    if combined["errors"] > 0:
+        summary_parts.insert(1, f"{RED}{combined['errors']} errors{RESET}")
     if combined_incomplete > 0:
         summary_parts.append(
             f"{YELLOW}{combined_incomplete} incomplete{RESET}"
@@ -2693,7 +2721,7 @@ def print_combined_summary(
     duration_str = f"{duration_decimal} {duration_human}"
 
     # Color-code border based on result state
-    if combined["failed"] > 0:
+    if combined["failed"] > 0 or combined["errors"] > 0:
         border_color = RED
     elif combined["warnings"] > 0:
         border_color = YELLOW
