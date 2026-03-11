@@ -1431,7 +1431,7 @@ class ToolWrappersMixin:
                 ]
             inventory_summary = analyzer.get_deprecation_inventory_summary()
             inventory_guard = self._check_deprecation_inventory_sync(
-                str(inventory_summary.get("inventory_path", "development_tools/config/DEPRECATION_INVENTORY.json"))
+                str(inventory_summary.get("inventory_path", "development_tools/config/jsons/DEPRECATION_INVENTORY.json"))
             )
             standard_format = {
                 "summary": {
@@ -1486,7 +1486,7 @@ class ToolWrappersMixin:
                 error_message = (
                     "Deprecation inventory sync check failed: "
                     "deprecation-like changes detected but "
-                    "development_tools/config/DEPRECATION_INVENTORY.json was not updated."
+                    "development_tools/config/jsons/DEPRECATION_INVENTORY.json was not updated."
                 )
                 output_message = (
                     f"Found {total_markers} legacy markers in {total_files} files "

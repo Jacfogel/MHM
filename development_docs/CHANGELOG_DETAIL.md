@@ -33,6 +33,20 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-11 - Test runner: full-run reliability, phase-failure reporting, deselected/skip targets
+- **Feature/Fix**: Full-run reliability (SIGINT handling, no auto Qt force on Windows), combined summary accuracy for phase crashes and deselected counts, and TEST_PLAN targets for skip count and spurious SIGINT cleanup.
+- **Technical Changes**:
+  - **run_tests.py**
+    - `--full` now implies `--ignore-sigint` so long full runs complete without spurious IDE/terminal SIGINT; added `--no-ignore-sigint` to allow Ctrl+C during full runs.
+    - When a phase fails (e.g. crash/access violation) with 0 failed/0 errors in XML, combined summary now shows at least 1 error and prints `[PHASE FAILED] One or more phases exited with an error...` so the run is not reported as success.
+    - Combined "Deselected" now only counts tests deselected in both parallel and serial: `max(0, parallel_deselected - serial_run)` when both phases exist; single-phase runs unchanged.
+    - Reverted automatic `MHM_QT_UI_FORCE=1` on Windows; those Qt UI tests remain skipped by default to avoid access violation in serial phase on some PCs (user can set env to run them where they pass).
+  - **development_docs/TEST_PLAN.md**
+    - New §4.2 "High-priority open work": spurious SIGINT investigate → fix → clean up workarounds; new program-level success criterion for skip count (at most 1 skipped test) and for Spurious SIGINT cleanup.
+    - New §5.6.1 "Spurious SIGINT: root-cause investigation and workaround cleanup" with ordered subtasks (investigate, fix, clean up run_tests.py and TESTING_GUIDE references). Last Updated set to 2026-03-11.
+  - **tests/TESTING_GUIDE.md**: Full-run command and SIGINT note; expected skips (Windows Qt, POSIX-only); Start-Process and external-terminal instructions; deselected/skip context.
+- **Impact**: `python run_tests.py --full` runs to completion without spurious interrupts; phase crashes are visible in the combined summary; summary deselected count is meaningful; plan documents 1-skip target and high-priority SIGINT root-cause and workaround cleanup.
+
 ### 2026-03-05 - Test suite: notebook import fix, Qt UI Windows skip/isolate, debug script
 - **Feature/Fix**: Fixed persistent `ModuleNotFoundError` for `notebook` in pytest (parallel and serial), isolated two Qt UI test modules that crash with access violation on some Windows setups, and added a diagnostic script plus optional software OpenGL for debugging.
 - **Technical Changes**:
@@ -49,7 +63,7 @@ When adding new changes, follow this format:
     - Resolved Ruff backlog from `128` issues to `0` by applying targeted fixes across core, communication, UI, development-tools, and tests (exception chaining, bare-except cleanup, contextlib suppressions, loop-variable binding, and unused-import cleanup).
     - Verified Pyright baseline remains `0 errors / 54 warnings`; no new pyright regressions introduced.
   - Deprecation inventory and guard governance:
-    - Updated `development_tools/config/DEPRECATION_INVENTORY.json` metadata with session sync-log context for inventory-only governance synchronization.
+    - Updated `development_tools/config/jsons/DEPRECATION_INVENTORY.json` metadata with session sync-log context for inventory-only governance synchronization.
     - Tightened `development_tools/shared/service/tool_wrappers.py::_check_deprecation_inventory_sync` to ignore `tests/**` and configured generated artifacts when collecting trigger files.
     - Narrowed `legacy_cleanup.deprecation_inventory_sync_guard.trigger_keywords` in `development_tools/config/development_tools_config.json` to deprecation-specific terms, reducing broad keyword noise.
     - Added guard regression tests in `tests/development_tools/test_deprecation_inventory_guard.py` for ignored test paths and ignored generated-report paths.
@@ -74,7 +88,7 @@ When adding new changes, follow this format:
 - **Feature/Fix**: Consolidated the session into one legacy/deprecation cleanup pass: established canonical inventory governance, integrated inventory-aware legacy scanning/reporting, removed deprecated compatibility shims, and synchronized planning/docs for follow-up.
 - **Technical Changes**:
   - Canonical deprecation inventory and config wiring:
-    - Added canonical inventory file `development_tools/config/DEPRECATION_INVENTORY.json`.
+    - Added canonical inventory file `development_tools/config/jsons/DEPRECATION_INVENTORY.json`.
     - Added `legacy_cleanup.deprecation_inventory_file` and `legacy_cleanup.deprecation_inventory_sync_guard` in both config files (`development_tools/config/development_tools_config.json` and `.example`).
     - Updated legacy-workflow guidance/docs to require inventory updates (`ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md`, [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)).
   - Inventory-aware legacy tooling:

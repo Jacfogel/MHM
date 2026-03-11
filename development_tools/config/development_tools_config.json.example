@@ -395,7 +395,7 @@
   },
   "legacy_cleanup": {
     "_comment": "Legacy reference cleanup patterns and settings. Customize for your project's legacy code patterns.",
-    "deprecation_inventory_file": "development_tools/config/DEPRECATION_INVENTORY.json",
+    "deprecation_inventory_file": "development_tools/config/jsons/DEPRECATION_INVENTORY.json",
     "deprecation_inventory_sync_guard": {
       "_comment": "Optional guard: fail legacy analysis/audit when deprecation-like changes are made without updating the inventory file.",
       "enabled": true,

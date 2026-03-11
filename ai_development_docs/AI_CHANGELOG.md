@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-11 - Test runner: full-run reliability, phase-failure reporting, skip/deselect targets **Progressed**
+- **Full run without spurious interrupts:** `--full` now implies `--ignore-sigint` so `python run_tests.py --full` completes; added `--no-ignore-sigint` to override. Reverted auto `MHM_QT_UI_FORCE=1` on Windows so Qt UI tests that crash (e.g. CheckinSettingsWidget access violation) stay skipped by default.
+- **Combined summary reflects phase crashes:** When a phase exits non-zero (e.g. access violation) but JUnit has 0 failed/errors, the summary now shows at least 1 error and a `[PHASE FAILED]` line so the run is not reported as success.
+- **Deselected and skip targets:** Combined summary "Deselected" now only counts tests deselected in both parallel and serial (excluded from entire run). TEST_PLAN.md: added program-level success criterion for at most 1 skipped test; elevated spurious SIGINT to high priority with investigate → fix → clean up workarounds (§4.2, §5.6.1).
+- **Docs:** TESTING_GUIDE.md updated (full-run command, expected skips, Start-Process/external terminal). TEST_PLAN.md last-updated and success criteria refreshed.
+
 ### 2026-03-05 - Test suite: notebook import fix + Qt UI Windows skip + debug script **Progressed**
 - Fixed notebook import in pytest: project root is now forced to the front of `sys.path` in `tests/conftest.py` (remove then insert) so pytest's prepend of the test dir no longer hides top-level packages.
 - Isolated two Qt UI test modules that crash with access violation on some Windows PCs: skipped on Windows by default, overridable with `MHM_QT_UI_FORCE=1`; set `QT_OPENGL=software` on Windows in conftest to reduce GPU-related crashes.
@@ -42,7 +48,7 @@ Guidelines:
 - Fixed GitHub `Tooling Policy Consistency` workflow dependency setup by installing `python-dotenv` with `pytest` in `.github/workflows/logging-enforcement.yml`.
 
 ### 2026-03-05 - Legacy inventory governance + compatibility cleanup **Progressed**
-- Established canonical deprecation inventory governance via `development_tools/config/DEPRECATION_INVENTORY.json`, wired config/docs to it, and added legacy-analysis sync-guard enforcement for deprecation-like changes without inventory updates.
+- Established canonical deprecation inventory governance via `development_tools/config/jsons/DEPRECATION_INVENTORY.json`, wired config/docs to it, and added legacy-analysis sync-guard enforcement for deprecation-like changes without inventory updates.
 - Integrated inventory-aware legacy tooling: analyzer now injects active/candidate inventory terms into scans, and `LEGACY_REFERENCE_REPORT.md` now includes a dedicated inventory summary block with counts/hits.
 - Removed deprecated compatibility paths (`--update-plan` coverage flag plumbing and `_consolidate_and_cleanup_main_logs` no-op placeholder), updated related tests, and moved both corresponding inventory items to `removed` (`2026-03-05`).
 - Session wrap-up included full diff review + planning/doc sync and regenerated outputs (legacy report, coverage report, AI status/priorities, consolidated report); legacy backlog reduced to active bridge/retire-candidate items only.

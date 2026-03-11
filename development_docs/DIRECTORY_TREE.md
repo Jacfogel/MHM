@@ -216,7 +216,6 @@ C:.
 |   +---config
 |   |   |   analyze_config.py
 |   |   |   config.py
-|   |   |   DEPRECATION_INVENTORY.json
 |   |   |   development_tools_config.json
 |   |   |   development_tools_config.json.example
 |   |   |   pyrightconfig.json
@@ -225,7 +224,7 @@ C:.
 |   |   |   __init__.py
 |   |   |   
 |   |   +---jsons
-    (JSON files created by development tools)
+    (JSON files created by development tools, e.g. DEPRECATION_INVENTORY.json)
 |   +---docs
 |   |   |   analyze_ascii_compliance.py
 |   |   |   analyze_documentation.py

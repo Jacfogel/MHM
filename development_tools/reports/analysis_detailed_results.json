@@ -31361,7 +31361,7 @@
           "legacy_markers": 12,
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
           "deprecation_inventory": {
-            "inventory_path": "development_tools/config/DEPRECATION_INVENTORY.json",
+            "inventory_path": "development_tools/config/jsons/DEPRECATION_INVENTORY.json",
             "exists": true,
             "loaded": true,
             "error": null,
@@ -31372,7 +31372,7 @@
           },
           "deprecation_inventory_sync": {
             "enabled": true,
-            "inventory_path": "development_tools/config/DEPRECATION_INVENTORY.json",
+            "inventory_path": "development_tools/config/jsons/DEPRECATION_INVENTORY.json",
             "inventory_updated": false,
             "git_available": false,
             "check_passed": true,

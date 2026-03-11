@@ -5,7 +5,7 @@
 > **Status**: **IN PROGRESS**  
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
-> **Last Updated**: 2026-03-04 (coverage expansion follow-up + refreshed domain baselines)
+> **Last Updated**: 2026-03-11 (spurious SIGINT elevated to high priority; investigate/fix/cleanup documented)
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -153,7 +153,21 @@ Order reflects what matters most for day-to-day development: reliability first, 
 3. **Coverage** — higher overall coverage; tests as checks that critical paths aren't broken. (Not AI/context until AI overhaul.)
 4. **Throughput** — faster runs desired, but not at the cost of stability; keep no-parallel markers if needed for reliability.
 
-### 4.2 Program-level success criteria
+### 4.2 High-priority open work
+
+**Spurious SIGINT during test runs (high priority)**  
+Investigate where SIGINTs are coming from during `run_tests.py` / `run_tests.py --full` (user is not pressing Ctrl+C; interrupts appear from IDE/terminal or environment). Then fix the root cause and clean up the workarounds and references so the harness does not rely on them long-term.
+
+- **Investigate:** Identify the true signal source (keyboard vs parent-process forwarding vs subprocess lifecycle vs external hooks; Windows Console Quick Edit, Cursor terminal, or other).
+- **Fix:** Address the root cause so spurious SIGINTs stop being delivered to the runner or pytest subprocess.
+- **Clean up:** After root cause is fixed, remove or simplify workarounds and references:
+  - `run_tests.py`: `--ignore-sigint`, `--no-ignore-sigint`, `--full`-implies-ignore-sigint; `MHM_TEST_SIGINT_TO_STOP` and the 3-SIGINT grace-window logic; startup tip text about spurious interrupts.
+  - `tests/TESTING_GUIDE.md`: spurious-interrupt tip, "Expected skips" / run-from-external-terminal text that references SIGINT workarounds.
+  - Any other docs or env vars that exist only to work around spurious SIGINT.
+
+Until this is done, workarounds remain in place so full runs can complete; once the source is fixed, they should be removed to avoid confusion and dead code.
+
+### 4.3 Program-level success criteria
 
 - [ ] Tier-3 parallel track reaches clean state on consecutive reruns.
 - [ ] No recurring `tool hash missing ... cache metadata` invalidation messages on unchanged consecutive audits.
@@ -161,6 +175,8 @@ Order reflects what matters most for day-to-day development: reliability first, 
 - [ ] Production logs remain clean of test-run traffic in test-tool execution.
 - [ ] No-parallel markers reduced only when stability is preserved; keep markers if needed for reliability.
 - [ ] Coverage growth in priority domains (communication, check-in flow, backup, UI); deprioritize AI/context until AI overhaul.
+- [ ] **Spurious SIGINT:** Root cause identified and fixed; workarounds and references cleaned up (see §4.2 and §5.6.1).
+- [ ] **Skip count target:** Full suite (`run_tests.py` / `run_tests.py --full`) reports **at most 1 skipped test** (single intentional skip, e.g. POSIX-only `test_prepare_launch_environment_includes_posix_bin` on Windows).
 
 ---
 
@@ -358,16 +374,37 @@ Acceptance:
 - [ ] Active queue contains only reproducible/high-confidence suspects.
 - [ ] Each open suspect has explicit repro metadata.
 
-**Investigate recurring SIGINT events during `run_tests.py --full` (Development Tools parallel phase)**
-- *What it means*: Identify the true signal source for repeated SIGINT events that appear during dev-tools parallel execution and verify whether they originate from keyboard input, parent-process forwarding, subprocess lifecycle handling, or external environment/process hooks.
-- *Why it helps*: Prevents false interruption behavior, reduces test-run noise, and increases trust in full-suite outcomes.
-- *Estimated effort*: Medium
-- *User priority*: High/medium. *Created*: 2026-03-03
-- *Subtasks*:
-  - [ ] Instrument signal origin breadcrumbs in `run_tests.py` (phase, active subprocess PID, elapsed time, first/second-interrupt window state)
-  - [ ] Correlate runner logs with Windows event/process context for the first observed SIGINT
-  - [ ] Confirm whether repeated SIGINTs are environmental noise or runner-generated propagation
-  - [ ] If non-user-generated, add guardrails so single noisy SIGINT remains non-blocking and does not degrade summary accuracy
+### 5.6.1 Spurious SIGINT: root-cause investigation and workaround cleanup **(high priority)**
+
+**Use / fit**: See §4.2. User does not press Ctrl+C; SIGINTs appear during test runs (e.g. Cursor/terminal or environment). Workarounds are in place so runs can complete; goal is to find and fix the source, then remove workarounds.
+
+Status: **OPEN** (high priority)
+
+- *What it means*: Identify where SIGINTs are coming from (IDE, terminal, Windows Console Quick Edit, parent-process forwarding, subprocess lifecycle, or other). Fix the root cause so spurious SIGINTs stop. Then clean up all workarounds and references.
+- *Why it helps*: Eliminates false interruption behavior, removes test-run noise, and avoids long-term reliance on `--ignore-sigint` / 3-SIGINT logic / tip text.
+- *Priority*: **High**. *Created*: 2026-03-03. *Updated*: 2026-03-11 (elevated; cleanup scope added).
+
+**Subtasks (in order):**
+
+1. **Investigate**
+   - [ ] Instrument signal origin breadcrumbs in `run_tests.py` (phase, active subprocess PID, elapsed time, first/second-interrupt window state).
+   - [ ] Correlate runner logs with Windows event/process context for the first observed SIGINT.
+   - [ ] Confirm whether SIGINTs are environmental (IDE/terminal/Quick Edit) vs runner-generated propagation.
+   - [ ] Document findings (where signal originates; repro steps if any).
+
+2. **Fix**
+   - [ ] Address root cause (e.g. disable Quick Edit in runner context, fix process-group/signal forwarding, or fix IDE/terminal integration so it does not send SIGINT when user is not pressing Ctrl+C).
+
+3. **Clean up workarounds and references**
+   - [ ] `run_tests.py`: Remove or simplify `--ignore-sigint`, `--no-ignore-sigint`, `--full`-implies-ignore-sigint; `MHM_TEST_SIGINT_TO_STOP` and 3-SIGINT grace-window logic; startup tip about spurious interrupts.
+   - [ ] `tests/TESTING_GUIDE.md`: Remove or shorten spurious-interrupt tip and any "run from external terminal" / "Expected skips" text that exists only for SIGINT workarounds.
+   - [ ] Any other docs or env vars that exist solely for this workaround; update or remove.
+
+Acceptance:
+- [ ] Root cause documented and fixed; spurious SIGINTs no longer occur in normal runs.
+- [ ] Workarounds and references listed above removed or reduced to minimal fallback (with clear comment that they are legacy/optional).
+
+---
 
 **Stabilize intermittent `test_tool_wrappers_cache_helpers` failure**
 - *What it means*: Investigate and fix the intermittent failure in `tests/development_tools/test_tool_wrappers_cache_helpers.py` observed during full Tier 3/dev-tools coverage runs.

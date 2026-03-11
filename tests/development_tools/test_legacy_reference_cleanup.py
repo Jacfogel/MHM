@@ -246,7 +246,7 @@ class TestDeprecationInventoryIntegration:
     def test_analyzer_uses_inventory_terms(self, temp_project_copy):
         """Analyzer should inject active/candidate inventory search terms."""
         inventory_path = (
-            temp_project_copy / "development_tools" / "config" / "DEPRECATION_INVENTORY.json"
+            temp_project_copy / "development_tools" / "config" / "jsons" / "DEPRECATION_INVENTORY.json"
         )
         inventory_path.parent.mkdir(parents=True, exist_ok=True)
         inventory_path.write_text(
@@ -272,8 +272,14 @@ class TestDeprecationInventoryIntegration:
             encoding="utf-8",
         )
 
-        analyzer = LegacyReferenceAnalyzer(str(temp_project_copy), use_cache=False)
-        findings = analyzer.scan_for_legacy_references()
+        # Force analyzer to use temp project's inventory (main project config may use absolute path)
+        legacy_cleanup = {"deprecation_inventory_file": "development_tools/config/jsons/DEPRECATION_INVENTORY.json"}
+        config_mod = analyzer_module.config  # package re-exports from .config
+        orig_get = config_mod.get_external_value
+        with patch.object(config_mod, "get_external_value") as mock_get:
+            mock_get.side_effect = lambda key, default=None: legacy_cleanup if key == "legacy_cleanup" else orig_get(key, default)
+            analyzer = LegacyReferenceAnalyzer(str(temp_project_copy), use_cache=False)
+            findings = analyzer.scan_for_legacy_references()
 
         assert "deprecation_inventory_terms" in findings
         files = [file_path for file_path, _, _ in findings["deprecation_inventory_terms"]]

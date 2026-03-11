@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 # TOOL_TIER: supporting
 
-"""Generate root .ruff.toml from shared development-tools exclusions."""
+"""Generate root .ruff.toml from shared development-tools exclusions.
+
+ruff.toml is fully generated: when development_tools_config.json is absent,
+exclusions come only from standard_exclusions.py (non-project-specific).
+When config exists, get_exclusions() may add project-specific patterns.
+Run: python -m development_tools.config.sync_ruff_toml [--project-root .]
+"""
 
 from __future__ import annotations
 

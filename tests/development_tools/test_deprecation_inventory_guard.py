@@ -33,7 +33,7 @@ def test_inventory_guard_fails_when_deprecation_like_changes_without_inventory_u
     tmp_path, monkeypatch
 ):
     """Guard should fail when trigger changes exist but inventory file is not updated."""
-    inventory_path = tmp_path / "development_tools" / "config" / "DEPRECATION_INVENTORY.json"
+    inventory_path = tmp_path / "development_tools" / "config" / "jsons" / "DEPRECATION_INVENTORY.json"
     inventory_path.parent.mkdir(parents=True, exist_ok=True)
     inventory_path.write_text('{"active_or_candidate_inventory": [], "removed_inventory": []}', encoding="utf-8")
 
@@ -52,7 +52,7 @@ def test_inventory_guard_fails_when_deprecation_like_changes_without_inventory_u
 
     service = _DummyService(tmp_path)
     result = service._check_deprecation_inventory_sync(
-        "development_tools/config/DEPRECATION_INVENTORY.json"
+        "development_tools/config/jsons/DEPRECATION_INVENTORY.json"
     )
 
     assert result["check_passed"] is False
@@ -67,7 +67,7 @@ def test_inventory_guard_fails_when_deprecation_like_changes_without_inventory_u
 @pytest.mark.unit
 def test_inventory_guard_passes_when_inventory_file_is_updated(tmp_path, monkeypatch):
     """Guard should pass when inventory file is part of the same change set."""
-    inventory_path = tmp_path / "development_tools" / "config" / "DEPRECATION_INVENTORY.json"
+    inventory_path = tmp_path / "development_tools" / "config" / "jsons" / "DEPRECATION_INVENTORY.json"
     inventory_path.parent.mkdir(parents=True, exist_ok=True)
     inventory_path.write_text('{"active_or_candidate_inventory": [], "removed_inventory": []}', encoding="utf-8")
 
@@ -79,7 +79,7 @@ def test_inventory_guard_passes_when_inventory_file_is_updated(tmp_path, monkeyp
         if cmd[:3] == ["git", "status", "--porcelain"]:
             return _completed(
                 stdout=(
-                    " M development_tools/config/DEPRECATION_INVENTORY.json\n"
+                    " M development_tools/config/jsons/DEPRECATION_INVENTORY.json\n"
                     " M core/sample.py\n"
                 )
             )
@@ -91,7 +91,7 @@ def test_inventory_guard_passes_when_inventory_file_is_updated(tmp_path, monkeyp
 
     service = _DummyService(tmp_path)
     result = service._check_deprecation_inventory_sync(
-        "development_tools/config/DEPRECATION_INVENTORY.json"
+        "development_tools/config/jsons/DEPRECATION_INVENTORY.json"
     )
 
     assert result["check_passed"] is True
@@ -102,7 +102,7 @@ def test_inventory_guard_passes_when_inventory_file_is_updated(tmp_path, monkeyp
 @pytest.mark.unit
 def test_inventory_guard_ignores_test_files(tmp_path, monkeypatch):
     """Guard should ignore test-file changes even when trigger keywords are present."""
-    inventory_path = tmp_path / "development_tools" / "config" / "DEPRECATION_INVENTORY.json"
+    inventory_path = tmp_path / "development_tools" / "config" / "jsons" / "DEPRECATION_INVENTORY.json"
     inventory_path.parent.mkdir(parents=True, exist_ok=True)
     inventory_path.write_text('{"active_or_candidate_inventory": [], "removed_inventory": []}', encoding="utf-8")
 
@@ -121,7 +121,7 @@ def test_inventory_guard_ignores_test_files(tmp_path, monkeypatch):
 
     service = _DummyService(tmp_path)
     result = service._check_deprecation_inventory_sync(
-        "development_tools/config/DEPRECATION_INVENTORY.json"
+        "development_tools/config/jsons/DEPRECATION_INVENTORY.json"
     )
 
     assert result["check_passed"] is True
@@ -133,7 +133,7 @@ def test_inventory_guard_ignores_test_files(tmp_path, monkeypatch):
 @pytest.mark.unit
 def test_inventory_guard_ignores_generated_reports(tmp_path, monkeypatch):
     """Guard should ignore configured generated report files."""
-    inventory_path = tmp_path / "development_tools" / "config" / "DEPRECATION_INVENTORY.json"
+    inventory_path = tmp_path / "development_tools" / "config" / "jsons" / "DEPRECATION_INVENTORY.json"
     inventory_path.parent.mkdir(parents=True, exist_ok=True)
     inventory_path.write_text('{"active_or_candidate_inventory": [], "removed_inventory": []}', encoding="utf-8")
 
@@ -152,7 +152,7 @@ def test_inventory_guard_ignores_generated_reports(tmp_path, monkeypatch):
 
     service = _DummyService(tmp_path)
     result = service._check_deprecation_inventory_sync(
-        "development_tools/config/DEPRECATION_INVENTORY.json"
+        "development_tools/config/jsons/DEPRECATION_INVENTORY.json"
     )
 
     assert result["check_passed"] is True

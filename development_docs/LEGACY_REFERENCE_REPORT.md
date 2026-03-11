@@ -18,7 +18,7 @@
 3. Only after migration is verified, remove legacy markers/comments/docs evidence and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.
 
 ## Deprecation Inventory
-- Inventory file: `development_tools/config/DEPRECATION_INVENTORY.json`
+- Inventory file: `development_tools/config/jsons/DEPRECATION_INVENTORY.json`
 - Active/candidate entries: 4
 - Removed entries: 21
 - Active search terms: 14

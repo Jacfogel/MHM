@@ -154,7 +154,7 @@ class LegacyReferenceAnalyzer:
         """Resolve deprecation inventory path from config or default."""
         configured = legacy_config.get(
             "deprecation_inventory_file",
-            "development_tools/config/DEPRECATION_INVENTORY.json",
+            "development_tools/config/jsons/DEPRECATION_INVENTORY.json",
         )
         inventory_path = Path(configured)
         if not inventory_path.is_absolute():

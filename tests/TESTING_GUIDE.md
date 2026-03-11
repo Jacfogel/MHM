@@ -265,10 +265,10 @@ Common commands:
   `tests/unit/`, `tests/integration/`, `tests/behavior/`, `tests/ui/`,
   `tests/core/`, `tests/communication/`, and `tests/notebook/`.
 
-- Run core suites plus `tests/development_tools/` in **two phases** (core, then development_tools; same as audit --full; excludes e.g. `tests/ai/`):
+- Run core suites plus `tests/development_tools/` in **two phases** (core, then development_tools; same as audit --full; excludes e.g. `tests/ai/`). SIGINT is ignored by default for this run so it completes without spurious interrupts:
 
   ```bash
-  python run_tests.py --mode all --full
+  python run_tests.py --full
   ```
 
 - Run only development tools tests (`tests/development_tools/`):
@@ -345,8 +345,33 @@ Typical options:
 - `--no-pause-lm-studio` (LM Studio pause is enabled by default for run_tests.py modes).
 - `--no-post-failure-rerun` (detailed rerun is enabled by default; auto-skipped when failures exceed `--post-failure-rerun-max`).
 - `--post-failure-rerun-max N` and `--post-failure-rerun-attempts N` for rerun scope control.
+- `--ignore-sigint` — Ignore SIGINT/SIGTERM for the run (avoids spurious stops from IDE/terminal; stop by closing the terminal or killing the process).
 
 Prefer `python run_tests.py` over calling pytest directly when you want "normal" local or CI runs.
+
+**Spurious interrupts (Windows/IDE):** If tests stop with `[INTERRUPT]` when you did not press Ctrl+C, run with `--ignore-sigint`. When using `--full`, SIGINT is ignored by default so the long run completes; use `--no-ignore-sigint` to allow Ctrl+C to stop a full run.
+
+```bash
+python run_tests.py --full
+```
+
+**Running from an external terminal:** Open Windows Terminal or PowerShell, go to the project directory, activate the venv, then run the same commands (e.g. `python run_tests.py --full` or `python run_tests.py --ignore-sigint`). Example:
+
+```powershell
+cd C:\Users\<you>\MHM
+.\.venv\Scripts\Activate.ps1
+python run_tests.py --full
+```
+
+**Using Start-Process (PowerShell):** To run tests in the same window with correct working directory and venv, use `-WorkingDirectory` and the venv's Python:
+
+```powershell
+Start-Process -NoNewWindow -FilePath ".\.venv\Scripts\python.exe" -ArgumentList "-m","run_tests","--mode","development_tools" -WorkingDirectory "C:\Users\<you>\MHM" -Wait
+```
+
+Without `-WorkingDirectory` and venv `-FilePath`, pytest may collect 0 tests.
+
+**Expected skips (Windows):** Some Qt UI tests skip on Windows unless `MHM_QT_UI_FORCE=1` (they can trigger access violations in offscreen/OpenGL on some setups). One intentional skip: `tests/core/test_python_interpreter_selection.py::test_prepare_launch_environment_includes_posix_bin` (POSIX-only). To list skip reasons: `pytest ... -rs`.
 
 ### 4.3. Using pytest directly
 

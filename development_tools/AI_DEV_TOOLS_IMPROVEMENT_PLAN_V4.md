@@ -757,7 +757,7 @@ These are surfaced by the tools and remain outstanding but are not tool-suite ch
 - **Refactor critical-complexity functions**: (a) Actively work down, but not high priority.
 
 - [ ] Retire remaining legacy reference markers (currently 7 files, 12 markers); update references and rerun `legacy`
-- [ ] Work down active/candidate deprecation inventory items in `development_tools/config/DEPRECATION_INVENTORY.json`:
+- [ ] Work down active/candidate deprecation inventory items in `development_tools/config/jsons/DEPRECATION_INVENTORY.json`:
   - `legacy_timestamp_parsing`
   - `backup_zip_compat_bridge`
   - `tier3_coverage_outcome_compat_bridge`

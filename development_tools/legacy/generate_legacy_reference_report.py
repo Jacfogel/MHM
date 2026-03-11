@@ -60,7 +60,7 @@ class LegacyReferenceReportGenerator:
 
     def _load_deprecation_inventory_summary(self) -> dict[str, Any]:
         """Load basic metadata from the canonical deprecation inventory JSON."""
-        inventory_rel_path = "development_tools/config/DEPRECATION_INVENTORY.json"
+        inventory_rel_path = "development_tools/config/jsons/DEPRECATION_INVENTORY.json"
         inventory_path = self.project_root / inventory_rel_path
         summary: dict[str, Any] = {
             "path": inventory_rel_path,
@@ -273,7 +273,7 @@ class LegacyReferenceReportGenerator:
         report_lines.append("## Deprecation Inventory")
         if inventory_summary.get("loaded"):
             report_lines.append(
-                f"- Inventory file: `{inventory_summary.get('path', 'development_tools/config/DEPRECATION_INVENTORY.json')}`"
+                f"- Inventory file: `{inventory_summary.get('path', 'development_tools/config/jsons/DEPRECATION_INVENTORY.json')}`"
             )
             report_lines.append(
                 f"- Active/candidate entries: {inventory_summary.get('active_or_candidate_entries', 0)}"
@@ -294,10 +294,10 @@ class LegacyReferenceReportGenerator:
             )
         else:
             report_lines.append(
-                f"- Inventory file missing or unreadable: `{inventory_summary.get('path', 'development_tools/config/DEPRECATION_INVENTORY.json')}`"
+                f"- Inventory file missing or unreadable: `{inventory_summary.get('path', 'development_tools/config/jsons/DEPRECATION_INVENTORY.json')}`"
             )
             report_lines.append(
-                "- Action: create/fix `development_tools/config/DEPRECATION_INVENTORY.json` so legacy scans and retirement tracking stay aligned."
+                "- Action: create/fix `development_tools/config/jsons/DEPRECATION_INVENTORY.json` so legacy scans and retirement tracking stay aligned."
             )
         report_lines.append("")
 

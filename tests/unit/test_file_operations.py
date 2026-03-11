@@ -577,6 +577,8 @@ class TestFileOperationsEdgeCases:
     @pytest.mark.integration
     @pytest.mark.file_io
     @pytest.mark.critical
+    # no_parallel: shared test_data_dir and file I/O lifecycle; avoid parallel fs races
+    @pytest.mark.no_parallel
     def test_file_operations_lifecycle(self, test_data_dir, mock_config):
         """Test complete file operations lifecycle using centralized utilities."""
         from tests.test_utilities import TestUserDataFactory
@@ -665,8 +667,11 @@ class TestFileOperationsEdgeCases:
         )
         
         result = save_json_data(test_preferences_data, preferences_file_path)
-        assert result is True
-        
+        assert result is True, (
+            f"save_json_data should succeed for {preferences_file_path}; "
+            "check path length, permissions, and that mock_config (test_data_dir) is active."
+        )
+
         # [OK] VERIFY REAL BEHAVIOR: Check multiple files can coexist
         assert os.path.exists(account_file_path), f"Account file should still exist: {account_file_path}"
         assert os.path.exists(preferences_file_path), f"Preferences file should be created: {preferences_file_path}"

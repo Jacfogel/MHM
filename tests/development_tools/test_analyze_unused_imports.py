@@ -331,10 +331,11 @@ class TestBackendSelection:
     """Test backend selection and fallback behavior."""
 
     @pytest.mark.unit
+    @patch.object(UnusedImportsChecker, "_detect_backend", return_value="ruff")
     @patch.object(UnusedImportsChecker, "_run_batched_ruff")
     @patch.object(UnusedImportsChecker, "_run_batched_pylint")
     def test_detection_falls_back_to_pylint(
-        self, mock_pylint, mock_ruff, tmp_path
+        self, mock_pylint, mock_ruff, _mock_detect, tmp_path
     ):
         file1 = tmp_path / "a.py"
         file1.write_text("import os")

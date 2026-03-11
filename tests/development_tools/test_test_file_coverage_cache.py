@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import stat
+import sys
 import time
 import uuid
-import json
 from pathlib import Path
+
+# Ensure project root is on path so development_tools.tests is importable when run
+# from tests/development_tools/ (e.g. serial no_parallel phase with rootdir elsewhere).
+_proj = Path(__file__).resolve().parent.parent.parent
+_proj_str = os.path.normpath(os.path.abspath(str(_proj)))
+sys.path.insert(0, _proj_str)
 
 import pytest
 

@@ -72,6 +72,8 @@ _interrupt_grace_window_seconds = 3.0
 _last_interrupt_time = 0.0
 _interrupt_count = 0
 _soft_interrupt_events: list[str] = []
+# Number of SIGINTs within grace window required to force stop (avoids spurious stops from e.g. Windows Quick Edit)
+_interrupt_required_count = int(os.environ.get("MHM_TEST_SIGINT_TO_STOP", "3"))
 
 # Console output retention policy (AI_BACKUP_GUIDE.md / BACKUP_GUIDE.md)
 CONSOLE_OUTPUT_KEEP_LAST = 7
@@ -274,11 +276,13 @@ def interrupt_handler(signum, frame):
         else:
             _interrupt_count = 1
         _last_interrupt_time = now_ts
-        if _interrupt_count == 1:
+        if _interrupt_count < _interrupt_required_count:
+            remaining = _interrupt_required_count - _interrupt_count
+            more = "another" if remaining == 1 else f"{remaining} more"
             notice = (
                 f"Received interrupt signal ({signal_name}) while tests are running; "
-                "treating as soft interrupt and continuing. "
-                "Send another interrupt within 3s to force stop."
+                f"treating as soft interrupt and continuing. "
+                f"Send {more} interrupt(s) within {int(_interrupt_grace_window_seconds)}s to force stop."
             )
             _soft_interrupt_events.append(notice)
             print(f"\n\n{YELLOW}[INTERRUPT]{RESET} {notice}")
@@ -1556,6 +1560,7 @@ def run_command(
     post_failure_rerun_max: int = 10,
     post_failure_rerun_attempts: int = 1,
     run_id: str = "",
+    ignore_sigint: bool = False,
 ):
     """
     Run a command and return results with periodic progress logs.
@@ -1588,19 +1593,27 @@ def run_command(
         / f"pytest_console_output_{now_timestamp_filename()}.txt"
     )
 
-    # Register signal handlers for graceful shutdown
-    @handle_errors("signal handler", default_return=None)
-    def signal_handler(signum, frame):
-        interrupt_handler(signum, frame)
+    # Register signal handlers for graceful shutdown (or ignore SIGINT if requested)
+    if ignore_sigint:
+        if hasattr(signal, "SIGINT"):
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+        if hasattr(signal, "SIGTERM"):
+            try:
+                signal.signal(signal.SIGTERM, signal.SIG_IGN)
+            except (ValueError, OSError):
+                pass
+    else:
+        @handle_errors("signal handler", default_return=None)
+        def signal_handler(signum, frame):
+            interrupt_handler(signum, frame)
 
-    # Register handlers (Windows supports SIGINT, SIGTERM may not be available)
-    if hasattr(signal, "SIGINT"):
-        signal.signal(signal.SIGINT, signal_handler)
-    if hasattr(signal, "SIGTERM"):
-        try:
-            signal.signal(signal.SIGTERM, signal_handler)
-        except (ValueError, OSError):
-            pass  # SIGTERM not available on Windows
+        if hasattr(signal, "SIGINT"):
+            signal.signal(signal.SIGINT, signal_handler)
+        if hasattr(signal, "SIGTERM"):
+            try:
+                signal.signal(signal.SIGTERM, signal_handler)
+            except (ValueError, OSError):
+                pass  # SIGTERM not available on Windows
 
     phase_divider = "-" * 80
     print(f"\n{phase_divider}\nRunning: {description}...\n{phase_divider}")
@@ -2397,12 +2410,29 @@ def print_combined_summary(
         else {}
     )
 
-    # Combine results. In split mode, serial deselected counts are internal
-    # implementation detail from the no_parallel marker pass and should not
-    # inflate top-level suite deselection stats.
-    combined_deselected = parallel_res.get("deselected", 0)
-    if not (no_parallel_results and isinstance(no_parallel_results, dict)):
-        combined_deselected += no_parallel_res.get("deselected", 0)
+    # Deselected: only count tests that were deselected in both parallel and serial
+    # (i.e. excluded from the entire run). Parallel deselects no_parallel; serial
+    # deselects non-no_parallel; so "deselected in both" = total - parallel_run - serial_run.
+    if no_parallel_results and isinstance(no_parallel_results, dict):
+        p_run = (
+            parallel_res.get("passed", 0)
+            + parallel_res.get("failed", 0)
+            + parallel_res.get("skipped", 0)
+            + parallel_res.get("errors", 0)
+        )
+        s_run = (
+            no_parallel_res.get("passed", 0)
+            + no_parallel_res.get("failed", 0)
+            + no_parallel_res.get("skipped", 0)
+            + no_parallel_res.get("errors", 0)
+        )
+        p_deselected = parallel_res.get("deselected", 0)
+        # total = p_run + p_deselected = s_run + s_deselected => deselected in both = p_deselected - s_run
+        combined_deselected = max(0, p_deselected - s_run)
+    else:
+        combined_deselected = parallel_res.get("deselected", 0) + no_parallel_res.get(
+            "deselected", 0
+        )
 
     combined = {
         "passed": parallel_res.get("passed", 0) + no_parallel_res.get("passed", 0),
@@ -2421,6 +2451,12 @@ def print_combined_summary(
         if (no_parallel_results and isinstance(no_parallel_results, dict))
         else (p_errors + s_errors)
     )
+    # If a phase failed (e.g. crash) but did not record failed/errors in XML, show at least 1 error
+    # so the summary is not misleading (e.g. access violation kills process before pytest writes results).
+    parallel_ok = parallel_results and isinstance(parallel_results, dict) and parallel_results.get("success", True)
+    serial_ok = no_parallel_results and isinstance(no_parallel_results, dict) and no_parallel_results.get("success", True)
+    if (not parallel_ok or not serial_ok) and combined.get("errors", 0) == 0 and combined.get("failed", 0) == 0:
+        combined["errors"] = 1
     combined["total"] = (
         combined["passed"]
         + combined["failed"]
@@ -2576,6 +2612,10 @@ def print_combined_summary(
     print(f"  Skipped:      {combined['skipped']}")
     print(f"  Deselected:   {combined['deselected']}")
     print(f"  Warnings:     {combined['warnings']}")
+    if not parallel_ok or not serial_ok:
+        print(
+            f"\n  {RED}[PHASE FAILED]{RESET} One or more phases exited with an error (crash or non-zero exit). See [FAILED] / [CRASH] messages above."
+        )
 
     # Set up logger for duration logging
     test_logger = setup_test_logger()
@@ -3133,6 +3173,18 @@ def main():
         help="Do not pause LM Studio during test runs",
     )
     parser.add_argument(
+        "--ignore-sigint",
+        dest="ignore_sigint",
+        action="store_true",
+        help="Ignore SIGINT during test run (avoids spurious stops from terminal/IDE). Stop by closing terminal or killing process.",
+    )
+    parser.add_argument(
+        "--no-ignore-sigint",
+        dest="no_ignore_sigint",
+        action="store_true",
+        help="Do not ignore SIGINT even when using --full (default: --full enables ignore-sigint).",
+    )
+    parser.add_argument(
         "--post-failure-rerun",
         action="store_true",
         default=True,
@@ -3158,6 +3210,10 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # --full implies --ignore-sigint so long runs complete without spurious IDE/terminal SIGINT
+    if getattr(args, "full", False) and not getattr(args, "no_ignore_sigint", False):
+        args.ignore_sigint = True
 
     # Set resource warnings flag
     global _resource_warnings_enabled
@@ -3460,6 +3516,12 @@ def main():
     print("MHM Test Runner")
     print(f"{'='*80}")
     print(f"  Mode: {args.mode} | Suite: {description}")
+    if sys.platform == "win32":
+        print(
+            "  Tip: Spurious [INTERRUPT] (no Ctrl+C)? Use --ignore-sigint to ignore SIGINT for this run."
+        )
+    if args.ignore_sigint:
+        print("  SIGINT/SIGTERM ignored for this run (stop by closing terminal or killing process).")
     parallel_status = "No (serial only)"
     if not args.no_parallel:
         parallel_status = (
@@ -3582,6 +3644,7 @@ def main():
                     post_failure_rerun_max=args.post_failure_rerun_max,
                     post_failure_rerun_attempts=args.post_failure_rerun_attempts,
                     run_id=run_id,
+                    ignore_sigint=args.ignore_sigint,
                 )
                 _merge_run_results(agg_parallel, pr)
                 if not pr["success"]:
@@ -3655,6 +3718,7 @@ def main():
                         post_failure_rerun_max=args.post_failure_rerun_max,
                         post_failure_rerun_attempts=args.post_failure_rerun_attempts,
                         run_id=run_id,
+                        ignore_sigint=args.ignore_sigint,
                     )
                     _merge_run_results(agg_no_parallel, npr)
                     if not npr["success"]:
@@ -3674,6 +3738,7 @@ def main():
                 post_failure_rerun_max=args.post_failure_rerun_max,
                 post_failure_rerun_attempts=args.post_failure_rerun_attempts,
                 run_id=run_id,
+                ignore_sigint=args.ignore_sigint,
             )
             success = parallel_results["success"]
 
@@ -3761,6 +3826,7 @@ def main():
                     post_failure_rerun_max=args.post_failure_rerun_max,
                     post_failure_rerun_attempts=args.post_failure_rerun_attempts,
                     run_id=run_id,
+                    ignore_sigint=args.ignore_sigint,
                 )
                 no_parallel_success = no_parallel_results["success"]
 
