@@ -33,6 +33,15 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-11 - Spurious SIGINT double-tap, doc consolidation, scripts move
+- **Feature/Fix**: User can stop the test run with Ctrl+C again: single SIGINT is ignored (spurious), two within 2 seconds stop the run. Spurious SIGINT investigation is consolidated into TEST_PLAN; tracing scripts moved to `scripts/`; TESTING_GUIDE references corrected.
+- **Technical Changes**:
+  - **run_tests.py**: Interrupt handler now uses double-tap logic: first SIGINT sets `_last_sigint_time` and prints location + "Press Ctrl+C again within 2s to stop"; second SIGINT within `_SIGINT_DOUBLE_TAP_SECONDS` (2.0s) sets `_interrupt_requested` and exits. Reset `_last_sigint_time` at start of each `run_command` phase.
+  - **Scripts moved**: `development_docs/run_trace_consolectrl.ps1`, `run_trace_consolectrl.py`, `trace_consolectrl.js` moved to `scripts/`; paths inside the scripts updated to `scripts/`.
+  - **development_docs/SPURIOUS_SIGINT_INVESTIGATION.md**: Removed. Content condensed into **development_docs/TEST_PLAN.md** §4.2 and §5.6.1 (current behavior, why interrupts happen, optional Frida tracing with `scripts\run_trace_consolectrl.ps1` / `scripts\run_trace_consolectrl.py <PID>`).
+  - **tests/TESTING_GUIDE.md**: Removed references to non-existent `scripts/SCRIPTS_GUIDE.md` and `scripts/cleanup_windows_tasks.py`; made §9.3/§9.4 conditional on presence of `scripts/testing/`; added "Stopping a run" note (double-tap Ctrl+C, pointer to TEST_PLAN §5.6.1).
+- **Impact**: Intentional stop via Ctrl+C works (double-tap); spurious SIGINT no longer stops the run; single source of truth for spurious SIGINT is TEST_PLAN; optional tracing lives under `scripts/`; TESTING_GUIDE no longer points to missing files.
+
 ### 2026-03-11 - Test runner: full-run reliability, phase-failure reporting, deselected/skip targets
 - **Feature/Fix**: Full-run reliability (SIGINT handling, no auto Qt force on Windows), combined summary accuracy for phase crashes and deselected counts, and TEST_PLAN targets for skip count and spurious SIGINT cleanup.
 - **Technical Changes**:

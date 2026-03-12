@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-11 - Spurious SIGINT double-tap, doc consolidation, scripts move **COMPLETED**
+- **Double-tap Ctrl+C to stop:** Single SIGINT is ignored (avoids spurious stops); press Ctrl+C again within 2s to stop the run. Implemented in `run_tests.py` interrupt handler.
+- **Doc consolidation:** Deleted `development_docs/SPURIOUS_SIGINT_INVESTIGATION.md`; content folded into TEST_PLAN.md §4.2 and §5.6.1. TESTING_GUIDE.md: fixed references to non-existent scripts (SCRIPTS_GUIDE, cleanup_windows_tasks, scripts/testing/*); added "Stopping a run" (double-tap) and pointer to TEST_PLAN.
+- **Scripts move:** `run_trace_consolectrl.ps1`, `run_trace_consolectrl.py`, `trace_consolectrl.js` moved from `development_docs/` to `scripts/`; all call sites and docs updated.
+
 ### 2026-03-11 - Test runner: full-run reliability, phase-failure reporting, skip/deselect targets **Progressed**
 - **Full run without spurious interrupts:** `--full` now implies `--ignore-sigint` so `python run_tests.py --full` completes; added `--no-ignore-sigint` to override. Reverted auto `MHM_QT_UI_FORCE=1` on Windows so Qt UI tests that crash (e.g. CheckinSettingsWidget access violation) stay skipped by default.
 - **Combined summary reflects phase crashes:** When a phase exits non-zero (e.g. access violation) but JUnit has 0 failed/errors, the summary now shows at least 1 error and a `[PHASE FAILED]` line so the run is not reported as success.

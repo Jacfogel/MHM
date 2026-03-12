@@ -34,14 +34,13 @@ except ImportError:
     psutil = None
 
 # Simple ANSI color codes for terminal output (works in modern PowerShell)
-# Enable ANSI color support in Windows
 if sys.platform == "win32":
-    import ctypes
-
-    kernel32 = ctypes.windll.kernel32
-    kernel32.SetConsoleMode(
-        kernel32.GetStdHandle(-11), 7
-    )  # Enable ANSI escape sequences
+    try:
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)  # STD_OUTPUT_HANDLE: enable ANSI
+    except Exception:
+        pass
 
 GREEN = "\033[32m"
 RED = "\033[31m"
@@ -52,6 +51,8 @@ ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 # Global state for interrupt handling
 _interrupt_requested = False
+_last_sigint_time: Optional[float] = None  # for double-tap Ctrl+C to really stop
+_SIGINT_DOUBLE_TAP_SECONDS = 2.0
 _current_process = None
 _current_junit_xml = None
 _partial_results_file = Path("tests/logs/partial_results.json")
@@ -68,12 +69,6 @@ _current_console_output_file: Optional[Path] = None
 
 # Global variable to store current test context
 _current_test_context = None
-_interrupt_grace_window_seconds = 3.0
-_last_interrupt_time = 0.0
-_interrupt_count = 0
-_soft_interrupt_events: list[str] = []
-# Number of SIGINTs within grace window required to force stop (avoids spurious stops from e.g. Windows Quick Edit)
-_interrupt_required_count = int(os.environ.get("MHM_TEST_SIGINT_TO_STOP", "3"))
 
 # Console output retention policy (AI_BACKUP_GUIDE.md / BACKUP_GUIDE.md)
 CONSOLE_OUTPUT_KEEP_LAST = 7
@@ -259,114 +254,46 @@ def cleanup_orphaned_pytest_processes():
         return killed_count
 
 
+def _approximate_test_from_captured_output(captured_lines: list) -> Optional[str]:
+    """From pytest captured output, return the last line that looks like a test/progress (for SIGINT logging)."""
+    if not captured_lines:
+        return None
+    # Look at last lines for something like "tests\...\test_foo.py .... [ 27%]" or "test_foo.py::test_bar"
+    for line in reversed(captured_lines[-50:]):
+        s = (line if isinstance(line, str) else "").strip()
+        if not s:
+            continue
+        # Pytest progress: path with .py and dots or percent
+        if ".py" in s and ("[" in s or "::" in s):
+            # Strip ANSI and take first meaningful part (path or path::test)
+            s_clean = ANSI_ESCAPE_RE.sub("", s)
+            return s_clean.strip() or None
+    return None
+
+
 @handle_errors("handling interrupt signal", user_friendly=False, default_return=None)
 def interrupt_handler(signum, frame):
-    """Handle interrupt signals (Ctrl+C) gracefully."""
-    global _interrupt_requested, _captured_output_lines, _current_test_context
-    global _last_interrupt_time, _interrupt_count, _soft_interrupt_events
+    """Handle interrupt signals (Ctrl+C). Single SIGINT is ignored (spurious); two within 2s stops the run."""
+    global _interrupt_requested, _captured_output_lines, _current_test_context, _last_sigint_time
+    now = time.time()
+    if _last_sigint_time is not None and (now - _last_sigint_time) <= _SIGINT_DOUBLE_TAP_SECONDS:
+        _interrupt_requested = True
+        _last_sigint_time = None
+        print(f"\n{YELLOW}[INTERRUPT]{RESET} Second Ctrl+C within 2s - stopping run.")
+        return
+    _last_sigint_time = now
     try:
         signal_name = signal.Signals(signum).name
     except Exception:
         signal_name = f"UNKNOWN({signum})"
-    now_ts = time.time()
-    process_running = _current_process is not None and _current_process.poll() is None
-    if process_running:
-        if now_ts - _last_interrupt_time <= _interrupt_grace_window_seconds:
-            _interrupt_count += 1
-        else:
-            _interrupt_count = 1
-        _last_interrupt_time = now_ts
-        if _interrupt_count < _interrupt_required_count:
-            remaining = _interrupt_required_count - _interrupt_count
-            more = "another" if remaining == 1 else f"{remaining} more"
-            notice = (
-                f"Received interrupt signal ({signal_name}) while tests are running; "
-                f"treating as soft interrupt and continuing. "
-                f"Send {more} interrupt(s) within {int(_interrupt_grace_window_seconds)}s to force stop."
-            )
-            _soft_interrupt_events.append(notice)
-            print(f"\n\n{YELLOW}[INTERRUPT]{RESET} {notice}")
-            return
-    _interrupt_requested = True
+    location = _approximate_test_from_captured_output(_captured_output_lines)
+    location_str = location if location else "unknown (no progress line captured)"
     print(
-        f"\n\n{YELLOW}[INTERRUPT]{RESET} Received interrupt signal ({signal_name}) - saving partial results..."
+        f"\n{YELLOW}[SIGINT]{RESET} Received {signal_name} - ignoring. "
+        f"Approximate location: {location_str}. "
+        f"Press Ctrl+C again within {int(_SIGINT_DOUBLE_TAP_SECONDS)}s to stop the run."
     )
-
-    # Collect any available output before saving
-    output_text = "".join(_captured_output_lines) if _captured_output_lines else None
-
-    # Save partial results if available (will try XML first, then output text)
-    if _current_junit_xml:
-        save_partial_results(
-            _current_junit_xml,
-            interrupted=True,
-            output_text=output_text,
-            test_context=_current_test_context,
-        )
-
-    # Also save captured output for worker test assignment extraction (even on interrupt)
-    _persist_captured_output()
-
-    # Terminate current process and all child processes (especially pytest-xdist workers)
-    if _current_process and _current_process.poll() is None:
-        print(
-            f"{YELLOW}[INTERRUPT]{RESET} Terminating test process and all worker processes..."
-        )
-        try:
-            # On Windows, we need to kill the entire process tree to get pytest-xdist workers
-            if sys.platform == "win32":
-                kill_process_tree_windows(_current_process.pid)
-            else:
-                # On Unix, terminate sends signal to process group
-                _current_process.terminate()
-        except Exception as e:
-            print(f"{YELLOW}[WARNING]{RESET} Error during process termination: {e}")
-            # Fallback to regular terminate
-            try:
-                _current_process.terminate()
-            except Exception:
-                pass
-
-        # Wait up to 5 seconds for graceful shutdown
-        shutdown_start = time.time()
-        while _current_process.poll() is None and (time.time() - shutdown_start) < 5:
-            time.sleep(0.1)
-        if _current_process.poll() is None:
-            print(
-                f"{YELLOW}[INTERRUPT]{RESET} Process did not terminate, force killing process tree..."
-            )
-            # Force kill the entire process tree
-            if sys.platform == "win32":
-                kill_process_tree_windows(_current_process.pid)
-            else:
-                _current_process.kill()
-
-        # Always check for orphaned processes after termination
-        if sys.platform == "win32":
-            # Small delay to allow processes to fully terminate
-            time.sleep(0.5)
-            orphaned_count = cleanup_orphaned_pytest_processes()
-            if orphaned_count == 0:
-                print(
-                    f"{GREEN}[CLEANUP]{RESET} Verified: No orphaned processes remaining"
-                )
-
-        # CRITICAL: Consolidate worker logs even after interrupt
-        # When process is forcefully terminated, pytest_sessionfinish may not run
-        # So we need to consolidate worker logs manually
-        try:
-            # Import consolidation function
-            sys.path.insert(0, str(Path(__file__).parent))
-            from tests.test_support.conftest_hooks import _consolidate_worker_logs
-
-            print(f"{GREEN}[CLEANUP]{RESET} Consolidating worker log files...")
-            _consolidate_worker_logs()
-            print(f"{GREEN}[CLEANUP]{RESET} Worker log consolidation complete")
-        except Exception as e:
-            print(
-                f"{YELLOW}[CLEANUP]{RESET} Could not consolidate worker logs automatically: {e}"
-            )
-            print(f"{YELLOW}[CLEANUP]{RESET} Worker logs may remain unconsolidated")
+    return
 
 
 @handle_errors("monitoring system resources", user_friendly=False, default_return={})
@@ -1560,7 +1487,6 @@ def run_command(
     post_failure_rerun_max: int = 10,
     post_failure_rerun_attempts: int = 1,
     run_id: str = "",
-    ignore_sigint: bool = False,
 ):
     """
     Run a command and return results with periodic progress logs.
@@ -1575,17 +1501,11 @@ def run_command(
     Returns:
         dict with 'success', 'output', 'results', 'duration', 'warnings', 'failures' keys
     """
-    global _interrupt_requested, _current_process, _current_junit_xml, _last_output_time, _captured_output_lines, _current_test_context, _current_console_output_file
-    global _last_interrupt_time, _interrupt_count, _soft_interrupt_events
+    global _interrupt_requested, _current_process, _current_junit_xml, _last_output_time, _captured_output_lines, _current_test_context, _current_console_output_file, _last_sigint_time
 
-    # Store test context globally for interrupt handler
     _current_test_context = test_context
-
-    # Reset interrupt flag and captured output
     _interrupt_requested = False
-    _last_interrupt_time = 0.0
-    _interrupt_count = 0
-    _soft_interrupt_events = []
+    _last_sigint_time = None
     _last_output_time = None
     _captured_output_lines = []
     _current_console_output_file = (
@@ -1593,27 +1513,17 @@ def run_command(
         / f"pytest_console_output_{now_timestamp_filename()}.txt"
     )
 
-    # Register signal handlers for graceful shutdown (or ignore SIGINT if requested)
-    if ignore_sigint:
-        if hasattr(signal, "SIGINT"):
-            signal.signal(signal.SIGINT, signal.SIG_IGN)
-        if hasattr(signal, "SIGTERM"):
-            try:
-                signal.signal(signal.SIGTERM, signal.SIG_IGN)
-            except (ValueError, OSError):
-                pass
-    else:
-        @handle_errors("signal handler", default_return=None)
-        def signal_handler(signum, frame):
-            interrupt_handler(signum, frame)
+    @handle_errors("signal handler", default_return=None)
+    def signal_handler(signum, frame):
+        interrupt_handler(signum, frame)
 
-        if hasattr(signal, "SIGINT"):
-            signal.signal(signal.SIGINT, signal_handler)
-        if hasattr(signal, "SIGTERM"):
-            try:
-                signal.signal(signal.SIGTERM, signal_handler)
-            except (ValueError, OSError):
-                pass  # SIGTERM not available on Windows
+    if hasattr(signal, "SIGINT"):
+        signal.signal(signal.SIGINT, signal_handler)
+    if hasattr(signal, "SIGTERM"):
+        try:
+            signal.signal(signal.SIGTERM, signal_handler)
+        except (ValueError, OSError):
+            pass  # SIGTERM not available on Windows
 
     phase_divider = "-" * 80
     print(f"\n{phase_divider}\nRunning: {description}...\n{phase_divider}")
@@ -1635,10 +1545,13 @@ def run_command(
         # Generate JUnit XML report for parsing (doesn't affect colors)
         cmd_with_junit = cmd + ["--junit-xml", junit_xml_path]
 
-        # Ensure pytest keeps ANSI colors even though we're piping output
+        # Ensure pytest keeps ANSI colors even though we're piping output (unless disabled for spurious SIGINT workaround)
         contains_color_flag = any(opt.startswith("--color") for opt in cmd_with_junit)
         if not contains_color_flag:
-            cmd_with_junit.append("--color=yes")
+            if os.environ.get("MHM_TEST_NO_COLOR") == "1":
+                cmd_with_junit.append("--color=no")  # bypass colorama to reduce spurious SIGINT on Windows
+            else:
+                cmd_with_junit.append("--color=yes")
 
         # Capture output to parse warnings, but also write to terminal to preserve colors
         # Use a pipe that we can read from AND write to terminal
@@ -2222,9 +2135,6 @@ def run_command(
             save_partial_results(
                 junit_xml_path, interrupted=False, test_context=_current_test_context
             )
-
-        if _soft_interrupt_events:
-            critical_events.extend(_soft_interrupt_events)
 
         # Return dict with all information
         return {
@@ -3173,18 +3083,6 @@ def main():
         help="Do not pause LM Studio during test runs",
     )
     parser.add_argument(
-        "--ignore-sigint",
-        dest="ignore_sigint",
-        action="store_true",
-        help="Ignore SIGINT during test run (avoids spurious stops from terminal/IDE). Stop by closing terminal or killing process.",
-    )
-    parser.add_argument(
-        "--no-ignore-sigint",
-        dest="no_ignore_sigint",
-        action="store_true",
-        help="Do not ignore SIGINT even when using --full (default: --full enables ignore-sigint).",
-    )
-    parser.add_argument(
         "--post-failure-rerun",
         action="store_true",
         default=True,
@@ -3210,10 +3108,6 @@ def main():
     )
 
     args = parser.parse_args()
-
-    # --full implies --ignore-sigint so long runs complete without spurious IDE/terminal SIGINT
-    if getattr(args, "full", False) and not getattr(args, "no_ignore_sigint", False):
-        args.ignore_sigint = True
 
     # Set resource warnings flag
     global _resource_warnings_enabled
@@ -3516,12 +3410,6 @@ def main():
     print("MHM Test Runner")
     print(f"{'='*80}")
     print(f"  Mode: {args.mode} | Suite: {description}")
-    if sys.platform == "win32":
-        print(
-            "  Tip: Spurious [INTERRUPT] (no Ctrl+C)? Use --ignore-sigint to ignore SIGINT for this run."
-        )
-    if args.ignore_sigint:
-        print("  SIGINT/SIGTERM ignored for this run (stop by closing terminal or killing process).")
     parallel_status = "No (serial only)"
     if not args.no_parallel:
         parallel_status = (
@@ -3541,7 +3429,6 @@ def main():
         print(f"  Workers: {worker_selection_note}")
     print(f"  Python: {sys.version.split()[0]} | Platform: {sys.platform}")
     print(f"  Random Seed: {seed_summary}")
-
     # Build test context for partial results
     try:
         import pytest
@@ -3644,7 +3531,6 @@ def main():
                     post_failure_rerun_max=args.post_failure_rerun_max,
                     post_failure_rerun_attempts=args.post_failure_rerun_attempts,
                     run_id=run_id,
-                    ignore_sigint=args.ignore_sigint,
                 )
                 _merge_run_results(agg_parallel, pr)
                 if not pr["success"]:
@@ -3718,7 +3604,6 @@ def main():
                         post_failure_rerun_max=args.post_failure_rerun_max,
                         post_failure_rerun_attempts=args.post_failure_rerun_attempts,
                         run_id=run_id,
-                        ignore_sigint=args.ignore_sigint,
                     )
                     _merge_run_results(agg_no_parallel, npr)
                     if not npr["success"]:
@@ -3738,7 +3623,6 @@ def main():
                 post_failure_rerun_max=args.post_failure_rerun_max,
                 post_failure_rerun_attempts=args.post_failure_rerun_attempts,
                 run_id=run_id,
-                ignore_sigint=args.ignore_sigint,
             )
             success = parallel_results["success"]
 
@@ -3826,7 +3710,6 @@ def main():
                     post_failure_rerun_max=args.post_failure_rerun_max,
                     post_failure_rerun_attempts=args.post_failure_rerun_attempts,
                     run_id=run_id,
-                    ignore_sigint=args.ignore_sigint,
                 )
                 no_parallel_success = no_parallel_results["success"]
 

@@ -193,7 +193,7 @@ Typical patterns:
 - Do not call `schtasks` or similar Windows commands directly from tests.
 - Use isolation utilities (for example, an `IsolationManager` or similar helper in `tests/test_isolation.py`) for tests that interact with system-like APIs.
 
-If the Windows Task Scheduler becomes polluted during development (for example, from manual experiments), use the dedicated cleanup scripts under `scripts/` (see `scripts/SCRIPTS_GUIDE.md` for details, especially `scripts/cleanup_windows_tasks.py`).
+If the Windows Task Scheduler becomes polluted during development (for example, from manual experiments), use system tools or manual cleanup; project-specific cleanup scripts may live under `scripts/` if present.
 
 ### 3.5. Test Logging Isolation (Headline Rule)
 
@@ -265,7 +265,7 @@ Common commands:
   `tests/unit/`, `tests/integration/`, `tests/behavior/`, `tests/ui/`,
   `tests/core/`, `tests/communication/`, and `tests/notebook/`.
 
-- Run core suites plus `tests/development_tools/` in **two phases** (core, then development_tools; same as audit --full; excludes e.g. `tests/ai/`). SIGINT is ignored by default for this run so it completes without spurious interrupts:
+- Run core suites plus `tests/development_tools/` in **two phases** (core, then development_tools; same as audit --full; excludes e.g. `tests/ai/`):
 
   ```bash
   python run_tests.py --full
@@ -345,17 +345,12 @@ Typical options:
 - `--no-pause-lm-studio` (LM Studio pause is enabled by default for run_tests.py modes).
 - `--no-post-failure-rerun` (detailed rerun is enabled by default; auto-skipped when failures exceed `--post-failure-rerun-max`).
 - `--post-failure-rerun-max N` and `--post-failure-rerun-attempts N` for rerun scope control.
-- `--ignore-sigint` — Ignore SIGINT/SIGTERM for the run (avoids spurious stops from IDE/terminal; stop by closing the terminal or killing the process).
 
 Prefer `python run_tests.py` over calling pytest directly when you want "normal" local or CI runs.
 
-**Spurious interrupts (Windows/IDE):** If tests stop with `[INTERRUPT]` when you did not press Ctrl+C, run with `--ignore-sigint`. When using `--full`, SIGINT is ignored by default so the long run completes; use `--no-ignore-sigint` to allow Ctrl+C to stop a full run.
+**Stopping a run:** On Windows, spurious Ctrl+C (SIGINT) events can occur during test runs. The runner ignores a single SIGINT; to stop the run intentionally, press **Ctrl+C twice within 2 seconds**. See `development_docs/TEST_PLAN.md` §5.6.1 for details.
 
-```bash
-python run_tests.py --full
-```
-
-**Running from an external terminal:** Open Windows Terminal or PowerShell, go to the project directory, activate the venv, then run the same commands (e.g. `python run_tests.py --full` or `python run_tests.py --ignore-sigint`). Example:
+**Running from an external terminal:** Open Windows Terminal or PowerShell, go to the project directory, activate the venv, then run the same commands (e.g. `python run_tests.py --full`). Example:
 
 ```powershell
 cd C:\Users\<you>\MHM
@@ -844,7 +839,7 @@ The test suite includes several mitigations to manage memory:
 
 ### 9.3. Memory Profiling Tools
 
-To identify which tests are consuming excessive memory, use the memory profiler:
+If the repo includes `scripts/testing/memory_profiler.py`, you can use it to identify which tests consume excessive memory:
 
 ```powershell
 # Profile all tests
@@ -872,11 +867,11 @@ The profiler will:
 - **Samples**: Number of memory measurements taken
 - **Thresholds**: < 200 MB (normal), 200-500 MB (moderate), 500-1000 MB (high), > 1000 MB (very high)
 
-**Note:** The profiler automatically discovers and monitors pytest-xdist worker processes, providing accurate total memory usage (main + workers).
+**Note:** The profiler automatically discovers and monitors pytest-xdist worker processes, providing accurate total memory usage (main + workers). If `scripts/testing/` is not present, use standard OS or Python profiling tools.
 
 ### 9.4. Process Cleanup Verification
 
-To verify that process cleanup is working correctly after test runs:
+If the repo includes `scripts/testing/verify_process_cleanup.py`, use it to verify process cleanup after test runs:
 
 ```powershell
 # Check for orphaned pytest processes
