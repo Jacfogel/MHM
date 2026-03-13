@@ -5,7 +5,7 @@
 > **Status**: **IN PROGRESS**  
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
-> **Last Updated**: 2026-03-11 (task 5.6.1 Spurious SIGINT: consolidated into §5.6.1; tracing scripts moved to `scripts/`)
+> **Last Updated**: 2026-03-13 (Qt UI Windows skip refinement; Spurious SIGINT closed in §5.6.1)
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -168,6 +168,7 @@ During test runs, SIGINT can occur when the user did not press Ctrl+C (Windows c
 - [ ] Coverage growth in priority domains (communication, check-in flow, backup, UI); deprioritize AI/context until AI overhaul.
 - [x] **Spurious SIGINT:** Single SIGINT ignored; double-tap Ctrl+C to stop; runner handling simplified (see §4.2 and §5.6.1).
 - [ ] **Skip count target:** Full suite (`run_tests.py` / `run_tests.py --full`) reports **at most 1 skipped test** (single intentional skip, e.g. POSIX-only `test_prepare_launch_environment_includes_posix_bin` on Windows).
+- [ ] **Qt UI Windows skips reduced:** Investigate and fix `CheckinSettingsWidget` and `ScheduleEditorDialog` access violations on some Windows setups so Qt UI tests can run without Windows-only skips, gradually narrowing/removing `skip_qt_ui_on_windows` markers while preserving full-suite stability.
 
 ---
 

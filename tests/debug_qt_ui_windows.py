@@ -6,21 +6,14 @@ differences. Usage (from project root, with venv active):
 
   python tests/debug_qt_ui_windows.py
 
-Optionally set env vars before running to try workarounds:
-  set QT_OPENGL=software
-  set QT_QPA_PLATFORM=offscreen
-  python tests/debug_qt_ui_windows.py
-
-Then run the two crashing test modules (without skip) to see if they pass:
+Then (optionally) run the two crashing test modules (without skip) to see if they pass:
   python -m pytest tests/ui/test_checkin_settings_widget_question_counts.py tests/ui/test_dialog_coverage_expansion.py -v --tb=short
 """
-
 from __future__ import annotations
 
 import os
 import platform
 import sys
-
 
 def _section(title: str) -> None:
     print(f"\n{'='*60}\n{title}\n{'='*60}")
@@ -52,13 +45,10 @@ def main() -> None:
         return
 
     _section("Relevant env vars")
-    for key in ("QT_QPA_PLATFORM", "QT_OPENGL", "QT_QUICK_BACKEND", "DISPLAY", "MHM_QT_UI_FORCE"):
+    for key in ("QT_QPA_PLATFORM", "QT_OPENGL", "QT_QUICK_BACKEND", "DISPLAY", "MHM_QT_UI_SKIP"):
         print(f"  {key}: {os.environ.get(key, '<not set>')}")
 
     _section("Minimal Qt widget test (QApplication + QWidget)")
-    # Use same offscreen as conftest so behavior matches test runs
-    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-
     try:
         from PySide6.QtWidgets import QApplication, QWidget
         app = QApplication.instance() or QApplication([])

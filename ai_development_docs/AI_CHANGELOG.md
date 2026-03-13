@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-13 - Qt UI Windows skip refinement **Progressed**
+- Narrowed Windows-only Qt UI skips: centralized `skip_qt_ui_on_windows`, limited default skips to `CheckinSettingsWidget` and `ScheduleEditorDialog` behavior modules, and restructured dialog tests so non-problematic Qt dialogs still run on this PC.
+- Ensured full `python run_tests.py` suite passes here with focused 21-test skips while keeping the existing `MHM_QT_UI_FORCE` opt-in to run the previously unstable modules on machines where they succeed.
+- Updated `tests/debug_qt_ui_windows.py`, `tests/TESTING_GUIDE.md`, and `development_docs/TEST_PLAN.md` to document the current Windows Qt skip behavior and track follow-up work to reduce or remove these environment-driven skips.
+
 ### 2026-03-12 - Doc drift, Ruff clean, fixture metadata, module_deps fallback **COMPLETED**
 - **Documentation drift**: Fixed path references (sync_ruff_toml → development_tools/config/sync_ruff_toml.py in guides; TODO script paths reworded; memory_profiler refs softened in AI_TESTING_GUIDE and TESTING_GUIDE). Ran doc-fix (ASCII, headings, convert-links). Added fixture placeholders: AI_STATUS.md, AI_PRIORITIES.md in tests/fixtures/development_tools_demo; tests/ai/results/ai_functionality_test_results_latest.md so path drift and links resolve.
 - **Ruff**: Resolved all 6 issues (UP015, SIM105, UP045, F401 unused QTimer) in analyze_unused_imports.py, audit_signal_state.py, debug_qt_ui_windows.py; `ruff check .` passes.

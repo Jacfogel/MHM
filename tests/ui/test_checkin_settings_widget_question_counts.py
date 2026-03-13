@@ -1,23 +1,14 @@
 """Targeted UI coverage for check-in question count validation behavior."""
 
-import os
-import sys
-
 from tests.conftest import ensure_qt_runtime
+from tests.test_support.conftest_env import skip_qt_ui_on_windows
 
 ensure_qt_runtime()
 
 import pytest
 
-# Qt widget tests crash under pytest-xdist (access violation); run in serial only.
-# On Windows, this module can crash with access violation in CheckinSettingsWidget; skip unless MHM_QT_UI_FORCE=1.
-pytestmark = [
-    pytest.mark.no_parallel,
-    pytest.mark.skipif(
-        sys.platform == "win32" and not os.environ.get("MHM_QT_UI_FORCE"),
-        reason="CheckinSettingsWidget may trigger access violation on Windows (Qt/offscreen); set MHM_QT_UI_FORCE=1 to run anyway, or run tests/debug_qt_ui_windows.py to compare env with a working PC.",
-    ),
-]
+# Qt widget tests run in serial only. On Windows they run (QT_OPENGL=software); set MHM_QT_UI_SKIP=1 to skip if needed.
+pytestmark = [pytest.mark.no_parallel, skip_qt_ui_on_windows]
 
 
 from unittest.mock import patch

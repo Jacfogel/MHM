@@ -24,9 +24,9 @@ if _project_root in sys.path:
 sys.path.insert(0, _project_root)
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
-# On Windows, offscreen + default OpenGL can cause access violations on some GPU/driver combos; try software.
+# On Windows, force software OpenGL so Qt UI tests don't access-violate on some GPU/driver combos.
 if os.name == "nt":
-    os.environ.setdefault("QT_OPENGL", "software")
+    os.environ["QT_OPENGL"] = "software"
 # Set environment variable for consolidated logging very early, before any logging initialization
 # Allow override via environment variable for individual component logging
 os.environ["TEST_CONSOLIDATED_LOGGING"] = os.environ.get(

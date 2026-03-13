@@ -15,23 +15,17 @@ Real behavior testing approach:
 - Integration with core systems
 """
 import os
-import sys
 
 from tests.conftest import ensure_qt_runtime
+from tests.test_support.conftest_env import skip_qt_ui_on_windows
 
 ensure_qt_runtime()
 
 import pytest
 
-# Qt dialog tests can crash under pytest-xdist (access violation); run in serial only.
-# On Windows, ScheduleEditorDialog can trigger access violation; skip unless MHM_QT_UI_FORCE=1.
-pytestmark = [
-    pytest.mark.no_parallel,
-    pytest.mark.skipif(
-        sys.platform == "win32" and not os.environ.get("MHM_QT_UI_FORCE"),
-        reason="ScheduleEditorDialog may trigger access violation on Windows; set MHM_QT_UI_FORCE=1 to run anyway, or run tests/debug_qt_ui_windows.py to compare env with a working PC.",
-    ),
-]
+# Qt dialog tests run in serial only. ScheduleEditorDialog tests can access-violate on some Windows setups;
+# mark only that behavior class with skip_qt_ui_on_windows so other dialog tests still run.
+pytestmark = [pytest.mark.no_parallel]
 
 
 import pytest
@@ -60,6 +54,7 @@ def qapp():
     # Don't quit the app as it might be used by other tests
 
 
+@skip_qt_ui_on_windows
 class TestScheduleEditorDialogBehavior:
     """Test schedule editor dialog with real behavior verification."""
     

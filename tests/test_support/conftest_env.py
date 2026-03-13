@@ -5,8 +5,20 @@ Imports project_root from tests.conftest. Runs early; loaded first in pytest_plu
 """
 
 import os
+import sys
 import pytest
 from pathlib import Path
+
+# Skip Qt UI tests on Windows by default (access violation in CheckinSettingsWidget/ScheduleEditorDialog offscreen).
+# Set MHM_QT_UI_FORCE=1 to run them on machines where they pass (e.g. other Windows PCs).
+SKIP_QT_UI_WINDOWS_REASON = (
+    "Qt UI tests may trigger access violation on Windows; set MHM_QT_UI_FORCE=1 to run, "
+    "or run tests/debug_qt_ui_windows.py to compare env with a working PC."
+)
+skip_qt_ui_on_windows = pytest.mark.skipif(
+    sys.platform == "win32" and not os.environ.get("MHM_QT_UI_FORCE"),
+    reason=SKIP_QT_UI_WINDOWS_REASON,
+)
 
 from tests.conftest import project_root
 import contextlib

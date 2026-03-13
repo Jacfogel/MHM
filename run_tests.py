@@ -287,10 +287,13 @@ def interrupt_handler(signum, frame):
     except Exception:
         signal_name = f"UNKNOWN({signum})"
     location = _approximate_test_from_captured_output(_captured_output_lines)
-    location_str = location if location else "unknown (no progress line captured)"
+    location_part = (
+        f" Approximate location: {location}."
+        if location
+        else ""
+    )
     print(
-        f"\n{YELLOW}[SIGINT]{RESET} Received {signal_name} - ignoring. "
-        f"Approximate location: {location_str}. "
+        f"\n{YELLOW}[SIGINT]{RESET} Received {signal_name} - ignoring.{location_part} "
         f"Press Ctrl+C again within {int(_SIGINT_DOUBLE_TAP_SECONDS)}s to stop the run."
     )
     return
@@ -1436,6 +1439,8 @@ def build_windows_no_parallel_env() -> dict[str, str]:
     env_overrides: dict[str, str] = {
         # Avoid desktop/plugin initialization issues in headless test runs.
         "QT_QPA_PLATFORM": "offscreen",
+        # Force software OpenGL so Qt UI tests don't access-violate on some Windows GPU/driver combos.
+        "QT_OPENGL": "software",
     }
 
     # Ensure project root is importable (e.g. notebook package) when pytest subprocess runs.

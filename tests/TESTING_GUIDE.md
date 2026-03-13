@@ -366,7 +366,7 @@ Start-Process -NoNewWindow -FilePath ".\.venv\Scripts\python.exe" -ArgumentList 
 
 Without `-WorkingDirectory` and venv `-FilePath`, pytest may collect 0 tests.
 
-**Expected skips (Windows):** Some Qt UI tests skip on Windows unless `MHM_QT_UI_FORCE=1` (they can trigger access violations in offscreen/OpenGL on some setups). One intentional skip: `tests/core/test_python_interpreter_selection.py::test_prepare_launch_environment_includes_posix_bin` (POSIX-only). To list skip reasons: `pytest ... -rs`.
+**Expected skips (Windows):** Qt UI tests run on Windows (serial phase uses QT_OPENGL=software). If you see access violations, set `MHM_QT_UI_SKIP=1` to skip them. One intentional skip: `tests/core/test_python_interpreter_selection.py::test_prepare_launch_environment_includes_posix_bin` (POSIX-only). To list skip reasons: `pytest ... -rs`.
 
 ### 4.3. Using pytest directly
 

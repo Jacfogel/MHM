@@ -4,6 +4,7 @@
 """Checkin Settings Widget"""
 
 from PySide6.QtWidgets import (
+    QApplication,
     QWidget,
     QMessageBox,
     QCheckBox,
@@ -125,8 +126,8 @@ class CheckinSettingsWidget(QWidget):
         count_layout = QFormLayout(self.count_group)
         count_layout.setSpacing(8)
 
-        # Min questions spinbox
-        self.min_questions_spinbox = QSpinBox()
+        # Min questions spinbox (explicit parent for stable offscreen/Windows behavior)
+        self.min_questions_spinbox = QSpinBox(self.count_group)
         self.min_questions_spinbox.setMinimum(1)
         self.min_questions_spinbox.setMaximum(50)
         self.min_questions_spinbox.setValue(1)
@@ -134,9 +135,13 @@ class CheckinSettingsWidget(QWidget):
             "Minimum number of questions to ask per check-in. Must be at least the number of 'always include' questions (+1 if any 'sometimes' questions are enabled)."
         )
         count_layout.addRow("Minimum Questions:", self.min_questions_spinbox)
+        # Process events so offscreen/Windows platform can finish first control (avoids access violation on some setups).
+        app = QApplication.instance()
+        if app:
+            app.processEvents()
 
-        # Max questions spinbox
-        self.max_questions_spinbox = QSpinBox()
+        # Max questions spinbox (explicit parent can avoid offscreen/Windows layout crash when adding to form)
+        self.max_questions_spinbox = QSpinBox(self.count_group)
         self.max_questions_spinbox.setMinimum(1)
         self.max_questions_spinbox.setMaximum(50)
         self.max_questions_spinbox.setValue(8)
