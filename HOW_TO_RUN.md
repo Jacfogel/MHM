@@ -106,6 +106,15 @@ You can also run individual components directly if needed:
 ## 5. Important Notes
 
 - **Always activate your virtual environment** before running the app
+
+### 5.1 Development tools and full audit (optional)
+
+If you run the development tools full audit on this or another PC:
+
+- **Dependencies**: `pip install -r requirements.txt` installs everything needed, including `pytest-cov` for coverage. No extra steps are required.
+- **First run**: The backup health check reports "no backups" (skipped) until you create backups via the app; that is normal on a fresh install and does not fail the audit.
+- **Commands**: `python development_tools/run_development_tools.py audit --full` runs the full Tier 3 audit (tests + coverage + reports). See [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) for details.
+
 - **Never install dependencies globally** - this can cause conflicts
 - **If you see (.venv) in your terminal prompt**, you're using the virtual environment correctly
 - **To deactivate the virtual environment**, simply type `deactivate`
@@ -131,7 +140,14 @@ MHM expects a reasonably recent Python 3 version (for example 3.11). If you see 
 python --version
 ```
 
-### 6.5. Virtual environment not activating
+### 6.5. Development tools audit fails with "unrecognized arguments: --cov"
+The full audit needs `pytest-cov` for coverage. Install or refresh dependencies:
+```powershell
+pip install -r requirements.txt
+```
+Then run `python development_tools/run_development_tools.py audit --full` again.
+
+### 6.6. Virtual environment not activating
 If `.\.venv\Scripts\Activate.ps1` fails:
 - Make sure `.venv` exists in the project root
 - Check your PowerShell execution policy:

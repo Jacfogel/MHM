@@ -371,8 +371,8 @@ class TestIntegrationWithAnalysis:
 
 @pytest.mark.unit
 def test_main_logs_summary_in_non_json_mode(monkeypatch, temp_project_copy):
-    """main() should log report summary lines when not in --json mode."""
-    messages = []
+    """main() should log report path at INFO when not in --json mode; stats are at DEBUG."""
+    info_messages = []
 
     analysis_data = {
         "details": {
@@ -383,7 +383,7 @@ def test_main_logs_summary_in_non_json_mode(monkeypatch, temp_project_copy):
 
     monkeypatch.setattr(report_module, "load_tool_result", lambda *args, **kwargs: {"data": analysis_data})
     monkeypatch.setattr(report_module, "create_output_file", lambda *args, **kwargs: None)
-    monkeypatch.setattr(report_module.logger, "info", lambda message: messages.append(message))
+    monkeypatch.setattr(report_module.logger, "info", lambda message: info_messages.append(message))
     monkeypatch.setattr(
         report_module.sys,
         "argv",
@@ -399,7 +399,4 @@ def test_main_logs_summary_in_non_json_mode(monkeypatch, temp_project_copy):
     rc = report_module.main()
 
     assert rc == 0
-    assert any("Report saved to:" in message for message in messages)
-    assert any("Files scanned: 4" in message for message in messages)
-    assert any("Files with issues: 1" in message for message in messages)
-    assert any("Total unused imports: 2" in message for message in messages)
+    assert any("Report saved to:" in message for message in info_messages)

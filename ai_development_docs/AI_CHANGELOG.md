@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-12 - Audit interrupt reliability, DATA SOURCE warnings, cache merge **Progressed**
+- **Audit stop on intent only:** Second Ctrl+C was logging "stopping" but audit still completed. Now post-handler check returns exit 1 when stop was requested; Tier 3 polls `audit_sigint_requested()` and breaks/stops so the run actually ends. Spurious SIGINT (no user Ctrl+C) was stopping the audit on Windows; now **three** SIGINTs within 2s are required to stop, and worker KeyboardInterrupt no longer counts as a tap (`development_tools/shared/audit_signal_state.py`, `run_development_tools.py`, `audit_orchestration.py`).
+- **DATA SOURCE warnings removed:** `analyze_module_dependencies` and `config_validation_summary` no longer log "no data found" / "not found": (1) Tier 1 runs `run_analyze_config` and persists to cache/file so reports find config data; (2) `analyze_module_dependencies` stores standard format in `results_cache` for the loader; (3) `_load_config_validation_summary` tries results_cache → standardized storage → file; (4) `_reload_all_cache_data` merges disk into cache instead of clearing it, so in-memory results from the current run survive for report generation.
+- **Tests:** Audit orchestration interrupt tests updated (patch `audit_module.audit_signal_state.record_audit_keyboard_interrupt`, fake executor `shutdown`); `test_run_analyze_module_dependencies_builds_standard_summary` asserts cache `details` shape.
+
 ### 2026-03-11 - Spurious SIGINT double-tap, doc consolidation, scripts move **COMPLETED**
 - **Double-tap Ctrl+C to stop:** Single SIGINT is ignored (avoids spurious stops); press Ctrl+C again within 2s to stop the run. Implemented in `run_tests.py` interrupt handler.
 - **Doc consolidation:** Deleted `development_docs/SPURIOUS_SIGINT_INVESTIGATION.md`; content folded into TEST_PLAN.md §4.2 and §5.6.1. TESTING_GUIDE.md: fixed references to non-existent scripts (SCRIPTS_GUIDE, cleanup_windows_tasks, scripts/testing/*); added "Stopping a run" (double-tap) and pointer to TEST_PLAN.
@@ -117,23 +122,6 @@ Guidelines:
 - Fixed two active Tier 3 priority failures: `test_no_print_calls_in_tests` (ignore `tests/data/**` runtime artifacts) and `test_compute_source_signature_changes_when_source_changes` (content-aware source signature hashing).
 - Updated roadmap direction in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` to make tooling-consistency enforcement policy-test-first (`tests/development_tools/`) and explicitly keep it out of audit tiers for now.
 - Synced paired tool guides and validated key paths (`tooling-consistency --strict`, targeted pytest suites); regenerated standard dev-tools report artifacts during verification runs.
-
-### 2026-03-01 - Tier 3 coverage reliability + cache outcome normalization **Progressed**
-- Hardened Tier 3 coverage orchestration on Windows: reduced false interrupt/failure behavior, preserved finalization paths, and improved signal-noise handling in coverage completion loops.
-- Fixed cache-only regression where `run_test_coverage` could be marked `coverage_failed` when payload had `coverage_collected=true` but no `coverage_outcome`; added normalization + compatibility synthesis in `commands.py`.
-- Updated coverage runtime/config/docs alignment (dev-tools worker cap behavior, runtime config surfaces) and refreshed timing/reporting behavior including human-readable timestamps in `tool_timings.json`.
-- Added/updated targeted regression tests across audit strict/outcome, orchestration helpers, coverage helper paths, docs-lock workflow, and command-routing integration; remaining follow-up is intermittent `test_tool_wrappers_cache_helpers` flake under full Tier 3 context.
-
-### 2026-02-28 - Planning-doc user-priority Q&A completion **COMPLETED**
-- **NOTES_PLAN**: Use/fit; Show More first, search feedback second; edit sessions medium; AI deferred; ranked known issues.
-- **AI_DEV_TOOLS**: Use/fit; section priorities (stale-lock yes, Tier 3 legacy high, duplicate-function body high, CLI/exclusions high); retire-unapproved-docs complete; 7.8/7.9 duplicate lists + backup audit.
-- **TODO.md**: Planning Q&A done; AI deferred; headless/email fix soon; Script/sent_messages high; Use/fit header.
-
-### 2026-02-28 - Tier 3 stabilization + dev-tools helper-coverage continuation **Progressed**
-- Resolved the three Tier 3 failures from `AI_PRIORITIES.md` (`test_create_user_files_success` and two `test_data_loading_helpers` failures) and hardened those tests against module-aliasing and transient parallel filesystem timing issues.
-- Added targeted helper tests across `analyze_function_patterns`, `audit_orchestration`, `run_test_coverage`, `commands`, `data_loading`, `tool_wrappers`, and docs workflow paths; roadmap tracking updated in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` section `1.1`.
-- Validation highlights: Tier 3 targeted failures `3 passed` (including `-n 4`), continuation suites `28 passed` and `47 passed`, dev-tools suite `920 passed, 0 skipped`.
-- Dev-tools no-cache coverage progressed `58.1%` (`14906/25657`) -> `58.6%` (`15026/25657`) -> `59.3%` (`15224/25657`), with module gains including `audit_orchestration` `30%`, `run_test_coverage` `33%`, `data_loading` `56%`, `tool_wrappers` `49%`, and `commands` `39%`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -6,6 +6,7 @@
 import argparse
 import os
 import shutil
+import signal
 import sys
 import time
 from pathlib import Path
@@ -38,6 +39,7 @@ except ImportError as e:
 
 from core.logger import get_component_logger
 from development_tools.shared.lock_state import cleanup_lock_paths, evaluate_lock_set
+from development_tools.shared import audit_signal_state
 import contextlib
 
 logger = get_component_logger("development_tools")
@@ -365,7 +367,16 @@ def main(argv=None) -> int:
                 return 1
         service = AIToolsService(project_root=project_root, config_path=config_path)
         command = commands[command_name]
+        # Align with run_tests.py: first SIGINT ignored, second within 2s stops
+        if command_name in {"audit", "full-audit"}:
+            audit_signal_state.reset_audit_sigint_state()
+            if hasattr(signal, "SIGINT"):
+                signal.signal(signal.SIGINT, audit_signal_state.handle_audit_sigint)
         exit_code = command.handler(service, remaining_args)
+        # If user pressed second Ctrl+C (stop audit), treat as failure even if handler returned 0
+        if command_name in {"audit", "full-audit"} and exit_code == 0 and audit_signal_state.audit_sigint_requested():
+            logger.warning("Audit completed but user had requested stop (second Ctrl+C); returning failure.")
+            return 1
         return exit_code
     except KeyboardInterrupt:
         internal_flag = (
@@ -383,15 +394,16 @@ def main(argv=None) -> int:
                 print(
                     f"Interrupted audit; cleaned up {removed} audit/coverage lock file(s)."
                 )
-        if internal_interrupt:
-            logger.error(
-                "Execution hit KeyboardInterrupt after internal interrupt signature "
-                "was already detected; returning failure state instead of user-interrupt exit."
-            )
-            print(
-                "WARNING: Internal interrupt signature was detected earlier in this run. "
-                "Treating this as tool failure (exit code 1), not direct user interrupt."
-            )
+        if internal_interrupt or audit_signal_state.audit_sigint_requested():
+            if internal_interrupt:
+                logger.error(
+                    "Execution hit KeyboardInterrupt after internal interrupt signature "
+                    "was already detected; returning failure state instead of user-interrupt exit."
+                )
+                print(
+                    "WARNING: Internal interrupt signature was detected earlier in this run. "
+                    "Treating this as tool failure (exit code 1), not direct user interrupt."
+                )
             return 1
         logger.warning(
             "Execution interrupted by KeyboardInterrupt (SIGINT/console control event). "

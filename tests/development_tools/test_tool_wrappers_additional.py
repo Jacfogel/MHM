@@ -66,7 +66,8 @@ def test_run_analyze_module_dependencies_builds_standard_summary(
 
     assert result["data"]["summary"]["total_issues"] == 4
     assert result["issues_found"] is True
-    assert service.results_cache["analyze_module_dependencies"]["missing_dependencies"] == 2
+    # Cache stores standard format (summary/details) for report data loading
+    assert service.results_cache["analyze_module_dependencies"]["details"]["missing_dependencies"] == 2
 
 
 @pytest.mark.unit

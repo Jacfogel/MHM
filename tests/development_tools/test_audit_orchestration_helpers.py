@@ -216,6 +216,12 @@ def test_run_full_audit_tools_traps_keyboardinterrupt_from_worker_group(
     monkeypatch.setattr(service, "_run_tool_with_timing", _fake_run_tool_with_timing)
     monkeypatch.setattr(service, "_extract_key_info", lambda *_a, **_k: None)
     monkeypatch.setattr(service, "_record_tool_cache_metadata", lambda *_a, **_k: None)
+    # Patch the module reference used by orchestration so worker thread sees it
+    monkeypatch.setattr(
+        audit_module.audit_signal_state,
+        "record_audit_keyboard_interrupt",
+        lambda: True,
+    )
 
     result = service._run_full_audit_tools()
 
@@ -258,6 +264,9 @@ def test_run_full_audit_tools_traps_keyboardinterrupt_from_as_completed(
         def submit(self, _fn, _group):
             return _FakeFuture()
 
+        def shutdown(self, wait=True):
+            pass
+
     def _raise_interrupt(_futures):
         raise KeyboardInterrupt()
         yield  # pragma: no cover
@@ -266,6 +275,11 @@ def test_run_full_audit_tools_traps_keyboardinterrupt_from_as_completed(
         concurrent.futures, "ThreadPoolExecutor", _FakeExecutor, raising=True
     )
     monkeypatch.setattr(concurrent.futures, "as_completed", _raise_interrupt, raising=True)
+    monkeypatch.setattr(
+        audit_module.audit_signal_state,
+        "record_audit_keyboard_interrupt",
+        lambda: True,
+    )
 
     result = service._run_full_audit_tools()
 
@@ -308,6 +322,9 @@ def test_run_full_audit_tools_ignores_as_completed_interrupt_after_all_done(
 
         def submit(self, _fn, _group):
             return _DoneFuture()
+
+        def shutdown(self, wait=True):
+            pass
 
     def _raise_interrupt(_futures):
         raise KeyboardInterrupt()
@@ -365,6 +382,9 @@ def test_run_full_audit_tools_drains_done_futures_after_as_completed_interrupt(
 
         def submit(self, fn, group):
             return _FakeFuture(fn(group))
+
+        def shutdown(self, wait=True):
+            pass
 
     def _interrupt_after_first(futures):
         futures = list(futures)

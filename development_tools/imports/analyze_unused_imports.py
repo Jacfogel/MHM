@@ -24,6 +24,7 @@ import json
 import importlib.util
 import re
 import shutil
+import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -47,6 +48,57 @@ logger = get_component_logger("development_tools")
 
 # Load config at module level
 UNUSED_IMPORTS_CONFIG = config.get_unused_imports_config()
+
+
+def _run_subprocess_with_timeout(
+    cmd: list[str],
+    timeout_seconds: float,
+    cwd: str,
+) -> subprocess.CompletedProcess[str]:
+    """
+    Run a subprocess with timeout, using temp files for stdout/stderr.
+
+    Avoids Windows pipe deadlock where subprocess.run() can block indefinitely
+    after killing a timed-out child (see e.g. Python issue 88693).
+    """
+    out_path = None
+    err_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, suffix=".out", encoding="utf-8"
+        ) as out_f:
+            out_path = out_f.name
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, suffix=".err", encoding="utf-8"
+        ) as err_f:
+            err_path = err_f.name
+        with open(out_path, "w", encoding="utf-8") as out_f:
+            with open(err_path, "w", encoding="utf-8") as err_f:
+                proc = subprocess.Popen(
+                    cmd,
+                    stdout=out_f,
+                    stderr=err_f,
+                    text=True,
+                    cwd=cwd,
+                )
+        try:
+            proc.wait(timeout=timeout_seconds)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
+            raise
+        with open(out_path, "r", encoding="utf-8") as f:
+            stdout = f.read()
+        with open(err_path, "r", encoding="utf-8") as f:
+            stderr = f.read()
+        return subprocess.CompletedProcess(proc.args, proc.returncode, stdout, stderr)
+    finally:
+        for p in (out_path, err_path):
+            if p:
+                try:
+                    Path(p).unlink(missing_ok=True)
+                except Exception:
+                    pass
 
 
 class UnusedImportsChecker:
@@ -101,6 +153,10 @@ class UnusedImportsChecker:
             1, int(UNUSED_IMPORTS_CONFIG.get("pylint_batch_size", 25))
         )
         self.timeout_seconds = UNUSED_IMPORTS_CONFIG.get("timeout_seconds", 30)
+        self.max_total_scan_seconds = max(
+            60,
+            int(UNUSED_IMPORTS_CONFIG.get("max_total_scan_seconds", 900)),
+        )
         self.ignore_patterns = UNUSED_IMPORTS_CONFIG.get("ignore_patterns", [])
         self.type_stub_locations = UNUSED_IMPORTS_CONFIG.get("type_stub_locations", [])
 
@@ -154,6 +210,19 @@ class UnusedImportsChecker:
             "fallback_reason": "",
         }
         self._file_context_cache: dict[Path, tuple[list[str], str]] = {}
+        self._scan_start: float = 0.0
+
+    def _check_scan_deadline(self) -> None:
+        """Raise TimeoutError if total scan time exceeds max_total_scan_seconds."""
+        if self._scan_start <= 0:
+            return
+        elapsed = time.perf_counter() - self._scan_start
+        if elapsed > self.max_total_scan_seconds:
+            raise TimeoutError(
+                f"analyze_unused_imports exceeded max total scan time "
+                f"({self.max_total_scan_seconds}s) after {elapsed:.0f}s. "
+                "Increase unused_imports.max_total_scan_seconds in config or run with cache warm."
+            )
 
     def should_scan_file(self, file_path: Path) -> bool:
         """Determine if a file should be scanned."""
@@ -204,11 +273,9 @@ class UnusedImportsChecker:
             # Verify the exact command/interpreter pair can execute.
             try:
                 probe = resolved + ["--version"]
-                result = subprocess.run(
+                result = _run_subprocess_with_timeout(
                     probe,
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
+                    timeout_seconds=5,
                     cwd=str(self.project_root),
                 )
                 return result.returncode == 0
@@ -279,7 +346,14 @@ class UnusedImportsChecker:
     def _run_batched_ruff(self, files: list[Path]) -> dict[Path, list[dict[str, Any]]]:
         """Run ruff in file batches and return issues keyed by file path."""
         issues_by_file: dict[Path, list[dict[str, Any]]] = {fp: [] for fp in files}
-        for batch in self._chunk_files(files, chunk_size=self.batch_size):
+        chunks = self._chunk_files(files, chunk_size=self.batch_size)
+        for batch_idx, batch in enumerate(chunks):
+            self._check_scan_deadline()
+            if logger:
+                logger.debug(
+                    f"analyze_unused_imports: ruff batch {batch_idx + 1}/{len(chunks)} "
+                    f"({len(batch)} files)"
+                )
             cmd = self._resolve_python_command(self.ruff_command) + [
                 "check",
                 "--select",
@@ -288,18 +362,16 @@ class UnusedImportsChecker:
                 "json",
             ] + [str(fp) for fp in batch]
 
-            result = subprocess.run(
+            result = _run_subprocess_with_timeout(
                 cmd,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout_seconds,
+                timeout_seconds=self.timeout_seconds,
                 cwd=str(self.project_root),
             )
             if result.returncode not in (0, 1):
                 raise RuntimeError(
                     f"ruff execution failed (rc={result.returncode}): {result.stderr.strip()}"
                 )
-            stdout = result.stdout.strip()
+            stdout = result.stdout.strip() if result.stdout else ""
             if not stdout and result.returncode == 0:
                 continue
             if not stdout and result.returncode != 0:
@@ -322,7 +394,14 @@ class UnusedImportsChecker:
     def _run_batched_pylint(self, files: list[Path]) -> dict[Path, list[dict[str, Any]]]:
         """Run pylint in file batches and return issues keyed by file path."""
         issues_by_file: dict[Path, list[dict[str, Any]]] = {fp: [] for fp in files}
-        for batch in self._chunk_files(files, chunk_size=self.pylint_batch_size):
+        chunks = self._chunk_files(files, chunk_size=self.pylint_batch_size)
+        for batch_idx, batch in enumerate(chunks):
+            self._check_scan_deadline()
+            if logger:
+                logger.debug(
+                    f"analyze_unused_imports: pylint batch {batch_idx + 1}/{len(chunks)} "
+                    f"({len(batch)} files)"
+                )
             cmd = self._resolve_python_command(self.pylint_command) + [
                 "--disable=all",
                 "--enable=unused-import",
@@ -334,20 +413,18 @@ class UnusedImportsChecker:
                 int(self.timeout_seconds * max(1.0, len(batch) / 8.0)),
             )
 
-            result = subprocess.run(
+            result = _run_subprocess_with_timeout(
                 cmd,
-                capture_output=True,
-                text=True,
-                timeout=timeout_seconds,
+                timeout_seconds=timeout_seconds,
                 cwd=str(self.project_root),
             )
 
-            stdout = result.stdout.strip()
+            stdout = (result.stdout or "").strip()
             if not stdout and result.returncode == 0:
                 continue
             if not stdout and result.returncode != 0:
                 raise RuntimeError(
-                    f"pylint produced no JSON output (rc={result.returncode}): {result.stderr.strip()}"
+                    f"pylint produced no JSON output (rc={result.returncode}): {(result.stderr or '').strip()}"
                 )
             parsed = json.loads(stdout)
             if not isinstance(parsed, list):
@@ -423,11 +500,9 @@ class UnusedImportsChecker:
                 str(file_path),
             ]
 
-            result = subprocess.run(
+            result = _run_subprocess_with_timeout(
                 cmd,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout_seconds,
+                timeout_seconds=self.timeout_seconds,
                 cwd=str(self.project_root),
             )
 
@@ -1092,6 +1167,7 @@ class UnusedImportsChecker:
                 f"Starting unused imports scan (cache: {self.use_cache}, preferred backend: {self.preferred_backend})..."
             )
 
+        self._scan_start = time.perf_counter()
         start_discovery = time.perf_counter()
         python_files = self.find_python_files()
         discovery_seconds = time.perf_counter() - start_discovery

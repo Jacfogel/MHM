@@ -21,6 +21,7 @@ logger = get_component_logger("development_tools")
 from ..output_storage import save_tool_result, get_all_tool_results, load_tool_result
 from ..file_rotation import create_output_file
 from ..lock_state import cleanup_lock_paths, evaluate_lock_set, write_lock_metadata
+from .. import audit_signal_state
 
 # Module-level flag to track if ANY audit is in progress
 _AUDIT_IN_PROGRESS_GLOBAL = False
@@ -552,7 +553,7 @@ class AuditOrchestrationMixin:
         # Independent tools (<=2s)
         tier1_independent_tools = [
             ('analyze_documentation', lambda: self.run_analyze_documentation(include_overlap=getattr(self, '_include_overlap', False))),  # 0.21s
-            ('analyze_config', lambda: self.run_script('analyze_config')),  # 0.93s
+            ('analyze_config', self.run_analyze_config),  # 0.93s
             ('analyze_ai_work', self.run_validate),  # 0.95s
         ]
         
@@ -1160,17 +1161,23 @@ class AuditOrchestrationMixin:
                 """Run a group of tools sequentially and return results."""
                 group_results = {}
                 for tool_name, tool_func in group_tools:
+                    if audit_signal_state.audit_sigint_requested():
+                        raise KeyboardInterrupt()
                     try:
                         result, elapsed_time = self._run_tool_with_timing(tool_name, tool_func)
                         group_results[tool_name] = (result, elapsed_time)
                     except KeyboardInterrupt:
-                        # Treat propagated control events from subprocess trees as internal failures,
-                        # not direct user interrupts of the top-level audit command.
-                        self._internal_interrupt_detected = True
-                        logger.error(
-                            f"  - {tool_name} raised KeyboardInterrupt during Tier 3 group execution; "
-                            "recording tool failure and continuing audit finalization."
-                        )
+                        # Double-tap: first SIGINT/propagation ignored, second within 2s stops (align with run_tests.py)
+                        if audit_signal_state.record_audit_keyboard_interrupt():
+                            self._internal_interrupt_detected = True
+                            logger.error(
+                                f"  - {tool_name} raised KeyboardInterrupt during Tier 3 group execution; "
+                                "recording tool failure and continuing audit finalization."
+                            )
+                        else:
+                            logger.warning(
+                                "SIGINT received - ignoring. Press Ctrl+C again within 2s to stop the audit."
+                            )
                         group_results[tool_name] = (
                             {
                                 "success": False,
@@ -1224,67 +1231,85 @@ class AuditOrchestrationMixin:
 
             self._tier3_coverage_concurrent = True
             self._tier3_coverage_serialized = os.name == "nt"
+            executor = ThreadPoolExecutor(max_workers=len(tier3_parallel_groups))
             try:
-                with ThreadPoolExecutor(max_workers=len(tier3_parallel_groups)) as executor:
-                    future_to_group = {
-                        executor.submit(run_tool_group, group): i
-                        for i, group in enumerate(tier3_parallel_groups)
-                    }
-                    
-                    # Track when all parallel groups complete for accurate timing
-                    parallel_group_times = {}
-                    processed_futures = set()
-                    try:
-                        for future in as_completed(future_to_group):
-                            try:
-                                group_results = future.result()
-                            except KeyboardInterrupt:
+                future_to_group = {
+                    executor.submit(run_tool_group, group): i
+                    for i, group in enumerate(tier3_parallel_groups)
+                }
+
+                # Track when all parallel groups complete for accurate timing
+                parallel_group_times = {}
+                processed_futures = set()
+                try:
+                    for future in as_completed(future_to_group):
+                        try:
+                            group_results = future.result()
+                        except KeyboardInterrupt:
+                            if audit_signal_state.record_audit_keyboard_interrupt():
                                 self._internal_interrupt_detected = True
+                                if "tier3_parallel_execution" not in failed:
+                                    failed.append("tier3_parallel_execution")
                                 logger.error(
                                     "Tier 3 worker group future raised KeyboardInterrupt; "
                                     "continuing with failure state."
                                 )
+                            else:
+                                logger.warning(
+                                    "SIGINT received - ignoring. Press Ctrl+C again within 2s to stop the audit."
+                                )
+                            if audit_signal_state.audit_sigint_requested():
+                                self._internal_interrupt_detected = True
+                                if "tier3_parallel_execution" not in failed:
+                                    failed.append("tier3_parallel_execution")
+                                break
+                            continue
+                        processed_futures.add(future)
+                        group_end_time = time.time()
+                        group_wall_clock = group_end_time - parallel_start_time
+                        _apply_group_results(
+                            group_results=group_results,
+                            group_wall_clock=group_wall_clock,
+                            successful_tools=successful,
+                            failed_tools=failed,
+                            parallel_times=parallel_group_times,
+                        )
+                        if audit_signal_state.audit_sigint_requested():
+                            self._internal_interrupt_detected = True
+                            if "tier3_parallel_execution" not in failed:
+                                failed.append("tier3_parallel_execution")
+                            break
+                except KeyboardInterrupt:
+                    def _is_done(fut) -> bool:
+                        try:
+                            return bool(fut.done())
+                        except Exception:
+                            return False
+
+                    all_done = all(_is_done(fut) for fut in future_to_group)
+                    if all_done:
+                        # Drain any completed futures not yet applied so tool timings remain complete.
+                        for fut in future_to_group:
+                            if fut in processed_futures or not _is_done(fut):
                                 continue
-                            processed_futures.add(future)
-                            group_end_time = time.time()
-                            group_wall_clock = group_end_time - parallel_start_time
+                            try:
+                                drained_results = fut.result()
+                            except Exception:
+                                continue
                             _apply_group_results(
-                                group_results=group_results,
-                                group_wall_clock=group_wall_clock,
+                                group_results=drained_results,
+                                group_wall_clock=time.time() - parallel_start_time,
                                 successful_tools=successful,
                                 failed_tools=failed,
                                 parallel_times=parallel_group_times,
                             )
-                    except KeyboardInterrupt:
-                        def _is_done(fut) -> bool:
-                            try:
-                                return bool(fut.done())
-                            except Exception:
-                                return False
-
-                        all_done = all(_is_done(fut) for fut in future_to_group)
-                        if all_done:
-                            # Drain any completed futures not yet applied so tool timings remain complete.
-                            for fut in future_to_group:
-                                if fut in processed_futures or not _is_done(fut):
-                                    continue
-                                try:
-                                    drained_results = fut.result()
-                                except Exception:
-                                    continue
-                                _apply_group_results(
-                                    group_results=drained_results,
-                                    group_wall_clock=time.time() - parallel_start_time,
-                                    successful_tools=successful,
-                                    failed_tools=failed,
-                                    parallel_times=parallel_group_times,
-                                )
-                                processed_futures.add(fut)
-                            logger.info(
-                                "Tier 3 parallel completion loop received KeyboardInterrupt "
-                                "after all futures completed; treated as non-blocking signal noise."
-                            )
-                        else:
+                            processed_futures.add(fut)
+                        logger.info(
+                            "Tier 3 parallel completion loop received KeyboardInterrupt "
+                            "after all futures completed; treated as non-blocking signal noise."
+                        )
+                    else:
+                        if audit_signal_state.record_audit_keyboard_interrupt():
                             self._internal_interrupt_detected = True
                             logger.error(
                                 "Tier 3 parallel completion loop interrupted by KeyboardInterrupt; "
@@ -1292,9 +1317,15 @@ class AuditOrchestrationMixin:
                             )
                             if "tier3_parallel_execution" not in failed:
                                 failed.append("tier3_parallel_execution")
+                        else:
+                            logger.warning(
+                                "SIGINT received - ignoring. Press Ctrl+C again within 2s to stop the audit."
+                            )
             finally:
                 self._tier3_coverage_concurrent = False
                 self._tier3_coverage_serialized = False
+                # Avoid blocking on worker join when exiting due to interrupt (prevents "Exception ignored on threading shutdown")
+                executor.shutdown(wait=not getattr(self, "_internal_interrupt_detected", False))
             
             # Log parallel execution summary
             if parallel_group_times:
@@ -1307,6 +1338,10 @@ class AuditOrchestrationMixin:
         # Run coverage-dependent tools sequentially (they depend on coverage data from both test suites)
         logger.debug("Running coverage-dependent tools (sequential, after coverage completion)...")
         for tool_name, tool_func in tier3_coverage_dependent_group:
+            if audit_signal_state.audit_sigint_requested():
+                self._internal_interrupt_detected = True
+                failed.append(tool_name)
+                break
             try:
                 result, elapsed_time = self._run_tool_with_timing(tool_name, tool_func)
                 self._tool_timings[tool_name] = elapsed_time
@@ -1413,13 +1448,15 @@ class AuditOrchestrationMixin:
             logger.warning(f"Failed to save additional tool results: {e}")
     
     def _reload_all_cache_data(self):
-        """Reload all cache data from disk."""
+        """Reload cache data from disk, merging with in-memory results from current audit run.
+
+        We merge (update from disk) instead of clear-then-replace so that tools which ran
+        this audit but did not write a file (e.g. parse failed, or no summary) keep their
+        in-memory results for report generation. Prevents [DATA SOURCE] warnings for
+        analyze_module_dependencies and others when disk is missing a result file.
+        """
         try:
-            # Clear cache first to prevent accumulation across multiple reloads
-            # This prevents memory leaks when tests run in parallel and share project directories
-            if hasattr(self, 'results_cache'):
-                self.results_cache.clear()
-            else:
+            if not hasattr(self, 'results_cache') or self.results_cache is None:
                 self.results_cache = {}
             
             # Skip loading all results in test directories to prevent memory issues

@@ -547,6 +547,34 @@ class CommandsMixin:
         else:
             logger.error(f"Configuration check failed: {result['error']}")
             return False
+
+    def run_analyze_config(self) -> dict:
+        """Run analyze_config script, persist result for report generation, return result dict for audit."""
+        result = self.run_script("analyze_config")
+        output = result.get("output", "")
+        if not output:
+            return {**result, "success": result.get("success", False)}
+        try:
+            lines = output.strip().split("\n")
+            json_start = None
+            for i in range(len(lines) - 1, -1, -1):
+                if lines[i].strip().startswith("{"):
+                    json_start = i
+                    break
+            if json_start is not None:
+                json_output = "\n".join(lines[json_start:])
+                json_data = json.loads(json_output)
+            else:
+                json_data = json.loads(output)
+            save_tool_result(
+                "analyze_config", "config", json_data, project_root=self.project_root
+            )
+            if hasattr(self, "results_cache") and self.results_cache is not None:
+                self.results_cache["analyze_config"] = json_data
+            return {**result, "success": True, "data": json_data}
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.debug(f"analyze_config JSON parse failed: {e}")
+            return {**result, "success": result.get("success", False)}
     
     def run_workflow(self, task_type: str, task_data: dict | None = None) -> bool:
         """Run workflow with audit-first protocol"""
@@ -1547,7 +1575,45 @@ class CommandsMixin:
                 }
             )
             if not has_backups:
-                raise RuntimeError("No backups available in data/backups for health check")
+                # Fresh install or no backups yet: report success with skipped status so audit doesn't fail
+                payload = {
+                    "generated_at": datetime.now().isoformat(timespec="seconds"),
+                    "project_root": str(self.project_root),
+                    "summary": {
+                        "status": "SKIP",
+                        "total_issues": 0,
+                        "files_affected": 0,
+                        "success": True,
+                        "total_checks": len(checks),
+                        "passed_checks": sum(1 for c in checks if bool(c.get("success"))),
+                        "latest_backup_path": None,
+                        "latest_backup_created_at": None,
+                        "drill_executed": False,
+                        "message": "No backups in data/backups (normal for fresh install). Create backups via the app to run full health check.",
+                    },
+                    "details": {"checks": checks, "failed_checks": []},
+                    "checks": checks,
+                }
+                json_path = write_json_report(
+                    self.project_root,
+                    "development_tools/reports/jsons/backup_health_report.json",
+                    payload,
+                    rotate=False,
+                )
+                try:
+                    save_tool_result(
+                        "analyze_backup_health",
+                        "reports",
+                        payload,
+                        project_root=self.project_root,
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to save analyze_backup_health result: {e}")
+                return {
+                    "success": True,
+                    "data": payload,
+                    "report_paths": {"health_json": str(json_path)},
+                }
 
             def _parse_backup_created_at(raw_value: object) -> datetime | None:
                 if not isinstance(raw_value, str) or not raw_value.strip():

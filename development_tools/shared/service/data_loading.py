@@ -480,13 +480,54 @@ class DataLoadingMixin:
             'worst_files': worst_files[:5]
         }
     
+    def _config_validation_summary_from_payload(self, data: dict[str, Any]) -> dict[str, Any] | None:
+        """Build report summary dict from analyze_config payload (summary/details)."""
+        if 'summary' not in data or 'details' not in data:
+            return None
+        top_summary = data['summary']
+        details = data['details']
+        nested_summary = details.get('summary', {})
+        summary = {**top_summary, **nested_summary}
+        summary['recommendations'] = details.get('recommendations', [])
+        summary['tools_analysis'] = details.get('tools_analysis', {})
+        summary['config_valid'] = nested_summary.get('config_valid', summary.get('config_valid', False))
+        summary['config_complete'] = nested_summary.get('config_complete', summary.get('config_complete', False))
+        if 'validation' in details and summary.get('config_valid') is False:
+            summary['config_valid'] = details['validation'].get('config_structure_valid', False)
+        if 'completeness' in details and summary.get('config_complete') is False:
+            summary['config_complete'] = details['completeness'].get('sections_complete', False)
+        return summary
+
     def _load_config_validation_summary(self) -> dict[str, Any] | None:
-        """Load config validation summary from JSON file."""
+        """Load config validation summary from results_cache, standardized storage, or JSON file."""
         try:
+            tools_run = getattr(self, '_tools_run_in_current_tier', set())
+            audit_tier = getattr(self, 'current_audit_tier', None)
+            # 1) Current audit run cache
+            if 'analyze_config' in tools_run and getattr(self, 'results_cache', None):
+                raw = self.results_cache.get('analyze_config')
+                if isinstance(raw, dict):
+                    logger.debug(f"[DATA SOURCE] config_validation_summary: loaded from current audit run (Tier {audit_tier})")
+                    out = self._config_validation_summary_from_payload(raw)
+                    if out is not None:
+                        return out
+            # 2) Standardized storage
+            try:
+                from ..output_storage import load_tool_result
+                stored = load_tool_result(
+                    'analyze_config', 'config', project_root=self.project_root, normalize=False
+                )
+                if isinstance(stored, dict):
+                    logger.debug("[DATA SOURCE] config_validation_summary: loaded from standardized storage (cached)")
+                    out = self._config_validation_summary_from_payload(stored)
+                    if out is not None:
+                        return out
+            except Exception:
+                pass
+            # 3) Legacy file path
             config_file = self.project_root / "development_tools" / "config" / "jsons" / "analyze_config_results.json"
             if config_file.exists():
-                audit_tier = getattr(self, 'current_audit_tier', None)
-                if audit_tier == 2 or audit_tier == 3:
+                if audit_tier in (2, 3):
                     logger.debug(f"[DATA SOURCE] config_validation_summary: loaded from {config_file.name} (current Tier {audit_tier} audit)")
                 else:
                     logger.debug(f"[DATA SOURCE] config_validation_summary: loaded from {config_file.name} (cached)")
@@ -494,26 +535,12 @@ class DataLoadingMixin:
                     data = json.load(f)
                     if 'data' in data:
                         data = data['data']
-                    if 'summary' not in data or 'details' not in data:
-                        logger.warning("[DATA SOURCE] config_validation_summary: invalid format (expected summary/details)")
-                        return None
-                    top_summary = data['summary']
-                    details = data['details']
-                    nested_summary = details.get('summary', {})
-                    summary = {**top_summary, **nested_summary}
-                    summary['recommendations'] = details.get('recommendations', [])
-                    summary['tools_analysis'] = details.get('tools_analysis', {})
-                    summary['config_valid'] = nested_summary.get('config_valid', summary.get('config_valid', False))
-                    summary['config_complete'] = nested_summary.get('config_complete', summary.get('config_complete', False))
-                    if 'validation' in details and summary.get('config_valid') is False:
-                        validation = details['validation']
-                        summary['config_valid'] = validation.get('config_structure_valid', False)
-                    if 'completeness' in details and summary.get('config_complete') is False:
-                        completeness = details['completeness']
-                        summary['config_complete'] = completeness.get('sections_complete', False)
-                    return summary
-            else:
-                logger.warning(f"[DATA SOURCE] config_validation_summary: not found at {config_file} (using empty fallback)")
+                    out = self._config_validation_summary_from_payload(data) if isinstance(data, dict) else None
+                    if out is not None:
+                        return out
+                logger.warning("[DATA SOURCE] config_validation_summary: invalid format (expected summary/details)")
+                return None
+            logger.debug(f"[DATA SOURCE] config_validation_summary: not found at {config_file} (using empty fallback)")
         except Exception as e:
             logger.warning(f"[DATA SOURCE] config_validation_summary: failed to load - {e} (using empty fallback)")
         return None

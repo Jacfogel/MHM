@@ -368,7 +368,7 @@ class ToolWrappersMixin:
             if "success" not in result:
                 result["success"] = True
             self.module_dependency_summary = summary
-            self.results_cache["analyze_module_dependencies"] = summary
+            self.results_cache["analyze_module_dependencies"] = standard_format
         return result
 
     def run_analyze_functions(self) -> dict:
@@ -1255,10 +1255,11 @@ class ToolWrappersMixin:
 
         inventory_path = self.project_root / inventory_rel_path
         if not inventory_path.exists():
+            # Fresh clone / new install: skip guard so audit doesn't fail
             guard_result.update(
                 {
-                    "check_passed": False,
-                    "status": "failed",
+                    "check_passed": True,
+                    "status": "skipped",
                     "reason": "inventory_file_missing",
                 }
             )
@@ -1479,6 +1480,9 @@ class ToolWrappersMixin:
 
             guard_failed = not bool(inventory_guard.get("check_passed", True))
             if guard_failed:
+                # When inventory file is missing (fresh clone), _check_deprecation_inventory_sync
+                # sets check_passed=True and status=skipped, so we only fail when sync is
+                # required but inventory was not updated.
                 trigger_files = inventory_guard.get("trigger_files", [])
                 trigger_summary = ", ".join(trigger_files[:5])
                 if len(trigger_files) > 5:

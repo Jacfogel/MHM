@@ -376,11 +376,11 @@ def main():
     # Only print report info if not in JSON mode
     if not args.json:
         logger.info(f"Report saved to: {output_path}")
-        logger.info(f"Files scanned: {generator.stats.get('files_scanned', 0)}")
-        logger.info(
-            f"Files with issues: {generator.stats.get('files_with_issues', 0)}"
+        logger.debug(
+            f"Files scanned: {generator.stats.get('files_scanned', 0)}, "
+            f"files with issues: {generator.stats.get('files_with_issues', 0)}, "
+            f"total unused imports: {generator.stats.get('total_unused', 0)}"
         )
-        logger.info(f"Total unused imports: {generator.stats.get('total_unused', 0)}")
 
     return 0
 
