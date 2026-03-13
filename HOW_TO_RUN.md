@@ -107,7 +107,7 @@ You can also run individual components directly if needed:
 
 - **Always activate your virtual environment** before running the app
 
-### 5.1 Development tools and full audit (optional)
+### 5.1. Development tools and full audit (optional)
 
 If you run the development tools full audit on this or another PC:
 

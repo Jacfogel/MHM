@@ -61,7 +61,6 @@ def main() -> None:
 
     try:
         from PySide6.QtWidgets import QApplication, QWidget
-        from PySide6.QtCore import QTimer
         app = QApplication.instance() or QApplication([])
         w = QWidget()
         w.setWindowTitle("Minimal test")

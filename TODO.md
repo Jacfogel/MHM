@@ -63,9 +63,9 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Medium
 - *User priority*: High/medium.
 - *Subtasks*:
-  - [ ] Decide destination for `scripts/utilities/user_data_cli.py` (migrate to tracked runtime ownership such as `core/`/`user/`/app-tools, or retire if superseded).
-  - [ ] Decide destination for project-maintenance scripts `scripts/create_project_snapshot.py` and `scripts/cleanup_windows_tasks.py` (tracked runtime ownership, not `development_tools/`).
-  - [ ] Evaluate renaming/refactoring `scripts/create_project_snapshot.py` to match behavior (full restorable backup semantics) and define whether a separate generalized development-tools variant is needed.
+  - [ ] Decide destination for the user_data_cli script (planned location scripts/utilities/; migrate to tracked runtime ownership such as core/ or user/ or app-tools, or retire if superseded).
+  - [ ] Decide destination for project-maintenance scripts create_project_snapshot and cleanup_windows_tasks (planned location scripts/; tracked runtime ownership, not development_tools/).
+  - [ ] Evaluate renaming/refactoring the create_project_snapshot script to match behavior (full restorable backup semantics) and define whether a separate generalized development-tools variant is needed.
 
 **Investigate sent_messages.json size and archiving**
 - *What it means*: Review `data/users/{user_id}/messages/sent_messages.json` growth (e.g. ~512KB observed). Confirm whether archiving or trimming of sent message history is needed and implement or document policy.

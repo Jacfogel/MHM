@@ -17,6 +17,7 @@ Integration:
     python development_tools/run_development_tools.py unused-imports
 """
 
+import contextlib
 import sys
 import subprocess
 import argparse
@@ -87,18 +88,16 @@ def _run_subprocess_with_timeout(
             proc.kill()
             proc.wait()
             raise
-        with open(out_path, "r", encoding="utf-8") as f:
+        with open(out_path, encoding="utf-8") as f:
             stdout = f.read()
-        with open(err_path, "r", encoding="utf-8") as f:
+        with open(err_path, encoding="utf-8") as f:
             stderr = f.read()
         return subprocess.CompletedProcess(proc.args, proc.returncode, stdout, stderr)
     finally:
         for p in (out_path, err_path):
             if p:
-                try:
+                with contextlib.suppress(Exception):
                     Path(p).unlink(missing_ok=True)
-                except Exception:
-                    pass
 
 
 class UnusedImportsChecker:

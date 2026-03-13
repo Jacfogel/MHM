@@ -30,20 +30,26 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-12 - Doc drift, Ruff clean, fixture metadata, module_deps fallback **COMPLETED**
+- **Documentation drift**: Fixed path references (sync_ruff_toml → development_tools/config/sync_ruff_toml.py in guides; TODO script paths reworded; memory_profiler refs softened in AI_TESTING_GUIDE and TESTING_GUIDE). Ran doc-fix (ASCII, headings, convert-links). Added fixture placeholders: AI_STATUS.md, AI_PRIORITIES.md in tests/fixtures/development_tools_demo; tests/ai/results/ai_functionality_test_results_latest.md so path drift and links resolve.
+- **Ruff**: Resolved all 6 issues (UP015, SIM105, UP045, F401 unused QTimer) in analyze_unused_imports.py, audit_signal_state.py, debug_qt_ui_windows.py; `ruff check .` passes.
+- **Fixture test**: Updated fixture status files to include required metadata (`> **Generated**: This file is auto-generated.` and `> **Last Generated**: YYYY-MM-DD HH:MM:SS`) so test_fixture_status_files_have_valid_metadata passes.
+- **Report generation**: analyze_module_dependencies now always stores a standard-format result in results_cache and disk (even when parser returns no summary) so report generation finds data and no longer logs "[DATA SOURCE] no data found in any source".
+
 ### 2026-03-12 - Audit interrupt reliability, DATA SOURCE warnings, cache merge **Progressed**
 - **Audit stop on intent only:** Second Ctrl+C was logging "stopping" but audit still completed. Now post-handler check returns exit 1 when stop was requested; Tier 3 polls `audit_sigint_requested()` and breaks/stops so the run actually ends. Spurious SIGINT (no user Ctrl+C) was stopping the audit on Windows; now **three** SIGINTs within 2s are required to stop, and worker KeyboardInterrupt no longer counts as a tap (`development_tools/shared/audit_signal_state.py`, `run_development_tools.py`, `audit_orchestration.py`).
-- **DATA SOURCE warnings removed:** `analyze_module_dependencies` and `config_validation_summary` no longer log "no data found" / "not found": (1) Tier 1 runs `run_analyze_config` and persists to cache/file so reports find config data; (2) `analyze_module_dependencies` stores standard format in `results_cache` for the loader; (3) `_load_config_validation_summary` tries results_cache → standardized storage → file; (4) `_reload_all_cache_data` merges disk into cache instead of clearing it, so in-memory results from the current run survive for report generation.
+- **DATA SOURCE warnings removed:** `analyze_module_dependencies` and `config_validation_summary` no longer log "no data found" / "not found": (1) Tier 1 runs `run_analyze_config` and persists to cache/file so reports find config data; (2) `analyze_module_dependencies` stores standard format in `results_cache` for the loader; (3) `_load_config_validation_summary` tries results_cache -> standardized storage -> file; (4) `_reload_all_cache_data` merges disk into cache instead of clearing it, so in-memory results from the current run survive for report generation.
 - **Tests:** Audit orchestration interrupt tests updated (patch `audit_module.audit_signal_state.record_audit_keyboard_interrupt`, fake executor `shutdown`); `test_run_analyze_module_dependencies_builds_standard_summary` asserts cache `details` shape.
 
 ### 2026-03-11 - Spurious SIGINT double-tap, doc consolidation, scripts move **COMPLETED**
 - **Double-tap Ctrl+C to stop:** Single SIGINT is ignored (avoids spurious stops); press Ctrl+C again within 2s to stop the run. Implemented in `run_tests.py` interrupt handler.
-- **Doc consolidation:** Deleted `development_docs/SPURIOUS_SIGINT_INVESTIGATION.md`; content folded into TEST_PLAN.md §4.2 and §5.6.1. TESTING_GUIDE.md: fixed references to non-existent scripts (SCRIPTS_GUIDE, cleanup_windows_tasks, scripts/testing/*); added "Stopping a run" (double-tap) and pointer to TEST_PLAN.
+- **Doc consolidation:** Deleted `development_docs/SPURIOUS_SIGINT_INVESTIGATION.md`; content folded into TEST_PLAN.md Section 4.2 and Section 5.6.1. TESTING_GUIDE.md: fixed references to non-existent scripts (SCRIPTS_GUIDE, cleanup_windows_tasks, scripts/testing/*); added "Stopping a run" (double-tap) and pointer to TEST_PLAN.
 - **Scripts move:** `run_trace_consolectrl.ps1`, `run_trace_consolectrl.py`, `trace_consolectrl.js` moved from `development_docs/` to `scripts/`; all call sites and docs updated.
 
 ### 2026-03-11 - Test runner: full-run reliability, phase-failure reporting, skip/deselect targets **Progressed**
 - **Full run without spurious interrupts:** `--full` now implies `--ignore-sigint` so `python run_tests.py --full` completes; added `--no-ignore-sigint` to override. Reverted auto `MHM_QT_UI_FORCE=1` on Windows so Qt UI tests that crash (e.g. CheckinSettingsWidget access violation) stay skipped by default.
 - **Combined summary reflects phase crashes:** When a phase exits non-zero (e.g. access violation) but JUnit has 0 failed/errors, the summary now shows at least 1 error and a `[PHASE FAILED]` line so the run is not reported as success.
-- **Deselected and skip targets:** Combined summary "Deselected" now only counts tests deselected in both parallel and serial (excluded from entire run). TEST_PLAN.md: added program-level success criterion for at most 1 skipped test; elevated spurious SIGINT to high priority with investigate → fix → clean up workarounds (§4.2, §5.6.1).
+- **Deselected and skip targets:** Combined summary "Deselected" now only counts tests deselected in both parallel and serial (excluded from entire run). TEST_PLAN.md: added program-level success criterion for at most 1 skipped test; elevated spurious SIGINT to high priority with investigate -> fix -> clean up workarounds (Section 4.2, Section 5.6.1).
 - **Docs:** TESTING_GUIDE.md updated (full-run command, expected skips, Start-Process/external terminal). TEST_PLAN.md last-updated and success criteria refreshed.
 
 ### 2026-03-05 - Test suite: notebook import fix + Qt UI Windows skip + debug script **Progressed**
@@ -116,12 +122,6 @@ Guidelines:
 - Hardened policy coverage in `tests/development_tools/test_tooling_policy_consistency.py`: command-group parity checks, runtime-budget guard, stricter command-doc parity (including stale-command detection in command sections), and AST-based scanner-candidate detection.
 - Added CI enforcement via `.github/workflows/logging-enforcement.yml` job `tooling-policy-consistency` to run `pytest tests/development_tools/test_tooling_policy_consistency.py -q` on push/PR.
 - Fixed dev-tools coverage worker scaling: `run_dev_tools_coverage()` now actually applies xdist flags (`-n <workers>`, `--dist=loadscope`) when parallel mode is enabled; added regression coverage in `tests/development_tools/test_regenerate_coverage_metrics.py`.
-
-### 2026-03-02 - Tooling consistency command + policy-test direction + Tier 3 test fixes **Progressed**
-- Added `tooling-consistency` validation flow (CLI alias/exclusion consistency), wired through CLI/service/metadata, and fixed default UX so non-JSON runs now print a readable summary.
-- Fixed two active Tier 3 priority failures: `test_no_print_calls_in_tests` (ignore `tests/data/**` runtime artifacts) and `test_compute_source_signature_changes_when_source_changes` (content-aware source signature hashing).
-- Updated roadmap direction in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` to make tooling-consistency enforcement policy-test-first (`tests/development_tools/`) and explicitly keep it out of audit tiers for now.
-- Synced paired tool guides and validated key paths (`tooling-consistency --strict`, targeted pytest suites); regenerated standard dev-tools report artifacts during verification runs.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

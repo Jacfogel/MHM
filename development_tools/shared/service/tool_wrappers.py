@@ -338,6 +338,7 @@ class ToolWrappersMixin:
         result = self.run_script("analyze_module_dependencies")
         output = result.get("output", "")
         summary = self._parse_module_dependency_report(output)
+        # Always build a standard-format result so report generation finds data (avoids "no data found" warning).
         if summary:
             missing_dependencies = summary.get("missing_dependencies", 0)
             missing_sections = summary.get("missing_sections", [])
@@ -350,25 +351,32 @@ class ToolWrappersMixin:
                 "summary": {"total_issues": total_issues, "files_affected": 0},
                 "details": summary,
             }
-            result["data"] = standard_format
-            try:
-                save_tool_result(
-                    "analyze_module_dependencies",
-                    "imports",
-                    standard_format,
-                    project_root=self.project_root,
-                )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to save analyze_module_dependencies result: {e}"
-                )
             issues = summary.get("missing_dependencies", 0)
             issues = issues or len(summary.get("missing_sections") or [])
             result["issues_found"] = bool(issues)
-            if "success" not in result:
-                result["success"] = True
             self.module_dependency_summary = summary
-            self.results_cache["analyze_module_dependencies"] = standard_format
+        else:
+            standard_format = {
+                "summary": {"total_issues": 0, "files_affected": 0},
+                "details": {},
+            }
+            self.module_dependency_summary = {}
+            result["issues_found"] = False
+        result["data"] = standard_format
+        if "success" not in result:
+            result["success"] = True
+        try:
+            save_tool_result(
+                "analyze_module_dependencies",
+                "imports",
+                standard_format,
+                project_root=self.project_root,
+            )
+        except Exception as e:
+            logger.warning(
+                f"Failed to save analyze_module_dependencies result: {e}"
+            )
+        self.results_cache["analyze_module_dependencies"] = standard_format
         return result
 
     def run_analyze_functions(self) -> dict:

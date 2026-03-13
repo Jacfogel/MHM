@@ -348,7 +348,7 @@ Typical options:
 
 Prefer `python run_tests.py` over calling pytest directly when you want "normal" local or CI runs.
 
-**Stopping a run:** On Windows, spurious Ctrl+C (SIGINT) events can occur during test runs. The runner ignores a single SIGINT; to stop the run intentionally, press **Ctrl+C twice within 2 seconds**. See `development_docs/TEST_PLAN.md` §5.6.1 for details.
+**Stopping a run:** On Windows, spurious Ctrl+C (SIGINT) events can occur during test runs. The runner ignores a single SIGINT; to stop the run intentionally, press **Ctrl+C twice within 2 seconds**. See [TEST_PLAN.md](development_docs/TEST_PLAN.md) Section 5.6.1 for details.
 
 **Running from an external terminal:** Open Windows Terminal or PowerShell, go to the project directory, activate the venv, then run the same commands (e.g. `python run_tests.py --full`). Example:
 
@@ -839,7 +839,7 @@ The test suite includes several mitigations to manage memory:
 
 ### 9.3. Memory Profiling Tools
 
-If the repo includes `scripts/testing/memory_profiler.py`, you can use it to identify which tests consume excessive memory:
+If you add an optional memory profiler script under scripts/testing/, you can use it to identify which tests consume excessive memory. Example (script name may vary):
 
 ```powershell
 # Profile all tests

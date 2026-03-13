@@ -375,7 +375,7 @@ During parallel test execution, system memory usage can reach 95-98%, which is n
 - Resource monitoring (warnings at 90%, critical at 95%)
 
 **Tools:**
-- `scripts/testing/memory_profiler.py` - Profile memory usage per test
+- Optional: add a memory profiler script (e.g. under scripts/testing/) to profile memory usage per test.
 - `scripts/testing/verify_process_cleanup.py` - Verify process cleanup works
 
 **Recommendations:**

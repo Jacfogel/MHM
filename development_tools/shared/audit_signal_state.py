@@ -8,14 +8,13 @@ subprocesses) when the user has not pressed Ctrl+C.
 
 import signal
 import time
-from typing import Optional
 
 # Time window (seconds). We require this many SIGINTs within the window to stop.
 AUDIT_SIGINT_DOUBLE_TAP_SECONDS = 2.0
 # Number of SIGINTs within window required to request stop (3 = ignore first two, third stops)
 AUDIT_SIGINT_TAPS_TO_STOP = 3
 
-_last_sigint_time: Optional[float] = None
+_last_sigint_time: float | None = None
 _sigint_count_in_window: int = 0
 _interrupt_requested: bool = False
 # True when the signal handler just ran; clear when record_audit_keyboard_interrupt sees it
@@ -36,7 +35,7 @@ def audit_sigint_requested() -> bool:
     return _interrupt_requested
 
 
-def handle_audit_sigint(signum: int, frame: Optional[object]) -> None:
+def handle_audit_sigint(signum: int, frame: object | None) -> None:
     """
     Handle SIGINT during audit: require multiple taps within window to stop.
     Reduces false stops from Windows control-event propagation from child processes.
