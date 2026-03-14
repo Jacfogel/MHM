@@ -24,7 +24,7 @@ from ui.dialogs.message_editor_dialog import (
     MessageEditorDialog,
     open_message_editor_dialog
 )
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 # Create QApplication instance for testing

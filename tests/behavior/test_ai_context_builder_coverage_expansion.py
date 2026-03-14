@@ -7,7 +7,7 @@ Tests focus on covering the uncovered lines in the ContextBuilder module.
 import pytest
 
 from ai.context_builder import ContextBuilder, ContextData, ContextAnalysis, get_context_builder
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 @pytest.mark.behavior

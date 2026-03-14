@@ -17,7 +17,7 @@ from tasks import (
     create_task, complete_task, delete_task, update_task,
     load_active_tasks, load_completed_tasks, get_task_by_id
 )
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 class TestTaskCleanupReal:

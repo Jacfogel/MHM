@@ -134,9 +134,9 @@ For test coverage of error handling (see section 7. "Testing Error Handling" in 
 AI routing:
 
 - When adding or changing error handling, also:
-  - Add tests in `tests/test_error_handling_improvements.py` or nearby files.  
+  - Add tests in `tests/integration/test_error_handling_improvements.py` or nearby files.  
   - Ensure both success and failure paths are covered.  
-  - Use helpers in `tests/test_utilities.py` to assert on logs/metrics where appropriate.  
+  - Use helpers in `tests\test_helpers\test_utilities` to assert on logs/metrics where appropriate.  
 
 - Use `development_tools/error_handling/analyze_error_handling.py` and related tooling when measuring coverage or generating reports.  
 - **Phase 1 and Phase 2 Auditing**: The coverage tool now provides specialized analysis for quality improvements:

@@ -163,7 +163,7 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
         logger.debug(f"Testing with user: {test_user}")
 
         # Resolve UUID if test_user is an internal username (mock_user_data creates users with internal usernames)
-        from tests.test_utilities import TestUserFactory as TUF
+        from tests.test_helpers.test_utilities import TestUserFactory as TUF
         actual_user_id = (
             TUF.get_test_user_id_by_internal_username(test_user, test_data_dir)
             or test_user
@@ -200,7 +200,7 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
             if not os.path.exists(user_dir):
                 os.makedirs(user_dir, exist_ok=True)
             
-            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
+            from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
             materialize_user_minimal_via_public_apis(actual_user_id)
             # Retry with delays to handle race conditions after materialization
             import time
@@ -220,7 +220,7 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
         
         # Test preferences data (read-only)
         try:
-            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
+            from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
             materialize_user_minimal_via_public_apis(actual_user_id)
             # Retry with auto_create=True and delays to handle race conditions
             import time
@@ -240,7 +240,7 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
         
         # Test context data (read-only)
         try:
-            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
+            from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
             materialize_user_minimal_via_public_apis(actual_user_id)
             # Retry with auto_create=True and delays to handle race conditions
             import time

@@ -21,7 +21,7 @@ TEMPFILE_CALLS_REQUIRING_DIR = {
 DATETIME_NOW_ALLOWED_FILES = {
     "tests/conftest.py",
     "tests/conftest_hooks.py",
-    "tests/test_support/conftest_hooks.py",
+    "tests/test_helpers/test_support/conftest_hooks.py",
     "tests/development_tools/conftest.py",
     "tests/development_tools/test_changelog_trim_tooling.py",
     "tests/development_tools/test_supporting_tools.py",
@@ -39,7 +39,7 @@ PRODUCTION_LOG_REFERENCE_ALLOWED_FILES = {
 REAL_USER_PATH_ALLOWED_FILES = {
     "tests/conftest.py",
     "tests/core/test_file_auditor.py",
-    "tests/debug_file_paths.py",
+    "tests/unit/debug_file_paths.py",
     "tests/behavior/test_scheduler_coverage_expansion.py",
     "tests/unit/test_config.py",
 }

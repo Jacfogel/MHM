@@ -782,7 +782,7 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 - [x] Tightened deprecation-inventory sync guard scope in `tool_wrappers.py`: ignore `tests/**` and configured generated artifacts when evaluating trigger files; narrowed trigger keyword list in config to deprecation-specific terms
 - [x] Added guard regression tests for excluded test paths and generated report paths in `tests/development_tools/test_deprecation_inventory_guard.py`
 
-## 7.2 Integrate pyright and ruff into development tools, they can run in parallel as part of the full audit and contribute towards development_tools\AI_PRIORITIES.md, development_tools\AI_STATUS.md and development_tools\consolidated_report.md
+#### 7.2 Integrate pyright and ruff into development tools, they can run in parallel as part of the full audit and contribute towards development_tools\AI_PRIORITIES.md, development_tools\AI_STATUS.md and development_tools\consolidated_report.md
 - [x] Added static analysis tools:
   - `development_tools/static_checks/analyze_ruff.py`
   - `development_tools/static_checks/analyze_pyright.py`
@@ -800,18 +800,18 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
   - `development_tools/config/development_tools_config.json.example`
 - [x] Fixed CI policy-test workflow dependency gap in `.github/workflows/logging-enforcement.yml` by installing `python-dotenv` alongside `pytest` for the `Tooling Policy Consistency` job
 
-## 7.3 Dev Tools coverage sometimes is missing from AI_PRIORITIES.md
+#### 7.3 Dev Tools coverage sometimes is missing from AI_PRIORITIES.md
 - [x] Investigated and fixed loading/reporting so dev-tools coverage appears consistently when available
 
 
-## 7.4 Update AI_PRIORITIES Error Handling section 
+#### 7.4 Update AI_PRIORITIES Error Handling section 
 - [x] Combined Phase 1 and Phase 2 into a single error-handling modernization priority in `AI_PRIORITIES.md`
 - [x] Updated Phase 1 guidance to explicitly prefer decorator-based handling (`@handle_errors`) where possible
 - [x] Added dedicated `Dependency Patterns` section to `AI_STATUS.md` with top circular chains and top high-coupling modules
 - [x] Expanded `consolidated_report.md` dependency section with top circular chains and top high-coupling modules
 ---
 
-## 7.5 add --cache-clear as an alias for --clear-cache
+#### 7.5 add --cache-clear as an alias for --clear-cache
 - [x] Added `--cache-clear` as a global alias for `--clear-cache` in `run_development_tools.py` and documented in AI + human tool guides.
 
 ## 7.6 Portability Follow-Up: Static Tooling and Packaging
@@ -846,7 +846,7 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 - [ ] Decide whether to keep root `.ruff.toml` permanently as compatibility mirror or deprecate it after external-repo portability acceptance criteria are met.
 - [ ] If root configs are later deprecated, document migration and fallback behavior clearly in both AI and human guides before removal.
 
-## 7.7 Directory Taxonomy and Config Boundary Cleanup
+#### 7.7 Directory Taxonomy and Config Boundary Cleanup
 **User priority**: High/medium.  
 - [ ] Define a target taxonomy for `development_tools/` that is intuitive for new contributors and portable across host repos.
 - [ ] Document current pain point: `development_tools/config/` currently mixes public tool configuration surface with runtime/platform implementation concerns, which makes discovery and ownership unclear.
@@ -868,18 +868,20 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
   - Core commands run unchanged during migration.
   - Existing import paths remain supported until deprecation window ends.
 
-## 7.8 Possible Duplicate Lists (moved from TODO.md)
+#### 7.8 Possible Duplicate Lists (moved from TODO.md)
 **Source**: TODO.md user-priority Q&A (2026-02-28).  
 - [ ] Investigate documentation and code for duplicate or partially duplicated lists (docs, constants, commands, files, etc.)
 - [ ] Establish canonical location per list type; code pulls dynamically, docs point to canonical
 - [ ] Implement or extend development tools to detect and report duplicate-list candidates
 - [ ] Reduce drift and improve accuracy across codebase and docs
 
-## 7.9 Audit MHM project for duplicate, outdated, unnecessary backups (moved from TODO.md)
+#### 7.9 Audit MHM project for duplicate, outdated, unnecessary backups (moved from TODO.md)
 **Source**: TODO.md user-priority Q&A (2026-02-28).  
 - [ ] Audit for duplicate, outdated, unnecessary backups and archive copies
 - [ ] Implement structured regular local backups with compression and rotation
 - [ ] Integrate with or extend existing `backup verify` and retention tooling
+
+#### 7.10 create tool to detect unused functions, variables etc.  
 
 ## Related Documents
 

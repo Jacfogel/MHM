@@ -1,7 +1,7 @@
 """Targeted UI coverage for check-in question count validation behavior."""
 
 from tests.conftest import ensure_qt_runtime
-from tests.test_support.conftest_env import skip_qt_ui_on_windows
+from tests.test_helpers.test_support.conftest_env import skip_qt_ui_on_windows
 
 ensure_qt_runtime()
 

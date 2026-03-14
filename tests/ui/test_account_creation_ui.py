@@ -11,7 +11,7 @@ Tests the actual UI behavior, user interactions, and side effects for:
 """
 
 from tests.conftest import ensure_qt_runtime
-from tests.test_support.test_helpers import wait_until
+from tests.test_helpers.test_support.test_helpers import wait_until
 
 ensure_qt_runtime()
 
@@ -816,7 +816,7 @@ class TestAccountManagementRealBehavior:
 
         # Create test user using centralized utilities (minimal user since we only need account and context)
         # Use create_minimal_user_and_get_id to get the actual UUID-based user ID
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
 
         success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(
             user_id, test_data_dir=test_data_dir
@@ -921,7 +921,7 @@ class TestAccountManagementRealBehavior:
     def test_user_index_integration_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test user index integration with real file operations."""
         from core.user_data_manager import update_user_index, rebuild_user_index
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
         import uuid
 
         # Create test users for index testing
@@ -1059,7 +1059,7 @@ class TestAccountManagementRealBehavior:
         user_id = "test-feature-persistence"
 
         # Create test user using enhanced centralized utilities with specific feature configuration
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
 
         success = TestUserFactory.create_basic_user(
             user_id,
@@ -1143,7 +1143,7 @@ class TestAccountCreationErrorHandling:
         import uuid
         suffix = uuid.uuid4().hex[:8]
         user_id_1 = f"test-duplicate-1-{suffix}"
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
 
         success_1 = TestUserFactory.create_basic_user(
             user_id_1,
@@ -1469,7 +1469,7 @@ class TestAccountCreationIntegration:
         clear_user_caches()
         loaded_data = get_user_data(user_id, normalize_on_read=True)
         if "account" not in loaded_data or "features" not in loaded_data["account"]:
-            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis as _mat
+            from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis as _mat
 
             _mat(user_id)
             clear_user_caches()
@@ -1566,7 +1566,7 @@ class TestAccountCreationIntegration:
         """REAL BEHAVIOR TEST: Test creating multiple users with same features."""
         from core.user_data_handlers import save_user_data, get_user_data, clear_user_caches
         from core.user_data_manager import update_user_index, rebuild_user_index
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
         import uuid
 
         # Create multiple test users with same features
@@ -1633,7 +1633,7 @@ class TestAccountCreationIntegration:
             clear_user_caches()
             user_data = get_user_data(user_id, normalize_on_read=True)
             if "account" not in user_data:
-                from tests.test_support.test_helpers import (
+                from tests.test_helpers.test_support.test_helpers import (
                     materialize_user_minimal_via_public_apis as _mat,
                 )
 

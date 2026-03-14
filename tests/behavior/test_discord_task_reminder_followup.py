@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 from communication.message_processing.interaction_manager import InteractionManager
 from tasks import load_active_tasks
 from communication.message_processing.conversation_flow_manager import conversation_manager, FLOW_TASK_REMINDER
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 class TestDiscordTaskReminderFollowup:

@@ -17,7 +17,7 @@ from tests.conftest import (
     test_logger,
 )
 from core.time_utilities import now_timestamp_full
-from tests.test_support.conftest_cleanup_impl import _is_transient_test_data_dir_name
+from tests.test_helpers.test_support.conftest_cleanup_impl import _is_transient_test_data_dir_name
 import contextlib
 
 
@@ -408,7 +408,7 @@ def ensure_user_materialized(test_data_dir):
         user_dir = users_dir / user_id
         if not user_dir.exists():
             try:
-                from tests.test_utilities import TestUserFactory
+                from tests.test_helpers.test_utilities import TestUserFactory
 
                 TestUserFactory.create_basic_user(
                     user_id, test_data_dir=str(test_data_dir)

@@ -10,7 +10,7 @@ from communication.message_processing.interaction_manager import InteractionMana
 from communication.message_processing.conversation_flow_manager import conversation_manager
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from communication.message_processing.command_parser import ParsingResult
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 def _create_fast_interaction_manager():

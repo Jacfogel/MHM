@@ -188,7 +188,7 @@ class TestAIChatBotBehavior:
         user_id = "test_context_user"
         
         # Create test user using centralized utilities
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
         
@@ -462,7 +462,7 @@ class TestAIChatBotBehavior:
         user_id = "test_context_integration_user"
         
         # Create test user using centralized utilities
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
         
@@ -572,7 +572,7 @@ class TestAIChatBotIntegration:
         user_id = f"integration_test_user_{uuid.uuid4().hex[:8]}"
         
         # Create test user using centralized utilities
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         success = TestUserFactory.create_full_featured_user(user_id, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
         
@@ -589,7 +589,7 @@ class TestAIChatBotIntegration:
         
         # Verify user data was saved by loading it
         from core.user_data_handlers import get_user_data
-        from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
+        from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
         loaded_account = {}
         for attempt in range(10):
             materialize_user_minimal_via_public_apis(actual_user_id)

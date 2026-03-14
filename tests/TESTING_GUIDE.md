@@ -43,6 +43,9 @@ High-level layout:
 ```text
 tests/
 |-- conftest.py                          # Shared fixtures and configuration
+|-- test_helpers/                        # Test utilities and support (factories, fixtures, helpers)
+|   |-- test_utilities/                   # Factories and env helpers (TestUserFactory, TestDataFactory, etc.)
+|   |-- test_support/                     # Pytest plugins (conftest_*), standalone helpers (wait_until, etc.)
 |-- unit/                                # Unit tests by module (core logic)
 |-- integration/                         # Integration tests by feature
 |-- behavior/                            # Real behavior tests by system
@@ -140,7 +143,7 @@ Tests must be safe: they must not pollute real user data, create real Windows sc
 
 `tests/conftest.py` is the central place for:
 
-- Global fixtures and pytest hooks; plugin modules live under `tests/test_support/` (e.g. `conftest_mocks.py`, `conftest_cleanup.py`, `conftest_logging.py`, `conftest_user_data.py`, `conftest_hooks.py`, `conftest_env.py`) and are loaded via `pytest_plugins`. Logging implementation in `tests/test_support/conftest_logging_impl.py`; cleanup implementation in `tests/test_support/conftest_cleanup_impl.py`.
+- Global fixtures and pytest hooks; plugin modules live under `tests/test_helpers/test_support/` (e.g. `conftest_mocks.py`, `conftest_cleanup.py`, `conftest_logging.py`, `conftest_user_data.py`, `conftest_hooks.py`, `conftest_env.py`) and are loaded via `pytest_plugins`. Logging implementation in `tests/test_helpers/test_support/conftest_logging_impl.py`; cleanup implementation in `tests/test_helpers/test_support/conftest_cleanup_impl.py`.
 - Logging setup for test runs.
 - Path redirection for user data and configuration during tests.
 
@@ -154,10 +157,15 @@ Always prefer existing fixtures from `tests/conftest.py` over writing ad-hoc set
 
 ### 3.2. Test utilities and helpers
 
-Common helpers are usually defined in utility modules such as:
+Test helpers live under `tests/test_helpers/`, which contains two subpackages:
 
-- `tests/test_utilities.py` (or similarly named helpers module).
-- `tests/test_support/test_helpers.py` - standalone helpers (not fixtures): `wait_until(predicate, ...)` and `materialize_user_minimal_via_public_apis(user_id)`. Import from `tests.test_support.test_helpers`.
+- **`tests/test_helpers/test_utilities/`** - Factories and environment helpers. Import from `tests.test_helpers.test_utilities` (or `tests.test_helpers` for convenience). Provides:
+  - `TestUserFactory`, `TestDataFactory`, `TestDataManager`, `TestUserDataFactory`, `TestLogPathMocks`
+  - `create_test_user`, `setup_test_data_environment`, `cleanup_test_data_environment`
+- **`tests/test_helpers/test_support/`** - Pytest plugin modules (`conftest_*`) and standalone helpers. Standalone helpers (not fixtures) are in `tests/test_helpers/test_support/test_helpers.py`:
+  - `wait_until(predicate, ...)` - poll until true or timeout
+  - `materialize_user_minimal_via_public_apis(user_id)` - ensure minimal user structures  
+  Import from `tests.test_helpers.test_support.test_helpers` or `tests.test_helpers`.
 
 These helpers typically provide:
 
@@ -165,7 +173,7 @@ These helpers typically provide:
 - Helper functions for asserting logs, side effects, or output.
 - Utility functions to wrap common patterns (for example, capturing logs or patching environment variables).
 
-**Guideline:** Before adding a new helper function, check whether the pattern already exists in `tests/test_utilities.py` or similar. Centralizing helper logic keeps tests more consistent and reduces duplication.
+**Guideline:** Before adding a new helper function, check whether the pattern already exists in `tests.test_helpers.test_utilities` or `tests.test_helpers.test_support`. Centralizing helper logic keeps tests more consistent and reduces duplication.
 
 ### 3.3. Filesystem safety
 
@@ -191,7 +199,7 @@ Typical patterns:
 
 - Always mock scheduler integrations that would create or update Task Scheduler entries (for example, patch `scheduler_manager.set_wake_timer` and related methods).
 - Do not call `schtasks` or similar Windows commands directly from tests.
-- Use isolation utilities (for example, an `IsolationManager` or similar helper in `tests/test_isolation.py`) for tests that interact with system-like APIs.
+- Use isolation utilities (for example, `IsolationManager` or `ensure_test_isolation` from `tests.test_helpers.test_support.test_isolation` or `tests.test_helpers`) for tests that interact with system-like APIs.
 
 If the Windows Task Scheduler becomes polluted during development (for example, from manual experiments), use system tools or manual cleanup; project-specific cleanup scripts may live under `scripts/` if present.
 
@@ -553,7 +561,7 @@ Follow these guidelines:
   - Fake users and configuration.
   - Logging setup and teardown.
 
-- Use helper functions from `tests/test_utilities.py` (or similar) for:
+- Use helper functions from `tests.test_helpers.test_utilities` (or `tests.test_helpers`) for:
   - Constructing complex payloads (messages, schedules).
   - Common assertions on logs, errors, or outputs.
   - Reusable patterns (for example, "create a user with default settings").

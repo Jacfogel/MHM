@@ -25,7 +25,7 @@ from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout
 
 # Do not modify sys.path; rely on package imports
 
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 from ui.widgets.tag_widget import TagWidget
 from ui.widgets.task_settings_widget import TaskSettingsWidget
 from ui.widgets.category_selection_widget import CategorySelectionWidget

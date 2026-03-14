@@ -1,7 +1,7 @@
 import pytest
 
 from communication.message_processing.interaction_manager import handle_user_message
-from tests.test_utilities import setup_test_data_environment, cleanup_test_data_environment, create_test_user
+from tests.test_helpers.test_utilities import setup_test_data_environment, cleanup_test_data_environment, create_test_user
 
 
 @pytest.mark.behavior

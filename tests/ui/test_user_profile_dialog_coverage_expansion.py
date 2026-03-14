@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 from PySide6.QtCore import Qt
 
 from ui.dialogs.user_profile_dialog import UserProfileDialog
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 # Create QApplication instance for testing

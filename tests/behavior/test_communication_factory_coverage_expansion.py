@@ -60,7 +60,7 @@ class TestCommunicationFactoryCoverageExpansion:
             'communication.core.factory.get_channel_class_mapping'
         ) as mock_mapping, patch('importlib.import_module') as mock_import:
             mock_channels.return_value = ['test_channel']
-            mock_mapping.return_value = {'test_channel': 'tests.test_utilities.TestUserFactory'}
+            mock_mapping.return_value = {'test_channel': 'tests.test_helpers.test_utilities.TestUserFactory'}
             mock_import.return_value = Mock()
             # Use a different approach to simulate attribute error
             mock_import.return_value.TestUserFactory = None
@@ -81,7 +81,7 @@ class TestCommunicationFactoryCoverageExpansion:
             core.config, 'get_channel_class_mapping'
         ) as mock_mapping, patch('importlib.import_module') as mock_import:
             mock_channels.return_value = ['test_channel']
-            mock_mapping.return_value = {'test_channel': 'tests.test_utilities.TestUserFactory'}
+            mock_mapping.return_value = {'test_channel': 'tests.test_helpers.test_utilities.TestUserFactory'}
             mock_module = Mock()
             mock_module.TestUserFactory = Mock
             mock_import.return_value = mock_module
@@ -104,7 +104,7 @@ class TestCommunicationFactoryCoverageExpansion:
             'communication.core.factory.get_channel_class_mapping'
         ) as mock_mapping:
             mock_channels.return_value = ['known_channel']
-            mock_mapping.return_value = {'known_channel': 'tests.test_utilities.TestUserFactory'}
+            mock_mapping.return_value = {'known_channel': 'tests.test_helpers.test_utilities.TestUserFactory'}
 
             # Initialize registry
             ChannelFactory._initialize_registry()
@@ -152,7 +152,7 @@ class TestCommunicationFactoryCoverageExpansion:
             core.config, 'get_channel_class_mapping'
         ) as mock_mapping, patch('importlib.import_module') as mock_import:
             mock_channels.return_value = ['test_channel']
-            mock_mapping.return_value = {'test_channel': 'tests.test_utilities.TestUserFactory'}
+            mock_mapping.return_value = {'test_channel': 'tests.test_helpers.test_utilities.TestUserFactory'}
             mock_module = Mock()
             mock_module.TestUserFactory = MockChannel
             mock_import.return_value = mock_module
@@ -198,8 +198,8 @@ class TestCommunicationFactoryCoverageExpansion:
         ) as mock_mapping, patch('importlib.import_module') as mock_import:
             mock_channels.return_value = ['channel1', 'channel2']
             mock_mapping.return_value = {
-                'channel1': 'tests.test_utilities.TestUserFactory',
-                'channel2': 'tests.test_utilities.TestDataFactory'
+                'channel1': 'tests.test_helpers.test_utilities.TestUserFactory',
+                'channel2': 'tests.test_helpers.test_utilities.TestDataFactory'
             }
             mock_module = Mock()
             mock_module.TestUserFactory = Mock
@@ -262,7 +262,7 @@ class TestCommunicationFactoryCoverageExpansion:
             'communication.core.factory.get_channel_class_mapping'
         ) as mock_mapping, patch('importlib.import_module') as mock_import:
             mock_channels.return_value = ['error_channel']
-            mock_mapping.return_value = {'error_channel': 'tests.test_utilities.TestUserFactory'}
+            mock_mapping.return_value = {'error_channel': 'tests.test_helpers.test_utilities.TestUserFactory'}
             mock_module = Mock()
             mock_module.TestUserFactory = ErrorChannel
             mock_import.return_value = mock_module
@@ -300,7 +300,7 @@ class TestCommunicationFactoryCoverageExpansion:
             core.config, 'get_channel_class_mapping'
         ) as mock_mapping, patch('importlib.import_module') as mock_import:
             mock_channels.return_value = ['persistent_channel']
-            mock_mapping.return_value = {'persistent_channel': 'tests.test_utilities.TestUserFactory'}
+            mock_mapping.return_value = {'persistent_channel': 'tests.test_helpers.test_utilities.TestUserFactory'}
             mock_module = Mock()
             mock_module.TestUserFactory = Mock
             mock_import.return_value = mock_module
@@ -345,7 +345,7 @@ class TestCommunicationFactoryCoverageExpansion:
             core.config, 'get_channel_class_mapping'
         ) as mock_mapping:
             mock_channels.return_value = ['config_channel']
-            mock_mapping.return_value = {'config_channel': 'tests.test_utilities.TestUserFactory'}
+            mock_mapping.return_value = {'config_channel': 'tests.test_helpers.test_utilities.TestUserFactory'}
 
             # Act
             ChannelFactory._initialize_registry()
@@ -366,7 +366,7 @@ class TestCommunicationFactoryCoverageExpansion:
             'communication.core.factory.get_channel_class_mapping'
         ) as mock_mapping:
             mock_channels.return_value = ['logging_channel']
-            mock_mapping.return_value = {'logging_channel': 'tests.test_utilities.TestUserFactory'}
+            mock_mapping.return_value = {'logging_channel': 'tests.test_helpers.test_utilities.TestUserFactory'}
 
             # Act
             ChannelFactory._initialize_registry()

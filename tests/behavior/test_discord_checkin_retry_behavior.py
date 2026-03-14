@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
 import uuid
 
-from tests.test_utilities import TestUserFactory, TestDataManager
+from tests.test_helpers.test_utilities import TestUserFactory, TestDataManager
 import contextlib
 
 
@@ -86,7 +86,7 @@ class TestDiscordCheckinRetryBehavior:
         self, comm_manager, user_id, test_data_dir
     ):
         """Test that check-in messages are queued when Discord disconnects during send."""
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
 
         # Arrange: Get actual user ID (UUID) for the test user
         from core.user_data_handlers import (

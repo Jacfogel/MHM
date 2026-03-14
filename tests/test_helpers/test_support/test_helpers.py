@@ -47,7 +47,7 @@ def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
     resolved_user_id = user_id
     if not os.path.exists(get_user_data_dir(user_id)):
         # Try to resolve UUID from internal username
-        from tests.test_utilities import TestUserFactory as TUF
+        from tests.test_helpers.test_utilities import TestUserFactory as TUF
 
         uuid_resolved = get_user_id_by_identifier(
             user_id

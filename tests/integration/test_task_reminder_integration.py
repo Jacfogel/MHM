@@ -16,7 +16,7 @@ from tasks import (
     update_task,
     load_active_tasks,
 )
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 
 
@@ -352,7 +352,7 @@ class TestReminderDeliveryIntegration:
 
         # Create a completed task
         from tasks import create_task, complete_task
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
 
         TestUserFactory.create_basic_user(
             user_id, enable_checkins=False, test_data_dir=test_data_dir
@@ -382,7 +382,7 @@ class TestReminderDeliveryIntegration:
 
         # Create an active task
         from tasks import create_task
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
 
         TestUserFactory.create_basic_user(
             user_id, enable_checkins=False, test_data_dir=test_data_dir

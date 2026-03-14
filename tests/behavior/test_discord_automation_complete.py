@@ -18,7 +18,7 @@ from communication.command_handlers.task_handler import TaskManagementHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 import pytest
 
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 @pytest.mark.behavior

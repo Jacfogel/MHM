@@ -9,7 +9,7 @@ import pytest
 import os
 import uuid
 from unittest.mock import patch
-from tests.test_utilities import TestUserFactory, TestUserDataFactory
+from tests.test_helpers.test_utilities import TestUserFactory, TestUserDataFactory
 
 
 class TestCrossFileInvariants:

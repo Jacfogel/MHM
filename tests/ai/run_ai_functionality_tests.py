@@ -216,7 +216,7 @@ test_logger.addHandler(test_handler)
 test_logger.propagate = False
 
 # Now import modules after logging is configured
-from tests.test_utilities import setup_test_data_environment
+from tests.test_helpers.test_utilities import setup_test_data_environment
 
 
 class AITestResultsCollector:
@@ -482,7 +482,7 @@ def main():
 
     # Environment variables are already set at module level (before logger initialization)
     # Set up test data environment
-    from tests.test_utilities import cleanup_test_data_environment
+    from tests.test_helpers.test_utilities import cleanup_test_data_environment
 
     test_dir, test_data_dir, _ = setup_test_data_environment()
 

@@ -397,14 +397,10 @@ C:.
 |   |   
 +---tests
 |   |   conftest.py
-|   |   debug_file_paths.py
 |   |   DEVELOPMENT_TOOLS_TESTING_GUIDE.md
 |   |   MANUAL_DISCORD_TEST_GUIDE.md
 |   |   MANUAL_TESTING_GUIDE.md
 |   |   TESTING_GUIDE.md
-|   |   test_error_handling_improvements.py
-|   |   test_isolation.py
-|   |   test_utilities.py
 |   |   
 |   +---ai
 |   |   |   ai_response_validator.py
@@ -633,22 +629,35 @@ C:.
 |   |   |   test_task_cleanup_silent_failure.py
 |   |   |   test_task_reminder_integration.py
 |   |   |   test_user_creation.py
-|   |   |   
+|   |   |   test_error_handling_improvements.py
+|   |   |
 |   +---logs
     (log files)
 |   +---notebook
 |   |   |   __init__.py
 |   |   |   
-|   +---test_support
-|   |   |   conftest_cleanup.py
-|   |   |   conftest_cleanup_impl.py
-|   |   |   conftest_hooks.py
-|   |   |   conftest_logging.py
-|   |   |   conftest_logging_impl.py
-|   |   |   conftest_mocks.py
-|   |   |   conftest_user_data.py
-|   |   |   test_helpers.py
+|   +---test_helpers
 |   |   |   __init__.py
+|   |   +---test_support
+|   |   |   |   conftest_cleanup.py
+|   |   |   |   conftest_cleanup_impl.py
+|   |   |   |   conftest_env.py
+|   |   |   |   conftest_hooks.py
+|   |   |   |   conftest_logging.py
+|   |   |   |   conftest_logging_impl.py
+|   |   |   |   conftest_mocks.py
+|   |   |   |   conftest_user_data.py
+|   |   |   |   test_helpers.py
+|   |   |   |   test_isolation.py
+|   |   |   |   __init__.py
+|   |   +---test_utilities
+|   |   |   |   __init__.py
+|   |   |   |   test_data_factory.py
+|   |   |   |   test_data_manager.py
+|   |   |   |   test_environment.py
+|   |   |   |   test_log_path_mocks.py
+|   |   |   |   test_user_data_factory.py
+|   |   |   |   test_user_factory.py
 |   |   |   
 |   +---ui
 |   |   |   test_account_creation_ui.py
@@ -678,6 +687,7 @@ C:.
 |   |   |   test_widget_behavior_simple.py
 |   |   |   
 |   +---unit
+|   |   |   debug_file_paths.py
 |   |   |   test_admin_panel.py
 |   |   |   test_ai_chatbot_helpers.py
 |   |   |   test_ai_deterministic.py
@@ -741,6 +751,7 @@ C:.
 |   |   |   test_tags_expansion.py
 |   |   |   test_tags_gap_coverage.py
 |   |   |   test_test_policy_guards.py
+|   |   |   test_run_tests_interrupts.py
 |   |   |   test_ui_management.py
 |   |   |   test_user_context.py
 |   |   |   test_user_data_handlers.py

@@ -30,7 +30,7 @@ from core.time_utilities import (
     TIMESTAMP_FULL,
 )
 from communication.core.channel_orchestrator import CommunicationManager
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 class TestConversationFlowManagerBehavior:

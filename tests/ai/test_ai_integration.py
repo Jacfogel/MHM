@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 
 from tests.ai.ai_test_base import AITestBase
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 from core.user_data_handlers import get_user_id_by_identifier
 from core.response_tracking import get_recent_chat_interactions
 from user.context_manager import user_context_manager

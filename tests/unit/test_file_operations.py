@@ -581,7 +581,7 @@ class TestFileOperationsEdgeCases:
     @pytest.mark.no_parallel
     def test_file_operations_lifecycle(self, test_data_dir, mock_config):
         """Test complete file operations lifecycle using centralized utilities."""
-        from tests.test_utilities import TestUserDataFactory
+        from tests.test_helpers.test_utilities import TestUserDataFactory
         import uuid
         
         # Step 1: Test user directory creation

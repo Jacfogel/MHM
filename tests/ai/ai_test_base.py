@@ -9,7 +9,7 @@ import os
 from unittest.mock import patch
 
 from ai.chatbot import AIChatBotSingleton
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 from core.user_data_handlers import get_user_id_by_identifier
 from tests.ai.ai_response_validator import AIResponseValidator
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full

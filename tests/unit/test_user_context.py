@@ -16,7 +16,7 @@ import threading
 from unittest.mock import patch
 
 from user.user_context import UserContext
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 class TestUserContextSingleton:

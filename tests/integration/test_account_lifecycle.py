@@ -148,7 +148,7 @@ class TestAccountLifecycle:
         user_id = "test-basic-user"
         
         # Create test user using centralized utilities for consistent setup
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(user_id, self.test_data_dir)
         assert success, "Test user should be created successfully"
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
@@ -204,7 +204,7 @@ class TestAccountLifecycle:
     def test_create_full_account(self):
         """Test creating a full account with all features enabled."""
         from core.user_data_handlers import save_user_data, get_user_data
-        from tests.test_utilities import TestUserFactory, TestDataFactory
+        from tests.test_helpers.test_utilities import TestUserFactory, TestDataFactory
         
         # Arrange - Create full user with all features using centralized utilities
         user_id = "test-full-user"
@@ -216,7 +216,7 @@ class TestAccountLifecycle:
         # Get the UUID for the user using the proper system lookup
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from core.user_data_manager import update_user_index
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         if actual_user_id:
             update_user_index(actual_user_id)
@@ -260,7 +260,7 @@ class TestAccountLifecycle:
         self._materialize_and_verify(actual_user_id)
         loaded_data = get_user_data(actual_user_id)
         if "account" not in loaded_data:
-            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis as _mat
+            from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis as _mat
             _mat(actual_user_id)
             loaded_data = get_user_data(actual_user_id)
         if loaded_data.get("account", {}).get("features", {}).get("automated_messages") != "enabled":
@@ -308,7 +308,7 @@ class TestAccountLifecycle:
         user_id = f"test-enable-checkins-{uuid.uuid4().hex[:8]}"
         
         # Create test user using centralized utilities for consistent setup
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(user_id, self.test_data_dir)
         assert success, "Test user should be created successfully"
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
@@ -351,7 +351,7 @@ class TestAccountLifecycle:
             if attempt < 4:
                 time.sleep(0.1)
         if "account" not in updated_data:
-            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis as _mat
+            from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis as _mat
             _mat(actual_user_id)
             updated_data = get_user_data(actual_user_id, 'all', auto_create=True)
         assert updated_data.get("account", {}).get("features", {}).get("checkins") == "enabled", \
@@ -421,7 +421,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, account_data, preferences_data, schedules_data)
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from core.user_data_manager import update_user_index
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         if actual_user_id:
             update_user_index(actual_user_id)
@@ -518,7 +518,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         from core.user_data_manager import rebuild_user_index
         rebuild_user_index()
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
         assert actual_user_id is not None
@@ -616,7 +616,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from core.user_data_manager import update_user_index
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
         assert actual_user_id is not None
@@ -704,7 +704,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from core.user_data_manager import update_user_index
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
         assert actual_user_id is not None
@@ -772,7 +772,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from core.user_data_manager import update_user_index
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
         assert actual_user_id is not None
@@ -851,7 +851,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from core.user_data_manager import update_user_index
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         assert actual_user_id is not None
         if actual_user_id:
@@ -921,7 +921,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from core.user_data_manager import update_user_index
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         assert actual_user_id is not None
         if actual_user_id:
@@ -993,7 +993,7 @@ class TestAccountLifecycle:
         time.sleep(0.1)  # Brief delay to ensure index is written
         
         # Even if rebuild failed, try to find the user (directory scan fallback)
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         assert actual_user_id is not None
         

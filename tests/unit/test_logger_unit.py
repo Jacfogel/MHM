@@ -563,7 +563,7 @@ class TestGetComponentLogger:
     @pytest.mark.unit
     def test_get_component_logger_creates_logger(self, test_data_dir):
         """Test: get_component_logger creates component logger"""
-        from tests.test_utilities import TestLogPathMocks
+        from tests.test_helpers.test_utilities import TestLogPathMocks
         
         log_dir = Path(test_data_dir) / "logs"
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
@@ -578,7 +578,7 @@ class TestGetComponentLogger:
     @pytest.mark.unit
     def test_get_component_logger_returns_same_instance(self, test_data_dir):
         """Test: get_component_logger returns same instance for same name"""
-        from tests.test_utilities import TestLogPathMocks
+        from tests.test_helpers.test_utilities import TestLogPathMocks
         
         log_dir = Path(test_data_dir) / "logs"
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
@@ -593,7 +593,7 @@ class TestGetComponentLogger:
     @pytest.mark.unit
     def test_get_component_logger_handles_invalid_name(self, test_data_dir):
         """Test: get_component_logger handles invalid component name"""
-        from tests.test_utilities import TestLogPathMocks
+        from tests.test_helpers.test_utilities import TestLogPathMocks
         
         log_dir = Path(test_data_dir) / "logs"
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
@@ -612,7 +612,7 @@ class TestSetupThirdPartyErrorLogging:
     @pytest.mark.unit
     def test_setup_third_party_error_logging_creates_handlers(self, test_data_dir):
         """Test: setup_third_party_error_logging creates error handlers"""
-        from tests.test_utilities import TestLogPathMocks
+        from tests.test_helpers.test_utilities import TestLogPathMocks
         
         log_dir = Path(test_data_dir) / "logs"
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
@@ -648,7 +648,7 @@ class TestCompressOldLogs:
         old_time = time.time() - (8 * 24 * 3600)
         os.utime(old_log, (old_time, old_time))
         
-        from tests.test_utilities import TestLogPathMocks
+        from tests.test_helpers.test_utilities import TestLogPathMocks
         
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
             mock_paths.return_value = TestLogPathMocks.create_complete_log_paths_mock(str(log_dir))
@@ -678,7 +678,7 @@ class TestCleanupOldArchives:
         old_time = time.time() - (31 * 24 * 3600)
         os.utime(old_archive, (old_time, old_time))
         
-        from tests.test_utilities import TestLogPathMocks
+        from tests.test_helpers.test_utilities import TestLogPathMocks
         
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
             # Only archive_dir is needed for this test, but include all keys for safety

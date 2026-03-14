@@ -8,7 +8,7 @@ and validation logic.
 import pytest
 import uuid
 from unittest.mock import patch, Mock
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 from core.file_locking import safe_json_read
 from core.user_data_handlers import (
     update_user_account,
@@ -72,7 +72,7 @@ class TestUserDataHandlersConvenienceFunctions:
     def test_update_user_account_valid_input(self, test_data_dir):
         """Test update_user_account with valid input."""
         from pathlib import Path
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
 
         user_id = f"test_update_account_{uuid.uuid4().hex[:8]}"
         assert TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
@@ -145,7 +145,7 @@ class TestUserDataHandlersConvenienceFunctions:
     def test_update_user_preferences_valid_input(self, test_data_dir):
         """Test update_user_preferences with valid input."""
         from pathlib import Path
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
 
         user_id = f"test_update_prefs_{uuid.uuid4().hex[:8]}"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
@@ -457,7 +457,7 @@ class TestUserDataHandlersConvenienceFunctions:
     def test_save_user_data_transaction_valid_input(self, test_data_dir):
         """Test save_user_data_transaction with valid input."""
         from pathlib import Path
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
 
         user_id = f"test_transaction_{uuid.uuid4().hex[:8]}"
         assert TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)

@@ -302,7 +302,7 @@ Most error paths should flow through the centralized error handling system; for 
 
 ### 9.6. Respect test settings
 
-When writing tests that assert on logs, use helpers/fixtures in `tests/test_utilities.py` rather than ad-hoc file manipulation.
+When writing tests that assert on logs, use helpers/fixtures in `tests\test_helpers\test_utilities` rather than ad-hoc file manipulation.
 
 ### 9.7. Reducing noise from tools and high-frequency events
 

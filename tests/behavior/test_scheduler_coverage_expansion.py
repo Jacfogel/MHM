@@ -1141,7 +1141,7 @@ class TestSchedulerLoopCoverage:
         user_id = "test-scheduler-user"
 
         # Create a test user with preferences
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
 
         TestUserFactory.create_basic_user(user_id, test_data_dir)
 

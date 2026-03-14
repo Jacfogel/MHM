@@ -5,7 +5,7 @@ from communication.message_processing.conversation_flow_manager import (
     FLOW_CHECKIN,
     CHECKIN_INACTIVITY_MINUTES,
 )
-from tests.test_utilities import (
+from tests.test_helpers.test_utilities import (
     setup_test_data_environment,
     cleanup_test_data_environment,
     create_test_user,

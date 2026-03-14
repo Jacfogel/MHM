@@ -130,7 +130,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
     
     try:
         from core.user_data_handlers import get_user_data, update_user_account
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         
         # Create a test user first (minimal user since we only need basic structure for data structure testing)
         test_user_id = f"test-user-{uuid.uuid4().hex[:8]}"
@@ -148,8 +148,8 @@ def test_account_management_data_structures(test_data_dir, mock_config):
         
         # Test account data structure
         try:
-            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
-            from tests.test_support.test_helpers import wait_until
+            from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
+            from tests.test_helpers.test_support.test_helpers import wait_until
             materialize_user_minimal_via_public_apis(test_user)
             assert wait_until(
                 lambda: (
@@ -368,7 +368,7 @@ def test_account_management_safe_operations():
         
         # Test reading temporary user data
         try:
-            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
+            from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
             import time
             materialize_user_minimal_via_public_apis(temp_user_id)
             # Retry in case of race conditions with file writes in parallel execution

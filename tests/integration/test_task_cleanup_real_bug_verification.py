@@ -20,7 +20,7 @@ from tasks import (
     cleanup_task_reminders,
     schedule_task_reminders,
 )
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 class TestTaskCleanupBugVerification:

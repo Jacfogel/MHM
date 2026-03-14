@@ -12,8 +12,8 @@ import logging
 import contextlib
 import pytest
 
-from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
+from tests.test_helpers.test_utilities import TestUserFactory
 
 TEST_LOGGER = logging.getLogger("mhm_tests")
 
@@ -24,7 +24,7 @@ pytestmark = [pytest.mark.behavior, pytest.mark.user_management]
 
 def setup_test_environment():
     """Create isolated test environment with temporary directories"""
-    from tests.test_utilities import TestDataManager
+    from tests.test_helpers.test_utilities import TestDataManager
     
     TEST_LOGGER.debug("Setting up test environment...")
     return TestDataManager.setup_test_environment()
@@ -32,7 +32,7 @@ def setup_test_environment():
 
 def create_test_user_data(user_id, test_data_dir, base_state="basic"):
     """Create test user data with specific base state using centralized utilities"""
-    from tests.test_utilities import TestDataFactory
+    from tests.test_helpers.test_utilities import TestDataFactory
     
     if base_state == "basic":
         # Basic user with only messages enabled
@@ -125,7 +125,7 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         from core.user_data_handlers import get_user_id_by_identifier
         
         # Get the UUID for the basic user (serial execution ensures index is updated)
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_manager import rebuild_user_index
         
         # Rebuild index to ensure user is discoverable
@@ -137,7 +137,7 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         )
         
         # Materialize and load basic user (serial execution ensures files are written)
-        from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
+        from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
         import time
         
         materialize_user_minimal_via_public_apis(basic_user_id)
@@ -247,7 +247,7 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         from core.user_data_handlers import get_user_id_by_identifier
         
         # Get the UUID for the basic user (serial execution ensures index is updated)
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_manager import rebuild_user_index
         
         # Rebuild index to ensure user is discoverable
@@ -461,8 +461,8 @@ def test_schedule_period_management_real_behavior(test_data_dir):
     try:
             from core.user_data_handlers import save_user_data, get_user_data
             from core.user_data_handlers import get_user_id_by_identifier
-            from tests.test_utilities import TestUserFactory
-            from tests.test_support.test_helpers import materialize_user_minimal_via_public_apis
+            from tests.test_helpers.test_utilities import TestUserFactory
+            from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
             
             # Get the UUID for the basic user (serial execution ensures index is updated)
             from core.user_data_manager import rebuild_user_index
@@ -484,7 +484,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             if 'schedules' not in basic_data or 'motivational' not in basic_data.get('schedules', {}):
                 # Schedules might not have been created yet - try to create them
                 from core.user_data_handlers import save_user_data
-                from tests.test_utilities import TestDataFactory
+                from tests.test_helpers.test_utilities import TestDataFactory
                 schedules_data = TestDataFactory.create_test_schedule_data(["motivational"])
                 schedules_data["motivational"]["periods"]["morning"] = {
                     "active": True,
@@ -866,7 +866,7 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
 
 def cleanup_test_environment(test_dir):
     """Clean up test environment"""
-    from tests.test_utilities import TestDataManager
+    from tests.test_helpers.test_utilities import TestDataManager
     TEST_LOGGER.info("Cleaning up test environment...")
     TestDataManager.cleanup_test_environment(test_dir)
     TEST_LOGGER.info("Test environment cleaned up")

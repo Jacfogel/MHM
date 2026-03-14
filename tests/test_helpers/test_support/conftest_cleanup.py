@@ -1,7 +1,7 @@
 """
 Pytest plugin: session cleanup fixtures (prune test artifacts, clear test user factory cache).
 
-Implementation lives in tests.test_support.conftest_cleanup_impl; this module provides
+Implementation lives in tests.test_helpers.test_support.conftest_cleanup_impl; this module provides
 the fixtures that call into it. Root conftest loads this via pytest_plugins.
 """
 
@@ -12,7 +12,7 @@ import pytest
 from pathlib import Path
 
 from tests.conftest import project_root
-from tests.test_support.conftest_cleanup_impl import (
+from tests.test_helpers.test_support.conftest_cleanup_impl import (
     _cleanup_test_log_files,
     _prune_old_files,
     _is_transient_test_data_dir_name,
@@ -30,7 +30,7 @@ def clear_test_user_factory_cache():
     """Clear test user factory cache at the end of the test session."""
     yield
     try:
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
 
         TestUserFactory.clear_cache()
     except Exception:

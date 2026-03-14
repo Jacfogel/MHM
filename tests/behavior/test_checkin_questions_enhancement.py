@@ -9,7 +9,7 @@ import uuid
 from unittest.mock import patch
 from core.checkin_dynamic_manager import dynamic_checkin_manager
 from core.checkin_analytics import CheckinAnalytics
-from tests.test_utilities import (
+from tests.test_helpers.test_utilities import (
     setup_test_data_environment,
     cleanup_test_data_environment,
     TestUserFactory,
@@ -424,7 +424,7 @@ class TestAnalyticsWithNewQuestions:
         from core.response_tracking import store_user_response, get_checkins_by_days
         from unittest.mock import patch
         import os
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
 
         # Create check-in with sleep_schedule
         checkin_data = {
@@ -474,7 +474,7 @@ class TestAnalyticsWithNewQuestions:
         from core.response_tracking import store_user_response, get_checkins_by_days
         from unittest.mock import patch
         import os
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
 
         # Create check-ins with new questions
         checkin_data = {

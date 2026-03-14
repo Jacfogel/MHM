@@ -23,7 +23,7 @@ from notebook.notebook_validation import (
     MAX_GROUP_LENGTH,
     validate_entry_content
 )
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 @pytest.mark.integration

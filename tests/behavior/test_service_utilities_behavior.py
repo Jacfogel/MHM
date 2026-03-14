@@ -72,7 +72,7 @@ class TestServiceUtilitiesBehavior:
         ), "Should return False when within interval"
 
         # Wait for interval to pass without sleeping the whole test
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
 
         assert wait_until(lambda: throttler.should_run() is True, timeout_seconds=2.0)
 
@@ -494,7 +494,7 @@ class TestServiceUtilitiesBehavior:
         ), "Second call should be throttled (last_run was set on first call)"
 
         # Wait for interval to pass without arbitrary sleep
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
 
         assert wait_until(lambda: throttler.should_run() is True, timeout_seconds=1.25)
         third_result = True
@@ -606,7 +606,7 @@ class TestServiceUtilitiesIntegration:
         assert results[1:] == [False] * 4, "Rapid calls should be throttled"
 
         # Test with actual time delay to verify throttling works across seconds
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
 
         assert wait_until(lambda: throttler.should_run() is True, timeout_seconds=2.0)
         delayed_result = True

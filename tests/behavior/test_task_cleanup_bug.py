@@ -11,7 +11,7 @@ from datetime import timedelta
 
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 from tasks import create_task, cleanup_task_reminders
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 class TestTaskCleanupBug:

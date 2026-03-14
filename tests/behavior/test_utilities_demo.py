@@ -8,7 +8,7 @@ import os
 import pytest
 import json
 import logging
-from tests.test_utilities import (
+from tests.test_helpers.test_utilities import (
     TestUserFactory, TestUserDataFactory,
     create_test_user, setup_test_data_environment, cleanup_test_data_environment
 )
@@ -303,7 +303,7 @@ class TestUtilitiesDemo:
     @pytest.mark.no_parallel
     def test_comprehensive_user_types(self, test_data_dir):
         """Test all comprehensive user types to ensure they cover real user scenarios."""
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         
         # Test all user types
         user_types = [
@@ -338,7 +338,7 @@ class TestUtilitiesDemo:
                 
                 if success:
                     # Verify user data can be loaded using test-specific functions
-                    from tests.test_utilities import TestUserFactory
+                    from tests.test_helpers.test_utilities import TestUserFactory
                     
                     # Get the actual user ID (UUID) that was created using test-specific function
                     actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
@@ -377,7 +377,7 @@ class TestUtilitiesDemo:
     
     def test_real_user_scenarios(self, test_data_dir, mock_config):
         """Test scenarios that mirror real user data patterns."""
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_data
         from core.user_data_handlers import get_user_id_by_identifier
         
@@ -496,7 +496,7 @@ class TestUtilitiesDemo:
     
     def test_edge_case_users(self, test_data_dir):
         """Test edge cases and boundary conditions for user creation."""
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_data
         from core.user_data_handlers import get_user_id_by_identifier
         
@@ -561,7 +561,7 @@ class TestUtilitiesDemo:
     @pytest.mark.no_parallel
     def test_user_data_consistency(self, test_data_dir):
         """Test that all user types produce consistent data structures."""
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_data
         from core.user_data_handlers import get_user_id_by_identifier
         

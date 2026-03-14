@@ -9,7 +9,7 @@ from datetime import datetime
 import pytest
 
 from ai.conversation_history import ConversationHistory
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 @pytest.mark.behavior

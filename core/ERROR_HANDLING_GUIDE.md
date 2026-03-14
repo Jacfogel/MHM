@@ -281,7 +281,7 @@ Guidelines when adding or changing error handling:
 
 - Add or update tests for both the success path and the failure path.  
 - Verify that exceptions are correctly captured by decorators or direct handler calls.
-- Where practical, assert on logs or metrics using helpers in `tests/test_utilities.py`.  
+- Where practical, assert on logs or metrics using helpers in `tests\test_helpers\test_utilities`.  
 
 For broader testing patterns, see:
 

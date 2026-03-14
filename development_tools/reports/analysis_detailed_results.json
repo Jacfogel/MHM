@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-03-12 22:20:27",
+  "last_generated": "2026-03-14 02:52:23",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-03-12T22:20:27.815015",
+  "timestamp": "2026-03-14T02:52:23.031038",
   "successful": [
     "analyze_duplicate_functions",
     "analyze_functions",
@@ -52,8 +52,8 @@
           "groups_filtered_single_function": 10,
           "cache": {
             "total_files": 112,
-            "cached_files": 0,
-            "scanned_files": 112
+            "cached_files": 112,
+            "scanned_files": 0
           },
           "pairs_considered": 20000,
           "pairs_reported": 34,
@@ -2304,7 +2304,7 @@
           ]
         }
       },
-      "timestamp": "2026-03-12T22:16:53"
+      "timestamp": "2026-03-14T02:48:18"
     },
     "analyze_functions": {
       "success": true,
@@ -2509,7 +2509,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-03-12T22:16:52"
+      "timestamp": "2026-03-14T02:48:17"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -4522,7 +4522,7 @@
           ]
         }
       },
-      "timestamp": "2026-03-12T22:16:50"
+      "timestamp": "2026-03-14T02:48:16"
     },
     "analyze_function_registry": {
       "success": true,
@@ -6650,30 +6650,18 @@
           "total_issues": 48
         }
       },
-      "timestamp": "2026-03-12T22:16:54"
+      "timestamp": "2026-03-14T02:48:20"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 61,
-          "files_affected": 61,
+          "total_issues": 59,
+          "files_affected": 59,
           "status": "WARN"
         },
         "details": {
           "refactor_candidates": [
-            {
-              "file": "tests/test_utilities.py",
-              "lines": 3384,
-              "function_count": 69,
-              "class_count": 5,
-              "total_function_complexity": 10455,
-              "high_complexity_count": 23,
-              "critical_complexity_count": 18,
-              "reasons": [
-                "exceeds size/complexity thresholds"
-              ]
-            },
             {
               "file": "core/user_data_handlers.py",
               "lines": 2876,
@@ -6808,12 +6796,12 @@
             },
             {
               "file": "ui/widgets/checkin_settings_widget.py",
-              "lines": 1438,
+              "lines": 1443,
               "function_count": 36,
               "class_count": 1,
-              "total_function_complexity": 6177,
-              "high_complexity_count": 10,
-              "critical_complexity_count": 8,
+              "total_function_complexity": 6202,
+              "high_complexity_count": 9,
+              "critical_complexity_count": 9,
               "reasons": [
                 "exceeds size/complexity thresholds"
               ]
@@ -7078,18 +7066,6 @@
               "total_function_complexity": 2171,
               "high_complexity_count": 4,
               "critical_complexity_count": 4,
-              "reasons": [
-                "exceeds size/complexity thresholds"
-              ]
-            },
-            {
-              "file": "tests/test_error_handling_improvements.py",
-              "lines": 564,
-              "function_count": 32,
-              "class_count": 3,
-              "total_function_complexity": 2808,
-              "high_complexity_count": 8,
-              "critical_complexity_count": 3,
               "reasons": [
                 "exceeds size/complexity thresholds"
               ]
@@ -7395,7 +7371,7 @@
               ]
             }
           ],
-          "total_candidates": 61,
+          "total_candidates": 59,
           "thresholds_used": {
             "max_lines_per_module": 500,
             "max_functions_per_module": 40,
@@ -7404,7 +7380,7 @@
           }
         }
       },
-      "timestamp": "2026-03-12T22:16:53"
+      "timestamp": "2026-03-14T02:48:19"
     },
     "analyze_package_exports": {
       "success": true,
@@ -7418,6 +7394,666 @@
           "total_unnecessary_exports": 1,
           "packages_with_missing": 3,
           "packages": {
+            "ui": {
+              "package": "ui",
+              "current_exports_count": 34,
+              "should_export_count": 34,
+              "already_exported": [
+                "AccountCreatorDialog",
+                "AdminPanelDialog",
+                "CategoryManagementDialog",
+                "CategorySelectionWidget",
+                "ChannelManagementDialog",
+                "ChannelSelectionWidget",
+                "CheckinManagementDialog",
+                "CheckinSettingsWidget",
+                "DynamicListContainer",
+                "DynamicListField",
+                "MHMManagerUI",
+                "MessageEditDialog",
+                "MessageEditorDialog",
+                "PeriodRowWidget",
+                "ProcessWatcherDialog",
+                "ScheduleEditorDialog",
+                "ServiceManager",
+                "TagWidget",
+                "TaskCompletionDialog",
+                "TaskCrudDialog",
+                "TaskEditDialog",
+                "TaskManagementDialog",
+                "TaskSettingsWidget",
+                "UserAnalyticsDialog",
+                "UserProfileDialog",
+                "UserProfileSettingsWidget",
+                "create_account_dialog",
+                "generate_all_ui_files",
+                "generate_ui_file",
+                "main",
+                "open_message_editor_dialog",
+                "open_personalization_dialog",
+                "open_schedule_editor",
+                "open_user_analytics_dialog"
+              ],
+              "missing_exports": [],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "PeriodRowWidget": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/ui_management.py",
+                    "core/ui_management.py",
+                    "core/ui_management.py",
+                    "ui/dialogs/schedule_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.period_row_widget"
+                },
+                "CategorySelectionWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/category_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.category_selection_widget"
+                },
+                "ChannelSelectionWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/channel_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.channel_selection_widget"
+                },
+                "TaskSettingsWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/task_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.task_settings_widget"
+                },
+                "CheckinSettingsWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/checkin_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.checkin_settings_widget"
+                },
+                "TaskEditDialog": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.task_edit_dialog"
+                },
+                "TagWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/task_edit_dialog.py",
+                    "ui/widgets/task_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.tag_widget"
+                },
+                "DynamicListContainer": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "ui/dialogs/user_profile_dialog.py",
+                    "ui/widgets/dynamic_list_field.py",
+                    "ui/widgets/dynamic_list_field.py",
+                    "ui/widgets/dynamic_list_field.py",
+                    "ui/widgets/user_profile_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.dynamic_list_container"
+                }
+              },
+              "import_usage_details": {
+                "PeriodRowWidget": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/ui_management.py",
+                    "core/ui_management.py",
+                    "core/ui_management.py",
+                    "ui/dialogs/schedule_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.period_row_widget"
+                },
+                "Ui_ui_app_mainwindow": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.admin_panel_pyqt"
+                },
+                "AccountCreatorDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.account_creator_dialog"
+                },
+                "ChannelManagementDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.channel_management_dialog"
+                },
+                "CategoryManagementDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.category_management_dialog"
+                },
+                "CheckinManagementDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.checkin_management_dialog"
+                },
+                "TaskManagementDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.task_management_dialog"
+                },
+                "TaskCrudDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.task_crud_dialog"
+                },
+                "UserProfileDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.user_profile_dialog"
+                },
+                "open_user_analytics_dialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.user_analytics_dialog"
+                },
+                "open_message_editor_dialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.message_editor_dialog"
+                },
+                "open_schedule_editor": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.schedule_editor_dialog"
+                },
+                "ProcessWatcherDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.process_watcher_dialog"
+                },
+                "CategorySelectionWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/category_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.category_selection_widget"
+                },
+                "ChannelSelectionWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/channel_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.channel_selection_widget"
+                },
+                "TaskSettingsWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/task_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.task_settings_widget"
+                },
+                "CheckinSettingsWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/checkin_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.checkin_settings_widget"
+                },
+                "Ui_Dialog_create_account": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.account_creator_dialog_pyqt"
+                },
+                "open_personalization_dialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.user_profile_dialog"
+                },
+                "Ui_Dialog_category_management": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/category_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.category_management_dialog_pyqt"
+                },
+                "Ui_Dialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/channel_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.channel_management_dialog_pyqt"
+                },
+                "Ui_Dialog_checkin_management": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/checkin_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.checkin_management_dialog_pyqt"
+                },
+                "Ui_Dialog_message_editor": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/message_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.message_editor_dialog_pyqt"
+                },
+                "Ui_Dialog_edit_schedule": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/schedule_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.schedule_editor_dialog_pyqt"
+                },
+                "Ui_Dialog_task_completion": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/task_completion_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.task_completion_dialog_pyqt"
+                },
+                "Ui_Dialog_task_crud": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.task_crud_dialog_pyqt"
+                },
+                "TaskEditDialog": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.task_edit_dialog"
+                },
+                "TaskCompletionDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.task_completion_dialog"
+                },
+                "Ui_Dialog_task_edit": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/task_edit_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.task_edit_dialog_pyqt"
+                },
+                "TagWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/task_edit_dialog.py",
+                    "ui/widgets/task_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.tag_widget"
+                },
+                "Ui_Dialog_task_management": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/task_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.task_management_dialog_pyqt"
+                },
+                "Ui_Dialog_user_analytics": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/user_analytics_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.user_analytics_dialog_pyqt"
+                },
+                "Ui_Dialog_user_profile": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/user_profile_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.user_profile_management_dialog_pyqt"
+                },
+                "UserProfileSettingsWidget": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/user_profile_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.user_profile_settings_widget"
+                },
+                "DynamicListContainer": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "ui/dialogs/user_profile_dialog.py",
+                    "ui/widgets/dynamic_list_field.py",
+                    "ui/widgets/dynamic_list_field.py",
+                    "ui/widgets/dynamic_list_field.py",
+                    "ui/widgets/user_profile_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.dynamic_list_container"
+                },
+                "Ui_Form_category_selection_widget": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/category_selection_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.category_selection_widget_pyqt"
+                },
+                "Ui_Form_channel_selection": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/channel_selection_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.channel_selection_widget_pyqt"
+                },
+                "Ui_Form_checkin_settings": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/checkin_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.checkin_settings_widget_pyqt"
+                },
+                "DynamicListField": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/dynamic_list_container.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.dynamic_list_field"
+                },
+                "Ui_Form_dynamic_list_field_template": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/dynamic_list_field.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.dynamic_list_field_template_pyqt"
+                },
+                "Ui_Form_period_row_template": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/period_row_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.period_row_template_pyqt"
+                },
+                "Ui_Widget_tag": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/tag_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.tag_widget_pyqt"
+                },
+                "Ui_Form_task_settings": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/task_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.task_settings_widget_pyqt"
+                },
+                "Ui_Form_user_profile_settings": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/user_profile_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.user_profile_settings_widget_pyqt"
+                }
+              },
+              "package_api_items": [
+                "AccountCreatorDialog",
+                "AdminPanelDialog",
+                "CategoryManagementDialog",
+                "CategorySelectionWidget",
+                "ChannelManagementDialog",
+                "ChannelSelectionWidget",
+                "CheckinManagementDialog",
+                "CheckinSettingsWidget",
+                "DynamicListContainer",
+                "DynamicListField",
+                "MHMManagerUI",
+                "MessageEditDialog",
+                "MessageEditorDialog",
+                "PeriodRowWidget",
+                "ProcessWatcherDialog",
+                "ScheduleEditorDialog",
+                "ServiceManager",
+                "TagWidget",
+                "TaskCompletionDialog",
+                "TaskCrudDialog",
+                "TaskEditDialog",
+                "TaskManagementDialog",
+                "TaskSettingsWidget",
+                "UserAnalyticsDialog",
+                "UserProfileDialog",
+                "UserProfileSettingsWidget",
+                "create_account_dialog",
+                "generate_all_ui_files",
+                "generate_ui_file",
+                "main",
+                "open_message_editor_dialog",
+                "open_personalization_dialog",
+                "open_schedule_editor",
+                "open_user_analytics_dialog"
+              ],
+              "registry_items": [
+                "__init__",
+                "__post_init__",
+                "_add_blank_row",
+                "_after_add_period",
+                "_build_custom_question_key",
+                "_build_enabled_features",
+                "_build_features_dict",
+                "_get_day_checkboxes",
+                "_get_personalization_data__ensure_required_fields",
+                "_on_delete",
+                "_on_save_clicked",
+                "add_custom_field",
+                "add_new_period",
+                "add_new_task",
+                "add_reminder_period",
+                "closeEvent",
+                "complete_selected_task",
+                "configure_tab_visibility",
+                "generate_all_ui_files",
+                "generate_ui_file",
+                "get_admin_data",
+                "get_checkin_settings",
+                "get_completion_data",
+                "get_selected_categories",
+                "get_statistics",
+                "get_text",
+                "load_user_category_data",
+                "on_enable_task_management_toggled",
+                "set_selected_categories"
+              ]
+            },
             "core": {
               "package": "core",
               "current_exports_count": 157,
@@ -12652,666 +13288,6 @@
                 "is_valid_category_name"
               ]
             },
-            "ui": {
-              "package": "ui",
-              "current_exports_count": 34,
-              "should_export_count": 34,
-              "already_exported": [
-                "AccountCreatorDialog",
-                "AdminPanelDialog",
-                "CategoryManagementDialog",
-                "CategorySelectionWidget",
-                "ChannelManagementDialog",
-                "ChannelSelectionWidget",
-                "CheckinManagementDialog",
-                "CheckinSettingsWidget",
-                "DynamicListContainer",
-                "DynamicListField",
-                "MHMManagerUI",
-                "MessageEditDialog",
-                "MessageEditorDialog",
-                "PeriodRowWidget",
-                "ProcessWatcherDialog",
-                "ScheduleEditorDialog",
-                "ServiceManager",
-                "TagWidget",
-                "TaskCompletionDialog",
-                "TaskCrudDialog",
-                "TaskEditDialog",
-                "TaskManagementDialog",
-                "TaskSettingsWidget",
-                "UserAnalyticsDialog",
-                "UserProfileDialog",
-                "UserProfileSettingsWidget",
-                "create_account_dialog",
-                "generate_all_ui_files",
-                "generate_ui_file",
-                "main",
-                "open_message_editor_dialog",
-                "open_personalization_dialog",
-                "open_schedule_editor",
-                "open_user_analytics_dialog"
-              ],
-              "missing_exports": [],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "PeriodRowWidget": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/ui_management.py",
-                    "core/ui_management.py",
-                    "core/ui_management.py",
-                    "ui/dialogs/schedule_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.period_row_widget"
-                },
-                "CategorySelectionWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/category_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.category_selection_widget"
-                },
-                "ChannelSelectionWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/channel_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.channel_selection_widget"
-                },
-                "TaskSettingsWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/task_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.task_settings_widget"
-                },
-                "CheckinSettingsWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/checkin_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.checkin_settings_widget"
-                },
-                "TaskEditDialog": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.task_edit_dialog"
-                },
-                "TagWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/task_edit_dialog.py",
-                    "ui/widgets/task_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.tag_widget"
-                },
-                "DynamicListContainer": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "ui/dialogs/user_profile_dialog.py",
-                    "ui/widgets/dynamic_list_field.py",
-                    "ui/widgets/dynamic_list_field.py",
-                    "ui/widgets/dynamic_list_field.py",
-                    "ui/widgets/user_profile_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.dynamic_list_container"
-                }
-              },
-              "import_usage_details": {
-                "PeriodRowWidget": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/ui_management.py",
-                    "core/ui_management.py",
-                    "core/ui_management.py",
-                    "ui/dialogs/schedule_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.period_row_widget"
-                },
-                "Ui_ui_app_mainwindow": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.admin_panel_pyqt"
-                },
-                "AccountCreatorDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.account_creator_dialog"
-                },
-                "ChannelManagementDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.channel_management_dialog"
-                },
-                "CategoryManagementDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.category_management_dialog"
-                },
-                "CheckinManagementDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.checkin_management_dialog"
-                },
-                "TaskManagementDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.task_management_dialog"
-                },
-                "TaskCrudDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.task_crud_dialog"
-                },
-                "UserProfileDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.user_profile_dialog"
-                },
-                "open_user_analytics_dialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.user_analytics_dialog"
-                },
-                "open_message_editor_dialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.message_editor_dialog"
-                },
-                "open_schedule_editor": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.schedule_editor_dialog"
-                },
-                "ProcessWatcherDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.process_watcher_dialog"
-                },
-                "CategorySelectionWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/category_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.category_selection_widget"
-                },
-                "ChannelSelectionWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/channel_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.channel_selection_widget"
-                },
-                "TaskSettingsWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/task_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.task_settings_widget"
-                },
-                "CheckinSettingsWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/checkin_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.checkin_settings_widget"
-                },
-                "Ui_Dialog_create_account": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.account_creator_dialog_pyqt"
-                },
-                "open_personalization_dialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.user_profile_dialog"
-                },
-                "Ui_Dialog_category_management": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/category_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.category_management_dialog_pyqt"
-                },
-                "Ui_Dialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/channel_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.channel_management_dialog_pyqt"
-                },
-                "Ui_Dialog_checkin_management": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/checkin_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.checkin_management_dialog_pyqt"
-                },
-                "Ui_Dialog_message_editor": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/message_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.message_editor_dialog_pyqt"
-                },
-                "Ui_Dialog_edit_schedule": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/schedule_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.schedule_editor_dialog_pyqt"
-                },
-                "Ui_Dialog_task_completion": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/task_completion_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.task_completion_dialog_pyqt"
-                },
-                "Ui_Dialog_task_crud": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.task_crud_dialog_pyqt"
-                },
-                "TaskEditDialog": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.task_edit_dialog"
-                },
-                "TaskCompletionDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.task_completion_dialog"
-                },
-                "Ui_Dialog_task_edit": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/task_edit_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.task_edit_dialog_pyqt"
-                },
-                "TagWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/task_edit_dialog.py",
-                    "ui/widgets/task_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.tag_widget"
-                },
-                "Ui_Dialog_task_management": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/task_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.task_management_dialog_pyqt"
-                },
-                "Ui_Dialog_user_analytics": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/user_analytics_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.user_analytics_dialog_pyqt"
-                },
-                "Ui_Dialog_user_profile": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/user_profile_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.user_profile_management_dialog_pyqt"
-                },
-                "UserProfileSettingsWidget": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/user_profile_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.user_profile_settings_widget"
-                },
-                "DynamicListContainer": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "ui/dialogs/user_profile_dialog.py",
-                    "ui/widgets/dynamic_list_field.py",
-                    "ui/widgets/dynamic_list_field.py",
-                    "ui/widgets/dynamic_list_field.py",
-                    "ui/widgets/user_profile_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.dynamic_list_container"
-                },
-                "Ui_Form_category_selection_widget": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/category_selection_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.category_selection_widget_pyqt"
-                },
-                "Ui_Form_channel_selection": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/channel_selection_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.channel_selection_widget_pyqt"
-                },
-                "Ui_Form_checkin_settings": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/checkin_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.checkin_settings_widget_pyqt"
-                },
-                "DynamicListField": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/dynamic_list_container.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.dynamic_list_field"
-                },
-                "Ui_Form_dynamic_list_field_template": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/dynamic_list_field.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.dynamic_list_field_template_pyqt"
-                },
-                "Ui_Form_period_row_template": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/period_row_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.period_row_template_pyqt"
-                },
-                "Ui_Widget_tag": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/tag_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.tag_widget_pyqt"
-                },
-                "Ui_Form_task_settings": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/task_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.task_settings_widget_pyqt"
-                },
-                "Ui_Form_user_profile_settings": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/user_profile_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.user_profile_settings_widget_pyqt"
-                }
-              },
-              "package_api_items": [
-                "AccountCreatorDialog",
-                "AdminPanelDialog",
-                "CategoryManagementDialog",
-                "CategorySelectionWidget",
-                "ChannelManagementDialog",
-                "ChannelSelectionWidget",
-                "CheckinManagementDialog",
-                "CheckinSettingsWidget",
-                "DynamicListContainer",
-                "DynamicListField",
-                "MHMManagerUI",
-                "MessageEditDialog",
-                "MessageEditorDialog",
-                "PeriodRowWidget",
-                "ProcessWatcherDialog",
-                "ScheduleEditorDialog",
-                "ServiceManager",
-                "TagWidget",
-                "TaskCompletionDialog",
-                "TaskCrudDialog",
-                "TaskEditDialog",
-                "TaskManagementDialog",
-                "TaskSettingsWidget",
-                "UserAnalyticsDialog",
-                "UserProfileDialog",
-                "UserProfileSettingsWidget",
-                "create_account_dialog",
-                "generate_all_ui_files",
-                "generate_ui_file",
-                "main",
-                "open_message_editor_dialog",
-                "open_personalization_dialog",
-                "open_schedule_editor",
-                "open_user_analytics_dialog"
-              ],
-              "registry_items": [
-                "__init__",
-                "__post_init__",
-                "_add_blank_row",
-                "_after_add_period",
-                "_build_custom_question_key",
-                "_build_enabled_features",
-                "_build_features_dict",
-                "_get_day_checkboxes",
-                "_get_personalization_data__ensure_required_fields",
-                "_on_delete",
-                "_on_save_clicked",
-                "add_custom_field",
-                "add_new_period",
-                "add_new_task",
-                "add_reminder_period",
-                "closeEvent",
-                "complete_selected_task",
-                "configure_tab_visibility",
-                "generate_all_ui_files",
-                "generate_ui_file",
-                "get_admin_data",
-                "get_checkin_settings",
-                "get_completion_data",
-                "get_selected_categories",
-                "get_statistics",
-                "get_text",
-                "load_user_category_data",
-                "on_enable_task_management_toggled",
-                "set_selected_categories"
-              ]
-            },
             "communication": {
               "package": "communication",
               "current_exports_count": 60,
@@ -14944,7 +14920,7 @@
           }
         }
       },
-      "timestamp": "2026-03-12T22:16:53"
+      "timestamp": "2026-03-14T02:48:19"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -14962,7 +14938,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-12T22:16:56"
+      "timestamp": "2026-03-14T02:45:24"
     },
     "analyze_documentation": {
       "success": true,
@@ -15001,7 +14977,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19918391087858722,
+              "similarity_score": 0.19944017023710675,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -15014,7 +14990,7 @@
                 "tests/TESTING_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.23323234737723614,
+              "similarity_score": 0.23299034240726893,
               "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
             },
             {
@@ -15233,7 +15209,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 16215,
+              "content_length": 15424,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -15242,11 +15218,11 @@
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-03-13 - Qt UI Windows skip refinement **Progressed**",
+                "2026-03-12 - Doc drift, Ruff clean, fixture metadata, module_deps fallback **COMPLETED**",
                 "2026-03-12 - Audit interrupt reliability, DATA SOURCE warnings, cache merge **Progressed**",
                 "2026-03-11 - Spurious SIGINT double-tap, doc consolidation, scripts move **COMPLETED**",
-                "2026-03-11 - Test runner: full-run reliability, phase-failure reporting, skip/deselect targets **Progressed**",
-                "2026-03-05 - Test suite: notebook import fix + Qt UI Windows skip + debug script **Progressed**",
-                "2026-03-05 - Static-analysis cleanup + guard tightening + CI policy fix **Progressed**"
+                "2026-03-11 - Test runner: full-run reliability, phase-failure reporting, skip/deselect targets **Progressed**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -15284,7 +15260,7 @@
               ]
             },
             "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md": {
-              "content_length": 9418,
+              "content_length": 9440,
               "header_info": "# AI Error Handling Guide\n\n> **File**: `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`  \n> **Pair**: [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)  \n> **Audience**: AI collaborators and too",
               "section_count": 12,
               "sections": [
@@ -15350,7 +15326,7 @@
               ]
             },
             "ai_development_docs/AI_TESTING_GUIDE.md": {
-              "content_length": 14581,
+              "content_length": 15164,
               "header_info": "# AI Testing Guide\n\n> **File**: `ai_development_docs/AI_TESTING_GUIDE.md`  \n> **Pair**: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  \n> **Audience**: AI collaborators and tools  \n> **Purpose**: Routing",
               "section_count": 11,
               "sections": [
@@ -15401,7 +15377,7 @@
               ]
             },
             "core/ERROR_HANDLING_GUIDE.md": {
-              "content_length": 18720,
+              "content_length": 18730,
               "header_info": "# Error Handling Guide\n\n> **File**: `core/ERROR_HANDLING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM  \n> **Purpose**: Centralized error handling patterns, categories, and i",
               "section_count": 24,
               "sections": [
@@ -15435,9 +15411,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 290180,
+              "content_length": 297314,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 105,
+              "section_count": 107,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -15445,10 +15421,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-03-12 - Doc drift, Ruff clean, fixture metadata, module_deps fallback",
                 "2026-03-12 - Audit interrupt reliability, DATA SOURCE warnings, cache merge",
                 "2026-03-11 - Spurious SIGINT double-tap, doc consolidation, scripts move",
-                "2026-03-11 - Test runner: full-run reliability, phase-failure reporting, deselected/skip targets",
-                "2026-03-05 - Test suite: notebook import fix, Qt UI Windows skip/isolate, debug script"
+                "2026-03-13 - Qt UI Windows skip refinement, SIGINT log cleanup, and Qt debug script policy alignment"
               ]
             },
             "development_docs/PLANS.md": {
@@ -15503,7 +15479,7 @@
               ]
             },
             "logs/LOGGING_GUIDE.md": {
-              "content_length": 14313,
+              "content_length": 14323,
               "header_info": "# Logging Guide\n\n> **File**: `logs/LOGGING_GUIDE.md`  \n> **Audience**: Developers and maintainers  \n> **Purpose**: Describe logging architecture, behavior, and maintenance tasks for MHM  \n> **Style**:",
               "section_count": 36,
               "sections": [
@@ -15571,7 +15547,7 @@
               ]
             },
             "tests/TESTING_GUIDE.md": {
-              "content_length": 36987,
+              "content_length": 38012,
               "header_info": "# Testing Guide\n\n> **File**: `tests/TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM  \n> **Purpose**: Comprehensive testing framework focused on real behavior, integrati",
               "section_count": 44,
               "sections": [
@@ -15650,7 +15626,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-03-12T22:16:49"
+      "timestamp": "2026-03-14T02:48:15"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -15727,7 +15703,7 @@
           }
         }
       },
-      "timestamp": "2026-03-12T22:16:59"
+      "timestamp": "2026-03-14T02:48:20"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -15742,7 +15718,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-12T22:16:56"
+      "timestamp": "2026-03-14T02:45:25"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -15757,7 +15733,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-12T22:16:57"
+      "timestamp": "2026-03-14T02:45:28"
     },
     "analyze_path_drift": {
       "success": true,
@@ -15770,7 +15746,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-12T22:16:55"
+      "timestamp": "2026-03-14T02:48:20"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -15785,7 +15761,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-12T22:16:59"
+      "timestamp": "2026-03-14T02:45:29"
     },
     "analyze_error_handling": {
       "success": true,
@@ -15805,20 +15781,20 @@
             "handle_errors_decorator": 1574,
             "try_except": 701,
             "handle_ai_error": 15,
-            "handle_network_error": 5,
             "handle_communication_error": 4,
+            "handle_network_error": 5,
             "DataError": 15,
             "ConfigurationError": 4,
             "ValidationError": 24,
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "AIError": 2,
-            "MHMError": 2,
             "handle_file_error": 3,
-            "CommunicationError": 2,
             "FileOperationError": 8,
-            "safe_file_operation": 1
+            "CommunicationError": 2,
+            "safe_file_operation": 1,
+            "MHMError": 2,
+            "AIError": 2
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -15866,43 +15842,43 @@
           ]
         }
       },
-      "timestamp": "2026-03-12T22:16:53"
+      "timestamp": "2026-03-14T02:48:17"
     },
     "analyze_test_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 7642,
+          "total_issues": 7469,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "coverage": 74.6,
-            "statements": 30133,
-            "covered": 22491,
-            "missed": 7642,
-            "generated": "2026-03-12T22:19:49.330524"
+            "coverage": 75.3,
+            "statements": 30238,
+            "covered": 22769,
+            "missed": 7469,
+            "generated": null
           },
           "modules": [
             {
               "module": "ui",
-              "coverage": 64.9,
-              "missed": 2341
+              "coverage": 69.6,
+              "missed": 2027
+            },
+            {
+              "module": "core",
+              "coverage": 75.4,
+              "missed": 2682
             },
             {
               "module": "communication",
               "coverage": 76.0,
-              "missed": 2276
-            },
-            {
-              "module": "core",
-              "coverage": 76.5,
-              "missed": 2556
+              "missed": 2290
             },
             {
               "module": "ai",
               "coverage": 78.2,
-              "missed": 380
+              "missed": 381
             },
             {
               "module": "tasks",
@@ -15927,24 +15903,24 @@
               "missing": 0
             },
             {
-              "path": "ui/dialogs/task_edit_dialog.py",
-              "coverage": 14.5,
-              "missing": 337
-            },
-            {
-              "path": "ui/dialogs/task_completion_dialog.py",
-              "coverage": 21.7,
-              "missing": 90
-            },
-            {
               "path": "ui/dialogs/schedule_editor_dialog.py",
               "coverage": 25.3,
               "missing": 162
             },
             {
               "path": "ui/widgets/checkin_settings_widget.py",
-              "coverage": 44.7,
+              "coverage": 45.0,
               "missing": 361
+            },
+            {
+              "path": "communication/communication_channels/discord/bot.py",
+              "coverage": 50.2,
+              "missing": 634
+            },
+            {
+              "path": "ui/ui_app_qt.py",
+              "coverage": 53.4,
+              "missing": 657
             }
           ],
           "tier3_test_outcome": {
@@ -15954,13 +15930,13 @@
               "classification": "passed",
               "classification_reason": "pytest_passed",
               "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/jacfo/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-03-12_22-17-00.log",
+              "log_file": "C:/Users/jacfo/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-03-14_02-48-23.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
-              "passed_count": 4072,
+              "passed_count": 3311,
               "failed_count": 0,
               "error_count": 0,
-              "skipped_count": 1,
+              "skipped_count": 0,
               "failed_node_ids": []
             },
             "no_parallel": {
@@ -15968,13 +15944,13 @@
               "classification": "passed",
               "classification_reason": "pytest_passed",
               "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/jacfo/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-03-12_22-18-45.log",
+              "log_file": "C:/Users/jacfo/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-03-14_02-50-30.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
-              "passed_count": 100,
+              "passed_count": 122,
               "failed_count": 0,
               "error_count": 0,
-              "skipped_count": 42,
+              "skipped_count": 20,
               "failed_node_ids": []
             },
             "failed_node_ids": [],
@@ -15989,7 +15965,7 @@
           "source": "run_test_coverage"
         }
       },
-      "timestamp": "2026-03-12T22:19:51"
+      "timestamp": "2026-03-14T02:52:19"
     },
     "analyze_test_markers": {
       "success": true,
@@ -16003,20 +15979,20 @@
           "missing": []
         }
       },
-      "timestamp": "2026-03-12T22:20:26"
+      "timestamp": "2026-03-14T02:52:21"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 11589,
+          "total_issues": 11582,
           "files_affected": 0
         },
         "details": {
           "overall": {
             "overall_coverage": 56.1,
             "total_statements": 26403,
-            "total_missed": 11589
+            "total_missed": 11582
           },
           "modules": {
             "development_tools\\__init__.py": {
@@ -16253,8 +16229,8 @@
             },
             "development_tools\\config\\config.py": {
               "statements": 371,
-              "missed": 57,
-              "coverage": 85,
+              "missed": 58,
+              "coverage": 84,
               "missing_lines": [
                 "58",
                 "60",
@@ -16267,6 +16243,7 @@
                 "397",
                 "408",
                 "418",
+                "443",
                 "453",
                 "463",
                 "483",
@@ -16314,7 +16291,7 @@
                 "1090",
                 "1092"
               ],
-              "covered": 314
+              "covered": 313
             },
             "development_tools\\config\\sync_ruff_toml.py": {
               "statements": 67,
@@ -19748,7 +19725,7 @@
             },
             "development_tools\\reports\\analyze_system_signals.py": {
               "statements": 431,
-              "missed": 200,
+              "missed": 199,
               "coverage": 54,
               "missing_lines": [
                 "24",
@@ -19869,7 +19846,6 @@
                 "437",
                 "461",
                 "462",
-                "485",
                 "493",
                 "495",
                 "496",
@@ -19952,7 +19928,7 @@
                 "787",
                 "797"
               ],
-              "covered": 231
+              "covered": 232
             },
             "development_tools\\reports\\decision_support.py": {
               "statements": 107,
@@ -20877,7 +20853,6 @@
                 "112",
                 "131",
                 "132",
-                "145",
                 "146",
                 "147",
                 "173",
@@ -20892,6 +20867,7 @@
                 "202",
                 "203",
                 "204",
+                "215",
                 "223",
                 "224",
                 "235",
@@ -23108,7 +23084,7 @@
             },
             "development_tools\\shared\\service\\report_generation.py": {
               "statements": 3728,
-              "missed": 2350,
+              "missed": 2344,
               "coverage": 37,
               "missing_lines": [
                 "28",
@@ -23183,13 +23159,8 @@
                 "321",
                 "343",
                 "352",
-                "374",
-                "379",
+                "363",
                 "380",
-                "381",
-                "382",
-                "383",
-                "384",
                 "385",
                 "386",
                 "396",
@@ -24298,7 +24269,6 @@
                 "4408",
                 "4414",
                 "4415",
-                "4427",
                 "4459",
                 "4460",
                 "4464",
@@ -25462,7 +25432,7 @@
                 "7488",
                 "7491"
               ],
-              "covered": 1378
+              "covered": 1384
             },
             "development_tools\\shared\\service\\tool_wrappers.py": {
               "statements": 988,
@@ -26830,7 +26800,7 @@
             },
             "development_tools\\tests\\run_test_coverage.py": {
               "statements": 2093,
-              "missed": 1327,
+              "missed": 1326,
               "coverage": 37,
               "missing_lines": [
                 "43",
@@ -26847,9 +26817,11 @@
                 "78",
                 "134",
                 "140",
+                "151",
                 "169",
                 "176",
                 "185",
+                "192",
                 "259",
                 "260",
                 "261",
@@ -28093,9 +28065,6 @@
                 "4544",
                 "4545",
                 "4546",
-                "4640",
-                "4641",
-                "4642",
                 "4645",
                 "4646",
                 "4647",
@@ -28161,7 +28130,7 @@
                 "4882",
                 "4883"
               ],
-              "covered": 766
+              "covered": 767
             },
             "development_tools\\tests\\test_file_coverage_cache.py": {
               "statements": 619,
@@ -28389,7 +28358,7 @@
           "source": "run_test_coverage --dev-tools-only"
         }
       },
-      "timestamp": "2026-03-12T22:20:25"
+      "timestamp": "2026-03-14T02:40:28"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -31471,7 +31440,7 @@
           ]
         }
       },
-      "timestamp": "2026-03-12T22:16:54"
+      "timestamp": "2026-03-14T02:48:19"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -31482,7 +31451,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-03-12T22:16:54"
+      "timestamp": "2026-03-14T02:48:20"
     },
     "analyze_module_imports": {
       "success": true,
@@ -42693,6 +42662,7 @@
                   "module": "PySide6.QtWidgets",
                   "as_name": null,
                   "imported_items": [
+                    "QApplication",
                     "QWidget",
                     "QMessageBox",
                     "QCheckBox",
@@ -43583,7 +43553,7 @@
           }
         }
       },
-      "timestamp": "2026-03-12T22:16:54"
+      "timestamp": "2026-03-14T02:48:19"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -43608,28 +43578,28 @@
             "ui_imports": []
           },
           "stats": {
-            "files_scanned": 522,
+            "files_scanned": 527,
             "files_with_issues": 0,
             "total_unused": 0,
-            "cache_hits": 0,
-            "cache_misses": 522,
-            "changed_files": 522,
-            "cache_mode": "cold_scan",
+            "cache_hits": 526,
+            "cache_misses": 1,
+            "changed_files": 1,
+            "cache_mode": "partial_cache",
             "backend": "ruff"
           },
           "performance": {
             "backend": "ruff",
-            "scan_mode": "cold_scan",
+            "scan_mode": "partial_cache",
             "timings": {
-              "discovery_seconds": 0.6062,
-              "detection_seconds": 0.4974,
-              "categorization_seconds": 0.0026,
-              "total_seconds": 1.1578
+              "discovery_seconds": 0.7058,
+              "detection_seconds": 0.3251,
+              "categorization_seconds": 0.0033,
+              "total_seconds": 1.1416
             },
-            "files_per_second": 450.84,
-            "cache_hits": 0,
-            "cache_misses": 522,
-            "changed_files": 522,
+            "files_per_second": 461.61,
+            "cache_hits": 526,
+            "cache_misses": 1,
+            "changed_files": 1,
             "batch_size": 200,
             "fallback_used": false,
             "fallback_reason": ""
@@ -43646,24 +43616,24 @@
             "production_test_mocking": 0,
             "ui_imports": 0
           },
-          "files_scanned": 522,
+          "files_scanned": 527,
           "_cache_metadata": {
-            "cache_mode": "cold_scan",
-            "hits": 0,
-            "misses": 522,
-            "total_cache_checks": 522,
-            "hit_rate": 0.0
+            "cache_mode": "partial_cache",
+            "hits": 526,
+            "misses": 1,
+            "total_cache_checks": 527,
+            "hit_rate": 99.8
           }
         },
         "_cache_metadata": {
-          "cache_mode": "cold_scan",
-          "hits": 0,
-          "misses": 522,
-          "total_cache_checks": 522,
-          "hit_rate": 0.0
+          "cache_mode": "partial_cache",
+          "hits": 526,
+          "misses": 1,
+          "total_cache_checks": 527,
+          "hit_rate": 99.8
         }
       },
-      "timestamp": "2026-03-12T22:16:55"
+      "timestamp": "2026-03-14T02:48:21"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -43698,15 +43668,15 @@
             "trigger_files": []
           },
           "cache": {
-            "cache_mode": "cold_scan",
-            "hits": 0,
-            "misses": 522,
-            "total_cache_checks": 522,
-            "hit_rate": 0.0
+            "cache_mode": "partial_cache",
+            "hits": 524,
+            "misses": 2,
+            "total_cache_checks": 526,
+            "hit_rate": 99.6
           }
         }
       },
-      "timestamp": "2026-03-12T22:17:02"
+      "timestamp": "2026-03-14T02:48:32"
     },
     "analyze_config": {
       "success": true,
@@ -43774,7 +43744,7 @@
           }
         }
       },
-      "timestamp": "2026-03-12T22:16:49"
+      "timestamp": "2026-03-14T02:48:14"
     },
     "analyze_ai_work": {
       "success": true,
@@ -43789,12 +43759,12 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-03-12T22:16:49"
+      "timestamp": "2026-03-14T02:48:14"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-03-12T22:20:27",
+        "generated_at": "2026-03-14T02:52:22",
         "project_root": "C:\\Users\\jacfo\\MHM",
         "summary": {
           "status": "SKIP",
@@ -43850,20 +43820,20 @@
           }
         ]
       },
-      "timestamp": "2026-03-12T22:20:27"
+      "timestamp": "2026-03-14T02:52:22"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 1,
           "files_affected": 0,
-          "status": "OK"
+          "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-03-12T22:16:48.515879",
+          "timestamp": "2026-03-14T02:48:13.820569",
           "system_health": {
-            "overall_status": "OK",
+            "overall_status": "ISSUES",
             "core_files": {
               "run_mhm.py": "OK",
               "run_tests.py": "OK",
@@ -43881,35 +43851,38 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-03-12T22:09:05.634132",
+            "last_audit": "2026-03-14T02:40:31.556159",
             "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
-            "documentation_sync_status": "Synchronized",
+            "documentation_sync_status": "Issues",
             "health_indicators": [
-              "Audit data is very recent (<1 hour)",
-              "Documentation is synchronized"
+              "Audit data is very recent (<1 hour)"
             ],
-            "recommendations": [],
+            "recommendations": [
+              "Run `python development_tools/run_development_tools.py doc-fix` to address documentation issues"
+            ],
             "warnings": [],
             "errors": [],
             "severity_levels": {
               "INFO": [],
-              "WARNING": [],
+              "WARNING": [
+                "Documentation has 8 sync issue(s)"
+              ],
               "CRITICAL": []
             }
           },
           "recent_activity": {
             "recent_changes": [
-              "development_tools/shared/service/data_loading.py",
-              "tests/test_run_tests_interrupts.py",
-              "tests/debug_qt_ui_windows.py",
-              "development_tools/shared/service/audit_orchestration.py",
-              "development_tools/imports/generate_unused_imports_report.py",
-              "development_tools/run_development_tools.py",
-              "development_tools/shared/service/commands.py",
-              "tests/development_tools/test_analyze_unused_imports.py",
-              "tests/development_tools/test_audit_orchestration_helpers.py",
-              "development_tools/imports/analyze_unused_imports.py"
+              "tests/behavior/test_account_management_real_behavior.py",
+              "tests/behavior/test_account_handler_behavior.py",
+              "tests/behavior/test_schedule_handler_behavior.py",
+              "tests/behavior/test_quantitative_analytics_expansion.py",
+              "tests/ui/test_task_settings_widget.py",
+              "tests/ai/run_ai_functionality_tests.py",
+              "tests/unit/test_run_tests_interrupts.py",
+              "tests/ui/test_user_profile_dialog_coverage_expansion.py",
+              "tests/integration/test_user_creation.py",
+              "tests/behavior/test_ai_conversation_history_behavior.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -43935,7 +43908,7 @@
           }
         }
       },
-      "timestamp": "2026-03-12T22:16:48"
+      "timestamp": "2026-03-14T02:48:14"
     },
     "decision_support": {
       "success": true,
@@ -44076,7 +44049,7 @@
           ]
         }
       },
-      "timestamp": "2026-03-12T22:16:51"
+      "timestamp": "2026-03-14T02:48:15"
     },
     "analyze_ruff": {
       "success": true,
@@ -44095,23 +44068,23 @@
           "top_rules": []
         }
       },
-      "timestamp": "2026-03-12T22:20:27.814983"
+      "timestamp": "2026-03-14T02:52:23.031017"
     },
     "analyze_pyright": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 63,
-          "files_affected": 22,
+          "total_issues": 62,
+          "files_affected": 21,
           "status": "WARN"
         },
         "details": {
           "tool": "pyright",
           "tool_available": true,
           "errors": 0,
-          "warnings": 63,
+          "warnings": 62,
           "information": 0,
-          "files_analyzed": 548,
+          "files_analyzed": 554,
           "returncode": 0,
           "top_files": [
             {
@@ -44160,7 +44133,7 @@
           ]
         }
       },
-      "timestamp": "2026-03-12T22:20:27.814990"
+      "timestamp": "2026-03-14T02:52:23.031024"
     }
   }
 }

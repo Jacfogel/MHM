@@ -13,7 +13,7 @@ Tests cover:
 
 import pytest
 
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 @pytest.mark.behavior

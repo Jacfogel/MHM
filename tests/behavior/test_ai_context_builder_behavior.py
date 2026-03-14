@@ -10,7 +10,7 @@ from datetime import datetime
 import pytest
 
 from ai.context_builder import ContextBuilder
-from tests.test_utilities import TestUserFactory, TestDataFactory
+from tests.test_helpers.test_utilities import TestUserFactory, TestDataFactory
 
 
 @pytest.mark.behavior

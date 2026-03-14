@@ -598,7 +598,7 @@ class TestUserContextManagerIntegration:
         test_user_id = "real-user-test"
         
         # Create test user using centralized utilities (minimal user since we use mocks for all data)
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         success = TestUserFactory.create_minimal_user(test_user_id, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
         

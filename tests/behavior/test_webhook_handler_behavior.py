@@ -11,7 +11,7 @@ import asyncio
 import uuid
 from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 from core.user_data_handlers import get_user_id_by_identifier
 
 

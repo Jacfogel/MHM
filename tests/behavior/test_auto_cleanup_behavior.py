@@ -382,7 +382,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
         self, temp_test_dir
     ):
         """REAL BEHAVIOR TEST: Test calculating cache size with large number of files."""
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
 
         # [OK] VERIFY REAL BEHAVIOR: Create many cache files to simulate large cache
         large_cache_dir = temp_test_dir / "large_cache"

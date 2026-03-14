@@ -32,7 +32,7 @@ from core.user_data_manager import (
     get_all_user_summaries,
     get_user_analytics_summary
 )
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 class TestUserDataManagerInitialization:

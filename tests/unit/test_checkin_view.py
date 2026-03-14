@@ -105,7 +105,7 @@ class TestCheckinView:
         Uses tmp_path (function-scoped) for full isolation from other tests and
         parallel workers, avoiding session test_data_dir collisions.
         """
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
         from unittest.mock import patch
         import core.config
@@ -199,7 +199,7 @@ class TestCheckinView:
         Uses tmp_path (function-scoped) for full isolation from other tests and
         parallel workers, avoiding session test_data_dir collisions.
         """
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
         from unittest.mock import patch
         import core.config

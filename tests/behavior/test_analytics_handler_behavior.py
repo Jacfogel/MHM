@@ -12,7 +12,7 @@ from unittest.mock import patch, MagicMock
 # Import the modules we're testing
 from communication.command_handlers.analytics_handler import AnalyticsHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 class TestAnalyticsHandlerBehavior:

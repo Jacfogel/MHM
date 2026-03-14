@@ -20,7 +20,7 @@ logger = logging.getLogger("mhm_tests")
 
 # Do not modify sys.path; rely on package imports
 from ui.dialogs.user_analytics_dialog import UserAnalyticsDialog, open_user_analytics_dialog
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 # Create QApplication instance for testing

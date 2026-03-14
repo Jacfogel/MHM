@@ -30,7 +30,7 @@ _periodic_cleanup_test_count = 0
 # Import from root conftest (loaded first); _cleanup_test_user_artifacts from user_data plugin
 def _get_conftest_attrs():
     from tests import conftest as root
-    from tests.test_support import conftest_user_data as ud
+    from tests.test_helpers.test_support import conftest_user_data as ud
 
     return (
         root.project_root,
@@ -260,7 +260,7 @@ def _consolidate_worker_logs():
         return
 
     project_root, _tests_data_dir, test_logger, _test_log_file, _ = _get_conftest_attrs()
-    from tests.test_support.conftest_logging import session_rotation_manager
+    from tests.test_helpers.test_support.conftest_logging import session_rotation_manager
 
     try:
         logs_dir = Path(project_root) / "tests" / "logs"

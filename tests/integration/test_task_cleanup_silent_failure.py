@@ -9,7 +9,7 @@ import pytest
 import logging
 
 from tasks import cleanup_task_reminders, complete_task
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 class TestTaskCleanupSilentFailure:

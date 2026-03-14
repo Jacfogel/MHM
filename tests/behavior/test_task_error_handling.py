@@ -21,7 +21,7 @@ from tasks import (
 from communication.command_handlers.task_handler import TaskManagementHandler
 from communication.command_handlers.shared_types import ParsedCommand
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 class TestTaskErrorHandling:

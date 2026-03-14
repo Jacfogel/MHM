@@ -354,7 +354,7 @@ class TestDiscordBotBehavior:
         """Ensure a single inbound message yields one main response (no duplicates)."""
         import uuid
         import time
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
 
@@ -395,7 +395,7 @@ class TestDiscordBotBehavior:
         updates that may have race conditions in parallel execution.
         """
         import uuid
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
 
         username = f"checkin_user_{uuid.uuid4().hex[:8]}"
@@ -409,7 +409,7 @@ class TestDiscordBotBehavior:
         rebuild_user_index()
         
         # Resolve from test-owned data first to avoid stale global index collisions.
-        from tests.test_utilities import TestUserFactory as TUF
+        from tests.test_helpers.test_utilities import TestUserFactory as TUF
         internal_uid = TUF.get_test_user_id_by_internal_username(username, test_data_dir)
         if not internal_uid:
             internal_uid = get_user_id_by_identifier(username)
@@ -467,7 +467,7 @@ class TestDiscordBotBehavior:
         Note: Marked as no_parallel because this test creates real users and relies on user index
         updates that may have race conditions in parallel execution.
         """
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
         from tasks import load_active_tasks
 
@@ -483,7 +483,7 @@ class TestDiscordBotBehavior:
         
         # Fallback to TestUserFactory lookup if needed
         if not internal_uid:
-            from tests.test_utilities import TestUserFactory as TUF
+            from tests.test_helpers.test_utilities import TestUserFactory as TUF
             internal_uid = TUF.get_test_user_id_by_internal_username("task_user", test_data_dir)
         
         assert internal_uid, f"Should be able to get UUID for user 'task_user'. User creation returned: {ok}"
@@ -521,7 +521,7 @@ class TestDiscordBotBehavior:
     @pytest.mark.behavior
     def test_discord_complete_task_by_name_variation(self, test_data_dir):
         """Complete a task by a fuzzy name match like 'complete per davey' -> 'Pet Davey'."""
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
         from tasks import create_task, load_active_tasks
 
@@ -544,7 +544,7 @@ class TestDiscordBotBehavior:
     @pytest.mark.behavior
     def test_discord_response_after_task_reminder(self, test_data_dir):
         """Simulate a user replying to a reminder by completing the first task."""
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
         from tasks import create_task
 
@@ -608,7 +608,7 @@ class TestDiscordBotIntegration:
     @pytest.fixture
     def test_user_setup(self, test_data_dir):
         """Set up test user data for integration tests"""
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         
         user_id = "test_discord_user"
         success = TestUserFactory.create_discord_user(user_id, test_data_dir=test_data_dir)
@@ -647,7 +647,7 @@ class TestDiscordBotIntegration:
     def test_discord_message_to_interaction_manager_complete_task_prompt(self, test_data_dir):
         """End-to-end-ish: ensure plain 'complete task' routes to InteractionManager and returns a helpful prompt, not a generic error."""
         # Arrange: create a basic user and map a fake Discord ID
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         # Create under the session-patched tests/data/users dir (omit test_data_dir)
         created = TestUserFactory.create_basic_user("e2e_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert created, "Test user should be created"

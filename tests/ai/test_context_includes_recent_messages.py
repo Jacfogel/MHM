@@ -4,7 +4,7 @@ from core.message_management import store_sent_message
 from core.response_tracking import store_user_response
 import pytest
 
-from tests.test_utilities import setup_test_data_environment, cleanup_test_data_environment
+from tests.test_helpers.test_utilities import setup_test_data_environment, cleanup_test_data_environment
 
 
 @pytest.mark.behavior
@@ -24,7 +24,7 @@ class TestAIContextRecentMessages:
         monkeypatch.setenv("MHM_TESTING", "1")
         user_id = "user_recent_msgs"
         # Ensure check-ins are enabled for this test (required for check-in status to appear)
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         assert TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=self.test_data_dir)
 
         # Store a recent sent message (simulating automated outbound)

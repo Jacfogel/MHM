@@ -24,7 +24,7 @@ from core.backup_manager import (
     validate_system_state,
     perform_safe_operation,
 )
-from tests.test_utilities import TestUserFactory, TestDataFactory
+from tests.test_helpers.test_utilities import TestUserFactory, TestDataFactory
 import core.config
 import contextlib
 
@@ -728,7 +728,7 @@ class TestBackupManagerBehavior:
                 created_user_ids.append(user_id)
                 # Verify user directory was actually created (diagnostic)
                 from core.user_data_handlers import get_user_id_by_identifier
-                from tests.test_utilities import TestUserFactory as TUF
+                from tests.test_helpers.test_utilities import TestUserFactory as TUF
                 from core.config import get_user_data_dir
                 import os
                 import time
@@ -786,7 +786,7 @@ class TestBackupManagerBehavior:
 
         # Get actual UUIDs for created users (create_full_featured_user creates UUID-based users)
         from core.user_data_handlers import get_user_id_by_identifier
-        from tests.test_utilities import TestUserFactory as TUF
+        from tests.test_helpers.test_utilities import TestUserFactory as TUF
         from core.config import get_user_data_dir
 
         actual_user_uuids = []

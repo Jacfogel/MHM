@@ -12,7 +12,7 @@ import pytest
 
 from communication.command_handlers.interaction_handlers import HelpHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 @pytest.mark.behavior

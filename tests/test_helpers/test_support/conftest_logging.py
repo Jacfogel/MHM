@@ -1,7 +1,7 @@
 """
 Pytest plugin: session log rotation, consolidated test logging, and logging isolation.
 
-Fixtures and managers here use implementation from tests.test_support.conftest_logging_impl.
+Fixtures and managers here use implementation from tests.test_helpers.test_support.conftest_logging_impl.
 Root conftest remains the source of project_root, test_logger, and test_log_file.
 """
 
@@ -13,12 +13,12 @@ from pathlib import Path
 
 import pytest
 
-from tests.test_support.conftest_logging_impl import (
+from tests.test_helpers.test_support.conftest_logging_impl import (
     LogLifecycleManager,
     SessionLogRotationManager,
     _write_test_log_header,
 )
-from tests.test_support.conftest_cleanup_impl import _cleanup_individual_log_files
+from tests.test_helpers.test_support.conftest_cleanup_impl import _cleanup_individual_log_files
 
 # Import from root conftest (loaded first)
 from tests.conftest import project_root, test_logger, test_log_file

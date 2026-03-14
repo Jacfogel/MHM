@@ -23,7 +23,7 @@ import logging
 logger = logging.getLogger("mhm_tests")
 
 from ui.dialogs.checkin_management_dialog import CheckinManagementDialog
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 # Create QApplication instance for testing
@@ -105,7 +105,7 @@ class TestCheckinManagementDialogInitialization:
     def test_initialization_loads_user_data(self, qapp, test_data_dir, mock_config):
         """Test: CheckinManagementDialog loads user data on initialization"""
         # Arrange
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
 
         user_id = f"test_checkin_dialog_load_user_{uuid.uuid4().hex[:8]}"
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)

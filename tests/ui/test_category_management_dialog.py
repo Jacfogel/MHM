@@ -21,7 +21,7 @@ import logging
 logger = logging.getLogger("mhm_tests")
 
 from ui.dialogs.category_management_dialog import CategoryManagementDialog
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 # Create QApplication instance for testing

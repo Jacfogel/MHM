@@ -14,7 +14,7 @@ from core.user_data_handlers import (
     update_user_preferences,
     save_user_data,
 )
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 class TestUserManagement:
@@ -167,7 +167,7 @@ class TestUserManagement:
     @pytest.mark.no_parallel
     def test_save_user_data_success(self, test_data_dir, mock_config):
         """Test saving user data successfully using centralized utilities."""
-        from tests.test_utilities import TestUserDataFactory
+        from tests.test_helpers.test_utilities import TestUserDataFactory
 
         user_id = "test-save-user-data-success"
 

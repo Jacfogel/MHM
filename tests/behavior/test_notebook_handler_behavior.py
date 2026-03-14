@@ -23,7 +23,7 @@ from communication.message_processing.conversation_flow_manager import (
     FLOW_NOTE_BODY,
     FLOW_LIST_ITEMS,
 )
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 @pytest.mark.behavior

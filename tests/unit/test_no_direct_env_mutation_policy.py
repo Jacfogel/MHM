@@ -28,7 +28,8 @@ def test_no_direct_os_environ_mutations_in_tests():
                 if name == 'conftest.py' or (name.startswith('conftest_') and name.endswith('.py')):
                     continue
             # Skip test_support (conftest plugins and impl set env intentionally)
-            if 'test_support' in dirpath.replace('\\', '/'):
+            normalized = dirpath.replace('\\', '/')
+            if 'test_support' in normalized or 'test_helpers/test_support' in normalized:
                 continue
             # Skip standalone test runners (AI functionality tests, etc.)
             if name == 'run_ai_functionality_tests.py' or name == 'test_ai_functionality_manual.py':

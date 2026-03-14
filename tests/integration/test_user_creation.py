@@ -19,7 +19,7 @@ from core.user_data_handlers import (
     update_user_preferences,
     update_user_context
 )
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 from core.user_data_validation import is_valid_email
 
 
@@ -78,7 +78,7 @@ class TestUserCreationScenarios:
             
             # Create test user using centralized utilities for consistent setup
             # Use a valid Discord ID format (numeric snowflake, 17-19 digits)
-            from tests.test_utilities import TestUserFactory
+            from tests.test_helpers.test_utilities import TestUserFactory
             discord_user_id = f"1234567890{uuid.uuid4().int % 10**8:08d}"  # Valid 18-digit numeric snowflake-like ID
             success = TestUserFactory.create_discord_user(user_id, discord_user_id=discord_user_id, test_data_dir=test_data_dir)
             assert success, "Test user should be created successfully"
@@ -129,7 +129,7 @@ class TestUserCreationScenarios:
         user_id = f'test-custom-fields-{uuid.uuid4().hex[:8]}'
         
         # Create test user using enhanced centralized utilities
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         success = TestUserFactory.create_user_with_custom_fields(user_id, None, test_data_dir)
         assert success, f"Failed to create custom fields test user {user_id}"
         
@@ -163,14 +163,14 @@ class TestUserCreationScenarios:
         user_id = f'test-schedule-user-new-{uuid.uuid4().hex[:8]}'
         
         # Create test user using enhanced centralized utilities
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         success = TestUserFactory.create_user_with_schedules(user_id, None, test_data_dir)
         assert success, f"Failed to create schedule test user {user_id}"
         
         # Get the UUID for the user
         from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
-        from tests.test_utilities import TestUserFactory as TUF
+        from tests.test_helpers.test_utilities import TestUserFactory as TUF
         
         # Rebuild index to ensure user is discoverable (modifies user_index.json)
         rebuild_user_index()
@@ -379,7 +379,7 @@ class TestUserCreationIntegration:
 
         # Get the actual UUID for the user (TestUserFactory creates UUID-based users)
         from core.user_data_handlers import get_user_id_by_identifier
-        from tests.test_utilities import TestUserFactory as TUF
+        from tests.test_helpers.test_utilities import TestUserFactory as TUF
         actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir) or user_id
         
         # Ensure user index is updated (race condition fix)
@@ -524,7 +524,7 @@ class TestUserCreationIntegration:
         # Rebuild index once after all users are created (optimization: single rebuild)
         from core.user_data_manager import rebuild_user_index
         from core.user_data_handlers import get_user_id_by_identifier
-        from tests.test_utilities import TestUserFactory as TUF
+        from tests.test_helpers.test_utilities import TestUserFactory as TUF
         from core.config import get_user_data_dir, get_user_file_path
         import os
         import time
@@ -736,7 +736,7 @@ class TestUserCreationIntegration:
 
         # Get the actual UUID for the user (TestUserFactory creates UUID-based users)
         from core.user_data_handlers import get_user_id_by_identifier
-        from tests.test_utilities import TestUserFactory as TUF
+        from tests.test_helpers.test_utilities import TestUserFactory as TUF
         actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir) or user_id
         
         # Ensure user index is updated (race condition fix)

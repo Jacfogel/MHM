@@ -20,7 +20,7 @@ from communication.command_handlers.interaction_handlers import (
 )
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from tasks import create_task, load_active_tasks
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 @pytest.mark.behavior
@@ -199,7 +199,7 @@ class TestInteractionHandlersBehavior:
         # Resolve to the internal UUID to match the rest of the system.
         from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
 
         # Poll for index visibility first; rebuild only as fallback for parallel lag.
         internal_user_id = get_user_id_by_identifier(user_id)
@@ -268,7 +268,7 @@ class TestInteractionHandlersBehavior:
         # Get the actual UUID for the created user
         from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
         
         # Resolve UUID with a short poll first; rebuild index only as fallback.
         actual_user_id = get_user_id_by_identifier(user_id)
@@ -315,7 +315,7 @@ class TestInteractionHandlersBehavior:
         user_id = "test_user_checkin"
         
         # Create test user with check-ins enabled and questions configured
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         success = TestUserFactory.create_user_with_complex_checkins(user_id, test_data_dir=test_data_dir)
         assert success, "Failed to create test user with check-ins"
         
@@ -341,10 +341,10 @@ class TestInteractionHandlersBehavior:
         user_id = f"test_user_profile_{uuid.uuid4().hex[:8]}"
         
         # Create test user using centralized utilities
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
-        from tests.test_support.test_helpers import wait_until
+        from tests.test_helpers.test_support.test_helpers import wait_until
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Failed to create test user"
         

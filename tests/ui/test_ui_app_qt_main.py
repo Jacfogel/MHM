@@ -270,7 +270,7 @@ class TestMHMManagerUI:
     def test_load_user_categories_loads_categories(self, test_data_dir, qapp):
         """Test that load_user_categories loads user categories correctly."""
         from ui.ui_app_qt import MHMManagerUI
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         
         # Arrange
         user_id = "test_user"
@@ -298,7 +298,7 @@ class TestMHMManagerUI:
     def test_on_category_selected_handles_selection(self, test_data_dir, qapp):
         """Test that on_category_selected handles category selection."""
         from ui.ui_app_qt import MHMManagerUI
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         
         # Arrange
         user_id = "test_user"
@@ -443,7 +443,7 @@ class TestMHMManagerUI:
     def test_refresh_user_list_loads_users(self, test_data_dir, qapp):
         """Test that refresh_user_list loads users correctly."""
         from ui.ui_app_qt import MHMManagerUI
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         
         # Create test user (minimal user since we only need basic structure for refresh)
         user_id = "test_user_refresh"
@@ -753,7 +753,7 @@ class TestMHMManagerUI:
     def test_load_user_categories_loads_categories_extended(self, test_data_dir, qapp):
         """Test that load_user_categories loads user categories."""
         from ui.ui_app_qt import MHMManagerUI
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         
         # Create test user with categories
         user_id = "test_user_categories"

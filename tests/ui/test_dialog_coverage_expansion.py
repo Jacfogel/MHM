@@ -17,7 +17,7 @@ Real behavior testing approach:
 import os
 
 from tests.conftest import ensure_qt_runtime
-from tests.test_support.conftest_env import skip_qt_ui_on_windows
+from tests.test_helpers.test_support.conftest_env import skip_qt_ui_on_windows
 
 ensure_qt_runtime()
 
@@ -40,7 +40,7 @@ from ui.dialogs.schedule_editor_dialog import ScheduleEditorDialog, open_schedul
 from ui.dialogs.task_edit_dialog import TaskEditDialog
 from ui.dialogs.task_completion_dialog import TaskCompletionDialog
 from ui.dialogs.user_profile_dialog import UserProfileDialog
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 # Create QApplication instance for testing

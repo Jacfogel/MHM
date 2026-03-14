@@ -1883,7 +1883,7 @@ def run_command(
             try:
                 # Small delay to ensure workers have closed their file handles
                 time.sleep(1.0)  # Longer delay for normal completion
-                from tests.test_support.conftest_hooks import _consolidate_worker_logs
+                from tests.test_helpers.test_support.conftest_hooks import _consolidate_worker_logs
 
                 phase = str((test_context or {}).get("phase", "parallel")).lower()
                 cleanup_label = (
@@ -2211,7 +2211,7 @@ def run_command(
             # This ensures logs are consolidated even if something went wrong
             try:
                 time.sleep(1.0)  # Delay to allow workers to close file handles
-                from tests.test_support.conftest_hooks import _consolidate_worker_logs
+                from tests.test_helpers.test_support.conftest_hooks import _consolidate_worker_logs
 
                 _consolidate_worker_logs()
             except Exception:

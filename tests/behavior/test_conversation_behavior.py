@@ -547,7 +547,7 @@ class TestConversationManagerIntegration:
         test_user_id = "real-user-test"
         
         # Create test user using centralized utilities
-        from tests.test_utilities import TestUserFactory
+        from tests.test_helpers.test_utilities import TestUserFactory
         success = TestUserFactory.create_basic_user(test_user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
         

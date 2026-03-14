@@ -23,7 +23,7 @@ import logging
 logger = logging.getLogger("mhm_tests")
 
 from ui.dialogs.task_management_dialog import TaskManagementDialog
-from tests.test_utilities import TestUserFactory
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 # Create QApplication instance for testing

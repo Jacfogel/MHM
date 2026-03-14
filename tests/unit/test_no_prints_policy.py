@@ -25,13 +25,13 @@ def test_no_print_calls_in_tests():
                     continue
                 # Skip test_support (conftest plugins and impl; may use diagnostic print)
                 normalized_dir = dirpath.replace('\\', '/')
-                if '/test_support' in normalized_dir or normalized_dir.endswith('test_support'):
+                if '/test_support' in normalized_dir or normalized_dir.endswith('test_support') or 'test_helpers/test_support' in normalized_dir:
                     continue
                 # Skip standalone test runners (AI functionality tests, scripts, etc.)
                 if name in ['run_ai_functionality_tests.py', 'test_ai_functionality_manual.py']:
                     continue
                 # Skip utility scripts that are meant to be run standalone (not pytest tests)
-                if name in ('test_verification_summary.py', 'debug_qt_ui_windows.py'):
+                if name == 'test_verification_summary.py':
                     continue
                 # Skip scripts directory
                 if 'scripts' in dirpath:

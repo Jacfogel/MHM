@@ -135,7 +135,7 @@ _patch_windows_os_mkdir_mode()
 
 def ensure_qt_runtime():
     """Re-export from test_support so 'from tests.conftest import ensure_qt_runtime' still works."""
-    from tests.test_support.conftest_env import ensure_qt_runtime as _fn
+    from tests.test_helpers.test_support.conftest_env import ensure_qt_runtime as _fn
     return _fn()
 
 
@@ -308,7 +308,7 @@ tests_data_tmp_dir = tests_data_dir / "tmp"
 tests_data_tmp_dir.mkdir(parents=True, exist_ok=True)
 
 # Load themed fixture/hook plugins (same namespace; development_tools/conftest overrides still apply)
-pytest_plugins = ["tests.test_support.conftest_env", "tests.test_support.conftest_mocks", "tests.test_support.conftest_cleanup", "tests.test_support.conftest_logging", "tests.test_support.conftest_user_data", "tests.test_support.conftest_hooks"]
+pytest_plugins = ["tests.test_helpers.test_support.conftest_env", "tests.test_helpers.test_support.conftest_mocks", "tests.test_helpers.test_support.conftest_cleanup", "tests.test_helpers.test_support.conftest_logging", "tests.test_helpers.test_support.conftest_user_data", "tests.test_helpers.test_support.conftest_hooks"]
 
 # Keep pytest runtime temp/cache under a dedicated root that cleanup fixtures do not purge.
 tests_pytest_runtime_tmp_dir = tests_data_dir / "tmp_pytest_runtime"
@@ -480,7 +480,7 @@ def _add_test_run_start_markers():
 
 
 # Standalone helpers wait_until and materialize_user_minimal_via_public_apis live in
-# tests.test_support.test_helpers; import from there in test code.
+# tests.test_helpers.test_support.test_helpers; import from there in test code.
 
 
 

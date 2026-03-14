@@ -30,13 +30,19 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-14 - Test helpers consolidation, debug move, Ruff clean **COMPLETED**
+- Refactored monolithic `tests/test_utilities.py` into a package (test_user_factory, test_data_factory, test_data_manager, test_user_data_factory, test_log_path_mocks, test_environment) and consolidated `tests/test_utilities` and `tests/test_support` under `tests/test_helpers/` (one-time migration, no shims). All imports now use `tests.test_helpers.test_utilities` or `tests.test_helpers.test_support`; conftest pytest_plugins and run_tests updated; policy/skip paths and TESTING_GUIDE / AI_TESTING_GUIDE updated.
+- Moved test_isolation into test_helpers/test_support; moved test_error_handling_improvements to tests/integration/, test_run_tests_interrupts to tests/unit/; moved debug_qt_ui_windows to scripts/, debug_file_paths to tests/unit/. Updated all references and DIRECTORY_TREE.
+- Removed 6 unused imports from test_user_factory.py; `ruff check .` passes. Ran doc-fix (--fix-ascii, --convert-links) and doc-sync. Relaxed enhanced command parser memory test threshold so suite stays green.
+- Full suite: 4167 passed, 21 skipped. Use `from tests.test_helpers import ...` or subpackage paths for test utilities and support.
+
 ### 2026-03-13 - Qt UI Windows skip refinement **Progressed**
 - Narrowed Windows-only Qt UI skips: centralized `skip_qt_ui_on_windows`, limited default skips to `CheckinSettingsWidget` and `ScheduleEditorDialog` behavior modules, and restructured dialog tests so non-problematic Qt dialogs still run on this PC.
 - Ensured full `python run_tests.py` suite passes here with focused 21-test skips while keeping the existing `MHM_QT_UI_FORCE` opt-in to run the previously unstable modules on machines where they succeed.
-- Updated `tests/debug_qt_ui_windows.py`, `tests/TESTING_GUIDE.md`, and `development_docs/TEST_PLAN.md` to document the current Windows Qt skip behavior and track follow-up work to reduce or remove these environment-driven skips.
+- Updated `tests/debug_qt_ui_windows.py`, [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), and [TEST_PLAN.md](development_docs/TEST_PLAN.md) to document the current Windows Qt skip behavior and track follow-up work to reduce or remove these environment-driven skips.
 
 ### 2026-03-12 - Doc drift, Ruff clean, fixture metadata, module_deps fallback **COMPLETED**
-- **Documentation drift**: Fixed path references (sync_ruff_toml → development_tools/config/sync_ruff_toml.py in guides; TODO script paths reworded; memory_profiler refs softened in AI_TESTING_GUIDE and TESTING_GUIDE). Ran doc-fix (ASCII, headings, convert-links). Added fixture placeholders: AI_STATUS.md, AI_PRIORITIES.md in tests/fixtures/development_tools_demo; tests/ai/results/ai_functionality_test_results_latest.md so path drift and links resolve.
+- **Documentation drift**: Fixed path references (sync_ruff_toml -> development_tools/config/sync_ruff_toml.py in guides; TODO script paths reworded; memory_profiler refs softened in AI_TESTING_GUIDE and TESTING_GUIDE). Ran doc-fix (ASCII, headings, convert-links). Added fixture placeholders: AI_STATUS.md, AI_PRIORITIES.md in tests/fixtures/development_tools_demo; tests/ai/results/ai_functionality_test_results_latest.md so path drift and links resolve.
 - **Ruff**: Resolved all 6 issues (UP015, SIM105, UP045, F401 unused QTimer) in analyze_unused_imports.py, audit_signal_state.py, debug_qt_ui_windows.py; `ruff check .` passes.
 - **Fixture test**: Updated fixture status files to include required metadata (`> **Generated**: This file is auto-generated.` and `> **Last Generated**: YYYY-MM-DD HH:MM:SS`) so test_fixture_status_files_have_valid_metadata passes.
 - **Report generation**: analyze_module_dependencies now always stores a standard-format result in results_cache and disk (even when parser returns no summary) so report generation finds data and no longer logs "[DATA SOURCE] no data found in any source".
@@ -111,22 +117,6 @@ Guidelines:
 - Fixed `file_auditor` fallback decorator path so analyzer noise is removed in degraded-import mode; after cache-clear re-analysis, error-handling metrics now show `functions_missing_error_handling=0`, `phase1_total=0`, `phase2_total=0`.
 - Resolved the previously failing parallel UI generation tests by isolating script-module loading in `test_generate_ui_files_script.py` (no shared `sys.modules['ui.generate_ui_files']` mutation); validated failing subset now passes under `-n auto`.
 - Regenerated docs/audit outputs (`docs`, `doc-fix --convert-links`, `doc-sync`, `audit --quick`) and synced status/priorities/report artifacts for closeout; `audit --full` remained intermittently interrupted in this environment and is tracked as a follow-up reliability task.
-
-### 2026-03-02 - Portability sweep static-tooling config ownership slice and closeout: timing-path relocation + audit validation **Progressed**
-- Moved timing artifact path from `development_tools/reports/tool_timings.json` to `development_tools/reports/jsons/tool_timings.json` in audit orchestration; updated impacted tests/fixtures accordingly.
-- Added roadmap clarification in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` for dual-config static-analysis state: keep both root + dev-tools `pyrightconfig.json` and both root + dev-tools Ruff config for now, with explicit next-step criteria.
-- Session validation confirmed: targeted tests passed for timing-path changes, and user-run full audit reported no regressions after doc-fix follow-up.
-- Regenerated and synced standard development-tools outputs/docs as part of full-audit closeout.
-- Implemented explicit static-analysis config ownership paths: Ruff now syncs/uses `development_tools/config/ruff.toml` (with optional root `.ruff.toml` compatibility mirror), and Pyright now uses explicit `--project development_tools/config/pyrightconfig.json` unless overridden.
-- Extended static-analysis config surface in `development_tools/config/config.py` and both config JSON files with `ruff_config_path`, `pyright_project_path`, and `ruff_sync_root_compat`.
-- Added/expanded regression coverage for static-analysis invocation args, config override handling, and Ruff sync determinism (`test_static_analysis_tools.py`, `test_config.py`, new `test_sync_ruff_toml.py`).
-- Updated portability roadmap tracking (`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` sections `3.17` and `7.6`) plus paired development-tools guides with compatibility/ownership notes.
-
-### 2026-03-02 - Tooling policy hardening + dev-tools coverage parallel fix **COMPLETED**
-- Replaced standalone tooling-consistency enforcement with deterministic policy tests and removed the `tooling-consistency` command/analyzer wiring (`cli_interface.py`, `tool_wrappers.py`, `tool_metadata.py`, deleted `development_tools/config/analyze_tooling_consistency.py`).
-- Hardened policy coverage in `tests/development_tools/test_tooling_policy_consistency.py`: command-group parity checks, runtime-budget guard, stricter command-doc parity (including stale-command detection in command sections), and AST-based scanner-candidate detection.
-- Added CI enforcement via `.github/workflows/logging-enforcement.yml` job `tooling-policy-consistency` to run `pytest tests/development_tools/test_tooling_policy_consistency.py -q` on push/PR.
-- Fixed dev-tools coverage worker scaling: `run_dev_tools_coverage()` now actually applies xdist flags (`-n <workers>`, `--dist=loadscope`) when parallel mode is enabled; added regression coverage in `tests/development_tools/test_regenerate_coverage_metrics.py`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
