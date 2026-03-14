@@ -1,0 +1,59 @@
+site_name: Understanding EI
+site_description: Plain-language educational guide to publicly available Employment Insurance (EI) information in Canada.
+site_url: https://example.github.io/understanding-ei/
+repo_name: understanding-ei
+repo_url: https://github.com/example/understanding-ei
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    scheme: default
+    primary: blue grey
+    accent: blue
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home / Welcome: index.md
+  - Start Here: start-here.md
+  - What EI Is: what-ei-is.md
+  - What EI Cares About and Why: what-ei-cares-about-and-why.md
+  - Topic Areas:
+      - Job Separation: topics/job-separation.md
+      - Voluntary Leaving: topics/voluntary-leaving.md
+      - Misconduct: topics/misconduct.md
+      - Availability for Work: topics/availability-for-work.md
+      - Training / Schooling: topics/training-schooling.md
+      - Earnings While on Claim: topics/earnings-while-on-claim.md
+  - Process:
+      - Reconsideration: process/reconsideration.md
+      - Appeals / Tribunal: process/appeals-tribunal.md
+  - Reference:
+      - Official Sources: references/official-sources.md
+      - Glossary: references/glossary.md
+  - About / Disclaimer: about-disclaimer.md
