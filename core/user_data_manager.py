@@ -9,7 +9,7 @@ import json
 import shutil
 import zipfile
 
-from typing import Any
+from typing import Any, Callable
 from pathlib import Path
 
 from core.logger import get_component_logger
@@ -460,6 +460,30 @@ class UserDataManager:
                 "last_modified": None,
             }
 
+    @handle_errors("processing file types for user data summary")
+    def _get_user_data_summary__process_file_types_with_adder(
+        self,
+        user_id: str,
+        summary: dict[str, Any],
+        file_types: list[str],
+        adder: Callable[[str, str, dict[str, Any]], None],
+    ) -> None:
+        """Process a list of file types: resolve path per type, and if file exists call adder(path, file_type, summary)."""
+        for file_type in file_types:
+            file_path = get_user_file_path(user_id, file_type)
+            if os.path.exists(file_path):
+                adder(file_path, file_type, summary)
+
+    @handle_errors("adding core file info to user data summary")
+    def _get_user_data_summary__add_core_file_info(
+        self, file_path: str, file_type: str, summary: dict[str, Any]
+    ) -> None:
+        """Add file info and special details for a single core file (used by process_core_files)."""
+        self._get_user_data_summary__add_file_info(file_path, file_type, summary)
+        self._get_user_data_summary__add_special_file_details(
+            file_path, file_type, summary
+        )
+
     @handle_errors("processing core files for user data summary")
     def _get_user_data_summary__process_core_files(
         self, user_id: str, summary: dict[str, Any]
@@ -468,18 +492,10 @@ class UserDataManager:
         try:
             from core.user_data_registry import USER_DATA_LOADERS
 
-            # Build list of core file types dynamically from registered loaders
             dynamic_types = list(USER_DATA_LOADERS.keys()) + ["sent_messages"]
-
-            for file_type in dynamic_types:
-                file_path = get_user_file_path(user_id, file_type)
-                if os.path.exists(file_path):
-                    self._get_user_data_summary__add_file_info(
-                        file_path, file_type, summary
-                    )
-                    self._get_user_data_summary__add_special_file_details(
-                        file_path, file_type, summary
-                    )
+            self._get_user_data_summary__process_file_types_with_adder(
+                user_id, summary, dynamic_types, self._get_user_data_summary__add_core_file_info
+            )
         except Exception as e:
             logger.error(f"Error processing core files for user data summary: {e}")
 
@@ -699,13 +715,12 @@ class UserDataManager:
     ) -> None:
         """Process log files (checkins, chat_interactions)."""
         try:
-            log_types = ["checkins", "chat_interactions"]
-            for log_type in log_types:
-                log_file = get_user_file_path(user_id, log_type)
-                if os.path.exists(log_file):
-                    self._get_user_data_summary__add_log_file_info(
-                        log_file, log_type, summary
-                    )
+            self._get_user_data_summary__process_file_types_with_adder(
+                user_id,
+                summary,
+                ["checkins", "chat_interactions"],
+                self._get_user_data_summary__add_log_file_info,
+            )
         except Exception as e:
             logger.error(f"Error processing log files for user data summary: {e}")
 

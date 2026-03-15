@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-14 16:21:34
+> **Last Generated**: 2026-03-14 20:48:39
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 95.1% [OK] COMPLETED**
 - **Files Scanned**: 121
-- **Functions Found**: 1703
-- **Methods Found**: 1242
+- **Functions Found**: 1706
+- **Methods Found**: 1245
 - **Classes Found**: 154
-- **Total Items**: 2945
-- **Functions Documented**: 1598
-- **Methods Documented**: 1202
+- **Total Items**: 2951
+- **Functions Documented**: 1601
+- **Methods Documented**: 1205
 - **Classes Documented**: 120
-- **Total Documented**: 2800
+- **Total Documented**: 2806
 - **Template-Generated**: 5
 - **Last Updated**: 2026-03-14
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (610)
+### **Core System Functions** (612)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (448)
+### **Communication Functions** (449)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (423)
@@ -932,6 +932,7 @@ Returns:
 
 #### `communication/command_handlers/notebook_handler.py`
 **Functions:**
+- [OK] `_build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
 - [OK] `_format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
 - [OK] `_format_entry_response(self, entry)` - Formats a single entry for display.
 - [OK] `_handle_add_list_item(self, user_id, entities)` - Handle adding item to list.
@@ -962,6 +963,7 @@ Returns:
 - [OK] `handle(self, user_id, parsed_command)` - Handle notebook interactions.
 **Classes:**
 - [OK] `NotebookHandler` - Handler for notebook management interactions.
+  - [OK] `NotebookHandler._build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
   - [OK] `NotebookHandler._format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
   - [OK] `NotebookHandler._format_entry_response(self, entry)` - Formats a single entry for display.
   - [OK] `NotebookHandler._handle_add_list_item(self, user_id, entities)` - Handle adding item to list.
@@ -4709,6 +4711,7 @@ Args:
 
 Returns:
     str: ISO format timestamp of last interaction, or default if none found
+- [OK] `_get_user_data_summary__add_core_file_info(self, file_path, file_type, summary)` - Add file info and special details for a single core file (used by process_core_files).
 - [OK] `_get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
 - [OK] `_get_user_data_summary__add_log_file_info(self, log_file, log_type, summary)` - Add log file information to the summary.
 - [OK] `_get_user_data_summary__add_message_file_info(self, file_path, category, summary, orphaned)` - Add message file information to the summary.
@@ -4720,6 +4723,7 @@ Returns:
 - [OK] `_get_user_data_summary__initialize_summary(self, user_id)` - Initialize the summary structure with default values.
 - [OK] `_get_user_data_summary__process_core_files(self, user_id, summary)` - Process core user data files (profile, preferences, schedules, etc.).
 - [OK] `_get_user_data_summary__process_enabled_message_files(self, user_id, categories, summary)` - Process message files for enabled categories.
+- [OK] `_get_user_data_summary__process_file_types_with_adder(self, user_id, summary, file_types, adder)` - Process a list of file types: resolve path per type, and if file exists call adder(path, file_type, summary).
 - [OK] `_get_user_data_summary__process_log_files(self, user_id, summary)` - Process log files (checkins, chat_interactions).
 - [OK] `_get_user_data_summary__process_message_files(self, user_id, summary)` - Process message files for all user categories.
 - [OK] `_get_user_data_summary__process_orphaned_message_files(self, user_id, categories, message_files, summary)` - Process orphaned message files (categories not enabled but files exist).
@@ -4820,6 +4824,7 @@ Args:
 
 Returns:
     str: ISO format timestamp of last interaction, or default if none found
+  - [OK] `UserDataManager._get_user_data_summary__add_core_file_info(self, file_path, file_type, summary)` - Add file info and special details for a single core file (used by process_core_files).
   - [OK] `UserDataManager._get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
   - [OK] `UserDataManager._get_user_data_summary__add_log_file_info(self, log_file, log_type, summary)` - Add log file information to the summary.
   - [OK] `UserDataManager._get_user_data_summary__add_message_file_info(self, file_path, category, summary, orphaned)` - Add message file information to the summary.
@@ -4831,6 +4836,7 @@ Returns:
   - [OK] `UserDataManager._get_user_data_summary__initialize_summary(self, user_id)` - Initialize the summary structure with default values.
   - [OK] `UserDataManager._get_user_data_summary__process_core_files(self, user_id, summary)` - Process core user data files (profile, preferences, schedules, etc.).
   - [OK] `UserDataManager._get_user_data_summary__process_enabled_message_files(self, user_id, categories, summary)` - Process message files for enabled categories.
+  - [OK] `UserDataManager._get_user_data_summary__process_file_types_with_adder(self, user_id, summary, file_types, adder)` - Process a list of file types: resolve path per type, and if file exists call adder(path, file_type, summary).
   - [OK] `UserDataManager._get_user_data_summary__process_log_files(self, user_id, summary)` - Process log files (checkins, chat_interactions).
   - [OK] `UserDataManager._get_user_data_summary__process_message_files(self, user_id, summary)` - Process message files for all user categories.
   - [OK] `UserDataManager._get_user_data_summary__process_orphaned_message_files(self, user_id, categories, message_files, summary)` - Process orphaned message files (categories not enabled but files exist).

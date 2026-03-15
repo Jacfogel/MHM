@@ -733,6 +733,42 @@ class NotebookHandler(InteractionHandler):
                 "❌ Failed to set group. Entry not found.", True
             )
 
+    @handle_errors(
+        "building paginated list response",
+        default_return=InteractionResponse("Error building list.", True),
+    )
+    def _build_paginated_list_response(
+        self,
+        entries: list[Entry],
+        header: str,
+        offset: int,
+        limit: int,
+    ) -> InteractionResponse:
+        """Build a paginated list response for group/tag-style list handlers."""
+        total = len(entries)
+        paginated = entries[offset : offset + limit]
+        has_more = offset + limit < total
+
+        response_parts = [header]
+        for entry in paginated:
+            short_id = self._format_entry_id(entry)
+            response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
+
+        if has_more:
+            remaining = total - (offset + limit)
+            response_parts.append(f"\n... and {remaining} more")
+
+        suggestions = []
+        if has_more:
+            remaining = total - (offset + limit)
+            suggestions.append(f"Show More ({min(limit, remaining)} more)")
+
+        return InteractionResponse(
+            "\n".join(response_parts),
+            True,
+            suggestions=suggestions if suggestions else None,
+        )
+
     @handle_errors("handling list by group")
     def _handle_list_by_group(
         self, user_id: str, entities: dict[str, Any]
@@ -752,28 +788,8 @@ class NotebookHandler(InteractionHandler):
         if not entries:
             return InteractionResponse(f"No entries found in group '{group}'.", True)
 
-        total = len(entries)
-        paginated = entries[offset : offset + limit]
-        has_more = offset + limit < total
-
-        response_parts = [f"📁 Group '{group}' ({total} entries):"]
-        for entry in paginated:
-            short_id = self._format_entry_id(entry)
-            response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
-
-        if has_more:
-            remaining = total - (offset + limit)
-            response_parts.append(f"\n... and {remaining} more")
-
-        suggestions = []
-        if has_more:
-            remaining = total - (offset + limit)
-            suggestions.append(f"Show More ({min(limit, remaining)} more)")
-
-        return InteractionResponse(
-            "\n".join(response_parts),
-            True,
-            suggestions=suggestions if suggestions else None,
+        return self._build_paginated_list_response(
+            entries, f"📁 Group '{group}' ({len(entries)} entries):", offset, limit
         )
 
     @handle_errors("handling list pinned")
@@ -873,28 +889,8 @@ class NotebookHandler(InteractionHandler):
         if not entries:
             return InteractionResponse(f"No entries found with tag '{tag}'.", True)
 
-        total = len(entries)
-        paginated = entries[offset : offset + limit]
-        has_more = offset + limit < total
-
-        response_parts = [f"🏷️ Tag '{tag}' ({total} entries):"]
-        for entry in paginated:
-            short_id = self._format_entry_id(entry)
-            response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
-
-        if has_more:
-            remaining = total - (offset + limit)
-            response_parts.append(f"\n... and {remaining} more")
-
-        suggestions = []
-        if has_more:
-            remaining = total - (offset + limit)
-            suggestions.append(f"Show More ({min(limit, remaining)} more)")
-
-        return InteractionResponse(
-            "\n".join(response_parts),
-            True,
-            suggestions=suggestions if suggestions else None,
+        return self._build_paginated_list_response(
+            entries, f"🏷️ Tag '{tag}' ({len(entries)} entries):", offset, limit
         )
 
     @handle_errors("handling list archived")

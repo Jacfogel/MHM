@@ -136,3 +136,21 @@ Parallel loaders were refactored to shared loader pattern in user_data_registry.
 ---
 
 *Source: analyze_duplicate_functions_results.json (duplicate_groups). Last audit run: 2026-03-14 (30 groups, 26 files, body-for-near-miss enabled).*
+
+---
+
+## Overlap with AI_PRIORITIES (current 19-group report)
+
+After `# not_duplicate: <group_id>` markers were added, the duplicate-functions report shows **19 groups** across **16 files**. AI_PRIORITIES item 3 ("Investigate possible duplicate functions/methods") calls out the same set; the table below maps its **top target groups** to this doc’s verdicts and actions.
+
+| AI_PRIORITIES group | N funcs | Max score | Maps to (this doc) | Verdict / action |
+|---------------------|--------|-----------|---------------------|------------------|
+| Group 1             | 9      | 0.84      | Groups 3–5, 14, 16, 18 (user_data_manager) | Class + module API intentional; **optional** refactor only for `_get_user_data_summary__*` helpers (see Group 2). |
+| Group 2             | 5      | 0.84      | Group 4 (`_get_user_data_summary__process_*`) | Same-class helpers; **optional** shared structure (loop / add-to-summary pattern). |
+| Group 3             | 2      | 0.833     | Group 6 (NotebookHandler `_handle_list_by_group`, `_handle_list_by_tag`) | Similar handlers; **optional** shared helper. |
+
+**Action plan (items with overlap):**
+
+1. **NotebookHandler (Group 6 / AI_PRIORITIES Group 3)** — **Done.** Extracted `_build_paginated_list_response()`; `_handle_list_by_group` and `_handle_list_by_tag` now delegate to it.
+2. **user_data_manager `_get_user_data_summary__*` (Groups 4, 16, 18 / AI_PRIORITIES Groups 1–2)** — **Done.** Extracted `_get_user_data_summary__process_file_types_with_adder()` (loop over file types, call adder if path exists) and `_get_user_data_summary__add_core_file_info()` (file_info + special_file_details). `process_core_files` and `process_log_files` now use the shared loop; message-file process_* left as-is (different data sources and intent).
+3. **Remaining 19-group items** — No action for intentional patterns; optional refactor for other “optional shared helper” groups per the summary table and Recommendations above.

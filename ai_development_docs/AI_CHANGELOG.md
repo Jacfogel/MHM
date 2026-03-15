@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-14 - Duplicate-functions overlap refactors, error handling, dev-tools coverage **Progressed**
+- **Overlap actions**: NotebookHandler — extracted `_build_paginated_list_response()`; `_handle_list_by_group` and `_handle_list_by_tag` delegate to it. user_data_manager — extracted `_get_user_data_summary__process_file_types_with_adder()` and `_get_user_data_summary__add_core_file_info()`; `process_core_files` and `process_log_files` use the shared loop; message-file process_* unchanged.
+- **Error handling**: Added `@handle_errors` to `_build_paginated_list_response` (notebook_handler) and `_get_user_data_summary__process_file_types_with_adder` (user_data_manager) so the two previously unprotected functions are covered.
+- **Dev-tools coverage**: New `tests/development_tools/test_result_format.py` (normalize_to_standard_format) and `test_development_tools_package_init.py` (development_tools package exports / __all__). DUPLICATE_FUNCTIONS_INVESTIGATION.md updated with "Overlap with AI_PRIORITIES" section and action plan (items 1–2 Done).
+
 ### 2026-03-14 - Duplicate-functions: body similarity, near-miss, intentional markers **COMPLETED**
 - **Analyzer**: `analyze_duplicate_functions` now supports optional body/structural similarity (AST node-type sequences, Jaccard). On full audit it runs body similarity only for "near-miss" pairs (name similarity ≥ `body_similarity_min_name_threshold` 0.35 but below normal flagging) so plausible duplicates are rescued without full pairwise body comparison. Groups are ranked clearest-first (max similarity, then size). Intentional groups can be suppressed by adding the same `# not_duplicate: <group_id>` (or `# duplicate_functions_intentional: <group_id>`) to **every** function in the group; only pairs where both sides share that id are filtered, so new duplicates still appear.
 - **Config/CLI**: `development_tools/config/config.py` and example JSON: `run_body_similarity_on_full_audit`, `body_similarity_min_name_threshold`, `consider_body_similarity`, `max_body_candidate_pairs`, `body_similarity_scope`, weights `body`. CLI: `--consider-body-similarity`, `--body-for-near-miss`. Audit orchestration runs duplicate-functions with body-for-near-miss when tier ≥ 3 and config enables it. Reports sort groups by (max_score, func_count) and note body similarity / pairs_filtered_intentional.
@@ -113,11 +118,6 @@ Guidelines:
 - Fixed the previously remaining behavior failure `test_send_predefined_message_real_behavior` by restoring `channel_orchestrator` message path resolution through `determine_file_path`, matching real behavior and patch targets.
 - Removed one safe unused import in `communication/core/channel_orchestrator.py` (`get_user_data_dir`) after the path-resolution fix; targeted Ruff check for F401 passed.
 - Completed session wrap-up inventory with full working-tree diff review (`git diff --stat`, `git diff --name-only`) and created paired changelog entries for this session.
-
-### 2026-03-02 - Task split, notebook rename, error handling Phase 1, follow-ups **COMPLETED**
-- Unified user items: added `core/user_item_storage.py` and `is_valid_user_id`; split `tasks/task_management.py` into task_schemas, task_validation, task_data_handlers, task_data_manager; renamed `notebook/schemas.py` to `notebook/notebook_schemas.py`. All call sites use `from tasks import ...`; task_handler and profile_handler use lazy `_get_tasks()`.
-- Test fixes: patches updated to `tasks.*` / `tasks.task_data_manager.*`; due_date in update path resolved (e.g. "tomorrow") via relative-date parsing; get_user_task_stats default and title=None validation aligned.
-- Error handling Phase 1: `@handle_errors` now supports `re_raise=True`; `_get_tasks()` in both handlers use decorator with re_raise; `validate_update_field` decorated; static logging single-arg fix; unused imports removed (user_item_storage, task_schemas, task_validation). MODULE_DEPENDENCIES_DETAIL and error-handling guides updated.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

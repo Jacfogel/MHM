@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-14 16:21:34
+> **Last Generated**: 2026-03-14 20:48:39
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 95.1% [OK] EXCELLENT**
-- **Total Functions**: 1703
-- **Total Methods**: 1242
-- **Documented**: 2800/2945
+- **Total Functions**: 1706
+- **Total Methods**: 1245
+- **Documented**: 2806/2951
 - **Files Scanned**: 121
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -23,7 +23,7 @@
 User Data Operations Decision Tree:
 +-- Core Data Access
 |   +-- `core/user_data_read.py` - Primary data access (5 functions)
-|   +-- `core/user_data_manager.py` - Data management (64 functions)
+|   +-- `core/user_data_manager.py` - Data management (68 functions)
 |   `-- `core/user_data_validation.py` - Validation (9/12 functions)
 +-- User Context
 |   +-- `user/user_context.py` - User context management (20 functions)
@@ -233,8 +233,8 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (35 files, 911 functions)
-- `communication/` - Communication channels and message processing (39 files, 851 functions)
+- `core/` - System utilities and data management (35 files, 915 functions)
+- `communication/` - Communication channels and message processing (39 files, 853 functions)
 - `ai/` - AI chatbot functionality (7 files, 219 functions)
 - `ui/` - User interface components (28 files, 824 functions)
 - `user/` - User context and preferences (4 files, 65 functions)
