@@ -80,7 +80,7 @@ When in doubt: activate the virtual environment, make a backup, then follow the 
    - After each meaningful change, run the smallest relevant test slice (unit, integration, or behavior) before moving on.
 
 4. **Use the official data-access helpers**  
-   - All user data access must go through `core.user_data_handlers.get_user_data()` and related helpers.  
+   - All user data access must go through `core.get_user_data()` and related helpers (see `core/user_data_read.py`, `core/user_data_write.py`, `core/user_data_registry.py`).  
    - Do not reintroduce or create new direct file-access wrappers.
 
 5. **Keep imports consistent**  
@@ -206,7 +206,7 @@ Use this as your default loop for any change: features, bug fixes, or refactors.
 
 - Work in **small, testable increments**.  
 - Keep functions focused; avoid reintroducing thin wrappers that just call other functions.  
-- Use consistent imports and the official helpers (for example, `get_user_data()` from `core.user_data_handlers`).  
+- Use consistent imports and the official helpers (for example, `get_user_data()` from `core` or `core.user_data_read`).  
 - Maintain the existing patterns for logging, error handling, and configuration (see section 2. "Logging Architecture" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)).
 
 ### 3.3. Step 3: Test

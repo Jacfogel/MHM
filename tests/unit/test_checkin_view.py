@@ -106,7 +106,7 @@ class TestCheckinView:
         parallel workers, avoiding session test_data_dir collisions.
         """
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from unittest.mock import patch
         import core.config
         import os
@@ -200,7 +200,7 @@ class TestCheckinView:
         parallel workers, avoiding session test_data_dir collisions.
         """
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from unittest.mock import patch
         import core.config
         import os

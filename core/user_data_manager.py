@@ -18,8 +18,8 @@ from core.config import (
     get_backups_dir,
 )
 from core.file_operations import load_json_data, get_user_file_path, get_user_data_dir
-from core.user_data_handlers import get_user_data
-from core.user_data_handlers import get_all_user_ids
+from core import get_user_data
+from core import get_all_user_ids
 from core.schemas import validate_messages_file_dict
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_filename, now_timestamp_full
@@ -465,7 +465,7 @@ class UserDataManager:
     ) -> None:
         """Process core user data files (profile, preferences, schedules, etc.)."""
         try:
-            from core.user_data_handlers import USER_DATA_LOADERS
+            from core.user_data_registry import USER_DATA_LOADERS
 
             # Build list of core file types dynamically from registered loaders
             dynamic_types = list(USER_DATA_LOADERS.keys()) + ["sent_messages"]
@@ -1441,7 +1441,7 @@ def get_user_info_for_data_manager(user_id: str) -> dict[str, Any] | None:
         return None
     """Get user info using the new centralized data structure."""
     try:
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
 
         # Get all user data with retry logic for parallel execution race conditions
         import time
@@ -1476,7 +1476,7 @@ def get_user_info_for_data_manager(user_id: str) -> dict[str, Any] | None:
         }
 
         # Get message files
-        from core.user_data_handlers import get_user_categories
+        from core import get_user_categories
 
         categories = get_user_categories(user_id)
 
@@ -1496,8 +1496,8 @@ def get_user_info_for_data_manager(user_id: str) -> dict[str, Any] | None:
         return None
 
 
-# Import get_user_categories from user_data_handlers to avoid duplication
-from core.user_data_handlers import get_user_categories
+# Import get_user_categories from user_management to avoid circular import via core
+from core.user_management import get_user_categories
 
 
 @handle_errors("building user index", default_return={})

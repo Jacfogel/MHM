@@ -11,7 +11,7 @@ import os  # Needed for test mocking (os.path.exists)
 from datetime import datetime, timedelta
 from typing import Any
 
-from core.user_data_handlers import get_all_user_ids
+from core import get_all_user_ids
 from core.schedule_management import get_schedule_time_periods
 from core.service_utilities import load_and_localize_datetime
 from core.time_utilities import (
@@ -30,7 +30,7 @@ from core.time_utilities import (
 from core.logger import get_component_logger
 from user.user_context import UserContext
 from core.error_handling import handle_errors
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 from core.backup_manager import backup_manager
 
 # Suppress debug logging from the schedule library to reduce log spam
@@ -1877,7 +1877,7 @@ class SchedulerManager:
             logger.info("Starting periodic cleanup of orphaned task reminders")
 
             # Get all active users (we'll need to scan their tasks)
-            from core.user_data_handlers import get_all_user_ids
+            from core import get_all_user_ids
 
             get_all_user_ids()
 

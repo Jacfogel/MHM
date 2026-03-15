@@ -727,7 +727,7 @@ class TestBackupManagerBehavior:
             if success:
                 created_user_ids.append(user_id)
                 # Verify user directory was actually created (diagnostic)
-                from core.user_data_handlers import get_user_id_by_identifier
+                from core import get_user_id_by_identifier
                 from tests.test_helpers.test_utilities import TestUserFactory as TUF
                 from core.config import get_user_data_dir
                 import os
@@ -785,7 +785,7 @@ class TestBackupManagerBehavior:
         os.makedirs(self.user_data_dir, exist_ok=True)
 
         # Get actual UUIDs for created users (create_full_featured_user creates UUID-based users)
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from tests.test_helpers.test_utilities import TestUserFactory as TUF
         from core.config import get_user_data_dir
 

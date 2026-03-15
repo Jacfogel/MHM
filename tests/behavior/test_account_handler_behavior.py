@@ -9,8 +9,8 @@ import pytest
 import uuid
 from unittest.mock import patch, MagicMock, AsyncMock
 from tests.test_helpers.test_utilities import TestUserFactory
-from core.user_data_handlers import get_user_id_by_identifier
-from core.user_data_handlers import get_user_data
+from core import get_user_id_by_identifier
+from core import get_user_data
 from communication.command_handlers.account_handler import (
     AccountManagementHandler,
     _generate_confirmation_code,
@@ -402,7 +402,7 @@ class TestAccountHandlerBehavior:
         time.sleep(0.1)  # Brief delay for index to be written
 
         # Add email to user account
-        from core.user_data_handlers import update_user_account
+        from core import update_user_account
         user_id = get_user_id_by_identifier(existing_username)
         assert user_id is not None, "Test user should be discoverable by username"
         update_user_account(user_id, {'email': 'test@example.com'})
@@ -459,7 +459,7 @@ class TestAccountHandlerBehavior:
         assert user_id is not None, "User should be created"
         
         # Add email to user account
-        from core.user_data_handlers import update_user_account
+        from core import update_user_account
         update_result = update_user_account(user_id, {'email': 'test@example.com'})
         assert update_result is True, "Email should be added"
         
@@ -650,7 +650,7 @@ class TestAccountHandlerBehavior:
         user_id = get_user_id_by_identifier('emailtestuser')
         assert user_id is not None, "User should be created"
         
-        from core.user_data_handlers import update_user_account
+        from core import update_user_account
         update_user_account(user_id, {'email': 'test@example.com'})
         
         # Mock the entire communication manager import path
@@ -708,7 +708,7 @@ class TestAccountHandlerBehavior:
         time.sleep(0.1)  # Brief delay for index to be written
 
         # Add different email to user account (not the one we're linking)
-        from core.user_data_handlers import update_user_account
+        from core import update_user_account
         user_id = get_user_id_by_identifier(existing_username)
         assert user_id is not None, "Test user should be discoverable by username"
         update_user_account(user_id, {'email': 'existing@example.com'})
@@ -761,7 +761,7 @@ class TestAccountHandlerBehavior:
         time.sleep(0.1)  # Brief delay for index to be written
 
         # Link to different Discord ID and add email (needed for confirmation code)
-        from core.user_data_handlers import update_user_account
+        from core import update_user_account
         user_id = get_user_id_by_identifier(existing_username)
         assert user_id is not None, "Test user should be discoverable by username"
         update_user_account(user_id, {
@@ -818,7 +818,7 @@ class TestAccountHandlerBehavior:
         time.sleep(0.1)  # Brief delay for index to be written
 
         # Link to different email
-        from core.user_data_handlers import update_user_account
+        from core import update_user_account
         user_id = get_user_id_by_identifier(existing_username)
         assert user_id is not None, "Test user should be discoverable by username"
         update_user_account(user_id, {'email': 'existing@example.com'})
@@ -975,7 +975,7 @@ class TestAccountHandlerBehavior:
         assert user_id is not None, "Test user should be discoverable by username"
         
         # Add email to user account
-        from core.user_data_handlers import update_user_account
+        from core import update_user_account
         update_user_account(user_id, {'email': 'test@example.com'})
         
         # Set up pending operation
@@ -1034,7 +1034,7 @@ class TestAccountHandlerBehavior:
         assert user_id is not None, "Test user should be discoverable by username"
         
         # Add email to user account
-        from core.user_data_handlers import update_user_account
+        from core import update_user_account
         update_user_account(user_id, {'email': 'test@example.com'})
         
         # Try to link same Discord ID (should work - same user)

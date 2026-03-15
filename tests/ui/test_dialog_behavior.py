@@ -25,7 +25,7 @@ from PySide6.QtTest import QTest
 
 # Project imports rely on pytest and conftest path setup
 
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 from ui.dialogs.user_profile_dialog import UserProfileDialog
 from ui.dialogs.category_management_dialog import CategoryManagementDialog
 from ui.dialogs.channel_management_dialog import ChannelManagementDialog

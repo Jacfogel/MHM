@@ -30,7 +30,7 @@ from core.ui_management import (
     _number_after_prefix,
     _DEFAULT_PERIOD_DATA,
 )
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
 

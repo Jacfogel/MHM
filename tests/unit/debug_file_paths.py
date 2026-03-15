@@ -1,7 +1,7 @@
 import pytest
 import os
 import core.config
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 import logging
 
 logger = logging.getLogger("mhm_tests")

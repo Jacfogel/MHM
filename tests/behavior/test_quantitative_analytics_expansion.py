@@ -7,7 +7,7 @@ import pytest
 import json
 import os
 from core.checkin_analytics import CheckinAnalytics
-from core.user_data_handlers import (
+from core import (
     get_user_data,
     get_user_id_by_identifier,
     save_user_data,

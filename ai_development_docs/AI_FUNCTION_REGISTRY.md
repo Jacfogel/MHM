@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-05 00:17:49
+> **Last Generated**: 2026-03-14 16:21:34
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 96.1% [OK] EXCELLENT**
-- **Total Functions**: 1701
+### **Documentation Coverage: 95.1% [OK] EXCELLENT**
+- **Total Functions**: 1703
 - **Total Methods**: 1242
-- **Documented**: 2828/2943
-- **Files Scanned**: 114
+- **Documented**: 2800/2945
+- **Files Scanned**: 121
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -22,14 +22,14 @@
 ```
 User Data Operations Decision Tree:
 +-- Core Data Access
-|   +-- `core/user_data_handlers.py` - Primary data access (58/59 functions)
+|   +-- `core/user_data_read.py` - Primary data access (5 functions)
 |   +-- `core/user_data_manager.py` - Data management (64 functions)
 |   `-- `core/user_data_validation.py` - Validation (9/12 functions)
 +-- User Context
 |   +-- `user/user_context.py` - User context management (20 functions)
 |   `-- `user/user_preferences.py` - User preferences (20 functions)
 `-- User Data Access
-    `-- `core/user_data_handlers.py` - Account operations (58/59 functions)
+    `-- `core/user_data_read.py` - Account operations (5 functions)
 ```
 
 ### **[AI] Need AI/Chatbot Functionality?**
@@ -175,7 +175,7 @@ Core System Decision Tree:
 - [OK] `core/service.py::__init__()` - Initialization
 
 ### **Data Access Patterns**
-- **User Data**: `core/user_data_handlers.py` - User data operations (58/59 functions)
+- **User Data**: `core/user_data_read.py` - User data operations (5 functions)
 - **Validation**: `core/user_data_validation.py` - Data validation (9/12 functions)
 - **File Operations**: `core/file_operations.py` - File I/O (16 functions)
 
@@ -189,8 +189,12 @@ Core System Decision Tree:
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
 - `core/schemas.py` - 18/32 functions undocumented (44% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
+- `core/user_data_registry.py` - 11/22 functions undocumented (50% coverage)
+- `core/user_data_write.py` - 10/12 functions undocumented (17% coverage)
 - `ui/dialogs/channel_management_dialog.py` - 7/11 functions undocumented (36% coverage)
 - `ui/widgets/channel_selection_widget.py` - 6/16 functions undocumented (62% coverage)
+- `core/user_data_updates.py` - 5/5 functions undocumented (0% coverage)
+- `core/user_lookup.py` - 5/6 functions undocumented (17% coverage)
 - `ui/widgets/category_selection_widget.py` - 4/6 functions undocumented (33% coverage)
 
 ### **Medium Priority** (Partial Coverage)
@@ -215,10 +219,10 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `run_tests.py::run_command()` - Complexity: 3129
-2. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2783
-3. [OK] `run_tests.py::main()` - Complexity: 2683
-4. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2652
+1. [OK] `run_tests.py::run_command()` - Complexity: 3208
+2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2992
+3. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2783
+4. [OK] `run_tests.py::main()` - Complexity: 2683
 5. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2359
 
 
@@ -229,7 +233,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (28 files, 910 functions)
+- `core/` - System utilities and data management (35 files, 911 functions)
 - `communication/` - Communication channels and message processing (39 files, 851 functions)
 - `ai/` - AI chatbot functionality (7 files, 219 functions)
 - `ui/` - User interface components (28 files, 824 functions)

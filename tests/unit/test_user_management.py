@@ -8,7 +8,7 @@ import pytest
 import os
 import json
 
-from core.user_data_handlers import (
+from core import (
     get_all_user_ids,
     get_user_data,
     update_user_preferences,
@@ -319,7 +319,7 @@ class TestUserManagement:
     def test_get_user_data_account_with_discord_id(self, mock_user_data, mock_config):
         """Test getting user account with discord_user_id field."""
         import time
-        from core.user_data_handlers import clear_user_caches
+        from core import clear_user_caches
         from core.file_locking import safe_json_read
 
         account = None
@@ -374,7 +374,7 @@ class TestUserManagement:
         assert success is True, "Failed to create test user"
 
         # Get the actual user ID (UUID) that was created
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
 
         actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "Should be able to get UUID for created user"
@@ -507,7 +507,7 @@ class TestUserManagementEdgeCases:
         # [OK] VERIFY REAL BEHAVIOR: Check user directory was created
         # Get the actual user ID (UUID) that was created to find the correct directory
         # Serial execution ensures index is updated before lookup
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
 
         # Rebuild index to ensure user is discoverable (serial execution ensures this works)

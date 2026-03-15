@@ -10,7 +10,7 @@ from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 from core.time_utilities import (
     now_datetime_full,
     now_timestamp_full,

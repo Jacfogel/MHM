@@ -827,7 +827,7 @@ class CheckinAnalytics:
         # If enabled_fields is not provided, check user preferences first, then fall back to auto-detection
         if enabled_fields is None:
             try:
-                from core.user_data_handlers import get_user_data
+                from core import get_user_data
 
                 prefs = get_user_data(user_id, "preferences") or {}
                 checkin_settings = (prefs.get("preferences") or {}).get(

@@ -37,7 +37,7 @@
 | 17 | NotebookHandler._handle_list_by_group, _handle_list_by_tag | Similar handlers; optional shared helper |
 | 18 | AccountCreatorDialog.keyPressEvent, UserProfileDialog.keyPressEvent | Same event override in two dialogs; intentional |
 | 19 | ResponseCache.get_entries_by_type, remove_entries_by_type | Different ops (get vs remove); similar structure |
-| 20 | _get_user_data__load_account, load_context, load_preferences, load_schedules (user_data_handlers) | Parallel loaders; good refactor candidate (shared loader pattern) |
+| 20 | _get_user_data__load_account, load_context, load_preferences, load_schedules (user_data_registry) | Parallel loaders; refactored to shared loader pattern in user_data_registry |
 | 21 | AnalyticsHandler._handle_task_stats, TaskManagementHandler._handle_task_stats | Two handlers; may delegate to shared logic |
 | 22 | ResponseCache.clear, ContextCache.clear | Same pattern (clear cache); intentional |
 | 23 | get_welcome_message (welcome_manager, discord welcome_handler) | Core vs channel-specific; intentional |

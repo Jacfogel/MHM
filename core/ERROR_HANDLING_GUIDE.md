@@ -145,7 +145,7 @@ Use `@handle_errors` on **entry points** where an unhandled exception should nev
 
 - Scheduler jobs and background loops in `scheduler.py`.
 - Shared scheduling utilities (for example `get_active_schedules` in `schedule_utilities.py`).
-- User data load/save operations and channel-preference changes in `user_data_handlers.py`.
+- User data load/save operations and channel-preference changes in `user_data_registry.py`, `user_data_read.py`, and `user_data_write.py`.
 - Service and network utilities in `service_utilities.py` (for example throttler checks, service status, network wait loops).
 - Logging utilities in `logger.py` that are needed early during startup.
 

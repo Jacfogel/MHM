@@ -15,7 +15,7 @@ sections in [ARCHITECTURE.md](ARCHITECTURE.md) and other detailed guides.
 Typical questions and starting points:
 
 - User data access or schema changes  
-  -> `core/user_data_handlers.py`, `core/user_data_validation.py`  
+  -> `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py`, `core/user_data_validation.py`  
   -> Details: see section 2. User Data Model and section 3. Data Handling Patterns in
      [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -83,7 +83,7 @@ This document describes only architectural relationships and AI-relevant constra
 Preserve these patterns when generating or editing code:
 
 - Centralized access  
-  - Use helpers in `core/user_data_handlers.py`.  
+  - Use helpers in `core/user_data_read.py`, `core/user_data_write.py`, and related `core.user_data_*` / `core.user_management` modules.  
   - Avoid direct `open()` on `data/users/...` in feature code.
 
 - Validate before writing  
@@ -120,7 +120,7 @@ Use this list to anchor AI changes to the right modules.
   Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).  
 - `core/error_handling.py` - shared error handling decorators and integration with logging and
   basic metrics. See section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).  
-- `core/user_data_handlers.py`, `core/user_data_validation.py` - user data entry points.  
+- `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py`, `core/user_data_validation.py` - user data entry points.  
 - `communication/` - channel orchestrators and adapters that turn service events into messages on
   Discord, email, etc.  
 - `tasks/` - task and reminder definitions used by schedulers.  

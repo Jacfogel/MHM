@@ -151,8 +151,8 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
     logger = logging.getLogger("mhm_tests")
     
     try:
-        from core.user_data_handlers import get_user_data
-        from core.user_data_handlers import get_all_user_ids
+        from core import get_user_data
+        from core import get_all_user_ids
         
         # Get all user IDs
         user_ids = get_all_user_ids()

@@ -8,9 +8,9 @@ import pytest
 import os
 from unittest.mock import patch, Mock
 from datetime import datetime, timedelta
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 from core.scheduler import SchedulerManager, schedule_all_task_reminders
-from core.user_data_handlers import get_user_categories
+from core import get_user_categories
 from core.time_utilities import (
     parse_time_only_minute,
     parse_timestamp_minute,
@@ -252,8 +252,8 @@ class TestSchedulerFunctions:
         """Test getting user categories successfully."""
         user_id = mock_user_data["user_id"]
 
-        with patch("core.user_data_handlers.get_user_data") as mock_get_data:
-            # get_user_data with fields='categories' returns the list directly
+        with patch("core.user_management.get_user_data") as mock_get_data:
+            # get_user_data(user_id, "preferences") is used by get_user_categories
             mock_get_data.return_value = ["motivational", "health", "fun_facts"]
 
             categories = get_user_categories(user_id)
@@ -267,7 +267,7 @@ class TestSchedulerFunctions:
     @pytest.mark.scheduler
     def test_get_user_categories_no_user(self):
         """Test getting categories for non-existent user."""
-        with patch("core.user_data_handlers.get_user_data") as mock_get_data:
+        with patch("core.user_management.get_user_data") as mock_get_data:
             mock_get_data.return_value = {}
 
             categories = get_user_categories("nonexistent-user")

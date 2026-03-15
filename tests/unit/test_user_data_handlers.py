@@ -1,7 +1,7 @@
 """
 Unit tests for user data handlers convenience functions.
 
-Tests for core/user_data_handlers.py focusing on update convenience functions
+Tests for user data handlers (core.user_data_* modules) focusing on update convenience functions
 and validation logic.
 """
 
@@ -10,7 +10,7 @@ import uuid
 from unittest.mock import patch, Mock
 from tests.test_helpers.test_utilities import TestUserFactory
 from core.file_locking import safe_json_read
-from core.user_data_handlers import (
+from core import (
     update_user_account,
     update_user_preferences,
     update_user_context,
@@ -440,7 +440,7 @@ class TestUserDataHandlersConvenienceFunctions:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         
         # Mock save_user_data to raise an error
-        with patch('core.user_data_handlers.save_user_data', side_effect=Exception("Test error")):
+        with patch('core.user_data_updates.save_user_data', side_effect=Exception("Test error")):
             result = update_user_account(user_id, {"test": "value"})
             # Should return False on error, not raise exception
             assert result is False, "Should return False on error"

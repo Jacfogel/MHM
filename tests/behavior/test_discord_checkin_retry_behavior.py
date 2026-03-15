@@ -42,7 +42,7 @@ class TestDiscordCheckinRetryBehavior:
             enable_tasks=False,
         )
         # Set Discord channel in preferences
-        from core.user_data_handlers import (
+        from core import (
             get_user_data,
             save_user_data,
         )
@@ -89,7 +89,7 @@ class TestDiscordCheckinRetryBehavior:
         from tests.test_helpers.test_support.test_helpers import wait_until
 
         # Arrange: Get actual user ID (UUID) for the test user
-        from core.user_data_handlers import (
+        from core import (
             get_user_data,
             update_user_account,
             update_user_preferences,

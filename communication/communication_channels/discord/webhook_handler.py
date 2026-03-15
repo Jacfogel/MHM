@@ -125,7 +125,7 @@ def handle_application_authorized(
             return True
 
         # Check if user already has an account (for logging purposes)
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
 
         internal_user_id = get_user_id_by_identifier(discord_user_id)
 
@@ -137,7 +137,7 @@ def handle_application_authorized(
             # Store the latest Discord username for reference in account.json
             if discord_username:
                 try:
-                    from core.user_data_handlers import update_user_account
+                    from core import update_user_account
 
                     update_user_account(
                         internal_user_id, {"discord_username": discord_username}

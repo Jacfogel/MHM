@@ -31,7 +31,7 @@ logger = logging.getLogger("mhm_tests")
 # Do not modify sys.path; rely on package imports
 
 from core.time_utilities import now_timestamp_filename
-from core.user_data_handlers import save_user_data, get_user_data
+from core import save_user_data, get_user_data
 from core.file_operations import get_user_file_path
 
 
@@ -42,7 +42,7 @@ def _resolve_user_id_with_retry(
     delay: float = 0.05,
 ):
     """Resolve internal_username -> user_id with index + on-disk fallback."""
-    from core.user_data_handlers import get_user_id_by_identifier
+    from core import get_user_id_by_identifier
     from core.file_locking import safe_json_read
     import time
 
@@ -79,7 +79,7 @@ def _wait_for_account_features(
     timeout_seconds: float = 60.0,
 ) -> bool:
     """Robustly materialize and verify account feature flags for a test user."""
-    from core.user_data_handlers import clear_user_caches
+    from core import clear_user_caches
     from core.file_locking import safe_json_read
 
     def _features_ready() -> bool:
@@ -808,7 +808,7 @@ class TestAccountManagementRealBehavior:
     @pytest.mark.ui
     def test_user_profile_dialog_integration(self, qapp, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test user profile dialog integration with real user data."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         import uuid
 
         # Use unique user ID to avoid conflicts in parallel execution
@@ -860,7 +860,7 @@ class TestAccountManagementRealBehavior:
         ), f"Could not determine actual user ID for {user_id}"
 
         # Update user context with profile-specific data
-        from core.user_data_handlers import update_user_context
+        from core import update_user_context
 
         update_success = update_user_context(
             actual_user_id,
@@ -1099,7 +1099,7 @@ class TestAccountManagementRealBehavior:
 
         assert os.path.exists(account_file), "Account file should exist"
         if not os.path.exists(preferences_file):
-            from core.user_data_handlers import update_user_preferences as _upp
+            from core import update_user_preferences as _upp
 
             _upp(
                 actual_user_id,
@@ -1394,7 +1394,7 @@ class TestAccountCreationIntegration:
     @pytest.mark.no_parallel  # shared user index and test_data_dir under xdist
     def test_full_account_lifecycle_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test complete account lifecycle with real file operations."""
-        from core.user_data_handlers import (
+        from core import (
             save_user_data,
             get_user_data,
             clear_user_caches,
@@ -1475,7 +1475,7 @@ class TestAccountCreationIntegration:
             clear_user_caches()
             loaded_data = get_user_data(user_id, normalize_on_read=True)
         # Enforce expected features for this test to avoid order interference
-        from core.user_data_handlers import update_user_account as _upd_acct
+        from core import update_user_account as _upd_acct
 
         feats = dict(loaded_data.get("account", {}).get("features", {}))
         expected = {
@@ -1511,7 +1511,7 @@ class TestAccountCreationIntegration:
         assert save_result.get("account"), "Feature modification should succeed"
 
         # Clear user caches to ensure fresh data is loaded
-        from core.user_data_handlers import clear_user_caches
+        from core import clear_user_caches
 
         clear_user_caches()
 
@@ -1564,7 +1564,7 @@ class TestAccountCreationIntegration:
         self, test_data_dir, mock_config
     ):
         """REAL BEHAVIOR TEST: Test creating multiple users with same features."""
-        from core.user_data_handlers import save_user_data, get_user_data, clear_user_caches
+        from core import save_user_data, get_user_data, clear_user_caches
         from core.user_data_manager import update_user_index, rebuild_user_index
         from tests.test_helpers.test_support.test_helpers import wait_until
         import uuid
@@ -1641,7 +1641,7 @@ class TestAccountCreationIntegration:
                 clear_user_caches()
                 user_data = get_user_data(user_id, normalize_on_read=True)
             # Enforce baseline features for this test
-            from core.user_data_handlers import update_user_account as _upd_acct
+            from core import update_user_account as _upd_acct
 
             feats = dict(user_data.get("account", {}).get("features", {}))
             baseline = {
@@ -2050,7 +2050,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     @pytest.mark.behavior
     def test_create_account_persists_categories(self, dialog, test_data_dir):
         """Test that create_account persists categories to disk."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         import uuid
 
         # Arrange: Prepare account data with categories and unique username
@@ -2091,7 +2091,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     @pytest.mark.no_parallel  # shared user index and test_data_dir under xdist
     def test_create_account_persists_channel_info(self, dialog, test_data_dir):
         """Test that create_account persists channel information to disk."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
 
         # Arrange: Prepare account data with channel info and unique username
         import uuid
@@ -2136,7 +2136,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     @pytest.mark.behavior
     def test_create_account_persists_task_settings(self, dialog, test_data_dir):
         """Test that create_account persists task settings to disk."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         import uuid
 
         # Arrange: Prepare account data with task settings and unique username
@@ -2194,7 +2194,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     @pytest.mark.behavior
     def test_create_account_persists_checkin_settings(self, dialog, test_data_dir):
         """Test that create_account persists check-in settings to disk."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         import uuid
 
         # Arrange: Prepare account data with check-in settings and unique username
@@ -2337,7 +2337,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         self, dialog, test_data_dir
     ):
         """Test that create_account saves custom task tags when provided."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         import uuid
 
         # Arrange: Prepare account data with custom tags
@@ -2380,7 +2380,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     @pytest.mark.behavior
     def test_create_account_persists_feature_flags(self, dialog, test_data_dir):
         """Test that create_account persists feature flags correctly."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         import uuid
 
         # Arrange: Prepare account data with all features enabled and unique username

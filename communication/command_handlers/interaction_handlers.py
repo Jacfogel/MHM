@@ -12,7 +12,7 @@ from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 
 from communication.command_handlers.shared_types import (
     InteractionResponse,

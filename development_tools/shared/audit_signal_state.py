@@ -1,9 +1,9 @@
 """
 Shared state and handler for audit SIGINT (multi-tap to stop).
 
-Requires three SIGINTs within the time window to stop the audit. This reduces
+Requires multiple SIGINTs within the time window to stop the audit. This reduces
 false stops from spurious control events on Windows (e.g. from pytest/coverage
-subprocesses) when the user has not pressed Ctrl+C.
+subprocesses during Tier 3) when the user has not pressed Ctrl+C.
 """
 
 import signal
@@ -11,8 +11,9 @@ import time
 
 # Time window (seconds). We require this many SIGINTs within the window to stop.
 AUDIT_SIGINT_DOUBLE_TAP_SECONDS = 2.0
-# Number of SIGINTs within window required to request stop (3 = ignore first two, third stops)
-AUDIT_SIGINT_TAPS_TO_STOP = 3
+# Number of SIGINTs within window required to request stop. Set to 5 to better
+# withstand propagation from coverage/test subprocesses during full audit.
+AUDIT_SIGINT_TAPS_TO_STOP = 5
 
 _last_sigint_time: float | None = None
 _sigint_count_in_window: int = 0

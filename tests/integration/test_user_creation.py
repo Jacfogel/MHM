@@ -13,7 +13,7 @@ import pytest
 import os
 from unittest.mock import patch
 
-from core.user_data_handlers import (
+from core import (
     get_user_data,
     save_user_data,
     update_user_preferences,
@@ -38,7 +38,7 @@ class TestUserCreationScenarios:
         user_id = f'test-basic-email-{uuid.uuid4().hex[:8]}'
         
         # Create test user directly using create_new_user
-        from core.user_data_handlers import create_new_user
+        from core import create_new_user
         user_data = {
             "internal_username": user_id,
             "email": 'basic@example.com',
@@ -84,12 +84,12 @@ class TestUserCreationScenarios:
             assert success, "Test user should be created successfully"
             
             # Get the UUID for the user
-            from core.user_data_handlers import get_user_id_by_identifier
+            from core import get_user_id_by_identifier
             actual_user_id = get_user_id_by_identifier(user_id)
             assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
             
             # Update user context with additional data
-            from core.user_data_handlers import update_user_context
+            from core import update_user_context
             update_success = update_user_context(actual_user_id, {
                 'preferred_name': 'Discord User',
                 'gender_identity': ['they/them'],
@@ -134,7 +134,7 @@ class TestUserCreationScenarios:
         assert success, f"Failed to create custom fields test user {user_id}"
         
         # Get the UUID for the user
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
@@ -168,7 +168,7 @@ class TestUserCreationScenarios:
         assert success, f"Failed to create schedule test user {user_id}"
         
         # Get the UUID for the user
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
         from tests.test_helpers.test_utilities import TestUserFactory as TUF
         
@@ -378,7 +378,7 @@ class TestUserCreationIntegration:
         assert success is True, "Failed to create test user"
 
         # Get the actual UUID for the user (TestUserFactory creates UUID-based users)
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from tests.test_helpers.test_utilities import TestUserFactory as TUF
         actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir) or user_id
         
@@ -523,7 +523,7 @@ class TestUserCreationIntegration:
         
         # Rebuild index once after all users are created (optimization: single rebuild)
         from core.user_data_manager import rebuild_user_index
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from tests.test_helpers.test_utilities import TestUserFactory as TUF
         from core.config import get_user_data_dir, get_user_file_path
         import os
@@ -735,7 +735,7 @@ class TestUserCreationIntegration:
         assert success is True, "Failed to create test user"
 
         # Get the actual UUID for the user (TestUserFactory creates UUID-based users)
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from tests.test_helpers.test_utilities import TestUserFactory as TUF
         actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir) or user_id
         

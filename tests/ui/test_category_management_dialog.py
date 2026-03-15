@@ -420,7 +420,7 @@ class TestCategoryManagementDialogRealBehavior:
     def test_save_category_settings_persists_to_disk(self, test_user, test_data_dir, qapp):
         """Test that save_category_settings actually saves data to disk."""
         # Arrange - Ensure user has checkins enabled so validation passes
-        from core.user_data_handlers import (
+        from core import (
             get_user_data,
             update_user_account,
             clear_user_caches,
@@ -476,7 +476,7 @@ class TestCategoryManagementDialogRealBehavior:
         import time
         import os
 
-        from core.user_data_handlers import (
+        from core import (
             get_user_data,
             update_user_account,
             clear_user_caches,
@@ -574,7 +574,7 @@ class TestCategoryManagementDialogRealBehavior:
     def test_load_user_category_data_loads_from_disk(self, test_user, test_data_dir, qapp):
         """Test that load_user_category_data loads actual data from disk."""
         # Arrange - Set up user data on disk
-        from core.user_data_handlers import save_user_data
+        from core import save_user_data
         # Retry in case of race conditions with file writes in parallel execution
         import time
         result = {}
@@ -624,7 +624,7 @@ class TestCategoryManagementDialogRealBehavior:
             dialog.load_user_category_data()
         
         # Verify account data was loaded correctly
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         account_data = get_user_data(test_user, 'account', auto_create=True)
         account_features = account_data.get('account', {}).get('features', {})
         messages_enabled = account_features.get('automated_messages') == 'enabled'
@@ -637,7 +637,7 @@ class TestCategoryManagementDialogRealBehavior:
     def test_save_category_settings_persists_after_reload(self, test_user, test_data_dir, qapp):
         """Test that saved category settings persist after dialog reload."""
         # Arrange - Ensure user has checkins enabled so validation passes
-        from core.user_data_handlers import get_user_data, update_user_account
+        from core import get_user_data, update_user_account
         user_data = get_user_data(test_user, 'account')
         account = user_data.get('account', {})
         if 'features' not in account:
@@ -661,7 +661,7 @@ class TestCategoryManagementDialogRealBehavior:
             import time
             persisted_data = {}
             for attempt in range(5):
-                from core.user_data_handlers import get_user_data
+                from core import get_user_data
                 persisted_data = get_user_data(test_user, 'preferences', auto_create=True)
                 if persisted_data and 'preferences' in persisted_data and 'categories' in persisted_data.get('preferences', {}):
                     break

@@ -9,7 +9,7 @@ from ui.widgets.channel_selection_widget import ChannelSelectionWidget
 from core.logger import get_component_logger
 from PySide6.QtCore import Signal
 from core.user_data_validation import is_valid_email
-from core.user_data_handlers import (
+from core import (
     get_user_data,
     update_channel_preferences,
     update_user_account,

@@ -24,7 +24,7 @@ from ai.cache_manager import get_response_cache
 from tests.test_helpers.test_utilities import TestUserFactory
 from core.time_utilities import now_datetime_full, now_timestamp_filename
 from core.response_tracking import get_recent_chat_interactions
-from core.user_data_handlers import get_user_id_by_identifier
+from core import get_user_id_by_identifier
 from user.context_manager import user_context_manager
 
 
@@ -420,7 +420,7 @@ class AITestRunner:
             # Test 2.3: User name inclusion in response
             try:
                 # Update user context with name (profile data is stored in context)
-                from core.user_data_handlers import save_user_data
+                from core import save_user_data
 
                 context_data = {"context": {"preferred_name": "TestUser"}}
                 save_user_data(actual_user_id, context_data)
@@ -1040,7 +1040,7 @@ class AITestRunner:
                     os.path.join(self.test_data_dir, "users"),
                 ),
             ):
-                from core.user_data_handlers import get_user_id_by_identifier
+                from core import get_user_id_by_identifier
 
                 actual_user_id = get_user_id_by_identifier(user_id)
 
@@ -1869,7 +1869,7 @@ class AITestRunner:
 
                     if contextual_user_id:
                         # Set user name
-                        from core.user_data_handlers import save_user_data
+                        from core import save_user_data
 
                         save_user_data(
                             contextual_user_id,

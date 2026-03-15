@@ -14,7 +14,7 @@
 #
 # See development_docs/PLANS.md "User Context & Preferences Integration Investigation" for details.
 
-from core.user_data_handlers import get_user_data, update_user_preferences
+from core import get_user_data, update_user_preferences
 from core.schedule_management import (
     set_schedule_period_active,
     is_schedule_period_active,

@@ -471,7 +471,7 @@ def cleanup_old_message_archives():
     """
     try:
         from core.config import BASE_DATA_DIR
-        from core.user_data_handlers import get_all_user_ids
+        from core import get_all_user_ids
 
         user_ids = get_all_user_ids()
         if not user_ids:
@@ -688,7 +688,7 @@ def archive_old_messages_for_all_users():
     This runs alongside the cache cleanup to maintain message file sizes.
     """
     try:
-        from core.user_data_handlers import get_all_user_ids
+        from core import get_all_user_ids
         from core.message_management import archive_old_messages
 
         user_ids = get_all_user_ids()

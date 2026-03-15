@@ -23,7 +23,7 @@ from datetime import timedelta
 from pathlib import Path
 
 # Import task management functions
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 from tasks import (
     ensure_task_directory,

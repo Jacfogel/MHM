@@ -662,7 +662,7 @@ class DynamicCheckinManager:
     def get_custom_questions(self, user_id: str) -> dict[str, dict[str, Any]]:
         """Get custom questions for a specific user from preferences."""
         try:
-            from core.user_data_handlers import get_user_data
+            from core import get_user_data
 
             prefs_result = get_user_data(user_id, "preferences")
             prefs = prefs_result.get("preferences") or {}
@@ -679,7 +679,7 @@ class DynamicCheckinManager:
     ) -> bool:
         """Save a custom question to user preferences."""
         try:
-            from core.user_data_handlers import get_user_data, update_user_preferences
+            from core import get_user_data, update_user_preferences
 
             # Get current preferences
             prefs_result = get_user_data(user_id, "preferences")
@@ -706,7 +706,7 @@ class DynamicCheckinManager:
     def delete_custom_question(self, user_id: str, question_key: str) -> bool:
         """Delete a custom question from user preferences."""
         try:
-            from core.user_data_handlers import get_user_data, update_user_preferences
+            from core import get_user_data, update_user_preferences
 
             # Get current preferences
             prefs_result = get_user_data(user_id, "preferences")

@@ -36,7 +36,7 @@ from core.config import (
     AI_CLARIFICATION_TEMPERATURE,
 )
 from core.response_tracking import get_recent_responses, store_chat_interaction
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 from user.context_manager import user_context_manager
 from ai.prompt_manager import get_prompt_manager
 from ai.cache_manager import get_response_cache
@@ -1089,7 +1089,7 @@ class AIChatBotSingleton:
             profile = context.get("user_profile", {})
             active_schedules = profile.get("active_schedules", [])
             if active_schedules:
-                from core.user_data_handlers import get_user_data
+                from core import get_user_data
 
                 schedules_data = get_user_data(
                     user_id, "schedules", normalize_on_read=True

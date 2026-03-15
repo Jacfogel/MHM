@@ -134,7 +134,7 @@ class TaskManagementHandler(InteractionHandler):
         # If no recurrence pattern specified, check user's default settings
         if not recurrence_pattern:
             try:
-                from core.user_data_handlers import get_user_data
+                from core import get_user_data
 
                 user_data = get_user_data(user_id, "preferences")
                 preferences = user_data.get("preferences", {})
@@ -234,7 +234,7 @@ class TaskManagementHandler(InteractionHandler):
 
             # Use default repeat_after_completion setting if available
             try:
-                from core.user_data_handlers import get_user_data
+                from core import get_user_data
 
                 user_data = get_user_data(user_id, "preferences")
                 preferences = user_data.get("preferences", {})

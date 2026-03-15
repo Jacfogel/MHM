@@ -8,8 +8,8 @@ from ui.generated.category_management_dialog_pyqt import Ui_Dialog_category_mana
 from ui.widgets.category_selection_widget import CategorySelectionWidget
 from PySide6.QtCore import Signal
 from core.logger import get_component_logger
-from core.user_data_handlers import update_user_preferences, update_user_account
-from core.user_data_handlers import get_user_data
+from core import update_user_preferences, update_user_account
+from core import get_user_data
 from core.error_handling import handle_errors
 from core.schedule_management import clear_schedule_periods_cache
 

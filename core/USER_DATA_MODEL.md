@@ -8,7 +8,7 @@
 This document defines the expected on-disk layout for per-user persisted state.
 
 Key implementation references:
-- `core/user_data_handlers.py` (centralized loader/saver API for top-level user files)
+- `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py` (centralized loader/saver API for top-level user files)
 - `core/user_item_storage.py` (shared helpers for user-scoped subdir JSON: notebook, tasks, future events)
 - `core/schemas.py` (schema validation and normalization rules)
 - `core/config.py` (root path configuration: `BASE_DATA_DIR`, `USER_INFO_DIR_PATH`)
@@ -96,7 +96,7 @@ These files represent the tasks framework state (open tasks, completed tasks, an
 
 ### 3.1. Code must use centralized handlers
 
-All reads/writes of user data should go through `core/user_data_handlers.py` (and its internal helpers), not ad-hoc `json.load`/`json.dump` in random modules.
+All reads/writes of user data should go through `core/user_data_registry.py`, `core/user_data_read.py`, and `core/user_data_write.py` (and their internal helpers), not ad-hoc `json.load`/`json.dump` in random modules.
 
 Rationale:
 - Centralizes validation and normalization
@@ -185,7 +185,7 @@ This section defines **scope only**, not scheduling or retention behavior.
 
 AI-related components are expected to:
 
-- Read user data via `core/user_data_handlers.py`
+- Read user data via `core/user_data_read.py` and related core user data modules
 - Write only to files defined in this model
 - Avoid creating ad-hoc files outside documented subtrees
 

@@ -1349,7 +1349,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
 
         # Get schedule suggestions
         try:
-            from core.user_data_handlers import get_user_categories
+            from core import get_user_categories
 
             categories = get_user_categories(user_id)
             if categories:

@@ -197,7 +197,7 @@ class TestInteractionHandlersBehavior:
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
 
         # Resolve to the internal UUID to match the rest of the system.
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
         from tests.test_helpers.test_support.test_helpers import wait_until
 
@@ -266,7 +266,7 @@ class TestInteractionHandlersBehavior:
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Get the actual UUID for the created user
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
         from tests.test_helpers.test_support.test_helpers import wait_until
         
@@ -342,7 +342,7 @@ class TestInteractionHandlersBehavior:
         
         # Create test user using centralized utilities
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
         from tests.test_helpers.test_support.test_helpers import wait_until
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
@@ -362,7 +362,7 @@ class TestInteractionHandlersBehavior:
         
         # Update user context with profile-specific data.
         # In parallel runs, user index/files can lag briefly after creation.
-        from core.user_data_handlers import update_user_context, clear_user_caches
+        from core import update_user_context, clear_user_caches
         payload = {
             'preferred_name': 'Test User',
             'gender_identity': ['they/them']

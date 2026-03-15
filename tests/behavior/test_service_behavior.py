@@ -31,7 +31,7 @@ from core.service import (
     InitializationError,
     main
 )
-from core.user_data_handlers import get_user_categories
+from core import get_user_categories
 
 
 @pytest.mark.behavior
@@ -498,7 +498,7 @@ class TestMHMService:
         
         for test_case in test_cases:
             categories_value = test_case['input']['preferences'].get('categories', [])
-            with patch('core.user_data_handlers.get_user_data', return_value=categories_value):
+            with patch('core.user_management.get_user_data', return_value=categories_value):
                 result = get_user_categories('test_user')
                 
                 # Verify real behavior - actual data structure returned
@@ -860,7 +860,7 @@ class TestMHMService:
         
         for test_case in test_cases:
             categories_value = test_case['input']['preferences'].get('categories', [])
-            with patch('core.user_data_handlers.get_user_data', return_value=categories_value):
+            with patch('core.user_management.get_user_data', return_value=categories_value):
                 result = get_user_categories('test_user')
                 assert result == test_case['expected']
                 assert isinstance(result, list)  # Verify return type

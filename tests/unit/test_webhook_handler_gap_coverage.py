@@ -69,11 +69,11 @@ class TestWebhookHandlerGapCoverage:
             lambda user_id: "view",
         )
         monkeypatch.setattr(
-            "core.user_data_handlers.get_user_id_by_identifier",
+            "core.user_lookup.get_user_id_by_identifier",
             lambda discord_user_id: "internal-user",
         )
         monkeypatch.setattr(
-            "core.user_data_handlers.update_user_account",
+            "core.user_data_updates.update_user_account",
             lambda user_id, data: (_ for _ in ()).throw(RuntimeError("db write failed")),
         )
         monkeypatch.setattr(wh, "_is_testing_environment", lambda: False)
@@ -128,7 +128,7 @@ class TestWebhookHandlerGapCoverage:
             lambda *args, **kwargs: "welcome",
         )
         monkeypatch.setattr(
-            "core.user_data_handlers.get_user_id_by_identifier",
+            "core.user_lookup.get_user_id_by_identifier",
             lambda discord_user_id: None,
         )
 
@@ -163,7 +163,7 @@ class TestWebhookHandlerGapCoverage:
             lambda *args, **kwargs: "welcome",
         )
         monkeypatch.setattr(
-            "core.user_data_handlers.get_user_id_by_identifier",
+            "core.user_lookup.get_user_id_by_identifier",
             lambda discord_user_id: None,
         )
         monkeypatch.setattr(wh, "_is_testing_environment", lambda: False)
@@ -199,7 +199,7 @@ class TestWebhookHandlerGapCoverage:
             lambda *args, **kwargs: "welcome",
         )
         monkeypatch.setattr(
-            "core.user_data_handlers.get_user_id_by_identifier",
+            "core.user_lookup.get_user_id_by_identifier",
             lambda discord_user_id: None,
         )
         monkeypatch.setattr(

@@ -405,7 +405,7 @@ class TestTaskManagementDialogRealBehavior:
     def test_save_task_settings_persists_to_disk(self, test_user, test_data_dir, qapp):
         """Test that save_task_settings actually saves data to disk."""
         # Arrange
-        from core.user_data_handlers import (
+        from core import (
             get_user_data,
             update_user_account,
             clear_user_caches,
@@ -606,7 +606,7 @@ class TestTaskManagementDialogRealBehavior:
         dialog.task_widget.period_widgets = [mock_period]
         
         # Set up initial state: ensure task_management is disabled initially
-        from core.user_data_handlers import (
+        from core import (
             get_user_data,
             update_user_account,
             clear_user_caches,

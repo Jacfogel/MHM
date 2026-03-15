@@ -199,7 +199,7 @@ class TimezoneSelect(discord.ui.Select):
             parent_view: The parent FeatureSelectionView to update when selection changes
         """
         # Get common timezones
-        from core.user_data_handlers import TIMEZONE_OPTIONS
+        from core import TIMEZONE_OPTIONS
 
         options = [
             discord.SelectOption(

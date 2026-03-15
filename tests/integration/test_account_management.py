@@ -24,7 +24,7 @@ def test_account_management_imports():
     
     modules_to_test = [
         ("Account Creator Dialog", "ui.dialogs.account_creator_dialog", "AccountCreatorDialog"),
-        ("User Management", "core.user_data_handlers", "update_user_account"),
+        ("User Management", "core.user_data_updates", "update_user_account"),
         ("User Data Manager", "core.user_data_manager", "UserDataManager"),
         ("User Context", "user.user_context", "UserContext"),
     ]
@@ -58,7 +58,7 @@ def test_account_management_functions():
     logging.getLogger("mhm_tests").debug("Testing Account Management Functions...")
     
     try:
-        from core.user_data_handlers import (
+        from core import (
             get_user_data
         )
         from core.user_data_manager import UserDataManager
@@ -129,7 +129,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
     logging.getLogger("mhm_tests").debug("Testing Account Management Data Structures...")
     
     try:
-        from core.user_data_handlers import get_user_data, update_user_account
+        from core import get_user_data, update_user_account
         from tests.test_helpers.test_utilities import TestUserFactory
         
         # Create a test user first (minimal user since we only need basic structure for data structure testing)
@@ -138,7 +138,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
         assert success, "Failed to create test user"
         
         # Get the actual UUID for the user
-        from core.user_data_handlers import get_user_id_by_identifier, clear_user_caches
+        from core import get_user_id_by_identifier, clear_user_caches
         test_user = TestUserFactory.get_test_user_id_by_internal_username(
             test_user_id, test_data_dir
         )
@@ -325,7 +325,7 @@ def test_account_management_safe_operations():
     logging.getLogger("mhm_tests").info("Testing Account Management Safe Operations...")
     
     try:
-        from core.user_data_handlers import get_user_data, save_user_data
+        from core import get_user_data, save_user_data
         import time
         
         # Create a temporary test user for safe operations
@@ -433,7 +433,7 @@ def test_account_management_integration():
     logging.getLogger("mhm_tests").info("Testing Account Management Integration...")
     
     try:
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         from core.user_data_manager import update_user_index
         from core.file_operations import get_user_file_path
         

@@ -355,7 +355,7 @@ class TestDiscordBotBehavior:
         import uuid
         import time
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
 
         username = f"dup_user_{uuid.uuid4().hex[:8]}"
@@ -396,7 +396,7 @@ class TestDiscordBotBehavior:
         """
         import uuid
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
 
         username = f"checkin_user_{uuid.uuid4().hex[:8]}"
         ok = TestUserFactory.create_user_with_complex_checkins(
@@ -468,7 +468,7 @@ class TestDiscordBotBehavior:
         updates that may have race conditions in parallel execution.
         """
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from tasks import load_active_tasks
 
         ok = TestUserFactory.create_basic_user("task_user", enable_tasks=True, test_data_dir=test_data_dir)
@@ -522,7 +522,7 @@ class TestDiscordBotBehavior:
     def test_discord_complete_task_by_name_variation(self, test_data_dir):
         """Complete a task by a fuzzy name match like 'complete per davey' -> 'Pet Davey'."""
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from tasks import create_task, load_active_tasks
 
         ok = TestUserFactory.create_basic_user("fuzzy_user", enable_tasks=True, test_data_dir=test_data_dir)
@@ -545,7 +545,7 @@ class TestDiscordBotBehavior:
     def test_discord_response_after_task_reminder(self, test_data_dir):
         """Simulate a user replying to a reminder by completing the first task."""
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         from tasks import create_task
 
         ok = TestUserFactory.create_basic_user("reminder_user", enable_tasks=True, test_data_dir=test_data_dir)
@@ -651,12 +651,12 @@ class TestDiscordBotIntegration:
         # Create under the session-patched tests/data/users dir (omit test_data_dir)
         created = TestUserFactory.create_basic_user("e2e_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert created, "Test user should be created"
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         internal_uid = get_user_id_by_identifier("e2e_user")
         assert internal_uid is not None, "Should resolve internal user id"
 
         # Load current account data and add discord_user_id
-        from core.user_data_handlers import get_user_data, save_user_data
+        from core import get_user_data, save_user_data
         account_result = get_user_data(internal_uid, 'account')
         acct_data = account_result.get('account', {}) or {}
         acct_data["internal_username"] = "e2e_user"
@@ -712,7 +712,7 @@ class TestDiscordBotIntegration:
     @pytest.mark.slow
     def test_discord_bot_integration_with_user_management(self, test_data_dir, test_user_setup):
         """Test that Discord bot integrates properly with user management"""
-        from core.user_data_handlers import get_all_user_ids, get_user_id_by_identifier
+        from core import get_all_user_ids, get_user_id_by_identifier
         
         # Test that the function handles empty input
         empty_result = get_user_id_by_identifier("")

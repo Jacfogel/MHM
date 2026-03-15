@@ -374,8 +374,8 @@ class TestTaskSettingsWidgetRecurringSettings:
         # Arrange - Set user_id so the method will execute
         widget.user_id = test_user
         # get_user_data is not imported in task_settings_widget, so we need to patch it where it's used
-        # It's likely imported via a wildcard or used directly from core.user_data_handlers
-        with patch('core.user_data_handlers.get_user_data') as mock_get_data:
+        # It's likely imported via a wildcard or used directly from core
+        with patch('core.user_data_read.get_user_data') as mock_get_data:
             mock_get_data.return_value = {
                 'preferences': {
                     'task_settings': {
@@ -409,8 +409,8 @@ class TestTaskSettingsWidgetRecurringSettings:
         widget.ui.checkBox_repeat_after_completion.setChecked(True)
         
         # get_user_data is not imported in task_settings_widget, so we need to patch it where it's used
-        with patch('core.user_data_handlers.get_user_data') as mock_get_data:
-            with patch('core.user_data_handlers.update_user_preferences'):
+        with patch('core.user_data_read.get_user_data') as mock_get_data:
+            with patch('core.user_data_updates.update_user_preferences'):
                 mock_get_data.return_value = {
                     'preferences': {
                         'task_settings': {}

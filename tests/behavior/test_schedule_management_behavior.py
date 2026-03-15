@@ -92,7 +92,7 @@ class TestScheduleManagementBehavior:
         # Act - Mock the update_user_schedules function that's actually called
         with patch(
             'core.schedule_management.get_user_data', return_value=initial_schedule
-        ), patch('core.user_data_handlers.update_user_schedules') as mock_update:
+        ), patch('core.update_user_schedules') as mock_update:
             result = set_schedule_period_active(user_id, category, period_name, True)
         
         # Assert - Verify update was called with updated data
@@ -203,7 +203,7 @@ class TestScheduleManagementBehavior:
         # Act - Complete workflow: check initial state, activate, verify
         with patch(
             'core.schedule_management.get_user_data', return_value=initial_schedule
-        ), patch('core.user_data_handlers.update_user_schedules') as mock_update:
+        ), patch('core.update_user_schedules') as mock_update:
             mock_update.return_value = True
             # Check initial state
             initial_active = is_schedule_period_active(user_id, category, period_name)
@@ -284,7 +284,7 @@ class TestScheduleManagementBehavior:
         }
         
         # Act - Mock the update_user_schedules function that's actually called
-        with patch('core.user_data_handlers.update_user_schedules') as mock_update:
+        with patch('core.update_user_schedules') as mock_update:
             result = set_schedule_periods(user_id, category, new_periods)
         
         # Assert - Verify update was called with complete data structure
@@ -330,7 +330,7 @@ class TestScheduleManagementBehavior:
         # Act - Mock the update_user_schedules function that's actually called
         with patch(
             'core.schedule_management.get_user_data', return_value=initial_schedule
-        ), patch('core.user_data_handlers.update_user_schedules') as mock_update:
+        ), patch('core.update_user_schedules') as mock_update:
             result = set_schedule_days(user_id, category, new_days)
         
         # Assert - Verify update was called with updated days
@@ -376,7 +376,7 @@ class TestScheduleManagementBehavior:
             'core.schedule_management.UserContext', return_value=mock_user_context
         ), patch(
             'core.schedule_management.get_user_data', return_value=user_data
-        ), patch('core.user_data_handlers.update_user_schedules') as mock_update:
+        ), patch('core.update_user_schedules') as mock_update:
             # Create
             add_schedule_period(category, period_name, "08:00", "12:00")
 
@@ -500,7 +500,7 @@ class TestScheduleManagementBehavior:
         # Act - Test operations with scheduler manager
         with patch(
             'core.schedule_management.UserContext', return_value=mock_user_context
-        ), patch('core.user_data_handlers.update_user_schedules'):
+        ), patch('core.update_user_schedules'):
             # Test add with scheduler
             add_schedule_period(category, period_name, "08:00", "12:00", mock_scheduler)
 
@@ -542,7 +542,7 @@ class TestScheduleManagementBehavior:
             'core.schedule_management.UserContext', return_value=mock_user_context
         ), patch(
             'core.schedule_management.get_user_data', return_value=user_data
-        ), patch('core.user_data_handlers.update_user_schedules') as mock_update:
+        ), patch('core.update_user_schedules') as mock_update:
             # Create a period
             create_result = add_schedule_period(category, period_name, "08:00", "12:00")
 
@@ -571,7 +571,7 @@ class TestScheduleManagementBehavior:
         # Test edge cases
         with patch(
             'core.schedule_management.UserContext', return_value=mock_user_context
-        ), patch('core.user_data_handlers.update_user_schedules'):
+        ), patch('core.update_user_schedules'):
             # Test with empty periods
             result = set_schedule_periods(user_id, category, {})
             assert result is True, "Empty periods should be handled and return True on success"

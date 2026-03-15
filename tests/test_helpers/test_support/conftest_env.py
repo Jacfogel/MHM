@@ -64,15 +64,15 @@ def ensure_valid_cwd():
 @pytest.fixture(scope="session", autouse=True)
 def verify_user_data_loader_registry():
     import importlib
-    import core.user_data_handlers as um
-    import core.user_data_handlers as udh
+    import core.user_data_registry as um
+    import core.user_data_registry as udh
 
     um = importlib.reload(um)
     udh = importlib.reload(udh)
 
     if um.USER_DATA_LOADERS is not udh.USER_DATA_LOADERS:
         raise AssertionError(
-            "USER_DATA_LOADERS mismatch: core.user_data_handlers reloads hold different dict objects."
+            "USER_DATA_LOADERS mismatch: core.user_data_registry reloads hold different dict objects."
         )
 
     def _missing_keys():
@@ -99,20 +99,20 @@ def verify_user_data_loader_registry():
 
 @pytest.fixture(scope="session", autouse=True)
 def initialize_loader_import_order(request):
-    """Reload core.user_data_handlers and register loaders once.
+    """Reload core.user_data_registry and register loaders once.
 
     Skip this fixture for development tools tests that don't have core modules available.
     """
     import importlib
 
     try:
-        import core.user_data_handlers as um
+        import core.user_data_registry as um
     except (ImportError, ModuleNotFoundError):
         yield
         return
     um = importlib.reload(um)
     try:
-        import core.user_data_handlers as udh
+        import core.user_data_registry as udh
         udh = importlib.reload(udh)
     except Exception:
         udh = None
@@ -131,11 +131,11 @@ def _apply_get_user_data_shim_early():
     if os.getenv("ENABLE_TEST_DATA_SHIM", "1") != "1":
         return
     try:
-        import core.user_data_handlers as um
+        import core.user_data_registry as um
     except Exception:
         return
     try:
-        import core.user_data_handlers as udh
+        import core.user_data_registry as udh
     except Exception:
         udh = None
 

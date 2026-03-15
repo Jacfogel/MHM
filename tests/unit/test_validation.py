@@ -211,7 +211,7 @@ class TestUserUpdateValidation:
         }
         
         # Mock get_user_data to return existing account
-        with patch('core.user_data_handlers.get_user_data') as mock_get_data:
+        with patch('core.user_data_read.get_user_data') as mock_get_data:
             mock_get_data.return_value = {
                 "account": {"internal_username": "existinguser"}
             }
@@ -232,7 +232,7 @@ class TestUserUpdateValidation:
         }
         
         # Mock get_user_data to return existing account WITHOUT internal_username
-        with patch('core.user_data_handlers.get_user_data') as mock_get_data:
+        with patch('core.user_data_read.get_user_data') as mock_get_data:
             mock_get_data.return_value = {
                 "account": {"email": "old@example.com"}  # No internal_username
             }
@@ -259,7 +259,7 @@ class TestUserUpdateValidation:
         }
         
         # Mock get_user_data to return existing account
-        with patch('core.user_data_handlers.get_user_data') as mock_get_data:
+        with patch('core.user_data_read.get_user_data') as mock_get_data:
             mock_get_data.return_value = {
                 "account": {"internal_username": "existinguser"}
             }
@@ -282,7 +282,7 @@ class TestUserUpdateValidation:
         }
         
         # Mock get_user_data to return existing account
-        with patch('core.user_data_handlers.get_user_data') as mock_get_data:
+        with patch('core.user_data_read.get_user_data') as mock_get_data:
             mock_get_data.return_value = {
                 "account": {"internal_username": "existinguser"}
             }

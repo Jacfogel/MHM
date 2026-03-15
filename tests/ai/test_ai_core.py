@@ -9,8 +9,8 @@ from unittest.mock import patch
 
 from tests.ai.ai_test_base import AITestBase
 from tests.test_helpers.test_utilities import TestUserFactory
-from core.user_data_handlers import get_user_id_by_identifier
-from core.user_data_handlers import save_user_data
+from core import get_user_id_by_identifier
+from core import save_user_data
 from user.context_manager import user_context_manager
 
 

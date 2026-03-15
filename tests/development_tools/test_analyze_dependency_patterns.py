@@ -147,7 +147,7 @@ def test_find_critical_dependencies_renders_entry_data_and_communication_section
     analyzer = DependencyPatternAnalyzer()
     actual_imports = {
         "run_mhm.py": _build_imports_payload(local_modules=["core.config"]),
-        "core/user_data_handlers.py": _build_imports_payload(local_modules=["core.file_operations"]),
+        "core/user_data_read.py": _build_imports_payload(local_modules=["core.file_operations"]),
         "communication/message_processing/interaction_manager.py": _build_imports_payload(
             local_modules=["communication.core.channel_orchestrator", "core.logger"]
         ),
@@ -190,7 +190,7 @@ def test_generate_quick_reference_and_decision_tree_outputs():
     actual_imports = {
         "core/config.py": _build_imports_payload(stdlib_modules=["json"]),
         "core/logger.py": _build_imports_payload(stdlib_modules=["logging"]),
-        "core/user_data_handlers.py": _build_imports_payload(local_modules=["core.config"]),
+        "core/user_data_registry.py": _build_imports_payload(local_modules=["core.config"]),
         "communication/core/channel_orchestrator.py": _build_imports_payload(local_modules=["core.logger"]),
         "communication/message_processing/conversation_flow_manager.py": _build_imports_payload(
             local_modules=["communication.core.channel_orchestrator"]

@@ -18,7 +18,7 @@ class TestAccountLifecycle:
     
     def _materialize_and_verify(self, uid):
         """Ensure minimal structures exist without overwriting existing data; return full user data."""
-        from core.user_data_handlers import (
+        from core import (
             get_user_data,
             update_user_account,
             update_user_preferences,
@@ -70,7 +70,7 @@ class TestAccountLifecycle:
         return get_user_data(uid, 'all')
 
     def _ensure_minimal_structure(self, uid):
-        from core.user_data_handlers import get_user_data, save_user_data
+        from core import get_user_data, save_user_data
         data = get_user_data(uid) or {}
         account = data.get("account") or {
             "user_id": uid,
@@ -121,7 +121,7 @@ class TestAccountLifecycle:
             data_updates["schedules"] = schedules_data
         
         if data_updates:
-            from core.user_data_handlers import save_user_data
+            from core import save_user_data
             return save_user_data(user_id, data_updates)
         return {}
     
@@ -142,7 +142,7 @@ class TestAccountLifecycle:
     @pytest.mark.no_parallel
     def test_create_basic_account(self):
         """Test creating a basic account with only messages enabled."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         
         # Arrange
         user_id = "test-basic-user"
@@ -156,7 +156,7 @@ class TestAccountLifecycle:
         rebuild_user_index()
         
         # Update user data to match the test requirements
-        from core.user_data_handlers import update_user_account, update_user_preferences
+        from core import update_user_account, update_user_preferences
         update_account_success = update_user_account(actual_user_id, {
             "timezone": "America/New_York"
         })
@@ -203,7 +203,7 @@ class TestAccountLifecycle:
     @pytest.mark.no_parallel
     def test_create_full_account(self):
         """Test creating a full account with all features enabled."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         from tests.test_helpers.test_utilities import TestUserFactory, TestDataFactory
         
         # Arrange - Create full user with all features using centralized utilities
@@ -264,7 +264,7 @@ class TestAccountLifecycle:
             _mat(actual_user_id)
             loaded_data = get_user_data(actual_user_id)
         if loaded_data.get("account", {}).get("features", {}).get("automated_messages") != "enabled":
-            from core.user_data_handlers import save_user_data as _save
+            from core import save_user_data as _save
             acct = loaded_data.get("account", {})
             feats = dict(acct.get("features", {}))
             feats["automated_messages"] = "enabled"
@@ -272,7 +272,7 @@ class TestAccountLifecycle:
             _save(actual_user_id, {"account": acct})
             loaded_data = get_user_data(actual_user_id)
         if loaded_data.get("account", {}).get("features", {}).get("task_management") != "enabled":
-            from core.user_data_handlers import save_user_data as _save
+            from core import save_user_data as _save
             acct = loaded_data.get("account", {})
             feats = dict(acct.get("features", {}))
             feats["task_management"] = "enabled"
@@ -301,7 +301,7 @@ class TestAccountLifecycle:
     @pytest.mark.no_parallel
     def test_enable_checkins_for_basic_user(self):
         """Test enabling check-ins for a user who only has messages enabled."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         import uuid
         
         # Arrange - Create basic user
@@ -319,7 +319,7 @@ class TestAccountLifecycle:
         
         # Act - Enable check-ins via public APIs (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
-        from core.user_data_handlers import update_user_account, update_user_preferences, update_user_schedules
+        from core import update_user_account, update_user_preferences, update_user_schedules
         # Enable feature
         update_user_account(actual_user_id, {"features": {"checkins": "enabled"}})
         # Set check-in preferences
@@ -376,7 +376,7 @@ class TestAccountLifecycle:
     @pytest.mark.no_parallel
     def test_disable_tasks_for_full_user(self):
         """Test disabling tasks for a user who has all features enabled."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         
         # Arrange - Create full user
         user_id = "test-disable-tasks"
@@ -440,7 +440,7 @@ class TestAccountLifecycle:
         
         # Act - Disable tasks via public APIs
         self._materialize_and_verify(actual_user_id)
-        from core.user_data_handlers import update_user_account, update_user_preferences
+        from core import update_user_account, update_user_preferences
         # Arrange: Preserve existing feature flags by merging
         current_account = get_user_data(actual_user_id, 'account').get('account', {})
         current_features = dict(current_account.get('features', {}))
@@ -453,7 +453,7 @@ class TestAccountLifecycle:
         self._materialize_and_verify(actual_user_id)
         prefs_now = get_user_data(actual_user_id, 'preferences').get('preferences', {})
         # Note: task_settings is preserved even when feature is disabled to allow re-enablement
-        # with previous settings intact. This is by design (see core/user_data_handlers.py line 565)
+        # with previous settings intact. This is by design (see core/user_data_write merge logic)
         update_user_preferences(actual_user_id, {k: v for k, v in prefs_now.items() if k != 'task_settings'})
         
         # Assert - Verify actual changes
@@ -475,7 +475,7 @@ class TestAccountLifecycle:
     @pytest.mark.no_parallel
     def test_reenable_tasks_for_user(self):
         """Test re-enabling tasks for a user who previously had them disabled."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         
         # Arrange - Create user with tasks disabled
         user_id = "test-reenable-tasks"
@@ -531,7 +531,7 @@ class TestAccountLifecycle:
         
         # Act - Re-enable tasks via public APIs
         self._materialize_and_verify(actual_user_id)
-        from core.user_data_handlers import update_user_account, update_user_preferences
+        from core import update_user_account, update_user_preferences
         # Preserve existing feature flags by merging
         current_account = get_user_data(actual_user_id, 'account').get('account', {})
         current_features = dict(current_account.get('features', {}))
@@ -549,7 +549,7 @@ class TestAccountLifecycle:
         updated_data = get_user_data(actual_user_id)
         # Enforce baseline features to avoid order interference
         if updated_data["account"]["features"].get("automated_messages") != "enabled":
-            from core.user_data_handlers import save_user_data as _save
+            from core import save_user_data as _save
             acct = updated_data["account"]
             feats = dict(acct.get("features", {}))
             feats["automated_messages"] = "enabled"
@@ -561,7 +561,7 @@ class TestAccountLifecycle:
         assert updated_data["account"]["features"]["automated_messages"] == "enabled", "Messages should be enabled"
         # Accept that other tests may toggle checkins; enforce and re-check to avoid order interference
         if updated_data["account"]["features"].get("checkins") != "enabled":
-            from core.user_data_handlers import update_user_account as _upd
+            from core import update_user_account as _upd
             feats = dict(updated_data["account"].get("features", {}))
             feats["checkins"] = "enabled"
             _upd(actual_user_id, {"features": feats})
@@ -577,7 +577,7 @@ class TestAccountLifecycle:
     @pytest.mark.slow
     def test_add_message_category(self, update_user_index_for_test):
         """Test adding a new message category to user preferences."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         
         # Arrange - Create user with automated_messages enabled and basic categories
         user_id = "test-add-category"
@@ -627,7 +627,7 @@ class TestAccountLifecycle:
         
         # Act - Add new category via public API (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
-        from core.user_data_handlers import update_user_preferences
+        from core import update_user_preferences
         current = get_user_data(actual_user_id, 'preferences')
         cats = current.get('preferences', {}).get('categories', [])
         if 'health' not in cats:
@@ -665,7 +665,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_remove_message_category(self):
         """Test removing a message category from user preferences."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         
         # Arrange - Create user with multiple categories
         user_id = "test-remove-category"
@@ -714,7 +714,7 @@ class TestAccountLifecycle:
         
         # Act - Remove category via public API (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
-        from core.user_data_handlers import update_user_preferences
+        from core import update_user_preferences
         prefs_now = get_user_data(actual_user_id, 'preferences').get('preferences', {})
         cats = list(prefs_now.get('categories', []))
         if 'health' in cats:
@@ -733,7 +733,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_add_schedule_period(self):
         """Test adding a new schedule period to user schedules."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         
         # Arrange - Create user with basic schedule
         user_id = "test-add-period"
@@ -788,14 +788,14 @@ class TestAccountLifecycle:
             "start_time": "18:00",
             "end_time": "21:00"
         }
-        from core.user_data_handlers import update_user_schedules
+        from core import update_user_schedules
         update_user_schedules(actual_user_id, curr)
         
         # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
         updated_data = get_user_data(actual_user_id)
         # Ensure motivational category exists for order robustness
         if "motivational" not in updated_data.get("schedules", {}):
-            from core.user_data_handlers import save_user_data as _save
+            from core import save_user_data as _save
             schedules_now = updated_data.get("schedules", {})
             schedules_now.setdefault("motivational", {"periods": {}})
             _save(actual_user_id, {"schedules": schedules_now})
@@ -812,7 +812,7 @@ class TestAccountLifecycle:
     @pytest.mark.no_parallel
     def test_modify_schedule_period(self):
         """Test modifying an existing schedule period."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         
         # Arrange - Create user with schedule
         user_id = "test-modify-period"
@@ -862,7 +862,7 @@ class TestAccountLifecycle:
         schedules_now = get_user_data(actual_user_id, 'schedules').get('schedules', {})
         morning_period = schedules_now.setdefault("motivational", {}).setdefault("periods", {}).setdefault("morning", {})
         morning_period.update({"start_time": "08:00", "end_time": "11:00", "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]})
-        from core.user_data_handlers import update_user_schedules
+        from core import update_user_schedules
         update_user_schedules(actual_user_id, schedules_now)
         
         # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
@@ -876,7 +876,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_remove_schedule_period(self):
         """Test removing a schedule period from user schedules."""
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         
         # Arrange - Create user with multiple periods
         user_id = "test-remove-period"
@@ -931,7 +931,7 @@ class TestAccountLifecycle:
         self._materialize_and_verify(actual_user_id)
         schedules_now = get_user_data(actual_user_id, 'schedules').get('schedules', {})
         schedules_now.setdefault("motivational", {}).setdefault("periods", {}).pop("evening", None)
-        from core.user_data_handlers import update_user_schedules
+        from core import update_user_schedules
         update_user_schedules(actual_user_id, schedules_now)
         
         # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
@@ -946,7 +946,7 @@ class TestAccountLifecycle:
     @pytest.mark.no_parallel
     def test_complete_account_lifecycle(self):
         """Test complete account lifecycle: create, modify, disable, re-enable, delete."""
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         
         # 1. Create account
         user_id = "test-lifecycle"
@@ -1008,7 +1008,7 @@ class TestAccountLifecycle:
         
         # 2. Enable features via public APIs
         self._materialize_and_verify(actual_user_id)
-        from core.user_data_handlers import update_user_account
+        from core import update_user_account
         update_user_account(actual_user_id, {"enabled_features": ["messages", "tasks", "checkins"]})
         save_user_data(actual_user_id, {"preferences": {"task_settings": {"enabled": True, "reminder_frequency": "daily"}, "checkin_settings": {"enabled": True, "questions": ["How are you feeling?"]}}})
         
@@ -1027,9 +1027,9 @@ class TestAccountLifecycle:
         
         # 3. Disable features via public APIs
         self._ensure_minimal_structure(actual_user_id)
-        from core.user_data_handlers import update_user_account
+        from core import update_user_account
         update_user_account(actual_user_id, {"enabled_features": ["messages", "checkins"]})
-        from core.user_data_handlers import save_user_data
+        from core import save_user_data
         save_user_data(actual_user_id, {"preferences": {"task_settings": {}}})
         
         # Verify features disabled
@@ -1039,9 +1039,9 @@ class TestAccountLifecycle:
         
         # 4. Re-enable features via public APIs
         self._ensure_minimal_structure(actual_user_id)
-        from core.user_data_handlers import update_user_account
+        from core import update_user_account
         update_user_account(actual_user_id, {"enabled_features": ["messages", "checkins", "tasks"]})
-        from core.user_data_handlers import save_user_data
+        from core import save_user_data
         save_user_data(actual_user_id, {"preferences": {"task_settings": {"enabled": True, "reminder_frequency": "daily"}}})
         
         # Recreate tasks file - ensure directory exists first

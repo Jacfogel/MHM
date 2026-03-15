@@ -25,7 +25,7 @@ from communication.communication_channels.base.base_channel import (
     ChannelStatus,
     ChannelConfig,
 )
-from core.user_data_handlers import get_user_id_by_identifier
+from core import get_user_id_by_identifier
 from core.error_handling import handle_errors
 
 # Route all Discord module logs to the Discord component logger so they appear in logs/discord.log
@@ -1056,7 +1056,7 @@ class DiscordBot(BaseChannel):
                             if button_label:
                                 # Get internal user ID
                                 discord_user_id = str(interaction.user.id)
-                                from core.user_data_handlers import (
+                                from core import (
                                     get_user_id_by_identifier,
                                 )
 
@@ -1169,7 +1169,7 @@ class DiscordBot(BaseChannel):
                     mark_as_welcomed,
                     get_welcome_message,
                 )
-                from core.user_data_handlers import get_user_id_by_identifier
+                from core import get_user_id_by_identifier
 
                 internal_user_id = get_user_id_by_identifier(discord_user_id)
 
@@ -1420,7 +1420,7 @@ class DiscordBot(BaseChannel):
             # This helps catch cases where the user's Discord account was deleted or they blocked the bot
             stored_discord_id = None
             try:
-                from core.user_data_handlers import get_user_data
+                from core import get_user_data
 
                 user_data_result = get_user_data(internal_user_id, "account")
                 account_data = user_data_result.get("account", {})
@@ -1432,7 +1432,7 @@ class DiscordBot(BaseChannel):
                         f"Updating Discord user ID for user {internal_user_id} from {stored_discord_id} to {discord_user_id}"
                     )
                     account_data["discord_user_id"] = discord_user_id
-                    from core.user_data_handlers import save_user_data
+                    from core import save_user_data
 
                     save_user_data(internal_user_id, "account", account_data)
 
@@ -1934,7 +1934,7 @@ class DiscordBot(BaseChannel):
             internal_user_id = recipient.split(":", 1)[1]
             # Get the user's Discord user ID and send a DM
             try:
-                from core.user_data_handlers import get_user_data
+                from core import get_user_data
 
                 user_data_result = get_user_data(internal_user_id, "account")
                 account_data = user_data_result.get("account", {})

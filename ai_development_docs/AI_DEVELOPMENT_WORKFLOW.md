@@ -38,7 +38,7 @@
   - Architecture and responsibilities:
     - [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) (routing for key modules, responsibilities, and patterns).
 - Data and configuration rules:
-  - Use `core.user_data_handlers.get_user_data()` and related helpers for user data access; do not invent new direct file-access wrappers.
+  - Use `core.get_user_data()` and related helpers (from `core.user_data_read`, `core.user_data_write`, etc.) for user data access; do not invent new direct file-access wrappers.
   - Use `.env` and `core/config.py` for configuration; do not add ad hoc `os.getenv` calls outside the established patterns.
 
 ---
@@ -98,7 +98,7 @@ When implementing:
 
 - Prefer small, reversible changes instead of broad refactors.
 - Use existing helpers and patterns:
-  - Data access: functions in `core/user_data_handlers.py`.
+  - Data access: functions in `core/user_data_read.py`, `core/user_data_write.py`, and `core/user_data_registry.py`.
   - Configuration: `core/config.py` and `.env` values, not ad hoc `os.getenv` calls.
   - Logging: patterns described in [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md).
   - Error handling: patterns described in [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md).

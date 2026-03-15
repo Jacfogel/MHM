@@ -20,7 +20,7 @@ dialog_logger = logger
 
 # Import core functionality
 from core.user_data_validation import validate_schedule_periods
-from core.user_data_handlers import get_user_id_by_identifier
+from core import get_user_id_by_identifier
 from core.error_handling import handle_errors
 
 # Import widgets
@@ -928,7 +928,7 @@ class AccountCreatorDialog(QDialog):
             # CRITICAL: Ensure files are fully written before proceeding
             # This prevents race conditions in parallel test execution
             import time
-            from core.user_data_handlers import get_user_data
+            from core import get_user_data
             from pathlib import Path
             from core.config import get_user_data_dir
 
@@ -1099,8 +1099,8 @@ class AccountCreatorDialog(QDialog):
         """Update user index for the new user."""
         try:
             from core.user_data_manager import update_user_index
-            from core.user_data_handlers import get_user_id_by_identifier
-            from core.user_data_handlers import get_user_data
+            from core import get_user_id_by_identifier
+            from core import get_user_data
             import time
 
             # Retry up to 5 times with delays to handle race conditions

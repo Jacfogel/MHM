@@ -39,7 +39,7 @@ logger = get_component_logger("ui")
 dialog_logger = logger
 
 # Import core functionality
-from core.user_data_handlers import get_predefined_options
+from core import get_predefined_options
 from core.user_data_validation import validate_personalization_data
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_full
@@ -526,7 +526,7 @@ class UserProfileDialog(QDialog):
             if self.on_save:
                 self.on_save(data)
             else:
-                from core.user_data_handlers import update_user_context
+                from core import update_user_context
 
                 update_user_context(self.user_id, data)
 

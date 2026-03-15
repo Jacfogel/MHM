@@ -118,7 +118,7 @@ def test_cleanup_old_message_archives_user_iteration_warnings(monkeypatch, tmp_p
         lambda _p: (_ for _ in ()).throw(PermissionError("locked")),
     )
     monkeypatch.setattr(
-        "core.user_data_handlers.get_all_user_ids",
+        "core.get_all_user_ids",
         fake_get_all_user_ids,
     )
 
@@ -233,13 +233,13 @@ def test_cleanup_old_message_archives_success_and_outer_exception(monkeypatch, t
     monkeypatch.setattr(auto_cleanup.logger, "info", lambda msg: infos.append(msg))
     monkeypatch.setattr(core_config, "BASE_DATA_DIR", str(base_dir), raising=False)
     monkeypatch.setattr(auto_cleanup.time, "time", lambda: now)
-    monkeypatch.setattr("core.user_data_handlers.get_all_user_ids", lambda: ["u1"])
+    monkeypatch.setattr("core.get_all_user_ids", lambda: ["u1"])
 
     assert auto_cleanup.cleanup_old_message_archives() is True
     assert any("Archive cleanup: removed" in msg for msg in infos)
 
     monkeypatch.setattr(
-        "core.user_data_handlers.get_all_user_ids",
+        "core.get_all_user_ids",
         lambda: (_ for _ in ()).throw(RuntimeError("ids fail")),
     )
     assert auto_cleanup.cleanup_old_message_archives() is False
@@ -335,7 +335,7 @@ def test_auto_cleanup_if_needed_when_cleanup_fails(monkeypatch):
 
 @pytest.mark.unit
 def test_archive_old_messages_for_all_users_no_users(monkeypatch):
-    monkeypatch.setattr("core.user_data_handlers.get_all_user_ids", lambda: [])
+    monkeypatch.setattr("core.get_all_user_ids", lambda: [])
     assert auto_cleanup.archive_old_messages_for_all_users() is True
 
 
@@ -344,7 +344,7 @@ def test_archive_old_messages_for_all_users_mixed_results(monkeypatch):
     logs = {"debug": [], "warning": []}
     monkeypatch.setattr(auto_cleanup.logger, "debug", lambda msg: logs["debug"].append(msg))
     monkeypatch.setattr(auto_cleanup.logger, "warning", lambda msg: logs["warning"].append(msg))
-    monkeypatch.setattr("core.user_data_handlers.get_all_user_ids", lambda: ["u1", "u2", "u3"])
+    monkeypatch.setattr("core.get_all_user_ids", lambda: ["u1", "u2", "u3"])
 
     def fake_archive(user_id, days_to_keep=365):
         if user_id == "u1":
@@ -363,7 +363,7 @@ def test_archive_old_messages_for_all_users_mixed_results(monkeypatch):
 @pytest.mark.unit
 def test_archive_old_messages_for_all_users_outer_exception(monkeypatch):
     monkeypatch.setattr(
-        "core.user_data_handlers.get_all_user_ids",
+        "core.get_all_user_ids",
         lambda: (_ for _ in ()).throw(RuntimeError("id fail")),
     )
     assert auto_cleanup.archive_old_messages_for_all_users() is False

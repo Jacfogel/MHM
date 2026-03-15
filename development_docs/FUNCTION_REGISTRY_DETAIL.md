@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-05 00:17:49
+> **Last Generated**: 2026-03-14 16:21:34
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 96.1% [OK] COMPLETED**
-- **Files Scanned**: 114
-- **Functions Found**: 1701
+### **Function Documentation Coverage: 95.1% [OK] COMPLETED**
+- **Files Scanned**: 121
+- **Functions Found**: 1703
 - **Methods Found**: 1242
 - **Classes Found**: 154
-- **Total Items**: 2943
-- **Functions Documented**: 1626
+- **Total Items**: 2945
+- **Functions Documented**: 1598
 - **Methods Documented**: 1202
 - **Classes Documented**: 120
-- **Total Documented**: 2828
+- **Total Documented**: 2800
 - **Template-Generated**: 5
-- **Last Updated**: 2026-03-05
+- **Last Updated**: 2026-03-14
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (609)
+### **Core System Functions** (610)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (448)
@@ -4697,143 +4697,6 @@ Args:
     deleted_periods: List to append deleted data dict (period_name, start_time, end_time, active, days).
     guard_fn: If provided, callable(row_widget) returning True to abort removal (e.g. show message and return).
 
-#### `core/user_data_handlers.py`
-**Functions:**
-- [OK] `_account_default_data(user_id)` - Default account data for auto-create (used only inside _get_user_data__load_impl).
-- [OK] `_account_normalize_after_load(data)` - Ensure timezone exists on loaded account data.
-- [OK] `_context_default_data(user_id)` - Default context data for auto-create.
-- [MISSING] `_ensure_default_loaders_once()` - No description
-- [OK] `_get_user_data__load_account(user_id, auto_create)` - Load user account data from account.json.
-- [OK] `_get_user_data__load_context(user_id, auto_create)` - Load user context data from user_context.json.
-- [OK] `_get_user_data__load_impl(user_id, auto_create, cache_key_prefix, file_key, cache_dict, default_data_factory, validate_fn, log_name, normalize_after_load)` - Internal: common load flow for user data (cache, file, default, validate).
-- [OK] `_get_user_data__load_preferences(user_id, auto_create)` - Load user preferences data from preferences.json.
-- [OK] `_get_user_data__load_schedules(user_id, auto_create)` - Load user schedules data from schedules.json.
-- [OK] `_get_user_data__load_tags(user_id, auto_create)` - Load user tags data from tags.json.
-- [OK] `_get_user_id_by_identifier__by_chat_id(chat_id)` - Helper function: Get user ID by chat ID.
-- [OK] `_get_user_id_by_identifier__by_discord_user_id(discord_user_id)` - Helper function: Get user ID by Discord user ID using the user index for fast lookup.
-- [OK] `_get_user_id_by_identifier__by_email(email)` - Helper function: Get user ID by email using the user index for fast lookup.
-- [OK] `_get_user_id_by_identifier__by_internal_username(internal_username)` - Helper function: Get user ID by internal username using the user index for fast lookup.
-- [OK] `_get_user_id_by_identifier__by_phone(phone)` - Helper function: Get user ID by phone using the user index for fast lookup.
-- [OK] `_load_presets_json()` - Load presets from resources/presets.json (cached).
-- [OK] `_preferences_default_data(user_id)` - Default preferences data for auto-create (user_id unused but required by factory signature).
-- [OK] `_save_user_data__check_cross_file_invariants(user_id, merged_data, valid_types)` - Check and enforce cross-file invariants using in-memory merged data.
-
-Updates merged_data in-place to maintain invariants without nested saves.
-
-Returns:
-    Updated merged_data dict, or None if invariants check failed
-- [OK] `_save_user_data__create_backup(user_id, valid_types, create_backup)` - Create backup with validation.
-
-Returns:
-    bool: True if successful or not needed, False if failed
-- [OK] `_save_user_data__merge_all_types(user_id, data_updates, valid_types, auto_create)` - Phase 1: Merge all data types in-memory.
-
-Returns:
-    Dict mapping data type to merged data, or None if merge failed
-- [OK] `_save_user_data__merge_single_type(user_id, dt, updates, auto_create)` - Merge updates for a single data type with current data (in-memory only, no disk write).
-
-Returns:
-    Dict with merged data, or None if merge failed
-- [OK] `_save_user_data__normalize_data(dt, updated)` - Normalize user data with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `_save_user_data__preserve_preference_settings(updated, updates, user_id)` - Preserve preference settings blocks when saving preferences.
-
-Note: task_settings and checkin_settings blocks are preserved even when features are disabled.
-This allows users to re-enable features later and restore their previous settings.
-Feature enablement is controlled by account.features, not by the presence of settings blocks.
-
-Settings preservation happens automatically through the merge process (current.copy() + updates),
-so this function primarily serves as a placeholder for any future preference-specific handling.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `_save_user_data__save_account(user_id, account_data)` - Save user account data to account.json.
-- [OK] `_save_user_data__save_context(user_id, context_data)` - Save user context data to user_context.json.
-- [OK] `_save_user_data__save_preferences(user_id, preferences_data)` - Save user preferences data to preferences.json.
-- [OK] `_save_user_data__save_schedules(user_id, schedules_data)` - Save user schedules data to schedules.json.
-- [OK] `_save_user_data__save_tags(user_id, tags_data)` - Save user tags data to tags.json.
-- [OK] `_save_user_data__update_index(user_id, result, update_index)` - Update user index with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `_save_user_data__validate_data(user_id, data_updates, valid_types, validate_data, is_new_user)` - Validate user data with enhanced validation.
-
-Returns:
-    tuple: (error_messages, validation_results)
-- [OK] `_save_user_data__validate_input(user_id, data_updates)` - Validate input parameters with enhanced validation.
-
-Returns:
-    tuple: (is_valid, valid_types, error_messages)
-- [OK] `_save_user_data__write_all_types(user_id, merged_data, valid_types)` - Phase 2: Write all merged data types to disk atomically.
-
-Returns:
-    Dict mapping data type to success status
-- [OK] `_schedules_default_data(user_id)` - Default schedules data for auto-create (user_id unused).
-- [OK] `clear_user_caches(user_id)` - Clear user data caches.
-- [OK] `create_default_schedule_periods(category)` - Create default schedule periods for a new category.
-- [OK] `create_new_user(user_data)` - Create a new user with the new data structure.
-- [OK] `ensure_all_categories_have_schedules(user_id, suppress_logging)` - Ensure all categories in user preferences have corresponding schedules.
-- [OK] `ensure_category_has_default_schedule(user_id, category)` - Ensure a category has default schedule periods if it doesn't exist.
-- [OK] `ensure_unique_ids(data)` - Ensure all messages have unique IDs.
-- [OK] `get_all_user_ids()` - Get all user IDs from the system.
-- [OK] `get_available_data_types()` - Get list of available data types.
-- [OK] `get_data_type_info(data_type)` - Get information about a specific data type.
-- [OK] `get_predefined_options(field)` - Return predefined options for a personalization field.
-- [OK] `get_timezone_options()` - Get timezone options.
-- [OK] `get_user_categories(user_id)` - Get user's message categories using centralized data access.
-- [OK] `get_user_data(user_id, data_types, fields, auto_create, include_metadata, normalize_on_read)` - Get user data with comprehensive validation.
-
-Returns:
-    Dict[str, Any]: User data dictionary, empty dict if failed
-- [OK] `get_user_data_with_metadata(user_id, data_types)` - Get user data with file metadata using centralized system.
-- [OK] `get_user_id_by_identifier(identifier)` - Get user ID by any identifier (internal_username, email, discord_user_id, phone).
-- [OK] `load_and_ensure_ids(user_id)` - Load messages for all categories and ensure IDs are unique for a user.
-- [OK] `migrate_legacy_schedules_structure(schedules_data)` - Migrate legacy schedules structure to new format.
-- [OK] `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Register a new data loader for the centralized system.
-
-Args:
-    data_type: Unique identifier for the data type
-    loader_func: Function that loads the data
-    file_type: File type identifier
-    default_fields: Commonly accessed fields
-    metadata_fields: Fields that contain metadata
-    description: Human-readable description
-- [OK] `register_default_loaders()` - Ensure required loaders are registered (idempotent).
-
-Mutates the shared USER_DATA_LOADERS in-place, setting any missing/None
-loader entries for: account, preferences, context, schedules, tags.
-- [OK] `save_user_data(user_id, data_updates, auto_create, update_index, create_backup, validate_data)` - Save user data with two-phase approach: merge/validate in Phase 1, write in Phase 2.
-
-Implements:
-- Two-phase save (merge/validate first, then write)
-- In-memory cross-file invariants
-- Explicit processing order
-- Atomic operations (all succeed or all fail)
-- No nested saves
-- [OK] `save_user_data_transaction(user_id, data_updates, auto_create)` - Atomic wrapper for user data updates.
-- [OK] `update_channel_preferences(user_id, updates)` - Update channel preferences with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `update_user_account(user_id, updates)` - Update user account with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `update_user_context(user_id, updates)` - Update user context with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `update_user_preferences(user_id, updates)` - Update user preferences with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `update_user_schedules(user_id, schedules_data)` - Update user schedules with validation.
-
-Returns:
-    bool: True if successful, False if failed
-
 #### `core/user_data_manager.py`
 **Functions:**
 - [OK] `__init__(self)` - Initialize the UserDataManager.
@@ -5006,6 +4869,63 @@ Returns:
 Returns:
     bool: True if successful, False if failed
 
+#### `core/user_data_presets.py`
+**Functions:**
+- [OK] `_load_presets_json()` - Load presets from resources/presets.json (cached).
+- [OK] `get_predefined_options(field)` - Return predefined options for a personalization field.
+- [OK] `get_timezone_options()` - Get timezone options.
+
+#### `core/user_data_read.py`
+**Functions:**
+- [OK] `clear_user_caches(user_id)` - Clear user data caches (delegate to registry).
+- [OK] `ensure_unique_ids(data)` - Ensure all messages have unique IDs.
+- [OK] `get_user_data(user_id, data_types, fields, auto_create, include_metadata, normalize_on_read)` - Get user data with comprehensive validation.
+
+Returns:
+    Dict[str, Any]: User data dictionary, empty dict if failed
+- [OK] `get_user_data_with_metadata(user_id, data_types)` - Get user data with file metadata using centralized system.
+- [OK] `load_and_ensure_ids(user_id)` - Load messages for all categories and ensure IDs are unique for a user.
+
+#### `core/user_data_registry.py`
+**Functions:**
+- [OK] `_account_default_data(user_id)` - Return default account dict for a user (e.g. when auto-creating).
+- [OK] `_account_normalize_after_load(data)` - Normalize account dict after load (ensure email, timezone).
+- [OK] `_context_default_data(user_id)` - Return default user context dict (e.g. when auto-creating).
+- [MISSING] `_ensure_default_loaders_once()` - No description
+- [MISSING] `_get_user_data__load_account(user_id, auto_create)` - No description
+- [MISSING] `_get_user_data__load_context(user_id, auto_create)` - No description
+- [OK] `_get_user_data__load_impl(user_id, auto_create, cache_key_prefix, file_key, cache_dict, default_data_factory, validate_fn, log_name, normalize_after_load)` - Internal: common load flow for user data (cache, file, default, validate).
+- [MISSING] `_get_user_data__load_preferences(user_id, auto_create)` - No description
+- [MISSING] `_get_user_data__load_schedules(user_id, auto_create)` - No description
+- [MISSING] `_get_user_data__load_tags(user_id, auto_create)` - No description
+- [OK] `_preferences_default_data(user_id)` - Return default preferences dict for a user (e.g. when auto-creating).
+- [MISSING] `_save_user_data__save_account(user_id, account_data)` - No description
+- [MISSING] `_save_user_data__save_context(user_id, context_data)` - No description
+- [MISSING] `_save_user_data__save_preferences(user_id, preferences_data)` - No description
+- [MISSING] `_save_user_data__save_schedules(user_id, schedules_data)` - No description
+- [MISSING] `_save_user_data__save_tags(user_id, tags_data)` - No description
+- [OK] `_schedules_default_data(user_id)` - Return default schedules dict for a user (e.g. when auto-creating).
+- [OK] `clear_user_caches(user_id)` - Clear user data caches.
+- [OK] `get_available_data_types()` - Get list of available data types.
+- [OK] `get_data_type_info(data_type)` - Get information about a specific data type.
+- [OK] `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Register a new data loader for the centralized system.
+- [OK] `register_default_loaders()` - Ensure required loaders are registered (idempotent).
+
+#### `core/user_data_schedule_defaults.py`
+**Functions:**
+- [OK] `create_default_schedule_periods(category)` - Create default schedule periods for a new category.
+- [OK] `ensure_all_categories_have_schedules(user_id, suppress_logging)` - Ensure all categories in user preferences have corresponding schedules.
+- [OK] `ensure_category_has_default_schedule(user_id, category)` - Ensure a category has default schedule periods if it doesn't exist.
+- [OK] `migrate_legacy_schedules_structure(schedules_data)` - Migrate legacy schedules structure to new format.
+
+#### `core/user_data_updates.py`
+**Functions:**
+- [MISSING] `update_channel_preferences(user_id, updates)` - No description
+- [MISSING] `update_user_account(user_id, updates)` - No description
+- [MISSING] `update_user_context(user_id, updates)` - No description
+- [MISSING] `update_user_preferences(user_id, updates)` - No description
+- [MISSING] `update_user_schedules(user_id, schedules_data)` - No description
+
 #### `core/user_data_validation.py`
 **Functions:**
 - [OK] `_shared__title_case(text)` - Convert text to title case with special handling for technical terms.
@@ -5063,6 +4983,21 @@ Returns:
 - [MISSING] `validate_schedule_periods__validate_time_format(time_str)` - No description
 - [OK] `validate_user_update(user_id, data_type, updates)` - Validate partial updates to an existing user's data.
 
+#### `core/user_data_write.py`
+**Functions:**
+- [MISSING] `_save_user_data__check_cross_file_invariants(user_id, merged_data, valid_types)` - No description
+- [MISSING] `_save_user_data__create_backup(user_id, valid_types, create_backup)` - No description
+- [MISSING] `_save_user_data__merge_all_types(user_id, data_updates, valid_types, auto_create)` - No description
+- [MISSING] `_save_user_data__merge_single_type(user_id, dt, updates, auto_create)` - No description
+- [MISSING] `_save_user_data__normalize_data(dt, updated)` - No description
+- [MISSING] `_save_user_data__preserve_preference_settings(updated, updates, user_id)` - No description
+- [MISSING] `_save_user_data__update_index(user_id, result, update_index)` - No description
+- [MISSING] `_save_user_data__validate_data(user_id, data_updates, valid_types, validate_data, is_new_user)` - No description
+- [MISSING] `_save_user_data__validate_input(user_id, data_updates)` - No description
+- [MISSING] `_save_user_data__write_all_types(user_id, merged_data, valid_types)` - No description
+- [OK] `save_user_data(user_id, data_updates, auto_create, update_index, create_backup, validate_data)` - Save user data with two-phase approach: merge/validate in Phase 1, write in Phase 2.
+- [OK] `save_user_data_transaction(user_id, data_updates, auto_create)` - Atomic wrapper for user data updates.
+
 #### `core/user_item_storage.py`
 **Functions:**
 - [OK] `ensure_user_subdir(user_id, subdir, init_files)` - Ensure the user's subdirectory exists and optionally create default JSON files.
@@ -5104,6 +5039,21 @@ Args:
 Returns:
     True if save succeeded, False otherwise.
 
+#### `core/user_lookup.py`
+**Functions:**
+- [MISSING] `_get_user_id_by_identifier__by_chat_id(chat_id)` - No description
+- [MISSING] `_get_user_id_by_identifier__by_discord_user_id(discord_user_id)` - No description
+- [MISSING] `_get_user_id_by_identifier__by_email(email)` - No description
+- [MISSING] `_get_user_id_by_identifier__by_internal_username(internal_username)` - No description
+- [MISSING] `_get_user_id_by_identifier__by_phone(phone)` - No description
+- [OK] `get_user_id_by_identifier(identifier)` - Get user ID by any identifier (internal_username, email, discord_user_id, phone).
+
+#### `core/user_management.py`
+**Functions:**
+- [OK] `create_new_user(user_data)` - Create a new user with the new data structure.
+- [OK] `get_all_user_ids()` - Get all user IDs from the system.
+- [OK] `get_user_categories(user_id)` - Get user's message categories using centralized data access.
+
 ### `root/` - Root Files
 
 #### `run_headless_service.py`
@@ -5141,6 +5091,7 @@ Returns:
 
 #### `run_tests.py`
 **Functions:**
+- [OK] `_approximate_test_from_captured_output(captured_lines)` - From pytest captured output, return the last line that looks like a test/progress (for SIGINT logging).
 - [OK] `_merge_run_results(agg, run_result)` - Merge a single run_command result into an aggregated results dict (in place).
 - [OK] `_persist_captured_output()` - Persist captured pytest output with ANSI stripping to latest and timestamped logs.
 - [OK] `_rotate_console_output_files(backups_dir, archive_dir)` - Keep only recent timestamped console outputs in backups and archive older ones.
@@ -5171,7 +5122,7 @@ Returns a list of dicts with 'test', 'message', and 'type' keys.
 - [OK] `format_classification_counts(counts)` - Format non-zero classification counts as a compact comma-separated line.
 - [OK] `format_live_output_line(line)` - Insert readability breaks where logger output is glued to progress output.
 - [OK] `has_race_hints(text)` - Heuristic detector for race-condition-like failure text.
-- [OK] `interrupt_handler(signum, frame)` - Handle interrupt signals (Ctrl+C) gracefully.
+- [OK] `interrupt_handler(signum, frame)` - Handle interrupt signals (Ctrl+C). Single SIGINT is ignored (spurious); two within 2s stops the run.
 - [OK] `kill_process_tree_windows(pid)` - Kill a process and all its children on Windows.
 
 Returns:

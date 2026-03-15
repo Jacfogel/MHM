@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-14 - User data handlers refactor + test/doc/priority fixes **COMPLETED**
+- **Core refactor**: Removed `core/user_data_handlers.py`; split into `core/user_data_registry.py`, `user_data_read.py`, `user_data_write.py`, `user_data_schedule_defaults.py`, `user_data_updates.py`, `user_data_presets.py`, `user_lookup.py`, `user_management.py`. All imports use `core` or these modules. `core/__init__.py` now exports `create_new_user`, `get_timezone_options`, `get_predefined_options`.
+- **Tests**: Patch targets updated so mocks apply where code under test imports (e.g. `core.get_user_data`, `core.save_user_data`, `core.update_user_schedules`, `core.get_all_user_ids`, `core.user_management.get_user_data`; registry tests patch `core.user_data_registry.*`). Full suite: 4167 passed, 21 skipped.
+- **Docs**: ARCHITECTURE, AI_ARCHITECTURE, AI_DEVELOPMENT_WORKFLOW, AI_SESSION_STARTER, USER_DATA_MODEL now reference the new modules instead of `user_data_handlers`. Doc-sync and static logging check pass.
+- **Quality**: Docstrings and `@handle_errors` on default-data helpers and `clear_user_caches`; unused imports removed; `_account_normalize_after_load` uses f-string logger and `# error_handling_exclude` so it is not flagged as Phase 1.
+
 ### 2026-03-14 - Test helpers consolidation, debug move, Ruff clean **COMPLETED**
 - Refactored monolithic `tests/test_utilities.py` into a package (test_user_factory, test_data_factory, test_data_manager, test_user_data_factory, test_log_path_mocks, test_environment) and consolidated `tests/test_utilities` and `tests/test_support` under `tests/test_helpers/` (one-time migration, no shims). All imports now use `tests.test_helpers.test_utilities` or `tests.test_helpers.test_support`; conftest pytest_plugins and run_tests updated; policy/skip paths and TESTING_GUIDE / AI_TESTING_GUIDE updated.
 - Moved test_isolation into test_helpers/test_support; moved test_error_handling_improvements to tests/integration/, test_run_tests_interrupts to tests/unit/; moved debug_qt_ui_windows to scripts/, debug_file_paths to tests/unit/. Updated all references and DIRECTORY_TREE.
@@ -106,17 +112,6 @@ Guidelines:
 - Unified user items: added `core/user_item_storage.py` and `is_valid_user_id`; split `tasks/task_management.py` into task_schemas, task_validation, task_data_handlers, task_data_manager; renamed `notebook/schemas.py` to `notebook/notebook_schemas.py`. All call sites use `from tasks import ...`; task_handler and profile_handler use lazy `_get_tasks()`.
 - Test fixes: patches updated to `tasks.*` / `tasks.task_data_manager.*`; due_date in update path resolved (e.g. "tomorrow") via relative-date parsing; get_user_task_stats default and title=None validation aligned.
 - Error handling Phase 1: `@handle_errors` now supports `re_raise=True`; `_get_tasks()` in both handlers use decorator with re_raise; `validate_update_field` decorated; static logging single-arg fix; unused imports removed (user_item_storage, task_schemas, task_validation). MODULE_DEPENDENCIES_DETAIL and error-handling guides updated.
-
-### 2026-03-02 - Sleep schedule parsing + prompt concision **COMPLETED**
-- Sleep schedule time_pair parser now accepts "and" inside each chunk (e.g. "1:00 AM and 4:00 AM, 6:00 and 11:00"); previously only `-`, `to`, `until`, `->` were accepted, so the first response was rejected.
-- Shortened `sleep_schedule` question_text and error_message in `resources/default_checkin/questions.json` to one line each.
-- Regression test added in `test_checkin_questions_enhancement.py` for multi-chunk "and" format.
-
-### 2026-03-02 - Coverage-gap push + Phase1/2 error-handling closeout
-- Added a broad targeted test pass for uncovered branches (profile handler, auto-cleanup, notebook/analytics/email/webhook helpers, file locking, tags, UI generation script, file auditor), with focused gains including `profile_handler` ~97% and `auto_cleanup` ~94% in module-targeted runs.
-- Fixed `file_auditor` fallback decorator path so analyzer noise is removed in degraded-import mode; after cache-clear re-analysis, error-handling metrics now show `functions_missing_error_handling=0`, `phase1_total=0`, `phase2_total=0`.
-- Resolved the previously failing parallel UI generation tests by isolating script-module loading in `test_generate_ui_files_script.py` (no shared `sys.modules['ui.generate_ui_files']` mutation); validated failing subset now passes under `-n auto`.
-- Regenerated docs/audit outputs (`docs`, `doc-fix --convert-links`, `doc-sync`, `audit --quick`) and synced status/priorities/report artifacts for closeout; `audit --full` remained intermittently interrupted in this environment and is tracked as a follow-up reliability task.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

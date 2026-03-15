@@ -1146,7 +1146,7 @@ class TestSchedulerLoopCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir)
 
         # Update user preferences to have categories
-        from core.user_data_handlers import save_user_data
+        from core import save_user_data
 
         save_user_data(
             user_id, {"preferences": {"categories": ["motivation", "health"]}}

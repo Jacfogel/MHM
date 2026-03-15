@@ -120,7 +120,7 @@ Each user has a dedicated directory under `data/users/{user_id}/`. Typical conte
 
 Important rules:
 
-1. All user data access goes through helpers in `core/user_data_handlers.py`.  
+1. All user data access goes through helpers in `core/user_data_registry.py`, `core/user_data_read.py`, and `core/user_data_write.py`.  
    Feature code should not open JSON files in `data/users/` directly. This keeps validation,
    backups, and migration logic centralized.
 
@@ -225,7 +225,7 @@ Use this diagram when reasoning about where to add validation, backups, or legac
 Data handling in MHM is designed around safety and clarity.
 
 - Centralized user data access  
-  - Use `get_user_data()` and related helpers in `core/user_data_handlers.py`.  
+  - Use `get_user_data()` and related helpers in `core/user_data_read.py` and `core/user_data_write.py`.  
   - Keep raw file access inside these helpers or tightly related modules.
 
 - Validation before write  
@@ -297,7 +297,7 @@ listing of every file.
   applicable, to basic metrics. For the broader design and patterns, see section 2.
   Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
 
-- `core/user_data_handlers.py` and `core/user_data_validation.py`  
+- `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py`, and `core/user_data_validation.py`  
   Read and write user data in a safe and consistent way, with validation and optional
   migration paths. See section 2. User Data Model and section 3. Data Handling Patterns
   in this file.

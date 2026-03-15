@@ -618,7 +618,7 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.analytics
     @pytest.mark.file_io
     @patch('core.checkin_analytics.CheckinAnalytics')
-    @patch('core.user_data_handlers.get_user_data')
+    @patch('core.user_data_read.get_user_data')
     def test_analytics_handler_quant_summary_success(self, mock_get_user_data, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler shows quantitative summary successfully."""
         handler = AnalyticsHandler()

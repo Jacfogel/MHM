@@ -16,7 +16,7 @@ from pathlib import Path
 from core.logger import get_logger, get_component_logger
 import core.config
 from core.error_handling import handle_errors
-from core.user_data_handlers import get_user_data, get_all_user_ids
+from core import get_user_data, get_all_user_ids
 from core.time_utilities import (
     now_timestamp_filename,
     now_timestamp_full,

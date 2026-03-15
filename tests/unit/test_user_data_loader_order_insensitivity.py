@@ -15,8 +15,8 @@ def _reload_in_order(first_module: str, second_module: str):
 
 @pytest.mark.unit
 def test_loader_registry_shared_and_complete_regardless_of_import_order():
-    # Case 1: import then reload user_data_handlers
-    um1, udh1 = _reload_in_order('core.user_data_handlers', 'core.user_data_handlers')
+    # Case 1: import then reload user_data_registry
+    um1, udh1 = _reload_in_order('core.user_data_registry', 'core.user_data_registry')
     assert um1.USER_DATA_LOADERS is udh1.USER_DATA_LOADERS
 
     if hasattr(um1, 'register_default_loaders'):
@@ -29,8 +29,8 @@ def test_loader_registry_shared_and_complete_regardless_of_import_order():
         assert isinstance(entry, dict)
         assert entry.get('loader') is not None
 
-    # Case 2: reload user_data_handlers twice (reverse order equivalent)
-    udh2, um2 = _reload_in_order('core.user_data_handlers', 'core.user_data_handlers')
+    # Case 2: reload user_data_registry twice (reverse order equivalent)
+    udh2, um2 = _reload_in_order('core.user_data_registry', 'core.user_data_registry')
     # Allow different dict objects across modules as long as required loaders are present
     if hasattr(um2, 'register_default_loaders'):
         um2.register_default_loaders()

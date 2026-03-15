@@ -561,8 +561,8 @@ class TestRegistryHelpers:
                 {"file": "run_mhm.py", "function": "main"},
             ],
             "data_access": [
-                {"file": "core/user_data_handlers.py", "function": "get_user_data"},
-                {"file": "core/user_data_handlers.py", "function": "save_user_data"},
+                {"file": "core/user_data_read.py", "function": "get_user_data"},
+                {"file": "core/user_data_write.py", "function": "save_user_data"},
             ],
             "communication": [
                 {"file": "communication/core/channel_orchestrator.py", "function": "send_alert"},

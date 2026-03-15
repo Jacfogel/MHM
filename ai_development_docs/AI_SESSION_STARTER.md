@@ -159,7 +159,7 @@ Use this as a routing table for common request types.
 - `run_headless_service.py` - service entry point for collaborators.
 - `run_mhm.py` - admin UI entry point.
 - `core/service.py`, `core/config.py` - service lifecycle and configuration.
-- `core/user_data_handlers.py`, `core/user_data_validation.py` - user data helpers and validation.
+- `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py`, `core/user_data_validation.py` - user data helpers and validation.
 - `communication/core/channel_orchestrator.py` - channel coordination.
 
 #### 3.2. Data flow patterns

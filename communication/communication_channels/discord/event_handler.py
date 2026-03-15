@@ -9,7 +9,7 @@ from enum import Enum
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.user_data_handlers import get_user_id_by_identifier
+from core import get_user_id_by_identifier
 from communication.message_processing.interaction_manager import handle_user_message
 
 # Route event handler logs to Discord component

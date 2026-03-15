@@ -358,7 +358,7 @@ def validate_user_update(
 
         try:
             try:
-                from core.user_data_handlers import get_user_data
+                from core import get_user_data
 
                 current_account = get_user_data(user_id, "account").get("account", {})
             except Exception:
@@ -407,7 +407,7 @@ def validate_user_update(
             current_preferences = {}
             for attempt in range(3):
                 try:
-                    from core.user_data_handlers import get_user_data
+                    from core import get_user_data
 
                     current_preferences = get_user_data(user_id, "preferences").get(
                         "preferences", {}
@@ -459,7 +459,7 @@ def validate_user_update(
 
         try:
             try:
-                from core.user_data_handlers import get_user_data
+                from core import get_user_data
 
                 current_schedules = get_user_data(user_id, "schedules").get(
                     "schedules", {}

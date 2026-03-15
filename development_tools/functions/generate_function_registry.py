@@ -401,14 +401,14 @@ def generate_ai_function_registry_content(actual_functions: dict[str, dict]) -> 
     # Generate dynamic decision trees (using ASCII tree characters)
     user_data_tree = f"""User Data Operations Decision Tree:
 +-- Core Data Access
-|   +-- {format_file_entry('core/user_data_handlers.py', 'Primary data access', actual_functions)}
+|   +-- {format_file_entry('core/user_data_read.py', 'Primary data access', actual_functions)}
 |   +-- {format_file_entry('core/user_data_manager.py', 'Data management', actual_functions)}
 |   `-- {format_file_entry('core/user_data_validation.py', 'Validation', actual_functions)}
 +-- User Context
 |   +-- {format_file_entry('user/user_context.py', 'User context management', actual_functions)}
 |   `-- {format_file_entry('user/user_preferences.py', 'User preferences', actual_functions)}
 `-- User Data Access
-    `-- {format_file_entry('core/user_data_handlers.py', 'Account operations', actual_functions)}
+    `-- {format_file_entry('core/user_data_read.py', 'Account operations', actual_functions)}
 """
 
     ai_tree = f"""AI Operations Decision Tree:
@@ -542,7 +542,7 @@ def generate_ai_function_registry_content(actual_functions: dict[str, dict]) -> 
 {entry_points_section}
 
 ### **Data Access Patterns**
-- **User Data**: {format_file_entry('core/user_data_handlers.py', 'User data operations', actual_functions)}
+- **User Data**: {format_file_entry('core/user_data_read.py', 'User data operations', actual_functions)}
 - **Validation**: {format_file_entry('core/user_data_validation.py', 'Data validation', actual_functions)}
 - **File Operations**: {format_file_entry('core/file_operations.py', 'File I/O', actual_functions)}
 
@@ -893,7 +893,7 @@ def generate_entry_points_section(
         common_entry_points = [
             "[OK] `communication/message_processing/interaction_manager.py::handle_message()` - Main message entry point",
             "[OK] `ai/chatbot.py::generate_response()` - AI response generation",
-            "[OK] `core/user_data_handlers.py::get_user_data()` - User data access",
+            "[OK] `core/user_data_read.py::get_user_data()` - User data access",
             "[OK] `ui/ui_app_qt.py::__init__()` - UI application startup",
         ]
         for common in common_entry_points:

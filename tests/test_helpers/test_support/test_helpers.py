@@ -32,13 +32,13 @@ def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
     - Adds missing preferences keys (keeps existing categories/channel)
     - Adds a default motivational/morning period if schedules missing
     """
-    from core.user_data_handlers import (
+    from core import (
         get_user_data,
         update_user_account,
         update_user_preferences,
         update_user_schedules,
     )
-    from core.user_data_handlers import get_user_id_by_identifier
+    from core import get_user_id_by_identifier
     from core.config import get_user_data_dir
     import os
 

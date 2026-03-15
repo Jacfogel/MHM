@@ -698,7 +698,7 @@ class TestUserFactory:
         """Internal implementation of full featured user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_data_handlers import create_new_user
+            from core import create_new_user
 
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -887,7 +887,7 @@ class TestUserFactory:
                 email = f"{user_id}@example.com"
 
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_data_handlers import create_new_user
+            from core import create_new_user
 
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -993,7 +993,7 @@ class TestUserFactory:
                 }
 
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_data_handlers import create_new_user
+            from core import create_new_user
 
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -1137,7 +1137,7 @@ class TestUserFactory:
                 }
 
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_data_handlers import create_new_user
+            from core import create_new_user
 
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -1212,7 +1212,7 @@ class TestUserFactory:
 
             # Ensure preferences with categories exist (required for schedule validation)
             # Schedule validation may require that schedule categories match preference categories
-            from core.user_data_handlers import get_user_data, save_user_data
+            from core import get_user_data, save_user_data
 
             categories = user_data.get("categories", ["motivational", "health"])
 
@@ -1579,7 +1579,7 @@ class TestUserFactory:
         """Internal implementation of minimal user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_data_handlers import create_new_user
+            from core import create_new_user
 
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -1630,7 +1630,7 @@ class TestUserFactory:
     def create_minimal_user__impl_and_get_id(user_id: str) -> str | None:
         """Create minimal user via real user directory and return the actual UUID."""
         try:
-            from core.user_data_handlers import create_new_user
+            from core import create_new_user
 
             user_data = {
                 "internal_username": user_id,
@@ -1796,7 +1796,7 @@ class TestUserFactory:
         """Internal implementation of complex checkins user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_data_handlers import create_new_user
+            from core import create_new_user
 
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -1989,7 +1989,7 @@ class TestUserFactory:
         """Internal implementation of health focus user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_data_handlers import create_new_user
+            from core import create_new_user
 
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -2169,7 +2169,7 @@ class TestUserFactory:
         """Internal implementation of task focus user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_data_handlers import create_new_user
+            from core import create_new_user
 
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -2337,7 +2337,7 @@ class TestUserFactory:
         """Internal implementation of disability user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_data_handlers import create_new_user
+            from core import create_new_user
 
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -2502,7 +2502,7 @@ class TestUserFactory:
         """Internal implementation of limited data user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_data_handlers import create_new_user
+            from core import create_new_user
 
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -2657,7 +2657,7 @@ class TestUserFactory:
         """Internal implementation of inconsistent data user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
-            from core.user_data_handlers import create_new_user
+            from core import create_new_user
 
             # Create user data in the format expected by create_new_user
             user_data = {
@@ -2822,7 +2822,7 @@ class TestUserFactory:
         ):
 
             # Verify the user was created successfully by trying to find it
-            from core.user_data_handlers import get_user_id_by_identifier
+            from core import get_user_id_by_identifier
 
             found_user_id = get_user_id_by_identifier(user_id)
 
@@ -2874,7 +2874,7 @@ class TestUserFactory:
         ):
 
             # Verify the user was created successfully by trying to find it
-            from core.user_data_handlers import get_user_id_by_identifier
+            from core import get_user_id_by_identifier
 
             found_user_id = get_user_id_by_identifier(user_id)
 

@@ -16,7 +16,7 @@ from communication.communication_channels.base.base_channel import (
 from communication.core.factory import ChannelFactory
 from communication.core.retry_manager import RetryManager
 from communication.core.channel_monitor import ChannelMonitor
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 from core.message_management import store_sent_message
 from core.schedule_management import (
     get_current_time_periods_with_validation,
@@ -367,7 +367,7 @@ class CommunicationManager:
             sender_email = email_match.group(0)
 
             # Map email to user ID
-            from core.user_data_handlers import get_user_id_by_identifier
+            from core import get_user_id_by_identifier
 
             user_id = get_user_id_by_identifier(sender_email)
 

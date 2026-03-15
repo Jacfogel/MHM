@@ -231,7 +231,7 @@ class TestTaskReminderFollowupBehavior:
     ):
         """Test parsing '1 to 2 days before' response."""
         from tests.test_helpers.test_support.test_helpers import wait_until
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
 
         # Arrange
         # Mock scheduler manager

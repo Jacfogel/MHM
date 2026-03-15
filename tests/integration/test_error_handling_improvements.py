@@ -14,7 +14,7 @@ from pathlib import Path
 
 from core.error_handling import handle_errors
 from core.file_operations import load_json_data, save_json_data, verify_file_access
-from core.user_data_handlers import get_user_data, save_user_data
+from core import get_user_data, save_user_data
 from core.user_data_manager import UserDataManager
 from core.backup_manager import BackupManager
 from communication.communication_channels.discord.bot import DiscordBot
@@ -76,8 +76,8 @@ class TestErrorHandlingImprovements:
         result = verify_file_access([None])
         assert not result
         
-    def test_user_data_handlers_validation(self):
-        """Test user data handlers with improved validation."""
+    def test_user_data_validation(self):
+        """Test core user data API (get_user_data, etc.) with improved validation."""
         # Test get_user_data with invalid inputs
         result = get_user_data(None)
         assert result == {}

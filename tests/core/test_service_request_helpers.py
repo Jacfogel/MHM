@@ -23,7 +23,7 @@ class TestServiceCheckinRequestHelpers:
     def test_get_checkin_first_question_returns_selected_text(self, service):
         with (
             patch(
-                "core.user_data_handlers.get_user_data",
+                "core.get_user_data",
                 return_value={
                     "preferences": {
                         "checkin_settings": {"questions": {"mood": {"enabled": True}}}
@@ -79,7 +79,7 @@ class TestServiceCheckinRequestHelpers:
                 return_value=str(base_dir),
             ),
             patch(
-                "core.user_data_handlers.get_user_data",
+                "core.get_user_data",
                 return_value={"preferences": {"channel": {"type": "discord"}}},
             ),
             patch.object(
@@ -115,7 +115,7 @@ class TestServiceCheckinRequestHelpers:
                 return_value=str(base_dir),
             ),
             patch(
-                "core.user_data_handlers.get_user_data",
+                "core.get_user_data",
                 return_value={"preferences": {"channel": {"type": "discord"}}},
             ),
             patch.object(service, "_write_checkin_response") as mock_write_response,

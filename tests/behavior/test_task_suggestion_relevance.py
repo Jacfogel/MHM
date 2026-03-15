@@ -12,7 +12,7 @@ import pytest
 from communication.message_processing.interaction_manager import handle_user_message
 from tasks import load_active_tasks, save_active_tasks
 from tests.test_helpers.test_utilities import TestUserFactory
-from core.user_data_handlers import get_user_id_by_identifier
+from core import get_user_id_by_identifier
 
 
 class TestTaskSuggestionRelevance:

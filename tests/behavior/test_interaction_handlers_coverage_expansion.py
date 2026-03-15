@@ -18,7 +18,7 @@ from communication.command_handlers.shared_types import (
     InteractionResponse,
     ParsedCommand,
 )
-from core.user_data_handlers import get_user_data, save_user_data
+from core import get_user_data, save_user_data
 from tasks import create_task, load_active_tasks
 from tests.test_helpers.test_utilities import TestUserFactory
 from core.time_utilities import DATE_ONLY, format_timestamp
@@ -868,8 +868,8 @@ class TestAnalyticsHandlerCoverage:
             ],
         )
 
-        # Enable only mood and energy using new questions format
-        from core import user_data_handlers as udh
+        # Enable only mood and energy using new questions format (patch core so handler's "from core import get_user_data" sees the mock)
+        import core
 
         def _mock_get_user_data(uid, section):
             if section == "preferences":
@@ -886,7 +886,7 @@ class TestAnalyticsHandlerCoverage:
                 }
             return {}
 
-        monkeypatch.setattr(udh, "get_user_data", _mock_get_user_data)
+        monkeypatch.setattr(core, "get_user_data", _mock_get_user_data)
 
         parsed_command = ParsedCommand(
             intent="quant_summary",
@@ -1417,7 +1417,7 @@ class TestScheduleManagementHandlerAdvancedCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Remove schedules and categories to test "no categories configured" message
-        from core.user_data_handlers import update_user_preferences
+        from core import update_user_preferences
 
         user_data = get_user_data(user_id)
         if "schedules" in user_data:
@@ -1427,7 +1427,7 @@ class TestScheduleManagementHandlerAdvancedCoverage:
         update_user_preferences(user_id, {"categories": []})
 
         # Verify categories are actually empty
-        from core.user_data_handlers import get_user_categories
+        from core import get_user_categories
 
         categories = get_user_categories(user_id)
         # If get_user_categories returns non-empty, it's a bug, but for now adjust test expectation

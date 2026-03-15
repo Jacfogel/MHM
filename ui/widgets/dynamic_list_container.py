@@ -6,7 +6,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QGridLayout
 from PySide6.QtCore import Signal
 from ui.widgets.dynamic_list_field import DynamicListField
-from core.user_data_handlers import get_predefined_options
+from core import get_predefined_options
 from core.error_handling import handle_errors
 
 

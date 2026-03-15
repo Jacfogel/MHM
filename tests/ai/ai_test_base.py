@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from ai.chatbot import AIChatBotSingleton
 from tests.test_helpers.test_utilities import TestUserFactory
-from core.user_data_handlers import get_user_id_by_identifier
+from core import get_user_id_by_identifier
 from tests.ai.ai_response_validator import AIResponseValidator
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 
@@ -250,7 +250,7 @@ class AITestBase:
                 get_recent_checkins,
                 is_user_checkins_enabled,
             )
-            from core.user_data_handlers import get_user_data
+            from core import get_user_data
 
             # Check feature enablement
             account_result = get_user_data(user_id, "account")

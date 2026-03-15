@@ -293,7 +293,7 @@ class AnalyticsHandler(InteractionHandler):
         days = entities.get("days", 30)
         try:
             from core.checkin_analytics import CheckinAnalytics
-            from core.user_data_handlers import get_user_data
+            from core import get_user_data
 
             analytics = CheckinAnalytics()
 

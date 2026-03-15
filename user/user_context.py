@@ -2,7 +2,7 @@
 
 import threading
 from core.logger import get_component_logger
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 from core.error_handling import handle_errors
 from core.schedule_utilities import get_active_schedules
 
@@ -91,7 +91,7 @@ class UserContext:
         }
 
         # Update all data using new functions
-        from core.user_data_handlers import save_user_data
+        from core import save_user_data
 
         # Save account data
         save_user_data(user_id, {"account": account_updates})

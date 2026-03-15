@@ -16,7 +16,7 @@ from ai.chatbot import (
     AIChatBotSingleton
 )
 from core.response_tracking import get_recent_chat_interactions, store_chat_interaction
-from core.user_data_handlers import save_user_data
+from core import save_user_data
 from core.config import AI_CLARIFICATION_TEMPERATURE
 
 
@@ -577,7 +577,7 @@ class TestAIChatBotIntegration:
         assert success, "Test user should be created successfully"
         
         # Get the UUID for the user
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         actual_user_id = None
         for attempt in range(5):
             actual_user_id = get_user_id_by_identifier(user_id)
@@ -588,7 +588,7 @@ class TestAIChatBotIntegration:
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Verify user data was saved by loading it
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
         from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
         loaded_account = {}
         for attempt in range(10):

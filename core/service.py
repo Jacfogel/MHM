@@ -37,8 +37,8 @@ from core.time_utilities import (
     now_datetime_full,
 )
 from core.file_operations import verify_file_access
-from core.user_data_handlers import get_all_user_ids
-from core.user_data_handlers import get_user_data
+from core import get_all_user_ids
+from core import get_user_data
 
 # Expose get_user_data at module level so tests
 # that patch core.service.get_user_data continue to work.
@@ -903,7 +903,7 @@ class MHMService:
                     user_id = request_data.get("user_id")
                     if user_id and self.communication_manager:
                         # Get user preferences to determine messaging service and recipient
-                        from core.user_data_handlers import get_user_data
+                        from core import get_user_data
 
                         prefs_result = get_user_data(
                             user_id, "preferences", normalize_on_read=True
@@ -954,7 +954,7 @@ class MHMService:
             from communication.message_processing.conversation_flow_manager import (
                 conversation_manager,
             )
-            from core.user_data_handlers import get_user_data
+            from core import get_user_data
 
             # Get enabled questions
             prefs_result = get_user_data(user_id, "preferences")

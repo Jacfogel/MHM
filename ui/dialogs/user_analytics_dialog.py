@@ -15,7 +15,7 @@ from ui.generated.user_analytics_dialog_pyqt import Ui_Dialog_user_analytics
 
 # Import core functionality
 from core.checkin_analytics import CheckinAnalytics
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
 

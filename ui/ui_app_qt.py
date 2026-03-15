@@ -49,8 +49,8 @@ from core.error_handling import DataError, handle_errors
 from core.service_utilities import get_flags_dir
 
 from user.user_context import UserContext
-from core.user_data_handlers import get_all_user_ids
-from core.user_data_handlers import get_user_data
+from core import get_all_user_ids
+from core import get_user_data
 from core.user_data_validation import _shared__title_case
 import core.config
 
@@ -1533,7 +1533,7 @@ class MHMManagerUI(QMainWindow):
         )
         try:
             from ui.dialogs.user_profile_dialog import UserProfileDialog
-            from core.user_data_handlers import get_user_data
+            from core import get_user_data
 
             # Load user context and account data
             user_data = get_user_data(self.current_user, ["context", "account"])
@@ -1548,7 +1548,7 @@ class MHMManagerUI(QMainWindow):
             def on_save(data):
                 tz = data.pop("timezone", None)
                 # Use centralized save_user_data for both context and account updates
-                from core.user_data_handlers import save_user_data
+                from core import save_user_data
 
                 updates = {"context": data}
                 if tz is not None:
@@ -1950,7 +1950,7 @@ class MHMManagerUI(QMainWindow):
             time.sleep(0.1)  # Wait 100ms between checks
 
         # Get channel name for dialog
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
 
         prefs_result = get_user_data(
             self.current_user, "preferences", normalize_on_read=True
@@ -2031,7 +2031,7 @@ class MHMManagerUI(QMainWindow):
         logger.info(f"Admin Panel: Sending check-in prompt to user {self.current_user}")
 
         # Get user preferences to determine messaging service and recipient
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
 
         prefs_result = get_user_data(
             self.current_user, "preferences", normalize_on_read=True
@@ -2138,7 +2138,7 @@ class MHMManagerUI(QMainWindow):
 
         try:
             # Get user preferences first (needed for channel check)
-            from core.user_data_handlers import get_user_data
+            from core import get_user_data
 
             prefs_result = get_user_data(
                 self.current_user, "preferences", normalize_on_read=True

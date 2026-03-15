@@ -68,7 +68,7 @@ def ensure_mock_config_applied(mock_config, test_data_dir):
 @pytest.fixture(scope="function", autouse=True)
 def clear_user_caches_between_tests():
     """Ensure user data caches don't leak between tests."""
-    from core.user_data_handlers import clear_user_caches
+    from core import clear_user_caches
 
     clear_user_caches()
     yield
@@ -78,7 +78,7 @@ def clear_user_caches_between_tests():
 @pytest.fixture(scope="session", autouse=True)
 def register_user_data_loaders_session():
     """Ensure core user data loaders are present without overwriting metadata."""
-    import core.user_data_handlers as um
+    import core.user_data_registry as um
 
     # Set only missing loaders to avoid clobbering metadata
     for key, func, ftype in [
@@ -100,7 +100,7 @@ def register_user_data_loaders_session():
 @pytest.fixture(scope="function", autouse=True)
 def fix_user_data_loaders():
     """Ensure loaders stay correctly registered for each test without overwriting metadata."""
-    import core.user_data_handlers as um
+    import core.user_data_registry as um
 
     for key, func, ftype in [
         ("account", um._get_user_data__load_account, "account"),
@@ -116,30 +116,18 @@ def fix_user_data_loaders():
 
 @pytest.fixture(scope="session", autouse=True)
 def shim_get_user_data_to_invoke_loaders():
-    """Shim core.user_data_handlers.get_user_data to ensure structured dicts.
+    """Shim core.user_data_read.get_user_data to ensure structured dicts.
 
     If a test calls get_user_data with 'all' or a specific type and the result is
     empty/missing, invoke the registered loaders in USER_DATA_LOADERS to assemble
     the expected structure. This preserves production behavior when everything is
     wired correctly, but guards against import-order timing in tests.
     """
-    import core.user_data_handlers as um
+    import core.user_data_registry as um
+    import core.user_data_read as read_module
 
-    # Safety net: always provide structural dicts during tests regardless of loader state
-    # Also patch the public helpers module used by many tests
-    try:
-        import core.user_data_handlers as udh
-    except Exception:
-        udh = None
-
-    # Prefer core.user_data_handlers.get_user_data; fall back to handlers if missing
-    original_get_user_data = getattr(um, "get_user_data", None)
-    if (
-        original_get_user_data is None
-        and udh is not None
-        and hasattr(udh, "get_user_data")
-    ):
-        original_get_user_data = getattr(udh, "get_user_data", None)
+    # get_user_data lives in user_data_read
+    original_get_user_data = getattr(read_module, "get_user_data", None)
     if original_get_user_data is None:
         yield
         return
@@ -288,29 +276,20 @@ def shim_get_user_data_to_invoke_loaders():
 
         return result
 
-    # Patch in place for the duration of the test
-    # Patch both modules so all call sites are covered
-    um.get_user_data = wrapped_get_user_data
-    original_handlers_get = None
-    if udh is not None and hasattr(udh, "get_user_data"):
-        original_handlers_get = udh.get_user_data
-        udh.get_user_data = wrapped_get_user_data
+    # Patch in place for the duration of the test (get_user_data lives in user_data_read)
+    read_module.get_user_data = wrapped_get_user_data
     try:
         yield
     finally:
-        # Restore originals at end of session
         with contextlib.suppress(Exception):
-            um.get_user_data = original_get_user_data
-        if udh is not None and original_handlers_get is not None:
-            with contextlib.suppress(Exception):
-                udh.get_user_data = original_handlers_get
+            read_module.get_user_data = original_get_user_data
 
 
 @pytest.fixture(scope="session", autouse=True)
 def verify_required_loaders_present():
     """Fail fast if required user-data loaders are missing at session start."""
     try:
-        import core.user_data_handlers as um
+        import core.user_data_registry as um
 
         required = ("account", "preferences", "context", "schedules")
         missing = []
@@ -883,7 +862,7 @@ def _cleanup_test_user_artifacts() -> None:
     """Remove test users from tests/data/users/ after all tests."""
     # Clear all user caches to prevent state pollution between test runs
     try:
-        from core.user_data_handlers import clear_user_caches
+        from core import clear_user_caches
 
         clear_user_caches()  # Clear all caches
     except Exception:

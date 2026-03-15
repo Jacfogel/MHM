@@ -87,7 +87,7 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch("core.schedule_management.get_schedule_time_periods")
-    @patch("core.user_data_handlers.get_user_categories")
+    @patch("core.get_user_categories")
     def test_schedule_handler_show_schedule_all_categories(
         self, mock_get_categories, mock_get_periods, test_data_dir
     ):
@@ -150,7 +150,7 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch("core.schedule_management.get_schedule_time_periods")
-    @patch("core.user_data_handlers.get_user_categories")
+    @patch("core.get_user_categories")
     def test_schedule_handler_show_schedule_specific_category(
         self, mock_get_categories, mock_get_periods, test_data_dir
     ):
@@ -200,7 +200,7 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch("core.schedule_management.get_schedule_time_periods")
-    @patch("core.user_data_handlers.get_user_categories")
+    @patch("core.get_user_categories")
     def test_schedule_handler_show_schedule_no_periods(
         self, mock_get_categories, mock_get_periods, test_data_dir
     ):
@@ -421,7 +421,7 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch("core.schedule_management.get_schedule_time_periods")
-    @patch("core.user_data_handlers.get_user_categories")
+    @patch("core.get_user_categories")
     def test_schedule_handler_schedule_status(
         self, mock_get_categories, mock_get_periods, test_data_dir
     ):

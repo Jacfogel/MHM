@@ -64,7 +64,7 @@ def get_task_reminder_view(
             )
 
             discord_user_id = str(interaction.user.id)
-            from core.user_data_handlers import get_user_id_by_identifier
+            from core import get_user_id_by_identifier
 
             internal_user_id = get_user_id_by_identifier(discord_user_id)
 

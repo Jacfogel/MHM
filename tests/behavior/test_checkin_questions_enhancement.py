@@ -244,7 +244,7 @@ class TestCustomQuestions:
     """Test custom question CRUD operations."""
 
     def setup_method(self):
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
 
         self.test_dir, self.test_data_dir, _ = setup_test_data_environment()
         username = "test_custom_questions_user"
@@ -394,7 +394,7 @@ class TestAnalyticsWithNewQuestions:
     """Test analytics with new questions and sleep_schedule."""
 
     def setup_method(self):
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
 
         self.test_dir, self.test_data_dir, _ = setup_test_data_environment()
         username = f"test_analytics_user_{uuid.uuid4().hex[:8]}"

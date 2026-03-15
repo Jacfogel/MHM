@@ -405,7 +405,7 @@ class ModuleImportAnalyzer:
                     return "Enhanced user data management with references"
                 elif "validation" in file_path:
                     return "User data validation and integrity checks"
-            elif "user_data_handlers" in file_path:
+            elif "user_data_read" in file_path or "user_data_write" in file_path or "user_data_registry" in file_path or "user_data_updates" in file_path or "user_management" in file_path or "user_lookup" in file_path:
                 return "Centralized user data access and management"
             elif "validation" in file_path:
                 return "Data validation utilities"

@@ -57,7 +57,7 @@ def get_checkin_view(user_id: str) -> Optional["discord.ui.View"]:
             )
 
             discord_user_id = str(interaction.user.id)
-            from core.user_data_handlers import get_user_id_by_identifier
+            from core import get_user_id_by_identifier
 
             internal_user_id = get_user_id_by_identifier(discord_user_id)
 
@@ -88,7 +88,7 @@ def get_checkin_view(user_id: str) -> Optional["discord.ui.View"]:
             )
 
             discord_user_id = str(interaction.user.id)
-            from core.user_data_handlers import get_user_id_by_identifier
+            from core import get_user_id_by_identifier
 
             internal_user_id = get_user_id_by_identifier(discord_user_id)
 

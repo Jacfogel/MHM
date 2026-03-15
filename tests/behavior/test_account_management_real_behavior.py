@@ -52,7 +52,7 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
             actual_user_id = user_id
             
         # Update with specific schedule data
-        from core.user_data_handlers import save_user_data
+        from core import save_user_data
         schedules_data = TestDataFactory.create_test_schedule_data(["motivational"])
         schedules_data["motivational"]["periods"]["morning"] = {
             "active": True,
@@ -76,7 +76,7 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
             actual_user_id = user_id
             
         # Update with specific schedule data
-        from core.user_data_handlers import save_user_data
+        from core import save_user_data
         schedules_data = TestDataFactory.create_test_schedule_data(["motivational", "health"])
         schedules_data["motivational"]["periods"]["morning"] = {
             "active": True,
@@ -121,8 +121,8 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
     _logger.debug(f"  File exists: {os.path.exists(os.path.join(test_data_dir, 'users', f'test-user-basic-{test_id}', 'account.json'))}")
     
     try:
-        from core.user_data_handlers import get_user_data
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_data
+        from core import get_user_id_by_identifier
         
         # Get the UUID for the basic user (serial execution ensures index is updated)
         from tests.test_helpers.test_utilities import TestUserFactory
@@ -154,7 +154,7 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         assert basic_data["account"]["features"]["automated_messages"] == "enabled", "Basic user should have messages enabled"
         # Enforce expected baseline to avoid order interference
         if basic_data["account"]["features"].get("checkins") != "disabled":
-            from core.user_data_handlers import save_user_data as _save
+            from core import save_user_data as _save
             acct = basic_data["account"]
             acct_features = dict(acct.get("features", {}))
             acct_features["checkins"] = "disabled"
@@ -182,7 +182,7 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         full_data = get_user_data(full_user_id, "all", auto_create=True)
         try:
             # Force enable all features for full user
-            from core.user_data_handlers import save_user_data
+            from core import save_user_data
             account_data = full_data["account"]
             account_data["features"] = {
                 "task_management": "enabled",
@@ -196,7 +196,7 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
             logging.getLogger("mhm_tests").warning(f"Failed to update full user features: {e}")
             # Try alternative approach - ensure health category is preserved
             try:
-                from core.user_data_handlers import update_user_preferences
+                from core import update_user_preferences
                 # Get current categories to preserve health
                 current_prefs = get_user_data(full_user_id, "preferences", auto_create=True).get("preferences", {})
                 current_categories = current_prefs.get("categories", [])
@@ -243,8 +243,8 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
     create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
 
     try:
-        from core.user_data_handlers import save_user_data, get_user_data
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import save_user_data, get_user_data
+        from core import get_user_id_by_identifier
         
         # Get the UUID for the basic user (serial execution ensures index is updated)
         from tests.test_helpers.test_utilities import TestUserFactory
@@ -263,7 +263,7 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         
         # Ensure preferences exist
         if "preferences" not in basic_data:
-            from core.user_data_handlers import update_user_preferences
+            from core import update_user_preferences
             update_user_preferences(basic_user_id, {})
             basic_data = get_user_data(basic_user_id, "all", auto_create=True)
         
@@ -304,7 +304,7 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         
         # Ensure preferences exist
         if "preferences" not in full_data:
-            from core.user_data_handlers import update_user_preferences
+            from core import update_user_preferences
             update_user_preferences(full_user_id, {})
             full_data = get_user_data(full_user_id, "all", auto_create=True)
         
@@ -349,7 +349,7 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
     create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
     
     try:
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         from core.message_management import create_message_file_from_defaults
         
         # Create test user
@@ -459,8 +459,8 @@ def test_schedule_period_management_real_behavior(test_data_dir):
     create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
     
     try:
-            from core.user_data_handlers import save_user_data, get_user_data
-            from core.user_data_handlers import get_user_id_by_identifier
+            from core import save_user_data, get_user_data
+            from core import get_user_id_by_identifier
             from tests.test_helpers.test_utilities import TestUserFactory
             from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
             
@@ -483,7 +483,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             # Ensure schedules exist - create_test_user_data should have created them, but verify
             if 'schedules' not in basic_data or 'motivational' not in basic_data.get('schedules', {}):
                 # Schedules might not have been created yet - try to create them
-                from core.user_data_handlers import save_user_data
+                from core import save_user_data
                 from tests.test_helpers.test_utilities import TestDataFactory
                 schedules_data = TestDataFactory.create_test_schedule_data(["motivational"])
                 schedules_data["motivational"]["periods"]["morning"] = {
@@ -586,8 +586,8 @@ def test_integration_scenarios_real_behavior(test_data_dir):
     create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
 
     try:
-            from core.user_data_handlers import save_user_data, get_user_data
-            from core.user_data_handlers import get_user_id_by_identifier
+            from core import save_user_data, get_user_data
+            from core import get_user_id_by_identifier
 
             # Get the UUID for the basic user (serial execution ensures index is updated)
             from core.user_data_manager import rebuild_user_index
@@ -719,7 +719,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
 
             # Ensure task directory is created when tasks are enabled
             from tasks import ensure_task_directory
-            from core.user_data_handlers import get_user_id_by_identifier
+            from core import get_user_id_by_identifier
             actual_user_id = get_user_id_by_identifier(f"test-user-full-{test_id}")
             if actual_user_id:
                 ensure_task_directory(actual_user_id)
@@ -807,13 +807,13 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
     create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
     
     try:
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         
         # Test that user index stays consistent
         user_index_file = os.path.join(test_data_dir, "user_index.json")
         
         # Perform multiple operations
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         basic_uuid = get_user_id_by_identifier(f"test-user-basic-{test_id}") or f"test-user-basic-{test_id}"
         import time
         materialize_user_minimal_via_public_apis(basic_uuid)

@@ -49,7 +49,7 @@ class TestMessageEditDialogInitialization:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -70,7 +70,7 @@ class TestMessageEditDialogInitialization:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -150,7 +150,7 @@ class TestMessageEditDialogValidation:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -256,7 +256,7 @@ class TestMessageEditDialogSave:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -277,7 +277,7 @@ class TestMessageEditDialogSave:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -393,7 +393,7 @@ class TestMessageEditorDialogInitialization:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -498,7 +498,7 @@ class TestMessageEditorDialogOperations:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
@@ -662,7 +662,7 @@ class TestMessageEditorDialogOpenFunction:
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         # Get actual user ID
-        from core.user_data_handlers import get_user_id_by_identifier
+        from core import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id

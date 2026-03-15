@@ -2,16 +2,15 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-05 00:17:59
+> **Last Generated**: 2026-03-14 16:21:43
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
-Folder PATH listing
-Volume serial number is 5EAC-07BC
+Folder PATH listing for volume OS
+Volume serial number is 0C4F-B421
 C:.
-|   .coverage
 |   .ruff.toml
 |   ARCHITECTURE.md
 |   CONFIGURATION_REFERENCE.md
@@ -28,36 +27,9 @@ C:.
 |   TODO.md
 |   
 +---.cursor
-|   |   worktrees.json
-|   |   
-|   +---commands
-|   |       ai-functionality-tests.md
-|   |       audit.md
-|   |       backup.md
-|   |       close.md
-|   |       docs.md
-|   |       explore-options.md
-|   |       full-audit.md
-|   |       refactor.md
-|   |       review.md
-|   |       start.md
-|   |       test.md
-|   |       triage-issue.md
-|   |       
-|   +---plans
-|   |   |   conftest_refactor_plan_4aa2eb26.plan.md
-|   |   |   planning_documents_consolidation_f3a74815.plan.md
-|   |   |   unified_user_items_and_shared_helpers.plan.md
-|   |   |   
-|   \---rules
-|           communication-guidelines.mdc
-|           context.mdc
-|           core-guidelines.mdc
-|           critical.mdc
-|           dev_tools.mdc
-|           quality-standards.mdc
-|           testing-guidelines.mdc
-|           ui-guidelines.mdc
+|   \---plans
+|           combine_test_support_and_test_utilities_under_test_helpers_e263df6b.plan.md
+|           refactor_user_data_handlers.plan.md
 |           
 +---ai
 |   |   cache_manager.py
@@ -165,13 +137,22 @@ C:.
 |   |   tags.py
 |   |   time_utilities.py
 |   |   ui_management.py
-|   |   user_data_handlers.py
 |   |   user_data_manager.py
 |   |   USER_DATA_MODEL.md
+|   |   user_data_presets.py
+|   |   user_data_read.py
+|   |   user_data_registry.py
+|   |   user_data_schedule_defaults.py
+|   |   user_data_updates.py
 |   |   user_data_validation.py
+|   |   user_data_write.py
 |   |   user_item_storage.py
+|   |   user_lookup.py
+|   |   user_management.py
 |   |   __init__.py
 |   |   
+|   +---user_data
+    (data files)
 +---data
     (data files)
 +---development_docs
@@ -224,7 +205,7 @@ C:.
 |   |   |   __init__.py
 |   |   |   
 |   |   +---jsons
-    (JSON files created by development tools, e.g. DEPRECATION_INVENTORY.json)
+    (JSON files created by development tools)
 |   +---docs
 |   |   |   analyze_ascii_compliance.py
 |   |   |   analyze_documentation.py
@@ -296,6 +277,7 @@ C:.
 |   |   +---logs
     (log files)
 |   +---shared
+|   |   |   audit_signal_state.py
 |   |   |   backup_inventory.py
 |   |   |   backup_policy_models.py
 |   |   |   backup_reports.py
@@ -319,10 +301,6 @@ C:.
 |   |   |   verify_tool_storage.py
 |   |   |   __init__.py
 |   |   |   
-|   |   +---data
-    (data files)
-|   |   +---logs
-    (log files)
 |   |   +---service
 |   |   |   |   audit_orchestration.py
 |   |   |   |   commands.py
@@ -622,6 +600,7 @@ C:.
 |   +---integration
 |   |   |   test_account_lifecycle.py
 |   |   |   test_account_management.py
+|   |   |   test_error_handling_improvements.py
 |   |   |   test_notebook_validation_integration.py
 |   |   |   test_orphaned_reminder_cleanup.py
 |   |   |   test_task_cleanup_real.py
@@ -629,19 +608,20 @@ C:.
 |   |   |   test_task_cleanup_silent_failure.py
 |   |   |   test_task_reminder_integration.py
 |   |   |   test_user_creation.py
-|   |   |   test_error_handling_improvements.py
-|   |   |
+|   |   |   
+|   |   +---data
+    (data files)
 |   +---logs
     (log files)
 |   +---notebook
-|   |   |   __init__.py
-|   |   |   
+|   |       __init__.py
+|   |       
 |   +---test_helpers
 |   |   |   __init__.py
+|   |   |   
 |   |   +---test_support
 |   |   |   |   conftest_cleanup.py
 |   |   |   |   conftest_cleanup_impl.py
-|   |   |   |   conftest_env.py
 |   |   |   |   conftest_hooks.py
 |   |   |   |   conftest_logging.py
 |   |   |   |   conftest_logging_impl.py
@@ -650,15 +630,15 @@ C:.
 |   |   |   |   test_helpers.py
 |   |   |   |   test_isolation.py
 |   |   |   |   __init__.py
+|   |   |   |   
 |   |   +---test_utilities
-|   |   |   |   __init__.py
 |   |   |   |   test_data_factory.py
 |   |   |   |   test_data_manager.py
-|   |   |   |   test_environment.py
 |   |   |   |   test_log_path_mocks.py
 |   |   |   |   test_user_data_factory.py
 |   |   |   |   test_user_factory.py
-|   |   |   
+|   |   |   |   __init__.py
+|   |   |   |   
 |   +---ui
 |   |   |   test_account_creation_ui.py
 |   |   |   test_account_creator_dialog_validation.py
@@ -743,6 +723,7 @@ C:.
 |   |   |   test_prompt_manager.py
 |   |   |   test_recurring_tasks.py
 |   |   |   test_rich_formatter.py
+|   |   |   test_run_tests_interrupts.py
 |   |   |   test_schedule_management.py
 |   |   |   test_schemas_validation.py
 |   |   |   test_schema_validation_helpers.py
@@ -751,7 +732,6 @@ C:.
 |   |   |   test_tags_expansion.py
 |   |   |   test_tags_gap_coverage.py
 |   |   |   test_test_policy_guards.py
-|   |   |   test_run_tests_interrupts.py
 |   |   |   test_ui_management.py
 |   |   |   test_user_context.py
 |   |   |   test_user_data_handlers.py

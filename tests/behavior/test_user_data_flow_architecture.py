@@ -25,7 +25,7 @@ class TestCrossFileInvariants:
         Test: When preferences are saved with categories, account.features.automated_messages 
         should be enabled via cross-file invariant using in-memory data.
         """
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         
         # Arrange: Create user with messages disabled
         user_id = 'test-invariant-categories'
@@ -84,7 +84,7 @@ class TestCrossFileInvariants:
         Test: When account and preferences are saved simultaneously, cross-file invariants 
         should use in-memory merged data, not stale disk data.
         """
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         
         # Arrange: Create user
         user_id = 'test-invariant-simultaneous'
@@ -129,7 +129,7 @@ class TestCrossFileInvariants:
         account should be added to merged_data and written in Phase 2.
         """
         import uuid
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         
         # Arrange: Create user with messages disabled - use unique ID to avoid conflicts in parallel execution
         user_id = f'test-invariant-account-added-{uuid.uuid4().hex[:8]}'
@@ -160,7 +160,7 @@ class TestCrossFileInvariants:
         # when preferences with categories were saved. However, during parallel execution,
         # file writes may not be immediately visible, so we need to retry with cache clearing.
         import time
-        from core.user_data_handlers import clear_user_caches
+        from core import clear_user_caches
         
         # Wait a moment for file writes to complete and clear cache
         time.sleep(0.2)  # Allow file system to sync
@@ -212,7 +212,7 @@ class TestProcessingOrder:
         Test: Processing order should be deterministic (account -> preferences -> schedules -> context)
         regardless of input order.
         """
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         
         # Arrange: Create user
         user_id = f"test-processing-order-{uuid.uuid4().hex[:8]}"
@@ -248,7 +248,7 @@ class TestProcessingOrder:
         # In parallel coverage runs, auto_create can briefly surface partial defaults,
         # so wait for the fully persisted shape before asserting.
         import time
-        from core.user_data_handlers import clear_user_caches
+        from core import clear_user_caches
 
         final_data = {}
         max_attempts = 20
@@ -286,7 +286,7 @@ class TestProcessingOrder:
         Test: Account should be processed before preferences to ensure cross-file invariants
         have access to updated account data.
         """
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         
         # Arrange: Create user
         user_id = f"test-order-account-first-{uuid.uuid4().hex[:8]}"
@@ -341,7 +341,7 @@ class TestAtomicOperations:
         """
         Test: When all types are valid, all should be written atomically in Phase 2.
         """
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         
         # Arrange: Create user
         user_id = f"test-atomic-success-{uuid.uuid4().hex[:8]}"
@@ -387,7 +387,7 @@ class TestAtomicOperations:
         """
         Test: Result dict should indicate success/failure for each data type.
         """
-        from core.user_data_handlers import save_user_data
+        from core import save_user_data
         
         # Arrange: Create user
         user_id = 'test-atomic-result-dict'
@@ -424,7 +424,7 @@ class TestAtomicOperations:
         """
         Test: Backup should be created after validation/invariants, before writes.
         """
-        from core.user_data_handlers import save_user_data
+        from core import save_user_data
         from core.config import get_user_data_dir
         import glob
         
@@ -471,7 +471,7 @@ class TestNoNestedSaves:
         Test: update_user_preferences should not call update_user_account (no nested saves).
         Cross-file invariants should update in-memory data instead.
         """
-        from core.user_data_handlers import update_user_preferences, get_user_data
+        from core import update_user_preferences, get_user_data
         
         # Arrange: Create user with messages disabled
         user_id = 'test-no-nested-saves'
@@ -482,12 +482,12 @@ class TestNoNestedSaves:
             channel_type='email',
             features={'automated_messages': 'disabled'}
         )
-        from core.user_data_handlers import save_user_data
+        from core import save_user_data
         save_user_data(user_id, {'account': account_data})
         
         # Act: Update preferences with categories (should trigger cross-file invariant)
         # Mock update_user_account to verify it's NOT called
-        with patch('core.user_data_handlers.update_user_account') as mock_update_account:
+        with patch('core.user_data_updates.update_user_account') as mock_update_account:
             result = update_user_preferences(user_id, {'categories': ['motivational', 'health']})
             
             # Assert: update_user_account should NOT be called (no nested saves)
@@ -520,7 +520,7 @@ class TestNoNestedSaves:
         """
         Test: save_user_data should not trigger nested saves when cross-file invariants update data.
         """
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         
         # Arrange: Create user with messages disabled
         user_id = 'test-no-nested-saves-direct'
@@ -535,7 +535,7 @@ class TestNoNestedSaves:
         
         # Act: Save preferences with categories
         # Mock update_user_account to verify it's NOT called
-        with patch('core.user_data_handlers.update_user_account') as mock_update_account:
+        with patch('core.user_data_updates.update_user_account') as mock_update_account:
             preferences_data = TestUserDataFactory.create_preferences_data(
                 user_id=user_id,
                 categories=['motivational']
@@ -574,7 +574,7 @@ class TestTwoPhaseSave:
         """
         Test: Phase 1 should merge/validate in-memory, Phase 2 should write to disk.
         """
-        from core.user_data_handlers import save_user_data, get_user_data
+        from core import save_user_data, get_user_data
         
         # Arrange: Create user
         user_id = f"test-two-phase-save-{uuid.uuid4().hex[:8]}"
@@ -639,7 +639,7 @@ class TestTwoPhaseSave:
         """
         Test: Validation should occur before backup creation (only valid data backed up).
         """
-        from core.user_data_handlers import save_user_data
+        from core import save_user_data
         
         # Arrange: Create user
         user_id = 'test-validation-before-backup'

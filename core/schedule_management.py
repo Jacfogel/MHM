@@ -9,7 +9,7 @@ import calendar
 from datetime import datetime
 from typing import Any
 from core.logger import get_component_logger
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 
 from core.service_utilities import create_reschedule_request
 from core.time_utilities import (
@@ -612,7 +612,7 @@ def set_schedule_periods(user_id, category, periods_dict):
     logger.info(f"set_schedule_periods: Final schedules data: {schedules_data}")
 
     # Save the updated schedules
-    from core.user_data_handlers import update_user_schedules
+    from core import update_user_schedules
 
     update_user_schedules(user_id, schedules_data)
     clear_schedule_periods_cache(user_id, category)
@@ -682,7 +682,7 @@ def set_schedule_days(user_id, category, days):
         user_info["schedules"][category] = {}
     user_info["schedules"][category]["days"] = days
     # Update schedules using new structure
-    from core.user_data_handlers import update_user_schedules
+    from core import update_user_schedules
 
     update_user_schedules(user_id, user_info.get("schedules", {}))
 
@@ -691,7 +691,7 @@ def set_schedule_days(user_id, category, days):
 def get_user_info_for_schedule_management(user_id: str) -> dict[str, Any] | None:
     """Get user info for schedule management operations."""
     try:
-        from core.user_data_handlers import get_user_data
+        from core import get_user_data
 
         schedules_result = get_user_data(user_id, "schedules")
         schedules_data = schedules_result.get("schedules", {})

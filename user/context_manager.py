@@ -13,7 +13,7 @@ Manages comprehensive user context for AI conversations including:
 from typing import Any
 
 from core.logger import get_component_logger
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 from core.response_tracking import get_recent_checkins, get_recent_chat_interactions
 from core.message_management import get_recent_messages
 from core.schedule_utilities import get_active_schedules

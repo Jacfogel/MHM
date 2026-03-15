@@ -37,19 +37,18 @@ from .error_handling import (
     RecoveryError,
 )
 
-# User data handlers exports
-from .user_data_handlers import (
-    get_user_data,
-    save_user_data,
-    save_user_data_transaction,
-    get_all_user_ids,
+# User data handlers exports (from split modules)
+from .user_data_read import get_user_data, clear_user_caches
+from .user_data_write import save_user_data, save_user_data_transaction
+from .user_management import get_all_user_ids, create_new_user
+from .user_data_updates import (
     update_user_account,
     update_user_preferences,
     update_user_schedules,
     update_user_context,
     update_channel_preferences,
-    register_data_loader,
 )
+from .user_data_registry import register_data_loader
 
 # Config exports - commonly used constants and functions
 # Note: We import the module rather than individual constants to avoid
@@ -112,10 +111,9 @@ from .ui_management import (
 )
 
 # User data handlers additional exports (medium usage)
-from .user_data_handlers import (
-    ensure_all_categories_have_schedules,
-    get_user_id_by_identifier,
-)
+from .user_data_schedule_defaults import ensure_all_categories_have_schedules
+from .user_lookup import get_user_id_by_identifier
+from .user_data_presets import get_timezone_options, get_predefined_options
 
 # Schema validation exports (medium usage)
 from .schemas import (
@@ -272,12 +270,13 @@ from .user_data_manager import (
 )
 
 # User data handlers exports (high usage)
-from .user_data_handlers import (
-    get_user_categories,
-    clear_user_caches,
+from .user_management import get_user_categories
+from .user_data_registry import (
     register_default_loaders,
     get_available_data_types,
     get_data_type_info,
+)
+from .user_data_schedule_defaults import (
     create_default_schedule_periods,
     migrate_legacy_schedules_structure,
     ensure_category_has_default_schedule,
@@ -291,7 +290,7 @@ from .user_data_handlers import (
 # User data handlers exports - lazy import to avoid circular dependencies
 # Functions available via direct import: get_user_categories (high usage),
 # ensure_all_categories_have_schedules, get_user_id_by_identifier (medium usage)
-# Other functions: clear_user_caches (use: from core.user_data_handlers import clear_user_caches)
+# Other functions: clear_user_caches (use: from core.user_data_read import clear_user_caches)
 
 # User data manager exports - lazy import to avoid circular dependencies
 # Note: user_data_manager may have circular dependencies
@@ -392,6 +391,9 @@ __all__ = [
     # User management additional (medium usage)
     "ensure_all_categories_have_schedules",
     "get_user_id_by_identifier",
+    "create_new_user",
+    "get_timezone_options",
+    "get_predefined_options",
     # Schedule management - lazy import (circular dependencies)
     "add_schedule_period",
     # Scheduler - lazy import (circular dependencies)

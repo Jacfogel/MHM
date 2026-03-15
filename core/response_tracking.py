@@ -5,7 +5,7 @@ Contains functions for storing and retrieving user responses, check-ins, and int
 
 from typing import Any
 from core.logger import get_component_logger
-from core.user_data_handlers import get_user_data
+from core import get_user_data
 from core.file_operations import load_json_data, save_json_data, get_user_file_path
 from core.error_handling import handle_errors
 from core.time_utilities import (
