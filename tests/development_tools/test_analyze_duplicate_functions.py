@@ -45,6 +45,118 @@ def test_function_has_exclude_comment_detects_marker(dupes_module):
 
 
 @pytest.mark.unit
+def test_get_intentional_group_id_extracts_id_or_empty(dupes_module):
+    """_get_intentional_group_id should return group id after colon, or '' when marker has no colon."""
+    content = "# not_duplicate: format_message\n\ndef format_message():\n    pass\n"
+    node = dupes_module.ast.parse(content).body[0]
+    assert dupes_module._get_intentional_group_id(content, node) == "format_message"
+
+    content_no_colon = "# not_duplicate\n\ndef clear():\n    pass\n"
+    node = dupes_module.ast.parse(content_no_colon).body[0]
+    assert dupes_module._get_intentional_group_id(content_no_colon, node) == ""
+
+    no_marker = "def bar():\n    return 2\n"
+    node = dupes_module.ast.parse(no_marker).body[0]
+    assert dupes_module._get_intentional_group_id(no_marker, node) is None
+
+
+@pytest.mark.unit
+def test_analyze_duplicates_filters_pairs_only_when_both_same_intentional_group(dupes_module):
+    """Pairs are omitted only when both functions have the same intentional_group_id."""
+    record = dupes_module.FunctionRecord
+    gid = "format_message"
+    records = [
+        record(
+            name="format_message",
+            full_name="MessageFormatter.format_message",
+            class_name="MessageFormatter",
+            file_path="message_formatter.py",
+            line=1,
+            args=("message",),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("format", "message"),
+            intentional_group_id=gid,
+        ),
+        record(
+            name="format_message",
+            full_name="TextMessageFormatter.format_message",
+            class_name="TextMessageFormatter",
+            file_path="message_formatter.py",
+            line=2,
+            args=("message",),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("format", "message"),
+            intentional_group_id=gid,
+        ),
+    ]
+    config = {
+        "weights": {"name": 1.0, "args": 0.0, "locals": 0.0, "imports": 0.0},
+        "min_name_similarity": 0.5,
+        "min_overall_similarity": 0.5,
+        "max_pairs": 50,
+        "max_groups": 25,
+        "max_candidate_pairs": 20000,
+        "max_token_group_size": 200,
+        "stop_name_tokens": [],
+    }
+    with patch.object(dupes_module.config, "get_project_root", return_value="/proj"):
+        result = dupes_module._analyze_duplicates(records, config, cache_stats={})
+    details = result.get("details", {})
+    assert details.get("pairs_filtered_intentional") == 1
+    assert len(details.get("duplicate_groups", [])) == 0
+    assert details.get("pairs_reported") == 0
+
+
+@pytest.mark.unit
+def test_analyze_duplicates_reports_pair_when_only_one_has_intentional_group(dupes_module):
+    """If only one function has intentional_group_id, the pair is still reported (future duplicate)."""
+    record = dupes_module.FunctionRecord
+    records = [
+        record(
+            name="format_message",
+            full_name="MessageFormatter.format_message",
+            class_name="MessageFormatter",
+            file_path="message_formatter.py",
+            line=1,
+            args=("message",),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("format", "message"),
+            intentional_group_id="format_message",
+        ),
+        record(
+            name="format_message",
+            full_name="TextMessageFormatter.format_message",
+            class_name="TextMessageFormatter",
+            file_path="message_formatter.py",
+            line=2,
+            args=("message",),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("format", "message"),
+            intentional_group_id=None,
+        ),
+    ]
+    config = {
+        "weights": {"name": 1.0, "args": 0.0, "locals": 0.0, "imports": 0.0},
+        "min_name_similarity": 0.5,
+        "min_overall_similarity": 0.5,
+        "max_pairs": 50,
+        "max_groups": 25,
+        "max_candidate_pairs": 20000,
+        "max_token_group_size": 200,
+        "stop_name_tokens": [],
+    }
+    with patch.object(dupes_module.config, "get_project_root", return_value="/proj"):
+        result = dupes_module._analyze_duplicates(records, config, cache_stats={})
+    details = result.get("details", {})
+    assert details.get("pairs_filtered_intentional", 0) == 0
+    assert details.get("pairs_reported") == 1
+
+
+@pytest.mark.unit
 def test_build_candidate_pairs_respects_stop_tokens_and_group_size(dupes_module):
     """Candidate pairing should skip stop tokens and oversized token groups."""
     record = dupes_module.FunctionRecord
@@ -283,3 +395,208 @@ def test_main_non_json_no_duplicate_groups_message(dupes_module):
     assert exit_code == 0
     output_lines = [str(call.args[0]) for call in mock_print.call_args_list if call.args]
     assert any("No duplicate groups detected." in line for line in output_lines)
+
+
+# --- Body/structural similarity tests ---
+
+
+@pytest.mark.unit
+def test_body_node_sequence_returns_top_level_stmt_types(dupes_module):
+    """_body_node_sequence should return AST node type names for function body statements."""
+    code = "def foo():\n    x = 1\n    if x:\n        return x\n    return None\n"
+    tree = dupes_module.ast.parse(code)
+    func = tree.body[0]
+    seq = dupes_module._body_node_sequence(func)
+    assert isinstance(seq, tuple)
+    assert "Assign" in seq
+    assert "If" in seq
+    assert "Return" in seq
+
+
+@pytest.mark.unit
+def test_build_body_candidate_pairs_same_file_capped(dupes_module):
+    """_build_body_candidate_pairs with same_file scope should cap at max_pairs."""
+    record = dupes_module.FunctionRecord
+    records = [
+        record(
+            name="a",
+            full_name="a",
+            class_name=None,
+            file_path="f.py",
+            line=i,
+            args=(),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("a",),
+            body_node_sequence=("Assign", "Return"),
+        )
+        for i in range(1, 11)
+    ]
+    pairs = dupes_module._build_body_candidate_pairs(
+        records, scope="same_file", max_pairs=3
+    )
+    assert len(pairs) == 3
+
+
+@pytest.mark.unit
+def test_compute_similarity_includes_body_when_present(dupes_module):
+    """_compute_similarity should include body_similarity in scores when both records have body."""
+    record = dupes_module.FunctionRecord
+    seq = ("Assign", "If", "Return")
+    a = record(
+        name="validate_user",
+        full_name="validate_user",
+        class_name=None,
+        file_path="a.py",
+        line=1,
+        args=(),
+        locals_used=(),
+        imports_used=(),
+        name_tokens=("validate", "user"),
+        body_node_sequence=seq,
+    )
+    b = record(
+        name="check_user_input",
+        full_name="check_user_input",
+        class_name=None,
+        file_path="b.py",
+        line=2,
+        args=(),
+        locals_used=(),
+        imports_used=(),
+        name_tokens=("check", "user", "input"),
+        body_node_sequence=seq,
+    )
+    weights = {"name": 0.0, "args": 0.0, "locals": 0.0, "imports": 0.0, "body": 1.0}
+    overall, scores = dupes_module._compute_similarity(a, b, weights)
+    assert "body" in scores
+    assert scores["body"] == 1.0
+    assert overall == 1.0
+
+
+@pytest.mark.unit
+def test_main_passes_consider_body_similarity_to_gather(dupes_module):
+    """main should call _gather_function_records with consider_body_similarity=True when --consider-body-similarity."""
+    def gather_return(*args, **kwargs):
+        return ([], {"total_files": 0, "cached_files": 0, "scanned_files": 0})
+
+    with (
+        patch.object(dupes_module, "_gather_function_records", side_effect=gather_return) as mock_gather,
+        patch.object(dupes_module, "_analyze_duplicates", return_value={"summary": {}, "details": {}}),
+        patch("sys.argv", ["script", "--json", "--consider-body-similarity"]),
+        patch("builtins.print"),
+    ):
+        dupes_module.main()
+    mock_gather.assert_called_once()
+    assert mock_gather.call_args.kwargs.get("consider_body_similarity") is True
+
+
+@pytest.mark.unit
+def test_analyze_duplicates_body_details_when_enabled(dupes_module):
+    """_analyze_duplicates should set consider_body_similarity_used and body_candidate_pairs_considered when enabled."""
+    record = dupes_module.FunctionRecord
+    seq = ("Return",)
+    records = [
+        record(
+            name="foo",
+            full_name="foo",
+            class_name=None,
+            file_path="f.py",
+            line=1,
+            args=(),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("foo",),
+            body_node_sequence=seq,
+        ),
+        record(
+            name="bar",
+            full_name="bar",
+            class_name=None,
+            file_path="f.py",
+            line=2,
+            args=(),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("bar",),
+            body_node_sequence=seq,
+        ),
+    ]
+    config = {
+        "weights": {"name": 0.0, "args": 0.0, "locals": 0.0, "imports": 0.0, "body": 1.0},
+        "min_name_similarity": 0.0,
+        "min_overall_similarity": 0.5,
+        "max_pairs": 50,
+        "max_groups": 25,
+        "max_candidate_pairs": 20000,
+        "max_token_group_size": 200,
+        "stop_name_tokens": [],
+        "consider_body_similarity": True,
+        "max_body_candidate_pairs": 5000,
+        "body_similarity_scope": "same_file",
+    }
+    with patch.object(dupes_module.config, "get_project_root", return_value="/proj"):
+        result = dupes_module._analyze_duplicates(records, config, cache_stats={})
+    details = result.get("details", {})
+    assert details.get("consider_body_similarity_used") is True
+    assert "body_candidate_pairs_considered" in details
+    assert details["body_candidate_pairs_considered"] == 1
+    top_pairs = details.get("top_pairs", [])
+    if top_pairs:
+        assert "body_similarity" in top_pairs[0]
+
+
+@pytest.mark.unit
+def test_analyze_duplicates_body_for_near_miss_rescues_on_body(dupes_module):
+    """With body_for_near_miss_only, pairs below min_name but >= body_similarity_min_name_threshold can be rescued by body similarity."""
+    record = dupes_module.FunctionRecord
+    seq = ("Assign", "Return")
+    records = [
+        record(
+            name="get_user_id",
+            full_name="get_user_id",
+            class_name=None,
+            file_path="a.py",
+            line=1,
+            args=("x",),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("get", "user", "id"),
+            body_node_sequence=seq,
+        ),
+        record(
+            name="get_user_name",
+            full_name="get_user_name",
+            class_name=None,
+            file_path="b.py",
+            line=2,
+            args=("x",),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("get", "user", "name"),
+            body_node_sequence=seq,
+        ),
+    ]
+    config = {
+        "weights": {"name": 0.3, "args": 0.2, "locals": 0.0, "imports": 0.0, "body": 0.5},
+        "min_name_similarity": 0.9,
+        "min_overall_similarity": 0.5,
+        "max_pairs": 50,
+        "max_groups": 25,
+        "max_candidate_pairs": 20000,
+        "max_token_group_size": 200,
+        "stop_name_tokens": ["get"],
+        "consider_body_similarity": False,
+        "body_for_near_miss_only": True,
+        "body_similarity_min_name_threshold": 0.2,
+        "max_body_candidate_pairs": 5000,
+        "body_similarity_scope": "same_file",
+    }
+    with patch.object(dupes_module.config, "get_project_root", return_value="/proj"):
+        result = dupes_module._analyze_duplicates(records, config, cache_stats={})
+    details = result.get("details", {})
+    assert details.get("body_for_near_miss_only") is True
+    assert details.get("body_similarity_min_name_threshold") == 0.2
+    top_pairs = details.get("top_pairs", [])
+    assert len(top_pairs) >= 1
+    assert "body_similarity" in top_pairs[0]

@@ -130,6 +130,7 @@ class ResponseCache:
 
         logger.debug(f"Cleaned up {items_to_remove} LRU cache entries")
 
+    # not_duplicate: cache_clear
     @handle_errors("clearing cache")
     def clear(self):
         """Clear all cached responses"""
@@ -138,6 +139,7 @@ class ResponseCache:
             self.access_times.clear()
         logger.info("Response cache cleared")
 
+    # not_duplicate: cache_clear_expired
     @handle_errors("clearing expired entries")
     def clear_expired(self):
         """Remove all expired entries from the cache"""
@@ -264,12 +266,14 @@ class ContextCache:
         with self._lock:
             self.cache[user_id] = (context, current_time)
 
+    # not_duplicate: cache_clear
     @handle_errors("clearing context cache")
     def clear(self):
         """Clear all cached contexts"""
         with self._lock:
             self.cache.clear()
 
+    # not_duplicate: cache_clear_expired
     @handle_errors("clearing expired context cache")
     def clear_expired(self):
         """Remove all expired contexts"""

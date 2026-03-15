@@ -112,6 +112,7 @@ def clear_welcomed_status(
     return True  # Already not in the list, so success
 
 
+# not_duplicate: get_welcome_message
 @handle_errors("getting welcome message", default_return="")
 def get_welcome_message(
     channel_identifier: str,

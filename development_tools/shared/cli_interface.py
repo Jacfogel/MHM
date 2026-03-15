@@ -379,6 +379,11 @@ def _duplicate_functions_command(service: "AIToolsService", argv: Sequence[str])
         help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
     )
     parser.add_argument(
+        "--consider-body-similarity",
+        action="store_true",
+        help="Include body/structural similarity (AST); increases runtime.",
+    )
+    parser.add_argument(
         "--min-overall",
         type=float,
         default=None,
@@ -403,7 +408,9 @@ def _duplicate_functions_command(service: "AIToolsService", argv: Sequence[str])
     )
 
     result = service.run_analyze_duplicate_functions(
-        min_overall=ns.min_overall, min_name=ns.min_name
+        min_overall=ns.min_overall,
+        min_name=ns.min_name,
+        consider_body_similarity=ns.consider_body_similarity,
     )
     success = result.get("success", False) if isinstance(result, dict) else bool(result)
     return 0 if success else 1

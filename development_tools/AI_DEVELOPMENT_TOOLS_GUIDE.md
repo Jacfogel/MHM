@@ -53,7 +53,7 @@ python development_tools/run_development_tools.py help
 - `unused-imports-report` - Generate unused imports report from analysis results
 - `config` - Check configuration consistency
 
-**Additional commands**: `system-signals`, `validate`, `decision-support`, `duplicate-functions`, `module-refactor-candidates`, `workflow`, `trees`, `cleanup` (alias: `clean-up`), `backup`, `export-code`, `export-docs`, `version-sync` (experimental)
+**Additional commands**: `system-signals`, `validate`, `decision-support`, `duplicate-functions`, `module-refactor-candidates`, `workflow`, `trees`, `cleanup` (alias: `clean-up`), `backup`, `export-code`, `export-docs`, `version-sync` (experimental). For `duplicate-functions`, use `--consider-body-similarity` to include body/structural (AST) similarity; increases runtime and pair count (capped by `max_body_candidate_pairs` and `body_similarity_scope` in config). During **full audit** (`audit --full`), body similarity runs automatically only on *near-miss* name-token pairs (name similarity above `body_similarity_min_name_threshold` but below the normal reporting bar); disable with `run_body_similarity_on_full_audit: false` in config.
 
 **Note**: Test marker analysis is automatically run during `audit --full` when coverage is generated. For fixing markers, use `development_tools/tests/fix_test_markers.py` directly.
 

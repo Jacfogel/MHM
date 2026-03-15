@@ -14,6 +14,7 @@ logger = formatter_logger
 class MessageFormatter(ABC):
     """Abstract base class for message formatting utilities"""
 
+    # not_duplicate: format_message
     @abstractmethod
     @handle_errors("formatting message", default_return="")
     def format_message(
@@ -38,6 +39,7 @@ class MessageFormatter(ABC):
 class TextMessageFormatter(MessageFormatter):
     """Simple text-based message formatter for plain text channels"""
 
+    # not_duplicate: format_message
     @handle_errors("formatting text message", default_return="")
     def format_message(
         self, message: str, rich_data: dict[str, Any] | None = None
@@ -111,6 +113,7 @@ class TextMessageFormatter(MessageFormatter):
 class EmailMessageFormatter(MessageFormatter):
     """Email-specific message formatter"""
 
+    # not_duplicate: format_message
     @handle_errors("formatting email message", default_return="")
     def format_message(
         self, message: str, rich_data: dict[str, Any] | None = None

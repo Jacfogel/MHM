@@ -820,6 +820,7 @@ class CommunicationManager:
         )
         return False
 
+    # not_duplicate: send_message_sync_pair
     @handle_errors("sending message", default_return=False)
     async def send_message(
         self, channel_name: str, recipient: str, message: str, **kwargs
@@ -955,6 +956,7 @@ class CommunicationManager:
                 return True
             return False
 
+    # not_duplicate: send_message_sync_pair
     @handle_errors("sending message (sync)", default_return=False)
     def send_message_sync(
         self, channel_name: str, recipient: str, message: str, **kwargs

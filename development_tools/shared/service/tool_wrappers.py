@@ -408,7 +408,11 @@ class ToolWrappersMixin:
         return result
 
     def run_analyze_duplicate_functions(
-        self, min_overall: float | None = None, min_name: float | None = None
+        self,
+        min_overall: float | None = None,
+        min_name: float | None = None,
+        consider_body_similarity: bool = False,
+        body_for_near_miss_only: bool = False,
     ) -> dict:
         """Run analyze_duplicate_functions with structured JSON handling."""
         logger.debug("Analyzing duplicate functions...")
@@ -417,6 +421,10 @@ class ToolWrappersMixin:
             args.append("--include-tests")
         if self.exclusion_config.get("include_dev_tools", False):
             args.append("--include-dev-tools")
+        if consider_body_similarity:
+            args.append("--consider-body-similarity")
+        if body_for_near_miss_only:
+            args.append("--body-for-near-miss")
         if min_overall is not None:
             args.extend(["--min-overall", str(min_overall)])
         if min_name is not None:

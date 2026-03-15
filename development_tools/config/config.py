@@ -679,6 +679,11 @@ ANALYZE_DUPLICATE_FUNCTIONS = {
     "max_groups": 50,
     "max_candidate_pairs": 20000,
     "max_token_group_size": 200,
+    "consider_body_similarity": False,
+    "run_body_similarity_on_full_audit": True,
+    "body_similarity_min_name_threshold": 0.35,  # lower than min_name_similarity; near-miss pairs get body check
+    "max_body_candidate_pairs": 5000,
+    "body_similarity_scope": "same_file",  # same_file | same_module | hash_bucket
     "stop_name_tokens": [
         "get",
         "set",
@@ -703,6 +708,7 @@ ANALYZE_DUPLICATE_FUNCTIONS = {
         "args": 0.2,
         "locals": 0.2,
         "imports": 0.15,
+        "body": 0.0,  # used only when consider_body_similarity is True
     },
 }
 

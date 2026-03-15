@@ -1368,6 +1368,7 @@ class AIChatBotSingleton:
         user_message = {"role": "user", "content": user_prompt}
         return [system_message, user_message]
 
+    # not_duplicate: generate_response_pair
     @handle_errors(
         "generating AI response",
         default_return="I'm having trouble generating a response right now. Please try again in a moment.",
@@ -1801,6 +1802,7 @@ class AIChatBotSingleton:
             user_prompt, timeout=AI_QUICK_RESPONSE_TIMEOUT, user_id=user_id
         )
 
+    # not_duplicate: generate_response_pair
     @handle_errors(
         "generating contextual response",
         default_return="I'm having trouble generating a contextual response right now. Please try again in a moment.",

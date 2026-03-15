@@ -1,58 +1,60 @@
 # Duplicate Functions Investigation
 
-
-> **File**: `development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md`
+> **File**: `development_docs/DUPLICATE_FUNCTIONS_INVESTIGATION.md`  
 > **Temporary planning file.** This doc supports refactor planning and audit follow-up. It can be archived or removed once duplicate-group refactors are done and the duplicate-functions report is no longer in active use for prioritization. Do not treat as long-term project documentation.
 
-> **Context**: AI_PRIORITIES.md and `development_tools/functions/jsons/analyze_duplicate_functions_results.json` list duplicate groups from the duplicate-functions analyzer. This document covers all reported groups with verdicts. For exclusion and tool behavior, see [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) (Duplicate function analysis).
+> **Context**: AI_PRIORITIES.md and `development_tools/functions/jsons/analyze_duplicate_functions_results.json` list duplicate groups from the duplicate-functions analyzer. This document covers all reported groups with verdicts. For exclusion and tool behavior, see [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) (Duplicate function analysis).  
+> **Suppressing “Not duplication” groups**: Add the same comment with a group id to **every** function in the group, e.g. `# not_duplicate: format_message`. Only pairs where both functions have that same group id are omitted; any future duplicate without the comment will still be reported. **Markers added**: The groups with verdicts "Intentional polymorphism", "Intentional API pattern", "intentional", "Same pattern; intentional", "Intentional async vs sync", "no action", "Pair ops; intentional", "Channel polymorphism" now have `# not_duplicate: <group_id>` in every function of the group, so they are suppressed in the report (future runs show ~19 groups).
 
-## Audit run (2026-02-06 full audit) and pipeline fix
+## Audit run (2026-03-14) and pipeline
 
-- **Were there really 11 false positives?** Yes. Those 11 were clusters with only one unique function (same function compared with itself), e.g. when the same function appeared twice in the record list (path format differences so dedupe did not merge them). The tool is not too restrictive; single-function "groups" are not real duplicates. Path normalization was added so future runs may dedupe more.
-- **Showing 50 results?** The report shows **14 groups**, not 50. There are only 14 multi-function duplicate groups in the codebase after filtering. The config default `max_groups` is 50, so the tool *can* report up to 50 groups if that many exist; this run used `max_groups: 25` (from the run’s config) and reported 14, so the cap was not hit. To see more in future (if new duplicates appear), use `--max-groups 50` or rely on the default.
-- **Was it "first 25, then drop 11, leaving 14"?** Yes. That was a bug; the pipeline used to cap by max_groups then filter. **Fixed**: filter to multi-function first, then apply max_groups, so we report the top N real duplicate groups (up to 50 by default).
-- **Showing 50 results?** With max_groups=50 (config and development_tools_config.json in sync), the report now shows **29 groups** (29 multi-function duplicate groups in the codebase). Cap was not hit.
-- **Details from last run**: `records_deduplicated: 0`, `groups_filtered_single_function: 11`, `groups_reported: 29`, `files_affected: 26`, `max_groups: 50` (development_tools_config.json now in sync with config.py).
-
-## Summary: All 29 Groups (current report, 2026-02-06 audit)
-
-| # | Function(s) / description | Verdict |
-|---|---------------------------|---------|
-| 1 | format_message (MessageFormatter, Text, Email) | Intentional polymorphism |
-| 2 | remove_period_row (Checkin, Task, Schedule UI) | Copy-paste; optional refactor |
-| 3 | add_new_period (same three UIs) | Copy-paste; optional refactor |
-| 4 | _is_valid_intent (EnhancedCommandParser, InteractionManager) | Parallel impl; optional shared helper |
-| 5 | get_color_for_type (RichFormatter, Discord, Email) | Intentional polymorphism |
-| 6 | _handle_*__find_task_by_identifier (complete/delete/update) | Thin wrappers; optional refactor |
-| 7 | _initialize_channel_with_retry vs _sync | Intentional async vs sync |
-| 8 | _create_command_parsing_prompt vs _with_clarification | Near-duplicate; optional merge |
-| 9 | update_message_references (class + module) | Intentional API pattern |
-| 10 | backup_user_data (class + module) | Intentional API pattern |
-| 11 | delete_user_completely (class + module) | Intentional API pattern |
-| 12 | export_user_data (class + module) | Intentional API pattern |
-| 13 | register_with_platform (CommandRegistry, Discord, Email) | Intentional polymorphism |
-| 14 | get_user_data_summary (class + module + helper) | Class + module API + helper |
-| 15 | update_user_index (class + module) | Intentional API pattern |
-| 16 | _get_user_data_summary__process_enabled_message_files, __process_orphaned_message_files | Same-class helpers; optional shared structure |
-| 17 | NotebookHandler._handle_list_by_group, _handle_list_by_tag | Similar handlers; optional shared helper |
-| 18 | AccountCreatorDialog.keyPressEvent, UserProfileDialog.keyPressEvent | Same event override in two dialogs; intentional |
-| 19 | ResponseCache.get_entries_by_type, remove_entries_by_type | Different ops (get vs remove); similar structure |
-| 20 | _get_user_data__load_account, load_context, load_preferences, load_schedules (user_data_registry) | Parallel loaders; refactored to shared loader pattern in user_data_registry |
-| 21 | AnalyticsHandler._handle_task_stats, TaskManagementHandler._handle_task_stats | Two handlers; may delegate to shared logic |
-| 22 | ResponseCache.clear, ContextCache.clear | Same pattern (clear cache); intentional |
-| 23 | get_welcome_message (welcome_manager, discord welcome_handler) | Core vs channel-specific; intentional |
-| 24 | DiscordBot.send_message, EmailBot.send_message | Channel polymorphism |
-| 25 | find_lowest_available_period_number (Checkin, Task widgets) | Copy-paste; optional refactor (same as add/remove period) |
-| 26 | get_user_summary, get_user_analytics_summary | Related but distinct; no action |
-| 27 | SchedulerManager.cleanup_task_reminders, cleanup_task_reminders (module) | Class + module pattern |
-| 28 | PromptManager.get_prompt, get_prompt_template | Related methods; no action |
-| 29 | MessageEditorDialog.edit_message_by_row, delete_message_by_row | Different operations (edit vs delete); similar structure |
-
-*Single-function (self-pair) groups are filtered out (11 in this run).*
+- **Run**: Full audit with body-for-near-miss enabled. Body similarity runs automatically on name-token pairs that exceed `body_similarity_min_name_threshold` (0.35) but are below the normal reporting bar; high body similarity can still report them.
+- **Report**: **30 duplicate groups** across **26 files**. Groups are ordered by **clearest duplicates first** (max similarity, then cluster size) in AI_PRIORITIES and this doc.
+- **Details**: `groups_filtered_single_function: 10`, `groups_reported: 30`, `pairs_reported: 70`, `max_groups: 50`. Weights include `body: 0.25` when body similarity is used.
+- **Source**: `development_tools/functions/jsons/analyze_duplicate_functions_results.json` (last_generated 2026-03-14).
 
 ---
 
-## Group 1: format_message (message_formatter.py)
+## Summary: All 30 groups (ordered by max similarity, clearest first)
+
+| # | Max | N | File / description | Verdict |
+|---|-----|---|--------------------|---------|
+| 1 | 0.954 | 3 | message_formatter.py — format_message (MessageFormatter, Text, Email) | Intentional polymorphism |
+| 2 | 0.920 | 3 | rich_formatter.py — get_color_for_type (RichFormatter, Discord, Email) | Intentional polymorphism |
+| 3 | 0.840 | 9 | user_data_manager.py — backup_user_data, get_user_data_summary, get_user_summary, +6 | Class + module API + helpers; optional refactor for _get_user_data_summary__* |
+| 4 | 0.840 | 5 | user_data_manager.py — _get_user_data_summary__process_* (enabled, orphaned, message, log, core) | Same-class helpers; optional shared structure |
+| 5 | 0.840 | 2 | user_data_manager.py — update_user_index (class + module) | Intentional API pattern |
+| 6 | 0.833 | 2 | notebook_handler.py — _handle_list_by_group, _handle_list_by_tag | Similar handlers; optional shared helper |
+| 7 | 0.820 | 3 | user_data_updates.py — update_user_account, update_user_context, update_user_schedules | Parallel updaters; optional shared helper |
+| 8 | 0.820 | 2 | tags.py — add_user_tag, remove_user_tag | Pair ops; optional shared helper |
+| 9 | 0.809 | 2 | account_creator_dialog.py — AccountCreatorDialog.keyPressEvent, UserProfileDialog.keyPressEvent | Same event override in two dialogs; intentional |
+| 10 | 0.800 | 2 | analytics_handler.py, task_handler.py — _handle_task_stats (Analytics, TaskManagement) | Two handlers; may delegate to shared logic |
+| 11 | 0.787 | 2 | cache_manager.py — ResponseCache.clear, ContextCache.clear | Same pattern (clear cache); intentional |
+| 12 | 0.760 | 2 | channel_orchestrator.py — send_message, send_message_sync | Intentional async vs sync entry points |
+| 13 | 0.760 | 2 | message_editor_dialog.py — edit_message_by_row, delete_message_by_row | Different ops (edit vs delete); similar structure |
+| 14 | 0.760 | 2 | user_data_manager.py — delete_user_completely (class + module) | Intentional API pattern |
+| 15 | 0.752 | 3 | file_operations.py — _create_user_files__preferences_file, __schedules_file, __account_file | Parallel file creators; optional shared helper |
+| 16 | 0.752 | 2 | user_data_manager.py — _get_user_data_summary__add_schedule_details, __add_sent_messages_details | Same-class helpers; optional shared structure |
+| 17 | 0.740 | 2 | notebook_handler.py — _handle_pin_entry, _handle_archive_entry | Similar handlers; optional shared helper |
+| 18 | 0.739 | 5 | user_data_manager.py — _get_user_data_summary__add_* (file_info, message_file_info, missing_message_file_info, special_file_details, +1) | Same-class helpers; optional shared structure |
+| 19 | 0.725 | 2 | user_data_write.py — _save_user_data__validate_input, __validate_data | Validation helpers; optional merge |
+| 20 | 0.720 | 4 | user_data_registry.py — _get_user_data__load_preferences, __load_schedules, __load_context, __load_account | Parallel loaders; refactored to shared loader pattern |
+| 21 | 0.720 | 2 | command_parser.py — _extract_intent_from_ai_response, _extract_entities_from_ai_response | Extraction helpers; optional shared helper |
+| 22 | 0.719 | 2 | chatbot.py — generate_response, generate_contextual_response | Related but distinct entry points; no action |
+| 23 | 0.712 | 2 | user_item_storage.py — load_user_json_file, save_user_json_file | Pair ops (load/save); intentional |
+| 24 | 0.705 | 2 | service.py — _check_test_message_requests__cleanup_request_file, _check_reschedule_requests__cleanup_request_file | Parallel cleanup helpers; optional shared |
+| 25 | 0.703 | 2 | auto_cleanup.py — _perform_cleanup__remove_cache_files, __remove_cache_files_list | Overload/variant; optional merge |
+| 26 | 0.703 | 2 | cache_manager.py — ResponseCache.clear_expired, ContextCache.clear_expired | Same pattern; intentional |
+| 27 | 0.703 | 2 | cache_manager.py — get_entries_by_type, remove_entries_by_type | Different ops (get vs remove); similar structure |
+| 28 | 0.700 | 2 | discord/bot.py — DiscordBot.send_message, EmailBot.send_message | Channel polymorphism |
+| 29 | 0.682 | 2 | welcome_manager.py — get_welcome_message (two definitions) | Core vs channel-specific; intentional |
+| 30 | 0.642 | 2 | user_data_read.py — clear_user_caches (two definitions) | Same name; verify if intentional overload or true duplicate |
+
+*Single-function (self-pair) groups are filtered out (10 in this run).*
+
+---
+
+## Group 1: format_message (message_formatter.py) — max 0.954
 
 **Functions**: MessageFormatter.format_message (abstract), TextMessageFormatter.format_message, EmailMessageFormatter.format_message.
 
@@ -62,45 +64,9 @@ MessageFormatter is the abstract base; Text produces plain text (Markdown-style)
 
 ---
 
-## Thin wrappers (add_new_period, remove_period_row, find_lowest_available_period_number)
+## Group 2: get_color_for_type (rich_formatter.py) — max 0.920
 
-The three UIs (CheckinSettingsWidget, TaskSettingsWidget, ScheduleEditorDialog) keep **public methods** with these names because: **Qt signals** (e.g. `pushButton_add_new_period.clicked.connect(lambda: self.add_new_period())`) and **dialog→widget API** (e.g. `task_management_dialog` calls `self.task_widget.add_new_period()`). Removing these wrappers would require changing all signal connections and dialog call sites to call shared helpers directly—a larger, API-breaking refactor. The current design keeps the public API stable and delegates implementation to `core/ui_management.py` helpers.
-
----
-
-## Group 2: remove_period_row (3 files)
-
-**Locations**: CheckinSettingsWidget, TaskSettingsWidget, ScheduleEditorDialog.
-
-**Verdict: Copy-paste with small, intentional differences. Optional refactor.**
-
-Same core flow (store deleted data, remove from layout, deleteLater, remove from list). Differences: which layout attribute; Checkin has “cannot delete last period” guard; ScheduleEditor has “cannot delete ALL period” guard for non-task/checkin. A shared helper with (layout, period_widgets, deleted_periods, guard_fn) could reduce duplication.
-
----
-
-## Group 3: add_new_period (3 files)
-
-**Locations**: Same three classes as Group 2.
-
-**Verdict: Copy-paste with parameterized differences. Optional refactor.**
-
-Common flow: default period_name/period_data, create PeriodRowWidget, connect delete_requested, add to layout, append to period_widgets. Differences: default name prefix, which layout; ScheduleEditor also sets creation_order and calls resort_period_widgets(). Existing shared pieces: load_period_widgets_for_category, collect_period_data_from_widgets in core/ui_management.py.
-
----
-
-## Group 14: _is_valid_intent (2 funcs)
-
-**Locations**: EnhancedCommandParser (command_parser.py), InteractionManager (interaction_manager.py).
-
-**Verdict: Parallel implementation — optional shared helper.**
-
-Both loop over self.interaction_handlers.values() and return True if any handler.can_handle(intent). Logic is identical. Could extract a small shared helper in message_processing.
-
----
-
-## Group 15: get_color_for_type (3 funcs)
-
-**Locations**: RichFormatter (abstract), DiscordRichFormatter, EmailRichFormatter (rich_formatter.py).
+**Functions**: RichFormatter.get_color_for_type (abstract), DiscordRichFormatter.get_color_for_type, EmailRichFormatter.get_color_for_type.
 
 **Verdict: Not duplication — intentional polymorphism.**
 
@@ -108,81 +74,65 @@ Abstract base plus channel-specific implementations (Discord colour int, Email H
 
 ---
 
-## Group 16: _handle_*__find_task_by_identifier (3 funcs)
+## Groups 3–5, 14, 16, 18: user_data_manager.py — class + module and _get_user_data_summary__* helpers
 
-**Locations**: TaskManagementHandler (task_handler.py) — complete, delete, update.
+**Pattern**: Module-level functions (backup_user_data, get_user_data_summary, delete_user_completely, update_user_index, etc.) are the public API; they validate inputs and call `UserDataManager().method()`. Class holds implementation. **Do not merge** class and module-level; this is intentional.
 
-**Verdict: Thin wrappers — optional refactor.**
+**Groups 4, 16, 18**: `_get_user_data_summary__process_*` and `_get_user_data_summary__add_*` are same-class helpers with similar structure. **Optional refactor**: extract shared structure (e.g. loop over file types, add-to-summary pattern) if it reduces duplication without obscuring intent.
 
-All three delegate to self._find_task_by_identifier(tasks, identifier). Only difference is @handle_errors message. Could use a single method with context for the decorator.
-
----
-
-## Group 17: _initialize_channel_with_retry vs _initialize_channel_with_retry_sync
-
-**Locations**: CommunicationManager (channel_orchestrator.py).
-
-**Verdict: Intentional async vs sync — no refactor.**
-
-Async uses await and asyncio.sleep; sync uses run_until_complete and time.sleep. Two entry points by design. No action.
+**Group 3**: Includes get_user_data_summary, get_user_summary, backup_user_data, and other helpers. Class + module API + internal helpers; largest cluster. Refactor only the internal helpers if desired (see groups 4, 16, 18).
 
 ---
 
-## Group 18: _create_command_parsing_prompt vs _create_command_parsing_with_clarification_prompt
+## Groups 6, 17: NotebookHandler — _handle_list_by_*, _handle_pin_entry, _handle_archive_entry
 
-**Locations**: AIChatBotSingleton (chatbot.py).
+**Verdict: Similar handlers; optional shared helper.**
 
-**Verdict: Near-duplicate — optional merge.**
-
-Both build [system_message, user_message] with prompt_manager.get_prompt("command"). Only differences are docstring and @handle_errors default_return. Could merge with a clarification: bool = False parameter; low priority.
+Same handler pattern (user_id, entities, response). Could extract a small shared helper for the common flow; low priority.
 
 ---
 
-## Note: Single-function groups (formerly 19–20)
+## Groups 9, 11, 26, 28: Intentional patterns (keyPressEvent, cache clear, send_message)
 
-Single-function “duplicate” groups (same function compared with itself) are **no longer reported**. The analyzer filters them out (`groups_filtered_single_function` in the JSON). In the 2026-02-06 run, 11 such groups were filtered.
+**Group 9**: AccountCreatorDialog.keyPressEvent, UserProfileDialog.keyPressEvent — same event override in two dialogs; intentional.
 
----
+**Groups 11, 26**: ResponseCache.clear / clear_expired, ContextCache.clear / clear_expired — same pattern across cache classes; intentional.
 
-## Groups 9–12: user_data_manager — class method + module-level function
-
-**Functions**: update_message_references, backup_user_data, delete_user_completely, export_user_data.
-
-**Locations**: UserDataManager class + module-level convenience functions (core/user_data_manager.py).
-
-**Verdict: Intentional pattern — not duplication.**
-
-Module-level functions are the public API (validate inputs, then call UserDataManager().method()). Class holds implementation; module-level provides validation and stable top-level API. Do not merge.
+**Group 28**: DiscordBot.send_message, EmailBot.send_message — channel polymorphism. No action.
 
 ---
 
-## Group 25: register_with_platform (3 funcs)
+## Group 12: send_message vs send_message_sync
 
-**Locations**: CommandRegistry (abstract), DiscordCommandRegistry, EmailCommandRegistry (command_registry.py).
+**Verdict: Intentional async vs sync.**
 
-**Verdict: Not duplication — intentional polymorphism.**
-
-Base defines contract; Discord and Email implement platform-specific registration. No action.
+Async and sync entry points by design. No refactor.
 
 ---
 
-## Group 25 (last): get_user_data_summary (3 funcs)
+## Group 20: _get_user_data__load_* (user_data_registry.py)
 
-**Locations**: UserDataManager.get_user_data_summary, module-level get_user_data_summary, UserDataManager._get_user_data_summary__initialize_summary.
+**Verdict: Refactored.**
 
-**Verdict: Class + module wrapper + internal helper.**
+Parallel loaders were refactored to shared loader pattern in user_data_registry. No further action unless new duplication appears.
 
-Same pattern as groups 21–24 for the first two. The third is an internal helper grouped by name/args similarity. No refactor needed.
+---
+
+## Groups 13, 27: Different operations, similar structure
+
+**Group 13**: edit_message_by_row vs delete_message_by_row — different ops (edit vs delete); similar structure. Optional shared helper only if logic converges.
+
+**Group 27**: get_entries_by_type vs remove_entries_by_type — same. No action unless consolidating.
 
 ---
 
 ## Recommendations
 
-1. **No action (polymorphism or intentional pattern)**: Groups 1, 5, 13 (format_message, get_color_for_type, register_with_platform); 9–12, 15 (user_data_manager class+module); 7 (async vs sync); 14 (get_user_data_summary); 18 (keyPressEvent); 22 (cache clear); 23 (get_welcome_message core vs discord); 24 (DiscordBot/EmailBot send_message); 26–28.
-2. **Refactored 2026-02-06**: Groups 2, 3, 25 (period row helpers in core/ui_management.py); Group 4 (_is_valid_intent → intent_validation.is_valid_intent); Group 6 (task identifier lookup consolidated to `_find_task_by_identifier` shared helper; wrapper removed after callers/tests were migrated); Group 8 (command parsing prompt merged with clarification flag); Group 20 (_get_user_data__load_* → _get_user_data__load_impl).
-3. **Optional (similar structure, different ops)**: Groups 16, 19, 21, 29 — shared helper only if logic actually converges.
-4. **Single-function groups**: Filtered out by the tool (11 in this run).
+1. **No action (polymorphism or intentional pattern)**: Groups 1, 2, 5, 9, 11, 12, 14, 22, 23, 26, 28, 29 (format_message, get_color_for_type, user_data_manager class+module, keyPressEvent, cache clear/send_message, load/save pair, etc.).
+2. **Optional refactor (shared structure)**: Groups 3, 4, 6, 7, 8, 10, 15, 16, 17, 18, 19, 21, 24, 25 — extract shared helpers only where it clearly reduces duplication and preserves clarity.
+3. **Verify**: Group 30 (clear_user_caches twice in user_data_read.py) — confirm whether two definitions are intentional or a true duplicate.
+4. **Single-function groups**: Filtered out by the tool (10 in this run).
 
 ---
 
-*Source: analyze_duplicate_functions_results.json (duplicate_groups) and AI_PRIORITIES.md. See TODO.md for refactor tasks. Last audit run: 2026-02-06 (29 groups, max_groups=50, 11 single-function groups filtered).*
+*Source: analyze_duplicate_functions_results.json (duplicate_groups). Last audit run: 2026-03-14 (30 groups, 26 files, body-for-near-miss enabled).*

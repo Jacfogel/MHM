@@ -26,6 +26,7 @@ class RichFormatter(ABC):
         """Create interactive view with buttons/menus from suggestions"""
         pass
 
+    # not_duplicate: get_color_for_type
     @abstractmethod
     @handle_errors("getting color for type", default_return=None)
     def get_color_for_type(self, content_type: str) -> Any:
@@ -116,6 +117,7 @@ class DiscordRichFormatter(RichFormatter):
 
         return view
 
+    # not_duplicate: get_color_for_type
     @handle_errors("getting Discord color for type", default_return=None)
     def get_color_for_type(self, content_type: str):
         """Get Discord color for content type"""
@@ -188,6 +190,7 @@ class EmailRichFormatter(RichFormatter):
             logger.error(f"Error creating email interactive view: {e}")
             return ""
 
+    # not_duplicate: get_color_for_type
     @handle_errors("getting email color for type", default_return="#3498db")
     def get_color_for_type(self, content_type: str) -> str:
         """Get HTML color for content type"""

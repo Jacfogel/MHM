@@ -127,7 +127,9 @@ class _StubService:
     def run_unused_imports_report(self):
         return self.unused_imports_report_result
 
-    def run_analyze_duplicate_functions(self, *, min_overall, min_name):
+    def run_analyze_duplicate_functions(
+        self, *, min_overall=None, min_name=None, consider_body_similarity=False
+    ):
         self.duplicate_function_calls.append((min_overall, min_name))
         return {"success": True}
 

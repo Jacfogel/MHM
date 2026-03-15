@@ -1726,6 +1726,7 @@ class DiscordBot(BaseChannel):
             self._set_status(ChannelStatus.STOPPED)
             logger.info("Discord bot shutdown completed")
 
+    # not_duplicate: send_message_channel
     @handle_errors("sending Discord message", default_return=False)
     async def send_message(self, recipient: str, message: str, **kwargs) -> bool:
         """

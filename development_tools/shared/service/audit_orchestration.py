@@ -120,6 +120,19 @@ class AuditOrchestrationMixin:
         """Stub for mixin typing; implemented in ToolWrappersMixin."""
         raise NotImplementedError
 
+    def _run_analyze_duplicate_functions_for_audit(self):
+        """Run duplicate-functions with body-for-near-miss when this is a full audit and config enables it."""
+        try:
+            from ... import config as devtools_config
+            cfg = devtools_config.get_analyze_duplicate_functions_config()
+        except Exception:
+            cfg = {}
+        body_for_near_miss = (
+            getattr(self, "current_audit_tier", 2) >= 3
+            and cfg.get("run_body_similarity_on_full_audit", True)
+        )
+        return self.run_analyze_duplicate_functions(body_for_near_miss_only=body_for_near_miss)
+
     def _effective_tier3_state(self) -> str:
         """Return Tier 3 state including development-tools track impact."""
         outcome = (
@@ -708,7 +721,7 @@ class AuditOrchestrationMixin:
             ('analyze_functions', self.run_analyze_functions),  # 3.41s
             ('analyze_error_handling', self.run_analyze_error_handling),  # 3.06s
             ('analyze_package_exports', self.run_analyze_package_exports),  # 9.06s
-            ('analyze_duplicate_functions', self.run_analyze_duplicate_functions),  # 6.50s
+            ('analyze_duplicate_functions', lambda: self._run_analyze_duplicate_functions_for_audit()),  # 6.50s
             ('analyze_module_refactor_candidates', self.run_analyze_module_refactor_candidates),
         ]
         

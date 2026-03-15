@@ -40,6 +40,7 @@ def clear_welcomed_status(discord_user_id: str) -> bool:
     return _clear_welcomed_status(discord_user_id, channel_type="discord")
 
 
+# not_duplicate: get_welcome_message
 @handle_errors("getting Discord welcome message", default_return="")
 def get_welcome_message(
     discord_user_id: str,

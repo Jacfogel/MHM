@@ -127,6 +127,7 @@ class EmailBot(BaseChannel):
         logger.info("EmailBot stopped.")
         return True
 
+    # not_duplicate: send_message_channel
     @handle_errors("sending email message", default_return=False)
     async def send_message(self, recipient: str, message: str, **kwargs) -> bool:
         """Send message via email"""

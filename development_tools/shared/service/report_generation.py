@@ -4004,7 +4004,7 @@ class ReportGenerationMixin:
                         else {}
                     )
                     max_score = similarity_range.get("max", 0)
-                    return (func_count, max_score)
+                    return (max_score, func_count)
 
                 sorted_groups = sorted(groups, key=group_sort_key, reverse=True)[:3]
                 duplicate_bullets: list[str] = []
@@ -6837,7 +6837,7 @@ class ReportGenerationMixin:
                         else {}
                     )
                     max_score = similarity_range.get("max", 0)
-                    return (func_count, max_score)
+                    return (max_score, func_count)
 
                 sorted_groups = sorted(groups, key=group_sort_key, reverse=True)[:3]
                 group_items = []
@@ -6898,6 +6898,11 @@ class ReportGenerationMixin:
             if cap_notes:
                 lines.append(
                     f"   - **Output limits**: {', '.join(cap_notes)} (increase config to see more)"
+                )
+            if duplicate_details.get("consider_body_similarity_used"):
+                body_pairs = duplicate_details.get("body_candidate_pairs_considered", 0)
+                lines.append(
+                    f"   - **Body/structural similarity**: enabled ({body_pairs} body candidate pairs considered)"
                 )
 
         lines.append("")

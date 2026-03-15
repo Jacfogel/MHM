@@ -23,9 +23,20 @@ comment inside the function (or in the few lines before it):
 wrappers (e.g. same method name across classes that delegate to a shared
 helper) or other cases that are not actionable duplicates.
 
-Limitation: Pairing is driven by shared *name tokens*. Functions with
-different names but similar logic are not compared, so some real duplicates
-may be missed. A future body/structural similarity pass could improve recall.
+Not duplication: To suppress reporting of a specific intentional group
+(e.g. polymorphism, same API pattern), add the same comment to every
+function in that group, including a group id after a colon so the tool
+knows which pairs to suppress. Only pairs where both functions have the
+same group id are omitted; future duplicates without the comment still
+appear. Example (all three methods get the same id):
+  # not_duplicate: format_message
+  # duplicate_functions_intentional: get_color_for_type
+Supported: duplicate_functions_intentional, not_duplicate, duplicate functions intentional.
+
+Optional body/structural similarity: Use --consider-body-similarity (or config
+consider_body_similarity) to also compare functions by AST body structure,
+surfacing pairs with different names but similar logic. Cost is capped via
+max_body_candidate_pairs and body_similarity_scope (e.g. same_file).
 """
 
 from __future__ import annotations
@@ -72,7 +83,7 @@ FunctionSummary = TypedDict(
 )
 
 
-class PairResult(TypedDict):
+class _PairResultRequired(TypedDict):
     overall_similarity: float
     name_similarity: float
     args_similarity: float
@@ -80,6 +91,10 @@ class PairResult(TypedDict):
     imports_similarity: float
     a: FunctionSummary
     b: FunctionSummary
+
+
+class PairResult(_PairResultRequired, total=False):
+    body_similarity: float
 
 
 class GroupSummary(TypedDict):
@@ -109,6 +124,8 @@ class FunctionRecord:
     imports_used: tuple[str, ...]
     name_tokens: tuple[str, ...]
     excluded: bool = False  # True if # duplicate_functions_exclude (or variant) in function
+    intentional_group_id: str | None = None  # If set, pair is omitted only when both sides have same id
+    body_node_sequence: tuple[str, ...] | None = None  # AST node-type sequence when body similarity enabled
 
 
 def _get_analysis_config() -> dict:
@@ -198,13 +215,63 @@ def _function_has_exclude_comment(content: str, node: FunctionNode) -> bool:
     )
 
 
+def _get_intentional_group_id(content: str, node: FunctionNode) -> str | None:
+    """If the function (or a few lines before it) has an intentional/not_duplicate marker with a group id after a colon, return that id (normalized). Otherwise None."""
+    if not content:
+        return None
+    lines = content.split("\n")
+    start_lineno = getattr(node, "lineno", 1) or 1
+    end_lineno = getattr(node, "end_lineno", start_lineno) or start_lineno
+    context_start = max(0, start_lineno - 4)
+    snippet_lower = "\n".join(lines[context_start:end_lineno]).lower()
+    markers = (
+        "# duplicate_functions_intentional:",
+        "# not_duplicate:",
+        "# duplicate functions intentional:",
+    )
+    for marker in markers:
+        idx = snippet_lower.find(marker)
+        if idx >= 0:
+            rest = snippet_lower[idx + len(marker) :].split("\n")[0].strip()
+            group_id = rest.split("#")[0].strip()
+            return group_id if group_id else ""
+    if (
+        "# duplicate_functions_intentional" in snippet_lower
+        or "# not_duplicate" in snippet_lower
+        or "# duplicate functions intentional" in snippet_lower
+    ):
+        return ""
+    return None
+
+
+def _deserialize_intentional_group_id(raw: Any) -> str | None:
+    """Return normalized intentional_group_id from cache/item; None if missing or invalid."""
+    if raw is None:
+        return None
+    if isinstance(raw, bool):
+        return "" if raw else None
+    return str(raw).strip() or None
+
+
+def _body_node_sequence(node: FunctionNode) -> tuple[str, ...]:
+    """Return a normalized sequence of AST node-type names for the function body (top-level statements only)."""
+    return tuple(type(stmt).__name__ for stmt in node.body)
+
+
 class _FunctionCollector(ast.NodeVisitor):
-    def __init__(self, file_path: str, imports_used: set[str], content: str = "") -> None:
+    def __init__(
+        self,
+        file_path: str,
+        imports_used: set[str],
+        content: str = "",
+        consider_body_similarity: bool = False,
+    ) -> None:
         self.file_path = file_path
         self.imports_used = tuple(sorted(imports_used))
         self.content = content
         self.class_stack: list[str] = []
         self.records: list[FunctionRecord] = []
+        self.consider_body_similarity = consider_body_similarity
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         self.class_stack.append(node.name)
@@ -232,6 +299,10 @@ class _FunctionCollector(ast.NodeVisitor):
         )
         name_tokens = _tokenize_name(node.name)
         excluded = _function_has_exclude_comment(self.content, node)
+        intentional_group_id = _get_intentional_group_id(self.content, node)
+        body_seq: tuple[str, ...] | None = (
+            _body_node_sequence(node) if self.consider_body_similarity else None
+        )
 
         record = FunctionRecord(
             name=node.name,
@@ -244,6 +315,8 @@ class _FunctionCollector(ast.NodeVisitor):
             imports_used=self.imports_used,
             name_tokens=tuple(name_tokens),
             excluded=excluded,
+            intentional_group_id=intentional_group_id,
+            body_node_sequence=body_seq,
         )
         self.records.append(record)
 
@@ -254,7 +327,9 @@ class _FunctionCollector(ast.NodeVisitor):
         self._handle_function(node)
 
 
-def _scan_file(file_path: Path) -> list[FunctionRecord]:
+def _scan_file(
+    file_path: Path, consider_body_similarity: bool = False
+) -> list[FunctionRecord]:
     try:
         content = file_path.read_text(encoding="utf-8")
         tree = ast.parse(content)
@@ -263,14 +338,22 @@ def _scan_file(file_path: Path) -> list[FunctionRecord]:
         return []
 
     imports_used = _collect_imports(tree)
-    collector = _FunctionCollector(str(file_path), imports_used, content=content)
+    collector = _FunctionCollector(
+        str(file_path),
+        imports_used,
+        content=content,
+        consider_body_similarity=consider_body_similarity,
+    )
     collector.visit(tree)
     return collector.records
 
 
-def _serialize_records(records: list[FunctionRecord]) -> list[dict[str, object]]:
-    return [
-        {
+def _serialize_records(
+    records: list[FunctionRecord], include_body: bool = False
+) -> list[dict[str, object]]:
+    out: list[dict[str, object]] = []
+    for record in records:
+        item: dict[str, object] = {
             "name": record.name,
             "full_name": record.full_name,
             "class_name": record.class_name,
@@ -281,9 +364,12 @@ def _serialize_records(records: list[FunctionRecord]) -> list[dict[str, object]]
             "imports_used": list(record.imports_used),
             "name_tokens": list(record.name_tokens),
             "excluded": getattr(record, "excluded", False),
+            "intentional_group_id": getattr(record, "intentional_group_id", None),
         }
-        for record in records
-    ]
+        if include_body and getattr(record, "body_node_sequence", None) is not None:
+            item["body_node_sequence"] = list(record.body_node_sequence)
+        out.append(item)
+    return out
 
 
 def _deserialize_records(data: list[dict[str, Any]]) -> list[FunctionRecord]:
@@ -303,6 +389,10 @@ def _deserialize_records(data: list[dict[str, Any]]) -> list[FunctionRecord]:
         imports_seq = imports_raw if isinstance(imports_raw, (list, tuple)) else []
         tokens_raw = item.get("name_tokens", [])
         tokens_seq = tokens_raw if isinstance(tokens_raw, (list, tuple)) else []
+        body_raw = item.get("body_node_sequence")
+        body_seq: tuple[str, ...] | None = None
+        if isinstance(body_raw, (list, tuple)):
+            body_seq = tuple(str(x) for x in body_raw)
         records.append(
             FunctionRecord(
                 name=str(item.get("name", "")),
@@ -315,13 +405,17 @@ def _deserialize_records(data: list[dict[str, Any]]) -> list[FunctionRecord]:
                 imports_used=tuple(str(name) for name in imports_seq),
                 name_tokens=tuple(str(token) for token in tokens_seq),
                 excluded=bool(item.get("excluded", False)),
+                intentional_group_id=_deserialize_intentional_group_id(item.get("intentional_group_id")),
+                body_node_sequence=body_seq,
             )
         )
     return records
 
 
 def _gather_function_records(
-    include_tests: bool, include_dev_tools: bool
+    include_tests: bool,
+    include_dev_tools: bool,
+    consider_body_similarity: bool = False,
 ) -> tuple[list[FunctionRecord], dict[str, int]]:
     project_root = Path(config.get_project_root())
     scan_dirs = list(config.get_scan_directories())
@@ -330,10 +424,15 @@ def _gather_function_records(
 
     from development_tools.shared.mtime_cache import MtimeFileCache
 
+    cache_tool_name = (
+        "analyze_duplicate_functions_body"
+        if consider_body_similarity
+        else "analyze_duplicate_functions"
+    )
     cache = MtimeFileCache(
         project_root=project_root,
         use_cache=use_cache,
-        tool_name="analyze_duplicate_functions",
+        tool_name=cache_tool_name,
         domain="functions",
         tool_paths=[Path(__file__)],
     )
@@ -344,6 +443,7 @@ def _gather_function_records(
         scan_dirs.append("development_tools")
 
     context = "development" if include_tests or include_dev_tools else "production"
+    include_body = consider_body_similarity
 
     records: list[FunctionRecord] = []
     total_files = 0
@@ -363,8 +463,8 @@ def _gather_function_records(
                 cached_files += 1
                 records.extend(_deserialize_records(cached_records))
                 continue
-            file_records = _scan_file(py_file)
-            cache.cache_results(py_file, _serialize_records(file_records))
+            file_records = _scan_file(py_file, consider_body_similarity=consider_body_similarity)
+            cache.cache_results(py_file, _serialize_records(file_records, include_body=include_body))
             scanned_files += 1
             records.extend(file_records)
 
@@ -377,8 +477,8 @@ def _gather_function_records(
             cached_files += 1
             records.extend(_deserialize_records(cached_records))
             continue
-        file_records = _scan_file(py_file)
-        cache.cache_results(py_file, _serialize_records(file_records))
+        file_records = _scan_file(py_file, consider_body_similarity=consider_body_similarity)
+        cache.cache_results(py_file, _serialize_records(file_records, include_body=include_body))
         scanned_files += 1
         records.extend(file_records)
 
@@ -425,6 +525,71 @@ def _build_candidate_pairs(
     return candidate_pairs, skipped_tokens, max_reached
 
 
+def _build_body_candidate_pairs(
+    records: list[FunctionRecord],
+    scope: str,
+    max_pairs: int,
+) -> set[tuple[int, int]]:
+    """Build candidate pairs for body similarity (e.g. same file or same module). Capped at max_pairs."""
+    pairs: set[tuple[int, int]] = set()
+    n = len(records)
+
+    # Only consider records that have body data and are not excluded
+    eligible = [
+        i
+        for i in range(n)
+        if not getattr(records[i], "excluded", False)
+        and getattr(records[i], "body_node_sequence", None)
+    ]
+
+    if scope == "same_file":
+        by_file: dict[str, list[int]] = {}
+        for i in eligible:
+            path = records[i].file_path or ""
+            by_file.setdefault(path, []).append(i)
+        for indices in by_file.values():
+            for ii in range(len(indices)):
+                for jj in range(ii + 1, len(indices)):
+                    a_id, b_id = indices[ii], indices[jj]
+                    pairs.add((min(a_id, b_id), max(a_id, b_id)))
+                    if len(pairs) >= max_pairs:
+                        return pairs
+    elif scope == "same_module":
+        def _module_key(idx: int) -> str:
+            p = (records[idx].file_path or "").replace("\\", "/")
+            if "/" in p:
+                return p.rsplit("/", 1)[0]
+            return ""
+
+        by_module: dict[str, list[int]] = {}
+        for i in eligible:
+            by_module.setdefault(_module_key(i), []).append(i)
+        for indices in by_module.values():
+            for ii in range(len(indices)):
+                for jj in range(ii + 1, len(indices)):
+                    a_id, b_id = indices[ii], indices[jj]
+                    pairs.add((min(a_id, b_id), max(a_id, b_id)))
+                    if len(pairs) >= max_pairs:
+                        return pairs
+    else:
+        # hash_bucket: group by hash of body sequence, compare within bucket
+        from hashlib import md5
+
+        buckets: dict[str, list[int]] = {}
+        for i in eligible:
+            seq = getattr(records[i], "body_node_sequence", None) or ()
+            key = md5(" ".join(seq).encode()).hexdigest() if seq else ""
+            buckets.setdefault(key, []).append(i)
+        for indices in buckets.values():
+            for ii in range(len(indices)):
+                for jj in range(ii + 1, len(indices)):
+                    a_id, b_id = indices[ii], indices[jj]
+                    pairs.add((min(a_id, b_id), max(a_id, b_id)))
+                    if len(pairs) >= max_pairs:
+                        return pairs
+    return pairs
+
+
 def _record_identity(
     record: FunctionRecord, project_root: Path | None = None
 ) -> tuple[str, int, str]:
@@ -464,21 +629,30 @@ def _compute_similarity(
     args_score = _jaccard(a.args, b.args)
     locals_score = _jaccard(a.locals_used, b.locals_used)
     imports_score = _jaccard(a.imports_used, b.imports_used)
-
+    scores: dict[str, float] = {
+        "name": name_score,
+        "args": args_score,
+        "locals": locals_score,
+        "imports": imports_score,
+    }
+    body_score: float | None = None
+    a_body = getattr(a, "body_node_sequence", None)
+    b_body = getattr(b, "body_node_sequence", None)
+    if a_body is not None and b_body is not None:
+        body_score = _jaccard(a_body, b_body)
+        scores["body"] = body_score
     weight_sum = sum(weights.values()) or 1.0
     overall = (
         name_score * weights.get("name", 0.0)
         + args_score * weights.get("args", 0.0)
         + locals_score * weights.get("locals", 0.0)
         + imports_score * weights.get("imports", 0.0)
-    ) / weight_sum
-
-    return overall, {
-        "name": name_score,
-        "args": args_score,
-        "locals": locals_score,
-        "imports": imports_score,
-    }
+    )
+    if body_score is not None and weight_sum > 0:
+        overall += body_score * weights.get("body", 0.0)
+    if weight_sum > 0:
+        overall /= weight_sum
+    return overall, scores
 
 
 def _analyze_duplicates(
@@ -494,6 +668,21 @@ def _analyze_duplicates(
     max_candidate_pairs = int(config_values.get("max_candidate_pairs", 20000))
     max_token_group_size = int(config_values.get("max_token_group_size", 200))
     stop_tokens = set(config_values.get("stop_name_tokens", []))
+    consider_body_similarity = bool(config_values.get("consider_body_similarity", False))
+    body_for_near_miss_only = bool(config_values.get("body_for_near_miss_only", False))
+    body_similarity_min_name_threshold = float(
+        config_values.get("body_similarity_min_name_threshold", 0.35)
+    )
+    max_body_candidate_pairs = int(config_values.get("max_body_candidate_pairs", 5000))
+    body_similarity_scope = str(config_values.get("body_similarity_scope", "same_file"))
+    weights = dict(weights or {})
+    body_weight = float(weights.get("body", 0.0))
+    if (consider_body_similarity or body_for_near_miss_only) and body_weight == 0.0:
+        weights = {**weights, "body": 0.25}
+        body_weight = 0.25
+    weights_no_body = {k: v for k, v in weights.items() if k != "body"} if weights else {}
+    if not weights_no_body:
+        weights_no_body = dict(weights or {})
 
     # Deduplicate so the same function (file, line, full_name) is not compared with itself.
     # Use project-relative path so the same file from different scan paths is deduplicated.
@@ -508,29 +697,53 @@ def _analyze_duplicates(
         max_token_group_size=max_token_group_size,
         max_candidate_pairs=max_candidate_pairs,
     )
+    body_pairs_count = 0
+    if consider_body_similarity and not body_for_near_miss_only:
+        body_pairs = _build_body_candidate_pairs(
+            records, scope=body_similarity_scope, max_pairs=max_body_candidate_pairs
+        )
+        body_pairs_count = len(body_pairs)
+        candidate_pairs = candidate_pairs.union(body_pairs)
 
     record_by_id = {idx: record for idx, record in enumerate(records)}
 
     pair_results: list[PairResult] = []
+    pairs_filtered_intentional = 0
     for a_id, b_id in candidate_pairs:
         a = record_by_id[a_id]
         b = record_by_id[b_id]
-        overall, scores = _compute_similarity(a, b, weights)
-        if scores["name"] < min_name_similarity:
+        a_gid = getattr(a, "intentional_group_id", None)
+        b_gid = getattr(b, "intentional_group_id", None)
+        if a_gid is not None and b_gid is not None and a_gid == b_gid:
+            pairs_filtered_intentional += 1
             continue
-        if overall < min_overall_similarity:
-            continue
-        pair_results.append(
-            {
-                "overall_similarity": round(overall, 3),
-                "name_similarity": round(scores["name"], 3),
-                "args_similarity": round(scores["args"], 3),
-                "locals_similarity": round(scores["locals"], 3),
-                "imports_similarity": round(scores["imports"], 3),
-                "a": _record_summary(a),
-                "b": _record_summary(b),
-            }
-        )
+        if body_for_near_miss_only:
+            overall_base, scores_base = _compute_similarity(a, b, weights_no_body)
+            passes_normal = (
+                scores_base["name"] >= min_name_similarity
+                and overall_base >= min_overall_similarity
+            )
+            if passes_normal:
+                overall, scores = _compute_similarity(a, b, weights)
+                item = _make_pair_result_item(a, b, overall, scores)
+                pair_results.append(item)
+                continue
+            if scores_base["name"] < body_similarity_min_name_threshold:
+                continue
+            overall, scores = _compute_similarity(a, b, weights)
+            if overall < min_overall_similarity:
+                continue
+            item = _make_pair_result_item(a, b, overall, scores)
+            pair_results.append(item)
+        else:
+            overall, scores = _compute_similarity(a, b, weights)
+            use_body_score = "body" in scores and body_weight > 0
+            if not use_body_score and scores["name"] < min_name_similarity:
+                continue
+            if overall < min_overall_similarity:
+                continue
+            item = _make_pair_result_item(a, b, overall, scores)
+            pair_results.append(item)
 
     pair_results.sort(
         key=lambda item: float(item["overall_similarity"]), reverse=True
@@ -552,33 +765,43 @@ def _analyze_duplicates(
     }
     functions_excluded = sum(1 for r in records if getattr(r, "excluded", False))
 
+    details: dict[str, Any] = {
+        "total_functions": len(records),
+        "functions_excluded": functions_excluded,
+        "records_deduplicated": records_deduplicated,
+        "groups_filtered_single_function": groups_filtered_single_function,
+        "cache": cache_stats or {},
+        "pairs_considered": len(candidate_pairs),
+        "pairs_reported": len(pair_results),
+        "groups_reported": len(groups),
+        "min_name_similarity": min_name_similarity,
+        "min_overall_similarity": min_overall_similarity,
+        "weights": weights,
+        "max_candidate_pairs": max_candidate_pairs,
+        "max_token_group_size": max_token_group_size,
+        "max_pairs": max_pairs,
+        "max_groups": max_groups,
+        "skipped_token_groups": skipped_tokens,
+        "candidate_pair_cap_reached": max_reached,
+        "groups_capped": len(multi_function_groups) > max_groups and max_groups > 0,
+        "top_pairs": pair_results[:max_pairs],
+        "duplicate_groups": groups,
+    }
+    if pairs_filtered_intentional > 0:
+        details["pairs_filtered_intentional"] = pairs_filtered_intentional
+    if consider_body_similarity or body_for_near_miss_only:
+        details["consider_body_similarity_used"] = consider_body_similarity
+        if body_for_near_miss_only:
+            details["body_for_near_miss_only"] = True
+            details["body_similarity_min_name_threshold"] = body_similarity_min_name_threshold
+        if consider_body_similarity and not body_for_near_miss_only:
+            details["body_candidate_pairs_considered"] = body_pairs_count
     return {
         "summary": {
             "total_issues": len(groups),
             "files_affected": len(files_affected),
         },
-        "details": {
-            "total_functions": len(records),
-            "functions_excluded": functions_excluded,
-            "records_deduplicated": records_deduplicated,
-            "groups_filtered_single_function": groups_filtered_single_function,
-            "cache": cache_stats or {},
-            "pairs_considered": len(candidate_pairs),
-            "pairs_reported": len(pair_results),
-            "groups_reported": len(groups),
-            "min_name_similarity": min_name_similarity,
-            "min_overall_similarity": min_overall_similarity,
-            "weights": weights,
-            "max_candidate_pairs": max_candidate_pairs,
-            "max_token_group_size": max_token_group_size,
-            "max_pairs": max_pairs,
-            "max_groups": max_groups,
-            "skipped_token_groups": skipped_tokens,
-            "candidate_pair_cap_reached": max_reached,
-            "groups_capped": len(multi_function_groups) > max_groups and max_groups > 0,
-            "top_pairs": pair_results[:max_pairs],
-            "duplicate_groups": groups,
-        },
+        "details": details,
     }
 
 
@@ -591,6 +814,23 @@ def _record_summary(record: FunctionRecord) -> FunctionSummary:
         "line": record.line,
         "args": list(record.args),
     }
+
+
+def _make_pair_result_item(
+    a: FunctionRecord, b: FunctionRecord, overall: float, scores: dict[str, float]
+) -> PairResult:
+    item: PairResult = {
+        "overall_similarity": round(overall, 3),
+        "name_similarity": round(scores["name"], 3),
+        "args_similarity": round(scores["args"], 3),
+        "locals_similarity": round(scores["locals"], 3),
+        "imports_similarity": round(scores["imports"], 3),
+        "a": _record_summary(a),
+        "b": _record_summary(b),
+    }
+    if "body" in scores:
+        item["body_similarity"] = round(scores["body"], 3)
+    return item
 
 
 def _normalize_path(path: str) -> str:
@@ -702,6 +942,16 @@ def main() -> int:
         "--json", action="store_true", help="Output results as JSON."
     )
     parser.add_argument(
+        "--consider-body-similarity",
+        action="store_true",
+        help="Include body/structural similarity (AST node-type sequence); increases runtime.",
+    )
+    parser.add_argument(
+        "--body-for-near-miss",
+        action="store_true",
+        help="Run body similarity only on name-token pairs that exceed a lower name threshold (for full-audit near-miss rescue).",
+    )
+    parser.add_argument(
         "--min-overall",
         type=float,
         default=None,
@@ -724,6 +974,11 @@ def main() -> int:
     args = parser.parse_args()
 
     analysis_config = _get_analysis_config()
+    if args.consider_body_similarity:
+        analysis_config["consider_body_similarity"] = True
+    if args.body_for_near_miss:
+        analysis_config["body_for_near_miss_only"] = True
+        analysis_config["consider_body_similarity"] = True
     if args.min_overall is not None:
         analysis_config["min_overall_similarity"] = args.min_overall
     if args.min_name is not None:
@@ -731,9 +986,14 @@ def main() -> int:
     if args.max_groups is not None:
         analysis_config["max_groups"] = args.max_groups
 
+    use_body = (
+        analysis_config.get("consider_body_similarity", False)
+        or analysis_config.get("body_for_near_miss_only", False)
+    )
     records, cache_stats = _gather_function_records(
         include_tests=args.include_tests,
         include_dev_tools=args.include_dev_tools,
+        consider_body_similarity=use_body,
     )
     result = _analyze_duplicates(records, analysis_config, cache_stats=cache_stats)
 

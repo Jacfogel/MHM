@@ -472,12 +472,12 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [x] Document the decision - tool_timings.json is written by audit orchestration after tier execution; location is under `reports/jsons/` with other JSON artifacts
 
 #### 3.5 Expand analyze_duplicate_functions with body/structural similarity
-**Status**: PENDING  
-**User priority**: High.  
+**Status**: COMPLETED
+**User priority**: High.
 **Tasks**:
-- [ ] Extend `development_tools/functions/analyze_duplicate_functions.py` to improve recall: pairing is currently name-token only, so functions with different names but similar logic are never compared.
-- [ ] Add an optional body/structural similarity pass: e.g. normalize function body (or AST node-type sequence), compute similarity for candidate pairs (same file/module or expanded set), merge or report alongside name-based groups.
-- [ ] Consider config/CLI (e.g. `--consider-body-similarity`) or a separate script for structural duplicate detection; document cost (more pairs to score) and how to cap it.
+- [x] Extend `development_tools/functions/analyze_duplicate_functions.py` to improve recall: pairing is currently name-token only, so functions with different names but similar logic are never compared.
+- [x] Add an optional body/structural similarity pass: e.g. normalize function body (or AST node-type sequence), compute similarity for candidate pairs (same file/module or expanded set), merge or report alongside name-based groups.
+- [x] Consider config/CLI (e.g. `--consider-body-similarity`) or a separate script for structural duplicate detection; document cost (more pairs to score) and how to cap it.
 
 #### 3.6 Error handling coverage metric consistency
 **Status**: PENDING  

@@ -332,6 +332,7 @@ class UserDataManager:
         logger.info(f"User data exported for user {user_id}")
         return export_data
 
+    # not_duplicate: delete_user_completely
     @handle_errors("deleting user completely", default_return=False)
     def delete_user_completely(self, user_id: str, create_backup: bool = True) -> bool:
         """
@@ -793,6 +794,7 @@ class UserDataManager:
             logger.warning(f"Error getting last interaction for user {user_id}: {e}")
             return "1970-01-01 00:00:00"
 
+    # not_duplicate: update_user_index
     @handle_errors("updating user index", default_return=False)
     def update_user_index(self, user_id: str) -> bool:
         """
@@ -1304,6 +1306,7 @@ def export_user_data(user_id: str, export_format: str = "json") -> dict[str, Any
         return {}
 
 
+# not_duplicate: delete_user_completely
 @handle_errors("deleting user completely", default_return=False)
 def delete_user_completely(user_id: str, create_backup: bool = True) -> bool:
     """
@@ -1378,6 +1381,7 @@ def get_user_data_summary(user_id: str) -> dict[str, Any]:
         return {}
 
 
+# not_duplicate: update_user_index
 @handle_errors("updating user index", default_return=False)
 def update_user_index(user_id: str) -> bool:
     """
