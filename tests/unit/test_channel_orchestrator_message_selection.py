@@ -10,7 +10,7 @@ from communication.core.channel_orchestrator import CommunicationManager
 class TestChannelOrchestratorMessageSelectionHelpers:
     def setup_method(self):
         CommunicationManager._instance = None
-        CommunicationManager._initialized = False
+        setattr(CommunicationManager, "_initialized", False)  # noqa: B010
         self.manager = CommunicationManager()
 
     def test_normalize_periods_removes_all_when_specific_periods_exist(self):

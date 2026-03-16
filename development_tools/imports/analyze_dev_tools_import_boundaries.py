@@ -13,7 +13,7 @@ from __future__ import annotations
 import ast
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -51,12 +51,12 @@ class DevToolsImportBoundaryChecker:
 
         self.dev_tools_root = self.project_root / "development_tools"
 
-    def _iter_dev_tools_files(self) -> List[Path]:
+    def _iter_dev_tools_files(self) -> list[Path]:
         """Yield Python files under development_tools respecting exclusions."""
         if not self.dev_tools_root.exists():
             return []
 
-        results: List[Path] = []
+        results: list[Path] = []
         for py_file in self.dev_tools_root.rglob("*.py"):
             rel = py_file.relative_to(self.project_root)
             rel_str = str(rel).replace("\\", "/")
@@ -65,9 +65,9 @@ class DevToolsImportBoundaryChecker:
             results.append(py_file)
         return results
 
-    def _extract_import_modules(self, file_path: Path) -> List[str]:
+    def _extract_import_modules(self, file_path: Path) -> list[str]:
         """Return fully qualified modules imported in file."""
-        modules: List[str] = []
+        modules: list[str] = []
         try:
             text = file_path.read_text(encoding="utf-8")
             tree = ast.parse(text, filename=str(file_path))
@@ -94,9 +94,9 @@ class DevToolsImportBoundaryChecker:
     def _is_dev_tools_file(self, rel_path: str) -> bool:
         return rel_path.startswith("development_tools/")
 
-    def analyze(self) -> Dict[str, Any]:
+    def analyze(self) -> dict[str, Any]:
         """Return standard-format result with import-boundary violations."""
-        violations: List[Dict[str, str]] = []
+        violations: list[dict[str, str]] = []
 
         files = self._iter_dev_tools_files()
         for file_path in files:
@@ -122,7 +122,7 @@ class DevToolsImportBoundaryChecker:
             "files_with_violations": len({v["file"] for v in violations}),
         }
 
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             "summary": {
                 "total_issues": summary["total_violations"],
                 "files_affected": summary["files_with_violations"],

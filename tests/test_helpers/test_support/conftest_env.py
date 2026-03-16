@@ -219,10 +219,10 @@ def _apply_get_user_data_shim_early():
         return result
 
     with contextlib.suppress(Exception):
-        um.get_user_data = wrapped_get_user_data
+        setattr(um, "get_user_data", wrapped_get_user_data)  # noqa: B010
     try:
         if udh is not None and hasattr(udh, "get_user_data"):
-            udh.get_user_data = wrapped_get_user_data
+            setattr(udh, "get_user_data", wrapped_get_user_data)  # noqa: B010
     except Exception:
         pass
 

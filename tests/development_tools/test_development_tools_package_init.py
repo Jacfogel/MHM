@@ -12,8 +12,9 @@ def _get_real_development_tools_module():
     """Ensure the project-root development_tools package is loaded and return it (not tests.development_tools)."""
     # If "development_tools" is already the tests subpackage, remove it so the loader loads the real one
     current = sys.modules.get("development_tools")
-    if current is not None and getattr(current, "__file__", None):
-        if Path(current.__file__).resolve().parent == (project_root / "tests" / "development_tools"):
+    current_file = getattr(current, "__file__", None) if current is not None else None
+    if current is not None and current_file is not None:
+        if Path(current_file).resolve().parent == (project_root / "tests" / "development_tools"):
             del sys.modules["development_tools"]
     load_development_tools_module("shared.result_format")
     return sys.modules["development_tools"]

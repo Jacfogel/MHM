@@ -239,6 +239,7 @@ class TestUtilitiesDemo:
             assert context_data.get("custom_fields", {}).get("health_conditions") == custom_fields["health_conditions"], "Custom fields should be saved correctly"
             assert context_data.get("interests") == ["Technology", "Gaming"], "Default interests should be set"
     
+    @pytest.mark.no_parallel  # shared user index and test_data_dir under xdist; preferences/schedules creation can race
     def test_scheduled_user_creation(self, test_data_dir):
         """Test creating a user with comprehensive schedules."""
         user_id = "test_scheduled_user"

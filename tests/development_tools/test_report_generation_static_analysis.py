@@ -57,7 +57,8 @@ def test_static_analysis_sections_render_in_generated_reports(temp_project_copy)
 
     assert "## Static Analysis" in status_doc
     assert "Ruff" in status_doc and "Pyright" in status_doc
-    assert "Address static analysis findings" in priorities_doc
+    assert "Address Ruff findings" in priorities_doc
+    assert "Address Pyright findings" in priorities_doc
     assert "## Static Analysis" in consolidated_doc
     assert "Top Pyright Error Files: a.py (2)" in consolidated_doc
     assert "Top Pyright Warning Files: b.py (1)" in consolidated_doc

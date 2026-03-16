@@ -2957,6 +2957,8 @@ class ReportGenerationMixin:
                 "Investigate possible duplicate functions/methods": "development_tools/functions/jsons/analyze_duplicate_functions_results.json",
                 "Consider refactoring large or high-complexity modules": "development_tools/functions/jsons/analyze_module_refactor_candidates_results.json",
                 "Refactor high-complexity functions": "development_tools/functions/jsons/analyze_functions_results.json",
+                "Address Ruff findings": "development_tools/consolidated_report.md",
+                "Address Pyright findings": "development_tools/consolidated_report.md",
                 "Investigate and correct test failures/errors": "stdout files in development_tools/tests/logs",
                 "Investigate backup health failures": "development_tools/reports/jsons/backup_health_report.json",
                 "Consolidate documentation files": "development_tools/docs/jsons/analyze_documentation_results.json",
@@ -3494,67 +3496,46 @@ class ReportGenerationMixin:
                     reason="Ruff and/or pyright are unavailable in the current audit environment.",
                     bullets=unavailable_bullets,
                 )
-            elif ruff_issues > 0 or pyright_issues > 0:
-                static_bullets: list[str] = [
-                    f"Ruff findings: {ruff_issues} issue(s) across {to_int(ruff_summary.get('files_affected')) or 0} file(s).",
-                    f"Pyright findings: {pyright_errors} error(s), {pyright_warnings} warning(s).",
-                    "Action: Run `python -m ruff check .` and `python -m pyright` to inspect full diagnostics before fixes.",
-                    "Why this matters: Lint/type regressions reduce reliability and increase defect risk.",
-                ]
-                add_priority(
-                    tier=3,
-                    title="Address static analysis findings",
-                    reason=(
-                        f"Static analysis reports {ruff_issues + pyright_issues} total issue(s) "
-                        f"(ruff={ruff_issues}, pyright={pyright_issues})."
-                    ),
-                    bullets=static_bullets,
-                )
-
-        # Deferred Ruff rules are intentionally tracked as informational (non-blocking)
-        # in Watch List (monitoring, not immediate action).
-        deferred_rule_descriptions = {
-            "E501": "line-too-long",
-            "E402": "module-import-not-at-top-of-file",
-            "SIM117": "multiple-with-statements",
-            "SIM102": "collapsible-if",
-        }
-        configured_ruff_ignores: list[str] = []
-        try:
-            ruff_cfg_text = (self.project_root / ".ruff.toml").read_text(
-                encoding="utf-8"
-            )
-            ignore_match = re.search(
-                r"(?ms)^\s*ignore\s*=\s*\[(.*?)\]", ruff_cfg_text
-            )
-            if ignore_match:
-                configured_ruff_ignores = re.findall(r'"([^"]+)"', ignore_match.group(1))
-        except Exception:
-            configured_ruff_ignores = []
-
-        deferred_codes = [
-            code
-            for code in deferred_rule_descriptions
-            if code in configured_ruff_ignores
-        ]
-        if deferred_codes:
-            deferred_labels = [
-                f"{code} ({deferred_rule_descriptions[code]})"
-                for code in deferred_codes
-            ]
-            watch_items.append(
-                {
-                    "title": "Deferred Ruff style rules",
-                    "reason": (
-                        f"{len(deferred_codes)} rule(s) are intentionally non-blocking for now."
-                    ),
-                    "bullets": [
-                        f"Deferred rules: {self._format_list_for_display(deferred_labels, limit=6)}",
-                        "Current config: `.ruff.toml` `ignore = [...]`",
-                        "Monitor trend and re-enable gradually as codebase stabilizes.",
-                    ],
-                }
-            )
+            else:
+                # Ruff: separate priority only when there are findings
+                if ruff_issues > 0:
+                    ruff_bullets: list[str] = [
+                        f"Ruff findings: {ruff_issues} issue(s) across {to_int(ruff_summary.get('files_affected')) or 0} file(s).",
+                        "Action: Run `python -m ruff check .` to inspect full diagnostics before fixes.",
+                        "Why this matters: Lint regressions reduce reliability and increase defect risk.",
+                        "Review for details: development_tools/consolidated_report.md",
+                    ]
+                    ruff_bullets.insert(
+                        0, "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                    )
+                    add_priority(
+                        tier=3,
+                        title="Address Ruff findings",
+                        reason=(
+                            f"Ruff reports {ruff_issues} issue(s) across "
+                            f"{to_int(ruff_summary.get('files_affected')) or 0} file(s)."
+                        ),
+                        bullets=ruff_bullets,
+                    )
+                # Pyright: separate priority only when there are findings
+                if pyright_issues > 0:
+                    pyright_bullets: list[str] = [
+                        f"Pyright findings: {pyright_errors} error(s), {pyright_warnings} warning(s).",
+                        "Action: Run `python -m pyright` to inspect full diagnostics before fixes.",
+                        "Why this matters: Type regressions reduce reliability and increase defect risk.",
+                        "Review for details: development_tools/consolidated_report.md",
+                    ]
+                    pyright_bullets.insert(
+                        0, "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                    )
+                    add_priority(
+                        tier=3,
+                        title="Address Pyright findings",
+                        reason=(
+                            f"Pyright reports {pyright_errors} error(s), {pyright_warnings} warning(s)."
+                        ),
+                        bullets=pyright_bullets,
+                    )
 
         # Watch coverage when thresholds are currently met (monitor for regressions).
         if isinstance(coverage_summary, dict):

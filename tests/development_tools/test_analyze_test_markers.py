@@ -4,6 +4,8 @@ from pathlib import Path
 import json
 import shutil
 from contextlib import contextmanager
+from collections.abc import Callable
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -14,6 +16,14 @@ from tests.development_tools.conftest import load_development_tools_module
 analyze_test_markers = load_development_tools_module("tests.analyze_test_markers")
 TestMarkerAnalyzer = analyze_test_markers.TestMarkerAnalyzer
 MissingMarkerFinder = analyze_test_markers.MissingMarkerFinder
+
+
+class _FakeAnalyzer:
+    """Minimal analyzer stub for main() tests; attributes set per test."""
+
+    def __init__(self) -> None:
+        self.find_missing_markers_ast: Callable[..., Any] = lambda: []
+        self.analyze_markers: Callable[..., Any] = lambda: {}
 
 TMP_ROOT = (
     Path(__file__).resolve().parents[2]
@@ -257,7 +267,7 @@ def test_add_markers_skips_files_with_existing_marker_or_no_matching_class():
 
 @pytest.mark.unit
 def test_main_check_json_output(monkeypatch, capsys):
-    analyzer = type("FakeAnalyzer", (), {})()
+    analyzer = _FakeAnalyzer()
     analyzer.find_missing_markers_ast = lambda: [("a.py", 10, "test_name", "function")]
     analyzer.analyze_markers = lambda: {}
     monkeypatch.setattr(analyze_test_markers, "TestMarkerAnalyzer", lambda: analyzer)
@@ -278,7 +288,7 @@ def test_main_check_json_output(monkeypatch, capsys):
 
 @pytest.mark.unit
 def test_main_check_returns_one_when_missing_without_json(monkeypatch, capsys):
-    analyzer = type("FakeAnalyzer", (), {})()
+    analyzer = _FakeAnalyzer()
     analyzer.find_missing_markers_ast = lambda: [("a.py", 2, "test_x", "function")]
     analyzer.analyze_markers = lambda: {}
     monkeypatch.setattr(analyze_test_markers, "TestMarkerAnalyzer", lambda: analyzer)
@@ -299,7 +309,7 @@ def test_main_analyze_json_output(monkeypatch, capsys):
         "files_by_dir": {"unit": 1, "integration": 1, "behavior": 0, "ui": 0, "other": 0},
         "missing_markers": [("tests/unit/test_one.py", "unit")],
     }
-    analyzer = type("FakeAnalyzer", (), {})()
+    analyzer = _FakeAnalyzer()
     analyzer.find_missing_markers_ast = lambda: []
     analyzer.analyze_markers = lambda: result
     monkeypatch.setattr(analyze_test_markers, "TestMarkerAnalyzer", lambda: analyzer)

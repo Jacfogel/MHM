@@ -11,6 +11,7 @@ import os
 import shutil
 import uuid
 from pathlib import Path
+from typing import TextIO, cast
 
 from core.error_handling import handle_errors
 from core.file_operations import load_json_data, save_json_data, verify_file_access
@@ -501,17 +502,17 @@ class TestErrorHandlingImprovements:
         
     def test_error_handling_logging(self):
         """Test that error handling properly logs errors."""
-        import logging
-        
+        import logging  # used in this test only
+
         # Set up logging to capture log messages
         logger = logging.getLogger('test_error_handling')
         logger.setLevel(logging.ERROR)
         
         # Create a handler to capture log messages
-        log_capture = []
+        log_capture: list = []
         handler = logging.StreamHandler()
         handler.setLevel(logging.ERROR)
-        handler.stream = log_capture  # test-only: capture to list
+        handler.stream = cast(TextIO, log_capture)  # test-only: capture to list
         
         logger.addHandler(handler)
         

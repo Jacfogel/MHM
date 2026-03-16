@@ -2192,6 +2192,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel  # shared user index and test_data_dir under xdist; user_id lookup can race
     def test_create_account_persists_checkin_settings(self, dialog, test_data_dir):
         """Test that create_account persists check-in settings to disk."""
         from core import get_user_data

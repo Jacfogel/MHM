@@ -124,8 +124,8 @@ def _patch_pytest_dead_symlink_cleanup() -> None:
             # Best-effort cleanup only: never fail an entire test session on this step.
             return None
 
-    pytest_pathlib.cleanup_dead_symlinks = _mhm_safe_cleanup_dead_symlinks
-    pytest_tmpdir.cleanup_dead_symlinks = _mhm_safe_cleanup_dead_symlinks
+    setattr(pytest_pathlib, "cleanup_dead_symlinks", _mhm_safe_cleanup_dead_symlinks)  # noqa: B010
+    setattr(pytest_tmpdir, "cleanup_dead_symlinks", _mhm_safe_cleanup_dead_symlinks)  # noqa: B010
 
 
 _patch_pytest_dead_symlink_cleanup()

@@ -6,10 +6,11 @@ Tests focus on actual side effects and system changes rather than just return va
 
 import os
 from datetime import datetime
+from typing import cast
 
 import pytest
 
-from ai.context_builder import ContextBuilder
+from ai.context_builder import ContextBuilder, ContextData
 from tests.test_helpers.test_utilities import TestUserFactory, TestDataFactory
 
 
@@ -38,7 +39,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify actual context structure
         assert isinstance(context, object), "Context should be a ContextData object"
@@ -60,7 +61,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify actual data inclusion
         assert isinstance(context.user_profile, dict), "User profile should be included"
@@ -74,9 +75,9 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(
+        context = cast(ContextData, context_builder.build_user_context(
             user_id, include_conversation_history=True
-        )
+        ))
 
         # Assert - Verify actual history inclusion
         assert isinstance(
@@ -92,7 +93,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify graceful handling
         assert isinstance(
@@ -113,7 +114,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify time information inclusion
         assert context.current_time is not None, "Current time should be included"
@@ -129,7 +130,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify recent checkins inclusion
         assert isinstance(
@@ -144,9 +145,9 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(
+        context = cast(ContextData, context_builder.build_user_context(
             user_id, include_conversation_history=False
-        )
+        ))
 
         # Assert - Verify conversation history exclusion
         assert isinstance(
@@ -161,7 +162,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify error handling
         assert isinstance(
@@ -212,7 +213,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify empty data handling
         assert isinstance(context, object), "Should return valid context"
@@ -232,7 +233,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify corrupted data handling
         assert isinstance(
@@ -254,7 +255,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify missing files handling
         assert isinstance(
@@ -276,7 +277,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify empty files handling
         assert isinstance(
@@ -297,7 +298,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify long user ID handling
         assert isinstance(context, object), "Should handle long user IDs"
@@ -313,7 +314,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify special character handling
         assert isinstance(
@@ -329,7 +330,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify unicode handling
         assert isinstance(
@@ -347,10 +348,10 @@ class TestContextBuilderBehavior:
         # Act - Simulate concurrent access
         import threading
 
-        results = []
+        results: list[ContextData] = []
 
         def build_context():
-            context = context_builder.build_user_context(user_id)
+            context = cast(ContextData, context_builder.build_user_context(user_id))
             results.append(context)
 
         threads = [threading.Thread(target=build_context) for _ in range(3)]
@@ -375,9 +376,9 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act - Make rapid successive calls
-        contexts = []
+        contexts: list[ContextData] = []
         for _i in range(10):
-            context = context_builder.build_user_context(user_id)
+            context = cast(ContextData, context_builder.build_user_context(user_id))
             contexts.append(context)
 
         # Assert - Verify rapid call handling
@@ -396,7 +397,7 @@ class TestContextBuilderBehavior:
         context_builder = ContextBuilder()
 
         # Act
-        context = context_builder.build_user_context(user_id)
+        context = cast(ContextData, context_builder.build_user_context(user_id))
 
         # Assert - Verify context creation
         assert context is not None, "Context should be created"

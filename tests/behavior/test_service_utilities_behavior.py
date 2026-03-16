@@ -87,7 +87,7 @@ class TestServiceUtilitiesBehavior:
         """Test that Throttler handles invalid timestamp format gracefully."""
         # Arrange
         throttler = Throttler(60)
-        throttler.last_run = "invalid_timestamp_format"
+        setattr(throttler, "last_run", "invalid_timestamp_format")  # noqa: B010
 
         # Act
         should_run = throttler.should_run()

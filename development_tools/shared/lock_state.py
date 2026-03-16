@@ -101,15 +101,21 @@ def evaluate_lock(path: Path, now_ts: float | None = None) -> dict[str, Any]:
         return result
 
     result["pid"] = metadata.get("pid")
+    created_at_val = metadata.get("created_at")
+    if created_at_val is None:
+        result["state"] = "malformed"
+        result["reason"] = "missing_created_at"
+        return result
     try:
-        created_at = float(metadata.get("created_at"))
-    except Exception:
+        created_at = float(created_at_val)
+    except (TypeError, ValueError):
         result["state"] = "malformed"
         result["reason"] = "invalid_created_at"
         return result
+    stale_val = metadata.get("stale_after_seconds")
     try:
-        stale_after_seconds = int(metadata.get("stale_after_seconds"))
-    except Exception:
+        stale_after_seconds = int(stale_val) if stale_val is not None else 5400
+    except (TypeError, ValueError):
         stale_after_seconds = 5400
     if stale_after_seconds <= 0:
         stale_after_seconds = 5400

@@ -167,6 +167,9 @@ def test_check_tool_uses_save_tool_result_true_and_false():
     """Source inspection should detect save_tool_result usage."""
 
     class _HasStorage:
+        def save_tool_result(self, _name: str, _data: dict) -> None:
+            pass
+
         def run_demo(self):
             self.save_tool_result("demo", {})
 
@@ -193,6 +196,9 @@ def test_verify_all_tools_success(monkeypatch, capsys):
     )
 
     class _GoodWrappers:
+        def save_tool_result(self, _name: str, _data: dict) -> None:
+            pass
+
         def run_analyze_functions(self):
             self.save_tool_result("analyze_functions", {})
 

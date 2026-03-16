@@ -892,8 +892,9 @@ def main():
     
     all_results = {}
     
-    # Apply mock_config fixture manually for standalone runs
-    from tests.conftest import mock_config as mock_config_fixture
+    # Apply mock_config fixture manually for standalone runs (pytest fixture from conftest)
+    import tests.conftest as tests_conftest
+    mock_config_fixture = getattr(tests_conftest, "mock_config")  # noqa: B009
     mock_config_ctx = mock_config_fixture(test_data_dir)
     next(mock_config_ctx)
     try:

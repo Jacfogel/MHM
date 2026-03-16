@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from typing import Any, cast
 from unittest.mock import Mock, patch
 
 import pytest
@@ -30,7 +31,7 @@ class _FakeComboBox:
 @pytest.fixture
 def ui_instance():
     obj = MHMManagerUI.__new__(MHMManagerUI)
-    obj.ui = SimpleNamespace(comboBox_users=_FakeComboBox())
+    obj.ui = cast(Any, SimpleNamespace(comboBox_users=_FakeComboBox()))
     obj.on_user_selected = Mock()
     return obj
 

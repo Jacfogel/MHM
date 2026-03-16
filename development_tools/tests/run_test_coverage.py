@@ -808,7 +808,7 @@ class CoverageMetricsRegenerator:
             "project_root_shards": discovered["project_root_shards"],
         }
 
-    def run_coverage_analysis(self) -> dict[str, dict[str, Any]]:
+    def run_coverage_analysis(self) -> dict[str, dict[str, Any]]:  # pyright: ignore[reportGeneralTypeIssues]
         """Run pytest coverage analysis and extract metrics."""
         if logger:
             logger.debug("Running pytest coverage analysis...")

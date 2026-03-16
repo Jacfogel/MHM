@@ -155,6 +155,10 @@ Use these patterns for frequent change types. Keep responses concise and route t
   - migrate call sites/dependencies first, then remove markers/comments/docs evidence last.
 - If removing or retiring legacy/deprecated behavior, update the deprecation inventory status and search terms in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` in the same change.
 
+**Ruff and Pyright**
+
+- When they conflict, prefer **Pyright** on type and attribute issues (it understands types and attribute existence). Use a targeted `# noqa` for Ruff when you keep code type-correct (for example, module monkeypatching). For style-only conflicts, follow Ruff and adjust types or add a narrow `# type: ignore` with a comment. See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), section 5.4. "Static Analysis (Ruff and Pyright)", for detail.
+
 When the user asks high-level questions like:
 
 - "How do I run the app or service?"

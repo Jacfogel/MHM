@@ -278,6 +278,10 @@ For AI-optimized testing instructions and patterns, see the matching sections in
 6. If you change test or logging patterns, update the associated guides.
 7. For legacy compatibility work, follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) and treat compatibility code as temporary bridge code only.
 
+### 5.4. Static Analysis (Ruff and Pyright)
+
+When **Ruff** (linter) and **Pyright** (type checker) conflict, prefer **Pyright** on type and attribute issues. Pyright understands types and whether attributes exist on a type; Ruff does not. Keep the code type-correct and, if needed, suppress the Ruff rule locally with a brief `# noqa` comment (for example, `# noqa: B010`). For style-only or clear safety rules where types are not the issue, follow Ruff and fix or narrowly ignore the type checker (for example, a targeted `# type: ignore` with a one-line comment).
+
 
 ## 6. Emergency Procedures
 

@@ -203,17 +203,17 @@ class TestEmailBotGapCoverage:
 
         broken_plain = EmailMessage()
         broken_plain.set_type("text/plain")
-        broken_plain.get_payload = lambda decode=True: (_ for _ in ()).throw(RuntimeError("plain decode fail"))
+        broken_plain.get_payload = lambda decode=True: (_ for _ in ()).throw(RuntimeError("plain decode fail"))  # type: ignore[reportAttributeAccessIssue]
         multipart.attach(broken_plain)
 
         broken_html = EmailMessage()
         broken_html.set_type("text/html")
-        broken_html.get_payload = lambda decode=True: (_ for _ in ()).throw(RuntimeError("html decode fail"))
+        broken_html.get_payload = lambda decode=True: (_ for _ in ()).throw(RuntimeError("html decode fail"))  # type: ignore[reportAttributeAccessIssue]
         multipart.attach(broken_html)
 
         assert bot._receive_emails_sync__extract_body(multipart) == ""
 
         single_html = EmailMessage()
         single_html.set_type("text/html")
-        single_html.get_payload = lambda decode=True: (_ for _ in ()).throw(RuntimeError("single decode fail"))
+        single_html.get_payload = lambda decode=True: (_ for _ in ()).throw(RuntimeError("single decode fail"))  # type: ignore[reportAttributeAccessIssue]
         assert bot._receive_emails_sync__extract_body(single_html) == ""

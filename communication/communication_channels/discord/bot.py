@@ -566,12 +566,13 @@ class DiscordBot(BaseChannel):
                 # Don't fail immediately, let Discord.py handle the connection
 
             # Create bot instance with automatic command processing disabled.
-            # DISCORD_APPLICATION_ID is already normalized to int | None in core.config.
-            # Pass it through directly so tests can patch it safely without extra casting.
+            # DISCORD_APPLICATION_ID is int | None from core.config; discord.py expects int.
+            # Use 0 when unset so type checker is satisfied; tests can patch the config.
+            app_id = DISCORD_APPLICATION_ID if DISCORD_APPLICATION_ID is not None else 0
             self.bot = commands.Bot(
                 command_prefix="!",
                 intents=intents,
-                application_id=DISCORD_APPLICATION_ID,
+                application_id=app_id,
                 help_command=None,  # Disable default help command
             )
 

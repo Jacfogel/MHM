@@ -117,6 +117,8 @@ def test_main_json_mode_prints_standard_result(monkeypatch):
 
     signals_module.main()
 
-    payload = json.loads(printed["value"])
+    value = printed["value"]
+    assert value is not None, "print mock should have been called with JSON output"
+    payload = json.loads(value)
     assert payload["summary"]["status"] == "OK"
     assert payload["details"]["system_health"]["overall_status"] == "OK"

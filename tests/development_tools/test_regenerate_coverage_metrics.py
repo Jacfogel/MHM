@@ -433,10 +433,10 @@ directory = development_tools/tests/coverage_html
             use_domain_cache=False,
         )
 
-        captured = {"cmd": None}
+        captured: dict[str, list[str] | None] = {"cmd": None}
 
-        def _fake_run(cmd, **kwargs):
-            captured["cmd"] = list(cmd)
+        def _fake_run(cmd: object, **kwargs: object) -> object:
+            captured["cmd"] = list(cmd) if isinstance(cmd, (list, tuple)) else list(str(cmd))
             mock = Mock()
             mock.returncode = 0
             mock.stdout = ""

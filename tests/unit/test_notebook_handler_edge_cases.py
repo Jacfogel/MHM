@@ -2,11 +2,12 @@
 
 from uuid import uuid4
 from unittest.mock import patch
+from typing import cast
 
 import pytest
 
 from communication.command_handlers.notebook_handler import NotebookHandler
-from notebook.notebook_schemas import Entry
+from notebook.notebook_schemas import Entry, EntryKind
 
 
 def _entry(title: str = "Sample", kind: str = "note") -> Entry:
@@ -19,7 +20,7 @@ def _entry(title: str = "Sample", kind: str = "note") -> Entry:
             title=title,
             items=[ListItem(text="item", order=0, done=False)],
         )
-    return Entry(kind=kind, id=uuid4(), title=title)
+    return Entry(kind=cast(EntryKind, kind), id=uuid4(), title=title)
 
 
 @pytest.mark.unit

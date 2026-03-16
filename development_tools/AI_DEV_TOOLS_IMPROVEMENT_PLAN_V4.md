@@ -892,6 +892,13 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 
 #### 7.13 expand/improve duplicate function detector tool to consider argument similarities  and other things
 
+#### 7.14 make report (AI_PRIORITIES, AI_STATUS and consolodated_report) addresses into proper markdown links
+
+#### 7.15 separate test coverage from full audit?
+- full audit could just run tests, instead of test coverage, which could be run separately or through the audit with an additional argument/tag thing
+
+#### 7.16 change size threshold for large modules to atleast 1000 lines
+
 ## Related Documents
 
 - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` - Prior version with detailed history

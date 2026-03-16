@@ -58,7 +58,7 @@ class FeatureSelectionView(discord.ui.View):
             # Mark all items as disabled for future interactions; tolerate items
             # without a "disabled" attribute for compatibility with Discord stubs.
             if hasattr(item, "disabled"):
-                item.disabled = True
+                setattr(item, "disabled", True)  # noqa: B010
         message = getattr(self, "message", None)
         if message is not None:
             with contextlib.suppress(Exception):
@@ -252,7 +252,7 @@ class CreateAccountButton(discord.ui.Button):
         # Disable all items to prevent double-submission
         for item in self.parent_view.children:
             if hasattr(item, "disabled"):
-                item.disabled = True
+                setattr(item, "disabled", True)  # noqa: B010
 
         await interaction.response.defer()
 
