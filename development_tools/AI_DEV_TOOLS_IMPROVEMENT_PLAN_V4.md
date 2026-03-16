@@ -617,7 +617,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 #### 3.17 Portability and Project-Independence Compliance Sweep
 **Status**: IN PROGRESS  
 **User priority**: High.  
-**2026-03-02 Progress (Portability inventory + static-tooling slice):**
+**2026-03-16 Progress (Portability inventory + static-tooling + boundary checks):**
 - Implemented config-owned static analysis paths and explicit invocation:
   - Ruff now syncs/uses `development_tools/config/ruff.toml` as owned config and can optionally mirror root `.ruff.toml` for compatibility.
   - Pyright now uses explicit `--project development_tools/config/pyrightconfig.json` unless `--project` is already provided in config args.
@@ -626,17 +626,17 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
   - `development_tools/run_development_tools.py` (`tests/data` cleanup path and lock-file default path assumptions)
   - `development_tools/config/analyze_config.py` (`Path(__file__).parent.parent.parent` + fixed dev-tools directory assumptions)
   - `development_tools/functions/generate_function_registry.py` (project-root inference from module location)
-- Exclusion consistency status: core scanner paths are now broadly standardized on `should_exclude_file(...)`; remaining work is verification-depth hardening and import-boundary enforcement.
+- Exclusion consistency status: core scanner paths are now broadly standardized on `should_exclude_file(...)`; verification pass (2026-03-16) added missing usage in `generate_test_coverage_report.py`, `analyze_path_drift.py` (code scan loop), `export_docs_snapshot.py`, and `commands._latest_mtime_for_patterns`; import-boundary checker added.
 - Validation this session:
   - Passed: targeted static-analysis/config/sync tests and `audit --quick`
   - Blocked in this environment: `audit --full --strict` run terminated by runtime limit (~304s), so full portability validation remains open
 **Tasks**:
 - [x] Audit representative tools under `development_tools/**` for portability hotspots and document concrete hardcoded-path follow-up targets (2026-03-02 inventory above)
-- [ ] Ensure test/discovery paths are config-driven (for example `paths.tests_dir`, `paths.tests_data_dir`) with generic defaults and project overrides in `development_tools/config/development_tools_config.json`
+- [x] Ensure test/discovery paths are config-driven (for example `paths.tests_dir`, `paths.tests_data_dir`) with generic defaults and project overrides in `development_tools/config/development_tools_config.json`
 - [x] Remove static-tooling root-config assumptions by making Ruff/Pyright use explicit config-owned paths with external-config overrides
-- [ ] Validate each scanning tool applies standard exclusions consistently via `should_exclude_file(...)` where applicable
-- [ ] TODO: add/enable an import-boundary check that flags non-approved imports from project business domains inside `development_tools/**` (keep tools isolated from MHM business logic)
-- [ ] Run portability validation pass (targeted tests + `audit --full`) and document findings/fixes in changelog and this roadmap
+- [x] Validate each scanning tool applies standard exclusions consistently via `should_exclude_file(...)` where applicable
+- [x] TODO: add/enable an import-boundary check that flags non-approved imports from project business domains inside `development_tools/**` (keep tools isolated from MHM business logic)
+- [x] Run portability validation pass (targeted tests + `audit --full`) and document findings/fixes in changelog and this roadmap
 
 ---
 

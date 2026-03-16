@@ -1748,8 +1748,13 @@ class ToolWrappersMixin:
             except Exception as e:
                 logger.warning(f"Failed to save analyze_pyright result: {e}")
         else:
-            if not result.get("error"):
+            err = (result.get("error") or "").strip()
+            if not err:
                 result["error"] = "No parseable JSON output from analyze_pyright"
+            else:
+                result["error"] = err
+                err_preview = err[:500] + ("..." if len(err) > 500 else "")
+                logger.warning(f"analyze_pyright produced no parseable JSON; stderr: {err_preview}")
             result["success"] = False
         return result
 

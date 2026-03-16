@@ -92,7 +92,16 @@ def _cleanup_transient_runtime_artifacts(project_root: Path) -> None:
         target = project_root / rel
         _remove_path_with_retries(target)
 
-    data_dir = project_root / "tests" / "data"
+    # Use config-driven tests data directory instead of hardcoded tests/data
+    try:
+        from development_tools import config
+
+        paths_cfg = config.get_paths_config()
+        tests_data_rel = paths_cfg.get("tests_data_dir") or "tests/data"
+    except Exception:
+        tests_data_rel = "tests/data"
+
+    data_dir = project_root / tests_data_rel
     if not data_dir.exists():
         return
 

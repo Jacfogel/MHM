@@ -697,6 +697,9 @@ class PathDriftAnalyzer:
             code_path = self.project_root / code_dir
             if code_path.exists():
                 for py_file in code_path.rglob("*.py"):
+                    rel_path = str(py_file.relative_to(self.project_root)).replace("\\", "/")
+                    if should_exclude_file(rel_path, tool_type="analysis", context="development"):
+                        continue
                     try:
                         with open(py_file, encoding="utf-8") as f:
                             content = f.read()

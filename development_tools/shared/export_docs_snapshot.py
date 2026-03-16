@@ -173,6 +173,14 @@ def _discover_markdown_files(
         if _matches_any_glob(norm, exclude_globs):
             continue
 
+        # Apply standard exclusions when under project root (e.g. tests/data, generated)
+        try:
+            from .standard_exclusions import should_exclude_file
+            if should_exclude_file(norm, tool_type="documentation", context="development"):
+                continue
+        except ImportError:
+            pass
+
         files.append(path)
 
     files.sort(key=lambda p: _normalize(p).lower())

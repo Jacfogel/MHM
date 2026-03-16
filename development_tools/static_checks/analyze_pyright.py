@@ -158,6 +158,8 @@ def run_pyright(project_root: Path) -> dict[str, Any]:
         return _build_unavailable_result("pyright command not found")
     except subprocess.TimeoutExpired:
         return _build_unavailable_result("pyright execution timed out")
+    except TimeoutError:
+        return _build_unavailable_result("pyright execution timed out")
     except Exception as exc:
         return _build_unavailable_result(f"pyright execution failed: {exc}")
 
@@ -186,7 +188,23 @@ def main(argv: list[str] | None = None) -> int:
     )
     ns = parser.parse_args(argv)
 
-    result = run_pyright(Path(ns.project_root).resolve())
+    try:
+        result = run_pyright(Path(ns.project_root).resolve())
+    except (subprocess.TimeoutExpired, TimeoutError) as exc:
+        result = _build_unavailable_result("pyright execution timed out")
+        if ns.json:
+            print(json.dumps(result, indent=2))
+        else:
+            print(f"Pyright timed out: {exc}")
+        return 1
+    except Exception as exc:
+        result = _build_unavailable_result(f"analyze_pyright crashed: {exc}")
+        if ns.json:
+            print(json.dumps(result, indent=2))
+        else:
+            print(f"Pyright failed: {exc}")
+        return 1
+
     if ns.json:
         print(json.dumps(result, indent=2))
     else:

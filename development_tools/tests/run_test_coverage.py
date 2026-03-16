@@ -358,9 +358,18 @@ class CoverageMetricsRegenerator:
         """Force test subprocess logging into test-only log roots."""
         # Keep coverage stdout/stderr artifacts in development_tools/tests/logs,
         # but isolate runtime app/component logs from pytest subprocesses under
-        # tests/data/tmp so they do not pollute coverage artifact directories.
-        test_logs_root = self.project_root / "tests" / "data" / "tmp" / "runtime_logs"
-        test_tmp_root = self.project_root / "tests" / "data" / "tmp"
+        # the configured tests data directory so they do not pollute coverage artifact directories.
+        try:
+            from development_tools import config as _config
+
+            paths_cfg = _config.get_paths_config()
+            tests_data_rel = paths_cfg.get("tests_data_dir") or "tests/data"
+        except Exception:
+            tests_data_rel = "tests/data"
+
+        tests_data_root = self.project_root / tests_data_rel
+        test_logs_root = tests_data_root / "tmp" / "runtime_logs"
+        test_tmp_root = tests_data_root / "tmp"
         test_logs_root.mkdir(parents=True, exist_ok=True)
         test_tmp_root.mkdir(parents=True, exist_ok=True)
         # Force pytest subprocesses into pure test mode (not dev-tools mode),
@@ -392,13 +401,18 @@ class CoverageMetricsRegenerator:
 
     def _create_pytest_temp_paths(self, run_label: str) -> tuple[Path, Path]:
         """Create isolated pytest basetemp/cache dirs with workspace-first fallback."""
+        try:
+            from development_tools import config as _config
+
+            paths_cfg = _config.get_paths_config()
+            tests_data_rel = paths_cfg.get("tests_data_dir") or "tests/data"
+        except Exception:
+            tests_data_rel = "tests/data"
+
+        tests_data_root = self.project_root / tests_data_rel
         candidates = [
-            self.project_root
-            / "tests"
-            / "data"
-            / "tmp_pytest_runtime"
-            / "pytest_runner",
-            self.project_root / "tests" / "data" / "tmp" / "pytest_runner",
+            tests_data_root / "tmp_pytest_runtime" / "pytest_runner",
+            tests_data_root / "tmp" / "pytest_runner",
             Path(tempfile.gettempdir()) / "mhm_pytest_tmp",
         ]
         unique_id = f"{run_label}_{uuid.uuid4().hex[:8]}"

@@ -30,9 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-16 - Portability, exclusions, and analyze_pyright robustness **COMPLETED**
+- **Portability (3.17)**: Test/discovery paths are config-driven via `paths.tests_dir` and `paths.tests_data_dir`. Updated `run_development_tools.py` (cleanup), `fix_project_cleanup.py`, `tests/run_test_coverage.py` (logs/tmp and pytest basetemp), and `ai_work/analyze_ai_work.py` to use `config.get_paths_config()` instead of hardcoded `tests/data`. Added `imports/analyze_dev_tools_import_boundaries.py` to flag non-approved `core.*` imports inside `development_tools/**`. Plan 3.17 tasks (config-driven paths, exclusions verification, import-boundary check, audit run) marked done.
+- **Exclusions verification**: All scanners now use `should_exclude_file(...)` where applicable. Added usage in `generate_test_coverage_report.py`, `docs/analyze_path_drift.py` (code scan loop), `shared/export_docs_snapshot.py`, and `shared/service/commands.py` (_latest_mtime_for_patterns). Plan 3.17 exclusion note updated.
+- **analyze_pyright**: Timeout and crash handling improved: `run_pyright()` catches `TimeoutError`; `main()` catches `TimeoutExpired`/`TimeoutError` and `Exception`, prints JSON unavailable result and exits 1 so the wrapper always gets parseable output. Tool wrapper logs stderr with a single-argument `logger.warning` (ComponentLogger-compatible). Audit orchestration logs each failed tool’s `result["error"]` (error detail) so `main.log` shows the real cause on failure. Fixed Tier 2 indentation in `audit_orchestration.py` (else block).
+
 ### 2026-03-16 - Legacy backup cleanup and static analysis/test fixes **Progressed**
 - **Backups**: Removed legacy `BACKUP_FORMAT=zip` compatibility from `core/backup_manager.py` so runtime backups are always directory-based, while still supporting read-only access to historical zip artifacts; updated backup behavior tests to assert against directory payloads (manifest, users/, config/) instead of zip files, and ensured age/count-based rotation works on the new model.
-- **Static analysis/tests**: Brought pyright back to 0 errors by fixing `account_flow_handler` imports and type usage, tightening `task_edit_dialog` optional-access patterns, and resolving the remaining analyzer warning in `analyze_package_exports.py`; corrected regressions in Discord bot initialization tests introduced earlier this session and aligned dev-tools coverage helper expectations with the new backup behavior, so the Tier 3 audit’s failing tracks now pass.
+- **Static analysis/tests**: Brought pyright back to 0 errors by fixing `account_flow_handler` imports and type usage, tightening `task_edit_dialog` optional-access patterns, and resolving the remaining analyzer warning in `analyze_package_exports.py`; corrected regressions in Discord bot initialization tests introduced earlier this session and aligned dev-tools coverage helper expectations with the new backup behavior, so the Tier 3 audit's failing tracks now pass.
 
 ### 2026-03-15 - Duplicate-functions cleanups, dialog helper, static-analysis tidy **Progressed**
 - **Duplicate-functions**: Continued the duplicate-functions investigation by refactoring previously flagged groups: extracted shared Escape/Enter key handling into `ui/dialogs/dialog_helpers.handle_dialog_escape_enter_keys` so `AccountCreatorDialog.keyPressEvent` and `UserProfileDialog.keyPressEvent` share one implementation; added/tuned `# not_duplicate:` markers and analyzer context so intentional API patterns are recognized; and finished marking/refining remaining groups in `DUPLICATE_FUNCTIONS_INVESTIGATION.md`.
@@ -105,17 +110,6 @@ Guidelines:
 - Integrated inventory-aware legacy tooling: analyzer now injects active/candidate inventory terms into scans, and `LEGACY_REFERENCE_REPORT.md` now includes a dedicated inventory summary block with counts/hits.
 - Removed deprecated compatibility paths (`--update-plan` coverage flag plumbing and `_consolidate_and_cleanup_main_logs` no-op placeholder), updated related tests, and moved both corresponding inventory items to `removed` (`2026-03-05`).
 - Session wrap-up included full diff review + planning/doc sync and regenerated outputs (legacy report, coverage report, AI status/priorities, consolidated report); legacy backlog reduced to active bridge/retire-candidate items only.
-
-### 2026-03-04 - Coverage push + report generation cleanup **Progressed**
-- Added targeted coverage tests across core, communication, and UI helper/branch paths (`config`, `file_operations`, `user_item_storage`, `backup_manager`, `channel_orchestrator`, reminder parsing, UI user combo helpers).
-- Updated `development_tools/tests/generate_test_coverage_report.py` so `TEST_COVERAGE_REPORT.md` now includes complete domain scope text (including `notebook`), a generated domain-coverage section, and generated marker counts under `## Test Markers`.
-- Removed stale E2E marker narrative from coverage report output and regenerated coverage/audit artifacts (`AI_STATUS`, `AI_PRIORITIES`, consolidated report, analysis JSONs, and coverage report).
-- Validation highlights: targeted run `50 passed`; latest generated coverage snapshot is `76.4%` overall with highest remaining misses in `ui`, `communication`, and `core`.
-
-### 2026-03-04 - Complexity batch + priority-source correction **Progressed**
-- Refactored a focused 5-function high-complexity batch with behavior-preserving helper extraction across service loop, logger rollover, interaction manager init, UI user-list refresh, and reminder parsing flows.
-- Fixed `development_tools/shared/service/report_generation.py` so `AI_PRIORITIES` "Highest complexity" examples come from `analyze_functions_results.json` (global top) and only use decision-support examples as fallback.
-- Re-ran audit outputs and confirmed `AI_PRIORITIES` now shows global-top examples (`initialize__register_events`, `_extract_entities_rule_based`, `_show_question_dialog`) instead of stale chatbot-only examples.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -42,6 +42,8 @@ except ImportError:
 # Load external config on module import (safe to call multiple times)
 config.load_external_config()
 
+from development_tools.shared.standard_exclusions import should_exclude_file
+
 logger = get_component_logger("development_tools")
 
 
@@ -273,6 +275,9 @@ class TestCoverageReportGenerator:
             return marker_counter, total_test_nodes
 
         for test_file in tests_root.rglob("test_*.py"):
+            rel_path = str(test_file.relative_to(self.project_root)).replace("\\", "/")
+            if should_exclude_file(rel_path, tool_type="coverage", context="development"):
+                continue
             try:
                 source = test_file.read_text(encoding="utf-8")
                 tree = ast.parse(source)

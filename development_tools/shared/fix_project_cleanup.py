@@ -366,7 +366,15 @@ class ProjectCleanup:
 
     def cleanup_test_temp_dirs(self, dry_run: bool = False) -> tuple[int, int]:
         """Remove temporary test directories."""
-        test_data_dir = self.project_root / "tests" / "data"
+        try:
+            from development_tools import config as _config
+
+            paths_cfg = _config.get_paths_config()
+            tests_data_rel = paths_cfg.get("tests_data_dir") or "tests/data"
+        except Exception:
+            tests_data_rel = "tests/data"
+
+        test_data_dir = self.project_root / tests_data_rel
         removed = 0
         failed = 0
 

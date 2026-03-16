@@ -211,6 +211,8 @@ class CommandsMixin:
         exclude_paths: list[str] | None = None,
     ) -> float:
         """Return latest mtime for files matching any glob pattern."""
+        from ..standard_exclusions import should_exclude_file
+
         latest = 0.0
         exclude_prefixes = exclude_prefixes or []
         exclude_paths_normalized = {path.replace("\\", "/") for path in (exclude_paths or [])}
@@ -222,6 +224,8 @@ class CommandsMixin:
                 if normalized in exclude_paths_normalized:
                     continue
                 if any(normalized.startswith(prefix) for prefix in exclude_prefixes):
+                    continue
+                if should_exclude_file(normalized, tool_type="analysis", context="development"):
                     continue
                 try:
                     mtime = path.stat().st_mtime

@@ -603,6 +603,10 @@ class AuditOrchestrationMixin:
                     self._tool_execution_status[tool_name] = 'failed'
                     failed.append(tool_name)
                     logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+                    if isinstance(result, dict) and result.get("error"):
+                        _err = (result.get("error") or "").strip()[:800]
+                        if _err:
+                            logger.warning(f"  {tool_name} error detail: {_err}")
             except Exception as exc:
                 elapsed_time = exc.elapsed_time if isinstance(exc, ToolExecutionError) else 0.0
                 self._tool_timings[tool_name] = elapsed_time
@@ -802,6 +806,10 @@ class AuditOrchestrationMixin:
                 self._tool_execution_status[tool_name] = 'failed'
                 failed.append(tool_name)
                 logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+                if isinstance(result, dict) and result.get("error"):
+                    _err = (result.get("error") or "").strip()[:800]
+                    if _err:
+                        logger.warning(f"  {tool_name} error detail: {_err}")
         
         if failed:
             logger.warning(f"Tier 2 completed with {len(failed)} failure(s): {', '.join(failed)}")
@@ -1241,6 +1249,10 @@ class AuditOrchestrationMixin:
                         logger.warning(
                             f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data"
                         )
+                        if isinstance(result, dict) and result.get("error"):
+                            _err = (result.get("error") or "").strip()
+                            if _err:
+                                logger.warning(f"  {tool_name} error detail: {_err[:800]}")
 
             self._tier3_coverage_concurrent = True
             self._tier3_coverage_serialized = os.name == "nt"
@@ -1369,9 +1381,13 @@ class AuditOrchestrationMixin:
                     successful.append(tool_name)
                     self._tools_run_in_current_tier.add(tool_name)
                 else:
-                    self._tool_execution_status[tool_name] = 'failed'
-                    failed.append(tool_name)
-                    logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+                        self._tool_execution_status[tool_name] = 'failed'
+                        failed.append(tool_name)
+                        logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+                        if isinstance(result, dict) and result.get("error"):
+                            _err = (result.get("error") or "").strip()[:800]
+                            if _err:
+                                logger.warning(f"  {tool_name} error detail: {_err}")
             except KeyboardInterrupt:
                 self._internal_interrupt_detected = True
                 elapsed_time = 0.0

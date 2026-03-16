@@ -75,7 +75,17 @@ def _should_exclude_path(
 
         rel_path_str = str(rel_path).replace("\\", "/")
         # Allow explicit test fixtures/temp paths used in unit tests.
-        if rel_path_str.startswith("tests/data/") or rel_path_str.startswith(
+        try:
+            from development_tools import config as _config
+
+            paths_cfg = _config.get_paths_config()
+            tests_data_rel = paths_cfg.get("tests_data_dir") or "tests/data"
+        except Exception:
+            tests_data_rel = "tests/data"
+
+        tests_data_prefix = tests_data_rel.rstrip("/").replace("\\", "/") + "/"
+
+        if rel_path_str.startswith(tests_data_prefix) or rel_path_str.startswith(
             "tests/fixtures/"
         ):
             return False
