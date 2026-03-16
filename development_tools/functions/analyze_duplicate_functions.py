@@ -367,8 +367,9 @@ def _serialize_records(
             "excluded": getattr(record, "excluded", False),
             "intentional_group_id": getattr(record, "intentional_group_id", None),
         }
-        if include_body and getattr(record, "body_node_sequence", None) is not None:
-            item["body_node_sequence"] = list(record.body_node_sequence)
+        body_seq = getattr(record, "body_node_sequence", None)
+        if include_body and body_seq is not None:
+            item["body_node_sequence"] = list(body_seq)
         out.append(item)
     return out
 

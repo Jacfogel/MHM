@@ -565,7 +565,9 @@ class DiscordBot(BaseChannel):
                 )
                 # Don't fail immediately, let Discord.py handle the connection
 
-            # Create bot instance with automatic command processing disabled
+            # Create bot instance with automatic command processing disabled.
+            # DISCORD_APPLICATION_ID is already normalized to int | None in core.config.
+            # Pass it through directly so tests can patch it safely without extra casting.
             self.bot = commands.Bot(
                 command_prefix="!",
                 intents=intents,

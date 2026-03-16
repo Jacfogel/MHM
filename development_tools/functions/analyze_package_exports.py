@@ -402,7 +402,7 @@ def check_current_exports(package_name: str) -> set[str]:
 
         # Extract __all__ list
         tree = ast.parse(content, filename=str(init_file))
-        exports = set()
+        exports: set[str] = set()
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Assign):
@@ -410,13 +410,11 @@ def check_current_exports(package_name: str) -> set[str]:
                     if isinstance(target, ast.Name) and target.id == "__all__":
                         if isinstance(node.value, ast.List):
                             for elt in node.value.elts:
+                                # Modern Python uses ast.Constant for string literals in __all__.
                                 if isinstance(elt, ast.Constant) and isinstance(
                                     elt.value, str
                                 ):
                                     exports.add(elt.value)
-                                elif hasattr(ast, "Str") and isinstance(elt, ast.Str):
-                                    # Python < 3.8 compatibility
-                                    exports.add(elt.s)
 
         # Also check what's imported at module level (even if not in __all__)
         for node in ast.walk(tree):

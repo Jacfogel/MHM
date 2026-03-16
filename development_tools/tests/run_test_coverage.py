@@ -367,9 +367,6 @@ class CoverageMetricsRegenerator:
         # so logger path expectations in test suites remain deterministic.
         env["MHM_DEV_TOOLS_RUN"] = "0"
         env["MHM_TESTING"] = "1"
-        # Ensure deterministic backup artifact behavior in tests regardless of
-        # user/runtime shell env (e.g., BACKUP_FORMAT=directory).
-        env["BACKUP_FORMAT"] = "zip"
         env["TEST_CONSOLIDATED_LOGGING"] = "1"
         env["TEST_VERBOSE_LOGS"] = "0"
         env["TEST_LOGS_DIR"] = str(test_logs_root)

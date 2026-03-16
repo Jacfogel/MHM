@@ -21,7 +21,6 @@ from core.backup_manager import (
 def manager(tmp_path, monkeypatch):
     backup_dir = tmp_path / "backups"
     monkeypatch.setenv("MHM_TESTING", "1")
-    monkeypatch.setenv("BACKUP_FORMAT", "zip")
     monkeypatch.setattr(core.config, "get_backups_dir", lambda: str(backup_dir))
     return BackupManager()
 

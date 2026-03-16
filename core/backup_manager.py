@@ -52,21 +52,8 @@ class BackupManager:
             self.backup_retention_days = int(os.getenv("BACKUP_RETENTION_DAYS", "30"))
         except (ValueError, TypeError):
             self.backup_retention_days = 30
-        explicit_format = os.getenv("BACKUP_FORMAT", "").strip().lower()
-        testing_mode = os.getenv("MHM_TESTING") == "1"
-        if testing_mode:
-            # Keep test environment behavior stable unless explicitly overridden.
-            self.backup_format = (
-                explicit_format if explicit_format in {"zip", "directory"} else "zip"
-            )
-        else:
-            # Production/runtime backups are directory-only by policy.
-            self.backup_format = "directory"
-            if explicit_format == "zip":
-                logger.warning(
-                    "LEGACY COMPATIBILITY: BACKUP_FORMAT=zip ignored in runtime; "
-                    "backup creation is directory-only by policy"
-                )
+        # Backups are always directory-based; legacy BACKUP_FORMAT=zip support has been removed.
+        self.backup_format = "directory"
 
     @handle_errors("ensuring backup directory exists", default_return=False)
     def ensure_backup_directory(self) -> bool:
@@ -86,10 +73,7 @@ class BackupManager:
         if not backup_name:
             timestamp = now_timestamp_filename()
             backup_name = f"mhm_backup_{timestamp}"
-        if self.backup_format == "directory":
-            backup_path = Path(self.backup_dir) / backup_name
-        else:
-            backup_path = Path(self.backup_dir) / f"{backup_name}.zip"
+        backup_path = Path(self.backup_dir) / backup_name
         return backup_name, str(backup_path)
 
     @handle_errors("creating directory backup payload", default_return=False)
@@ -237,31 +221,17 @@ class BackupManager:
             Path to the backup file, or None if failed
         """
         backup_name, backup_path = self._create_backup__setup_backup(backup_name)
-        if self.backup_format == "directory":
-            created_ok = self._create_backup__create_directory_payload(
-                backup_path,
-                backup_name,
-                include_users,
-                include_config,
-                include_logs,
-                include_code,
-            )
-            if not created_ok:
-                logger.error(f"Directory backup payload creation failed: {backup_path}")
-                return None
-        else:
-            # LEGACY COMPATIBILITY: Zip backup write mode retained only when BACKUP_FORMAT=zip.
-            logger.info(
-                "LEGACY COMPATIBILITY: Creating zip backup payload (temporary compatibility mode)"
-            )
-            self._create_backup__create_zip_file(
-                backup_path,
-                backup_name,
-                include_users,
-                include_config,
-                include_logs,
-                include_code,
-            )
+        created_ok = self._create_backup__create_directory_payload(
+            backup_path,
+            backup_name,
+            include_users,
+            include_config,
+            include_logs,
+            include_code,
+        )
+        if not created_ok:
+            logger.error(f"Directory backup payload creation failed: {backup_path}")
+            return None
 
         # Verify backup file was actually created before proceeding
         if not os.path.exists(backup_path):

@@ -55,7 +55,10 @@ class FeatureSelectionView(discord.ui.View):
     async def on_timeout(self):
         """Handle view timeout."""
         for item in self.children:
-            item.disabled = True
+            # Mark all items as disabled for future interactions; tolerate items
+            # without a "disabled" attribute for compatibility with Discord stubs.
+            if hasattr(item, "disabled"):
+                item.disabled = True
         message = getattr(self, "message", None)
         if message is not None:
             with contextlib.suppress(Exception):
@@ -198,8 +201,8 @@ class TimezoneSelect(discord.ui.Select):
         Args:
             parent_view: The parent FeatureSelectionView to update when selection changes
         """
-        # Get common timezones
-        from core import TIMEZONE_OPTIONS
+        # Get common timezones (import directly from presets to avoid lazy core indirection)
+        from core.user_data_presets import TIMEZONE_OPTIONS
 
         options = [
             discord.SelectOption(
@@ -248,7 +251,8 @@ class CreateAccountButton(discord.ui.Button):
         """Create the account with selected features."""
         # Disable all items to prevent double-submission
         for item in self.parent_view.children:
-            item.disabled = True
+            if hasattr(item, "disabled"):
+                item.disabled = True
 
         await interaction.response.defer()
 

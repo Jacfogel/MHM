@@ -58,13 +58,16 @@ class TaskEditDialog(QDialog):
             title="Tags",
         )
         layout = self.ui.verticalLayout_tags.layout()
-        # Remove existing widgets
-        while layout.count():
-            item = layout.takeAt(0)
-            w = item.widget()
-            if w:
-                w.setParent(None)
-        layout.addWidget(self.tag_widget)
+        if layout is not None:
+            # Remove existing widgets
+            while layout.count():
+                item = layout.takeAt(0)
+                if item is None:
+                    continue
+                widget = item.widget()
+                if widget is not None:
+                    widget.setParent(None)
+            layout.addWidget(self.tag_widget)
 
         self.setup_ui()
         self.setup_connections()
@@ -375,8 +378,11 @@ class TaskEditDialog(QDialog):
         layout = self.ui.verticalLayout_scrollAreaWidgetContents_reminder_periods
         while layout.count():
             item = layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+            if item is None:
+                continue
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
 
         # Add reminder period widgets
         for i, period in enumerate(self.reminder_periods):

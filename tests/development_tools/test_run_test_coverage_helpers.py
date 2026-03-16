@@ -57,7 +57,8 @@ def test_configure_test_logging_env_sets_isolated_paths(tmp_path: Path):
 
     assert updated["MHM_DEV_TOOLS_RUN"] == "0"
     assert updated["MHM_TESTING"] == "1"
-    assert updated["BACKUP_FORMAT"] == "zip"
+    # BACKUP_FORMAT is no longer forced by coverage runs; backups are always directory-based.
+    assert "BACKUP_FORMAT" not in updated
     assert "audioop" in updated["PYTHONWARNINGS"]
     assert updated["TEST_LOGS_DIR"].endswith("tests\\data\\tmp\\runtime_logs") or updated[
         "TEST_LOGS_DIR"

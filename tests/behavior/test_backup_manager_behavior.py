@@ -37,9 +37,8 @@ class TestBackupManagerBehavior:
     def setup_backup_manager(self, test_data_dir, monkeypatch):
         """Set up backup manager with test data directory."""
         # Guard against leaked env mutations from earlier tests in the same
-        # no_parallel process; these tests require test-mode zip backups.
+        # no_parallel process; force test-mode backups to use directory format.
         monkeypatch.setenv("MHM_TESTING", "1")
-        monkeypatch.setenv("BACKUP_FORMAT", "zip")
 
         self.test_data_dir = test_data_dir
         # Use a per-test unique backup directory to avoid cross-test file-lock
@@ -160,26 +159,31 @@ class TestBackupManagerBehavior:
         # Verify backup was created
         assert backup_path is not None
         assert os.path.exists(backup_path)
-        assert backup_path.endswith(".zip")
+        # Backups are directory-based; path should point to a directory.
+        assert os.path.isdir(backup_path)
 
         # Verify backup contains user data
-        with zipfile.ZipFile(backup_path, "r") as zipf:
-            file_list = zipf.namelist()
+        entries = []
+        for root, _dirs, files in os.walk(backup_path):
+            for f in files:
+                rel = os.path.relpath(os.path.join(root, f), backup_path).replace("\\", "/")
+                entries.append(rel)
 
-            # Should contain user data
-            user_files = [f for f in file_list if f.startswith("users/")]
-            assert len(user_files) > 0
+        # Should contain user data
+        user_files = [e for e in entries if e.startswith("users/")]
+        assert len(user_files) > 0
 
-            # Should contain manifest
-            assert "manifest.json" in file_list
+        # Should contain manifest
+        assert "manifest.json" in entries
 
-            # Verify manifest content
-            manifest_content = zipf.read("manifest.json")
-            manifest = json.loads(manifest_content)
-            assert manifest["backup_name"] == "test_user_backup"
-            assert manifest["includes"]["users"] is True
-            assert manifest["includes"]["config"] is False
-            assert manifest["includes"]["logs"] is False
+        # Verify manifest content
+        manifest_path = os.path.join(backup_path, "manifest.json")
+        with open(manifest_path, encoding="utf-8") as f:
+            manifest = json.load(f)
+        assert manifest["backup_name"] == "test_user_backup"
+        assert manifest["includes"]["users"] is True
+        assert manifest["includes"]["config"] is False
+        assert manifest["includes"]["logs"] is False
 
     def test_create_backup_with_config_files_real_behavior(self):
         """Test backup creation includes configuration files."""
@@ -202,18 +206,13 @@ class TestBackupManagerBehavior:
         assert os.path.exists(backup_path)
 
         # Verify backup contains config files
-        with zipfile.ZipFile(backup_path, "r") as zipf:
-            file_list = zipf.namelist()
-
-            # Should contain config files
-            config_files = [f for f in file_list if f.startswith("config/")]
-            assert len(config_files) > 0
-
-            # Should contain user_index.json (which we know exists)
-            assert "config/user_index.json" in file_list
-
-            # Note: .env and requirements.txt may not exist in test environment
-            # so we only check for files that we know exist
+        assert os.path.isdir(backup_path)
+        config_dir = os.path.join(backup_path, "config")
+        assert os.path.isdir(config_dir)
+        # Should contain user_index.json (which we know exists)
+        assert os.path.exists(os.path.join(config_dir, "user_index.json"))
+        # Note: .env and requirements.txt may not exist in test environment
+        # so we only check for files that we know exist.
 
     @pytest.mark.no_parallel
     def test_create_backup_with_all_components_real_behavior(self):
@@ -245,19 +244,22 @@ class TestBackupManagerBehavior:
         # Verify backup was created
         assert backup_path is not None
         assert os.path.exists(backup_path)
+        assert os.path.isdir(backup_path)
 
         # Verify backup contains all components
-        with zipfile.ZipFile(backup_path, "r") as zipf:
-            file_list = zipf.namelist()
+        entries = []
+        for root, _dirs, files in os.walk(backup_path):
+            for f in files:
+                rel = os.path.relpath(os.path.join(root, f), backup_path).replace("\\", "/")
+                entries.append(rel)
 
-            # Should contain all components
-            # Note: users/ directory might be empty if no users exist, but we created one above
-            user_files = [f for f in file_list if f.startswith("users/")]
-            assert (
-                len(user_files) > 0
-            ), f"Backup should contain user files. Found: {file_list[:20]}"
-            assert any(f.startswith("config/") for f in file_list)
-            assert "manifest.json" in file_list
+        # Note: users/ directory might be empty if no users exist, but we created one above
+        user_files = [e for e in entries if e.startswith("users/")]
+        assert (
+            len(user_files) > 0
+        ), f"Backup should contain user files. Found: {entries[:20]}"
+        assert any(e.startswith("config/") for e in entries)
+        assert "manifest.json" in entries
 
     @pytest.mark.no_parallel
     def test_backup_rotation_by_count_real_behavior(self):
@@ -266,16 +268,20 @@ class TestBackupManagerBehavior:
         for i in range(15):
             self.backup_manager.create_backup(f"test_backup_{i}")
 
-        # Verify only max_backups remain
-        backup_files = [f for f in os.listdir(self.backup_dir) if f.endswith(".zip")]
-        assert len(backup_files) <= self.backup_manager.max_backups
+        # Verify only max_backups remain (directory-based backups)
+        backup_dirs = [
+            d
+            for d in os.listdir(self.backup_dir)
+            if os.path.isdir(os.path.join(self.backup_dir, d))
+        ]
+        assert len(backup_dirs) <= self.backup_manager.max_backups
 
     def test_backup_rotation_by_age_real_behavior(self):
         """Test backup rotation removes old backups by age."""
-        # Create a backup with old timestamp
-        old_backup_path = os.path.join(self.backup_dir, "old_backup.zip")
-        with zipfile.ZipFile(old_backup_path, "w") as zipf:
-            zipf.writestr("test.txt", "old backup")
+        # Create a real backup and then age it to simulate an old artifact.
+        old_backup_path = self.backup_manager.create_backup("old_backup")
+        assert old_backup_path is not None
+        assert os.path.isdir(old_backup_path)
 
         # Set old modification time (older than retention days)
         from core.time_utilities import (
@@ -329,25 +335,26 @@ class TestBackupManagerBehavior:
                 os.makedirs(self.backup_manager.backup_dir, exist_ok=True)
                 backup_path = self.backup_manager.create_backup(backup_name)
                 backup_paths.append(backup_path)
-                # Ensure backup file exists and is not empty before proceeding - retry in case of race conditions
+                # Ensure backup directory exists and contains files before proceeding - retry in case of race conditions
                 if backup_path:
-                    file_exists = False
-                    file_size = 0
+                    dir_exists = False
+                    has_files = False
                     for attempt in range(5):
-                        # Re-ensure directory exists on each retry (parallel tests may delete it)
-                        os.makedirs(self.backup_manager.backup_dir, exist_ok=True)
-                        if backup_path and os.path.exists(backup_path):
-                            file_size = os.path.getsize(backup_path)
-                            if file_size > 0:  # Ensure file is not empty
-                                file_exists = True
-                                break
+                        os.makedirs(backup_path, exist_ok=True)
+                        dir_exists = os.path.isdir(backup_path)
+                        if dir_exists and any(
+                            os.path.isfile(os.path.join(backup_path, f))
+                            for f in os.listdir(backup_path)
+                        ):
+                            has_files = True
+                            break
                         if attempt < 4:
                             import time
 
                             time.sleep(0.1)
                     assert (
-                        file_exists
-                    ), f"Backup {i} should be created at {backup_path} with size > 0 (got {file_size}). Backup dir exists: {os.path.exists(self.backup_manager.backup_dir)}, Files: {os.listdir(self.backup_manager.backup_dir) if os.path.exists(self.backup_manager.backup_dir) else 'N/A'}"
+                        dir_exists and has_files
+                    ), f"Backup {i} should be created as non-empty directory at {backup_path}. Backup dir exists: {os.path.exists(self.backup_manager.backup_dir)}, Entries in backup root: {os.listdir(self.backup_manager.backup_dir) if os.path.exists(self.backup_manager.backup_dir) else 'N/A'}"
                 else:
                     raise AssertionError(f"Backup {i} creation returned None")
 
@@ -356,31 +363,31 @@ class TestBackupManagerBehavior:
 
             time.sleep(0.3)  # Increased delay to ensure files are flushed
 
-            # Verify backup files exist before listing - retry in case of race conditions
+            # Verify backup directories exist before listing - retry in case of race conditions
             # Also verify backup directory still exists (might be cleaned up by other tests)
             # Re-ensure backup directory exists before checking (parallel tests may delete it)
             os.makedirs(self.backup_manager.backup_dir, exist_ok=True)
             os.makedirs(self.backup_dir, exist_ok=True)
 
             for backup_path in backup_paths:
-                # Ensure backup directory exists before checking file (re-check in case it was deleted)
+                # Ensure backup directory exists before checking dir (re-check in case it was deleted)
                 if not os.path.exists(self.backup_manager.backup_dir):
                     os.makedirs(self.backup_manager.backup_dir, exist_ok=True)
 
-                file_exists = False
+                dir_exists = False
                 for attempt in range(5):
                     # Re-ensure directory exists on each retry (parallel tests may delete it)
                     if not os.path.exists(self.backup_manager.backup_dir):
                         os.makedirs(self.backup_manager.backup_dir, exist_ok=True)
 
-                    if backup_path and os.path.exists(backup_path):
-                        file_exists = True
+                    if backup_path and os.path.isdir(backup_path):
+                        dir_exists = True
                         break
                     if attempt < 4:
                         time.sleep(0.1)  # Brief delay before retry
                 assert (
-                    file_exists
-                ), f"Backup file should exist: {backup_path}. Backup dir: {self.backup_manager.backup_dir}, Dir exists: {os.path.exists(self.backup_manager.backup_dir)}, Files in backup dir: {os.listdir(self.backup_manager.backup_dir) if os.path.exists(self.backup_manager.backup_dir) else 'N/A'}"
+                    dir_exists
+                ), f"Backup directory should exist: {backup_path}. Backup dir: {self.backup_manager.backup_dir}, Dir exists: {os.path.exists(self.backup_manager.backup_dir)}, Entries in backup dir: {os.listdir(self.backup_manager.backup_dir) if os.path.exists(self.backup_manager.backup_dir) else 'N/A'}"
 
             # List backups
             backups = self.backup_manager.list_backups()
@@ -527,33 +534,35 @@ class TestBackupManagerBehavior:
                 backup_path
             ), f"Backup file should exist at {backup_path}"
 
-            # Verify backup is a valid zip file
-            with zipfile.ZipFile(backup_path, "r") as zipf:
-                file_list = zipf.namelist()
+        # Verify backup directory structure and manifest
+        assert os.path.isdir(backup_path)
+        entries = []
+        for root, _dirs, files in os.walk(backup_path):
+            for f in files:
+                rel = os.path.relpath(os.path.join(root, f), backup_path).replace("\\", "/")
+                entries.append(rel)
 
-                # Should contain manifest
-                assert (
-                    "manifest.json" in file_list
-                ), f"Manifest should be in backup. Files: {file_list}"
+        # Should contain manifest
+        assert (
+            "manifest.json" in entries
+        ), f"Manifest should be in backup. Files: {entries}"
 
-                # Should contain user data (at least the test user from fixture, if users exist)
-                user_files = [f for f in file_list if f.startswith("users/")]
-                # If we found user directories earlier, we should have user files in backup
-                # Otherwise, it's okay if there are no user files (backup can be created without users)
-                if len(user_dirs) > 0:
-                    assert (
-                        len(user_files) > 0
-                    ), f"Should contain user files when users exist. Found files: {file_list}"
+        # Should contain user data (at least the test user from fixture, if users exist)
+        user_files = [e for e in entries if e.startswith("users/")]
+        if len(user_dirs) > 0:
+            assert (
+                len(user_files) > 0
+            ), f"Should contain user files when users exist. Found files: {entries}"
 
-                # Should contain config files
-                config_files = [f for f in file_list if f.startswith("config/")]
-                assert len(config_files) > 0
+        # Should contain config files
+        config_files = [e for e in entries if e.startswith("config/")]
+        assert len(config_files) > 0
 
-            # Validate backup using the validation method
-            # Use the same backup manager instance that created the backup for validation
-            is_valid, errors = backup_manager.validate_backup(backup_path)
-            assert is_valid is True, f"Backup validation failed with errors: {errors}"
-            assert len(errors) == 0, f"Backup validation returned errors: {errors}"
+        # Validate backup using the validation method
+        # Use the same backup manager instance that created the backup for validation
+        is_valid, errors = backup_manager.validate_backup(backup_path)
+        assert is_valid is True, f"Backup validation failed with errors: {errors}"
+        assert len(errors) == 0, f"Backup validation returned errors: {errors}"
 
         # Test validation with non-existent file
         is_valid, errors = self.backup_manager.validate_backup(
@@ -834,15 +843,16 @@ class TestBackupManagerBehavior:
         assert backup_path is not None
         assert os.path.exists(backup_path)
 
-        # Verify backup size is reasonable
-        backup_size = os.path.getsize(backup_path)
-        assert backup_size > 0
-
-        # Verify backup contains all user data
-        with zipfile.ZipFile(backup_path, "r") as zipf:
-            file_list = zipf.namelist()
-            user_files = [f for f in file_list if f.startswith("users/")]
-            assert len(user_files) > 0
+        # Verify backup contains user data and manifest within directory
+        assert os.path.isdir(backup_path)
+        entries = []
+        for root, _dirs, files in os.walk(backup_path):
+            for f in files:
+                rel = os.path.relpath(os.path.join(root, f), backup_path).replace("\\", "/")
+                entries.append(rel)
+        user_files = [e for e in entries if e.startswith("users/")]
+        assert len(user_files) > 0
+        assert "manifest.json" in entries
 
     @pytest.mark.slow
     def test_backup_manager_error_handling_real_behavior(self):
@@ -889,9 +899,5 @@ class TestBackupManagerBehavior:
         assert os.path.exists(backup_path)
 
         # Verify backup contains manifest (user data may still be present from existing users)
-        with zipfile.ZipFile(backup_path, "r") as zipf:
-            file_list = zipf.namelist()
-            assert "manifest.json" in file_list
-            # The backup may still contain existing user data
-            user_files = [f for f in file_list if f.startswith("users/")]
-            assert len(user_files) >= 0
+        manifest_path = os.path.join(backup_path, "manifest.json")
+        assert os.path.exists(manifest_path)

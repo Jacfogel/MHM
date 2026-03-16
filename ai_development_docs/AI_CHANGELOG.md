@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-16 - Legacy backup cleanup and static analysis/test fixes **Progressed**
+- **Backups**: Removed legacy `BACKUP_FORMAT=zip` compatibility from `core/backup_manager.py` so runtime backups are always directory-based, while still supporting read-only access to historical zip artifacts; updated backup behavior tests to assert against directory payloads (manifest, users/, config/) instead of zip files, and ensured age/count-based rotation works on the new model.
+- **Static analysis/tests**: Brought pyright back to 0 errors by fixing `account_flow_handler` imports and type usage, tightening `task_edit_dialog` optional-access patterns, and resolving the remaining analyzer warning in `analyze_package_exports.py`; corrected regressions in Discord bot initialization tests introduced earlier this session and aligned dev-tools coverage helper expectations with the new backup behavior, so the Tier 3 audit’s failing tracks now pass.
+
 ### 2026-03-15 - Duplicate-functions cleanups, dialog helper, static-analysis tidy **Progressed**
 - **Duplicate-functions**: Continued the duplicate-functions investigation by refactoring previously flagged groups: extracted shared Escape/Enter key handling into `ui/dialogs/dialog_helpers.handle_dialog_escape_enter_keys` so `AccountCreatorDialog.keyPressEvent` and `UserProfileDialog.keyPressEvent` share one implementation; added/tuned `# not_duplicate:` markers and analyzer context so intentional API patterns are recognized; and finished marking/refining remaining groups in `DUPLICATE_FUNCTIONS_INVESTIGATION.md`.
 - **Error handling**: Wrapped `handle_dialog_escape_enter_keys` with `@handle_errors("handling dialog key events", default_return=False)` and ensured other new shared helpers keep consistent decorator-based protection, so unexpected UI key-handling failures are logged and treated as "not handled" instead of crashing dialogs.
@@ -112,12 +116,6 @@ Guidelines:
 - Refactored a focused 5-function high-complexity batch with behavior-preserving helper extraction across service loop, logger rollover, interaction manager init, UI user-list refresh, and reminder parsing flows.
 - Fixed `development_tools/shared/service/report_generation.py` so `AI_PRIORITIES` "Highest complexity" examples come from `analyze_functions_results.json` (global top) and only use decision-support examples as fallback.
 - Re-ran audit outputs and confirmed `AI_PRIORITIES` now shows global-top examples (`initialize__register_events`, `_extract_entities_rule_based`, `_show_question_dialog`) instead of stale chatbot-only examples.
-
-### 2026-03-03 - Full-suite interrupt hardening + reporting integrity **Progressed**
-- Hardened `run_tests.py` against noisy SIGINT during active test subprocesses: first interrupt is now soft/non-blocking, while a rapid second interrupt still force-stops.
-- Improved combined summary accounting for interrupted runs with explicit incomplete-test reporting, and preserved phase-specific failure source labels in combined failure output.
-- Fixed behavior/dev-tools regressions uncovered in failing runs: restored `_get_user_profile` account fetch expectations (`user/context_manager.py`) and added xdist-worker-specific legacy report output naming to remove cross-worker file contention (`development_tools/legacy/generate_legacy_reference_report.py`).
-- Reintroduced a low-priority `Watch List` section in generated `development_tools/AI_PRIORITIES.md` (via report generation)
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
