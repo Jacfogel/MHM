@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-14 20:48:39
+> **Last Generated**: 2026-03-16 00:56:07
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 95.1% [OK] COMPLETED**
-- **Files Scanned**: 121
-- **Functions Found**: 1706
-- **Methods Found**: 1245
+- **Files Scanned**: 122
+- **Functions Found**: 1709
+- **Methods Found**: 1243
 - **Classes Found**: 154
-- **Total Items**: 2951
-- **Functions Documented**: 1601
-- **Methods Documented**: 1205
+- **Total Items**: 2952
+- **Functions Documented**: 1604
+- **Methods Documented**: 1203
 - **Classes Documented**: 120
-- **Total Documented**: 2806
+- **Total Documented**: 2807
 - **Template-Generated**: 5
-- **Last Updated**: 2026-03-14
+- **Last Updated**: 2026-03-16
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,13 +39,13 @@
 
 ## Function Categories
 
-### **Core System Functions** (612)
+### **Core System Functions** (614)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (449)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (423)
+### **User Interface Functions** (424)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (33)
@@ -4333,14 +4333,12 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `_check_and_fix_logging__read_recent_log_content(self)` - Read the last 1000 characters from the log file to check for recent activity.
 - [OK] `_check_and_fix_logging__test_logging_functionality(self, test_message)` - Test if logging functionality works by writing a test message and flushing handlers.
 - [OK] `_check_and_fix_logging__verify_test_message_present(self, recent_content, test_message, test_timestamp)` - Check if our test message or recent timestamp patterns are present in log content.
-- [OK] `_check_reschedule_requests__cleanup_request_file(self, request_file, filename)` - Clean up a processed request file.
 - [OK] `_check_reschedule_requests__discover_request_files(self, base_dir)` - Discover all reschedule request files in the base directory.
 - [OK] `_check_reschedule_requests__get_base_directory(self)` - Get the base directory for reschedule request files.
 - [OK] `_check_reschedule_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
 - [OK] `_check_reschedule_requests__parse_request_file(self, request_file)` - Parse and validate a reschedule request file.
 - [OK] `_check_reschedule_requests__process_valid_request(self, request_data)` - Process a valid reschedule request.
 - [OK] `_check_reschedule_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
-- [OK] `_check_test_message_requests__cleanup_request_file(self, request_file, filename)` - Clean up a processed request file.
 - [OK] `_check_test_message_requests__discover_request_files(self, base_dir)` - Discover all test message request files in the base directory.
 - [OK] `_check_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
 - [OK] `_check_test_message_requests__get_message_content(self, user_id, category)` - Get the actual message content that will be sent.
@@ -4349,6 +4347,7 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `_check_test_message_requests__process_valid_request(self, request_data)` - Process a valid test message request.
 - [OK] `_check_test_message_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
 - [OK] `_check_test_message_requests__write_response(self, user_id, category, message)` - Write the actual message content to a response file for the UI to read.
+- [OK] `_cleanup_request_file_after_process(self, request_file, filename, request_type_label)` - Remove a processed request file and log. Shared by test message and reschedule request flows.
 - [OK] `_cleanup_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
 - [OK] `_cleanup_test_message_requests__is_test_message_request_file(self, filename)` - Check if a filename matches the test message request file pattern.
 - [OK] `_cleanup_test_message_requests__remove_request_file(self, request_file, filename)` - Remove a single test message request file with proper error handling.
@@ -4403,14 +4402,12 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService._check_and_fix_logging__read_recent_log_content(self)` - Read the last 1000 characters from the log file to check for recent activity.
   - [OK] `MHMService._check_and_fix_logging__test_logging_functionality(self, test_message)` - Test if logging functionality works by writing a test message and flushing handlers.
   - [OK] `MHMService._check_and_fix_logging__verify_test_message_present(self, recent_content, test_message, test_timestamp)` - Check if our test message or recent timestamp patterns are present in log content.
-  - [OK] `MHMService._check_reschedule_requests__cleanup_request_file(self, request_file, filename)` - Clean up a processed request file.
   - [OK] `MHMService._check_reschedule_requests__discover_request_files(self, base_dir)` - Discover all reschedule request files in the base directory.
   - [OK] `MHMService._check_reschedule_requests__get_base_directory(self)` - Get the base directory for reschedule request files.
   - [OK] `MHMService._check_reschedule_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
   - [OK] `MHMService._check_reschedule_requests__parse_request_file(self, request_file)` - Parse and validate a reschedule request file.
   - [OK] `MHMService._check_reschedule_requests__process_valid_request(self, request_data)` - Process a valid reschedule request.
   - [OK] `MHMService._check_reschedule_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
-  - [OK] `MHMService._check_test_message_requests__cleanup_request_file(self, request_file, filename)` - Clean up a processed request file.
   - [OK] `MHMService._check_test_message_requests__discover_request_files(self, base_dir)` - Discover all test message request files in the base directory.
   - [OK] `MHMService._check_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
   - [OK] `MHMService._check_test_message_requests__get_message_content(self, user_id, category)` - Get the actual message content that will be sent.
@@ -4419,6 +4416,7 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService._check_test_message_requests__process_valid_request(self, request_data)` - Process a valid test message request.
   - [OK] `MHMService._check_test_message_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
   - [OK] `MHMService._check_test_message_requests__write_response(self, user_id, category, message)` - Write the actual message content to a response file for the UI to read.
+  - [OK] `MHMService._cleanup_request_file_after_process(self, request_file, filename, request_type_label)` - Remove a processed request file and log. Shared by test message and reschedule request flows.
   - [OK] `MHMService._cleanup_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
   - [OK] `MHMService._cleanup_test_message_requests__is_test_message_request_file(self, filename)` - Check if a filename matches the test message request file pattern.
   - [OK] `MHMService._cleanup_test_message_requests__remove_request_file(self, request_file, filename)` - Remove a single test message request file with proper error handling.
@@ -4516,6 +4514,10 @@ IMPORTANT:
 
 Returns:
     List of default tag strings, empty list if file not found or invalid
+- [OK] `_modify_user_tag_list(user_id, tag)` - Add or remove a tag in the user's tag list. Shared helper for add/remove.
+
+Validates and normalizes tag, loads tags, applies add/remove, saves.
+Returns True on success or when no change was needed (already present/absent).
 - [OK] `add_user_tag(user_id, tag)` - Add a tag to user's tag list (lazy initialization).
 
 Args:
@@ -4713,11 +4715,10 @@ Returns:
     str: ISO format timestamp of last interaction, or default if none found
 - [OK] `_get_user_data_summary__add_core_file_info(self, file_path, file_type, summary)` - Add file info and special details for a single core file (used by process_core_files).
 - [OK] `_get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
+- [OK] `_get_user_data_summary__add_json_file_detail(self, file_path, summary, file_type, detail_key, extractor, log_label)` - Load JSON from path and set summary["files"][file_type][detail_key] = extractor(data). Used for schedules (periods) and sent_messages (count).
 - [OK] `_get_user_data_summary__add_log_file_info(self, log_file, log_type, summary)` - Add log file information to the summary.
 - [OK] `_get_user_data_summary__add_message_file_info(self, file_path, category, summary, orphaned)` - Add message file information to the summary.
 - [OK] `_get_user_data_summary__add_missing_message_file_info(self, file_path, category, summary, user_id)` - Add information for missing message files.
-- [OK] `_get_user_data_summary__add_schedule_details(self, file_path, summary)` - Add schedule-specific details to the summary.
-- [OK] `_get_user_data_summary__add_sent_messages_details(self, file_path, summary)` - Add sent messages count to the summary.
 - [OK] `_get_user_data_summary__add_special_file_details(self, file_path, file_type, summary)` - Add special details for specific file types (schedules, sent_messages).
 - [OK] `_get_user_data_summary__ensure_message_files(self, user_id, categories)` - Ensure message files exist for all user categories.
 - [OK] `_get_user_data_summary__initialize_summary(self, user_id)` - Initialize the summary structure with default values.
@@ -4826,11 +4827,10 @@ Returns:
     str: ISO format timestamp of last interaction, or default if none found
   - [OK] `UserDataManager._get_user_data_summary__add_core_file_info(self, file_path, file_type, summary)` - Add file info and special details for a single core file (used by process_core_files).
   - [OK] `UserDataManager._get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
+  - [OK] `UserDataManager._get_user_data_summary__add_json_file_detail(self, file_path, summary, file_type, detail_key, extractor, log_label)` - Load JSON from path and set summary["files"][file_type][detail_key] = extractor(data). Used for schedules (periods) and sent_messages (count).
   - [OK] `UserDataManager._get_user_data_summary__add_log_file_info(self, log_file, log_type, summary)` - Add log file information to the summary.
   - [OK] `UserDataManager._get_user_data_summary__add_message_file_info(self, file_path, category, summary, orphaned)` - Add message file information to the summary.
   - [OK] `UserDataManager._get_user_data_summary__add_missing_message_file_info(self, file_path, category, summary, user_id)` - Add information for missing message files.
-  - [OK] `UserDataManager._get_user_data_summary__add_schedule_details(self, file_path, summary)` - Add schedule-specific details to the summary.
-  - [OK] `UserDataManager._get_user_data_summary__add_sent_messages_details(self, file_path, summary)` - Add sent messages count to the summary.
   - [OK] `UserDataManager._get_user_data_summary__add_special_file_details(self, file_path, file_type, summary)` - Add special details for specific file types (schedules, sent_messages).
   - [OK] `UserDataManager._get_user_data_summary__ensure_message_files(self, user_id, categories)` - Ensure message files exist for all user categories.
   - [OK] `UserDataManager._get_user_data_summary__initialize_summary(self, user_id)` - Initialize the summary structure with default values.
@@ -4926,6 +4926,9 @@ Returns:
 
 #### `core/user_data_updates.py`
 **Functions:**
+- [OK] `_update_user_section(user_id, section_key, data)` - Save a single user-data section and return whether that section was saved.
+- [OK] `_validate_user_id(user_id)` - Validate user_id is a non-empty string. Log and return False if invalid.
+- [OK] `_validate_user_id_and_dict(user_id, data, dict_name)` - Validate user_id and that data is a dict. Log and return False if invalid.
 - [MISSING] `update_channel_preferences(user_id, updates)` - No description
 - [MISSING] `update_user_account(user_id, updates)` - No description
 - [MISSING] `update_user_context(user_id, updates)` - No description
@@ -5439,6 +5442,22 @@ Args:
   - [MISSING] `CheckinManagementDialog.on_enable_checkins_toggled(self, checked)` - No description
   - [OK] `CheckinManagementDialog.save_checkin_settings(self)` - Save the check-in settings back to user preferences
   - [OK] `CheckinManagementDialog.set_checkin_settings(self, settings)` - Set the check-in settings.
+
+#### `ui/dialogs/dialog_helpers.py`
+**Functions:**
+- [OK] `handle_dialog_escape_enter_keys(dialog, event)` - Handle Escape (confirm then close) and Enter (ignore) for a dialog.
+
+Use from keyPressEvent: if this returns True, the event was handled;
+otherwise call super().keyPressEvent(event).
+
+Args:
+    dialog: The dialog widget (used as parent for QMessageBox).
+    event: The key event.
+    cancel_title: Title for the Escape confirmation (e.g. "Cancel Account Creation").
+    on_escape_confirm: Callable with no args, invoked when user confirms cancel (e.g. self.reject).
+
+Returns:
+    True if the event was handled; False if the dialog should chain to super().
 
 #### `ui/dialogs/message_editor_dialog.py`
 **Functions:**

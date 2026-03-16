@@ -1025,6 +1025,7 @@ class TaskManagementHandler(InteractionHandler):
                 "❌ Failed to update task. Please try again.", True
             )
 
+    # not_duplicate: handle_task_stats
     @handle_errors("handling task statistics")
     def _handle_task_stats(
         self, user_id: str, entities: dict[str, Any]

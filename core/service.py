@@ -830,16 +830,16 @@ class MHMService:
             logger.debug(f"Could not write response file: {e}")
 
     @handle_errors(
-        "cleaning up test message request file",
+        "cleaning up request file after process",
         user_friendly=False,
         default_return=None,
     )
-    def _check_test_message_requests__cleanup_request_file(
-        self, request_file, filename
+    def _cleanup_request_file_after_process(
+        self, request_file, filename, request_type_label: str
     ):
-        """Clean up a processed request file."""
+        """Remove a processed request file and log. Shared by test message and reschedule request flows."""
         os.remove(request_file)
-        logger.info(f"Processed test message request: {filename}")
+        logger.info(f"Processed {request_type_label} request: {filename}")
 
     @handle_errors(
         "cleaning up problematic test message request file",
@@ -877,8 +877,8 @@ class MHMService:
                 self._check_test_message_requests__process_valid_request(request_data)
 
             # Clean up the request file
-            self._check_test_message_requests__cleanup_request_file(
-                request_file, filename
+            self._cleanup_request_file_after_process(
+                request_file, filename, "test message"
             )
 
     @handle_errors("checking check-in prompt requests")
@@ -1170,14 +1170,6 @@ class MHMService:
             logger.error("Scheduler manager not available for reschedule")
 
     @handle_errors(
-        "cleaning up reschedule request file", user_friendly=False, default_return=None
-    )
-    def _check_reschedule_requests__cleanup_request_file(self, request_file, filename):
-        """Clean up a processed request file."""
-        os.remove(request_file)
-        logger.info(f"Processed reschedule request: {filename}")
-
-    @handle_errors(
         "cleaning up problematic reschedule request file",
         user_friendly=False,
         default_return=None,
@@ -1213,8 +1205,8 @@ class MHMService:
                 self._check_reschedule_requests__process_valid_request(request_data)
 
             # Clean up the request file
-            self._check_reschedule_requests__cleanup_request_file(
-                request_file, filename
+            self._cleanup_request_file_after_process(
+                request_file, filename, "reschedule"
             )
 
     @handle_errors("cleaning up reschedule requests")

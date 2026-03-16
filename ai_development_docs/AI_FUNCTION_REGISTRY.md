@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-14 20:48:39
+> **Last Generated**: 2026-03-16 00:56:07
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 95.1% [OK] EXCELLENT**
-- **Total Functions**: 1706
-- **Total Methods**: 1245
-- **Documented**: 2806/2951
-- **Files Scanned**: 121
+- **Total Functions**: 1709
+- **Total Methods**: 1243
+- **Documented**: 2807/2952
+- **Files Scanned**: 122
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -23,7 +23,7 @@
 User Data Operations Decision Tree:
 +-- Core Data Access
 |   +-- `core/user_data_read.py` - Primary data access (5 functions)
-|   +-- `core/user_data_manager.py` - Data management (68 functions)
+|   +-- `core/user_data_manager.py` - Data management (66 functions)
 |   `-- `core/user_data_validation.py` - Validation (9/12 functions)
 +-- User Context
 |   +-- `user/user_context.py` - User context management (20 functions)
@@ -193,8 +193,8 @@ Core System Decision Tree:
 - `core/user_data_write.py` - 10/12 functions undocumented (17% coverage)
 - `ui/dialogs/channel_management_dialog.py` - 7/11 functions undocumented (36% coverage)
 - `ui/widgets/channel_selection_widget.py` - 6/16 functions undocumented (62% coverage)
-- `core/user_data_updates.py` - 5/5 functions undocumented (0% coverage)
 - `core/user_lookup.py` - 5/6 functions undocumented (17% coverage)
+- `core/user_data_updates.py` - 5/8 functions undocumented (38% coverage)
 - `ui/widgets/category_selection_widget.py` - 4/6 functions undocumented (33% coverage)
 
 ### **Medium Priority** (Partial Coverage)
@@ -236,7 +236,7 @@ Most complex functions (may need refactoring):
 - `core/` - System utilities and data management (35 files, 915 functions)
 - `communication/` - Communication channels and message processing (39 files, 853 functions)
 - `ai/` - AI chatbot functionality (7 files, 219 functions)
-- `ui/` - User interface components (28 files, 824 functions)
+- `ui/` - User interface components (29 files, 825 functions)
 - `user/` - User context and preferences (4 files, 65 functions)
 - `tasks/` - Task management system (5 files, 25 functions)
 

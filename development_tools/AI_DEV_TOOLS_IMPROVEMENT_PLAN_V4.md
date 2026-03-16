@@ -303,6 +303,7 @@ Key metrics as of 2026-02-28 (from quick audit): overall coverage 72.5%, dev-too
 - [x] Include top files with issue counts, fix command, and verification guidance
 - [x] Validate with real data to ensure file lists are correct
 - [x] Apply consistent format for ASCII, addresses, headings, and links
+- [x] Add U+2265 (≥) to ASCII compliance analyze and fix: In `docs/analyze_ascii_compliance.py` add `"\u2265": ">="` to `KNOWN_REPLACEMENTS` so the analyzer reports it as auto-fixable; in `docs/fix_documentation_ascii.py` add the same to `REPLACEMENTS` so `doc-fix --fix-ascii` replaces ≥ with `>=`. Keeps docs ASCII without manual fixes when this character appears.
 
 #### 2.2 Standardize logging and surface top offenders
 **Status**: IN PROGRESS  
@@ -882,6 +883,14 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 - [ ] Integrate with or extend existing `backup verify` and retention tooling
 
 #### 7.10 create tool to detect unused functions, variables etc.  
+
+#### 7.11 create tool to detect facades, shims, etc. 
+
+#### 7.12 add standardization for exclusion marking systems
+- Several tools currently have ways to mark functions or other things so that they are no flagged as non-compliant or otherwise identified as issues, we should standardize this approach accross tools
+- Ensure the standardization is documented in  C:\Users\jacfo\MHM\development_tools\AI_DEVELOPMENT_TOOLS_GUIDE.md and C:\Users\jacfo\MHM\development_tools\DEVELOPMENT_TOOLS_GUIDE.md so future tools also adhere to it
+
+#### 7.13 expand/improve duplicate function detector tool to consider argument similarities  and other things
 
 ## Related Documents
 

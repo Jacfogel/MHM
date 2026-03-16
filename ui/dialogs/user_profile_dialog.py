@@ -28,6 +28,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal
 
+# Dialog helpers
+from ui.dialogs.dialog_helpers import handle_dialog_escape_enter_keys
+
 # Import generated UI classes
 from ui.generated.user_profile_management_dialog_pyqt import Ui_Dialog_user_profile
 
@@ -113,27 +116,17 @@ class UserProfileDialog(QDialog):
         # Override key events for large dialog
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
 
-    # not_duplicate: keyPressEvent
     @handle_errors("handling key press events")
     def keyPressEvent(self, event):
         """Handle key press events for the dialog."""
-        if event.key() == Qt.Key.Key_Escape:
-            # Show confirmation dialog before canceling
-            reply = QMessageBox.question(
-                self,
-                "Cancel Personalization",
-                "Are you sure you want to cancel? All unsaved changes will be lost.",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-            if reply == QMessageBox.StandardButton.Yes:
-                self.cancel()
-            event.accept()
-        elif event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
-            # Ignore Enter key to prevent accidental saving
-            event.ignore()
-        else:
-            super().keyPressEvent(event)
+        if handle_dialog_escape_enter_keys(
+            self,
+            event,
+            cancel_title="Cancel Personalization",
+            on_escape_confirm=self.cancel,
+        ):
+            return
+        super().keyPressEvent(event)
 
     @handle_errors("creating custom field list")
     def create_custom_field_list(

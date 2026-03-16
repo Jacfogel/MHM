@@ -499,11 +499,11 @@ def save_user_data(
     merged_data = updated_merged_data
 
     for dt in merged_data:
-        if dt not in valid_types_to_process:
-            if dt == "account" and "account" not in data_updates:
-                valid_types_to_process.append(dt)
-            elif dt in data_updates:
-                valid_types_to_process.append(dt)
+        if (
+            dt not in valid_types_to_process
+            and (dt == "account" or dt in data_updates)
+        ):
+            valid_types_to_process.append(dt)
     valid_types_to_process.sort(
         key=lambda dt: (
             _DATA_TYPE_PROCESSING_ORDER.index(dt)

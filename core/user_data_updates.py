@@ -19,56 +19,74 @@ from core.user_data_schedule_defaults import (
 logger = get_component_logger("main")
 
 
-@handle_errors("updating user schedules (centralised)", default_return=False)
-def update_user_schedules(user_id: str, schedules_data: dict[str, Any]) -> bool:
+@handle_errors("validating user_id", default_return=False)
+def _validate_user_id(user_id: str) -> bool:
+    """Validate user_id is a non-empty string. Log and return False if invalid."""
     if not user_id or not isinstance(user_id, str):
         logger.error(f"Invalid user_id: {user_id}")
         return False
     if not user_id.strip():
         logger.error("Empty user_id provided")
+        return False
+    return True
+
+
+@handle_errors("validating user_id and dict", default_return=False)
+def _validate_user_id_and_dict(
+    user_id: str, data: Any, dict_name: str
+) -> bool:
+    """Validate user_id and that data is a dict. Log and return False if invalid."""
+    if not _validate_user_id(user_id):
+        return False
+    if not isinstance(data, dict):
+        logger.error(f"Invalid {dict_name}: {type(data)}")
+        return False
+    return True
+
+
+@handle_errors("updating user section", default_return=False)
+def _update_user_section(
+    user_id: str,
+    section_key: str,
+    data: dict[str, Any],
+    *,
+    auto_create: bool = True,
+) -> bool:
+    """Save a single user-data section and return whether that section was saved."""
+    result = save_user_data(
+        user_id, {section_key: data}, auto_create=auto_create
+    )
+    return result.get(section_key, False)
+
+
+# not_duplicate: user_data_updates_section
+@handle_errors("updating user schedules (centralised)", default_return=False)
+def update_user_schedules(user_id: str, schedules_data: dict[str, Any]) -> bool:
+    if not _validate_user_id(user_id):
         return False
     if not isinstance(schedules_data, dict):
         logger.error(f"Invalid schedules_data: {type(schedules_data)}")
         return False
-    result = save_user_data(user_id, {"schedules": schedules_data})
-    return result.get("schedules", False)
+    return _update_user_section(user_id, "schedules", schedules_data)
 
 
+# not_duplicate: user_data_updates_section
 @handle_errors("updating user account (centralised)", default_return=False)
 def update_user_account(
     user_id: str, updates: dict[str, Any], *, auto_create: bool = True
 ) -> bool:
-    if not user_id or not isinstance(user_id, str):
-        logger.error(f"Invalid user_id: {user_id}")
+    if not _validate_user_id_and_dict(user_id, updates, "updates"):
         return False
-    if not user_id.strip():
-        logger.error("Empty user_id provided")
-        return False
-    if not isinstance(updates, dict):
-        logger.error(f"Invalid updates: {type(updates)}")
-        return False
-    if not user_id:
-        logger.error("update_user_account called with None user_id")
-        return False
-    result = save_user_data(user_id, {"account": updates}, auto_create=auto_create)
-    return result.get("account", False)
+    return _update_user_section(
+        user_id, "account", updates, auto_create=auto_create
+    )
 
 
 @handle_errors("updating user preferences (centralised)", default_return=False)
 def update_user_preferences(
     user_id: str, updates: dict[str, Any], *, auto_create: bool = True
 ) -> bool:
-    if not user_id or not isinstance(user_id, str):
-        logger.error(f"Invalid user_id: {user_id}")
-        return False
-    if not user_id.strip():
-        logger.error("Empty user_id provided")
-        return False
-    if not isinstance(updates, dict):
-        logger.error(f"Invalid updates: {type(updates)}")
-        return False
-    if not user_id:
-        logger.error("update_user_preferences called with None user_id")
+    if not _validate_user_id_and_dict(user_id, updates, "updates"):
         return False
 
     if not auto_create:
@@ -150,41 +168,25 @@ def update_user_preferences(
     return result.get("preferences", False)
 
 
+# not_duplicate: user_data_updates_section
 @handle_errors("updating user context (centralised)", default_return=False)
 def update_user_context(
     user_id: str, updates: dict[str, Any], *, auto_create: bool = True
 ) -> bool:
-    if not user_id or not isinstance(user_id, str):
-        logger.error(f"Invalid user_id: {user_id}")
+    if not _validate_user_id_and_dict(user_id, updates, "updates"):
         return False
-    if not user_id.strip():
-        logger.error("Empty user_id provided")
-        return False
-    if not isinstance(updates, dict):
-        logger.error(f"Invalid updates: {type(updates)}")
-        return False
-    if not user_id:
-        logger.error("update_user_context called with None user_id")
-        return False
-    result = save_user_data(user_id, {"context": updates}, auto_create=auto_create)
-    return result.get("context", False)
+    return _update_user_section(
+        user_id, "context", updates, auto_create=auto_create
+    )
 
 
+# not_duplicate: user_data_updates_section
 @handle_errors("updating channel preferences (centralised)", default_return=False)
 def update_channel_preferences(
     user_id: str, updates: dict[str, Any], *, auto_create: bool = True
 ) -> bool:
-    if not user_id or not isinstance(user_id, str):
-        logger.error(f"Invalid user_id: {user_id}")
+    if not _validate_user_id_and_dict(user_id, updates, "updates"):
         return False
-    if not user_id.strip():
-        logger.error("Empty user_id provided")
-        return False
-    if not isinstance(updates, dict):
-        logger.error(f"Invalid updates: {type(updates)}")
-        return False
-    if not user_id:
-        logger.error("update_channel_preferences called with None user_id")
-        return False
-    result = save_user_data(user_id, {"preferences": updates}, auto_create=auto_create)
-    return result.get("preferences", False)
+    return _update_user_section(
+        user_id, "preferences", updates, auto_create=auto_create
+    )

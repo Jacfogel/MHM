@@ -1023,6 +1023,7 @@ class AnalyticsHandler(InteractionHandler):
                 True,
             )
 
+    # not_duplicate: handle_task_stats
     @handle_errors(
         "showing task statistics",
         default_return=InteractionResponse(

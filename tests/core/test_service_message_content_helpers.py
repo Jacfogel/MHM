@@ -138,8 +138,8 @@ class TestServiceMessageContentHelpers:
         request_path = base_dir / "test_message_request_cleanup.flag"
         request_path.write_text("{}", encoding="utf-8")
 
-        service._check_test_message_requests__cleanup_request_file(
-            str(request_path), request_path.name
+        service._cleanup_request_file_after_process(
+            str(request_path), request_path.name, "test message"
         )
 
         assert not request_path.exists()
@@ -163,7 +163,7 @@ class TestServiceMessageContentHelpers:
                 return_value=True,
             ),
             patch.object(service, "_check_test_message_requests__process_valid_request") as mock_process,
-            patch.object(service, "_check_test_message_requests__cleanup_request_file") as mock_cleanup,
+            patch.object(service, "_cleanup_request_file_after_process") as mock_cleanup,
         ):
             service.check_test_message_requests()
 
@@ -171,7 +171,9 @@ class TestServiceMessageContentHelpers:
             {"user_id": "u1", "category": "motivational", "source": "ui"}
         )
         mock_cleanup.assert_called_once_with(
-            "C:/tmp/test_message_request_1.flag", "test_message_request_1.flag"
+            "C:/tmp/test_message_request_1.flag",
+            "test_message_request_1.flag",
+            "test message",
         )
 
     def test_check_test_message_requests_skips_invalid_but_still_cleans_up(self, service):
@@ -199,7 +201,7 @@ class TestServiceMessageContentHelpers:
                 side_effect=[False, True],
             ),
             patch.object(service, "_check_test_message_requests__process_valid_request") as mock_process,
-            patch.object(service, "_check_test_message_requests__cleanup_request_file") as mock_cleanup,
+            patch.object(service, "_cleanup_request_file_after_process") as mock_cleanup,
         ):
             service.check_test_message_requests()
 
@@ -207,6 +209,14 @@ class TestServiceMessageContentHelpers:
             {"user_id": "u2", "category": "health", "source": "ui"}
         )
         assert mock_cleanup.call_args_list == [
-            call("C:/tmp/test_message_request_1.flag", "test_message_request_1.flag"),
-            call("C:/tmp/test_message_request_2.flag", "test_message_request_2.flag"),
+            call(
+                "C:/tmp/test_message_request_1.flag",
+                "test_message_request_1.flag",
+                "test message",
+            ),
+            call(
+                "C:/tmp/test_message_request_2.flag",
+                "test_message_request_2.flag",
+                "test message",
+            ),
         ]

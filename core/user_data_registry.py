@@ -507,6 +507,7 @@ def _save_user_data__save_tags(user_id: str, tags_data: dict[str, Any]) -> bool:
         return False
 
 
+# not_duplicate: clear_user_caches
 @handle_errors("clearing user caches")
 def clear_user_caches(user_id: str | None = None) -> None:
     """Clear user data caches."""

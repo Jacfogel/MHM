@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-14 20:48:40
+> **Last Generated**: 2026-03-16 00:56:08
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 119
-- **Total Imports Found**: 1528
-- **Dependencies Documented**: 119 (100% coverage)
-- **Standard Library Imports**: 408 (26.7%)
-- **Third-Party Imports**: 228 (14.9%)
-- **Local Imports**: 892 (58.4%)
-- **Last Updated**: 2026-03-14
+- **Files Scanned**: 120
+- **Total Imports Found**: 1535
+- **Dependencies Documented**: 120 (100% coverage)
+- **Standard Library Imports**: 410 (26.7%)
+- **Third-Party Imports**: 231 (15.0%)
+- **Local Imports**: 894 (58.2%)
+- **Last Updated**: 2026-03-16
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 408 imports (26.7%)
-- **Third-Party**: 228 imports (14.9%)
-- **Local**: 892 imports (58.4%)
+- **Standard Library**: 410 imports (26.7%)
+- **Third-Party**: 231 imports (15.0%)
+- **Local**: 894 imports (58.2%)
 
 ## Module Dependencies by Directory
 
@@ -2737,6 +2737,7 @@
     - `core.user_data_manager (update_user_index)` (NEW)
     - `core.user_data_validation (is_valid_discord_id, is_valid_email, is_valid_phone, validate_schedule_periods)` (NEW)
     - `tasks (add_user_task_tag, setup_default_task_tags)` (NEW)
+    - `ui.dialogs.dialog_helpers (handle_dialog_escape_enter_keys)` (NEW)
     - `ui.dialogs.user_profile_dialog (open_personalization_dialog)` (NEW)
     - `ui.generated.account_creator_dialog_pyqt (Ui_Dialog_create_account)` (NEW)
     - `ui.widgets.category_selection_widget (CategorySelectionWidget)` (NEW)
@@ -2757,7 +2758,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.service, core.user_data_manager, core.user_data_validation, tasks, ui.dialogs.user_profile_dialog, ui.generated.account_creator_dialog_pyqt, ui.widgets.category_selection_widget, ui.widgets.channel_selection_widget, ui.widgets.checkin_settings_widget, ui.widgets.task_settings_widget
+- Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.service, core.user_data_manager, core.user_data_validation, tasks, ui.dialogs.dialog_helpers, ui.dialogs.user_profile_dialog, ui.generated.account_creator_dialog_pyqt, ui.widgets.category_selection_widget, ui.widgets.channel_selection_widget, ui.widgets.checkin_settings_widget, ui.widgets.task_settings_widget
 - Removed: PySide6.QtCore, PySide6.QtWidgets, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2869,6 +2870,24 @@
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Check-in management dialog
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ui/dialogs/dialog_helpers.py`
+- **Purpose**: Dialog component for dialog helpers
+- **Dependencies**: 
+  - **Standard Library**:
+    - `collections.abc (Callable)`
+    - `typing (Any)`
+  - **Third-party**:
+    - `PySide6.QtCore (Qt)`
+    - `PySide6.QtGui (QKeyEvent)`
+    - `PySide6.QtWidgets (QMessageBox)`
+- **Used by**: 
+  - `ui/dialogs/account_creator_dialog.py`
+  - `ui/dialogs/user_profile_dialog.py`
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
 #### `ui/dialogs/message_editor_dialog.py`
@@ -3080,6 +3099,7 @@
     - `core.logger (get_component_logger, setup_logging)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
     - `core.user_data_validation (validate_personalization_data)` (NEW)
+    - `ui.dialogs.dialog_helpers (handle_dialog_escape_enter_keys)` (NEW)
     - `ui.generated.user_profile_management_dialog_pyqt (Ui_Dialog_user_profile)` (NEW)
     - `ui.widgets.dynamic_list_container (DynamicListContainer)` (NEW)
     - `ui.widgets.user_profile_settings_widget (UserProfileSettingsWidget)` (NEW)
@@ -3095,7 +3115,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.time_utilities, core.user_data_validation, ui.generated.user_profile_management_dialog_pyqt, ui.widgets.dynamic_list_container, ui.widgets.user_profile_settings_widget
+- Added: core, core.error_handling, core.logger, core.time_utilities, core.user_data_validation, ui.dialogs.dialog_helpers, ui.generated.user_profile_management_dialog_pyqt, ui.widgets.dynamic_list_container, ui.widgets.user_profile_settings_widget
 - Removed: PySide6.QtCore, PySide6.QtWidgets, collections.abc, ui/dialogs/account_creator_dialog.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

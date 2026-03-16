@@ -9,7 +9,8 @@ import json
 import shutil
 import zipfile
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 from pathlib import Path
 
 from core.logger import get_component_logger
@@ -185,6 +186,7 @@ class UserDataManager:
 
         return message_files
 
+    # not_duplicate: user_data_manager_api
     @handle_errors("backing up user data", default_return="")
     def backup_user_data(self, user_id: str, include_messages: bool = True) -> str:
         """
@@ -257,6 +259,7 @@ class UserDataManager:
             logger.error(f"Error creating backup for user {user_id}: {e}")
             return ""
 
+    # not_duplicate: user_data_manager_api
     @handle_errors("exporting user data", default_return={})
     def export_user_data(
         self, user_id: str, export_format: str = "json"
@@ -391,6 +394,7 @@ class UserDataManager:
         logger.info(f"User {user_id} completely removed from system")
         return True
 
+    # not_duplicate: user_data_manager_api
     @handle_errors(
         "getting user data summary", default_return={"error": "Failed to get summary"}
     )
@@ -433,6 +437,7 @@ class UserDataManager:
 
         return summary
 
+    # not_duplicate: user_data_manager_api
     @handle_errors("initializing user data summary")
     def _get_user_data_summary__initialize_summary(
         self, user_id: str
@@ -484,6 +489,7 @@ class UserDataManager:
             file_path, file_type, summary
         )
 
+    # not_duplicate: get_user_data_summary_process_core_log
     @handle_errors("processing core files for user data summary")
     def _get_user_data_summary__process_core_files(
         self, user_id: str, summary: dict[str, Any]
@@ -521,46 +527,53 @@ class UserDataManager:
         """Add special details for specific file types (schedules, sent_messages)."""
         try:
             if file_type == "schedules":
-                self._get_user_data_summary__add_schedule_details(file_path, summary)
+                self._get_user_data_summary__add_json_file_detail(
+                    file_path,
+                    summary,
+                    "schedules",
+                    "periods",
+                    lambda data: sum(
+                        len(cat_schedules) for cat_schedules in data.values()
+                    ),
+                    log_label="schedule details",
+                )
             elif file_type == "sent_messages":
-                self._get_user_data_summary__add_sent_messages_details(
-                    file_path, summary
+                self._get_user_data_summary__add_json_file_detail(
+                    file_path,
+                    summary,
+                    "sent_messages",
+                    "count",
+                    lambda data: sum(
+                        len(msgs)
+                        for msgs in data.values()
+                        if isinstance(msgs, list)
+                    ),
+                    log_label="sent messages details",
                 )
         except Exception as e:
             logger.error(f"Error adding special file details to user data summary: {e}")
 
-    @handle_errors("adding schedule details to user data summary")
-    def _get_user_data_summary__add_schedule_details(
-        self, file_path: str, summary: dict[str, Any]
+    @handle_errors("adding JSON file detail to user data summary", default_return=None)
+    def _get_user_data_summary__add_json_file_detail(
+        self,
+        file_path: str,
+        summary: dict[str, Any],
+        file_type: str,
+        detail_key: str,
+        extractor: Callable[[Any], Any],
+        log_label: str = "detail",
     ) -> None:
-        """Add schedule-specific details to the summary."""
+        """Load JSON from path and set summary["files"][file_type][detail_key] = extractor(data). Used for schedules (periods) and sent_messages (count)."""
         try:
             data = load_json_data(file_path)
             if data:
-                total_periods = sum(
-                    len(cat_schedules) for cat_schedules in data.values()
-                )
-                summary["files"]["schedules"]["periods"] = total_periods
-        except Exception as e:
-            logger.error(f"Error adding schedule details to user data summary: {e}")
-
-    @handle_errors("adding sent messages details to user data summary")
-    def _get_user_data_summary__add_sent_messages_details(
-        self, file_path: str, summary: dict[str, Any]
-    ) -> None:
-        """Add sent messages count to the summary."""
-        try:
-            data = load_json_data(file_path)
-            if data:
-                total_messages = sum(
-                    len(msgs) for msgs in data.values() if isinstance(msgs, list)
-                )
-                summary["files"]["sent_messages"]["count"] = total_messages
+                summary["files"][file_type][detail_key] = extractor(data)
         except Exception as e:
             logger.error(
-                f"Error adding sent messages details to user data summary: {e}"
+                f"Error adding {log_label} to user data summary: {e}"
             )
 
+    # not_duplicate: get_user_data_summary_process_message
     @handle_errors("processing message files for user data summary")
     def _get_user_data_summary__process_message_files(
         self, user_id: str, summary: dict[str, Any]
@@ -612,6 +625,7 @@ class UserDataManager:
                 f"Error ensuring message files during validation for user {user_id}: {e}"
             )
 
+    # not_duplicate: get_user_data_summary_process_message
     @handle_errors("processing enabled message files for user data summary")
     def _get_user_data_summary__process_enabled_message_files(
         self, user_id: str, categories: list[str], summary: dict[str, Any]
@@ -636,6 +650,7 @@ class UserDataManager:
                 f"Error processing enabled message files for user data summary: {e}"
             )
 
+    # not_duplicate: get_user_data_summary_process_message
     @handle_errors("processing orphaned message files for user data summary")
     def _get_user_data_summary__process_orphaned_message_files(
         self,
@@ -709,6 +724,7 @@ class UserDataManager:
                 f"Error adding missing message file info to user data summary: {e}"
             )
 
+    # not_duplicate: get_user_data_summary_process_core_log
     @handle_errors("processing log files for user data summary")
     def _get_user_data_summary__process_log_files(
         self, user_id: str, summary: dict[str, Any]
@@ -1239,6 +1255,7 @@ def update_message_references(user_id: str) -> bool:
         return False
 
 
+# not_duplicate: user_data_manager_api
 @handle_errors("backing up user data", default_return="")
 def backup_user_data(user_id: str, include_messages: bool = True) -> str:
     """
@@ -1278,6 +1295,7 @@ def backup_user_data(user_id: str, include_messages: bool = True) -> str:
         return ""
 
 
+# not_duplicate: user_data_manager_api
 @handle_errors("exporting user data", default_return={})
 def export_user_data(user_id: str, export_format: str = "json") -> dict[str, Any]:
     """
@@ -1361,6 +1379,7 @@ def delete_user_completely(user_id: str, create_backup: bool = True) -> bool:
         return False
 
 
+# not_duplicate: user_data_manager_api
 @handle_errors(
     "getting user data summary", default_return={"error": "Failed to get summary"}
 )
@@ -1586,6 +1605,7 @@ def build_user_index() -> dict[str, Any]:
         return {}
 
 
+# not_duplicate: user_data_manager_api
 @handle_errors("getting user summary", default_return={})
 def get_user_summary(user_id: str) -> dict[str, Any]:
     """
@@ -1689,6 +1709,7 @@ def get_all_user_summaries() -> list[dict[str, Any]]:
         return []
 
 
+# not_duplicate: user_data_manager_api
 @handle_errors(
     "getting user analytics summary",
     default_return={"error": "Failed to get analytics summary"},

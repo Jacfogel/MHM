@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-14 20:48:46
+> **Last Generated**: 2026-03-16 00:56:14
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -540,6 +540,7 @@ C:.
 |   |   |   test_data_loading_helpers.py
 |   |   |   test_decision_support.py
 |   |   |   test_deprecation_inventory_guard.py
+|   |   |   test_development_tools_package_init.py
 |   |   |   test_dev_tools_coverage_cache.py
 |   |   |   test_documentation_sync_checker.py
 |   |   |   test_error_scenarios.py
@@ -575,6 +576,7 @@ C:.
 |   |   |   test_regenerate_coverage_metrics.py
 |   |   |   test_report_generation_quick_wins.py
 |   |   |   test_report_generation_static_analysis.py
+|   |   |   test_result_format.py
 |   |   |   test_retention_engine.py
 |   |   |   test_run_development_tools.py
 |   |   |   test_run_dev_tools.py

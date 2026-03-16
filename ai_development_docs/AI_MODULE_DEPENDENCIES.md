@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-14 20:48:44
+> **Last Generated**: 2026-03-16 00:56:12
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 119
-- **Total Imports**: 1528
-- **Standard Library**: 408 (26.7%)
-- **Third-Party**: 228 (14.9%)
-- **Local Imports**: 892 (58.4%)
+- **Files Scanned**: 120
+- **Total Imports**: 1535
+- **Standard Library**: 410 (26.7%)
+- **Third-Party**: 231 (15.0%)
+- **Local Imports**: 894 (58.2%)
 
 ## Dependency Decision Trees
 
@@ -63,7 +63,7 @@ UI Dependencies:
 - Main Application
   - ui/ui_app_qt.py <- standard library (contextlib, json, os, pathlib), third-party (PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets), time_utilities, logger, config, error_handling, service_utilities (+20 more)
 - Dialogs
-  - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, pathlib, time, typing), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, core, error_handling, category_selection_widget (+10 more)
+  - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, pathlib, time, typing), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, core, error_handling, dialog_helpers (+11 more)
   - ui/dialogs/admin_panel.py <- third-party (PySide6.QtCore, PySide6.QtWidgets), logger, error_handling
   - ui/dialogs/category_management_dialog.py <- third-party (PySide6.QtCore, PySide6.QtWidgets), category_management_dialog_pyqt, category_selection_widget, logger, core, error_handling (+1 more)
 - Widgets
@@ -124,8 +124,8 @@ External libraries provide channel and UI support.
 - `core/scheduler.py` -> 29 local dependencies (heavy coupling)
 
 ### Third-Party Risks
-- `ui/ui_app_qt.py` -> PySide6.QtWidgets (30 modules use this)
-- `ui/ui_app_qt.py` -> PySide6.QtCore (18 modules use this)
+- `ui/ui_app_qt.py` -> PySide6.QtWidgets (31 modules use this)
+- `ui/ui_app_qt.py` -> PySide6.QtCore (19 modules use this)
 - `communication/communication_channels/base/command_registry.py` -> discord (11 modules use this)
 - `ai/chatbot.py` -> psutil (7 modules use this)
 - `core/scheduler.py` -> pytz (5 modules use this)

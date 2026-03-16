@@ -121,6 +121,8 @@ class ASCIIComplianceAnalyzer:
             "\u2193": "v",  # Down arrow
             "\u2026": "...",  # Horizontal ellipsis
             # Mathematical symbols
+            "\u2264": "<=",  # Less-than or equal to (≤)
+            "\u2265": ">=",  # Greater-than or equal to (≥)
             "\u00d7": "x",  # Multiplication sign (×)
             "\u00b0": "deg",  # Degree symbol (°)
             "\u00b1": "+/-",  # Plus-minus sign (±)

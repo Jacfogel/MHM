@@ -324,6 +324,58 @@ def get_user_tags(user_id: str) -> list[str]:
     return tags_data.get("tags", [])
 
 
+def _modify_user_tag_list(
+    user_id: str, tag: str, *, add: bool
+) -> bool:
+    """
+    Add or remove a tag in the user's tag list. Shared helper for add/remove.
+
+    Validates and normalizes tag, loads tags, applies add/remove, saves.
+    Returns True on success or when no change was needed (already present/absent).
+    """
+    if not user_id or not tag:
+        logger.error(f"Invalid parameters: user_id={user_id}, tag={tag}")
+        return False
+
+    normalized_tag = normalize_tag(tag)
+    if not normalized_tag:
+        logger.error(f"Invalid tag format: '{tag}'")
+        return False
+
+    try:
+        validate_tag(normalized_tag)
+    except (ValueError, ValidationError) as e:
+        logger.error(f"Invalid tag '{normalized_tag}': {e}")
+        return False
+
+    tags_data = load_user_tags(user_id)
+    tags = tags_data.get("tags", [])
+
+    if add:
+        if normalized_tag not in tags:
+            tags.append(normalized_tag)
+            tags_data["tags"] = tags
+            if save_user_tags(user_id, tags_data):
+                logger.info(f"Added tag '{normalized_tag}' for user {user_id}")
+                return True
+            logger.error(f"Failed to save tag for user {user_id}")
+            return False
+        logger.debug(f"Tag '{normalized_tag}' already exists for user {user_id}")
+        return True
+    else:
+        if normalized_tag in tags:
+            tags.remove(normalized_tag)
+            tags_data["tags"] = tags
+            if save_user_tags(user_id, tags_data):
+                logger.info(f"Removed tag '{normalized_tag}' for user {user_id}")
+                return True
+            logger.error(f"Failed to save tag removal for user {user_id}")
+            return False
+        logger.debug(f"Tag '{normalized_tag}' not found for user {user_id}")
+        return True
+
+
+# not_duplicate: add_remove_user_tag
 @handle_errors("adding user tag", default_return=False)
 def add_user_tag(user_id: str, tag: str) -> bool:
     """
@@ -336,45 +388,14 @@ def add_user_tag(user_id: str, tag: str) -> bool:
     Returns:
         True if successful, False otherwise
     """
-    if not user_id or not tag:
-        logger.error(f"Invalid parameters: user_id={user_id}, tag={tag}")
-        return False
-
     try:
-        normalized_tag = normalize_tag(tag)
-        if not normalized_tag:
-            logger.error(f"Invalid tag format: '{tag}'")
-            return False
-
-        # Validate tag
-        try:
-            validate_tag(normalized_tag)
-        except ValueError as e:
-            logger.error(f"Invalid tag '{normalized_tag}': {e}")
-            return False
-
-        tags_data = load_user_tags(user_id)
-        tags = tags_data.get("tags", [])
-
-        if normalized_tag not in tags:
-            tags.append(normalized_tag)
-            tags_data["tags"] = tags
-
-            if save_user_tags(user_id, tags_data):
-                logger.info(f"Added tag '{normalized_tag}' for user {user_id}")
-                return True
-            else:
-                logger.error(f"Failed to save tag for user {user_id}")
-                return False
-        else:
-            logger.debug(f"Tag '{normalized_tag}' already exists for user {user_id}")
-            return True
-
+        return _modify_user_tag_list(user_id, tag, add=True)
     except Exception as e:
         logger.error(f"Error adding tag for user {user_id}: {e}")
         return False
 
 
+# not_duplicate: add_remove_user_tag
 @handle_errors("removing user tag", default_return=False)
 def remove_user_tag(user_id: str, tag: str) -> bool:
     """
@@ -387,33 +408,8 @@ def remove_user_tag(user_id: str, tag: str) -> bool:
     Returns:
         True if successful, False otherwise
     """
-    if not user_id or not tag:
-        logger.error(f"Invalid parameters: user_id={user_id}, tag={tag}")
-        return False
-
     try:
-        normalized_tag = normalize_tag(tag)
-        if not normalized_tag:
-            logger.error(f"Invalid tag format: '{tag}'")
-            return False
-
-        tags_data = load_user_tags(user_id)
-        tags = tags_data.get("tags", [])
-
-        if normalized_tag in tags:
-            tags.remove(normalized_tag)
-            tags_data["tags"] = tags
-
-            if save_user_tags(user_id, tags_data):
-                logger.info(f"Removed tag '{normalized_tag}' for user {user_id}")
-                return True
-            else:
-                logger.error(f"Failed to save tag removal for user {user_id}")
-                return False
-        else:
-            logger.debug(f"Tag '{normalized_tag}' not found for user {user_id}")
-            return True
-
+        return _modify_user_tag_list(user_id, tag, add=False)
     except Exception as e:
         logger.error(f"Error removing tag for user {user_id}: {e}")
         return False

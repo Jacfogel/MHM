@@ -33,6 +33,7 @@ from core.user_data_registry import clear_user_caches as _registry_clear_user_ca
 logger = get_component_logger("main")
 
 
+# not_duplicate: clear_user_caches
 @handle_errors("clearing user caches", default_return=None)
 def clear_user_caches(user_id: str | None = None) -> None:
     """Clear user data caches (delegate to registry)."""

@@ -222,7 +222,8 @@ def _get_intentional_group_id(content: str, node: FunctionNode) -> str | None:
     lines = content.split("\n")
     start_lineno = getattr(node, "lineno", 1) or 1
     end_lineno = getattr(node, "end_lineno", start_lineno) or start_lineno
-    context_start = max(0, start_lineno - 4)
+    # Include enough lines before def so comment above decorator(s) is found
+    context_start = max(0, start_lineno - 8)
     snippet_lower = "\n".join(lines[context_start:end_lineno]).lower()
     markers = (
         "# duplicate_functions_intentional:",

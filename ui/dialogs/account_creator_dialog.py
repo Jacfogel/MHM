@@ -23,6 +23,9 @@ from core.user_data_validation import validate_schedule_periods
 from core import get_user_id_by_identifier
 from core.error_handling import handle_errors
 
+# Dialog helpers
+from ui.dialogs.dialog_helpers import handle_dialog_escape_enter_keys
+
 # Import widgets
 from ui.widgets.category_selection_widget import CategorySelectionWidget
 from ui.widgets.channel_selection_widget import ChannelSelectionWidget
@@ -329,27 +332,17 @@ class AccountCreatorDialog(QDialog):
         # Override key events for large dialog
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
 
-    # not_duplicate: keyPressEvent
     @handle_errors("handling key press events")
     def keyPressEvent(self, event):
         """Handle key press events for the dialog."""
-        if event.key() == Qt.Key.Key_Escape:
-            # Show confirmation dialog before canceling
-            reply = QMessageBox.question(
-                self,
-                "Cancel Account Creation",
-                "Are you sure you want to cancel? All unsaved changes will be lost.",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-            if reply == QMessageBox.StandardButton.Yes:
-                self.reject()
-            event.accept()
-        elif event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
-            # Ignore Enter key to prevent accidental saving
-            event.ignore()
-        else:
-            super().keyPressEvent(event)
+        if handle_dialog_escape_enter_keys(
+            self,
+            event,
+            cancel_title="Cancel Account Creation",
+            on_escape_confirm=self.reject,
+        ):
+            return
+        super().keyPressEvent(event)
 
     @handle_errors("handling username change", default_return=None)
     def on_username_changed(self, text=""):

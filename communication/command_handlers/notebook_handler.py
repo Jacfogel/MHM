@@ -769,6 +769,7 @@ class NotebookHandler(InteractionHandler):
             suggestions=suggestions if suggestions else None,
         )
 
+    # not_duplicate: handle_list_by_group_tag
     @handle_errors("handling list by group")
     def _handle_list_by_group(
         self, user_id: str, entities: dict[str, Any]
@@ -870,6 +871,7 @@ class NotebookHandler(InteractionHandler):
             suggestions=suggestions if suggestions else None,
         )
 
+    # not_duplicate: handle_list_by_group_tag
     @handle_errors("handling list by tag")
     def _handle_list_by_tag(
         self, user_id: str, entities: dict[str, Any]

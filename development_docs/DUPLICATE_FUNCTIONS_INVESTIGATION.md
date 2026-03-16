@@ -4,7 +4,8 @@
 > **Temporary planning file.** This doc supports refactor planning and audit follow-up. It can be archived or removed once duplicate-group refactors are done and the duplicate-functions report is no longer in active use for prioritization. Do not treat as long-term project documentation.
 
 > **Context**: AI_PRIORITIES.md and `development_tools/functions/jsons/analyze_duplicate_functions_results.json` list duplicate groups from the duplicate-functions analyzer. This document covers all reported groups with verdicts. For exclusion and tool behavior, see [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) (Duplicate function analysis).  
-> **Suppressing “Not duplication” groups**: Add the same comment with a group id to **every** function in the group, e.g. `# not_duplicate: format_message`. Only pairs where both functions have that same group id are omitted; any future duplicate without the comment will still be reported. **Markers added**: The groups with verdicts "Intentional polymorphism", "Intentional API pattern", "intentional", "Same pattern; intentional", "Intentional async vs sync", "no action", "Pair ops; intentional", "Channel polymorphism" now have `# not_duplicate: <group_id>` in every function of the group, so they are suppressed in the report (future runs show ~19 groups).
+> **Suppressing “Not duplication” groups**: Add the same comment with a group id to **every** function in the group, e.g. `# not_duplicate: format_message`. Only pairs where both functions have that same group id are omitted; any future duplicate without the comment will still be reported. **Markers added**: The groups with verdicts "Intentional polymorphism", "Intentional API pattern", "intentional", "Same pattern; intentional", "Intentional async vs sync", "no action", "Pair ops; intentional", "Channel polymorphism" now have `# not_duplicate: <group_id>` in every function of the group, so they are suppressed in the report (future runs show ~19 groups). Group 9 (keyPressEvent) was refactored to a shared helper; markers removed.  
+> **Audit (not_duplicate vs compat bloat)**: All current `# not_duplicate`-marked functions were reviewed; **none are compat bloat**. They are either (1) intentional polymorphism (format_message, get_color_for_type, send_message_channel, get_welcome_message, cache_clear/cache_clear_expired), (2) intentional public API — module facade or named entrypoints (user_data_manager_api, delete_user_completely, update_user_index, clear_user_caches, user_data_updates_section, add_remove_user_tag, load_save_user_json), (3) intentional async/sync or distinct entry points (send_message_sync_pair, generate_response_pair), or (4) distinct handlers with different behavior (handle_list_by_group_tag, handle_task_stats, get_user_data_summary_process_*). Internal shims (add_schedule_details, add_sent_messages_details, the two cleanup_request_file methods) were already removed and inlined. keyPressEvent duplication was removed via shared helper in ui/dialogs/dialog_helpers.
 
 ## Audit run (2026-03-14) and pipeline
 
@@ -27,7 +28,7 @@
 | 6 | 0.833 | 2 | notebook_handler.py — _handle_list_by_group, _handle_list_by_tag | Similar handlers; optional shared helper |
 | 7 | 0.820 | 3 | user_data_updates.py — update_user_account, update_user_context, update_user_schedules | Parallel updaters; optional shared helper |
 | 8 | 0.820 | 2 | tags.py — add_user_tag, remove_user_tag | Pair ops; optional shared helper |
-| 9 | 0.809 | 2 | account_creator_dialog.py — AccountCreatorDialog.keyPressEvent, UserProfileDialog.keyPressEvent | Same event override in two dialogs; intentional |
+| 9 | 0.809 | 2 | account_creator_dialog.py, user_profile_dialog.py — keyPressEvent | Refactored: shared helper in ui/dialogs/dialog_helpers.handle_dialog_escape_enter_keys |
 | 10 | 0.800 | 2 | analytics_handler.py, task_handler.py — _handle_task_stats (Analytics, TaskManagement) | Two handlers; may delegate to shared logic |
 | 11 | 0.787 | 2 | cache_manager.py — ResponseCache.clear, ContextCache.clear | Same pattern (clear cache); intentional |
 | 12 | 0.760 | 2 | channel_orchestrator.py — send_message, send_message_sync | Intentional async vs sync entry points |
@@ -48,7 +49,7 @@
 | 27 | 0.703 | 2 | cache_manager.py — get_entries_by_type, remove_entries_by_type | Different ops (get vs remove); similar structure |
 | 28 | 0.700 | 2 | discord/bot.py — DiscordBot.send_message, EmailBot.send_message | Channel polymorphism |
 | 29 | 0.682 | 2 | welcome_manager.py — get_welcome_message (two definitions) | Core vs channel-specific; intentional |
-| 30 | 0.642 | 2 | user_data_read.py — clear_user_caches (two definitions) | Same name; verify if intentional overload or true duplicate |
+| 30 | 0.642 | 2 | user_data_read.py — clear_user_caches (two definitions) | Intentional API pattern (read delegates to registry) |
 
 *Single-function (self-pair) groups are filtered out (10 in this run).*
 
@@ -78,7 +79,7 @@ Abstract base plus channel-specific implementations (Discord colour int, Email H
 
 **Pattern**: Module-level functions (backup_user_data, get_user_data_summary, delete_user_completely, update_user_index, etc.) are the public API; they validate inputs and call `UserDataManager().method()`. Class holds implementation. **Do not merge** class and module-level; this is intentional.
 
-**Groups 4, 16, 18**: `_get_user_data_summary__process_*` and `_get_user_data_summary__add_*` are same-class helpers with similar structure. **Optional refactor**: extract shared structure (e.g. loop over file types, add-to-summary pattern) if it reduces duplication without obscuring intent.
+**Groups 4, 16, 18**: `_get_user_data_summary__process_*` and `_get_user_data_summary__add_*` are same-class helpers with similar structure. **Refactored**: (1) `_get_user_data_summary__process_file_types_with_adder` and `_get_user_data_summary__add_core_file_info` (process_core_files, process_log_files use shared loop). (2) `_get_user_data_summary__add_json_file_detail` — **internal shims removed**: `add_schedule_details` and `add_sent_messages_details` deleted; `add_special_file_details` now calls `add_json_file_detail` directly with the appropriate extractors. (3) Message-file process_* left as-is; `# not_duplicate: get_user_data_summary_process_message` on all three. **add_file_info vs add_log_file_info**: Recommend **not** unifying (different sections/payloads); optional `# not_duplicate` if report flags them.
 
 **Group 3**: Includes get_user_data_summary, get_user_summary, backup_user_data, and other helpers. Class + module API + internal helpers; largest cluster. Refactor only the internal helpers if desired (see groups 4, 16, 18).
 
@@ -92,9 +93,15 @@ Same handler pattern (user_id, entities, response). Could extract a small shared
 
 ---
 
-## Groups 9, 11, 26, 28: Intentional patterns (keyPressEvent, cache clear, send_message)
+## Group 9: keyPressEvent (account_creator_dialog, user_profile_dialog)
 
-**Group 9**: AccountCreatorDialog.keyPressEvent, UserProfileDialog.keyPressEvent — same event override in two dialogs; intentional.
+**Verdict: Refactored to shared helper.**
+
+Shared logic extracted to `ui/dialogs/dialog_helpers.handle_dialog_escape_enter_keys(dialog, event, cancel_title=..., on_escape_confirm=...)`. Both dialogs call it from `keyPressEvent` with dialog-specific title and confirm action (`self.reject` vs `self.cancel`). Removed `# not_duplicate` markers.
+
+---
+
+## Groups 11, 26, 28: Intentional patterns (cache clear, send_message)
 
 **Groups 11, 26**: ResponseCache.clear / clear_expired, ContextCache.clear / clear_expired — same pattern across cache classes; intentional.
 
@@ -128,9 +135,9 @@ Parallel loaders were refactored to shared loader pattern in user_data_registry.
 
 ## Recommendations
 
-1. **No action (polymorphism or intentional pattern)**: Groups 1, 2, 5, 9, 11, 12, 14, 22, 23, 26, 28, 29 (format_message, get_color_for_type, user_data_manager class+module, keyPressEvent, cache clear/send_message, load/save pair, etc.).
-2. **Optional refactor (shared structure)**: Groups 3, 4, 6, 7, 8, 10, 15, 16, 17, 18, 19, 21, 24, 25 — extract shared helpers only where it clearly reduces duplication and preserves clarity.
-3. **Verify**: Group 30 (clear_user_caches twice in user_data_read.py) — confirm whether two definitions are intentional or a true duplicate.
+1. **No action (polymorphism or intentional pattern)**: Groups 1, 2, 5, 11, 12, 14, 22, 23, 26, 28, 29 (format_message, get_color_for_type, user_data_manager class+module, cache clear/send_message, load/save pair, etc.). **Group 9 (keyPressEvent)**: refactored to shared helper.
+2. **Optional refactor (shared structure)**: Groups 3, 4, 6, 7, 8 — **refactored (6, 7, 8 done; 3, 4 done earlier).** Remaining optional: 10, 15, 16, 17, 18, 19, 21, 24, 25 — extract shared helpers only where it clearly reduces duplication and preserves clarity.
+3. **Verified**: Group 30 (clear_user_caches) — intentional: user_data_read.clear_user_caches delegates to user_data_registry.clear_user_caches (public API pattern).
 4. **Single-function groups**: Filtered out by the tool (10 in this run).
 
 ---
@@ -153,4 +160,9 @@ After `# not_duplicate: <group_id>` markers were added, the duplicate-functions 
 
 1. **NotebookHandler (Group 6 / AI_PRIORITIES Group 3)** — **Done.** Extracted `_build_paginated_list_response()`; `_handle_list_by_group` and `_handle_list_by_tag` now delegate to it.
 2. **user_data_manager `_get_user_data_summary__*` (Groups 4, 16, 18 / AI_PRIORITIES Groups 1–2)** — **Done.** Extracted `_get_user_data_summary__process_file_types_with_adder()` (loop over file types, call adder if path exists) and `_get_user_data_summary__add_core_file_info()` (file_info + special_file_details). `process_core_files` and `process_log_files` now use the shared loop; message-file process_* left as-is (different data sources and intent).
-3. **Remaining 19-group items** — No action for intentional patterns; optional refactor for other “optional shared helper” groups per the summary table and Recommendations above.
+3. **user_data_updates (Group 7)** — **Done.** Extracted `_validate_user_id()`, `_validate_user_id_and_dict()`, and `_update_user_section()`. `update_user_schedules`, `update_user_account`, `update_user_context`, and `update_channel_preferences` now use the shared helpers; `update_user_preferences` uses the validators and keeps its category/schedule logic.
+4. **tags (Group 8)** — **Done.** Extracted `_modify_user_tag_list(user_id, tag, *, add=True|False)`. `add_user_tag` and `remove_user_tag` now delegate to it.
+5. **Group 30 (clear_user_caches)** — **Verified intentional.** `user_data_read.clear_user_caches` is the public API and delegates to `user_data_registry.clear_user_caches`; same pattern as user_data_manager module vs class. Added `# not_duplicate: clear_user_caches` to both.
+6. **Group 24 (service.py cleanup)** — **Done.** `_cleanup_request_file_after_process(request_file, filename, request_type_label)` is the single implementation. **Internal shims removed**: `_check_test_message_requests__cleanup_request_file` and `_check_reschedule_requests__cleanup_request_file` deleted; `check_test_message_requests` and `check_reschedule_requests` call `_cleanup_request_file_after_process(..., "test message")` or `"reschedule"` directly.
+7. **Remaining 19-group items** — No action for intentional patterns; optional refactor for other "optional shared helper" groups per the summary table and Recommendations above.
+8. **Post-audit (15-group report) markers added**: (1) **user_data_manager_api** — all 9 in Group 1. (2) **handle_list_by_group_tag** — NotebookHandler._handle_list_by_group, _handle_list_by_tag. (3) **handle_task_stats** — AnalyticsHandler._handle_task_stats, TaskManagementHandler._handle_task_stats. (4) **get_user_data_summary_process_core_log** — process_core_files, process_log_files. (5) add_schedule_details / add_sent_messages_details **removed** (inlined into add_special_file_details → add_json_file_detail). Re-run duplicate-functions (with cache clear if needed) to refresh report.
