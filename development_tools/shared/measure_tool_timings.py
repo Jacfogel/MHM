@@ -20,6 +20,7 @@ project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from development_tools.shared.service import AIToolsService
+from development_tools.shared.audit_tiers import get_tier_runnables
 from core.logger import get_component_logger
 
 logger = get_component_logger("development_tools")
@@ -54,54 +55,10 @@ def run_timing_analysis(output_file: Path | None = None) -> dict:
 
     service = AIToolsService()
 
-    # Define all tools by tier
-    tier1_tools = [
-        ("analyze_functions", service.run_analyze_functions),
-        ("analyze_documentation_sync", service.run_analyze_documentation_sync),
-        ("system_signals", service.run_analyze_system_signals),
-        ("quick_status", lambda: service.run_script("quick_status", "json")),
-    ]
-
-    tier2_tools = [
-        (
-            "analyze_documentation",
-            lambda: service.run_analyze_documentation(include_overlap=False),
-        ),
-        ("analyze_error_handling", service.run_analyze_error_handling),
-        ("decision_support", service.run_decision_support),
-        ("analyze_config", lambda: service.run_script("analyze_config")),
-        ("analyze_ai_work", service.run_validate),
-        ("analyze_function_registry", service.run_analyze_function_registry),
-        ("analyze_module_dependencies", service.run_analyze_module_dependencies),
-        ("analyze_module_imports", service.run_analyze_module_imports),
-        ("analyze_dependency_patterns", service.run_analyze_dependency_patterns),
-        ("analyze_function_patterns", service.run_analyze_function_patterns),
-        ("analyze_package_exports", service.run_analyze_package_exports),
-    ]
-
-    # Tier 3 tools grouped by dependencies
-    # Coverage group: must stay together (dependencies)
-    tier3_coverage_group = [
-        ("generate_test_coverage", service.run_coverage_regeneration),
-        ("generate_dev_tools_coverage", service.run_dev_tools_coverage),
-        ("analyze_test_markers", lambda: service.run_test_markers("check")),
-        ("generate_test_coverage_report", service.run_generate_test_coverage_report),
-    ]
-    # Legacy group: must stay together (analyze then generate report)
-    tier3_legacy_group = [
-        ("analyze_legacy_references", service.run_analyze_legacy_references),
-        (
-            "generate_legacy_reference_report",
-            service.run_generate_legacy_reference_report,
-        ),
-    ]
-    # Unused imports group: must stay together (analyze then generate report)
-    tier3_unused_imports_group = [
-        ("analyze_unused_imports", service.run_analyze_unused_imports),
-        ("generate_unused_imports_report", service.run_generate_unused_imports_report),
-    ]
-
-    tier3_tools = tier3_coverage_group + tier3_legacy_group + tier3_unused_imports_group
+    # Use canonical tier tool lists from audit_tiers (single source of truth)
+    tier1_tools = get_tier_runnables(service, 1, include_quick_status=True)
+    tier2_tools = get_tier_runnables(service, 2)
+    tier3_tools = get_tier_runnables(service, 3)
 
     all_tools = [
         ("Tier 1 (Quick Audit)", tier1_tools),

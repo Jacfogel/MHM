@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-16 10:37:52
+> **Last Generated**: 2026-03-17 10:35:09
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -162,6 +162,7 @@ C:.
 |   |   DUPLICATE_FUNCTIONS_INVESTIGATION.md
 |   |   FUNCTION_REGISTRY_DETAIL.md
 |   |   LEGACY_REFERENCE_REPORT.md
+|   |   LIST_OF_LISTS.md
 |   |   MODULE_DEPENDENCIES_DETAIL.md
 |   |   NOTES_PLAN.md
 |   |   PLANS.md
@@ -279,6 +280,7 @@ C:.
     (log files)
 |   +---shared
 |   |   |   audit_signal_state.py
+|   |   |   audit_tiers.py
 |   |   |   backup_inventory.py
 |   |   |   backup_policy_models.py
 |   |   |   backup_reports.py
@@ -617,8 +619,8 @@ C:.
 |   +---logs
     (log files)
 |   +---notebook
-|   |       __init__.py
-|   |       
+|   |   |   __init__.py
+|   |   |   
 |   +---test_helpers
 |   |   |   __init__.py
 |   |   |   

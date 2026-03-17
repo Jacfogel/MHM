@@ -39,7 +39,14 @@ if __name__ != "__main__" and __package__ and "." in __package__:
         COMMON_CODE_PATTERNS,
         COMMON_FUNCTION_NAMES,
         COMMON_VARIABLE_NAMES,
+        DOC_COMMON_WORDS,
+        DOC_SECTION_WORDS,
+        EXAMPLE_MARKERS,
+        EXAMPLE_PHRASES,
         IGNORED_PATH_PATTERNS,
+        PATH_DRIFT_OPERATORS,
+        PATH_DRIFT_VALID_EXTENSIONS,
+        PYTHON_KEYWORDS_PATH_DRIFT,
         STANDARD_LIBRARY_MODULES,
         TEMPLATE_PATTERNS,
         THIRD_PARTY_LIBRARIES,
@@ -54,7 +61,14 @@ else:
         COMMON_CODE_PATTERNS,
         COMMON_FUNCTION_NAMES,
         COMMON_VARIABLE_NAMES,
+        DOC_COMMON_WORDS,
+        DOC_SECTION_WORDS,
+        EXAMPLE_MARKERS,
+        EXAMPLE_PHRASES,
         IGNORED_PATH_PATTERNS,
+        PATH_DRIFT_OPERATORS,
+        PATH_DRIFT_VALID_EXTENSIONS,
+        PYTHON_KEYWORDS_PATH_DRIFT,
         STANDARD_LIBRARY_MODULES,
         TEMPLATE_PATTERNS,
         THIRD_PARTY_LIBRARIES,
@@ -69,6 +83,30 @@ except (AttributeError, ImportError):
     pass
 
 logger = get_component_logger("development_tools")
+
+# Default legacy doc files if config has none (project-specific list lives in config)
+_DEFAULT_LEGACY_DOCUMENTATION_FILES = (
+    "development_docs/LEGACY_REFERENCE_REPORT.md",
+    "development_docs/CHANGELOG_DETAIL.md",
+    "ai_development_docs/AI_CHANGELOG.md",
+)
+
+
+def _get_legacy_documentation_files() -> frozenset[str]:
+    """Load legacy documentation file paths from config (path_drift.legacy_documentation_files).
+    Returns a frozenset with both / and \\ so comparison works on all platforms.
+    """
+    path_drift_cfg = config.get_external_value("path_drift", {}) or {}
+    paths = path_drift_cfg.get("legacy_documentation_files", _DEFAULT_LEGACY_DOCUMENTATION_FILES)
+    if not paths:
+        paths = _DEFAULT_LEGACY_DOCUMENTATION_FILES
+    result: set[str] = set()
+    for p in paths:
+        p_str = str(p).strip()
+        if p_str:
+            result.add(p_str.replace("\\", "/"))
+            result.add(p_str.replace("/", "\\"))
+    return frozenset(result)
 
 
 class PathDriftAnalyzer:
@@ -215,73 +253,11 @@ class PathDriftAnalyzer:
         if path in self.code_patterns:
             return True
 
-        # Skip single words that are clearly not files
-        # Also skip common English words that might be mistaken for module names
-        common_words = {
-            "extraction",
-            "utility",
-            "methods",
-            "module",
-            "package",
-            "function",
-            "class",
-            "variable",
-            "constant",
-            "helper",
-            "service",
-            "tool",
-            "analysis",
-            "report",
-            "generation",
-            "loading",
-            "wrappers",
-            "orchestration",
-            "commands",
-            "data",
-            "config",
-            "shared",
-            "development",
-            "tools",
-            "documentation",
-            "compliance",
-            "drift",
-            "sync",
-            "missing",
-            "addresses",
-            "links",
-            "heading",
-            "numbering",
-            "unconverted",
-            "ascii",
-            "path",
-            "legacy",
-            "references",
-            "coverage",
-            "test",
-            "markers",
-            "imports",
-            "unused",
-            "functions",
-            "registry",
-            "dependencies",
-            "patterns",
-            "error",
-            "handling",
-            "exports",
-            "decision",
-            "support",
-            "system",
-            "signals",
-            "quick",
-            "status",
-            "validation",
-            "work",
-            "ai",
-        }
+        # Skip single words that are clearly not files (common words from constants)
         if (
             len(path.split(".")) == 1
             and path.isalpha()
-            and (len(path) < 10 or path.lower() in common_words)
+            and (len(path) < 10 or path.lower() in DOC_COMMON_WORDS)
         ):
             return True
 
@@ -317,38 +293,10 @@ class PathDriftAnalyzer:
         if "." in path and any(char in path for char in ["(", ")", "=", " "]):
             return True
 
-        # Skip paths that contain Python keywords or operators
-        # Check for whole-word matches only (not substrings)
-        python_keywords = [
-            "def",
-            "class",
-            "import",
-            "from",
-            "if",
-            "else",
-            "for",
-            "while",
-            "try",
-            "except",
-            "finally",
-            "with",
-            "as",
-            "return",
-            "yield",
-            "lambda",
-            "and",
-            "or",
-            "not",
-            "in",
-            "is",
-            "True",
-            "False",
-            "None",
-        ]
-        # Use word boundaries to avoid false positives (e.g., "in" in "nonexistent")
+        # Skip paths that contain Python keywords (from constants)
         import re
 
-        for keyword in python_keywords:
+        for keyword in PYTHON_KEYWORDS_PATH_DRIFT:
             # Match whole word only, not as substring
             if re.search(r"\b" + re.escape(keyword) + r"\b", path):
                 return True
@@ -357,8 +305,8 @@ class PathDriftAnalyzer:
         if "\n" in path or len(path) > 200:
             return True
 
-        # Skip paths that contain Python operators
-        return bool(any(op in path for op in ["==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%=", "//=", "**=", "&=", "|=", "^=", "<<=", ">>="]))
+        # Skip paths that contain Python operators (from constants)
+        return bool(any(op in path for op in PATH_DRIFT_OPERATORS))
 
     def _is_likely_code_snippet(self, path: str, line: str) -> bool:
         """Check if a path looks like it's part of a code snippet rather than a file reference."""
@@ -367,44 +315,13 @@ class PathDriftAnalyzer:
             return True
 
         # Skip if it contains Python operators
-        if any(
-            op in path
-            for op in [
-                "==",
-                "!=",
-                "<=",
-                ">=",
-                "+=",
-                "-=",
-                "*=",
-                "/=",
-                "%=",
-                "//=",
-                "**=",
-            ]
-        ):
+        if any(op in path for op in PATH_DRIFT_OPERATORS):
             return True
 
-        # Skip if it contains Python keywords
-        python_keywords = [
-            "def",
-            "class",
-            "import",
-            "from",
-            "if",
-            "else",
-            "for",
-            "while",
-            "try",
-            "except",
-            "finally",
-            "with",
-            "as",
-            "return",
-            "yield",
-            "lambda",
-        ]
-        if any(keyword in path for keyword in python_keywords):
+        # Skip if path has a segment that is a Python keyword (whole-word only;
+        # avoid false positives like "in" in "nonexistent_module.py")
+        path_parts = re.split(r"[/.]", path)
+        if any(part in PYTHON_KEYWORDS_PATH_DRIFT for part in path_parts):
             return True
 
         # Skip if the line looks like code (contains indentation and Python syntax)
@@ -424,46 +341,12 @@ class PathDriftAnalyzer:
     def _is_section_header_or_link_text(self, path: str, line: str) -> bool:
         """Check if a path is actually a markdown section header or link text that shouldn't be treated as a file path."""
         # Common section header patterns (title case, multiple words, no file extension)
-        if not path.endswith(
-            (".py", ".md", ".json", ".txt", ".yaml", ".yml", ".toml", ".ini", ".cfg")
-        ):
+        if not path.endswith(PATH_DRIFT_VALID_EXTENSIONS):
             # Check if it looks like a section header (title case, spaces, common words)
             if " " in path and path[0].isupper():
-                # Common section header words
-                section_words = [
-                    "overview",
-                    "summary",
-                    "introduction",
-                    "background",
-                    "context",
-                    "recommendations",
-                    "suggestions",
-                    "guidelines",
-                    "best practices",
-                    "implementation",
-                    "status",
-                    "progress",
-                    "analysis",
-                    "review",
-                    "findings",
-                    "conclusion",
-                    "next steps",
-                    "action items",
-                    "todo",
-                    "issues",
-                    "problems",
-                    "solutions",
-                    "approach",
-                    "strategy",
-                    "architecture",
-                    "design",
-                    "structure",
-                    "organization",
-                    "layout",
-                ]
                 path_lower = path.lower()
-                # If it contains section header words and doesn't look like a file path
-                if any(word in path_lower for word in section_words):
+                # If it contains section header words (from constants) and doesn't look like a file path
+                if any(word in path_lower for word in DOC_SECTION_WORDS):
                     # Check if it's in a markdown link pointing to an anchor
                     if re.search(rf"\[{re.escape(path)}\]\(#", line):
                         return True
@@ -505,29 +388,13 @@ class PathDriftAnalyzer:
         if "[archived]" in line_lower:
             return True
 
-        # Standard 5: Check for example phrases in the current line
-        example_phrases = [
-            "for example",
-            "for instance",
-            "e.g.,",
-            "e.g.",
-            "example:",
-            "examples:",
-        ]
-        for phrase in example_phrases:
+        # Standard 5: Check for example phrases (from constants)
+        for phrase in EXAMPLE_PHRASES:
             if phrase in line_lower:
                 return True
 
-        # Standard 1: Check for example markers at the start of the line
-        # These are the official markers per documentation standards
-        example_markers = [
-            r"^\[OK\]",
-            r"^\[AVOID\]",
-            r"^\[GOOD\]",
-            r"^\[BAD\]",
-            r"^\[EXAMPLE\]",
-        ]
-        for marker in example_markers:
+        # Standard 1: Check for example markers at the start of the line (from constants)
+        for marker in EXAMPLE_MARKERS:
             if re.match(marker, line_stripped, re.IGNORECASE):
                 return True
 
@@ -547,12 +414,12 @@ class PathDriftAnalyzer:
                 if line_num - i <= 10:  # Within 10 lines of [ARCHIVED] marker
                     return True
             # Check for example phrases in previous lines
-            for phrase in example_phrases:
+            for phrase in EXAMPLE_PHRASES:
                 if phrase in prev_line_lower:
                     if line_num - i <= 3:  # Within 3 lines of example phrase
                         return True
             # Check for example markers in previous lines
-            for marker in example_markers:
+            for marker in EXAMPLE_MARKERS:
                 if re.match(marker, prev_line, re.IGNORECASE):
                     # If we found a marker, check if current line is part of the example
                     # (list item, continuation, or within same section)
@@ -898,17 +765,6 @@ class PathDriftAnalyzer:
         # Enhanced filtering patterns for false positives
         self._setup_enhanced_filters()
 
-        # Files that document legacy patterns (expected to reference old paths)
-        # Use normalized paths (forward slashes) for comparison
-        legacy_documentation_files = {
-            "development_docs/LEGACY_REFERENCE_REPORT.md",
-            "development_docs\\LEGACY_REFERENCE_REPORT.md",  # Windows path
-            "development_docs/CHANGELOG_DETAIL.md",  # May contain historical references
-            "development_docs\\CHANGELOG_DETAIL.md",  # Windows path
-            "ai_development_docs/AI_CHANGELOG.md",
-            "ai_development_docs\\AI_CHANGELOG.md",  # Windows path
-        }
-
         # Check if documented paths exist
         for doc_file, paths in doc_paths.items():
             # Skip files that shouldn't be checked for path drift
@@ -920,13 +776,10 @@ class PathDriftAnalyzer:
             if source_dir.is_file():
                 source_dir = source_dir.parent
 
-            # Skip legacy documentation files - they intentionally reference old paths
-            # Normalize path for comparison (handle both / and \)
+            # Skip legacy documentation files (from config path_drift.legacy_documentation_files)
+            legacy_files = _get_legacy_documentation_files()
             normalized_doc_file = doc_file.replace("\\", "/")
-            if (
-                normalized_doc_file in legacy_documentation_files
-                or doc_file in legacy_documentation_files
-            ):
+            if normalized_doc_file in legacy_files or doc_file in legacy_files:
                 continue
 
             for path in paths:

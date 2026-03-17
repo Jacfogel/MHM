@@ -109,39 +109,15 @@ class MissingAddressAnalyzer:
         for ext in ["*.md", "*.mdc"]:
             files_to_check.extend(self.project_root.rglob(ext))
 
-        ignore_dirs = {
-            "venv",
-            ".venv",
-            "__pycache__",
-            ".git",
-            "node_modules",
-            ".pytest_cache",
-            ".pytest_tmp_cache",
-            ".tmp_pytest_runner",
-            ".tmp_pytest",
-            ".tmp_devtools_pyfiles",
-            "coverage_html",
-            "archive",
-        }
-
         generated_files = set(ALL_GENERATED_FILES)
         historical_preserve_files = set(HISTORICAL_PRESERVE_FILES)
 
         for file_path in files_to_check:
             try:
                 rel_path = file_path.relative_to(self.project_root)
-                rel_parts = rel_path.parts
-
-                # Apply directory ignores relative to the selected project root.
-                # Using absolute path parts incorrectly excludes temp test roots
-                # such as .tmp_pytest_runner/<run>/... during unit tests.
-                if any(ignore in rel_parts for ignore in ignore_dirs):
-                    continue
-
                 rel_path_str = str(rel_path).replace("\\", "/")
 
-                # Skip anything matching standardized exclusion rules.
-                # This keeps behavior consistent with other doc analyzers.
+                # Skip anything matching standardized exclusion rules (BASE_EXCLUSIONS etc.).
                 if should_exclude_file(rel_path_str, "documentation", "development"):
                     continue
 
@@ -158,7 +134,7 @@ class MissingAddressAnalyzer:
                     continue
 
                 # Skip .cursor/ directory files (plans, rules, etc.) - they have their own metadata format
-                if ".cursor" in rel_parts:
+                if ".cursor" in rel_path.parts:
                     continue
 
                 if "tests" in rel_path.parts:

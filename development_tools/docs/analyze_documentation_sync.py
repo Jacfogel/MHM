@@ -138,15 +138,13 @@ class DocumentationSyncChecker:
 
         paired_docs = self.check_paired_documentation()
 
-        # Generate summary
         total_issues = sum(len(issues) for issues in paired_docs.values())
         status = "PASS" if total_issues == 0 else "FAIL"
 
-        # Return standard format
         return {
             "summary": {
                 "total_issues": total_issues,
-                "files_affected": 0,  # Not file-based
+                "files_affected": 0,
                 "status": status,
             },
             "details": {"paired_doc_issues": total_issues, "paired_docs": paired_docs},
@@ -163,7 +161,6 @@ class DocumentationSyncChecker:
         print(f"   Total Issues: {summary['total_issues']}")
         print(f"   Paired Doc Issues: {paired_doc_issues}")
 
-        # Paired Documentation Issues
         if paired_docs:
             print("\nPAIRED DOCUMENTATION ISSUES:")
             for issue_type, issues in paired_docs.items():

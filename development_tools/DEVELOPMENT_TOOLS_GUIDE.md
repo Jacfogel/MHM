@@ -74,6 +74,8 @@ python development_tools/run_development_tools.py config
 
 ### 2.3. Command Summary
 
+**Authoritative command list**: Run `python development_tools/run_development_tools.py help` for the current list; tier grouping is defined in `development_tools/shared/tool_metadata.py` (`COMMAND_GROUPS`). The tables below are for orientation only and may lag the code.
+
 **Core Commands** (daily-safe, audit-first workflow):
 - `audit` - Standard audit (Tier 2, default); regenerates quality checks and cached signals.
 - `audit --quick` - Quick audit (Tier 1); core metrics only (~30-60s).
@@ -307,7 +309,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | docs/fix_documentation_headings.py | core | stable | Numbers H2 and H3 headings in documentation files. |
 | docs/fix_documentation_links.py | core | stable | Converts file path references to markdown links in documentation. |
 | imports/generate_module_dependencies.py | core | stable | Orchestrates module dependency analysis and generates dependency documentation. Accepts custom module prefixes for portability. 
-| imports/analyze_module_imports.py | core | stable | Extracts and analyzes imports from Python files. Provides import parsing, scanning, reverse dependencies, dependency changes, purpose inference, and import formatting. |
+| imports/analyze_module_imports.py | core | stable | Extracts and analyzes imports from Python files. Provides import parsing, scanning, reverse dependencies, dependency changes, purpose inference, and formatting of imports. |
 | imports/analyze_dependency_patterns.py | core | stable | Analyzes dependency patterns, circular dependencies, and risk areas. Provides pattern analysis, circular dependency detection, risk area detection, and critical dependency finding. |
 | legacy/fix_legacy_references.py | core | stable | Finds/validates legacy markers before cleanup. Pattern mappings load from external config. 
 | tests/run_test_coverage.py | core | stable | Orchestrates coverage execution (pytest runs) and artifact management. Executes tests and collects coverage data. Accepts pytest command, coverage config, and artifact directories via external config. 

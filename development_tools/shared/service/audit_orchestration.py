@@ -22,6 +22,12 @@ from ..output_storage import save_tool_result, get_all_tool_results, load_tool_r
 from ..file_rotation import create_output_file
 from ..lock_state import cleanup_lock_paths, evaluate_lock_set, write_lock_metadata
 from .. import audit_signal_state
+from ..audit_tiers import (
+    get_tier1_groups,
+    get_tier2_groups,
+    get_tier3_groups,
+    get_expected_tools_for_tier as audit_tiers_get_expected_tools_for_tier,
+)
 
 # Module-level flag to track if ANY audit is in progress
 _AUDIT_IN_PROGRESS_GLOBAL = False
@@ -558,29 +564,8 @@ class AuditOrchestrationMixin:
         successful = []
         failed = []
         
-        # Core Tier 1 tools (<=2s)
-        tier1_core_tools = [
-            ('analyze_system_signals', self.run_analyze_system_signals),  # 1.07s
-        ]
-        
-        # Independent tools (<=2s)
-        tier1_independent_tools = [
-            ('analyze_documentation', lambda: self.run_analyze_documentation(include_overlap=getattr(self, '_include_overlap', False))),  # 0.21s
-            ('analyze_config', self.run_analyze_config),  # 0.93s
-            ('analyze_ai_work', self.run_validate),  # 0.95s
-        ]
-        
-        # Dependent groups (all tools <=2s)
-        tier1_dependent_groups = [
-            # Function patterns group: depends on analyze_functions (runs in Tier 2)
-            [
-                ('analyze_function_patterns', self.run_analyze_function_patterns),  # 1.79s
-            ],
-            # Decision support group: depends on analyze_functions (runs in Tier 2)
-            [
-                ('decision_support', self.run_decision_support),  # 1.96s
-            ],
-        ]
+        # Tier 1 tools from canonical audit_tiers (single source of truth)
+        tier1_core_tools, tier1_independent_tools, tier1_dependent_groups = get_tier1_groups(self)
         
         # Run core tools first (analyze_functions must run before dependent tools)
         for tool_name, tool_func in tier1_core_tools:
@@ -720,37 +705,8 @@ class AuditOrchestrationMixin:
         successful = []
         failed = []
         
-        # Independent tools (>2s but <=10s)
-        tier2_independent_tools = [
-            ('analyze_functions', self.run_analyze_functions),  # 3.41s
-            ('analyze_error_handling', self.run_analyze_error_handling),  # 3.06s
-            ('analyze_package_exports', self.run_analyze_package_exports),  # 9.06s
-            ('analyze_duplicate_functions', lambda: self._run_analyze_duplicate_functions_for_audit()),  # 6.50s
-            ('analyze_module_refactor_candidates', self.run_analyze_module_refactor_candidates),
-        ]
-        
-        # Dependent groups (>2s but <=10s)
-        tier2_dependent_groups = [
-            # Module imports group: analyze_module_imports -> analyze_dependency_patterns, analyze_module_dependencies
-            [
-                ('analyze_module_imports', self.run_analyze_module_imports),  # 2.18s
-                ('analyze_dependency_patterns', self.run_analyze_dependency_patterns),  # 2.03s
-                ('analyze_module_dependencies', self.run_analyze_module_dependencies),  # 5.94s
-            ],
-            # Function registry group: analyze_function_registry validates generate_function_registry output
-            [
-                ('analyze_function_registry', self.run_analyze_function_registry),  # 2.12s
-            ],
-            # Documentation sync group: includes multiple sub-tools
-            [
-                ('analyze_documentation_sync', self.run_analyze_documentation_sync),  # 7.70s
-            ],
-            # Unused imports group: moved from Tier 3 (both <=10s)
-            [
-                ('analyze_unused_imports', self.run_analyze_unused_imports),  # 7.82s
-                ('generate_unused_imports_report', self.run_generate_unused_imports_report),  # 0.98s
-            ],
-        ]
+        # Tier 2 tools from canonical audit_tiers (single source of truth)
+        tier2_independent_tools, tier2_dependent_groups = get_tier2_groups(self)
         
         # Run independent tools and dependent groups in parallel
         from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -1117,34 +1073,16 @@ class AuditOrchestrationMixin:
         successful = []
         failed = []
         
-        # Coverage tool groups.
-        # Both execute heavy pytest workloads. We run them concurrently for throughput,
+        # Tier 3 tool groups from canonical audit_tiers (single source of truth).
+        # Coverage groups run heavy pytest workloads; we run them concurrently for throughput
         # and apply worker caps in command handlers to avoid CPU oversubscription.
-        tier3_coverage_main_group = [
-            ('run_test_coverage', self.run_coverage_regeneration),  # 365.45s
-        ]
-        tier3_coverage_dev_tools_group = [
-            ('generate_dev_tools_coverage', self.run_dev_tools_coverage),  # 94.23s
-        ]
-        
-        # Coverage-dependent tools - must run sequentially after both coverage tools complete
-        tier3_coverage_dependent_group = [
-            ('analyze_test_markers', lambda: self.run_test_markers('check')),  # 1.57s
-            ('generate_test_coverage_report', self.run_generate_test_coverage_report),  # ~5s
-            ('analyze_backup_health', lambda: self.run_backup_health_check(run_drill=True)),
-        ]
-        
-        # Legacy group - analyze_legacy_references (62.11s) is >10s, so entire group stays in Tier 3
-        tier3_legacy_group = [
-            ('analyze_legacy_references', self.run_analyze_legacy_references),  # 62.11s
-            ('generate_legacy_reference_report', self.run_generate_legacy_reference_report),  # 0.96s
-        ]
-
-        # Static analysis group (advisory): surfaces ruff + pyright findings in reports.
-        tier3_static_analysis_group = [
-            ('analyze_ruff', self.run_analyze_ruff),
-            ('analyze_pyright', self.run_analyze_pyright),
-        ]
+        (
+            tier3_coverage_main_group,
+            tier3_coverage_dev_tools_group,
+            tier3_coverage_dependent_group,
+            tier3_legacy_group,
+            tier3_static_analysis_group,
+        ) = get_tier3_groups(self)
         
         # Independent groups that can run in parallel with each other.
         if os.name == "nt":
@@ -1916,45 +1854,8 @@ class AuditOrchestrationMixin:
             logger.warning(f"   ASCII compliance check failed: {exc}")
     
     def _get_expected_tools_for_tier(self, tier: int) -> list[str]:
-        """Return expected tool names for a given audit tier."""
-        tier1_tools = [
-            'analyze_system_signals',
-            'analyze_documentation',
-            'analyze_config',
-            'analyze_ai_work',
-            'analyze_function_patterns',
-            'decision_support',
-            'quick_status',
-        ]
-        tier2_additional_tools = [
-            'analyze_functions',
-            'analyze_error_handling',
-            'analyze_package_exports',
-            'analyze_duplicate_functions',
-            'analyze_module_refactor_candidates',
-            'analyze_module_imports',
-            'analyze_dependency_patterns',
-            'analyze_module_dependencies',
-            'analyze_function_registry',
-            'analyze_documentation_sync',
-            'analyze_unused_imports',
-            'generate_unused_imports_report',
-        ]
-        tier3_additional_tools = [
-            'run_test_coverage',
-            'generate_dev_tools_coverage',
-            'analyze_test_markers',
-            'generate_test_coverage_report',
-            'analyze_legacy_references',
-            'generate_legacy_reference_report',
-            'analyze_ruff',
-            'analyze_pyright',
-        ]
-        if tier <= 1:
-            return tier1_tools
-        if tier == 2:
-            return [tool for tool in tier1_tools if tool != 'quick_status'] + tier2_additional_tools
-        return [tool for tool in tier1_tools if tool != 'quick_status'] + tier2_additional_tools + tier3_additional_tools
+        """Return expected tool names for a given audit tier (from canonical audit_tiers)."""
+        return audit_tiers_get_expected_tools_for_tier(tier)
 
     def _save_timing_data(self, tier: int, audit_success: bool) -> None:
         """Save timing data to a JSON file for analysis."""

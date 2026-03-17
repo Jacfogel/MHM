@@ -13,7 +13,7 @@
 
 This guide provides a precise, machine-friendly map of the AI development tools:
 - Summarizes **what commands exist** and **when to run them**
-- Routes you to the authoritative metadata in `development_tools/shared/tool_metadata.py`
+- **Authoritative command list**: `python development_tools/run_development_tools.py help`; tool and tier metadata in `development_tools/shared/tool_metadata.py`. Guide tables are for orientation only.
 - Delegates deeper explanations to the human guide and the AI workflow/docs references:
   - [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)
   - [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)

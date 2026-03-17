@@ -130,28 +130,31 @@ class ConfigValidator:
             if "import config" in content or "from config import" in content:
                 analysis["imports_config"] = True
 
-            # Check for config function usage
-            config_functions = [
-                "get_available_channels",
-                "get_channel_class_mapping",
-                "get_user_data_dir",
-                "get_backups_dir",
-                "get_user_file_path",
-                "validate_core_paths",
-                "validate_ai_configuration",
-                "validate_communication_channels",
-                "validate_logging_configuration",
-                "validate_scheduler_configuration",
-                "validate_file_organization_settings",
-                "validate_environment_variables",
-                "validate_all_configuration",
-                "validate_and_raise_if_invalid",
-                "print_configuration_report",
-                "ensure_user_directory",
-                "validate_email_config",
-                "validate_discord_config",
-                "validate_minimum_config",
-            ]
+            # Check for config function usage (list from config or default)
+            config_functions = CONFIG_VALIDATOR_CONFIG.get(
+                "expected_config_functions",
+                [
+                    "get_available_channels",
+                    "get_channel_class_mapping",
+                    "get_user_data_dir",
+                    "get_backups_dir",
+                    "get_user_file_path",
+                    "validate_core_paths",
+                    "validate_ai_configuration",
+                    "validate_communication_channels",
+                    "validate_logging_configuration",
+                    "validate_scheduler_configuration",
+                    "validate_file_organization_settings",
+                    "validate_environment_variables",
+                    "validate_all_configuration",
+                    "validate_and_raise_if_invalid",
+                    "print_configuration_report",
+                    "ensure_user_directory",
+                    "validate_email_config",
+                    "validate_discord_config",
+                    "validate_minimum_config",
+                ],
+            )
 
             for func in config_functions:
                 if f"config.{func}" in content:
@@ -234,21 +237,24 @@ class ConfigValidator:
                     f"Scan directory '{scan_dir}' does not exist"
                 )
 
-        # Check configuration structure
-        required_sections = [
-            "PROJECT_ROOT",
-            "SCAN_DIRECTORIES",
-            "FUNCTION_DISCOVERY",
-            "VALIDATION",
-            "AUDIT",
-            "OUTPUT",
-            "QUICK_AUDIT",
-            "VERSION_SYNC",
-            "WORKFLOW",
-            "DOCUMENTATION",
-            "AUTO_DOCUMENT",
-            "AI_VALIDATION",
-        ]
+        # Check configuration structure (list from config or default)
+        required_sections = CONFIG_VALIDATOR_CONFIG.get(
+            "required_sections",
+            [
+                "PROJECT_ROOT",
+                "SCAN_DIRECTORIES",
+                "FUNCTION_DISCOVERY",
+                "VALIDATION",
+                "AUDIT",
+                "OUTPUT",
+                "QUICK_AUDIT",
+                "VERSION_SYNC",
+                "WORKFLOW",
+                "DOCUMENTATION",
+                "AUTO_DOCUMENT",
+                "AI_VALIDATION",
+            ],
+        )
 
         for section in required_sections:
             if not hasattr(config, section):

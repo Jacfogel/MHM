@@ -109,7 +109,7 @@ Tests are organized by real-world features and workflows to encourage integratio
 - Error-scenario tests simulate `PermissionError`/`OSError` via monkeypatching instead of modifying real filesystem ACLs-keeps results identical on Windows and Linux.
 - **Core analysis tools** have comprehensive test coverage (55+ tests):
   - `development_tools/docs/analyze_documentation_sync.py` - 12 tests for doc pairing validation
-  - `development_tools/generate_function_registry.py` - 12 tests for function extraction and registry generation
+  - `development_tools/functions/generate_function_registry.py` - 12 tests for function extraction and registry generation
   - `development_tools/imports/generate_module_dependencies.py` - 11 tests for dependency graph generation
   - `development_tools/legacy/fix_legacy_references.py` - 10 tests for legacy reference pattern detection and cleanup
   - `development_tools/tests/run_test_coverage.py` - 10 tests for coverage regeneration and reporting
@@ -879,18 +879,6 @@ The profiler will:
 
 ### 9.4. Process Cleanup Verification
 
-If the repo includes `scripts/testing/verify_process_cleanup.py`, use it to verify process cleanup after test runs:
-
-```powershell
-# Check for orphaned pytest processes
-python scripts/testing/verify_process_cleanup.py
-
-# Monitor continuously (Ctrl+C to stop)
-python scripts/testing/verify_process_cleanup.py --watch
-```
-
-This script verifies:
-1. Process tree termination works (taskkill /F /T /PID)
 2. Orphaned pytest workers are cleaned up
 3. No Python processes remain after test runs
 

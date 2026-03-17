@@ -788,10 +788,45 @@ def get_analyze_package_exports_config():
     return AUDIT_PACKAGE_EXPORTS
 
 
-# Config validator configuration
+# Config validator configuration (project-specific lists can override via development_tools_config.json)
 CONFIG_VALIDATOR = {
     "config_schema": {},  # Expected config schema structure (empty = auto-detect)
     "validation_rules": {},  # Custom validation rules
+    "expected_config_functions": [
+        "get_available_channels",
+        "get_channel_class_mapping",
+        "get_user_data_dir",
+        "get_backups_dir",
+        "get_user_file_path",
+        "validate_core_paths",
+        "validate_ai_configuration",
+        "validate_communication_channels",
+        "validate_logging_configuration",
+        "validate_scheduler_configuration",
+        "validate_file_organization_settings",
+        "validate_environment_variables",
+        "validate_all_configuration",
+        "validate_and_raise_if_invalid",
+        "print_configuration_report",
+        "ensure_user_directory",
+        "validate_email_config",
+        "validate_discord_config",
+        "validate_minimum_config",
+    ],
+    "required_sections": [
+        "PROJECT_ROOT",
+        "SCAN_DIRECTORIES",
+        "FUNCTION_DISCOVERY",
+        "VALIDATION",
+        "AUDIT",
+        "OUTPUT",
+        "QUICK_AUDIT",
+        "VERSION_SYNC",
+        "WORKFLOW",
+        "DOCUMENTATION",
+        "AUTO_DOCUMENT",
+        "AI_VALIDATION",
+    ],
 }
 
 
@@ -805,12 +840,12 @@ def get_analyze_config_config():
             result["validation_rules"].update(
                 external_config.get("validation_rules", {})
             )
-        # Update other keys
+        # Update other keys (lists from config replace defaults)
         for key, value in external_config.items():
             if key != "validation_rules":
                 result[key] = value
         return result
-    return CONFIG_VALIDATOR
+    return CONFIG_VALIDATOR.copy()
 
 
 # Validate AI work configuration

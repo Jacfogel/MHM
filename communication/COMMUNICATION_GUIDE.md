@@ -99,7 +99,7 @@ The base layer defines contracts and utilities:
   - Abstract base for channel implementations (naming may differ).  
   - Exposes a standardized interface for sending messages and handling responses.
 
-- `communication/communication_channels/base/message_formatter.py` and `rich_formatter.py`  
+ - `communication/communication_channels/base/message_formatter.py` and `communication/communication_channels/base/rich_formatter.py`  
   - Functions/classes for formatting text, rich data, and interactive elements into channel-native structures.
 
 Each channel then implements an adapter under `communication/communication_channels/{channel}/`, consistent with:

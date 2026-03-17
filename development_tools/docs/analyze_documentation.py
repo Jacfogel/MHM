@@ -269,20 +269,7 @@ def detect_section_overlaps(docs: dict[str, str]) -> dict[str, list[str]]:
         dict
     )  # section -> file -> content
 
-    # Common section names that are expected to appear in multiple files (not problematic)
-    expected_overlaps = {
-        "purpose",
-        "overview",
-        "introduction",
-        "summary",
-        "quick start",
-        "quick reference",
-        "table of contents",
-        "contents",
-        "navigation",
-        "see also",
-        "references",
-    }
+    from development_tools.shared.constants import EXPECTED_OVERLAPS
 
     for filename, content in docs.items():
         sections = extract_sections(content)
@@ -296,7 +283,7 @@ def detect_section_overlaps(docs: dict[str, str]) -> dict[str, list[str]]:
         if len(files) > 1:
             # Skip if it's an expected/common overlap
             section_lower = section.lower().strip()
-            if section_lower in expected_overlaps:
+            if section_lower in EXPECTED_OVERLAPS:
                 continue
 
             # Skip if all files with this section are paired docs (paired docs are required to have matching headers)

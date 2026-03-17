@@ -519,6 +519,8 @@ you must do the same in the paired doc.
 -   development_tools/DEVELOPMENT_TOOLS_GUIDE.md and
     development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md
 
+The same list is kept in `development_tools_config.json` under `constants.paired_docs` (runtime canonical source). Keep this section and the config in sync; `doc-sync` reports paired-docs list drift if they differ.
+
 ### 4.2. Synchronization workflow (practical)
 
 Open both the human and AI doc.

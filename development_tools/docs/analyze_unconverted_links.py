@@ -139,34 +139,19 @@ class UnconvertedLinkAnalyzer:
         if "archive" in line_lower or "archived" in line_lower:
             return True
 
-        # Standard 5: Check for example phrases in the current line
-        example_phrases = [
-            "for example",
-            "for instance",
-            "e.g.,",
-            "e.g.",
-            "example:",
-            "examples:",
-        ]
-        for phrase in example_phrases:
+        # Standard 5: Check for example phrases (from constants)
+        from development_tools.shared.constants import EXAMPLE_PHRASES, EXAMPLE_MARKERS
+
+        for phrase in EXAMPLE_PHRASES:
             if phrase in line_lower:
                 return True
 
-        # Standard 1: Check for example markers at the start of the line
-        # These are the official markers per documentation standards
-        example_markers = [
-            r"^\[OK\]",
-            r"^\[AVOID\]",
-            r"^\[GOOD\]",
-            r"^\[BAD\]",
-            r"^\[EXAMPLE\]",
-        ]
-        for marker in example_markers:
+        # Standard 1: Check for example markers at the start of the line (from constants)
+        for marker in EXAMPLE_MARKERS:
             if re.match(marker, line_stripped, re.IGNORECASE):
                 return True
 
         # Standard 1 & 5 (continued): Check previous lines (up to 5 lines back) for example markers and phrases
-        # This catches cases where [AVOID] or [OK] is on a previous line (per standard)
         for i in range(max(0, line_num - 5), line_num):
             prev_line = lines[i].strip()
             prev_line_lower = prev_line.lower()
@@ -175,12 +160,12 @@ class UnconvertedLinkAnalyzer:
                 if line_num - i <= 3:  # Within 3 lines of archive reference
                     return True
             # Check for example phrases in previous lines
-            for phrase in example_phrases:
+            for phrase in EXAMPLE_PHRASES:
                 if phrase in prev_line_lower:
                     if line_num - i <= 3:  # Within 3 lines of example phrase
                         return True
             # Check for example markers in previous lines
-            for marker in example_markers:
+            for marker in EXAMPLE_MARKERS:
                 if re.match(marker, prev_line, re.IGNORECASE):
                     # If we found a marker, check if current line is part of the example
                     # (list item, continuation, or within same section)
@@ -233,9 +218,10 @@ class UnconvertedLinkAnalyzer:
             IGNORED_PATH_PATTERNS,
             COMMAND_PATTERNS,
             TEMPLATE_PATTERNS,
+            PATH_STARTSWITH_NON_FILE,
         )
 
-        if path.startswith(("*", "http", "#", "mailto", "python ", "pip ", "git ")):
+        if path.startswith(PATH_STARTSWITH_NON_FILE):
             return False
         if "{" in path and "}" in path:
             return False

@@ -30,8 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-16 - Possible Duplicate Lists (Section 7.8) executed; path drift to zero, analyzer and audit fix **Progressed**
+- **Plan 7.8 executed**: All five todos done—LIST_OF_LISTS.md as central inventory; audit tiers from one canonical source (measure_tool_timings, audit_orchestration); code/config lists aligned (commands, tools, deprecation path, paired_docs, SCRIPT_REGISTRY vs _TOOLS); paired-docs list drift check integrated into doc-sync; docs aligned to canonical lists.
+- **Documentation drift**: Path references fixed in LIST_OF_LISTS, COMMUNICATION_GUIDE, DEVELOPMENT_TOOLS_GUIDE, TESTING_GUIDE so doc-sync reports 0 path-drift issues.
+- **Path drift analyzer**: Whole-word keyword check by path segment in `analyze_path_drift.py`; constants and legacy-doc list in shared/constants and config. **Audit**: `utilities.py` sets `docs_sync_summary` and cache when `analyze_documentation_sync` runs so AI_PRIORITIES and saved results show correct doc-sync count after full audit.
+- **Tests**: Path-drift tests use `development_docs/` layout and pass; Ruff clean.
+
 ### 2026-03-16 - Static analysis (Ruff/Pyright) clean, priorities split, workflow rule, test fixes **COMPLETED**
-- **Static analysis**: Cleared all Ruff and Pyright findings. Ruff: fixed `analyze_dev_tools_import_boundaries.py` (typing.Dict/List → dict/list), conftest and dev_tools conftest setattr + noqa B010 where needed for Pyright, `test_analyze_test_markers` Callable from collections.abc. Pyright: resolved 59→0 warnings (bot application_id, lock_state None guards, test type annotations/cast/setattr, FakeAnalyzer class, no_parallel reason comments).
+- **Static analysis**: Cleared all Ruff and Pyright findings. Ruff: fixed `analyze_dev_tools_import_boundaries.py` (typing.Dict/List -> dict/list), conftest and dev_tools conftest setattr + noqa B010 where needed for Pyright, `test_analyze_test_markers` Callable from collections.abc. Pyright: resolved 59->0 warnings (bot application_id, lock_state None guards, test type annotations/cast/setattr, FakeAnalyzer class, no_parallel reason comments).
 - **AI_PRIORITIES and report generation**: Split static analysis into separate "Address Ruff findings" and "Address Pyright findings" items so each appears only when that tool has issues; removed "Deferred Ruff style rules" watch list. Updated test_report_generation_static_analysis to expect the new titles.
 - **Workflow**: Added subsection 5.4 (DEVELOPMENT_WORKFLOW) and **Ruff and Pyright** (AI_DEVELOPMENT_WORKFLOW): when Ruff and Pyright conflict, prefer Pyright on type/attribute issues and use targeted Ruff noqa.
 - **Tests**: Marked `test_scheduled_user_creation` and `test_create_account_persists_checkin_settings` with `@pytest.mark.no_parallel` and reason comments to fix parallel flakiness; added reason comments so test_no_parallel_marker_requires_reason passes.
@@ -110,12 +116,6 @@ Guidelines:
 - Tightened deprecation-inventory sync guard behavior to reduce false positives: narrowed trigger keywords and excluded `tests/**` + generated artifacts from trigger-file detection.
 - Added guard regression tests (`test_deprecation_inventory_guard.py`) for ignored test/generated paths and verified guard pass behavior.
 - Fixed GitHub `Tooling Policy Consistency` workflow dependency setup by installing `python-dotenv` with `pytest` in `.github/workflows/logging-enforcement.yml`.
-
-### 2026-03-05 - Legacy inventory governance + compatibility cleanup **Progressed**
-- Established canonical deprecation inventory governance via `development_tools/config/jsons/DEPRECATION_INVENTORY.json`, wired config/docs to it, and added legacy-analysis sync-guard enforcement for deprecation-like changes without inventory updates.
-- Integrated inventory-aware legacy tooling: analyzer now injects active/candidate inventory terms into scans, and `LEGACY_REFERENCE_REPORT.md` now includes a dedicated inventory summary block with counts/hits.
-- Removed deprecated compatibility paths (`--update-plan` coverage flag plumbing and `_consolidate_and_cleanup_main_logs` no-op placeholder), updated related tests, and moved both corresponding inventory items to `removed` (`2026-03-05`).
-- Session wrap-up included full diff review + planning/doc sync and regenerated outputs (legacy report, coverage report, AI status/priorities, consolidated report); legacy backlog reduced to active bridge/retire-candidate items only.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

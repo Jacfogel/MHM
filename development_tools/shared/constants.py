@@ -402,6 +402,104 @@ TEST_MARKER_TRANSIENT_PATH_MARKERS: tuple[str, ...] = (
 )
 TEST_MARKER_AI_PATH_TOKENS: tuple[str, ...] = _load_test_marker_ai_path_tokens()
 
+# =============================================================================
+# Documentation analysis and path-drift constants (shared across docs scripts)
+# =============================================================================
+# Used by analyze_documentation, analyze_path_drift, analyze_unconverted_links,
+# fix_documentation_ascii, analyze_ascii_compliance to avoid duplicate lists.
+
+# Section headings that are expected to appear in multiple docs (not problematic)
+EXPECTED_OVERLAPS: frozenset[str] = frozenset({
+    "purpose",
+    "overview",
+    "introduction",
+    "summary",
+    "quick start",
+    "quick reference",
+    "table of contents",
+    "contents",
+    "navigation",
+    "see also",
+    "references",
+})
+
+# Words that are generic in paths (path-drift: skip when path is just this word)
+DOC_COMMON_WORDS: frozenset[str] = frozenset({
+    "extraction", "utility", "methods", "module", "package", "function", "class",
+    "variable", "constant", "helper", "service", "tool", "analysis", "report",
+    "generation", "loading", "wrappers", "orchestration", "commands", "data",
+    "config", "shared", "development", "tools", "documentation", "compliance",
+    "drift", "sync", "missing", "addresses", "links", "heading", "numbering",
+    "unconverted", "ascii", "path", "legacy", "references", "coverage", "test",
+    "markers", "imports", "unused", "functions", "registry", "dependencies",
+    "patterns", "error", "handling", "exports", "decision", "support", "system",
+    "signals", "quick", "status", "validation", "work", "ai",
+})
+
+# Python keywords (path-drift: paths containing these are likely code, not file refs)
+PYTHON_KEYWORDS_PATH_DRIFT: tuple[str, ...] = (
+    "def", "class", "import", "from", "if", "else", "for", "while", "try",
+    "except", "finally", "with", "as", "return", "yield", "lambda",
+    "and", "or", "not", "in", "is", "True", "False", "None",
+)
+
+# Section header words (path-drift: title-case phrases that look like headers)
+DOC_SECTION_WORDS: tuple[str, ...] = (
+    "overview", "summary", "introduction", "background", "context",
+    "recommendations", "suggestions", "guidelines", "best practices",
+    "implementation", "status", "progress", "analysis", "review", "findings",
+    "conclusion", "next steps", "action items", "todo", "issues", "problems",
+    "solutions", "approach", "strategy", "architecture", "design", "structure",
+    "organization", "layout",
+)
+
+# Example phrases (skip line for path-drift / unconverted-link detection)
+EXAMPLE_PHRASES: tuple[str, ...] = (
+    "for example", "for instance", "e.g.,", "e.g.", "example:", "examples:",
+)
+
+# Example markers (regex patterns; line starting with these is example context)
+EXAMPLE_MARKERS: tuple[str, ...] = (
+    r"^\[OK\]", r"^\[AVOID\]", r"^\[GOOD\]", r"^\[BAD\]", r"^\[EXAMPLE\]",
+)
+
+# Doc files that intentionally reference old paths: now in config path_drift.legacy_documentation_files
+# (project-specific; see development_tools_config.json). analyze_path_drift loads and normalizes.
+
+# Path prefixes that indicate not a file path (unconverted links: don't convert)
+PATH_STARTSWITH_NON_FILE: tuple[str, ...] = (
+    "*", "http", "#", "mailto", "python ", "pip ", "git ",
+)
+
+# File extensions valid for path-drift file references
+PATH_DRIFT_VALID_EXTENSIONS: tuple[str, ...] = (
+    ".py", ".md", ".json", ".txt", ".yaml", ".yml", ".toml", ".ini", ".cfg",
+)
+
+# Python operators (path-drift: path containing these is likely code)
+PATH_DRIFT_OPERATORS: tuple[str, ...] = (
+    "==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%=", "//=", "**=",
+    "&=", "|=", "^=", "<<=", ">>=",
+)
+
+# Unicode -> ASCII replacements for documentation (single canonical source)
+ASCII_REPLACEMENTS: dict[str, str] = {
+    "\u2018": "'", "\u2019": "'", "\u201a": "'", "\u201b": "'",
+    "\u201c": '"', "\u201d": '"', "\u201e": '"', "\u201f": '"',
+    "\u2011": "-", "\u2013": "-", "\u2014": "-", "\u2015": "--",
+    "\u2192": "->", "\u2190": "<-", "\u2191": "^", "\u2193": "v",
+    "\u2026": "...",
+    "\u2264": "<=", "\u2265": ">=", "\u00d7": "x", "\u00b0": "deg",
+    "\u00b1": "+/-", "\u00f7": "/",
+    "\u2022": "*", "\u2122": "(TM)", "\u00ae": "(R)", "\u00a9": "(C)",
+    "\u00a7": "Section ",
+    "\u2705": "[OK]", "\u274c": "[FAIL]", "\u26a0": "[WARNING]",
+    "\U0001f41b": "[BUG]", "\U0001f4a1": "[IDEA]", "\U0001f4dd": "[NOTE]",
+    "\u202f": " ", "\u00a0": " ", "\u2009": " ", "\u2008": " ", "\u2007": " ",
+    "\u2006": " ", "\u2005": " ", "\u2004": " ", "\u2003": " ", "\u2002": " ",
+    "\u2001": " ", "\u2000": " ",
+}
+
 
 def _load_ascii_compliance_files() -> tuple[str, ...]:
     """Load ASCII compliance files list from config or return defaults.
@@ -466,7 +564,17 @@ def is_local_module(module_name: str) -> bool:
 
 __all__ = [
     "ASCII_COMPLIANCE_FILES",
+    "ASCII_REPLACEMENTS",
     "COMMAND_PATTERNS",
+    "DOC_COMMON_WORDS",
+    "DOC_SECTION_WORDS",
+    "EXAMPLE_MARKERS",
+    "EXAMPLE_PHRASES",
+    "EXPECTED_OVERLAPS",
+    "PATH_DRIFT_OPERATORS",
+    "PATH_DRIFT_VALID_EXTENSIONS",
+    "PATH_STARTSWITH_NON_FILE",
+    "PYTHON_KEYWORDS_PATH_DRIFT",
     "COMMON_CLASS_NAMES",
     "COMMON_CODE_PATTERNS",
     "COMMON_FUNCTION_NAMES",

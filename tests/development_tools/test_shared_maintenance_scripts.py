@@ -92,6 +92,9 @@ def test_run_timing_analysis_with_mocked_service(monkeypatch, tmp_path):
         def run_analyze_system_signals(self):
             return {"success": True}
 
+        def run_analyze_config(self):
+            return {"success": True}
+
         def run_script(self, *args, **kwargs):
             return {"success": True}
 
@@ -113,6 +116,9 @@ def test_run_timing_analysis_with_mocked_service(monkeypatch, tmp_path):
         def run_analyze_module_dependencies(self):
             return {"success": True}
 
+        def run_analyze_module_refactor_candidates(self):
+            return {"success": True}
+
         def run_analyze_module_imports(self):
             return {"success": True}
 
@@ -123,6 +129,9 @@ def test_run_timing_analysis_with_mocked_service(monkeypatch, tmp_path):
             return {"success": True}
 
         def run_analyze_package_exports(self):
+            return {"success": True}
+
+        def _run_analyze_duplicate_functions_for_audit(self):
             return {"success": True}
 
         def run_coverage_regeneration(self):
@@ -141,6 +150,15 @@ def test_run_timing_analysis_with_mocked_service(monkeypatch, tmp_path):
             return {"success": True}
 
         def run_generate_legacy_reference_report(self):
+            return {"success": True}
+
+        def run_backup_health_check(self, run_drill=False):
+            return {"success": True}
+
+        def run_analyze_ruff(self):
+            return {"success": True}
+
+        def run_analyze_pyright(self):
             return {"success": True}
 
         def run_analyze_unused_imports(self):

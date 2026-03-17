@@ -98,61 +98,8 @@ class ASCIIComplianceAnalyzer:
         """
         ascii_issues = defaultdict(list)
 
-        # Import constants from shared.constants
-        from development_tools.shared.constants import ASCII_COMPLIANCE_FILES
-
-        # Known replacements (characters that can be auto-fixed)
-        KNOWN_REPLACEMENTS = {
-            "\u2018": "'",  # Left single quotation mark
-            "\u2019": "'",  # Right single quotation mark
-            "\u201a": "'",  # Single low-9 quotation mark
-            "\u201b": "'",  # Single high-reversed-9 quotation mark
-            "\u201c": '"',  # Left double quotation mark
-            "\u201d": '"',  # Right double quotation mark
-            "\u201e": '"',  # Double low-9 quotation mark
-            "\u201f": '"',  # Double high-reversed-9 quotation mark
-            "\u2011": "-",  # Non-breaking hyphen
-            "\u2013": "-",  # En dash
-            "\u2014": "-",  # Em dash
-            "\u2015": "--",  # Horizontal bar
-            "\u2192": "->",  # Right arrow
-            "\u2190": "<-",  # Left arrow
-            "\u2191": "^",  # Up arrow
-            "\u2193": "v",  # Down arrow
-            "\u2026": "...",  # Horizontal ellipsis
-            # Mathematical symbols
-            "\u2264": "<=",  # Less-than or equal to (≤)
-            "\u2265": ">=",  # Greater-than or equal to (≥)
-            "\u00d7": "x",  # Multiplication sign (×)
-            "\u00b0": "deg",  # Degree symbol (°)
-            "\u00b1": "+/-",  # Plus-minus sign (±)
-            "\u00f7": "/",  # Division sign (÷)
-            # Typographic symbols
-            "\u2022": "*",  # Bullet (•)
-            "\u2122": "(TM)",  # Trademark symbol (™)
-            "\u00ae": "(R)",  # Registered trademark symbol (®)
-            "\u00a9": "(C)",  # Copyright symbol (©)
-            "\u00a7": "Section ",  # Section sign (§)
-            # Common emojis (standard replacements for documentation)
-            "\u2705": "[OK]",  # Check mark button
-            "\u274c": "[FAIL]",  # Cross mark
-            "\u26a0": "[WARNING]",  # Warning sign
-            "\U0001f41b": "[BUG]",  # Bug emoji
-            "\U0001f4a1": "[IDEA]",  # Light bulb
-            "\U0001f4dd": "[NOTE]",  # Memo
-            "\u202f": " ",  # Narrow no-break space
-            "\u00a0": " ",  # Non-breaking space
-            "\u2009": " ",  # Thin space
-            "\u2008": " ",  # Punctuation space
-            "\u2007": " ",  # Figure space
-            "\u2006": " ",  # Six-per-em space
-            "\u2005": " ",  # Four-per-em space
-            "\u2004": " ",  # Three-per-em space
-            "\u2003": " ",  # Em space
-            "\u2002": " ",  # En space
-            "\u2001": " ",  # Em quad
-            "\u2000": " ",  # En quad
-        }
+        # Import constants from shared.constants (ASCII_REPLACEMENTS = single canonical source)
+        from development_tools.shared.constants import ASCII_COMPLIANCE_FILES, ASCII_REPLACEMENTS
 
         files_to_check = list(ASCII_COMPLIANCE_FILES)
 
@@ -188,9 +135,9 @@ class ASCIIComplianceAnalyzer:
                 if non_ascii_chars:
                     # Report all non-ASCII characters
                     for char, count in sorted(non_ascii_chars.items()):
-                        if char in KNOWN_REPLACEMENTS:
+                        if char in ASCII_REPLACEMENTS:
                             file_issues.append(
-                                f"Non-ASCII character '{char}' (U+{ord(char):04X}): {count} instance(s) found (auto-fixable: '{KNOWN_REPLACEMENTS[char]}')"
+                                f"Non-ASCII character '{char}' (U+{ord(char):04X}): {count} instance(s) found (auto-fixable: '{ASCII_REPLACEMENTS[char]}')"
                             )
                         else:
                             file_issues.append(

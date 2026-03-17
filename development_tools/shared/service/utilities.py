@@ -139,6 +139,10 @@ class UtilitiesMixin:
         elif "analyze_module_dependencies" in script_name:
             if data:
                 self.module_dependency_summary = data
+        elif script_name == "analyze_documentation_sync" and isinstance(data, dict):
+            # So _save_additional_tool_results and report generation use fresh doc-sync data
+            self.docs_sync_summary = data
+            self.results_cache[script_name] = data
         elif isinstance(data, dict) and data.get("summary") and data.get("details") is not None:
             # Store full standard-format result for tools without special extraction (e.g. analyze_module_refactor_candidates)
             self.results_cache[script_name] = data

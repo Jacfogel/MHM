@@ -25,36 +25,32 @@ class TestPathDriftDetection:
     
     def test_path_drift_detects_missing_file(self, tmp_path):
         """Test that path drift detection finds references to non-existent files."""
-        # Create a temporary project structure
+        # Create a temporary project structure (use development_docs to avoid
+        # any exclusion patterns that might match "docs/" in real configs)
         project_dir = tmp_path / "test_project"
         project_dir.mkdir()
-        
-        # Create a documentation file with a reference to a non-existent file
-        docs_dir = project_dir / "docs"
+        docs_dir = project_dir / "development_docs"
         docs_dir.mkdir()
-        
+
         doc_file = docs_dir / "README.md"
-        # Write content without leading spaces to avoid issues with path extraction
         doc_file.write_text(
             "# Test Documentation\n\n"
             "This file references a non-existent file: `core/nonexistent_module.py`\n\n"
             "Also references: `tests/missing_test.py`\n"
         )
-        
-        # Create analyzer with cache disabled for testing
+
         analyzer = PathDriftAnalyzer(project_root=str(project_dir), use_cache=False)
-        
-        # Run path drift check
         results = analyzer.check_path_drift()
 
         # Verify that the documentation file is flagged
-        # Normalize path separators for cross-platform compatibility
-        doc_file_str = str(doc_file.relative_to(project_dir)).replace('\\', '/')
+        doc_file_str = str(doc_file.relative_to(project_dir)).replace("\\", "/")
         doc_file_win = str(doc_file.relative_to(project_dir))
-        # Check both normalized and original path formats
         found = doc_file_str in results or doc_file_win in results
         doc_paths = analyzer.scan_documentation_paths()
-        assert found, f"Expected {doc_file_str} (or Windows path) to be in drift results. Got: {list(results.keys())}. Doc paths: {dict(doc_paths)}"
+        assert found, (
+            f"Expected {doc_file_str} (or Windows path) to be in drift results. "
+            f"Got: {list(results.keys())}. Doc paths: {list(doc_paths.keys())}"
+        )
 
         # Get the key that was actually used (could be either format)
         result_key = doc_file_str if doc_file_str in results else doc_file_win

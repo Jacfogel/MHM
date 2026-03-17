@@ -54,65 +54,9 @@ class DocumentationASCIIFixer:
     def fix_ascii(self, dry_run: bool = False) -> dict[str, Any]:
         """Fix non-ASCII characters in documentation files.
 
-        Handles common typographic characters that should be replaced with ASCII equivalents.
+        Uses ASCII_REPLACEMENTS from shared.constants (single canonical source).
         """
-        REPLACEMENTS = {
-            # Smart quotes (single)
-            "\u2018": "'",  # Left single quotation mark
-            "\u2019": "'",  # Right single quotation mark
-            "\u201a": "'",  # Single low-9 quotation mark
-            "\u201b": "'",  # Single high-reversed-9 quotation mark
-            # Smart quotes (double)
-            "\u201c": '"',  # Left double quotation mark
-            "\u201d": '"',  # Right double quotation mark
-            "\u201e": '"',  # Double low-9 quotation mark
-            "\u201f": '"',  # Double high-reversed-9 quotation mark
-            # Dashes and hyphens
-            "\u2011": "-",  # Non-breaking hyphen
-            "\u2013": "-",  # En dash
-            "\u2014": "-",  # Em dash
-            "\u2015": "--",  # Horizontal bar
-            # Arrows
-            "\u2192": "->",  # Right arrow
-            "\u2190": "<-",  # Left arrow
-            "\u2191": "^",  # Up arrow
-            "\u2193": "v",  # Down arrow
-            # Ellipsis
-            "\u2026": "...",  # Horizontal ellipsis
-            # Mathematical symbols
-            "\u2264": "<=",  # Less-than or equal to (≤)
-            "\u2265": ">=",  # Greater-than or equal to (≥)
-            "\u00d7": "x",  # Multiplication sign (×)
-            "\u00b0": "deg",  # Degree symbol (°)
-            "\u00b1": "+/-",  # Plus-minus sign (±)
-            "\u00f7": "/",  # Division sign (÷)
-            # Typographic symbols
-            "\u2022": "*",  # Bullet (•)
-            "\u2122": "(TM)",  # Trademark symbol (™)
-            "\u00ae": "(R)",  # Registered trademark symbol (®)
-            "\u00a9": "(C)",  # Copyright symbol (©)
-            "\u00a7": "Section ",  # Section sign (§)
-            # Common emojis (standard replacements for documentation)
-            "\u2705": "[OK]",  # Check mark button
-            "\u274c": "[FAIL]",  # Cross mark
-            "\u26a0": "[WARNING]",  # Warning sign
-            "\U0001f41b": "[BUG]",  # Bug emoji
-            "\U0001f4a1": "[IDEA]",  # Light bulb
-            "\U0001f4dd": "[NOTE]",  # Memo
-            # Spaces (various Unicode spaces -> regular space)
-            "\u202f": " ",  # Narrow no-break space
-            "\u00a0": " ",  # Non-breaking space
-            "\u2009": " ",  # Thin space
-            "\u2008": " ",  # Punctuation space
-            "\u2007": " ",  # Figure space
-            "\u2006": " ",  # Six-per-em space
-            "\u2005": " ",  # Four-per-em space
-            "\u2004": " ",  # Three-per-em space
-            "\u2003": " ",  # Em space
-            "\u2002": " ",  # En space
-            "\u2001": " ",  # Em quad
-            "\u2000": " ",  # En quad
-        }
+        from development_tools.shared.constants import ASCII_REPLACEMENTS
 
         files_updated = 0
         replacements_made = 0
@@ -134,7 +78,7 @@ class DocumentationASCIIFixer:
                 original_content = content
                 file_replacements = 0
 
-                for non_ascii, ascii_replacement in REPLACEMENTS.items():
+                for non_ascii, ascii_replacement in ASCII_REPLACEMENTS.items():
                     if non_ascii in content:
                         count = content.count(non_ascii)
                         content = content.replace(non_ascii, ascii_replacement)

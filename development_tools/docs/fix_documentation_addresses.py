@@ -29,12 +29,16 @@ from core.logger import get_component_logger
 # Handle both relative and absolute imports
 try:
     from .. import config
-    from ..shared.standard_exclusions import ALL_GENERATED_FILES
-    from ..shared.standard_exclusions import should_exclude_file
+    from ..shared.standard_exclusions import (
+        ALL_GENERATED_FILES,
+        should_exclude_file,
+    )
 except ImportError:
     from development_tools import config
-    from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
-    from development_tools.shared.standard_exclusions import should_exclude_file
+    from development_tools.shared.standard_exclusions import (
+        ALL_GENERATED_FILES,
+        should_exclude_file,
+    )
 
 # Ensure external config is loaded
 config.load_external_config()
@@ -62,23 +66,10 @@ class DocumentationAddressFixer:
         for ext in ["*.md", "*.mdc"]:
             files_to_process.extend(self.project_root.rglob(ext))
 
-        ignore_dirs = {
-            "venv",
-            ".venv",
-            "__pycache__",
-            ".git",
-            "node_modules",
-            ".pytest_cache",
-            "coverage_html",
-            "archive",
-        }
         generated_files = set(ALL_GENERATED_FILES)
 
         filtered_files = []
         for file_path in files_to_process:
-            parts = file_path.parts
-            if any(ignore in parts for ignore in ignore_dirs):
-                continue
             try:
                 rel_path = file_path.relative_to(self.project_root)
                 rel_path_str = str(rel_path).replace("\\", "/")
@@ -90,7 +81,7 @@ class DocumentationAddressFixer:
                     continue
 
                 # Skip .cursor/ directory files (plans, rules, etc.) - they have their own metadata format
-                if ".cursor" in parts:
+                if ".cursor" in rel_path.parts:
                     continue
 
                 if "tests" in rel_path.parts:

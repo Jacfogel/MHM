@@ -503,6 +503,22 @@ def get_command_groups():
     return COMMAND_GROUPS
 
 
+def get_script_registry() -> dict[str, str]:
+    """
+    Build script name -> path (relative to development_tools/) for run_script().
+    Canonical source: _TOOLS; keeps SCRIPT_REGISTRY in tool_wrappers in sync with tool catalog.
+    """
+    prefix = "development_tools/"
+    result: dict[str, str] = {}
+    for name, info in _TOOLS.items():
+        if name == "run_development_tools":
+            continue
+        path = info.path
+        if path.startswith(prefix) and path.endswith(".py"):
+            result[name] = path[len(prefix) :]
+    return result
+
+
 __all__ = [
     "ToolInfo",
     "get_tool_metadata",
@@ -510,4 +526,5 @@ __all__ = [
     "iter_tools",
     "COMMAND_GROUPS",
     "get_command_groups",
+    "get_script_registry",
 ]
