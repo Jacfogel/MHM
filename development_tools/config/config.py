@@ -194,6 +194,13 @@ ERROR_HANDLING = {
         "user_operations": ["create", "update", "delete", "authenticate"],
         "ai_operations": ["generate", "process", "analyze", "classify"],
     },
+    "phase1_keywords": {
+        "file_io": ["open", "read", "write", "save", "load", "os.remove", "shutil.move"],
+        "network": ["send", "receive", "connect", "request", "http", "api", "discord", "email"],
+        "user_data": ["user_data", "profile", "account", "preferences", "task", "schedule", "checkin"],
+        "ai": ["generate", "process", "analyze", "classify", "chatbot", "lm_studio"],
+        "entry_point": ["main", "run", "start", "handle", "on_"],
+    },
 }
 
 # Audit settings
@@ -249,44 +256,37 @@ QUICK_AUDIT = {
     "prioritize_issues": True,
 }
 
-# Audit tier configuration
-# Defines which tools run in each audit tier
-AUDIT_TIERS = {
-    "quick": {
-        "tools": [
-            "analyze_functions",
-            "analyze_documentation_sync",
-            "system_signals",
-            "quick_status",
-        ],
-        "description": "Lightweight analysis - core metrics only",
-    },
-    "standard": {
-        "tools": [
-            "analyze_documentation",
-            "analyze_error_handling",
-            "decision_support",
-            "analyze_config",
-            "analyze_ai_work",
-        ],
-        "description": "Standard analysis - includes quality checks",
-    },
-    "full": {
-        "analyze_tools": [
-            "generate_test_coverage",
-            "analyze_unused_imports",
-            "analyze_legacy_references",
-            "analyze_module_dependencies",
-            "analyze_backup_health",
-        ],
-        "report_generators": [
-            "generate_legacy_reference_report",  # → LEGACY_REFERENCE_REPORT.md
-            "generate_test_coverage_reports",  # → TEST_COVERAGE_EXPANSION_PLAN.md
-            "analyze_unused_imports",  # → UNUSED_IMPORTS_REPORT.md (generates report)
-        ],
-        "description": "Comprehensive analysis - includes coverage, dependencies, and improvement reports",
-    },
-}
+# Audit tier default: built from audit_tiers.py (canonical source for which tools run in each tier).
+# Do not duplicate tool lists here; get_audit_tiers_config() builds from audit_tiers when no external config.
+def _build_audit_tiers_default():
+    try:
+        from development_tools.shared.audit_tiers import (
+            TIER1_TOOL_NAMES,
+            get_expected_tools_for_tier,
+        )
+        return {
+            "quick": {
+                "tools": list(TIER1_TOOL_NAMES),
+                "description": "Lightweight analysis - core metrics only",
+            },
+            "standard": {
+                "tools": get_expected_tools_for_tier(2),
+                "description": "Standard analysis - includes quality checks",
+            },
+            "full": {
+                "tools": get_expected_tools_for_tier(3),
+                "description": "Comprehensive analysis - includes coverage, dependencies, and improvement reports",
+            },
+        }
+    except ImportError:
+        return {
+            "quick": {"tools": [], "description": "Lightweight analysis - core metrics only"},
+            "standard": {"tools": [], "description": "Standard analysis - includes quality checks"},
+            "full": {"tools": [], "description": "Comprehensive analysis"},
+        }
+
+
+AUDIT_TIERS = _build_audit_tiers_default()
 
 # Version sync settings
 # NOTE: Projects should provide config file. All paths are relative to project root.
@@ -435,9 +435,16 @@ def get_error_handling_config():
             result["critical_function_keywords"].update(
                 external_config.get("critical_function_keywords", {})
             )
+        if (
+            "phase1_keywords" in external_config
+            and "phase1_keywords" in result
+        ):
+            result["phase1_keywords"].update(
+                external_config.get("phase1_keywords", {})
+            )
         # Update other keys
         for key, value in external_config.items():
-            if key not in ("generic_exceptions", "critical_function_keywords"):
+            if key not in ("generic_exceptions", "critical_function_keywords", "phase1_keywords"):
                 result[key] = value
         return result
     return ERROR_HANDLING
@@ -577,6 +584,26 @@ def get_paths_config():
         ),
     }
     return paths
+
+
+def get_data_freshness_config():
+    """
+    Get data freshness audit configuration (e.g. known deleted files to check for in caches).
+    Returns dict with key: known_deleted_files (list of path strings).
+    """
+    default = {
+        "known_deleted_files": [
+            "development_tools/shared/operations.py",
+            "development_docs/SESSION_SUMMARY_2025-12-07.md",
+        ],
+    }
+    external = _get_external_value("data_freshness", None)
+    if not isinstance(external, dict):
+        return default
+    files = external.get("known_deleted_files")
+    if isinstance(files, list):
+        default["known_deleted_files"] = [str(p) for p in files]
+    return default
 
 
 def get_exclusions_config():

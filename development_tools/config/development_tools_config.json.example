@@ -268,6 +268,14 @@
         "analyze",
         "classify"
       ]
+    },
+    "phase1_keywords": {
+      "_comment": "Keywords for operation type and priority (phase 1). Customize per project.",
+      "file_io": ["open", "read", "write", "save", "load", "os.remove", "shutil.move"],
+      "network": ["send", "receive", "connect", "request", "http", "api", "discord", "email"],
+      "user_data": ["user_data", "profile", "account", "preferences", "task", "schedule", "checkin"],
+      "ai": ["generate", "process", "analyze", "classify", "chatbot", "lm_studio"],
+      "entry_point": ["main", "run", "start", "handle", "on_"]
     }
   },
   "output": {
@@ -294,6 +302,26 @@
       "env",
       "node_modules",
       "venv"
+    ]
+  },
+  "path_drift": {
+    "_comment": "Project-specific documentation files that intentionally reference legacy paths; excluded from path-drift detection. Include changelog_history files that reference old paths.",
+    "legacy_documentation_files": [
+      "development_docs/LEGACY_REFERENCE_REPORT.md",
+      "development_docs/CHANGELOG_DETAIL.md",
+      "ai_development_docs/AI_CHANGELOG.md",
+      "development_docs/changelog_history/CHANGELOG_DETAIL_2025_08.md",
+      "development_docs/changelog_history/CHANGELOG_DETAIL_2025_09.md",
+      "development_docs/changelog_history/CHANGELOG_DETAIL_2025_10.md",
+      "development_docs/changelog_history/CHANGELOG_DETAIL_2025_11.md",
+      "development_docs/changelog_history/CHANGELOG_DETAIL_2025_12.md"
+    ]
+  },
+  "data_freshness": {
+    "_comment": "Project-specific: file paths that have been deleted and must not appear in caches or reports.",
+    "known_deleted_files": [
+      "development_tools/shared/operations.py",
+      "development_docs/SESSION_SUMMARY_2025-12-07.md"
     ]
   },
   "workflow": {

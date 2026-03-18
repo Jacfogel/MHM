@@ -26,6 +26,7 @@ Usage:
 
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
+from development_tools.shared.constants import SPECIAL_METHODS, CONTEXT_METHODS
 
 logger = get_component_logger("development_tools")
 
@@ -161,50 +162,12 @@ def is_special_python_method(func_name: str, complexity: int | None = None) -> b
     Returns:
         True if the function should be excluded from undocumented count
     """
-    # Special methods that should be excluded from undocumented count
-    special_methods = {
-        "__new__",  # Singleton patterns
-        "__post_init__",  # Dataclass post-init
-        "__repr__",  # String representation
-        "__str__",  # String conversion
-        "__hash__",  # Hashing
-        "__eq__",  # Equality comparison
-        "__lt__",
-        "__le__",
-        "__gt__",
-        "__ge__",  # Comparison methods
-        "__len__",  # Length
-        "__bool__",  # Boolean conversion
-        "__call__",  # Callable
-        "__getitem__",
-        "__setitem__",
-        "__delitem__",  # Item access
-        "__iter__",
-        "__next__",  # Iteration
-        "__contains__",  # Membership testing
-        "__add__",
-        "__sub__",
-        "__mul__",
-        "__truediv__",  # Arithmetic
-        "__radd__",
-        "__rsub__",
-        "__rmul__",
-        "__rtruediv__",  # Reverse arithmetic
-        "__iadd__",
-        "__isub__",
-        "__imul__",
-        "__itruediv__",  # In-place arithmetic
-    }
-
-    # Context manager methods (these should be documented)
-    context_methods = {"__enter__", "__exit__"}
-
     # Simple __init__ methods (complexity < 20) can be excluded
     if func_name == "__init__" and complexity is not None and complexity < 20:
         return True
 
     # Exclude special methods but not context managers
-    return bool(func_name in special_methods and func_name not in context_methods)
+    return bool(func_name in SPECIAL_METHODS and func_name not in CONTEXT_METHODS)
 
 
 @handle_errors("checking if function is a test function", default_return=False)

@@ -2444,10 +2444,9 @@ class CoverageMetricsRegenerator:
                     and coverage_file.exists()
                     and logger
                 ):
-                    logger.warning(
+                    logger.info(
                         "No shard files found and .coverage_parallel doesn't exist, but .coverage exists. "
-                        "This suggests pytest-cov may have auto-combined shard files into .coverage. "
-                        "Will attempt to use .coverage as parallel coverage source."
+                        "Using .coverage as parallel coverage source (pytest-cov may have written here)."
                     )
 
                 # Check project root for shard files (shouldn't be there, but copy if found)
@@ -2488,7 +2487,18 @@ class CoverageMetricsRegenerator:
                         "Will continue with available artifacts, but coverage may be incomplete."
                     )
 
-                if parallel_exists or no_parallel_exists or parallel_shard_files:
+                # Enter combine block when we have parallel/no_parallel/shard files, or a non-empty .coverage
+                # (pytest-cov may write to .coverage when COVERAGE_FILE is not set for workers)
+                _coverage_file = coverage_dir / ".coverage"
+                _has_coverage_fallback = (
+                    _coverage_file.exists() and _coverage_file.stat().st_size > 0
+                )
+                if (
+                    parallel_exists
+                    or no_parallel_exists
+                    or parallel_shard_files
+                    or _has_coverage_fallback
+                ):
                     if logger:
                         logger.info(
                             "Combining coverage data from parallel and no_parallel test runs..."
@@ -2580,7 +2590,13 @@ class CoverageMetricsRegenerator:
                                 )
                         else:
                             if logger:
-                                logger.warning(
+                                # Log at INFO when we have parallel coverage (expected if no no_parallel tests ran)
+                                log_fn = (
+                                    logger.info
+                                    if parallel_coverage_source
+                                    else logger.warning
+                                )
+                                log_fn(
                                     f"No_parallel coverage file not found: {no_parallel_coverage_file}"
                                 )
 

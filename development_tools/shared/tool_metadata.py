@@ -503,6 +503,17 @@ def get_command_groups():
     return COMMAND_GROUPS
 
 
+# Tools that use cache invalidation; audit orchestration uses this for cache-state logging.
+# Single canonical source (was in audit_orchestration._CACHE_AWARE_TOOLS).
+CACHE_AWARE_TOOLS: frozenset[str] = frozenset({
+    "run_test_coverage",
+    "generate_dev_tools_coverage",
+    "analyze_unused_imports",
+    "analyze_legacy_references",
+    "analyze_documentation_sync",
+})
+
+
 def get_script_registry() -> dict[str, str]:
     """
     Build script name -> path (relative to development_tools/) for run_script().
@@ -526,5 +537,6 @@ __all__ = [
     "iter_tools",
     "COMMAND_GROUPS",
     "get_command_groups",
+    "CACHE_AWARE_TOOLS",
     "get_script_registry",
 ]

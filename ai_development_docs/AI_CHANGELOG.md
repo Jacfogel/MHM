@@ -30,8 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-17 - Lists single-source plan, error handling Phase 1 (run_tests), Tier 3 coverage fix **Progressed**
+- **Continue Lists Single-Source Analysis plan**: All todos done. Placeholder patterns from config only; path_drift.legacy_documentation_files in config example; emoji/non-ASCII in constants + fix_documentation_headings; PATH_STARTSWITH_NON_FILE derived from COMMAND_PATTERNS; EXPECTED_OVERLAPS/DOC_SECTION_WORDS; SPECIAL_METHODS/CONTEXT_METHODS in constants (exclusion_utilities + analyze_error_handling); CACHE_AWARE_TOOLS in tool_metadata; deprecation_inventory path and trigger_keywords canonical; LIST_OF_LISTS updated (principles, sections 7b/12, status table).
+- **Error handling (run_tests.py)**: @handle_errors on normalize_test_id (Phase 1 medium); error_handling_exclude on nested canonicalize_nodeid/add_nodeid; try/except in those helpers; @handle_errors on _approximate_test_from_captured_output and _merge_run_results; typing and contextlib.suppress cleanups.
+- **Tier 3 coverage**: run_test_coverage enters combine block when only .coverage exists so coverage_collected is set; .coverage fallback and no_parallel file-not-found messages downgraded to INFO when outcome is success.
+
 ### 2026-03-16 - Possible Duplicate Lists (Section 7.8) executed; path drift to zero, analyzer and audit fix **Progressed**
-- **Plan 7.8 executed**: All five todos done—LIST_OF_LISTS.md as central inventory; audit tiers from one canonical source (measure_tool_timings, audit_orchestration); code/config lists aligned (commands, tools, deprecation path, paired_docs, SCRIPT_REGISTRY vs _TOOLS); paired-docs list drift check integrated into doc-sync; docs aligned to canonical lists.
+- **Plan 7.8 executed**: All five todos done-LIST_OF_LISTS.md as central inventory; audit tiers from one canonical source (measure_tool_timings, audit_orchestration); code/config lists aligned (commands, tools, deprecation path, paired_docs, SCRIPT_REGISTRY vs _TOOLS); paired-docs list drift check integrated into doc-sync; docs aligned to canonical lists.
 - **Documentation drift**: Path references fixed in LIST_OF_LISTS, COMMUNICATION_GUIDE, DEVELOPMENT_TOOLS_GUIDE, TESTING_GUIDE so doc-sync reports 0 path-drift issues.
 - **Path drift analyzer**: Whole-word keyword check by path segment in `analyze_path_drift.py`; constants and legacy-doc list in shared/constants and config. **Audit**: `utilities.py` sets `docs_sync_summary` and cache when `analyze_documentation_sync` runs so AI_PRIORITIES and saved results show correct doc-sync count after full audit.
 - **Tests**: Path-drift tests use `development_docs/` layout and pass; Ruff clean.
@@ -110,12 +115,6 @@ Guidelines:
 - Fixed notebook import in pytest: project root is now forced to the front of `sys.path` in `tests/conftest.py` (remove then insert) so pytest's prepend of the test dir no longer hides top-level packages.
 - Isolated two Qt UI test modules that crash with access violation on some Windows PCs: skipped on Windows by default, overridable with `MHM_QT_UI_FORCE=1`; set `QT_OPENGL=software` on Windows in conftest to reduce GPU-related crashes.
 - Added `tests/debug_qt_ui_windows.py` for env comparison (Python/OS/Qt versions, minimal widget test) and excluded it from the no-prints policy.
-
-### 2026-03-05 - Static-analysis cleanup + guard tightening + CI policy fix **Progressed**
-- Cleared Ruff backlog to zero (`128 -> 0`) across runtime/tooling/tests and revalidated static checks; Pyright baseline remains `0 errors / 54 warnings`.
-- Tightened deprecation-inventory sync guard behavior to reduce false positives: narrowed trigger keywords and excluded `tests/**` + generated artifacts from trigger-file detection.
-- Added guard regression tests (`test_deprecation_inventory_guard.py`) for ignored test/generated paths and verified guard pass behavior.
-- Fixed GitHub `Tooling Policy Consistency` workflow dependency setup by installing `python-dotenv` with `pytest` in `.github/workflows/logging-enforcement.yml`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

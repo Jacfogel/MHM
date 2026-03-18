@@ -431,19 +431,9 @@ def get_all_tool_results(
     dev_tools_dir = project_root / "development_tools"
     all_results = {}
 
-    # Known domain directories
-    domains = [
-        "functions",
-        "docs",
-        "error_handling",
-        "tests",
-        "imports",
-        "legacy",
-        "config",
-        "ai_work",
-        "reports",
-        "shared",
-    ]
+    # Derive from EXPECTED_TOOLS (single canonical source for storage domains)
+    from .verify_tool_storage import EXPECTED_TOOLS
+    domains = sorted(set(EXPECTED_TOOLS.values()))
 
     def _parse_result_timestamp(result_data: dict[str, Any], result_file: Path) -> datetime:
         """Return a comparable timestamp for a tool result entry."""

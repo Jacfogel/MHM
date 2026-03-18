@@ -133,15 +133,19 @@ class ErrorHandlingAnalyzer:
             'ai_operations': ['generate', 'process', 'analyze', 'classify']
         })
         
-        # Phase 1: Keywords for determining operation type and priority
-        # (These are more generic and can stay hardcoded, or be moved to config later)
-        self.phase1_keywords = {
+        # Phase 1: Keywords for determining operation type and priority (canonical: config error_handling.phase1_keywords)
+        _default_phase1 = {
             'file_io': ['open', 'read', 'write', 'save', 'load', 'os.remove', 'shutil.move'],
             'network': ['send', 'receive', 'connect', 'request', 'http', 'api', 'discord', 'email'],
             'user_data': ['user_data', 'profile', 'account', 'preferences', 'task', 'schedule', 'checkin'],
             'ai': ['generate', 'process', 'analyze', 'classify', 'chatbot', 'lm_studio'],
-            'entry_point': ['main', 'run', 'start', 'handle', 'on_']
+            'entry_point': ['main', 'run', 'start', 'handle', 'on_'],
         }
+        self.phase1_keywords = error_config.get('phase1_keywords', _default_phase1)
+        if isinstance(self.phase1_keywords, dict):
+            self.phase1_keywords = {k: list(v) if isinstance(v, (list, tuple)) else v for k, v in self.phase1_keywords.items()}
+        else:
+            self.phase1_keywords = _default_phase1
         
         # Phase 2: Generic exceptions to audit (from config)
         # Get base exception from config for fallback
@@ -286,11 +290,8 @@ class ErrorHandlingAnalyzer:
             return True
         
         # Exclude special Python methods that shouldn't have error handling
-        special_methods = ('__getattr__', '__setattr__', '__delattr__', '__getattribute__',
-                          '__new__', '__repr__', '__str__', '__hash__', '__eq__', '__ne__',
-                          '__lt__', '__le__', '__gt__', '__ge__', '__bool__', '__len__',
-                          '__iter__', '__next__', '__contains__', '__call__')
-        if func_name in special_methods:
+        from development_tools.shared.constants import SPECIAL_METHODS
+        if func_name in SPECIAL_METHODS:
             return True
         
         # Exclude very simple constructors that only call super().__init__() and maybe 1-2 simple assignments

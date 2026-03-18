@@ -10,6 +10,12 @@
 
 ---
 
+## Overview
+
+MHM uses multiple backup and archiving systems: log rotation, user data backups, message archives, development-tools rotation, and external archive. For routing and constraints, see the numbered sections below; for full procedures and restore steps, see BACKUP_GUIDE.md.
+
+---
+
 ## 1. Log Rotation System
 
 **Where to look:**

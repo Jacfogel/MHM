@@ -26,11 +26,29 @@ import json
 from pathlib import Path
 from typing import Any
 
-# Known deleted files that should NOT appear in any reports
-KNOWN_DELETED_FILES = {
-    'development_tools/shared/operations.py',
-    'development_docs/SESSION_SUMMARY_2025-12-07.md',
+# Default known deleted files (fallback when config not loaded); canonical source is config data_freshness.known_deleted_files
+_DEFAULT_KNOWN_DELETED_FILES = {
+    "development_tools/shared/operations.py",
+    "development_docs/SESSION_SUMMARY_2025-12-07.md",
 }
+
+
+def _get_known_deleted_files() -> set[str]:
+    """Load known deleted files from config (single canonical source: development_tools_config.json)."""
+    try:
+        from development_tools import config as dev_config
+        dev_config.load_external_config()
+        cfg = dev_config.get_data_freshness_config()
+        files = cfg.get("known_deleted_files")
+        if isinstance(files, list):
+            return {str(p).replace("\\", "/") for p in files}
+    except (ImportError, AttributeError):
+        pass
+    return _DEFAULT_KNOWN_DELETED_FILES.copy()
+
+
+# Kept for backward compatibility; callers should use _get_known_deleted_files() for config-driven list
+KNOWN_DELETED_FILES = _DEFAULT_KNOWN_DELETED_FILES
 
 
 def find_all_json_cache_files(project_root: Path) -> list[Path]:
@@ -212,7 +230,7 @@ def audit_data_freshness(
         Dict with audit results
     """
     if deleted_files is None:
-        deleted_files = KNOWN_DELETED_FILES
+        deleted_files = _get_known_deleted_files()
     
     project_root = Path(project_root).resolve()
     

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-17 10:35:02
+> **Last Generated**: 2026-03-17 17:00:36
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -13,7 +13,7 @@
 ### **Documentation Coverage: 95.1% [OK] EXCELLENT**
 - **Total Functions**: 1709
 - **Total Methods**: 1243
-- **Documented**: 2807/2952
+- **Documented**: 2808/2952
 - **Files Scanned**: 122
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -171,8 +171,9 @@ Core System Decision Tree:
 - [OK] `ui/generate_ui_files.py::main()` - Application entry point
 - [OK] `ui/ui_app_qt.py::main()` - Application entry point
 - [OK] `run_headless_service.py::main()` - Application entry point
+- [OK] `run_mhm.py::main()` - Application entry point
+- [OK] `run_tests.py::main()` - Application entry point
 - [OK] `core/config.py::__init__()` - Initialization
-- [OK] `core/service.py::__init__()` - Initialization
 
 ### **Data Access Patterns**
 - **User Data**: `core/user_data_read.py` - User data operations (5 functions)
@@ -219,10 +220,10 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `run_tests.py::run_command()` - Complexity: 3208
-2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2992
+1. [OK] `run_tests.py::run_command()` - Complexity: 3211
+2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2950
 3. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2783
-4. [OK] `run_tests.py::main()` - Complexity: 2683
+4. [OK] `run_tests.py::main()` - Complexity: 2691
 5. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2359
 
 

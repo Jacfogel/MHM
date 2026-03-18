@@ -5,6 +5,7 @@ Test Runner for MHM Project
 Provides different test execution modes for faster development workflow.
 """
 
+import contextlib
 import sys
 import subprocess
 import argparse
@@ -20,7 +21,7 @@ import json
 import shutil
 import shlex
 from pathlib import Path
-from typing import Any, Dict, Optional, List
+from typing import Any
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_filename, now_timestamp_full
 
@@ -51,7 +52,7 @@ ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 # Global state for interrupt handling
 _interrupt_requested = False
-_last_sigint_time: Optional[float] = None  # for double-tap Ctrl+C to really stop
+_last_sigint_time: float | None = None  # for double-tap Ctrl+C to really stop
 _SIGINT_DOUBLE_TAP_SECONDS = 2.0
 _current_process = None
 _current_junit_xml = None
@@ -65,7 +66,7 @@ _resource_warnings_enabled = True
 _critical_memory_limit = 98.0
 _auto_terminate_enabled = True
 _captured_output_lines = []  # Store captured output for partial results extraction
-_current_console_output_file: Optional[Path] = None
+_current_console_output_file: Path | None = None
 
 # Global variable to store current test context
 _current_test_context = None
@@ -254,7 +255,8 @@ def cleanup_orphaned_pytest_processes():
         return killed_count
 
 
-def _approximate_test_from_captured_output(captured_lines: list) -> Optional[str]:
+@handle_errors("approximating test from captured output", user_friendly=False, default_return=None)
+def _approximate_test_from_captured_output(captured_lines: list) -> str | None:
     """From pytest captured output, return the last line that looks like a test/progress (for SIGINT logging)."""
     if not captured_lines:
         return None
@@ -470,10 +472,8 @@ def _rotate_console_output_files(backups_dir: Path, archive_dir: Path) -> None:
         reverse=True,
     )
     for stale in archived_files[ARCHIVE_KEEP_LAST:]:
-        try:
+        with contextlib.suppress(Exception):
             stale.unlink(missing_ok=True)
-        except Exception:
-            pass
 
 
 @handle_errors(
@@ -579,7 +579,7 @@ def apply_artifact_retention(
     "normalizing pytest failure nodeids", user_friendly=False, default_return=[]
 )
 def extract_failed_nodeids(
-    output_text: str, failure_details: Optional[list[dict[str, str]]] = None
+    output_text: str, failure_details: list[dict[str, str]] | None = None
 ) -> list[str]:
     """Extract pytest nodeids from output and failure details."""
     output_plain = ANSI_ESCAPE_RE.sub("", output_text or "")
@@ -587,30 +587,41 @@ def extract_failed_nodeids(
     seen_keys: set[str] = set()
 
     def canonicalize_nodeid(nodeid: str) -> str:
-        normalized = nodeid.strip().replace("\\", "/")
-        # Normalize JUnit-ish nodeid forms:
-        # tests.unit.test_mod.TestClass::test_x -> tests/unit/test_mod.py::TestClass::test_x
-        if normalized.startswith("tests.") and "::" in normalized and "/" not in normalized:
-            left, right = normalized.split("::", 1)
-            parts = left.split(".")
-            class_name = ""
-            if parts and parts[-1] and parts[-1][0].isupper():
-                class_name = parts[-1]
-                parts = parts[:-1]
-            if parts:
-                module_path = "/".join(parts) + ".py"
-                normalized = (
-                    f"{module_path}::{class_name}::{right}" if class_name else f"{module_path}::{right}"
-                )
-        normalized = normalized.replace(":::", "::")
-        return normalized
+        """Normalize a pytest nodeid to a canonical path::test form; returns original on error."""
+        # error_handling_exclude: nested helper; try/except is appropriate (decorator not used on nested)
+        try:
+            normalized = nodeid.strip().replace("\\", "/")
+            # Normalize JUnit-ish nodeid forms:
+            # tests.unit.test_mod.TestClass::test_x -> tests/unit/test_mod.py::TestClass::test_x
+            if normalized.startswith("tests.") and "::" in normalized and "/" not in normalized:
+                left, right = normalized.split("::", 1)
+                parts = left.split(".")
+                class_name = ""
+                if parts and parts[-1] and parts[-1][0].isupper():
+                    class_name = parts[-1]
+                    parts = parts[:-1]
+                if parts:
+                    module_path = "/".join(parts) + ".py"
+                    normalized = (
+                        f"{module_path}::{class_name}::{right}" if class_name else f"{module_path}::{right}"
+                    )
+            normalized = normalized.replace(":::", "::")
+            return normalized
+        except Exception:
+            return (nodeid or "").strip().replace("\\", "/")
 
     def add_nodeid(candidate: str) -> None:
-        normalized = canonicalize_nodeid(candidate)
-        key = normalized.lower()
-        if normalized and key not in seen_keys:
-            seen_keys.add(key)
-            nodeids.append(normalized)
+        """Append a deduplicated, canonicalized nodeid to the result list."""
+        # error_handling_exclude: nested helper; try/except is appropriate (decorator not used on nested)
+        try:
+            normalized = canonicalize_nodeid(candidate)
+            key = normalized.lower()
+            if normalized and key not in seen_keys:
+                seen_keys.add(key)
+                nodeids.append(normalized)
+        except Exception:
+            pass
+
 
     patterns = [
         r"^FAILED\s+([^\s]+::[^\s]+)",
@@ -871,7 +882,7 @@ def run_post_failure_reruns(
     base_cmd: list[str],
     output_text: str,
     failure_details: list[dict[str, str]],
-    test_context: Optional[dict],
+    test_context: dict | None,
     run_id: str,
     max_failures: int,
     rerun_attempts: int,
@@ -1525,10 +1536,8 @@ def run_command(
     if hasattr(signal, "SIGINT"):
         signal.signal(signal.SIGINT, signal_handler)
     if hasattr(signal, "SIGTERM"):
-        try:
-            signal.signal(signal.SIGTERM, signal_handler)
-        except (ValueError, OSError):
-            pass  # SIGTERM not available on Windows
+        with contextlib.suppress(ValueError, OSError):
+            signal.signal(signal.SIGTERM, signal_handler)  # SIGTERM not available on Windows
 
     phase_divider = "-" * 80
     print(f"\n{phase_divider}\nRunning: {description}...\n{phase_divider}")
@@ -1587,10 +1596,8 @@ def run_command(
                             sys.stdout.write(display_line)
                             sys.stdout.flush()
             finally:
-                try:
+                with contextlib.suppress(Exception):
                     pipe.close()
-                except Exception:
-                    pass  # Ignore errors closing pipe
 
         # Let pytest write directly to terminal - this preserves ALL colors
         # We'll parse warnings from the output if we can capture it
@@ -1661,7 +1668,6 @@ def run_command(
         )  # Check resources every minute (more frequent if memory high)
         next_partial_save = start_time + 120  # Save partial results every 2 minutes
         stuck_warning_shown = False
-        last_memory_percent = 0  # Track last memory reading to adjust check frequency
 
         while process.poll() is None:
             now = time.time()
@@ -1827,7 +1833,6 @@ def run_command(
                     else:
                         # Normal check every minute
                         next_resource_check = now + 60
-                    last_memory_percent = current_memory
                 else:
                     next_resource_check = (
                         now + 60
@@ -2007,10 +2012,8 @@ def run_command(
         # Also extract failure details from JUnit XML if available (even when interrupted)
         failure_details = []
         if os.path.exists(junit_xml_path):
-            try:
+            with contextlib.suppress(Exception):
                 failure_details = extract_failures_from_junit_xml(junit_xml_path)
-            except Exception:
-                pass  # Ignore errors extracting failures
 
         # If we know there were failures but couldn't parse node IDs/details,
         # provide an explicit placeholder so combined reports don't silently omit them.
@@ -2190,7 +2193,7 @@ def run_command(
             try:
                 if os.path.exists(junit_xml_path):
                     os.unlink(junit_xml_path)
-            except:
+            except OSError:
                 pass
         # CRITICAL: On Windows, ensure all processes are killed even if there was an exception
         if sys.platform == "win32" and _current_process:
@@ -2258,6 +2261,7 @@ def setup_test_logger():
     return logger
 
 
+@handle_errors("merging run results", user_friendly=False, default_return=None)
 def _merge_run_results(agg: dict, run_result: dict) -> None:
     """Merge a single run_command result into an aggregated results dict (in place)."""
     if not run_result or not isinstance(run_result, dict):
@@ -2329,12 +2333,6 @@ def print_combined_summary(
     # (i.e. excluded from the entire run). Parallel deselects no_parallel; serial
     # deselects non-no_parallel; so "deselected in both" = total - parallel_run - serial_run.
     if no_parallel_results and isinstance(no_parallel_results, dict):
-        p_run = (
-            parallel_res.get("passed", 0)
-            + parallel_res.get("failed", 0)
-            + parallel_res.get("skipped", 0)
-            + parallel_res.get("errors", 0)
-        )
         s_run = (
             no_parallel_res.get("passed", 0)
             + no_parallel_res.get("failed", 0)
@@ -2423,7 +2421,13 @@ def print_combined_summary(
     failure_details_to_print = []
     seen_tests = set()  # Track normalized test ids we've already printed to avoid duplicates
 
+    @handle_errors(
+        "normalize test id for deduplication",
+        user_friendly=False,
+        default_return="",
+    )
     def normalize_test_id(value: str) -> str:
+        """Normalize a test id to a canonical form for deduplication; returns '' on error."""
         raw = (value or "").strip().replace("\\", "/")
         if not raw:
             return ""
@@ -2514,10 +2518,10 @@ def print_combined_summary(
 
     # Print combined summary
     print(f"\n{'='*80}")
-    print(f"COMBINED TEST RESULTS SUMMARY")
+    print("COMBINED TEST RESULTS SUMMARY")
     print(f"{'='*80}")
     print(f"Mode: {description}")
-    print(f"\nTest Statistics:")
+    print("\nTest Statistics:")
     print(f"  Total Tests:  {combined['total']}")
     if combined_incomplete > 0:
         print(f"  Incomplete:   {combined_incomplete} (interrupted/unknown outcome)")
@@ -2537,7 +2541,7 @@ def print_combined_summary(
 
     # Show breakdown if we ran tests in two phases (parallel + serial)
     if no_parallel_results and isinstance(no_parallel_results, dict):
-        print(f"\nBreakdown:")
+        print("\nBreakdown:")
         p_passed = parallel_res.get("passed", 0)
         p_failed = parallel_res.get("failed", 0)
         p_errors = parallel_res.get("errors", 0)
@@ -2606,7 +2610,7 @@ def print_combined_summary(
 
     # Show warnings details
     if all_warnings:
-        print(f"\nWARNINGS:")
+        print("\nWARNINGS:")
         for source, warning_text in all_warnings:
             if warning_text:
                 print(f"\nFrom {source}:")
@@ -2629,7 +2633,7 @@ def print_combined_summary(
         and parallel_results.get("interrupted", False)
     ):
         print(f"\n{YELLOW}[INTERRUPTION DETECTED]{RESET}")
-        print(f"  Parallel tests were interrupted before completion.")
+        print("  Parallel tests were interrupted before completion.")
         print(f"  Partial results saved to: {_partial_results_file}")
         print(f"  Check {_backups_dir.name}/ directory for timestamped copies.")
 
@@ -2869,10 +2873,8 @@ def remove_tree_with_retries(path: Path, retries: int = 20, delay_seconds: float
         except Exception:
             time.sleep(delay_seconds)
     # Final best-effort
-    try:
+    with contextlib.suppress(Exception):
         shutil.rmtree(path, ignore_errors=True)
-    except Exception:
-        pass
     return not path.exists()
 
 
@@ -2940,9 +2942,7 @@ def cleanup_post_run_test_artifacts() -> None:
                     continue
                 remove_tree_with_retries(item)
             elif item.is_file():
-                if item.suffix == ".json" and item.name.startswith(file_prefixes):
-                    item.unlink(missing_ok=True)
-                elif item.name in {".last_cache_cleanup"}:
+                if item.suffix == ".json" and item.name.startswith(file_prefixes) or item.name in {".last_cache_cleanup"}:
                     item.unlink(missing_ok=True)
         except Exception:
             pass
@@ -3540,10 +3540,8 @@ def main():
                 _merge_run_results(agg_parallel, pr)
                 if not pr["success"]:
                     success = False
-                try:
+                with contextlib.suppress(Exception):
                     remove_tree_with_retries(parallel_basetemp)
-                except Exception:
-                    pass
 
                 if not args.no_parallel:
                     no_parallel_cmd = [sys.executable, "-m", "pytest"]
@@ -3636,10 +3634,8 @@ def main():
             if not args.no_parallel:
                 # Remove the completed parallel basetemp tree so the serial phase
                 # cannot accidentally collect transient test_*.py files generated there.
-                try:
+                with contextlib.suppress(Exception):
                     remove_tree_with_retries(parallel_basetemp)
-                except Exception:
-                    pass
 
                 # Create a separate command for no_parallel tests (serial execution)
                 no_parallel_cmd = [sys.executable, "-m", "pytest"]

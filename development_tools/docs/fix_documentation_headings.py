@@ -29,11 +29,11 @@ from core.logger import get_component_logger
 # Handle both relative and absolute imports
 try:
     from .. import config
-    from ..shared.constants import DEFAULT_DOCS
+    from ..shared.constants import DEFAULT_DOCS, ASCII_REPLACEMENTS, EMOJI_SYMBOL_STRIP_PATTERN
     from ..shared.standard_exclusions import should_exclude_file
 except ImportError:
     from development_tools import config
-    from development_tools.shared.constants import DEFAULT_DOCS
+    from development_tools.shared.constants import DEFAULT_DOCS, ASCII_REPLACEMENTS, EMOJI_SYMBOL_STRIP_PATTERN
     from development_tools.shared.standard_exclusions import should_exclude_file
 
 # Ensure external config is loaded
@@ -116,24 +116,19 @@ def _is_changelog_file(file_path: Path) -> bool:
 
 
 def _remove_emojis_from_text(text: str) -> str:
-    """Remove emojis and common Unicode symbols from text."""
-    emoji_pattern = re.compile(
-        "["
-        "\U0001f600-\U0001f64f"  # emoticons
-        "\U0001f300-\U0001f5ff"  # symbols & pictographs
-        "\U0001f680-\U0001f6ff"  # transport & map symbols
-        "\U0001f1e0-\U0001f1ff"  # flags (iOS)
-        "\U00002702-\U000027b0"  # dingbats
-        "\U000024c2-\U0001f251"  # enclosed characters
-        "\U0001f900-\U0001f9ff"  # supplemental symbols
-        "\U0001fa00-\U0001fa6f"  # chess symbols
-        "\U0001fa70-\U0001faff"  # symbols and pictographs extended-A
-        "\U00002600-\U000026ff"  # miscellaneous symbols
-        "\U00002700-\U000027bf"  # dingbats
-        "]+",
-        flags=re.UNICODE,
-    )
-    return emoji_pattern.sub("", text).strip()
+    """Normalize non-ASCII characters and remove emojis/common symbols from text."""
+    # First apply ASCII replacements where we have explicit mappings
+    normalized_chars: list[str] = []
+    for ch in text:
+        if ch in ASCII_REPLACEMENTS:
+            normalized_chars.append(ASCII_REPLACEMENTS[ch])
+        else:
+            normalized_chars.append(ch)
+    normalized = "".join(normalized_chars)
+
+    # Then strip remaining emoji/symbol characters using shared pattern
+    emoji_pattern = re.compile(EMOJI_SYMBOL_STRIP_PATTERN, flags=re.UNICODE)
+    return emoji_pattern.sub("", normalized).strip()
 
 
 def _should_convert_to_bold(heading_text: str) -> bool:

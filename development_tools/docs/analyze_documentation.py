@@ -64,9 +64,9 @@ DOC_ANALYSIS_CONFIG = config.get_documentation_analysis_config()
 
 
 # Build placeholder patterns from config
-def _build_placeholder_patterns():
+def _build_placeholder_patterns() -> tuple[re.Pattern[str], ...]:
     """Build placeholder regex patterns from config."""
-    patterns = []
+    patterns: list[re.Pattern[str]] = []
     placeholder_patterns = DOC_ANALYSIS_CONFIG.get(
         "placeholder_patterns",
         [
@@ -90,13 +90,6 @@ PLACEHOLDER_PATTERNS = _build_placeholder_patterns()
 
 # Initialize PATHS (can be overridden in execute)
 PATHS = ProjectPaths()
-
-PLACEHOLDER_PATTERNS = (
-    re.compile(r"TBD", re.IGNORECASE),
-    re.compile(r"TODO"),
-    re.compile(r"to be filled", re.IGNORECASE),
-    re.compile(r"\[insert[^\]]*\]", re.IGNORECASE),
-)
 
 
 def extract_sections(

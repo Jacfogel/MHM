@@ -1198,6 +1198,7 @@ class ToolWrappersMixin:
         legacy_cfg = dev_config.get_external_value("legacy_cleanup", {}) or {}
         guard_cfg = legacy_cfg.get("deprecation_inventory_sync_guard", {}) or {}
         enabled = bool(guard_cfg.get("enabled", True))
+        # Canonical source for guard trigger keywords: config legacy_cleanup.deprecation_inventory_sync_guard.trigger_keywords
         default_keywords = [
             "deprecated",
             "deprecation",

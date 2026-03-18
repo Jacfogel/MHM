@@ -2,10 +2,10 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-17 12:06:24
+> **Last Generated**: 2026-03-17 17:43:07
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 9
-**Legacy Compatibility Markers Detected**: 18
+**Total Files with Issues**: 10
+**Legacy Compatibility Markers Detected**: 19
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
@@ -89,7 +89,7 @@
 ### development_tools\config\config.py
 **Issues Found**: 1
 
-- **Line 910**: `ruff_sync_root_compat`
+- **Line 937**: `ruff_sync_root_compat`
   ```
   "ruff_sync_root_compat": True,
   ```
@@ -142,4 +142,15 @@
 - **Line 82**: `ruff_sync_root_compat`
   ```
   "ruff_sync_root_compat": False,
+  ```
+
+## Legacy Inventory Tracking
+**Files Affected**: 1
+
+### development_tools\shared\service\data_freshness_audit.py
+**Issues Found**: 1
+
+- **Line 50**: `backward compatibility`
+  ```
+  # Kept for backward compatibility; callers should use _get_known_deleted_files() for config-driven list
   ```

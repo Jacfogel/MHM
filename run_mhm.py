@@ -108,7 +108,7 @@ def main():
 
     # Launch the UI directly
     try:
-        process = subprocess.Popen(
+        subprocess.Popen(
             [python_executable, str(ui_app_path)],
             env=env,
             cwd=script_dir,  # Set working directory to project root

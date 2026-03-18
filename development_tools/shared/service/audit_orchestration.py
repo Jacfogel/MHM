@@ -28,6 +28,7 @@ from ..audit_tiers import (
     get_tier3_groups,
     get_expected_tools_for_tier as audit_tiers_get_expected_tools_for_tier,
 )
+from ..tool_metadata import CACHE_AWARE_TOOLS
 
 # Module-level flag to track if ANY audit is in progress
 _AUDIT_IN_PROGRESS_GLOBAL = False
@@ -114,13 +115,6 @@ def _is_audit_in_progress(project_root: Path) -> bool:
 
 class AuditOrchestrationMixin:
     """Mixin class providing audit orchestration methods to AIToolsService."""
-    _CACHE_AWARE_TOOLS = {
-        "run_test_coverage",
-        "generate_dev_tools_coverage",
-        "analyze_unused_imports",
-        "analyze_legacy_references",
-        "analyze_documentation_sync",
-    }
 
     def run_analyze_duplicate_functions(self, *args, **kwargs):
         """Stub for mixin typing; implemented in ToolWrappersMixin."""
@@ -809,7 +803,7 @@ class AuditOrchestrationMixin:
         self, tool_name: str, allow_default_none_found: bool
     ) -> str | None:
         """Return normalized cache state for log lines."""
-        if tool_name not in self._CACHE_AWARE_TOOLS:
+        if tool_name not in CACHE_AWARE_TOOLS:
             return None
         metadata = getattr(self, "_tool_cache_metadata", {})
         if isinstance(metadata, dict):

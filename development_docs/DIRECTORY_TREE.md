@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-17 10:35:09
+> **Last Generated**: 2026-03-17 17:00:43
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -24,11 +24,16 @@ C:.
 |   README.md
 |   requirements.txt
 |   run_headless_service.py
+|   run_mhm.py
+|   run_tests.py
 |   TODO.md
 |   
 +---.cursor
 |   \---plans
 |           combine_test_support_and_test_utilities_under_test_helpers_e263df6b.plan.md
+|           continue_lists_single-source_analysis_d6f420ee.plan.md
+|           emoji_regex_and_list_consolidation_5e391247.plan.md
+|           possible_duplicate_lists_plan_05fed57b.plan.md
 |           refactor_user_data_handlers.plan.md
 |           
 +---ai

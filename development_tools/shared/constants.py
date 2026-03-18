@@ -312,6 +312,10 @@ COMMAND_PATTERNS: tuple[str, ...] = (
     "kubectl ",
 )
 
+# Path prefixes that indicate not a file path (unconverted links: don't convert)
+_NON_PATH_PREFIXES: tuple[str, ...] = ("*", "http", "#", "mailto")
+PATH_STARTSWITH_NON_FILE: tuple[str, ...] = _NON_PATH_PREFIXES + COMMAND_PATTERNS
+
 # Common template patterns that should be ignored
 TEMPLATE_PATTERNS: tuple[str, ...] = ("test_<", ">.py", "{", "}", "*", "?")
 
@@ -466,10 +470,7 @@ EXAMPLE_MARKERS: tuple[str, ...] = (
 # Doc files that intentionally reference old paths: now in config path_drift.legacy_documentation_files
 # (project-specific; see development_tools_config.json). analyze_path_drift loads and normalizes.
 
-# Path prefixes that indicate not a file path (unconverted links: don't convert)
-PATH_STARTSWITH_NON_FILE: tuple[str, ...] = (
-    "*", "http", "#", "mailto", "python ", "pip ", "git ",
-)
+# Path prefixes that indicate not a file path: defined above (see COMMAND_PATTERNS + _NON_PATH_PREFIXES).
 
 # File extensions valid for path-drift file references
 PATH_DRIFT_VALID_EXTENSIONS: tuple[str, ...] = (
@@ -481,6 +482,50 @@ PATH_DRIFT_OPERATORS: tuple[str, ...] = (
     "==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%=", "//=", "**=",
     "&=", "|=", "^=", "<<=", ">>=",
 )
+
+# Special Python methods and context manager methods (shared across tools)
+SPECIAL_METHODS: frozenset[str] = frozenset(
+    {
+        "__new__",
+        "__post_init__",
+        "__repr__",
+        "__str__",
+        "__hash__",
+        "__eq__",
+        "__ne__",
+        "__lt__",
+        "__le__",
+        "__gt__",
+        "__ge__",
+        "__len__",
+        "__bool__",
+        "__call__",
+        "__getitem__",
+        "__setitem__",
+        "__delitem__",
+        "__iter__",
+        "__next__",
+        "__contains__",
+        "__add__",
+        "__sub__",
+        "__mul__",
+        "__truediv__",
+        "__radd__",
+        "__rsub__",
+        "__rmul__",
+        "__rtruediv__",
+        "__iadd__",
+        "__isub__",
+        "__imul__",
+        "__itruediv__",
+        "__getattr__",
+        "__setattr__",
+        "__delattr__",
+        "__getattribute__",
+    }
+)
+
+CONTEXT_METHODS: frozenset[str] = frozenset({"__enter__", "__exit__"})
 
 # Unicode -> ASCII replacements for documentation (single canonical source)
 ASCII_REPLACEMENTS: dict[str, str] = {
@@ -499,6 +544,23 @@ ASCII_REPLACEMENTS: dict[str, str] = {
     "\u2006": " ", "\u2005": " ", "\u2004": " ", "\u2003": " ", "\u2002": " ",
     "\u2001": " ", "\u2000": " ",
 }
+
+# Regex pattern for emoji and common Unicode symbols to strip from headings and text
+EMOJI_SYMBOL_STRIP_PATTERN: str = (
+    "["
+    "\U0001f600-\U0001f64f"  # emoticons
+    "\U0001f300-\U0001f5ff"  # symbols & pictographs
+    "\U0001f680-\U0001f6ff"  # transport & map symbols
+    "\U0001f1e0-\U0001f1ff"  # flags (iOS)
+    "\U00002702-\U000027b0"  # dingbats
+    "\U000024c2-\U0001f251"  # enclosed characters
+    "\U0001f900-\U0001f9ff"  # supplemental symbols
+    "\U0001fa00-\U0001fa6f"  # chess symbols
+    "\U0001fa70-\U0001faff"  # symbols and pictographs extended-A
+    "\U00002600-\U000026ff"  # miscellaneous symbols
+    "\U00002700-\U000027bf"  # dingbats
+    "]+"
+)
 
 
 def _load_ascii_compliance_files() -> tuple[str, ...]:

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-17 10:35:02
+> **Last Generated**: 2026-03-17 17:00:36
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -20,10 +20,10 @@
 - **Methods Found**: 1243
 - **Classes Found**: 154
 - **Total Items**: 2952
-- **Functions Documented**: 1604
+- **Functions Documented**: 1605
 - **Methods Documented**: 1203
 - **Classes Documented**: 120
-- **Total Documented**: 2807
+- **Total Documented**: 2808
 - **Template-Generated**: 5
 - **Last Updated**: 2026-03-17
 
@@ -5104,7 +5104,7 @@ Returns:
 - [OK] `_merge_run_results(agg, run_result)` - Merge a single run_command result into an aggregated results dict (in place).
 - [OK] `_persist_captured_output()` - Persist captured pytest output with ANSI stripping to latest and timestamped logs.
 - [OK] `_rotate_console_output_files(backups_dir, archive_dir)` - Keep only recent timestamped console outputs in backups and archive older ones.
-- [MISSING] `add_nodeid(candidate)` - No description
+- [OK] `add_nodeid(candidate)` - Append a deduplicated, canonicalized nodeid to the result list.
 - [OK] `apply_artifact_retention(source_dir, backups_dir, archive_dir, pattern, keep_current, keep_backups, keep_archive, archive_retention_days)` - Apply current/7/archive(7,30d) retention for files and directories.
 - [OK] `build_failure_rerun_base_cmd(base_cmd, run_id, phase)` - Build minimal pytest command for failed-node reruns only.
 - [OK] `build_windows_no_parallel_env()` - Return environment overrides for stable Windows serial UI/no_parallel runs.
