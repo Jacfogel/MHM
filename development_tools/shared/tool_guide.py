@@ -10,6 +10,7 @@ This helps AI assistants make better decisions about which tools to use and how 
 import sys
 import subprocess
 from pathlib import Path
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent
@@ -19,9 +20,13 @@ if str(project_root) not in sys.path:
 from core.logger import get_component_logger
 
 try:
-    from ..shared.tool_metadata import get_tools_by_tier
+    from ..shared.tool_metadata import get_tools_by_tier, get_tool_metadata, iter_tools
 except ImportError:
-    from development_tools.shared.tool_metadata import get_tools_by_tier
+    from development_tools.shared.tool_metadata import (
+        get_tools_by_tier,
+        get_tool_metadata,
+        iter_tools,
+    )
 
 logger = get_component_logger("development_tools")
 
@@ -31,9 +36,8 @@ TIER_TITLES = {
     "experimental": "Experimental (use with approval)",
 }
 
-# Tool configurations with usage guidance
-TOOL_GUIDE = {
-    "run_development_tools.py": {
+TOOL_GUIDE_OVERRIDES: dict[str, dict[str, Any]] = {
+    "run_development_tools": {
         "purpose": "Comprehensive interface for all development tools (single entry point)",
         "when_to_use": [
             "Primary tool for all development tool operations",
@@ -56,7 +60,7 @@ TOOL_GUIDE = {
             "Gives clear success/failure status",
         ],
     },
-    "analyze_functions.py": {
+    "analyze_functions": {
         "purpose": "Find and categorize all functions with detailed analysis",
         "when_to_use": [
             "Need to understand what functions exist",
@@ -79,7 +83,7 @@ TOOL_GUIDE = {
             "Provides function counts by category",
         ],
     },
-    "decision_support.py": {
+    "decision_support": {
         "purpose": "Dashboard with actionable insights for codebase improvement",
         "when_to_use": [
             "Before making architectural decisions",
@@ -102,7 +106,7 @@ TOOL_GUIDE = {
             "Shows impact of potential changes",
         ],
     },
-    "analyze_ai_work.py": {
+    "analyze_ai_work": {
         "purpose": "Validate AI-generated work before presenting to user",
         "when_to_use": [
             "Before showing any documentation to user",
@@ -125,7 +129,7 @@ TOOL_GUIDE = {
             "Provides confidence metrics",
         ],
     },
-    "analyze_function_registry.py": {
+    "analyze_function_registry": {
         "purpose": "Check completeness and accuracy of function documentation",
         "when_to_use": [
             "Creating or updating function registries",
@@ -146,7 +150,7 @@ TOOL_GUIDE = {
             "Provides improvement suggestions",
         ],
     },
-    "analyze_duplicate_functions.py": {
+    "analyze_duplicate_functions": {
         "purpose": "Detect possible duplicate or highly similar functions/methods",
         "when_to_use": [
             "Investigating code bloat or repeated patterns",
@@ -168,7 +172,7 @@ TOOL_GUIDE = {
             "Filters out noisy token groups",
         ],
     },
-    "analyze_module_dependencies.py": {
+    "analyze_module_dependencies": {
         "purpose": "Analyze module dependencies and import relationships",
         "when_to_use": [
             "Understanding code architecture",
@@ -190,7 +194,7 @@ TOOL_GUIDE = {
             "Provides complexity metrics",
         ],
     },
-    "analyze_documentation.py": {
+    "analyze_documentation": {
         "purpose": "Find documentation overlap and redundancy",
         "when_to_use": [
             "Consolidating documentation",
@@ -214,6 +218,64 @@ TOOL_GUIDE = {
 }
 
 
+def _validate_unique_script_basenames() -> None:
+    """
+    Guard: if two tools ever share the same script basename (e.g. two different
+    `foo.py` paths), filename-based lookups become ambiguous.
+    """
+
+    basenames: dict[str, list[str]] = {}
+    for info in iter_tools():
+        if not info.path.endswith(".py"):
+            continue
+        basename = Path(info.path).name
+        basenames.setdefault(basename, []).append(info.name)
+
+    collisions = {k: v for k, v in basenames.items() if len(v) > 1}
+    if collisions:
+        details = "; ".join(f"{b}: {sorted(names)}" for b, names in collisions.items())
+        raise ValueError(f"Tool metadata has duplicate .py basenames: {details}")
+
+
+def _normalize_input_to_tool_name(user_input: str) -> str:
+    """Normalize `analyze_functions.py` -> `analyze_functions`."""
+
+    basename = Path(user_input).name
+    if basename.lower().endswith(".py"):
+        return basename[: -len(".py")]
+    return basename
+
+
+def _build_tool_guide() -> dict[str, dict[str, Any]]:
+    guide_by_tool_name: dict[str, dict[str, Any]] = {}
+
+    for tool_name, override in TOOL_GUIDE_OVERRIDES.items():
+        meta = get_tool_metadata(tool_name)
+        script_basename = Path(meta.path).name
+
+        guide_by_tool_name[tool_name] = {
+            "tool_name": tool_name,
+            "script_basename": script_basename,
+            "path": meta.path,
+            "tier": meta.tier,
+            "trust": meta.trust,
+            "description": meta.description,
+            "purpose": override.get("purpose") or meta.description,
+            "when_to_use": override.get("when_to_use", []),
+            "output_interpretation": override.get("output_interpretation", {}),
+            "success_criteria": override.get("success_criteria", []),
+        }
+
+    return guide_by_tool_name
+
+
+_validate_unique_script_basenames()
+TOOL_GUIDE_BY_TOOL_NAME: dict[str, dict[str, Any]] = _build_tool_guide()
+TOOL_GUIDE_BY_SCRIPT_BASENAME: dict[str, dict[str, Any]] = {
+    tool_info["script_basename"]: tool_info for tool_info in TOOL_GUIDE_BY_TOOL_NAME.values()
+}
+
+
 def _print_tier_overview():
     """Print tier summaries sourced from tool metadata."""
     print("Tier Overview")
@@ -232,41 +294,48 @@ def _print_tier_overview():
 def show_tool_guide(tool_name=None):
     """Show comprehensive guide for tool usage"""
     if tool_name:
-        if tool_name in TOOL_GUIDE:
-            tool = TOOL_GUIDE[tool_name]
+        tool_entry = None
+        canonical_tool_name = _normalize_input_to_tool_name(tool_name)
+        if canonical_tool_name in TOOL_GUIDE_BY_TOOL_NAME:
+            tool_entry = TOOL_GUIDE_BY_TOOL_NAME[canonical_tool_name]
+        else:
+            script_basename = Path(tool_name).name
+            tool_entry = TOOL_GUIDE_BY_SCRIPT_BASENAME.get(script_basename)
+
+        if tool_entry:
             print(f"Tool Guide: {tool_name}")
             print("=" * 50)
-            print(f"Purpose: {tool['purpose']}")
+            print(f"Purpose: {tool_entry['purpose']}")
             print()
 
             print("When to Use:")
-            for i, scenario in enumerate(tool["when_to_use"], 1):
+            for i, scenario in enumerate(tool_entry["when_to_use"], 1):
                 print(f"   {i}. {scenario}")
             print()
 
             print("Output Interpretation:")
-            for key, description in tool["output_interpretation"].items():
+            for key, description in tool_entry["output_interpretation"].items():
                 print(f"   - {key}: {description}")
             print()
 
             print("Success Criteria:")
-            for i, criterion in enumerate(tool["success_criteria"], 1):
+            for i, criterion in enumerate(tool_entry["success_criteria"], 1):
                 print(f"   {i}. {criterion}")
         else:
             logger.warning(f"Tool '{tool_name}' not found in guide")
             # User-facing help messages stay as print() for immediate visibility
             print("Available tools:")
-            for tool in TOOL_GUIDE:
-                print(f"   - {tool}")
+            for script_basename in sorted(TOOL_GUIDE_BY_SCRIPT_BASENAME):
+                print(f"   - {script_basename}")
     else:
         print("AI Tools Guide - When to Use Each Tool")
         print("=" * 50)
         print()
         _print_tier_overview()
-        for tool_name, tool_info in TOOL_GUIDE.items():
-            print(tool_name)
+        for script_basename, tool_info in sorted(TOOL_GUIDE_BY_SCRIPT_BASENAME.items()):
+            print(script_basename)
             print(f"   Purpose: {tool_info['purpose']}")
-            print(f"   Command: python development_tools/{tool_name}")
+            print(f"   Command: python {tool_info['path']}")
             print()
 
             print("   When to use:")
@@ -283,17 +352,18 @@ def get_tool_recommendation(scenario):
 
     scenario_lower = scenario.lower()
 
-    for tool_name, tool_info in TOOL_GUIDE.items():
+    for script_basename, tool_info in TOOL_GUIDE_BY_SCRIPT_BASENAME.items():
         for use_case in tool_info["when_to_use"]:
             if any(keyword in scenario_lower for keyword in use_case.lower().split()):
                 recommendations.append(
                     {
-                        "tool": tool_name,
+                        "tool": script_basename,
+                        "path": tool_info["path"],
                         "reason": use_case,
                         "priority": (
                             "high"
                             if "documentation" in scenario_lower
-                            and "audit" in tool_name
+                            and "audit" in script_basename
                             else "medium"
                         ),
                     }
@@ -317,7 +387,8 @@ def show_recommendations(scenario):
             priority_icon = "[HIGH]" if rec["priority"] == "high" else "[MED]"
             print(f"{priority_icon} {i}. {rec['tool']}")
             print(f"   Reason: {rec['reason']}")
-            print(f"   Command: python development_tools/{rec['tool']}")
+            cmd_path = rec.get("path") or f"development_tools/{rec['tool']}"
+            print(f"   Command: python {cmd_path}")
             print()
     else:
         logger.info("No specific tool recommendations found.")
@@ -328,7 +399,15 @@ def show_recommendations(scenario):
 
 def run_tool_with_guidance(tool_name):
     """Run a tool and provide guidance on interpreting results"""
-    if tool_name not in TOOL_GUIDE:
+    tool_entry = None
+    canonical_tool_name = _normalize_input_to_tool_name(tool_name)
+    if canonical_tool_name in TOOL_GUIDE_BY_TOOL_NAME:
+        tool_entry = TOOL_GUIDE_BY_TOOL_NAME[canonical_tool_name]
+    else:
+        script_basename = Path(tool_name).name
+        tool_entry = TOOL_GUIDE_BY_SCRIPT_BASENAME.get(script_basename)
+
+    if not tool_entry:
         logger.error(f"Tool '{tool_name}' not found")
         return
 
@@ -338,11 +417,10 @@ def run_tool_with_guidance(tool_name):
     print("=" * 50)
 
     # Show what to expect
-    tool = TOOL_GUIDE[tool_name]
-    print(f"Purpose: {tool['purpose']}")
+    print(f"Purpose: {tool_entry['purpose']}")
     print()
     print("What to look for in the output:")
-    for key, description in tool["output_interpretation"].items():
+    for key, description in tool_entry["output_interpretation"].items():
         print(f"   - {key}: {description}")
     print()
 
@@ -350,17 +428,17 @@ def run_tool_with_guidance(tool_name):
     try:
         from .service.tool_wrappers import SCRIPT_REGISTRY
 
-        script_rel_path = SCRIPT_REGISTRY.get(tool_name)
+        script_rel_path = SCRIPT_REGISTRY.get(tool_entry["tool_name"])
         if script_rel_path:
             # Use path from registry (relative to development_tools/)
             script_path = Path(__file__).resolve().parent.parent / script_rel_path
             tool_cmd = [sys.executable, str(script_path)]
         else:
-            # Fallback to hardcoded path if not in registry
-            tool_cmd = [sys.executable, f"development_tools/{tool_name}"]
+            # Fallback to the canonical tool path if not in registry
+            tool_cmd = [sys.executable, tool_entry["path"]]
     except (ImportError, AttributeError):
         # Fallback if SCRIPT_REGISTRY not available
-        tool_cmd = [sys.executable, f"development_tools/{tool_name}"]
+        tool_cmd = [sys.executable, tool_entry["path"]]
 
     try:
         result = subprocess.run(tool_cmd, capture_output=True, text=True, timeout=60)
@@ -377,7 +455,7 @@ def run_tool_with_guidance(tool_name):
 
         print()
         print("Success Criteria Check:")
-        for criterion in tool["success_criteria"]:
+        for criterion in tool_entry["success_criteria"]:
             print(f"   - {criterion}")
 
     except subprocess.TimeoutExpired:

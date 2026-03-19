@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-19 - Consolidate tool guide lists from canonical tool metadata **Progressed**
+- Tool guidance data is now derived from the canonical `development_tools/shared/tool_metadata.py` `_TOOLS` registry (with derived basename-compat for legacy filename inputs), removing drift and improving reliability.
+- Pyright warnings are cleared (`0 errors, 0 warnings`), and the dev-tools guidance tests were updated accordingly.
+- `development_docs/LIST_OF_LISTS.md` now reflects that `TOOL_GUIDE` is derived (not a second catalog).
+- Added `tests/__init__.py` to fix full-suite pytest collection (`development_tools.conftest` conflict). `_resolve_coverage_workers()` uses `sys.modules` lookup and instance-only concurrency flags so dev-tools audit completes successfully.
+
 ### 2026-03-18 - Tier 3 coverage: ignore_errors and data dir **COMPLETED**
 - `coverage.ini` `[report] ignore_errors = true` — stale paths in `.coverage` no longer make `coverage json`/`html` exit 1 and fail full audit.
 - Coverage data written under `development_tools/tests/`: `data_file = ${COVERAGE_DATA_DIR}/.coverage`; runner sets `COVERAGE_DATA_DIR` and absolute `--cov-config` so pytest/xdist workers write there by default (no project-root fallback needed).
@@ -104,11 +110,6 @@ Guidelines:
 - **Audit stop on intent only:** Second Ctrl+C was logging "stopping" but audit still completed. Now post-handler check returns exit 1 when stop was requested; Tier 3 polls `audit_sigint_requested()` and breaks/stops so the run actually ends. Spurious SIGINT (no user Ctrl+C) was stopping the audit on Windows; now **three** SIGINTs within 2s are required to stop, and worker KeyboardInterrupt no longer counts as a tap (`development_tools/shared/audit_signal_state.py`, `run_development_tools.py`, `audit_orchestration.py`).
 - **DATA SOURCE warnings removed:** `analyze_module_dependencies` and `config_validation_summary` no longer log "no data found" / "not found": (1) Tier 1 runs `run_analyze_config` and persists to cache/file so reports find config data; (2) `analyze_module_dependencies` stores standard format in `results_cache` for the loader; (3) `_load_config_validation_summary` tries results_cache -> standardized storage -> file; (4) `_reload_all_cache_data` merges disk into cache instead of clearing it, so in-memory results from the current run survive for report generation.
 - **Tests:** Audit orchestration interrupt tests updated (patch `audit_module.audit_signal_state.record_audit_keyboard_interrupt`, fake executor `shutdown`); `test_run_analyze_module_dependencies_builds_standard_summary` asserts cache `details` shape.
-
-### 2026-03-11 - Spurious SIGINT double-tap, doc consolidation, scripts move **COMPLETED**
-- **Double-tap Ctrl+C to stop:** Single SIGINT is ignored (avoids spurious stops); press Ctrl+C again within 2s to stop the run. Implemented in `run_tests.py` interrupt handler.
-- **Doc consolidation:** Deleted `development_docs/SPURIOUS_SIGINT_INVESTIGATION.md`; content folded into TEST_PLAN.md Section 4.2 and Section 5.6.1. TESTING_GUIDE.md: fixed references to non-existent scripts (SCRIPTS_GUIDE, cleanup_windows_tasks, scripts/testing/*); added "Stopping a run" (double-tap) and pointer to TEST_PLAN.
-- **Scripts move:** `run_trace_consolectrl.ps1`, `run_trace_consolectrl.py`, `trace_consolectrl.js` moved from `development_docs/` to `scripts/`; all call sites and docs updated.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

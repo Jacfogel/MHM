@@ -80,13 +80,25 @@ class CommandsMixin:
             return None
 
         try:
-            from ... import config
+            # Use sys.modules lookup to ensure we hit the *same* `development_tools.config`
+            # module object that tests patch (string target
+            # `development_tools.config.get_coverage_runtime_config`).
+            import sys
+            import importlib
 
-            coverage_cfg = config.get_coverage_runtime_config() or {}
+            config_mod = sys.modules.get("development_tools.config")
+            if config_mod is None:
+                config_mod = importlib.import_module("development_tools.config")
+
+            coverage_cfg = config_mod.get_coverage_runtime_config() or {}
         except Exception:
             coverage_cfg = {}
 
-        concurrent = bool(getattr(self, "_tier3_coverage_concurrent", False))
+        # Use explicit instance state only.
+        # Some tests (and orchestration code) may mutate class-level attributes; using
+        # __dict__ prevents leaked defaults from changing behavior unexpectedly.
+        self_dict = getattr(self, "__dict__", {}) or {}
+        concurrent = bool(self_dict.get("_tier3_coverage_concurrent", False))
         if target == "main":
             key = "main_workers_when_concurrent" if concurrent else "main_workers"
         else:
@@ -120,7 +132,8 @@ class CommandsMixin:
                 if cpu_count >= 6:
                     return "4"
                 return str(max(2, cpu_count - 1))
-            if bool(getattr(self, "_tier3_coverage_serialized", False)):
+            serialized = bool(self_dict.get("_tier3_coverage_serialized", False))
+            if serialized:
                 if cpu_count >= 8:
                     return "6"
                 if cpu_count >= 6:

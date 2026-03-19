@@ -81,18 +81,6 @@ When adding new tasks, follow this format:
 
 ### Quality & Operations
 
-**Reduce Pyright Warning Backlog (54 warnings)**
-- *What it means*: Address remaining Pyright warnings in small, low-risk batches, starting with the highest-volume test modules and straightforward typing issues.
-- *Why it helps*: Improves type-safety signal quality and reduces risk of hidden runtime defects.
-- *Estimated effort*: Medium
-- *User priority*: Medium.
-- *Created*: 2026-03-05
-- *Subtasks*:
-  - [ ] Group current warnings by file/category from latest `python -m pyright` output
-  - [ ] Fix highest-volume warning clusters first (tests and dev-tools helpers)
-  - [ ] Re-run `python -m pyright` after each batch and track warning deltas
-  - [ ] Update docs/reports after warning-count reduction
-
 **Confirm wake timer fix in production**
 - [ ] After a 01:00 run, confirm errors.log no longer fills with wake timer (Register-ScheduledTask) errors.
 - *User priority*: One-time check.

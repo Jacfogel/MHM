@@ -33,6 +33,14 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-19 - Consolidate tool guide lists from canonical tool metadata
+- **Change**: `development_tools/shared/tool_guide.py` now derives its tool guidance catalog from the canonical `development_tools/shared/tool_metadata.py` `_TOOLS` registry (with a derived basename-compat layer for legacy filename inputs). This removes drift between “tool guide” identity/path data and the actual tool catalog used by tooling.
+- **Quality**: `tests/development_tools/test_tool_guide.py` updated with stronger resolution/collision assertions and Pyright-friendly typing fixes.
+- **Static analysis**: `python -m pyright` now reports `0 errors, 0 warnings`.
+- **Docs**: `development_docs/LIST_OF_LISTS.md` updated to mark `TOOL_GUIDE` as derived-from `_TOOLS`.
+- **Pytest collection**: Added `tests/__init__.py` so `tests` is a proper package; fixes `ModuleNotFoundError: No module named 'development_tools.conftest'` when running the full suite.
+- **Coverage helpers**: `development_tools/shared/service/commands.py` — `_resolve_coverage_workers()` now uses `sys.modules.get("development_tools.config")` so tests' `patch("development_tools.config.get_coverage_runtime_config")` hits the same module; concurrency flags read from `self.__dict__` only to avoid class-level state leakage. Dev-tools audit completes successfully.
+
 ### 2026-03-18 - Coverage report ignore_errors and data dir (Tier 3 audit fix)
 - **Change**: `development_tools/tests/coverage.ini` — `[report] ignore_errors = true` so `coverage json` and `coverage html` complete when the SQLite data file references modules that no longer exist (observed: `core/user_data_handlers.py`), which previously caused exit code 1 with little or no stderr on Windows and Tier 3 `run_test_coverage` / `generate_test_coverage_report` failure.
 - **Coverage data location**: Coverage is now written under `development_tools/tests/` by default. `coverage.ini` uses `data_file = ${COVERAGE_DATA_DIR}/.coverage`; `run_test_coverage.py` sets `COVERAGE_DATA_DIR` in the pytest subprocess env (and for no_parallel env) and passes absolute `--cov-config` so workers use the same config and path regardless of cwd. `generate_test_coverage_report.py` resolves `${COVERAGE_DATA_DIR}` to the config file’s parent when reading the ini. Project-root `.coverage` fallback remains as a safety net but should not be needed in normal runs.

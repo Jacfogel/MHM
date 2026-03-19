@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/TEST_COVERAGE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-19 09:26:38
+> **Last Generated**: 2026-03-19 15:25:44
 > **Source**: `python development_tools/tests/generate_test_coverage_report.py` - Test Coverage Report Generator
 
 ## Current Status
@@ -146,9 +146,9 @@
 
 **Note**: Marker counts are generated from test decorators in `tests/test_*.py` files.
 
-- **Total discovered test nodes**: 4774
+- **Total discovered test nodes**: 4776
 - **Marker usage counts**:
-  - `unit`: 2415
+  - `unit`: 2417
   - `behavior`: 1806
   - `communication`: 1045
   - `ui`: 579

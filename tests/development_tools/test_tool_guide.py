@@ -1,6 +1,7 @@
 """Unit tests for development_tools.shared.tool_guide."""
 
 from types import SimpleNamespace
+from pathlib import Path
 
 import pytest
 
@@ -13,8 +14,8 @@ tool_guide = load_development_tools_module("shared.tool_guide")
 @pytest.mark.unit
 def test_print_tier_overview_uses_tool_metadata(monkeypatch, capsys):
     fake_map = {
-        "core": [SimpleNamespace(name="core_tool.py", trust="stable", description="Core tool")],
-        "supporting": [SimpleNamespace(name="support_tool.py", trust="advisory", description="Support tool")],
+        "core": [SimpleNamespace(name="core_tool", trust="stable", description="Core tool")],
+        "supporting": [SimpleNamespace(name="support_tool", trust="advisory", description="Support tool")],
         "experimental": [],
     }
 
@@ -24,9 +25,9 @@ def test_print_tier_overview_uses_tool_metadata(monkeypatch, capsys):
 
     assert "Tier Overview" in output
     assert "Core (stable):" in output
-    assert "core_tool.py [stable]: Core tool" in output
+    assert "core_tool [stable]: Core tool" in output
     assert "Supporting (advisory):" in output
-    assert "support_tool.py [advisory]: Support tool" in output
+    assert "support_tool [advisory]: Support tool" in output
 
 
 @pytest.mark.unit
@@ -119,3 +120,39 @@ def test_show_tool_guide_default_lists_overview(monkeypatch, capsys):
 
     assert "AI Tools Guide - When to Use Each Tool" in output
     assert "run_development_tools.py" in output
+
+
+@pytest.mark.unit
+def test_tool_metadata_script_basenames_are_unique():
+    metadata_module = load_development_tools_module("shared.tool_metadata")
+    basenames: dict[str, set[str]] = {}
+
+    for info in metadata_module.iter_tools():
+        if not info.path.endswith(".py"):
+            continue
+        basename = Path(info.path).name
+        basenames.setdefault(basename, set()).add(info.name)
+
+    collisions = {b: names for b, names in basenames.items() if len(names) > 1}
+    assert not collisions, f"Duplicate script basenames found in tool metadata: {collisions}"
+
+
+@pytest.mark.unit
+def test_run_tool_with_guidance_resolves_via_script_registry(monkeypatch):
+    captured_cmds: list[list[str]] = []
+    tool_wrappers = load_development_tools_module("shared.service.tool_wrappers")
+
+    def _fake_run(cmd, *args, **kwargs):
+        captured_cmds.append(cmd)
+        return SimpleNamespace(stdout="ok output", stderr="warning output")
+
+    monkeypatch.setattr(tool_guide.subprocess, "run", _fake_run)
+
+    tool_guide.run_tool_with_guidance("analyze_functions.py")
+
+    assert captured_cmds, "Expected subprocess.run to be called"
+    expected_rel = tool_wrappers.SCRIPT_REGISTRY["analyze_functions"]
+    tool_guide_file = getattr(tool_guide, "__file__", None)
+    assert tool_guide_file is not None
+    expected_abs = Path(tool_guide_file).resolve().parent.parent / expected_rel
+    assert captured_cmds[0][1] == str(expected_abs)
