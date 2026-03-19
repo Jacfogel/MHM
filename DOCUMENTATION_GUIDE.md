@@ -166,8 +166,12 @@ Examples (non-exhaustive):
 -   [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)
 -   [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)
 -   [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)
+-   [DIRECTORY_TREE.md](development_docs/DIRECTORY_TREE.md)
 -   [AI_FUNCTION_REGISTRY.md](ai_development_docs/AI_FUNCTION_REGISTRY.md)
 -   [AI_MODULE_DEPENDENCIES.md](ai_development_docs/AI_MODULE_DEPENDENCIES.md)
+-   [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md)
+-   [AI_STATUS.md](development_tools/AI_STATUS.md)
+-   [consolidated_report.md](development_tools/consolidated_report.md)
 
 For generation details and maintenance rules, see section 6, "Generated
 Documentation Standards".

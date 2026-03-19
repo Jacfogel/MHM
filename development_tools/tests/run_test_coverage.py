@@ -235,10 +235,29 @@ class CoverageMetricsRegenerator:
         self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
 
         # Core modules to track coverage for
-        # Import constants from shared.constants
-        from development_tools.shared.constants import CORE_MODULES
+        # Core modules are loaded from external config. Don't rely on import-time
+        # snapshots in shared.constants (which can be empty if config loads later).
+        resolved_core_modules: list[str] = []
+        try:
+            from development_tools import config as dev_tools_config
+            from development_tools.shared.constants import CORE_MODULES as _FALLBACK_CORE
 
-        self.core_modules = list(CORE_MODULES)
+            constants_cfg = dev_tools_config.get_constants_config() or {}
+            configured = constants_cfg.get("core_modules")
+            if isinstance(configured, (list, tuple)):
+                resolved_core_modules = [str(m).strip() for m in configured if str(m).strip()]
+            if not resolved_core_modules:
+                resolved_core_modules = list(_FALLBACK_CORE)
+        except Exception:
+            # Absolute fallback: keep behavior consistent (may be empty).
+            try:
+                from development_tools.shared.constants import CORE_MODULES as _FALLBACK_CORE2
+
+                resolved_core_modules = list(_FALLBACK_CORE2)
+            except Exception:
+                resolved_core_modules = []
+
+        self.core_modules = resolved_core_modules
 
         # Test-file-based caching (optional)
         self.use_domain_cache = use_domain_cache
@@ -489,8 +508,18 @@ class CoverageMetricsRegenerator:
         # data_file paths in coverage.ini are relative to project root (where pytest runs from)
         data_file = coverage_ini.get("run", "data_file", fallback="").strip()
         if data_file:
-            # Resolve relative to project root, not config file location
-            self.coverage_data_file = (self.project_root / data_file).resolve()
+            # coverage.ini may use ${COVERAGE_DATA_DIR}. Resolve it here so the runner
+            # doesn't create a literal "${COVERAGE_DATA_DIR}" directory at project root.
+            if "${COVERAGE_DATA_DIR}" in data_file:
+                data_file = data_file.replace(
+                    "${COVERAGE_DATA_DIR}", str(self.coverage_config_path.parent)
+                ).replace("/", os.sep)
+
+            # Resolve relative to project root, not config file location (unless already absolute).
+            if os.path.isabs(data_file):
+                self.coverage_data_file = Path(data_file).resolve()
+            else:
+                self.coverage_data_file = (self.project_root / data_file).resolve()
 
         html_directory = coverage_ini.get("html", "directory", fallback="").strip()
         if html_directory:
@@ -1163,7 +1192,7 @@ class CoverageMetricsRegenerator:
                     [
                         *cov_args,
                         "--cov-report=term-missing",
-                        f"--cov-config={self.coverage_config_path.relative_to(self.project_root)}",
+                        f"--cov-config={self.coverage_config_path.resolve()}",
                         "--tb=line",  # Use line format for cleaner parallel output
                         "-q",  # Quiet mode - reduces output noise
                         f"--maxfail={self.maxfail}",
@@ -1187,7 +1216,7 @@ class CoverageMetricsRegenerator:
                         *cov_args,
                         "--cov-report=term-missing",
                         f"--cov-report=json:{coverage_output.resolve()}",
-                        f"--cov-config={self.coverage_config_path.relative_to(self.project_root)}",
+                        f"--cov-config={self.coverage_config_path.resolve()}",
                         "--tb=line",
                         "-q",
                         f"--maxfail={self.maxfail}",
@@ -1235,6 +1264,8 @@ class CoverageMetricsRegenerator:
             env = self._configure_test_logging_env(env)
             # Ensure PATH includes Python executable's directory for Windows DLL resolution
             env = self._ensure_python_path_in_env(env)
+            # So coverage (and xdist workers) write under development_tools/tests, not project root
+            env["COVERAGE_DATA_DIR"] = str(self.coverage_data_file.parent)
             if self.parallel:
                 # CRITICAL: Set COVERAGE_FILE to .coverage_parallel (not .coverage) so shard files aren't auto-combined
                 # pytest-xdist workers will create .coverage_parallel.worker0, .coverage_parallel.worker1, etc.
@@ -1982,7 +2013,7 @@ class CoverageMetricsRegenerator:
                     *cov_args,
                     "--cov-report=term-missing",
                     # Don't write JSON for no_parallel run - we'll combine coverage data files and regenerate JSON
-                    f"--cov-config={self.coverage_config_path.relative_to(self.project_root)}",
+                    f"--cov-config={self.coverage_config_path.resolve()}",
                     "--tb=line",
                     "-q",
                     f"--maxfail={self.maxfail}",
@@ -1998,6 +2029,9 @@ class CoverageMetricsRegenerator:
                 no_parallel_env = self._configure_test_logging_env(no_parallel_env)
                 # Ensure PATH includes Python executable's directory for Windows DLL resolution
                 no_parallel_env = self._ensure_python_path_in_env(no_parallel_env)
+                no_parallel_env["COVERAGE_DATA_DIR"] = str(
+                    self.coverage_data_file.parent
+                )
                 no_parallel_env["COVERAGE_FILE"] = str(
                     no_parallel_coverage_file.resolve()
                 )
@@ -2489,9 +2523,20 @@ class CoverageMetricsRegenerator:
 
                 # Enter combine block when we have parallel/no_parallel/shard files, or a non-empty .coverage
                 # (pytest-cov may write to .coverage when COVERAGE_FILE is not set for workers)
+                # Also check project root: pytest cwd=project_root can leave .coverage or .coverage_parallel there
                 _coverage_file = coverage_dir / ".coverage"
+                _project_root_coverage = self.project_root / ".coverage"
+                _project_root_parallel = self.project_root / ".coverage_parallel"
                 _has_coverage_fallback = (
-                    _coverage_file.exists() and _coverage_file.stat().st_size > 0
+                    (_coverage_file.exists() and _coverage_file.stat().st_size > 0)
+                    or (
+                        _project_root_coverage.exists()
+                        and _project_root_coverage.stat().st_size > 0
+                    )
+                    or (
+                        _project_root_parallel.exists()
+                        and _project_root_parallel.stat().st_size > 0
+                    )
                 )
                 if (
                     parallel_exists
@@ -2502,6 +2547,15 @@ class CoverageMetricsRegenerator:
                     if logger:
                         logger.info(
                             "Combining coverage data from parallel and no_parallel test runs..."
+                        )
+                else:
+                    if logger:
+                        logger.warning(
+                            "Skipping coverage combine: no coverage artifacts found "
+                            f"(coverage_dir={coverage_dir}, parallel_exists={parallel_exists}, "
+                            f"no_parallel_exists={no_parallel_exists}, shards={len(parallel_shard_files)}, "
+                            f"fallback={_has_coverage_fallback}). "
+                            "Check that COVERAGE_FILE/COVERAGE_DATA_DIR are set for pytest."
                         )
                         if parallel_shard_files:
                             logger.debug(
@@ -2537,8 +2591,8 @@ class CoverageMetricsRegenerator:
                                     f"Parallel coverage file {parallel_coverage_file.name} exists but is empty ({file_size} bytes) - shard files may not have been combined"
                                 )
                         elif not parallel_shard_files:
-                            # If no shard files and no .coverage_parallel, check if .coverage exists
-                            # (pytest-cov might have auto-combined shard files into .coverage if COVERAGE_FILE wasn't set)
+                            # If no shard files and no .coverage_parallel, check coverage_dir then project root
+                            # (pytest-cov may write to cwd .coverage when COVERAGE_FILE is not respected)
                             coverage_file = coverage_dir / ".coverage"
                             if coverage_file.exists():
                                 file_size = coverage_file.stat().st_size
@@ -2552,6 +2606,28 @@ class CoverageMetricsRegenerator:
                                     logger.warning(
                                         f".coverage exists but is empty ({file_size} bytes)"
                                     )
+                            if (
+                                parallel_coverage_source is None
+                                and _project_root_coverage.exists()
+                            ):
+                                file_size = _project_root_coverage.stat().st_size
+                                if file_size > 0:
+                                    parallel_coverage_source = _project_root_coverage
+                                    if logger:
+                                        logger.info(
+                                            f"Using project root .coverage as parallel coverage source (pytest wrote to cwd, {file_size} bytes)"
+                                        )
+                            if (
+                                parallel_coverage_source is None
+                                and _project_root_parallel.exists()
+                            ):
+                                file_size = _project_root_parallel.stat().st_size
+                                if file_size > 0:
+                                    parallel_coverage_source = _project_root_parallel
+                                    if logger:
+                                        logger.info(
+                                            f"Using project root .coverage_parallel as parallel coverage source ({file_size} bytes)"
+                                        )
 
                         if parallel_coverage_source:
                             shutil.copy2(
@@ -2827,14 +2903,23 @@ class CoverageMetricsRegenerator:
                             "-o",
                             str(coverage_output),
                             "--data-file",
-                            str(self.coverage_data_file),
+                            str(self.coverage_data_file.resolve()),
                         ]
+                        json_env = os.environ.copy()
+                        json_env["COVERAGE_FILE"] = str(
+                            self.coverage_data_file.resolve()
+                        )
+                        if self.coverage_config_path.exists():
+                            json_env["COVERAGE_RCFILE"] = str(
+                                self.coverage_config_path.resolve()
+                            )
                         try:
                             json_result = subprocess.run(
                                 json_cmd,
                                 capture_output=True,
                                 text=True,
                                 cwd=self.project_root,
+                                env=json_env,
                                 timeout=120,
                             )
                             if json_result.returncode == 0:
@@ -3331,6 +3416,23 @@ class CoverageMetricsRegenerator:
                                     )
 
                     if not merged_coverage_exists:
+                        # Ensure coverage data file exists for finalize (e.g. if combine block was skipped)
+                        if not self.coverage_data_file.exists():
+                            _root_cov = self.project_root / ".coverage"
+                            if (
+                                _root_cov.exists()
+                                and _root_cov.stat().st_size > 0
+                            ):
+                                self.coverage_data_file.parent.mkdir(
+                                    parents=True, exist_ok=True
+                                )
+                                shutil.copy2(
+                                    _root_cov, self.coverage_data_file
+                                )
+                                if logger:
+                                    logger.info(
+                                        "Using project root .coverage as coverage data (copied for report generation)"
+                                    )
                         self.report_generator.finalize_coverage_outputs()
                     else:
                         # Only generate HTML report, don't regenerate JSON (it would overwrite merged data)
@@ -3346,12 +3448,17 @@ class CoverageMetricsRegenerator:
                             "html",
                             "-d",
                             str(self.coverage_html_dir),
+                            "--data-file",
+                            str(self.coverage_data_file.resolve()),
                         ]
                         env = os.environ.copy()
                         env = self._configure_test_logging_env(env)
-                        env["COVERAGE_FILE"] = str(self.coverage_data_file)
+                        env["COVERAGE_FILE"] = str(self.coverage_data_file.resolve())
+                        env["COVERAGE_DATA_DIR"] = str(self.coverage_data_file.parent)
                         if self.coverage_config_path.exists():
-                            env["COVERAGE_RCFILE"] = str(self.coverage_config_path)
+                            env["COVERAGE_RCFILE"] = str(
+                                self.coverage_config_path.resolve()
+                            )
                         try:
                             html_result = subprocess.run(
                                 html_cmd,

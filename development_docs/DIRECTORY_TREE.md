@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-17 17:00:43
+> **Last Generated**: 2026-03-19 09:20:55
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
-Folder PATH listing for volume OS
-Volume serial number is 0C4F-B421
+Folder PATH listing
+Volume serial number is 5EAC-07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -29,12 +29,36 @@ C:.
 |   TODO.md
 |   
 +---.cursor
-|   \---plans
-|           combine_test_support_and_test_utilities_under_test_helpers_e263df6b.plan.md
-|           continue_lists_single-source_analysis_d6f420ee.plan.md
-|           emoji_regex_and_list_consolidation_5e391247.plan.md
-|           possible_duplicate_lists_plan_05fed57b.plan.md
-|           refactor_user_data_handlers.plan.md
+|   |   worktrees.json
+|   |   
+|   +---commands
+|   |       ai-functionality-tests.md
+|   |       audit.md
+|   |       backup.md
+|   |       close.md
+|   |       docs.md
+|   |       explore-options.md
+|   |       full-audit.md
+|   |       refactor.md
+|   |       review.md
+|   |       start.md
+|   |       test.md
+|   |       triage-issue.md
+|   |       
+|   +---plans
+|   |   |   conftest_refactor_plan_4aa2eb26.plan.md
+|   |   |   planning_documents_consolidation_f3a74815.plan.md
+|   |   |   unified_user_items_and_shared_helpers.plan.md
+|   |   |   
+|   \---rules
+|           communication-guidelines.mdc
+|           context.mdc
+|           core-guidelines.mdc
+|           critical.mdc
+|           dev_tools.mdc
+|           quality-standards.mdc
+|           testing-guidelines.mdc
+|           ui-guidelines.mdc
 |           
 +---ai
 |   |   cache_manager.py
@@ -156,8 +180,6 @@ C:.
 |   |   user_management.py
 |   |   __init__.py
 |   |   
-|   +---user_data
-    (data files)
 +---data
     (data files)
 +---development_docs
@@ -309,6 +331,10 @@ C:.
 |   |   |   verify_tool_storage.py
 |   |   |   __init__.py
 |   |   |   
+|   |   +---data
+    (data files)
+|   |   +---logs
+    (log files)
 |   |   +---service
 |   |   |   |   audit_orchestration.py
 |   |   |   |   commands.py
@@ -329,6 +355,8 @@ C:.
     (JSON files created by development tools)
 |   +---tests
 |   |   |   .coverage
+|   |   |   .coverage_no_parallel
+|   |   |   .coverage_parallel
 |   |   |   analyze_test_coverage.py
 |   |   |   analyze_test_markers.py
 |   |   |   coverage.ini
@@ -624,8 +652,8 @@ C:.
 |   +---logs
     (log files)
 |   +---notebook
-|   |   |   __init__.py
-|   |   |   
+|   |       __init__.py
+|   |       
 |   +---test_helpers
 |   |   |   __init__.py
 |   |   |   

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-17 17:00:36
+> **Last Generated**: 2026-03-19 09:20:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 95.1% [OK] COMPLETED**
+### **Function Documentation Coverage: 95.2% [OK] COMPLETED**
 - **Files Scanned**: 122
-- **Functions Found**: 1709
+- **Functions Found**: 1710
 - **Methods Found**: 1243
 - **Classes Found**: 154
-- **Total Items**: 2952
-- **Functions Documented**: 1605
+- **Total Items**: 2953
+- **Functions Documented**: 1607
 - **Methods Documented**: 1203
 - **Classes Documented**: 120
-- **Total Documented**: 2808
-- **Template-Generated**: 5
-- **Last Updated**: 2026-03-17
+- **Total Documented**: 2810
+- **Template-Generated**: 4
+- **Last Updated**: 2026-03-19
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (614)
+### **Core System Functions** (615)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (449)
@@ -5059,6 +5059,15 @@ Returns:
 
 #### `core/user_management.py`
 **Functions:**
+- [OK] `_users_dir_for_listing()` - Resolve the directory that contains per-user folders (each with account.json).
+
+- Behavior tests patch ``core.config.USER_INFO_DIR_PATH`` to a custom tree; we must
+  honor that (users live directly under that path).
+- Under pytest-xdist, ``core`` may be imported before ``MHM_TESTING=1`` is visible,
+  so ``USER_INFO_DIR_PATH`` can still match the import-time default while the real
+  test data lives under ``TEST_DATA_DIR/users``. When the configured path still
+  equals ``Path(BASE_DATA_DIR) / "users"`` from that import, prefer the runtime
+  default under testing.
 - [OK] `create_new_user(user_data)` - Create a new user with the new data structure.
 - [OK] `get_all_user_ids()` - Get all user IDs from the system.
 - [OK] `get_user_categories(user_id)` - Get user's message categories using centralized data access.
@@ -5108,7 +5117,7 @@ Returns:
 - [OK] `apply_artifact_retention(source_dir, backups_dir, archive_dir, pattern, keep_current, keep_backups, keep_archive, archive_retention_days)` - Apply current/7/archive(7,30d) retention for files and directories.
 - [OK] `build_failure_rerun_base_cmd(base_cmd, run_id, phase)` - Build minimal pytest command for failed-node reruns only.
 - [OK] `build_windows_no_parallel_env()` - Return environment overrides for stable Windows serial UI/no_parallel runs.
-- [MISSING] `canonicalize_nodeid(nodeid)` - No description
+- [OK] `canonicalize_nodeid(nodeid)` - Normalize a pytest nodeid to a canonical path::test form; returns original on error.
 - [OK] `check_critical_resources(resources)` - Check if resources exceed critical thresholds requiring termination.
 - [OK] `check_resource_warnings(resources)` - Check if resources exceed warning thresholds.
 - [OK] `classify_failure_outcome(phase, rerun_passes, rerun_failures, combined_failure_text)` - Return classification tag based on rerun outcome and message hints.
@@ -5144,7 +5153,7 @@ based on the selected test mode (all, fast, unit, integration, behavior, ui, slo
 Returns:
     int: Exit code (0 for success, 1 for failure)
 - [OK] `monitor_resources()` - Monitor system resource usage and return metrics.
-- [OK] `normalize_test_id(value)` - TEST: Normalize Id
+- [OK] `normalize_test_id(value)` - Normalize a test id to a canonical form for deduplication; returns '' on error.
 - [OK] `parse_junit_xml(xml_path)` - Parse JUnit XML report to extract test statistics.
 
 Returns a dictionary with: passed, failed, skipped, warnings, errors, total

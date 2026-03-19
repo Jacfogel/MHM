@@ -18,13 +18,9 @@
   "paths": {
     "project_root": ".",
     "scan_directories": [
-      "ai",
-      "communication",
       "core",
-      "tasks",
       "tests",
-      "ui",
-      "user"
+      "ui"
     ],
     "docs_dir": "development_docs",
     "logs_dir": "logs",
@@ -167,12 +163,16 @@
     "generated_files": [
       "ai_development_docs/AI_FUNCTION_REGISTRY.md",
       "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+      "development_docs/DIRECTORY_TREE.md",
       "development_docs/FUNCTION_REGISTRY_DETAIL.md",
       "development_docs/LEGACY_REFERENCE_REPORT.md",
       "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
+      "development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
       "development_docs/UNUSED_IMPORTS_REPORT.md",
       "development_tools/AI_PRIORITIES.md",
       "development_tools/AI_STATUS.md",
+      "development_tools/consolidated_report.md",
+      "development_tools/reports/analysis_detailed_results.json",
       "ui/generated/*"
     ],
     "base_exclusion_shortlist": [
@@ -192,7 +192,11 @@
       "tests/coverage_html/",
       "venv/"
     ],
-    "historical_preserve_files": []
+    "historical_preserve_files": [
+      "archive/",
+      "*_history/",
+      "logs/"
+    ]
   },
   "validation": {
     "_comment": "Validation thresholds and warning settings",
@@ -479,27 +483,38 @@
     "_comment": "Project-specific constants including documentation metadata and module prefixes. All are optional - tools will use generic defaults if not provided.",
     "default_docs": [
       "README.md",
-      "TODO.md"
+      "TODO.md",
+      "DEVELOPMENT_WORKFLOW.md",
+      "development_docs/CHANGELOG_DETAIL.md"
     ],
     "paired_docs": {
-      "_comment": "Maps human-facing documentation files to their AI-facing counterparts",
-      "DEVELOPMENT_WORKFLOW.md": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+      "DEVELOPMENT_WORKFLOW.md": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+      "ARCHITECTURE.md": "ai_development_docs/AI_ARCHITECTURE.md",
+      "DOCUMENTATION_GUIDE.md": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+      "logs/LOGGING_GUIDE.md": "ai_development_docs/AI_LOGGING_GUIDE.md",
+      "tests/TESTING_GUIDE.md": "ai_development_docs/AI_TESTING_GUIDE.md",
+      "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md"
     },
     "local_module_prefixes": [
       "core",
-      "tests"
+      "tests",
+      "ui"
     ],
     "project_directories": [
       ".",
       "core",
-      "tests"
+      "tests",
+      "ui"
     ],
     "core_modules": [
-      "core"
+      "core",
+      "tests",
+      "ui"
     ],
     "fix_version_sync_directories": {
       "core": "core/",
-      "tests": "tests/"
+      "tests": "tests/",
+      "ui": "ui/"
     }
   },
   "documentation_analysis": {

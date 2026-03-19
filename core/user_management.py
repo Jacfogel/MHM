@@ -2,6 +2,7 @@
 User lifecycle and listing: get_all_user_ids, create_new_user, get_user_categories.
 """
 
+import os
 import uuid
 from pathlib import Path
 from typing import Any
@@ -17,13 +18,53 @@ from core.user_data_schedule_defaults import ensure_category_has_default_schedul
 logger = get_component_logger("main")
 
 
+@handle_errors(
+    "resolving users directory for listing",
+    default_return=None,
+)
+def _users_dir_for_listing() -> Path | None:
+    """Resolve the directory that contains per-user folders (each with account.json).
+
+    - Behavior tests patch ``core.config.USER_INFO_DIR_PATH`` to a custom tree; we must
+      honor that (users live directly under that path).
+    - Under pytest-xdist, ``core`` may be imported before ``MHM_TESTING=1`` is visible,
+      so ``USER_INFO_DIR_PATH`` can still match the import-time default while the real
+      test data lives under ``TEST_DATA_DIR/users``. When the configured path still
+      equals ``Path(BASE_DATA_DIR) / "users"`` from that import, prefer the runtime
+      default under testing.
+
+    Returns None if path resolution fails (caller treats as no users dir).
+    """
+    import core.config as config
+    from core.config import _normalize_path
+
+    configured = Path(_normalize_path(str(config.USER_INFO_DIR_PATH)))
+    import_time_default = Path(
+        _normalize_path(str(Path(config.BASE_DATA_DIR) / "users"))
+    )
+
+    if os.getenv("MHM_TESTING") == "1":
+        test_base = Path(
+            _normalize_path(os.getenv("TEST_DATA_DIR", str(Path("tests") / "data")))
+        )
+        runtime_default_users = Path(_normalize_path(str(test_base / "users")))
+    else:
+        runtime_default_users = Path(
+            _normalize_path(str(Path(config.BASE_DATA_DIR) / "users"))
+        )
+
+    cfg_s = os.path.normpath(str(configured))
+    imp_s = os.path.normpath(str(import_time_default))
+    if cfg_s == imp_s:
+        return runtime_default_users
+    return configured
+
+
 @handle_errors("getting all user ids", default_return=[])
 def get_all_user_ids() -> list[str]:
     """Get all user IDs from the system."""
-    from core.config import USER_INFO_DIR_PATH
-
-    users_dir = Path(USER_INFO_DIR_PATH)
-    if not users_dir.exists():
+    users_dir = _users_dir_for_listing()
+    if users_dir is None or not users_dir.exists():
         return []
     user_ids = []
     for item in users_dir.iterdir():

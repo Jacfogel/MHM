@@ -93,13 +93,6 @@ When adding new tasks, follow this format:
   - [ ] Re-run `python -m pyright` after each batch and track warning deltas
   - [ ] Update docs/reports after warning-count reduction
 
-**Verify full Tier 3 audit after guard/workflow updates**
-- *What it means*: Re-run `python development_tools/run_development_tools.py audit --full` once current changes are merged to confirm legacy guard and CI-policy updates do not introduce new regressions.
-- *Why it helps*: Confirms end-to-end audit health with current governance and workflow adjustments.
-- *Estimated effort*: Small
-- *User priority*: Medium.
-- *Created*: 2026-03-05
-
 **Confirm wake timer fix in production**
 - [ ] After a 01:00 run, confirm errors.log no longer fills with wake timer (Register-ScheduledTask) errors.
 - *User priority*: One-time check.

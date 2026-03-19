@@ -127,7 +127,14 @@ class TestCoverageReportGenerator:
         parser.read(self.coverage_config_path)
         data_file = parser.get("run", "data_file", fallback="").strip()
         if data_file:
-            self.coverage_data_file = (self.project_root / data_file).resolve()
+            # Resolve ${COVERAGE_DATA_DIR} to config dir so path works when env is unset
+            if "${COVERAGE_DATA_DIR}" in data_file:
+                data_file = data_file.replace(
+                    "${COVERAGE_DATA_DIR}", str(self.coverage_config_path.parent)
+                ).replace("/", os.sep)
+            if not os.path.isabs(data_file):
+                data_file = str(self.project_root / data_file)
+            self.coverage_data_file = Path(data_file).resolve()
         html_directory = parser.get("html", "directory", fallback="").strip()
         if html_directory:
             self.coverage_html_dir = (self.project_root / html_directory).resolve()
@@ -566,15 +573,20 @@ class TestCoverageReportGenerator:
 
     def finalize_coverage_outputs(self) -> None:
         """Finalize coverage outputs by combining shards and generating HTML/JSON reports."""
-        # Set up coverage command and environment
+        # Set up coverage command and environment (absolute paths so subprocess finds data/config)
         coverage_cmd = [sys.executable, "-m", "coverage"]
         env = os.environ.copy()
-        env["COVERAGE_FILE"] = str(self.coverage_data_file)
+        env["COVERAGE_FILE"] = str(Path(self.coverage_data_file).resolve())
+        env["COVERAGE_DATA_DIR"] = str(Path(self.coverage_data_file).resolve().parent)
         if self.coverage_config_path.exists():
-            env["COVERAGE_RCFILE"] = str(self.coverage_config_path)
+            env["COVERAGE_RCFILE"] = str(Path(self.coverage_config_path).resolve())
 
-        # Combine coverage data files if they exist
+        # Combine coverage data files if they exist (check both project root and coverage dir)
         coverage_data_files = list(self.project_root.glob(".coverage.*"))
+        if not coverage_data_files:
+            cov_dir = Path(self.coverage_data_file).resolve().parent
+            if cov_dir != self.project_root:
+                coverage_data_files = list(cov_dir.glob(".coverage.*"))
 
         if coverage_data_files:
             if logger:
@@ -582,14 +594,19 @@ class TestCoverageReportGenerator:
                     f"Combining {len(coverage_data_files)} coverage data files..."
                 )
 
-            # Use coverage combine command
+            # Use coverage combine command; run from dir containing shards so it finds .coverage.*
             combine_cmd = coverage_cmd + ["combine"]
+            combine_cwd = (
+                coverage_data_files[0].parent
+                if coverage_data_files
+                else self.project_root
+            )
 
             combine_result = subprocess.run(
                 combine_cmd,
                 capture_output=True,
                 text=True,
-                cwd=self.project_root,
+                cwd=combine_cwd,
                 env=env,
             )
 
@@ -608,14 +625,21 @@ class TestCoverageReportGenerator:
                     if logger:
                         logger.warning(f"Failed to remove shard file {shard_file}: {e}")
 
-        # Generate HTML report
+        # Generate HTML report (--data-file so coverage finds the file regardless of cwd/rc)
+        data_file_abs = str(Path(self.coverage_data_file).resolve())
         if logger:
             logger.info("Generating HTML coverage report...")
 
         # Ensure HTML output directory exists
         self.coverage_html_dir.mkdir(parents=True, exist_ok=True)
 
-        html_args = coverage_cmd + ["html", "-d", str(self.coverage_html_dir)]
+        html_args = coverage_cmd + [
+            "html",
+            "-d",
+            str(self.coverage_html_dir),
+            "--data-file",
+            data_file_abs,
+        ]
         # Add timeout for HTML generation (10 minutes should be plenty for most codebases)
         # If it takes longer, there may be an issue with the coverage data
         html_timeout = 600  # 10 minutes
@@ -642,9 +666,16 @@ class TestCoverageReportGenerator:
         # No longer creating coverage_html logs - user only uses stdout logs
         # self._write_command_log('coverage_html', html_result)
         if html_result.returncode != 0 and logger:
+            err = (html_result.stderr or "").strip()
+            out = (html_result.stdout or "").strip()
             logger.warning(
-                f"coverage html exited with {html_result.returncode}: {html_result.stderr.strip()}"
+                f"coverage html exited with {html_result.returncode}: {err or out or '(no output)'}"
             )
+            if not Path(data_file_abs).exists():
+                logger.warning(
+                    f"Coverage data file does not exist: {data_file_abs}. "
+                    "Run test coverage combine step first (e.g. run_test_coverage)."
+                )
 
         # Regenerate JSON report after combine to ensure it reflects combined data
         # Use the same location as generate_test_coverage.py (development_tools/tests/jsons/coverage.json)
@@ -672,8 +703,14 @@ class TestCoverageReportGenerator:
                 "coverage", max_versions=6
             )  # Keep 6 archived (current is separate)
 
-        # Generate JSON report
-        json_args = coverage_cmd + ["json", "-o", str(coverage_output)]
+        # Generate JSON report (--data-file so coverage finds the file)
+        json_args = coverage_cmd + [
+            "json",
+            "-o",
+            str(coverage_output),
+            "--data-file",
+            data_file_abs,
+        ]
         json_result = subprocess.run(
             json_args, capture_output=True, text=True, cwd=self.project_root, env=env
         )
@@ -683,8 +720,10 @@ class TestCoverageReportGenerator:
                 logger.info(f"Coverage JSON report generated: {coverage_output}")
         else:
             if logger:
+                err = (json_result.stderr or "").strip()
+                out = (json_result.stdout or "").strip()
                 logger.warning(
-                    f"coverage json exited with {json_result.returncode}: {json_result.stderr.strip()}"
+                    f"coverage json exited with {json_result.returncode}: {err or out or '(no output)'}"
                 )
 
 

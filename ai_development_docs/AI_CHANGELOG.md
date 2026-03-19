@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-18 - Tier 3 coverage: ignore_errors and data dir **COMPLETED**
+- `coverage.ini` `[report] ignore_errors = true` — stale paths in `.coverage` no longer make `coverage json`/`html` exit 1 and fail full audit.
+- Coverage data written under `development_tools/tests/`: `data_file = ${COVERAGE_DATA_DIR}/.coverage`; runner sets `COVERAGE_DATA_DIR` and absolute `--cov-config` so pytest/xdist workers write there by default (no project-root fallback needed).
+- `get_all_user_ids()` (`core/user_management.py`): `_users_dir_for_listing()` honors patched `USER_INFO_DIR_PATH` for behavior tests; when the configured path still matches import-time `BASE_DATA_DIR/users`, uses runtime `TEST_DATA_DIR/users` under `MHM_TESTING=1` so xdist/stale-import listings stay correct. `_users_dir_for_listing` wrapped with `@handle_errors(..., default_return=None)`; `get_all_user_ids` returns `[]` if resolution fails.
+
 ### 2026-03-17 - Lists single-source plan, error handling Phase 1 (run_tests), Tier 3 coverage fix **Progressed**
 - **Continue Lists Single-Source Analysis plan**: All todos done. Placeholder patterns from config only; path_drift.legacy_documentation_files in config example; emoji/non-ASCII in constants + fix_documentation_headings; PATH_STARTSWITH_NON_FILE derived from COMMAND_PATTERNS; EXPECTED_OVERLAPS/DOC_SECTION_WORDS; SPECIAL_METHODS/CONTEXT_METHODS in constants (exclusion_utilities + analyze_error_handling); CACHE_AWARE_TOOLS in tool_metadata; deprecation_inventory path and trigger_keywords canonical; LIST_OF_LISTS updated (principles, sections 7b/12, status table).
 - **Error handling (run_tests.py)**: @handle_errors on normalize_test_id (Phase 1 medium); error_handling_exclude on nested canonicalize_nodeid/add_nodeid; try/except in those helpers; @handle_errors on _approximate_test_from_captured_output and _merge_run_results; typing and contextlib.suppress cleanups.
@@ -104,17 +109,6 @@ Guidelines:
 - **Double-tap Ctrl+C to stop:** Single SIGINT is ignored (avoids spurious stops); press Ctrl+C again within 2s to stop the run. Implemented in `run_tests.py` interrupt handler.
 - **Doc consolidation:** Deleted `development_docs/SPURIOUS_SIGINT_INVESTIGATION.md`; content folded into TEST_PLAN.md Section 4.2 and Section 5.6.1. TESTING_GUIDE.md: fixed references to non-existent scripts (SCRIPTS_GUIDE, cleanup_windows_tasks, scripts/testing/*); added "Stopping a run" (double-tap) and pointer to TEST_PLAN.
 - **Scripts move:** `run_trace_consolectrl.ps1`, `run_trace_consolectrl.py`, `trace_consolectrl.js` moved from `development_docs/` to `scripts/`; all call sites and docs updated.
-
-### 2026-03-11 - Test runner: full-run reliability, phase-failure reporting, skip/deselect targets **Progressed**
-- **Full run without spurious interrupts:** `--full` now implies `--ignore-sigint` so `python run_tests.py --full` completes; added `--no-ignore-sigint` to override. Reverted auto `MHM_QT_UI_FORCE=1` on Windows so Qt UI tests that crash (e.g. CheckinSettingsWidget access violation) stay skipped by default.
-- **Combined summary reflects phase crashes:** When a phase exits non-zero (e.g. access violation) but JUnit has 0 failed/errors, the summary now shows at least 1 error and a `[PHASE FAILED]` line so the run is not reported as success.
-- **Deselected and skip targets:** Combined summary "Deselected" now only counts tests deselected in both parallel and serial (excluded from entire run). TEST_PLAN.md: added program-level success criterion for at most 1 skipped test; elevated spurious SIGINT to high priority with investigate -> fix -> clean up workarounds (Section 4.2, Section 5.6.1).
-- **Docs:** TESTING_GUIDE.md updated (full-run command, expected skips, Start-Process/external terminal). TEST_PLAN.md last-updated and success criteria refreshed.
-
-### 2026-03-05 - Test suite: notebook import fix + Qt UI Windows skip + debug script **Progressed**
-- Fixed notebook import in pytest: project root is now forced to the front of `sys.path` in `tests/conftest.py` (remove then insert) so pytest's prepend of the test dir no longer hides top-level packages.
-- Isolated two Qt UI test modules that crash with access violation on some Windows PCs: skipped on Windows by default, overridable with `MHM_QT_UI_FORCE=1`; set `QT_OPENGL=software` on Windows in conftest to reduce GPU-related crashes.
-- Added `tests/debug_qt_ui_windows.py` for env comparison (Python/OS/Qt versions, minimal widget test) and excluded it from the no-prints policy.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
