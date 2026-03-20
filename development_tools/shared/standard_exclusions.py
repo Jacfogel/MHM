@@ -402,6 +402,26 @@ def _load_historical_preserve_files() -> tuple[str, ...]:
 # Legacy cleanup preserve files
 HISTORICAL_PRESERVE_FILES: tuple[str, ...] = _load_historical_preserve_files()
 
+# Doc export snapshot: glob patterns for excluding dirs when bundling .md files.
+# Used by export_docs_snapshot.py (single canonical source; overlaps with base exclusions).
+DOC_EXPORT_BASE_EXCLUDE_GLOBS: tuple[str, ...] = (
+    ".git/**",
+    ".venv/**",
+    "**/__pycache__/**",
+    "**/.pytest_cache/**",
+    "dist/**",
+    "build/**",
+    "node_modules/**",
+    "archive/**",
+    "**/archive/**",
+    "archived/**",
+    "**/archived/**",
+    "generated/**",
+    "**/generated/**",
+    "_generated/**",
+    "**/_generated/**",
+)
+
 # Documentation sync checker placeholders
 DOC_SYNC_PLACEHOLDERS: dict[str, str] = {
     "logs": "    (log files)",

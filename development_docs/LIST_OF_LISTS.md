@@ -5,9 +5,9 @@
 **Purpose**: Single reference for list-like data (arrays, mappings, enumerated sets) in code and config. Align code/config first, then align docs to canonical lists.
 
 **Audience**: Maintainers, AI collaborators.  
-**Last updated**: 2026-03-17
+**Last updated**: 2026-03-20
 
-**Principles**: (1) Every list has a single canonical source. (2) **Project-specific** lists → `development_tools_config.json`. **Non–project-specific** lists that are used in more than one place → `development_tools/shared/common.py`, `development_tools/shared/constants.py`, or `development_tools/shared/standard_exclusions.py` as appropriate. Single-use, non–project-specific lists can stay in the single file that uses them.
+**Principles**: (1) Every list has a single canonical source. (2) **Project-specific** lists → `development_tools_config.json`. **Non–project-specific** lists that are used in more than one place → `development_tools/shared/common.py`, `development_tools/shared/constants.py`, or `development_tools/shared/standard_exclusions.py` as appropriate. Single-use, non–project-specific lists can stay in the single file that uses them. (3) **Consolidate when overlap is complete or appropriate**: Where lists overlap fully (e.g. subset A is entirely contained in list B), derive the subset from the canonical list instead of maintaining both. Where lists serve the same purpose with different scopes, derive from one canonical source or document when consolidation is appropriate.
 
 ---
 
@@ -74,7 +74,7 @@
 | What                                              | Canonical source                                                                                                                                                                                                              | Uses                                                                         | Other locations / overlap                                                                                                                                                                                            |
 | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Paired docs (human doc → AI doc mapping)**      | **Runtime**: `development_tools_config.json` — `constants.paired_docs` (object); loaded by `development_tools/shared/constants.py` as `PAIRED_DOCS`. **Human-facing**: `DOCUMENTATION_GUIDE.md` §4.1 (bullet list). | `development_tools/docs/analyze_documentation_sync.py` (uses PAIRED_DOCS); doc-sync; heading checks | Config is canonical for tooling. A future generic list-sync mechanism (config-driven, multiple list types) could keep DOCUMENTATION_GUIDE §4.1 and other doc lists in sync. |
-| **Version-sync file lists (ai_docs, docs, etc.)** | `development_tools_config.json` — `fix_version_sync.ai_docs`, `fix_version_sync.docs`, `cursor_rules`, …                                                                                                                      | `development_tools/docs/fix_version_sync.py` (scope for version/date updates) | Overlap: ai_docs paths can match AI-side paths in paired_docs. Document that paired_docs = "heading sync", version-sync lists = "version metadata"; optionally derive ai_docs from paired_docs or add overlap check. |
+| **Version-sync file lists (ai_docs, docs, etc.)** | `development_tools_config.json` — `fix_version_sync.ai_docs`, `fix_version_sync.docs`, `cursor_rules`, …                                                                                                                      | `development_tools/docs/fix_version_sync.py` (scope for version/date updates) | **Consolidated**: `communication_docs`, `core_docs`, `logs_docs`, `scripts_docs`, `tests_docs` derived from `docs` by path prefix (config override optional). Exclusions: fix_version_sync uses `get_exclusions("fix_version_sync", "development")`; `exclude_patterns` removed from config. paired_docs = "heading sync"; version-sync lists = "version metadata". |
 
 
 **Alignment note**: See AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4 §7.8. Align config and DOCUMENTATION_GUIDE §4.1 first (one canonical); then ensure docs that reference "paired doc list" point to that canonical source.
@@ -103,7 +103,8 @@
 
 | What                                                                                                     | Canonical source                                                                                                                                                                                  | Uses                                                                                                                             | Other locations / overlap                                                                                                                                                         |
 | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **default_docs, paired_docs, local_module_prefixes, project_directories, core_modules, test_markers, …** | `development_tools_config.json` — `constants`, `paths`, `fix_version_sync`, `analyze_functions`, `error_handling`, `documentation_analysis`, `test_markers`, `exclusions`, `legacy_cleanup`, etc. | `development_tools/shared/constants.py` (loads and exposes PAIRED_DOCS, DEFAULT_DOCS, etc.); config.py getters; individual tools | Many keys are list-valued. Code is consumer; config is canonical. Doc that references "e.g. paired_docs" should point to config (or to constants.py as the loader).               |
+| **default_docs, paired_docs, local_module_prefixes, test_markers, …** | `development_tools_config.json` — `constants`, `paths`, `fix_version_sync`, etc. | `development_tools/shared/constants.py`; config.py getters | **Consolidated**: `local_module_prefixes` is canonical. `scan_directories`, `core_modules`, `project_directories` are derived (constants.py); config override optional. See §9a. |
+| **file_patterns.exclude_patterns** | — (removed) | — | **Removed**. Use `exclusions.base_exclusions`; see §9a. |
 | **Test markers (categories, directory map, etc.)**                                                       | `development_tools_config.json` — `test_markers.categories`, `test_markers.transient_data_path_markers`, etc.                                                                                     | Dev-tools test marker analysis                                                                                                   | `pytest.ini` — `markers` (pytest's own list). Overlap in purpose; config = dev-tools analysis, pytest.ini = pytest behavior. Keep both; document that they serve different tools. |
 
 
@@ -125,14 +126,14 @@ These lists live only in code. Many should pull from config or a single code can
 | **Base exclusion shortlist** | `development_tools/shared/standard_exclusions.py` — `BASE_EXCLUSION_SHORTLIST` | From config `exclusions.base_exclusion_shortlist`. | Used by sync_ruff_toml. |
 | **Doc-sync placeholders** | `development_tools/shared/standard_exclusions.py` — `DOC_SYNC_PLACEHOLDERS` (dict path → placeholder text) | Hardcoded. | Could move to config if needed. |
 | **Constants (stdlib, common names, patterns)** | `development_tools/shared/constants.py` — `STANDARD_LIBRARY_*`, `COMMON_FUNCTION_NAMES`, `COMMON_CLASS_NAMES`, `IGNORED_PATH_PATTERNS`, `COMMAND_PATTERNS`, `PATH_STARTSWITH_NON_FILE` (derived from `_NON_PATH_PREFIXES` + COMMAND_PATTERNS), `THIRD_PARTY_LIBRARIES`, `SPECIAL_METHODS`, `CONTEXT_METHODS`, `CORRUPTED_ARTIFACT_PATTERNS`, `TEMPLATE_PATTERNS`, `ASCII_COMPLIANCE_FILES`, `VERSION_SYNC_DIRECTORIES`, `TEST_CATEGORY_MARKERS`, `TEST_MARKER_*`, etc. | Some loaded from config (PAIRED_DOCS, DEFAULT_DOCS, …); many are code-only. Single definition of PATH_STARTSWITH_NON_FILE (no duplicate). | Path-drift and analysis; consider config for project-specific names. |
-| **Generated AI/docs lists (version-sync)** | `development_tools/docs/fix_version_sync.py` — `GENERATED_AI_DOCS`, `GENERATED_DOCS` (from ALL_GENERATED_FILES), `AI_DOCS`, `CURSOR_RULES`, `CURSOR_COMMANDS`, `COMMUNICATION_DOCS`, `CORE_DOCS`, `LOGS_DOCS`, `SCRIPTS_DOCS`, `TESTS_DOCS`, `DOCUMENTATION_PATTERNS`, `EXCLUDE_PATTERNS`, `CORE_SYSTEM_FILES` | Config `fix_version_sync.*` + ALL_GENERATED_FILES. | Overlap with paired_docs; **version-sync** lists govern version/date updates, while **paired_docs** govern heading/content sync. They may overlap in paths but are conceptually distinct. |
+| **Generated AI/docs lists (version-sync)** | `development_tools/docs/fix_version_sync.py` — `GENERATED_AI_DOCS`, `GENERATED_DOCS` (from ALL_GENERATED_FILES), `AI_DOCS`, `CURSOR_RULES`, `CURSOR_COMMANDS`, `COMMUNICATION_DOCS`, `CORE_DOCS`, `LOGS_DOCS`, `SCRIPTS_DOCS`, `TESTS_DOCS` (derived from docs), `DOCUMENTATION_PATTERNS`, `_EXCLUDE_PATTERNS` (from get_exclusions), `CORE_SYSTEM_FILES` | Config `fix_version_sync.*` + ALL_GENERATED_FILES. | Overlap with paired_docs; **version-sync** lists govern version/date updates, while **paired_docs** govern heading/content sync. Category lists derived from docs; exclusions from get_exclusions. |
 | **Placeholder patterns (documentation)** | `development_tools/docs/analyze_documentation.py` — `PLACEHOLDER_PATTERNS` | Config `documentation_analysis.placeholder_patterns` in `development_tools_config.json`. | Canonical in config; analyze_documentation builds PLACEHOLDER_PATTERNS only from config (no hardcoded override). |
 | **Required legacy pattern keys** | `development_tools/legacy/fix_legacy_references.py` — `REQUIRED_LEGACY_PATTERN_KEYS` | Fixed schema. | Low drift. |
 | **Known deleted files** | `development_tools/shared/service/data_freshness_audit.py` — `KNOWN_DELETED_FILES` | Project-specific; could be config. | |
 | **Static check allowlists/sets** | `development_tools/static_checks/check_channel_loggers.py` — `LOG_METHODS`, `EXCLUDED_DIRS`, `IGNORED_DIR_NAMES`, `ALLOWED_LOGGING_IMPORT_PATHS`; also `fallback_fragments` (path fragments to exclude, inside function) | Hardcoded for checker. | Could move to config if projects need to customize. |
 | **Output storage domain directories** | `development_tools/shared/output_storage.py` — `domains` (list: functions, docs, error_handling, tests, imports, legacy, config, ai_work, reports, shared) | Used when collecting/listing tool result dirs; should match domain values in EXPECTED_TOOLS. | Keep in sync with `verify_tool_storage.EXPECTED_TOOLS` values (unique domain names). |
 | **Tool/context exclusions and historical preserve** | `development_tools/shared/standard_exclusions.py` — `TOOL_EXCLUSIONS`, `CONTEXT_EXCLUSIONS`, `HISTORICAL_PRESERVE_FILES` | From config `exclusions.tool_exclusions`, `exclusions.context_exclusions`, `exclusions.historical_preserve_files`; defaults in module. | CONTEXT_EXCLUSIONS includes `recent_changes` (built from generated files). |
-| **Doc snapshot / export discovery** | `development_tools/shared/export_docs_snapshot.py` — `DOC_EXTENSIONS`, `BASE_EXCLUDE_GLOBS` | Hardcoded. | Doc discovery and filtering; BASE_EXCLUDE_GLOBS overlaps conceptually with base exclusions. |
+| **Doc snapshot / export discovery** | `development_tools/shared/standard_exclusions.py` — `DOC_EXPORT_BASE_EXCLUDE_GLOBS`; `development_tools/shared/export_docs_snapshot.py` imports it as `BASE_EXCLUDE_GLOBS` | Single canonical source in standard_exclusions. | Doc discovery and filtering; overlaps conceptually with base exclusions. |
 | **Package exports (analyze_package_exports)** | `development_tools/functions/analyze_package_exports.py` — `EXPORT_PATTERNS`, `EXPECTED_EXPORTS` | From config `analyze_package_exports.export_patterns`, `analyze_package_exports.expected_exports`. | Config is canonical. |
 | **Config default schema (default keys)** | `development_tools/config/config.py` — `SCAN_DIRECTORIES`, `AI_COLLABORATION`, `FUNCTION_DISCOVERY`, `VALIDATION`, `ERROR_HANDLING`, `AUDIT`, `FILE_PATTERNS`, `QUICK_AUDIT`, `AUDIT_TIERS`, `VERSION_SYNC`, `DOCUMENTATION_ANALYSIS`, `CONFIG_VALIDATOR`, etc. | Default structure for development_tools_config.json; config file overrides at runtime. | Section 6 covers config keys; this row documents the code-side default dicts. |
 | **Sync Ruff TOML header** | `development_tools/config/sync_ruff_toml.py` — `_HEADER` (multi-line string) | Generated TOML file header. | Not a list; template string only. |
@@ -176,6 +177,31 @@ Lists used by test coverage, test markers, and dev-tools coverage cache. Project
 3. **Other code-only lists**: Where lists in code overlap (e.g. SCRIPT_REGISTRY vs _TOOLS.path, TOOL_GUIDE vs _TOOLS), derive from the canonical source or document and keep in sync.
 4. **Then docs**: Update DOCUMENTATION_GUIDE, DEVELOPMENT_TOOLS_GUIDE, AI_DEVELOPMENT_TOOLS_GUIDE, AI_LEGACY_COMPATIBILITY_GUIDE, etc., to reference canonical sources only (e.g. "command list: run_development_tools.py help" or "see COMMAND_GROUPS in tool_metadata.py").
 5. **Tooling**: Add or extend checks where useful (e.g. COMMAND_GROUPS ⊆ COMMAND_REGISTRY; deprecation inventory path in config = jsons/DEPRECATION_INVENTORY.json). A **generic list-sync** mechanism (multiple list types across multiple docs, config-driven paths) is desired for the future; the previous paired-docs-only drift check was rolled back in favor of that design.
+
+---
+
+## 9a. Consolidation criteria and workflow
+
+**When to consolidate**: (1) **Complete overlap** — list A is entirely a subset of list B; derive A from B. (2) **Same purpose, different scopes** — lists serve the same role (e.g. "docs to version-sync") but are split by category; consider deriving category lists from a single canonical list via path/pattern filters. (3) **Redundant maintenance** — two lists must be updated together; consolidate so only one needs updating.
+
+**When not to consolidate**: (1) Different purposes (e.g. `paired_docs` = heading sync vs `fix_version_sync.docs` = version metadata). (2) Tool-specific formats (e.g. Ruff exclude vs Pyright exclude — different syntax). (3) Consolidation would obscure intent or make config harder to reason about.
+
+**Workflow**: (1) Identify overlap (subset, superset, or conceptual equivalence). (2) Choose canonical source (usually the larger or more general list). (3) Derive the other list in code (filter, map, or extract). (4) Remove the redundant list from config/code. (5) Add a test or assertion that the derived list stays in sync. (6) Document in this file.
+
+**Consolidation candidates** (see §4, §6, §10 for details):
+
+| Candidate | Overlap type | Canonical source | Derived list(s) | Status |
+|-----------|--------------|------------------|-----------------|--------|
+| fix_version_sync category lists | Complete subset | `fix_version_sync.docs` | `communication_docs`, `core_docs`, `logs_docs`, `scripts_docs`, `tests_docs` | **Done** — derived from docs by path prefix; config override optional |
+| fix_version_sync.exclude_patterns | Conceptual overlap | `get_exclusions("fix_version_sync", "development")` | — | **Done** — uses canonical exclusions; config key removed |
+| file_patterns.exclude_patterns | Conceptual overlap | `exclusions.base_exclusions` | — | **Done** — removed from config; use exclusions.base_exclusions |
+| scan_directories, core_modules, project_directories | Complete overlap | `constants.local_module_prefixes` | scan_directories (via get_scan_directories_derived), core_modules, project_directories | **Done** — derived in constants.py; config override optional (paths.scan_directories, constants.project_directories, constants.core_modules) |
+| **ruff_command** (unused_imports + static_analysis) | Redundant maintenance | `tool_commands.ruff_command` | `unused_imports.ruff_command`, `static_analysis.ruff_command` | **Done** — config.py `_get_ruff_command()`; both sections derive; per-section override optional |
+| **test_markers.directory_to_marker** (identity map) | Redundant | `test_markers.categories` | `directory_to_marker` | **Done** — `get_test_markers_config()` derives from categories when absent; config override for non-identity |
+| **historical_preserve_files** vs **tool_exclusions.documentation** | Partial overlap | `exclusions.historical_preserve_files` | — | **Candidate** — both include `development_docs/changelog_history/`; consider deriving tool_exclusions.documentation from historical_preserve where path patterns match |
+| **legacy_documentation_files** vs **historical_preserve_files** | Conceptual overlap | Different purposes | — | **Assess** — legacy_documentation = path-drift exclusions (specific files); historical_preserve = cleanup preserve (patterns). Overlap in CHANGELOG_DETAIL, AI_CHANGELOG, changelog_history; keep separate if purposes differ |
+| **fix_version_sync.docs** vs **constants.default_docs** | Partial overlap | Different purposes | — | **Assess** — docs = version metadata; default_docs = analysis defaults. Overlap ~80%; different consumers. Document relationship; optional: derive one from other if scope aligns |
+| **project.key_files** vs **project.core_system_files** | Partial overlap | `project.key_files` | `core_system_files` | **Assess** — core_system_files falls back to key_files; overlap (core/config.py, run_mhm.py). core_system = version-sync subset; could derive from key_files if subset is well-defined |
 
 ---
 
@@ -240,12 +266,12 @@ Evaluation against: (1) Single canonical source. (2) Project-specific → `devel
 | **SCRIPT_REGISTRY** (tool_name → path) | 2 | S | Duplicate of _TOOLS path data; doc says "should be derived from _TOOLS". | Derive SCRIPT_REGISTRY from `tool_metadata._TOOLS` (ToolInfo.path) so paths have one source. | **Already derived**: `get_script_registry()` in tool_metadata builds from _TOOLS. |
 | **_CACHE_AWARE_TOOLS** | 2 | S / M | Subset of tool names lives in audit_orchestration; could drift from _TOOLS. | Move to `tool_metadata` or config; consumers import from there. | **Fixed**: Now `tool_metadata.CACHE_AWARE_TOOLS`; audit_orchestration imports it. |
 | **Trigger keywords** (guard) vs **DEPRECATION_INVENTORY global_sweep_keywords** | 3 | S | Two sources for "keywords that trigger guard"; overlap. | Config canonical for guard; inventory global_sweep_keywords used for sweep scope elsewhere. | **Fixed**: Guard uses config `legacy_cleanup.deprecation_inventory_sync_guard.trigger_keywords` only; doc in code. |
-| **DOCUMENTATION_GUIDE §4.1** (paired doc list in prose) | 4 | S | Doc list can drift from config `constants.paired_docs`. | Doc points to config only, or add tooling to sync from config. | Open. |
+| **DOCUMENTATION_GUIDE §4.1** (paired doc list in prose) | 4 | S | Doc list can drift from config `constants.paired_docs`. | Doc points to config only, or add tooling to sync from config. | **Fixed**: §4.1 now states config is canonical; list is human-readable summary; doc-sync validates. |
 | **Pyright exclude** (root + development_tools/config) | 5 | S | Two independent exclude arrays; no single generator. | Document as two canonical sources per tool, or add a sync script. | Open. |
 | **TOOL_GUIDE** (tool_guide.py) | 7 | S | Was keyed by script filename and drifted from the canonical `_TOOLS` catalog. | Build tool guidance from `tool_metadata._TOOLS` and derive the filename/basename compat map from canonical paths. | **Fixed**: guidance is derived from `tool_metadata._TOOLS` with a derived basename compat map; import-time collision guard prevents ambiguous filename resolution. |
 | **KNOWN_DELETED_FILES** (data_freshness_audit) | 7 | P | Project-specific; not in config. | Move to `development_tools_config.json` (e.g. `data_freshness.known_deleted_files`). | **Fixed**: Config `data_freshness.known_deleted_files`; data_freshness_audit uses `get_data_freshness_config()`. |
 | **Output storage `domains`** (output_storage.py) | 7 | S | Duplicate of unique domain names from EXPECTED_TOOLS. | Derive `domains` from `EXPECTED_TOOLS`. | **Fixed**: `aggregate_all_tool_results()` derives domains from `EXPECTED_TOOLS` (lazy import). |
-| **Doc snapshot BASE_EXCLUDE_GLOBS** (export_docs_snapshot.py) | 7 | M | Overlaps conceptually with base exclusions; hardcoded. | If used elsewhere, move to standard_exclusions or constants; else leave as single-use. | Open (optional). |
+| **Doc snapshot BASE_EXCLUDE_GLOBS** (development_tools/shared/export_docs_snapshot.py) | 7 | M | Overlaps conceptually with base exclusions; hardcoded. | Move to standard_exclusions. | **Fixed**: Now `standard_exclusions.DOC_EXPORT_BASE_EXCLUDE_GLOBS`; export_docs_snapshot imports it. |
 | **SOURCE_TO_TEST_MAPPING**, **DOMAIN_DEPENDENCIES**, **keyword_map** (domain_mapper.py) | 7b | P | Project-specific test layout; hardcoded. | Optionally move to config if projects need to customize. | Open (optional). |
 | **EXPECTED_TOOLS** vs **output_storage.domains** | 2, 7 | S | Domain set duplicated. | Derive domains from EXPECTED_TOOLS. | **Fixed**: see Output storage row. |
 | **AUDIT_TIERS** (config.py) vs **audit_tiers** (module) | 11 | S | config.py has tier structure that overlaps `development_tools/shared/audit_tiers.py`. | Treat audit_tiers module as canonical; config.py thin wrapper or remove. | **Fixed**: Default `AUDIT_TIERS` built from `audit_tiers.TIER1_TOOL_NAMES` / `get_expected_tools_for_tier()`; external config can override. |
@@ -254,5 +280,31 @@ Evaluation against: (1) Single canonical source. (2) Project-specific → `devel
 | **Doc-sync placeholders** (standard_exclusions.DOC_SYNC_PLACEHOLDERS) | 7 | ? | Hardcoded; could be project-specific. | Move to config only if projects need to customize. | Open (optional). |
 | **TIER_TITLES** (tool_guide.py) | 7 | ? | Small; low drift. Could live in tool_metadata or config. | Optional: move to tool_metadata or config. | Open (optional). |
 
-**Summary**: **Fixed (this and previous pass)**: Output storage domains from EXPECTED_TOOLS; KNOWN_DELETED_FILES → config; _CACHE_AWARE_TOOLS → tool_metadata; trigger_keywords = config for guard; AUDIT_TIERS default from `development_tools/shared/audit_tiers.py`; phase1_keywords → config. **Still open**: DOCUMENTATION_GUIDE §4.1; Pyright; optional items.
+**Summary**: **Fixed (this and previous pass)**: Output storage domains from EXPECTED_TOOLS; KNOWN_DELETED_FILES → config; _CACHE_AWARE_TOOLS → tool_metadata; trigger_keywords = config for guard; AUDIT_TIERS default from `development_tools/shared/audit_tiers.py`; phase1_keywords → config; DOCUMENTATION_GUIDE §4.1 config-canonical; file_patterns.exclude_patterns removed; BASE_EXCLUDE_GLOBS → standard_exclusions. **Still open**: Pyright (two exclude arrays); optional items.
+
+---
+
+## 13. Config list inventory (consolidation scan)
+
+Config keys that are list-like or array-valued. Use for consolidation audits.
+
+| Config path | Purpose | Overlap / notes |
+|-------------|---------|-----------------|
+| `project.key_files` | Entry points, important files | Overlaps `core_system_files`; see §9a |
+| `project.core_system_files` | Version-sync / core checks | Falls back to key_files; subset |
+| `fix_version_sync.ai_docs` | AI docs for version sync | Subset of docs; derived from docs by prefix (done) |
+| `fix_version_sync.docs` | Non-AI docs for version sync | Overlaps constants.default_docs; different purpose |
+| `fix_version_sync.cursor_rules` | Cursor rules for version sync | Distinct |
+| `constants.default_docs` | Default docs for analysis | Overlaps fix_version_sync.docs; see §9a |
+| `constants.paired_docs` | Human→AI doc mapping | Distinct (heading sync) |
+| `path_drift.legacy_documentation_files` | Path-drift exclusions | Overlaps historical_preserve conceptually |
+| `exclusions.tool_exclusions.documentation` | Tool-specific doc exclusions | Overlaps historical_preserve (changelog_history/) |
+| `exclusions.historical_preserve_files` | Preserve during cleanup | Overlaps tool_exclusions.documentation |
+| `exclusions.generated_files` | Generated file patterns | Distinct |
+| `test_markers.categories` | Pytest category names | directory_to_marker can derive when identity |
+| `test_markers.directory_to_marker` | Dir→marker map | Derived from categories when absent; override for non-identity |
+| `tool_commands.ruff_command` | Shared ruff command | Canonical; unused_imports and static_analysis derive from here |
+| `unused_imports.ruff_command` | Override (optional) | Per-section override |
+| `static_analysis.ruff_command` | Override (optional) | Per-section override |
+| `coverage.pytest_command` | Pytest command | Distinct (different tool) |
 

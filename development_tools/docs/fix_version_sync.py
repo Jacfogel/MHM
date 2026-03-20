@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # TOOL_TIER: experimental
 
 """
@@ -41,6 +41,7 @@ AI_DOCS = VERSION_SYNC_CONFIG["ai_docs"]
 # Use consolidated generated files and shared exclusion checks.
 from development_tools.shared.standard_exclusions import (
     ALL_GENERATED_FILES,
+    get_exclusions,
     should_exclude_file,
 )
 
@@ -64,15 +65,28 @@ GENERATED_DOCS = [
 CURSOR_RULES = VERSION_SYNC_CONFIG["cursor_rules"]
 # cursor_commands removed (file doesn't exist)
 CURSOR_COMMANDS = []
-COMMUNICATION_DOCS = VERSION_SYNC_CONFIG.get("communication_docs", [])
-CORE_DOCS = VERSION_SYNC_CONFIG.get("core_docs", [])
-LOGS_DOCS = VERSION_SYNC_CONFIG.get("logs_docs", [])
-SCRIPTS_DOCS = VERSION_SYNC_CONFIG.get("scripts_docs", [])
-TESTS_DOCS = VERSION_SYNC_CONFIG.get("tests_docs", [])
+# Category doc lists: derived from docs by path prefix (config can override)
+_DOCS = VERSION_SYNC_CONFIG.get("docs", [])
+
+
+def _get_category_docs(prefix: str, config_key: str) -> list:
+    """Get docs for a category. Use config override if present, else derive from docs."""
+    configured = VERSION_SYNC_CONFIG.get(config_key)
+    if configured and isinstance(configured, list):
+        return list(configured)
+    return [p for p in _DOCS if p.startswith(f"{prefix}/")]
+
+
+COMMUNICATION_DOCS = _get_category_docs("communication", "communication_docs")
+CORE_DOCS = _get_category_docs("core", "core_docs")
+LOGS_DOCS = _get_category_docs("logs", "logs_docs")
+SCRIPTS_DOCS = _get_category_docs("scripts", "scripts_docs")
+TESTS_DOCS = _get_category_docs("tests", "tests_docs")
 # Use consolidated core_system_files from project.core_system_files
 CORE_SYSTEM_FILES = config.get_project_core_system_files()
 DOCUMENTATION_PATTERNS = VERSION_SYNC_CONFIG["documentation_patterns"]
-EXCLUDE_PATTERNS = VERSION_SYNC_CONFIG["exclude_patterns"]
+# Exclusion patterns: use canonical exclusions (fix_version_sync scope)
+_EXCLUDE_PATTERNS = get_exclusions("fix_version_sync", "development")
 
 
 def get_current_date():
@@ -122,9 +136,10 @@ def should_track_file(file_path, scope="ai_docs"):
     """Determine if a file should be tracked for versioning"""
     file_path_str = str(file_path)
 
-    # Always exclude certain patterns
-    for pattern in EXCLUDE_PATTERNS:
-        if pattern.replace("*", "").replace("/*", "") in file_path_str:
+    # Always exclude paths matching canonical exclusions
+    for pattern in _EXCLUDE_PATTERNS:
+        stem = pattern.replace("*", "").replace("/*", "").replace("**", "")
+        if stem and stem in file_path_str:
             return False
 
     # Exclude virtual environment and cache directories more thoroughly
@@ -143,18 +158,8 @@ def should_track_file(file_path, scope="ai_docs"):
         return file_path_str in GENERATED_AI_DOCS + GENERATED_DOCS
 
     elif scope == "docs":
-        # All documentation files including new categories (exclude generated)
-        all_docs = (
-            AI_DOCS
-            + CURSOR_RULES
-            + CURSOR_COMMANDS
-            + COMMUNICATION_DOCS
-            + CORE_DOCS
-            + LOGS_DOCS
-            + SCRIPTS_DOCS
-            + TESTS_DOCS
-            + VERSION_SYNC_CONFIG.get("docs", [])
-        )
+        # All documentation files (docs is canonical; category lists are derived subsets)
+        all_docs = AI_DOCS + CURSOR_RULES + CURSOR_COMMANDS + _DOCS
         # Exclude generated files from docs scope
         if file_path_str in GENERATED_AI_DOCS + GENERATED_DOCS:
             return False
@@ -214,7 +219,7 @@ def find_trackable_files(scope="ai_docs"):
                 d
                 for d in dirs
                 if not any(
-                    pattern.replace("/*", "") in d for pattern in EXCLUDE_PATTERNS
+                    p.replace("/*", "").replace("*", "") in d for p in _EXCLUDE_PATTERNS
                 )
                 and not should_exclude_file(
                     f"{rel_root}/{d}".strip("/"),

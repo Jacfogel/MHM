@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-19 09:20:46
+> **Last Generated**: 2026-03-19 20:27:05
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -5068,6 +5068,8 @@ Returns:
   test data lives under ``TEST_DATA_DIR/users``. When the configured path still
   equals ``Path(BASE_DATA_DIR) / "users"`` from that import, prefer the runtime
   default under testing.
+
+Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `create_new_user(user_data)` - Create a new user with the new data structure.
 - [OK] `get_all_user_ids()` - Get all user IDs from the system.
 - [OK] `get_user_categories(user_id)` - Get user's message categories using centralized data access.

@@ -84,6 +84,12 @@ DEFAULT_DOCS: tuple[str, ...] = _load_default_docs()
 PAIRED_DOCS: dict[str, str] = _load_paired_docs()
 LOCAL_MODULE_PREFIXES: tuple[str, ...] = _load_local_module_prefixes()
 
+# Exclusion sets for deriving scan_directories, core_modules, project_directories from LOCAL_MODULE_PREFIXES.
+# Canonical source: LOCAL_MODULE_PREFIXES. Other lists are derived; config can override.
+_SCAN_EXCLUDE = frozenset({"data", "development_tools", "notebook", "scripts"})
+_CORE_EXCLUDE = frozenset({"data", "development_tools", "scripts", "tests"})
+_PROJECT_EXCLUDE = frozenset({"data", "development_tools", "scripts"})
+
 STANDARD_LIBRARY_PREFIXES: tuple[str, ...] = (
     "asyncio",
     "concurrent",
@@ -326,22 +332,42 @@ TEMPLATE_PATTERNS: tuple[str, ...] = ("test_<", ">.py", "{", "}", "*", "?")
 # =============================================================================
 
 
+def get_scan_directories_derived() -> tuple[str, ...]:
+    """Derive scan_directories from LOCAL_MODULE_PREFIXES (exclude data, development_tools, notebook, scripts).
+    Used when paths.scan_directories is not in config.
+    """
+    return tuple(d for d in LOCAL_MODULE_PREFIXES if d not in _SCAN_EXCLUDE)
+
+
+def _derived_core_modules() -> tuple[str, ...]:
+    """Derive core_modules from LOCAL_MODULE_PREFIXES (exclude data, development_tools, scripts, tests)."""
+    return tuple(d for d in LOCAL_MODULE_PREFIXES if d not in _CORE_EXCLUDE)
+
+
+def _derived_project_directories() -> tuple[str, ...]:
+    """Derive project_directories from LOCAL_MODULE_PREFIXES (exclude data, development_tools, scripts; prepend .)."""
+    filtered = tuple(d for d in LOCAL_MODULE_PREFIXES if d not in _PROJECT_EXCLUDE)
+    return (".",) + filtered if filtered else (".",)
+
+
 def _load_project_directories() -> tuple[str, ...]:
-    """Load project directories from config or return defaults."""
+    """Load project directories from config or derive from LOCAL_MODULE_PREFIXES."""
     constants_config = _get_constants_config_safe()
     if constants_config and "project_directories" in constants_config:
-        return tuple(constants_config["project_directories"])
-    # Default: just root
-    return (".",)
+        configured = constants_config["project_directories"]
+        if isinstance(configured, (list, tuple)) and configured:
+            return tuple(str(d) for d in configured)
+    return _derived_project_directories()
 
 
 def _load_core_modules() -> tuple[str, ...]:
-    """Load core modules from config or return defaults."""
+    """Load core modules from config or derive from LOCAL_MODULE_PREFIXES."""
     constants_config = _get_constants_config_safe()
     if constants_config and "core_modules" in constants_config:
-        return tuple(constants_config["core_modules"])
-    # Default: empty
-    return ()
+        configured = constants_config["core_modules"]
+        if isinstance(configured, (list, tuple)) and configured:
+            return tuple(str(d) for d in configured)
+    return _derived_core_modules()
 
 
 # Core project directories (used by multiple tools)

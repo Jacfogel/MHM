@@ -96,29 +96,11 @@ def _ensure_project_on_syspath(project_root: Path) -> None:
 
 DOC_EXTENSIONS = {".md"}
 
-# Hard exclusions that match your "ignore archived / generated entirely" rule.
-# These patterns are applied to a *project-root-relative* normalized path.
-BASE_EXCLUDE_GLOBS: list[str] = [
-    # VCS / venv / caches
-    ".git/**",
-    ".venv/**",
-    "**/__pycache__/**",
-    "**/.pytest_cache/**",
-    # Common build outputs
-    "dist/**",
-    "build/**",
-    "node_modules/**",
-    # Anything under archive/ at any depth
-    "archive/**",
-    "**/archive/**",
-    "archived/**",
-    "**/archived/**",
-    # Anything under generated/ at any depth
-    "generated/**",
-    "**/generated/**",
-    "_generated/**",
-    "**/_generated/**",
-]
+# Hard exclusions for doc export (ignore archived / generated). Canonical source:
+# development_tools/shared/standard_exclusions.DOC_EXPORT_BASE_EXCLUDE_GLOBS
+from development_tools.shared.standard_exclusions import DOC_EXPORT_BASE_EXCLUDE_GLOBS
+
+BASE_EXCLUDE_GLOBS: list[str] = list(DOC_EXPORT_BASE_EXCLUDE_GLOBS)
 
 
 def _normalize(path: Path) -> str:

@@ -17,11 +17,7 @@
   },
   "paths": {
     "project_root": ".",
-    "scan_directories": [
-      "core",
-      "tests",
-      "ui"
-    ],
+    "_comment_scan_directories": "Optional. When absent, derived from constants.local_module_prefixes. Add scan_directories to override (e.g. if derivation falls back to defaults).",
     "docs_dir": "development_docs",
     "logs_dir": "logs",
     "data_dir": "data",
@@ -31,23 +27,12 @@
     "tests_data_dir": "tests/data"
   },
   "fix_version_sync": {
-    "_comment": "Customize file lists for version synchronization",
+    "_comment": "Customize file lists for version synchronization. Category lists (communication_docs, core_docs, etc.) are derived from docs by path prefix; add them only to override.",
     "ai_docs": [],
     "docs": [],
     "cursor_rules": [],
-    "communication_docs": [],
-    "core_docs": [],
-    "logs_docs": [],
-    "scripts_docs": [],
-    "tests_docs": [],
     "documentation_patterns": [
       "*.md"
-    ],
-    "exclude_patterns": [
-      "*.pyc",
-      "__pycache__",
-      ".git",
-      ".venv"
     ]
   },
   "quick_audit": {
@@ -293,20 +278,11 @@
     "action_items": true
   },
   "file_patterns": {
-    "_comment": "File pattern matching settings",
+    "_comment": "File pattern matching settings. Use exclusions.base_exclusions for exclude patterns (see LIST_OF_LISTS.md §9a).",
     "python_files": "*.py",
     "documentation_files": "*.md",
     "ui_files": "*.ui",
-    "config_files": "*.json",
-    "exclude_patterns": [
-      "*.pyc",
-      "*.pyo",
-      ".git",
-      "__pycache__",
-      "env",
-      "node_modules",
-      "venv"
-    ]
+    "config_files": "*.json"
   },
   "path_drift": {
     "_comment": "Project-specific documentation files that intentionally reference legacy paths; excluded from path-drift detection. Include changelog_history files that reference old paths.",
@@ -495,18 +471,8 @@
       "tests/TESTING_GUIDE.md": "ai_development_docs/AI_TESTING_GUIDE.md",
       "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md"
     },
+    "_comment": "local_module_prefixes is canonical. scan_directories, core_modules, project_directories are derived (see LIST_OF_LISTS.md §6). Add scan_directories to paths, or project_directories/core_modules to constants, to override.",
     "local_module_prefixes": [
-      "core",
-      "tests",
-      "ui"
-    ],
-    "project_directories": [
-      ".",
-      "core",
-      "tests",
-      "ui"
-    ],
-    "core_modules": [
       "core",
       "tests",
       "ui"
@@ -580,19 +546,13 @@
     "ignore_rules": []
   },
   "test_markers": {
-    "_comment": "Pytest category marker analysis/fix settings. Keep these project-specific for portability.",
+    "_comment": "Pytest category marker analysis/fix settings. directory_to_marker derived from categories (identity map) when absent.",
     "categories": [
       "unit",
       "integration",
       "behavior",
       "ui"
     ],
-    "directory_to_marker": {
-      "unit": "unit",
-      "integration": "integration",
-      "behavior": "behavior",
-      "ui": "ui"
-    },
     "transient_data_path_markers": [
       "/tmp/",
       "/tmp_pytest_runtime/",
@@ -771,14 +731,13 @@
       "git": "Canonical tracked-history ownership"
     }
   },
+  "tool_commands": {
+    "_comment": "Shared ruff_command for unused_imports and static_analysis. Override per-section if needed.",
+    "ruff_command": ["python", "-m", "ruff"]
+  },
   "unused_imports": {
-    "_comment": "Unused imports checker settings",
+    "_comment": "Unused imports checker settings. ruff_command from tool_commands unless overridden.",
     "preferred_backend": "ruff",
-    "ruff_command": [
-      "python",
-      "-m",
-      "ruff"
-    ],
     "pylint_command": [
       "python",
       "-m",
@@ -801,11 +760,6 @@
       "--outputjson"
     ],
     "pyright_project_path": "pyrightconfig.json",
-    "ruff_command": [
-      "python",
-      "-m",
-      "ruff"
-    ],
     "ruff_args": [
       "check",
       ".",

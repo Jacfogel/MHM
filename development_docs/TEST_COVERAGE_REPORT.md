@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/TEST_COVERAGE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-19 15:25:44
+> **Last Generated**: 2026-03-19 21:33:42
 > **Source**: `python development_tools/tests/generate_test_coverage_report.py` - Test Coverage Report Generator
 
 ## Current Status
@@ -11,17 +11,11 @@
 - **Total Statements**: 27,608
 - **Covered Statements**: 3,158
 - **Uncovered Statements**: 24,450
-- **Coverage Scope**: Main project domains only (`core`, `communication`, `ui`, `tasks`, `user`, `ai`, `notebook`); `development_tools/` coverage is tracked separately.
+- **Coverage Scope**: Main project domains only (`core`); `development_tools/` coverage is tracked separately.
 - **Goal**: Expand to **80%+ coverage** for comprehensive reliability
 
 ### **Coverage by Domain**
 - **core**: 16.8% (1830/10914 lines, 9084 missing)
-- **communication**: 12.7% (877/6896 lines, 6019 missing)
-- **ui**: 0.0% (0/6684 lines, 6684 missing)
-- **tasks**: 0.0% (0/453 lines, 453 missing)
-- **user**: 23.0% (68/296 lines, 228 missing)
-- **ai**: 21.8% (383/1758 lines, 1375 missing)
-- **notebook**: 0.0% (0/607 lines, 607 missing)
 
 ### **Coverage Summary by Category**
 - **Excellent (96% avg)**: 8 modules

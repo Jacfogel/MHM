@@ -30,8 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-03-19 - Consolidate tool guide lists from canonical tool metadata **Progressed**
-- Tool guidance data is now derived from the canonical `development_tools/shared/tool_metadata.py` `_TOOLS` registry (with derived basename-compat for legacy filename inputs), removing drift and improving reliability.
+### 2026-03-19 - Consolidate tool guide lists; implement list consolidation **Progressed**
+- Tool guidance data derived from canonical `tool_metadata._TOOLS`; fix_version_sync category lists now derived from `docs` by path prefix; exclusions from `get_exclusions()`.
+- List consolidation: fix_version_sync derived lists; removed file_patterns.exclude_patterns; BASE_EXCLUDE_GLOBS → standard_exclusions; DOCUMENTATION_GUIDE §4.1 config-canonical. Directory lists: `local_module_prefixes` canonical; scan_directories, core_modules, project_directories derived in constants.py. Config: `tool_commands.ruff_command` canonical; unused_imports/static_analysis derive; `test_markers.directory_to_marker` derived from categories when absent.
+- Scan scope fix: Restored explicit `paths.scan_directories` in config so AI_PRIORITIES and analysis tools use full scope (ai, communication, core, tasks, tests, ui, user) when derivation falls back to defaults.
 - Pyright warnings are cleared (`0 errors, 0 warnings`), and the dev-tools guidance tests were updated accordingly.
 - `development_docs/LIST_OF_LISTS.md` now reflects that `TOOL_GUIDE` is derived (not a second catalog).
 - Added `tests/__init__.py` to fix full-suite pytest collection (`development_tools.conftest` conflict). `_resolve_coverage_workers()` uses `sys.modules` lookup and instance-only concurrency flags so dev-tools audit completes successfully.

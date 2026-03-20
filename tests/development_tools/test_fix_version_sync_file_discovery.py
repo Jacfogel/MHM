@@ -23,7 +23,7 @@ def test_find_trackable_files_skips_standard_excluded_paths(monkeypatch, tmp_pat
         path.write_text("content", encoding="utf-8")
 
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(version_sync_module, "EXCLUDE_PATTERNS", [])
+    monkeypatch.setattr(version_sync_module, "_EXCLUDE_PATTERNS", [])
     monkeypatch.setattr(
         version_sync_module,
         "should_track_file",

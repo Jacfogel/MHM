@@ -226,20 +226,12 @@ OUTPUT = {
 }
 
 # File patterns
+# exclude_patterns removed from file_patterns; use exclusions.base_exclusions (LIST_OF_LISTS §9a)
 FILE_PATTERNS = {
     "python_files": "*.py",
     "documentation_files": "*.md",
     "ui_files": "*.ui",
     "config_files": "*.json",
-    "exclude_patterns": [
-        "__pycache__",
-        ".git",
-        "venv",
-        "env",
-        "node_modules",
-        "*.pyc",
-        "*.pyo",
-    ],
 }
 
 # Quick audit settings optimized for AI
@@ -294,13 +286,10 @@ VERSION_SYNC = {
     "ai_docs": [],  # Empty by default - requires config file
     "docs": [],  # Empty by default - requires config file
     "cursor_rules": [".cursor/rules/*.mdc"],  # Generic pattern
-    "communication_docs": [],  # Empty by default - requires config file
-    "core_docs": [],  # Empty by default - requires config file
-    "logs_docs": [],  # Empty by default - requires config file
-    "scripts_docs": [],  # Empty by default - requires config file
-    "tests_docs": [],  # Empty by default - requires config file
     "documentation_patterns": ["*.md"],  # Generic pattern
-    "exclude_patterns": ["*.pyc", "__pycache__", ".git", ".venv"],  # Generic patterns
+    # Category lists (communication_docs, core_docs, logs_docs, scripts_docs, tests_docs)
+    # are derived from docs by path prefix in fix_version_sync.py; config override optional.
+    # Exclusions: fix_version_sync uses get_exclusions("fix_version_sync", "development").
 }
 
 # Workflow configuration
@@ -361,14 +350,19 @@ def get_project_root():
 
 def get_scan_directories():
     """
-    Get the directories to scan for analysis (from external config if available, otherwise default).
+    Get the directories to scan for analysis.
 
-    NOTE: Default is empty list. Projects must provide scan_directories in config file.
+    Uses paths.scan_directories if set; otherwise derives from constants.local_module_prefixes
+    (excludes data, development_tools, notebook, scripts). See LIST_OF_LISTS.md §6.
     """
     external_dirs = _get_external_value("paths.scan_directories", None)
-    if external_dirs:
-        return external_dirs
-    return SCAN_DIRECTORIES  # Empty by default - requires config file
+    if external_dirs and isinstance(external_dirs, (list, tuple)):
+        return list(external_dirs)
+    try:
+        from development_tools.shared.constants import get_scan_directories_derived
+        return list(get_scan_directories_derived())
+    except ImportError:
+        return list(SCAN_DIRECTORIES)
 
 
 def get_project_name(default: str = "Project") -> str:
@@ -637,12 +631,20 @@ def get_test_markers_config():
     Returns:
         Dict with optional keys:
         - categories
-        - directory_to_marker
+        - directory_to_marker (derived from categories as identity map when absent; see LIST_OF_LISTS §9a)
         - transient_data_path_markers
         - ai_path_tokens
     """
     test_markers = _get_external_value("test_markers", {})
-    return test_markers if isinstance(test_markers, dict) else {}
+    if not isinstance(test_markers, dict):
+        return {}
+    result = dict(test_markers)
+    # Derive directory_to_marker from categories when absent or empty (identity map)
+    if "directory_to_marker" not in result or not result["directory_to_marker"]:
+        categories = result.get("categories", ("unit", "integration", "behavior", "ui"))
+        if isinstance(categories, (list, tuple)) and categories:
+            result["directory_to_marker"] = {str(c): str(c) for c in categories if str(c).strip()}
+    return result
 
 
 # Documentation analysis configuration
@@ -903,10 +905,25 @@ def get_analyze_ai_work_config():
     return VALIDATE_AI_WORK
 
 
+# Shared tool commands (canonical for ruff_command; unused_imports and static_analysis derive from here)
+# See LIST_OF_LISTS.md §9a.
+_DEFAULT_RUFF_COMMAND = ["python", "-m", "ruff"]
+
+
+def _get_ruff_command() -> list:
+    """Get ruff command from tool_commands, or default. Used by unused_imports and static_analysis."""
+    tool_cmds = _get_external_value("tool_commands", None)
+    if isinstance(tool_cmds, dict) and "ruff_command" in tool_cmds:
+        cmd = tool_cmds["ruff_command"]
+        if isinstance(cmd, (list, tuple)) and cmd:
+            return list(cmd)
+    return list(_DEFAULT_RUFF_COMMAND)
+
+
 # Unused imports checker configuration
 UNUSED_IMPORTS = {
     "preferred_backend": "ruff",  # prefer ruff F401, fallback to pylint
-    "ruff_command": ["python", "-m", "ruff"],  # Ruff command as list
+    "ruff_command": _DEFAULT_RUFF_COMMAND,  # Overridden by tool_commands.ruff_command or unused_imports.ruff_command
     "pylint_command": ["python", "-m", "pylint"],  # Pylint command as list
     "batch_size": 200,  # Files per backend invocation
     "pylint_batch_size": 25,  # Smaller fallback batches to avoid timeout spikes
@@ -917,13 +934,17 @@ UNUSED_IMPORTS = {
 
 
 def get_unused_imports_config():
-    """Get unused imports checker configuration (from external config if available, otherwise default)."""
+    """Get unused imports checker configuration (from external config if available, otherwise default).
+    ruff_command: uses tool_commands.ruff_command if set, else unused_imports.ruff_command, else default.
+    """
     external_config = _get_external_value("unused_imports", None)
+    result = UNUSED_IMPORTS.copy()
+    result["ruff_command"] = _get_ruff_command()
     if external_config:
-        result = UNUSED_IMPORTS.copy()
         result.update(external_config)
-        return result
-    return UNUSED_IMPORTS
+        if "ruff_command" not in external_config:
+            result["ruff_command"] = _get_ruff_command()
+    return result
 
 
 # Static analysis configuration (ruff + pyright)
@@ -931,7 +952,7 @@ STATIC_ANALYSIS = {
     "pyright_command": ["python", "-m", "pyright"],
     "pyright_args": ["--outputjson"],
     "pyright_project_path": "pyrightconfig.json",
-    "ruff_command": ["python", "-m", "ruff"],
+    "ruff_command": _DEFAULT_RUFF_COMMAND,  # Overridden by tool_commands.ruff_command or static_analysis.ruff_command
     "ruff_args": ["check", ".", "--output-format", "json"],
     "ruff_config_path": "development_tools/config/ruff.toml",
     "ruff_sync_root_compat": True,
@@ -940,13 +961,17 @@ STATIC_ANALYSIS = {
 
 
 def get_static_analysis_config():
-    """Get static analysis tool configuration (from external config if available, otherwise default)."""
+    """Get static analysis tool configuration (from external config if available, otherwise default).
+    ruff_command: uses tool_commands.ruff_command if set, else static_analysis.ruff_command, else default.
+    """
     external_config = _get_external_value("static_analysis", None)
+    result = STATIC_ANALYSIS.copy()
+    result["ruff_command"] = _get_ruff_command()
     if external_config:
-        result = STATIC_ANALYSIS.copy()
         result.update(external_config)
-        return result
-    return STATIC_ANALYSIS
+        if "ruff_command" not in external_config:
+            result["ruff_command"] = _get_ruff_command()
+    return result
 
 
 # Coverage runtime worker defaults for orchestration helpers.

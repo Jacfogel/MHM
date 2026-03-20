@@ -109,6 +109,7 @@ When documenting:
 
 - Decide which docs to update using [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
 - Keep H2 headings aligned across doc pairs as described in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), section 3. "Documentation Synchronization Checklist".
+- When touching config or list-like structures, consult [LIST_OF_LISTS.md](development_docs/LIST_OF_LISTS.md) for canonical sources and consolidation principles.
 ## 4. Testing Strategy
 
 - Always propose tests when suggesting code changes.
