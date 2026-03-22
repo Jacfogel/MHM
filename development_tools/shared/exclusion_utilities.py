@@ -26,7 +26,13 @@ Usage:
 
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
-from development_tools.shared.constants import SPECIAL_METHODS, CONTEXT_METHODS
+from development_tools.shared.constants import (
+    SPECIAL_METHODS,
+    CONTEXT_METHODS,
+    AUTO_GENERATED_FILE_PATTERNS,
+    EXACT_GENERATED_NAMES,
+    GENERATED_NAME_PATTERNS,
+)
 
 logger = get_component_logger("development_tools")
 
@@ -88,14 +94,8 @@ def is_generated_file(file_path: str) -> bool:
     if "_pyqt.py" in normalized_path:
         return True
 
-    # Exclude files with auto-generated patterns in name
-    auto_generated_file_patterns = [
-        "_ui.py",  # UI generated files
-        "_generated.py",  # Explicitly generated files
-        "_auto.py",  # Auto-generated files
-    ]
-
-    for pattern in auto_generated_file_patterns:
+    # Exclude files with auto-generated patterns in name (canonical: constants.AUTO_GENERATED_FILE_PATTERNS)
+    for pattern in AUTO_GENERATED_FILE_PATTERNS:
         if normalized_path.endswith(pattern):
             return True
 
@@ -121,26 +121,12 @@ def is_generated_function(func_name: str) -> bool:
     if not func_name:
         return False
 
-    # Exact matches for known generated functions
-    exact_generated_names = {
-        "setupUi",  # PyQt UI setup
-        "retranslateUi",  # PyQt translation
-        "setup_ui",  # Alternative PyQt setup
-        "retranslate_ui",  # Alternative PyQt translation
-    }
-
-    if func_name in exact_generated_names:
+    # Exact matches for known generated functions (canonical: constants.EXACT_GENERATED_NAMES)
+    if func_name in EXACT_GENERATED_NAMES:
         return True
 
-    # Substring-based patterns
-    generated_name_patterns = [
-        "setup_ui_",  # UI setup helpers
-        "retranslate_ui_",  # UI translation helpers
-        "_generated_",  # Generated functions
-        "_auto_",  # Auto-generated helpers
-    ]
-
-    return any(pattern in func_name for pattern in generated_name_patterns)
+    # Substring-based patterns (canonical: constants.GENERATED_NAME_PATTERNS)
+    return any(pattern in func_name for pattern in GENERATED_NAME_PATTERNS)
 
 
 @handle_errors("checking if method is special Python method", default_return=False)

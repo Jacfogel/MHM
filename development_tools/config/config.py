@@ -1140,6 +1140,20 @@ def get_backup_policy_config():
     return BACKUP_POLICY
 
 
+BACKUP_HEALTH_DEFAULTS = {"recent_days": 14}
+
+
+def get_backup_health_config():
+    """Get backup health check configuration (recent_days threshold for 'recent enough' checks)."""
+    external_config = _get_external_value("backup_health", None)
+    if external_config and isinstance(external_config, dict):
+        result = BACKUP_HEALTH_DEFAULTS.copy()
+        if "recent_days" in external_config:
+            result["recent_days"] = int(external_config["recent_days"])
+        return result
+    return BACKUP_HEALTH_DEFAULTS.copy()
+
+
 # Auto document functions configuration
 # NOTE: Defaults are minimal. See development_tools_config.json.example for full examples.
 AUTO_DOCUMENT_FUNCTIONS = {
@@ -1183,3 +1197,86 @@ def get_fix_function_docstrings_config():
                 result[key] = value
         return result
     return AUTO_DOCUMENT_FUNCTIONS
+
+
+# Domain mapper configuration (test coverage / selective test execution)
+# Maps source domains to test directories and pytest markers.
+DOMAIN_MAPPER_DEFAULTS = {
+    "source_to_test_mapping": {
+        "core": [["tests/core/", "tests/unit/"], ["unit", "critical"]],
+        "communication": [["tests/communication/"], ["communication", "integration"]],
+        "ui": [["tests/ui/"], ["ui"]],
+        "tasks": [[], ["tasks"]],
+        "ai": [["tests/ai/"], ["ai"]],
+        "user": [[], ["user_management"]],
+        "notebook": [[], ["notebook"]],
+        "development_tools": [["tests/development_tools/"], []],
+    },
+    "domain_dependencies": {
+        "core": ["communication", "ui", "tasks", "ai", "user", "notebook"],
+        "communication": ["ui", "tasks", "ai", "user"],
+        "tasks": ["communication", "ui"],
+        "user": ["communication", "ui", "ai"],
+        "ai": ["communication", "ui"],
+        "ui": [],
+        "notebook": ["communication", "ui"],
+        "development_tools": [],
+    },
+    "keyword_map": {
+        "development_tools": [
+            "development_tools",
+            "dev_tools",
+            "audit",
+            "coverage",
+            "verification",
+            "status",
+        ],
+        "communication": [
+            "communication",
+            "discord",
+            "email",
+            "webhook",
+            "channel",
+            "command",
+            "interaction",
+            "router",
+        ],
+        "ai": ["ai", "chatbot", "prompt", "context", "llm"],
+        "tasks": ["task"],
+        "ui": ["ui", "dialog", "widget", "qt", "pyside"],
+        "user": ["user", "profile", "account", "preferences"],
+        "notebook": ["notebook", "note", "journal", "list"],
+        "core": [
+            "core",
+            "service",
+            "scheduler",
+            "config",
+            "logger",
+            "logging",
+            "observability",
+            "error",
+            "backup",
+            "file",
+            "cleanup",
+            "checkin",
+            "analytics",
+            "response",
+        ],
+    },
+}
+
+
+def get_domain_mapper_config():
+    """Get domain mapper configuration (external override or defaults)."""
+    external_config = _get_external_value("domain_mapper", None)
+    if external_config and isinstance(external_config, dict):
+        result = {
+            "source_to_test_mapping": DOMAIN_MAPPER_DEFAULTS["source_to_test_mapping"].copy(),
+            "domain_dependencies": DOMAIN_MAPPER_DEFAULTS["domain_dependencies"].copy(),
+            "keyword_map": DOMAIN_MAPPER_DEFAULTS["keyword_map"].copy(),
+        }
+        for key in ("source_to_test_mapping", "domain_dependencies", "keyword_map"):
+            if key in external_config and isinstance(external_config[key], dict):
+                result[key].update(external_config[key])
+        return result
+    return DOMAIN_MAPPER_DEFAULTS.copy()

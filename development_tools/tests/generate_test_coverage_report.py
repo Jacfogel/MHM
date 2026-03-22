@@ -144,22 +144,40 @@ class TestCoverageReportGenerator:
     ) -> str:
         """Generate a coverage summary for the plan."""
         summary_lines = []
-        # Build domain list from configured core modules when available.
-        try:
-            from development_tools.shared.constants import CORE_MODULES
-
-            configured_domains = [d for d in CORE_MODULES if d != "development_tools"]
-        except Exception:
-            configured_domains = []
+        # Derive domains from actual coverage data so all measured domains are shown.
+        # Fallback to coverage.ini source or standard list if coverage_data is empty.
+        configured_domains = []
+        if coverage_data:
+            seen = set()
+            for module_name in coverage_data:
+                normalized = str(module_name).replace("\\", "/")
+                domain = normalized.split("/", 1)[0]
+                if domain and domain != "development_tools" and domain not in seen:
+                    seen.add(domain)
+                    configured_domains.append(domain)
+            configured_domains.sort()
+        if not configured_domains:
+            try:
+                import configparser
+                from pathlib import Path
+                cov_ini = self.project_root / "development_tools" / "tests" / "coverage.ini"
+                if cov_ini.exists():
+                    parser = configparser.ConfigParser()
+                    parser.read(cov_ini)
+                    source = parser.get("run", "source", fallback="").strip()
+                    if source:
+                        configured_domains = [s.strip() for s in source.split(",") if s.strip()]
+            except Exception:
+                pass
         if not configured_domains:
             configured_domains = [
-                "core",
-                "communication",
-                "ui",
-                "tasks",
-                "user",
                 "ai",
+                "communication",
+                "core",
                 "notebook",
+                "tasks",
+                "ui",
+                "user",
             ]
 
         # Overall coverage (format with 1 decimal place for accuracy)

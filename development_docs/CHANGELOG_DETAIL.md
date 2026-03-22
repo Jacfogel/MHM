@@ -33,8 +33,22 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-21 - Coverage: --cov-append for per-worker files; all domains in report; combine logic fix
+- **Coverage fix**: `run_test_coverage.py` — added `--cov-append` to the parallel pytest coverage run so pytest-cov enables data_suffix and each xdist worker writes its own `.coverage_parallel.<suffix>` file (without it, workers may overwrite a single file). Also expanded shard discovery to find all `.coverage_parallel.*` and copy to `.coverage.<suffix>` before combine.
+- **Critical combine fix**: Corrected inverted if/else in the combine block (lines ~2553–2576). When coverage files existed (parallel_exists, no_parallel_exists, parallel_shard_files, or _has_coverage_fallback), the code entered the `if` block and only logged "Combining coverage data..." then exited without running the combine logic. The combine logic (copy files, run `coverage combine`, regenerate JSON) was incorrectly placed in the `else` branch, which ran only when no files existed. Swapped the branches so combine runs when files exist; the warning is emitted only when none are found.
+- **Report fix**: `generate_test_coverage_report.py` — domains now derived from actual coverage data (unique first path component of module names) so TEST_COVERAGE_REPORT shows all measured domains (ai, communication, core, notebook, tasks, ui, user) instead of only CORE_MODULES (which may be ["core"] in config).
+- **Impact**: Re-run `python development_tools/run_development_tools.py audit --full --clear-cache` to regenerate coverage and validate.
+
+### 2026-03-20 - Fix domain_mapper regression; resolve test_file_coverage_cache and backup_health failures
+- **domain_mapper backward-compat**: `domain_mapper.py` moved SOURCE_TO_TEST_MAPPING, DOMAIN_DEPENDENCIES, keyword_map to config (2026-03-19); tests still referenced `cache.domain_mapper.SOURCE_TO_TEST_MAPPING`. Added instance attribute `SOURCE_TO_TEST_MAPPING = self._source_to_test_mapping` so tests pass without changes.
+- **tool hash**: `test_file_coverage_cache._get_default_tool_paths()` now includes `development_tools/config/development_tools_config.json` since domain_mapper loads from it; cache invalidates when config changes.
+- **Tests**: All 5 previously failing dev-tools tests now pass.
+- **analyze_backup_health**: Extended "recent enough" threshold from 8 to 14 days (configurable via `backup_health.recent_days`). Weekly backups that run ~once per week were failing with 8-day cutoff. Added `get_backup_health_config()` in config.py and `backup_health` section to config.example. Tier 3 audit now passes backup health when backups exist within the configured window.
+
 ### 2026-03-19 - Consolidate tool guide lists from canonical tool metadata
 - **Change**: `development_tools/shared/tool_guide.py` now derives its tool guidance catalog from the canonical `development_tools/shared/tool_metadata.py` `_TOOLS` registry (with a derived basename-compat layer for legacy filename inputs). This removes drift between “tool guide” identity/path data and the actual tool catalog used by tooling.
+- **LIST_OF_LISTS continuation plan**: Removed stale file_patterns.exclude_patterns row from §6; §10 added Status column; §11 removed file_patterns row; §9a resolved/deferred consolidation candidates; Pyright documented as two canonical sources; quick index; §12 sorted; §14 quick reference table; §2 table updated for SCRIPT_REGISTRY, CACHE_AWARE_TOOLS, Known deleted files, Output storage domains.
+- **List consolidation (continued)**: TIER_TITLES moved from tool_guide to tool_metadata (single canonical source for tier display labels). Generated function patterns (auto_generated_file_patterns, exact_generated_names, generated_name_patterns) moved from exclusion_utilities to constants.py (AUTO_GENERATED_FILE_PATTERNS, EXACT_GENERATED_NAMES, GENERATED_NAME_PATTERNS); exclusion_utilities imports from constants.
 - **Quality**: `tests/development_tools/test_tool_guide.py` updated with stronger resolution/collision assertions and Pyright-friendly typing fixes.
 - **Static analysis**: `python -m pyright` now reports `0 errors, 0 warnings`.
 - **Docs**: `development_docs/LIST_OF_LISTS.md` updated to mark `TOOL_GUIDE` as derived-from `_TOOLS`. Added consolidation principle (3) and §9a (criteria, workflow, candidates); fix_version_sync category lists documented as consolidation candidates.

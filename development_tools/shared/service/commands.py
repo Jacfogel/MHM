@@ -1677,7 +1677,14 @@ class CommandsMixin:
                 }
             )
 
-            recent_cutoff = datetime.now() - timedelta(days=8)
+            recent_days = 14  # Default: allow weekly backups to pass (8 days was too tight)
+            try:
+                from development_tools.config import config as _cfg
+                health_cfg = getattr(_cfg, "get_backup_health_config", lambda: {})()
+                recent_days = int(health_cfg.get("recent_days", recent_days))
+            except Exception:
+                pass
+            recent_cutoff = datetime.now() - timedelta(days=recent_days)
             weekly_backup_recent_enough = (
                 latest_weekly_created is not None
                 and latest_weekly_created >= recent_cutoff
@@ -1694,7 +1701,6 @@ class CommandsMixin:
                 }
             )
 
-            recent_cutoff = datetime.now() - timedelta(days=8)
             recent_ok = latest_created is not None and latest_created >= recent_cutoff
             checks.append(
                 {

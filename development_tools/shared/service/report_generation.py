@@ -1048,13 +1048,21 @@ class ReportGenerationMixin:
                 "- **Doc Sync**: Not collected in this run (pending doc-sync refresh)"
             )
 
-        # Test coverage
+        # Test coverage (use primary when overall <25% due to ui/tasks/notebook)
         if coverage_summary and isinstance(coverage_summary, dict):
             overall = coverage_summary.get("overall") or {}
-            if overall.get("coverage") is not None:
+            primary = coverage_summary.get("primary_overall") or {}
+            use_primary = (
+                primary
+                and primary.get("statements", 0) > 0
+                and primary.get("coverage") is not None
+                and (overall.get("coverage") or 0) < 25
+            )
+            cov = primary if use_primary else overall
+            if cov.get("coverage") is not None:
                 lines.append(
-                    f"- **Test Coverage**: {percent_text(overall.get('coverage'), 1)} "
-                    f"({overall.get('covered')} of {overall.get('statements')} statements)"
+                    f"- **Test Coverage**: {percent_text(cov.get('coverage'), 1)} "
+                    f"({cov.get('covered')} of {cov.get('statements')} statements)"
                 )
 
         backup_summary = (
@@ -1706,13 +1714,32 @@ class ReportGenerationMixin:
 
         if coverage_summary and isinstance(coverage_summary, dict):
             overall = coverage_summary.get("overall") or {}
-            lines.append(
-                f"- **Overall Coverage**: {percent_text(overall.get('coverage'), 1)} "
-                f"({overall.get('covered')} of {overall.get('statements')} statements)"
+            primary = coverage_summary.get("primary_overall") or {}
+            use_primary = (
+                primary
+                and primary.get("statements", 0) > 0
+                and primary.get("coverage") is not None
+                and (overall.get("coverage") or 0) < 25
             )
-            lines.append(
-                "    - **Coverage Scope**: Main project domains (`core`, `communication`, `ui`, `tasks`, `user`, `ai`) only; `development_tools/` is tracked separately."
-            )
+            if use_primary:
+                pct = primary.get("coverage")
+                covered = primary.get("covered")
+                stmts = primary.get("statements")
+                domains = ", ".join(primary.get("domains", ["core", "communication", "ai", "user"]))
+                lines.append(
+                    f"- **Overall Coverage**: {percent_text(pct, 1)} "
+                    f"({covered} of {stmts} statements)"
+                )
+                lines.append(
+                    f"    - **Coverage Scope**: Primary domains (`{domains}`); "
+                    "`ui`, `tasks`, `notebook` excluded (minimal test coverage). "
+                    "`development_tools/` is tracked separately."
+                )
+            else:
+                lines.append(
+                    f"- **Overall Coverage**: {percent_text(overall.get('coverage'), 1)} "
+                    f"({overall.get('covered')} of {overall.get('statements')} statements)"
+                )
             coverage_report_path = (
                 self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
             )
@@ -5897,9 +5924,6 @@ class ReportGenerationMixin:
             overall = coverage_summary.get("overall") or {}
             lines.append(
                 f"- **Overall Coverage**: {percent_text(overall.get('coverage'), 1)} ({overall.get('covered')} of {overall.get('statements')} statements)"
-            )
-            lines.append(
-                "    - **Coverage Scope**: Main project domains (`core`, `communication`, `ui`, `tasks`, `user`, `ai`) only; `development_tools/` is tracked separately."
             )
 
             # Domains with Lowest Coverage

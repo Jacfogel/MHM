@@ -22,6 +22,79 @@ from pathlib import Path
 from development_tools.shared.standard_exclusions import should_exclude_file
 
 try:
+    from development_tools.config.config import get_domain_mapper_config
+except ImportError:
+    get_domain_mapper_config = None
+
+
+def _default_domain_mapper_config() -> dict:
+    """Fallback when config module is unavailable."""
+    return {
+        "source_to_test_mapping": {
+            "core": [["tests/core/", "tests/unit/"], ["unit", "critical"]],
+            "communication": [["tests/communication/"], ["communication", "integration"]],
+            "ui": [["tests/ui/"], ["ui"]],
+            "tasks": [[], ["tasks"]],
+            "ai": [["tests/ai/"], ["ai"]],
+            "user": [[], ["user_management"]],
+            "notebook": [[], ["notebook"]],
+            "development_tools": [["tests/development_tools/"], []],
+        },
+        "domain_dependencies": {
+            "core": ["communication", "ui", "tasks", "ai", "user", "notebook"],
+            "communication": ["ui", "tasks", "ai", "user"],
+            "tasks": ["communication", "ui"],
+            "user": ["communication", "ui", "ai"],
+            "ai": ["communication", "ui"],
+            "ui": [],
+            "notebook": ["communication", "ui"],
+            "development_tools": [],
+        },
+        "keyword_map": {
+            "development_tools": [
+                "development_tools",
+                "dev_tools",
+                "audit",
+                "coverage",
+                "verification",
+                "status",
+            ],
+            "communication": [
+                "communication",
+                "discord",
+                "email",
+                "webhook",
+                "channel",
+                "command",
+                "interaction",
+                "router",
+            ],
+            "ai": ["ai", "chatbot", "prompt", "context", "llm"],
+            "tasks": ["task"],
+            "ui": ["ui", "dialog", "widget", "qt", "pyside"],
+            "user": ["user", "profile", "account", "preferences"],
+            "notebook": ["notebook", "note", "journal", "list"],
+            "core": [
+                "core",
+                "service",
+                "scheduler",
+                "config",
+                "logger",
+                "logging",
+                "observability",
+                "error",
+                "backup",
+                "file",
+                "cleanup",
+                "checkin",
+                "analytics",
+                "response",
+            ],
+        },
+    }
+
+
+try:
     from core.logger import get_component_logger
 
     logger = get_component_logger("development_tools")
@@ -34,33 +107,8 @@ class DomainMapper:
     Maps source code domains to test domains and pytest markers.
 
     This enables test-file coverage caching by identifying which tests cover which source domains.
+    Configuration is loaded from development_tools_config.json (domain_mapper section) with built-in defaults.
     """
-
-    # Source domain to test domain mapping
-    # Maps source directory -> (test directories, pytest markers)
-    SOURCE_TO_TEST_MAPPING: dict[str, tuple[list[str], list[str]]] = {
-        "core": (["tests/core/", "tests/unit/"], ["unit", "critical"]),
-        "communication": (["tests/communication/"], ["communication", "integration"]),
-        "ui": (["tests/ui/"], ["ui"]),
-        "tasks": ([], ["tasks"]),  # No dedicated test directory, uses markers only
-        "ai": (["tests/ai/"], ["ai"]),
-        "user": ([], ["user_management"]),
-        "notebook": ([], ["notebook"]),
-        "development_tools": (["tests/development_tools/"], []),
-    }
-
-    # Cross-domain coverage dependencies:
-    # if a source domain changes, domains in this list should also be revalidated.
-    DOMAIN_DEPENDENCIES: dict[str, list[str]] = {
-        "core": ["communication", "ui", "tasks", "ai", "user", "notebook"],
-        "communication": ["ui", "tasks", "ai", "user"],
-        "tasks": ["communication", "ui"],
-        "user": ["communication", "ui", "ai"],
-        "ai": ["communication", "ui"],
-        "ui": [],
-        "notebook": ["communication", "ui"],
-        "development_tools": [],
-    }
 
     def __init__(self, project_root: Path):
         """
@@ -71,6 +119,27 @@ class DomainMapper:
         """
         self.project_root = Path(project_root).resolve()
         self.test_root = self.project_root / "tests"
+
+        # Load config (domain_mapper section) with built-in defaults
+        if get_domain_mapper_config:
+            raw = get_domain_mapper_config()
+        else:
+            raw = _default_domain_mapper_config()
+        # Convert source_to_test_mapping: config uses [test_dirs, markers], we need tuple
+        self._source_to_test_mapping: dict[str, tuple[list[str], list[str]]] = {}
+        for domain, value in raw.get("source_to_test_mapping", {}).items():
+            if isinstance(value, (list, tuple)) and len(value) >= 2:
+                self._source_to_test_mapping[domain] = (
+                    list(value[0]) if value[0] else [],
+                    list(value[1]) if value[1] else [],
+                )
+        self._domain_dependencies: dict[str, list[str]] = dict(
+            raw.get("domain_dependencies", {})
+        )
+        self._keyword_map: dict[str, list[str]] = dict(raw.get("keyword_map", {}))
+
+        # Backward-compat for tests/code that accessed SOURCE_TO_TEST_MAPPING
+        self.SOURCE_TO_TEST_MAPPING = self._source_to_test_mapping
 
         # Cache for parsed markers from test files
         self._marker_cache: dict[Path, set[str]] = {}
@@ -97,12 +166,12 @@ class DomainMapper:
         source_path = Path(source_file)
         if len(source_path.parts) > 0:
             domain = source_path.parts[0]
-            if domain in self.SOURCE_TO_TEST_MAPPING:
+            if domain in self._source_to_test_mapping:
                 self._source_domain_cache[source_file] = domain
                 return domain
 
         # Check if it's in a known source directory
-        for domain in self.SOURCE_TO_TEST_MAPPING:
+        for domain in self._source_to_test_mapping:
             if source_file.startswith(f"{domain}/"):
                 self._source_domain_cache[source_file] = domain
                 return domain
@@ -123,8 +192,8 @@ class DomainMapper:
             return self._test_domain_cache[source_file]
 
         source_domain = self.get_source_domain(source_file)
-        if source_domain and source_domain in self.SOURCE_TO_TEST_MAPPING:
-            test_dirs, _ = self.SOURCE_TO_TEST_MAPPING[source_domain]
+        if source_domain and source_domain in self._source_to_test_mapping:
+            test_dirs, _ = self._source_to_test_mapping[source_domain]
             self._test_domain_cache[source_file] = test_dirs
             return test_dirs
 
@@ -144,8 +213,8 @@ class DomainMapper:
             return self._marker_cache_for_source[source_file]
 
         source_domain = self.get_source_domain(source_file)
-        if source_domain and source_domain in self.SOURCE_TO_TEST_MAPPING:
-            _, markers = self.SOURCE_TO_TEST_MAPPING[source_domain]
+        if source_domain and source_domain in self._source_to_test_mapping:
+            _, markers = self._source_to_test_mapping[source_domain]
             marker_set = set(markers)
             self._marker_cache_for_source[source_file] = marker_set
             return marker_set
@@ -300,7 +369,7 @@ class DomainMapper:
 
         while queue:
             domain = queue.pop(0)
-            for dependent_domain in self.DOMAIN_DEPENDENCIES.get(domain, []):
+            for dependent_domain in self._domain_dependencies.get(domain, []):
                 if dependent_domain not in expanded:
                     expanded.add(dependent_domain)
                     queue.append(dependent_domain)
@@ -323,8 +392,8 @@ class DomainMapper:
         # Collect all markers for these domains
         all_markers = set()
         for domain in domains:
-            if domain in self.SOURCE_TO_TEST_MAPPING:
-                _, markers = self.SOURCE_TO_TEST_MAPPING[domain]
+            if domain in self._source_to_test_mapping:
+                _, markers = self._source_to_test_mapping[domain]
                 all_markers.update(markers)
 
         if not all_markers:
@@ -345,8 +414,8 @@ class DomainMapper:
         """
         test_dirs = set()
         for domain in domains:
-            if domain in self.SOURCE_TO_TEST_MAPPING:
-                dirs, _ = self.SOURCE_TO_TEST_MAPPING[domain]
+            if domain in self._source_to_test_mapping:
+                dirs, _ = self._source_to_test_mapping[domain]
                 test_dirs.update(dirs)
         return sorted(test_dirs)
 
@@ -363,49 +432,7 @@ class DomainMapper:
         path_lower = test_file.as_posix().lower()
         inferred = set()
 
-        keyword_map = {
-            "development_tools": [
-                "development_tools",
-                "dev_tools",
-                "audit",
-                "coverage",
-                "verification",
-                "status",
-            ],
-            "communication": [
-                "communication",
-                "discord",
-                "email",
-                "webhook",
-                "channel",
-                "command",
-                "interaction",
-                "router",
-            ],
-            "ai": ["ai", "chatbot", "prompt", "context", "llm"],
-            "tasks": ["task"],
-            "ui": ["ui", "dialog", "widget", "qt", "pyside"],
-            "user": ["user", "profile", "account", "preferences"],
-            "notebook": ["notebook", "note", "journal", "list"],
-            "core": [
-                "core",
-                "service",
-                "scheduler",
-                "config",
-                "logger",
-                "logging",
-                "observability",
-                "error",
-                "backup",
-                "file",
-                "cleanup",
-                "checkin",
-                "analytics",
-                "response",
-            ],
-        }
-
-        for domain, keywords in keyword_map.items():
+        for domain, keywords in self._keyword_map.items():
             if any(keyword in path_lower for keyword in keywords):
                 inferred.add(domain)
 

@@ -20,21 +20,21 @@ if str(project_root) not in sys.path:
 from core.logger import get_component_logger
 
 try:
-    from ..shared.tool_metadata import get_tools_by_tier, get_tool_metadata, iter_tools
+    from ..shared.tool_metadata import (
+        get_tools_by_tier,
+        get_tool_metadata,
+        iter_tools,
+        TIER_TITLES,
+    )
 except ImportError:
     from development_tools.shared.tool_metadata import (
         get_tools_by_tier,
         get_tool_metadata,
         iter_tools,
+        TIER_TITLES,
     )
 
 logger = get_component_logger("development_tools")
-
-TIER_TITLES = {
-    "core": "Core (stable)",
-    "supporting": "Supporting (advisory)",
-    "experimental": "Experimental (use with approval)",
-}
 
 TOOL_GUIDE_OVERRIDES: dict[str, dict[str, Any]] = {
     "run_development_tools": {

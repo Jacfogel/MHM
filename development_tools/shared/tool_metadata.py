@@ -17,6 +17,13 @@ from collections.abc import Iterable
 Tier = Literal["core", "supporting", "experimental"]
 TrustLevel = Literal["stable", "partial", "advisory", "experimental"]
 
+# Display labels for tier names (used by tool_guide, help output)
+TIER_TITLES: dict[str, str] = {
+    "core": "Core (stable)",
+    "supporting": "Supporting (advisory)",
+    "experimental": "Experimental (use with approval)",
+}
+
 
 @dataclass(frozen=True)
 class ToolInfo:
@@ -539,4 +546,5 @@ __all__ = [
     "get_command_groups",
     "CACHE_AWARE_TOOLS",
     "get_script_registry",
+    "TIER_TITLES",
 ]

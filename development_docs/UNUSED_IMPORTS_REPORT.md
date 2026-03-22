@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-19 21:25:47
+> **Last Generated**: 2026-03-22 00:41:47
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 541
-- **Files with Unused Imports**: 0
-- **Total Unused Imports**: 0
+- **Files with Unused Imports**: 1
+- **Total Unused Imports**: 1
 
 ## Breakdown by Category
 
@@ -20,9 +20,19 @@
 - **Star Imports**: 0 imports
 - **Test Mocking**: 0 imports
 - **Qt Testing**: 0 imports
-- **Test Infrastructure**: 0 imports
+- **Test Infrastructure**: 1 imports
 - **Production Test Mocking**: 0 imports
 - **Ui Imports**: 0 imports
+
+## Test Infrastructure
+
+**Recommendation**: These imports are required for test infrastructure (fixtures, data creation, etc.).
+
+### `development_tools/tests/generate_test_coverage_report.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 162**: `pathlib.Path` imported but unused
 
 ## Overall Recommendations
 

@@ -753,7 +753,11 @@ class CoverageMetricsRegenerator:
     def _discover_parallel_coverage_artifacts(
         self, coverage_dir: Path
     ) -> dict[str, list[Path]]:
-        """Discover coverage files that should exist before combine."""
+        """Discover coverage files that should exist before combine.
+
+        pytest-cov with data_suffix=True creates .coverage_parallel.<machine>.<pid>.<random>
+        per worker (not .worker0). Also support legacy .coverage_parallel.worker* naming.
+        """
         artifacts: dict[str, list[Path]] = {
             "parallel_shards": [],
             "project_root_shards": [],
@@ -761,8 +765,11 @@ class CoverageMetricsRegenerator:
         if not coverage_dir.exists():
             return artifacts
 
+        # All .coverage_parallel.* except the main file (data_suffix creates .machine.pid.random)
         artifacts["parallel_shards"].extend(
-            coverage_dir.glob(".coverage_parallel.worker*")
+            f
+            for f in coverage_dir.glob(".coverage_parallel.*")
+            if f.name != ".coverage_parallel" and f.is_file()
         )
         artifacts["parallel_shards"].extend(
             [f for f in coverage_dir.glob(".coverage.worker*") if f.name != ".coverage"]
@@ -774,8 +781,11 @@ class CoverageMetricsRegenerator:
             not in {".coverage_parallel", ".coverage_no_parallel", ".coverage"}
         ]
 
+        # Same for project root (workers may write to cwd if COVERAGE_FILE not respected)
         artifacts["project_root_shards"].extend(
-            self.project_root.glob(".coverage_parallel.worker*")
+            f
+            for f in self.project_root.glob(".coverage_parallel.*")
+            if f.name != ".coverage_parallel" and f.is_file()
         )
         artifacts["project_root_shards"].extend(
             [
@@ -1188,8 +1198,10 @@ class CoverageMetricsRegenerator:
             # When running in serial mode, generate JSON directly
             if self.parallel:
                 # Don't generate JSON for parallel run - we'll combine coverage data files and regenerate JSON
+                # --cov-append enables data_suffix so each xdist worker writes its own .coverage_parallel.<suffix> file
                 cmd.extend(
                     [
+                        "--cov-append",
                         *cov_args,
                         "--cov-report=term-missing",
                         f"--cov-config={self.coverage_config_path.resolve()}",
@@ -2538,17 +2550,12 @@ class CoverageMetricsRegenerator:
                         and _project_root_parallel.stat().st_size > 0
                     )
                 )
-                if (
+                if not (
                     parallel_exists
                     or no_parallel_exists
                     or parallel_shard_files
                     or _has_coverage_fallback
                 ):
-                    if logger:
-                        logger.info(
-                            "Combining coverage data from parallel and no_parallel test runs..."
-                        )
-                else:
                     if logger:
                         logger.warning(
                             "Skipping coverage combine: no coverage artifacts found "
@@ -2561,6 +2568,11 @@ class CoverageMetricsRegenerator:
                             logger.debug(
                                 f"Found {len(parallel_shard_files)} parallel shard files: {[f.name for f in parallel_shard_files[:5]]}"
                             )
+                else:
+                    if logger:
+                        logger.info(
+                            "Combining coverage data from parallel and no_parallel test runs..."
+                        )
 
                     # Copy coverage files to the coverage data file directory with .coverage.* naming for combine
                     # Coverage combine looks for .coverage.* files in the current directory
@@ -2676,9 +2688,29 @@ class CoverageMetricsRegenerator:
                                     f"No_parallel coverage file not found: {no_parallel_coverage_file}"
                                 )
 
-                        # Shard files should already be in the coverage directory (where COVERAGE_FILE points)
-                        # They'll be picked up automatically by coverage combine
+                        # Copy .coverage_parallel.<suffix> shards to .coverage.<suffix> so coverage combine
+                        # finds them. coverage combine looks for .coverage.* only; when COVERAGE_FILE was
+                        # .coverage_parallel, pytest-cov (data_suffix=True) creates .coverage_parallel.<machine>.<pid>.<random>
+                        # per worker, which would otherwise be ignored.
                         if parallel_shard_files:
+                            for shard in parallel_shard_files:
+                                if ".coverage_parallel." in shard.name:
+                                    dest_name = shard.name.replace(
+                                        ".coverage_parallel.", ".coverage."
+                                    )
+                                    dest_path = coverage_dir / dest_name
+                                    try:
+                                        shutil.copy2(shard, dest_path)
+                                        files_to_combine.append(dest_path)
+                                        if logger:
+                                            logger.debug(
+                                                f"Copied shard {shard.name} to {dest_name} for combine"
+                                            )
+                                    except OSError as e:
+                                        if logger:
+                                            logger.warning(
+                                                f"Failed to copy shard {shard.name} to {dest_name}: {e}"
+                                            )
                             if logger:
                                 logger.debug(
                                     f"Will combine {len(parallel_shard_files)} shard files from parallel execution"

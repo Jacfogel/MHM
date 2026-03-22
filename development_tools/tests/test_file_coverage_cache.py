@@ -130,6 +130,10 @@ class TestFileCoverageCache:
             / "development_tools"
             / "tests"
             / "domain_mapper.py",
+            self.project_root
+            / "development_tools"
+            / "config"
+            / "development_tools_config.json",
         ]
         return tuple(path for path in tool_files if path.exists())
 

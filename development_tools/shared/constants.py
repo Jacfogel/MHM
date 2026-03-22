@@ -553,6 +553,26 @@ SPECIAL_METHODS: frozenset[str] = frozenset(
 
 CONTEXT_METHODS: frozenset[str] = frozenset({"__enter__", "__exit__"})
 
+# Generated function patterns (function-level exclusions; used by exclusion_utilities)
+# File-level patterns are in standard_exclusions (exclusions.generated_files).
+AUTO_GENERATED_FILE_PATTERNS: tuple[str, ...] = (
+    "_ui.py",
+    "_generated.py",
+    "_auto.py",
+)
+EXACT_GENERATED_NAMES: frozenset[str] = frozenset({
+    "setupUi",
+    "retranslateUi",
+    "setup_ui",
+    "retranslate_ui",
+})
+GENERATED_NAME_PATTERNS: tuple[str, ...] = (
+    "setup_ui_",
+    "retranslate_ui_",
+    "_generated_",
+    "_auto_",
+)
+
 # Unicode -> ASCII replacements for documentation (single canonical source)
 ASCII_REPLACEMENTS: dict[str, str] = {
     "\u2018": "'", "\u2019": "'", "\u201a": "'", "\u201b": "'",
@@ -651,6 +671,7 @@ def is_local_module(module_name: str) -> bool:
 
 
 __all__ = [
+    "AUTO_GENERATED_FILE_PATTERNS",
     "ASCII_COMPLIANCE_FILES",
     "ASCII_REPLACEMENTS",
     "COMMAND_PATTERNS",
@@ -670,6 +691,8 @@ __all__ = [
     "CORRUPTED_ARTIFACT_PATTERNS",
     "CORE_MODULES",
     "DEFAULT_DOCS",
+    "EXACT_GENERATED_NAMES",
+    "GENERATED_NAME_PATTERNS",
     "IGNORED_PATH_PATTERNS",
     "LOCAL_MODULE_PREFIXES",
     "PAIRED_DOCS",

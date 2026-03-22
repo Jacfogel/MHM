@@ -452,6 +452,28 @@ class DataLoadingMixin:
             overall_coverage = 0.0
         else:
             overall_coverage = round((total_covered / total_statements) * 100, 1)
+
+        # Primary coverage: only core, communication, ai, user (excludes ui, tasks, notebook
+        # which have ~0% and skew overall). Use when displaying "main" coverage to users.
+        primary_domains = {"core", "communication", "ai", "user"}
+        primary_statements = 0
+        primary_covered = 0
+        for path, info in files.items():
+            parts = path.replace("/", "\\").split("\\")
+            domain = parts[0] if parts and parts[0] else ""
+            if domain not in primary_domains:
+                continue
+            summary = info.get("summary") or {}
+            stmt = summary.get("num_statements") or 0
+            cov = summary.get("covered_lines") or 0
+            primary_statements += stmt
+            primary_covered += cov
+        primary_coverage = (
+            round((primary_covered / primary_statements) * 100, 1)
+            if primary_statements > 0
+            else overall_coverage
+        )
+
         module_list: list[dict[str, Any]] = []
         for module_name, stats in module_stats.items():
             statements = stats['statements']
@@ -469,15 +491,21 @@ class DataLoadingMixin:
         meta = coverage_data.get('meta', {})
         timestamp = meta.get('timestamp')
         return {
-            'overall': {
-                'coverage': overall_coverage,
-                'statements': total_statements,
-                'covered': total_covered,
-                'missed': max(total_statements - total_covered, 0),
-                'generated': timestamp
+            "overall": {
+                "coverage": overall_coverage,
+                "statements": total_statements,
+                "covered": total_covered,
+                "missed": max(total_statements - total_covered, 0),
+                "generated": timestamp,
             },
-            'modules': module_list,
-            'worst_files': worst_files[:5]
+            "primary_overall": {
+                "coverage": primary_coverage,
+                "statements": primary_statements,
+                "covered": primary_covered,
+                "domains": sorted(primary_domains),
+            },
+            "modules": module_list,
+            "worst_files": worst_files[:5],
         }
     
     def _config_validation_summary_from_payload(self, data: dict[str, Any]) -> dict[str, Any] | None:

@@ -401,6 +401,18 @@
       "dev_tools_html": null
     }
   },
+  "domain_mapper": {
+    "_comment": "Test coverage domain mapping. Maps source domains to test dirs and pytest markers. Optional - built-in defaults used when absent.",
+    "source_to_test_mapping": {
+      "_example_domain": [["tests/example/"], ["example_marker"]]
+    },
+    "domain_dependencies": {
+      "_example_domain": ["other_domain"]
+    },
+    "keyword_map": {
+      "_example_domain": ["keyword1", "keyword2"]
+    }
+  },
   "legacy_cleanup": {
     "_comment": "Legacy reference cleanup patterns and settings. Customize for your project's legacy code patterns.",
     "deprecation_inventory_file": "development_tools/config/jsons/DEPRECATION_INVENTORY.json",
@@ -730,6 +742,10 @@
       "development_tools": "Engineering artifact retention/inventory ownership",
       "git": "Canonical tracked-history ownership"
     }
+  },
+  "backup_health": {
+    "_comment": "Backup health check thresholds. recent_days = how old a backup can be and still pass 'recent enough' checks.",
+    "recent_days": 14
   },
   "tool_commands": {
     "_comment": "Shared ruff_command for unused_imports and static_analysis. Override per-section if needed.",

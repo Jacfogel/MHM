@@ -30,8 +30,21 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-03-19 - Consolidate tool guide lists; implement list consolidation **Progressed**
+### 2026-03-21 - Coverage: --cov-append, all domains, and combine logic fix **COMPLETED**
+- `run_test_coverage.py`: Added `--cov-append` to parallel pytest coverage run so pytest-cov enables data_suffix and each xdist worker writes its own `.coverage_parallel.<suffix>` file. Also expanded shard discovery to find all `.coverage_parallel.*`.
+- **Critical fix**: Corrected inverted if/else in combine block—previously, when coverage files existed we only logged "Combining..." and skipped the actual combine; when no files existed we tried to combine (always failed). Now combine runs when files exist; warning only when none found.
+- `generate_test_coverage_report.py`: Domains now derived from actual coverage data so TEST_COVERAGE_REPORT shows all measured domains (ai, communication, core, notebook, tasks, ui, user) instead of only CORE_MODULES.
+- Re-run `python development_tools/run_development_tools.py audit --full --clear-cache` to regenerate coverage and validate.
+
+### 2026-03-20 - Fix domain_mapper regression; resolve test and backup_health failures **COMPLETED**
+- domain_mapper: Added SOURCE_TO_TEST_MAPPING instance attribute for backward-compat (tests use it).
+- test_file_coverage_cache: Included development_tools_config.json in tool hash (domain_mapper reads from it).
+- All 5 previously failing tests pass.
+- analyze_backup_health: Extended "recent enough" threshold 8→14 days (config `backup_health.recent_days`). Weekly backups now pass; full Tier 3 audit completes.
+
+### 2026-03-19 - Consolidate tool guide lists; implement list consolidation; LIST_OF_LISTS continuation **Progressed**
 - Tool guidance data derived from canonical `tool_metadata._TOOLS`; fix_version_sync category lists now derived from `docs` by path prefix; exclusions from `get_exclusions()`.
+- LIST_OF_LISTS continuation: Stale rows removed (§6, §11); §10 Status column; §9a consolidation candidates resolved/deferred; Pyright documented as two canonical sources; quick index; §12 sorted; §14 quick reference table. TIER_TITLES → tool_metadata; generated function patterns → constants.
 - List consolidation: fix_version_sync derived lists; removed file_patterns.exclude_patterns; BASE_EXCLUDE_GLOBS → standard_exclusions; DOCUMENTATION_GUIDE §4.1 config-canonical. Directory lists: `local_module_prefixes` canonical; scan_directories, core_modules, project_directories derived in constants.py. Config: `tool_commands.ruff_command` canonical; unused_imports/static_analysis derive; `test_markers.directory_to_marker` derived from categories when absent.
 - Scan scope fix: Restored explicit `paths.scan_directories` in config so AI_PRIORITIES and analysis tools use full scope (ai, communication, core, tasks, tests, ui, user) when derivation falls back to defaults.
 - Pyright warnings are cleared (`0 errors, 0 warnings`), and the dev-tools guidance tests were updated accordingly.
@@ -101,17 +114,6 @@ Guidelines:
 - Narrowed Windows-only Qt UI skips: centralized `skip_qt_ui_on_windows`, limited default skips to `CheckinSettingsWidget` and `ScheduleEditorDialog` behavior modules, and restructured dialog tests so non-problematic Qt dialogs still run on this PC.
 - Ensured full `python run_tests.py` suite passes here with focused 21-test skips while keeping the existing `MHM_QT_UI_FORCE` opt-in to run the previously unstable modules on machines where they succeed.
 - Updated `tests/debug_qt_ui_windows.py`, [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), and [TEST_PLAN.md](development_docs/TEST_PLAN.md) to document the current Windows Qt skip behavior and track follow-up work to reduce or remove these environment-driven skips.
-
-### 2026-03-12 - Doc drift, Ruff clean, fixture metadata, module_deps fallback **COMPLETED**
-- **Documentation drift**: Fixed path references (sync_ruff_toml -> development_tools/config/sync_ruff_toml.py in guides; TODO script paths reworded; memory_profiler refs softened in AI_TESTING_GUIDE and TESTING_GUIDE). Ran doc-fix (ASCII, headings, convert-links). Added fixture placeholders: AI_STATUS.md, AI_PRIORITIES.md in tests/fixtures/development_tools_demo; tests/ai/results/ai_functionality_test_results_latest.md so path drift and links resolve.
-- **Ruff**: Resolved all 6 issues (UP015, SIM105, UP045, F401 unused QTimer) in analyze_unused_imports.py, audit_signal_state.py, debug_qt_ui_windows.py; `ruff check .` passes.
-- **Fixture test**: Updated fixture status files to include required metadata (`> **Generated**: This file is auto-generated.` and `> **Last Generated**: YYYY-MM-DD HH:MM:SS`) so test_fixture_status_files_have_valid_metadata passes.
-- **Report generation**: analyze_module_dependencies now always stores a standard-format result in results_cache and disk (even when parser returns no summary) so report generation finds data and no longer logs "[DATA SOURCE] no data found in any source".
-
-### 2026-03-12 - Audit interrupt reliability, DATA SOURCE warnings, cache merge **Progressed**
-- **Audit stop on intent only:** Second Ctrl+C was logging "stopping" but audit still completed. Now post-handler check returns exit 1 when stop was requested; Tier 3 polls `audit_sigint_requested()` and breaks/stops so the run actually ends. Spurious SIGINT (no user Ctrl+C) was stopping the audit on Windows; now **three** SIGINTs within 2s are required to stop, and worker KeyboardInterrupt no longer counts as a tap (`development_tools/shared/audit_signal_state.py`, `run_development_tools.py`, `audit_orchestration.py`).
-- **DATA SOURCE warnings removed:** `analyze_module_dependencies` and `config_validation_summary` no longer log "no data found" / "not found": (1) Tier 1 runs `run_analyze_config` and persists to cache/file so reports find config data; (2) `analyze_module_dependencies` stores standard format in `results_cache` for the loader; (3) `_load_config_validation_summary` tries results_cache -> standardized storage -> file; (4) `_reload_all_cache_data` merges disk into cache instead of clearing it, so in-memory results from the current run survive for report generation.
-- **Tests:** Audit orchestration interrupt tests updated (patch `audit_module.audit_signal_state.record_audit_keyboard_interrupt`, fake executor `shutdown`); `test_run_analyze_module_dependencies_builds_standard_summary` asserts cache `details` shape.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
