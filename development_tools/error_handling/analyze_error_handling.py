@@ -135,11 +135,15 @@ class ErrorHandlingAnalyzer:
         
         # Phase 1: Keywords for determining operation type and priority (canonical: config error_handling.phase1_keywords)
         _default_phase1 = {
-            'file_io': ['open', 'read', 'write', 'save', 'load', 'os.remove', 'shutil.move'],
-            'network': ['send', 'receive', 'connect', 'request', 'http', 'api', 'discord', 'email'],
-            'user_data': ['user_data', 'profile', 'account', 'preferences', 'task', 'schedule', 'checkin'],
-            'ai': ['generate', 'process', 'analyze', 'classify', 'chatbot', 'lm_studio'],
-            'entry_point': ['main', 'run', 'start', 'handle', 'on_'],
+            "file_io": ["open", "read", "write", "save", "load", "file", "json", "close", "os.remove", "shutil.move"],
+            "network": ["send", "receive", "connect", "request", "http", "api", "discord", "email"],
+            "user_data": ["user_data", "profile", "account", "preferences", "task", "schedule", "checkin"],
+            "validation": ["validate", "check", "verify", "invalid", "missing", "required"],
+            "scheduling": ["schedule", "task", "reminder", "scheduler"],
+            "configuration": ["config", "setting", "option"],
+            "ui": ["ui", "dialog", "widget", "button", "qt", "pyqt"],
+            "ai": ["generate", "process", "analyze", "classify", "chatbot", "lm_studio", "ai"],
+            "entry_point": ["main", "run", "start", "handle", "on_", "command", "handler", "clicked"],
         }
         self.phase1_keywords = error_config.get('phase1_keywords', _default_phase1)
         if isinstance(self.phase1_keywords, dict):
@@ -708,22 +712,13 @@ class ErrorHandlingAnalyzer:
         func_lower = func_name.lower()
         content_lower = content.lower()
         
-        # Check for critical operation keywords
+        # Check for critical operation keywords (from config error_handling.critical_function_keywords)
         for _category, keywords in self.critical_functions.items():
             for keyword in keywords:
                 if keyword in func_lower or keyword in content_lower:
                     return True
-        
-        # Check for file operations
-        if any(op in content_lower for op in ['open(', 'read(', 'write(', 'save(', 'load(']):
-            return True
-        
-        # Check for network operations
-        if any(op in content_lower for op in ['send(', 'receive(', 'connect(', 'request(']):
-            return True
-        
-        # Check for data operations
-        return bool(any(op in content_lower for op in ['parse(', 'serialize(', 'deserialize(', 'validate(']))
+
+        return False
     
     def _is_nested_function(self, func_node: ast.FunctionDef | ast.AsyncFunctionDef, content: str, func_start_line: int) -> bool:
         """
@@ -774,61 +769,60 @@ class ErrorHandlingAnalyzer:
         return False
     
     def _determine_operation_type(self, func_name: str, file_path: str, func_content: str | None = None) -> str:
-        """Phase 1: Determine operation type from function name, file path, and content."""
-        func_lower = func_name.lower()
-        file_lower = file_path.lower()
-        content_lower = (func_content or "").lower()
-        combined = f"{func_lower} {file_lower} {content_lower}"
-        
-        # Check for specific operation types (order matters - more specific first)
-        if any(kw in combined for kw in ['load', 'save', 'read', 'write', 'file', 'json', 'open(', 'close(']):
-            return 'file_io'
-        elif any(kw in combined for kw in ['send', 'receive', 'connect', 'request', 'discord', 'email', 'api', 'http']):
-            return 'network'
-        elif any(kw in combined for kw in ['user', 'account', 'profile', 'preference', 'task', 'schedule', 'checkin']):
-            return 'user_data'
-        elif any(kw in combined for kw in ['validate', 'check', 'verify', 'invalid', 'missing', 'required']):
-            return 'validation'
-        elif any(kw in combined for kw in ['schedule', 'task', 'reminder', 'scheduler']):
-            return 'scheduling'
-        elif any(kw in combined for kw in ['config', 'setting', 'option']):
-            return 'configuration'
-        elif any(kw in combined for kw in ['ui', 'dialog', 'widget', 'button', 'qt', 'pyqt']):
-            return 'ui'
-        elif any(kw in combined for kw in ['generate', 'process', 'analyze', 'classify', 'chatbot', 'lm_studio', 'ai']):
-            return 'ai'
-        
+        """Phase 1: Determine operation type from config phase1_keywords (error_handling.phase1_keywords)."""
+        combined = f"{func_name.lower()} {file_path.lower()} {(func_content or '').lower()}"
+
+        # Order matters: check more specific types first (matches config structure)
+        type_order = [
+            "file_io",
+            "network",
+            "user_data",
+            "validation",
+            "scheduling",
+            "configuration",
+            "ui",
+            "ai",
+            "entry_point",
+        ]
+        for op_type in type_order:
+            keywords = self.phase1_keywords.get(op_type, [])
+            if isinstance(keywords, (list, tuple)) and any(kw in combined for kw in keywords):
+                return op_type
+
         return "general"
     
     def _is_entry_point(self, func_name: str, file_path: str, func_content: str | None = None) -> bool:
-        """Phase 1: Check if function is an entry point."""
+        """Phase 1: Check if function is an entry point (uses config phase1_keywords.entry_point)."""
         func_lower = func_name.lower()
         file_lower = file_path.lower()
         content_lower = (func_content or "").lower()
-        
-        # Check function name
-        if any(keyword in func_lower for keyword in ['handle', 'on_', 'command', 'handler', 'main', 'run', 'start']):
-            return True
-        
-        # Check file path for common entry point locations
-        if 'command_handlers' in file_lower or 'communication_channels' in file_lower:
-            return True
-        
-        # Check if it's a UI event handler
-        if 'ui' in file_lower and ('on_' in func_lower or 'clicked' in func_lower):
-            return True
-        
-        # Check content for entry point patterns
-        if content_lower:
-            if any(kw in content_lower for kw in ['@app.route', '@command', '@handler', 'command_handler', 'event_handler']):
+
+        entry_keywords = self.phase1_keywords.get("entry_point", [])
+        if isinstance(entry_keywords, (list, tuple)):
+            if any(kw in func_lower for kw in entry_keywords):
                 return True
-        
+
+        # Check file path for common entry point locations
+        if "command_handlers" in file_lower or "communication_channels" in file_lower:
+            return True
+
+        # Check if it's a UI event handler
+        if "ui" in file_lower and ("on_" in func_lower or "clicked" in func_lower):
+            return True
+
+        # Check content for entry point patterns
+        if content_lower and any(
+            kw in content_lower
+            for kw in ["@app.route", "@command", "@handler", "command_handler", "event_handler"]
+        ):
+            return True
+
         # Protected/magic methods are usually not entry points
-        if func_name.startswith('_') and not func_name.startswith('__'):
+        if func_name.startswith("_") and not func_name.startswith("__"):
             return False
-        if func_name.startswith('__') and func_name.endswith('__'):
+        if func_name.startswith("__") and func_name.endswith("__"):
             return False
-        
+
         return False
     
     def _determine_phase1_priority(self, operation_type: str, is_entry_point: bool) -> str:

@@ -33,6 +33,14 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-22 - List consolidation; LIST_OF_LISTS §15; static check, error-handling, registry, exclusions; path drift and AI_PRIORITIES
+- **LIST_OF_LISTS §15 (Next action steps)**: Documented planned relocations. Implemented: (1) Static check `EXCLUDED_DIRS`, `ALLOWED_LOGGING_IMPORT_PATHS` → config `static_checks.channel_loggers`; (2) Error-handling keywords derived from `critical_function_keywords` and `phase1_keywords` (removed redundant hardcoded lists); (3) `generate_function_registry` `directory_descriptions`, `common_operations_priority_order`, `entry_point_descriptions`, `decision_trees` → config; (4) Exclusions merge strategy: `base_exclusions_additions`, `base_exclusions_removals` in config.
+- **Consolidation scan (§9b)**: Project-specific constants moved to config; generic defaults in code.
+- **Path drift**: LIST_OF_LISTS table cells and prose references updated from bare `standard_exclusions.py`, `constants.py`, `audit_tiers.py` to full paths `development_tools/shared/...`; AI_FUNCTION_REGISTRY regenerated (config `decision_trees` now uses `ui/ui_app_qt.py` instead of removed `ui/main_window.py`); path drift cleared.
+- **analyze_function_patterns**: `entry_point_names`, `data_access_keywords`, `communication_keywords`, `decorator_names` moved to config `analyze_function_patterns`; config.py defaults; projects override via development_tools_config.json.
+- **Ruff**: SIM108 simplified ternary in generate_function_registry; F401 unused Path import removed from generate_test_coverage_report.
+- **Impact**: Projects customize logging check exclusions, error-handling keywords, function registry layout, and exclusion merge via config. Documentation path drift resolved; Ruff clean.
+
 ### 2026-03-21 - Coverage: --cov-append for per-worker files; all domains in report; combine logic fix
 - **Coverage fix**: `run_test_coverage.py` — added `--cov-append` to the parallel pytest coverage run so pytest-cov enables data_suffix and each xdist worker writes its own `.coverage_parallel.<suffix>` file (without it, workers may overwrite a single file). Also expanded shard discovery to find all `.coverage_parallel.*` and copy to `.coverage.<suffix>` before combine.
 - **Critical combine fix**: Corrected inverted if/else in the combine block (lines ~2553–2576). When coverage files existed (parallel_exists, no_parallel_exists, parallel_shard_files, or _has_coverage_fallback), the code entered the `if` block and only logged "Combining coverage data..." then exited without running the combine logic. The combine logic (copy files, run `coverage combine`, regenerate JSON) was incorrectly placed in the `else` branch, which ran only when no files existed. Swapped the branches so combine runs when files exist; the warning is emitted only when none are found.

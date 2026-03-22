@@ -699,6 +699,28 @@ def get_analyze_function_registry_config():
     return AUDIT_FUNCTION_REGISTRY
 
 
+# Function pattern analysis (entry points, data access, communication, decorators)
+# Projects can override via analyze_function_patterns in development_tools_config.json
+ANALYZE_FUNCTION_PATTERNS = {
+    "entry_point_names": ["handle_message", "generate_response", "main", "__init__"],
+    "data_access_keywords": ["get_user", "save_user", "load_user", "save_", "load_"],
+    "communication_keywords": ["send_", "receive_", "connect_", "disconnect_", "message"],
+    "decorator_names": ["handle_errors", "handle_error", "log_execution"],
+}
+
+
+def get_analyze_function_patterns_config():
+    """Get function pattern analysis configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value("analyze_function_patterns", None)
+    if external_config:
+        result = ANALYZE_FUNCTION_PATTERNS.copy()
+        for key in ("entry_point_names", "data_access_keywords", "communication_keywords", "decorator_names"):
+            if key in external_config and isinstance(external_config[key], (list, tuple)):
+                result[key] = list(external_config[key])
+        return result
+    return ANALYZE_FUNCTION_PATTERNS.copy()
+
+
 # Duplicate function analysis configuration
 ANALYZE_DUPLICATE_FUNCTIONS = {
     "use_mtime_cache": True,
@@ -972,6 +994,38 @@ def get_static_analysis_config():
         if "ruff_command" not in external_config:
             result["ruff_command"] = _get_ruff_command()
     return result
+
+
+# Static check: channel_loggers (logging style enforcement)
+# Directory exclusion uses shared should_exclude_file; excluded_dirs and allowed_logging_import_paths are project-specific.
+STATIC_CHECK_CHANNEL_LOGGERS_DEFAULT = {
+    "excluded_dirs": ["tests", "scripts", "ai_tools", "development_tools"],
+    "allowed_logging_import_paths": [
+        "core/logger.py",
+        "core/error_handling.py",
+        "core/service.py",
+        "run_tests.py",
+    ],
+}
+
+
+def get_static_check_channel_loggers_config():
+    """Get channel_loggers static check config (excluded_dirs, allowed_logging_import_paths).
+    Directory exclusion: use should_exclude_file for generic paths; excluded_dirs for project-specific skip.
+    """
+    external = _get_external_value("static_checks.channel_loggers", None)
+    if isinstance(external, dict):
+        result = STATIC_CHECK_CHANNEL_LOGGERS_DEFAULT.copy()
+        if "excluded_dirs" in external and isinstance(external["excluded_dirs"], (list, tuple)):
+            result["excluded_dirs"] = list(external["excluded_dirs"])
+        if "allowed_logging_import_paths" in external and isinstance(
+            external["allowed_logging_import_paths"], (list, tuple)
+        ):
+            result["allowed_logging_import_paths"] = [
+                str(p) for p in external["allowed_logging_import_paths"]
+            ]
+        return result
+    return STATIC_CHECK_CHANNEL_LOGGERS_DEFAULT.copy()
 
 
 # Coverage runtime worker defaults for orchestration helpers.

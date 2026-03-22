@@ -124,14 +124,35 @@ def _get_exclusions_config_safe():
 
 
 def _load_base_exclusions() -> list[str]:
-    """Load universal exclusions from config or return defaults."""
+    """Load universal exclusions from config with additive/merge strategy.
+
+    - If base_exclusions in config: use as starting point (full list, backward compat).
+    - Else: start from _DEFAULT_BASE_EXCLUSIONS.
+    - If base_exclusions_additions: extend with those patterns.
+    - If base_exclusions_removals: remove those patterns from the result.
+    """
     exclusions_config = _get_exclusions_config_safe()
-    if exclusions_config and "base_exclusions" in exclusions_config:
-        return exclusions_config["base_exclusions"]
-    return _DEFAULT_BASE_EXCLUSIONS.copy()
+    if not exclusions_config:
+        return _DEFAULT_BASE_EXCLUSIONS.copy()
+
+    if "base_exclusions" in exclusions_config:
+        result = list(exclusions_config["base_exclusions"])
+    else:
+        result = _DEFAULT_BASE_EXCLUSIONS.copy()
+
+    additions = exclusions_config.get("base_exclusions_additions", [])
+    if isinstance(additions, (list, tuple)):
+        result.extend(str(p) for p in additions)
+
+    removals = exclusions_config.get("base_exclusions_removals", [])
+    if isinstance(removals, (list, tuple)):
+        removal_set = frozenset(str(p) for p in removals)
+        result = [p for p in result if p not in removal_set]
+
+    return result
 
 
-# Universal exclusions - start from config or fall back to defaults
+# Universal exclusions - loaded with merge strategy
 BASE_EXCLUSIONS = _load_base_exclusions()
 
 # Default tool-specific exclusions (empty by default - projects can override via config)

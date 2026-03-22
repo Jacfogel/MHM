@@ -86,7 +86,11 @@ def test_check_file_allows_logging_import_for_allowlisted_path(tmp_path: Path):
 
     with (
         patch.object(check_channel_loggers, "REPO_ROOT", tmp_path),
-        patch.object(check_channel_loggers, "ALLOWED_LOGGING_IMPORT_PATHS", {Path("core/logger.py")}),
+        patch.object(
+            check_channel_loggers,
+            "_get_allowed_logging_import_paths",
+            return_value={Path("core/logger.py")},
+        ),
     ):
         issues = list(check_channel_loggers.check_file(target))
 

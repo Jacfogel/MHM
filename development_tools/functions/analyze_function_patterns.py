@@ -33,8 +33,25 @@ config.load_external_config()
 logger = get_component_logger("development_tools")
 
 
+def _get_pattern_config():
+    """Load pattern keywords from config (entry points, data access, communication, decorators)."""
+    try:
+        if hasattr(config, "get_analyze_function_patterns_config"):
+            return config.get_analyze_function_patterns_config()
+    except Exception:
+        pass
+    # Fallback when config unavailable
+    return {
+        "entry_point_names": ["handle_message", "generate_response", "main", "__init__"],
+        "data_access_keywords": ["get_user", "save_user", "load_user", "save_", "load_"],
+        "communication_keywords": ["send_", "receive_", "connect_", "disconnect_", "message"],
+        "decorator_names": ["handle_errors", "handle_error", "log_execution"],
+    }
+
+
 def analyze_function_patterns(actual_functions: dict[str, dict]) -> dict[str, Any]:
     """Analyze function patterns for AI consumption - enhanced with more pattern detection."""
+    pattern_config = _get_pattern_config()
     patterns = {
         "handlers": [],
         "managers": [],
@@ -166,8 +183,8 @@ def analyze_function_patterns(actual_functions: dict[str, dict]) -> dict[str, An
             func_lower = func_name.lower()
             decorators = func.get("decorators", [])
 
-            # Entry points
-            if func_name in ["handle_message", "generate_response", "main", "__init__"]:
+            # Entry points (from config or fallback)
+            if func_name in pattern_config.get("entry_point_names", []):
                 patterns["entry_points"].append(
                     {
                         "file": file_path,
@@ -176,10 +193,10 @@ def analyze_function_patterns(actual_functions: dict[str, dict]) -> dict[str, An
                     }
                 )
 
-            # Data access
+            # Data access (from config or fallback)
             elif any(
                 keyword in func_lower
-                for keyword in ["get_user", "save_user", "load_user", "save_", "load_"]
+                for keyword in pattern_config.get("data_access_keywords", [])
             ):
                 if "test" not in file_lower:
                     patterns["data_access"].append(
@@ -190,16 +207,10 @@ def analyze_function_patterns(actual_functions: dict[str, dict]) -> dict[str, An
                         }
                     )
 
-            # Communication
+            # Communication (from config or fallback)
             elif any(
                 keyword in func_lower
-                for keyword in [
-                    "send_",
-                    "receive_",
-                    "connect_",
-                    "disconnect_",
-                    "message",
-                ]
+                for keyword in pattern_config.get("communication_keywords", [])
             ):
                 if "test" not in file_lower:
                     patterns["communication"].append(
@@ -233,9 +244,8 @@ def analyze_function_patterns(actual_functions: dict[str, dict]) -> dict[str, An
                     }
                 )
 
-            # Decorators - check if function is used as a decorator
-            # Look for functions that are commonly used as decorators
-            if func_name in ["handle_errors", "handle_error", "log_execution"]:
+            # Decorators - check if function is used as a decorator (from config or fallback)
+            if func_name in pattern_config.get("decorator_names", []):
                 patterns["decorators"].append(
                     {
                         "file": file_path,

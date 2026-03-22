@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-19 20:27:15
+> **Last Generated**: 2026-03-22 03:29:36
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -359,8 +359,6 @@ C:.
     (JSON files created by development tools)
 |   +---tests
 |   |   |   .coverage
-|   |   |   .coverage_no_parallel
-|   |   |   .coverage_parallel
 |   |   |   analyze_test_coverage.py
 |   |   |   analyze_test_markers.py
 |   |   |   coverage.ini

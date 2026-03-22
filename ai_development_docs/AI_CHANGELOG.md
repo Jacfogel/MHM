@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-22 - List consolidation; LIST_OF_LISTS §15; path drift; AI_PRIORITIES; analyze_function_patterns **Progressed**
+- LIST_OF_LISTS §15: Next action steps documented and implemented. Static check `excluded_dirs`, `allowed_logging_import_paths` → config. Error-handling keywords from config. Function registry `directory_descriptions`, `priority_order`, `decision_trees` → config. Exclusions merge: `base_exclusions_additions`, `base_exclusions_removals`.
+- **analyze_function_patterns**: entry_point_names, data_access_keywords, communication_keywords, decorator_names → config `analyze_function_patterns`; projects override as needed.
+- Path drift: LIST_OF_LISTS bare paths → full `development_tools/shared/...`. AI_FUNCTION_REGISTRY regenerated; doc-sync path drift now 0.
+- Ruff: SIM108, F401 fixes. Tests and Ruff pass. Re-run audit to refresh AI_PRIORITIES.
+
 ### 2026-03-21 - Coverage: --cov-append, all domains, and combine logic fix **COMPLETED**
 - `run_test_coverage.py`: Added `--cov-append` to parallel pytest coverage run so pytest-cov enables data_suffix and each xdist worker writes its own `.coverage_parallel.<suffix>` file. Also expanded shard discovery to find all `.coverage_parallel.*`.
 - **Critical fix**: Corrected inverted if/else in combine block—previously, when coverage files existed we only logged "Combining..." and skipped the actual combine; when no files existed we tried to combine (always failed). Now combine runs when files exist; warning only when none found.
@@ -109,11 +115,6 @@ Guidelines:
 - Moved test_isolation into test_helpers/test_support; moved test_error_handling_improvements to tests/integration/, test_run_tests_interrupts to tests/unit/; moved debug_qt_ui_windows to scripts/, debug_file_paths to tests/unit/. Updated all references and DIRECTORY_TREE.
 - Removed 6 unused imports from test_user_factory.py; `ruff check .` passes. Ran doc-fix (--fix-ascii, --convert-links) and doc-sync. Relaxed enhanced command parser memory test threshold so suite stays green.
 - Full suite: 4167 passed, 21 skipped. Use `from tests.test_helpers import ...` or subpackage paths for test utilities and support.
-
-### 2026-03-13 - Qt UI Windows skip refinement **Progressed**
-- Narrowed Windows-only Qt UI skips: centralized `skip_qt_ui_on_windows`, limited default skips to `CheckinSettingsWidget` and `ScheduleEditorDialog` behavior modules, and restructured dialog tests so non-problematic Qt dialogs still run on this PC.
-- Ensured full `python run_tests.py` suite passes here with focused 21-test skips while keeping the existing `MHM_QT_UI_FORCE` opt-in to run the previously unstable modules on machines where they succeed.
-- Updated `tests/debug_qt_ui_windows.py`, [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), and [TEST_PLAN.md](development_docs/TEST_PLAN.md) to document the current Windows Qt skip behavior and track follow-up work to reduce or remove these environment-driven skips.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

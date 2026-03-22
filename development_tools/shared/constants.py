@@ -44,6 +44,68 @@ _DEFAULT_LOCAL_MODULE_PREFIXES: tuple[str, ...] = (
     "tests",
 )
 
+# Generic fallbacks for project-specific lists (path-drift / unconverted-links).
+# Config overrides for common_function_names, common_class_names, third_party_libraries,
+# common_code_patterns. common_variable_names is non-project-specific and stays here only.
+_DEFAULT_COMMON_FUNCTION_NAMES: tuple[str, ...] = (
+    "get_logger",
+    "handle_errors",
+    "main",
+    "run",
+    "setup",
+    "teardown",
+    "process",
+    "execute",
+    "parse",
+)
+_DEFAULT_COMMON_CLASS_NAMES: tuple[str, ...] = (
+    "TestCase",
+    "BaseTestCase",
+    "BaseModel",
+    "BaseView",
+)
+_DEFAULT_THIRD_PARTY_LIBRARIES: tuple[str, ...] = (
+    "pytest",
+    "requests",
+    "aiohttp",
+    "black",
+    "flake8",
+    "mypy",
+)
+_DEFAULT_COMMON_CODE_PATTERNS: tuple[str, ...] = (
+    "unittest.TestCase",
+    "pytest.fixture",
+    "typing.",
+)
+# Non-project-specific: Python keywords and common variable names (skip when path-drift checks).
+# Not loaded from config.
+COMMON_VARIABLE_NAMES: tuple[str, ...] = (
+    "task",
+    "and",
+    "statements",
+    "from",
+    "in",
+    "to",
+    "for",
+    "with",
+    "as",
+    "if",
+    "else",
+    "elif",
+    "while",
+    "def",
+    "class",
+    "import",
+    "return",
+    "yield",
+    "try",
+    "except",
+    "finally",
+    "pass",
+    "break",
+    "continue",
+)
+
 
 def _get_constants_config_safe():
     """Safely get constants config, returning None if config not available."""
@@ -77,6 +139,16 @@ def _load_local_module_prefixes() -> tuple[str, ...]:
     if constants_config and "local_module_prefixes" in constants_config:
         return tuple(constants_config["local_module_prefixes"])
     return _DEFAULT_LOCAL_MODULE_PREFIXES
+
+
+def _load_project_specific_list(key: str, default: tuple[str, ...]) -> tuple[str, ...]:
+    """Load a project-specific list from constants config or return default."""
+    constants_config = _get_constants_config_safe()
+    if constants_config and key in constants_config:
+        val = constants_config[key]
+        if isinstance(val, (list, tuple)):
+            return tuple(str(x) for x in val)
+    return default
 
 
 # Load constants from config or use defaults
@@ -174,125 +246,25 @@ CORRUPTED_ARTIFACT_PATTERNS = (
     ("triple_question_marks", re.compile(r"\?\?\?")),
 )
 
-# Path drift detection constants
-THIRD_PARTY_LIBRARIES: tuple[str, ...] = (
-    "PyQt5",
-    "PyQt6",
-    "PySide6",
-    "discord",
-    "requests",
-    "aiohttp",
-    "pandas",
-    "numpy",
-    "matplotlib",
-    "seaborn",
-    "scipy",
-    "sklearn",
-    "tensorflow",
-    "torch",
-    "pytorch",
-    "fastapi",
-    "sqlalchemy",
-    "alembic",
-    "psycopg2",
-    "pymongo",
-    "redis",
-    "celery",
-    "gunicorn",
-    "uvicorn",
-    "pytest",
-    "black",
-    "flake8",
-    "mypy",
+# Path drift detection constants (project-specific; loaded from config)
+COMMON_FUNCTION_NAMES: tuple[str, ...] = _load_project_specific_list(
+    "common_function_names", _DEFAULT_COMMON_FUNCTION_NAMES
 )
-
-COMMON_FUNCTION_NAMES: tuple[str, ...] = (
-    "get_logger",
-    "handle_errors",
-    "safe_file_operation",
-    "get_component_logger",
-    "cleanup_old_logs",
-    "functions",
-    "statements",
-    "handle_file_error",
-    "handle_network_error",
-    "handle_communication_error",
-    "handle_configuration_error",
-    "handle_validation_error",
-    "handle_ai_error",
-    "TestUserFactory",
-    "TestDataFactory",
-    "TestPathFactory",
-    "TestConfigFactory",
+COMMON_CLASS_NAMES: tuple[str, ...] = _load_project_specific_list(
+    "common_class_names", _DEFAULT_COMMON_CLASS_NAMES
 )
-
-COMMON_CLASS_NAMES: tuple[str, ...] = (
-    "TestUserFactory",
-    "TestDataFactory",
-    "TestPathFactory",
-    "TestConfigFactory",
-    "BaseChannel",
-    "DiscordBot",
-    "EmailBot",
-    "TelegramBot",
-    "TaskManager",
-    "UserManager",
-    "ScheduleManager",
-    "CheckinManager",
-    "MessageRouter",
+THIRD_PARTY_LIBRARIES: tuple[str, ...] = _load_project_specific_list(
+    "third_party_libraries", _DEFAULT_THIRD_PARTY_LIBRARIES
 )
-
-COMMON_VARIABLE_NAMES: tuple[str, ...] = (
-    "task",
-    "and",
-    "statements",
-    "from",
-    "in",
-    "to",
-    "for",
-    "with",
-    "as",
-    "if",
-    "else",
-    "elif",
-    "while",
-    "for",
-    "def",
-    "class",
-    "import",
-    "from",
-    "return",
-    "yield",
-    "try",
-    "except",
-    "finally",
-    "with",
-    "as",
-    "pass",
-    "break",
-    "continue",
-)
-
-COMMON_CODE_PATTERNS: tuple[str, ...] = (
-    "PyQt5.QtWidgets",
-    "PyQt5.QtCore",
-    "PyQt5.QtGui",
-    "PySide6.QtWidgets",
-    "ui.dialogs.task_crud_dialog",
-    "ui.dialogs.account_creator_dialog",
-    "ui.widgets.task_settings_widget",
-    "ui.widgets.channel_selection_widget",
-    "communication.discord.bot",
-    "communication.email.bot",
-    "core.logger",
-    "core.error_handling",
-    "core.config",
-    "core.scheduler",
-    "ai.chatbot",
+COMMON_CODE_PATTERNS: tuple[str, ...] = _load_project_specific_list(
+    "common_code_patterns", _DEFAULT_COMMON_CODE_PATTERNS
 )
 
 # Common patterns that should be ignored in path drift detection
+# "paths" = config section (paths.scan_directories, etc.), not a Python module
 IGNORED_PATH_PATTERNS: tuple[str, ...] = (
+    "paths",
+    "paths.",
     "Python Official Tutorial",
     "Real Python",
     "Troubleshooting",

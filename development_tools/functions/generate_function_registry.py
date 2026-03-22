@@ -398,70 +398,50 @@ def generate_ai_function_registry_content(actual_functions: dict[str, dict]) -> 
         patterns, actual_functions
     )
 
-    # Generate dynamic decision trees (using ASCII tree characters)
-    user_data_tree = f"""User Data Operations Decision Tree:
-+-- Core Data Access
-|   +-- {format_file_entry('core/user_data_read.py', 'Primary data access', actual_functions)}
-|   +-- {format_file_entry('core/user_data_manager.py', 'Data management', actual_functions)}
-|   `-- {format_file_entry('core/user_data_validation.py', 'Validation', actual_functions)}
-+-- User Context
-|   +-- {format_file_entry('user/user_context.py', 'User context management', actual_functions)}
-|   `-- {format_file_entry('user/user_preferences.py', 'User preferences', actual_functions)}
-`-- User Data Access
-    `-- {format_file_entry('core/user_data_read.py', 'Account operations', actual_functions)}
-"""
+    # Generate dynamic decision trees from config (analyze_function_registry.decision_trees)
+    registry_config = config.get_analyze_function_registry_config()
+    decision_trees_config = registry_config.get("decision_trees", {})
 
-    ai_tree = f"""AI Operations Decision Tree:
-+-- AI Chatbot
-|   +-- {format_file_entry('ai/chatbot.py', 'Main AI implementation', actual_functions)}
-|   `-- {format_file_entry('user/context_manager.py', 'Context for AI', actual_functions)}
-+-- Command Parsing
-|   +-- {format_file_entry('communication/message_processing/command_parser.py', 'Natural language parsing', actual_functions)}
-|   `-- {format_file_entry('communication/command_handlers/interaction_handlers.py', 'Command handlers', actual_functions)}
-`-- Interaction Management
-    `-- {format_file_entry('communication/message_processing/interaction_manager.py', 'Main interaction flow', actual_functions)}
-"""
+    def _render_tree_from_config(tree_key: str, fallback_entries: list[tuple[str, str]]) -> str:
+        tree_def = decision_trees_config.get(tree_key, {}) if isinstance(decision_trees_config, dict) else {}
+        title = tree_def.get("title", f"{tree_key.replace('_', ' ').title()} Decision Tree")
+        entries = tree_def.get("entries", fallback_entries)
+        if not entries:
+            return f"{title}:\n(No entries configured)"
+        lines = [f"{title}:"]
+        for i, entry in enumerate(entries):
+            path, desc = (entry[0], entry[1]) if len(entry) >= 2 else (entry[0], "Description")
+            prefix = "`-- " if i == len(entries) - 1 else "+-- "
+            lines.append(f"{prefix}{format_file_entry(path, desc, actual_functions)}")
+        return "\n".join(lines)
 
-    comm_tree = f"""Communication Decision Tree:
-+-- Channel Management
-|   +-- {format_file_entry('communication/core/channel_orchestrator.py', 'Main communication', actual_functions)}
-|   +-- {format_file_entry('communication/communication_channels/base/base_channel.py', 'Channel base class', actual_functions)}
-|   `-- {format_file_entry('communication/core/factory.py', 'Channel creation', actual_functions)}
-+-- Specific Channels
-|   +-- {format_file_entry('communication/communication_channels/discord/bot.py', 'Discord integration', actual_functions)}
-|   `-- {format_file_entry('communication/communication_channels/email/bot.py', 'Email integration', actual_functions)}
-`-- Conversation Flow
-    `-- {format_file_entry('communication/message_processing/conversation_flow_manager.py', 'Conversation management', actual_functions)}
-"""
+    _fallback_user_data = [
+        ("core/user_data_read.py", "Primary data access"),
+        ("core/user_data_manager.py", "Data management"),
+        ("user/user_context.py", "User context management"),
+    ]
+    _fallback_ai = [
+        ("ai/chatbot.py", "Main AI implementation"),
+        ("communication/message_processing/command_parser.py", "Natural language parsing"),
+    ]
+    _fallback_comm = [
+        ("communication/core/channel_orchestrator.py", "Main communication"),
+        ("communication/communication_channels/base/base_channel.py", "Channel base class"),
+    ]
+    _fallback_ui = [
+        ("ui/ui_app_qt.py", "Main admin interface"),
+        ("ui/dialogs/account_creator_dialog.py", "Account creation"),
+    ]
+    _fallback_core = [
+        ("core/config.py", "System configuration"),
+        ("core/service.py", "Main service"),
+    ]
 
-    ui_tree = f"""UI Operations Decision Tree:
-+-- Main Application
-|   `-- {format_file_entry('ui/ui_app_qt.py', 'Main admin interface', actual_functions)}
-+-- Dialogs
-|   +-- {format_file_entry('ui/dialogs/account_creator_dialog.py', 'Account creation', actual_functions)}
-|   +-- {format_file_entry('ui/dialogs/user_profile_dialog.py', 'User profiles', actual_functions)}
-|   +-- {format_file_entry('ui/dialogs/task_management_dialog.py', 'Task management', actual_functions)}
-|   `-- {format_file_entry('ui/dialogs/schedule_editor_dialog.py', 'Schedule editing', actual_functions)}
-`-- Widgets
-    +-- {format_file_entry('ui/widgets/tag_widget.py', 'Tag management', actual_functions)}
-    +-- {format_file_entry('ui/widgets/task_settings_widget.py', 'Task settings', actual_functions)}
-    `-- {format_file_entry('ui/widgets/user_profile_settings_widget.py', 'Profile settings', actual_functions)}
-"""
-
-    core_tree = f"""Core System Decision Tree:
-+-- Configuration
-|   `-- {format_file_entry('core/config.py', 'System configuration', actual_functions)}
-+-- Error Handling
-|   `-- {format_file_entry('core/error_handling.py', 'Error management', actual_functions)}
-+-- File Operations
-|   +-- {format_file_entry('core/file_operations.py', 'File I/O', actual_functions)}
-|   `-- {format_file_entry('core/backup_manager.py', 'Backup operations', actual_functions)}
-+-- Logging
-|   `-- {format_file_entry('core/logger.py', 'Logging system', actual_functions)}
-`-- Scheduling
-    +-- {format_file_entry('core/scheduler.py', 'Task scheduling', actual_functions)}
-    `-- {format_file_entry('core/schedule_management.py', 'Schedule management', actual_functions)}
-"""
+    user_data_tree = _render_tree_from_config("user_data", _fallback_user_data)
+    ai_tree = _render_tree_from_config("ai", _fallback_ai)
+    comm_tree = _render_tree_from_config("communication", _fallback_comm)
+    ui_tree = _render_tree_from_config("ui", _fallback_ui)
+    core_tree = _render_tree_from_config("core", _fallback_core)
 
     # Generate dynamic "Areas Needing Attention" section
     high_priority_section = ""
@@ -858,14 +838,22 @@ def generate_entry_points_section(
 
         has_doc = "[OK]" if ep.get("has_doc", False) else "[X]"
 
-        # Get description based on function name
-        descriptions = {
-            "handle_message": "Main message entry point",
-            "generate_response": "AI response generation",
-            "main": "Application entry point",
-            "__init__": "Initialization",
-        }
-        description = descriptions.get(func_name, "Entry point")
+        # Get description from config (analyze_function_registry.entry_point_descriptions)
+        registry_config = config.get_analyze_function_registry_config()
+        ep_descriptions = registry_config.get(
+            "entry_point_descriptions",
+            {
+                "handle_message": "Main message entry point",
+                "generate_response": "AI response generation",
+                "main": "Application entry point",
+                "__init__": "Initialization",
+            },
+        )
+        description = (
+            ep_descriptions.get(func_name, "Entry point")
+            if isinstance(ep_descriptions, dict)
+            else "Entry point"
+        )
 
         entry_point = f"- {has_doc} `{file_path}::{func_name}()` - {description}"
 
@@ -1006,22 +994,26 @@ def generate_common_operations_section(
                 if "Configuration" not in found_ops:
                     found_ops["Configuration"] = f"`{file_path}::{func_name}()`"
 
-    # Build numbered list with priority order
-    priority_order = [
-        "User Message",
-        "AI Response",
-        "Main Entry",
-        "User Data Access",
-        "User Data Save",
-        "User Data Load",
-        "Send Message",
-        "Receive Message",
-        "Command Parsing",
-        "Validation",
-        "Error Handling",
-        "Scheduling",
-        "Configuration",
-    ]
+    # Build numbered list with priority order from config (analyze_function_registry.common_operations_priority_order)
+    registry_config = config.get_analyze_function_registry_config()
+    priority_order = registry_config.get(
+        "common_operations_priority_order",
+        [
+            "User Message",
+            "AI Response",
+            "Main Entry",
+            "User Data Access",
+            "User Data Save",
+            "User Data Load",
+            "Send Message",
+            "Receive Message",
+            "Command Parsing",
+            "Validation",
+            "Error Handling",
+            "Scheduling",
+            "Configuration",
+        ],
+    )
 
     numbered_ops = []
     counter = 1
@@ -1110,21 +1102,29 @@ def generate_file_organization_section(actual_functions: dict[str, dict]) -> str
             len(cls["methods"]) for cls in data["classes"]
         )
 
-    # Descriptions for common directories
-    descriptions = {
-        "core": "System utilities and data management",
-        "communication": "Communication channels and message processing",
-        "ai": "AI chatbot functionality",
-        "ui": "User interface components",
-        "user": "User context and preferences",
-        "tasks": "Task management system",
-        "tests": "Test suite",
-        "scripts": "Utility scripts",
-    }
+    # Descriptions from config (analyze_function_registry.directory_descriptions)
+    registry_config = config.get_analyze_function_registry_config()
+    descriptions = registry_config.get(
+        "directory_descriptions",
+        {
+            "core": "System utilities and data management",
+            "communication": "Communication channels and message processing",
+            "ai": "AI chatbot functionality",
+            "ui": "User interface components",
+            "user": "User context and preferences",
+            "tasks": "Task management system",
+            "tests": "Test suite",
+            "scripts": "Utility scripts",
+        },
+    )
+    descriptions = dict(descriptions) if isinstance(descriptions, dict) else {}
 
-    # Build organization list
+    # Build organization list; priority order from config or derive from descriptions
     org_lines = []
-    priority_dirs = ["core", "communication", "ai", "ui", "user", "tasks"]
+    priority_dirs = registry_config.get(
+        "priority_directories",
+        ["core", "communication", "ai", "ui", "user", "tasks"],
+    )
 
     for dir_name in priority_dirs:
         if dir_name in directories:

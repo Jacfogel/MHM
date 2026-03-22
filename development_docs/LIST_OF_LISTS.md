@@ -5,11 +5,11 @@
 **Purpose**: Single reference for list-like data (arrays, mappings, enumerated sets) in code and config. Align code/config first, then align docs to canonical lists.
 
 **Audience**: Maintainers, AI collaborators.  
-**Last updated**: 2026-03-20 (TIER_TITLES → tool_metadata; generated function patterns → constants)
+**Last updated**: 2026-03-22 (consolidation scan: standard_exclusions, constants, audit_tiers, config; project-specific reorganization)
 
 **Principles**: (1) Every list has a single canonical source. (2) **Project-specific** lists → `development_tools_config.json`. **Non–project-specific** lists that are used in more than one place → `development_tools/shared/common.py`, `development_tools/shared/constants.py`, or `development_tools/shared/standard_exclusions.py` as appropriate. Single-use, non–project-specific lists can stay in the single file that uses them. (3) **Consolidate when overlap is complete or appropriate**: Where lists overlap fully (e.g. subset A is entirely contained in list B), derive the subset from the canonical list instead of maintaining both. Where lists serve the same purpose with different scopes, derive from one canonical source or document when consolidation is appropriate.
 
-**Quick index**: [1](#1-development-tools-commands-and-command-groups) Commands | [2](#2-development-tools-tool-catalog-modules--scripts) Tool catalog | [2b](#2b-audit-tier-tool-lists-tier-1--2--3--which-tools-run-in-each-audit-tier) Audit tiers | [3](#3-deprecation--legacy-inventory) Deprecation | [4](#4-paired-documentation-list) Paired docs | [5](#5-exclusions-and-ignore-lists) Exclusions | [6](#6-config-and-code-constants-development_tools_configjson) Config | [7](#7-code-only-lists-in-development_tools-align-or-pull-from-canonical) Code-only lists | [7b](#7b-test-and-coverage-lists-development_toolstests) Test lists | [8](#8-other-list-like-assets) Other assets | [9](#9-alignment-workflow-summary) Alignment | [9a](#9a-consolidation-criteria-and-workflow) Consolidation | [10](#10-documentation-analysis-and-path-drift-lists-candidates-for-canonical-sources) Doc/path-drift | [11](#11-other-lists-config-functions-error_handling--migration-candidates) Migration candidates | [12](#12-lists-that-dont-yet-meet-the-principles) Violations | [13](#13-config-list-inventory-consolidation-scan) Config inventory | [14](#14-quick-reference) Quick reference
+**Quick index**: [1](#1-development-tools-commands-and-command-groups) Commands | [2](#2-development-tools-tool-catalog-modules--scripts) Tool catalog | [2b](#2b-audit-tier-tool-lists-tier-1--2--3--which-tools-run-in-each-audit-tier) Audit tiers | [3](#3-deprecation--legacy-inventory) Deprecation | [4](#4-paired-documentation-list) Paired docs | [5](#5-exclusions-and-ignore-lists) Exclusions | [6](#6-config-and-code-constants-development_tools_configjson) Config | [7](#7-code-only-lists-in-development_tools-align-or-pull-from-canonical) Code-only lists | [7b](#7b-test-and-coverage-lists-development_toolstests) Test lists | [8](#8-other-list-like-assets) Other assets | [9](#9-alignment-workflow-summary) Alignment | [9a](#9a-consolidation-criteria-and-workflow) Consolidation | [9b](#9b-consolidation-scan-standard_exclusions-constants-audit_tiers-development_tools_config) Scan (4 files) | [10](#10-documentation-analysis-and-path-drift-lists-candidates-for-canonical-sources) Doc/path-drift | [11](#11-other-lists-config-functions-error_handling--migration-candidates) Migration candidates | [12](#12-lists-that-dont-yet-meet-the-principles) Violations | [13](#13-config-list-inventory-consolidation-scan) Config inventory | [14](#14-quick-reference) Quick reference | [15](#15-next-action-steps-list-relocation) Next steps
 
 ---
 
@@ -131,7 +131,7 @@ These lists live only in code. Many should pull from config or a single code can
 | **Placeholder patterns (documentation)** | `development_tools/docs/analyze_documentation.py` — `PLACEHOLDER_PATTERNS` | Config `documentation_analysis.placeholder_patterns` in `development_tools_config.json`. | Canonical in config; analyze_documentation builds PLACEHOLDER_PATTERNS only from config (no hardcoded override). |
 | **Required legacy pattern keys** | `development_tools/legacy/fix_legacy_references.py` — `REQUIRED_LEGACY_PATTERN_KEYS` | Fixed schema. | Low drift. |
 | **Known deleted files** | `development_tools_config.json` — `data_freshness.known_deleted_files` | Config canonical; data_freshness_audit uses `get_data_freshness_config()`. | |
-| **Static check allowlists/sets** | `development_tools/static_checks/check_channel_loggers.py` — `LOG_METHODS`, `EXCLUDED_DIRS`, `IGNORED_DIR_NAMES`, `ALLOWED_LOGGING_IMPORT_PATHS`; also `fallback_fragments` (path fragments to exclude, inside function) | Hardcoded for checker. | Could move to config if projects need to customize. |
+| **Static check allowlists/sets** | `development_tools/static_checks/check_channel_loggers.py` — `LOG_METHODS`, `IGNORED_DIR_NAMES` (code); `excluded_dirs`, `allowed_logging_import_paths` from config `static_checks.channel_loggers` | Config for project-specific dirs/import paths; code for generic method names and dir names. | **Done** — EXCLUDED_DIRS and ALLOWED_LOGGING_IMPORT_PATHS → config; `should_exclude_file` for dir exclusion. |
 | **Output storage domain directories** | `development_tools/shared/output_storage.py` — `domains` derived from `EXPECTED_TOOLS` in `aggregate_all_tool_results()` | Used when collecting/listing tool result dirs | Derived from `verify_tool_storage.EXPECTED_TOOLS` (unique domain names); single canonical source. |
 | **Tool/context exclusions and historical preserve** | `development_tools/shared/standard_exclusions.py` — `TOOL_EXCLUSIONS`, `CONTEXT_EXCLUSIONS`, `HISTORICAL_PRESERVE_FILES` | From config `exclusions.tool_exclusions`, `exclusions.context_exclusions`, `exclusions.historical_preserve_files`; defaults in module. | CONTEXT_EXCLUSIONS includes `recent_changes` (built from generated files). |
 | **Doc snapshot / export discovery** | `development_tools/shared/standard_exclusions.py` — `DOC_EXPORT_BASE_EXCLUDE_GLOBS`; `development_tools/shared/export_docs_snapshot.py` imports it as `BASE_EXCLUDE_GLOBS` | Single canonical source in standard_exclusions. | Doc discovery and filtering; overlaps conceptually with base exclusions. |
@@ -196,7 +196,7 @@ Lists used by test coverage, test markers, and dev-tools coverage cache. Project
 | fix_version_sync category lists | Complete subset | `fix_version_sync.docs` | `communication_docs`, `core_docs`, `logs_docs`, `scripts_docs`, `tests_docs` | **Done** — derived from docs by path prefix; config override optional |
 | fix_version_sync.exclude_patterns | Conceptual overlap | `get_exclusions("fix_version_sync", "development")` | — | **Done** — uses canonical exclusions; config key removed |
 | file_patterns.exclude_patterns | Conceptual overlap | `exclusions.base_exclusions` | — | **Done** — removed from config; use exclusions.base_exclusions |
-| scan_directories, core_modules, project_directories | Complete overlap | `constants.local_module_prefixes` | scan_directories (via get_scan_directories_derived), core_modules, project_directories | **Done** — derived in `development_tools/shared/constants.py`; config override optional (paths.scan_directories, constants.project_directories, constants.core_modules) |
+| scan_directories, core_modules, project_directories | Complete overlap | `constants.local_module_prefixes` | scan_directories (via get_scan_directories_derived), core_modules, project_directories | **Done** — derived in `development_tools/shared/constants.py`; config override optional (`paths.scan_directories`, `constants.project_directories`, `constants.core_modules` in development_tools_config.json) |
 | **ruff_command** (unused_imports + static_analysis) | Redundant maintenance | `tool_commands.ruff_command` | `unused_imports.ruff_command`, `static_analysis.ruff_command` | **Done** — config.py `_get_ruff_command()`; both sections derive; per-section override optional |
 | **test_markers.directory_to_marker** (identity map) | Redundant | `test_markers.categories` | `directory_to_marker` | **Done** — `get_test_markers_config()` derives from categories when absent; config override for non-identity |
 | **historical_preserve_files** vs **tool_exclusions.documentation** | Partial overlap | — | — | **Resolved (no consolidation)** — historical_preserve = cleanup preserve (patterns); tool_exclusions.documentation = scan exclusions. Both include `development_docs/changelog_history/`; intentionally separate. |
@@ -205,6 +205,51 @@ Lists used by test coverage, test markers, and dev-tools coverage cache. Project
 | **project.key_files** vs **project.core_system_files** | Partial overlap | `project.key_files` | `core_system_files` | **Assess (deferred)** — core_system_files falls back to key_files; overlap (core/config.py, run_mhm.py). core_system = version-sync subset; could derive from key_files via well-defined filter; low priority. |
 | **TIER_TITLES** (tool_guide) | Redundant | `tool_metadata` | `tool_guide` | **Done** — TIER_TITLES moved to tool_metadata; tool_guide imports. |
 | **Generated function patterns** (exclusion_utilities) | Multi-use | `development_tools/shared/constants.py` | exclusion_utilities | **Done** — AUTO_GENERATED_FILE_PATTERNS, EXACT_GENERATED_NAMES, GENERATED_NAME_PATTERNS in constants; exclusion_utilities imports. |
+
+---
+
+## 9b. Consolidation scan: standard_exclusions, constants, audit_tiers, development_tools_config
+
+**Purpose**: Inventory lists across these four files; identify consolidation opportunities; ensure project-specific lists live in config and non–project-specific lists do not.
+
+### Lists by file
+
+| File | List(s) | Project-specific? | Canonical / action |
+|------|---------|-------------------|--------------------|
+| **development_tools/shared/standard_exclusions.py** | `_DEFAULT_BASE_EXCLUSIONS` | No (generic patterns) | Keep in code; config `exclusions.base_exclusions` overrides fully when present |
+| | `BASE_EXCLUSIONS`, `TOOL_EXCLUSIONS`, `CONTEXT_EXCLUSIONS` | Loaded from config | Config canonical; code has fallbacks |
+| | `GENERATED_FILES`, `BASE_EXCLUSION_SHORTLIST`, `HISTORICAL_PRESERVE_FILES` | Yes (project paths) | Config `exclusions.*` canonical |
+| | `DOC_EXPORT_BASE_EXCLUDE_GLOBS` | No (generic doc-export globs) | Keep in code |
+| | `DOC_SYNC_PLACEHOLDERS` | Optional (customizable per project) | Keep in code; add config override if projects need to customize |
+| **development_tools/shared/constants.py** | `DEFAULT_DOCS`, `PAIRED_DOCS`, `LOCAL_MODULE_PREFIXES` | Yes | Config `constants.*` canonical |
+| | `COMMON_FUNCTION_NAMES`, `COMMON_CLASS_NAMES` | **Yes** (MHM handlers, classes) | **Done** — config `constants.common_function_names`, `constants.common_class_names`; constants.py loads with fallback |
+| | `THIRD_PARTY_LIBRARIES` | **Yes** (project deps: discord, PyQt, etc.) | **Done** — config `constants.third_party_libraries`; constants.py loads with fallback |
+| | `COMMON_CODE_PATTERNS` | **Yes** (project module paths) | **Done** — config `constants.common_code_patterns`; constants.py loads with fallback |
+| | `COMMON_VARIABLE_NAMES` | No (Python keywords / generic) | Stays in development_tools/shared/constants.py only; not in config |
+| | `STANDARD_LIBRARY_*`, `SPECIAL_METHODS`, `CONTEXT_METHODS` | No | Keep in code |
+| | `IGNORED_PATH_PATTERNS`, `COMMAND_PATTERNS`, path-drift constants | No | Keep in code |
+| | `AUTO_GENERATED_FILE_PATTERNS`, `EXACT_GENERATED_NAMES`, `GENERATED_NAME_PATTERNS` | Borderline (PyQt-common) | Keep in code; config override optional |
+| **development_tools/shared/audit_tiers.py** | `TIER1_TOOL_NAMES`, `TIER2_TOOL_NAMES`, `TIER3_TOOL_NAMES` | No (framework: dev-tools tier structure) | Keep in code; do **not** move to config |
+| | `get_tier1_groups`, `get_tier2_groups`, `get_tier3_groups` | No | Derived from tier names; keep in code |
+| **development_tools_config.json** | `quick_audit.audit_scripts` | Yes (which scripts run in quick audit) | Correct in config |
+| | `exclusions.*`, `constants.*` (existing) | Yes | Correct in config |
+| | `path_drift.legacy_documentation_files`, `data_freshness.known_deleted_files` | Yes | Correct in config |
+| | `legacy_cleanup.legacy_patterns`, `domain_mapper.*` | Yes | Correct in config |
+
+### Consolidation opportunities
+
+| Opportunity | Overlap | Action |
+|-------------|---------|--------|
+| **constants common_* / third_party** | Project-specific values hardcoded in constants.py | **Done** — moved to config; constants.py loads with fallback |
+| **exclusions.base_exclusions** vs `_DEFAULT_BASE_EXCLUSIONS` | Config replaces entirely; duplicates generic items | Optional: add merge strategy (config adds/removes from defaults) to reduce duplication; lower priority |
+| **audit_tiers** group names vs flat TIER*_TOOL_NAMES | Groups are execution-order subsets | Could derive from tier names + grouping map; adds complexity; defer |
+| **test_markers** (config vs constants defaults) | Config overrides; constants has generic defaults | Already correct; config can omit when matching defaults |
+
+### Organization summary
+
+- **Project-specific → config**: `common_function_names`, `common_class_names`, `third_party_libraries`, `common_code_patterns` (added under `constants`).
+- **Non–project-specific → code**: `audit_tiers` tier tool names, `COMMON_VARIABLE_NAMES` (Python keywords), `DOC_EXPORT_BASE_EXCLUDE_GLOBS`, `STANDARD_LIBRARY_*`, `SPECIAL_METHODS`, `COMMAND_PATTERNS`, path-drift constants, etc. Remain in `development_tools/shared/standard_exclusions.py` / `development_tools/shared/constants.py` / `development_tools/shared/audit_tiers.py`.
+- **Config-driven with code fallbacks**: All exclusion lists, `constants` docs/paired/local_module_prefixes, `test_markers`; code provides generic defaults when config is absent.
 
 ---
 
@@ -248,12 +293,12 @@ Focus: lists used in **2+ places** or with **project-specific** content. Many al
 | **phase1_keywords** | `development_tools/error_handling/analyze_error_handling.py` | No | Partially | Could move to config `error_handling.phase1_keywords` |
 | **special_methods** (exclude from error handling) | `development_tools/error_handling/analyze_error_handling.py` | Maybe (exclusion_utilities has similar) | No | `development_tools/shared/constants.py` or shared with exclusion_utilities |
 | **file_io / network keyword lists** (717–718, 721–722, 783–799) | `development_tools/error_handling/analyze_error_handling.py` | Yes (repeated) | Partially | Derive from config `critical_function_keywords` where possible |
-| **analyze_function_patterns** (patterns dict, singleton methods, entry point names) | `development_tools/functions/analyze_function_patterns.py` | Overlaps analyze_functions keywords | Partially | config `analyze_functions` or constants; unify with handler_keywords |
+| **analyze_function_patterns** (entry_point_names, data_access_keywords, etc.) | `development_tools/functions/analyze_function_patterns.py` | Overlaps analyze_functions keywords | Partially | **Done** — config `analyze_function_patterns`; config.py defaults |
 | **analyze_functions** keyword list (357–366) | `development_tools/functions/analyze_functions.py` | Yes (config has handler_keywords) | — | Already from config `analyze_functions.handler_keywords` |
 | **fix_function_docstrings** special_method_docs, func_type list | `development_tools/functions/fix_function_docstrings.py` | No | No | `development_tools/shared/constants.py` if shared elsewhere |
 | **generate_function_registry** descriptions, pattern_order, priority_order, trees | `development_tools/functions/generate_function_registry.py` | No | Yes (project structure) | Config or keep in script; large report-content lists |
 
-**Summary**: `error_handling` and `analyze_functions` sections in development_tools_config.json are already the canonical source for many of these; scripts fall back to config.py defaults. **Done**: (1) legacy_documentation_files → config `path_drift.legacy_documentation_files`; (2) analyze_config expected_config_functions + required_sections → config `analyze_config` (with defaults in config.py CONFIG_VALIDATOR). Next candidates: error_handling special_methods → constants if unified with exclusion_utilities; phase1_keywords → config.
+**Summary**: `error_handling` and `analyze_functions` sections in development_tools_config.json are already the canonical source for many of these; scripts fall back to config.py defaults. **Done**: legacy_documentation_files → config; analyze_config → config; phase1_keywords → config; analyze_function_patterns entry_point_names, data_access_keywords, communication_keywords, decorator_names → config `analyze_function_patterns`. special_methods already in constants (analyze_error_handling imports from constants).
 
 ---
 
@@ -266,7 +311,7 @@ Evaluation against: (1) Single canonical source. (2) Project-specific → `devel
 | List (or group) | Section | Violation | Issue | Suggested fix | Status |
 |-----------------|---------|-----------|--------|----------------|--------|
 | **SOURCE_TO_TEST_MAPPING**, **DOMAIN_DEPENDENCIES**, **keyword_map** (domain_mapper.py) | 7b | P | Project-specific test layout; hardcoded. | Move to config `domain_mapper` section. | **Fixed** — config `domain_mapper.source_to_test_mapping`, `domain_mapper.domain_dependencies`, `domain_mapper.keyword_map`; domain_mapper.py loads via `get_domain_mapper_config()`. |
-| **Static check allowlists** (check_channel_loggers) | 7 | ? | Single-use; if projects need to customize, not in config. | Leave as-is until needed; then add config keys. | Open (optional). |
+| **Static check allowlists** (check_channel_loggers) | 7 | ? | Project-specific dirs/import paths. | Config `static_checks.channel_loggers`. | **Fixed** — excluded_dirs, allowed_logging_import_paths in config; LOG_METHODS and IGNORED_DIR_NAMES stay in code (generic). |
 | **Doc-sync placeholders** (standard_exclusions.DOC_SYNC_PLACEHOLDERS) | 7 | ? | Hardcoded; could be project-specific. | Move to config only if projects need to customize. | Open (optional). |
 | **SCRIPT_REGISTRY** (tool_name → path) | 2 | S | Duplicate of _TOOLS path data; doc says "should be derived from _TOOLS". | Derive SCRIPT_REGISTRY from `tool_metadata._TOOLS` (ToolInfo.path) so paths have one source. | **Fixed**: `get_script_registry()` in tool_metadata builds from _TOOLS. |
 | **_CACHE_AWARE_TOOLS** | 2 | S / M | Subset of tool names lives in audit_orchestration; could drift from _TOOLS. | Move to `tool_metadata` or config; consumers import from there. | **Fixed**: Now `tool_metadata.CACHE_AWARE_TOOLS`; audit_orchestration imports it. |
@@ -327,4 +372,23 @@ Config keys that are list-like or array-valued. Use for consolidation audits.
 | Add a path-drift exclusion | `development_tools_config.json` — `path_drift.legacy_documentation_files` |
 | Change tier display labels | `development_tools/shared/tool_metadata.py` — `TIER_TITLES` |
 | Change generated function patterns (PyQt, etc.) | `development_tools/shared/constants.py` — `AUTO_GENERATED_FILE_PATTERNS`, `EXACT_GENERATED_NAMES`, `GENERATED_NAME_PATTERNS` |
+
+---
+
+## 15. Next action steps (list relocation)
+
+Planned relocations and changes, with status.
+
+| # | Item | Action | Status |
+|---|------|--------|--------|
+| 1 | **Doc-sync placeholders** | Leave in `development_tools/shared/standard_exclusions.py`; no action needed | **Accepted** — fine where it is |
+| 2 | **Static check allowlists** (check_channel_loggers) | `EXCLUDED_DIRS` and `ALLOWED_LOGGING_IMPORT_PATHS` → config `static_checks.channel_loggers`; use `should_exclude_file` for directory exclusion | **Done** |
+| 2a | | `LOG_METHODS` and `IGNORED_DIR_NAMES` stay in code (not project-specific) | — |
+| 2b | | Directory exclusion: use shared `should_exclude_file`; excluded_dirs from config | — |
+| 3 | **Error-handling file_io / network keyword lists** | Derive from config `error_handling.critical_function_keywords` and `phase1_keywords` | **Done** |
+| 4 | **generate_function_registry report lists** | Move `descriptions`, `priority_order`, `trees` → config `analyze_function_registry` | **Done** |
+| 4a | | `pattern_order` stays in code (less project-specific); not a priority to move | — |
+| 5 | **fix_function_docstrings special_method_docs** | Single-use (only in fix_function_docstrings.py); no shared consumers | **Accepted** — no relocation |
+| 6 | **analyze_function_patterns patterns** | `entry_point_names`, `data_access_keywords`, `communication_keywords`, `decorator_names` → config `analyze_function_patterns`; config.py defaults, projects override | **Done** |
+| 7 | **exclusions.base_exclusions merge strategy** | Additive/merge: `base_exclusions_additions`, `base_exclusions_removals`; merge with defaults or base_exclusions | **Done** |
 

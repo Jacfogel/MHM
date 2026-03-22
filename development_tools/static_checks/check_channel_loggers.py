@@ -3,10 +3,11 @@ Static logging style enforcement for MHM.
 
 Rules enforced (fail on violation):
 - Application code must not import `logging` directly or call `logging.getLogger(...)`.
-  Allowed: tests/, scripts/, ai_tools/, development_tools/, and explicit allowlist files.
+  Allowed: excluded dirs (from config) and explicit allowlist files (from config).
 - Logger calls must use a single positional argument (favor f-strings instead of printf-style formatting).
 
-This script is intended for CI/automation usage and is idempotent.
+Directory exclusion uses shared should_exclude_file; project-specific excluded_dirs and
+allowed_logging_import_paths come from config (static_checks.channel_loggers).
 """
 from __future__ import annotations
 
@@ -20,7 +21,7 @@ from collections.abc import Iterable
 REPO_ROOT = Path(__file__).resolve().parents[2]
 LOG_METHODS = {"debug", "info", "warning", "error", "exception", "critical"}
 
-EXCLUDED_DIRS = {"tests", "scripts", "ai_tools", "development_tools"}
+# Non-project-specific: dir names to skip during walk (should_exclude_file covers most)
 IGNORED_DIR_NAMES = {
     ".git",
     ".venv",
@@ -37,12 +38,44 @@ IGNORED_DIR_NAMES = {
     "htmlcov",
     "mhm.egg-info",
 }
-ALLOWED_LOGGING_IMPORT_PATHS = {
-    Path("core/logger.py"),
-    Path("core/error_handling.py"),
-    Path("core/service.py"),
-    Path("run_tests.py"),
-}
+
+
+def _get_channel_loggers_config():
+    """Load excluded_dirs and allowed_logging_import_paths from config."""
+    try:
+        from development_tools import config
+
+        config.load_external_config()
+        if hasattr(config, "get_static_check_channel_loggers_config"):
+            return config.get_static_check_channel_loggers_config()
+    except Exception:
+        pass
+    return {
+        "excluded_dirs": ["tests", "scripts", "ai_tools", "development_tools"],
+        "allowed_logging_import_paths": [
+            "core/logger.py",
+            "core/error_handling.py",
+            "core/service.py",
+            "run_tests.py",
+        ],
+    }
+
+
+_channel_loggers_config = None
+
+
+def _get_excluded_dirs():
+    global _channel_loggers_config
+    if _channel_loggers_config is None:
+        _channel_loggers_config = _get_channel_loggers_config()
+    return set(_channel_loggers_config.get("excluded_dirs", []))
+
+
+def _get_allowed_logging_import_paths():
+    global _channel_loggers_config
+    if _channel_loggers_config is None:
+        _channel_loggers_config = _get_channel_loggers_config()
+    return {Path(p) for p in _channel_loggers_config.get("allowed_logging_import_paths", [])}
 
 
 def _load_should_exclude_file():
@@ -85,7 +118,8 @@ should_exclude_file = _load_should_exclude_file()
 
 
 def is_excluded(path: Path) -> bool:
-    return any(part in EXCLUDED_DIRS for part in path.parts)
+    """Check if path should be excluded (project-specific dirs from config)."""
+    return any(part in _get_excluded_dirs() for part in path.parts)
 
 
 def has_logger_name(node: ast.AST) -> bool:
@@ -106,7 +140,7 @@ def check_file(path: Path) -> Iterable[str]:
     if is_excluded(rel_path):
         return []
 
-    allow_logging_imports = rel_path in ALLOWED_LOGGING_IMPORT_PATHS
+    allow_logging_imports = rel_path in _get_allowed_logging_import_paths()
 
     try:
         tree = ast.parse(path.read_text(encoding='utf-8'))

@@ -159,7 +159,7 @@ class TestCoverageReportGenerator:
         if not configured_domains:
             try:
                 import configparser
-                from pathlib import Path
+
                 cov_ini = self.project_root / "development_tools" / "tests" / "coverage.ini"
                 if cov_ini.exists():
                     parser = configparser.ConfigParser()

@@ -576,6 +576,13 @@
       "test_ai"
     ]
   },
+  "analyze_function_patterns": {
+    "_comment": "Function pattern keywords for analyze_function_patterns. Override to match project structure.",
+    "entry_point_names": ["handle_message", "generate_response", "main", "__init__"],
+    "data_access_keywords": ["get_user", "save_user", "load_user", "save_", "load_"],
+    "communication_keywords": ["send_", "receive_", "connect_", "disconnect_", "message"],
+    "decorator_names": ["handle_errors", "handle_error", "log_execution"]
+  },
   "analyze_function_registry": {
     "_comment": "Audit function registry settings",
     "registry_path": "development_docs/FUNCTION_REGISTRY_DETAIL.md",

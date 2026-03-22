@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-19 20:27:05
+> **Last Generated**: 2026-03-22 03:29:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -21,76 +21,42 @@
 ### **[USER DATA] Need to Handle User Data?**
 ```
 User Data Operations Decision Tree:
-+-- Core Data Access
-|   +-- `core/user_data_read.py` - Primary data access (5 functions)
-|   +-- `core/user_data_manager.py` - Data management (66 functions)
-|   `-- `core/user_data_validation.py` - Validation (9/12 functions)
-+-- User Context
-|   +-- `user/user_context.py` - User context management (20 functions)
-|   `-- `user/user_preferences.py` - User preferences (20 functions)
-`-- User Data Access
-    `-- `core/user_data_read.py` - Account operations (5 functions)
-```
++-- `core/user_data_read.py` - Primary data access (5 functions)
++-- `core/user_data_manager.py` - Data management (66 functions)
++-- `core/user_data_validation.py` - Validation (9/12 functions)
++-- `user/user_context.py` - User context management (20 functions)
++-- `user/user_preferences.py` - User preferences (20 functions)
+`-- `core/user_data_read.py` - Account operations (5 functions)```
 
 ### **[AI] Need AI/Chatbot Functionality?**
 ```
 AI Operations Decision Tree:
-+-- AI Chatbot
-|   +-- `ai/chatbot.py` - Main AI implementation (85 functions)
-|   `-- `user/context_manager.py` - Context for AI (24 functions)
-+-- Command Parsing
-|   +-- `communication/message_processing/command_parser.py` - Natural language parsing (43 functions)
-|   `-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
-`-- Interaction Management
-    `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (48/50 functions)
-```
++-- `ai/chatbot.py` - Main AI implementation (85 functions)
++-- `user/context_manager.py` - Context for AI (24 functions)
++-- `communication/message_processing/command_parser.py` - Natural language parsing (43 functions)
++-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
+`-- `communication/message_processing/interaction_manager.py` - Main interaction flow (48/50 functions)```
 
 ### **[COMM] Need Communication/Channels?**
 ```
 Communication Decision Tree:
-+-- Channel Management
-|   +-- `communication/core/channel_orchestrator.py` - Main communication (91/93 functions)
-|   +-- `communication/communication_channels/base/base_channel.py` - Channel base class (14 functions)
-|   `-- `communication/core/factory.py` - Channel creation (8 functions)
-+-- Specific Channels
-|   +-- `communication/communication_channels/discord/bot.py` - Discord integration (46 functions)
-|   `-- `communication/communication_channels/email/bot.py` - Email integration (14/16 functions)
-`-- Conversation Flow
-    `-- `communication/message_processing/conversation_flow_manager.py` - Conversation management (95/99 functions)
-```
++-- `communication/core/channel_orchestrator.py` - Main communication (91/93 functions)
++-- `communication/communication_channels/base/base_channel.py` - Channel base class (14 functions)
+`-- `communication/core/factory.py` - Channel creation (8 functions)```
 
 ### **[UI] Need UI/User Interface?**
 ```
 UI Operations Decision Tree:
-+-- Main Application
-|   `-- `ui/ui_app_qt.py` - Main admin interface (132/134 functions)
-+-- Dialogs
-|   +-- `ui/dialogs/account_creator_dialog.py` - Account creation (97/98 functions)
-|   +-- `ui/dialogs/user_profile_dialog.py` - User profiles (38 functions)
-|   +-- `ui/dialogs/task_management_dialog.py` - Task management (4/8 functions)
-|   `-- `ui/dialogs/schedule_editor_dialog.py` - Schedule editing (40/42 functions)
-`-- Widgets
-    +-- `ui/widgets/tag_widget.py` - Tag management (30 functions)
-    +-- `ui/widgets/task_settings_widget.py` - Task settings (34/37 functions)
-    `-- `ui/widgets/user_profile_settings_widget.py` - Profile settings (28 functions)
-```
++-- `ui/ui_app_qt.py` - Main admin interface (132/134 functions)
++-- `ui/dialogs/task_crud_dialog.py` - Task CRUD (28 functions)
+`-- `ui/widgets/task_settings_widget.py` - Task settings (34/37 functions)```
 
 ### **[CORE] Need Core System Operations?**
 ```
 Core System Decision Tree:
-+-- Configuration
-|   `-- `core/config.py` - System configuration (19 functions)
-+-- Error Handling
-|   `-- `core/error_handling.py` - Error management (60/64 functions)
-+-- File Operations
-|   +-- `core/file_operations.py` - File I/O (16 functions)
-|   `-- `core/backup_manager.py` - Backup operations (83 functions)
-+-- Logging
-|   `-- `core/logger.py` - Logging system (76 functions)
-`-- Scheduling
-    +-- `core/scheduler.py` - Task scheduling (82/83 functions)
-    `-- `core/schedule_management.py` - Schedule management (15/17 functions)
-```
++-- `core/service.py` - Main service (96 functions)
++-- `core/config.py` - Configuration (19 functions)
+`-- `core/scheduler.py` - Scheduling (82/83 functions)```
 
 ## [PATTERNS] **Key Function Patterns**
 
