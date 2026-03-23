@@ -1088,7 +1088,7 @@ STATUS = {
     "status_files": {
         "ai_status": "development_tools/AI_STATUS.md",
         "ai_priorities": "development_tools/AI_PRIORITIES.md",
-        "consolidated_report": "development_tools/consolidated_report.md",
+        "consolidated_report": "development_tools/CONSOLIDATED_REPORT.md",
     },
 }
 

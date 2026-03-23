@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from types import SimpleNamespace
 from pathlib import Path
 
@@ -17,17 +18,26 @@ AIToolsService = service_module.AIToolsService
 
 @pytest.mark.unit
 def test_compute_source_signature_changes_when_source_changes(tmp_path: Path):
+    """Signature changes when file content changes (uses content hash, not just mtime)."""
     service = AIToolsService(project_root=str(tmp_path))
-    src_file = tmp_path / "module.py"
+    # Use isolated subdir so only our file is scanned (avoids conftest/__pycache__ noise)
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    src_file = src_dir / "module.py"
     src_file.write_text("value = 1\n", encoding="utf-8")
 
     sig_before = service._compute_source_signature()
     src_file.write_text("value = 2\n", encoding="utf-8")
+    # Ensure write is visible to subsequent read (filesystem sync on Windows)
+    time.sleep(0.02)
     sig_after = service._compute_source_signature()
 
     assert isinstance(sig_before, str) and sig_before
     assert isinstance(sig_after, str) and sig_after
-    assert sig_before != sig_after
+    assert sig_before != sig_after, (
+        "Signature should change when file content changes; "
+        "possible filesystem/mtime sync issue"
+    )
 
 
 @pytest.mark.unit

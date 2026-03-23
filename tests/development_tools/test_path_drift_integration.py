@@ -157,7 +157,7 @@ class TestPathDriftIntegration:
     @pytest.mark.integration
     @pytest.mark.slow
     def test_path_drift_appears_in_consolidated_report(self, tmp_path):
-        """Verify path drift issues appear in consolidated_report.md."""
+        """Verify path drift issues appear in CONSOLIDATED_REPORT.md."""
         project_root = tmp_path / "test_project"
         project_root.mkdir()
 
@@ -203,8 +203,8 @@ class TestPathDriftIntegration:
                     service.run_audit(quick=True)
 
         # Verify consolidated report was created
-        report_file = project_root / "development_tools" / "consolidated_report.md"
-        assert report_file.exists(), "consolidated_report.md should exist after audit"
+        report_file = project_root / "development_tools" / "CONSOLIDATED_REPORT.md"
+        assert report_file.exists(), "CONSOLIDATED_REPORT.md should exist after audit"
         
         # Read report content
         report_content = report_file.read_text()

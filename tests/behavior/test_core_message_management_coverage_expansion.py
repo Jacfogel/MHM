@@ -93,8 +93,8 @@ class TestCoreMessageManagementCoverageExpansion:
         assert sentinel == datetime.min.replace(tzinfo=timezone.utc)
 
     @pytest.mark.behavior
-    def test_normalize_message_timestamps_rewrites_compatibility_values(self, tmp_path):
-        """Normalize compatibility timestamp shapes before other processing runs."""
+    def test_normalize_message_timestamps_skips_legacy_after_migration(self, tmp_path):
+        """Legacy timestamp fallback removed; non-TIMESTAMP_FULL are skipped (run migration first)."""
         file_path = tmp_path / "sent_messages.json"
         data = {
             "messages": [
@@ -105,10 +105,10 @@ class TestCoreMessageManagementCoverageExpansion:
         file_path.write_text(json.dumps(data))
 
         normalized = _normalize_message_timestamps(data, file_path)
-        assert normalized is True
+        assert normalized is False
 
         saved = json.loads(file_path.read_text())
-        assert saved["messages"][0]["timestamp"] == "2023-02-03 04:05:06"
+        assert saved["messages"][0]["timestamp"] == "2023-02-03T04:05:06Z"
         assert saved["messages"][1]["timestamp"] == "2023-02-03 04:05:06"
 
     @pytest.mark.behavior

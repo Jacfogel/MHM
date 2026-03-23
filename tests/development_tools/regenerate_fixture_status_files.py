@@ -30,7 +30,7 @@ def main() -> int:
     source_to_target = {
         generated["ai_status"]: fixture_root / "AI_STATUS.md",
         generated["ai_priorities"]: fixture_root / "AI_PRIORITIES.md",
-        generated["consolidated_report"]: fixture_root / "consolidated_report.md",
+        generated["consolidated_report"]: fixture_root / "CONSOLIDATED_REPORT.md",
     }
 
     for source, target in source_to_target.items():

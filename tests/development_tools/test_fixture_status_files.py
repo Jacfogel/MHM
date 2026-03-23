@@ -18,7 +18,7 @@ def test_fixture_status_files_have_valid_metadata() -> None:
     files = [
         fixture_root / "AI_STATUS.md",
         fixture_root / "AI_PRIORITIES.md",
-        fixture_root / "consolidated_report.md",
+        fixture_root / "CONSOLIDATED_REPORT.md",
     ]
     existing = [f for f in files if f.exists()]
     if not existing:

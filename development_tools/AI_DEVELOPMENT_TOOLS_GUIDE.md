@@ -124,14 +124,14 @@ python development_tools/run_development_tools.py help
 - **Track classification fields**: Tier 3 `coverage_outcome.parallel`/`coverage_outcome.no_parallel` include `classification`, `classification_reason`, `actionable_context`, `log_file`, and `return_code_hex` in addition to legacy state/count fields.
 
 **Note**: All three tiers update the same output files:
-- AI-facing (root): `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.md`
+- AI-facing (root): `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/CONSOLIDATED_REPORT.md`
 - Central aggregation: `development_tools/reports/analysis_detailed_results.json`
 - Domain-specific JSON: Individual tool results in `development_tools/{domain}/jsons/{tool}_results.json` (with automatic archiving)
 
 **Report Format Standards**:
 - **AI_STATUS.md**: High-level summary including Function Docstring Coverage (with missing count) and Registry Gaps (separate metrics)
 - **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ", ... +N" format when there are more items
-- **consolidated_report.md**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
+- **CONSOLIDATED_REPORT.md**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
 
 **Tool Output Format (Standard Format)**:
 - Analysis tools that participate in audit aggregation emit or are normalized to a standardized JSON structure:

@@ -105,21 +105,6 @@ class TestBackupManagerHelpers:
 
         assert perform_safe_operation(lambda: "OK") == "OK"
 
-    def test_extract_zip_prefix_to_destination_skips_unsafe_paths(self, manager, tmp_path):
-        archive = tmp_path / "data.zip"
-        with zipfile.ZipFile(archive, "w") as zf:
-            zf.writestr("users/good.txt", "ok")
-            zf.writestr("users/../../evil.txt", "bad")
-            zf.writestr("config/skip.txt", "cfg")
-
-        destination = tmp_path / "restore"
-        with zipfile.ZipFile(archive, "r") as zf:
-            count = manager._extract_zip_prefix_to_destination(zf, "users/", destination)
-
-        assert count == 1
-        assert (destination / "users" / "good.txt").exists()
-        assert not (destination / "evil.txt").exists()
-
     def test_validate_directory_backup_branches(self, manager, tmp_path):
         missing = manager._validate_backup__validate_directory_backup(str(tmp_path / "none"))
         assert any("Backup directory not found" in err for err in missing)
@@ -161,16 +146,15 @@ class TestBackupManagerHelpers:
         assert info["backup_name"] == "backup_no_manifest"
         assert info["file_size"] >= 1
 
-    def test_get_backup_info_for_zip_without_manifest(self, manager, tmp_path):
+    def test_get_backup_info_for_zip_returns_empty(self, manager, tmp_path):
+        """Zip backup format no longer supported; _get_backup_info returns empty dict."""
         backup_zip = tmp_path / "legacy.zip"
         with zipfile.ZipFile(backup_zip, "w") as zf:
             zf.writestr("users/a.json", "{}")
 
         info = manager._get_backup_info(str(backup_zip))
 
-        assert info["file_name"] == "legacy.zip"
-        assert info["backup_name"] == "Unknown"
-        assert info["file_size"] > 0
+        assert info == {}
 
     def test_restore_backup_to_path_validates_inputs(self, manager, tmp_path):
         assert manager.restore_backup_to_path("", str(tmp_path)) is False

@@ -71,6 +71,11 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         action="store_true",
         help="For Tier 3, return non-zero when tests fail or crash even if coverage data is produced.",
     )
+    parser.add_argument(
+        "--dev-tools-only",
+        action="store_true",
+        help="Run audit with development_tools as scan root; output DEV_TOOLS_STATUS.md, DEV_TOOLS_PRIORITIES.md, DEV_TOOLS_CONSOLIDATED_REPORT.md.",
+    )
 
     if any(arg in ("-h", "--help") for arg in argv):
         _print_command_help(parser)
@@ -87,6 +92,9 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         include_tests=ns.include_tests or ns.include_all,
         include_dev_tools=ns.include_dev_tools or ns.include_all,
     )
+
+    # Dev-tools-only mode: scan development_tools only, output to DEV_TOOLS_* files
+    service.dev_tools_only_mode = getattr(ns, "dev_tools_only", False)
 
     success = service.run_audit(
         quick=quick_mode,

@@ -253,7 +253,7 @@ This guide covers both how the systems work and how to restore from backups.
 ### 4.1. Location
 
 - **Code**: `development_tools/shared/file_rotation.py`, `development_tools/shared/output_storage.py`
-- **Status Files**: `development_tools/AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.md`
+- **Status Files**: `development_tools/AI_STATUS.md`, `AI_PRIORITIES.md`, `CONSOLIDATED_REPORT.md`
 - **Tool Results**: `development_tools/{domain}/jsons/{tool}_results.json`
 - **Archives**: `development_tools/reports/archive/` or `{domain}/jsons/archive/`
 

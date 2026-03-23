@@ -171,7 +171,7 @@ Examples (non-exhaustive):
 -   [AI_MODULE_DEPENDENCIES.md](ai_development_docs/AI_MODULE_DEPENDENCIES.md)
 -   [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md)
 -   [AI_STATUS.md](development_tools/AI_STATUS.md)
--   [consolidated_report.md](development_tools/consolidated_report.md)
+-   [CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md)
 
 For generation details and maintenance rules, see section 6, "Generated
 Documentation Standards".
@@ -676,7 +676,7 @@ Examples of generated Markdown files include:
 -   ai_development_docs/AI_MODULE_DEPENDENCIES.md
 -   development_tools/AI_STATUS.md
 -   development_tools/AI_PRIORITIES.md
--   development_tools/consolidated_report.md
+-   development_tools/CONSOLIDATED_REPORT.md
 
 #### 6.1.2. JSON files (.json)
 

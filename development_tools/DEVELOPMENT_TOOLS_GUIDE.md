@@ -216,7 +216,7 @@ The modular structure provides clear separation of concerns, making the codebase
 **Performance**: Total full audit time: ~6-7 minutes (coverage tools run in parallel, reducing total time from ~460s to ~365s)
 
 Pipeline artifacts:
-- AI-facing (root): [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `consolidated_report.md`
+- AI-facing (root): [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `CONSOLIDATED_REPORT.md`
 - Domain-specific JSON: `reports/analysis_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/jsons/coverage_dev_tools.json`, `config/analyze_config_results.json`, `imports/.unused_imports_cache.json`
 - `reports/analysis_detailed_results.json` caches complexity metrics, validation results, and system signals for `status` command
 - `AI_PRIORITIES.md` includes complexity refactoring priority when critical/high complexity functions exist
@@ -224,7 +224,7 @@ Pipeline artifacts:
 **Report Format Standards**:
 - **AI_STATUS.md**: High-level summary including Function Docstring Coverage (with missing count) and Registry Gaps (separate metrics)
 - **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ",... +N" format when there are more items
-- **consolidated_report.md**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
+- **CONSOLIDATED_REPORT.md**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
 - Human-facing: [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md), [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md), [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md), [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)
 - Coverage: `development_tools/tests/jsons/coverage.json`, `development_tools/tests/jsons/coverage_dev_tools.json`, `development_tools/tests/coverage_html/`, `development_tools/reports/archive/coverage_artifacts/<timestamp>/`
 - Cached snapshots: `status` loads data from `reports/analysis_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting
@@ -445,7 +445,7 @@ All generated Markdown files must use this standardized metadata format at the b
 - `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 - `development_tools/AI_STATUS.md`
 - `development_tools/AI_PRIORITIES.md`
-- `development_tools/consolidated_report.md`
+- `development_tools/CONSOLIDATED_REPORT.md`
 
 ### 6.2. JSON Files (.json)
 
@@ -494,7 +494,7 @@ Tool outputs follow consistent storage patterns for predictability and portabili
 
 ### 7.2. File Naming Conventions
 
-- **Status files**: `AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.md`
+- **Status files**: `AI_STATUS.md`, `AI_PRIORITIES.md`, `CONSOLIDATED_REPORT.md`
 - **Analysis results**: `{tool_name}_results.json` or `{domain}_details.json`
 - **Documentation**: `{DESCRIPTION}_DETAIL.md` or `{DESCRIPTION}_REPORT.md`
 - **Cache files**: `.{tool_name}_cache.json`

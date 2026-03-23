@@ -57,13 +57,13 @@ def _get_status_file_mtimes(project_root: Path) -> dict[str, float]:
         status_files = {
             'AI_STATUS.md': project_root / status_files_config.get('ai_status', 'development_tools/AI_STATUS.md'),
             'AI_PRIORITIES.md': project_root / status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md'),
-            'consolidated_report.md': project_root / status_files_config.get('consolidated_report', 'development_tools/consolidated_report.md')
+            'CONSOLIDATED_REPORT.md': project_root / status_files_config.get('consolidated_report', 'development_tools/CONSOLIDATED_REPORT.md')
         }
     except (ImportError, AttributeError, KeyError):
         status_files = {
             'AI_STATUS.md': project_root / 'development_tools' / 'AI_STATUS.md',
             'AI_PRIORITIES.md': project_root / 'development_tools' / 'AI_PRIORITIES.md',
-            'consolidated_report.md': project_root / 'development_tools' / 'consolidated_report.md'
+            'CONSOLIDATED_REPORT.md': project_root / 'development_tools' / 'CONSOLIDATED_REPORT.md'
         }
     mtimes = {}
     for name, path in status_files.items():
@@ -252,6 +252,16 @@ class AuditOrchestrationMixin:
         self.current_audit_tier = tier
         self._audit_in_progress = True
         _AUDIT_IN_PROGRESS_GLOBAL = True
+        # Dev-tools-only mode: restrict scan to development_tools
+        dev_tools_only = getattr(self, 'dev_tools_only_mode', False)
+        if dev_tools_only:
+            operation_name = f"{operation_name} (dev-tools-only)"
+            try:
+                from ... import config as dt_config
+                self._original_get_scan_directories = dt_config.get_scan_directories
+                dt_config.get_scan_directories = lambda: ["development_tools"]
+            except (ImportError, AttributeError):
+                pass
         # Track which tools were actually run in this audit tier
         self._tools_run_in_current_tier = set()
         # Track timing for each tool
@@ -406,13 +416,23 @@ class AuditOrchestrationMixin:
                     from ... import config
                     status_config = config.get_status_config()
                     status_files_config = status_config.get('status_files', {})
-                    ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
-                    ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
-                    consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/consolidated_report.md')
+                    if getattr(self, 'dev_tools_only_mode', False):
+                        ai_status_path = 'development_tools/DEV_TOOLS_STATUS.md'
+                        ai_priorities_path = 'development_tools/DEV_TOOLS_PRIORITIES.md'
+                        consolidated_report_path = 'development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md'
+                    else:
+                        ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
+                        ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
+                        consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/CONSOLIDATED_REPORT.md')
                 except (ImportError, AttributeError, KeyError):
-                    ai_status_path = 'development_tools/AI_STATUS.md'
-                    ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
-                    consolidated_report_path = 'development_tools/consolidated_report.md'
+                    if getattr(self, 'dev_tools_only_mode', False):
+                        ai_status_path = 'development_tools/DEV_TOOLS_STATUS.md'
+                        ai_priorities_path = 'development_tools/DEV_TOOLS_PRIORITIES.md'
+                        consolidated_report_path = 'development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md'
+                    else:
+                        ai_status_path = 'development_tools/AI_STATUS.md'
+                        ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
+                        consolidated_report_path = 'development_tools/CONSOLIDATED_REPORT.md'
                 
                 try:
                     ai_status = self._generate_ai_status_document()
@@ -467,34 +487,29 @@ class AuditOrchestrationMixin:
                 else:
                     print(f"Completed {operation_name} successfully!")
                     logger.info(f"Completed {operation_name} successfully!")
-                # Log timing summary
+                # Log timing summary (logging only; avoid stdout noise per 2.2/2.9)
                 if self._tool_timings:
                     total_time = sum(self._tool_timings.values())
                     timing_msg = f"Total tool execution time: {total_time:.2f}s"
-                    print(f"  {timing_msg}")
                     logger.info(timing_msg)
                     if hasattr(self, '_audit_wall_clock_start'):
                         wall_clock_total = time.perf_counter() - self._audit_wall_clock_start
                         wall_clock_msg = f"Total audit wall-clock time: {wall_clock_total:.2f}s"
-                        print(f"  {wall_clock_msg}")
                         logger.info(wall_clock_msg)
                     # Log slowest tools
                     sorted_timings = sorted(self._tool_timings.items(), key=lambda x: x[1], reverse=True)
                     if len(sorted_timings) > 0:
                         slowest_msg = f"Slowest tools: {', '.join(f'{name} ({time:.2f}s)' for name, time in sorted_timings[:5])}"
-                        print(f"  {slowest_msg}")
                         logger.info(slowest_msg)
                     coverage_summary = self._format_coverage_mode_summary()
                     if coverage_summary:
                         coverage_msg = f"Coverage mode summary: {coverage_summary}"
-                        print(f"  {coverage_msg}")
                         logger.info(coverage_msg)
                     cache_summary = self._format_cache_mode_summary(
                         ['analyze_unused_imports', 'analyze_legacy_references', 'analyze_documentation_sync']
                     )
                     if cache_summary:
                         cache_msg = f"Cache mode summary: {cache_summary}"
-                        print(f"  {cache_msg}")
                         logger.info(cache_msg)
                 print(f"  * AI Status: {ai_status_file}")
                 print(f"  * AI Priorities: {ai_priorities_file}")
@@ -527,6 +542,13 @@ class AuditOrchestrationMixin:
             logger.error(f"Error generating status files: {e}", exc_info=True)
             success = False
         finally:
+            # Restore get_scan_directories if we patched it for dev-tools-only mode
+            if getattr(self, 'dev_tools_only_mode', False) and hasattr(self, '_original_get_scan_directories'):
+                try:
+                    from ... import config as dt_config
+                    dt_config.get_scan_directories = self._original_get_scan_directories
+                except (ImportError, AttributeError):
+                    pass
             # Clear flags and remove lock file
             self._audit_in_progress = False
             self.current_audit_tier = None

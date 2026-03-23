@@ -1,7 +1,7 @@
 """
 Report generation methods for AIToolsService.
 
-Contains methods for generating AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.md.
+Contains methods for generating AI_STATUS.md, AI_PRIORITIES.md, and CONSOLIDATED_REPORT.md.
 These methods are large (~4,300 lines total) and generate comprehensive status reports.
 """
 
@@ -2975,7 +2975,7 @@ class ReportGenerationMixin:
                 "Modernize error handling (Phase 1 + Phase 2)": "development_tools/error_handling/jsons/analyze_error_handling_results.json",
                 "Raise coverage for domains below target": "development_docs/TEST_COVERAGE_REPORT.md",
                 "Raise development tools coverage": "development_tools/tests/jsons/generate_dev_tools_coverage_results.json",
-                "Reduce dependency pattern risk": "development_tools/consolidated_report.md",
+                "Reduce dependency pattern risk": "development_tools/CONSOLIDATED_REPORT.md",
                 "Remove legacy compatibility code (after full call-site migration)": "development_docs/LEGACY_REFERENCE_REPORT.md (exact locations)",
                 "Update tools to use centralized config": "development_tools/ai_work/jsons/analyze_ai_work_results.json",
                 "Add docstrings to handler classes": "development_tools/functions/jsons/analyze_function_patterns_results.json",
@@ -2984,8 +2984,8 @@ class ReportGenerationMixin:
                 "Investigate possible duplicate functions/methods": "development_tools/functions/jsons/analyze_duplicate_functions_results.json",
                 "Consider refactoring large or high-complexity modules": "development_tools/functions/jsons/analyze_module_refactor_candidates_results.json",
                 "Refactor high-complexity functions": "development_tools/functions/jsons/analyze_functions_results.json",
-                "Address Ruff findings": "development_tools/consolidated_report.md",
-                "Address Pyright findings": "development_tools/consolidated_report.md",
+                "Address Ruff findings": "development_tools/CONSOLIDATED_REPORT.md",
+                "Address Pyright findings": "development_tools/CONSOLIDATED_REPORT.md",
                 "Investigate and correct test failures/errors": "stdout files in development_tools/tests/logs",
                 "Investigate backup health failures": "development_tools/reports/jsons/backup_health_report.json",
                 "Consolidate documentation files": "development_tools/docs/jsons/analyze_documentation_results.json",
@@ -3025,7 +3025,7 @@ class ReportGenerationMixin:
                 normalized_bullets.insert(0, f"Review for guidance: {guidance}")
             if not has_details:
                 details = details_defaults.get(
-                    title, "development_tools/consolidated_report.md"
+                    title, "development_tools/CONSOLIDATED_REPORT.md"
                 )
                 normalized_bullets.append(f"Review for details: {details}")
 
@@ -3530,7 +3530,7 @@ class ReportGenerationMixin:
                         f"Ruff findings: {ruff_issues} issue(s) across {to_int(ruff_summary.get('files_affected')) or 0} file(s).",
                         "Action: Run `python -m ruff check .` to inspect full diagnostics before fixes.",
                         "Why this matters: Lint regressions reduce reliability and increase defect risk.",
-                        "Review for details: development_tools/consolidated_report.md",
+                        "Review for details: development_tools/CONSOLIDATED_REPORT.md",
                     ]
                     ruff_bullets.insert(
                         0, "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
@@ -3550,7 +3550,7 @@ class ReportGenerationMixin:
                         f"Pyright findings: {pyright_errors} error(s), {pyright_warnings} warning(s).",
                         "Action: Run `python -m pyright` to inspect full diagnostics before fixes.",
                         "Why this matters: Type regressions reduce reliability and increase defect risk.",
-                        "Review for details: development_tools/consolidated_report.md",
+                        "Review for details: development_tools/CONSOLIDATED_REPORT.md",
                     ]
                     pyright_bullets.insert(
                         0, "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
@@ -3647,7 +3647,7 @@ class ReportGenerationMixin:
                             f"Top high-coupling modules: {self._format_list_for_display(coupling_examples, limit=3)}"
                         )
                 dep_bullets.append(
-                    "Review for details: development_tools/consolidated_report.md"
+                    "Review for details: development_tools/CONSOLIDATED_REPORT.md"
                 )
 
                 dep_bullets.append(
@@ -4781,11 +4781,11 @@ class ReportGenerationMixin:
         audit_tier = getattr(self, "current_audit_tier", None)
         if audit_tier:
             logger.info(
-                f"[REPORT GENERATION] Generating consolidated_report.md using data from Tier {audit_tier} audit"
+                f"[REPORT GENERATION] Generating CONSOLIDATED_REPORT.md using data from Tier {audit_tier} audit"
             )
         else:
             logger.info(
-                "[REPORT GENERATION] Generating consolidated_report.md using cached data (no active audit)"
+                "[REPORT GENERATION] Generating CONSOLIDATED_REPORT.md using cached data (no active audit)"
             )
 
         # Check if this is a mid-audit write
@@ -5133,14 +5133,15 @@ class ReportGenerationMixin:
                     f"- Test markers: {missing_markers} tests missing category markers"
                 )
 
-        error_cov = error_metrics.get("analyze_error_handling") or error_metrics.get(
+        # Use error_details for consistent metric sourcing (same as AI_STATUS/AI_PRIORITIES)
+        error_cov = error_details.get("analyze_error_handling") or error_details.get(
             "error_handling_coverage"
         )
         missing_error_handlers_for_summary = to_int(
-            error_metrics.get("functions_missing_error_handling", 0)
+            error_details.get("functions_missing_error_handling", 0)
         )
-        error_total = error_metrics.get("total_functions")
-        error_with_handling = error_metrics.get("functions_with_error_handling")
+        error_total = error_details.get("total_functions")
+        error_with_handling = error_details.get("functions_with_error_handling")
 
         if error_total and error_with_handling:
             calc_coverage = (error_with_handling / error_total) * 100
@@ -5151,7 +5152,7 @@ class ReportGenerationMixin:
 
         if error_cov is not None:
             lines.append(
-                f"- Error handling coverage {percent_text(error_cov, 1)}; {missing_error_handlers_for_summary or 0} functions need protection"
+                f"- **Error Handling Coverage**: {percent_text(error_cov, 1)} ({missing_error_handlers_for_summary or 0} functions need protection)"
             )
 
         dev_tools_insights = self._get_dev_tools_coverage_insights()

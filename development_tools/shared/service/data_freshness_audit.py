@@ -8,7 +8,7 @@ WHAT IT DOES:
 1. Checks all JSON cache files for references to known deleted files
 2. Performs static analysis to find code patterns that might process file paths
    without existence checks (these are warnings, not necessarily bugs)
-3. Automatically checks generated reports (consolidated_report.md, AI_STATUS.md, etc.)
+3. Automatically checks generated reports (CONSOLIDATED_REPORT.md, AI_STATUS.md, etc.)
    for references to deleted files
 
 WHAT THE RESULTS MEAN:
@@ -47,7 +47,7 @@ def _get_known_deleted_files() -> set[str]:
     return _DEFAULT_KNOWN_DELETED_FILES.copy()
 
 
-# Kept for backward compatibility; callers should use _get_known_deleted_files() for config-driven list
+# Deprecated alias: use _get_known_deleted_files() for config-driven list
 KNOWN_DELETED_FILES = _DEFAULT_KNOWN_DELETED_FILES
 
 
@@ -182,7 +182,7 @@ def check_generated_reports_for_deleted_files(project_root: Path, deleted_files:
     
     # Reports to check
     reports = [
-        project_root / 'development_tools' / 'consolidated_report.md',
+        project_root / 'development_tools' / 'CONSOLIDATED_REPORT.md',
         project_root / 'development_tools' / 'AI_STATUS.md',
         project_root / 'development_tools' / 'AI_PRIORITIES.md',
         project_root / 'development_docs' / 'UNUSED_IMPORTS_REPORT.md',
@@ -275,7 +275,7 @@ if __name__ == '__main__':
     print("=" * 70)
     print("\nWHAT THIS AUDIT DOES:")
     print("  1. Checks JSON cache files for references to deleted files")
-    print("  2. Checks generated reports (consolidated_report.md, AI_STATUS.md, etc.)")
+    print("  2. Checks generated reports (CONSOLIDATED_REPORT.md, AI_STATUS.md, etc.)")
     print("  3. Performs static code analysis (warnings only, many are false positives)")
     print("\nSummary:")
     print(f"  - Cache files checked: {results['summary']['cache_files_checked']}")

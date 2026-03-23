@@ -18,9 +18,7 @@ from core.error_handling import ValidationError, handle_errors
 from core.time_utilities import (
     now_timestamp_filename,
     now_timestamp_full,
-    TIMESTAMP_FULL,
     parse_timestamp_full,
-    parse_timestamp,
 )
 import contextlib
 
@@ -694,25 +692,6 @@ def _parse_message_timestamp(timestamp_str: str) -> datetime:
 
 
 @handle_errors(
-    "parsing legacy timestamp for normalization",
-    default_return=None,
-    user_friendly=False,
-)
-def _parse_legacy_timestamp_for_normalization(timestamp_str: str) -> datetime | None:
-    """
-    Parse an older timestamp shape when normalizing persisted sent_messages data.
-
-    The returned datetime is naive (no timezone) so it can be serialized using TIMESTAMP_FULL.
-    """
-    if not timestamp_str:
-        return None
-    return parse_timestamp(
-        timestamp_str,
-        allowed=("full", "minute", "microseconds", "external"),
-    )
-
-
-@handle_errors(
     "normalizing message timestamps",
     default_return=False,
     user_friendly=False,
@@ -739,12 +718,11 @@ def _normalize_message_timestamps(
         if parse_timestamp_full(timestamp_value) is not None:
             continue
 
-        legacy_dt = _parse_legacy_timestamp_for_normalization(timestamp_value)
-        if legacy_dt is None:
-            continue
-
-        message["timestamp"] = legacy_dt.strftime(TIMESTAMP_FULL)
-        normalized_count += 1
+        # Legacy fallback removed: data should be pre-migrated via scripts/migrate_sent_messages_timestamps.py
+        logger.debug(
+            f"Skipping non-TIMESTAMP_FULL timestamp in {file_path}: {timestamp_value!r}"
+        )
+        continue
 
     if not normalized_count:
         return False

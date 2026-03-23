@@ -7,7 +7,6 @@ Provides automatic backup creation, validation, and rollback capabilities.
 import os
 import json
 import shutil
-import zipfile
 import time
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
@@ -123,46 +122,6 @@ class BackupManager:
             json.dump(manifest, f, indent=2)
         return True
 
-    @handle_errors("creating zip file", default_return=None)
-    def _create_backup__create_zip_file(
-        self,
-        backup_path: str,
-        backup_name: str,
-        include_users: bool,
-        include_config: bool,
-        include_logs: bool,
-        include_code: bool = False,
-    ) -> None:
-        """Create the backup zip file with all specified components."""
-        # Ensure backup directory exists before creating zip
-        os.makedirs(self.backup_dir, exist_ok=True)
-
-        with zipfile.ZipFile(backup_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-            # Backup user data
-            if include_users:
-                self._backup_user_data(zipf)
-
-            # Backup configuration
-            if include_config:
-                self._backup_config_files(zipf)
-
-            # Backup logs (optional)
-            if include_logs:
-                self._backup_log_files(zipf)
-
-            # Backup project code (optional, for full project backups)
-            if include_code:
-                self._backup_project_code(zipf)
-
-            self._create_backup_manifest(
-                zipf,
-                backup_name,
-                include_users,
-                include_config,
-                include_logs,
-                include_code,
-            )
-
     @handle_errors("cleaning up old backups", default_return=None)
     def _create_backup__cleanup_old_backups(self) -> None:
         """Clean up old backups by count and age."""
@@ -264,31 +223,6 @@ class BackupManager:
         logger.info(f"Backup created successfully: {created_backup_path}")
         return created_backup_path
 
-    @handle_errors("backing up user data")
-    def _backup_user_data(self, zipf: zipfile.ZipFile) -> None:
-        """Backup all user data directories."""
-        user_info_path = Path(core.config.USER_INFO_DIR_PATH)
-        if not user_info_path.exists():
-            logger.warning(
-                f"User data directory does not exist: {core.config.USER_INFO_DIR_PATH}"
-            )
-            return
-
-        user_count = 0
-        for user_dir in user_info_path.iterdir():
-            if user_dir.is_dir():
-                try:
-                    self._add_directory_to_zip(
-                        zipf, str(user_dir), f"users/{user_dir.name}"
-                    )
-                    user_count += 1
-                except Exception as e:
-                    logger.warning(
-                        f"Failed to backup user directory {user_dir.name}: {e}"
-                    )
-
-        logger.debug(f"User data backed up successfully ({user_count} users)")
-
     @handle_errors("backing up user data to directory")
     def _backup_user_data_to_directory(self, backup_root: Path) -> None:
         """Backup all user data directories to a directory payload."""
@@ -308,20 +242,6 @@ class BackupManager:
                 shutil.rmtree(target, ignore_errors=True)
             shutil.copytree(user_dir, target)
 
-    @handle_errors("backing up config files")
-    def _backup_config_files(self, zipf: zipfile.ZipFile) -> None:
-        """Backup configuration files."""
-        config_files = [".env", "requirements.txt", "user_index.json"]
-
-        base_data_path = Path(core.config.BASE_DATA_DIR)
-        for config_file in config_files:
-            # Use configurable base directory instead of hardcoded assumption
-            config_path = base_data_path / config_file
-            if config_path.exists():
-                zipf.write(str(config_path), f"config/{config_file}")
-
-        logger.debug("Configuration files backed up successfully")
-
     @handle_errors("backing up config files to directory")
     def _backup_config_files_to_directory(self, backup_root: Path) -> None:
         """Backup configuration files to a directory payload."""
@@ -333,32 +253,6 @@ class BackupManager:
             config_path = base_data_path / config_file
             if config_path.exists() and config_path.is_file():
                 shutil.copy2(config_path, target / config_file)
-
-    @handle_errors("backing up log files")
-    def _backup_log_files(self, zipf: zipfile.ZipFile) -> None:
-        """Backup log files."""
-        # Use configurable log paths instead of hardcoded assumptions
-        from core.config import (
-            LOG_MAIN_FILE,
-            LOG_DISCORD_FILE,
-            LOG_AI_FILE,
-            LOG_USER_ACTIVITY_FILE,
-            LOG_ERRORS_FILE,
-        )
-
-        log_files = [
-            ("app.log", LOG_MAIN_FILE),
-            ("discord.log", LOG_DISCORD_FILE),
-            ("ai.log", LOG_AI_FILE),
-            ("user_activity.log", LOG_USER_ACTIVITY_FILE),
-            ("errors.log", LOG_ERRORS_FILE),
-        ]
-
-        for log_name, log_path in log_files:
-            if os.path.exists(log_path):
-                zipf.write(log_path, f"logs/{log_name}")
-
-        logger.debug("Log files backed up successfully")
 
     @handle_errors("backing up log files to directory")
     def _backup_log_files_to_directory(self, backup_root: Path) -> None:
@@ -382,62 +276,6 @@ class BackupManager:
         for log_name, log_path in log_files:
             if os.path.exists(log_path):
                 shutil.copy2(log_path, target / log_name)
-
-    @handle_errors("backing up project code")
-    def _backup_project_code(self, zipf: zipfile.ZipFile) -> None:
-        """Backup project code files (Python files, configs, etc.)."""
-        import core.config as config
-
-        project_root = (
-            Path(config.BASE_DATA_DIR).parent
-            if hasattr(config, "BASE_DATA_DIR")
-            else Path(".")
-        )
-
-        # Directories to include
-        code_directories = [
-            "core",
-            "communication",
-            "ai",
-            "ui",
-            "tasks",
-            "user",
-            "development_tools",
-            "scripts",
-            "resources",
-            "styles",
-        ]
-
-        # Files to include at root
-        root_files = [
-            "requirements.txt",
-            "pyproject.toml",
-            "README.md",
-            "HOW_TO_RUN.md",
-            "ARCHITECTURE.md",
-            "DEVELOPMENT_WORKFLOW.md",
-            "PROJECT_VISION.md",
-            ".env.example",
-        ]
-
-        # Add root files
-        for root_file in root_files:
-            file_path = project_root / root_file
-            if file_path.exists() and file_path.is_file():
-                zipf.write(str(file_path), f"code/{root_file}")
-
-        # Add code directories (Python files only to keep size manageable)
-        for code_dir in code_directories:
-            dir_path = project_root / code_dir
-            if dir_path.exists() and dir_path.is_dir():
-                for py_file in dir_path.rglob("*.py"):
-                    # Skip test files and generated files
-                    if "test" in str(py_file) or "generated" in str(py_file):
-                        continue
-                    arcname = f"code/{py_file.relative_to(project_root)}"
-                    zipf.write(str(py_file), arcname)
-
-        logger.debug("Project code backed up successfully")
 
     @handle_errors("backing up project code to directory")
     def _backup_project_code_to_directory(self, backup_root: Path) -> None:
@@ -489,95 +327,6 @@ class BackupManager:
                     target = code_root / rel
                     target.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(py_file, target)
-
-    @handle_errors("creating backup manifest")
-    def _create_backup_manifest(
-        self,
-        zipf: zipfile.ZipFile,
-        backup_name: str,
-        include_users: bool,
-        include_config: bool,
-        include_logs: bool,
-        include_code: bool = False,
-    ) -> None:
-        """Create a manifest file describing the backup contents."""
-
-        manifest = {
-            "backup_name": backup_name,
-            "created_at": now_timestamp_full(),
-            "format": "zip",
-            "includes": {
-                "users": include_users,
-                "config": include_config,
-                "logs": include_logs,
-                "code": include_code,
-            },
-            "system_info": {
-                "total_users": len(get_all_user_ids()),
-                "backup_size": "unknown",  # Will be updated after creation
-            },
-        }
-
-        manifest_content = json.dumps(manifest, indent=2)
-        zipf.writestr("manifest.json", manifest_content)
-
-    @handle_errors("adding directory to zip")
-    def _add_directory_to_zip(
-        self, zipf: zipfile.ZipFile, directory: str, zip_path: str
-    ) -> None:
-        """Recursively add a directory to the zip file."""
-        directory_path = Path(directory)
-        zip_path_base = Path(zip_path)
-        # Track added files to prevent duplicates (handles symlinks and multiple calls)
-        added_files = set()
-        for root, dirs, files in os.walk(directory):
-            root_path = Path(root)
-            for file in files:
-                file_path = root_path / file
-                arc_path = zip_path_base / file_path.relative_to(directory_path)
-                arc_path_str = str(arc_path)
-                # Only add if not already in zip (prevents duplicate warnings)
-                if arc_path_str not in added_files:
-                    try:
-                        zipf.write(str(file_path), arc_path_str)
-                        added_files.add(arc_path_str)
-                    except zipfile.BadZipFile:
-                        # Skip if zip is in a bad state
-                        logger.warning(f"Skipping file {file_path} due to zip error")
-                    except Exception as e:
-                        # Log but continue for other errors
-                        logger.debug(f"Error adding {file_path} to zip: {e}")
-
-    @handle_errors("materializing directory backup", default_return=False)
-    def _materialize_directory_backup(
-        self, zip_backup_path: str, directory_backup_path: str
-    ) -> bool:
-        """Extract a zip payload to a directory backup and remove zip payload."""
-        source_zip = Path(zip_backup_path)
-        target_dir = Path(directory_backup_path)
-        if not source_zip.exists():
-            return False
-        if target_dir.exists():
-            if target_dir.is_file():
-                target_dir.unlink()
-            else:
-                shutil.rmtree(target_dir, ignore_errors=True)
-        target_dir.mkdir(parents=True, exist_ok=True)
-        with zipfile.ZipFile(source_zip, "r") as zipf:
-            zipf.extractall(target_dir)
-        manifest_path = target_dir / "manifest.json"
-        if manifest_path.exists():
-            try:
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    manifest = json.load(f)
-                if isinstance(manifest, dict):
-                    manifest["format"] = "directory"
-                    with open(manifest_path, "w", encoding="utf-8") as f:
-                        json.dump(manifest, f, indent=2)
-            except Exception:
-                pass
-        source_zip.unlink(missing_ok=True)
-        return True
 
     @handle_errors("checking directory backup path", default_return=False)
     def _is_directory_backup_path(self, file_path: Path) -> bool:
@@ -716,7 +465,7 @@ class BackupManager:
 
         try:
             for file_path in backup_dir_path.iterdir():
-                if (file_path.is_file() and file_path.suffix == ".zip") or self._is_directory_backup_path(file_path):
+                if self._is_directory_backup_path(file_path):
                     try:
                         backup_info = self._get_backup_info(str(file_path))
                         # Only include backups with valid info (non-empty dict)
@@ -763,35 +512,11 @@ class BackupManager:
                     "includes": {},
                     "system_info": {},
                 }
-            # LEGACY COMPATIBILITY: Zip backup read support retained for historical artifacts.
-            logger.info(
-                f"LEGACY COMPATIBILITY: Reading zip backup metadata: {backup_obj.name}"
+            # Zip backup format no longer supported; only directory backups are supported.
+            logger.warning(
+                f"Zip backup format no longer supported; skipping: {backup_obj.name}"
             )
-            with zipfile.ZipFile(backup_path, "r") as zipf:
-                if "manifest.json" in zipf.namelist():
-                    manifest_content = zipf.read("manifest.json")
-                    manifest = json.loads(manifest_content)
-                    return {
-                        "file_path": backup_path,
-                        "file_name": os.path.basename(backup_path),
-                        "file_size": os.path.getsize(backup_path),
-                        "created_at": manifest.get("created_at"),
-                        "backup_name": manifest.get("backup_name"),
-                        "includes": manifest.get("includes", {}),
-                        "system_info": manifest.get("system_info", {}),
-                    }
-                # Fallback for backups without manifest
-                created_at_dt = datetime.fromtimestamp(os.path.getmtime(backup_path))
-                created_at = format_timestamp(created_at_dt, TIMESTAMP_FULL)
-                return {
-                    "file_path": backup_path,
-                    "file_name": os.path.basename(backup_path),
-                    "file_size": os.path.getsize(backup_path),
-                    "created_at": created_at,
-                    "backup_name": "Unknown",
-                    "includes": {},
-                    "system_info": {},
-                }
+            return {}
         except Exception as e:
             logger.error(f"Failed to read backup info for {backup_path}: {e}")
             return {}
@@ -851,27 +576,11 @@ class BackupManager:
                 logger.info(f"Directory backup restored successfully from: {backup_path}")
                 return True
 
-            # LEGACY COMPATIBILITY: Zip backup restore path for historical artifacts.
-            logger.info(
-                f"LEGACY COMPATIBILITY: Restoring from zip backup artifact: {backup_obj.name}"
+            # Zip backup format no longer supported.
+            logger.error(
+                f"Zip backup format no longer supported; cannot restore: {backup_obj.name}"
             )
-            with zipfile.ZipFile(backup_path, "r") as zipf:
-                if restore_users:
-                    try:
-                        self._restore_user_data(zipf)
-                    except Exception as e:
-                        logger.error(f"Failed to restore user data: {e}")
-                        raise
-
-                if restore_config:
-                    try:
-                        self._restore_config_files(zipf)
-                    except Exception as e:
-                        logger.error(f"Failed to restore config files: {e}")
-                        raise
-
-                logger.info(f"Backup restored successfully from: {backup_path}")
-                return True
+            return False
 
         except Exception as e:
             logger.error(f"Failed to restore backup: {e}")
@@ -929,19 +638,11 @@ class BackupManager:
                     backup_obj, prefix="config", destination=destination_path
                 )
         else:
-            # LEGACY COMPATIBILITY: Zip backup drill support for historical artifacts.
-            logger.info(
-                f"LEGACY COMPATIBILITY: Drill restore from zip backup artifact: {backup_obj.name}"
+            # Zip backup format no longer supported.
+            logger.error(
+                f"Zip backup format no longer supported; cannot restore: {backup_obj.name}"
             )
-            with zipfile.ZipFile(backup_path, "r") as zipf:
-                if restore_users:
-                    extracted_total += self._extract_zip_prefix_to_destination(
-                        zipf, prefix="users/", destination=destination_path
-                    )
-                if restore_config:
-                    extracted_total += self._extract_zip_prefix_to_destination(
-                        zipf, prefix="config/", destination=destination_path
-                    )
+            return False
         if extracted_total <= 0:
             logger.warning(
                 "Isolated restore completed but no files were extracted from backup"
@@ -950,44 +651,6 @@ class BackupManager:
             f"Isolated restore completed successfully: {backup_path} -> {destination_path} ({extracted_total} files)"
         )
         return True
-
-    @handle_errors("restoring user data")
-    def _restore_user_data(self, zipf: zipfile.ZipFile) -> None:
-        """Restore user data from backup."""
-        # Ensure base directory exists
-        base_dir = Path(core.config.BASE_DATA_DIR)
-        base_dir.mkdir(parents=True, exist_ok=True)
-
-        # Clear existing user data
-        user_info_path = Path(core.config.USER_INFO_DIR_PATH)
-        if user_info_path.exists():
-            try:
-                shutil.rmtree(user_info_path)
-            except Exception as e:
-                logger.warning(f"Failed to remove existing user data directory: {e}")
-
-        extracted_count = self._extract_zip_prefix_to_destination(
-            zipf, prefix="users/", destination=base_dir
-        )
-
-        logger.info(
-            f"User data restored successfully ({extracted_count} files extracted)"
-        )
-
-    @handle_errors("restoring config files")
-    def _restore_config_files(self, zipf: zipfile.ZipFile) -> None:
-        """Restore configuration files from backup."""
-        # Ensure base directory exists
-        base_dir = Path(core.config.BASE_DATA_DIR)
-        base_dir.mkdir(parents=True, exist_ok=True)
-
-        extracted_count = self._extract_zip_prefix_to_destination(
-            zipf, prefix="config/", destination=base_dir
-        )
-
-        logger.info(
-            f"Configuration files restored successfully ({extracted_count} files extracted)"
-        )
 
     @handle_errors("restoring user data from directory")
     def _restore_user_data_from_directory(self, backup_root: Path) -> None:
@@ -1039,43 +702,6 @@ class BackupManager:
             copied += 1
         return copied
 
-    @handle_errors("extracting zip prefix to destination", default_return=0)
-    def _extract_zip_prefix_to_destination(
-        self, zipf: zipfile.ZipFile, prefix: str, destination: Path
-    ) -> int:
-        """Safely extract zip entries under prefix into destination."""
-        extracted_count = 0
-        destination = destination.resolve()
-        for file_info in zipf.infolist():
-            filename = file_info.filename
-            if not filename.startswith(prefix):
-                continue
-            if filename.endswith("/"):
-                continue
-            try:
-                target_path = (destination / filename).resolve()
-            except Exception as e:
-                logger.warning(f"Failed to resolve extraction path for {filename}: {e}")
-                continue
-            try:
-                if destination not in target_path.parents and target_path != destination:
-                    logger.warning(
-                        f"Skipping unsafe path traversal attempt during restore: {filename}"
-                    )
-                    continue
-            except Exception:
-                logger.warning(f"Skipping untrusted extraction target: {filename}")
-                continue
-            try:
-                target_path.parent.mkdir(parents=True, exist_ok=True)
-                with zipf.open(file_info, "r") as source_file:
-                    with open(target_path, "wb") as output_file:
-                        shutil.copyfileobj(source_file, output_file)
-                extracted_count += 1
-            except Exception as e:
-                logger.warning(f"Failed to extract {filename}: {e}")
-        return extracted_count
-
     @handle_errors("checking backup file exists", default_return=False)
     def _validate_backup__check_file_exists(
         self, backup_path: str, errors: list[str]
@@ -1085,83 +711,6 @@ class BackupManager:
             errors.append(f"Backup file not found: {backup_path}")
             return False
         return True
-
-    @handle_errors("validating zip file contents", default_return=[])
-    def _validate_backup__validate_zip_file(self, backup_path: str) -> list[str]:
-        """Validate zip file integrity and contents."""
-        errors = []
-
-        try:
-            with zipfile.ZipFile(backup_path, "r") as zipf:
-                # Validate file integrity
-                self._validate_backup__check_file_integrity(zipf, errors)
-
-                # Validate manifest
-                self._validate_backup__validate_manifest(zipf, errors)
-
-                # Validate content requirements
-                self._validate_backup__validate_content_requirements(zipf, errors)
-
-        except Exception as e:
-            errors.append(f"Failed to open backup file: {e}")
-
-        return errors
-
-    @handle_errors("checking file integrity", default_return=None)
-    def _validate_backup__check_file_integrity(
-        self, zipf: zipfile.ZipFile, errors: list[str]
-    ) -> None:
-        """Check if the zip file is not corrupted."""
-        try:
-            zipf.testzip()
-        except Exception as e:
-            errors.append(f"Backup file is corrupted: {e}")
-
-    @handle_errors("validating manifest", default_return=None)
-    def _validate_backup__validate_manifest(
-        self, zipf: zipfile.ZipFile, errors: list[str]
-    ) -> None:
-        """Validate the backup manifest file."""
-        if "manifest.json" not in zipf.namelist():
-            errors.append("Backup missing manifest.json")
-            return
-
-        try:
-            manifest_content = zipf.read("manifest.json")
-            manifest = json.loads(manifest_content)
-
-            # Validate required manifest fields
-            if not manifest.get("created_at"):
-                errors.append("Manifest missing creation timestamp")
-
-            if not manifest.get("backup_name"):
-                errors.append("Manifest missing backup name")
-
-        except json.JSONDecodeError:
-            errors.append("Manifest.json is not valid JSON")
-
-    @handle_errors("validating content requirements", default_return=None)
-    def _validate_backup__validate_content_requirements(
-        self, zipf: zipfile.ZipFile, errors: list[str]
-    ) -> None:
-        """Validate that backup contains required content."""
-        # Check for required user data
-        # Note: Backups can be created without users (e.g., config-only backups)
-        # Only warn if manifest indicates users should be included but none are found
-        user_files = [f for f in zipf.namelist() if f.startswith("users/")]
-        try:
-            manifest_data = zipf.read("manifest.json")
-            import json
-
-            manifest = json.loads(manifest_data)
-            if manifest.get("includes", {}).get("users", False) and not user_files:
-                errors.append(
-                    "Backup manifest indicates users should be included but no user data found"
-                )
-        except Exception:
-            # If manifest can't be read or parsed, skip this check
-            # The manifest validation will catch manifest issues separately
-            pass
 
     @handle_errors("validating directory backup", default_return=[])
     def _validate_backup__validate_directory_backup(self, backup_path: str) -> list[str]:
@@ -1220,13 +769,9 @@ class BackupManager:
             dir_errors = self._validate_backup__validate_directory_backup(backup_path)
             errors.extend(dir_errors)
         else:
-            # LEGACY COMPATIBILITY: Zip backup validation retained for historical artifacts.
-            logger.info(
-                f"LEGACY COMPATIBILITY: Validating zip backup artifact: {backup_obj.name}"
+            errors.append(
+                "Zip backup format no longer supported; only directory backups are supported."
             )
-            # Validate zip file integrity and contents
-            zip_errors = self._validate_backup__validate_zip_file(backup_path)
-            errors.extend(zip_errors)
 
         return len(errors) == 0, errors
 

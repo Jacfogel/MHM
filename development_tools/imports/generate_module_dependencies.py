@@ -830,19 +830,44 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
                 }.get(status, "[?]")
                 logger.warning(ensure_ascii(f"   {status_icon} {file_path} ({status})"))
 
-        # Validate that preserved enhancements are actually in the written file
+        # Validate that preserved enhancements are actually in the written file.
+        # Only validate modules that appear in the written output (modules in
+        # actual_imports); enhancements for removed/renamed modules are stale
+        # and should not trigger a warning.
         if preserved_enhancements:
             try:
                 with open(detail_path, encoding="utf-8") as f:
                     written_content = f.read()
 
+                # Modules present in written file have "#### `module_name`" section headers
+                modules_in_output = {
+                    line[6:-1]
+                    for line in written_content.split("\n")
+                    if line.startswith("#### `") and line.endswith("`") and ".py" in line
+                }
+
                 preserved_count = 0
-                for _module_name, enhancement_summary in preserved_enhancements.items():
-                    # Check if the enhancement content appears in the written file
-                    if enhancement_summary.split("\n")[0] in written_content:
+                for module_name, enhancement_summary in preserved_enhancements.items():
+                    if module_name not in modules_in_output:
+                        continue  # Stale enhancement (module removed); skip validation
+                    # Use a robust check: summary may be truncated with "...";
+                    # verify that a substantial prefix appears in the written content
+                    search_key = enhancement_summary.split("\n")[0].strip()
+                    if search_key.endswith("..."):
+                        search_key = search_key[:-3].strip()
+                    if search_key and search_key in written_content:
                         preserved_count += 1
 
-                if preserved_count == len(preserved_enhancements):
+                expected_count = sum(
+                    1 for m in preserved_enhancements if m in modules_in_output
+                )
+                if expected_count == 0:
+                    logger.info(
+                        ensure_ascii(
+                            "[VALIDATION] No preserved enhancements in current output (all modules may have changed)"
+                        )
+                    )
+                elif preserved_count == expected_count:
                     logger.info(
                         ensure_ascii(
                             f"[VALIDATION] All {preserved_count} manual enhancements verified in written file"
@@ -851,7 +876,7 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
                 else:
                     logger.warning(
                         ensure_ascii(
-                            f"[VALIDATION] Warning: Only {preserved_count}/{len(preserved_enhancements)} manual enhancements found in written file"
+                            f"[VALIDATION] Warning: Only {preserved_count}/{expected_count} manual enhancements found in written file ({len(preserved_enhancements) - expected_count} stale from removed modules)"
                         )
                     )
             except Exception as e:

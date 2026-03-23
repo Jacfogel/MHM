@@ -23,12 +23,12 @@ def test_get_status_file_mtimes_uses_default_paths(tmp_path: Path):
     status_dir = tmp_path / "development_tools"
     status_dir.mkdir(parents=True, exist_ok=True)
     (status_dir / "AI_STATUS.md").write_text("status", encoding="utf-8")
-    (status_dir / "consolidated_report.md").write_text("report", encoding="utf-8")
+    (status_dir / "CONSOLIDATED_REPORT.md").write_text("report", encoding="utf-8")
 
     mtimes = audit_module._get_status_file_mtimes(tmp_path)
     assert mtimes["AI_STATUS.md"] > 0
     assert mtimes["AI_PRIORITIES.md"] == 0.0
-    assert mtimes["consolidated_report.md"] > 0
+    assert mtimes["CONSOLIDATED_REPORT.md"] > 0
 
 
 @pytest.mark.unit

@@ -278,7 +278,7 @@ def test_run_coverage_regeneration_fails_when_coverage_outcome_failed(
 def test_run_coverage_regeneration_cache_only_payload_without_coverage_outcome(
     temp_project_copy, monkeypatch
 ):
-    """Cache-only coverage payloads without coverage_outcome should normalize to clean."""
+    """Payloads without coverage_outcome are invalidated; cache deleted, outcome is coverage_failed."""
     service = AIToolsService(project_root=str(temp_project_copy))
     output_file = (
         temp_project_copy
@@ -307,10 +307,11 @@ def test_run_coverage_regeneration_cache_only_payload_without_coverage_outcome(
     )
     monkeypatch.setattr(service, "_load_coverage_summary", lambda: {"overall": {"missed": 0}})
 
-    assert service.run_coverage_regeneration() is True
-    assert service.tier3_test_outcome.get("state") == "clean"
-    assert service.tier3_test_outcome.get("parallel", {}).get("classification") == "skipped"
-    assert service.tier3_test_outcome.get("no_parallel", {}).get("classification") == "skipped"
+    service.run_coverage_regeneration()
+    outcome = service.tier3_test_outcome or {}
+    assert outcome.get("parallel", {}).get("classification_reason") == "coverage_outcome_missing"
+    assert outcome.get("no_parallel", {}).get("classification_reason") == "coverage_outcome_missing"
+    assert not output_file.exists(), "Cache file should be invalidated (deleted) when coverage_outcome missing"
 
 
 @pytest.mark.unit

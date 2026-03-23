@@ -914,11 +914,11 @@ class CommandsMixin:
                 status_files_config = status_config.get('status_files', {})
                 ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
                 ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
-                consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/consolidated_report.md')
+                consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/CONSOLIDATED_REPORT.md')
             except (ImportError, AttributeError, KeyError):
                 ai_status_path = 'development_tools/AI_STATUS.md'
                 ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
-                consolidated_report_path = 'development_tools/consolidated_report.md'
+                consolidated_report_path = 'development_tools/CONSOLIDATED_REPORT.md'
             
             try:
                 ai_status = self._generate_ai_status_document()
@@ -1203,43 +1203,18 @@ class CommandsMixin:
                                         if existing_return_code_hex is not None
                                         else ""
                                     )
-                        elif payload_coverage_collected:
-                            synthesized_classification = (
-                                "skipped" if payload_from_cache else "unknown"
-                            )
-                            synthesized_reason = (
-                                "cache_only_payload_without_coverage_outcome"
-                                if payload_from_cache
-                                else "unstructured_payload_without_coverage_outcome"
-                            )
-                            logger.info(
-                                "Tier 3 coverage payload missing coverage_outcome; "
-                                "synthesizing outcome from coverage_collected signal."
-                            )
-                            structured_outcome = {
-                                "state": "clean",
-                                "parallel": {
-                                    "state": synthesized_classification,
-                                    "classification": synthesized_classification,
-                                    "classification_reason": synthesized_reason,
-                                    "actionable_context": (
-                                        "Coverage was collected without explicit per-track outcome payload."
-                                    ),
-                                    "log_file": None,
-                                    "return_code_hex": None,
-                                },
-                                "no_parallel": {
-                                    "state": synthesized_classification,
-                                    "classification": synthesized_classification,
-                                    "classification_reason": synthesized_reason,
-                                    "actionable_context": (
-                                        "Coverage was collected without explicit per-track outcome payload."
-                                    ),
-                                    "log_file": None,
-                                    "return_code_hex": None,
-                                },
-                                "failed_node_ids": [],
-                            }
+                        else:
+                            # coverage_outcome missing: invalidate cache, do not use payload
+                            try:
+                                coverage_output_file.unlink(missing_ok=True)
+                                logger.info(
+                                    "Tier 3 coverage payload missing coverage_outcome; "
+                                    "invalidated cache file."
+                                )
+                            except Exception as unlink_err:
+                                logger.warning(
+                                    f"Failed to invalidate coverage cache: {unlink_err}"
+                                )
                 except Exception as parse_error:
                     logger.debug(
                         f"Failed to parse run_test_coverage structured output: {parse_error}"

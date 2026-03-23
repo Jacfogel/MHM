@@ -156,7 +156,7 @@
       "development_docs/UNUSED_IMPORTS_REPORT.md",
       "development_tools/AI_PRIORITIES.md",
       "development_tools/AI_STATUS.md",
-      "development_tools/consolidated_report.md",
+      "development_tools/CONSOLIDATED_REPORT.md",
       "development_tools/reports/analysis_detailed_results.json",
       "ui/generated/*"
     ],
@@ -347,7 +347,7 @@
     "status_files": {
       "ai_status": "development_tools/AI_STATUS.md",
       "ai_priorities": "development_tools/AI_PRIORITIES.md",
-      "consolidated_report": "development_tools/consolidated_report.md"
+      "consolidated_report": "development_tools/CONSOLIDATED_REPORT.md"
     }
   },
   "coverage": {
@@ -442,12 +442,6 @@
       "legacy_compatibility_markers": [
         "# LEGACY COMPATIBILITY:",
         "# LEGACY:"
-      ],
-      "backup_zip_compat_bridge": [
-        "LEGACY COMPATIBILITY: BACKUP_FORMAT=zip ignored in runtime; backup creation is directory-only by policy",
-        "LEGACY COMPATIBILITY: Zip backup restore path for historical artifacts\\.",
-        "LEGACY COMPATIBILITY: Validating zip backup artifact:",
-        "LEGACY COMPATIBILITY: Reading zip backup metadata:"
       ]
     },
     "replacement_mappings": {

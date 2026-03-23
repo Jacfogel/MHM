@@ -77,7 +77,8 @@ class AIToolsService(
             'include_tests': False,
             'include_dev_tools': False
         }
-        
+        self.dev_tools_only_mode = False
+
         self.docs_sync_summary = None
         self.legacy_cleanup_results = None
         self.legacy_cleanup_summary = None

@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-23 - Legacy cleanup + AI Dev Tools Improvement Plan V4
+- **tier3_coverage_outcome_compat_bridge**: Removed synthesis branch in `commands.py`. Option A: when payload lacks `coverage_outcome`, cache file is invalidated (deleted); outcome remains coverage_failed. `--clear-cache` clears `run_test_coverage_results.json`. Updated `test_run_coverage_regeneration_cache_only_payload_without_coverage_outcome` to expect invalidation.
+- **backup_zip_compat_bridge**: Removed zip read/restore/validate from `core/backup_manager.py`; directory-only backups. Removed dead zip creation path, zip backup/restore helpers, zip validation. `list_backups` directory-only; `_get_backup_info` returns {} for zip; `restore_backup`/`restore_backup_to_path` return False for zip. Dropped from fix_legacy_references and legacy_patterns. Tests updated.
+- **legacy_timestamp_parsing**: Option B: added `scripts/migrate_sent_messages_timestamps.py` (sent_messages.json and archives under data/users, tests/data). Removed fallback in `_normalize_message_timestamps`; removed `parse_timestamp_for_normalization` from time_utilities. Updated test to expect no conversion.
+- **AI Dev Tools V4**: Validation (3.2) fixed module-dependencies warning; error-handling (3.6) uses `error_details`; DEPRECATION_INVENTORY.json created; coverage tests added; consolidated_report → CONSOLIDATED_REPORT.md; logging moved to logger.info; `audit --dev-tools-only`; config/preserve_files updated; Ruff SIM114 resolved; Executive Summary error-handling line formatted.
+
 ### 2026-03-22 - List consolidation; LIST_OF_LISTS §15; static check, error-handling, registry, exclusions; path drift and AI_PRIORITIES
 - **LIST_OF_LISTS §15 (Next action steps)**: Documented planned relocations. Implemented: (1) Static check `EXCLUDED_DIRS`, `ALLOWED_LOGGING_IMPORT_PATHS` → config `static_checks.channel_loggers`; (2) Error-handling keywords derived from `critical_function_keywords` and `phase1_keywords` (removed redundant hardcoded lists); (3) `generate_function_registry` `directory_descriptions`, `common_operations_priority_order`, `entry_point_descriptions`, `decision_trees` → config; (4) Exclusions merge strategy: `base_exclusions_additions`, `base_exclusions_removals` in config.
 - **Consolidation scan (§9b)**: Project-specific constants moved to config; generic defaults in code.
