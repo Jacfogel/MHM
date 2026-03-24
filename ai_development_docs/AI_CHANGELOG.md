@@ -30,10 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-03-24 - Dev Tools Option A: Import-boundary; Coverage 60%+; flaky test fix **Progressed**
-- **Import-boundary (Phase 2.1 + 2.2)**: Analyzer wired to audit Tier 1; time_helpers, error_helpers; refactored ~17 files; policy in DEVELOPMENT_TOOLS_GUIDE §8.5 / AI_DEVELOPMENT_TOOLS_GUIDE §8; policy test. Follow-up: timing fake service, Ruff B009, EXCLUSION_RULES merged into guides (file removed).
-- **Flaky test stabilized**: `test_compute_source_signature_changes_when_source_changes`—use `development_tools/static_checks/code.py` path, read-back verification, and 0.05s sleep for Windows fs sync.
-- **Targeted coverage tests**: audit_orchestration, run_test_coverage, commands helpers. Run `audit --quick` and coverage script to verify.
+### 2026-03-24 - Dev tools: import boundary; Tier 3 coverage; docs/portability **COMPLETED**
+- **Import-boundary (Tier 1)**: `analyze_dev_tools_import_boundaries`, `time_helpers` / `error_helpers`, policy §8–8.5; Option A import cleanup; fake service / strict-mode follow-ups.
+- **Tier 3**: Contract enforced on `coverage_outcome` and per-track `classification`; invalidation logs at WARNING; no cache fallback in `_extract_cached_main_coverage_state`; strict/helper tests updated.
+- **Docs**: Removed/folded extra standalone files into paired guides; §9 taxonomy; `AI_DEVELOPMENT_TOOLS_GUIDE` link fixes; `doc-sync` writes `docs/jsons/analyze_documentation_sync_results.json`; reporting/AI_STATUS UX tweaks; audit status test asserts status files on disk (Tier 3 / coverage safe); module line threshold 1000; flaky cache-helper + extra coverage tests.
 
 ### 2026-03-23 - Legacy cleanup + AI Dev Tools Plan V4 **Progressed**
 - **Legacy bridges retired**: (1) **tier3_coverage_outcome_compat_bridge**—Option A: invalidate caches lacking coverage_outcome (delete file on load); `--clear-cache` already clears it. (2) **backup_zip_compat_bridge**—removed zip read/restore/validate; directory-only backups. (3) **legacy_timestamp_parsing**—Option B: added `scripts/migrate_sent_messages_timestamps.py`; removed fallback in `_normalize_message_timestamps`; run migration before deploy.

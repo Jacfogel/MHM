@@ -90,8 +90,9 @@ def main():
         result = fixer.fix_add_addresses(dry_run=args.dry_run)
         results["add_addresses"] = result
         total_errors += result.get("errors", 0)
-        print(
-            f"\nAdd Addresses: Updated {result['updated']}, Skipped {result['skipped']}, Errors {result['errors']}"
+        logger.info(
+            f"Add Addresses: Updated {result['updated']}, Skipped {result['skipped']}, "
+            f"Errors {result['errors']}"
         )
 
     if args.fix_ascii or args.all or args.full:
@@ -99,8 +100,9 @@ def main():
         result = fixer.fix_ascii(dry_run=args.dry_run)
         results["fix_ascii"] = result
         total_errors += result.get("errors", 0)
-        print(
-            f"\nFix ASCII: Updated {result['files_updated']} files, Made {result['replacements_made']} replacements, Errors {result['errors']}"
+        logger.info(
+            f"Fix ASCII: Updated {result['files_updated']} files, "
+            f"Made {result['replacements_made']} replacements, Errors {result['errors']}"
         )
 
     if args.number_headings or args.all or args.full:
@@ -108,8 +110,9 @@ def main():
         result = fixer.fix_number_headings(dry_run=args.dry_run)
         results["number_headings"] = result
         total_errors += result.get("errors", 0)
-        print(
-            f"\nNumber Headings: Updated {result['files_updated']} files, Fixed {result['issues_fixed']} issues, Errors {result['errors']}"
+        logger.info(
+            f"Number Headings: Updated {result['files_updated']} files, "
+            f"Fixed {result['issues_fixed']} issues, Errors {result['errors']}"
         )
 
     if args.convert_links or args.all or args.full:
@@ -117,8 +120,9 @@ def main():
         result = fixer.fix_convert_links(dry_run=args.dry_run)
         results["convert_links"] = result
         total_errors += result.get("errors", 0)
-        print(
-            f"\nConvert Links: Updated {result['files_updated']} files, Made {result['changes_made']} changes, Errors {result['errors']}"
+        logger.info(
+            f"Convert Links: Updated {result['files_updated']} files, "
+            f"Made {result['changes_made']} changes, Errors {result['errors']}"
         )
 
     if not (

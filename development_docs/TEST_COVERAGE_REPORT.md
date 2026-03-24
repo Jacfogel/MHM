@@ -2,69 +2,69 @@
 
 > **File**: `development_docs/TEST_COVERAGE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-24 01:09:31
+> **Last Generated**: 2026-03-24 17:29:54
 > **Source**: `python development_tools/tests/generate_test_coverage_report.py` - Test Coverage Report Generator
 
 ## Current Status
 
-### **Overall Coverage: 77.7%**
-- **Total Statements**: 10,740
-- **Covered Statements**: 8,347
-- **Uncovered Statements**: 2,393
+### **Overall Coverage: 77.5%**
+- **Total Statements**: 10,673
+- **Covered Statements**: 8,273
+- **Uncovered Statements**: 2,400
 - **Coverage Scope**: Main project domains only (`core`); `development_tools/` coverage is tracked separately.
 - **Goal**: Expand to **80%+ coverage** for comprehensive reliability
 
 ### **Coverage by Domain**
-- **core**: 77.7% (8347/10740 lines, 2393 missing)
+- **core**: 77.5% (8273/10673 lines, 2400 missing)
 
 ### **Coverage Summary by Category**
 - **Excellent (90% avg)**: 23 modules
-- **Good (70% avg)**: 12 modules
+- **Good (69% avg)**: 12 modules
 
 ### **Detailed Module Coverage**
-- **! core\checkin_analytics.py**: 62% (444/719 lines)
-- **! core\user_data_read.py**: 63% (190/303 lines)
-- **! core\scheduler.py**: 65% (664/1028 lines)
-- **! core\user_data_schedule_defaults.py**: 65% (60/93 lines)
-- **! core\logger.py**: 68% (508/748 lines)
-- **! core\time_utilities.py**: 68% (73/108 lines)
-- **! core\user_data_manager.py**: 70% (606/862 lines)
-- **! core\message_management.py**: 74% (299/406 lines)
-- **! core\user_lookup.py**: 74% (111/151 lines)
-- **! core\service.py**: 76% (547/717 lines)
-- **! core\user_data_write.py**: 76% (268/353 lines)
-- **! core\error_handling.py**: 78% (319/408 lines)
-- *** core\checkin_dynamic_manager.py**: 81% (325/402 lines)
-- *** core\file_operations.py**: 81% (321/396 lines)
-- *** core\backup_manager.py**: 82% (423/518 lines)
-- *** core\schedule_management.py**: 83% (247/298 lines)
-- *** core\headless_service.py**: 84% (179/214 lines)
-- *** core\user_data_presets.py**: 84% (27/32 lines)
-- *** core\user_data_registry.py**: 85% (231/273 lines)
-- *** core\config.py**: 86% (351/407 lines)
-- *** core\schemas.py**: 86% (266/309 lines)
-- *** core\response_tracking.py**: 87% (103/118 lines)
-- *** core\ui_management.py**: 90% (130/145 lines)
-- *** core\user_data_updates.py**: 91% (89/98 lines)
-- *** core\__init__.py**: 92% (47/51 lines)
-- *** core\message_analytics.py**: 92% (60/65 lines)
-- *** core\service_utilities.py**: 92% (145/157 lines)
-- *** core\user_data_validation.py**: 93% (288/311 lines)
-- *** core\user_management.py**: 93% (71/76 lines)
-- *** core\file_locking.py**: 96% (102/106 lines)
-- *** core\auto_cleanup.py**: 97% (428/443 lines)
-- *** core\file_auditor.py**: 100% (95/95 lines)
-- *** core\schedule_utilities.py**: 100% (64/64 lines)
-- *** core\tags.py**: 100% (210/210 lines)
-- *** core\user_item_storage.py**: 100% (56/56 lines)
+- **! core\checkin_analytics.py**: 62% (443/718 lines)
+- **! core\user_data_read.py**: 63% (189/302 lines)
+- **! core\scheduler.py**: 64% (663/1028 lines)
+- **! core\user_data_schedule_defaults.py**: 64% (59/92 lines)
+- **! core\logger.py**: 66% (493/743 lines)
+- **! core\time_utilities.py**: 67% (72/107 lines)
+- **! core\user_data_manager.py**: 71% (611/860 lines)
+- **! core\user_lookup.py**: 72% (108/150 lines)
+- **! core\message_management.py**: 74% (298/405 lines)
+- **! core\service.py**: 76% (544/715 lines)
+- **! core\user_data_write.py**: 76% (267/352 lines)
+- **! core\error_handling.py**: 77% (300/389 lines)
+- *** core\checkin_dynamic_manager.py**: 81% (323/400 lines)
+- *** core\file_operations.py**: 81% (320/395 lines)
+- *** core\backup_manager.py**: 82% (421/516 lines)
+- *** core\headless_service.py**: 83% (176/211 lines)
+- *** core\schedule_management.py**: 83% (246/297 lines)
+- *** core\user_data_presets.py**: 84% (26/31 lines)
+- *** core\user_data_registry.py**: 85% (230/272 lines)
+- *** core\config.py**: 86% (349/405 lines)
+- *** core\schemas.py**: 86% (265/308 lines)
+- *** core\response_tracking.py**: 87% (102/117 lines)
+- *** core\ui_management.py**: 90% (129/144 lines)
+- *** core\user_data_updates.py**: 91% (88/97 lines)
+- *** core\__init__.py**: 92% (46/50 lines)
+- *** core\message_analytics.py**: 92% (59/64 lines)
+- *** core\service_utilities.py**: 92% (142/154 lines)
+- *** core\user_data_validation.py**: 93% (287/310 lines)
+- *** core\user_management.py**: 93% (70/75 lines)
+- *** core\file_locking.py**: 96% (101/105 lines)
+- *** core\auto_cleanup.py**: 97% (426/441 lines)
+- *** core\file_auditor.py**: 100% (93/93 lines)
+- *** core\schedule_utilities.py**: 100% (63/63 lines)
+- *** core\tags.py**: 100% (209/209 lines)
+- *** core\user_item_storage.py**: 100% (55/55 lines)
 
 ## Test Markers
 
 **Note**: Marker counts are generated from test decorators in `tests/test_*.py` files.
 
-- **Total discovered test nodes**: 4794
+- **Total discovered test nodes**: 4798
 - **Marker usage counts**:
-  - `unit`: 2435
+  - `unit`: 2439
   - `behavior`: 1806
   - `communication`: 1045
   - `ui`: 579

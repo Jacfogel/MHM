@@ -2093,13 +2093,16 @@ class ReportGenerationMixin:
         if validation_output and validation_output.strip():
             if "POOR" in validation_output:
                 lines.append(
-                    "- **AI Work Validation**: POOR - documentation or tests missing"
+                    "- **AI Work Validation**: POOR — structural gaps likely; confirm with "
+                    "`doc-sync`, `TEST_COVERAGE_REPORT.md`, and `error_handling/analyze_error_handling.py` "
+                    "rather than relying on this summary alone"
                 )
             elif "GOOD" in validation_output:
                 lines.append("- **AI Work Validation**: GOOD - keep current standards")
             elif "NEEDS ATTENTION" in validation_output or "FAIR" in validation_output:
                 lines.append(
-                    "- **AI Work Validation**: NEEDS ATTENTION - see consolidated report for details"
+                    "- **AI Work Validation**: NEEDS ATTENTION — use doc-sync, coverage report, "
+                    "and domain analyzers for file-level next steps (this tool is structural only)"
                 )
             else:
                 lines.append(
@@ -2118,7 +2121,8 @@ class ReportGenerationMixin:
                     if cached_output and cached_output.strip():
                         if "POOR" in cached_output:
                             lines.append(
-                                "- **AI Work Validation**: POOR - documentation or tests missing (cached)"
+                                "- **AI Work Validation**: POOR (cached) — confirm with doc-sync, "
+                                "coverage, and error-handling tools for specifics"
                             )
                         elif "GOOD" in cached_output:
                             lines.append(
@@ -2129,7 +2133,8 @@ class ReportGenerationMixin:
                             or "FAIR" in cached_output
                         ):
                             lines.append(
-                                "- **AI Work Validation**: NEEDS ATTENTION - see consolidated report for details (cached)"
+                                "- **AI Work Validation**: NEEDS ATTENTION (cached) — follow up with "
+                                "doc-sync and domain analyzers (structural signal only)"
                             )
                         else:
                             lines.append(
@@ -2206,6 +2211,10 @@ class ReportGenerationMixin:
 
         lines.append("")
         lines.append("## System Signals")
+        lines.append(
+            "- **Scope**: Operational health (audit freshness, test coverage pulse, core files, alerts). "
+            "Documentation pairing and sync are under **Documentation Signals**, not duplicated here."
+        )
 
         if hasattr(self, "system_signals") and self.system_signals:
             system_signals = self._get_system_signals_details(self.system_signals)
@@ -7391,6 +7400,10 @@ class ReportGenerationMixin:
 
         # System Signals
         lines.append("## System Signals")
+        lines.append(
+            "- **Scope**: Operational health (audit freshness, test coverage pulse, core files, alerts). "
+            "Documentation pairing and sync are under **Documentation Signals**, not duplicated here."
+        )
 
         system_signals_data = None
         if hasattr(self, "system_signals") and self.system_signals:

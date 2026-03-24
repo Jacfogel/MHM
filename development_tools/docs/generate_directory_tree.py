@@ -261,9 +261,9 @@ def main():
     output_file = generator.generate_directory_tree(args.output)
 
     if output_file:
-        print(f"Directory tree generated: {output_file}")
+        logger.info(f"Directory tree generated: {output_file}")
     else:
-        print("Error: Failed to generate directory tree")
+        logger.error("Failed to generate directory tree")
         return 1
 
     return 0

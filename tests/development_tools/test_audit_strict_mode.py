@@ -315,6 +315,48 @@ def test_run_coverage_regeneration_cache_only_payload_without_coverage_outcome(
 
 
 @pytest.mark.unit
+def test_run_coverage_regeneration_invalidates_state_only_track_payload(
+    temp_project_copy, monkeypatch
+):
+    """coverage_outcome without per-track classification invalidates cache (no state-only bridge)."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    output_file = (
+        temp_project_copy
+        / "development_tools"
+        / "tests"
+        / "jsons"
+        / "run_test_coverage_results.json"
+    )
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file.write_text(
+        json.dumps(
+            {
+                "coverage_collected": True,
+                "coverage_outcome": {
+                    "state": "clean",
+                    "parallel": {"state": "passed"},
+                    "no_parallel": {"state": "passed"},
+                    "failed_node_ids": [],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *args, **kwargs: {"success": True, "output": "", "error": ""},
+    )
+    monkeypatch.setattr(service, "_load_coverage_summary", lambda: {"overall": {"missed": 0}})
+
+    service.run_coverage_regeneration()
+    outcome = service.tier3_test_outcome or {}
+    assert outcome.get("parallel", {}).get("classification_reason") == "coverage_outcome_missing"
+    assert not output_file.exists()
+
+
+@pytest.mark.unit
 def test_tier3_outcome_includes_development_tools_line(temp_project_copy):
     """Tier 3 report section should include a separate development tools track line."""
     service = AIToolsService(project_root=str(temp_project_copy))

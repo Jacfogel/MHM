@@ -7,6 +7,9 @@ System Signals Analysis Tool
 Analyzes system health and status signals for the project.
 This tool can be run independently or as part of audit workflows.
 
+Outputs complement (do not replace) documentation-focused metrics: pairing/sync and
+ASCII/doc issues remain in doc-sync and Documentation Signals sections of AI_STATUS.
+
 Configuration is loaded from external config file (development_tools_config.json)
 if available, making this tool portable across different projects.
 """

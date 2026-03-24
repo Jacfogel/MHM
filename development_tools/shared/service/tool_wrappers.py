@@ -806,57 +806,73 @@ class ToolWrappersMixin:
                 result["error"] = ""
         return result
 
+    def _persist_documentation_sync_aggregate_json(self) -> dict[str, Any]:
+        """Build aggregate doc-sync payload and save `docs/jsons/analyze_documentation_sync_results.json`.
+
+        Used by both `doc-sync` (CLI) and audit paths so the JSON file referenced by
+        AI_PRIORITIES exists after a standalone doc-sync run.
+        """
+        summary_payload = self.docs_sync_summary or {}
+        summary = (
+            summary_payload.get("summary", {})
+            if isinstance(summary_payload, dict)
+            else {}
+        )
+        details = (
+            summary_payload.get("details", {})
+            if isinstance(summary_payload, dict)
+            else {}
+        )
+        all_results = getattr(self, "docs_sync_results", {}).get("all_results", {})
+        path_drift_files = details.get("path_drift_files", [])
+        data: dict[str, Any] = {
+            "summary": {
+                "total_issues": summary.get("total_issues", 0),
+                "files_affected": (
+                    len(path_drift_files)
+                    if isinstance(path_drift_files, list)
+                    else 0
+                ),
+                "status": summary.get("status", "UNKNOWN"),
+            },
+            "details": {
+                "paired_doc_issues": details.get("paired_doc_issues", 0),
+                "path_drift_issues": details.get("path_drift_issues", 0),
+                "ascii_compliance_issues": details.get("ascii_issues", 0),
+                "heading_numbering_issues": details.get(
+                    "heading_numbering_issues", 0
+                ),
+                "missing_address_issues": details.get(
+                    "missing_address_issues", 0
+                ),
+                "unconverted_link_issues": details.get(
+                    "unconverted_link_issues", 0
+                ),
+                "path_drift_files": path_drift_files,
+                "paired_docs": all_results.get("paired_docs", {}),
+                "path_drift": all_results.get("path_drift", {}),
+                "ascii_compliance": all_results.get("ascii_compliance", {}),
+                "heading_numbering": all_results.get("heading_numbering", {}),
+                "missing_addresses": all_results.get("missing_addresses", {}),
+                "unconverted_links": all_results.get("unconverted_links", {}),
+            },
+        }
+        try:
+            save_tool_result(
+                "analyze_documentation_sync",
+                "docs",
+                data,
+                project_root=self.project_root,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to save analyze_documentation_sync result: {e}")
+        return data
+
     def run_analyze_documentation_sync(self) -> dict:
         """Run analyze_documentation_sync with structured data handling."""
         try:
             if self._run_doc_sync_check():
-                summary_payload = self.docs_sync_summary or {}
-                summary = (
-                    summary_payload.get("summary", {})
-                    if isinstance(summary_payload, dict)
-                    else {}
-                )
-                details = (
-                    summary_payload.get("details", {})
-                    if isinstance(summary_payload, dict)
-                    else {}
-                )
-                all_results = getattr(self, "docs_sync_results", {}).get(
-                    "all_results", {}
-                )
-                path_drift_files = details.get("path_drift_files", [])
-                data = {
-                    "summary": {
-                        "total_issues": summary.get("total_issues", 0),
-                        "files_affected": (
-                            len(path_drift_files)
-                            if isinstance(path_drift_files, list)
-                            else 0
-                        ),
-                        "status": summary.get("status", "UNKNOWN"),
-                    },
-                    "details": {
-                        "paired_doc_issues": details.get("paired_doc_issues", 0),
-                        "path_drift_issues": details.get("path_drift_issues", 0),
-                        "ascii_compliance_issues": details.get("ascii_issues", 0),
-                        "heading_numbering_issues": details.get(
-                            "heading_numbering_issues", 0
-                        ),
-                        "missing_address_issues": details.get(
-                            "missing_address_issues", 0
-                        ),
-                        "unconverted_link_issues": details.get(
-                            "unconverted_link_issues", 0
-                        ),
-                        "path_drift_files": path_drift_files,
-                        "paired_docs": all_results.get("paired_docs", {}),
-                        "path_drift": all_results.get("path_drift", {}),
-                        "ascii_compliance": all_results.get("ascii_compliance", {}),
-                        "heading_numbering": all_results.get("heading_numbering", {}),
-                        "missing_addresses": all_results.get("missing_addresses", {}),
-                        "unconverted_links": all_results.get("unconverted_links", {}),
-                    },
-                }
+                data = self._persist_documentation_sync_aggregate_json()
                 import io
                 import sys
 
@@ -882,17 +898,6 @@ class ToolWrappersMixin:
                     output = output_buffer.getvalue()
                 finally:
                     sys.stdout = original_stdout
-                try:
-                    save_tool_result(
-                        "analyze_documentation_sync",
-                        "docs",
-                        data,
-                        project_root=self.project_root,
-                    )
-                except Exception as e:
-                    logger.warning(
-                        f"Failed to save analyze_documentation_sync result: {e}"
-                    )
                 return {
                     "success": True,
                     "output": output,

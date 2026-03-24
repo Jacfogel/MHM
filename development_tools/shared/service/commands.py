@@ -343,11 +343,6 @@ class CommandsMixin:
             state = self._derive_tier3_state_from_classifications(tier3)
             if isinstance(state, str) and state:
                 return state
-        coverage_outcome = details.get("coverage_outcome")
-        if isinstance(coverage_outcome, dict):
-            state = self._derive_tier3_state_from_classifications(coverage_outcome)
-            if isinstance(state, str) and state:
-                return state
         return None
 
     def _extract_cached_dev_tools_state(self, cached_result: dict | None) -> str | None:
@@ -953,6 +948,8 @@ class CommandsMixin:
         logger.info("=" * 50)
         success = self._run_doc_sync_check()
         if success:
+            # Persist aggregate JSON for AI_PRIORITIES / tooling (same payload as audit path).
+            self._persist_documentation_sync_aggregate_json()
             logger.info("Documentation sync check completed!")
         else:
             logger.warning("Documentation sync check completed with issues.")
@@ -1166,48 +1163,43 @@ class CommandsMixin:
                         payload_from_cache = bool(coverage_payload.get("from_cache"))
                         structured = coverage_payload.get("coverage_outcome", {})
                         if isinstance(structured, dict) and structured:
-                            structured_outcome = {
-                                "state": structured.get("state", "coverage_failed"),
-                                "parallel": structured.get("parallel", {}),
-                                "no_parallel": structured.get("no_parallel", {}),
-                                "failed_node_ids": structured.get(
-                                "failed_node_ids", []
-                                ),
-                            }
-                            for track_name in ("parallel", "no_parallel"):
-                                track = structured_outcome.get(track_name, {})
+
+                            def _track_has_classification(track: object) -> bool:
                                 if not isinstance(track, dict):
-                                    track = {"state": "unknown"}
-                                    structured_outcome[track_name] = track
-                                if "classification" not in track:
-                                    logger.info(
-                                        "Tier 3 coverage payload missing per-track classification fields; "
-                                        f"normalizing track metadata for {track_name}."
+                                    return False
+                                c = track.get("classification")
+                                return isinstance(c, str) and bool(c.strip())
+
+                            parallel_t = structured.get("parallel", {})
+                            no_par_t = structured.get("no_parallel", {})
+                            if not (
+                                _track_has_classification(parallel_t)
+                                and _track_has_classification(no_par_t)
+                            ):
+                                try:
+                                    coverage_output_file.unlink(missing_ok=True)
+                                    logger.warning(
+                                        "Tier 3 coverage payload missing required per-track "
+                                        "classification fields; invalidated cache file."
                                     )
-                                    track_state = str(track.get("state", "unknown") or "unknown")
-                                    track["classification"] = track_state
-                                    track["classification_reason"] = "state_only_payload_missing_classification"
-                                    track["actionable_context"] = (
-                                        "Coverage outcome payload omitted explicit classification fields; "
-                                        "state-derived classification applied."
+                                except Exception as unlink_err:
+                                    logger.warning(
+                                        f"Failed to invalidate coverage cache: {unlink_err}"
                                     )
-                                    existing_log_file = track.get("log_file")
-                                    track["log_file"] = (
-                                        str(existing_log_file)
-                                        if existing_log_file is not None
-                                        else ""
-                                    )
-                                    existing_return_code_hex = track.get("return_code_hex")
-                                    track["return_code_hex"] = (
-                                        str(existing_return_code_hex)
-                                        if existing_return_code_hex is not None
-                                        else ""
-                                    )
+                            else:
+                                structured_outcome = {
+                                    "state": structured.get("state", "coverage_failed"),
+                                    "parallel": parallel_t,
+                                    "no_parallel": no_par_t,
+                                    "failed_node_ids": structured.get(
+                                        "failed_node_ids", []
+                                    ),
+                                }
                         else:
                             # coverage_outcome missing: invalidate cache, do not use payload
                             try:
                                 coverage_output_file.unlink(missing_ok=True)
-                                logger.info(
+                                logger.warning(
                                     "Tier 3 coverage payload missing coverage_outcome; "
                                     "invalidated cache file."
                                 )

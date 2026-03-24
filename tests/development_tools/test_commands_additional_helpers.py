@@ -126,3 +126,13 @@ def test_cached_state_extractors_and_failure_classification(temp_project_copy: P
     assert service._is_failure_state("infra_cleanup_error") is True
     assert service._is_failure_state("clean") is False
 
+    legacy_details_only = {
+        "details": {
+            "coverage_outcome": {
+                "parallel": {"classification": "passed"},
+                "no_parallel": {"classification": "passed"},
+            }
+        }
+    }
+    assert service._extract_cached_main_coverage_state(legacy_details_only) is None
+
