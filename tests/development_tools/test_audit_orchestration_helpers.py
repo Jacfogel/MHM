@@ -6,9 +6,11 @@ import json
 import time
 import concurrent.futures
 from pathlib import Path
+from typing import cast
 
 import pytest
 
+from development_tools.shared.service.audit_orchestration import ToolExecutionError
 from tests.development_tools.conftest import load_development_tools_module
 
 service_module = load_development_tools_module("shared.service")
@@ -404,3 +406,120 @@ def test_run_full_audit_tools_drains_done_futures_after_as_completed_interrupt(
     assert result is True
     assert "run_test_coverage" in service._tool_timings
     assert "generate_dev_tools_coverage" in service._tool_timings
+
+
+@pytest.mark.unit
+def test_normalize_cache_state_mapping_and_fallback(temp_project_copy: Path):
+    """_normalize_cache_state maps known labels and falls back to none_found."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    assert service._normalize_cache_state("cache_only") == "utilized"
+    assert service._normalize_cache_state("partial_cache") == "partially_utilized"
+    assert service._normalize_cache_state("cold_scan") == "invalidated"
+    assert service._normalize_cache_state("unknown") == "none_found"
+    assert service._normalize_cache_state("OTHER") == "none_found"
+    assert service._normalize_cache_state("") is None
+    assert service._normalize_cache_state(None) is None
+    assert service._normalize_cache_state("   ") is None
+
+
+@pytest.mark.unit
+def test_tool_cache_state_for_log_non_cache_tool_returns_none(temp_project_copy: Path):
+    """Tools not in CACHE_AWARE_TOOLS return None when allow_default is False."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {}
+    assert service._tool_cache_state_for_log("unknown_tool_xyz", False) is None
+
+
+@pytest.mark.unit
+def test_tool_cache_state_for_log_default_none_found(temp_project_copy: Path):
+    """Cache-aware tool with no metadata returns none_found when allowed."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {}
+    # analyze_unused_imports is typically cache-aware
+    result = service._tool_cache_state_for_log("analyze_unused_imports", True)
+    assert result == "none_found"
+
+
+@pytest.mark.unit
+def test_extract_issue_count_various_shapes(temp_project_copy: Path):
+    """_extract_issue_count handles bool, int, float, str and issues_found."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    assert service._extract_issue_count("run_test_coverage", {}) is None
+    assert service._extract_issue_count("other", {"data": {"summary": {"total_issues": 5}}}) == 5
+    assert service._extract_issue_count("other", {"data": {"summary": {"total_issues": True}}}) == 1
+    assert service._extract_issue_count("other", {"data": {"summary": {"total_issues": 3.0}}}) == 3
+    assert service._extract_issue_count("other", {"data": {"summary": {"total_issues": "7"}}}) == 7
+    assert service._extract_issue_count("other", {"issues_found": True}) == 1
+    assert service._extract_issue_count("other", {"issues_found": False}) == 0
+    assert service._extract_issue_count("other", {"data": {"summary": {"total_issues": "x"}}}) is None
+
+
+@pytest.mark.unit
+def test_infer_cache_mode_from_hits_misses(temp_project_copy: Path):
+    """_infer_cache_mode_from_hits_misses returns correct mode strings."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    assert service._infer_cache_mode_from_hits_misses(1, 0) == "cache_only"
+    assert service._infer_cache_mode_from_hits_misses(2, 1) == "partial_cache"
+    assert service._infer_cache_mode_from_hits_misses(0, 1) == "cold_scan"
+    assert service._infer_cache_mode_from_hits_misses(0, 0) == "unknown"
+
+
+@pytest.mark.unit
+def test_run_tool_with_timing_raises_tool_execution_error_on_exception(
+    temp_project_copy: Path,
+):
+    """_run_tool_with_timing raises ToolExecutionError when tool_func raises."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {}
+    service._tools_run_in_current_tier = set()
+
+    def _failing_tool():
+        raise ValueError("simulated failure")
+
+    with pytest.raises(Exception) as exc_info:
+        service._run_tool_with_timing("fake_tool", _failing_tool)
+    exc = cast(ToolExecutionError, exc_info.value)
+    assert exc.tool_name == "fake_tool"
+    assert exc.elapsed_time >= 0
+    assert isinstance(exc.original_exception, ValueError)
+
+
+@pytest.mark.unit
+def test_extract_coverage_cache_metadata_from_json(temp_project_copy: Path):
+    """_extract_coverage_cache_metadata reads cache mode from coverage JSON."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    jsons_dir = (
+        temp_project_copy / "development_tools" / "tests" / "jsons"
+    )
+    jsons_dir.mkdir(parents=True, exist_ok=True)
+
+    cov_file = jsons_dir / "coverage.json"
+    cov_file.write_text(
+        json.dumps({
+            "_metadata": {"generated_by": "cache (no test execution)"},
+        }),
+        encoding="utf-8",
+    )
+    meta = service._extract_coverage_cache_metadata("run_test_coverage")
+    assert meta.get("cache_mode") == "cache_only"
+
+    cov_file.write_text(
+        json.dumps({
+            "_metadata": {"generated_by": "cache merge of shards"},
+        }),
+        encoding="utf-8",
+    )
+    meta = service._extract_coverage_cache_metadata("run_test_coverage")
+    assert meta.get("cache_mode") == "partial_cache"
+
+    cov_file.write_text(
+        json.dumps({
+            "_metadata": {"generated_by": "pytest-cov"},
+        }),
+        encoding="utf-8",
+    )
+    meta = service._extract_coverage_cache_metadata("run_test_coverage")
+    assert meta.get("cache_mode") == "cold_scan"
+
+    # Unknown tool returns empty
+    assert service._extract_coverage_cache_metadata("unknown_tool") == {}

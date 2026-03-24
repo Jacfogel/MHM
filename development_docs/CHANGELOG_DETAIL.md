@@ -33,6 +33,11 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-03-24 - Dev Tools Option A: Coverage 60%+ and flaky test stabilization
+- **Flaky test fix** (`test_tool_wrappers_cache_helpers.py::test_compute_source_signature_changes_when_source_changes`): Use `development_tools/static_checks/code.py` path (mirrors production); add read-back after write to force fs visibility; increase sleep from 0.02s to 0.05s for Windows. Test passed 3 consecutive runs.
+- **Coverage tests added**: `test_audit_orchestration_helpers.py`—`_normalize_cache_state`, `_tool_cache_state_for_log`, `_extract_issue_count`, `_infer_cache_mode_from_hits_misses`, `_run_tool_with_timing` (exception path), `_extract_coverage_cache_metadata`; `test_run_test_coverage_helpers.py`—`_parse_pytest_test_results` (full/simple format, maxfail, seed, empty); `test_commands_coverage_helpers.py`—`_get_audit_related_lock_paths`, `_get_existing_audit_related_locks`.
+- **Impact**: Pushes dev-tools coverage toward 60%+; stabilizes intermittent cache-helper failures under Tier 3/dev-tools coverage runs. Run `python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache` to verify baseline.
+
 ### 2026-03-23 - Legacy cleanup + AI Dev Tools Improvement Plan V4
 - **tier3_coverage_outcome_compat_bridge**: Removed synthesis branch in `commands.py`. Option A: when payload lacks `coverage_outcome`, cache file is invalidated (deleted); outcome remains coverage_failed. `--clear-cache` clears `run_test_coverage_results.json`. Updated `test_run_coverage_regeneration_cache_only_payload_without_coverage_outcome` to expect invalidation.
 - **backup_zip_compat_bridge**: Removed zip read/restore/validate from `core/backup_manager.py`; directory-only backups. Removed dead zip creation path, zip backup/restore helpers, zip validation. `list_backups` directory-only; `_get_backup_info` returns {} for zip; `restore_backup`/`restore_backup_to_path` return False for zip. Dropped from fix_legacy_references and legacy_patterns. Tests updated.

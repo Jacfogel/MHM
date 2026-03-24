@@ -192,3 +192,23 @@ def test_extract_changed_domains_comma_separated(tmp_path):
     out = "Domain(s) changed: core, ui, tasks"
     result = service._extract_changed_domains(out)
     assert "core" in result and "ui" in result
+
+
+@pytest.mark.unit
+def test_get_audit_related_lock_paths_returns_expected_paths(tmp_path):
+    """_get_audit_related_lock_paths returns lock paths anchored at project root."""
+    service = _DummyService(tmp_path)
+    paths = service._get_audit_related_lock_paths()
+    assert len(paths) == 3
+    path_strs = [str(p) for p in paths]
+    assert any(".audit_in_progress" in s for s in path_strs)
+    assert any(".coverage" in s for s in path_strs)
+    assert any("dev_tools" in s for s in path_strs)
+
+
+@pytest.mark.unit
+def test_get_existing_audit_related_locks_empty_project_returns_empty(tmp_path):
+    """_get_existing_audit_related_locks returns [] when no lock files exist."""
+    service = _DummyService(tmp_path)
+    locks = service._get_existing_audit_related_locks()
+    assert locks == []

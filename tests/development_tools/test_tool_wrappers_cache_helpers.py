@@ -20,16 +20,18 @@ AIToolsService = service_module.AIToolsService
 def test_compute_source_signature_changes_when_source_changes(tmp_path: Path):
     """Signature changes when file content changes (uses content hash, not just mtime)."""
     service = AIToolsService(project_root=str(tmp_path))
-    # Use isolated subdir so only our file is scanned (avoids conftest/__pycache__ noise)
-    src_dir = tmp_path / "src"
-    src_dir.mkdir()
-    src_file = src_dir / "module.py"
+    # Use development_tools/static_checks path to mirror production scanning and avoid
+    # exclusion patterns; isolated dir ensures only our file affects the signature.
+    src_dir = tmp_path / "development_tools" / "static_checks"
+    src_dir.mkdir(parents=True)
+    src_file = src_dir / "code.py"
     src_file.write_text("value = 1\n", encoding="utf-8")
 
     sig_before = service._compute_source_signature()
     src_file.write_text("value = 2\n", encoding="utf-8")
-    # Ensure write is visible to subsequent read (filesystem sync on Windows)
-    time.sleep(0.02)
+    # Force visibility: read back to ensure write is committed (Windows fs sync)
+    assert src_file.read_text(encoding="utf-8") == "value = 2\n"
+    time.sleep(0.05)
     sig_after = service._compute_source_signature()
 
     assert isinstance(sig_before, str) and sig_before

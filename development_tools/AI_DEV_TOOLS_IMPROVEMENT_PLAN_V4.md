@@ -98,7 +98,7 @@ Key metrics as of 2026-03-23 (from full audit): dev-tools coverage ~60%, legacy 
     - Added report-generation path coverage in `tests/development_tools/test_analyze_module_dependencies.py` (`generate_updated_dependency_sections`, `generate_enhanced_dependency_report`, orchestrated `generate_dependency_report` helper-call flow)
     - Added static-check coverage in `tests/development_tools/test_check_channel_loggers.py` (`check_file` rule branches, allowlist behavior, and `main()` pass/fail CLI paths)
     - Added shared-helper coverage in `tests/development_tools/test_common_shared.py` (`ProjectPaths`, `iter_python_sources`, `run_cli`, file/text/json helpers, summary rendering)
-    - Added coverage for `commands.py` helpers in `tests/development_tools/test_commands_coverage_helpers.py` (`_resolve_coverage_workers`, `_infer_coverage_cache_mode_from_output`, `_extract_coverage_invalidation_reason`, `_extract_changed_domains`)
+    - Added coverage for `commands.py` helpers in `tests/development_tools/test_commands_coverage_helpers.py` (`_resolve_coverage_workers`, `_infer_coverage_cache_mode_from_output`, `_extract_coverage_invalidation_reason`, `_extract_changed_domains`); (2026-03-24) `_get_audit_related_lock_paths`, `_get_existing_audit_related_locks`
     - Added output-storage helper coverage in `tests/development_tools/test_output_storage_helpers.py` (domain inference fallback matrix, stale file-reference validation recursion, corrupted-cache cleanup, newest-result aggregation preference, normalization failure handling)
   - [x] Added targeted low-coverage tests for shared maintenance scripts moved from `scripts/`:
     - Added `tests/development_tools/test_shared_maintenance_scripts.py` for `development_tools/shared/measure_tool_timings.py` and `development_tools/shared/verify_tool_storage.py`
@@ -109,9 +109,11 @@ Key metrics as of 2026-03-23 (from full audit): dev-tools coverage ~60%, legacy 
   - [x] Added targeted helper-coverage tests for `development_tools/shared/service/audit_orchestration.py`:
     - Added `tests/development_tools/test_audit_orchestration_helpers.py`
     - Covered status-file mtime helpers, lock-state detection, Tier 3 state derivation, expected-tool tier mapping, and timing metadata persistence
+    - (2026-03-24) Expanded: _normalize_cache_state, _tool_cache_state_for_log, _extract_issue_count, _infer_cache_mode_from_hits_misses, _run_tool_with_timing (exception path), _extract_coverage_cache_metadata
   - [x] Added targeted helper-coverage tests for `development_tools/tests/run_test_coverage.py`:
     - Added `tests/development_tools/test_run_test_coverage_helpers.py`
     - Covered xdist-arg stripping, retrying tree cleanup, isolated test logging env setup, crash/outcome helper classification paths, log rotation behavior, and fallback summary/timestamp helpers
+    - (2026-03-24) Expanded: _parse_pytest_test_results (full/simple format, maxfail, seed, empty)
   - [x] Added targeted helper-coverage tests for `development_tools/shared/service/commands.py`:
     - Added `tests/development_tools/test_commands_additional_helpers.py`
     - Covered coverage metadata builders, mtime freshness helpers, dev-tools coverage standardization, cached-outcome state derivation, and failure-state helpers
@@ -390,8 +392,8 @@ Key metrics as of 2026-03-23 (from full audit): dev-tools coverage ~60%, legacy 
   - Updated `development_tools/shared/service/commands.py::run_coverage_regeneration` to synthesize/normalize Tier 3 state from `coverage_collected` payloads when `coverage_outcome` is missing in cache-only legacy paths.
   - Added regression test: `tests/development_tools/test_audit_strict_mode.py::test_run_coverage_regeneration_cache_only_payload_without_coverage_outcome`.
 
-- [ ] Follow-up: stabilize intermittent `tests/development_tools/test_tool_wrappers_cache_helpers.py::test_compute_source_signature_changes_when_source_changes` failures under full Tier 3/dev-tools coverage runs
-  - Reproduce with Tier 3-equivalent execution mode and capture root-cause timing/signature evidence before adjusting helper behavior.
+- [x] Follow-up: stabilize intermittent `tests/development_tools/test_tool_wrappers_cache_helpers.py::test_compute_source_signature_changes_when_source_changes` failures under full Tier 3/dev-tools coverage runs (2026-03-24)
+  - Use `development_tools/static_checks/code.py` path (mirrors production); read-back after write; 0.05s sleep. Test passed 3 consecutive runs.
 
 *User priority for Tier 3 follow-ups*: High. Proper legacy removal and clean, efficient codebase important.
 

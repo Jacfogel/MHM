@@ -224,3 +224,45 @@ def test_generate_coverage_summary_fallback_and_timestamp(tmp_path: Path):
 
     timestamp = regenerator.get_current_timestamp()
     assert re.match(r"^\d{4}-\d{2}-\d{2}$", timestamp)
+
+
+@pytest.mark.unit
+def test_parse_pytest_test_results_full_summary(tmp_path: Path):
+    """_parse_pytest_test_results parses full format summary."""
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    stdout = "4 failed, 100 passed, 2 skipped, 1 warnings"
+    results = regenerator._parse_pytest_test_results(stdout)
+    assert results["failed_count"] == 4
+    assert results["passed_count"] == 100
+    assert results["skipped_count"] == 2
+    assert results["warnings_count"] == 1
+
+
+@pytest.mark.unit
+def test_parse_pytest_test_results_simple_format(tmp_path: Path):
+    """_parse_pytest_test_results parses simple format (passed, deselected)."""
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    stdout = "145 passed, 3439 deselected"
+    results = regenerator._parse_pytest_test_results(stdout)
+    assert results["passed_count"] == 145
+
+
+@pytest.mark.unit
+def test_parse_pytest_test_results_maxfail_and_seed(tmp_path: Path):
+    """_parse_pytest_test_results detects maxfail and extracts random seed."""
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    stdout = "interrupted: stopping after 3 failures\n--randomly-seed=12345"
+    results = regenerator._parse_pytest_test_results(stdout)
+    assert results["maxfail_reached"] is True
+    assert results["random_seed"] == "12345"
+
+
+@pytest.mark.unit
+def test_parse_pytest_test_results_empty_returns_defaults(tmp_path: Path):
+    """_parse_pytest_test_results returns default structure for empty input."""
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    results = regenerator._parse_pytest_test_results("")
+    assert results["random_seed"] is None
+    assert results["passed_count"] == 0
+    assert results["failed_count"] == 0
+    assert results["failed_tests"] == []
