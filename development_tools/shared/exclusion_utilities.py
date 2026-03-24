@@ -24,8 +24,8 @@ Usage:
         # Skip this function
 """
 
-from core.error_handling import handle_errors
 from core.logger import get_component_logger
+from development_tools.shared.error_helpers import handle_errors
 from development_tools.shared.constants import (
     SPECIAL_METHODS,
     CONTEXT_METHODS,

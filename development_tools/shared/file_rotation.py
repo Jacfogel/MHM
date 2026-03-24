@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 from core.logger import get_component_logger
-from core.time_utilities import now_timestamp_full
+from development_tools.shared.time_helpers import now_timestamp_full
 
 logger = get_component_logger("development_tools")
 

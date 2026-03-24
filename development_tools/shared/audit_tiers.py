@@ -22,6 +22,7 @@ TIER1_TOOL_NAMES = [
     "analyze_config",
     "analyze_ai_work",
     "analyze_function_patterns",
+    "analyze_dev_tools_import_boundaries",
     "decision_support",
     "quick_status",
 ]
@@ -124,7 +125,12 @@ def get_tier_runnables(service: Any, tier: int, include_quick_status: bool = Tru
 def get_tier1_groups(service: Any) -> tuple[list[tuple[str, Any]], list[tuple[str, Any]], list[list[tuple[str, Any]]]]:
     """Return (core_tools, independent_tools, dependent_groups) for Tier 1."""
     core_names = ["analyze_system_signals"]
-    independent_names = ["analyze_documentation", "analyze_config", "analyze_ai_work"]
+    independent_names = [
+        "analyze_documentation",
+        "analyze_config",
+        "analyze_ai_work",
+        "analyze_dev_tools_import_boundaries",
+    ]
     dependent_group_names = [
         ["analyze_function_patterns"],
         ["decision_support"],

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-23 15:04:34
+> **Last Generated**: 2026-03-24 00:47:06
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 122
-- **Total Imports Found**: 1573
+- **Total Imports Found**: 1569
 - **Dependencies Documented**: 122 (100% coverage)
-- **Standard Library Imports**: 439 (27.9%)
+- **Standard Library Imports**: 437 (27.9%)
 - **Third-Party Imports**: 465 (29.6%)
-- **Local Imports**: 669 (42.5%)
-- **Last Updated**: 2026-03-23
+- **Local Imports**: 667 (42.5%)
+- **Last Updated**: 2026-03-24
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 439 imports (27.9%)
+- **Standard Library**: 437 imports (27.9%)
 - **Third-Party**: 465 imports (29.6%)
-- **Local**: 669 imports (42.5%)
+- **Local**: 667 imports (42.5%)
 
 ## Module Dependencies by Directory
 
@@ -1238,7 +1238,6 @@
     - `time`
     - `traceback`
     - `typing (Dict, List, Optional, Tuple)`
-    - `zipfile`
 - **Used by**: 
   - `core/scheduler.py`
 
@@ -1776,7 +1775,7 @@
     - `core.file_operations (determine_file_path, load_json_data, save_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.schemas (validate_messages_file_dict)` (NEW)
-    - `core.time_utilities (TIMESTAMP_FULL, now_timestamp_filename, now_timestamp_full, parse_timestamp, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (now_timestamp_filename, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.user_data_manager (update_user_index)` (NEW)
   - **Standard Library**:
     - `contextlib`

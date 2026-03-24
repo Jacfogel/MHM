@@ -607,6 +607,9 @@ class ReportGenerationMixin:
         dependency_patterns_data = self._load_tool_data(
             "analyze_dependency_patterns", "imports"
         )
+        import_boundary_data = self._load_tool_data(
+            "analyze_dev_tools_import_boundaries", "imports"
+        )
         backup_health_data = self._load_tool_data(
             "analyze_backup_health", "reports", log_source=False
         )
@@ -1965,6 +1968,36 @@ class ReportGenerationMixin:
             )
 
         lines.append("")
+        lines.append("## Import Boundary")
+        import_boundary_summary = (
+            import_boundary_data.get("summary", {})
+            if isinstance(import_boundary_data, dict)
+            else {}
+        )
+        import_violations = to_int(import_boundary_summary.get("total_issues"))
+        import_files = to_int(import_boundary_summary.get("files_affected"))
+        if import_violations is not None and import_violations > 0:
+            lines.append(
+                f"- **Violations**: {import_violations} non-approved core import(s) across {import_files or 0} file(s)"
+            )
+            details_obj = import_boundary_data.get("details", {}) or {}
+            violations_list = details_obj.get("violations", []) or []
+            if violations_list:
+                top_files = list({v.get("file", "") for v in violations_list[:5]})
+                for f in top_files[:3]:
+                    if f:
+                        lines.append(f"  - {f}")
+            lines.append(
+                "- **Action**: Refactor to use only approved imports (`core.logger`); see DEVELOPMENT_TOOLS_GUIDE.md §8.5"
+            )
+        elif import_violations == 0:
+            lines.append("- **Status**: CLEAN (no boundary violations detected)")
+        else:
+            lines.append(
+                "- **Status**: Data unavailable (run `audit` to scan import boundaries)"
+            )
+
+        lines.append("")
         lines.append("## Legacy References")
 
         legacy_summary = legacy_summary or legacy_data or {}
@@ -2479,6 +2512,9 @@ class ReportGenerationMixin:
         dependency_patterns_data = self._load_tool_data(
             "analyze_dependency_patterns", "imports"
         )
+        import_boundary_data = self._load_tool_data(
+            "analyze_dev_tools_import_boundaries", "imports"
+        )
         duplicate_functions_data = self._load_tool_data(
             "analyze_duplicate_functions", "functions"
         )
@@ -2954,6 +2990,7 @@ class ReportGenerationMixin:
                 "Raise coverage for domains below target": "ai_development_docs/AI_TESTING_GUIDE.md",
                 "Raise development tools coverage": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md and ai_development_docs/AI_TESTING_GUIDE.md",
                 "Reduce dependency pattern risk": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Fix development tools import boundary violations": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (section 8.5)",
                 "Remove legacy compatibility code (after full call-site migration)": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
                 "Update tools to use centralized config": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
                 "Add docstrings to handler classes": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
@@ -2976,6 +3013,7 @@ class ReportGenerationMixin:
                 "Raise coverage for domains below target": "development_docs/TEST_COVERAGE_REPORT.md",
                 "Raise development tools coverage": "development_tools/tests/jsons/generate_dev_tools_coverage_results.json",
                 "Reduce dependency pattern risk": "development_tools/CONSOLIDATED_REPORT.md",
+                "Fix development tools import boundary violations": "development_tools/imports/jsons/analyze_dev_tools_import_boundaries_results.json",
                 "Remove legacy compatibility code (after full call-site migration)": "development_docs/LEGACY_REFERENCE_REPORT.md (exact locations)",
                 "Update tools to use centralized config": "development_tools/ai_work/jsons/analyze_ai_work_results.json",
                 "Add docstrings to handler classes": "development_tools/functions/jsons/analyze_function_patterns_results.json",
@@ -3661,6 +3699,26 @@ class ReportGenerationMixin:
                     ),
                     bullets=dep_bullets,
                 )
+
+        # Import boundary priority (development_tools portability)
+        import_boundary_summary = (
+            import_boundary_data.get("summary", {})
+            if isinstance(import_boundary_data, dict)
+            else {}
+        )
+        import_violations = to_int(import_boundary_summary.get("total_issues"))
+        if import_violations is not None and import_violations > 0:
+            import_bullets: list[str] = [
+                "Review for policy: development_tools/DEVELOPMENT_TOOLS_GUIDE.md §8.5 Import boundary",
+                "Action: Refactor to use only approved imports (core.logger). Replace core.time_utilities with development_tools/shared/time_helpers; core.error_handling with try/except or dev-tools wrapper; core.backup_manager with optional/lazy import.",
+                "Verify: Run `python development_tools/imports/analyze_dev_tools_import_boundaries.py` after fixes.",
+            ]
+            add_priority(
+                tier=2,
+                title="Fix development tools import boundary violations",
+                reason=f"{import_violations} non-approved core import(s) in development_tools/** (portability risk).",
+                bullets=import_bullets,
+            )
 
         # Legacy references priority
         if legacy_files and legacy_files > 0:
@@ -7064,6 +7122,35 @@ class ReportGenerationMixin:
                 lines.append(
                     "- **Status**: CLEAN (no circular dependencies or high coupling detected)"
                 )
+
+        # Import Boundary (development_tools portability)
+        import_boundary_data = self._load_tool_data(
+            "analyze_dev_tools_import_boundaries", "imports"
+        )
+        if import_boundary_data and isinstance(import_boundary_data, dict):
+            ib_summary = import_boundary_data.get("summary", {}) or {}
+            ib_violations = to_int(ib_summary.get("total_issues"))
+            ib_files = to_int(ib_summary.get("files_affected"))
+            lines.append("")
+            lines.append("## Import Boundary")
+            if ib_violations is not None and ib_violations > 0:
+                lines.append(
+                    f"- **Violations**: {ib_violations} non-approved core import(s) across {ib_files or 0} file(s)"
+                )
+                ib_details = import_boundary_data.get("details", {}) or {}
+                ib_violations_list = ib_details.get("violations", []) or []
+                if ib_violations_list:
+                    top_violations = ib_violations_list[:5]
+                    for v in top_violations[:3]:
+                        if isinstance(v, dict) and v.get("file"):
+                            lines.append(f"  - {v['file']}: {v.get('module', '')}")
+                lines.append(
+                    "- **Action**: Refactor to approved imports only (core.logger); see DEVELOPMENT_TOOLS_GUIDE.md §8.5"
+                )
+            elif ib_violations == 0:
+                lines.append("- **Status**: CLEAN (no boundary violations detected)")
+            else:
+                lines.append("- **Status**: Data unavailable (run `audit` to scan)")
 
         # Validation Status
         lines.append("## Validation Status")

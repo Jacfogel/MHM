@@ -63,7 +63,10 @@ except ImportError:
     logger = None
 
 from .domain_mapper import DomainMapper
-from core.time_utilities import now_timestamp_full, now_timestamp_filename
+from development_tools.shared.time_helpers import (
+    now_timestamp_full,
+    now_timestamp_filename,
+)
 from development_tools.shared.standard_exclusions import should_exclude_file
 import contextlib
 

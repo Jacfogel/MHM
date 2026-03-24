@@ -548,3 +548,22 @@ if should_exclude_file(file_path, tool_type='analysis', context='production'):
 ```
 
 Function-level exclusions (auto-generated code, special methods, test functions) are in `shared/exclusion_utilities.py`. See that module and tests in `tests/development_tools/test_standard_exclusions.py`, `tests/development_tools/test_exclusion_utilities.py` for details.
+
+### 8.5. Import boundary (portability)
+
+**Purpose**: Keep `development_tools/` portable and isolated from MHM business logic so the tool suite can run in external repositories without depending on project-specific modules.
+
+**Approved `core.*` imports**: `core.logger` only.
+
+Development-tools modules may import `core.logger` for structured logging. All other `core.*` imports (for example `core.time_utilities`, `core.error_handling`, static `from core.backup_manager import …`) are not approved and are flagged by the import-boundary checker (`imports/analyze_dev_tools_import_boundaries.py`), which runs in Tier 1 audits.
+
+**Rationale**:
+- `core.logger` is lightweight and acceptable for cross-project tooling.
+- Other `core` modules tie development_tools to MHM-specific behavior. Prefer stdlib or dev-tools-local helpers:
+  - **Timestamps**: `development_tools.shared.time_helpers` (`now_timestamp_full`, `now_timestamp_filename`)
+  - **Error handling**: `development_tools.shared.error_helpers` (`handle_errors` decorator)
+  - **Backup manager**: Use `importlib.import_module("core.backup_manager")` inside the function that needs it, then access `mod.backup_manager`; treat failures as "backup not available" for host repos without that module.
+
+**Adding new approved imports**: Propose new `core.*` prefixes through review; document rationale and avoid project-specific coupling.
+
+**Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `pytest tests/development_tools/test_import_boundary_policy.py`.

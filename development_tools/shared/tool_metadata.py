@@ -189,6 +189,13 @@ _TOOLS: dict[str, ToolInfo] = {
         trust="stable",
         description="Analyzes dependency patterns, circular dependencies, and risk areas.",
     ),
+    "analyze_dev_tools_import_boundaries": ToolInfo(
+        name="analyze_dev_tools_import_boundaries",
+        path="development_tools/imports/analyze_dev_tools_import_boundaries.py",
+        tier="supporting",
+        trust="advisory",
+        description="Flags non-approved core/business imports inside development_tools for portability.",
+    ),
     "fix_legacy_references": ToolInfo(
         name="fix_legacy_references",
         path="development_tools/legacy/fix_legacy_references.py",

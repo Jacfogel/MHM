@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-23 15:04:42
+> **Last Generated**: 2026-03-24 00:47:14
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -210,7 +210,7 @@ C:.
 |   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md
 |   |   AI_PRIORITIES.md
 |   |   AI_STATUS.md
-|   |   consolidated_report.md
+|   |   CONSOLIDATED_REPORT.md
 |   |   DEVELOPMENT_TOOLS_GUIDE.md
 |   |   run_development_tools.py
 |   |   run_dev_tools.py
@@ -318,6 +318,7 @@ C:.
 |   |   |   cli_interface.py
 |   |   |   common.py
 |   |   |   constants.py
+|   |   |   error_helpers.py
 |   |   |   exclusion_utilities.py
 |   |   |   export_code_snapshot.py
 |   |   |   export_docs_snapshot.py
@@ -330,6 +331,7 @@ C:.
 |   |   |   result_format.py
 |   |   |   retention_engine.py
 |   |   |   standard_exclusions.py
+|   |   |   time_helpers.py
 |   |   |   tool_guide.py
 |   |   |   tool_metadata.py
 |   |   |   verify_tool_storage.py
@@ -540,6 +542,7 @@ C:.
 |   |   |   test_analyze_ai_work.py
 |   |   |   test_analyze_ascii_compliance.py
 |   |   |   test_analyze_dependency_patterns.py
+|   |   |   test_analyze_dev_tools_import_boundaries.py
 |   |   |   test_analyze_documentation.py
 |   |   |   test_analyze_duplicate_functions.py
 |   |   |   test_analyze_error_handling.py
@@ -604,6 +607,7 @@ C:.
 |   |   |   test_generate_function_registry.py
 |   |   |   test_generate_module_dependencies.py
 |   |   |   test_generate_unused_imports_report.py
+|   |   |   test_import_boundary_policy.py
 |   |   |   test_integration_workflows.py
 |   |   |   test_legacy_reference_cleanup.py
 |   |   |   test_mtime_cache.py

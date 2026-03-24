@@ -32,7 +32,7 @@ except ImportError:
     from development_tools.shared.standard_exclusions import should_exclude_file
 
 from core.logger import get_component_logger
-from core.time_utilities import now_timestamp_filename
+from development_tools.shared.time_helpers import now_timestamp_filename
 
 logger = get_component_logger("development_tools")
 

@@ -776,11 +776,11 @@ These are surfaced by the tools and remain outstanding but are not tool-suite ch
 - development_tools\legacy\analyze_legacy_references.py and 
 development_tools\legacy\generate_legacy_reference_report.py should exclude tests\data\.
 - honestly just about everything should exclude tests\data\. 
-- Review development_tools\shared\EXCLUSION_RULES.md and ensure development tools stay isolated from main MHM project using development_tools\config\development_tools_config.json
+- [x] Import-boundary and file-exclusion policy documented in `DEVELOPMENT_TOOLS_GUIDE.md` §8 and §8.5 (paired `AI_DEVELOPMENT_TOOLS_GUIDE.md` §8); config remains `development_tools\config\development_tools_config.json`
 - [x] `analyze_legacy_references.py` now applies `standard_exclusions.should_exclude_file(...)` before scanning files
 - [x] `generate_legacy_reference_report.py` now filters excluded paths before computing totals/rendering sections
 - [x] `development_tools_config.json` exclusions now explicitly include `tests/data/` in `base_exclusion_shortlist` and `tests/data/*` in development/testing context exclusions
-- [x] `EXCLUSION_RULES.md` updated to document `tests/data/` as excluded-by-default for analyzer-style tooling
+- [x] `tests/data/` excluded-by-default documented in `DEVELOPMENT_TOOLS_GUIDE.md` §8.1 (universal exclusions)
 - [x] Tightened deprecation-inventory sync guard scope in `tool_wrappers.py`: ignore `tests/**` and configured generated artifacts when evaluating trigger files; narrowed trigger keyword list in config to deprecation-specific terms
 - [x] Added guard regression tests for excluded test paths and generated report paths in `tests/development_tools/test_deprecation_inventory_guard.py`
 

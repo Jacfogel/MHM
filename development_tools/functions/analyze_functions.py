@@ -19,8 +19,8 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from core.error_handling import handle_errors
 from core.logger import get_component_logger
+from development_tools.shared.error_helpers import handle_errors
 
 # Handle both relative and absolute imports
 try:

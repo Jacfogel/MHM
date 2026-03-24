@@ -128,6 +128,9 @@ def test_run_timing_analysis_with_mocked_service(monkeypatch, tmp_path):
         def run_analyze_function_patterns(self):
             return {"success": True}
 
+        def run_analyze_dev_tools_import_boundaries(self):
+            return {"success": True}
+
         def run_analyze_package_exports(self):
             return {"success": True}
 

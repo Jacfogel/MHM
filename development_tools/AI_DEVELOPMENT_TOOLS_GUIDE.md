@@ -289,4 +289,8 @@ Status reports use `create_output_file()`; analysis results and caches use domai
 
 ## 8. Exclusion Rules
 
-File-level exclusions: `shared/standard_exclusions.py` and `should_exclude_file()`. Universal exclusions include `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, `tests/coverage_html`, `tests/data/`. Context-specific exclusions (production/development/testing) and config override via `development_tools_config.json`. See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) for full rules and function-level exclusions.
+File-level exclusions: `shared/standard_exclusions.py` and `should_exclude_file()`. Universal exclusions include `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, `tests/coverage_html`, `tests/data/`. Context-specific exclusions (production/development/testing) and config override via `development_tools_config.json`.
+
+**Import boundary (§8.5 in paired guide)**: Only `core.logger` is approved inside `development_tools/**`. Use `shared/time_helpers`, `shared/error_helpers`, and dynamic `importlib` for backup manager instead of other `core.*` imports. Checker: `analyze_dev_tools_import_boundaries` (Tier 1). Policy tests: `tests/development_tools/test_import_boundary_policy.py`.
+
+See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) for full rules, function-level exclusions, and import-boundary detail.

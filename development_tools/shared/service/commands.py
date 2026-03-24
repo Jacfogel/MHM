@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import cast
 
 from core.logger import get_component_logger
-from core.time_utilities import now_timestamp_filename
+from development_tools.shared.time_helpers import now_timestamp_filename
 
 logger = get_component_logger("development_tools")
 
@@ -1436,7 +1436,10 @@ class CommandsMixin:
         """Run isolated restore drill for latest core user backup."""
         restore_destination: Path | None = None
         try:
-            from core.backup_manager import backup_manager
+            import importlib
+
+            mod = importlib.import_module("core.backup_manager")
+            backup_manager = mod.backup_manager
         except Exception as e:
             return {
                 "success": False,
@@ -1536,7 +1539,10 @@ class CommandsMixin:
         checks: list[dict[str, object]] = []
         report_paths: dict[str, str] = {}
         try:
-            from core.backup_manager import backup_manager
+            import importlib
+
+            mod = importlib.import_module("core.backup_manager")
+            backup_manager = mod.backup_manager
         except Exception as e:
             return {
                 "success": False,

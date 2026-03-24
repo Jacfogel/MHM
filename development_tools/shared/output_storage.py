@@ -13,7 +13,10 @@ from pathlib import Path
 from typing import Any
 
 from core.logger import get_component_logger
-from core.time_utilities import now_timestamp_full, now_timestamp_filename
+from development_tools.shared.time_helpers import (
+    now_timestamp_full,
+    now_timestamp_filename,
+)
 from .file_rotation import FileRotator
 import contextlib
 

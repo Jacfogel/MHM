@@ -608,6 +608,28 @@ class ToolWrappersMixin:
             logger.warning(f"Failed to run analyze_dependency_patterns: {e}")
             return {"success": False, "error": str(e)}
 
+    def run_analyze_dev_tools_import_boundaries(self) -> dict:
+        """Run import boundary checker and save results."""
+        logger.debug("Analyzing dev tools import boundaries...")
+        try:
+            from development_tools.imports.analyze_dev_tools_import_boundaries import (
+                DevToolsImportBoundaryChecker,
+            )
+            checker = DevToolsImportBoundaryChecker(
+                project_root_path=str(self.project_root)
+            )
+            result = checker.analyze()
+            save_tool_result(
+                "analyze_dev_tools_import_boundaries",
+                "imports",
+                result,
+                project_root=self.project_root,
+            )
+            return {"success": True, "data": result}
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_dev_tools_import_boundaries: {e}")
+            return {"success": False, "error": str(e)}
+
     def run_analyze_package_exports(self) -> dict:
         """Run analyze_package_exports and save results."""
         logger.debug("Analyzing package exports...")

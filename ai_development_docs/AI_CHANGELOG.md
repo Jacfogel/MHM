@@ -30,10 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-03-24 - Dev Tools Option A: Coverage 60%+ and flaky test fix **Progressed**
+### 2026-03-24 - Dev Tools Option A: Import-boundary; Coverage 60%+; flaky test fix **Progressed**
+- **Import-boundary (Phase 2.1 + 2.2)**: Analyzer wired to audit Tier 1; time_helpers, error_helpers; refactored ~17 files; policy in DEVELOPMENT_TOOLS_GUIDE §8.5 / AI_DEVELOPMENT_TOOLS_GUIDE §8; policy test. Follow-up: timing fake service, Ruff B009, EXCLUSION_RULES merged into guides (file removed).
 - **Flaky test stabilized**: `test_compute_source_signature_changes_when_source_changes`—use `development_tools/static_checks/code.py` path, read-back verification, and 0.05s sleep for Windows fs sync.
-- **Targeted coverage tests**: audit_orchestration (_normalize_cache_state, _tool_cache_state_for_log, _extract_issue_count, _infer_cache_mode_from_hits_misses, _run_tool_with_timing exception path, _extract_coverage_cache_metadata); run_test_coverage (_parse_pytest_test_results); commands (_get_audit_related_lock_paths, _get_existing_audit_related_locks).
-- **Verification**: Run `python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache` to confirm 60%+ baseline.
+- **Targeted coverage tests**: audit_orchestration, run_test_coverage, commands helpers. Run `audit --quick` and coverage script to verify.
 
 ### 2026-03-23 - Legacy cleanup + AI Dev Tools Plan V4 **Progressed**
 - **Legacy bridges retired**: (1) **tier3_coverage_outcome_compat_bridge**—Option A: invalidate caches lacking coverage_outcome (delete file on load); `--clear-cache` already clears it. (2) **backup_zip_compat_bridge**—removed zip read/restore/validate; directory-only backups. (3) **legacy_timestamp_parsing**—Option B: added `scripts/migrate_sent_messages_timestamps.py`; removed fallback in `_normalize_message_timestamps`; run migration before deploy.

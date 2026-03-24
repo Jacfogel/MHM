@@ -30,7 +30,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from core.logger import get_component_logger
-from core.time_utilities import now_timestamp_full
+from development_tools.shared.time_helpers import now_timestamp_full
 
 # Handle both relative and absolute imports
 try:

@@ -12,6 +12,9 @@ Exclusion patterns are loaded from external config file
 if available, otherwise fall back to generic defaults. This makes the module portable
 across different projects.
 
+Import-boundary policy (approved `core.*` inside development_tools): see
+`DEVELOPMENT_TOOLS_GUIDE.md` section 8.5 (paired AI guide section 8).
+
 Usage:
     from development_tools.shared.standard_exclusions import get_exclusions
 

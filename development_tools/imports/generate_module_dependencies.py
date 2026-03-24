@@ -44,7 +44,7 @@ else:
     from development_tools.shared.common import ensure_ascii
 
 from core.logger import get_component_logger
-from core.time_utilities import now_timestamp_full
+from development_tools.shared.time_helpers import now_timestamp_full
 
 # Load external config on module import
 config.load_external_config()
