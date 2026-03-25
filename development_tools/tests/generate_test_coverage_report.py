@@ -119,6 +119,22 @@ class TestCoverageReportGenerator:
             self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
         )
 
+    def _source_domains_from_coverage_ini(self) -> list[str]:
+        """Domains listed under [run] source= in coverage.ini (project scan roots)."""
+        domains: list[str] = []
+        try:
+            cov_ini = self.project_root / "development_tools" / "tests" / "coverage.ini"
+            if not cov_ini.exists():
+                return domains
+            parser = configparser.ConfigParser()
+            parser.read(cov_ini)
+            source = parser.get("run", "source", fallback="").strip()
+            if source:
+                domains = [s.strip() for s in source.split(",") if s.strip()]
+        except Exception:
+            return domains
+        return [d for d in domains if d and d != "development_tools"]
+
     def _configure_paths_from_coverage_ini(self) -> None:
         """Override default coverage paths when coverage.ini explicitly sets them."""
         if not self.coverage_config_path.exists():
@@ -144,31 +160,23 @@ class TestCoverageReportGenerator:
     ) -> str:
         """Generate a coverage summary for the plan."""
         summary_lines = []
-        # Derive domains from actual coverage data so all measured domains are shown.
-        # Fallback to coverage.ini source or standard list if coverage_data is empty.
-        configured_domains = []
+        # Union of coverage.ini [run] source= domains and domains present in coverage_data
+        # for the **Coverage Scope** line. The **Coverage by Domain** section only lists domains
+        # with measured statements so we do not emit misleading 0/0 rows when data is all under one prefix.
+        seen: set[str] = set()
+        configured_domains: list[str] = []
+        for d in self._source_domains_from_coverage_ini():
+            if d not in seen:
+                seen.add(d)
+                configured_domains.append(d)
         if coverage_data:
-            seen = set()
             for module_name in coverage_data:
                 normalized = str(module_name).replace("\\", "/")
                 domain = normalized.split("/", 1)[0]
                 if domain and domain != "development_tools" and domain not in seen:
                     seen.add(domain)
                     configured_domains.append(domain)
-            configured_domains.sort()
-        if not configured_domains:
-            try:
-                import configparser
-
-                cov_ini = self.project_root / "development_tools" / "tests" / "coverage.ini"
-                if cov_ini.exists():
-                    parser = configparser.ConfigParser()
-                    parser.read(cov_ini)
-                    source = parser.get("run", "source", fallback="").strip()
-                    if source:
-                        configured_domains = [s.strip() for s in source.split(",") if s.strip()]
-            except Exception:
-                pass
+        configured_domains.sort()
         if not configured_domains:
             configured_domains = [
                 "ai",
@@ -219,14 +227,35 @@ class TestCoverageReportGenerator:
                 domain_bucket[domain]["covered"] += covered
 
         summary_lines.append("### **Coverage by Domain**")
-        for domain in configured_domains:
-            statements = domain_bucket[domain]["statements"]
-            covered = domain_bucket[domain]["covered"]
-            coverage_pct = (covered / statements * 100.0) if statements else 0.0
-            missing = max(0, statements - covered)
+        measured_domains = [
+            d for d in configured_domains if domain_bucket[d]["statements"] > 0
+        ]
+        if measured_domains:
+            for domain in measured_domains:
+                statements = domain_bucket[domain]["statements"]
+                covered = domain_bucket[domain]["covered"]
+                coverage_pct = (covered / statements * 100.0) if statements else 0.0
+                missing = max(0, statements - covered)
+                summary_lines.append(
+                    f"- **{domain}**: {coverage_pct:.1f}% ({covered}/{statements} lines, {missing} missing)"
+                )
+            unmeasured = [
+                d for d in configured_domains if domain_bucket[d]["statements"] == 0
+            ]
+            if unmeasured:
+                summary_lines.append(
+                    "- **In scope, not represented in this coverage artifact**: "
+                    + ", ".join(f"`{d}`" for d in unmeasured)
+                    + " (no module paths with this prefix in the current coverage data—often "
+                    "collection focuses another domain or paths differ; see **Detailed Module Coverage**)."
+                )
+        elif coverage_data:
             summary_lines.append(
-                f"- **{domain}**: {coverage_pct:.1f}% ({covered}/{statements} lines, {missing} missing)"
+                "- **Note**: No modules mapped to the domains listed under **Coverage Scope**; "
+                "coverage file paths may omit domain prefixes. Use **Detailed Module Coverage** below."
             )
+        else:
+            summary_lines.append("- *(No coverage data for domain breakdown.)*")
         summary_lines.append("")
 
         # Coverage by category

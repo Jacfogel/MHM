@@ -7,6 +7,7 @@ These can be used as mixin methods or standalone functions.
 # pyright: reportAttributeAccessIssue=false
 
 import re
+from pathlib import Path
 from typing import Any
 from collections.abc import Sequence
 
@@ -29,6 +30,23 @@ def format_list_for_display(items: Sequence[str], limit: int = 3) -> str:
     visible = ', '.join(filtered[:limit])
     remaining = len(filtered) - limit
     return f"{visible}, ... +{remaining}"
+
+
+def format_repo_paths_as_markdown_links(paths: Sequence[str], limit: int = 3) -> str:
+    """Join repo-relative paths as markdown links using forward slashes (reports / AI_PRIORITIES)."""
+    filtered = [str(p).strip() for p in paths if p and str(p).strip()]
+    if not filtered:
+        return ""
+    chunk = filtered[:limit]
+    parts = []
+    for raw in chunk:
+        norm = raw.replace("\\", "/")
+        label = Path(norm).name
+        parts.append(f"[{label}]({norm})")
+    visible = ", ".join(parts)
+    if len(filtered) > limit:
+        visible += f", ... +{len(filtered) - limit}"
+    return visible
 
 
 def format_percentage(value: Any, decimals: int = 1) -> str:
@@ -104,6 +122,12 @@ class UtilitiesMixin:
     def _format_list_for_display(self, items: Sequence[str], limit: int = 3) -> str:
         """Return a concise, comma-separated list with optional overflow marker."""
         return format_list_for_display(items, limit)
+
+    def _format_repo_paths_as_markdown_links(
+        self, paths: Sequence[str], limit: int = 3
+    ) -> str:
+        """Format path-drift / repo file lists as markdown links."""
+        return format_repo_paths_as_markdown_links(paths, limit)
     
     def _format_percentage(self, value: Any, decimals: int = 1) -> str:
         """Format a numeric value as a percentage string."""

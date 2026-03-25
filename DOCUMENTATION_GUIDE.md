@@ -505,7 +505,7 @@ Paired docs (first-line and detailed counterparts) must share the same
 H2 heading set. If you add, remove, rename, or reorder an H2 in one doc,
 you must do the same in the paired doc.
 
-**Canonical source**: `development_tools_config.json` → `constants.paired_docs`.
+**Canonical source**: `development_tools_config.json` -> `constants.paired_docs`.
 The list below is a human-readable summary; `doc-sync` validates it matches config.
 
 **Paired documentation (human-readable summary):**

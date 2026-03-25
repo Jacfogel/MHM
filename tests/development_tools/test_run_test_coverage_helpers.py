@@ -334,3 +334,74 @@ def test_merge_coverage_json_merges_disjoint_files(tmp_path: Path):
     assert "b.py" in merged["files"]
     assert merged["totals"]["num_statements"] == 14
     assert merged["totals"]["covered_lines"] == 9
+
+
+@pytest.mark.unit
+def test_discover_parallel_coverage_artifacts_collects_shards(tmp_path: Path):
+    """Shard discovery picks up pytest-cov style parallel files and filters main names."""
+    project = tmp_path / "proj"
+    cov_dir = project / "cov"
+    cov_dir.mkdir(parents=True)
+    (cov_dir / ".coverage_parallel").write_text("main", encoding="utf-8")
+    (cov_dir / ".coverage_parallel.host123.1.abc").write_text("s1", encoding="utf-8")
+    (cov_dir / ".coverage.worker2").write_text("s2", encoding="utf-8")
+
+    regenerator = CoverageMetricsRegenerator(str(project), parallel=False)
+    regenerator.project_root = project
+
+    found = regenerator._discover_parallel_coverage_artifacts(cov_dir)
+    names = {p.name for p in found["parallel_shards"]}
+    assert ".coverage_parallel.host123.1.abc" in names
+    assert ".coverage.worker2" in names
+    assert ".coverage_parallel" not in names
+
+
+@pytest.mark.unit
+def test_discover_parallel_coverage_artifacts_missing_dir_returns_empty(tmp_path: Path):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    regenerator.project_root = tmp_path
+    missing = tmp_path / "nope"
+    found = regenerator._discover_parallel_coverage_artifacts(missing)
+    assert found["parallel_shards"] == []
+    assert found["project_root_shards"] == []
+
+
+@pytest.mark.unit
+def test_wait_for_parallel_coverage_artifacts_stops_when_expected_met(tmp_path: Path):
+    """Waits until shard count meets expected_workers."""
+    project = tmp_path / "proj"
+    cov_dir = project / "cov"
+    cov_dir.mkdir(parents=True)
+    regenerator = CoverageMetricsRegenerator(str(project), parallel=False)
+    regenerator.project_root = project
+
+    calls = {"n": 0}
+
+    def fake_discover(_path: Path):
+        calls["n"] += 1
+        if calls["n"] < 2:
+            return {"parallel_shards": [], "project_root_shards": []}
+        shard = cov_dir / ".coverage_parallel.x"
+        shard.write_text("1", encoding="utf-8")
+        return {
+            "parallel_shards": [shard],
+            "project_root_shards": [],
+        }
+
+    with patch.object(regenerator, "_discover_parallel_coverage_artifacts", side_effect=fake_discover):
+        with patch("time.sleep"):
+            result = regenerator._wait_for_parallel_coverage_artifacts(
+                cov_dir, expected_workers=1, timeout_seconds=2.0, poll_seconds=0.01
+            )
+
+    assert len(result["parallel_shards"]) == 1
+
+
+@pytest.mark.unit
+def test_detect_expected_parallel_workers_invalid_integers_returns_none(tmp_path: Path):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    with patch(
+        "development_tools.tests.run_test_coverage.re.findall",
+        return_value=[("notint", "1")],
+    ):
+        assert regenerator._detect_expected_parallel_workers("created: notint / 1 workers") is None

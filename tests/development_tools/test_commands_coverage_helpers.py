@@ -212,3 +212,16 @@ def test_get_existing_audit_related_locks_empty_project_returns_empty(tmp_path):
     service = _DummyService(tmp_path)
     locks = service._get_existing_audit_related_locks()
     assert locks == []
+
+
+@pytest.mark.unit
+def test_get_audit_related_lock_paths_config_error_falls_back_to_defaults(tmp_path):
+    """If config lookup fails, default lock basenames are still anchored at project root."""
+    service = _DummyService(tmp_path)
+    with patch("development_tools.config.get_external_value", side_effect=RuntimeError("config unavailable")):
+        paths = service._get_audit_related_lock_paths()
+    assert len(paths) == 3
+    names = {p.name for p in paths}
+    assert ".audit_in_progress.lock" in names
+    assert ".coverage_in_progress.lock" in names
+    assert ".coverage_dev_tools_in_progress.lock" in names

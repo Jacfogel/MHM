@@ -157,6 +157,40 @@ class TestCoverageSummary:
         assert '75' in summary or '75.0' in summary
         assert 'Total Statements' in summary
 
+    @pytest.mark.unit
+    def test_generate_coverage_summary_lists_ini_domains_even_with_partial_data(
+        self, tmp_path,
+    ):
+        """Scope lists all ini domains; by-domain shows measured rows + note for unmeasured."""
+        (tmp_path / "development_tools" / "tests").mkdir(parents=True)
+        (tmp_path / "development_tools" / "tests" / "coverage.ini").write_text(
+            "[run]\nsource = core,ui,communication\n",
+            encoding="utf-8",
+        )
+        generator = TestCoverageReportGenerator(str(tmp_path))
+        coverage_data = {
+            "core/foo.py": {
+                "statements": 10,
+                "missed": 5,
+                "coverage": 50,
+                "covered": 5,
+                "missing_lines": [],
+            }
+        }
+        overall_data = {
+            "total_statements": 10,
+            "total_missed": 5,
+            "overall_coverage": 50.0,
+        }
+        summary = generator.generate_coverage_summary(coverage_data, overall_data)
+        assert "### **Coverage by Domain**" in summary
+        assert "`communication`" in summary and "`ui`" in summary
+        assert "not represented in this coverage artifact" in summary
+        assert "- **core**:" in summary
+        assert "- **communication**: 0.0%" not in summary
+        assert "- **ui**: 0.0%" not in summary
+        assert "`core`" in summary and "`ui`" in summary and "`communication`" in summary
+
 
 class TestCoverageAnalysis:
     """Test coverage analysis execution."""

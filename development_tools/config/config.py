@@ -278,7 +278,24 @@ def _build_audit_tiers_default():
         }
 
 
-AUDIT_TIERS = _build_audit_tiers_default()
+# Lazy default: building at import time caused a cycle (config → shared.audit_tiers →
+# shared.__init__ → constants → config) before load_external_config() ran, so JSON
+# constants (e.g. local_module_prefixes) fell back to generic defaults.
+_audit_tiers_default_cache: dict[str, Any] | None = None
+
+
+def _get_default_audit_tiers() -> dict[str, Any]:
+    global _audit_tiers_default_cache
+    if _audit_tiers_default_cache is None:
+        _audit_tiers_default_cache = _build_audit_tiers_default()
+    return _audit_tiers_default_cache
+
+
+def __getattr__(name: str) -> Any:
+    if name == "AUDIT_TIERS":
+        return _get_default_audit_tiers()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 # Version sync settings
 # NOTE: Projects should provide config file. All paths are relative to project root.
@@ -539,9 +556,10 @@ def get_quick_audit_config():
 def get_audit_tiers_config():
     """Get audit tier configuration (from external config if available, otherwise default)."""
     external_config = _get_external_value("audit_tiers", None)
+    default = _get_default_audit_tiers()
     if external_config:
         # Merge external config with defaults (external takes precedence)
-        result = AUDIT_TIERS.copy()
+        result = default.copy()
         # Deep merge for nested dicts
         for tier in ["quick", "standard", "full"]:
             if tier in external_config:
@@ -550,7 +568,7 @@ def get_audit_tiers_config():
                 else:
                     result[tier] = external_config[tier]
         return result
-    return AUDIT_TIERS
+    return default
 
 
 def get_paths_config():

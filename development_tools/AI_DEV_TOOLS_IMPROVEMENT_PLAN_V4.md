@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-03-26 (Phase D: audit orchestration helper tests; §2.9 console/dump spot-check)
+> **Last Updated**: 2026-03-25 (V4 continuation: snapshot reconcile; coverage trio + reports + portability + backlog)
 
 This is an updated, condensed roadmap based on V3 and prior audits. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -18,7 +18,7 @@ This is an updated, condensed roadmap based on V3 and prior audits. Completed wo
 
 **Authoritative metrics**: use [development_tools/AI_STATUS.md](development_tools/AI_STATUS.md) after `audit` / `audit --full` (regenerated files).
 
-Snapshot **2026-03-24** (Tier 3 full audit): **Development tools coverage 60.3%** (meets V4 **60% floor**). **AI_PRIORITIES** still lists modules under an **~80% advisory** bar for dev-tools (`run_test_coverage.py`, `commands.py`, `analyze_documentation.py` as of that run)—treat that as optional hardening, not the same as the 60% roadmap target. Legacy references: **2 files** (see [development_docs/LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)). Module refactor candidates: **60**; circular chains: **14**; high-coupling modules: **37**. Reports: `CONSOLIDATED_REPORT.md` (uppercase). Refresh dev-tools coverage with: `python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache`.
+Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-03-25 00:03:09): **Development tools coverage 61.1%** (16691/27329 statements; meets V4 **60% floor**). **AI_PRIORITIES** item #2 still lists **~80% advisory** targets: `commands.py` (~40%), `run_test_coverage.py` (~41%), `audit_signal_state.py` (~44%)—optional hardening vs the 60% floor. Legacy references: **3 files** / **7 markers** surfaced in scans (see [development_docs/LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)). Module refactor candidates: **60**; circular chains: **14**; high-coupling modules: **37**; duplicate-function groups: **12**. Reports: `CONSOLIDATED_REPORT.md` (uppercase). Refresh dev-tools coverage with: `python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache`.
 
 ---
 
@@ -215,6 +215,7 @@ Snapshot **2026-03-24** (Tier 3 full audit): **Development tools coverage 60.3%*
 **Tasks**:
 - [x] Measure actual time savings of domain-based test execution — **methodology (2026-03-25)**: on Windows PowerShell use `Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache }` vs the same command **without** `--no-domain-cache` after a warm cache exists; compare wall-clock and inspect `run_test_coverage.py` logs for cache hit/miss. Numeric baselines are machine-dependent—record in session notes when benchmarking.
 - [ ] Compare full vs domain-filtered runs and document results in changelog (defer until a dedicated benchmark session captures stable numbers)
+  - [x] **2026-03-25**: Paired changelog notes the `Measure-Command` + warm-cache comparison recipe (§1.5 above); numeric baseline still deferred to a benchmark session
 - [x] Add cross-domain dependency tracking (invalidate dependent domains)
 - [x] Extend MtimeFileCache to high-cost analyzers (`analyze_error_handling`, `analyze_functions`, `analyze_module_imports`, `analyze_module_dependencies`)
 - [x] Add mtime caching for Pyright and Ruff static checks in `tool_wrappers.py` (`_compute_source_signature`, `_try_static_check_cache`, `_save_static_check_cache`); skips runs when `.py` file mtimes unchanged
@@ -458,12 +459,12 @@ Snapshot **2026-03-24** (Tier 3 full audit): **Development tools coverage 60.3%*
 - [x] Update validation logic (combined if-branches per Ruff SIM114; robust substring check for truncated summaries)
 
 #### 3.3 Version sync functionality
-**Status**: PENDING  
+**Status**: IN PROGRESS  
 **User priority**: Medium.  
 **Tasks**:
-- [ ] Determine what `version_sync` does and intended scope
-- [ ] Verify it is operating correctly
-- [ ] Document version sync process
+- [x] Determine what `version_sync` does and intended scope — `development_tools/docs/fix_version_sync.py` (show/status/sync/trim/check/validate/sync-todo); service entry `run_version_sync` → script `sync`
+- [ ] Verify it is operating correctly (spot-check when running experimental sync)
+- [x] Document version sync process — paired guides **§2 experimental** (`version-sync`) + script `--help` reference
 
 #### 3.4 dev tools scripts and tool_timings.json location
 **Status**: REVIEWED  
@@ -559,6 +560,7 @@ Snapshot **2026-03-24** (Tier 3 full audit): **Development tools coverage 60.3%*
 **Status**: PENDING  
 **User priority**: Medium/low.  
 **Tasks**:
+- [x] **2026-03-25**: Backlog pointer added in paired guides **§10** (full move/CLI wiring still open)
 - [ ] Move `scripts/flaky_detector.py` to `development_tools/tests/` with clear ownership and module boundaries
 - [ ] Wire flaky detection into development tools CLI/tool metadata (standalone command + optional audit hook)
 - [ ] Standardize flaky detector logs/outputs with development tools conventions (`development_tools/tests/logs` + JSON/markdown result schema)
@@ -569,6 +571,7 @@ Snapshot **2026-03-24** (Tier 3 full audit): **Development tools coverage 60.3%*
 **Status**: PENDING  
 **User priority**: Continue.  
 **Tasks**:
+- [x] **2026-03-25**: Paired guides **§10** point to `flaky_detector` / remaining `scripts/**` as migration backlog (see also §3.12)
 - [ ] Build a definitive migration inventory from current tracked references to `scripts/` (exclude changelog-history-only references)
 - [x] Moved static logging checker to `development_tools/static_checks/check_channel_loggers.py` and updated references (`run_tests.py`, CI workflow, tests, and logging docs)
 - [x] Retired one-time schedule/user-index scripts: `scripts/utilities/add_checkin_schedules.py`, `scripts/utilities/check_checkin_schedules.py`, `scripts/utilities/fix_user_schedules.py`, `scripts/utilities/rebuild_index.py`
@@ -644,9 +647,10 @@ Snapshot **2026-03-24** (Tier 3 full audit): **Development tools coverage 60.3%*
 *User priority*: bandit/pip-audit = evaluate. ruff/radon = evaluate (ruff already in use). pre-commit = yes, evaluate.
 
 #### 4.1 Evaluate and integrate complementary tools
-**Status**: PENDING  
+**Status**: IN PROGRESS  
 **User priority**: Evaluate bandit, pip-audit, radon, pre-commit.  
 **Tasks**:
+- [x] **2026-03-25**: Documented evaluation stance and backlog pointer in paired guides **§10** (Bandit/pip-audit/Radon/pre-commit; no audit-tier wiring yet)
 - [ ] Evaluate ruff (lint/format) and radon (complexity) for integration
 - [ ] Evaluate pydeps for dependency graphs vs existing dependency tool
 - [ ] Run bandit security scan and decide on Tier 1 integration
@@ -748,7 +752,7 @@ Snapshot **2026-03-24** (Tier 3 full audit): **Development tools coverage 60.3%*
 
 ### 6. Audit-Driven Remediation (Non-Tool Code, Current Backlog)
 
-These are surfaced by the tools and remain outstanding but are not tool-suite changes.
+These are surfaced by the tools and remain outstanding but are not tool-suite changes. **Live counts**: align with [development_tools/AI_STATUS.md](development_tools/AI_STATUS.md) / [development_tools/AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md) after each `audit --full` (example snapshot **2026-03-25**: legacy **3** files / **7** markers).
 
 *User priority*:
 - **Retire legacy markers**: (a) Actively work down; focus on proper retirement/removal of legacy code, then related markers.
@@ -756,7 +760,7 @@ These are surfaced by the tools and remain outstanding but are not tool-suite ch
 - **Raise domain coverage** (communication, ui, core): (d) When nothing better to do, or while user is away.
 - **Refactor critical-complexity functions**: (a) Actively work down, but not high priority.
 
-- [ ] Retire remaining legacy reference markers — **use live counts** from [development_docs/LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md) and AI_STATUS (example **2026-03-24**: 2 files / 6 markers surfaced in scans); workflow: [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (`fix_legacy_references.py --find` / `--verify`), then `python development_tools/run_development_tools.py legacy` or `audit --full`
+- [ ] Retire remaining legacy reference markers — **use live counts** from [development_docs/LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md) and AI_STATUS (example **2026-03-25**: 3 files / 7 markers); workflow: [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (`fix_legacy_references.py --find` / `--verify`), then `python development_tools/run_development_tools.py legacy` or `audit --full`
 - [ ] Work down active/candidate deprecation inventory items in `development_tools/config/jsons/DEPRECATION_INVENTORY.json`:
   - `legacy_timestamp_parsing`
   - `backup_zip_compat_bridge`
@@ -830,6 +834,7 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
   - Validation that reports remain complete when host-repo lint/type configs differ from dev-tools defaults.
   - **2026-03-24 partial**: `tests/development_tools/test_pyright_config_paths.py` smoke-checks both Pyright config files (strict JSON for dev-tools; root JSONC presence + key markers).
   - **2026-03-25 partial**: same module asserts owned + root `ruff.toml` parse via `tomllib` (line-length/exclude present).
+  - **2026-03-25 partial**: asserts owned `pyrightconfig.json` includes `typeCheckingMode` and a non-empty `exclude` list (explicit `--project` audit baseline).
 
 **2026-03-02 Current situation (dual config files):**
 - Keep both Pyright configs for now:
@@ -887,12 +892,16 @@ development_tools\legacy\generate_legacy_reference_report.py should exclude test
 #### 7.13 expand/improve duplicate function detector tool to consider argument similarities  and other things
 
 #### 7.14 make report (AI_PRIORITIES, AI_STATUS and CONSOLIDATED_REPORT) addresses into proper markdown links
+- [x] **2026-03-25**: `AI_PRIORITIES` “Review for guidance/details” bullets linkify repo-relative `.md`/`.json` paths in `report_generation._linkify_review_paths_bullet` (render pass for Immediate Focus). AI_STATUS/CONSOLIDATED paths already use markdown links where generated.
 
 #### 7.15 separate test coverage from full audit?
 - full audit could just run tests, instead of test coverage, which could be run separately or through the audit with an additional argument/tag thing
 
 #### 7.16 change size threshold for large modules to atleast 1000 lines
 - [x] **2026-03-24**: Default `max_lines_per_module` raised from 500 to **1000** in `development_tools/config/config.py` and `development_tools/config/development_tools_config.json` (projects can still override)
+
+#### 7.17 TEST_COVERAGE_REPORT should show a breakdown by domain, for all domains, not just core
+- [x] **2026-03-25**: `generate_coverage_summary` unions `coverage.ini` `[run] source=` with domains from coverage JSON for the **Coverage Scope** line. **Coverage by Domain** lists only domains with measured statements; domains in scope but absent from the artifact get one **In scope, not represented…** line (avoids misleading `0/0` rows).
 
 ## Related Documents
 

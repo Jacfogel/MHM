@@ -6,7 +6,7 @@ circular dependency detection, and enhancement needs identification.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from tests.development_tools.conftest import load_development_tools_module
 
@@ -160,7 +160,7 @@ class TestAnalyzeCircularDependencies:
     """Test circular dependency detection."""
     
     @pytest.mark.unit
-    @patch('development_tools.imports.analyze_module_dependencies.logger')
+    @patch.object(deps_module, "logger")
     def test_analyze_circular_dependencies_none(self, mock_logger):
         """Test with no circular dependencies."""
         actual_imports = {
@@ -176,7 +176,7 @@ class TestAnalyzeCircularDependencies:
         assert any("No circular dependencies" in str(call) for call in debug_calls)
     
     @pytest.mark.unit
-    @patch('development_tools.imports.analyze_module_dependencies.logger')
+    @patch.object(deps_module, "logger")
     def test_analyze_circular_dependencies_found(self, mock_logger):
         """Test detection of circular dependencies."""
         # The circular dependency logic checks if file_path is in dependency_graph[dep]
@@ -347,7 +347,7 @@ class TestDependencyReportGeneration:
     """Test report-generation helper paths."""
 
     @pytest.mark.unit
-    @patch('development_tools.imports.analyze_module_dependencies.logger')
+    @patch.object(deps_module, "logger")
     def test_generate_updated_dependency_sections_logs_only_local_import_files(self, mock_logger):
         """Updated sections should only render files with local imports."""
         actual_imports = {
@@ -364,12 +364,8 @@ class TestDependencyReportGeneration:
     @pytest.mark.unit
     def test_generate_enhanced_dependency_report_prints_module_analysis(self):
         """Enhanced report should log module sections with analysis details."""
-        from unittest.mock import patch
         mock_logger = MagicMock()
-        with patch(
-            "development_tools.imports.analyze_module_dependencies.logger",
-            mock_logger,
-        ):
+        with patch.object(deps_module, "logger", mock_logger):
             actual_imports = {
                 "core/a.py": {"imports": {"local": ["core.b"], "standard_library": [], "third_party": []}, "total_imports": 1},
                 "core/b.py": {"imports": {"local": [], "standard_library": [], "third_party": []}, "total_imports": 0},
@@ -386,12 +382,12 @@ class TestDependencyReportGeneration:
         assert "**Complexity**" in logged
 
     @pytest.mark.unit
-    @patch('development_tools.imports.analyze_module_dependencies.analyze_circular_dependencies')
-    @patch('development_tools.imports.analyze_module_dependencies.generate_updated_dependency_sections')
-    @patch('development_tools.imports.analyze_module_dependencies.generate_enhanced_dependency_report')
-    @patch('development_tools.imports.analyze_module_dependencies.identify_enhancement_needs')
-    @patch('development_tools.imports.analyze_module_dependencies.parse_module_dependencies')
-    @patch('development_tools.imports.analyze_module_dependencies.scan_all_python_files')
+    @patch.object(deps_module, "analyze_circular_dependencies")
+    @patch.object(deps_module, "generate_updated_dependency_sections")
+    @patch.object(deps_module, "generate_enhanced_dependency_report")
+    @patch.object(deps_module, "identify_enhancement_needs")
+    @patch.object(deps_module, "parse_module_dependencies")
+    @patch.object(deps_module, "scan_all_python_files")
     def test_generate_dependency_report_invokes_subreports(
         self,
         mock_scan,

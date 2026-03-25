@@ -58,11 +58,11 @@ python development_tools/run_development_tools.py --project-root . --config-path
 **Dependency ownership** (single install surface):
 
 - Ruff, Pyright, pytest, coverage, and related audit helpers are installed with the **host project** via the repository root **`requirements.txt`** into the project virtual environment (`.venv`).
-- There is **no** separate `development_tools/requirements.txt` today—one file avoids drift between app and tools and matches CI/local `pip install -r requirements.txt`.
+- There is **no** separate `development_tools/requirements.txt` today-one file avoids drift between app and tools and matches CI/local `pip install -r requirements.txt`.
 - **Porting** `development_tools/` only: install a matching Python stack in the host repo and ensure tools referenced in `development_tools/config/development_tools_config.json` are available.
 - **Future options** (when portability criteria land): optional `requirements-devtools.txt`, `[project.optional-dependencies]` devtools extra in `pyproject.toml`, or a lock file for reproducible tool-only CI.
 
-See improvement plan §7.6 in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` for background.
+See improvement plan Section 7.6 in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) for background.
 
 ### 2.2. Command Examples
 
@@ -127,7 +127,7 @@ Coverage worker config (`coverage` section):
 - `help` - shows detailed help information.
 
 **Experimental Commands** (high-risk, run only with approval):
-- `version-sync` - synchronizes version metadata across files (fragile, use with caution).
+- `version-sync` - wraps `development_tools/docs/fix_version_sync.py` (via `AIToolsService.run_version_sync`). Subcommands live on the script: `python development_tools/docs/fix_version_sync.py --help` (`show`, `status`, `sync`, `trim`, `check`, `validate`, `sync-todo`). Default scope is documentation metadata; prefer dry runs and capture logs before syncing dates or versions.
 
 ### 2.4. Seeing all type-check issues (Pyright)
 
@@ -564,7 +564,7 @@ Function-level exclusions (auto-generated code, special methods, test functions)
 
 **Approved `core.*` imports**: `core.logger` only.
 
-Development-tools modules may import `core.logger` for structured logging. All other `core.*` imports (for example `core.time_utilities`, `core.error_handling`, static `from core.backup_manager import …`) are not approved and are flagged by the import-boundary checker (`imports/analyze_dev_tools_import_boundaries.py`), which runs in Tier 1 audits.
+Development-tools modules may import `core.logger` for structured logging. All other `core.*` imports (for example `core.time_utilities`, `core.error_handling`, static `from core.backup_manager import ...`) are not approved and are flagged by the import-boundary checker (`imports/analyze_dev_tools_import_boundaries.py`), which runs in Tier 1 audits.
 
 **Rationale**:
 - `core.logger` is lightweight and acceptable for cross-project tooling.
@@ -581,7 +581,7 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 ## 9. Directory taxonomy and configuration surface (Phase 1)
 
-**Goal**: Make “where do I change X?” predictable without a large directory move.
+**Goal**: Make "where do I change X?" predictable without a large directory move.
 
 **Stable configuration surface** (public, versioned):
 
@@ -593,13 +593,25 @@ Development-tools modules may import `core.logger` for structured logging. All o
 | `development_tools/config/sync_ruff_toml.py` | Generates owned `ruff.toml` |
 | `development_tools/config/ruff.toml` / `pyrightconfig.json` | Owned static-analysis configs for portable audits |
 
-**Runtime / implementation** (shared plumbing, not the “policy” surface):
+**Runtime / implementation** (shared plumbing, not the "policy" surface):
 
-- `development_tools/shared/**` — scanners, service mixins, caches, `standard_exclusions`, helpers.
-- `development_tools/reports/jsons/**`, `development_tools/tests/jsons/**` — generated artifacts (often git-ignored).
+- `development_tools/shared/**` - scanners, service mixins, caches, `standard_exclusions`, helpers.
+- `development_tools/reports/jsons/**`, `development_tools/tests/jsons/**` - generated artifacts (often git-ignored).
 
 **Phased migration** (when restructuring): (1) clarify docs + ownership map (this section); (2) compatibility shims if modules move; (3) migrate imports and remove shims. Core CLI entrypoints (`run_development_tools.py`, `audit` tiers) should keep working throughout.
 
-**Phase 2 (evaluation, not yet executed)**: Before moving files out of `development_tools/config/`, decide which items are true “policy surface” vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required—each shim must follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
+**Phase 2 (evaluation, not yet executed)**: Before moving files out of `development_tools/config/`, decide which items are true "policy surface" vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required-each shim must follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
 
 **Pyright configs**: Root `pyrightconfig.json` supports IDE and whole-repo workflows (JSON with `//` comments); `development_tools/config/pyrightconfig.json` is dev-tools-owned strict JSON for explicit `--project` use in audits. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `tests/development_tools/test_pyright_config_paths.py` (Pyright JSON + Ruff TOML presence/parse).
+
+---
+
+## 10. External tools evaluation (Bandit, pip-audit, Radon, pre-commit)
+
+**Status**: Not wired into audit tiers; see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) Section 4.1 for the integration backlog.
+
+- **Bandit** / **pip-audit**: Run manually from the venv when reviewing security or dependency risk; promote to Tier 1 only after noise levels are acceptable.
+- **Radon**: Overlaps existing complexity/refactor signals (`analyze_functions`, `analyze_module_refactor_candidates`); adopt only for metrics Ruff does not provide.
+- **pre-commit**: Optional host-repo hygiene; policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks for this repository.
+
+**Scripts backlog** (migration/review): flaky-test detector work and any host-repo script utilities live in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) Section 3.12-Section 3.14 (no canonical script path in-repo yet-add one when migrating out of history-only references).

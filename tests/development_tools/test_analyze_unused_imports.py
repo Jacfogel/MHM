@@ -180,7 +180,7 @@ class TestRunPylintOnFile:
     """Test running pylint on individual files."""
     
     @pytest.mark.unit
-    @patch('development_tools.imports.analyze_unused_imports._run_subprocess_with_timeout')
+    @patch.object(unused_imports_module, "_run_subprocess_with_timeout")
     def test_run_pylint_no_issues(self, mock_subprocess, tmp_path):
         """Test file with no unused imports."""
         checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
@@ -197,7 +197,7 @@ class TestRunPylintOnFile:
         assert result == []
     
     @pytest.mark.unit
-    @patch('development_tools.imports.analyze_unused_imports._run_subprocess_with_timeout')
+    @patch.object(unused_imports_module, "_run_subprocess_with_timeout")
     def test_run_pylint_with_issues(self, mock_subprocess, tmp_path):
         """Test file with unused imports."""
         checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
@@ -222,7 +222,7 @@ class TestRunPylintOnFile:
         assert result[0]['message'] == 'Unused import unused_module'
     
     @pytest.mark.unit
-    @patch('development_tools.imports.analyze_unused_imports._run_subprocess_with_timeout')
+    @patch.object(unused_imports_module, "_run_subprocess_with_timeout")
     def test_run_pylint_timeout(self, mock_subprocess, tmp_path):
         """Test handling of pylint timeout."""
         checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
@@ -237,7 +237,7 @@ class TestRunPylintOnFile:
         assert result is None
     
     @pytest.mark.unit
-    @patch('development_tools.imports.analyze_unused_imports._run_subprocess_with_timeout')
+    @patch.object(unused_imports_module, "_run_subprocess_with_timeout")
     def test_run_pylint_invalid_json(self, mock_subprocess, tmp_path):
         """Test handling of invalid JSON from pylint."""
         checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
@@ -385,7 +385,7 @@ class TestBackendSelection:
             checker._run_detection_backend([file1])
 
     @pytest.mark.unit
-    @patch("development_tools.imports.analyze_unused_imports._run_subprocess_with_timeout")
+    @patch.object(unused_imports_module, "_run_subprocess_with_timeout")
     def test_ruff_runner_raises_on_missing_json_output(self, mock_run, tmp_path):
         file1 = tmp_path / "a.py"
         file1.write_text("import os")
@@ -401,7 +401,7 @@ class TestBackendSelection:
             checker._run_batched_ruff([file1])
 
     @pytest.mark.unit
-    @patch("development_tools.imports.analyze_unused_imports._run_subprocess_with_timeout")
+    @patch.object(unused_imports_module, "_run_subprocess_with_timeout")
     def test_pylint_runner_raises_on_missing_json_output(self, mock_run, tmp_path):
         file1 = tmp_path / "a.py"
         file1.write_text("import os")
@@ -417,7 +417,7 @@ class TestBackendSelection:
             checker._run_batched_pylint([file1])
 
     @pytest.mark.unit
-    @patch("development_tools.imports.analyze_unused_imports._run_subprocess_with_timeout")
+    @patch.object(unused_imports_module, "_run_subprocess_with_timeout")
     def test_python_command_normalized_to_sys_executable(self, mock_run, tmp_path):
         file1 = tmp_path / "a.py"
         file1.write_text("import os")
@@ -431,7 +431,7 @@ class TestBackendSelection:
         assert called_cmd[0] == unused_imports_module.sys.executable
 
     @pytest.mark.unit
-    @patch("development_tools.imports.analyze_unused_imports._run_subprocess_with_timeout")
+    @patch.object(unused_imports_module, "_run_subprocess_with_timeout")
     def test_pylint_uses_smaller_fallback_batches(self, mock_run, tmp_path):
         files = []
         for i in range(30):
@@ -531,7 +531,7 @@ class TestCache:
     """Test caching functionality."""
     
     @pytest.mark.unit
-    @patch('development_tools.imports.analyze_unused_imports._run_subprocess_with_timeout')
+    @patch.object(unused_imports_module, "_run_subprocess_with_timeout")
     def test_cache_hit(self, mock_subprocess, tmp_path):
         """Test that cache is used on second check."""
         checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=True)
@@ -555,7 +555,7 @@ class TestCache:
         assert mock_subprocess.call_count <= 1
     
     @pytest.mark.unit
-    @patch('development_tools.imports.analyze_unused_imports._run_subprocess_with_timeout')
+    @patch.object(unused_imports_module, "_run_subprocess_with_timeout")
     def test_cache_disabled(self, mock_subprocess, tmp_path):
         """Test that cache is not used when disabled."""
         checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)

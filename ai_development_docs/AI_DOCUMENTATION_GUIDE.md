@@ -133,7 +133,7 @@ New items and progressed items in plan files ([PLANS.md](../development_docs/PLA
 
 - Paired docs (first-line and detailed counterparts) must share the same H2 heading set.
 - Any H2 structural change in one doc must be mirrored in the other doc immediately.
-- **Canonical source**: `development_tools_config.json` → `constants.paired_docs`. For the human-readable list, see [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md) section 4.1.
+- **Canonical source**: `development_tools_config.json` -> `constants.paired_docs`. For the human-readable list, see [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md) section 4.1.
 
 ### 4.2. Synchronization workflow (practical)
 

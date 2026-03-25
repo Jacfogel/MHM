@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-24 15:31:10
+> **Last Generated**: 2026-03-25 00:29:48
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -11,6 +11,7 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
+|   .coverage
 |   .ruff.toml
 |   ARCHITECTURE.md
 |   CONFIGURATION_REFERENCE.md
@@ -47,6 +48,7 @@ C:.
 |   |       
 |   +---plans
 |   |   |   conftest_refactor_plan_4aa2eb26.plan.md
+|   |   |   dev_tools_v4_continuation_6131deb0.plan.md
 |   |   |   planning_documents_consolidation_f3a74815.plan.md
 |   |   |   unified_user_items_and_shared_helpers.plan.md
 |   |   |   
@@ -560,6 +562,7 @@ C:.
 |   |   |   test_analyze_unconverted_links.py
 |   |   |   test_analyze_unused_imports.py
 |   |   |   test_audit_orchestration_helpers.py
+|   |   |   test_audit_signal_state.py
 |   |   |   test_audit_status_updates.py
 |   |   |   test_audit_strict_mode.py
 |   |   |   test_audit_tier_comprehensive.py

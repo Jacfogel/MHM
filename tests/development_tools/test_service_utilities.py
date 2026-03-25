@@ -38,6 +38,22 @@ def test_basic_formatting_and_parsing_helpers():
 
 
 @pytest.mark.unit
+def test_format_repo_paths_as_markdown_links_normalizes_and_links():
+    out = utilities_module.format_repo_paths_as_markdown_links(
+        [r"development_tools\DEVELOPMENT_TOOLS_GUIDE.md"], limit=3
+    )
+    assert out == "[DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)"
+    overflow = utilities_module.format_repo_paths_as_markdown_links(
+        ["a/x.md", "b/y.md", "c/z.md", "d/w.md"], limit=2
+    )
+    assert "[x.md](a/x.md)" in overflow
+    assert "[y.md](b/y.md)" in overflow
+    assert "... +2" in overflow
+    dummy = _DummyUtilities()
+    assert dummy._format_repo_paths_as_markdown_links(["core/foo.md"]) == "[foo.md](core/foo.md)"
+
+
+@pytest.mark.unit
 def test_extract_function_and_documentation_metrics_paths():
     """Mixin extraction helpers should parse function and doc metrics payloads."""
     dummy = _DummyUtilities()

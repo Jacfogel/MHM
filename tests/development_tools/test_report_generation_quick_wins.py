@@ -661,3 +661,44 @@ def test_consolidated_report_marks_cached_overlap_data(temp_project_copy):
     assert "## Documentation Overlap" in doc
     assert "No overlaps detected (cached overlap data)" in doc
     assert "Overlap analysis not run" not in doc
+
+
+@pytest.mark.unit
+def test_linkify_review_paths_single_md():
+    from development_tools.shared.service.report_generation import _linkify_review_paths_bullet
+
+    line = "Review for guidance: ai_development_docs/AI_TESTING_GUIDE.md"
+    out = _linkify_review_paths_bullet(line)
+    assert "[AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)" in out
+
+
+@pytest.mark.unit
+def test_linkify_review_paths_and_json_with_parenthetical():
+    from development_tools.shared.service.report_generation import _linkify_review_paths_bullet
+
+    line = (
+        "Review for details: development_docs/LEGACY_REFERENCE_REPORT.md (exact locations)"
+    )
+    out = _linkify_review_paths_bullet(line)
+    assert "[LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)" in out
+    assert "(exact locations)" in out
+
+
+@pytest.mark.unit
+def test_linkify_review_paths_comma_separated():
+    from development_tools.shared.service.report_generation import _linkify_review_paths_bullet
+
+    line = (
+        "Review for guidance: ai_development_docs/A.md, ai_development_docs/B.md"
+    )
+    out = _linkify_review_paths_bullet(line)
+    assert "[A.md](ai_development_docs/A.md)" in out
+    assert "[B.md](ai_development_docs/B.md)" in out
+
+
+@pytest.mark.unit
+def test_linkify_review_paths_leaves_non_review_lines():
+    from development_tools.shared.service.report_generation import _linkify_review_paths_bullet
+
+    line = "Action: run pytest"
+    assert _linkify_review_paths_bullet(line) == line
