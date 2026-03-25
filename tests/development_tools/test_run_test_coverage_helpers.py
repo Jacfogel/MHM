@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -266,3 +268,69 @@ def test_parse_pytest_test_results_empty_returns_defaults(tmp_path: Path):
     assert results["passed_count"] == 0
     assert results["failed_count"] == 0
     assert results["failed_tests"] == []
+
+
+@pytest.mark.unit
+def test_detect_expected_parallel_workers_parses_pytest_xdist_line(tmp_path: Path):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    out = "gw0 [1] created: 4 / 4 workers\n"
+    assert regenerator._detect_expected_parallel_workers(out) == 4
+
+
+@pytest.mark.unit
+def test_detect_expected_parallel_workers_empty_returns_none(tmp_path: Path):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    assert regenerator._detect_expected_parallel_workers("") is None
+    assert regenerator._detect_expected_parallel_workers("no workers here") is None
+
+
+@pytest.mark.unit
+def test_ensure_python_path_in_env_prepends_on_windows(tmp_path: Path):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    fake_py = tmp_path / "python.exe"
+    fake_py.write_bytes(b"")
+    env = {"PATH": "C:\\\\existing"}
+    with patch.object(sys, "platform", "win32"), patch.object(sys, "executable", str(fake_py)):
+        updated = regenerator._ensure_python_path_in_env(dict(env))
+    assert str(fake_py.parent) in updated["PATH"]
+    assert "C:\\\\existing" in updated["PATH"]
+
+
+@pytest.mark.unit
+def test_merge_coverage_json_rejects_non_dict_inputs(tmp_path: Path):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    merged = regenerator._merge_coverage_json([], {})  # type: ignore[arg-type]
+    assert merged["files"] == {}
+    assert merged["totals"]["num_statements"] == 0
+
+
+@pytest.mark.unit
+def test_merge_coverage_json_merges_disjoint_files(tmp_path: Path):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    a = {
+        "files": {
+            "a.py": {
+                "summary": {
+                    "num_statements": 10,
+                    "covered_lines": 5,
+                    "missing_lines": 5,
+                }
+            }
+        }
+    }
+    b = {
+        "files": {
+            "b.py": {
+                "summary": {
+                    "num_statements": 4,
+                    "covered_lines": 4,
+                    "missing_lines": 0,
+                }
+            }
+        }
+    }
+    merged = regenerator._merge_coverage_json(a, b)
+    assert "a.py" in merged["files"]
+    assert "b.py" in merged["files"]
+    assert merged["totals"]["num_statements"] == 14
+    assert merged["totals"]["covered_lines"] == 9

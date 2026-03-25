@@ -2,10 +2,10 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-24 17:21:51
+> **Last Generated**: 2026-03-24 23:53:58
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 2
-**Legacy Compatibility Markers Detected**: 6
+**Total Files with Issues**: 3
+**Legacy Compatibility Markers Detected**: 7
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
@@ -22,10 +22,10 @@
 - Active/candidate entries: 1
 - Removed entries: 3
 - Active search terms: 3
-- Current inventory-term hits in scan: 2 file(s), 6 marker(s)
+- Current inventory-term hits in scan: 3 file(s), 7 marker(s)
 
 ## Deprecation Inventory Terms
-**Files Affected**: 2
+**Files Affected**: 3
 
 ### development_tools\config\sync_ruff_toml.py
 **Issues Found**: 4
@@ -48,6 +48,14 @@
 - **Line 138**: `.ruff.toml`
   ```
   print(f"Generated {output_path} and {project_root / '.ruff.toml'}")
+  ```
+
+### tests\development_tools\test_pyright_config_paths.py
+**Issues Found**: 1
+
+- **Line 47**: `.ruff.toml`
+  ```
+  path = project_root / ".ruff.toml"
   ```
 
 ### tests\development_tools\test_sync_ruff_toml.py

@@ -18,6 +18,10 @@ load_documents = docs_module.load_documents
 detect_duplicates = docs_module.detect_duplicates
 detect_placeholders = docs_module.detect_placeholders
 execute = docs_module.execute
+analyse_topics = docs_module.analyse_topics
+detect_corrupted_artifacts = docs_module.detect_corrupted_artifacts
+document_profiles = docs_module.document_profiles
+detect_section_overlaps = docs_module.detect_section_overlaps
 
 
 class TestAnalyzeDocumentation:
@@ -208,4 +212,46 @@ to be filled: placeholder
         
         assert isinstance(placeholders, list), "Result should be a list"
         # Should detect various placeholder patterns
+
+    @pytest.mark.unit
+    def test_analyse_topics_groups_by_keyword(self):
+        docs = {
+            "a.md": "## X\npytest and coverage are used in the test suite.",
+            "b.md": "## Y\narchitecture overview of modules.",
+        }
+        topics = analyse_topics(docs)
+        assert "Testing" in topics
+        assert "a.md" in topics["Testing"]
+        assert "Architecture" in topics
+        assert "b.md" in topics["Architecture"]
+
+    @pytest.mark.unit
+    def test_detect_corrupted_artifacts_finds_replacement_and_triple_question(self):
+        docs = {
+            "bad.md": "Line one has \ufffd bad data.\nAnother ??? line.\n",
+        }
+        issues = detect_corrupted_artifacts(docs)
+        labels = {i["pattern"] for i in issues}
+        assert "replacement_character" in labels
+        assert "triple_question_marks" in labels
+
+    @pytest.mark.unit
+    def test_document_profiles_lists_sections_and_lengths(self):
+        docs = {
+            "z.md": "## One\nbody\n## Two\nmore",
+        }
+        lines = document_profiles(docs)
+        assert any("z.md" in line for line in lines)
+        assert any("Sections:" in line for line in lines)
+
+    @pytest.mark.unit
+    def test_detect_section_overlaps_flags_substantial_duplicate_section(self):
+        """Same section name in two unpaired files with enough content -> overlap."""
+        docs = {
+            "notes_a.md": "## SharedTopic\n" + ("x" * 60),
+            "notes_b.md": "## SharedTopic\n" + ("y" * 60),
+        }
+        overlaps = detect_section_overlaps(docs)
+        assert "SharedTopic" in overlaps
+        assert set(overlaps["SharedTopic"]) == {"notes_a.md", "notes_b.md"}
 

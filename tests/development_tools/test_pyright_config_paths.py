@@ -1,9 +1,10 @@
-"""Policy: Pyright config files exist and parse as JSON (portability baseline)."""
+"""Policy: Pyright and Ruff config files exist and are readable (portability baseline)."""
 
 from __future__ import annotations
 
 import json
 import sys
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -29,3 +30,22 @@ def test_root_pyrightconfig_exists() -> None:
     text = path.read_text(encoding="utf-8")
     assert '"typeCheckingMode"' in text
     assert '"venv"' in text
+
+
+@pytest.mark.unit
+def test_dev_tools_ruff_toml_exists_and_parses() -> None:
+    path = project_root / "development_tools" / "config" / "ruff.toml"
+    assert path.is_file(), f"Missing {path}"
+    data = tomllib.loads(path.read_text(encoding="utf-8"))
+    assert isinstance(data, dict)
+    assert "line-length" in data or "exclude" in data
+
+
+@pytest.mark.unit
+def test_root_ruff_toml_exists_for_direct_ruff_workflows() -> None:
+    """Compatibility mirror for `ruff check .` (see DEVELOPMENT_TOOLS_GUIDE §7.6)."""
+    path = project_root / ".ruff.toml"
+    assert path.is_file(), f"Missing {path}"
+    data = tomllib.loads(path.read_text(encoding="utf-8"))
+    assert isinstance(data, dict)
+    assert "line-length" in data or "exclude" in data

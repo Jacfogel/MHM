@@ -136,3 +136,13 @@ def test_cached_state_extractors_and_failure_classification(temp_project_copy: P
     }
     assert service._extract_cached_main_coverage_state(legacy_details_only) is None
 
+
+@pytest.mark.unit
+def test_is_interrupt_signature_detects_keyboard_interrupt_and_code(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    assert service._is_interrupt_signature("Traceback\nKeyboardInterrupt", None) is True
+    assert service._is_interrupt_signature("", 130) is True
+    assert service._is_interrupt_signature("ok", 0) is False
+

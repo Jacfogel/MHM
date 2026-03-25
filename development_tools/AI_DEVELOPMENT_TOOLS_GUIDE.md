@@ -303,5 +303,6 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 
 - **Config surface**: `development_tools/config/` — `development_tools/config/config.py`, `development_tools/config/development_tools_config.json` (+ `.example`), `development_tools/config/sync_ruff_toml.py`, owned `development_tools/config/ruff.toml` / `development_tools/config/pyrightconfig.json`.
 - **Implementation**: `development_tools/shared/**` (service mixins, scanners, caches); generated JSON under `reports/jsons/`, `tests/jsons/`.
-- **Dual Pyright**: repo root `pyrightconfig.json` (IDE/whole repo; JSONC) vs `development_tools/config/pyrightconfig.json` (audit `--project`; strict JSON). Smoke test: `pytest tests/development_tools/test_pyright_config_paths.py`.
+- **Phase 2**: Evaluate moving runtime-only pieces out of `config/`; use shims only per [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md). See §9 Phase 2 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
+- **Dual Pyright**: repo root `pyrightconfig.json` (IDE/whole repo; JSONC) vs `development_tools/config/pyrightconfig.json` (audit `--project`; strict JSON). **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` mirror. Policy tests: `pytest tests/development_tools/test_pyright_config_paths.py`.
 - **Human detail**: Section 9 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).

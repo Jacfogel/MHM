@@ -30,10 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-03-24 - Dev tools: import boundary; Tier 3 coverage; docs/portability **COMPLETED**
+### 2026-03-24 - Dev tools: import boundary; Tier 3; V4 plan; portability; orchestration **Progressed**
 - **Import-boundary (Tier 1)**: `analyze_dev_tools_import_boundaries`, `time_helpers` / `error_helpers`, policy §8–8.5; Option A import cleanup; fake service / strict-mode follow-ups.
 - **Tier 3**: Contract enforced on `coverage_outcome` and per-track `classification`; invalidation logs at WARNING; no cache fallback in `_extract_cached_main_coverage_state`; strict/helper tests updated.
-- **Docs**: Removed/folded extra standalone files into paired guides; §9 taxonomy; `AI_DEVELOPMENT_TOOLS_GUIDE` link fixes; `doc-sync` writes `docs/jsons/analyze_documentation_sync_results.json`; reporting/AI_STATUS UX tweaks; audit status test asserts status files on disk (Tier 3 / coverage safe); module line threshold 1000; flaky cache-helper + extra coverage tests.
+- **Docs / guides**: Removed/folded extra standalone files into paired guides; §9 taxonomy + Phase 2 evaluation (runtime_config/shims + legacy guide); `AI_DEVELOPMENT_TOOLS_GUIDE` link fixes; `doc-sync` writes `docs/jsons/analyze_documentation_sync_results.json`; reporting/AI_STATUS UX tweaks; Pyright + Ruff policy tests (`test_pyright_config_paths` + `tomllib` on owned + root `ruff.toml`); audit status test asserts status files on disk; module line threshold 1000; flaky cache-helper + extra coverage tests.
+- **V4 roadmap (`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`)**: §1.1/§1.3 reconciliation (60% vs ~80% advisory, monitoring, skips); §2.8 DEV_TOOLS report scoping **deferred**; §6 legacy pointers; §1.5 cache measurement recipe; §7.6 partial; §2.9 spot-check (no raw dict/list dumps in runner/orchestration `print` paths reviewed).
+- **Tests**: `run_test_coverage` helpers, `commands._is_interrupt_signature`, `analyze_documentation` (topics/overlaps/corrupted artifacts), `test_config` static_analysis override patch via `get_static_analysis_config.__module__`, `test_audit_orchestration_helpers` (coverage/cache summaries, `_is_test_directory`, corrupt coverage JSON, infer-cache edge cases).
 
 ### 2026-03-23 - Legacy cleanup + AI Dev Tools Plan V4 **Progressed**
 - **Legacy bridges retired**: (1) **tier3_coverage_outcome_compat_bridge**—Option A: invalidate caches lacking coverage_outcome (delete file on load); `--clear-cache` already clears it. (2) **backup_zip_compat_bridge**—removed zip read/restore/validate; directory-only backups. (3) **legacy_timestamp_parsing**—Option B: added `scripts/migrate_sent_messages_timestamps.py`; removed fallback in `_normalize_message_timestamps`; run migration before deploy.

@@ -7,6 +7,7 @@ import time
 import concurrent.futures
 from pathlib import Path
 from typing import cast
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -523,3 +524,87 @@ def test_extract_coverage_cache_metadata_from_json(temp_project_copy: Path):
 
     # Unknown tool returns empty
     assert service._extract_coverage_cache_metadata("unknown_tool") == {}
+
+
+@pytest.mark.unit
+def test_format_coverage_mode_summary_non_dict_and_partial_tools(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = "not-a-dict"  # type: ignore[assignment]
+    assert service._format_coverage_mode_summary() == ""
+
+    service._tool_cache_metadata = {
+        "run_test_coverage": {"cache_mode": "cache_only", "invalidation_reason": "none"},
+        "generate_dev_tools_coverage": {},
+    }
+    summary = service._format_coverage_mode_summary()
+    assert "run_test_coverage=cache_only" in summary
+    assert "none" in summary
+    assert "generate_dev_tools_coverage" not in summary
+
+
+@pytest.mark.unit
+def test_format_cache_mode_summary_skips_bad_entries_and_formats_hits(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = "bad"  # type: ignore[assignment]
+    assert service._format_cache_mode_summary(["analyze_unused_imports"]) == ""
+
+    service._tool_cache_metadata = {
+        "analyze_unused_imports": {
+            "cache_mode": "partial_cache",
+            "hits": 2,
+            "misses": 3,
+        },
+        "analyze_legacy_references": {
+            "cache_mode": "cache_only",
+            "cache_hits": 1,
+            "cache_misses": 0,
+        },
+        "broken_tool": "skip",  # type: ignore[dict-item]
+    }
+    out = service._format_cache_mode_summary(
+        ["analyze_unused_imports", "analyze_legacy_references", "broken_tool"]
+    )
+    assert "analyze_unused_imports=partial_cache" in out
+    assert "hits=2" in out and "misses=3" in out
+    assert "analyze_legacy_references=cache_only" in out
+    assert "hits=1" in out and "misses=0" in out
+
+
+@pytest.mark.unit
+def test_is_test_directory_path_heuristics(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    p_appdata = MagicMock(spec=Path)
+    p_appdata.resolve.return_value = Path(r"C:\Users\X\AppData\Local\Temp\pytest-0\worker")
+    assert service._is_test_directory(cast(Path, p_appdata)) is True
+
+    p_tests_data = MagicMock(spec=Path)
+    p_tests_data.resolve.return_value = Path("/repo/tests/data/x.txt")
+    assert service._is_test_directory(cast(Path, p_tests_data)) is True
+
+    p_tmp_pattern = MagicMock(spec=Path)
+    p_tmp_pattern.resolve.return_value = Path("/var/tmp9abcdef/sub/file.py")
+    assert service._is_test_directory(cast(Path, p_tmp_pattern)) is True
+
+    p_plain = MagicMock(spec=Path)
+    p_plain.resolve.return_value = Path("C:/Program Files/Vendor/app/main.py")
+    assert service._is_test_directory(cast(Path, p_plain)) is False
+
+
+@pytest.mark.unit
+def test_extract_coverage_cache_metadata_corrupt_json_returns_empty(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    jsons_dir = temp_project_copy / "development_tools" / "tests" / "jsons"
+    jsons_dir.mkdir(parents=True, exist_ok=True)
+    bad = jsons_dir / "coverage.json"
+    bad.write_text("{not-json", encoding="utf-8")
+    assert service._extract_coverage_cache_metadata("run_test_coverage") == {}
+
+
+@pytest.mark.unit
+def test_infer_cache_mode_from_hits_misses_non_positive_total(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    assert service._infer_cache_mode_from_hits_misses(0, 0) == "unknown"
+    assert service._infer_cache_mode_from_hits_misses(-1, 0) == "unknown"
+
+

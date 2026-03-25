@@ -252,8 +252,9 @@ class TestConfigHelperFunctions:
     @pytest.mark.unit
     def test_get_static_analysis_config_honors_external_overrides(self):
         """External static-analysis overrides should merge over defaults."""
-        config_impl = sys.modules.get("development_tools.config.config", config)
-        previous_get_external_value = getattr(config_impl, "_get_external_value", None)
+        fn = config.get_static_analysis_config
+        config_impl = sys.modules[fn.__module__]
+        previous_get_external_value = config_impl._get_external_value
         try:
             config_impl._get_external_value = (  # type: ignore[attr-defined]
                 lambda key, default: {
