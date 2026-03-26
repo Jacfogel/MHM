@@ -1,4 +1,10 @@
-"""Policy: Pyright and Ruff config files exist and are readable (portability baseline)."""
+"""Policy: Pyright and Ruff config files exist and are readable (portability baseline).
+
+V4 §7.6 portability acceptance (incremental):
+- Owned `development_tools/config/pyrightconfig.json` is valid JSON and suitable for `pyright --project` in dev-tools audits.
+- Root `pyrightconfig.json` remains the whole-repo / IDE baseline (JSONC); policy tests only require presence of core keys in text.
+- Full diagnostic parity (error counts vs root) is deferred: add subprocess-based comparison only after explicit tolerance rules exist.
+"""
 
 from __future__ import annotations
 
@@ -29,6 +35,19 @@ def test_dev_tools_pyrightconfig_has_typing_and_exclude_roots() -> None:
     data = json.loads(path.read_text(encoding="utf-8"))
     assert "typeCheckingMode" in data
     assert isinstance(data.get("exclude"), list) and len(data["exclude"]) > 0
+
+
+@pytest.mark.unit
+def test_pyright_owned_and_root_both_declare_type_checking_mode() -> None:
+    """Both config stacks declare typeCheckingMode (baseline for future parity work)."""
+    root_text = (project_root / "pyrightconfig.json").read_text(encoding="utf-8")
+    assert '"typeCheckingMode"' in root_text
+    owned = json.loads(
+        (project_root / "development_tools" / "config" / "pyrightconfig.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert owned.get("typeCheckingMode")
 
 
 @pytest.mark.unit

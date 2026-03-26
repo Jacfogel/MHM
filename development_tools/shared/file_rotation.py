@@ -17,6 +17,35 @@ from development_tools.shared.time_helpers import now_timestamp_full
 logger = get_component_logger("development_tools")
 
 
+def path_looks_like_test_directory(path: Path) -> bool:
+    """True when *path* appears to live under test/temp/pytest locations (heuristic)."""
+    try:
+        path_str = str(path).replace("\\", "/").lower()
+        test_indicators = [
+            "/tests/",
+            "/test/",
+            "/tmp/",
+            "/temp/",
+            "/pytest-",
+            "/pytest_of_",
+            "tests/data/",
+            "tests/fixtures/",
+            "tests/temp/",
+            "demo_project",
+            "appdata/local/temp",
+            "appdata/local/tmp",  # Windows temp directories
+            "pytest-",
+            "pytest_of_",  # pytest temp directories (case-insensitive)
+        ]
+        if any(indicator in path_str for indicator in test_indicators):
+            return True
+        if "appdata" in path_str and ("temp" in path_str or "tmp" in path_str):
+            return True
+        return bool("pytest" in path_str and ("temp" in path_str or "tmp" in path_str))
+    except Exception:
+        return False
+
+
 class FileRotator:
     """Handles file rotation, backup, and archiving for AI development tools."""
 
@@ -208,38 +237,6 @@ def create_output_file(
             resolved_path = Path(str(resolved_path))
 
     # Check if we're writing to a test directory (should allow) or real project (should protect)
-    def _is_test_directory(path: Path) -> bool:
-        """Check if path is within a test directory."""
-        try:
-            path_str = str(path).replace("\\", "/").lower()
-            test_indicators = [
-                "/tests/",
-                "/test/",
-                "/tmp/",
-                "/temp/",
-                "/pytest-",
-                "/pytest_of_",
-                "tests/data/",
-                "tests/fixtures/",
-                "tests/temp/",
-                "demo_project",
-                "appdata/local/temp",
-                "appdata/local/tmp",  # Windows temp directories
-                "pytest-",
-                "pytest_of_",  # pytest temp directories (case-insensitive)
-            ]
-            # Check for common temp directory patterns (but be more specific)
-            if any(indicator in path_str for indicator in test_indicators):
-                return True
-            # Check if path is in a typical Windows temp location (AppData\Local\Temp)
-            if "appdata" in path_str and ("temp" in path_str or "tmp" in path_str):
-                return True
-            # Check if path contains pytest temp directory patterns
-            return bool("pytest" in path_str and ("temp" in path_str or "tmp" in path_str))
-        except Exception:
-            # If we can't determine, be conservative and assume it's not a test directory
-            return False
-
     # Get the real project root from config to check if we're writing to it
     is_real_project = False
     resolved_path_resolved = resolved_path  # Initialize for use in audit check
@@ -261,7 +258,7 @@ def create_output_file(
             real_project_root in resolved_path_resolved.parents
             or resolved_path_resolved.parent == real_project_root
             or str(resolved_path_resolved).startswith(str(real_project_root))
-        ) and not _is_test_directory(resolved_path_resolved)
+        ) and not path_looks_like_test_directory(resolved_path_resolved)
     except (AttributeError, ImportError, Exception):
         # If we can't determine real project root, check if it's a test directory
         # If not a test directory, assume we are writing to real project (safe default)
@@ -269,7 +266,7 @@ def create_output_file(
             if not isinstance(resolved_path, Path):
                 resolved_path = Path(str(resolved_path))
             resolved_path_resolved = resolved_path  # Ensure it's defined
-            is_real_project = not _is_test_directory(resolved_path)
+            is_real_project = not path_looks_like_test_directory(resolved_path)
         except Exception:
             # If all checks fail, default to protecting (safe default)
             is_real_project = True
@@ -561,7 +558,7 @@ def create_output_file(
                         or str(write_path_resolved).startswith(str(real_project_root))
                     )
 
-                    if is_in_real_project and not _is_test_directory(
+                    if is_in_real_project and not path_looks_like_test_directory(
                         write_path_resolved
                     ):
                         # We're in a test but writing to real project - block it
@@ -573,7 +570,7 @@ def create_output_file(
                         )
                 except (ImportError, AttributeError):
                     # If we can't determine real project root, fall back to test directory check
-                    if not _is_test_directory(write_path):
+                    if not path_looks_like_test_directory(write_path):
                         logger.debug(
                             f"[TEST ISOLATION] Cannot determine real project root, but path {write_path} doesn't look like a test directory. Allowing write."
                         )

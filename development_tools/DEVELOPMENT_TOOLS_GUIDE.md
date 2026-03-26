@@ -615,3 +615,10 @@ Development-tools modules may import `core.logger` for structured logging. All o
 - **pre-commit**: Optional host-repo hygiene; policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks for this repository.
 
 **Scripts backlog** (migration/review): flaky-test detector work and any host-repo script utilities live in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) Section 3.12-Section 3.14 (no canonical script path in-repo yet-add one when migrating out of history-only references).
+
+**Snapshot (refresh when migrating)**:
+
+- **`scripts/flaky_detector.py`**: V4 target is to host under `development_tools/tests/` and wire CLI. As of 2026-03-25 the file is **not present** in the tree (restore from git history if the flaky workflow is needed). Path-drift caches may still mention the old path until refreshed.
+- **`scripts/testing/verify_process_cleanup.py`**: evaluate migrate vs retire; **not found** under `scripts/` in recent snapshots; confirm with `git log -- scripts/` before re-adding references.
+- **Inventory**: list Python files with `Get-ChildItem -Path scripts -Recurse -File -Filter *.py` (PowerShell) and record keep/migrate/delete decisions in V4 Section 3.13 tasks or [TODO.md](../TODO.md).
+- **Non-tool parallel work**: legacy markers and domain coverage follow [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) and regenerated `AI_PRIORITIES.md`.

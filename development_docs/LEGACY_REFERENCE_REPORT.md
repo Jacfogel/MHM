@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-25 17:36:52
+> **Last Generated**: 2026-03-26 01:05:10
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 3
 **Legacy Compatibility Markers Detected**: 7
@@ -53,7 +53,7 @@
 ### tests\development_tools\test_pyright_config_paths.py
 **Issues Found**: 1
 
-- **Line 56**: `.ruff.toml`
+- **Line 75**: `.ruff.toml`
   ```
   path = project_root / ".ruff.toml"
   ```

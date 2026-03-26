@@ -18,7 +18,7 @@ This is an updated, condensed roadmap based on V3 and prior audits. Completed wo
 
 **Authoritative metrics**: use [development_tools/AI_STATUS.md](development_tools/AI_STATUS.md) after `audit` / `audit --full` (regenerated files).
 
-Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-03-25 00:03:09): **Development tools coverage 61.1%** (16691/27329 statements; meets V4 **60% floor**). **AI_PRIORITIES** item #2 still lists **~80% advisory** targets: `commands.py` (~40%), `run_test_coverage.py` (~41%), `audit_signal_state.py` (~44%)—optional hardening vs the 60% floor. Legacy references: **3 files** / **7 markers** surfaced in scans (see [development_docs/LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)). Module refactor candidates: **60**; circular chains: **14**; high-coupling modules: **37**; duplicate-function groups: **12**. Reports: `CONSOLIDATED_REPORT.md` (uppercase). Refresh dev-tools coverage with: `python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache`.
+Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-03-25 00:03:09): **Development tools coverage 61.1%** (16691/27329 statements; meets V4 **60% floor**). **AI_PRIORITIES** item #2 **~80% advisory** targets: use live priorities after each `audit --full` (typical trio: `commands.py`, `run_test_coverage.py`, `file_rotation.py`; older snapshots may cite `audit_signal_state.py` or `analyze_documentation.py`)—optional hardening vs the 60% floor. Legacy references: **3 files** / **7 markers** surfaced in scans (see [development_docs/LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)). Module refactor candidates: **60**; circular chains: **14**; high-coupling modules: **37**; duplicate-function groups: **12**. Reports: `CONSOLIDATED_REPORT.md` (uppercase). Refresh dev-tools coverage with: `python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache`.
 
 ---
 
@@ -70,7 +70,7 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
 - [x] Investigate skipped test increase (1 -> 2 skipped)
   - [x] Verified current `tests/development_tools/` suite skip state: `pytest tests/development_tools -q -rs` -> `920 passed`, **0 skipped** (2026-02-28)
   - [x] **Reconciled (2026-03-25)**: Tier 3 **parallel** track `skipped=1` and **no-parallel** track `skipped=20` (see AI_STATUS Tier 3 Test Outcome) come from **main pytest coverage tracks**, not from `tests/development_tools/`. Dev-tools track shows **skipped=0**. Prior “1 -> 2” notes mixed suite-wide history with dev-tools-only counts; use AI_STATUS breakdowns going forward.
-- [ ] Strengthen tests for fragile helpers across `tests/development_tools/`
+- [x] Strengthen tests for fragile helpers across `tests/development_tools/` (ongoing low modules per **AI_PRIORITIES** item #2; not duplicated here)
   - [x] Added branch-focused wrapper tests for low-coverage service paths:
     - `tests/development_tools/test_tool_wrappers_branch_paths.py`
     - Covered branch/error paths in:
@@ -128,6 +128,7 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
   - [x] Added targeted docs-workflow tests for `development_tools/shared/service/commands.py`:
     - Added `tests/development_tools/test_commands_docs_workflow.py`
     - Covered successful and failing `run_docs()` orchestration paths plus audit-lock discovery helper behavior
+  - [x] **2026-03-25**: [tests/development_tools/test_file_rotation.py](tests/development_tools/test_file_rotation.py) for `development_tools/shared/file_rotation.py` (`FileRotator`, `create_output_file`, safeguards, `path_looks_like_test_directory`); Tier 3 regression fixes + explicit `@pytest.mark.unit` on each test
 - [ ] Update all dev tools tests to use `tests/development_tools/test_config.json` fixture — **deferred (2026-03-25)**: many analyzer tests already use `test_config_path`; full migration remains low priority; track via AI_PRIORITIES when touching those tests
 - [x] Re-run dev-tools coverage and document updated baseline/progress toward 60% target
   - [x] Coverage refresh: `python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel`
@@ -561,6 +562,7 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
 **User priority**: Medium/low.  
 **Tasks**:
 - [x] **2026-03-25**: Backlog pointer added in paired guides **§10** (full move/CLI wiring still open)
+- [x] **2026-03-25**: Inventory note: `scripts/flaky_detector.py` **absent** from current tree (historical references only; path-drift cache may list it until refresh); restore from git history if needed before move. Details in paired guides **§10** / §3.12 here.
 - [ ] Move `scripts/flaky_detector.py` to `development_tools/tests/` with clear ownership and module boundaries
 - [ ] Wire flaky detection into development tools CLI/tool metadata (standalone command + optional audit hook)
 - [ ] Standardize flaky detector logs/outputs with development tools conventions (`development_tools/tests/logs` + JSON/markdown result schema)
@@ -572,6 +574,7 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
 **User priority**: Continue.  
 **Tasks**:
 - [x] **2026-03-25**: Paired guides **§10** point to `flaky_detector` / remaining `scripts/**` as migration backlog (see also §3.12)
+- [x] **2026-03-25**: Seed inventory captured in this roadmap + paired **DEVELOPMENT_TOOLS_GUIDE** / **AI_DEVELOPMENT_TOOLS_GUIDE** §10 (refresh `scripts/` listing with `Get-ChildItem -Path scripts -Recurse -File -Filter *.py` when migrating)
 - [ ] Build a definitive migration inventory from current tracked references to `scripts/` (exclude changelog-history-only references)
 - [x] Moved static logging checker to `development_tools/static_checks/check_channel_loggers.py` and updated references (`run_tests.py`, CI workflow, tests, and logging docs)
 - [x] Retired one-time schedule/user-index scripts: `scripts/utilities/add_checkin_schedules.py`, `scripts/utilities/check_checkin_schedules.py`, `scripts/utilities/fix_user_schedules.py`, `scripts/utilities/rebuild_index.py`
@@ -612,6 +615,7 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
 **User priority**: Medium/low. Essentially covered by AI_PRIORITIES "Consider refactoring large or high-complexity modules" (61 module candidates).  
 **Rationale**: Both files trigger Pyright "code too complex to analyze" (reportGeneralTypeIssues). Refactoring would improve maintainability and type-checker clarity.  
 **Tasks**:
+- [x] **2026-03-25**: Planning note (no separate doc): **`report_generation.py`** — extract per-report builders; isolate Quick Wins / Tier 3 blocks. **`run_test_coverage.py`** — extract merge/wait/shard helpers; narrow `CoverageMetricsRegenerator`. Process: map entry points → pure helpers → one extraction per PR with `tests/development_tools` coverage.
 - [ ] **report_generation.py** (`development_tools/shared/service/report_generation.py`): Map current structure (sections, helpers, data flow); identify natural split points (e.g. by report type or by section builder); document a refactor plan (extract helpers, optional submodules) and effort estimate; decide whether to proceed in phases or defer
 - [ ] **run_test_coverage.py** (`development_tools/tests/run_test_coverage.py`): Map entry points, coverage merge path, and domain/cache logic; identify overly complex methods or branches; document a refactor plan (extract classes/helpers, reduce conditional depth) and effort estimate; decide whether to proceed in phases or defer
 - [ ] If proceeding: implement refactors in small steps with tests and full audit validation after each step

@@ -248,7 +248,8 @@ class TestFixDocumentationLinksMain:
     @pytest.mark.unit
     def test_main_dry_run(self, temp_project_copy):
         """Test main function with --dry-run flag."""
-        with patch('development_tools.docs.fix_documentation_links.DocumentationLinkFixer') as mock_fixer_class:
+        # Patch the loaded module object (importlib loader path) so main() sees the mock.
+        with patch.object(links_module, "DocumentationLinkFixer") as mock_fixer_class:
             mock_fixer = mock_fixer_class.return_value
             mock_fixer.fix_convert_links.return_value = {
                 'files_updated': 0,
@@ -268,7 +269,7 @@ class TestFixDocumentationLinksMain:
     @pytest.mark.unit
     def test_main_exit_code_on_error(self, temp_project_copy):
         """Test main function exit code when errors occur."""
-        with patch('development_tools.docs.fix_documentation_links.DocumentationLinkFixer') as mock_fixer_class:
+        with patch.object(links_module, "DocumentationLinkFixer") as mock_fixer_class:
             mock_fixer = mock_fixer_class.return_value
             mock_fixer.fix_convert_links.return_value = {
                 'files_updated': 1,

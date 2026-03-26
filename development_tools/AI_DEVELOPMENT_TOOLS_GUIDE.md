@@ -311,4 +311,4 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 
 ## 10. External tools evaluation (Bandit, pip-audit, Radon, pre-commit)
 
-Not integrated into audit tiers. Run manually when assessing security/complexity hooks; see Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) and `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` Section 4.1. **Scripts backlog**: `flaky_detector` / remaining `scripts/**` migrations tracked in V4 Section 3.12-Section 3.14.
+Not integrated into audit tiers. Run manually when assessing security/complexity hooks; see Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) and `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` Section 4.1. **Scripts backlog**: `flaky_detector` / remaining `scripts/**` migrations tracked in V4 Section 3.12-Section 3.14. **Do not add standalone markdown inventories** for scripts/backlog; use V4 + Section 10 in this guide and [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) (snapshot bullets: flaky detector absent in repo until restored; `verify_process_cleanup` not found; refresh with PowerShell `Get-ChildItem` when migrating).
