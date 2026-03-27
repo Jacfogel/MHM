@@ -68,6 +68,16 @@ def test_configure_test_logging_env_sets_isolated_paths(tmp_path: Path):
 
 
 @pytest.mark.unit
+def test_configure_test_logging_env_paths_config_exception_uses_default_tests_data(tmp_path: Path):
+    """If get_paths_config fails, default tests/data relative path is used."""
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    with patch("development_tools.config.get_paths_config", side_effect=RuntimeError("no paths")):
+        updated = regenerator._configure_test_logging_env({})
+    norm = updated["TEST_LOGS_DIR"].replace("\\", "/")
+    assert "tests/data/tmp/runtime_logs" in norm
+
+
+@pytest.mark.unit
 def test_windows_crash_classification_helpers(tmp_path: Path):
     regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
 

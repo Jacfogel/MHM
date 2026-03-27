@@ -195,6 +195,26 @@ def test_extract_changed_domains_comma_separated(tmp_path):
 
 
 @pytest.mark.unit
+def test_extract_changed_domains_single_quoted_json_list(tmp_path):
+    """Bracket lists with single quotes are normalized to JSON for parsing."""
+    service = _DummyService(tmp_path)
+    out = "Domain(s) changed: ['core', 'ui']"
+    result = service._extract_changed_domains(out)
+    assert result == ["core", "ui"]
+
+
+@pytest.mark.unit
+def test_get_existing_audit_related_locks_cleans_stale_lock(tmp_path):
+    """Stale lock files are removed before returning active paths."""
+    service = _DummyService(tmp_path)
+    stale = tmp_path / ".audit_in_progress.lock"
+    stale.write_text("not-json", encoding="utf-8")
+    locks = service._get_existing_audit_related_locks()
+    assert not stale.exists()
+    assert locks == []
+
+
+@pytest.mark.unit
 def test_get_audit_related_lock_paths_returns_expected_paths(tmp_path):
     """_get_audit_related_lock_paths returns lock paths anchored at project root."""
     service = _DummyService(tmp_path)
@@ -217,8 +237,10 @@ def test_get_existing_audit_related_locks_empty_project_returns_empty(tmp_path):
 @pytest.mark.unit
 def test_get_audit_related_lock_paths_config_error_falls_back_to_defaults(tmp_path):
     """If config lookup fails, default lock basenames are still anchored at project root."""
+    import development_tools as dt_pkg
+
     service = _DummyService(tmp_path)
-    with patch("development_tools.config.get_external_value", side_effect=RuntimeError("config unavailable")):
+    with patch.object(dt_pkg.config, "get_external_value", side_effect=RuntimeError("config unavailable")):
         paths = service._get_audit_related_lock_paths()
     assert len(paths) == 3
     names = {p.name for p in paths}

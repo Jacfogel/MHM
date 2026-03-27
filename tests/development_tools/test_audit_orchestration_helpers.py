@@ -7,7 +7,7 @@ import time
 import concurrent.futures
 from pathlib import Path
 from typing import cast
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -18,6 +18,24 @@ service_module = load_development_tools_module("shared.service")
 audit_module = load_development_tools_module("shared.service.audit_orchestration")
 lock_state_module = load_development_tools_module("shared.lock_state")
 AIToolsService = service_module.AIToolsService
+
+
+@pytest.mark.unit
+def test_get_status_file_mtimes_status_config_keyerror_uses_fallback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """When get_status_config() raises KeyError, use default development_tools status paths."""
+    import development_tools.config as dev_config
+
+    def _raise_key() -> dict:
+        raise KeyError("status_files")
+
+    monkeypatch.setattr(dev_config, "get_status_config", _raise_key)
+    status_dir = tmp_path / "development_tools"
+    status_dir.mkdir(parents=True, exist_ok=True)
+    (status_dir / "AI_STATUS.md").write_text("ok", encoding="utf-8")
+
+    mtimes = audit_module._get_status_file_mtimes(tmp_path)
+    assert mtimes["AI_STATUS.md"] > 0
+    assert mtimes["AI_PRIORITIES.md"] == 0.0
 
 
 @pytest.mark.unit
@@ -102,6 +120,77 @@ def test_effective_tier3_state_resolution(
     service = AIToolsService(project_root=str(temp_project_copy))
     service.tier3_test_outcome = tier3_outcome
     assert service._effective_tier3_state() == expected_state
+
+
+@pytest.mark.unit
+def test_effective_tier3_state_all_tracks_skipped_is_clean(temp_project_copy: Path):
+    """Skipped classifications on all tracks are treated as clean."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.tier3_test_outcome = {
+        "parallel": {"classification": "skipped"},
+        "no_parallel": {"classification": "skipped"},
+        "development_tools": {"classification": "skipped"},
+    }
+    assert service._effective_tier3_state() == "clean"
+
+
+@pytest.mark.unit
+def test_get_audit_and_coverage_lock_paths_config_attribute_error_fallback(
+    temp_project_copy: Path,
+):
+    """Lock path helpers fall back to development_tools/*.lock when get_external_value fails."""
+    import development_tools as dt_pkg
+
+    service = AIToolsService(project_root=str(temp_project_copy))
+    # Patch the same object `from development_tools import config` resolves to (package re-export
+    # vs conftest-bound config.py module); string patch on development_tools.config alone can miss.
+    with patch.object(dt_pkg.config, "get_external_value", side_effect=AttributeError("x")):
+        audit_lock = service._get_audit_lock_file_path()
+        cov_lock = service._get_coverage_lock_file_path()
+    assert audit_lock == temp_project_copy / "development_tools" / ".audit_in_progress.lock"
+    assert cov_lock == temp_project_copy / "development_tools" / ".coverage_in_progress.lock"
+
+
+@pytest.mark.unit
+def test_run_analyze_duplicate_functions_for_audit_tier_and_config(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Full-audit body similarity follows tier + config; config load failure uses safe defaults."""
+    import development_tools.config as dev_config
+
+    service = AIToolsService(project_root=str(temp_project_copy))
+    captured: dict[str, object] = {}
+
+    def _fake_run(**kwargs: object) -> dict:
+        captured.clear()
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr(service, "run_analyze_duplicate_functions", _fake_run)
+
+    service.current_audit_tier = 2
+    service._run_analyze_duplicate_functions_for_audit()
+    assert captured.get("body_for_near_miss_only") is False
+
+    service.current_audit_tier = 3
+    service._run_analyze_duplicate_functions_for_audit()
+    assert captured.get("body_for_near_miss_only") is True
+
+    monkeypatch.setattr(
+        dev_config,
+        "get_analyze_duplicate_functions_config",
+        lambda: {"run_body_similarity_on_full_audit": False},
+    )
+    service._run_analyze_duplicate_functions_for_audit()
+    assert captured.get("body_for_near_miss_only") is False
+
+    def _boom() -> dict:
+        raise RuntimeError("simulated config failure")
+
+    monkeypatch.setattr(dev_config, "get_analyze_duplicate_functions_config", _boom)
+    service.current_audit_tier = 3
+    service._run_analyze_duplicate_functions_for_audit()
+    assert captured.get("body_for_near_miss_only") is True
 
 
 @pytest.mark.unit

@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2026-03-25 (V4 continuation: snapshot reconcile; coverage trio + reports + portability + backlog)
+> **Last Updated**: 2026-03-26 (V4 continuation: §3.16 refactor map; inventory phrases; §1.5/§2.5/§2.9/§3.3 notes; Section 6 snapshot)
 
 This is an updated, condensed roadmap based on V3 and prior audits. Completed work is summarized, and all remaining tasks are grouped and ordered.
 
@@ -217,6 +217,7 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
 - [x] Measure actual time savings of domain-based test execution — **methodology (2026-03-25)**: on Windows PowerShell use `Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache }` vs the same command **without** `--no-domain-cache` after a warm cache exists; compare wall-clock and inspect `run_test_coverage.py` logs for cache hit/miss. Numeric baselines are machine-dependent—record in session notes when benchmarking.
 - [ ] Compare full vs domain-filtered runs and document results in changelog (defer until a dedicated benchmark session captures stable numbers)
   - [x] **2026-03-25**: Paired changelog notes the `Measure-Command` + warm-cache comparison recipe (§1.5 above); numeric baseline still deferred to a benchmark session
+  - [x] **2026-03-26**: Continuation session: numeric wall-clock baseline still **machine-dependent**; no new timings recorded—keep the §1.5 `Measure-Command` recipe as the authoritative benchmark procedure until a dedicated session captures stable numbers.
 - [x] Add cross-domain dependency tracking (invalidate dependent domains)
 - [x] Extend MtimeFileCache to high-cost analyzers (`analyze_error_handling`, `analyze_functions`, `analyze_module_imports`, `analyze_module_dependencies`)
 - [x] Add mtime caching for Pyright and Ruff static checks in `tool_wrappers.py` (`_compute_source_signature`, `_try_static_check_cache`, `_save_static_check_cache`); skips runs when `.py` file mtimes unchanged
@@ -348,7 +349,7 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
 - [x] Identify unique value provided by `analyze_system_signals` (operational health: audit freshness, coverage pulse, core files, alerts—distinct from doc-sync)
 - [x] Remove redundant doc-sync statement from system signals section
 - [x] **2026-03-24**: Decision (a) keep; clarify scope in `report_generation.py` (AI_STATUS + CONSOLIDATED) and module docstring in `reports/analyze_system_signals.py`
-- [ ] Optional later: trim or merge sections if metrics overlap another tool
+- [x] **2026-03-26**: Optional trim/merge deferred: scope clarification (2026-03-24) is sufficient; further overlap removal is low value unless doc-sync and system signals duplicate the same metric in a future audit.
 
 #### 2.6 Consolidated report improvements
 **Status**: COMPLETED  
@@ -373,7 +374,7 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
 **User priority**: Shift audit timing/cache summary to logging. Progress indicators for long-running tools TBD. Verify no raw dict/list dumps.  
 **Tasks**:
 - [x] Verify no raw dict/list dumps during audits — **2026-03-26**: Reviewed `development_tools/run_development_tools.py` and `development_tools/shared/service/audit_orchestration.py` `print()` usage: tier banners, lock-block messages, and outcome lines only; no `print({` / raw collection dumps. Detail/timing content is on `logger` (component `development_tools`).
-- [ ] Consider progress indicators for long-running tools
+- [x] **2026-03-26**: Progress visibility: `audit_orchestration` already logs tier start (`Running Tier N tools...`) and per-tool `Starting {tool_name}`; stdout prints `Starting {operation_name}...` for the top-level audit. Further spinners/TUI deferred.
 
 #### 2.9 Audit failure visibility and exit semantics for coverage/test stages
 **Status**: COMPLETED  
@@ -464,7 +465,7 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
 **User priority**: Medium.  
 **Tasks**:
 - [x] Determine what `version_sync` does and intended scope — `development_tools/docs/fix_version_sync.py` (show/status/sync/trim/check/validate/sync-todo); service entry `run_version_sync` → script `sync`
-- [ ] Verify it is operating correctly (spot-check when running experimental sync)
+- [x] **2026-03-26**: Spot-check: `python development_tools/docs/fix_version_sync.py --help` lists `show|status|sync|trim|check|validate|sync-todo`; behavior matches paired guides **§2 experimental** (validate may exit non-zero when path-drift finds issues—separate from `doc-sync`).
 - [x] Document version sync process — paired guides **§2 experimental** (`version-sync`) + script `--help` reference
 
 #### 3.4 dev tools scripts and tool_timings.json location
@@ -611,13 +612,23 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
 - [ ] Evaluate whether to add a dedicated per-function AST helper/fixer for try-except to decorator migration (inspired by `scripts/replace_try_except_with_decorator.py`) to complement `development_tools/error_handling/analyze_error_handling.py` recommendations
 
 #### 3.16 Explore refactoring report_generation.py and run_test_coverage.py
-**Status**: PENDING  
+**Status**: PLAN DOCUMENTED (implementation deferred)  
 **User priority**: Medium/low. Essentially covered by AI_PRIORITIES "Consider refactoring large or high-complexity modules" (61 module candidates).  
 **Rationale**: Both files trigger Pyright "code too complex to analyze" (reportGeneralTypeIssues). Refactoring would improve maintainability and type-checker clarity.  
 **Tasks**:
 - [x] **2026-03-25**: Planning note (no separate doc): **`report_generation.py`** — extract per-report builders; isolate Quick Wins / Tier 3 blocks. **`run_test_coverage.py`** — extract merge/wait/shard helpers; narrow `CoverageMetricsRegenerator`. Process: map entry points → pure helpers → one extraction per PR with `tests/development_tools` coverage.
-- [ ] **report_generation.py** (`development_tools/shared/service/report_generation.py`): Map current structure (sections, helpers, data flow); identify natural split points (e.g. by report type or by section builder); document a refactor plan (extract helpers, optional submodules) and effort estimate; decide whether to proceed in phases or defer
-- [ ] **run_test_coverage.py** (`development_tools/tests/run_test_coverage.py`): Map entry points, coverage merge path, and domain/cache logic; identify overly complex methods or branches; document a refactor plan (extract classes/helpers, reduce conditional depth) and effort estimate; decide whether to proceed in phases or defer
+- [x] **2026-03-26**: **report_generation.py** structure map (`development_tools/shared/service/report_generation.py`):
+  - **Module**: `ReportGenerationMixin` (~7.6k lines) + `_linkify_review_paths_bullet` helper; file uses `# pyright: reportGeneralTypeIssues=false`.
+  - **Tier 3 / shared helpers** (approx. lines 58–487): `_resolve_report_path` through `_append_tier3_test_outcome_lines` — candidate submodule `report_generation/tier3_sections.py` or `tier3_rendering.py`.
+  - **AI_STATUS** (approx. `_generate_ai_status_document` ~488–2417): largest block; candidate split: extract "Documentation Signals", "Test Coverage", "System Signals" into `_ai_status/*.py` builders returning markdown fragments.
+  - **AI_PRIORITIES** (approx. 2418–4878): `_generate_ai_priorities_document`; candidate split: "Immediate Focus" vs "Quick Wins" vs static boilerplate.
+  - **CONSOLIDATED** (approx. 4879–7589): `_generate_consolidated_report`; candidate split: executive summary vs domain sections.
+  - **Downstream** (7590+): `_identify_critical_issues`, `_generate_action_items`.
+  - **Effort**: Large (4–6 PRs minimum); **phasing**: extract pure string/format helpers first, then move Tier 3 helpers, then split documents one at a time with `tests/development_tools/test_report_generation*.py` / quick wins tests.
+- [x] **2026-03-26**: **run_test_coverage.py** structure map (`development_tools/tests/run_test_coverage.py`):
+  - **Entry**: `CoverageMetricsRegenerator` class (from ~line 89) owns pytest invocation, shard merge, domain cache, logs, HTML/archive paths; **`main()`** (~5000+) argparse + wiring.
+  - **Natural extractions**: (1) subprocess/pytest argv builder + worker/xdist stripping; (2) shard discovery / wait / merge (parallel track); (3) domain cache + `TestFileCoverageCache` interaction; (4) outcome classification / crash hex / log paths (overlap with commands tier3 — keep single source of truth); (5) `CoverageMetricsRegenerator` slimmed to orchestration only.
+  - **Effort**: Large; **phasing**: extract stateless helpers with existing `test_run_test_coverage_helpers.py` first, then optional `coverage_runner/` subpackage.
 - [ ] If proceeding: implement refactors in small steps with tests and full audit validation after each step
 
 #### 3.17 Portability and Project-Independence Compliance Sweep
@@ -756,7 +767,7 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
 
 ### 6. Audit-Driven Remediation (Non-Tool Code, Current Backlog)
 
-These are surfaced by the tools and remain outstanding but are not tool-suite changes. **Live counts**: align with [development_tools/AI_STATUS.md](development_tools/AI_STATUS.md) / [development_tools/AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md) after each `audit --full` (example snapshot **2026-03-25**: legacy **3** files / **7** markers).
+These are surfaced by the tools and remain outstanding but are not tool-suite changes. **Live counts**: align with [development_tools/AI_STATUS.md](development_tools/AI_STATUS.md) / [development_tools/AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md) after each `audit --full` (example snapshot **2026-03-26**: deprecation-inventory terms **1** file / **4** markers on `sync_ruff_toml.py` only—phrase-only `search_terms` for `root_ruff_compat_mirror`; see [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) and inventory `notes`).
 
 *User priority*:
 - **Retire legacy markers**: (a) Actively work down; focus on proper retirement/removal of legacy code, then related markers.

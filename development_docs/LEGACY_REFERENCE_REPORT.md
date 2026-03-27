@@ -2,10 +2,10 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-26 01:05:10
+> **Last Generated**: 2026-03-26 22:13:47
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 3
-**Legacy Compatibility Markers Detected**: 7
+**Total Files with Issues**: 1
+**Legacy Compatibility Markers Detected**: 4
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
@@ -21,52 +21,31 @@
 - Inventory file: `development_tools/config/jsons/DEPRECATION_INVENTORY.json`
 - Active/candidate entries: 1
 - Removed entries: 3
-- Active search terms: 3
-- Current inventory-term hits in scan: 3 file(s), 7 marker(s)
+- Active search terms: 4
+- Current inventory-term hits in scan: 1 file(s), 4 marker(s)
 
 ## Deprecation Inventory Terms
-**Files Affected**: 3
+**Files Affected**: 1
 
 ### development_tools\config\sync_ruff_toml.py
 **Issues Found**: 4
 
-- **Line 4**: `.ruff.toml`
+- **Line 4**: `Generate root .ruff.toml from shared development-tools exclusions.`
   ```
   """Generate root .ruff.toml from shared development-tools exclusions.
   ```
 
-- **Line 107**: `.ruff.toml`
+- **Line 9**: `Run: python -m development_tools.config.sync_ruff_toml [--project-root .]`
   ```
-  _write_if_changed(project_root / ".ruff.toml", content)
+  Run: python -m development_tools.config.sync_ruff_toml [--project-root .]
   ```
 
-- **Line 126**: `.ruff.toml`
+- **Line 126**: `Do not generate compatibility .ruff.toml at repository root`
   ```
   help="Do not generate compatibility .ruff.toml at repository root.",
   ```
 
-- **Line 138**: `.ruff.toml`
+- **Line 138**: `Generated {output_path} and {project_root / '.ruff.toml'}`
   ```
   print(f"Generated {output_path} and {project_root / '.ruff.toml'}")
-  ```
-
-### tests\development_tools\test_pyright_config_paths.py
-**Issues Found**: 1
-
-- **Line 75**: `.ruff.toml`
-  ```
-  path = project_root / ".ruff.toml"
-  ```
-
-### tests\development_tools\test_sync_ruff_toml.py
-**Issues Found**: 2
-
-- **Line 23**: `.ruff.toml`
-  ```
-  assert (tmp_path / ".ruff.toml").exists()
-  ```
-
-- **Line 35**: `.ruff.toml`
-  ```
-  assert not (tmp_path / ".ruff.toml").exists()
   ```

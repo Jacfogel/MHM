@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-26 - V4 continuation: inventory, analyze_config tests, roadmap **COMPLETED**
+- **Deprecation inventory**: Phrase-only `search_terms` for `root_ruff_compat_mirror` so legacy scans surface the Ruff root-compat bridge in `sync_ruff_toml.py` without noise from tests or `sync_root_compat` uses elsewhere; `LEGACY_REFERENCE_REPORT` refreshed (**1** file / **4** markers).
+- **Tests**: `test_analyze_config.py` for `ConfigValidator`; `test_pyright_config_paths` exclude + Section 7.6 parity strategy note. **AI_PRIORITIES #2**: extended `test_audit_orchestration_helpers`, `test_commands_coverage_helpers`, `test_run_test_coverage_helpers` for `audit_orchestration.py`, `commands.py`, `run_test_coverage.py`. **Strict Tier 3**: lock-path tests use `patch.object` on `import development_tools as dt; dt.config` so `get_external_value` mocks match the runtime config binding after conftest loads.
+- **Docs**: V4 Section 3.16 structure map + Section 6 snapshot; [TODO.md](TODO.md) dev-tools backlog scheduling block.
+
 ### 2026-03-25 - V4 continuation: coverage tests, reports, guides, portability **COMPLETED**
 - **file_rotation / tests**: Extracted `path_looks_like_test_directory()` (module-level) from `create_output_file` so test isolation logic stays single-source; [tests/development_tools/test_file_rotation.py](tests/development_tools/test_file_rotation.py) fixes Tier-3 failures (patch `get_component_logger` for DIRECTORY_TREE safeguard; patch heuristic off for AI_STATUS isolation under `tmp_path`); per-test `@pytest.mark.unit`; Ruff-clean. `doc-fix --fix-ascii` re-run for CHANGELOG ASCII Quick Win.
 - **V4 backlog hygiene**: `test_pyright_config_paths` Section 7.6 doc + extra test; scripts/refactor backlog text consolidated into V4 + paired guides Section 10 (removed ad-hoc `development_tools/docs/*.md` inventories).
@@ -110,11 +115,6 @@ Guidelines:
 ### 2026-03-16 - Legacy backup cleanup and static analysis/test fixes **Progressed**
 - **Backups**: Removed legacy `BACKUP_FORMAT=zip` compatibility from `core/backup_manager.py` so runtime backups are always directory-based, while still supporting read-only access to historical zip artifacts; updated backup behavior tests to assert against directory payloads (manifest, users/, config/) instead of zip files, and ensured age/count-based rotation works on the new model.
 - **Static analysis/tests**: Brought pyright back to 0 errors by fixing `account_flow_handler` imports and type usage, tightening `task_edit_dialog` optional-access patterns, and resolving the remaining analyzer warning in `analyze_package_exports.py`; corrected regressions in Discord bot initialization tests introduced earlier this session and aligned dev-tools coverage helper expectations with the new backup behavior, so the Tier 3 audit's failing tracks now pass.
-
-### 2026-03-15 - Duplicate-functions cleanups, dialog helper, static-analysis tidy **Progressed**
-- **Duplicate-functions**: Continued the duplicate-functions investigation by refactoring previously flagged groups: extracted shared Escape/Enter key handling into `ui/dialogs/dialog_helpers.handle_dialog_escape_enter_keys` so `AccountCreatorDialog.keyPressEvent` and `UserProfileDialog.keyPressEvent` share one implementation; added/tuned `# not_duplicate:` markers and analyzer context so intentional API patterns are recognized; and finished marking/refining remaining groups in `DUPLICATE_FUNCTIONS_INVESTIGATION.md`.
-- **Error handling**: Wrapped `handle_dialog_escape_enter_keys` with `@handle_errors("handling dialog key events", default_return=False)` and ensured other new shared helpers keep consistent decorator-based protection, so unexpected UI key-handling failures are logged and treated as "not handled" instead of crashing dialogs.
-- **Static analysis**: Cleared the immediate Ruff items called out in AI priorities by importing `Callable` from `collections.abc` in `core/user_data_manager.py` and simplifying a small branch-selection loop in `core/user_data_write.py`; targeted `ruff` on these files now reports no issues.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-25 00:29:37
+> **Last Generated**: 2026-03-26 16:44:22
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -137,9 +137,8 @@ Core System Decision Tree:
 - [OK] `ui/generate_ui_files.py::main()` - Application entry point
 - [OK] `ui/ui_app_qt.py::main()` - Application entry point
 - [OK] `run_headless_service.py::main()` - Application entry point
-- [OK] `run_mhm.py::main()` - Application entry point
-- [OK] `run_tests.py::main()` - Application entry point
 - [OK] `core/config.py::__init__()` - Initialization
+- [OK] `core/service.py::__init__()` - Initialization
 
 ### **Data Access Patterns**
 - **User Data**: `core/user_data_read.py` - User data operations (5 functions)

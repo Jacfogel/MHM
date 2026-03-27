@@ -77,3 +77,26 @@ def test_root_ruff_toml_exists_for_direct_ruff_workflows() -> None:
     data = tomllib.loads(path.read_text(encoding="utf-8"))
     assert isinstance(data, dict)
     assert "line-length" in data or "exclude" in data
+
+
+@pytest.mark.unit
+def test_dev_tools_pyrightconfig_excludes_tests_data_and_temp() -> None:
+    """Owned Pyright config must keep test fixtures and temp trees out of analysis scope."""
+    path = project_root / "development_tools" / "config" / "pyrightconfig.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    ex = data.get("exclude", [])
+    assert isinstance(ex, list)
+    flat = " ".join(str(x) for x in ex)
+    assert "tests/data" in flat
+    assert "tests/temp" in flat or "tests\\temp" in flat
+
+
+@pytest.mark.unit
+def test_pyright_diagnostic_parity_strategy_note() -> None:
+    """V4 §7.6: full error-count parity between root and owned Pyright configs is deferred.
+
+    Strategy: keep both configs until tolerance-based subprocess comparison is defined;
+    policy tests require structural readiness (typeCheckingMode, exclude roots) only.
+    """
+    assert (project_root / "development_tools" / "config" / "pyrightconfig.json").is_file()
+    assert (project_root / "pyrightconfig.json").is_file()

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-25 00:29:48
+> **Last Generated**: 2026-03-26 16:44:33
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -25,8 +25,6 @@ C:.
 |   README.md
 |   requirements.txt
 |   run_headless_service.py
-|   run_mhm.py
-|   run_tests.py
 |   TODO.md
 |   
 +---.cursor
@@ -543,6 +541,7 @@ C:.
 |   |   |   test_analysis_validation_framework.py
 |   |   |   test_analyze_ai_work.py
 |   |   |   test_analyze_ascii_compliance.py
+|   |   |   test_analyze_config.py
 |   |   |   test_analyze_dependency_patterns.py
 |   |   |   test_analyze_dev_tools_import_boundaries.py
 |   |   |   test_analyze_documentation.py
@@ -581,6 +580,7 @@ C:.
 |   |   |   test_config.json
 |   |   |   test_config.py
 |   |   |   test_constants.py
+|   |   |   test_constants_config_import_order.py
 |   |   |   test_data_freshness_audit.py
 |   |   |   test_data_loading_helpers.py
 |   |   |   test_decision_support.py
@@ -592,6 +592,7 @@ C:.
 |   |   |   test_exclusion_utilities.py
 |   |   |   test_export_snapshots.py
 |   |   |   test_false_negative_detection.py
+|   |   |   test_file_rotation.py
 |   |   |   test_fixture_status_files.py
 |   |   |   test_fix_documentation.py
 |   |   |   test_fix_documentation_addresses.py
