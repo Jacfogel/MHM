@@ -28,7 +28,7 @@ This section answers: *Were V4 completed items actually done? Was work thorough 
 
 | Topic | V4 claim | Finding |
 |--------|-----------|---------|
-| **Consolidated report filename** | Renamed to `CONSOLIDATED_REPORT.md` | **Git tracks** `development_tools/consolidated_report.md` (**lowercase**). Config and docs reference uppercase. Works on Windows (case-insensitive); for **case-sensitive** checkouts or CI, normalize casing in git and links to avoid drift. |
+| **Consolidated report filename** | Renamed to `CONSOLIDATED_REPORT.md` | **Resolved (2026-03-27)**: Git now tracks `development_tools/CONSOLIDATED_REPORT.md` (case-normalized) to match config and guides. |
 | **§2.2 Logging** | Section status “IN PROGRESS” | Checklist is almost entirely closed; remaining gap is **optional** polish (e.g. any stray prints in rarely used scripts). Treat **substantive migration as done**; use AI_PRIORITIES if new noisy paths appear. |
 | **§1.5 Coverage caching** | “IN PROGRESS” | Core invalidation and tool-hash behavior done; **numeric benchmark** (full vs domain) still intentionally **deferred** (machine-dependent). |
 | **§3.3 Version sync** | “IN PROGRESS” | Discovery and docs spot-checks done; no large open feature — treat as **maintain unless regression**. |
@@ -44,7 +44,7 @@ This section answers: *Were V4 completed items actually done? Was work thorough 
 
 ### 1.4 Compliance: legacy guide and workflow
 
-- **AI_LEGACY_COMPATIBILITY_GUIDE**: V4’s completed **code** work that touched bridges (e.g. Tier3 cache normalization, inventory updates) matches expectations: inventory updates, tests, and phased removal rather than time-based deletes. **Section 6 backlog** (retire `sync_ruff_toml`-related inventory terms, reduce markers) should use **`fix_legacy_references.py --find` / `--verify`**, update `DEPRECATION_INVENTORY.json` in the **same change** as removals, and follow search-and-close — **not started** as a single closure; live report: [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) (**1 file / 4 markers** snapshot, 2026-03-27).
+- **AI_LEGACY_COMPATIBILITY_GUIDE**: V4’s completed **code** work that touched bridges (e.g. Tier3 cache normalization, inventory updates) matches expectations: inventory updates, tests, and phased removal rather than time-based deletes. **Section 6 backlog** (retire `sync_ruff_toml`-related inventory terms, reduce markers) should use **`fix_legacy_references.py --find` / `--verify`**, update `DEPRECATION_INVENTORY.json` in the **same change** as removals, and follow search-and-close — **ongoing**; live report: [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) (refresh counts after `audit --full`; inventory term count reduced 2026-03-27 when CLI print in `sync_ruff_toml` moved to logger).
 - **AI_DEVELOPMENT_WORKFLOW**: Dev-tools changes described in V4 follow **small slices**, tests under `tests/development_tools/`, and documented entry points. Future large refactors should stay **incremental** per §3 and §5 “Refactor”.
 
 ### 1.5 Nuance index (same topics as §1.2, cross-linked to §5)
@@ -53,7 +53,7 @@ Use this block when a V4 **Status** line says “IN PROGRESS” or “COMPLETE�
 
 | Nuance | What to know | Where in V5 |
 |--------|----------------|-------------|
-| **Consolidated report filename casing** | Git may track `development_tools/consolidated_report.md` while config/docs say `CONSOLIDATED_REPORT.md`. Harmless on typical Windows checkouts; on **case-sensitive** filesystems, fix casing in git and links once. | §1.2 table; not a feature backlog item — treat as **portability** (see §5.7 **7.6**, §5.3 **3.17**). |
+| **Consolidated report filename casing** | **Resolved 2026-03-27**: Git tracks `development_tools/CONSOLIDATED_REPORT.md` to match config and guides. | §1.2 table. |
 | **§2.2 Logging “IN PROGRESS”** | Substantive print→logger migration is done; V4 status lagged. Only **optional** stray prints in rare entrypoints may remain. | §1.2; **§5.2 — 2.2** |
 | **§1.5 Coverage cache “IN PROGRESS”** | Invalidation, tool-hash, and logging are in place; **numeric** full-vs-domain benchmarks intentionally **deferred** (machine-specific). | §1.2; **§5.1 — 1.5** |
 | **§3.3 Version sync “IN PROGRESS”** | Commands and paired-guide coverage exist; no large open feature — **maintain on drift**. | §1.2; **§5.3 — 3.3** |
@@ -99,6 +99,10 @@ Rough ordering for triage (see **§5** for full V4-sourced detail):
 | **Medium** | `--dev-tools-only` scope-aware generators (§2.8); coverage cache numeric benchmarks (§1.5); validation triggers (§3.2); external security/complexity tools (§4.1); doc overlap analyzer (§5.2); AI work validation thin profile (§5.3); TODO sync automation (§5.4); gap-analysis tool rollout (§5.5). |
 | **Lower / backlog** | `test_config.json` migration (§1.1); example-marking checker (§3.0); flaky detector + scripts migration (§3.12–3.15); unused-imports fixer (§5.1); memory profiler (§5.6); large-file refactors (§3.16); human backlog §7.8–7.13, §7.15. |
 | **Monitoring** | Intermittent low coverage warning (§1.3) — reopen if recurrence. |
+
+### 4.1 Phase 2 scheduling (after §4 High / Phase 1 portability-legacy work)
+
+Suggested order when returning from Phase 1: **(1)** §2.8 `--dev-tools-only` scope-aware report generators (largest UX win for dev-tools-only audits). **(2)** §1.5 coverage-cache benchmark session (methodology in §5.1 — 1.5; optional numeric capture). **(3)** §4.1 external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides §10. **(4)** §5.2 documentation overlap analyzer improvements. **(5)** §5.3 AI work validation (keep thin). **(6)** §5.4 TODO sync dry-run automation. **(7)** §5.5 gap-analysis tool rollout (incremental).
 
 ---
 
@@ -333,13 +337,14 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
   - Root `.ruff.toml` = compatibility mirror; `development_tools/config/ruff.toml` = owned path for wrappers.
 - **Next steps before single baseline**:
   - Align dev-tools Pyright so `analyze_pyright` matches root diagnostic baseline (no artificial drops from scope drift).
-  - Regression tests: both Pyright paths; fail if error/warning deltas exceed agreed tolerance without explicit exclusions.
+  - Regression tests: both Pyright paths; fail if error/warning deltas exceed agreed tolerance without explicit exclusions. **Partial (2026-03-27)**: optional enforcement in `tests/development_tools/test_pyright_config_paths.py` e2e — set env `PYRIGHT_ERROR_COUNT_MAX_DELTA` to a non-negative integer when running the e2e Pyright test; unset by default (scopes differ).
   - Decide: keep root `.ruff.toml` permanently as mirror vs deprecate after portability criteria met.
   - If deprecating root configs: migration + fallback documented in both guides before removal.
 
 #### 7.7 Directory taxonomy and config boundary cleanup (residual)
 
 - **Done (V4)**: Phase 1 taxonomy docs, configuration surface table (guides §9), phased plan outline.
+- **Phase 2–3 evaluation (2026-03-27)**: No directory moves or new packages this session. **Decision**: keep `development_tools/config/` as the single config surface for JSON/TOML/Pyright entrypoints; `development_tools/shared/` remains shared runtime (locks, orchestration, exclusions). Before any `runtime_config/` split: prototype a short ADR (or changelog note) listing **which** files would move, **import** re-exports for one deprecation window, and **rollback** steps. **Gate**: `python development_tools/run_development_tools.py audit --quick` still passes with no new import-boundary violations (`analyze_dev_tools_import_boundaries`).
 - **Open**:
   - Evaluate moving runtime/platform internals out of `development_tools/config/` (e.g. `development_tools/shared/runtime_config/`) with backward compatibility.
   - Evaluate overlap `development_tools/shared/` vs `development_tools/config/` — config plumbing vs generic utilities; ownership rules.
@@ -384,6 +389,8 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 
 - **§1.3** — Intermittent low coverage: **MONITORING**; reopen on recurrence.
 - **§1.2** — `test_audit_tier_comprehensive.py`: **deferred** unless cost/benefit justifies re-enable.
+
+**Lower backlog (opportunistic, 2026-03-27)** — pick up when touching related code: §1.1 adopt `test_config.json` in analyzer tests you edit; §3.0 example-marking in doc-sync; §3.12 restore `flaky_detector` from history if needed then migrate; §3.13–3.14 scripts inventory; §3.15 gap heuristics; §3.16 extract helpers from `report_generation.py` / `run_test_coverage.py`; §7.8–7.13, §7.15 as separately prioritized.
 
 ---
 

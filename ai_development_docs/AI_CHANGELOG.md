@@ -30,11 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-03-27 - V4 plan: coverage tests, Pyright policy, report linkify extract **COMPLETED**
-- **Doc-sync**: Paired guides path drift + ASCII fixes; `analyze_documentation_sync` clean (addresses AI_PRIORITIES doc drift / Quick Win).
-- **Inventory**: `DEPRECATION_INVENTORY` notes for `root_ruff_compat_mirror`; scripts/flaky backlog consolidated into approved [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) + paired dev-tools guides (unapproved migration markdown removed).
-- **Code**: `report_generation_linkify.py` extracted from `report_generation.py`; new `test_analyze_test_coverage.py`; Pyright owned/root exclude alignment + optional e2e JSON smoke; `test_commands_coverage_helpers` domain-parse edge case; `test_tool_wrappers_cache_helpers` signature test excludes pytest-temp false negative.
-- **Docs**: Paired guides Section 9 portability criteria and Section 10 pydeps/vulture; TODO.md deferred Section 2.8 / test_config pointers.
+### 2026-03-27 - V4 plan + V5 roadmap continuation (docs, casing, portability slice) **COMPLETED**
+- **V5 backlog**: [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), [LIST_OF_LISTS.md](development_docs/LIST_OF_LISTS.md), paired dev-tools guides now point at [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) for current work; V4 remains historical checkboxes.
+- **Reports**: Git tracks `development_tools/CONSOLIDATED_REPORT.md` (case-normalized) to match config; `.cursor/rules/dev_tools.mdc` updated.
+- **Bridge / inventory**: `sync_ruff_toml` CLI uses component logger (not `print`); `DEPRECATION_INVENTORY` `root_ruff_compat_mirror` search_terms trimmed; `analyze_config`/`generate_function_registry` portability tweaks; optional Pyright e2e delta via `PYRIGHT_ERROR_COUNT_MAX_DELTA`; [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) §1.2 §4.1 §7.6-7.7 §5.8 updates.
+- **Earlier same day**: Doc-sync + `report_generation_linkify` extract + Pyright policy tests + inventory notes + scripts guide consolidation (see CHANGELOG_DETAIL).
 
 ### 2026-03-26 - V4 continuation: inventory, analyze_config tests, roadmap **COMPLETED**
 - **Deprecation inventory**: Phrase-only `search_terms` for `root_ruff_compat_mirror` so legacy scans surface the Ruff root-compat bridge in `sync_ruff_toml.py` without noise from tests or `sync_root_compat` uses elsewhere; `LEGACY_REFERENCE_REPORT` refreshed (**1** file / **4** markers).

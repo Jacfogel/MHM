@@ -13,11 +13,10 @@ import sys
 from pathlib import Path
 
 # Add project root to path for core module imports
-# Script is at: development_tools/config/analyze_config.py
-# So we need to go up 2 levels to get to project root
-project_root = Path(__file__).parent.parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+# Script is at: development_tools/config/analyze_config.py -> project root is three parents up
+_project_root_for_path = Path(__file__).resolve().parent.parent.parent
+if str(_project_root_for_path) not in sys.path:
+    sys.path.insert(0, str(_project_root_for_path))
 
 try:
     from . import config
@@ -40,10 +39,13 @@ class ConfigValidator:
     """Validates configuration usage across all AI tools."""
 
     def __init__(self):
-        # Use the current config schema
-        # Script is at: development_tools/config/analyze_config.py
-        # So we need to go up 2 levels to get to project root
-        self.project_root = Path(__file__).parent.parent.parent
+        # Prefer config-driven project root; fall back to package location if unset/relative
+        cfg_root = Path(config.get_project_root()).expanduser()
+        self.project_root = (
+            cfg_root.resolve()
+            if cfg_root.is_absolute()
+            else Path(__file__).resolve().parent.parent.parent
+        )
         self.ai_tools_dir = self.project_root / "development_tools"
         self.validation_results = {
             "config_usage": {},

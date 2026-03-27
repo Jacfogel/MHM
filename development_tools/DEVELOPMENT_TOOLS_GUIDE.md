@@ -14,7 +14,7 @@
 Use this guide when you need:
 - The authoritative human-readable catalog of tools and tiers
 - Rationale behind trust levels and roadmap priorities
-- Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
+- Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (V4 checklist history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md))
 
 The machine-readable metadata lives in `development_tools/shared/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
 
@@ -62,7 +62,7 @@ python development_tools/run_development_tools.py --project-root . --config-path
 - **Porting** `development_tools/` only: install a matching Python stack in the host repo and ensure tools referenced in `development_tools/config/development_tools_config.json` are available.
 - **Future options** (when portability criteria land): optional `requirements-devtools.txt`, `[project.optional-dependencies]` devtools extra in `pyproject.toml`, or a lock file for reproducible tool-only CI.
 
-See improvement plan Section 7.6 in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) for background.
+See improvement plan Section 7.6 in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) for background.
 
 ### 2.2. Command Examples
 
@@ -385,7 +385,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - When adding or relocating tools, update:
 - `shared/tool_metadata.py`
 - This guide and the AI guide (paired H2 requirements)
-- [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) if scope or gaps change
+- [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) if scope or gaps change
 - Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `shared/constants.py`.
 - Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
 - For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
@@ -408,7 +408,7 @@ development_tools/tests/logs/
 ```
 
 - Do not implement bespoke exclusion logic inside individual tools - always import from `shared/standard_exclusions.py` so rules remain centralized.
-- Treat the tooling as a self-contained subproject: track follow-up work in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), document shipped changes in both changelogs, and keep the AI + human guides synchronized.
+- Treat the tooling as a self-contained subproject: track follow-up work in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), document shipped changes in both changelogs, and keep the AI + human guides synchronized.
 
 Keeping these standards ensures the tooling ecosystem remains predictable for both humans and AI collaborators.
 
@@ -604,7 +604,7 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 **Pyright configs**: Root `pyrightconfig.json` supports IDE and whole-repo workflows (JSON with `//` comments); `development_tools/config/pyrightconfig.json` is dev-tools-owned strict JSON for explicit `--project` use in audits. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `tests/development_tools/test_pyright_config_paths.py` (Pyright JSON + Ruff TOML presence/parse).
 
-**Portability acceptance criteria (V4 Section 7.6)** - incremental; full numeric parity is not required in CI until tolerance rules exist:
+**Portability acceptance criteria (V5 §7.6)** - incremental; full numeric parity is not required in CI until tolerance rules exist:
 
 - **Structural**: Owned Pyright JSON loads; root JSONC exists; both exclude `tests/data` (and related temp/fixture paths). Policy tests enforce this.
 - **Runtime**: `python -m pyright --outputjson --project <config>` succeeds for both configs when Pyright is installed (optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py), excluded from default runs).
@@ -614,7 +614,7 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 ## 10. External tools evaluation (Bandit, pip-audit, Radon, pre-commit)
 
-**Status**: Not wired into audit tiers; see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) Section 4.1 for the integration backlog.
+**Status**: Not wired into audit tiers; see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1 for the integration backlog.
 
 - **Bandit** / **pip-audit**: Run manually from the venv when reviewing security or dependency risk; promote to Tier 1 only after noise levels are acceptable.
 - **Radon**: Overlaps existing complexity/refactor signals (`analyze_functions`, `analyze_module_refactor_candidates`); adopt only for metrics Ruff does not provide.
@@ -622,11 +622,11 @@ Development-tools modules may import `core.logger` for structured logging. All o
 - **vulture**: Optional dead-code scan; overlaps unused-imports and function-registry tools-evaluate noise vs signal before Tier integration.
 - **pre-commit**: Optional host-repo hygiene; policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks for this repository.
 
-**Scripts backlog** (migration/review): Policy, triage, flaky-detector notes, and inventory refresh command live in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). Task checklist: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) Section 3.12-Section 3.14 and [TODO.md](../TODO.md).
+**Scripts backlog** (migration/review): Policy, triage, flaky-detector notes, and inventory refresh command live in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). Task checklist: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) §3.12-§3.14 and [TODO.md](../TODO.md).
 
 **Snapshot (refresh when migrating)**:
 
-- **`scripts/flaky_detector.py`**: V4 target is to host under `development_tools/tests/` and wire CLI/metadata per [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) (Section 3.2); migration and metadata wiring remain open.
+- **`scripts/flaky_detector.py`**: V5 target is to host under `development_tools/tests/` and wire CLI/metadata per [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) (Section 3.2); migration and metadata wiring remain open.
 - **`scripts/testing/verify_process_cleanup.py`**: evaluate migrate vs retire; confirm presence in your tree with the inventory command in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) Section 6.
-- **Inventory**: use the PowerShell recipe in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) Section 6; record decisions in V4 Section 3.13 tasks or [TODO.md](../TODO.md) - do not add standalone markdown inventories.
+- **Inventory**: use the PowerShell recipe in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) Section 6; record decisions in V5 §3.13 tasks or [TODO.md](../TODO.md) - do not add standalone markdown inventories.
 - **Non-tool parallel work**: legacy markers and domain coverage follow [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) and regenerated `AI_PRIORITIES.md`.

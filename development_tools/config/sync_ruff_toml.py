@@ -15,11 +15,14 @@ import argparse
 from pathlib import Path
 from collections.abc import Iterable
 
+from core.logger import get_component_logger
 from development_tools.shared.standard_exclusions import (
     BASE_EXCLUSION_SHORTLIST,
     GENERATED_FILE_PATTERNS,
     get_exclusions,
 )
+
+logger = get_component_logger("development_tools")
 
 
 _HEADER = (
@@ -133,9 +136,13 @@ def main() -> int:
         sync_root_compat=not args.no_root_compat,
     )
     if args.no_root_compat:
-        print(f"Generated {output_path}")
+        logger.info("Wrote owned Ruff config: %s", output_path)
     else:
-        print(f"Generated {output_path} and {project_root / '.ruff.toml'}")
+        logger.info(
+            "Wrote owned Ruff config %s and root compatibility mirror %s",
+            output_path,
+            project_root / ".ruff.toml",
+        )
     return 0
 
 

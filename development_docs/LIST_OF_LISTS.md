@@ -79,7 +79,7 @@
 | **Version-sync file lists (ai_docs, docs, etc.)** | `development_tools_config.json` — `fix_version_sync.ai_docs`, `fix_version_sync.docs`, `cursor_rules`, …                                                                                                                      | `development_tools/docs/fix_version_sync.py` (scope for version/date updates) | **Consolidated**: `communication_docs`, `core_docs`, `logs_docs`, `scripts_docs`, `tests_docs` derived from `docs` by path prefix (config override optional). Exclusions: fix_version_sync uses `get_exclusions("fix_version_sync", "development")`; `exclude_patterns` removed from config. paired_docs = "heading sync"; version-sync lists = "version metadata". |
 
 
-**Alignment note**: See AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4 §7.8. Align config and DOCUMENTATION_GUIDE §4.1 first (one canonical); then ensure docs that reference "paired doc list" point to that canonical source.
+**Alignment note**: See [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) §7.8. Align config and DOCUMENTATION_GUIDE §4.1 first (one canonical); then ensure docs that reference "paired doc list" point to that canonical source.
 
 ---
 

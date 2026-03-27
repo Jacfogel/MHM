@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-03-26 (dev-tools V4 continuation backlog pointer)
+> **Last Updated**: 2026-03-27 (dev-tools V5 backlog pointer)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -33,9 +33,9 @@ When adding new tasks, follow this format:
 
 **Note**: Phase 1: Enhanced Task & Check-in Systems is tracked in [PLANS.md](development_docs/PLANS.md). 
 **Note**: Mood-Aware Support Calibration items (Safety Net Response Library, Task Breakdown Prompt Experiments, Context-Aware Reminder Content Mapping, Mood Re-evaluation Cadence Guidelines) are tracked in [PLANS.md](development_docs/PLANS.md) under "Mood-Aware Support Calibration" plan.
-**Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
+**Note**: Development tools backlog is tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md). [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) remains for historical V4 checkboxes only.
 **Testing Source of Truth**: All testing roadmap items are tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md). Keep only non-testing TODO items here. Coverage-growth follow-ups from this session are tracked in TEST_PLAN Phase 5.7.
-**Legacy/Deprecation Source of Truth**: Development-tools legacy cleanup follow-ups are tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section 6 and must align with `development_tools/config/jsons/DEPRECATION_INVENTORY.json`.
+**Legacy/Deprecation Source of Truth**: Development-tools legacy cleanup follow-ups are tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) section 5.6 and must align with `development_tools/config/jsons/DEPRECATION_INVENTORY.json`.
 
 **Development tools backlog (scheduled review order, 2026-03-26)**  
 - Portability / Section 7.6: full Pyright diagnostic parity tests when tolerance rules exist (policy tests today: `tests/development_tools/test_pyright_config_paths.py`).  
@@ -43,12 +43,12 @@ When adding new tasks, follow this format:
 - Section 3.13-Section 3.14: scripts inventory; decision on `scripts/testing/verify_process_cleanup.py`; cleanup candidates under `scripts/`.  
 - Section 4.1: external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides Section 10.  
 - Section 5.x: low-priority gap tools (unused-imports fixer, doc overlap, TODO sync auto-clean, memory profiler).  
-Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
+Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).
 
-**Deferred (V4 Phase C - no blocking)**  
+**Deferred (Phase C - no blocking)**  
 - **Section 2.8 `--dev-tools-only` report scoping**: generators still project-wide; DEV_TOOLS_* mirrors until scope-aware builders exist.  
 - **Section 1.1 `test_config.json` fixture migration**: adopt when touching analyzer tests; full pass is low priority.  
-Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) Section 1.1 Section 2.8; [tests/development_tools/test_config.json](tests/development_tools/test_config.json).
+Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (§5.1 / §5.2); [tests/development_tools/test_config.json](tests/development_tools/test_config.json).
 
 **Use / fit** (2026-02-28 user-priority Q&A): Operational reliability (headless, email) fix soon. AI items deferred until system overhaul. Script ownership, sent_messages high priority. Ruff outside tests > inside. Duplicate lists and backup audit moved to dev tools. Performance monitoring includes RAM/caching.
 
@@ -288,11 +288,11 @@ Priority
 - Medium  
 - Blocker only if a real bug or undefined behavior is confirmed
 
-**Possible Duplicate Lists** - *Tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section 7.8*
+**Possible Duplicate Lists** - *Tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) section 7.8*
 - *What it means*: Investigate documentation and code for duplicate or partially duplicated lists (docs, constants, commands, files, etc.). Establish canonical locations; code should pull dynamically, docs should point to canonical source.
 - *Why it helps*: Reduces drift and improves accuracy.
 
-**Audit MHM project for duplicate, outdated, unnecessary backups and archive copies** - *Tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section 7.9*
+**Audit MHM project for duplicate, outdated, unnecessary backups and archive copies** - *Tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) section 7.9*
 - *What it means*: Implement structured regular local backups with compression and rotation.
 
 *Note*: Review RAM usage and caching-rolled into **Add Performance Monitoring** (above).

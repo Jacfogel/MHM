@@ -9,6 +9,7 @@ V4 §7.6 portability acceptance (incremental):
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tomllib
 from pathlib import Path
@@ -162,3 +163,12 @@ def test_e2e_pyright_outputjson_parses_for_owned_and_root_projects() -> None:
     root_payload = _run("pyrightconfig.json")
     assert isinstance(owned_payload["summary"], dict)
     assert isinstance(root_payload["summary"], dict)
+
+    # Optional numeric parity (V5 §7.6): set PYRIGHT_ERROR_COUNT_MAX_DELTA to enforce |Δerrors| cap.
+    max_delta = os.environ.get("PYRIGHT_ERROR_COUNT_MAX_DELTA")
+    if max_delta is not None:
+        oe = int(owned_payload["summary"].get("errorCount", 0))  # type: ignore[arg-type]
+        re = int(root_payload["summary"].get("errorCount", 0))  # type: ignore[arg-type]
+        assert abs(oe - re) <= int(max_delta), (
+            f"Owned vs root Pyright errorCount delta {abs(oe - re)} exceeds PYRIGHT_ERROR_COUNT_MAX_DELTA={max_delta}"
+        )

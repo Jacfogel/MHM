@@ -11,21 +11,16 @@ if available, making this tool portable across different projects.
 """
 
 import sys
-import os
 from pathlib import Path
 
-# Ensure we can import from development_tools
-# Add parent directory to path if running as script
-_script_dir = os.path.dirname(os.path.abspath(__file__))
-_parent_dir = os.path.dirname(
-    _script_dir
-)  # development_tools/functions/ -> development_tools/
-if _parent_dir not in sys.path:
-    sys.path.insert(0, _parent_dir)
+# Ensure we can import from development_tools when run as a script (path bootstrap)
+_functions_dir = Path(__file__).resolve().parent
+_dev_tools_dir = _functions_dir.parent
+if str(_dev_tools_dir) not in sys.path:
+    sys.path.insert(0, str(_dev_tools_dir))
 
-# Add project root to path for core module imports
-# Need to go up one more level: development_tools/functions/ -> development_tools/ -> project root
-project_root = Path(_parent_dir).parent  # development_tools/ -> project root
+# Project root for core imports (development_tools/functions/ -> project root)
+project_root = _dev_tools_dir.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
@@ -36,9 +31,7 @@ from development_tools.shared.time_helpers import now_timestamp_full
 try:
     from development_tools import config
 except ImportError:
-    import sys
-
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    sys.path.insert(0, str(project_root))
     from development_tools import config
 
 # Load external config on module import
