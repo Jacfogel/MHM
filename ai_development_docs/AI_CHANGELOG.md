@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-27 - V4 plan: coverage tests, Pyright policy, report linkify extract **COMPLETED**
+- **Doc-sync**: Paired guides path drift + ASCII fixes; `analyze_documentation_sync` clean (addresses AI_PRIORITIES doc drift / Quick Win).
+- **Inventory**: `DEPRECATION_INVENTORY` notes for `root_ruff_compat_mirror`; scripts/flaky backlog consolidated into approved [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) + paired dev-tools guides (unapproved migration markdown removed).
+- **Code**: `report_generation_linkify.py` extracted from `report_generation.py`; new `test_analyze_test_coverage.py`; Pyright owned/root exclude alignment + optional e2e JSON smoke; `test_commands_coverage_helpers` domain-parse edge case; `test_tool_wrappers_cache_helpers` signature test excludes pytest-temp false negative.
+- **Docs**: Paired guides Section 9 portability criteria and Section 10 pydeps/vulture; TODO.md deferred Section 2.8 / test_config pointers.
+
 ### 2026-03-26 - V4 continuation: inventory, analyze_config tests, roadmap **COMPLETED**
 - **Deprecation inventory**: Phrase-only `search_terms` for `root_ruff_compat_mirror` so legacy scans surface the Ruff root-compat bridge in `sync_ruff_toml.py` without noise from tests or `sync_root_compat` uses elsewhere; `LEGACY_REFERENCE_REPORT` refreshed (**1** file / **4** markers).
 - **Tests**: `test_analyze_config.py` for `ConfigValidator`; `test_pyright_config_paths` exclude + Section 7.6 parity strategy note. **AI_PRIORITIES #2**: extended `test_audit_orchestration_helpers`, `test_commands_coverage_helpers`, `test_run_test_coverage_helpers` for `audit_orchestration.py`, `commands.py`, `run_test_coverage.py`. **Strict Tier 3**: lock-path tests use `patch.object` on `import development_tools as dt; dt.config` so `get_external_value` mocks match the runtime config binding after conftest loads.

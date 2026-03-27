@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-26 16:44:33
+> **Last Generated**: 2026-03-27 00:36:12
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -348,6 +348,7 @@ C:.
 |   |   |   |   data_freshness_audit.py
 |   |   |   |   data_loading.py
 |   |   |   |   report_generation.py
+|   |   |   |   report_generation_linkify.py
 |   |   |   |   tool_wrappers.py
 |   |   |   |   utilities.py
 |   |   |   |   __init__.py
@@ -557,6 +558,7 @@ C:.
 |   |   |   test_analyze_module_refactor_candidates.py
 |   |   |   test_analyze_package_exports.py
 |   |   |   test_analyze_system_signals_additional.py
+|   |   |   test_analyze_test_coverage.py
 |   |   |   test_analyze_test_markers.py
 |   |   |   test_analyze_unconverted_links.py
 |   |   |   test_analyze_unused_imports.py

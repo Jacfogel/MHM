@@ -6,6 +6,7 @@ import json
 import time
 from types import SimpleNamespace
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -27,12 +28,18 @@ def test_compute_source_signature_changes_when_source_changes(tmp_path: Path):
     src_file = src_dir / "code.py"
     src_file.write_text("value = 1\n", encoding="utf-8")
 
-    sig_before = service._compute_source_signature()
-    src_file.write_text("value = 2\n", encoding="utf-8")
-    # Force visibility: read back to ensure write is committed (Windows fs sync)
-    assert src_file.read_text(encoding="utf-8") == "value = 2\n"
-    time.sleep(0.05)
-    sig_after = service._compute_source_signature()
+    # tmp_path often lives under pytest temp dirs; those paths are excluded from scans.
+    # Disable exclusions so the isolated file participates in the signature.
+    with patch(
+        "development_tools.shared.standard_exclusions.should_exclude_file",
+        return_value=False,
+    ):
+        sig_before = service._compute_source_signature()
+        src_file.write_text("value = 2\n", encoding="utf-8")
+        # Force visibility: read back to ensure write is committed (Windows fs sync)
+        assert src_file.read_text(encoding="utf-8") == "value = 2\n"
+        time.sleep(0.05)
+        sig_after = service._compute_source_signature()
 
     assert isinstance(sig_before, str) and sig_before
     assert isinstance(sig_after, str) and sig_after

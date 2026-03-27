@@ -305,10 +305,11 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 - **Implementation**: `development_tools/shared/**` (service mixins, scanners, caches); generated JSON under `reports/jsons/`, `tests/jsons/`.
 - **Phase 2**: Evaluate moving runtime-only pieces out of `config/`; use shims only per [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md). See Section 9 Phase 2 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
 - **Dual Pyright**: repo root `pyrightconfig.json` (IDE/whole repo; JSONC) vs `development_tools/config/pyrightconfig.json` (audit `--project`; strict JSON). **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` mirror. Policy tests: `pytest tests/development_tools/test_pyright_config_paths.py`.
+- **Portability (V4 Section 7.6)**: Structural checks today (valid configs, shared `tests/data` exclusions). Full error-count parity between root and owned Pyright runs is deferred; optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py).
 - **Human detail**: Section 9 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
 
 ---
 
 ## 10. External tools evaluation (Bandit, pip-audit, Radon, pre-commit)
 
-Not integrated into audit tiers. Run manually when assessing security/complexity hooks; see Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) and `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` Section 4.1. **Scripts backlog**: `flaky_detector` / remaining `scripts/**` migrations tracked in V4 Section 3.12-Section 3.14. **Do not add standalone markdown inventories** for scripts/backlog; use V4 + Section 10 in this guide and [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) (snapshot bullets: flaky detector absent in repo until restored; `verify_process_cleanup` not found; refresh with PowerShell `Get-ChildItem` when migrating).
+Not integrated into audit tiers. Run manually when assessing security/complexity hooks; see Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) and `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md` Section 4.1. **Also evaluate**: **pydeps** (graphs vs existing dependency tools), **vulture** (dead code vs unused-imports/registry). **Scripts backlog**: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) (policy, flaky detector Section 3.2, inventory refresh Section 6); V4 Section 3.12-3.14. **Do not add** unapproved standalone migration markdown files; use approved guides + V4.

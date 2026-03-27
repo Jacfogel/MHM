@@ -204,6 +204,16 @@ def test_extract_changed_domains_single_quoted_json_list(tmp_path):
 
 
 @pytest.mark.unit
+def test_extract_changed_domains_malformed_json_bracket_falls_back_to_split(tmp_path):
+    """Invalid JSON list content falls through to comma/bracket parsing."""
+    service = _DummyService(tmp_path)
+    out = "Domain(s) changed: [not-valid-json"
+    result = service._extract_changed_domains(out)
+    assert isinstance(result, list)
+    assert len(result) >= 1
+
+
+@pytest.mark.unit
 def test_get_existing_audit_related_locks_cleans_stale_lock(tmp_path):
     """Stale lock files are removed before returning active paths."""
     service = _DummyService(tmp_path)

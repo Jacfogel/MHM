@@ -100,3 +100,65 @@ def test_pyright_diagnostic_parity_strategy_note() -> None:
     """
     assert (project_root / "development_tools" / "config" / "pyrightconfig.json").is_file()
     assert (project_root / "pyrightconfig.json").is_file()
+
+
+@pytest.mark.unit
+def test_pyright_owned_and_root_both_reference_tests_data_excludes() -> None:
+    """Structural alignment: fixture/temp trees stay out of both analysis scopes."""
+    owned = json.loads(
+        (project_root / "development_tools" / "config" / "pyrightconfig.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    ex = owned.get("exclude", [])
+    flat = " ".join(str(x) for x in ex)
+    assert "tests/data" in flat
+
+    root_text = (project_root / "pyrightconfig.json").read_text(encoding="utf-8")
+    assert "tests/data" in root_text or "tests\\data" in root_text
+
+
+@pytest.mark.integration
+@pytest.mark.e2e
+def test_e2e_pyright_outputjson_parses_for_owned_and_root_projects() -> None:
+    """Optional full-run smoke: both `--project` targets emit JSON with a summary block.
+
+    Excluded from default runs (`-m "not e2e"`). Requires `python -m pyright` in PATH/venv.
+    """
+    import subprocess
+    import sys
+
+    check = subprocess.run(
+        [sys.executable, "-m", "pyright", "--version"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if check.returncode != 0:
+        pytest.skip("pyright CLI not available")
+
+    def _run(project_rel: str) -> dict[str, object]:
+        proc = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pyright",
+                "--outputjson",
+                "--project",
+                str(project_root / project_rel),
+            ],
+            cwd=str(project_root),
+            capture_output=True,
+            text=True,
+            timeout=600,
+        )
+        raw = (proc.stdout or "").strip()
+        assert raw, f"pyright produced no stdout (stderr={proc.stderr!r})"
+        payload = json.loads(raw)
+        assert "summary" in payload
+        return payload
+
+    owned_payload = _run("development_tools/config/pyrightconfig.json")
+    root_payload = _run("pyrightconfig.json")
+    assert isinstance(owned_payload["summary"], dict)
+    assert isinstance(root_payload["summary"], dict)

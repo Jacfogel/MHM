@@ -563,7 +563,7 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
 **User priority**: Medium/low.  
 **Tasks**:
 - [x] **2026-03-25**: Backlog pointer added in paired guides **§10** (full move/CLI wiring still open)
-- [x] **2026-03-25**: Inventory note: `scripts/flaky_detector.py` **absent** from current tree (historical references only; path-drift cache may list it until refresh); restore from git history if needed before move. Details in paired guides **§10** / §3.12 here.
+- [x] **2026-03-25**: Inventory note: `scripts/flaky_detector.py` **absent** from current tree (historical references only; path-drift cache may list it until refresh); restore from git history if needed before move. Details: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) §3.2, paired guides **§10**, §3.12 here.
 - [ ] Move `scripts/flaky_detector.py` to `development_tools/tests/` with clear ownership and module boundaries
 - [ ] Wire flaky detection into development tools CLI/tool metadata (standalone command + optional audit hook)
 - [ ] Standardize flaky detector logs/outputs with development tools conventions (`development_tools/tests/logs` + JSON/markdown result schema)
@@ -575,7 +575,7 @@ Snapshot **2026-03-25** (Tier 3 full audit; `AI_STATUS` **Last Generated** 2026-
 **User priority**: Continue.  
 **Tasks**:
 - [x] **2026-03-25**: Paired guides **§10** point to `flaky_detector` / remaining `scripts/**` as migration backlog (see also §3.12)
-- [x] **2026-03-25**: Seed inventory captured in this roadmap + paired **DEVELOPMENT_TOOLS_GUIDE** / **AI_DEVELOPMENT_TOOLS_GUIDE** §10 (refresh `scripts/` listing with `Get-ChildItem -Path scripts -Recurse -File -Filter *.py` when migrating)
+- [x] **2026-03-25**: Seed inventory process: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) §6 (PowerShell refresh) + paired **DEVELOPMENT_TOOLS_GUIDE** / **AI_DEVELOPMENT_TOOLS_GUIDE** §10 (no standalone inventory markdown; use approved guides)
 - [ ] Build a definitive migration inventory from current tracked references to `scripts/` (exclude changelog-history-only references)
 - [x] Moved static logging checker to `development_tools/static_checks/check_channel_loggers.py` and updated references (`run_tests.py`, CI workflow, tests, and logging docs)
 - [x] Retired one-time schedule/user-index scripts: `scripts/utilities/add_checkin_schedules.py`, `scripts/utilities/check_checkin_schedules.py`, `scripts/utilities/fix_user_schedules.py`, `scripts/utilities/rebuild_index.py`

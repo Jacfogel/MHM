@@ -604,6 +604,12 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 **Pyright configs**: Root `pyrightconfig.json` supports IDE and whole-repo workflows (JSON with `//` comments); `development_tools/config/pyrightconfig.json` is dev-tools-owned strict JSON for explicit `--project` use in audits. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `tests/development_tools/test_pyright_config_paths.py` (Pyright JSON + Ruff TOML presence/parse).
 
+**Portability acceptance criteria (V4 Section 7.6)** - incremental; full numeric parity is not required in CI until tolerance rules exist:
+
+- **Structural**: Owned Pyright JSON loads; root JSONC exists; both exclude `tests/data` (and related temp/fixture paths). Policy tests enforce this.
+- **Runtime**: `python -m pyright --outputjson --project <config>` succeeds for both configs when Pyright is installed (optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py), excluded from default runs).
+- **Diagnostic counts**: Root vs owned `errorCount`/`warningCount` may differ because include/exclude scopes differ; add regression tests once a numeric tolerance policy is defined.
+
 ---
 
 ## 10. External tools evaluation (Bandit, pip-audit, Radon, pre-commit)
@@ -612,13 +618,15 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 - **Bandit** / **pip-audit**: Run manually from the venv when reviewing security or dependency risk; promote to Tier 1 only after noise levels are acceptable.
 - **Radon**: Overlaps existing complexity/refactor signals (`analyze_functions`, `analyze_module_refactor_candidates`); adopt only for metrics Ruff does not provide.
+- **pydeps**: Optional dependency-graph visualization; compare against `imports/analyze_module_dependencies.py` / consolidated report before adding a second graph pipeline.
+- **vulture**: Optional dead-code scan; overlaps unused-imports and function-registry tools-evaluate noise vs signal before Tier integration.
 - **pre-commit**: Optional host-repo hygiene; policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks for this repository.
 
-**Scripts backlog** (migration/review): flaky-test detector work and any host-repo script utilities live in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) Section 3.12-Section 3.14 (no canonical script path in-repo yet-add one when migrating out of history-only references).
+**Scripts backlog** (migration/review): Policy, triage, flaky-detector notes, and inventory refresh command live in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). Task checklist: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) Section 3.12-Section 3.14 and [TODO.md](../TODO.md).
 
 **Snapshot (refresh when migrating)**:
 
-- **`scripts/flaky_detector.py`**: V4 target is to host under `development_tools/tests/` and wire CLI. As of 2026-03-25 the file is **not present** in the tree (restore from git history if the flaky workflow is needed). Path-drift caches may still mention the old path until refreshed.
-- **`scripts/testing/verify_process_cleanup.py`**: evaluate migrate vs retire; **not found** under `scripts/` in recent snapshots; confirm with `git log -- scripts/` before re-adding references.
-- **Inventory**: list Python files with `Get-ChildItem -Path scripts -Recurse -File -Filter *.py` (PowerShell) and record keep/migrate/delete decisions in V4 Section 3.13 tasks or [TODO.md](../TODO.md).
+- **`scripts/flaky_detector.py`**: V4 target is to host under `development_tools/tests/` and wire CLI/metadata per [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) (Section 3.2); migration and metadata wiring remain open.
+- **`scripts/testing/verify_process_cleanup.py`**: evaluate migrate vs retire; confirm presence in your tree with the inventory command in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) Section 6.
+- **Inventory**: use the PowerShell recipe in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) Section 6; record decisions in V4 Section 3.13 tasks or [TODO.md](../TODO.md) - do not add standalone markdown inventories.
 - **Non-tool parallel work**: legacy markers and domain coverage follow [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) and regenerated `AI_PRIORITIES.md`.

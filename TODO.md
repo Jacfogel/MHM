@@ -39,11 +39,16 @@ When adding new tasks, follow this format:
 
 **Development tools backlog (scheduled review order, 2026-03-26)**  
 - Portability / Section 7.6: full Pyright diagnostic parity tests when tolerance rules exist (policy tests today: `tests/development_tools/test_pyright_config_paths.py`).  
-- Section 3.12 flaky detector: restore/migrate from git history, CLI + metadata wiring.  
+- Section 3.12 flaky detector: `scripts/flaky_detector.py` when present; migrate per [scripts/SCRIPTS_GUIDE.md](scripts/SCRIPTS_GUIDE.md) Section 3.2, CLI + metadata wiring.  
 - Section 3.13-Section 3.14: scripts inventory; decision on `scripts/testing/verify_process_cleanup.py`; cleanup candidates under `scripts/`.  
 - Section 4.1: external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides Section 10.  
 - Section 5.x: low-priority gap tools (unused-imports fixer, doc overlap, TODO sync auto-clean, memory profiler).  
 Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
+
+**Deferred (V4 Phase C - no blocking)**  
+- **Section 2.8 `--dev-tools-only` report scoping**: generators still project-wide; DEV_TOOLS_* mirrors until scope-aware builders exist.  
+- **Section 1.1 `test_config.json` fixture migration**: adopt when touching analyzer tests; full pass is low priority.  
+Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) Section 1.1 Section 2.8; [tests/development_tools/test_config.json](tests/development_tools/test_config.json).
 
 **Use / fit** (2026-02-28 user-priority Q&A): Operational reliability (headless, email) fix soon. AI items deferred until system overhaul. Script ownership, sent_messages high priority. Ruff outside tests > inside. Duplicate lists and backup audit moved to dev tools. Performance monitoring includes RAM/caching.
 
