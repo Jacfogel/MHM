@@ -34,16 +34,16 @@ When adding new changes, follow this format:
 ## Recent Changes (Most Recent First)
 
 ### 2026-03-27 - V4 dev tools continuation + V5 roadmap (plan implementation)
-- **V5 roadmap / pointers**: [TODO.md](TODO.md), [development_docs/PLANS.md](development_docs/PLANS.md), [development_docs/LIST_OF_LISTS.md](development_docs/LIST_OF_LISTS.md), paired [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) / [development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) now reference [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) for the forward backlog; V4 history retained. [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md): §1.2 consolidated-report casing resolved; §4.1 Phase 2 scheduling; §7.6 optional Pyright delta env; §7.7 Phase 2-3 evaluation note; §5.8 lower-backlog pointers.
-- **Consolidated report**: Git rename `development_tools/consolidated_report.md` → `development_tools/CONSOLIDATED_REPORT.md` (aligns with [development_tools/config/config.py](development_tools/config/config.py) and generators). [.cursor/rules/dev_tools.mdc](.cursor/rules/dev_tools.mdc) output path updated.
+- **V5 roadmap / pointers**: [TODO.md](TODO.md), [development_docs/PLANS.md](development_docs/PLANS.md), [development_docs/LIST_OF_LISTS.md](development_docs/LIST_OF_LISTS.md), paired [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) / [development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) now reference [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) for the forward backlog; V4 history retained. [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md): Section 1.2 consolidated-report casing resolved; Section 4.1 Phase 2 scheduling; Section 7.6 optional Pyright delta env; Section 7.7 Phase 2-3 evaluation note; Section 5.8 lower-backlog pointers.
+- **Consolidated report**: Git rename `development_tools/consolidated_report.md` -> `development_tools/CONSOLIDATED_REPORT.md` (aligns with [development_tools/config/config.py](development_tools/config/config.py) and generators). [.cursor/rules/dev_tools.mdc](.cursor/rules/dev_tools.mdc) output path updated.
 - **Bridge / portability**: [development_tools/config/sync_ruff_toml.py](development_tools/config/sync_ruff_toml.py) `main()` uses `get_component_logger` instead of `print`; [development_tools/config/jsons/DEPRECATION_INVENTORY.json](development_tools/config/jsons/DEPRECATION_INVENTORY.json) `root_ruff_compat_mirror` search_terms drop obsolete print-line phrase; [development_tools/config/analyze_config.py](development_tools/config/analyze_config.py) resolves `project_root` from `config.get_project_root()` when absolute; [development_tools/functions/generate_function_registry.py](development_tools/functions/generate_function_registry.py) path bootstrap uses `Path.resolve()` and drops unused `os` import.
-- **Tests**: [tests/development_tools/test_pyright_config_paths.py](tests/development_tools/test_pyright_config_paths.py) e2e Pyright test optionally enforces `|ΔerrorCount|` when `PYRIGHT_ERROR_COUNT_MAX_DELTA` is set.
+- **Tests**: [tests/development_tools/test_pyright_config_paths.py](tests/development_tools/test_pyright_config_paths.py) e2e Pyright test optionally enforces `|delta errorCount|` when `PYRIGHT_ERROR_COUNT_MAX_DELTA` is set.
 - **Doc-sync (AI_PRIORITIES)**: Fixed path drift in paired dev-tools guides (proper markdown links for `tests/development_tools/test_pyright_config_paths.py` and [SCRIPTS_GUIDE.md](scripts/SCRIPTS_GUIDE.md)); `doc-fix --fix-ascii` for Section/dash characters; `analyze_documentation_sync` **PASS** (0 issues).
 - **Deprecation inventory (earlier same day)**: [development_tools/config/jsons/DEPRECATION_INVENTORY.json](development_tools/config/jsons/DEPRECATION_INVENTORY.json) - `root_ruff_compat_mirror` notes expanded with 2026-03-27 verification and removal gating (bridge remains until portability exit criteria).
 - **Section 3.16 refactor (incremental)**: Extracted [development_tools/shared/service/report_generation_linkify.py](development_tools/shared/service/report_generation_linkify.py) (`linkify_review_paths_bullet`) from [development_tools/shared/service/report_generation.py](development_tools/shared/service/report_generation.py).
 - **Tests**: New [tests/development_tools/test_analyze_test_coverage.py](tests/development_tools/test_analyze_test_coverage.py) for `TestCoverageAnalyzer` helpers; [tests/development_tools/test_commands_coverage_helpers.py](tests/development_tools/test_commands_coverage_helpers.py) (`_extract_changed_domains` malformed bracket); [tests/development_tools/test_pyright_config_paths.py](tests/development_tools/test_pyright_config_paths.py) (structural `tests/data` alignment for owned vs root Pyright; optional `pytest -m e2e` dual `--outputjson` smoke).
 - **Docs / backlog**: [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 9 portability acceptance criteria; Section 10 pydeps/vulture evaluation lines; Section 10 scripts backlog pointers. [development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) Section 9-Section 10 paired updates. [TODO.md](TODO.md) deferred V4 Section 2.8 / `test_config.json` pointers.
-- **Docs consolidation (same session)**: Removed unapproved `development_tools/docs/scripts_migration_inventory.md` and `development_tools/tests/FLAKY_DETECTOR_MIGRATION.md`; content merged into [scripts/SCRIPTS_GUIDE.md](scripts/SCRIPTS_GUIDE.md) Section 3.2 Section 6, [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10, [development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) Section 10, [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) Section 3.12-Section 3.13 notes.
+- **Docs consolidation (same session)**: Removed unapproved `development_tools/docs/scripts_migration_inventory.md` and `development_tools/tests/FLAKY_DETECTOR_MIGRATION.md`; content merged into [scripts/SCRIPTS_GUIDE.md](scripts/SCRIPTS_GUIDE.md) Section 3.2 Section 6, [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10, [development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) Section 10, [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) Section 3.12-Section 3.13 notes.
 - **Tests (stability)**: [tests/development_tools/test_tool_wrappers_cache_helpers.py](tests/development_tools/test_tool_wrappers_cache_helpers.py) - `test_compute_source_signature_changes_when_source_changes` patches `should_exclude_file` off so files under pytest `tmp_path` (often matching pytest-temp exclusions) still contribute to the hash; avoids empty-signature false equality on Windows.
 - **Verification**: `pytest tests/development_tools/test_analyze_test_coverage.py tests/development_tools/test_commands_coverage_helpers.py tests/development_tools/test_pyright_config_paths.py tests/development_tools/test_report_generation_quick_wins.py -m "not e2e" -q` - pass.
 
@@ -52,17 +52,17 @@ When adding new changes, follow this format:
 - **Tier 3 / strict fix**: Lock-path tests now patch `get_external_value` via `patch.object(import development_tools as dt; dt.config, ...)` so the mock matches whatever `from development_tools import config` binds after `load_development_tools_module`/conftest (string patch on `development_tools.config.get_external_value` could miss the bound `config.py` module and broke `test_get_audit_and_coverage_lock_paths_config_attribute_error_fallback` under full dev-tools pytest). Same adjustment in `test_get_audit_related_lock_paths_config_error_falls_back_to_defaults`.
 - **Deprecation inventory / legacy report**: [development_tools/config/jsons/DEPRECATION_INVENTORY.json](development_tools/config/jsons/DEPRECATION_INVENTORY.json) - `root_ruff_compat_mirror` `search_terms` are now **long bridge-only phrases** (docstring, CLI usage, argparse help, dual-output `print`) so scans do not match bare `.ruff.toml`, `sync_root_compat`, or unrelated tests; added `notes` on intent. Regenerated [development_docs/LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md) (**1** file / **4** markers, `sync_ruff_toml.py` only).
 - **Tests**: New [tests/development_tools/test_analyze_config.py](tests/development_tools/test_analyze_config.py) (`ConfigValidator` entry-point/wrapper detection, recommendations, `run_validation`/`main`/`print_validation_report` branches). Extended [tests/development_tools/test_pyright_config_paths.py](tests/development_tools/test_pyright_config_paths.py) (owned Pyright `exclude` includes tests data/temp; Section 7.6 parity-strategy note test).
-- **Roadmap / backlog**: [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) - Section 3.16 refactor **structure map** for `report_generation.py` and `run_test_coverage.py`; Section 1.5 benchmark deferral note; Section 2.5/Section 2.9/Section 3.3 continuation notes; Section 6 snapshot text for inventory hits. [TODO.md](TODO.md) - dated **Development tools backlog** scheduling block pointing at V4.
+- **Roadmap / backlog**: [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) - Section 3.16 refactor **structure map** for `report_generation.py` and `run_test_coverage.py`; Section 1.5 benchmark deferral note; Section 2.5/Section 2.9/Section 3.3 continuation notes; Section 6 snapshot text for inventory hits. [TODO.md](TODO.md) - dated **Development tools backlog** scheduling block pointing at V4.
 - **Verification**: `pytest tests/development_tools/test_analyze_config.py tests/development_tools/test_pyright_config_paths.py tests/development_tools/test_deprecation_inventory_guard.py -q` - pass; new helper tests for `audit_orchestration` / `commands` / `run_test_coverage` - pass. Full `tests/development_tools` with default parallel workers reported order-dependent failures in unrelated modules (e.g. `file_rotation` isolation, consolidated-report mocks); serial re-run of the previously failing selection with `-n 0` - **13 passed** (matches known parallel flake pattern in this repo).
 
 ### 2026-03-25 - AI dev tools V4 continuation (coverage, reporting, guides)
 - **file_rotation**: [development_tools/shared/file_rotation.py](development_tools/shared/file_rotation.py) - moved the test/temp path heuristic out of `create_output_file` into `path_looks_like_test_directory()` (same behavior, testable/patchable). [tests/development_tools/test_file_rotation.py](tests/development_tools/test_file_rotation.py) - Tier 3 fixes for `test_create_output_file_directory_tree_name_logs_warning` (patch `core.logger.get_component_logger`) and `test_create_output_file_status_blocked_in_test_to_real_project` (patch `path_looks_like_test_directory` False + `get_project_root` so isolation runs without writing outside `tests/`); added `test_path_looks_like_test_directory_heuristic`; explicit `@pytest.mark.unit` on all tests; removed unused imports (Ruff). Re-ran `doc-fix --fix-ascii` for priorities Quick Win on [development_docs/CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md).
-- **Approved docs only (scripts/refactor backlog)**: Removed two ad-hoc inventory markdown files under `development_tools/docs/` (scripts migration + large-runner refactor notes); merged that content into [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (Section 3.12-Section 3.16 bullets) and Section 10 in [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) / [development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md). [tests/development_tools/test_fix_documentation_links.py](tests/development_tools/test_fix_documentation_links.py) `TestFixDocumentationLinksMain` patches `DocumentationLinkFixer` via `patch.object(links_module, ...)` for compatibility with `load_development_tools_module`.
-- **Portability / backlog docs**: [tests/development_tools/test_pyright_config_paths.py](tests/development_tools/test_pyright_config_paths.py) - Section 7.6 acceptance notes + `test_pyright_owned_and_root_both_declare_type_checking_mode`. Scripts/refactor backlog narratives live in [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) and paired guides Section 10 (not separate unapproved markdown files). `python development_tools/docs/fix_version_sync.py validate` may exit non-zero when path-drift analyzer finds issues (separate from `doc-sync`).
+- **Approved docs only (scripts/refactor backlog)**: Removed two ad-hoc inventory markdown files under `development_tools/docs/` (scripts migration + large-runner refactor notes); merged that content into [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (Section 3.12-Section 3.16 bullets) and Section 10 in [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) / [development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md). [tests/development_tools/test_fix_documentation_links.py](tests/development_tools/test_fix_documentation_links.py) `TestFixDocumentationLinksMain` patches `DocumentationLinkFixer` via `patch.object(links_module, ...)` for compatibility with `load_development_tools_module`.
+- **Portability / backlog docs**: [tests/development_tools/test_pyright_config_paths.py](tests/development_tools/test_pyright_config_paths.py) - Section 7.6 acceptance notes + `test_pyright_owned_and_root_both_declare_type_checking_mode`. Scripts/refactor backlog narratives live in [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) and paired guides Section 10 (not separate unapproved markdown files). `python development_tools/docs/fix_version_sync.py validate` may exit non-zero when path-drift analyzer finds issues (separate from `doc-sync`).
 - **Config / coverage JSON**: [development_tools/config/config.py](development_tools/config/config.py) no longer builds `AUDIT_TIERS` at import time (that pulled in `shared` -> `constants` while `config.py` was still loading, so `load_external_config()` never ran and `LOCAL_MODULE_PREFIXES` / `CORE_MODULES` fell back to `("core", "tests")` / `("core",)`). Defaults are lazy via `_get_default_audit_tiers()` and module `__getattr__("AUDIT_TIERS")`; `get_audit_tiers_config()` uses the cached dict. Result: main coverage runs pass `--cov` for every configured app package, so `coverage.json` includes trees such as `communication\`, `ui\`, not only `core\`. Regression: [tests/development_tools/test_constants_config_import_order.py](tests/development_tools/test_constants_config_import_order.py) (both tests use `@pytest.mark.unit` for category marker policy).
 - **Doc hygiene (AI_PRIORITIES Quick Wins)**: Ran `python development_tools/run_development_tools.py doc-fix --fix-ascii`, `doc-fix --convert-links`, and `doc-sync` to clear ASCII and unconverted-link findings called out in generated priorities.
 - **Tests**: [tests/development_tools/test_analyze_module_dependencies.py](tests/development_tools/test_analyze_module_dependencies.py) - `TestAnalyzeCircularDependencies` (and related logger/subreport mocks) now use `patch.object(deps_module, ...)` instead of string paths on `development_tools.imports.analyze_module_dependencies`, so mocks align with the module object returned by `load_development_tools_module` when another test has replaced `sys.modules` (fixes Tier 3 failures under parallel/full suite). Same pattern for [tests/development_tools/test_analyze_unused_imports.py](tests/development_tools/test_analyze_unused_imports.py): `@patch.object(unused_imports_module, "_run_subprocess_with_timeout")` (fixes `test_cache_disabled` assert `0 == 2` when the mock did not intercept the dynamically loaded module).
-- **Roadmap**: [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) snapshot reconciled to Tier 3 outputs (dev-tools coverage **61.1%**, legacy **3** files / **7** markers, AI_PRIORITIES low modules: `commands.py`, `run_test_coverage.py`, `audit_signal_state.py`); Section 6/Section 7.14/Section 7.17/Section 3.3/Section 4.1/Section 3.12-Section 3.13 progress notes updated.
+- **Roadmap**: [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) snapshot reconciled to Tier 3 outputs (dev-tools coverage **61.1%**, legacy **3** files / **7** markers, AI_PRIORITIES low modules: `commands.py`, `run_test_coverage.py`, `audit_signal_state.py`); Section 6/Section 7.14/Section 7.17/Section 3.3/Section 4.1/Section 3.12-Section 3.13 progress notes updated.
 - **Tests**: Added [tests/development_tools/test_audit_signal_state.py](tests/development_tools/test_audit_signal_state.py); extended [tests/development_tools/test_commands_coverage_helpers.py](tests/development_tools/test_commands_coverage_helpers.py) (config failure in `_get_audit_related_lock_paths`); extended [tests/development_tools/test_run_test_coverage_helpers.py](tests/development_tools/test_run_test_coverage_helpers.py) (parallel shard discovery/wait, invalid worker parse); [tests/development_tools/test_pyright_config_paths.py](tests/development_tools/test_pyright_config_paths.py) asserts owned Pyright JSON has `typeCheckingMode` and non-empty `exclude`; linkify and domain-summary coverage in [tests/development_tools/test_report_generation_quick_wins.py](tests/development_tools/test_report_generation_quick_wins.py) and [tests/development_tools/test_regenerate_coverage_metrics.py](tests/development_tools/test_regenerate_coverage_metrics.py); [tests/development_tools/test_service_utilities.py](tests/development_tools/test_service_utilities.py) for `format_repo_paths_as_markdown_links`.
 - **Reporting**: [development_tools/shared/service/report_generation.py](development_tools/shared/service/report_generation.py) `_linkify_review_paths_bullet` + render pass for AI_PRIORITIES Immediate Focus bullets; path-drift priority **Top offenders** now use [development_tools/shared/service/utilities.py](development_tools/shared/service/utilities.py) `format_repo_paths_as_markdown_links` (forward slashes, clickable in markdown); [development_tools/tests/generate_test_coverage_report.py](development_tools/tests/generate_test_coverage_report.py) - **Coverage Scope** still unions `coverage.ini` `source=` with coverage JSON domains; **Coverage by Domain** only lists domains with measured statements and adds **In scope, not represented in this coverage artifact** for the rest (fixes useless `0.0% (0/0)` lines when data is all under one prefix, e.g. `core/`).
 - **Path drift fix**: [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10 removed a non-existent `scripts/testing/flaky_detector.py` reference (path drift: "Missing file"); `python development_tools/docs/analyze_path_drift.py --json` returns **0** issues after the edit.
@@ -308,7 +308,7 @@ When adding new changes, follow this format:
   - CI policy workflow fix:
     - Updated `.github/workflows/logging-enforcement.yml` so `Tooling Policy Consistency` installs `python-dotenv` alongside `pytest`, matching test-plugin import requirements in clean CI environments.
   - Planning/session wrap-up updates:
-    - Refreshed planning follow-ups in [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) for remaining Pyright and post-merge audit/workflow verification tasks.
+    - Refreshed planning follow-ups in [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) for remaining Pyright and post-merge audit/workflow verification tasks.
 - **Validation**:
   - Static analysis:
     - `.venv\\Scripts\\python.exe -m ruff check .` -> `All checks passed`.
@@ -354,7 +354,7 @@ When adding new changes, follow this format:
     - Updated planning metadata/follow-ups:
       - [TODO.md](TODO.md)
       - [PLANS.md](development_docs/PLANS.md)
-      - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (legacy-marker backlog counts and remaining inventory-item follow-up tasks).
+      - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (legacy-marker backlog counts and remaining inventory-item follow-up tasks).
 - **Validation**:
   - Full working tree review for wrap-up/changelog accuracy:
     - `git diff --stat`
@@ -545,7 +545,7 @@ When adding new changes, follow this format:
     - Updated paired tool guides:
       - [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
       - [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)
-    - Updated [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md):
+    - Updated [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md):
       - `3.4` canonical timing location set to `reports/jsons`
       - `3.17` portability inventory/progress updated
       - `7.6` expanded with dual-config status (root + dev-tools Pyright/Ruff) and explicit next-step criteria
@@ -604,7 +604,7 @@ When adding new changes, follow this format:
     - Added regression test:
       - `tests/development_tools/test_regenerate_coverage_metrics.py::test_run_dev_tools_coverage_uses_parallel_worker_flags_when_enabled`
   - Planning/doc updates:
-    - Marked roadmap item `3.11.1` complete in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
+    - Marked roadmap item `3.11.1` complete in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
     - Updated paired guides:
       - [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
       - [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)
@@ -706,7 +706,7 @@ When adding new changes, follow this format:
     - `tests/development_tools/test_data_loading_helpers.py`
     - `tests/development_tools/test_tool_wrappers_cache_helpers.py`
     - `tests/development_tools/test_commands_docs_workflow.py`
-  - Updated roadmap tracking in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.1`.
+  - Updated roadmap tracking in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.1`.
 - **Validation**:
   - Tier 3 failing tests: targeted run `3 passed`; parallel check (`-n 4`) `3 passed`.
   - Coverage suites: continuation batches `28 passed` and `47 passed`; function-pattern suite `4 passed`; dev-tools suite skip-state check `920 passed`, `0 skipped`.
@@ -747,7 +747,7 @@ When adding new changes, follow this format:
     - `tests/development_tools/test_changelog_trim_tooling.py`
   - Added/kept `@pytest.mark.slow` tagging for top-duration dev-tools tests to improve profiling/filtering workflows.
   - Updated planning and roadmap tracking:
-    - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.1` and `1.8` (coverage gains, slow-test optimization progress, latest timing baseline).
+    - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.1` and `1.8` (coverage gains, slow-test optimization progress, latest timing baseline).
     - [PLANS.md](development_docs/PLANS.md) with active follow-up plan for development-tools test runtime optimization.
     - [TODO.md](TODO.md) with outstanding setup/teardown optimization follow-up tasks.
   - Regenerated audit/report artifacts from dev-tools runs:
@@ -805,7 +805,7 @@ When adding new changes, follow this format:
       - `Top Pyright Warning Files`
       - each line is conditionally rendered only when that severity exists.
   - Planning/documentation follow-up updates:
-    - Expanded [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) with:
+    - Expanded [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) with:
       - static tooling + packaging portability follow-up (`7.6`)
       - directory taxonomy/config-boundary cleanup follow-up (`7.7`)
     - Updated [PLANS.md](development_docs/PLANS.md) to reference the new follow-up scope.
@@ -855,7 +855,7 @@ When adding new changes, follow this format:
     - `56.6%` (`14164/25008`)
     - `58.6%` (`14667/25008`)
     - `59.6%` (`14916/25008`, report display rounds to `60%`).
-  - Planning tracking updated in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.1`.
+  - Planning tracking updated in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `1.1`.
 - **Validation**:
   - staged targeted runs passed:
     - `pytest -q tests/development_tools/test_backup_reports.py` -> `7 passed`
@@ -927,7 +927,7 @@ When adding new changes, follow this format:
       - `tests/development_tools/test_regenerate_coverage_metrics.py`
       - `tests/development_tools/test_test_file_coverage_cache.py`
   - Planning updates:
-    - expanded completed checklist items in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) sections `2.2` and `3.11`.
+    - expanded completed checklist items in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) sections `2.2` and `3.11`.
 - **Validation**:
   - targeted pytest checks were run and passed for the touched analyzers and exclusion-integration paths.
   - logging enforcement follow-up validation:
@@ -957,7 +957,7 @@ When adding new changes, follow this format:
     - `tests/development_tools/test_fix_documentation.py` now exercises dispatcher `main()` branches (no-op help path, dry-run path, `--full` alias, non-zero error aggregation).
     - added `tests/development_tools/test_backup_inventory.py` for path matching, dedupe, and inventory summary rendering.
   - Planning update:
-    - recorded these coverage additions in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
+    - recorded these coverage additions in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
   - Audit/report artifacts refreshed in this session:
     - `development_tools/AI_STATUS.md`
     - `development_tools/AI_PRIORITIES.md`
@@ -1015,7 +1015,7 @@ When adding new changes, follow this format:
     - updated planning trackers:
       - [TODO.md](TODO.md)
       - [PLANS.md](development_docs/PLANS.md)
-      - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
+      - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
   - Audit/status/report refreshes were regenerated in-session:
     - `development_tools/AI_STATUS.md`
     - `development_tools/AI_PRIORITIES.md`
@@ -1083,7 +1083,7 @@ When adding new changes, follow this format:
       - recorded checkin-view recurrence and this session's validation evidence.
     - [PLANS.md](development_docs/PLANS.md)
       - updated Testing Program Consolidation progress with checkin-view recurrence fix.
-    - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
+    - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
       - recorded branch-focused wrapper test addition under coverage-strengthening tasks.
 - **Validation**:
   - `pytest -q tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user tests/unit/test_checkin_view.py::TestCheckinView::test_skip_question_button_handler_with_valid_user` -> `2 passed`.
@@ -1122,7 +1122,7 @@ When adding new changes, follow this format:
     - [constants.py](development_tools/shared/constants.py): centralized test-marker constants and directory/path token defaults.
     - [analyze_test_markers.py](development_tools/tests/analyze_test_markers.py): replaced hardcoded marker/path assumptions with config/constants-driven behavior.
     - [standard_exclusions.py](development_tools/shared/standard_exclusions.py): expanded transient pytest-runtime exclusion handling (including `.pytest_runtime` and `pytest_tmp_*` patterns).
-    - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md): marked `5.1.1` completed and added portability sweep tracking (`3.17`).
+    - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md): marked `5.1.1` completed and added portability sweep tracking (`3.17`).
   - **Regression and compatibility test updates**:
     - [test_analyze_unused_imports.py](tests/development_tools/test_analyze_unused_imports.py): added backend-selection/fallback coverage and adapted scan tests to batched backend path.
     - [test_analyze_test_markers.py](tests/development_tools/test_analyze_test_markers.py): added config-driven marker map coverage and runtime-temp filtering checks.
@@ -1133,7 +1133,7 @@ When adding new changes, follow this format:
     - planning/status docs:
       - [TODO.md](TODO.md)
       - [PLANS.md](development_docs/PLANS.md)
-      - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
+      - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
       - [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md)
       - [AI_STATUS.md](development_tools/AI_STATUS.md)
       - [consolidated_report.md](development_tools/consolidated_report.md)
@@ -1176,7 +1176,7 @@ When adding new changes, follow this format:
   - `core/logger.py`
     - reduced non-dev-tools INFO log pollution during dev-tools runs (notably `mhm.communication_manager` chatter) by tightening runtime log-level behavior under dev-tools execution context.
   - Planning/doc updates:
-    - added explicit unused-imports performance roadmap tasks under [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `5.1.1`;
+    - added explicit unused-imports performance roadmap tasks under [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) section `5.1.1`;
     - updated planning pointers/follow-ups in [TODO.md](TODO.md) and [PLANS.md](development_docs/PLANS.md).
 - **Observed Runtime Impact**:
   - User full run (`audit --full --clear-cache`) completed successfully in ~`277s` wall-clock (~4m37s).
@@ -1344,7 +1344,7 @@ When adding new changes, follow this format:
   - Updated and synchronized:
     - [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)
     - [PLANS.md](development_docs/PLANS.md)
-    - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
+    - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
     - [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
     - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)
 - **Generated Artifacts Refreshed**:
@@ -1517,7 +1517,7 @@ When adding new changes, follow this format:
     - `python -m pytest tests/development_tools/test_regenerate_coverage_metrics.py -q`
     - `python -m pytest tests/development_tools/test_test_file_coverage_cache.py tests/development_tools/test_dev_tools_coverage_cache.py -q`
 - **Planning/session closeout updates**:
-  - Updated [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md): marked section 3.1 (changelog trim tooling) as completed.
+  - Updated [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md): marked section 3.1 (changelog trim tooling) as completed.
   - Updated [PLANS.md](development_docs/PLANS.md) intermittent-failure tracking with 2026-02-18 failing nodes from `audit --full --clear-cache`:
     - `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_checkin_status_no_checkins`
     - `tests/behavior/test_account_handler_behavior.py::TestAccountHandlerBehavior::test_handle_link_account_verifies_confirmation_code`
@@ -1528,7 +1528,7 @@ When adding new changes, follow this format:
 
 ### 2026-02-17 - Interaction/flow command parity and test hardening
 - **Config**: `pyrightconfig.json` - removed invalid `overrides` reference from comment; development_tools is type-checked (no exclude).
-- **Planning**: Added section 3.16 to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) to explore refactoring `report_generation.py` and `run_test_coverage.py` (Pyright "code too complex" warnings); tasks include mapping structure, identifying split points, and documenting a refactor plan before proceeding.
+- **Planning**: Added section 3.16 to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) to explore refactoring `report_generation.py` and `run_test_coverage.py` (Pyright "code too complex" warnings); tasks include mapping structure, identifying split points, and documenting a refactor plan before proceeding.
 - **Feature/Fix (interaction manager command handling)**: Standardized command map and slash/bang conversion behavior in `communication/message_processing/interaction_manager.py`:
   - canonical command mapping now comes from `get_slash_command_map()` with a compatibility `slash_command_map` property;
   - removed recursive bang-command re-entry path and aligned with slash convert-and-continue flow;
@@ -1550,7 +1550,7 @@ When adding new changes, follow this format:
 ### 2026-02-17 - Pyright and development-tools cleanup (mixin overrides, refactor tasks, unused imports)
 - **Pyright (development_tools)**: Reduced errors to 0 and warnings to 2 by fixing real issues (SCRIPT_REGISTRY usage in `commands.py`, `domain_mapper` None guard in `run_test_coverage.py`, `Optional[Set[str]]` in `data_freshness_audit.py`, `_error_metrics`/`_error_field` and optional-member access in `report_generation.py`, `changelog_manager` getattr in `audit_orchestration.py`, method name in `measure_tool_timings.py`) and addressing mixin attribute-access warnings via per-file override instead of stub declarations. Added `# pyright: reportAttributeAccessIssue=false` to the six service mixin files (`utilities.py`, `commands.py`, `audit_orchestration.py`, `data_loading.py`, `report_generation.py`, `tool_wrappers.py`) so only that diagnostic is suppressed there.
 - **Config**: `pyrightconfig.json` - removed invalid `overrides` reference from comment; development_tools is type-checked (no exclude).
-- **Planning**: Added section 3.16 to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) to explore refactoring `report_generation.py` and `run_test_coverage.py` (Pyright "code too complex" warnings); tasks include mapping structure, identifying split points, and documenting a refactor plan before proceeding.
+- **Planning**: Added section 3.16 to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) to explore refactoring `report_generation.py` and `run_test_coverage.py` (Pyright "code too complex" warnings); tasks include mapping structure, identifying split points, and documenting a refactor plan before proceeding.
 
 ### 2026-02-16 - Static logging check migration, script governance planning, and audit artifact refresh
 - **Feature/Fix (static logging check relocation)**: Migrated static logging-enforcement execution path from `scripts/static_checks/check_channel_loggers.py` to `development_tools/static_checks/check_channel_loggers.py` and updated all active callsites/references:
@@ -1562,7 +1562,7 @@ When adding new changes, follow this format:
   - Explicitly tracked `scripts/` as intentionally untracked workspace scope (temporary/one-off usage) and captured migration/retirement decisions in tracked docs so script-related work is recorded even when script-file edits are not represented in git.
   - Added project-owned script migration/retirement tasks to [TODO.md](TODO.md) (including project-specific ownership for `scripts/utilities/user_data_cli.py`, `scripts/create_project_snapshot.py`, and `scripts/cleanup_windows_tasks.py`).
   - Added a new multi-step backup reliability/restore-confidence plan to [PLANS.md](development_docs/PLANS.md).
-  - Expanded [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) with explicit scripts-to-dev-tools migration tracking, script review candidates, and gap-analysis tasks from retired helpers.
+  - Expanded [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) with explicit scripts-to-dev-tools migration tracking, script review candidates, and gap-analysis tasks from retired helpers.
   - Removed stale test-guide reference to retired `scripts/testing/read_backup_results.py` from [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md).
 - **Fix (doc-sync drift items from this session)**:
   - Corrected stale script path reference in [TODO.md](TODO.md): `create_project_snapshot.py` -> `scripts/create_project_snapshot.py`.
@@ -1613,7 +1613,7 @@ When adding new changes, follow this format:
 - **Docs/Planning**: Updated planning artifacts for this closeout:
   - [TODO.md](TODO.md): recorded that no new standalone TODOs were added and dev-tools follow-ups stay centralized in V4 plan.
   - [PLANS.md](development_docs/PLANS.md): added 2026-02-15 session follow-up pointers.
-  - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md): added completed item for docstring metric parity.
+  - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md): added completed item for docstring metric parity.
 - **Validation**:
   - User-validated full runs in-session: `python development_tools/run_development_tools.py audit --full --clear-cache` (Tier 3 successful) with refreshed generated outputs.
   - Additional local validation for this closeout edit: `python -m py_compile development_tools/shared/service/report_generation.py`.
@@ -1692,14 +1692,14 @@ When adding new changes, follow this format:
 - **Feature**: Added `run_tests.py` to project key files in `development_tools/config/development_tools_config.json` so config-driven key-file scope reflects current entry points.
 - **Fix**: Investigated Tier-3 coverage-run failures from `development_tools/tests/logs/pytest_parallel_stdout_2026-02-08_23-58-27.log` and identified two intermittent cases for stabilization tracking: `tests/development_tools/test_fix_project_cleanup.py::TestProjectCleanup::test_cleanup_test_temp_dirs_no_directory` (TOCTOU path disappearance) and `tests/unit/test_user_management.py::TestUserManagement::test_create_user_files_success` (nondeterministic user-dir assumption under shared test data).
 - **Fix**: Hardened test isolation in `tests/behavior/test_user_data_flow_architecture.py` by switching two static test user IDs to UUID-suffixed IDs to reduce parallel-run collisions.
-- **Documentation/Planning**: Streamlined the caching section in [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md); removed duplicate flake task section from [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md); consolidated intermittent coverage-flake tracking in [TODO.md](TODO.md) (single source); kept changelog pair in sync.
-- **Documentation/Planning**: Updated both dev-tools guides for failure-aware and tool/config-aware cache invalidation ([AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)) and extended pending cache-quality tasks in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
+- **Documentation/Planning**: Streamlined the caching section in [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md); removed duplicate flake task section from [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md); consolidated intermittent coverage-flake tracking in [TODO.md](TODO.md) (single source); kept changelog pair in sync.
+- **Documentation/Planning**: Updated both dev-tools guides for failure-aware and tool/config-aware cache invalidation ([AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)) and extended pending cache-quality tasks in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md).
 - **Maintenance**: Reverted no-op whitespace-only edits in `development_tools/functions/analyze_functions.py`, `development_tools/imports/analyze_unused_imports.py`, and `development_tools/docs/analyze_ascii_compliance.py` to prevent unnecessary tool-hash cache busts.
 - **Maintenance**: Regenerated current audit/report artifacts and registries (`development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`, `development_tools/reports/analysis_detailed_results.json`, `development_tools/reports/tool_timings.json`, `development_docs/TEST_COVERAGE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`, `development_docs/FUNCTION_REGISTRY_DETAIL.md`, `development_docs/MODULE_DEPENDENCIES_DETAIL.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/DIRECTORY_TREE.md`, `ai_development_docs/AI_FUNCTION_REGISTRY.md`, `ai_development_docs/AI_MODULE_DEPENDENCIES.md`).
 - **Impact**: Cache invalidation behavior is clearer and more robust, flaky-follow-up tracking is consolidated in one canonical task list, and generated audit outputs are synchronized with current tool results.
 
 ### 2026-02-08 - Dev tools cache/CLI standardization and test fixes
-- **Feature**: Development tools cleanup and standardization: moved MHM-specific defaults into `development_tools/config/development_tools_config.json` (keeping `config.py` portable); updated config header; added CLI aliases and full/all standardization (`full-audit`, `clean-up`, `doc-fix --full` -> `--all`, `cleanup --all` -> `--full`) in `development_tools/shared/cli_interface.py`; removed `critical_issues.txt` output and references in service/commands/report generation. Applied `should_exclude_file` across docs analyzers/fixers and other scanners (ai_work/config/functions/legacy/imports). Expanded caching with tool-code/config invalidation in `development_tools/shared/mtime_cache.py`, added cache failure logging and corruption cleanup in `development_tools/shared/output_storage.py`, and enabled caching in heavy analyzers (error handling, functions, imports). Guides updated in both [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) and [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) with cache and CLI notes; plan/priorities refreshed in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) and regenerated audit outputs.
+- **Feature**: Development tools cleanup and standardization: moved MHM-specific defaults into `development_tools/config/development_tools_config.json` (keeping `config.py` portable); updated config header; added CLI aliases and full/all standardization (`full-audit`, `clean-up`, `doc-fix --full` -> `--all`, `cleanup --all` -> `--full`) in `development_tools/shared/cli_interface.py`; removed `critical_issues.txt` output and references in service/commands/report generation. Applied `should_exclude_file` across docs analyzers/fixers and other scanners (ai_work/config/functions/legacy/imports). Expanded caching with tool-code/config invalidation in `development_tools/shared/mtime_cache.py`, added cache failure logging and corruption cleanup in `development_tools/shared/output_storage.py`, and enabled caching in heavy analyzers (error handling, functions, imports). Guides updated in both [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) and [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) with cache and CLI notes; plan/priorities refreshed in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) and regenerated audit outputs.
 - **Fix**: Reschedule-request behavior restored for tests by removing the `MHM_TESTING` bypass and avoiding `pytz` timezone loads in `core/service_utilities.py`. Backfilled missing `email` key on account loads in `core/user_data_handlers.py` to prevent `KeyError` in user-data flow behavior tests during full-audit runs.
 - **Impact**: Dev tools are more portable and consistent (CLI/flags, exclusions, caching invalidation); audit output is cleaner; test-only reschedule paths are stable; account loads are resilient to missing email fields.
 - **Validation**: User ran `python development_tools/run_development_tools.py audit --full` (clean).
@@ -1893,7 +1893,7 @@ Key Changes
 - **Tooling integration**: Wired config defaults in `development_tools/config/config.py`, added tool metadata/guide entries, and hooked into CLI + service wrappers + audit orchestration + report generation so it runs with audits and emits structured JSON.
 - **Reporting tweak**: Removed the consolidated report "Cache Usage" line for duplicate-function analysis to keep output focused on results.
 - **Impact**: Audits now surface likely duplicate clusters with deterministic scoring and cached scanning to reduce repeat run cost.
-- **Files**: `development_tools/config/config.py`, `development_tools/config/development_tools_config.json`, `development_tools/config/development_tools_config.json.example`, `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/report_generation.py`, `development_tools/shared/service/tool_wrappers.py`, `development_tools/shared/cli_interface.py`, `development_tools/shared/tool_guide.py`, `development_tools/shared/tool_metadata.py`, [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md).
+- **Files**: `development_tools/config/config.py`, `development_tools/config/development_tools_config.json`, `development_tools/config/development_tools_config.json.example`, `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/report_generation.py`, `development_tools/shared/service/tool_wrappers.py`, `development_tools/shared/cli_interface.py`, `development_tools/shared/tool_guide.py`, `development_tools/shared/tool_metadata.py`, [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md).
 
 ### 2026-01-19 - Standardized all datetime parsing and formatting across the codebase to route exclusively through core/time_utilities.py.
 Removed all remaining direct uses of:

@@ -29,11 +29,10 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
-
 ### 2026-03-27 - V4 plan + V5 roadmap continuation (docs, casing, portability slice) **COMPLETED**
 - **V5 backlog**: [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), [LIST_OF_LISTS.md](development_docs/LIST_OF_LISTS.md), paired dev-tools guides now point at [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) for current work; V4 remains historical checkboxes.
 - **Reports**: Git tracks `development_tools/CONSOLIDATED_REPORT.md` (case-normalized) to match config; `.cursor/rules/dev_tools.mdc` updated.
-- **Bridge / inventory**: `sync_ruff_toml` CLI uses component logger (not `print`); `DEPRECATION_INVENTORY` `root_ruff_compat_mirror` search_terms trimmed; `analyze_config`/`generate_function_registry` portability tweaks; optional Pyright e2e delta via `PYRIGHT_ERROR_COUNT_MAX_DELTA`; [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) §1.2 §4.1 §7.6-7.7 §5.8 updates.
+- **Bridge / inventory**: `sync_ruff_toml` CLI uses component logger (not `print`); `DEPRECATION_INVENTORY` `root_ruff_compat_mirror` search_terms trimmed; `analyze_config`/`generate_function_registry` portability tweaks; optional Pyright e2e delta via `PYRIGHT_ERROR_COUNT_MAX_DELTA`; [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 1.2 Section 4.1 Section 7.6-7.7 Section 5.8 updates.
 - **Earlier same day**: Doc-sync + `report_generation_linkify` extract + Pyright policy tests + inventory notes + scripts guide consolidation (see CHANGELOG_DETAIL).
 
 ### 2026-03-26 - V4 continuation: inventory, analyze_config tests, roadmap **COMPLETED**
@@ -117,10 +116,6 @@ Guidelines:
 - **Portability (3.17)**: Test/discovery paths are config-driven via `paths.tests_dir` and `paths.tests_data_dir`. Updated `run_development_tools.py` (cleanup), `fix_project_cleanup.py`, `tests/run_test_coverage.py` (logs/tmp and pytest basetemp), and `ai_work/analyze_ai_work.py` to use `config.get_paths_config()` instead of hardcoded `tests/data`. Added `imports/analyze_dev_tools_import_boundaries.py` to flag non-approved `core.*` imports inside `development_tools/**`. Plan 3.17 tasks (config-driven paths, exclusions verification, import-boundary check, audit run) marked done.
 - **Exclusions verification**: All scanners now use `should_exclude_file(...)` where applicable. Added usage in `generate_test_coverage_report.py`, `docs/analyze_path_drift.py` (code scan loop), `shared/export_docs_snapshot.py`, and `shared/service/commands.py` (_latest_mtime_for_patterns). Plan 3.17 exclusion note updated.
 - **analyze_pyright**: Timeout and crash handling improved: `run_pyright()` catches `TimeoutError`; `main()` catches `TimeoutExpired`/`TimeoutError` and `Exception`, prints JSON unavailable result and exits 1 so the wrapper always gets parseable output. Tool wrapper logs stderr with a single-argument `logger.warning` (ComponentLogger-compatible). Audit orchestration logs each failed tool's `result["error"]` (error detail) so `main.log` shows the real cause on failure. Fixed Tier 2 indentation in `audit_orchestration.py` (else block).
-
-### 2026-03-16 - Legacy backup cleanup and static analysis/test fixes **Progressed**
-- **Backups**: Removed legacy `BACKUP_FORMAT=zip` compatibility from `core/backup_manager.py` so runtime backups are always directory-based, while still supporting read-only access to historical zip artifacts; updated backup behavior tests to assert against directory payloads (manifest, users/, config/) instead of zip files, and ensured age/count-based rotation works on the new model.
-- **Static analysis/tests**: Brought pyright back to 0 errors by fixing `account_flow_handler` imports and type usage, tightening `task_edit_dialog` optional-access patterns, and resolving the remaining analyzer warning in `analyze_package_exports.py`; corrected regressions in Discord bot initialization tests introduced earlier this session and aligned dev-tools coverage helper expectations with the new backup behavior, so the Tier 3 audit's failing tracks now pass.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

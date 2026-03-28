@@ -164,7 +164,7 @@ def test_e2e_pyright_outputjson_parses_for_owned_and_root_projects() -> None:
     assert isinstance(owned_payload["summary"], dict)
     assert isinstance(root_payload["summary"], dict)
 
-    # Optional numeric parity (V5 §7.6): set PYRIGHT_ERROR_COUNT_MAX_DELTA to enforce |Δerrors| cap.
+    # Optional numeric parity (V5 §7.6): set PYRIGHT_ERROR_COUNT_MAX_DELTA to enforce |delta errors| cap.
     max_delta = os.environ.get("PYRIGHT_ERROR_COUNT_MAX_DELTA")
     if max_delta is not None:
         oe = int(owned_payload["summary"].get("errorCount", 0))  # type: ignore[arg-type]

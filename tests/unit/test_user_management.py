@@ -237,6 +237,7 @@ class TestUserManagement:
     @pytest.mark.user_management
     @pytest.mark.critical
     @pytest.mark.file_io
+    @pytest.mark.no_parallel  # shared tests/data + user_index.json (parallel race)
     def test_create_user_files_success(self, test_data_dir, mock_config):
         """Test creating user files successfully."""
         import uuid
