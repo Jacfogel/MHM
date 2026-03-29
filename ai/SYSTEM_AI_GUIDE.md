@@ -18,7 +18,7 @@ It is designed to:
 - Apply strict prompt, logging, and error-handling rules
 - Support both rule-based and AI-enhanced parsing without making AI a single point of failure
 
-This guide focuses on the AI implementation layer. For overall system design, see section 2. "Directory Overview" in [ARCHITECTURE.md](ARCHITECTURE.md).
+This guide focuses on the AI implementation layer. For overall system design, see section 2. "Directory Overview" in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 ---
 
@@ -272,14 +272,14 @@ When adding new concurrent behavior around AI calls, reuse these locks instead o
 
 ## 7. Configuration and Feature Flags
 
-Configuration semantics (env vars, defaults, failure modes) are defined in `CONFIGURATION_REFERENCE.md`.
+Configuration semantics (env vars, defaults, failure modes) are defined in [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md).
 
 All AI-related configuration is loaded in `core/config.py`. When changing AI behavior:
 
 1. Prefer adjusting existing configuration values (or their environment variables) rather than hardcoding new constants.
 2. If you add new AI-related configuration, ensure it is:
    - Validated in `core/config.py`, and
-   - Documented in `CONFIGURATION_REFERENCE.md` (and any relevant human guide sections that provide operational context).
+   - Documented in [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) (and any relevant human guide sections that provide operational context).
 
 ## 8. Error Handling and Fallbacks
 
@@ -294,8 +294,8 @@ AI components rely heavily on the centralized error handling system:
 
 For detailed patterns, see:
 
-- Section 2. "Architecture Overview" and section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
-- [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) for AI-facing routing rules and constraints.
+- Section 2. "Architecture Overview" and section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).
+- [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) for AI-facing routing rules and constraints.
 
 ### 8.1. Typical AI-specific fallbacks
 
@@ -324,10 +324,10 @@ When extending behavior:
 The AI subsystem is covered both by general tests and AI-specific functionality tests.
 
 - For overall testing strategy and layout, see:
-  - Section 1. "Purpose and Scope" and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
+  - Section 1. "Purpose and Scope" and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).
 - For AI-specific functional tests, see:
-  - [tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md) for behavior-focused AI test flows.
-  - [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md) and [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md) for channel-specific manual checks.
+  - [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](../tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md) for behavior-focused AI test flows.
+  - [MANUAL_TESTING_GUIDE.md](../tests/MANUAL_TESTING_GUIDE.md) and [MANUAL_DISCORD_TEST_GUIDE.md](../tests/MANUAL_DISCORD_TEST_GUIDE.md) for channel-specific manual checks.
 
 These guides describe how to:
 
@@ -348,8 +348,8 @@ AI-related logs are routed to component loggers named:
 
 For logging details, see:
 
-- Section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
-- [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md) for AI-specific logging rules and patterns.
+- Section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
+- [AI_LOGGING_GUIDE.md](../ai_development_docs/AI_LOGGING_GUIDE.md) for AI-specific logging rules and patterns.
 
 When debugging:
 

@@ -130,7 +130,11 @@ class CoverageMetricsRegenerator:
         self.project_root = Path(project_root).resolve()
 
         # Load coverage configuration from external config
-        coverage_config_data = config.get_external_value("coverage", {})
+        coverage_config_data = (
+            config.get_coverage_tool_config()
+            if hasattr(config, "get_coverage_tool_config")
+            else config.get_external_value("coverage", {})
+        )
 
         # Get maxfail threshold (from parameter, config, or default)
         if maxfail is not None:
@@ -857,7 +861,11 @@ class CoverageMetricsRegenerator:
         self._cleanup_stray_pytest_cache_temp_dirs()
 
         # Load coverage configuration from external config
-        coverage_config_data = config.get_external_value("coverage", {})
+        coverage_config_data = (
+            config.get_coverage_tool_config()
+            if hasattr(config, "get_coverage_tool_config")
+            else config.get_external_value("coverage", {})
+        )
 
         # Test-file-based caching: check for changed domains and determine test files to run
         changed_domains = set()

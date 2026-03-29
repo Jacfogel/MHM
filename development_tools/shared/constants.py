@@ -118,10 +118,12 @@ def _get_constants_config_safe():
 
 
 def _load_default_docs() -> tuple[str, ...]:
-    """Load default docs list from config or return defaults."""
+    """Load default docs list from get_constants_config() (derived default_docs) or fallbacks."""
     constants_config = _get_constants_config_safe()
     if constants_config and "default_docs" in constants_config:
-        return tuple(constants_config["default_docs"])
+        dd = constants_config["default_docs"]
+        if isinstance(dd, list) and dd:
+            return tuple(str(x) for x in dd)
     return _DEFAULT_DEFAULT_DOCS
 
 
@@ -607,11 +609,12 @@ ASCII_COMPLIANCE_FILES: tuple[str, ...] = _load_ascii_compliance_files()
 
 
 def _load_version_sync_directories() -> dict[str, str]:
-    """Load version sync directories from config or return defaults."""
+    """Load version sync directories from merged constants (includes local_module_prefixes augment)."""
     constants_config = _get_constants_config_safe()
     if constants_config and "fix_version_sync_directories" in constants_config:
-        return dict(constants_config["fix_version_sync_directories"])
-    # Default: empty (projects should define their own)
+        raw = constants_config["fix_version_sync_directories"]
+        if isinstance(raw, dict) and raw:
+            return dict(raw)
     return {}
 
 

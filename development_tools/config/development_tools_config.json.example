@@ -438,7 +438,7 @@
       ]
     },
     "legacy_patterns": {
-      "_comment": "Regex patterns to identify legacy code. Categories are arbitrary - use what makes sense for your project.",
+      "_comment": "OPTIONAL emergency override per category. Canonical body: DEPRECATION_INVENTORY.json -> legacy_scan_patterns (same shape). Omit this key to use inventory only.",
       "legacy_compatibility_markers": [
         "# LEGACY COMPATIBILITY:",
         "# LEGACY:"

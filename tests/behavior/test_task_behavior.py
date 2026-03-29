@@ -14,6 +14,8 @@ import os
 from unittest.mock import patch
 import json
 from datetime import datetime, timedelta
+
+import core.user_item_storage as user_item_storage
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 
 # Do not modify sys.path; rely on package imports
@@ -49,12 +51,23 @@ class TestTaskManagement:
         """Create a test user ID."""
         return "test-user-123"
 
-    @pytest.mark.tasks
-    @patch("core.user_item_storage.get_user_data_dir")
-    def test_ensure_task_directory(self, mock_get_user_dir, user_id, temp_dir):
-        """Test task directory creation."""
-        mock_get_user_dir.return_value = temp_dir
+    @pytest.fixture(autouse=True)
+    def _isolate_task_user_data_dir(self, monkeypatch, test_path_factory):
+        """Bind task JSON paths to this test's temp root (stable under xdist + coverage)."""
+        root = test_path_factory
 
+        def _fake_get_user_data_dir(_uid: str) -> str:
+            return root
+
+        monkeypatch.setattr(
+            user_item_storage,
+            "get_user_data_dir",
+            _fake_get_user_data_dir,
+        )
+
+    @pytest.mark.tasks
+    def test_ensure_task_directory(self, user_id, temp_dir):
+        """Test task directory creation."""
         result = ensure_task_directory(user_id)
 
         assert result is True
@@ -66,11 +79,8 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.critical
-    @patch("core.user_item_storage.get_user_data_dir")
-    def test_load_active_tasks(self, mock_get_user_dir, user_id, temp_dir):
+    def test_load_active_tasks(self, user_id, temp_dir):
         """Test loading active tasks."""
-        mock_get_user_dir.return_value = temp_dir
-
         # Create test task file
         task_dir = os.path.join(temp_dir, "tasks")
         os.makedirs(task_dir, exist_ok=True)
@@ -91,11 +101,8 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.slow
-    @patch("core.user_item_storage.get_user_data_dir")
-    def test_save_active_tasks(self, mock_get_user_dir, user_id, temp_dir):
+    def test_save_active_tasks(self, user_id, temp_dir):
         """Test saving active tasks."""
-        mock_get_user_dir.return_value = temp_dir
-
         test_tasks = [
             {"task_id": "1", "title": "Test Task 1", "completed": False},
             {"task_id": "2", "title": "Test Task 2", "completed": False},
@@ -117,11 +124,9 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
-    @patch("core.user_item_storage.get_user_data_dir")
-    def test_create_task(self, mock_get_user_dir, temp_dir):
+    def test_create_task(self, temp_dir):
         """Test task creation with file verification."""
         user_id = "test-user-create-task"
-        mock_get_user_dir.return_value = temp_dir
 
         task_id = create_task(
             user_id=user_id,
@@ -151,11 +156,9 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
-    @patch("core.user_item_storage.get_user_data_dir")
-    def test_update_task(self, mock_get_user_dir, temp_dir):
+    def test_update_task(self, temp_dir):
         """Test task updating with file verification."""
         user_id = "test-user-update-task"
-        mock_get_user_dir.return_value = temp_dir
         # Create a task first
         task_id = create_task(user_id, "Original Title", "Original Description")
         # Update the task
@@ -184,11 +187,9 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.critical
-    @patch("core.user_item_storage.get_user_data_dir")
-    def test_complete_task(self, mock_get_user_dir, temp_dir):
+    def test_complete_task(self, temp_dir):
         """Test task completion with file and side effect verification."""
         user_id = "test-user-complete-task"
-        mock_get_user_dir.return_value = temp_dir
 
         # Create a task
         task_id = create_task(user_id, "Test Task")
@@ -217,11 +218,9 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
-    @patch("core.user_item_storage.get_user_data_dir")
-    def test_delete_task(self, mock_get_user_dir, temp_dir):
+    def test_delete_task(self, temp_dir):
         """Test task deletion with file verification."""
         user_id = "test-user-delete-task"
-        mock_get_user_dir.return_value = temp_dir
         # Create a task
         task_id = create_task(user_id, "Test Task")
         # Delete the task
@@ -239,11 +238,9 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
-    @patch("core.user_item_storage.get_user_data_dir")
-    def test_get_task_by_id(self, mock_get_user_dir, temp_dir):
+    def test_get_task_by_id(self, temp_dir):
         """Test getting a task by ID with file verification."""
         user_id = "test-user-get-task"
-        mock_get_user_dir.return_value = temp_dir
         # Create a task
         task_id = create_task(user_id, "Test Task", "Desc")
         # Get the task by ID
@@ -260,11 +257,9 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.slow
-    @patch("core.user_item_storage.get_user_data_dir")
-    def test_get_tasks_due_soon(self, mock_get_user_dir, temp_dir):
+    def test_get_tasks_due_soon(self, temp_dir):
         """Test getting tasks due soon with file verification."""
         user_id = "test-user-due-soon"
-        mock_get_user_dir.return_value = temp_dir
 
         # Create tasks with due dates
         today = now_datetime_full().date()
@@ -321,11 +316,9 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
-    @patch("core.user_item_storage.get_user_data_dir")
-    def test_get_user_task_stats(self, mock_get_user_dir, temp_dir):
+    def test_get_user_task_stats(self, temp_dir):
         """Test getting user task statistics with file verification."""
         user_id = "test-user-task-stats"
-        mock_get_user_dir.return_value = temp_dir
         # Create tasks
         id1 = create_task(user_id, "Task 1")
         id2 = create_task(user_id, "Task 2")

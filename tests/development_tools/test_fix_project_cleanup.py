@@ -10,7 +10,7 @@ import contextlib
 
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from tests.development_tools.conftest import load_development_tools_module
 
@@ -27,7 +27,7 @@ class TestProjectCleanup:
     @pytest.mark.unit
     def test_init_default_project_root(self, temp_project_copy):
         """Test initialization with default project root."""
-        with patch('development_tools.shared.fix_project_cleanup.config') as mock_config:
+        with patch.object(cleanup_module, "config") as mock_config:
             mock_config.get_project_root.return_value = str(temp_project_copy)
             
             cleanup = ProjectCleanup()
@@ -444,7 +444,7 @@ class TestProjectCleanupMain:
     @pytest.mark.unit
     def test_main_dry_run(self, temp_project_copy):
         """Test main function with --dry-run flag."""
-        with patch('development_tools.shared.fix_project_cleanup.ProjectCleanup') as mock_cleanup_class:
+        with patch.object(cleanup_module, "ProjectCleanup") as mock_cleanup_class:
             mock_cleanup = MagicMock()
             mock_cleanup_class.return_value = mock_cleanup
             mock_cleanup.cleanup_all.return_value = {
@@ -463,7 +463,7 @@ class TestProjectCleanupMain:
     @pytest.mark.unit
     def test_main_all_flag(self, temp_project_copy):
         """Test main function with --all flag."""
-        with patch('development_tools.shared.fix_project_cleanup.ProjectCleanup') as mock_cleanup_class:
+        with patch.object(cleanup_module, "ProjectCleanup") as mock_cleanup_class:
             mock_cleanup = MagicMock()
             mock_cleanup_class.return_value = mock_cleanup
             mock_cleanup.cleanup_all.return_value = {
@@ -483,7 +483,7 @@ class TestProjectCleanupMain:
     @pytest.mark.unit
     def test_main_json_output(self, temp_project_copy):
         """Test main function with --json flag."""
-        with patch('development_tools.shared.fix_project_cleanup.ProjectCleanup') as mock_cleanup_class:
+        with patch.object(cleanup_module, "ProjectCleanup") as mock_cleanup_class:
             mock_cleanup = MagicMock()
             mock_cleanup_class.return_value = mock_cleanup
             mock_cleanup.cleanup_all.return_value = {
@@ -505,7 +505,7 @@ class TestProjectCleanupMain:
     @pytest.mark.unit
     def test_main_exit_code_on_failure(self, temp_project_copy):
         """Test main function exit code when cleanup fails."""
-        with patch('development_tools.shared.fix_project_cleanup.ProjectCleanup') as mock_cleanup_class:
+        with patch.object(cleanup_module, "ProjectCleanup") as mock_cleanup_class:
             mock_cleanup = MagicMock()
             mock_cleanup_class.return_value = mock_cleanup
             mock_cleanup.cleanup_all.return_value = {

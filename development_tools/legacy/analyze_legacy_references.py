@@ -69,30 +69,7 @@ class LegacyReferenceAnalyzer:
         # Load legacy configuration from external config
         legacy_config = config.get_external_value("legacy_cleanup", {})
 
-        # Legacy patterns to identify (from config or provided, with generic defaults)
-        if legacy_tokens is not None:
-            self.legacy_patterns = legacy_tokens
-        else:
-            # Load from config or use generic defaults
-            config_patterns = legacy_config.get("legacy_patterns", {})
-            if config_patterns:
-                # Convert string patterns to regex patterns (if they're strings)
-                self.legacy_patterns = {}
-                for category, patterns in config_patterns.items():
-                    self.legacy_patterns[category] = [
-                        p if isinstance(p, str) else str(p) for p in patterns
-                    ]
-            else:
-                # Generic defaults (projects should provide their own via config)
-                self.legacy_patterns = {
-                    "legacy_compatibility_markers": [
-                        r"# LEGACY COMPATIBILITY:",
-                        r"# LEGACY:",
-                    ],
-                }
-
-        # Load deprecation inventory (single canonical source) and inject
-        # active/candidate search terms into the scan patterns.
+        # Deprecation inventory first: canonical legacy_scan_patterns + active entry terms
         self.deprecation_inventory_path = self._resolve_deprecation_inventory_path(
             legacy_config
         )
@@ -100,6 +77,42 @@ class LegacyReferenceAnalyzer:
             self.deprecation_inventory_data,
             self.deprecation_inventory_summary,
         ) = self._load_deprecation_inventory(self.deprecation_inventory_path)
+
+        # Legacy regex categories: DEPRECATION_INVENTORY.json legacy_scan_patterns,
+        # optional override per category via legacy_cleanup.legacy_patterns in config.
+        if legacy_tokens is not None:
+            self.legacy_patterns = legacy_tokens
+        else:
+            inv_patterns_raw = self.deprecation_inventory_data.get(
+                "legacy_scan_patterns"
+            )
+            inv_patterns = inv_patterns_raw if isinstance(inv_patterns_raw, dict) else {}
+            cfg_patterns_raw = legacy_config.get("legacy_patterns")
+            cfg_patterns = cfg_patterns_raw if isinstance(cfg_patterns_raw, dict) else {}
+            merged: dict[str, list[str]] = {}
+            for category in sorted(
+                set(inv_patterns.keys()) | set(cfg_patterns.keys()),
+                key=str,
+            ):
+                cfg_vals = cfg_patterns.get(category)
+                inv_vals = inv_patterns.get(category)
+                if isinstance(cfg_vals, list) and len(cfg_vals) > 0:
+                    merged[category] = [
+                        p if isinstance(p, str) else str(p) for p in cfg_vals
+                    ]
+                elif isinstance(inv_vals, list) and len(inv_vals) > 0:
+                    merged[category] = [
+                        p if isinstance(p, str) else str(p) for p in inv_vals
+                    ]
+            if merged:
+                self.legacy_patterns = merged
+            else:
+                self.legacy_patterns = {
+                    "legacy_compatibility_markers": [
+                        r"# LEGACY COMPATIBILITY:",
+                        r"# LEGACY:",
+                    ],
+                }
         inventory_patterns = self._build_inventory_search_patterns(
             self.deprecation_inventory_data
         )

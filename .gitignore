@@ -120,6 +120,9 @@ desktop.ini
 # Project specific
 # ============================
 
+# Ad-hoc directory tree output (e.g. generate_directory_tree --output custom.md)
+/custom.md
+
 # data/ is primarily user-specific data (intentionally not committed)
 data/
 

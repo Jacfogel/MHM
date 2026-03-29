@@ -21,7 +21,7 @@ legacy patterns, follow these requirements:
 3. Test patterns to ensure they don't create false positives
 4. Document new patterns in this file's docstring
 5. Update the tool when new legacy code is identified
-6. Configure patterns via development_tools_config.json for portability
+6. Configure scan patterns in `DEPRECATION_INVENTORY.json` (`legacy_scan_patterns`); optional config override in `development_tools_config.json`
 """
 
 import argparse
@@ -94,13 +94,16 @@ class LegacyReferenceFixer:
                 # Generic defaults (projects should provide their own via config)
                 self.replacement_mappings = {}
 
-        # Validate required specific legacy-pattern registrations for compatibility bridges.
-        configured_patterns = legacy_config.get("legacy_patterns", {})
+        # Validate required pattern keys against resolved categories (inventory + config).
+        _resolver = LegacyReferenceAnalyzer(
+            project_root=str(self.project_root), use_cache=False
+        )
+        configured_patterns = _resolver.legacy_patterns
         for pattern_key in REQUIRED_LEGACY_PATTERN_KEYS:
             if pattern_key not in configured_patterns:
                 logger.warning(
-                    "Legacy cleanup config missing required specific pattern key: "
-                    f"{pattern_key}"
+                    "Legacy cleanup missing required specific pattern key after "
+                    f"inventory/config merge: {pattern_key}"
                 )
 
     def cleanup_legacy_references(

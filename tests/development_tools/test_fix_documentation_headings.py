@@ -24,7 +24,7 @@ class TestDocumentationHeadingFixer:
     @pytest.mark.unit
     def test_init_default_project_root(self, temp_project_copy):
         """Test initialization with default project root."""
-        with patch('development_tools.docs.fix_documentation_headings.config') as mock_config:
+        with patch.object(headings_module, "config") as mock_config:
             mock_config.get_project_root.return_value = str(temp_project_copy)
             
             fixer = DocumentationHeadingFixer()
@@ -56,7 +56,7 @@ Content here.
 More content.
 """)
         
-        with patch('development_tools.docs.fix_documentation_headings.DEFAULT_DOCS', ['test_doc.md']):
+        with patch.object(headings_module, "DEFAULT_DOCS", ['test_doc.md']):
             fixer = DocumentationHeadingFixer(project_root=str(temp_project_copy))
             result = fixer.fix_number_headings(dry_run=True)
             
@@ -87,7 +87,7 @@ Content here.
 More content.
 """)
         
-        with patch('development_tools.docs.fix_documentation_headings.DEFAULT_DOCS', ['test_doc.md']):
+        with patch.object(headings_module, "DEFAULT_DOCS", ['test_doc.md']):
             fixer = DocumentationHeadingFixer(project_root=str(temp_project_copy))
             result = fixer.fix_number_headings(dry_run=False)
             
@@ -113,7 +113,7 @@ More content.
 Content without numbering.
 """)
         
-        with patch('development_tools.docs.fix_documentation_headings.DEFAULT_DOCS', ['CHANGELOG.md']):
+        with patch.object(headings_module, "DEFAULT_DOCS", ['CHANGELOG.md']):
             fixer = DocumentationHeadingFixer(project_root=str(temp_project_copy))
             result = fixer.fix_number_headings(dry_run=False)
             
@@ -137,7 +137,7 @@ Content here.
 More content.
 """)
         
-        with patch('development_tools.docs.fix_documentation_headings.DEFAULT_DOCS', ['test_doc.md']):
+        with patch.object(headings_module, "DEFAULT_DOCS", ['test_doc.md']):
             fixer = DocumentationHeadingFixer(project_root=str(temp_project_copy))
             result = fixer.fix_number_headings(dry_run=False, start_at_zero=True)
             
@@ -147,7 +147,7 @@ More content.
     @pytest.mark.unit
     def test_fix_number_headings_nonexistent_file(self, temp_project_copy):
         """Test handling of non-existent files."""
-        with patch('development_tools.docs.fix_documentation_headings.DEFAULT_DOCS', ['nonexistent.md']):
+        with patch.object(headings_module, "DEFAULT_DOCS", ['nonexistent.md']):
             fixer = DocumentationHeadingFixer(project_root=str(temp_project_copy))
             result = fixer.fix_number_headings(dry_run=False)
             
@@ -162,7 +162,7 @@ More content.
         doc_file = temp_project_copy / "test_doc.md"
         doc_file.write_text("# Test")
         
-        with patch('development_tools.docs.fix_documentation_headings.DEFAULT_DOCS', ['test_doc.md']):
+        with patch.object(headings_module, "DEFAULT_DOCS", ['test_doc.md']):
             fixer = DocumentationHeadingFixer(project_root=str(temp_project_copy))
             
             # Mock file read to raise exception
@@ -289,7 +289,7 @@ class TestFixDocumentationHeadingsMain:
     @pytest.mark.unit
     def test_main_dry_run(self, temp_project_copy):
         """Test main function with --dry-run flag."""
-        with patch('development_tools.docs.fix_documentation_headings.DocumentationHeadingFixer') as mock_fixer_class:
+        with patch.object(headings_module, "DocumentationHeadingFixer") as mock_fixer_class:
             mock_fixer = mock_fixer_class.return_value
             mock_fixer.fix_number_headings.return_value = {
                 'files_updated': 0,
@@ -308,7 +308,7 @@ class TestFixDocumentationHeadingsMain:
     @pytest.mark.unit
     def test_main_start_at_zero(self, temp_project_copy):
         """Test main function with --start-at-zero flag."""
-        with patch('development_tools.docs.fix_documentation_headings.DocumentationHeadingFixer') as mock_fixer_class:
+        with patch.object(headings_module, "DocumentationHeadingFixer") as mock_fixer_class:
             mock_fixer = mock_fixer_class.return_value
             mock_fixer.fix_number_headings.return_value = {
                 'files_updated': 2,
@@ -326,7 +326,7 @@ class TestFixDocumentationHeadingsMain:
     @pytest.mark.unit
     def test_main_exit_code_on_error(self, temp_project_copy):
         """Test main function exit code when errors occur."""
-        with patch('development_tools.docs.fix_documentation_headings.DocumentationHeadingFixer') as mock_fixer_class:
+        with patch.object(headings_module, "DocumentationHeadingFixer") as mock_fixer_class:
             mock_fixer = mock_fixer_class.return_value
             mock_fixer.fix_number_headings.return_value = {
                 'files_updated': 1,

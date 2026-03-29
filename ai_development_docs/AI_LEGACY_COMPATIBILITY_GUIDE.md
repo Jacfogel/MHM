@@ -43,7 +43,7 @@ Use this guide only after you understand the general documentation and developme
 - Mark code with a clear `# LEGACY COMPATIBILITY:` header.
 - Log usage when the legacy path is exercised.
 - Add, or update, a removal plan in the relevant docs or changelog.
-- Register all legacy compatibility patterns/paths/functions/parameters in `development_tools/config/development_tools_config.json` under `legacy_cleanup.legacy_patterns`.
+- Register legacy scan regex categories in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` under `legacy_scan_patterns` (optional per-category override in `development_tools_config.json` under `legacy_cleanup.legacy_patterns`).
 - Add specific detection patterns to `development_tools/legacy/fix_legacy_references.py` (no broad patterns like `"legacy"`).
 - Add or update an entry in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` with status `active_bridge` or `deprecated_in_use`.
 

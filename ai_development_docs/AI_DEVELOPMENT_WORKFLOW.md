@@ -149,7 +149,7 @@ Use these patterns for frequent change types. Keep responses concise and route t
 - If adding or keeping legacy compatibility code, required minimum:
   - legacy compatibility is not desirable and must always be temporary bridge code,
   - add `LEGACY COMPATIBILITY` headers and runtime logging,
-  - register legacy patterns/paths/functions/parameters in `development_tools/config/development_tools_config.json` (`legacy_cleanup.legacy_patterns`),
+  - register legacy scan regex categories in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` (`legacy_scan_patterns`); optional emergency override in `development_tools_config.json` (`legacy_cleanup.legacy_patterns`),
   - add or update `development_tools/config/jsons/DEPRECATION_INVENTORY.json` with status (`active_bridge` or `deprecated_in_use`),
   - document explicit removal criteria/next action,
   - add or update regression tests for both compatibility and modern paths,

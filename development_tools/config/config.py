@@ -99,6 +99,31 @@ PROJECT_ROOT = str(_DEFAULT_PROJECT_ROOT)
 # Generic default scan directories (should be overridden via config file)
 SCAN_DIRECTORIES = []  # Empty by default - requires config file
 
+# project.core_system_files derivation; see get_project_core_system_files.
+_CORE_SYSTEM_FILES_ORDER = (
+    ".gitignore",
+    "core/config.py",
+    "core/service.py",
+    "requirements.txt",
+    "run_mhm.py",
+)
+# Included even when absent from project.key_files (health/version-sync convention).
+_CORE_SYSTEM_FILES_ALWAYS = frozenset({".gitignore", "requirements.txt"})
+# Default analyze_function_registry.priority_directories ordering when not in JSON.
+_PRIORITY_DIRECTORIES_ORDER = (
+    "core",
+    "communication",
+    "ai",
+    "ui",
+    "user",
+    "tasks",
+    "tests",
+    "scripts",
+    "notebook",
+    "development_tools",
+    "data",
+)
+
 # AI Collaboration Optimization
 AI_COLLABORATION = {
     "concise_output": True,  # Generate concise summaries for AI context
@@ -115,36 +140,36 @@ FUNCTION_DISCOVERY = {
     "high_complexity_threshold": 100,  # Functions above this complexity need refactoring
     "critical_complexity_threshold": 200,  # Functions above this complexity are critical
     "min_docstring_length": 10,  # Minimum docstring length to be considered documented
-    "handler_keywords": [  # Keywords that indicate handler/utility functions
-        "handle",
-        "process",
-        "validate",
+    "handler_keywords": [
         "check",
-        "get",
-        "set",
-        "save",
-        "load",
-        "create",
-        "update",
-        "delete",
-        "manage",
         "configure",
+        "create",
+        "delete",
+        "get",
+        "handle",
+        "load",
+        "manage",
+        "process",
+        "save",
+        "set",
         "setup",
+        "update",
+        "validate",
     ],
-    "test_keywords": [  # Keywords that indicate test functions
-        "test_",
-        "test",
-        "check_",
-        "verify_",
+    "test_keywords": [
         "assert_",
+        "check_",
+        "test",
+        "test_",
+        "verify_",
     ],
-    "critical_functions": [  # Functions that are critical for system operation
+    "critical_functions": [
+        "init",
         "main",
         "run",
+        "setup",
         "start",
         "stop",
-        "init",
-        "setup",
         "validate",
     ],
 }
@@ -396,17 +421,25 @@ def get_project_key_files(default: list | None = None) -> list:
 
 
 def get_project_core_system_files(default: list | None = None) -> list:
-    """Get project core system files from config (from external config if available, otherwise default).
+    """Core system files: explicit project.core_system_files, else derived from key_files order.
 
-    Checks project.core_system_files first, then falls back to project.key_files if not found.
+    Derived list: intersection of project.key_files with _CORE_SYSTEM_FILES_ORDER (preserves order).
     """
     if default is None:
         default = ["README.md", "requirements.txt", ".gitignore"]
     core_files = _get_external_value("project.core_system_files", None)
-    # If core_system_files is empty or invalid, fall back to key_files
-    if not core_files or not isinstance(core_files, list) or len(core_files) == 0:
-        core_files = _get_external_value("project.key_files", default)
-    return core_files if isinstance(core_files, list) else default
+    if isinstance(core_files, list) and len(core_files) > 0:
+        return core_files
+    key_files = _get_external_value("project.key_files", default)
+    if not isinstance(key_files, list):
+        key_files = default
+    kf_set = set(key_files)
+    derived = [
+        f
+        for f in _CORE_SYSTEM_FILES_ORDER
+        if f in kf_set or f in _CORE_SYSTEM_FILES_ALWAYS
+    ]
+    return derived if derived else list(key_files)
 
 
 def get_analyze_functions_config():
@@ -421,12 +454,21 @@ def get_analyze_functions_config():
 
 def get_validation_config():
     """Get validation configuration (from external config if available, otherwise default)."""
+    af = get_analyze_functions_config()
+    result = VALIDATION.copy()
+    result["moderate_complexity_warning"] = af.get(
+        "moderate_complexity_threshold", result["moderate_complexity_warning"]
+    )
+    result["high_complexity_warning"] = af.get(
+        "high_complexity_threshold", result["high_complexity_warning"]
+    )
+    result["critical_complexity_warning"] = af.get(
+        "critical_complexity_threshold", result["critical_complexity_warning"]
+    )
     external_config = _get_external_value("validation", None)
     if external_config:
-        result = VALIDATION.copy()
         result.update(external_config)
-        return result
-    return VALIDATION
+    return result
 
 
 def get_error_handling_config():
@@ -580,6 +622,7 @@ def get_paths_config():
     NOTE: Defaults are generic. Projects should provide config file for proper paths.
     """
     tests_dir = _get_external_value("paths.tests_dir", "tests")
+    tests_dir = str(tests_dir).strip().rstrip("/\\") or "tests"
     paths = {
         "docs_dir": _get_external_value("paths.docs_dir", "docs"),  # Generic default
         "logs_dir": _get_external_value("paths.logs_dir", "logs"),
@@ -596,6 +639,23 @@ def get_paths_config():
         ),
     }
     return paths
+
+
+def get_coverage_tool_config() -> dict[str, Any]:
+    """Coverage/pytest tool settings with test_directory aligned to paths.tests_dir."""
+    external = _get_external_value("coverage", None)
+    result: dict[str, Any] = {}
+    if isinstance(external, dict):
+        result.update(external)
+    paths = get_paths_config()
+    tests_dir = str(paths.get("tests_dir", "tests")).strip().rstrip("/\\") or "tests"
+    td = result.get("test_directory")
+    if not td:
+        result["test_directory"] = f"{tests_dir}/"
+    else:
+        ts = str(td).replace("\\", "/").strip()
+        result["test_directory"] = ts if ts.endswith("/") else f"{ts}/"
+    return result
 
 
 def get_data_freshness_config():
@@ -630,16 +690,80 @@ def get_exclusions_config():
     return exclusions if isinstance(exclusions, dict) else {}
 
 
+def _normalize_doc_path(path: str) -> str:
+    return str(path).strip().replace("\\", "/")
+
+
+def _derive_default_docs_list() -> list[str]:
+    """Union paired_docs, fix_version_sync path lists, and default_docs_extra."""
+    raw_constants = _get_external_value("constants", {}) or {}
+    paired_raw = raw_constants.get("paired_docs")
+    paired = paired_raw if isinstance(paired_raw, dict) else {}
+    extra_raw = raw_constants.get("default_docs_extra")
+    extra = extra_raw if isinstance(extra_raw, list) else []
+    vs = _get_external_value("fix_version_sync", {}) or {}
+    paths: set[str] = set()
+    for human, ai in paired.items():
+        if isinstance(human, str) and human.strip():
+            paths.add(_normalize_doc_path(human))
+        if isinstance(ai, str) and ai.strip():
+            paths.add(_normalize_doc_path(ai))
+    for key in ("ai_docs", "docs"):
+        lst = vs.get(key)
+        if isinstance(lst, list):
+            for p in lst:
+                if isinstance(p, str) and p.strip() and "*" not in p:
+                    paths.add(_normalize_doc_path(p))
+    for p in extra:
+        if isinstance(p, str) and p.strip():
+            paths.add(_normalize_doc_path(p))
+    return sorted(paths)
+
+
+TEST_MARKERS_BASE: dict[str, Any] = {
+    "categories": ["unit", "integration", "behavior", "ui"],
+    "transient_data_path_markers": [
+        "/tmp/",
+        "/tmp_pytest_runtime/",
+        "pytest-tmp-",
+        "pytest-of-",
+    ],
+    "ai_path_tokens": ["ai/test_ai", "test_ai"],
+}
+
+
 def get_constants_config():
     """
-    Get constants configuration from external config.
-    Returns dict with project-specific constants (default_docs, paired_docs, etc.).
+    Get constants configuration (merged).
 
-    NOTE: Returns empty dict if no external config. constants.py will use
-    its internal defaults as fallback.
+    default_docs is derived from paired_docs, fix_version_sync doc lists, and
+    default_docs_extra unless default_docs is set explicitly.
+
+    fix_version_sync_directories is augmented from local_module_prefixes for any
+    prefix missing a directory entry (preserves explicit extra roots like resources/).
     """
-    constants = _get_external_value("constants", {})
-    return constants if isinstance(constants, dict) else {}
+    raw = _get_external_value("constants", {})
+    constants: dict[str, Any] = dict(raw) if isinstance(raw, dict) else {}
+    explicit_dd = constants.get("default_docs")
+    if isinstance(explicit_dd, list) and len(explicit_dd) > 0:
+        constants["default_docs"] = [str(x) for x in explicit_dd]
+    else:
+        derived_docs = _derive_default_docs_list()
+        if not derived_docs:
+            derived_docs = ["README.md", "TODO.md"]
+        constants["default_docs"] = derived_docs
+
+    prefixes = constants.get("local_module_prefixes")
+    fvsd_raw = constants.get("fix_version_sync_directories")
+    fvsd: dict[str, str] = dict(fvsd_raw) if isinstance(fvsd_raw, dict) else {}
+    if isinstance(prefixes, list):
+        for p in prefixes:
+            k = str(p).strip()
+            if k and k not in fvsd:
+                fvsd[k] = f"{k}/"
+    if fvsd:
+        constants["fix_version_sync_directories"] = fvsd
+    return constants
 
 
 def get_test_markers_config():
@@ -654,9 +778,9 @@ def get_test_markers_config():
         - ai_path_tokens
     """
     test_markers = _get_external_value("test_markers", {})
-    if not isinstance(test_markers, dict):
-        return {}
-    result = dict(test_markers)
+    result = dict(TEST_MARKERS_BASE)
+    if isinstance(test_markers, dict):
+        result.update(test_markers)
     # Derive directory_to_marker from categories when absent or empty (identity map)
     if "directory_to_marker" not in result or not result["directory_to_marker"]:
         categories = result.get("categories", ("unit", "integration", "behavior", "ui"))
@@ -668,10 +792,23 @@ def get_test_markers_config():
 # Documentation analysis configuration
 # NOTE: Defaults are minimal. See development_tools_config.json.example for full examples.
 DOCUMENTATION_ANALYSIS = {
-    "heading_patterns": ["## ", "### "],  # Generic markdown patterns
-    "placeholder_patterns": [r"TBD", r"TODO"],  # Minimal generic patterns
+    "heading_patterns": ["## ", "### "],
+    "placeholder_patterns": [
+        r"TBD",
+        r"TODO",
+        r"to be filled",
+        r"\[insert[^\]]*\]",
+    ],
     "placeholder_flags": ["IGNORECASE"],
-    "topic_keywords": {},  # Empty - projects should define their own
+    "topic_keywords": {
+        "Setup & Installation": ["install", "setup", "environment", "run"],
+        "Development Workflow": ["commit", "develop", "merge", "refactor", "workflow"],
+        "Testing": ["test", "pytest", "coverage", "suite"],
+        "Architecture": ["architecture", "module", "dependency", "structure"],
+        "Troubleshooting": ["debug", "error", "fail", "failure", "issue"],
+        "Code Quality": ["quality", "lint", "style", "pattern"],
+        "Project Structure": ["directory", "structure", "tree"],
+    },
     "ignore_rules": [],
 }
 
@@ -710,11 +847,19 @@ AUDIT_FUNCTION_REGISTRY = {
 def get_analyze_function_registry_config():
     """Get audit function registry configuration (from external config if available, otherwise default)."""
     external_config = _get_external_value("analyze_function_registry", None)
+    result = AUDIT_FUNCTION_REGISTRY.copy()
     if external_config:
-        result = AUDIT_FUNCTION_REGISTRY.copy()
         result.update(external_config)
-        return result
-    return AUDIT_FUNCTION_REGISTRY
+    if not result.get("priority_directories"):
+        prefixes = _get_external_value("constants.local_module_prefixes", None)
+        if isinstance(prefixes, list) and prefixes:
+            pref_set = {str(p).strip() for p in prefixes if str(p).strip()}
+            ordered = [p for p in _PRIORITY_DIRECTORIES_ORDER if p in pref_set]
+            for p in sorted(pref_set):
+                if p not in ordered:
+                    ordered.append(p)
+            result["priority_directories"] = ordered
+    return result
 
 
 # Function pattern analysis (entry points, data access, communication, decorators)
@@ -930,19 +1075,27 @@ VALIDATE_AI_WORK = {
 
 
 def get_analyze_ai_work_config():
-    """Get validate AI work configuration (from external config if available, otherwise default)."""
+    """Get validate AI work configuration. Thresholds default from ai_validation (LIST_OF_LISTS §4)."""
+    ai_val = get_ai_validation_config()
+    result = VALIDATE_AI_WORK.copy()
+    for key in (
+        "completeness_threshold",
+        "accuracy_threshold",
+        "consistency_threshold",
+        "actionable_threshold",
+    ):
+        if key in ai_val:
+            result[key] = ai_val[key]
     external_config = _get_external_value("analyze_ai_work", None)
     if external_config:
-        result = VALIDATE_AI_WORK.copy()
-        # Deep merge for nested dicts
-        if "rule_sets" in external_config and "rule_sets" in result:
-            result["rule_sets"].update(external_config.get("rule_sets", {}))
-        # Update other keys
+        if "rule_sets" in external_config and isinstance(
+            external_config["rule_sets"], dict
+        ):
+            result["rule_sets"].update(external_config["rule_sets"])
         for key, value in external_config.items():
-            if key not in ("rule_sets",):
+            if key != "rule_sets":
                 result[key] = value
-        return result
-    return VALIDATE_AI_WORK
+    return result
 
 
 # Shared tool commands (canonical for ruff_command; unused_imports and static_analysis derive from here)

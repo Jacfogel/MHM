@@ -29,6 +29,13 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+
+### 2026-03-29 - Config consolidation + inventory legacy patterns **COMPLETED**
+- **DEPRECATION_INVENTORY** holds `legacy_scan_patterns`; dev-tools JSON trimmed; analyzers derive `default_docs`, core-system files, coverage test dir, registry priority dirs, validation/analyze_ai_work thresholds.
+- **LIST_OF_LISTS** section 12b flags config blocks for future ROI review; sections 3 and 13 updated for canonical locations.
+- **Dev-tools tests**: `patch.object` on `load_development_tools_module` targets for `generate_directory_tree`, `fix_project_cleanup`, and `fix_documentation_headings` (`config` / `DEFAULT_DOCS` / `DocumentationHeadingFixer`) - avoids patches missing the importlib-loaded module under parallel/coverage (`audit --full` Tier 3).
+- **Task behavior tests**: autouse `monkeypatch` on `core.user_item_storage.get_user_data_dir` so task JSON stays under each test's `test_path_factory` root (fixes Tier 3 parallel failures from I/O under `tests/data/users/...`). **Docs**: ASCII cleanup in paired changelogs; repo-relative links in [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md); unconverted-link + LIST_OF_LISTS path-drift cleanup (`CONFIGURATION_REFERENCE` link text; qualify `config.py` as `development_tools/config/config.py`); `doc-sync` PASS; root `custom.md` removed and gitignored (tree-generator artifact).
+
 ### 2026-03-28 - V5 plan: legacy report clean, DEV_TOOLS report scope, Pyright venv **COMPLETED**
 - **Inventory / legacy**: `root_ruff_compat_mirror` no longer injects grep `search_terms` (bridge still listed); `LEGACY_REFERENCE_REPORT` can show **0** hits while the entry documents exit criteria.
 - **Reports**: Dev-tools-only audits label `DEV_TOOLS_*.md` outputs, scope blurbs, source line with `--dev-tools-only`, and drop full-repo domain-coverage priority from dev-tools priorities; `core.py` duplicate `_tools_run_in_current_tier` line removed.
@@ -117,11 +124,6 @@ Guidelines:
 - **AI_PRIORITIES and report generation**: Split static analysis into separate "Address Ruff findings" and "Address Pyright findings" items so each appears only when that tool has issues; removed "Deferred Ruff style rules" watch list. Updated test_report_generation_static_analysis to expect the new titles.
 - **Workflow**: Added subsection 5.4 (DEVELOPMENT_WORKFLOW) and **Ruff and Pyright** (AI_DEVELOPMENT_WORKFLOW): when Ruff and Pyright conflict, prefer Pyright on type/attribute issues and use targeted Ruff noqa.
 - **Tests**: Marked `test_scheduled_user_creation` and `test_create_account_persists_checkin_settings` with `@pytest.mark.no_parallel` and reason comments to fix parallel flakiness; added reason comments so test_no_parallel_marker_requires_reason passes.
-
-### 2026-03-16 - Portability, exclusions, and analyze_pyright robustness **COMPLETED**
-- **Portability (3.17)**: Test/discovery paths are config-driven via `paths.tests_dir` and `paths.tests_data_dir`. Updated `run_development_tools.py` (cleanup), `fix_project_cleanup.py`, `tests/run_test_coverage.py` (logs/tmp and pytest basetemp), and `ai_work/analyze_ai_work.py` to use `config.get_paths_config()` instead of hardcoded `tests/data`. Added `imports/analyze_dev_tools_import_boundaries.py` to flag non-approved `core.*` imports inside `development_tools/**`. Plan 3.17 tasks (config-driven paths, exclusions verification, import-boundary check, audit run) marked done.
-- **Exclusions verification**: All scanners now use `should_exclude_file(...)` where applicable. Added usage in `generate_test_coverage_report.py`, `docs/analyze_path_drift.py` (code scan loop), `shared/export_docs_snapshot.py`, and `shared/service/commands.py` (_latest_mtime_for_patterns). Plan 3.17 exclusion note updated.
-- **analyze_pyright**: Timeout and crash handling improved: `run_pyright()` catches `TimeoutError`; `main()` catches `TimeoutExpired`/`TimeoutError` and `Exception`, prints JSON unavailable result and exits 1 so the wrapper always gets parseable output. Tool wrapper logs stderr with a single-argument `logger.warning` (ComponentLogger-compatible). Audit orchestration logs each failed tool's `result["error"]` (error detail) so `main.log` shows the real cause on failure. Fixed Tier 2 indentation in `audit_orchestration.py` (else block).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -7,7 +7,7 @@ placeholder replacement, and file output.
 
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from tests.development_tools.conftest import load_development_tools_module
 
@@ -237,8 +237,8 @@ class TestMainFunction:
     """Test main() function."""
     
     @pytest.mark.unit
-    @patch('subprocess.run')
-    @patch('development_tools.docs.generate_directory_tree.DirectoryTreeGenerator')
+    @patch("subprocess.run")
+    @patch.object(directory_tree_module, "DirectoryTreeGenerator")
     def test_main_success(self, mock_generator_class, mock_subprocess, tmp_path):
         """Test main function with successful generation."""
         mock_subprocess.return_value = MagicMock(returncode=0, stdout="C:\\TEST\n")
@@ -255,8 +255,8 @@ class TestMainFunction:
         assert mock_generator.generate_directory_tree.called
     
     @pytest.mark.unit
-    @patch('subprocess.run')
-    @patch('development_tools.docs.generate_directory_tree.DirectoryTreeGenerator')
+    @patch("subprocess.run")
+    @patch.object(directory_tree_module, "DirectoryTreeGenerator")
     def test_main_with_output_arg(self, mock_generator_class, mock_subprocess, tmp_path):
         """Test main function with --output argument."""
         mock_subprocess.return_value = MagicMock(returncode=0, stdout="C:\\TEST\n")
@@ -275,8 +275,8 @@ class TestMainFunction:
         assert call_args[0][0] == 'custom.md' or call_args.kwargs.get('output_file') == 'custom.md'
     
     @pytest.mark.unit
-    @patch('subprocess.run')
-    @patch('development_tools.docs.generate_directory_tree.DirectoryTreeGenerator')
+    @patch("subprocess.run")
+    @patch.object(directory_tree_module, "DirectoryTreeGenerator")
     def test_main_failure(self, mock_generator_class, mock_subprocess):
         """Test main function when generation fails."""
         mock_subprocess.return_value = MagicMock(returncode=1, stdout="")
